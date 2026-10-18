@@ -1,8 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
-import { FlightBoard } from "@/components/flight-board";
+import { FlightsPageBoard } from "@/components/flights-page-board";
 import { SectionHero } from "@/components/section-hero";
-import { isAirportCode, isBoard, SAMPLE_FLIGHTS } from "@/lib/flights";
 
 export const metadata: Metadata = {
   title: "Flight Information",
@@ -17,15 +16,7 @@ const HELP_LINKS = [
   { label: "Getting to the airport", href: "/travel/ground-transportation" },
 ];
 
-export default async function FlightsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ board?: string; airport?: string }>;
-}) {
-  const params = await searchParams;
-  const board = isBoard(params.board) ? params.board : "arrivals";
-  const airport = isAirportCode(params.airport) ? params.airport : "GND";
-
+export default function FlightsPage() {
   return (
     <>
       <SectionHero
@@ -34,11 +25,7 @@ export default async function FlightsPage({
         title="Arrivals & departures"
       />
       <div className="mx-auto max-w-5xl px-4 py-12 lg:px-8">
-        <FlightBoard
-          flights={SAMPLE_FLIGHTS}
-          initialAirport={airport}
-          initialBoard={board}
-        />
+        <FlightsPageBoard />
         <nav
           aria-label="Related travel information"
           className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
