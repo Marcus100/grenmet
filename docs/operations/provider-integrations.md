@@ -2,7 +2,7 @@
 
 **Status:** Active reference — configuration prepared; live acceptance pending  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-10
+**Last updated:** 2026-10-18
 
 Status: repository configuration prepared; account-side setup and live acceptance
 remain pending. No VM, DNS, account subscription or deployment was changed.
@@ -12,12 +12,25 @@ output on 2026-09-10:
 | Environment | Host | SSH account | Root disk usage shown at login |
 | --- | --- | --- | --- |
 | Staging | `167.71.24.42` / `grenmet-staging-01` | `root` | 62.1% of 47.39 GB |
-| Production | `134.122.119.220` / `grenmet-prod` | `deploy` | 96.2% of 47.39 GB |
+| Production | `134.122.119.220` / `grenmet-prod` | `deploy` | 96.2% of 47.39 GB (44% on 2026-10-18) |
 
-Production disk pressure needs diagnosis before deployment. Start with `df -h /`,
-`docker system df` and a container inventory. Do not prune database volumes or
-backup files blindly. These figures are supplied login output, not agent-run
-measurements. Both hosts report a pending restart; plan maintenance after
+**Production re-check, 2026-10-18** (owner-run, read-only commands): root disk
+44% used (21 of 48 GB, 27 GB free); the September pressure is resolved. All 14
+long-running containers healthy. Docker images 10.5 GB, of which 6.3 GB is the
+two previous releases (untagged digests kept as the rollback path; prune only
+after the next production deploy is verified, never with a bare
+`docker image prune`, which would remove every untagged rollback image).
+Volumes 1.1 GB (`nhc-archive` 932 MB, `pgdata` 134 MB). The systemd journal
+holds 1.3 GB and can be capped with `journalctl --vacuum-size=500M`.
+
+Exactly one GitHub Actions runner is registered and running on production:
+`actions.runner.Marcus100-grenmet.grenmet-prod-01`, as the non-root
+`github-runner` user. A leftover root-owned `/root/actions-runner` install
+(not registered as a service) was removed on 2026-10-18.
+
+Before pruning anything, start with `df -h /`, `docker system df` and a
+container inventory. Do not prune database volumes or backup files blindly.
+Both hosts reported a pending restart in September; plan maintenance after
 confirming services, backups and recovery access.
 
 Current repository domains are `*.staging.barrels.gd` and `*.barrels.gd`;
