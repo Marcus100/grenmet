@@ -16,7 +16,7 @@ tooling. Start with `docs/technical-overview.md`.
 | Path | Covers |
 | --- | --- |
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
-| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, organisations, flights, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline) |
+| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline) |
 | `apps/web/<app>/AGENTS.md` | admin, auth, cms, docs, elections, events, gaa-admin, gms, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `packages/<pkg>/AGENTS.md` | api-client, auth, email-templates, gms, theme, ui |
