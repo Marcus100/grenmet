@@ -14,13 +14,14 @@ from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED
 from src.rate_limit import limiter
 
-from . import public, rules, sends
+from . import public, qc, rules, sends
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
     ObservationSend,
     ObservationSendList,
     PublicCurrentConditions,
     PublicMonthSummaryResponse,
+    QcDecisionRequest,
     RegisterObservationCreate,
     RegisterObservationList,
     RegisterObservationRead,
@@ -49,6 +50,11 @@ async def list_register_observations(
     response: Response,
     station_id: Annotated[str | None, Query(max_length=64)] = None,
     kind: str | None = Query(default=None, pattern="^(SYNOP|METAR|SPECI)$"),
+    state: str | None = Query(
+        default=None,
+        pattern="^(draft|qc_pending|accepted|rejected|superseded)$",
+        description="Only observations in this QC state (the QC queue is draft and qc_pending).",
+    ),
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
 ) -> RegisterObservationList:
     response.headers["Cache-Control"] = "private, no-store"
@@ -59,11 +65,12 @@ async def list_register_observations(
             FROM register_observations
             WHERE (CAST(:station_id AS text) IS NULL OR station_id = :station_id)
               AND (CAST(:kind AS text) IS NULL OR kind = CAST(:kind AS observation_kind))
+              AND (CAST(:state AS text) IS NULL OR state = CAST(:state AS register_state))
             ORDER BY observed_at DESC
             LIMIT :limit
             """
         ),
-        {"station_id": station_id, "kind": kind, "limit": limit},
+        {"station_id": station_id, "kind": kind, "state": state, "limit": limit},
     )
     return RegisterObservationList(
         observations=[_read(dict(row)) for row in result.mappings()]
@@ -171,7 +178,8 @@ async def email_register_observation(
     description=(
         "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the "
         "wis2box incoming drop through an ARQ job with retries. Requires "
-        "`eregister.send`. 409 unless WIS2BOX_* is configured, or when the "
+        "`eregister.send`. Only QC-accepted observations are published: 409 "
+        "otherwise, unless WIS2BOX_* is configured, or when the "
         "observation was already queued (send `resend: true` to repeat)."
     ),
     responses=SEND_RESPONSES,
@@ -184,7 +192,7 @@ async def publish_register_observation(
     body: SendObservationRequest | None = None,
 ) -> ObservationSend:
     require_permission(current_user=user, permission_key="eregister.send")
-    item = await sends.load_sendable(register, observation_id)
+    item = await sends.load_sendable(register, observation_id, require_accepted=True)
     return await sends.queue_wis2(
         session=session,
         item=item,
@@ -192,6 +200,97 @@ async def publish_register_observation(
         user=user,
         resend=bool(body and body.resend),
     )
+
+
+QC_RESPONSES = {
+    **AUTHENTICATED,
+    403: {"description": "Missing `eregister.qc`, or the observer deciding their own"},
+    404: {"description": "Observation not found"},
+    409: {"description": "The observation is not in a state that allows this"},
+    422: {"description": "Missing reason, or the observation fails validation"},
+}
+
+
+async def _decide(
+    action: qc.QcAction,
+    observation_id: UUID,
+    user: BrowserUser,
+    register: RegisterSession,
+    session: SessionDep,
+    body: QcDecisionRequest | None,
+) -> RegisterObservationRead:
+    require_permission(current_user=user, permission_key="eregister.qc")
+    return await qc.transition(
+        register=register,
+        app_session=session,
+        observation_id=observation_id,
+        user=user,
+        action=action,
+        reason=body.reason if body else None,
+    )
+
+
+@router.post(
+    "/observations/{observation_id}/accept",
+    response_model=RegisterObservationRead,
+    summary="Accept a register observation (QC)",
+    description=(
+        "Moves a draft or qc_pending SYNOP to accepted. Requires `eregister.qc`. "
+        "Four-eyes: always a different person from the observer who saved it, "
+        "superusers included. The observation must pass validation. Audited."
+    ),
+    responses=QC_RESPONSES,
+)
+async def accept_register_observation(
+    observation_id: UUID,
+    user: BrowserUser,
+    register: RegisterSession,
+    session: SessionDep,
+    body: QcDecisionRequest | None = None,
+) -> RegisterObservationRead:
+    return await _decide("accept", observation_id, user, register, session, body)
+
+
+@router.post(
+    "/observations/{observation_id}/reject",
+    response_model=RegisterObservationRead,
+    summary="Reject a register observation (QC)",
+    description=(
+        "Moves a draft or qc_pending observation to rejected; a reason is "
+        "required. Requires `eregister.qc`. Rejected observations are never "
+        "sent or shown publicly. Audited."
+    ),
+    responses=QC_RESPONSES,
+)
+async def reject_register_observation(
+    observation_id: UUID,
+    user: BrowserUser,
+    register: RegisterSession,
+    session: SessionDep,
+    body: QcDecisionRequest | None = None,
+) -> RegisterObservationRead:
+    return await _decide("reject", observation_id, user, register, session, body)
+
+
+@router.post(
+    "/observations/{observation_id}/reopen",
+    response_model=RegisterObservationRead,
+    summary="Reopen an accepted or rejected observation (QC)",
+    description=(
+        "Moves an accepted or rejected observation back to qc_pending; a "
+        "reason is required. Requires `eregister.qc`. 409 once the observation "
+        "was queued or sent to WIS2. Audited."
+    ),
+    responses=QC_RESPONSES,
+)
+async def reopen_register_observation(
+    observation_id: UUID,
+    user: BrowserUser,
+    register: RegisterSession,
+    session: SessionDep,
+    body: QcDecisionRequest | None = None,
+) -> RegisterObservationRead:
+    return await _decide("reopen", observation_id, user, register, session, body)
 
 
 @router.get(

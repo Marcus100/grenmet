@@ -16,6 +16,7 @@
 - A workbook with only identification fields is a NIL report (B/C general (ix)); advice about absent data is suppressed.
 - Add a rule with a paper-register fixture in `tests/test_eregister_validation.py` (`PAPER_ROW` is the 30 March 2023 12 UTC row). Changing issue or decoded shapes changes the API: regenerate `openapi.json` and the client.
 - METAR/SPECI/TAF coding rules live in `wxproducts/aviation_rules.py`, not here. IWXXM and BUFR encoding are not implemented here (wis2box converts the CSV); SURFACE remains the automated WIS2 path (see `docs/operations/eregister-wmo-conformance.md` for covered rules and gaps, and `docs/operations/wmo-weather-reference.md`).
+- Section 3 extras (conformance doc lists sources and unconfirmed points): Tx/Tn report hours and air-temperature consistency, 58/59 24 h pressure change (keyed `j1`+`P24`, TAC emits 58 or 59), 55SSS sunshine (`s3_sunshine_24h`), 3Ejjj (`s3_ground_state`, `s3_ground_jjj`), 9SpSpspsp groups in `s3_special_phenomena` (910ff and 911ff both accepted), section 5 national text in `s5_national` (preserved, appended as `555 ...`, never validated). Hours and thresholds are named constants at the top of `rules.py`.
 - `public.py` decodes the same coded workbook (TTT/snTTT tenths, 4-digit 24 h rainfall in tenths); keep its decoders in step with `rules.py`.
 - Decoding follows B/C1: variable wind (dd 99) is direction 0 with a positive speed (B/C1.10.5.3.2); VV 89 (over 70 km) is 81 900 m (B/C1.4.2.2.2); VV 51 to 55 are unused and rejected. Wet bulb, gust, relative humidity and observer initials are optional entries; the dew point, vapour pressure and pressures are not calculated here yet.
 
@@ -24,6 +25,14 @@
 
 - `POST /observations/{id}/email` and `/publish` (permission `eregister.send`) and `GET /observations/{id}/sends`. `sends.py` queues; `encode.py` is pure (FM 12 TAC from the keyed groups; the csv2bufr `Surface-RA-IV-100` CSV from the decoded SI values); `publisher.py` is the ARQ job body (`send_wis2_publications`, every 30 s).
 - The send log `eregister_send` lives in the application database (observations are in the separate register DB, so no foreign key). Email rows go to the notifications `outbound_email` outbox in the same transaction; the history mirrors their delivery. The WIS2 row stores the CSV and is the durable job (queued, retry with backoff on the row, then sent or failed).
-- Only validated SYNOP (no `error` issues on re-validation), not rejected or superseded; `EREGISTER_SEND_REQUIRE_ACCEPTED` also requires `accepted`. A repeat to the same target is 409 unless the body has `resend: true`.
+- Only validated SYNOP (no `error` issues on re-validation), not rejected or superseded; WIS2 publish always requires state `accepted`; email requires it only when `EREGISTER_SEND_REQUIRE_ACCEPTED` is true (default false: validated observations may be emailed for internal use, marked provisional). A repeat to the same target is 409 unless the body has `resend: true`.
 - CSV unit rules (template `Surface-RA-IV-100`): visibility in km, cloud cover in oktas, CL/CM/CH as the plain 0-9 code (the template adds 30/20/10), DL/DM/DH 1-8 (template multiplies by 45), precipitation period as negative hours, stationType 1 (manned). `test_wis2_columns_match_the_vendored_template` pins the header to `scripts/wis2-setup/test-data`.
 - Settings: `EREGISTER_OBS_RECIPIENTS`, `EREGISTER_SEND_REQUIRE_ACCEPTED`, `WIS2BOX_*` (see `docs/env.md`). Tests: `tests/test_eregister_send.py`.
+
+## QC (accept, reject, reopen)
+
+- `POST /observations/{id}/accept|reject|reopen` (permission `eregister.qc`, default role `eregister-qc`); `qc.py` holds the state machine: accept and reject from `draft`/`qc_pending`, reopen from `accepted`/`rejected` to `qc_pending`. `GET /observations?state=` feeds the QC queue (`draft` + `qc_pending`).
+- Four-eyes: the observer (`actor_id`) can never accept their own observation, superusers included, even if no one else holds `eregister.qc`; it then waits. Reject and reopen need a reason (3+ characters); accept validates the workbook (422 on errors). Reopen is refused once a WIS2 send is queued or sent.
+- The row records `qc_by`, `qc_at`, `qc_notes` (register DB, migration `eregister_0002`). Each transition also writes an `audit` entry (`entity_type` `eregister_observation`, readable by `eregister.qc` or `eregister.send`) in the application DB, in a second commit: the two databases cannot share a transaction.
+- Public endpoints already treat anything but `accepted` as provisional (`public.py`).
+- Tests: `tests/test_eregister_send.py` (QC section).

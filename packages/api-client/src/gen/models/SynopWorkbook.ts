@@ -59,6 +59,10 @@ export type SynopWorkbook = {
   s3_layer4_form?: string | null;
   s3_layer4_height?: string | null;
   s3_special_phenomena?: string | null;
+  s3_sunshine_24h?: string | null;
+  s3_ground_state?: string | null;
+  s3_ground_jjj?: string | null;
+  s5_national?: string | null;
   s3_remarks?: string | null;
   observer_initials?: string | null;
   notes?: string | null;

@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from alembic import command
+from src.audit.models import AuditEntry
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
 from src.eregister import encode, publisher, rules, sends
@@ -84,7 +85,7 @@ def workbook(**changes: str) -> SynopWorkbook:
 def test_tac_assembles_the_keyed_groups_in_section_order() -> None:
     assert encode.synop_tac(workbook()) == (
         "AAXX 30124 78958 11468 10715 10280 20213 30153 40163 52012 60041 70600 "
-        "81100 333 10310 20240 51015 70123 81810 91025="
+        "81100 333 10310 20240 59015 70123 81810 91025="
     )
 
 
@@ -160,6 +161,11 @@ def test_wis2_row_maps_si_values_to_the_template_columns() -> None:
     assert row["low_cloud_type"] == "1"
 
 
+def test_wis2_row_carries_the_state_of_the_ground() -> None:
+    assert _csv_row(s3_ground_state="2")["ground_state"] == "2"
+    assert _csv_row()["ground_state"] == ""
+
+
 def test_wis2_row_leaves_unreported_values_empty() -> None:
     row = _csv_row(wind_dir="", wind_speed="", wind_gust="", precip_amount="")
     assert row["wind_speed"] == ""
@@ -228,7 +234,11 @@ async def send_client(
 
 
 async def save(
-    client: httpx.AsyncClient, row: dict[str, str] | None = None, **extra: Any
+    client: httpx.AsyncClient,
+    row: dict[str, str] | None = None,
+    *,
+    accepted: bool = False,
+    **extra: Any,
 ) -> str:
     response = await client.post(
         "/api/v1/eregister/observations",
@@ -241,6 +251,8 @@ async def save(
         },
     )
     assert response.status_code == 201, response.text
+    if accepted:
+        await set_state(response.json()["id"], "accepted")
     return response.json()["id"]
 
 
@@ -330,7 +342,7 @@ async def test_send_requires_the_send_permission(
 
 
 async def set_state(observation: str, state: str) -> None:
-    """QC states have no endpoint yet, so set the state directly."""
+    """Put an observation in a QC state directly (the QC endpoints have their own tests)."""
     register = await anext(app.dependency_overrides[get_session]())
     await register.execute(
         text(
@@ -405,7 +417,7 @@ async def test_publish_is_409_until_configured(
     client, _ = send_client
     monkeypatch.setattr(sends.wis2box_settings, "WIS2BOX_INCOMING_DIR", None)
     monkeypatch.setattr(sends.wis2box_settings, "WIS2BOX_S3_ENDPOINT_URL", None)
-    observation = await save(client)
+    observation = await save(client, accepted=True)
     response = await client.post(
         f"/api/v1/eregister/observations/{observation}/publish"
     )
@@ -418,7 +430,7 @@ async def test_publish_other_station_is_409(
     send_client: tuple[httpx.AsyncClient, User],
 ) -> None:
     client, _ = send_client
-    observation = await save(client, {**FULL_ROW, "station_id": "78959"})
+    observation = await save(client, {**FULL_ROW, "station_id": "78959"}, accepted=True)
     response = await client.post(
         f"/api/v1/eregister/observations/{observation}/publish"
     )
@@ -432,7 +444,7 @@ async def test_publish_queues_then_the_job_writes_the_csv(
     incoming: Path,
 ) -> None:
     client, _ = send_client
-    observation = await save(client)
+    observation = await save(client, accepted=True)
     url = f"/api/v1/eregister/observations/{observation}/publish"
     response = await client.post(url)
     assert response.status_code == 202, response.text
@@ -482,7 +494,7 @@ def first_line(path: Path) -> str:
 async def _queued_wis2(
     client: httpx.AsyncClient, db_async: AsyncSession
 ) -> ERegisterSend:
-    observation = await save(client)
+    observation = await save(client, accepted=True)
     response = await client.post(
         f"/api/v1/eregister/observations/{observation}/publish"
     )
@@ -615,3 +627,167 @@ async def test_email_history_reports_a_delivery_that_gave_up(
     ).json()
     assert sent["sends"][0]["status"] == "failed"
     assert sent["sends"][0]["last_error"] == "mailbox full"
+
+
+# --- QC: accept, reject, reopen -------------------------------------------------
+
+
+async def as_qc_user(db_async: AsyncSession) -> User:
+    """Switch the request user to someone holding only eregister.qc."""
+    person = await make_user(db_async)
+    role, _perms = await make_role_with_permission(db_async, "eregister.qc")
+    await assign_role(db_async, user=person, role=role)
+    app.dependency_overrides[get_browser_or_token_user] = lambda: person
+    return person
+
+
+def qc_url(observation: str, action: str) -> str:
+    return f"/api/v1/eregister/observations/{observation}/{action}"
+
+
+async def test_qc_accept_by_another_person_is_audited(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _observer = send_client
+    observation = await save(client)
+    reviewer = await as_qc_user(db_async)
+    response = await client.post(
+        qc_url(observation, "accept"), json={"reason": "checked against charts"}
+    )
+    assert response.status_code == 200, response.text
+    saved = response.json()
+    assert saved["state"] == "accepted"
+    assert saved["qc_by"] == str(reviewer.id)
+    assert saved["qc_at"] is not None
+    assert saved["qc_notes"] == "checked against charts"
+    entries = (
+        await db_async.scalars(
+            select(AuditEntry).where(AuditEntry.entity_id == observation)
+        )
+    ).all()
+    assert [(e.action, e.actor_user_id) for e in entries] == [("accept", reviewer.id)]
+    assert {c["field"]: c["new"] for c in entries[0].changes}["state"] == "accepted"
+
+
+async def test_observer_cannot_accept_their_own_observation_even_as_superuser(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _observer = send_client
+    observation = await save(client)
+    response = await client.post(qc_url(observation, "accept"))
+    assert response.status_code == 403
+    assert "different person" in response.json()["detail"]
+    listed = (await client.get("/api/v1/eregister/observations")).json()
+    assert listed["observations"][0]["state"] == "draft"
+
+
+async def test_qc_needs_the_qc_permission(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    observation = await save(client)
+    plain = await make_user(db_async)
+    app.dependency_overrides[get_browser_or_token_user] = lambda: plain
+    for action in ("accept", "reject", "reopen"):
+        response = await client.post(
+            qc_url(observation, action), json={"reason": "x y z"}
+        )
+        assert response.status_code == 403
+
+
+async def test_qc_rejects_a_workbook_that_fails_validation(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    observation = await save(client, {**FULL_ROW, "dew_point": "290"})
+    await as_qc_user(db_async)
+    response = await client.post(qc_url(observation, "accept"))
+    assert response.status_code == 422
+    assert "dew_point" in response.json()["detail"]
+
+
+async def test_reject_and_reopen_need_a_reason(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    observation = await save(client)
+    await as_qc_user(db_async)
+    assert (await client.post(qc_url(observation, "reject"))).status_code == 422
+    rejected = await client.post(
+        qc_url(observation, "reject"), json={"reason": "Wrong station"}
+    )
+    assert rejected.status_code == 200
+    assert rejected.json()["state"] == "rejected"
+    assert (await client.post(qc_url(observation, "accept"))).status_code == 409
+    assert (await client.post(qc_url(observation, "reopen"))).status_code == 422
+    reopened = await client.post(
+        qc_url(observation, "reopen"), json={"reason": "Observer corrected it"}
+    )
+    assert reopened.json()["state"] == "qc_pending"
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.json()["state"] == "accepted"
+    assert (await client.post(qc_url(observation, "accept"))).status_code == 409
+    actions = (
+        await db_async.scalars(
+            select(AuditEntry.action)
+            .where(AuditEntry.entity_id == observation)
+            .order_by(AuditEntry.created_at)
+        )
+    ).all()
+    assert list(actions) == ["reject", "reopen", "accept"]
+
+
+async def test_qc_unknown_observation_is_404_and_metar_is_not_accepted(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    metar = await save(client, kind="METAR")
+    await as_qc_user(db_async)
+    assert (await client.post(qc_url(str(uuid4()), "accept"))).status_code == 404
+    assert (await client.post(qc_url(metar, "accept"))).status_code == 409
+
+
+async def test_qc_queue_filters_by_state(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    pending = await save(client)
+    done = await save(client, accepted=True)
+    listed = (await client.get("/api/v1/eregister/observations?state=draft")).json()
+    assert [o["id"] for o in listed["observations"]] == [pending]
+    listed = (await client.get("/api/v1/eregister/observations?state=accepted")).json()
+    assert [o["id"] for o in listed["observations"]] == [done]
+    bogus = await client.get("/api/v1/eregister/observations?state=bogus")
+    assert bogus.status_code == 422
+
+
+@pytest.mark.usefixtures("incoming")
+async def test_wis2_requires_accepted_but_email_does_not(
+    send_client: tuple[httpx.AsyncClient, User],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+    monkeypatch.setattr(sends.eregister_settings, "SEND_REQUIRE_ACCEPTED", False)
+    monkeypatch.setattr(sends.eregister_settings, "OBS_RECIPIENTS", "a@gms.test")
+    observation = await save(client)
+    base = f"/api/v1/eregister/observations/{observation}"
+    refused = await client.post(f"{base}/publish")
+    assert refused.status_code == 409
+    assert refused.json()["detail"] == "Only QC-accepted observations can be sent"
+    assert (await client.post(f"{base}/email")).status_code == 202
+
+
+@pytest.mark.usefixtures("incoming")
+async def test_reopen_is_refused_once_queued_for_wis2(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    observation = await save(client, accepted=True)
+    queued = await client.post(f"/api/v1/eregister/observations/{observation}/publish")
+    assert queued.status_code == 202, queued.text
+    await as_qc_user(db_async)
+    response = await client.post(
+        qc_url(observation, "reopen"), json={"reason": "Found an error"}
+    )
+    assert response.status_code == 409
+    assert "WIS2" in response.json()["detail"]

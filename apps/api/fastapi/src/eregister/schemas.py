@@ -62,7 +62,11 @@ class SynopWorkbook(BaseModel):
     s3_layer4_amount: str | None = Field(default=None, max_length=2)
     s3_layer4_form: str | None = Field(default=None, max_length=2)
     s3_layer4_height: str | None = Field(default=None, max_length=4)
-    s3_special_phenomena: str | None = Field(default=None, max_length=32)
+    s3_special_phenomena: str | None = Field(default=None, max_length=120)
+    s3_sunshine_24h: str | None = Field(default=None, max_length=3)
+    s3_ground_state: str | None = Field(default=None, max_length=1)
+    s3_ground_jjj: str | None = Field(default=None, max_length=3)
+    s5_national: str | None = Field(default=None, max_length=400)
     s3_remarks: str | None = Field(default=None, max_length=4000)
     observer_initials: str | None = Field(default=None, max_length=4)
     notes: str | None = Field(default=None, max_length=4000)
@@ -99,6 +103,9 @@ class SynopDecoded(BaseModel):
     total_cloud_percent: int | None = None
     precipitation_kg_m2: float | None = None
     rainfall_24h_kg_m2: float | None = None
+    pressure_change_24h_pa: float | None = None
+    sunshine_24h_hours: float | None = None
+    ground_state: int | None = None
 
 
 class SynopValidationResponse(BaseModel):
@@ -125,6 +132,8 @@ class RegisterObservationRead(RegisterObservationWrite):
     id: UUID
     state: RegisterState
     qc_notes: str | None = None
+    qc_by: str | None = None
+    qc_at: UtcDateTime | None = None
     wis2_topic: str | None = None
     wis2_message_id: str | None = None
     wis2_published_at: UtcDateTime | None = None
@@ -147,6 +156,14 @@ class RegisterObservationCreate(RegisterObservationWrite):
     observed_at: Annotated[UtcDateTime, AwareDatetime()]
     issued_at: Annotated[UtcDateTime, AwareDatetime()] | None = None
     id: UUID = Field(default_factory=uuid4)
+
+
+class QcDecisionRequest(BaseModel):
+    reason: str | None = Field(
+        default=None,
+        max_length=1000,
+        description="Required to reject or reopen; optional note when accepting.",
+    )
 
 
 PressureTrend = Literal["rising", "steady", "falling"]

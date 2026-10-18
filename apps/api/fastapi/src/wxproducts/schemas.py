@@ -422,6 +422,14 @@ class AviationHistory(BaseModel):
 class AviationValidationRequest(AviationContent):
     """A coded message to check; same fields as a draft, nothing is saved."""
 
+    previous_message: Annotated[str, StringConstraints(max_length=6000)] | None = Field(
+        default=None,
+        description=(
+            "The preceding METAR or SPECI. For a SPECI it is compared with the "
+            "Annex 3 App. 3 2.3 criteria (advisory warnings)."
+        ),
+    )
+
 
 class AviationIssue(BaseModel):
     """One coded-message finding. `error` is a code violation; `warning` is practice."""

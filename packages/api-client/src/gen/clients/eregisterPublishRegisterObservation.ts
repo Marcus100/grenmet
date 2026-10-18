@@ -11,7 +11,7 @@ import type {
 } from "../models/EregisterPublishRegisterObservation.js";
 
 /**
- * @description Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. 409 unless WIS2BOX_* is configured, or when the observation was already queued (send `resend: true` to repeat).
+ * @description Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. Only QC-accepted observations are published: 409 otherwise, unless WIS2BOX_* is configured, or when the observation was already queued (send `resend: true` to repeat).
  * @summary Queue a register observation for WIS2
  * {@link /api/v1/eregister/observations/:observation_id/publish}
  */

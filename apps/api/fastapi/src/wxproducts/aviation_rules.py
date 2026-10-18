@@ -6,8 +6,11 @@ Appendix 5 (TAF). `error` marks a code violation the message cannot carry to
 a receiving decoder; `warning` marks reporting practice. Drafts stay savable:
 the composer shows these findings, it does not block saving.
 
-A single message cannot prove a SPECI was warranted (that needs the previous
-report), so SPECI only gets a plausibility warning.
+A single message cannot prove a SPECI was warranted. Without the previous
+report SPECI only gets a plausibility warning; with it (``previous_message``)
+the report is compared against the Annex 3 App. 3 2.3 criteria, and TAF change
+groups are compared with the prevailing forecast against App. 5 1.3
+(``aviation_changes``). Both are advisory.
 """
 
 import re
@@ -16,6 +19,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal
 
+from . import aviation_changes as changes
 from .schemas import AviationIssue
 
 Kind = Literal["METAR", "SPECI", "TAF"]
@@ -460,6 +464,8 @@ class _Section:
     rvr_min: int | None = None
     visibility_missing: bool = False
     seen: set[str] = field(default_factory=set)
+    wind_detail: changes.Wind | None = None
+    vv_feet: int | None = None
 
     @property
     def has_cloud_info(self) -> bool:
@@ -492,6 +498,7 @@ def _scan_element(
         _enter(r, section, "wind", token)
         mean, variable = _check_wind(r, token, m)
         section.wind = (mean, variable, m.group(4))
+        section.wind_detail = _wind_detail(m)
         return True
     if token == CAVOK:
         _enter(r, section, "cloud", token)
@@ -533,6 +540,7 @@ def _scan_element(
     if VERTICAL_VIS.match(token):
         _enter(r, section, "cloud", token)
         section.vertical_vis = True
+        section.vv_feet = _feet(token[2:])
         if section.layers or section.cavok or section.sky_state:
             r.error("cloud_conflict", "VV is reported instead of cloud layers.", token)
         return True
@@ -567,6 +575,114 @@ def _scan_element(
             r.error("cavok_conflict", "Weather is not reported with CAVOK.", token)
         return True
     return False
+
+
+def _wind_detail(match: re.Match[str]) -> changes.Wind | None:
+    direction, speed, gust, unit = match.groups()
+    if speed == "//":
+        return None
+    degrees = int(direction) if direction.isdigit() else None
+    return changes.Wind(
+        degrees,
+        changes.to_knots(int(speed), unit),
+        None if gust is None else changes.to_knots(int(gust), unit),
+    )
+
+
+def _ceiling_ft(section: _Section) -> int | None:
+    """Lowest BKN/OVC base, or the vertical visibility when the sky is obscured."""
+    heights = [
+        layer.feet
+        for layer in section.layers
+        if layer.amount in ("BKN", "OVC") and layer.feet is not None
+    ]
+    if section.vv_feet is not None:
+        heights.append(section.vv_feet)
+    return min(heights, default=None)
+
+
+def _change_state(
+    section: _Section, before: changes.ChangeState
+) -> changes.ChangeState:
+    """The state a section states, applied on top of `before` (CAVOK clears all)."""
+    if section.cavok:
+        return changes.merge(
+            before,
+            wind=section.wind_detail,
+            visibility_m=changes.CAVOK_VISIBILITY_M,
+            weather=frozenset(),
+            cloud=changes.Cloud(None),
+        )
+    return changes.merge(
+        before,
+        wind=section.wind_detail,
+        visibility_m=section.visibility,
+        weather=(
+            changes.weather_categories(section.weather)
+            if section.weather or section.seen_nsw
+            else None
+        ),
+        cloud=changes.Cloud(_ceiling_ft(section)) if section.has_cloud_info else None,
+    )
+
+
+# A report or complete forecast with no weather group states no weather.
+NO_WEATHER = changes.ChangeState(weather=frozenset())
+
+
+def _report_state(text: str) -> tuple[changes.ChangeState, int | None]:
+    """Parse a previous METAR/SPECI into its change state and air temperature."""
+    scratch = _Report("METAR")
+    section = _Section()
+    temperature: int | None = None
+    tokens = _split(text.strip().upper())
+    if "RMK" in tokens:
+        tokens = tokens[: tokens.index("RMK")]
+    for token in tokens:
+        if token in ("NOSIG", "BECMG", "TEMPO"):
+            break
+        if m := TEMPERATURE.match(token):
+            temperature = _signed(m.group(1))
+        elif not (
+            WIND_VARIATION.match(token)
+            or RVR.match(token)
+            or QNH.match(token)
+            or RECENT.match(token)
+            or token == "WS"
+            or WINDSHEAR.match(token)
+        ):
+            _scan_element(scratch, section, token)
+    return _change_state(section, NO_WEATHER), temperature
+
+
+def _speci_against_previous(
+    r: _Report,
+    section: _Section,
+    tokens: list[str],
+    previous_message: str,
+) -> None:
+    """Annex 3 App. 3 2.3: warn when nothing differs enough from the previous report."""
+    before, before_temperature = _report_state(previous_message)
+    if before.wind is None and before.visibility_m is None and before.cloud is None:
+        r.warn(
+            "speci_previous_unreadable",
+            "The previous METAR/SPECI could not be read, so the SPECI criteria "
+            "cannot be compared.",
+        )
+        return
+    temperature = next(
+        (_signed(m.group(1)) for t in tokens if (m := TEMPERATURE.match(t))), None
+    )
+    found = changes.speci_criteria(
+        before, _change_state(section, NO_WEATHER), before_temperature, temperature
+    )
+    if not found:
+        r.warn(
+            "speci_no_change",
+            "No SPECI criterion of Annex 3 App. 3 2.3 (wind, visibility, weather, "
+            "cloud base, temperature) is met against the previous report. A SPECI "
+            "may still be issued for local criteria agreed with the users.",
+        )
 
 
 def _cavok_expected(section: _Section) -> bool:
@@ -795,7 +911,11 @@ def _check_trend_times(
 
 
 def _validate_metar(
-    r: _Report, text: str, station: str, observed_at: datetime | None
+    r: _Report,
+    text: str,
+    station: str,
+    observed_at: datetime | None,
+    previous_message: str | None = None,
 ) -> None:
     tokens = _split(text)
     if "RMK" in tokens:
@@ -866,7 +986,9 @@ def _validate_metar(
     _require_groups(r, section)
     _finish_section(r, section, label="Report")
     _cross_checks(r, section)
-    if r.kind == "SPECI" and not _speci_plausible(section):
+    if r.kind == "SPECI" and previous_message and previous_message.strip():
+        _speci_against_previous(r, section, tokens, previous_message)
+    elif r.kind == "SPECI" and not _speci_plausible(section):
         r.warn(
             "speci_criteria",
             "No SPECI criterion is visible in this report (visibility, ceiling, "
@@ -1245,6 +1367,22 @@ def _validate_taf(
             "temperature_extremes", "Maximum temperature is below the minimum.", "TX"
         )
     last_fm: int | None = None
+    prevailing = _change_state(base, NO_WEATHER)
+
+    def check_change(group: str, section: _Section, *, replaces: bool) -> None:
+        nonlocal prevailing
+        state = _change_state(section, NO_WEATHER if replaces else prevailing)
+        if not changes.taf_criteria(prevailing, state):
+            r.warn(
+                "taf_change_criteria",
+                f"{group}: no Annex 3 App. 5 1.3 change criterion (wind, visibility, "
+                "weather, cloud base thresholds) is met against the prevailing "
+                "forecast. Include a change group only for a significant change.",
+                group,
+            )
+        if group.startswith(("BECMG", "FM")):
+            prevailing = state
+
     while i < len(tokens):
         token = tokens[i]
         i += 1
@@ -1270,6 +1408,7 @@ def _validate_taf(
                 last_fm = start * 60 + minute
             i = _taf_elements(r, tokens, i, section, base=False)
             _taf_complete(r, section, token)
+            check_change(token, section, replaces=True)
         elif token in ("BECMG", "TEMPO") or PROB.match(token):
             group = token
             if PROB.match(token):
@@ -1297,6 +1436,8 @@ def _validate_taf(
                 or section.has_cloud_info
             ):
                 r.error("change_empty", f"{group} states no change element.", token)
+            else:
+                check_change(group, section, replaces=False)
         else:
             r.error("unknown_group", f"{token} is not a recognised TAF group.", token)
             continue
@@ -1315,8 +1456,13 @@ def validate_aviation(
     issued_at: datetime | None = None,
     valid_from: datetime | None = None,
     valid_to: datetime | None = None,
+    previous_message: str | None = None,
 ) -> list[AviationIssue]:
-    """Check METAR/SPECI/TAF text; findings are advisory for working drafts."""
+    """Check METAR/SPECI/TAF text; findings are advisory for working drafts.
+
+    ``previous_message`` is the preceding METAR/SPECI, used only to compare a
+    SPECI against the Annex 3 App. 3 2.3 criteria.
+    """
     r = _Report(kind)
     text = message.strip()
     if not text:
@@ -1329,5 +1475,5 @@ def validate_aviation(
     if kind == "TAF":
         _validate_taf(r, text, station, issued_at, valid_from, valid_to)
     else:
-        _validate_metar(r, text, station, observed_at)
+        _validate_metar(r, text, station, observed_at, previous_message)
     return r.issues

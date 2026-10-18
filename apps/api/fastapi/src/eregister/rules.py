@@ -69,6 +69,32 @@ VISIBILITY_100M_MAX = 50
 VISIBILITY_1KM_MAX = 80
 VISIBILITY_5KM_MAX = 88
 VISIBILITY_OVER_70KM_CODE = 89
+# Section 3 hours. Group 1snTxTxTx / 2snTnTnTn covers a regionally set period
+# ending at the report, so it belongs in the main-hour reports (00, 06, 12, 18
+# UTC). The exact RA IV period is unconfirmed (see the conformance document), so
+# a report at another hour only warns.
+TXTN_REPORT_HOURS = (0, 6, 12, 18)
+# The register keys daily totals (24 h rainfall, 55SSS sunshine) in the 12 UTC
+# report. The regionally specified sunshine hour is unconfirmed: warning only.
+SUNSHINE_REPORT_HOURS = (SYNOP_NOON_HOUR,)
+SUNSHINE_MAX_TENTHS = 240
+SUNSHINE_DIGITS = 3
+# Groups 58P24P24P24 (rise or zero) and 59P24P24P24 (fall), tenths of hPa. The
+# keyed field is j1 (0 rise, 1 fall) then P24P24P24, which selects 58 or 59.
+PRESSURE_24H_RISE_SIGN = "0"
+PRESSURE_24H_FALL_SIGN = "1"
+# A 24 h pressure change beyond 40 hPa is unheard of away from a tropical
+# cyclone core: probably a keying slip.
+PRESSURE_24H_PLAUSIBLE_TENTHS = 400
+# Group 3Ejjj: E is the state of the ground without snow or ice (Code table
+# 0901, 0-9). Frozen ground (4) and glaze (5) are implausible in a warm air mass.
+GROUND_FROZEN_MAX_AIR_STATES = (4, 5)
+GROUND_FROZEN_MAX_AIR_C = 5.0
+GROUND_JJJ_DIGITS = 3
+# Group 9SpSpspsp supplementary groups: 910ff / 911ff gust, 960ww weather.
+SUPPLEMENTARY_DIGITS = 5
+SUPPLEMENTARY_GUST_CODES = {"10": "910ff", "11": "911ff"}
+SUPPLEMENTARY_WEATHER_CODE = "60"
 
 
 class _Checker:
@@ -251,6 +277,17 @@ def layer_height_metres(code: int) -> float | None:
     if LAYER_HEIGHT_1500M_MIN <= code <= LAYER_HEIGHT_1500M_MAX:
         return 10500 + (min(code, 88) - 81) * 1500
     return None
+
+
+def _to_int(value: str) -> int | None:
+    return int(value) if value.isdigit() else None
+
+
+def _tenths_or_none(value: str) -> float | None:
+    number = _to_int(value)
+    if number is None or len(value) != SUNSHINE_DIGITS or number > SUNSHINE_MAX_TENTHS:
+        return None
+    return number / 10
 
 
 def _subcategory(hour: int | None) -> int | None:
@@ -556,7 +593,9 @@ def _check_precipitation(
     return precipitation, rainfall_24h
 
 
-def _check_section3(c: _Checker) -> tuple[float | None, float | None]:
+def _check_section3(
+    c: _Checker, hour: int | None, air: float | None
+) -> tuple[float | None, float | None, float | None]:
     c.integer("s3_state_of_sky", "State of sky Cs", 0, 9, width=1)
     for field, label in (
         ("s3_cloud_dir_low", "Low cloud direction DL"),
@@ -572,23 +611,194 @@ def _check_section3(c: _Checker) -> tuple[float | None, float | None]:
             "max_below_min",
             "Maximum temperature cannot be below the minimum.",
         )
-    change = c.raw("s3_baro_change_24h")
-    if c.present("s3_baro_change_24h") and (
-        not change.isdigit() or len(change) != FOUR_DIGIT_GROUP
-    ):
+    _check_temperature_extremes(c, hour, air, tmax, tmin)
+    change_pa = _check_pressure_change_24h(c)
+    _check_sunshine_and_ground(c, hour, air)
+    return tmax, tmin, change_pa
+
+
+def _check_temperature_extremes(
+    c: _Checker,
+    hour: int | None,
+    air: float | None,
+    tmax: float | None,
+    tmin: float | None,
+) -> None:
+    """Groups 1snTxTxTx and 2snTnTnTn: report hour and consistency with the air temperature."""
+    for field, value in (("s3_max_temp", tmax), ("s3_min_temp", tmin)):
+        if value is not None and hour is not None and hour not in TXTN_REPORT_HOURS:
+            c.add(
+                field,
+                "txtn_hour",
+                "Maximum and minimum temperatures are reported in the main-hour "
+                "reports (00, 06, 12, 18 UTC); the RA IV period is to be confirmed "
+                "with GMS.",
+                "warning",
+            )
+    if air is not None and tmax is not None and air > tmax:
         c.add(
-            "s3_baro_change_24h",
-            "invalid_format",
-            "24 h pressure change must be four digits: sign j1 (0 or 1) then P24P24P24 in tenths.",
-        )
-    elif c.present("s3_baro_change_24h") and change[0] not in "01":
-        c.add(
-            "s3_baro_change_24h",
-            "invalid_sign",
-            "24 h pressure change sign j1 is 0 or 1.",
+            "s3_max_temp",
+            "air_above_max",
+            "The air temperature at the report time is above the maximum for a "
+            "period that ends at the report.",
             "warning",
         )
-    return tmax, tmin
+    if air is not None and tmin is not None and air < tmin:
+        c.add(
+            "s3_min_temp",
+            "air_below_min",
+            "The air temperature at the report time is below the minimum for a "
+            "period that ends at the report.",
+            "warning",
+        )
+
+
+def _check_pressure_change_24h(c: _Checker) -> float | None:
+    """Groups 58P24P24P24 (rise or zero) and 59P24P24P24 (fall), as j1 + P24P24P24."""
+    field = "s3_baro_change_24h"
+    change = c.raw(field)
+    if not c.present(field):
+        return None
+    if not change.isdigit() or len(change) != FOUR_DIGIT_GROUP:
+        c.add(
+            field,
+            "invalid_format",
+            "24 h pressure change must be four digits: sign j1 (0 rise, 1 fall) then "
+            "P24P24P24 in tenths of hPa (groups 58 and 59).",
+        )
+        return None
+    sign, tenths = change[0], int(change[1:])
+    if sign not in (PRESSURE_24H_RISE_SIGN, PRESSURE_24H_FALL_SIGN):
+        c.add(
+            field,
+            "invalid_sign",
+            "24 h pressure change sign j1 is 0 (rise or zero, group 58) or 1 "
+            "(fall, group 59).",
+        )
+        return None
+    if sign == PRESSURE_24H_FALL_SIGN and tenths == 0:
+        c.add(
+            field,
+            "negative_zero",
+            "A 24 h change of 0.0 is group 58 (sign 0), never group 59.",
+            "warning",
+        )
+    if tenths > PRESSURE_24H_PLAUSIBLE_TENTHS:
+        c.add(
+            field,
+            "implausible_change",
+            "A 24 h pressure change above 40 hPa is unusual: check the digits.",
+            "warning",
+        )
+    magnitude = tenths * 10.0
+    return -magnitude if sign == PRESSURE_24H_FALL_SIGN else magnitude
+
+
+def _check_sunshine_and_ground(
+    c: _Checker, hour: int | None, air: float | None
+) -> None:
+    sunshine = c.raw("s3_sunshine_24h")
+    if c.present("s3_sunshine_24h"):
+        if not sunshine.isdigit() or len(sunshine) != SUNSHINE_DIGITS:
+            c.add(
+                "s3_sunshine_24h",
+                "invalid_format",
+                "Sunshine 55SSS is three digits: hours and tenths in the past 24 h "
+                "(e.g. 087).",
+            )
+        elif int(sunshine) > SUNSHINE_MAX_TENTHS:
+            c.add(
+                "s3_sunshine_24h",
+                "out_of_range",
+                "Sunshine cannot exceed 24.0 hours in 24 hours (SSS 240).",
+            )
+        elif hour is not None and hour not in SUNSHINE_REPORT_HOURS:
+            c.add(
+                "s3_sunshine_24h",
+                "sunshine_hour",
+                "Daily sunshine 55SSS is reported at the regionally specified hour "
+                "(12 UTC here, to be confirmed with GMS).",
+                "warning",
+            )
+    state = c.integer("s3_ground_state", "State of the ground E", 0, 9, width=1)
+    jjj = c.raw("s3_ground_jjj")
+    if c.present("s3_ground_jjj"):
+        if not jjj.isdigit() or len(jjj) != GROUND_JJJ_DIGITS:
+            c.add(
+                "s3_ground_jjj",
+                "invalid_format",
+                "3Ejjj: jjj is three digits (regional use, e.g. snTgTg minimum "
+                "ground temperature).",
+            )
+        elif not c.present("s3_ground_state"):
+            c.add(
+                "s3_ground_state",
+                "missing_group",
+                "Group 3Ejjj needs the state of the ground E (Code table 0901).",
+                "warning",
+            )
+    if (
+        state in GROUND_FROZEN_MAX_AIR_STATES
+        and air is not None
+        and air > GROUND_FROZEN_MAX_AIR_C
+    ):
+        c.add(
+            "s3_ground_state",
+            "ground_state_air",
+            f"Ground state {state} (frozen or glaze) with an air temperature "
+            f"above {GROUND_FROZEN_MAX_AIR_C:g} °C is implausible.",
+            "warning",
+        )
+
+
+def _check_supplementary(c: _Checker, speed: int | None) -> None:
+    """Groups 9SpSpspsp: format, then 910ff/911ff gust and 960ww checks."""
+    seen: set[str] = set()
+    for token in c.raw("s3_special_phenomena").split():
+        if not (
+            token.isdigit()
+            and len(token) == SUPPLEMENTARY_DIGITS
+            and token.startswith("9")
+        ):
+            c.add(
+                "s3_special_phenomena",
+                "invalid_supplementary",
+                f"{token}: supplementary groups are 9SpSpspsp, five digits "
+                "starting with 9.",
+            )
+            continue
+        code, value = token[1:3], token[3:]
+        if code in seen:
+            c.add(
+                "s3_special_phenomena",
+                "duplicate_supplementary",
+                f"{token}: 9{code} appears more than once.",
+                "warning",
+            )
+        seen.add(code)
+        if code in SUPPLEMENTARY_GUST_CODES:
+            if c.present("wind_gust"):
+                c.add(
+                    "s3_special_phenomena",
+                    "duplicate_gust",
+                    "The gust is keyed in the wind gust field and again as "
+                    f"{SUPPLEMENTARY_GUST_CODES[code]}.",
+                    "warning",
+                )
+            if speed is not None and int(value) < speed:
+                c.add(
+                    "s3_special_phenomena",
+                    "gust_below_mean",
+                    f"{token}: gust speed is normally not below the mean wind speed.",
+                    "warning",
+                )
+        elif code != SUPPLEMENTARY_WEATHER_CODE:
+            c.add(
+                "s3_special_phenomena",
+                "unchecked_supplementary",
+                f"{token}: 9{code}.. is passed through without checking.",
+                "warning",
+            )
 
 
 def _check_pressure_and_weather(c: _Checker) -> tuple[float | None, float | None]:
@@ -735,7 +945,8 @@ def validate_synop(
     _check_layers(c, total)
     station, sea_level = _check_pressure_and_weather(c)
     precipitation, rainfall_24h = _check_precipitation(c, hour)
-    tmax, tmin = _check_section3(c)
+    tmax, tmin, change_24h = _check_section3(c, hour, air)
+    _check_supplementary(c, _to_int(c.raw("wind_speed")))
 
     is_nil = all(
         not c.present(field)
@@ -781,5 +992,8 @@ def validate_synop(
         total_cloud_percent=cloud_percent,
         precipitation_kg_m2=precipitation,
         rainfall_24h_kg_m2=rainfall_24h,
+        pressure_change_24h_pa=change_24h,
+        sunshine_24h_hours=_tenths_or_none(c.raw("s3_sunshine_24h")),
+        ground_state=_to_int(c.raw("s3_ground_state")),
     )
     return c.issues, decoded

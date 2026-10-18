@@ -1284,8 +1284,11 @@ revision snapshots with author identity and recorded time.
 `severity` (`error` for a code violation, `warning` for reporting practice),
 `code`, the offending `group` (or null), a `message` and the `rule` source
 (WMO-No. 306 FM 15/16/51, ICAO Annex 3). Findings are advisory: saving a draft
-is never blocked, and nothing is saved or transmitted by the check. Rules and
-gaps: `docs/operations/eregister-wmo-conformance.md`.
+is never blocked, and nothing is saved or transmitted by the check. The
+optional `previous_message` (the preceding METAR/SPECI, validate only) lets a
+SPECI be compared with the Annex 3 App. 3 2.3 criteria (`speci_no_change`
+warning); TAF change groups are checked against App. 5 1.3 (`taf_change_criteria`
+warning). Rules and gaps: `docs/operations/eregister-wmo-conformance.md`.
 
 All four routes require the separate `aviation` product-access policy, using
 the existing configurable GMS-grade controls (manager, assistant manager and
@@ -1407,6 +1410,21 @@ the second writes a csv2bufr CSV for wis2box through an ARQ job with retries.
 observation, `409` no recipients or WIS2 not configured, rejected or superseded
 or non-SYNOP observation, or already sent without `resend`, `422` the stored
 workbook fails validation. Details: `docs/operations/eregister-wmo-conformance.md`.
+
+#### eRegister QC
+
+`POST /api/v1/eregister/observations/{id}/accept`, `.../reject` and `.../reopen`
+(permission `eregister.qc`, body `{"reason": "..."}`, `200` with the
+`RegisterObservationRead`) move a SYNOP between `draft`/`qc_pending`,
+`accepted` and `rejected`. `reject` and `reopen` need a reason. The observer who
+saved an observation can never accept it (`403`, superusers included).
+`409` wrong state or non-SYNOP, or reopen after a WIS2 send; `422` missing
+reason or the workbook fails validation. `GET /api/v1/eregister/observations`
+takes `state=` (the QC queue is `draft` and `qc_pending`). `.../publish` (WIS2)
+now answers `409` unless the observation is `accepted`; `.../email` still
+accepts a validated draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set.
+`RegisterObservationRead` gains `qc_by` and `qc_at`. Every decision is audited
+(`eregister_observation`).
 
 ### GAA operational catalogues
 

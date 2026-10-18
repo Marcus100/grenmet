@@ -652,7 +652,7 @@ Configure `WXWATCH_DATABASE_URL` in the FastAPI environment with access to the s
 
 ### eRegister send actions
 
-`EREGISTER_OBS_RECIPIENTS` is a comma-separated list of addresses that receive "Email observation" (one outbox email each, sent by the worker). Unset: the action answers 409 "No recipients configured". `EREGISTER_SEND_REQUIRE_ACCEPTED` (default `false`) requires QC state `accepted`; leave it off until a QC acceptance flow exists, otherwise only validated, non-rejected observations are sent.
+`EREGISTER_OBS_RECIPIENTS` is a comma-separated list of addresses that receive "Email observation" (one outbox email each, sent by the worker). Unset: the action answers 409 "No recipients configured". `EREGISTER_SEND_REQUIRE_ACCEPTED` (default `false`) requires QC state `accepted` for email too; by default email goes out for any validated, non-rejected observation (internal use, marked provisional). WIS2 publication always requires `accepted`, whatever this says.
 
 "Send last obs" writes a csv2bufr CSV for wis2box and needs one drop target, read by the API (to validate) and the worker (to transfer):
 
@@ -665,7 +665,7 @@ Configure `WXWATCH_DATABASE_URL` in the FastAPI environment with access to the s
 | `WIS2BOX_STATION_LATITUDE`, `_LONGITUDE`, `_STATION_HEIGHT_M`, `_BAROMETER_HEIGHT_M`, `_THERMOMETER_HEIGHT_M`, `_ANEMOMETER_HEIGHT_M` | Station metadata for the CSV (MBIA defaults) |
 | `WIS2BOX_MAX_ATTEMPTS` | Transfer attempts before the send is marked failed (default 5, backoff 1 min doubling to 1 h) |
 
-With none of the drop variables set, publish answers 409 "WIS2 publication is not configured". Grant the `eregister.send` permission (role `eregister-sender`) to people allowed to send.
+With none of the drop variables set, publish answers 409 "WIS2 publication is not configured". Grant the `eregister.send` permission (role `eregister-sender`) to people allowed to send, and `eregister.qc` (role `eregister-qc`, which also carries `eregister.send`) to the duty or senior forecasters who accept observations.
 
 ### Privileged MFA rollout
 

@@ -10,9 +10,16 @@ vi.mock("@barrelsgd/api-client", () => ({
   eregisterEmailRegisterObservation: vi.fn(),
   eregisterPublishRegisterObservation: vi.fn(),
   eregisterListObservationSends: vi.fn(),
+  eregisterAcceptRegisterObservation: vi.fn(),
+  eregisterRejectRegisterObservation: vi.fn(),
+  eregisterReopenRegisterObservation: vi.fn(),
 }));
 vi.mock("@barrelsgd/auth", () => ({
-  useSessionUser: () => ({ full_name: "Test Observer", email: "obs@test" }),
+  useSessionUser: () => ({
+    full_name: "Test Observer",
+    email: "obs@test",
+    id: "user-me",
+  }),
 }));
 
 import { ERegister } from "./eregister";

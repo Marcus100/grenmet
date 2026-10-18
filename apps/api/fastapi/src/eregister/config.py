@@ -12,9 +12,10 @@ class ERegisterConfig(BaseSettings):
     # Comma-separated addresses that receive "Email observation". Unset means
     # the action answers 409 "No recipients configured".
     OBS_RECIPIENTS: str = ""
-    # Sending needs a validated reading. QC acceptance has no workflow yet, so
-    # by default drafts that pass validation may be sent; set true once QC
-    # acceptance exists to require state "accepted".
+    # Email needs a validated reading; by default it also goes out before QC
+    # (internal use, marked provisional). Set true to require state "accepted"
+    # for email too. WIS2 publication always requires "accepted", whatever this
+    # says.
     SEND_REQUIRE_ACCEPTED: bool = False
 
     @property

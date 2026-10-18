@@ -29,7 +29,8 @@ def errors(message: str, kind: Kind = "METAR", **kwargs) -> set[str]:
 
 def test_routine_metar_and_taf_are_clean() -> None:
     assert codes(METAR) == {}
-    assert codes(TAF, "TAF") == {}
+    # The BECMG only turns the wind 30 degrees: advisory change-criteria warning.
+    assert codes(TAF, "TAF") == {"warning:taf_change_criteria": "BECMG"}
 
 
 def test_station_type_and_time_must_match_draft() -> None:
@@ -380,3 +381,127 @@ def test_taf_nsw_only_in_change_groups() -> None:
     assert "unknown_group" in errors(
         TAF.replace("SCT120 TEMPO", "SCT120 NSW TEMPO"), "TAF"
     )
+
+
+# --- SPECI trigger comparison (Annex 3 App. 3 2.3) ---------------------------------
+
+PREVIOUS = "METAR TGPY 181200Z 08012KT 9999 FEW020 SCT120 31/24 Q1014 NOSIG="
+
+
+def speci(body: str, previous: str = PREVIOUS) -> dict[str, str]:
+    message = f"SPECI TGPY 181215Z {body} Q1014="
+    return codes(message, "SPECI", previous_message=previous)
+
+
+def test_speci_without_a_previous_report_keeps_the_plausibility_check() -> None:
+    found = codes("SPECI TGPY 181215Z 08012KT 9999 FEW020 31/24 Q1014=", "SPECI")
+    assert "warning:speci_criteria" in found
+    assert "warning:speci_no_change" not in found
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "18012KT 9999 FEW020 31/24",  # direction change of 100 degrees
+        "08025KT 9999 FEW020 31/24",  # mean speed change of 13 kt
+        "08016G28KT 9999 FEW020 31/24",  # gust excess up by 12 kt, mean 16
+        "08012KT 2500 BR FEW020 31/24",  # visibility through 3000 m
+        "08012KT 9999 TSRA FEW020CB 31/24",  # onset of a thunderstorm
+        "08012KT 9999 +RA FEW020 31/24",  # onset of heavy precipitation
+        "08012KT 9999 FZRA FEW020 31/24",  # freezing precipitation
+        "08012KT 9999 BKN012 31/24",  # ceiling through 1500 ft
+        "08012KT 9999 FEW020 33/24",  # temperature up 2 degrees
+    ],
+)
+def test_speci_with_a_criterion_against_the_previous_report_is_not_flagged(
+    body: str,
+) -> None:
+    assert "warning:speci_no_change" not in speci(body)
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "09012KT 9999 FEW020 SCT120 31/24",  # same weather, 10 degrees
+        "08016KT 8000 FEW020 32/24",  # small changes, no threshold crossed
+        "08012KT 9999 -RA FEW020 31/24",  # light rain is not a criterion
+        "08012KT 9999 FEW015 SCT120 31/24",  # low cloud base but no ceiling
+    ],
+)
+def test_speci_without_a_criterion_against_the_previous_report_is_flagged(
+    body: str,
+) -> None:
+    assert "warning:speci_no_change" in speci(body)
+
+
+def test_speci_direction_change_needs_a_mean_speed_of_10_kt() -> None:
+    previous = PREVIOUS.replace("08012KT", "08006KT")
+    assert "warning:speci_no_change" in speci("18006KT 9999 FEW020 31/24", previous)
+    assert "warning:speci_no_change" not in speci("18010KT 9999 FEW020 31/24", previous)
+
+
+def test_speci_cavok_counts_as_clear_and_ends_weather() -> None:
+    previous = "METAR TGPY 181200Z 08012KT 2000 RA BKN010 31/24 Q1014="
+    assert "warning:speci_no_change" not in speci("08012KT CAVOK 31/24", previous)
+
+
+def test_speci_unreadable_previous_report_is_reported() -> None:
+    found = speci("08012KT 9999 FEW020 31/24", previous="NOT A REPORT")
+    assert "warning:speci_previous_unreadable" in found
+    assert "warning:speci_no_change" not in found
+
+
+def test_previous_report_is_ignored_for_metar_and_taf() -> None:
+    assert codes(METAR, previous_message=PREVIOUS) == {}
+    assert codes(TAF, "TAF", previous_message=PREVIOUS) == codes(TAF, "TAF")
+
+
+def test_speci_previous_message_reaches_the_endpoint_schema() -> None:
+    from src.wxproducts.schemas import AviationValidationRequest
+
+    request = AviationValidationRequest(
+        kind="SPECI",
+        station="TGPY",
+        message="SPECI TGPY 181215Z 08012KT 9999 FEW020 31/24 Q1014=",
+        previous_message=PREVIOUS,
+    )
+    assert request.previous_message == PREVIOUS
+
+
+# --- TAF change-group criteria (Annex 3 App. 5 1.3) ----------------------------------
+
+TAF_BASE = "TAF TGPY 180500Z 1806/1906 08012KT 9999 FEW020"
+
+
+def taf(changes: str) -> dict[str, str]:
+    return codes(f"{TAF_BASE} {changes}=", "TAF")
+
+
+def test_taf_change_group_with_a_criterion_is_not_flagged() -> None:
+    assert "warning:taf_change_criteria" not in taf("TEMPO 1810/1814 4000 SHRA")
+    assert "warning:taf_change_criteria" not in taf("BECMG 1810/1812 26012KT")
+    assert "warning:taf_change_criteria" not in taf("TEMPO 1810/1814 BKN008")
+    assert "warning:taf_change_criteria" not in taf("BECMG 1810/1812 0500 FG")
+
+
+def test_taf_change_group_without_a_criterion_is_flagged() -> None:
+    assert taf("BECMG 1810/1812 06014KT")["warning:taf_change_criteria"] == "BECMG"
+    assert "warning:taf_change_criteria" in taf("TEMPO 1810/1814 8000")
+    assert "warning:taf_change_criteria" in taf("TEMPO 1810/1814 -RA")
+    assert "warning:taf_change_criteria" in taf("PROB30 1810/1814 SCT030")
+
+
+def test_taf_becmg_updates_the_prevailing_forecast_but_tempo_does_not() -> None:
+    after_becmg = taf("BECMG 1810/1812 26012KT TEMPO 1814/1816 24012KT")
+    assert after_becmg["warning:taf_change_criteria"] == "TEMPO"
+    after_tempo = taf("TEMPO 1810/1814 26012KT BECMG 1816/1818 24012KT")
+    # The TEMPO left the prevailing wind at 080, so 240 is a 160 degree change.
+    assert "warning:taf_change_criteria" not in after_tempo
+
+
+def test_taf_fm_group_replaces_the_prevailing_forecast() -> None:
+    complete = "FM181200 26012KT 9999 FEW020"
+    assert "warning:taf_change_criteria" not in taf(complete)
+    assert "warning:taf_change_criteria" in taf("FM181200 08012KT 9999 FEW020")
+    follow = taf(f"{complete} BECMG 1814/1816 24012KT")
+    assert follow["warning:taf_change_criteria"] == "BECMG"

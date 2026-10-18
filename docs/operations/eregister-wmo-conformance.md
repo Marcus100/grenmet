@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-10-18
+**Last updated:** 2026-10-18 (QC accept step; section 3 and 5 groups; SPECI and TAF change criteria)
 
 What the eRegister (SYNOP workbook) and the aviation composer (METAR, SPECI,
 TAF) check against WMO-No. 306 (Manual on Codes, Vol. I.1 and I.2) and ICAO
@@ -41,17 +41,45 @@ to SI).
 | 7wwW1W2 | ww 00-99, W1/W2 0-9; W1 below W2: warning | Covered |
 | 8NhCLCMCH | Nh not above N; N=0 or Nh=0 forces CL/CM (and CH when N=0) to 0; N=9 reports Nh 9 | Covered |
 | 333 0CsDLDMDH | Code ranges | Covered |
-| 1/2 snTxTn | Max not below min | Covered |
-| 5 j1 P24 | Four digits; j1 other than 0/1: warning | Covered |
+| 1snTxTxTx, 2snTnTnTn | Max not below min; air temperature at the report time outside [Tn, Tx]: warning; reported at 00/06/12/18 UTC (`TXTN_REPORT_HOURS`): warning at other hours | Covered as advice. The exact RA IV period and hours are not confirmed (see below) |
+| 58P24P24P24, 59P24P24P24 | Keyed as j1 (0 rise or zero, 1 fall) + P24P24P24 in tenths; the TAC emits `58` or `59`; j1 other than 0/1 is an error; sign 1 with 000 and changes above 40 hPa: warning; decoded to Pa with sign | Covered |
+| 55SSS | Field `s3_sunshine_24h`: three digits, hours and tenths, at most 240 (24.0 h) is an error; reported at 12 UTC (`SUNSHINE_REPORT_HOURS`): warning elsewhere; decoded to hours | Covered. The regional reporting hour is not confirmed |
+| 3Ejjj | Fields `s3_ground_state` (E, Code table 0901, 0-9) and `s3_ground_jjj` (three digits, regional use): jjj without E warns; E 4 (frozen) or 5 (glaze) with air above 5 C warns; E goes to the CSV `ground_state` | Covered. jjj content (for example snTgTg) is passed through, not decoded |
+| 9SpSpspsp | Field `s3_special_phenomena`, space separated: each group is five digits starting with 9 (error otherwise); 910ff and 911ff gusts (both accepted), 960ww accepted; gust below mean, duplicate group and a gust also keyed in the gust field warn; other 9SpSp groups pass through with a warning | Covered for the common groups |
+| 555 national | Field `s5_national`: preserved as keyed and appended after section 3 as `555 ...`; never validated | Covered (passthrough) |
 | 7R24 | Four digits, 9999 trace; missing at 12 UTC: warning | Covered |
 | 8NsChshs | Up to 3 non-Cb layers plus Cb; Ns not above N; Ns 0 invalid; hshs Code table 1677 (51-55 unused, 81-89 in 1500 m steps); ascending order and completeness: warning | Covered |
-| 9SpSpspsp, remarks | Free text, not validated | Not covered |
+| Remarks (`s3_remarks`, `notes`) | Free text, not validated and not encoded | Not covered |
 | NIL report | Identification only becomes a NIL report | Covered |
 
-Not covered: regional (RA IV) hour tables for 1snTxTxTx/2snTnTnTn windows,
-55SSS sunshine, 58/59 24 h tendency, 3Ejjj, section 5 national groups, and the
-dd rounding rule for directions ending in 5 degrees (fff + 500). Decoded values
-omit dew-point and pressure derivations (see `src/eregister/AGENTS.md`).
+Not covered: the dd rounding rule for directions ending in 5 degrees
+(fff + 500), 4E'sss (ground with snow), 5EEEiE evaporation and the other
+sunshine/radiation groups after 55SSS. Decoded values omit dew-point and
+pressure derivations (see `src/eregister/AGENTS.md`).
+
+**Unconfirmed against the manuals (owner to confirm with GMS and the
+observers).** Written from WMO-No. 306 Vol. I.1 FM 12 section 3 as understood
+on 2026-10-18; the local copy holds only Vol. I.2, so none of these were checked
+line by line:
+
+- *Tx/Tn hours (RA IV).* The period covered by 1snTxTxTx / 2snTnTnTn and the
+  report hours RA IV prescribes are not confirmed. The rule only advises that
+  the groups belong in the 00/06/12/18 UTC reports; change `TXTN_REPORT_HOURS`
+  in `rules.py` once GMS states its practice. They are warnings, never errors.
+- *Sunshine hour.* 55SSS is the 24 h total; the register keys it at 12 UTC with
+  the 24 h rainfall (`SUNSHINE_REPORT_HOURS`). Warning only.
+- *Gust group.* The workbook gust field is encoded as `910ff` (past 10 minutes).
+  Whether observers mean `910ff` or `911ff` (highest gust since the previous
+  main observation) is unconfirmed; both are accepted in `s3_special_phenomena`.
+- *58/59.* The paper register keys `5 j1 P24`; this is read as j1 0 = group 58
+  and j1 1 = group 59. The TAC used to emit `5j1PPP`, which is not a FM 12
+  group; it now emits `58PPP` / `59PPP`.
+- *3Ejjj.* jjj is regional use; only its shape is checked.
+
+The paper-register layout (`eregister-layout.ts`) does not have columns for the
+new fields yet (`s3_sunshine_24h`, `s3_ground_state`, `s3_ground_jjj`,
+`s5_national`); the API accepts them and the workbook UI passes unknown keys
+through unchanged.
 
 ### Public current conditions (`eregister/public.py`)
 
@@ -80,7 +108,7 @@ trend, RMK.
 | Temperature, Q | M for negatives, dew point not above air; Q 850-1090 hPa (warning); A accepted |
 | Recent weather, windshear | RE list, WS RWYnn / ALL RWY accepted |
 | Trend | NOSIG, or BECMG/TEMPO with FM/TL/AT (hhmm, in that order) within two hours; elements limited to wind, visibility, weather/NSW, cloud/NSC/CAVOK; NOSIG not combined with change groups |
-| SPECI | Plausibility warning only: the message must show a criterion (visibility, ceiling, thunderstorm, freezing/heavy precipitation, strong wind). Proving a SPECI was warranted needs the previous report |
+| SPECI | Without `previous_message`: plausibility warning only (the message must show a criterion). With `previous_message` (the preceding METAR/SPECI): Annex 3 App. 3 2.3 comparison, `speci_no_change` warning when none is met: wind direction change of 60 degrees or more with mean 10 kt or more, mean speed change of 10 kt, gust excess up 10 kt with mean 15 kt, visibility through 800/1500/3000/5000 m, lowest BKN/OVC base or vertical visibility through 300/600/1500/3000 ft, cloud below 1500 ft between SCT-or-less and BKN/OVC, onset or end of freezing precipitation, moderate or heavy precipitation, thunderstorm, duststorm or sandstorm, funnel cloud, squall, air temperature up 2 degrees C. `speci_previous_unreadable` when the previous text has no wind, visibility or cloud. Local criteria (runway wind limits, RVR, snow depth) are not checked |
 
 ## TAF (FM 51)
 
@@ -94,15 +122,18 @@ trend, RMK.
 | BECMG, TEMPO | YYG1G1/YYG2G2 inside the validity, ends after it starts, at most 4 h; at least one change element; NSW allowed |
 | PROB30/40 | With TEMPO or alone with a period; not combined with BECMG |
 | FMYYGGgg | Inside the validity, ascending, complete (wind, visibility, cloud) |
+| Change criteria (App. 5 1.3) | Advisory `taf_change_criteria` warning when a BECMG, FM, TEMPO or PROB group meets none of: wind change (60 degrees at 10 kt, 10 kt speed, gust excess 10 kt at 15 kt), visibility through 150/350/600/800/1500/3000/5000 m, onset or end of freezing/moderate or heavy precipitation, thunderstorm, duststorm/sandstorm, funnel cloud, squall, lowest BKN/OVC base through 100/200/500/1000/1500 ft or cloud below 1500 ft changing amount class. The reference is the base forecast, updated by each BECMG and FM; TEMPO and PROB do not move it |
 
 Month roll-over of day numbers is resolved from the entered issue/validity
 times; when no time is entered and the days wrap, period-length checks are
 skipped rather than guessed.
 
-Not covered: Annex 3 App. 5 content rules that need the forecast meaning (for
-example the change criteria for BECMG/TEMPO, half-period limits for TEMPO,
-ceiling thresholds), maximum/minimum temperature windows against the validity,
-aerodrome-specific minimum-sector altitude for CAVOK, and national remarks.
+Not covered: half-period limits for TEMPO, maximum/minimum temperature windows
+against the validity, aerodrome-specific criteria (wind through runway limits,
+minimum-sector altitude for CAVOK), and national remarks. The change criteria
+and SPECI comparison live in `wxproducts/aviation_changes.py`; the thresholds
+are Annex 3 values written from memory of the 2020s editions, so confirm them
+against the edition GMS works to.
 
 ## Register preview (gaa-admin)
 
@@ -112,10 +143,25 @@ or `Q1000`, VV codes 90-96 printed `9999`, cloud used total oktas instead of
 the layer amounts, bases ignored codes 56-89, CB was dropped, N=9 was not VV.
 QNH is still taken from the MSL pressure group (an approximation).
 
+## QC accept step, `src/eregister/qc.py`
+
+Owner decision (Barrels foundations plan): a duty or senior forecaster accepts
+each observation. `POST /api/v1/eregister/observations/{id}/accept`, `/reject`
+and `/reopen`, permission `eregister.qc` (role `eregister-qc`). The observer
+who saved an observation can never accept it, superusers included; with no
+other QC holder the observation waits rather than being waved through. Reject
+and reopen need a reason; accept needs a workbook that validates; reopen is
+refused once the observation is queued for WIS2. Every decision is audited
+(`eregister_observation`). WIS2 publication always requires `accepted`; email
+is allowed for validated observations (internal use, marked provisional) unless
+`EREGISTER_SEND_REQUIRE_ACCEPTED` is set. The public page and month summary
+call a reading provisional unless it is accepted.
+
 ## Send actions (email and WIS2), `src/eregister/encode.py`
 
-"Email observation" and "Send last obs" act on a saved SYNOP that re-validates
-without errors (rejected and superseded are refused). The sends are logged in
+"Email observation" acts on a saved SYNOP that re-validates without errors
+(rejected and superseded are refused); "Send last obs" (WIS2) additionally needs
+QC acceptance, so it answers 409 for a fresh draft. The sends are logged in
 `eregister_send`; see `src/eregister/AGENTS.md` and `docs/env.md`.
 
 **TAC (FM 12).** The workbook already holds the coded groups, so the message is
@@ -125,7 +171,7 @@ with `0CsDLDMDH 1snTxTxTx 2snTnTnTn 5j1P24 7R24 8NsChshs 910ff [00fff]`, ending
 `=`. Absent groups are omitted, missing elements inside a kept group are `/`,
 an identification-only report is `AAXX YYGGiw IIiii NIL=`. Assumptions to
 confirm with the observers: the gust is sent as `910ff` (past 10 minutes), and
-`9SpSpspsp` and remarks are not encoded (the email shows the notes).
+remarks are not encoded (the email shows the notes). Supplementary 9-groups and section 5 (`555 ...`) are appended as keyed.
 
 **wis2box CSV.** wis2box runs csv2bufr with the vendored template
 `Surface-RA-IV-100` (`scripts/wis2-setup/`), the same columns SURFACE publishes
@@ -138,7 +184,7 @@ visibility in km (the template multiplies by 1000), cloud cover and Nh in
 oktas, CL/CM/CH plain codes (template adds 30/20/10), DL/DM/DH 1-8, layers as
 Ns / C / height in metres, lowest cloud base the lower bound of the h class,
 24 h pressure change in Pa with sign, station type 1 (manned). Not collected,
-so empty: soil, radiation, snow, ground state, wind gust direction.
+so empty: soil, radiation, snow, wind gust direction. The ground state E fills `ground_state`.
 
 ## Not implemented (needs owner approval)
 
