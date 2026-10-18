@@ -529,7 +529,7 @@ async def test_membership_changes_are_audited_with_actor(
             await db_async.scalars(
                 select(AuditEntry)
                 .where(
-                    AuditEntry.entity_type == "organisation",
+                    AuditEntry.entity_type == "platform_organisation",
                     AuditEntry.entity_id == org.id,
                 )
                 .order_by(AuditEntry.created_at)
@@ -575,7 +575,7 @@ async def test_history_is_readable_by_organisation_admins_only(
         "History Co",
         members=((owner, MembershipRole.OWNER), (member, MembershipRole.MEMBER)),
     )
-    url = f"/api/v1/audit/organisation/{org.id}"
+    url = f"/api/v1/audit/platform_organisation/{org.id}"
     assert (await async_client.get(url, headers=headers_for(owner))).status_code == 200
     assert (await async_client.get(url, headers=headers_for(member))).status_code == 403
     assert (
