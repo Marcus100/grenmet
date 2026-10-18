@@ -4,10 +4,18 @@ import { describe, expect, it } from "vitest";
 import { AccountTabs } from "./account-tabs";
 
 describe("AccountTabs", () => {
-  it("lists the five account tabs in order", () => {
+  it("lists the account tabs in order", () => {
     render(<AccountTabs current="/" />);
     expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual(
-      ["Profile", "Password", "Security", "Sessions", "Apps", "Access"]
+      [
+        "Profile",
+        "Password",
+        "Security",
+        "Sessions",
+        "Apps",
+        "Organisations",
+        "Access",
+      ]
     );
   });
 

@@ -92,7 +92,12 @@ from src.notifications.models import (
     NotificationSetting,
     OutboundEmail,
 )
-from src.organisations.models import Membership, OrganisationApp, PlatformOrganisation
+from src.organisations.models import (  # noqa: F401
+    Invitation,
+    Membership,
+    OrganisationApp,
+    PlatformOrganisation,
+)
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
 from src.stores.models import (
     Requisition,

@@ -1,6 +1,10 @@
 import { render } from "react-email";
 import { NotificationEmail, type NotificationEmailProps } from "./notification";
 import {
+  OrganisationInvitationEmail,
+  type OrganisationInvitationEmailProps,
+} from "./organisation-invitation";
+import {
   ResetPasswordEmail,
   type ResetPasswordEmailProps,
 } from "./reset-password";
@@ -12,6 +16,7 @@ import { WelcomeEmail, type WelcomeEmailProps } from "./welcome";
 
 export type TemplateName =
   | "notification"
+  | "organisation-invitation"
   | "reset-password"
   | "subscription-confirm"
   | "welcome";
@@ -31,6 +36,18 @@ export async function renderTemplate(
       return {
         html: await render(NotificationEmail(p)),
         subject: p.title,
+      };
+    }
+    case "organisation-invitation": {
+      const p = props as unknown as OrganisationInvitationEmailProps;
+      if (!(p.acceptLink && p.organisationName && p.inviterName)) {
+        throw new Error(
+          "organisation-invitation requires acceptLink, organisationName and inviterName"
+        );
+      }
+      return {
+        html: await render(OrganisationInvitationEmail(p)),
+        subject: `You are invited to join ${p.organisationName}`,
       };
     }
     case "reset-password": {

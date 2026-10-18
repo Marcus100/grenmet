@@ -7,11 +7,13 @@
 - New organisations get immutable `org_<hex>` ids (`service.create_organisation`); the `slug` is the editable, unique, human-readable name.
 - Service functions `flush` and never `commit`; the caller owns the transaction.
 - **Request context:** `OrgContext` (`dependencies.py`) resolves the organisation from `X-Barrels-Organisation`. Missing header 400; unknown organisation or non-member 404 (same message, no existence leak); member with too low a role 403; suspended organisation 403. Superusers get no bypass: they act on organisations through a membership or the future control plane. A route is only "organisation-isolated" if it uses `OrgContext` **and** has a cross-organisation denial test.
+- **Membership management (F4, `members.py`):** `org.invitation` (organisation, normalised email, role, SHA-256 `token_hash`, `expires_at` 7 days, `accepted_at`, `revoked_at`). Invitations are single-use, expiring and revocable; re-inviting an address revokes its pending invitation. The email goes through the `notifications` outbox (`organisation-invitation` template, transactional) and holds the only copy of the token. Accept takes the token in the body and requires the signed-in account's email to equal the invitation's. Admins manage members and admins; only owners invite owners or touch the owner role; the last active owner is protected (409). Removal sets `status = removed`; a later invitation reactivates the same row. Path `{organisation_id}` must equal the header organisation.
+- **Audit:** `audit.py` registers organisation, membership, invitation (without `token_hash`) and app rows under the `organisation` history subject, readable by that organisation's admins and owners. Services set the audit actor.
 - Routes use `AccountUser` (any active account, staff-approved or not), not `CurrentUser`, because organisation members need not be staff.
 - Public schemas never expose ORM models.
 
 ## Tests
-`tests/organisations/` — service and `/organisations/mine` (`test_organisations.py`), migration backfill and downgrade (`test_migration.py`), `OrgContext` denial and role tests (`test_context.py`). HR/baseline dual-write and reconciliation: `tests/organisations/test_hr_bridge.py`.
+`tests/organisations/` — service and `/organisations/mine` (`test_organisations.py`), migration backfill and downgrade (`test_migration.py`), `OrgContext` denial and role tests (`test_context.py`), invitations, roles, last-owner, cross-organisation denial and audit (`test_members.py`). HR/baseline dual-write and reconciliation: `tests/organisations/test_hr_bridge.py`.
 
 ## Related
 ADR-0022, ADR-0014, ADR-0018, `docs/exec-plans/barrels-foundations-plan.md`, `docs/api/contracts.md`.

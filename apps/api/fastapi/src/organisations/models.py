@@ -48,6 +48,10 @@ def new_membership_id() -> str:
     return f"mem_{secrets.token_hex(8)}"
 
 
+def new_invitation_id() -> str:
+    return f"inv_{secrets.token_hex(8)}"
+
+
 class PlatformOrganisation(Base):
     """An organisation that acts on the platform. Ids are immutable; slugs may change.
 
@@ -113,5 +117,40 @@ class OrganisationApp(Base):
     )
     app_key: Mapped[str] = mapped_column(String(60), primary_key=True)
     enabled: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class Invitation(Base):
+    """An emailed offer to join an organisation (ADR-0022, ADR-0018 challenge pattern).
+
+    Only the SHA-256 of the token is stored, so a database read never yields a
+    usable link. An invitation is single-use (``accepted_at``), expiring
+    (``expires_at``) and revocable (``revoked_at``).
+    """
+
+    __tablename__ = "invitation"
+    __table_args__ = (
+        sa.CheckConstraint(f"role IN ({_values(MembershipRole)})", name="role"),
+        sa.Index("ix_org_invitation_org_email", "organisation_id", "email"),
+        {"schema": "org"},
+    )
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    organisation_id: Mapped[str] = mapped_column(
+        ForeignKey("org.organisation.id", ondelete="CASCADE")
+    )
+    email: Mapped[str] = mapped_column(String(255))
+    role: Mapped[str] = mapped_column(String(20))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime]
+    invited_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), nullable=True
+    )
+    accepted_at: Mapped[datetime | None]
+    accepted_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), nullable=True
+    )
+    revoked_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)

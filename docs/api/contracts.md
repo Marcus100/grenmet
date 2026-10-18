@@ -352,6 +352,27 @@ cross-organisation denial test.
 `GET /api/v1/organisations/current` returns the header's organisation and the
 caller's role.
 
+### Members and invitations (F4)
+
+All routes below need `OrgContext` with at least the `admin` role, and the path
+`{organisation_id}` must equal the header's organisation (otherwise 404).
+
+| Route | Behaviour |
+| --- | --- |
+| `GET /organisations/{id}/members` | Active members (`page`, `size`) |
+| `GET /organisations/{id}/invitations` | Pending invitations |
+| `POST /organisations/{id}/invitations` | `{email, role}`; emails a single-use link valid 7 days; re-inviting replaces the pending one; 409 if already a member |
+| `DELETE /organisations/{id}/invitations/{invitation_id}` | Revoke (409 once accepted) |
+| `PATCH /organisations/{id}/members/{membership_id}` | `{role}` |
+| `DELETE /organisations/{id}/members/{membership_id}` | Sets the membership to `removed` |
+| `POST /organisations/invitations/accept` | `{token}` in the body, any signed-in account; 400 unknown, expired, used or revoked; 403 when the invitation was sent to another email address |
+
+Admins manage members and admins; only owners invite owners or grant, change or
+remove the owner role. The last active owner cannot be demoted or removed (409).
+Only a SHA-256 of the token is stored; the token appears only in the email link
+(`/organisations/accept?token=` on the auth app). Changes are audited under the
+`organisation` history subject (`GET /audit/organisation/{id}`, admins and owners).
+
 ## Pagination
 
 The standard helper is `src.pagination`:

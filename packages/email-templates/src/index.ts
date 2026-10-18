@@ -1,5 +1,7 @@
 export type { NotificationEmailProps } from "./notification";
 export { NotificationEmail } from "./notification";
+export type { OrganisationInvitationEmailProps } from "./organisation-invitation";
+export { OrganisationInvitationEmail } from "./organisation-invitation";
 export type { RenderResult, TemplateName } from "./render";
 export { renderTemplate } from "./render";
 export type { ResetPasswordEmailProps } from "./reset-password";

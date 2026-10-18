@@ -7,6 +7,7 @@ export const ACCOUNT_TABS = [
   { href: "/security", label: "Security" },
   { href: "/sessions", label: "Sessions" },
   { href: "/apps", label: "Apps" },
+  { href: "/organisations", label: "Organisations" },
   { href: "/access", label: "Access" },
 ] as const;
 
