@@ -4277,6 +4277,8 @@ export { publicObservationPropertiesStatusEnumSchema } from "./publicObservation
 export { publicObservationSchema } from "./publicObservationSchema.js";
 export { publicProductDetailSchema } from "./publicProductDetailSchema.js";
 export { publicPublishedProductSchema } from "./publicPublishedProductSchema.js";
+export { publicSatelliteImageSchema } from "./publicSatelliteImageSchema.js";
+export { publicSatelliteLatestSchema } from "./publicSatelliteLatestSchema.js";
 export { publicWarningGroupSchema } from "./publicWarningGroupSchema.js";
 export { publicWarningPropertiesColourAnyOfEnumSchema } from "./publicWarningPropertiesColourAnyOfEnumSchema.js";
 export { publicWarningSchema } from "./publicWarningSchema.js";
@@ -5253,6 +5255,15 @@ export {
   wxwatchFinishRunStatus422Schema,
 } from "./wxwatchFinishRunSchema.js";
 export {
+  wxwatchImageErrorSchema,
+  wxwatchImagePathImageIdSchema,
+  wxwatchImageResponseSchema,
+  wxwatchImageStatus307Schema,
+  wxwatchImageStatus400Schema,
+  wxwatchImageStatus404Schema,
+  wxwatchImageStatus422Schema,
+} from "./wxwatchImageSchema.js";
+export {
   wxwatchIngestBodySchema,
   wxwatchIngestErrorSchema,
   wxwatchIngestHeaderAuthorizationSchema,
@@ -5260,6 +5271,13 @@ export {
   wxwatchIngestStatus200Schema,
   wxwatchIngestStatus422Schema,
 } from "./wxwatchIngestSchema.js";
+export {
+  wxwatchLatestErrorSchema,
+  wxwatchLatestQueryProductSchema,
+  wxwatchLatestResponseSchema,
+  wxwatchLatestStatus200Schema,
+  wxwatchLatestStatus422Schema,
+} from "./wxwatchLatestSchema.js";
 export {
   wxwatchMetadataErrorSchema,
   wxwatchMetadataQueryDaySchema,

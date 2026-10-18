@@ -18886,6 +18886,100 @@
         }
       }
     },
+    "/api/v1/wxwatch/public/latest": {
+      "get": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Latest public satellite images",
+        "description": "The newest ingested GOES image for each product (or one product), with observation time and NOAA/NESDIS attribution. No authentication. An empty list means nothing has been ingested, never that the sky is clear.",
+        "operationId": "wxwatchLatest",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100,
+                  "pattern": "^[A-Za-z0-9_. :-]+$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Product"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSatelliteLatest"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/public/images/{image_id}": {
+      "get": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Download a public satellite image",
+        "description": "Image bytes for one GOES image listed by the latest endpoint: the archive file, or a 60-second signed redirect.",
+        "operationId": "wxwatchImage",
+        "parameters": [
+          {
+            "name": "image_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Image Id"
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
     "/api/v1/wxwatch/nhc/editions": {
       "get": {
         "tags": [
@@ -48704,6 +48798,95 @@
         ],
         "title": "PublicPublishedProduct",
         "description": "Compatibility response shape for anonymous public consumers."
+      },
+      "PublicSatelliteImage": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "product": {
+            "type": "string",
+            "title": "Product"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Observed At"
+          },
+          "image_url": {
+            "type": "string",
+            "title": "Image Url"
+          },
+          "media_type": {
+            "type": "string",
+            "title": "Media Type"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "product",
+          "title",
+          "observed_at",
+          "image_url",
+          "media_type",
+          "source",
+          "attribution"
+        ],
+        "title": "PublicSatelliteImage",
+        "description": "One ingested GOES image, with only fields that are safe to publish."
+      },
+      "PublicSatelliteLatest": {
+        "properties": {
+          "images": {
+            "items": {
+              "$ref": "#/components/schemas/PublicSatelliteImage"
+            },
+            "type": "array",
+            "title": "Images"
+          }
+        },
+        "type": "object",
+        "required": [
+          "images"
+        ],
+        "title": "PublicSatelliteLatest",
+        "description": "The newest image per GOES product; empty when nothing has been ingested."
       },
       "PublicWarning": {
         "properties": {

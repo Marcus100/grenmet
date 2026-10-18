@@ -99,6 +99,7 @@ from src.wxproducts.router import router as wxproducts_router
 from src.wxwatch import database as wxwatch_database
 from src.wxwatch.ingestion import router as wxwatch_ingestion_router
 from src.wxwatch.nhc_router import router as nhc_router
+from src.wxwatch.public_router import router as wxwatch_public_router
 from src.wxwatch.router import router as wxwatch_router
 
 configure_logging()
@@ -433,6 +434,7 @@ app.include_router(flights_router, prefix="/api/v1")
 app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
 app.include_router(eregister_router, prefix=settings.API_V1_STR)
 app.include_router(wxwatch_router, prefix=settings.API_V1_STR)
+app.include_router(wxwatch_public_router, prefix=settings.API_V1_STR)
 app.include_router(nhc_router, prefix=settings.API_V1_STR)
 app.include_router(wxwatch_ingestion_router, prefix=settings.API_V1_STR)
 app.include_router(browser_auth_router, prefix=settings.API_V1_STR)

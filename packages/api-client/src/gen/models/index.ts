@@ -4660,6 +4660,8 @@ export type { PublicObservationPropertiesStatusEnum } from "./PublicObservationP
 export { publicObservationPropertiesStatusEnum } from "./PublicObservationPropertiesStatusEnum.js";
 export type { PublicProductDetail } from "./PublicProductDetail.js";
 export type { PublicPublishedProduct } from "./PublicPublishedProduct.js";
+export type { PublicSatelliteImage } from "./PublicSatelliteImage.js";
+export type { PublicSatelliteLatest } from "./PublicSatelliteLatest.js";
 export type { PublicWarning } from "./PublicWarning.js";
 export type { PublicWarningGroup } from "./PublicWarningGroup.js";
 export type { PublicWarningPropertiesColourAnyOfEnum } from "./PublicWarningPropertiesColourAnyOfEnum.js";
@@ -5704,6 +5706,16 @@ export type {
   WxwatchFinishRunStatus422,
 } from "./WxwatchFinishRun.js";
 export type {
+  WxwatchImageOptions,
+  WxwatchImagePath,
+  WxwatchImageResponse,
+  WxwatchImageResponses,
+  WxwatchImageStatus307,
+  WxwatchImageStatus400,
+  WxwatchImageStatus404,
+  WxwatchImageStatus422,
+} from "./WxwatchImage.js";
+export type {
   WxwatchIngestBody,
   WxwatchIngestHeaders,
   WxwatchIngestOptions,
@@ -5712,6 +5724,14 @@ export type {
   WxwatchIngestStatus200,
   WxwatchIngestStatus422,
 } from "./WxwatchIngest.js";
+export type {
+  WxwatchLatestOptions,
+  WxwatchLatestQuery,
+  WxwatchLatestResponse,
+  WxwatchLatestResponses,
+  WxwatchLatestStatus200,
+  WxwatchLatestStatus422,
+} from "./WxwatchLatest.js";
 export type {
   WxwatchMetadataOptions,
   WxwatchMetadataQuery,
