@@ -26,7 +26,8 @@
     "lint": "biome lint .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "check:ci": "biome ci ."
+    "check:ci": "biome ci .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
@@ -58,6 +59,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
