@@ -113,6 +113,22 @@ test("protect-files: blocks real env files but not env.ts/env.md or example temp
   );
 });
 
+test("protect-files: allows committed infra deploy config, not real env files beside it", () => {
+  assert.equal(findProtectedViolation("infra/docker/staging.env"), null);
+  assert.equal(
+    findProtectedViolation("/home/x/grenmet/infra/docker/production.env"),
+    null
+  );
+  assert.ok(findProtectedViolation("infra/docker/.env"));
+  assert.ok(findProtectedViolation("infra/docker/.env.local"));
+  assert.ok(findProtectedViolation("infra/docker/production.env.local"));
+  assert.ok(findProtectedViolation("other/docker/production.env"));
+  assert.equal(
+    findShellWriteViolation("echo X >> infra/docker/staging.env"),
+    null
+  );
+});
+
 test("protect-files: blocks the generated API client, not ordinary api-client files", () => {
   assert.ok(
     findProtectedViolation("packages/api-client/src/gen/models/Foo.ts")
