@@ -92,6 +92,10 @@ test("pre-push stops on lint, type-check and test failures", (t) => {
     pnpm,
     [
       "#!/bin/sh",
+      // The scoped path calls turbo directly (`pnpm exec turbo run <task>`);
+      // log it as the task so both paths read the same.
+      'if [ "$1 $2 $3" = "exec turbo run" ]; then shift 3; fi',
+      'if [ "$2" = "--concurrency=2" ]; then t="$1"; shift 2; set -- "$t" "$@"; fi',
       'printf "%s\\n" "$*" >> "$CALL_LOG"',
       'if [ "$1" = "$FAIL_STEP" ]; then',
       "  exit 1",
