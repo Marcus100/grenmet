@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-15
+**Last updated:** 2026-10-18
 
 This document is the human-readable reference for supported environment variables
 in the Grenmet monorepo: what each variable does, where it is supplied, and which
@@ -679,3 +679,15 @@ with missing or malformed keys is rejected before deployment. Provision keys,
 convert existing secrets and verify privileged enrolment/recovery readiness while
 still disabled before enabling the gate; follow the MFA operator guide. This code
 change does not provision secrets or enable enforcement in production.
+
+## Deploy wiring for the 2026-10-18 integrations
+
+`deploy.yml` passes these to the API and worker containers. Unset values fall
+back to each setting's default.
+
+| Setting | Where to set it |
+| --- | --- |
+| `MBIA_CONTACT_RECIPIENT`, `BARRELS_CONTACT_RECIPIENT`, `GMS_DATA_REQUEST_RECIPIENT`, `EREGISTER_OBS_RECIPIENTS` | GitHub environment **variables** (staging and production) |
+| `EREGISTER_SEND_REQUIRE_ACCEPTED`, `WIS2BOX_S3_ENDPOINT_URL`, `WIS2BOX_S3_BUCKET`, `WIS2BOX_TOPIC_HIERARCHY`, `FLIGHTS_OPENSKY_ENABLED` | GitHub environment **variables** |
+| `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY`, `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | GitHub environment **secrets** |
+| `SUBSCRIPTIONS_SITE_URLS` | Committed in `infra/docker/staging.env` and `production.env` (non-secret) |
