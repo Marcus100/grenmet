@@ -131,6 +131,23 @@ function rainfall24h(values: Values): string | null {
   return n === TRACE_R24 ? "Trace" : (n / 10).toFixed(1);
 }
 
+// 24 h pressure change: j1 8 (rise or zero, group 58) or 9 (fall, group 59) then
+// P24P24P24 in tenths of hPa. A legacy 0 or 1 still reads (the API warns).
+const PRESSURE_RISE_J1 = "80";
+const PRESSURE_FALL_J1 = "91";
+
+function pressureChange24h(values: Values): string | null {
+  const group = (values.s3_baro_change_24h ?? "").trim();
+  if (group === "") return "";
+  if (group.length !== 4 || !DIGITS.test(group)) return null;
+  const hpa = Number(group.slice(1)) / 10;
+  if (PRESSURE_FALL_J1.includes(group.charAt(0))) {
+    return hpa === 0 ? "0.0" : `-${hpa.toFixed(1)}`;
+  }
+  if (PRESSURE_RISE_J1.includes(group.charAt(0))) return `+${hpa.toFixed(1)}`;
+  return null;
+}
+
 /** Fields that have a plain reading, keyed like the register values. */
 export const READINGS: Record<string, Reading> = {
   visibility,
@@ -147,6 +164,7 @@ export const READINGS: Record<string, Reading> = {
   s3_cloud_dir_high: drift("s3_cloud_dir_high"),
   s3_max_temp: temperature("s3_max_temp"),
   s3_min_temp: temperature("s3_min_temp"),
+  s3_baro_change_24h: pressureChange24h,
   s3_rainfall_24h: rainfall24h,
   s3_layer1_height: layerHeight("s3_layer1_height"),
   s3_layer2_height: layerHeight("s3_layer2_height"),

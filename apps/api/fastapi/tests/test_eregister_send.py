@@ -63,7 +63,7 @@ FULL_ROW = {
     "high_cloud_type": "0",
     "s3_max_temp": "0310",
     "s3_min_temp": "0240",
-    "s3_baro_change_24h": "1015",
+    "s3_baro_change_24h": "9015",
     "s3_rainfall_24h": "0123",
     "s3_layer1_amount": "1",
     "s3_layer1_form": "8",
