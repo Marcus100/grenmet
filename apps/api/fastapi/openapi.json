@@ -14715,6 +14715,275 @@
         }
       }
     },
+    "/api/v1/storage/uploads": {
+      "post": {
+        "tags": [
+          "storage"
+        ],
+        "summary": "Start an organisation upload",
+        "description": "Returns a short-lived presigned PUT for `org/{organisation}/{app}/{purpose}/{id}.{ext}`. The signature covers the content type and exact size. Send the bytes, then call `complete`.",
+        "operationId": "storageCreateUpload",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the upload belongs to (active member).",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the upload belongs to (active member)."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadTicket"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Type, size or purpose not allowed"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "503": {
+            "description": "Uploads are not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/storage/uploads/{upload_id}/complete": {
+      "post": {
+        "tags": [
+          "storage"
+        ],
+        "summary": "Confirm an organisation upload",
+        "description": "Checks the object exists with the declared type and size, then marks it complete.",
+        "operationId": "storageCompleteUpload",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Upload Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the upload belongs to (active member).",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the upload belongs to (active member)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoredFile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Type, size or purpose not allowed"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          },
+          "503": {
+            "description": "Uploads are not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/storage/files/{file_id}": {
+      "get": {
+        "tags": [
+          "storage"
+        ],
+        "summary": "Get a short-lived link to a file",
+        "description": "Presigned GET for a completed file of the caller's organisation.",
+        "operationId": "storageGetFile",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "File Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the upload belongs to (active member).",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the upload belongs to (active member)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileAccess"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "503": {
+            "description": "Uploads are not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/storage/public/{file_id}": {
+      "get": {
+        "tags": [
+          "storage"
+        ],
+        "summary": "Public image redirect",
+        "description": "Unauthenticated, cached redirect for completed files of public purposes (organiser logos, listing images). Other files are 404.",
+        "operationId": "storagePublicFile",
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "File Id"
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "503": {
+            "description": "Uploads are not configured"
+          }
+        }
+      }
+    },
     "/api/v1/subscriptions": {
       "post": {
         "tags": [
@@ -23630,6 +23899,89 @@
             "HTTPBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/events/manage/organiser/logo": {
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Set the organiser logo",
+        "description": "Attach a completed `organiser-logo` upload of the organiser's organisation (see `POST /storage/uploads`), or send null to clear it.",
+        "operationId": "eventsSetOrganiserLogo",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganiserLogoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganiserPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid listing"
+          }
+        }
       }
     },
     "/api/v1/events/manage/listings": {
@@ -36330,6 +36682,25 @@
         "type": "object",
         "title": "EmploymentUpdate"
       },
+      "FileAccess": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "expires_in"
+        ],
+        "title": "FileAccess",
+        "description": "A short-lived presigned GET for a private read."
+      },
       "FlightBoardResponse": {
         "properties": {
           "available": {
@@ -39708,6 +40079,18 @@
             "type": "boolean",
             "title": "Featured"
           },
+          "image_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image File Id"
+          },
           "organiser_slug": {
             "type": "string",
             "title": "Organiser Slug"
@@ -39867,6 +40250,18 @@
           "featured": {
             "type": "boolean",
             "title": "Featured"
+          },
+          "image_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image File Id"
           },
           "organiser_slug": {
             "type": "string",
@@ -40058,6 +40453,18 @@
             "type": "array",
             "maxItems": 20,
             "title": "Tiers"
+          },
+          "image_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image File Id"
           }
         },
         "type": "object",
@@ -40251,6 +40658,18 @@
             "type": "boolean",
             "title": "Featured"
           },
+          "image_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image File Id"
+          },
           "organiser_slug": {
             "type": "string",
             "title": "Organiser Slug"
@@ -40386,6 +40805,18 @@
               }
             ],
             "title": "Organisation Id"
+          },
+          "logo_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo File Id"
           },
           "follower_count": {
             "type": "integer",
@@ -42456,6 +42887,24 @@
         ],
         "title": "OrganiserCreate"
       },
+      "OrganiserLogoUpdate": {
+        "properties": {
+          "file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Id"
+          }
+        },
+        "type": "object",
+        "title": "OrganiserLogoUpdate"
+      },
       "OrganiserOption": {
         "properties": {
           "id": {
@@ -42529,6 +42978,18 @@
               }
             ],
             "title": "Organisation Id"
+          },
+          "logo_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo File Id"
           },
           "follower_count": {
             "type": "integer",
@@ -50891,6 +51352,78 @@
         ],
         "title": "StopView"
       },
+      "StoredFile": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "app": {
+            "type": "string",
+            "title": "App"
+          },
+          "purpose": {
+            "type": "string",
+            "title": "Purpose"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StoredFilePropertiesStatusEnum"
+          },
+          "public_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Path"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organisation_id",
+          "app",
+          "purpose",
+          "content_type",
+          "size_bytes",
+          "status",
+          "created_at"
+        ],
+        "title": "StoredFile"
+      },
       "StoresAccessPublic": {
         "properties": {
           "organisation_id": {
@@ -54422,6 +54955,89 @@
         ],
         "title": "UpdatePassword"
       },
+      "UploadRequest": {
+        "properties": {
+          "app": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "App",
+            "description": "App key, e.g. events."
+          },
+          "purpose": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Purpose",
+            "description": "e.g. organiser-logo, listing-image."
+          },
+          "content_type": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Content Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Size Bytes",
+            "description": "Exact size of the file in bytes."
+          }
+        },
+        "type": "object",
+        "required": [
+          "app",
+          "purpose",
+          "content_type",
+          "size_bytes"
+        ],
+        "title": "UploadRequest"
+      },
+      "UploadTicket": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "method": {
+            "type": "string",
+            "const": "PUT",
+            "title": "Method",
+            "default": "PUT"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "headers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Headers"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "max_bytes": {
+            "type": "integer",
+            "title": "Max Bytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "headers",
+          "expires_at",
+          "max_bytes"
+        ],
+        "title": "UploadTicket",
+        "description": "A short-lived presigned PUT. Send the file bytes with exactly these headers."
+      },
       "UserCreate": {
         "properties": {
           "email": {
@@ -57006,6 +57622,13 @@
           "uwyo"
         ]
       },
+      "StoredFilePropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "complete"
+        ]
+      },
       "SuggestionPublicPropertiesStatusEnum": {
         "type": "string",
         "enum": [
@@ -57276,6 +57899,10 @@
     {
       "name": "weather-images",
       "description": "Weather image retrieval operations."
+    },
+    {
+      "name": "storage",
+      "description": "Organisation-scoped uploads and file reads."
     },
     {
       "name": "wxproducts",

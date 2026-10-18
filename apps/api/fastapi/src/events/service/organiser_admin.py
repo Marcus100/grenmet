@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.organisations import service as organisations
 from src.organisations.models import MembershipRole, OrganisationKind
+from src.storage import uploads as org_uploads
 from src.utils.datetime import utc_now
 
 from .. import activity, outbox, schemas
@@ -136,6 +137,23 @@ async def _unique_slug(db: AsyncSession, title: str) -> str:
     return candidate
 
 
+async def _require_file(
+    file_id: uuid.UUID | None, organiser: Organiser, purpose: str
+) -> None:
+    """A stored file must be a completed upload of this organiser's organisation.
+
+    Only checked when the id changes, so existing references stay valid.
+    """
+    if file_id is None:
+        return
+    if organiser.organisation_id is None:
+        raise EventsConflict("Link this organiser to an organisation before uploading")
+    if not await org_uploads.file_is_usable(
+        file_id, organisation_id=organiser.organisation_id, purpose=purpose
+    ):
+        raise EventsConflict("That upload is not available for this organiser")
+
+
 def _validate_listing(body: schemas.ListingUpsert) -> None:
     if body.ends_at <= body.starts_at:
         raise EventsConflict("End time must be after the start time")
@@ -176,6 +194,9 @@ async def _apply_listing(
     listing.tags = [tag.strip().lower()[:30] for tag in body.tags if tag.strip()]
     listing.group_id = group_id
     listing.organiser_id = organiser.id
+    if body.image_file_id != listing.image_file_id:
+        await _require_file(body.image_file_id, organiser, "listing-image")
+        listing.image_file_id = body.image_file_id
     listing.updated_at = utc_now()
     db.add(listing)
     await db.flush()
@@ -215,6 +236,7 @@ async def _snapshot(db: AsyncSession, listing: Listing) -> dict[str, Any]:
         "ends_at": listing.ends_at.isoformat(),
         "tags": list(listing.tags),
         "group_id": str(listing.group_id) if listing.group_id else None,
+        "image_file_id": str(listing.image_file_id) if listing.image_file_id else None,
         "tiers": [[row.name, row.price_minor, row.allocation] for row in tiers],
     }
 
@@ -378,6 +400,31 @@ async def create_organiser(
     )
     await events.commit()
     return organiser
+
+
+async def set_organiser_logo(
+    db: AsyncSession,
+    user: User,
+    file_id: uuid.UUID | None,
+    org_ids: list[str],
+    slug: str | None = None,
+) -> schemas.OrganiserPublic:
+    """Set or clear the organiser's logo (a completed `organiser-logo` upload)."""
+    organiser = await _my_organiser(db, user, org_ids, slug)
+    if file_id != organiser.logo_file_id:
+        await _require_file(file_id, organiser, "organiser-logo")
+        organiser.logo_file_id = file_id
+        activity.record(
+            db,
+            actor_id=user.id,
+            action="organiser.logo_changed",
+            entity_type="organiser",
+            entity_id=str(organiser.id),
+            organiser_id=organiser.id,
+            summary={"changed": ["logo_file_id"]},
+        )
+        await db.commit()
+    return await _organiser_public(db, organiser, user.id)
 
 
 async def request_organiser(

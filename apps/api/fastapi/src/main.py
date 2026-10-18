@@ -85,6 +85,7 @@ from src.request_context import (
 
 # from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
+from src.storage.uploads_router import router as uploads_router
 from src.stores.router import router as stores_router
 from src.subscriptions.router import router as subscriptions_router
 from src.telemetry import sentry_options
@@ -242,6 +243,10 @@ OPENAPI_TAGS = [
     {"name": "users", "description": "User administration operations."},
     {"name": "utils", "description": "Health, readiness, and utility operations."},
     {"name": "weather-images", "description": "Weather image retrieval operations."},
+    {
+        "name": "storage",
+        "description": "Organisation-scoped uploads and file reads.",
+    },
     {"name": "wxproducts", "description": "Weather product authoring and publication."},
     {
         "name": "wxwatch",
@@ -417,6 +422,7 @@ app.include_router(cap_public_router)
 # Other routers
 app.include_router(utils_router, prefix="/api/v1")
 app.include_router(weather_images_router, prefix="/api/v1")
+app.include_router(uploads_router, prefix="/api/v1")
 app.include_router(webhooks_router, prefix="/api/v1")
 app.include_router(subscriptions_router, prefix="/api/v1")
 app.include_router(contact_router, prefix="/api/v1")

@@ -45,6 +45,7 @@ export type ManagedListing = {
   recurrence: string | null;
   tags: string[];
   featured: boolean;
+  image_file_id?: string | null;
   organiser_slug: string;
   going_count: number;
   going_preview: PersonChip[];

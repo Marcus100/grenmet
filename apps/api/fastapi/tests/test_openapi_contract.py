@@ -128,6 +128,8 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "archive_asset",
         # Public CAP attachments redirect to short-lived signed storage URLs.
         "download_public_attachment",
+        # Public organisation images redirect to short-lived signed storage URLs.
+        "public_file",
         # Subscription links redirect to the list's site with a result.
         "confirm_subscription",
         "unsubscribe",

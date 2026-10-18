@@ -1844,6 +1844,20 @@ export type {
   EventsSendMessageStatus429,
 } from "./EventsSendMessage.js";
 export type {
+  EventsSetOrganiserLogoBody,
+  EventsSetOrganiserLogoOptions,
+  EventsSetOrganiserLogoQuery,
+  EventsSetOrganiserLogoResponse,
+  EventsSetOrganiserLogoResponses,
+  EventsSetOrganiserLogoStatus200,
+  EventsSetOrganiserLogoStatus401,
+  EventsSetOrganiserLogoStatus403,
+  EventsSetOrganiserLogoStatus404,
+  EventsSetOrganiserLogoStatus409,
+  EventsSetOrganiserLogoStatus422,
+  EventsSetOrganiserLogoStatus429,
+} from "./EventsSetOrganiserLogo.js";
+export type {
   EventsUnblockMemberOptions,
   EventsUnblockMemberPath,
   EventsUnblockMemberResponse,
@@ -1938,6 +1952,7 @@ export type {
   FeedbackSendPageFeedbackStatus400,
   FeedbackSendPageFeedbackStatus422,
 } from "./FeedbackSendPageFeedback.js";
+export type { FileAccess } from "./FileAccess.js";
 export type { FlightBoardResponse } from "./FlightBoardResponse.js";
 export type { FlightBoardResponsePropertiesBoardEnum } from "./FlightBoardResponsePropertiesBoardEnum.js";
 export { flightBoardResponsePropertiesBoardEnum } from "./FlightBoardResponsePropertiesBoardEnum.js";
@@ -4249,6 +4264,7 @@ export type {
 } from "./OrganisationsVerifyOne.js";
 export type { OrganisationUpdate } from "./OrganisationUpdate.js";
 export type { OrganiserCreate } from "./OrganiserCreate.js";
+export type { OrganiserLogoUpdate } from "./OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./OrganiserOption.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OrganiserReview } from "./OrganiserReview.js";
@@ -4462,6 +4478,59 @@ export type { StockMovementCreate } from "./StockMovementCreate.js";
 export type { StockMovementListPublic } from "./StockMovementListPublic.js";
 export type { StockMovementPublic } from "./StockMovementPublic.js";
 export type { StopView } from "./StopView.js";
+export type {
+  StorageCompleteUploadHeaders,
+  StorageCompleteUploadOptions,
+  StorageCompleteUploadPath,
+  StorageCompleteUploadResponse,
+  StorageCompleteUploadResponses,
+  StorageCompleteUploadStatus200,
+  StorageCompleteUploadStatus401,
+  StorageCompleteUploadStatus403,
+  StorageCompleteUploadStatus404,
+  StorageCompleteUploadStatus409,
+  StorageCompleteUploadStatus422,
+  StorageCompleteUploadStatus503,
+} from "./StorageCompleteUpload.js";
+export type {
+  StorageCreateUploadBody,
+  StorageCreateUploadHeaders,
+  StorageCreateUploadOptions,
+  StorageCreateUploadResponse,
+  StorageCreateUploadResponses,
+  StorageCreateUploadStatus201,
+  StorageCreateUploadStatus401,
+  StorageCreateUploadStatus403,
+  StorageCreateUploadStatus404,
+  StorageCreateUploadStatus422,
+  StorageCreateUploadStatus503,
+} from "./StorageCreateUpload.js";
+export type {
+  StorageGetFileHeaders,
+  StorageGetFileOptions,
+  StorageGetFilePath,
+  StorageGetFileResponse,
+  StorageGetFileResponses,
+  StorageGetFileStatus200,
+  StorageGetFileStatus401,
+  StorageGetFileStatus403,
+  StorageGetFileStatus404,
+  StorageGetFileStatus422,
+  StorageGetFileStatus503,
+} from "./StorageGetFile.js";
+export type {
+  StoragePublicFileOptions,
+  StoragePublicFilePath,
+  StoragePublicFileResponse,
+  StoragePublicFileResponses,
+  StoragePublicFileStatus307,
+  StoragePublicFileStatus404,
+  StoragePublicFileStatus422,
+  StoragePublicFileStatus503,
+} from "./StoragePublicFile.js";
+export type { StoredFile } from "./StoredFile.js";
+export type { StoredFilePropertiesStatusEnum } from "./StoredFilePropertiesStatusEnum.js";
+export { storedFilePropertiesStatusEnum } from "./StoredFilePropertiesStatusEnum.js";
 export type { StoresAccessPublic } from "./StoresAccessPublic.js";
 export type {
   StoresApproveRequisitionBody,
@@ -5000,6 +5069,8 @@ export type { UnitSpec } from "./UnitSpec.js";
 export type { UnreachableRecipientPublic } from "./UnreachableRecipientPublic.js";
 export type { UnreadCountPublic } from "./UnreadCountPublic.js";
 export type { UpdatePassword } from "./UpdatePassword.js";
+export type { UploadRequest } from "./UploadRequest.js";
+export type { UploadTicket } from "./UploadTicket.js";
 export type { UserCreate } from "./UserCreate.js";
 export type { UserProfilePublic } from "./UserProfilePublic.js";
 export type { UserProfileUpdateMe } from "./UserProfileUpdateMe.js";
