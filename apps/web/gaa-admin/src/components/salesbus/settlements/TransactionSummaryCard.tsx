@@ -1,61 +1,29 @@
-"use client";
-
-import { Calendar } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { formatPrice } from "@/lib/salesbus/types";
 
 interface TransactionSummaryCardProps {
-  amount: number;
-  date: string;
+  count: number;
   href: string;
+  subtitle: string;
   title: string;
 }
 
 export function TransactionSummaryCard({
   title,
-  amount,
-  date,
+  count,
+  subtitle,
   href,
 }: TransactionSummaryCardProps) {
-  // Format date to short form (e.g., "Jun 21st")
-  const formatShortDate = (dateString: string) => {
-    const dateObj = new Date(dateString);
-    const month = dateObj.toLocaleDateString("en-US", { month: "short" });
-    const day = dateObj.getDate();
-    const suffix = getOrdinalSuffix(day);
-    return `${month} ${day}${suffix}`;
-  };
-
-  function getOrdinalSuffix(day: number): string {
-    if (day > 3 && day < 21) return "th";
-    switch (day % 10) {
-      case 1:
-        return "st";
-      case 2:
-        return "nd";
-      case 3:
-        return "rd";
-      default:
-        return "th";
-    }
-  }
-
   return (
     <div className="rounded-2xl bg-gradient-to-br from-gm-blue to-gm-navy p-5 text-white sm:p-6">
-      <div className="mb-2 flex items-start justify-between">
+      <div className="mb-2">
         <h3 className="font-bold text-base uppercase tracking-wide sm:text-lg">
           {title}
         </h3>
-        <div className="flex items-center gap-1.5 text-sm text-white/80">
-          <Calendar className="h-4 w-4" />
-          <span>{formatShortDate(date)}</span>
-        </div>
+        <p className="text-sm text-white/80">{subtitle}</p>
       </div>
 
-      <div className="mb-6 font-bold text-3xl sm:mb-8 sm:text-4xl">
-        +{formatPrice(amount)}
-      </div>
+      <div className="mb-6 font-bold text-3xl sm:mb-8 sm:text-4xl">{count}</div>
 
       <div className="flex justify-end">
         <Link
