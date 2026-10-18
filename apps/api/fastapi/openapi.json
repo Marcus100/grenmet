@@ -4044,6 +4044,72 @@
       }
     },
     "/api/v1/hr/rosters/public-holidays/{holiday_id}": {
+      "put": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Update public holiday",
+        "description": "Edit a public holiday's name, date, source or verification flag. Requires global roster.manage permission.",
+        "operationId": "hrUpdateHoliday",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "holiday_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Holiday Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicHolidayUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicHolidayPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Duplicate date"
+          },
+          "404": {
+            "description": "Public holiday not found"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          }
+        }
+      },
       "delete": {
         "tags": [
           "hr-rosters"
@@ -4089,6 +4155,59 @@
             "description": "Insufficient permission"
           }
         }
+      }
+    },
+    "/api/v1/hr/rosters/public-holidays/provisional": {
+      "post": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Load provisional public holidays",
+        "description": "Add the provisional Grenada public holidays for a year, skipping dates that already exist. Rows are marked provisional for GAA HR to verify and edit. Requires global roster.manage permission.",
+        "operationId": "hrLoadProvisionalHolidays",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProvisionalHolidaysRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicHolidaysPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Year out of range"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/api/v1/hr/rosters/departments/{department_id}/rules": {
@@ -39402,6 +39521,19 @@
         "type": "object",
         "title": "ProfileUpdate"
       },
+      "ProvisionalHolidaysRequest": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year"
+        ],
+        "title": "ProvisionalHolidaysRequest"
+      },
       "PublicCurrentConditions": {
         "properties": {
           "observation": {
@@ -39490,6 +39622,22 @@
             "type": "string",
             "title": "Country Code",
             "default": "GD"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "needs_verification": {
+            "type": "boolean",
+            "title": "Needs Verification",
+            "default": false
           }
         },
         "type": "object",
@@ -39523,6 +39671,22 @@
             "type": "string",
             "title": "Country Code"
           },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "needs_verification": {
+            "type": "boolean",
+            "title": "Needs Verification",
+            "default": false
+          },
           "created_by_user_id": {
             "type": "string",
             "format": "uuid",
@@ -39545,6 +39709,46 @@
           "created_at"
         ],
         "title": "PublicHolidayPublic"
+      },
+      "PublicHolidayUpdate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "holiday_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Holiday Date"
+          },
+          "is_recurring": {
+            "type": "boolean",
+            "title": "Is Recurring",
+            "default": false
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "needs_verification": {
+            "type": "boolean",
+            "title": "Needs Verification",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "holiday_date"
+        ],
+        "title": "PublicHolidayUpdate"
       },
       "PublicHolidaysPublic": {
         "properties": {

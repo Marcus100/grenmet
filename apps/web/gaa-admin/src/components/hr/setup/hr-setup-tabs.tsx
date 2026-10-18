@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { reportError } from "@/lib/report-error";
 import { BalanceImport } from "./balance-import";
 import { DepartmentsManager } from "./departments-manager";
+import { HolidaysManager } from "./holidays-manager";
 import { NotificationSettings } from "./notification-settings";
 import { OrganisationIdentity } from "./organisation-identity";
 import { RosterRulesManager } from "./roster-rules-manager";
@@ -71,6 +72,7 @@ export function HrSetupTabs() {
               <TabsTrigger value="staff">Staff baseline</TabsTrigger>
             )}
             <TabsTrigger value="shifts">Shift types</TabsTrigger>
+            <TabsTrigger value="holidays">Holidays</TabsTrigger>
             <TabsTrigger value="departments">Departments</TabsTrigger>
             <TabsTrigger value="rules">Roster rules</TabsTrigger>
             {canManageNotifications && (
@@ -91,6 +93,9 @@ export function HrSetupTabs() {
               shift is used.
             </p>
             <ShiftTypesManager canManage={canManageSharedShifts} />
+          </TabsContent>
+          <TabsContent className="w-full min-w-0" value="holidays">
+            <HolidaysManager canManage={canManageSharedShifts} />
           </TabsContent>
           <TabsContent className="w-full min-w-0" value="departments">
             <DepartmentsManager organisationId={organisationId} />

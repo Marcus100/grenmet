@@ -245,6 +245,7 @@ export { hrListHolidays } from "./clients/hrListHolidays.js";
 export { hrListMyShiftSwaps } from "./clients/hrListMyShiftSwaps.js";
 export { hrListPeriods } from "./clients/hrListPeriods.js";
 export { hrListShiftCatalog } from "./clients/hrListShiftCatalog.js";
+export { hrLoadProvisionalHolidays } from "./clients/hrLoadProvisionalHolidays.js";
 export { hrOffboardStaff } from "./clients/hrOffboardStaff.js";
 export { hrPatchDocument } from "./clients/hrPatchDocument.js";
 export { hrPreviewAbsenteeReportPdf } from "./clients/hrPreviewAbsenteeReportPdf.js";
@@ -275,6 +276,7 @@ export { hrTakeAction } from "./clients/hrTakeAction.js";
 export { hrUpdateAbsenteeReport } from "./clients/hrUpdateAbsenteeReport.js";
 export { hrUpdateCalendarEvent } from "./clients/hrUpdateCalendarEvent.js";
 export { hrUpdateDepartment } from "./clients/hrUpdateDepartment.js";
+export { hrUpdateHoliday } from "./clients/hrUpdateHoliday.js";
 export { hrUpdateHrEmployment } from "./clients/hrUpdateHrEmployment.js";
 export { hrUpdateHrProfileMe } from "./clients/hrUpdateHrProfileMe.js";
 export { hrUpdateLeaveRequest } from "./clients/hrUpdateLeaveRequest.js";
@@ -1604,6 +1606,11 @@ export {
   useHrListShiftCatalog,
 } from "./hooks/useHrListShiftCatalog.js";
 export {
+  hrLoadProvisionalHolidaysMutationKey,
+  hrLoadProvisionalHolidaysMutationOptions,
+  useHrLoadProvisionalHolidays,
+} from "./hooks/useHrLoadProvisionalHolidays.js";
+export {
   hrOffboardStaffMutationKey,
   hrOffboardStaffMutationOptions,
   useHrOffboardStaff,
@@ -1753,6 +1760,11 @@ export {
   hrUpdateDepartmentMutationOptions,
   useHrUpdateDepartment,
 } from "./hooks/useHrUpdateDepartment.js";
+export {
+  hrUpdateHolidayMutationKey,
+  hrUpdateHolidayMutationOptions,
+  useHrUpdateHoliday,
+} from "./hooks/useHrUpdateHoliday.js";
 export {
   hrUpdateHrEmploymentMutationKey,
   hrUpdateHrEmploymentMutationOptions,
@@ -5070,6 +5082,16 @@ export type {
   HrListShiftCatalogStatus422,
 } from "./models/HrListShiftCatalog.js";
 export type {
+  HrLoadProvisionalHolidaysBody,
+  HrLoadProvisionalHolidaysOptions,
+  HrLoadProvisionalHolidaysResponse,
+  HrLoadProvisionalHolidaysResponses,
+  HrLoadProvisionalHolidaysStatus201,
+  HrLoadProvisionalHolidaysStatus400,
+  HrLoadProvisionalHolidaysStatus403,
+  HrLoadProvisionalHolidaysStatus422,
+} from "./models/HrLoadProvisionalHolidays.js";
+export type {
   HrOffboardStaffOptions,
   HrOffboardStaffPath,
   HrOffboardStaffResponse,
@@ -5411,6 +5433,18 @@ export type {
   HrUpdateDepartmentStatus404,
   HrUpdateDepartmentStatus422,
 } from "./models/HrUpdateDepartment.js";
+export type {
+  HrUpdateHolidayBody,
+  HrUpdateHolidayOptions,
+  HrUpdateHolidayPath,
+  HrUpdateHolidayResponse,
+  HrUpdateHolidayResponses,
+  HrUpdateHolidayStatus200,
+  HrUpdateHolidayStatus400,
+  HrUpdateHolidayStatus403,
+  HrUpdateHolidayStatus404,
+  HrUpdateHolidayStatus422,
+} from "./models/HrUpdateHoliday.js";
 export type {
   HrUpdateHrEmploymentBody,
   HrUpdateHrEmploymentOptions,
@@ -6171,11 +6205,13 @@ export type { ProfilePublic } from "./models/ProfilePublic.js";
 export type { ProfilePublicPropertiesConnectionStateEnum } from "./models/ProfilePublicPropertiesConnectionStateEnum.js";
 export { profilePublicPropertiesConnectionStateEnum } from "./models/ProfilePublicPropertiesConnectionStateEnum.js";
 export type { ProfileUpdate } from "./models/ProfileUpdate.js";
+export type { ProvisionalHolidaysRequest } from "./models/ProvisionalHolidaysRequest.js";
 export type { PublicCurrentConditions } from "./models/PublicCurrentConditions.js";
 export type { PublicForecast } from "./models/PublicForecast.js";
 export type { PublicHolidayCreate } from "./models/PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./models/PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./models/PublicHolidaysPublic.js";
+export type { PublicHolidayUpdate } from "./models/PublicHolidayUpdate.js";
 export type { PublicObservation } from "./models/PublicObservation.js";
 export type { PublicObservationPropertiesPressureTrendAnyOfEnum } from "./models/PublicObservationPropertiesPressureTrendAnyOfEnum.js";
 export { publicObservationPropertiesPressureTrendAnyOfEnum } from "./models/PublicObservationPropertiesPressureTrendAnyOfEnum.js";
@@ -9581,6 +9617,15 @@ export {
   hrListShiftCatalogStatus422Schema,
 } from "./zod/hrListShiftCatalogSchema.js";
 export {
+  hrLoadProvisionalHolidaysBodySchema,
+  hrLoadProvisionalHolidaysErrorSchema,
+  hrLoadProvisionalHolidaysResponseSchema,
+  hrLoadProvisionalHolidaysStatus201Schema,
+  hrLoadProvisionalHolidaysStatus400Schema,
+  hrLoadProvisionalHolidaysStatus403Schema,
+  hrLoadProvisionalHolidaysStatus422Schema,
+} from "./zod/hrLoadProvisionalHolidaysSchema.js";
+export {
   hrOffboardStaffErrorSchema,
   hrOffboardStaffPathUserIdSchema,
   hrOffboardStaffResponseSchema,
@@ -9892,6 +9937,17 @@ export {
   hrUpdateDepartmentStatus404Schema,
   hrUpdateDepartmentStatus422Schema,
 } from "./zod/hrUpdateDepartmentSchema.js";
+export {
+  hrUpdateHolidayBodySchema,
+  hrUpdateHolidayErrorSchema,
+  hrUpdateHolidayPathHolidayIdSchema,
+  hrUpdateHolidayResponseSchema,
+  hrUpdateHolidayStatus200Schema,
+  hrUpdateHolidayStatus400Schema,
+  hrUpdateHolidayStatus403Schema,
+  hrUpdateHolidayStatus404Schema,
+  hrUpdateHolidayStatus422Schema,
+} from "./zod/hrUpdateHolidaySchema.js";
 export {
   hrUpdateHrEmploymentBodySchema,
   hrUpdateHrEmploymentErrorSchema,
@@ -10576,11 +10632,13 @@ export { profileIdentityPublicSchema } from "./zod/profileIdentityPublicSchema.j
 export { profilePublicPropertiesConnectionStateEnumSchema } from "./zod/profilePublicPropertiesConnectionStateEnumSchema.js";
 export { profilePublicSchema } from "./zod/profilePublicSchema.js";
 export { profileUpdateSchema } from "./zod/profileUpdateSchema.js";
+export { provisionalHolidaysRequestSchema } from "./zod/provisionalHolidaysRequestSchema.js";
 export { publicCurrentConditionsSchema } from "./zod/publicCurrentConditionsSchema.js";
 export { publicForecastSchema } from "./zod/publicForecastSchema.js";
 export { publicHolidayCreateSchema } from "./zod/publicHolidayCreateSchema.js";
 export { publicHolidayPublicSchema } from "./zod/publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./zod/publicHolidaysPublicSchema.js";
+export { publicHolidayUpdateSchema } from "./zod/publicHolidayUpdateSchema.js";
 export { publicObservationPropertiesPressureTrendAnyOfEnumSchema } from "./zod/publicObservationPropertiesPressureTrendAnyOfEnumSchema.js";
 export { publicObservationPropertiesStatusEnumSchema } from "./zod/publicObservationPropertiesStatusEnumSchema.js";
 export { publicObservationSchema } from "./zod/publicObservationSchema.js";

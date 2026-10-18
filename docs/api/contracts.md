@@ -536,6 +536,16 @@ nothing. The clock point must belong to the caller's own department. `late_minut
 | `PUT /api/v1/hr/rosters/departments/{department_id}/rules` | `roster.manage` in the department scope | Replace the limits |
 | `GET /api/v1/hr/rosters/periods/{period_id}/rule-check` | `roster.view` in the department scope | Violations for one period |
 
+### Public holidays
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET /api/v1/hr/rosters/public-holidays` | `roster.view` | List holidays, optionally by `year` |
+| `POST /api/v1/hr/rosters/public-holidays` | global `roster.manage` | Add a holiday (optional `source`, `needs_verification`) |
+| `PUT /api/v1/hr/rosters/public-holidays/{holiday_id}` | global `roster.manage` | Edit name, date, source or verification flag; a date already in use returns 400 |
+| `POST /api/v1/hr/rosters/public-holidays/provisional` | global `roster.manage` | Add the provisional Grenada calendar for `year` (2000-2100), skipping dates already present; rows carry `source` "provisional - verify with GAA HR" |
+| `DELETE /api/v1/hr/rosters/public-holidays/{holiday_id}` | global `roster.manage` | Remove a holiday |
+
 Limits are `min_rest_hours`, `max_consecutive_days` and `max_weekly_hours`, stored
 on `hr.department_policy`. A null limit disables that rule and no defaults are
 assumed, because GAA HR has not confirmed any values. The check is warn-only: it

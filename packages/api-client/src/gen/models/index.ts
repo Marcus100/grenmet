@@ -2775,6 +2775,16 @@ export type {
   HrListShiftCatalogStatus422,
 } from "./HrListShiftCatalog.js";
 export type {
+  HrLoadProvisionalHolidaysBody,
+  HrLoadProvisionalHolidaysOptions,
+  HrLoadProvisionalHolidaysResponse,
+  HrLoadProvisionalHolidaysResponses,
+  HrLoadProvisionalHolidaysStatus201,
+  HrLoadProvisionalHolidaysStatus400,
+  HrLoadProvisionalHolidaysStatus403,
+  HrLoadProvisionalHolidaysStatus422,
+} from "./HrLoadProvisionalHolidays.js";
+export type {
   HrOffboardStaffOptions,
   HrOffboardStaffPath,
   HrOffboardStaffResponse,
@@ -3116,6 +3126,18 @@ export type {
   HrUpdateDepartmentStatus404,
   HrUpdateDepartmentStatus422,
 } from "./HrUpdateDepartment.js";
+export type {
+  HrUpdateHolidayBody,
+  HrUpdateHolidayOptions,
+  HrUpdateHolidayPath,
+  HrUpdateHolidayResponse,
+  HrUpdateHolidayResponses,
+  HrUpdateHolidayStatus200,
+  HrUpdateHolidayStatus400,
+  HrUpdateHolidayStatus403,
+  HrUpdateHolidayStatus404,
+  HrUpdateHolidayStatus422,
+} from "./HrUpdateHoliday.js";
 export type {
   HrUpdateHrEmploymentBody,
   HrUpdateHrEmploymentOptions,
@@ -3876,11 +3898,13 @@ export type { ProfilePublic } from "./ProfilePublic.js";
 export type { ProfilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";
 export { profilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";
 export type { ProfileUpdate } from "./ProfileUpdate.js";
+export type { ProvisionalHolidaysRequest } from "./ProvisionalHolidaysRequest.js";
 export type { PublicCurrentConditions } from "./PublicCurrentConditions.js";
 export type { PublicForecast } from "./PublicForecast.js";
 export type { PublicHolidayCreate } from "./PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./PublicHolidaysPublic.js";
+export type { PublicHolidayUpdate } from "./PublicHolidayUpdate.js";
 export type { PublicObservation } from "./PublicObservation.js";
 export type { PublicObservationPropertiesPressureTrendAnyOfEnum } from "./PublicObservationPropertiesPressureTrendAnyOfEnum.js";
 export { publicObservationPropertiesPressureTrendAnyOfEnum } from "./PublicObservationPropertiesPressureTrendAnyOfEnum.js";
