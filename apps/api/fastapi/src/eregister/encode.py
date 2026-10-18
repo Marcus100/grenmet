@@ -14,7 +14,12 @@ from typing import Any
 
 from .config import Wis2boxConfig
 from .public import RAIN_PERIOD_HOURS
-from .rules import _layer_height_metres  # noqa: PLC2701 - shared code table
+from .rules import (
+    FOUR_DIGIT_GROUP,
+    THREE_DIGIT_GROUP,
+    TWO_DIGIT_GROUP,
+    layer_height_metres,
+)
 from .schemas import SynopDecoded, SynopWorkbook
 
 # Code table 1600 (h): lower bound in metres of each class of lowest cloud base.
@@ -83,7 +88,7 @@ def _temperature_group(prefix: str, value: str) -> str | None:
     """1snTTT style group from TTT (sign 0) or snTTT."""
     if not _present(value):
         return None
-    return f"{prefix}{value}" if len(value) == 4 else f"{prefix}0{value}"  # noqa: PLR2004
+    return f"{prefix}{value}" if len(value) == FOUR_DIGIT_GROUP else f"{prefix}0{value}"
 
 
 def _wind_groups(workbook: SynopWorkbook) -> tuple[str, str | None]:
@@ -92,7 +97,7 @@ def _wind_groups(workbook: SynopWorkbook) -> tuple[str, str | None]:
     direction = _slashes(_v(workbook, "wind_dir"), 2)
     speed = _v(workbook, "wind_speed")
     extra = None
-    if len(speed) == 3:  # noqa: PLR2004
+    if len(speed) == THREE_DIGIT_GROUP:
         extra = f"00{speed}"
         speed = "99"
     return f"{total}{direction}{_slashes(speed, 2)}", extra
@@ -199,8 +204,8 @@ def _section3(workbook: SynopWorkbook) -> list[str]:
             )
     gust = _v(workbook, "wind_gust")
     if _present(gust):
-        groups.append(f"910{'99' if len(gust) == 3 else gust}")  # noqa: PLR2004
-        if len(gust) == 3:  # noqa: PLR2004
+        groups.append(f"910{'99' if len(gust) == THREE_DIGIT_GROUP else gust}")
+        if len(gust) == THREE_DIGIT_GROUP:
             groups.append(f"00{gust}")
     return groups
 
@@ -253,7 +258,7 @@ def _int_field(workbook: SynopWorkbook, field: str) -> str:
 
 def _signed_pascals(value: str) -> float | None:
     """24 h pressure change 'j1 P24P24P24' (tenths of hPa, j1 1 = fall) in Pa."""
-    if len(value) != 4 or not value.isdigit():  # noqa: PLR2004
+    if len(value) != FOUR_DIGIT_GROUP or not value.isdigit():
         return None
     return (-1 if value[0] == "1" else 1) * int(value[1:]) * 10.0
 
@@ -274,8 +279,8 @@ def _layer_columns(workbook: SynopWorkbook) -> dict[str, str]:
     for n in (1, 2, 3, 4):
         height = _v(workbook, f"s3_layer{n}_height")
         metres = (
-            _layer_height_metres(int(height))
-            if height.isdigit() and len(height) == 2  # noqa: PLR2004
+            layer_height_metres(int(height))
+            if height.isdigit() and len(height) == TWO_DIGIT_GROUP
             else None
         )
         columns[f"cloud_coverage_l{n}"] = _int_field(workbook, f"s3_layer{n}_amount")

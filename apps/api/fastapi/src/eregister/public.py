@@ -14,6 +14,7 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .rules import FOUR_DIGIT_GROUP, THREE_DIGIT_GROUP
 from .schemas import PressureTrend, PublicMonthSummary, PublicObservation
 
 MBIA_STATION = "78958"
@@ -87,10 +88,13 @@ def temperature(text_value: str) -> float | None:
     The register keys TTT or snTTT in tenths (sn 0 positive, 1 negative); earlier
     clients saved plain degrees. A decimal point marks the plain form.
     """
-    if text_value.isdigit() and len(text_value) in (3, 4):
-        if len(text_value) == 4 and text_value[0] not in "01":  # noqa: PLR2004
+    if text_value.isdigit() and len(text_value) in (
+        THREE_DIGIT_GROUP,
+        FOUR_DIGIT_GROUP,
+    ):
+        if len(text_value) == FOUR_DIGIT_GROUP and text_value[0] not in "01":
             return None
-        sign = -1 if len(text_value) == 4 and text_value[0] == "1" else 1  # noqa: PLR2004
+        sign = -1 if len(text_value) == FOUR_DIGIT_GROUP and text_value[0] == "1" else 1
         value: float | None = sign * int(text_value[-3:]) / 10
     else:
         value = _number(text_value)
@@ -163,7 +167,7 @@ def rain(text_value: str) -> tuple[float | None, bool]:
 
 def rain_24h_mm(text_value: str) -> float | None:
     """Group 7R24R24R24R24: four digits in tenths of a millimetre, 9999 trace."""
-    if text_value.isdigit() and len(text_value) == 4:  # noqa: PLR2004
+    if text_value.isdigit() and len(text_value) == FOUR_DIGIT_GROUP:
         return 0.0 if text_value == "9999" else int(text_value) / 10
     return _number(text_value)
 

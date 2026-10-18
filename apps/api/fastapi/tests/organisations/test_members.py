@@ -31,7 +31,9 @@ async def _token_for(db: AsyncSession, email: str) -> str:
         .where(OutboundEmail.to_email == email.lower())
         .order_by(OutboundEmail.created_at.desc())
     )
-    link = rows.first().props["acceptLink"]  # type: ignore[union-attr]
+    newest = rows.first()
+    assert newest is not None
+    link = newest.props["acceptLink"]
     return parse_qs(urlparse(link).query)["token"][0]
 
 
@@ -55,12 +57,13 @@ async def _accept(client: httpx.AsyncClient, user, token: str) -> httpx.Response
     )
 
 
-async def _membership(db: AsyncSession, org_id: str, user_id) -> Membership:
-    return await db.scalar(  # type: ignore[return-value]
+async def _membership(db: AsyncSession, org_id: str, user_id) -> Membership | None:
+    result = await db.execute(
         select(Membership)
         .where(Membership.organisation_id == org_id, Membership.user_id == user_id)
         .execution_options(populate_existing=True)
     )
+    return result.scalar_one_or_none()
 
 
 # ── Invitation lifecycle ─────────────────────────────────────────────────────

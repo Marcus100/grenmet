@@ -15,7 +15,7 @@ from .schemas import ContactMessageCreate
 logger = logging.getLogger(__name__)
 
 
-async def verify_turnstile(token: str | None) -> bool:  # noqa: ARG001
+async def verify_turnstile(_token: str | None) -> bool:
     """Seam for Cloudflare Turnstile (server-side Siteverify).
 
     Not enforced yet: the token is accepted and ignored. To enforce, POST the

@@ -8,7 +8,7 @@ import pytest
 
 from src.auth.models import User
 from src.main import app
-from src.wxproducts.aviation_rules import validate_aviation
+from src.wxproducts.aviation_rules import Kind, validate_aviation
 from src.wxproducts.dependencies import ProductAuthor, get_author
 
 METAR = "METAR TGPY 181200Z 08012KT 9999 FEW020 SCT120 31/24 Q1014 NOSIG="
@@ -18,12 +18,12 @@ TAF = (
 )
 
 
-def codes(message: str, kind: str = "METAR", **kwargs) -> dict[str, str]:
-    issues = validate_aviation(kind, "TGPY", message, **kwargs)  # type: ignore[arg-type]
+def codes(message: str, kind: Kind = "METAR", **kwargs) -> dict[str, str]:
+    issues = validate_aviation(kind, "TGPY", message, **kwargs)
     return {f"{i.severity}:{i.code}": i.group or "" for i in issues}
 
 
-def errors(message: str, kind: str = "METAR", **kwargs) -> set[str]:
+def errors(message: str, kind: Kind = "METAR", **kwargs) -> set[str]:
     return {k.split(":")[1] for k in codes(message, kind, **kwargs) if k[0] == "e"}
 
 

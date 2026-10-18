@@ -26,12 +26,13 @@ async def locked_level(
         )
         .on_conflict_do_nothing()
     )
-    return await session.scalar(
+    result = await session.execute(
         select(StockLevel)
         .where(StockLevel.item_id == item_id, StockLevel.location_id == location_id)
         .with_for_update()
         .execution_options(populate_existing=True)
-    )  # type: ignore[return-value]
+    )
+    return result.scalar_one()
 
 
 async def apply_movement(

@@ -5,7 +5,8 @@ from typing import Any
 
 import httpx
 import pytest
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.exceptions import AppException, app_exception_handler
@@ -29,7 +30,12 @@ from tests.organisations.support import headers_for, make_org
 def _probe_app() -> FastAPI:
     """A tiny app whose routes sit behind each OrgContext alias."""
     probe = FastAPI()
-    probe.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
+
+    async def handle(request: Request, exc: Exception) -> JSONResponse:
+        assert isinstance(exc, AppException)
+        return await app_exception_handler(request, exc)
+
+    probe.add_exception_handler(AppException, handle)
 
     @probe.get("/member")
     async def member(context: OrgMember) -> dict[str, Any]:
