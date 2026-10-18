@@ -16,6 +16,13 @@ export type EventsUpdateManagedListingPath = {
   listing_id: string;
 };
 
+export type EventsUpdateManagedListingQuery = {
+  /**
+   * @description Organiser to act for when the member manages several.
+   */
+  organiser?: string | null;
+};
+
 export type EventsUpdateManagedListingStatus200 = ManagedListing;
 
 export type EventsUpdateManagedListingStatus401 = unknown;
@@ -39,7 +46,7 @@ export type EventsUpdateManagedListingBody = ListingUpsert;
 export type EventsUpdateManagedListingOptions = {
   body: EventsUpdateManagedListingBody;
   path: EventsUpdateManagedListingPath;
-  query?: never;
+  query?: EventsUpdateManagedListingQuery;
   headers?: never;
 };
 

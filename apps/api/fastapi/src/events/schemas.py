@@ -88,6 +88,7 @@ class OrganiserPublic(BaseModel):
     name: str
     bio: str
     verified: bool
+    organisation_id: str | None = None
     follower_count: int
     viewer_following: bool | None = None
 
@@ -302,5 +303,13 @@ class ManagedListing(ListingDetail):
     visibility: Literal["public", "unlisted"]
 
 
+class OrganiserOption(BaseModel):
+    id: uuid.UUID
+    slug: str
+    name: str
+    organisation_id: str | None = None
+
+
 class ManagedOrganiser(OrganiserPublic):
+    organisers: list[OrganiserOption]
     listings: list[ManagedListing]

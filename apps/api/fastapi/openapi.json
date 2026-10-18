@@ -22610,6 +22610,32 @@
         "summary": "Get my organiser workspace",
         "description": "The organiser I belong to and all its listings, including drafts.",
         "operationId": "eventsGetManagedOrganiser",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -22622,14 +22648,14 @@
             }
           },
           "422": {
-            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Unprocessable Content"
           },
           "401": {
             "description": "Sign in to Barrels Events"
@@ -22646,12 +22672,7 @@
           "409": {
             "description": "Invalid listing"
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/events/manage/listings": {
@@ -22662,15 +22683,41 @@
         "summary": "Create an event listing",
         "description": "Create a draft or published listing for my organiser, with ticket tiers.",
         "operationId": "eventsCreateManagedListing",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ListingUpsert"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -22684,14 +22731,14 @@
             }
           },
           "422": {
-            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Unprocessable Content"
           },
           "401": {
             "description": "Sign in to Barrels Events"
@@ -22708,12 +22755,7 @@
           "409": {
             "description": "Invalid listing"
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/events/manage/listings/{listing_id}": {
@@ -22739,6 +22781,25 @@
               "format": "uuid",
               "title": "Listing Id"
             }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
           }
         ],
         "requestBody": {
@@ -38911,6 +38972,17 @@
             "type": "boolean",
             "title": "Verified"
           },
+          "organisation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organisation Id"
+          },
           "follower_count": {
             "type": "integer",
             "title": "Follower Count"
@@ -38925,6 +38997,13 @@
               }
             ],
             "title": "Viewer Following"
+          },
+          "organisers": {
+            "items": {
+              "$ref": "#/components/schemas/OrganiserOption"
+            },
+            "type": "array",
+            "title": "Organisers"
           },
           "listings": {
             "items": {
@@ -38942,6 +39021,7 @@
           "bio",
           "verified",
           "follower_count",
+          "organisers",
           "listings"
         ],
         "title": "ManagedOrganiser"
@@ -40662,6 +40742,41 @@
         ],
         "title": "OrganisationUpdate"
       },
+      "OrganiserOption": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "organisation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organisation Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name"
+        ],
+        "title": "OrganiserOption"
+      },
       "OrganiserPublic": {
         "properties": {
           "id": {
@@ -40684,6 +40799,17 @@
           "verified": {
             "type": "boolean",
             "title": "Verified"
+          },
+          "organisation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organisation Id"
           },
           "follower_count": {
             "type": "integer",

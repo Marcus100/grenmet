@@ -1463,6 +1463,7 @@ export type {
 export type {
   EventsCreateManagedListingBody,
   EventsCreateManagedListingOptions,
+  EventsCreateManagedListingQuery,
   EventsCreateManagedListingResponse,
   EventsCreateManagedListingResponses,
   EventsCreateManagedListingStatus201,
@@ -1524,6 +1525,7 @@ export type {
 } from "./EventsGetListing.js";
 export type {
   EventsGetManagedOrganiserOptions,
+  EventsGetManagedOrganiserQuery,
   EventsGetManagedOrganiserResponse,
   EventsGetManagedOrganiserResponses,
   EventsGetManagedOrganiserStatus200,
@@ -1775,6 +1777,7 @@ export type {
   EventsUpdateManagedListingBody,
   EventsUpdateManagedListingOptions,
   EventsUpdateManagedListingPath,
+  EventsUpdateManagedListingQuery,
   EventsUpdateManagedListingResponse,
   EventsUpdateManagedListingResponses,
   EventsUpdateManagedListingStatus200,
@@ -4026,6 +4029,7 @@ export type {
   OrganisationsUpdateMemberStatus422,
 } from "./OrganisationsUpdateMember.js";
 export type { OrganisationUpdate } from "./OrganisationUpdate.js";
+export type { OrganiserOption } from "./OrganiserOption.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OutlookProductPreview } from "./OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js";

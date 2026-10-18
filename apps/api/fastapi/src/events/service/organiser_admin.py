@@ -6,10 +6,12 @@ import uuid
 from typing import Literal
 
 from pydantic import TypeAdapter
-from sqlalchemy import delete, select
+from sqlalchemy import and_, delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.organisations import service as organisations
+from src.organisations.models import MembershipRole, OrganisationKind
 from src.utils.datetime import utc_now
 
 from .. import schemas
@@ -30,13 +32,44 @@ _VISIBILITY = TypeAdapter(Literal["public", "unlisted"])
 # --- Organiser management -------------------------------------------------------------------
 
 
-async def _my_organiser(db: AsyncSession, user: User) -> Organiser:
-    organiser = await db.scalar(
-        select(Organiser)
-        .join(OrganiserMember, OrganiserMember.organiser_id == Organiser.id)
-        .where(OrganiserMember.user_id == user.id)
-        .order_by(Organiser.name)
-        .limit(1)
+async def my_organisers(
+    db: AsyncSession, user: User, org_ids: list[str]
+) -> list[Organiser]:
+    """Organisers the user can manage: a platform admin/owner membership, or (for
+    organisers not yet linked to an organisation) a legacy ``organiser_members`` row.
+    Once linked, the platform membership is authoritative."""
+    return list(
+        (
+            await db.scalars(
+                select(Organiser)
+                .outerjoin(
+                    OrganiserMember,
+                    and_(
+                        OrganiserMember.organiser_id == Organiser.id,
+                        OrganiserMember.user_id == user.id,
+                    ),
+                )
+                .where(
+                    or_(
+                        and_(
+                            Organiser.organisation_id.is_(None),
+                            OrganiserMember.user_id.is_not(None),
+                        ),
+                        Organiser.organisation_id.in_(org_ids),
+                    )
+                )
+                .order_by(Organiser.name, Organiser.id)
+            )
+        ).all()
+    )
+
+
+async def _my_organiser(
+    db: AsyncSession, user: User, org_ids: list[str], slug: str | None = None
+) -> Organiser:
+    candidates = await my_organisers(db, user, org_ids)
+    organiser = next(
+        (row for row in candidates if slug is None or row.slug == slug), None
     )
     if organiser is None:
         raise EventsForbidden("You're not a member of an organiser yet")
@@ -62,8 +95,10 @@ async def _managed(
     )
 
 
-async def managed_organiser(db: AsyncSession, user: User) -> schemas.ManagedOrganiser:
-    organiser = await _my_organiser(db, user)
+async def managed_organiser(
+    db: AsyncSession, user: User, org_ids: list[str], slug: str | None = None
+) -> schemas.ManagedOrganiser:
+    organiser = await _my_organiser(db, user, org_ids, slug)
     listings = (
         await db.scalars(
             select(Listing)
@@ -74,6 +109,15 @@ async def managed_organiser(db: AsyncSession, user: User) -> schemas.ManagedOrga
     public = await _organiser_public(db, organiser, user.id)
     return schemas.ManagedOrganiser(
         **public.model_dump(),
+        organisers=[
+            schemas.OrganiserOption(
+                id=row.id,
+                slug=row.slug,
+                name=row.name,
+                organisation_id=row.organisation_id,
+            )
+            for row in await my_organisers(db, user, org_ids)
+        ],
         listings=[await _managed(db, row, user) for row in listings],
     )
 
@@ -146,9 +190,13 @@ async def _apply_listing(
 
 
 async def create_listing(
-    db: AsyncSession, user: User, body: schemas.ListingUpsert
+    db: AsyncSession,
+    user: User,
+    body: schemas.ListingUpsert,
+    org_ids: list[str],
+    slug: str | None = None,
 ) -> schemas.ManagedListing:
-    organiser = await _my_organiser(db, user)
+    organiser = await _my_organiser(db, user, org_ids, slug)
     listing = Listing(slug=await _unique_slug(db, body.title))
     await _apply_listing(db, listing, body, organiser)
     await db.commit()
@@ -156,12 +204,53 @@ async def create_listing(
 
 
 async def update_listing(
-    db: AsyncSession, user: User, listing_id: uuid.UUID, body: schemas.ListingUpsert
+    db: AsyncSession,
+    user: User,
+    listing_id: uuid.UUID,
+    body: schemas.ListingUpsert,
+    org_ids: list[str],
+    slug: str | None = None,
 ) -> schemas.ManagedListing:
-    organiser = await _my_organiser(db, user)
+    organiser = await _my_organiser(db, user, org_ids, slug)
     listing = await db.get(Listing, listing_id)
     if listing is None or listing.organiser_id != organiser.id:
         raise EventsNotFound("Event not found")
     await _apply_listing(db, listing, body, organiser)
     await db.commit()
     return await _managed(db, listing, user)
+
+
+async def create_organiser(
+    events: AsyncSession,
+    platform: AsyncSession,
+    user: User,
+    *,
+    name: str,
+    slug: str | None = None,
+    bio: str = "",
+) -> Organiser:
+    """Create an organiser backed by a new platform organisation, with the creator
+    as its owner. The platform side commits first; if the Events insert then fails
+    the orphan organisation is harmless and can be removed from the platform."""
+    clean = name.strip()
+    wanted = _SLUG_STRIP.sub("-", (slug or clean).lower()).strip("-")[:60]
+    if not clean or not wanted:
+        raise EventsConflict("An organiser needs a name")
+    if await events.scalar(select(Organiser.id).where(Organiser.slug == wanted)):
+        raise EventsConflict("That organiser address is taken")
+    organisation = await organisations.create_organisation(
+        platform, name=clean, kind=OrganisationKind.BUSINESS, slug=wanted
+    )
+    await organisations.add_member(
+        platform,
+        organisation_id=organisation.id,
+        user_id=user.id,
+        role=MembershipRole.OWNER,
+    )
+    await platform.commit()
+    organiser = Organiser(
+        slug=wanted, name=clean, bio=bio, organisation_id=organisation.id
+    )
+    events.add(organiser)
+    await events.commit()
+    return organiser
