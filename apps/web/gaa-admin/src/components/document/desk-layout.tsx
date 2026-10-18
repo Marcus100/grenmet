@@ -3,7 +3,11 @@
 import { Card } from "@barrelsgd/ui/components/ui/card";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
-export function ProductDeskLayout({
+/**
+ * The shared desk: editor | preview | archive/history. The archive card sits
+ * under whichever column is shorter. Used by weather products and HR forms.
+ */
+export function DeskLayout({
   editor,
   preview,
   archive,
@@ -45,7 +49,7 @@ export function ProductDeskLayout({
       <div className="@4xl:block contents @4xl:min-w-0 @4xl:space-y-4">
         <div
           className="order-1 min-w-0"
-          data-slot="product-editor-panel"
+          data-slot="desk-editor-panel"
           ref={editorRef}
         >
           {editor}
@@ -55,7 +59,7 @@ export function ProductDeskLayout({
       <div className="@4xl:block contents @4xl:min-w-0 @4xl:space-y-4">
         <div
           className="order-2 min-w-0"
-          data-slot="product-preview-panel"
+          data-slot="desk-preview-panel"
           ref={previewRef}
         >
           {preview}

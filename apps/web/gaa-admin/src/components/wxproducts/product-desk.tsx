@@ -44,8 +44,8 @@ import {
   previewProductAction,
   saveProductAction,
 } from "@/app/(admin)/wxproducts/product-actions";
+import { DeskLayout } from "@/components/document/desk-layout";
 import type { PdfPreviewRequest } from "@/components/wxproducts/forecast-pdf-frame";
-import { ProductDeskLayout } from "@/components/wxproducts/product-desk-layout";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
@@ -414,7 +414,7 @@ function ProductEditor({
         }
         return (
           <div className="@container">
-            <ProductDeskLayout
+            <DeskLayout
               archive={archive}
               editor={
                 <Card className="gap-4 p-4">
