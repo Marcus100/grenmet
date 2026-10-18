@@ -1,6 +1,7 @@
 """Local demo data for Barrels Events (fictional organisers, groups and events).
 
-Create-once and local-only: refuses to run unless ENVIRONMENT is "local" and
+Organisers are created through the Events service (linked to platform
+organisations, owned by an existing account). Create-once and local-only: refuses to run unless ENVIRONMENT is "local" and
 the organisers table is empty. Dates are relative to today so the demo stays
 current. Usage: python scripts/seed_events_demo.py --apply
 """
@@ -8,12 +9,10 @@ current. Usage: python scripts/seed_events_demo.py --apply
 from __future__ import annotations
 
 import argparse
+import asyncio
 import os
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any
-
-import psycopg
 
 GRENADA_OFFSET = timedelta(hours=-4)
 
@@ -170,28 +169,48 @@ def at(day: int, time: str) -> datetime:
     return local - GRENADA_OFFSET
 
 
-def seed(conn: psycopg.Connection[Any]) -> None:
-    with conn.transaction(), conn.cursor() as cur:
-        cur.execute("SELECT count(*) FROM organisers")
-        row = cur.fetchone()
-        if row and row[0]:
+async def seed(owner_email: str) -> None:
+    """Organisers go through ``service.create_organiser`` (platform organisation plus
+    owner membership); groups, listings and tiers are plain Events rows."""
+    from sqlalchemy import func, select
+
+    from src.auth.models import User
+    from src.database import async_session_factory
+    from src.events import database as events_database
+    from src.events import service
+    from src.events.models import Group, Listing, Organiser, TicketTier
+
+    events = events_database.create_session()
+    if events is None:
+        raise SystemExit("EVENTS_DATABASE_URL is required")
+    async with events, async_session_factory() as platform:
+        owner = await platform.scalar(select(User).where(User.email == owner_email))
+        if owner is None:
+            print(f"events demo: no account {owner_email}; skipping")
+            return
+        if await events.scalar(select(func.count()).select_from(Organiser)):
             print("events demo: organisers exist; nothing to do")
             return
-        organiser_ids: dict[str, uuid.UUID] = {}
+        organisers: dict[str, Organiser] = {}
         for slug, name, bio, verified in ORGANISERS:
-            organiser_ids[slug] = uuid.uuid4()
-            cur.execute(
-                "INSERT INTO organisers (id, slug, name, bio, verified) VALUES (%s, %s, %s, %s, %s)",
-                (organiser_ids[slug], slug, name, bio, verified),
+            organiser = await service.create_organiser(
+                events, platform, owner, name=name, slug=slug, bio=bio
             )
-        group_ids: dict[str, uuid.UUID] = {}
+            organiser.verified = verified
+            organisers[slug] = organiser
+        await events.commit()
+        groups: dict[str, Group] = {}
         for slug, name, tagline, category, parish, policy in GROUPS:
-            group_ids[slug] = uuid.uuid4()
-            cur.execute(
-                "INSERT INTO groups (id, slug, name, tagline, category, parish, join_policy)"
-                " VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (group_ids[slug], slug, name, tagline, category, parish, policy),
+            groups[slug] = Group(
+                slug=slug,
+                name=name,
+                tagline=tagline,
+                category=category,
+                parish=parish,
+                join_policy=policy,
             )
+        events.add_all(groups.values())
+        await events.flush()
         for (
             slug,
             title,
@@ -209,37 +228,38 @@ def seed(conn: psycopg.Connection[Any]) -> None:
             tags,
             featured,
         ) in LISTINGS:
-            listing_id = uuid.uuid4()
             starts = at(day, start)
-            cur.execute(
-                "INSERT INTO listings (id, slug, title, summary, description, category, parish, venue,"
-                " starts_at, ends_at, admission, capacity, organiser_id, group_id, featured, tags, status)"
-                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'published')",
-                (
-                    listing_id,
-                    slug,
-                    title,
-                    summary,
-                    summary,
-                    category,
-                    parish,
-                    venue,
-                    starts,
-                    starts + timedelta(hours=hours),
-                    admission,
-                    500,
-                    organiser_ids[organiser],
-                    group_ids.get(group) if group else None,
-                    featured,
-                    tags,
-                ),
+            listing = Listing(
+                id=uuid.uuid4(),
+                slug=slug,
+                title=title,
+                summary=summary,
+                description=summary,
+                category=category,
+                parish=parish,
+                venue=venue,
+                starts_at=starts,
+                ends_at=starts + timedelta(hours=hours),
+                admission=admission,
+                capacity=500,
+                organiser_id=organisers[organiser].id,
+                group_id=groups[group].id if group else None,
+                featured=featured,
+                tags=tags,
+                status="published",
             )
+            events.add(listing)
+            await events.flush()
             if price is not None:
-                cur.execute(
-                    "INSERT INTO ticket_tiers (id, listing_id, name, price_minor, allocation)"
-                    " VALUES (%s, %s, 'General', %s, 400)",
-                    (uuid.uuid4(), listing_id, price),
+                events.add(
+                    TicketTier(
+                        listing_id=listing.id,
+                        name="General",
+                        price_minor=price,
+                        allocation=400,
+                    )
                 )
+        await events.commit()
     print(
         f"events demo: {len(ORGANISERS)} organisers, {len(GROUPS)} groups, {len(LISTINGS)} listings"
     )
@@ -248,17 +268,21 @@ def seed(conn: psycopg.Connection[Any]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--apply", action="store_true", help="write the demo rows")
+    parser.add_argument(
+        "--owner-email",
+        help="existing account that owns the demo organisers (default: first superuser)",
+    )
     args = parser.parse_args()
     if os.environ.get("ENVIRONMENT", "local") != "local":
         raise SystemExit("Refusing to seed Barrels Events demo data outside local")
-    url = os.environ.get("EVENTS_DATABASE_URL")
-    if not url:
+    if not os.environ.get("EVENTS_DATABASE_URL"):
         raise SystemExit("EVENTS_DATABASE_URL is required")
     if not args.apply:
         print(f"events demo preview: {len(LISTINGS)} listings (pass --apply to write)")
         return
-    with psycopg.connect(url.replace("postgresql+asyncpg://", "postgresql://")) as conn:
-        seed(conn)
+    from src.config import settings
+
+    asyncio.run(seed(args.owner_email or settings.FIRST_SUPERUSER))
 
 
 if __name__ == "__main__":

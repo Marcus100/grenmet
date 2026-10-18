@@ -659,6 +659,11 @@ export {
   useEventsGetListing,
 } from "./useEventsGetListing.js";
 export {
+  eventsGetListingActivityQueryKey,
+  eventsGetListingActivityQueryOptions,
+  useEventsGetListingActivity,
+} from "./useEventsGetListingActivity.js";
+export {
   eventsGetManagedOrganiserQueryKey,
   eventsGetManagedOrganiserQueryOptions,
   useEventsGetManagedOrganiser,
@@ -714,6 +719,11 @@ export {
   useEventsListListings,
 } from "./useEventsListListings.js";
 export {
+  eventsListPendingOrganisersQueryKey,
+  eventsListPendingOrganisersQueryOptions,
+  useEventsListPendingOrganisers,
+} from "./useEventsListPendingOrganisers.js";
+export {
   eventsListReportsQueryKey,
   eventsListReportsQueryOptions,
   useEventsListReports,
@@ -743,6 +753,16 @@ export {
   eventsRequestConnectionMutationOptions,
   useEventsRequestConnection,
 } from "./useEventsRequestConnection.js";
+export {
+  eventsRequestOrganiserMutationKey,
+  eventsRequestOrganiserMutationOptions,
+  useEventsRequestOrganiser,
+} from "./useEventsRequestOrganiser.js";
+export {
+  eventsReviewOrganiserMutationKey,
+  eventsReviewOrganiserMutationOptions,
+  useEventsReviewOrganiser,
+} from "./useEventsReviewOrganiser.js";
 export {
   eventsRsvpListingMutationKey,
   eventsRsvpListingMutationOptions,

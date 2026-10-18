@@ -418,6 +418,15 @@ returns `organisers` (every organiser the member manages), and `GET /events/mana
 `POST /events/manage/listings` and `PUT /events/manage/listings/{id}` accept an
 optional `?organiser=<slug>` to act for one of them. Access is the
 `events.organiser.manage` permission or an active admin/owner platform membership.
+`POST /events/manage/organiser` (any Events member) creates an unverified organiser
+backed by a new platform organisation with the caller as owner (409 for a taken
+address or a second pending request); moderators verify it through
+`PATCH /events/moderation/organisers/{id}`. Publishing, cancelling or rescheduling a
+listing and approving an organiser also write `outbox` rows (same Events transaction)
+that the worker turns into notifications; no endpoint is involved.
+`GET /events/manage/{listing_id}/activity` returns that listing's append-only history
+(`ActivityEntry`: action, actor id and current display name, changed-field summary),
+newest first, for its organiser only.
 
 ## Pagination
 
@@ -711,9 +720,9 @@ carries two time bases.
 | Access | Endpoints |
 | --- | --- |
 | Public (an Events token personalises) | `GET /listings` (`when`, `category`, `parish`, `price`, `tag`, `q`, `organiser`, `limit`, `offset`), `GET /listings/{slug}`, `GET /organisers/{slug}`, `GET /groups`, `GET /groups/{slug}`, `GET /people/{handle}`, `POST /suggestions` |
-| Events member | `GET`/`PATCH /me/profile`, `GET /me/plans`, `GET /me/network`, `PUT`/`DELETE /listings/{slug}/rsvp` and `/save`, `PUT`/`DELETE /organisers/{slug}/follow`, `PUT`/`DELETE /groups/{slug}/membership`, `POST /connections`, `POST /connections/{id}/accept`, `DELETE /connections/{id}`, `PUT`/`DELETE /blocks/{handle}`, `POST /reports`, `GET`/`POST /threads`, `GET /threads/{id}`, `POST /threads/{id}/messages` |
-| `events.organiser.manage` + organiser membership | `GET /manage`, `POST /manage/listings`, `PUT /manage/listings/{id}` |
-| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions` |
+| Events member | `POST /manage/organiser`, `GET`/`PATCH /me/profile`, `GET /me/plans`, `GET /me/network`, `PUT`/`DELETE /listings/{slug}/rsvp` and `/save`, `PUT`/`DELETE /organisers/{slug}/follow`, `PUT`/`DELETE /groups/{slug}/membership`, `POST /connections`, `POST /connections/{id}/accept`, `DELETE /connections/{id}`, `PUT`/`DELETE /blocks/{handle}`, `POST /reports`, `GET`/`POST /threads`, `GET /threads/{id}`, `POST /threads/{id}/messages` |
+| `events.organiser.manage` + organiser membership | `GET /manage`, `POST /manage/listings`, `PUT /manage/listings/{id}`, `GET /manage/{id}/activity` |
+| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions`, `GET /moderation/organisers`, `PATCH /moderation/organisers/{id}` |
 
 Prices are integer minor units (`price_from_minor`, tier `price_minor`); datetimes are UTC and
 clients render Grenada time. Direct threads open only between accepted connections or members

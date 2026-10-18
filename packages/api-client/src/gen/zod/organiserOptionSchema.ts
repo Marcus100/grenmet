@@ -10,4 +10,5 @@ export const organiserOptionSchema = z.object({
   slug: z.string(),
   name: z.string(),
   organisation_id: z.union([z.string(), z.null()]).optional(),
+  verified: z.boolean().optional().default(false),
 });

@@ -23573,6 +23573,65 @@
         }
       }
     },
+    "/api/v1/events/manage/organiser": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Request an organiser account",
+        "description": "Create an organiser backed by a new platform organisation with me as owner. It starts unverified (pending) until a moderator verifies it.",
+        "operationId": "eventsRequestOrganiser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganiserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganiserPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "409": {
+            "description": "Name taken or request already pending"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/events/manage/listings": {
       "post": {
         "tags": [
@@ -23624,6 +23683,105 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ManagedListing"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid listing"
+          }
+        }
+      }
+    },
+    "/api/v1/events/manage/{listing_id}/activity": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get a listing's activity history",
+        "description": "Append-only record of who changed the listing and what, newest first.",
+        "operationId": "eventsGetListingActivity",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActivityEntry"
+                  },
+                  "title": "Response Eventsgetlistingactivity"
                 }
               }
             }
@@ -23968,6 +24126,130 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SuggestionPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Moderator access required"
+          }
+        }
+      }
+    },
+    "/api/v1/events/moderation/organisers": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List organiser requests",
+        "description": "Organisers awaiting verification.",
+        "operationId": "eventsListPendingOrganisers",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OrganiserPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Eventslistpendingorganisers"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Moderator access required"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/moderation/organisers/{organiser_id}": {
+      "patch": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Verify an organiser",
+        "description": "Approve (or withdraw approval of) an organiser account. Approving queues a notification to the organiser's owners and admins.",
+        "operationId": "eventsReviewOrganiser",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organiser_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organiser Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganiserReview"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganiserPublic"
                 }
               }
             }
@@ -28074,6 +28356,64 @@
           "expires_at"
         ],
         "title": "ActivationLink"
+      },
+      "ActivityEntry": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "string",
+            "title": "Entity Id"
+          },
+          "actor_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Actor Id"
+          },
+          "actor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Name"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Summary"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "action",
+          "entity_type",
+          "entity_id",
+          "actor_id",
+          "summary",
+          "created_at"
+        ],
+        "title": "ActivityEntry"
       },
       "AddressPublic": {
         "properties": {
@@ -42082,6 +42422,40 @@
         ],
         "title": "OrganisationUpdate"
       },
+      "OrganiserCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60,
+                "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Bio",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "OrganiserCreate"
+      },
       "OrganiserOption": {
         "properties": {
           "id": {
@@ -42107,6 +42481,11 @@
               }
             ],
             "title": "Organisation Id"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified",
+            "default": false
           }
         },
         "type": "object",
@@ -42177,6 +42556,19 @@
           "follower_count"
         ],
         "title": "OrganiserPublic"
+      },
+      "OrganiserReview": {
+        "properties": {
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          }
+        },
+        "type": "object",
+        "required": [
+          "verified"
+        ],
+        "title": "OrganiserReview"
       },
       "OutlookProductPreview": {
         "properties": {

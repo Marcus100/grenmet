@@ -308,8 +308,31 @@ class OrganiserOption(BaseModel):
     slug: str
     name: str
     organisation_id: str | None = None
+    verified: bool = False
+
+
+class OrganiserCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=80)
+    slug: str | None = Field(default=None, pattern=SLUG_PATTERN, max_length=60)
+    bio: str = Field(default="", max_length=500)
+
+
+class OrganiserReview(BaseModel):
+    verified: bool
 
 
 class ManagedOrganiser(OrganiserPublic):
     organisers: list[OrganiserOption]
     listings: list[ManagedListing]
+
+
+class ActivityEntry(BaseModel):
+    id: uuid.UUID
+    action: str
+    entity_type: str
+    entity_id: str
+    actor_id: uuid.UUID
+    #: Display name from the actor's current profile; null once they have none.
+    actor_name: str | None = None
+    summary: dict[str, object]
+    created_at: UtcDateTime

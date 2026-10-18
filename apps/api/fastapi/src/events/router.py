@@ -10,6 +10,7 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Path, Query, Request, Response, status
 
+from src.dependencies import SessionDep
 from src.models import Message
 from src.openapi_responses import UNAUTHENTICATED
 from src.rate_limit import limiter
@@ -573,6 +574,33 @@ async def get_managed_organiser(
 
 
 @router.post(
+    "/manage/organiser",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Request an organiser account",
+    description=(
+        "Create an organiser backed by a new platform organisation with me as owner. "
+        "It starts unverified (pending) until a moderator verifies it."
+    ),
+    responses={
+        **_MEMBER,
+        409: {"description": "Name taken or request already pending"},
+    },
+)
+@limiter.limit("5/hour")
+async def request_organiser(
+    *,
+    request: Request,
+    session: EventsSession,
+    platform: SessionDep,
+    user: EventsMember,
+    body: schemas.OrganiserCreate,
+) -> schemas.OrganiserPublic:
+    _ = request
+    return await service.request_organiser(session, platform, user, body)
+
+
+@router.post(
     "/manage/listings",
     response_model=schemas.ManagedListing,
     status_code=status.HTTP_201_CREATED,
@@ -589,6 +617,28 @@ async def create_managed_listing(
     organiser: _ManagedSlug = None,
 ) -> schemas.ManagedListing:
     return await service.create_listing(session, user, body, scope, organiser)
+
+
+@router.get(
+    "/manage/{listing_id}/activity",
+    response_model=list[schemas.ActivityEntry],
+    status_code=status.HTTP_200_OK,
+    summary="Get a listing's activity history",
+    description="Append-only record of who changed the listing and what, newest first.",
+    responses=_ORGANISER,
+)
+async def get_listing_activity(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> list[schemas.ActivityEntry]:
+    return await service.listing_activity(
+        session, user, listing_id, scope, organiser, limit
+    )
 
 
 @router.put(
@@ -649,8 +699,7 @@ async def update_report(
     report_id: uuid.UUID,
     body: schemas.ReportUpdate,
 ) -> schemas.ReportPublic:
-    _ = user
-    row = await service.update_report(session, report_id, body)
+    row = await service.update_report(session, report_id, body, user)
     return schemas.ReportPublic.model_validate(row, from_attributes=True)
 
 
@@ -687,6 +736,42 @@ async def update_suggestion(
     suggestion_id: uuid.UUID,
     body: schemas.SuggestionUpdate,
 ) -> schemas.SuggestionPublic:
-    _ = user
-    row = await service.update_suggestion(session, suggestion_id, body)
+    row = await service.update_suggestion(session, suggestion_id, body, user)
     return schemas.SuggestionPublic.model_validate(row, from_attributes=True)
+
+
+@router.get(
+    "/moderation/organisers",
+    response_model=list[schemas.OrganiserPublic],
+    status_code=status.HTTP_200_OK,
+    summary="List organiser requests",
+    description="Organisers awaiting verification.",
+    responses=_MODERATOR,
+)
+async def list_pending_organisers(
+    *, session: EventsSession, user: EventsModerator
+) -> list[schemas.OrganiserPublic]:
+    rows = await service.pending_organisers(session)
+    return [await service.organiser_public(session, row, user.id) for row in rows]
+
+
+@router.patch(
+    "/moderation/organisers/{organiser_id}",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Verify an organiser",
+    description=(
+        "Approve (or withdraw approval of) an organiser account. "
+        "Approving queues a notification to the organiser's owners and admins."
+    ),
+    responses=_MODERATOR,
+)
+async def review_organiser(
+    *,
+    session: EventsSession,
+    user: EventsModerator,
+    organiser_id: uuid.UUID,
+    body: schemas.OrganiserReview,
+) -> schemas.OrganiserPublic:
+    row = await service.review_organiser(session, organiser_id, body.verified, user)
+    return await service.organiser_public(session, row, user.id)

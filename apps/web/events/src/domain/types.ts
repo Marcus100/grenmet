@@ -217,6 +217,17 @@ export interface OrganiserOption {
   readonly slug: string;
 }
 
+/** One row of a listing's append-only history (organiser console). */
+export interface ActivityEntry {
+  readonly action: string;
+  readonly actorName: string | null;
+  /** Names of the fields the change touched. */
+  readonly changed: readonly string[];
+  /** ISO 8601, UTC. */
+  readonly createdAt: string;
+  readonly id: string;
+}
+
 export interface PublicEvent {
   readonly admission: Admission;
   readonly category: EventCategory;

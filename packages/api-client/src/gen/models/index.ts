@@ -14,6 +14,7 @@ export type { ActivationAccountCreate } from "./ActivationAccountCreate.js";
 export type { ActivationConfirm } from "./ActivationConfirm.js";
 export type { ActivationIssue } from "./ActivationIssue.js";
 export type { ActivationLink } from "./ActivationLink.js";
+export type { ActivityEntry } from "./ActivityEntry.js";
 export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
 export type { AnnouncementPublic } from "./AnnouncementPublic.js";
@@ -1576,6 +1577,20 @@ export type {
   EventsGetListingStatus422,
 } from "./EventsGetListing.js";
 export type {
+  EventsGetListingActivityOptions,
+  EventsGetListingActivityPath,
+  EventsGetListingActivityQuery,
+  EventsGetListingActivityResponse,
+  EventsGetListingActivityResponses,
+  EventsGetListingActivityStatus200,
+  EventsGetListingActivityStatus401,
+  EventsGetListingActivityStatus403,
+  EventsGetListingActivityStatus404,
+  EventsGetListingActivityStatus409,
+  EventsGetListingActivityStatus422,
+  EventsGetListingActivityStatus429,
+} from "./EventsGetListingActivity.js";
+export type {
   EventsGetManagedOrganiserOptions,
   EventsGetManagedOrganiserQuery,
   EventsGetManagedOrganiserResponse,
@@ -1691,6 +1706,17 @@ export { eventsListListingsParametersSchemaAnyOfEnum } from "./EventsListListing
 export type { EventsListListingsParametersSchemaAnyOfEnum2 } from "./EventsListListingsParametersSchemaAnyOfEnum2.js";
 export { eventsListListingsParametersSchemaAnyOfEnum2 } from "./EventsListListingsParametersSchemaAnyOfEnum2.js";
 export type {
+  EventsListPendingOrganisersOptions,
+  EventsListPendingOrganisersResponse,
+  EventsListPendingOrganisersResponses,
+  EventsListPendingOrganisersStatus200,
+  EventsListPendingOrganisersStatus401,
+  EventsListPendingOrganisersStatus403,
+  EventsListPendingOrganisersStatus404,
+  EventsListPendingOrganisersStatus422,
+  EventsListPendingOrganisersStatus429,
+} from "./EventsListPendingOrganisers.js";
+export type {
   EventsListReportsOptions,
   EventsListReportsResponse,
   EventsListReportsResponses,
@@ -1757,6 +1783,31 @@ export type {
   EventsRequestConnectionStatus422,
   EventsRequestConnectionStatus429,
 } from "./EventsRequestConnection.js";
+export type {
+  EventsRequestOrganiserBody,
+  EventsRequestOrganiserOptions,
+  EventsRequestOrganiserResponse,
+  EventsRequestOrganiserResponses,
+  EventsRequestOrganiserStatus201,
+  EventsRequestOrganiserStatus401,
+  EventsRequestOrganiserStatus404,
+  EventsRequestOrganiserStatus409,
+  EventsRequestOrganiserStatus422,
+  EventsRequestOrganiserStatus429,
+} from "./EventsRequestOrganiser.js";
+export type {
+  EventsReviewOrganiserBody,
+  EventsReviewOrganiserOptions,
+  EventsReviewOrganiserPath,
+  EventsReviewOrganiserResponse,
+  EventsReviewOrganiserResponses,
+  EventsReviewOrganiserStatus200,
+  EventsReviewOrganiserStatus401,
+  EventsReviewOrganiserStatus403,
+  EventsReviewOrganiserStatus404,
+  EventsReviewOrganiserStatus422,
+  EventsReviewOrganiserStatus429,
+} from "./EventsReviewOrganiser.js";
 export type {
   EventsRsvpListingOptions,
   EventsRsvpListingPath,
@@ -4197,8 +4248,10 @@ export type {
   OrganisationsVerifyOneStatus422,
 } from "./OrganisationsVerifyOne.js";
 export type { OrganisationUpdate } from "./OrganisationUpdate.js";
+export type { OrganiserCreate } from "./OrganiserCreate.js";
 export type { OrganiserOption } from "./OrganiserOption.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
+export type { OrganiserReview } from "./OrganiserReview.js";
 export type { OutlookProductPreview } from "./OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js";
 export type { OutlookProductWrite } from "./OutlookProductWrite.js";

@@ -33,6 +33,7 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.worker.dispatch",
         "src.notifications.dispatch",
         "src.notifications.scheduler",
+        "src.events.outbox",
         "src.eregister.publisher",
     ):
         import_module(module)
@@ -132,6 +133,32 @@ async def send_outbound_emails(ctx: dict[str, Any]) -> int:
             raise
         await operational_metrics.record_job(
             ctx.get("redis"), "send_outbound_emails", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
+async def drain_events_outbox(ctx: dict[str, Any]) -> int:
+    """Turn Events outbox rows (published, cancelled, approved...) into notifications."""
+    from src.database import async_session_factory
+    from src.events import database as events_database
+    from src.events import outbox
+
+    events = events_database.create_session()
+    if events is None:
+        return 0
+    async with events, async_session_factory() as session:
+        try:
+            result = await outbox.drain(events, session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "drain_events_outbox",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "drain_events_outbox", str(ctx.get("job_id", "")), True
         )
         return result
 
@@ -253,6 +280,7 @@ class WorkerSettings:
         ingest_cap_feeds,
         send_notification_emails,
         send_outbound_emails,
+        drain_events_outbox,
         send_wis2_publications,
         run_notification_sweeps,
         check_nhc_failures,
@@ -281,6 +309,8 @@ class WorkerSettings:
         cron(send_notification_emails, second={0, 30}, run_at_startup=True),
         # Drain the public-flow email outbox (subscriptions, contact) too.
         cron(send_outbound_emails, second={15, 45}, run_at_startup=True),
+        # Events changes (publish, cancel, approve) become notifications.
+        cron(drain_events_outbox, second={5, 35}, run_at_startup=False),
         # eRegister observations queued for wis2box (retries live on the row).
         cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
