@@ -19,7 +19,9 @@ test("finds GitHub closing keywords in commit messages", () => {
 
 test("ignores other repositories, plain references and missing input", () => {
   assert.deepEqual(
-    closingIssues([{ id: "x", message: "Fixes other/repo#3, see #4, prefix#5" }]),
+    closingIssues([
+      { id: "x", message: "Fixes other/repo#3, see #4, prefix#5" },
+    ]),
     []
   );
   assert.deepEqual(closingIssues(undefined), []);
