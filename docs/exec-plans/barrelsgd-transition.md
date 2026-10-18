@@ -917,7 +917,8 @@ before continuing.
   Events is not built *by* this transition, but it is the next product to receive
   real boundaries, a Dockerfile, a host, and a deployment path once its naming
   dependencies have landed.
-- A reusable workforce product and Barrels Shop remain Explore options. Shop's
+- Barrels Shop remains an Explore option. (The workforce product was approved
+  as Barrels Human Resource on 2026-10-18; see the portfolio plan.) Shop's
   identity is reserved; its implementation is not.
 - `apps/web/events` (`@barrelsgd/web-events`, port 3009) is today an
   organiser-console prototype: static, with no environment, database,

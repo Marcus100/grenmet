@@ -55,8 +55,9 @@ const prohibitedClaims = [
   /\bGMS\s+(?:is|remains)\s+one\s+product\s+within\s+Barrels\b/i,
   /\bGMS\s+product\s+itself\s+continues\b/i,
   /\bGMS[\s\S]{0,160}\blargest\s+product\s+in\s+the\s+portfolio\b/i,
-  /\b(?:future|reusable)\s+Barrels\s+HR\s+product\b/i,
-  /\breusable\s+HR\s+(?:product|initiative)\b/i,
+  // Barrels Human Resource is a Barrels product (2026-10-18); the GAA staff
+  // platform remains client delivery and must not be described as that product.
+  /\bGAA\s+staff\s+(?:platform|portal)\s+(?:is|remains|becomes)\s+(?:a|the)\s+Barrels\b/i,
   /\badmin-gms[\s\S]{0,200}\b(?:folded|renamed)[\s\S]{0,80}\bGMS\s+Dashboard\b/i,
 ];
 
