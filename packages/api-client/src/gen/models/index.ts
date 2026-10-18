@@ -1933,6 +1933,19 @@ export type {
   EventsGetOrganiserStatus422,
 } from "./EventsGetOrganiser.js";
 export type {
+  EventsGetOrganiserSettlementOptions,
+  EventsGetOrganiserSettlementQuery,
+  EventsGetOrganiserSettlementResponse,
+  EventsGetOrganiserSettlementResponses,
+  EventsGetOrganiserSettlementStatus200,
+  EventsGetOrganiserSettlementStatus401,
+  EventsGetOrganiserSettlementStatus403,
+  EventsGetOrganiserSettlementStatus404,
+  EventsGetOrganiserSettlementStatus409,
+  EventsGetOrganiserSettlementStatus422,
+  EventsGetOrganiserSettlementStatus429,
+} from "./EventsGetOrganiserSettlement.js";
+export type {
   EventsGetOutletOptions,
   EventsGetOutletPath,
   EventsGetOutletQuery,
@@ -1969,6 +1982,34 @@ export type {
   EventsGetPersonStatus404,
   EventsGetPersonStatus422,
 } from "./EventsGetPerson.js";
+export type {
+  EventsGetSettlementOptions,
+  EventsGetSettlementPath,
+  EventsGetSettlementQuery,
+  EventsGetSettlementResponse,
+  EventsGetSettlementResponses,
+  EventsGetSettlementStatus200,
+  EventsGetSettlementStatus401,
+  EventsGetSettlementStatus403,
+  EventsGetSettlementStatus404,
+  EventsGetSettlementStatus409,
+  EventsGetSettlementStatus422,
+  EventsGetSettlementStatus429,
+} from "./EventsGetSettlement.js";
+export type {
+  EventsGetSettlementCsvOptions,
+  EventsGetSettlementCsvPath,
+  EventsGetSettlementCsvQuery,
+  EventsGetSettlementCsvResponse,
+  EventsGetSettlementCsvResponses,
+  EventsGetSettlementCsvStatus200,
+  EventsGetSettlementCsvStatus401,
+  EventsGetSettlementCsvStatus403,
+  EventsGetSettlementCsvStatus404,
+  EventsGetSettlementCsvStatus409,
+  EventsGetSettlementCsvStatus422,
+  EventsGetSettlementCsvStatus429,
+} from "./EventsGetSettlementCsv.js";
 export type {
   EventsGetThreadOptions,
   EventsGetThreadPath,
@@ -4842,6 +4883,18 @@ export type { SessionLoginResponse } from "./SessionLoginResponse.js";
 export type { SessionPublic } from "./SessionPublic.js";
 export type { SessionTokenRequest } from "./SessionTokenRequest.js";
 export type { SessionUserPublic } from "./SessionUserPublic.js";
+export type { Settlement } from "./Settlement.js";
+export type { SettlementCash } from "./SettlementCash.js";
+export type { SettlementChannel } from "./SettlementChannel.js";
+export type { SettlementChannelPropertiesChannelEnum } from "./SettlementChannelPropertiesChannelEnum.js";
+export { settlementChannelPropertiesChannelEnum } from "./SettlementChannelPropertiesChannelEnum.js";
+export type { SettlementCounts } from "./SettlementCounts.js";
+export type { SettlementIssue } from "./SettlementIssue.js";
+export type { SettlementIssuePropertiesKindEnum } from "./SettlementIssuePropertiesKindEnum.js";
+export { settlementIssuePropertiesKindEnum } from "./SettlementIssuePropertiesKindEnum.js";
+export type { SettlementOverview } from "./SettlementOverview.js";
+export type { SettlementSummary } from "./SettlementSummary.js";
+export type { SettlementTier } from "./SettlementTier.js";
 export type { ShiftAssignmentCreate } from "./ShiftAssignmentCreate.js";
 export type { ShiftAssignmentUpdate } from "./ShiftAssignmentUpdate.js";
 export type { ShiftCatalogCreate } from "./ShiftCatalogCreate.js";

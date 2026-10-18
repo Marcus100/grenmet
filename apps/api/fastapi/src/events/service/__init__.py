@@ -70,6 +70,7 @@ from .people import (
     my_profile,
     update_profile,
 )
+from .settlement import organiser_settlement, settlement, settlement_csv
 from .ticketing import cancel_ticket, claim_tickets, my_ticket, my_tickets
 
 __all__ = [
@@ -80,6 +81,9 @@ __all__ = [
     "UTC_TZ",
     "accept_connection",
     "admit_ticket",
+    "organiser_settlement",
+    "settlement",
+    "settlement_csv",
     "close_till",
     "get_sale",
     "open_till",

@@ -559,3 +559,85 @@ export interface Outlet {
   readonly till: Till | null;
   readonly title: string;
 }
+
+/** Ticket counts for one slice of the settlement report. */
+export interface SettlementCounts {
+  readonly admitted: number;
+  readonly cancelled: number;
+  readonly claimed: number;
+  readonly issued: number;
+  readonly refunded: number;
+  readonly valueMinor: number;
+  readonly waiting: number;
+}
+
+export interface SettlementChannel extends SettlementCounts {
+  readonly channel: "online" | "outlet_cash";
+  readonly collectedMinor: number;
+  readonly refundedMinor: number;
+}
+
+export interface SettlementTier {
+  readonly admitted: number;
+  readonly allocation: number;
+  readonly id: string;
+  readonly name: string;
+  readonly online: number;
+  readonly outlet: number;
+  readonly priceMinor: number;
+  readonly remaining: number;
+}
+
+export interface SettlementCash {
+  readonly cashRefundsMinor: number;
+  readonly closedTills: number;
+  readonly collectedMinor: number;
+  readonly countedMinor: number;
+  readonly differenceMinor: number;
+  readonly expectedMinor: number;
+  readonly netSalesMinor: number;
+  readonly openTills: number;
+}
+
+export interface SettlementIssue {
+  readonly amountMinor: number | null;
+  readonly kind:
+    | "till_short"
+    | "till_over"
+    | "till_open"
+    | "refund_without_till";
+  readonly message: string;
+  readonly tillId: string | null;
+}
+
+/** An event's settlement: tickets by channel, stock, tills and mismatches. */
+export interface Settlement {
+  readonly cash: SettlementCash;
+  readonly channels: readonly SettlementChannel[];
+  readonly currency: CurrencyCode;
+  readonly discrepancies: readonly SettlementIssue[];
+  readonly endsAt: string;
+  readonly generatedAt: string;
+  readonly listingId: string;
+  readonly startsAt: string;
+  readonly status: "draft" | "published" | "cancelled";
+  readonly tiers: readonly SettlementTier[];
+  readonly tills: readonly Till[];
+  readonly title: string;
+  readonly totals: SettlementCounts;
+}
+
+export interface SettlementSummary {
+  readonly admitted: number;
+  readonly cancelled: number;
+  readonly cashCollectedMinor: number;
+  readonly cashCountedMinor: number;
+  readonly cashExpectedMinor: number;
+  readonly claimed: number;
+  readonly issued: number;
+  readonly issues: number;
+  readonly listingId: string;
+  readonly startsAt: string;
+  readonly status: "draft" | "published" | "cancelled";
+  readonly title: string;
+}

@@ -708,6 +708,72 @@ async def get_manifest(
     return await service.manifest(session, user, listing_id, scope, organiser)
 
 
+@router.get(
+    "/manage/settlement",
+    response_model=schemas.SettlementOverview,
+    status_code=status.HTTP_200_OK,
+    summary="Settlement across my events",
+    description="One summary row per ticketed event: issued, claimed, admitted, cancelled and cash, with a count of discrepancies.",
+    responses=_ORGANISER,
+)
+async def get_organiser_settlement(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    organiser: _ManagedSlug = None,
+) -> schemas.SettlementOverview:
+    return await service.organiser_settlement(session, user, scope, organiser)
+
+
+@router.get(
+    "/manage/{listing_id}/settlement",
+    response_model=schemas.Settlement,
+    status_code=status.HTTP_200_OK,
+    summary="Get an event's settlement report",
+    description="Issued vs claimed vs admitted vs cancelled by channel, per-tier stock, and cash expected vs counted per till, with discrepancies listed.",
+    responses=_ORGANISER,
+)
+async def get_settlement(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+) -> schemas.Settlement:
+    return await service.settlement(session, user, listing_id, scope, organiser)
+
+
+@router.get(
+    "/manage/{listing_id}/settlement.csv",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+    summary="Export an event's settlement report as CSV",
+    description="The settlement report as a spreadsheet-ready CSV download.",
+    responses={
+        **_ORGANISER,
+        200: {"content": {"text/csv": {"schema": {"type": "string"}}}},
+    },
+)
+async def get_settlement_csv(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+) -> Response:
+    body = await service.settlement_csv(session, user, listing_id, scope, organiser)
+    return Response(
+        content=body,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="settlement-{listing_id}.csv"'
+        },
+    )
+
+
 _OUTLET: dict[int | str, dict[str, Any]] = {
     **_ORGANISER,
     409: {"description": "Sold out, wrong amount, till not open or event ended"},

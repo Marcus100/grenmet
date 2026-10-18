@@ -1,6 +1,6 @@
 import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { Banknote, ScanLine } from "lucide-react";
+import { Banknote, Scale, ScanLine } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -64,6 +64,13 @@ export default async function EditEventPage({
               >
                 <Banknote data-icon="inline-start" />
                 Outlet sales
+              </Link>
+              <Link
+                className={cn(buttonVariants({ variant: "outline" }))}
+                href={`/dash/events/${event.id}/settlement`}
+              >
+                <Scale data-icon="inline-start" />
+                Settlement
               </Link>
               <Link
                 className={cn(buttonVariants({ variant: "outline" }))}

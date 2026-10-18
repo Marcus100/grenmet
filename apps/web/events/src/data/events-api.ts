@@ -10,9 +10,11 @@ import {
   eventsGetMyPlans,
   eventsGetMyTicket,
   eventsGetOrganiser,
+  eventsGetOrganiserSettlement,
   eventsGetOutlet,
   eventsGetOutletSale,
   eventsGetPerson,
+  eventsGetSettlement,
   eventsGetThread,
   eventsListGroups,
   eventsListListings,
@@ -38,6 +40,8 @@ import type {
   PersonProfile,
   Plans,
   PublicEvent,
+  Settlement,
+  SettlementSummary,
   ThreadDetail,
   ThreadSummary,
 } from "@/domain/types";
@@ -58,6 +62,8 @@ import {
   toOutletSale,
   toPersonProfile,
   toPlans,
+  toSettlement,
+  toSettlementSummary,
   toThread,
   toThreadSummary,
 } from "./api-mappers";
@@ -318,4 +324,31 @@ export async function getOutletSale(
     }).unwrap()
   );
   return sale ? toOutletSale(sale) : null;
+}
+
+/** An event's settlement report; null when the event isn't theirs. */
+export async function getSettlement(
+  listingId: string
+): Promise<Settlement | null> {
+  const organiser = await chosenOrganiser();
+  const report = await orNull(
+    eventsGetSettlement({
+      ...(await options()),
+      path: { listing_id: listingId },
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap()
+  );
+  return report ? toSettlement(report) : null;
+}
+
+/** One summary row per ticketed event, for the /dash overview. */
+export async function getSettlementSummaries(): Promise<
+  readonly SettlementSummary[]
+> {
+  const organiser = await chosenOrganiser();
+  const overview = await eventsGetOrganiserSettlement({
+    ...(await options()),
+    ...(organiser ? { query: { organiser } } : {}),
+  }).unwrap();
+  return overview.listings.map(toSettlementSummary);
 }

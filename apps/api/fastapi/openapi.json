@@ -25718,6 +25718,245 @@
         }
       }
     },
+    "/api/v1/events/manage/settlement": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Settlement across my events",
+        "description": "One summary row per ticketed event: issued, claimed, admitted, cancelled and cash, with a count of discrepancies.",
+        "operationId": "eventsGetOrganiserSettlement",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettlementOverview"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid listing"
+          }
+        }
+      }
+    },
+    "/api/v1/events/manage/{listing_id}/settlement": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get an event's settlement report",
+        "description": "Issued vs claimed vs admitted vs cancelled by channel, per-tier stock, and cash expected vs counted per till, with discrepancies listed.",
+        "operationId": "eventsGetSettlement",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settlement"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid listing"
+          }
+        }
+      }
+    },
+    "/api/v1/events/manage/{listing_id}/settlement.csv": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Export an event's settlement report as CSV",
+        "description": "The settlement report as a spreadsheet-ready CSV download.",
+        "operationId": "eventsGetSettlementCsv",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid listing"
+          }
+        }
+      }
+    },
     "/api/v1/events/manage/{listing_id}/outlet": {
       "get": {
         "tags": [
@@ -52476,6 +52715,420 @@
         "title": "SessionUserPublic",
         "description": "Minimal user projection returned with browser session credentials."
       },
+      "Settlement": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ListingUpsertPropertiesStatusEnum"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/ListingCardPropertiesCurrencyEnum"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/SettlementCounts"
+          },
+          "channels": {
+            "items": {
+              "$ref": "#/components/schemas/SettlementChannel"
+            },
+            "type": "array",
+            "title": "Channels"
+          },
+          "tiers": {
+            "items": {
+              "$ref": "#/components/schemas/SettlementTier"
+            },
+            "type": "array",
+            "title": "Tiers"
+          },
+          "tills": {
+            "items": {
+              "$ref": "#/components/schemas/TillPublic"
+            },
+            "type": "array",
+            "title": "Tills"
+          },
+          "cash": {
+            "$ref": "#/components/schemas/SettlementCash"
+          },
+          "discrepancies": {
+            "items": {
+              "$ref": "#/components/schemas/SettlementIssue"
+            },
+            "type": "array",
+            "title": "Discrepancies"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "title",
+          "starts_at",
+          "ends_at",
+          "status",
+          "currency",
+          "generated_at",
+          "totals",
+          "channels",
+          "tiers",
+          "tills",
+          "cash",
+          "discrepancies"
+        ],
+        "title": "Settlement"
+      },
+      "SettlementCash": {
+        "properties": {
+          "collected_minor": {
+            "type": "integer",
+            "title": "Collected Minor"
+          },
+          "cash_refunds_minor": {
+            "type": "integer",
+            "title": "Cash Refunds Minor"
+          },
+          "net_sales_minor": {
+            "type": "integer",
+            "title": "Net Sales Minor"
+          },
+          "expected_minor": {
+            "type": "integer",
+            "title": "Expected Minor"
+          },
+          "counted_minor": {
+            "type": "integer",
+            "title": "Counted Minor"
+          },
+          "difference_minor": {
+            "type": "integer",
+            "title": "Difference Minor"
+          },
+          "open_tills": {
+            "type": "integer",
+            "title": "Open Tills"
+          },
+          "closed_tills": {
+            "type": "integer",
+            "title": "Closed Tills"
+          }
+        },
+        "type": "object",
+        "required": [
+          "collected_minor",
+          "cash_refunds_minor",
+          "net_sales_minor",
+          "expected_minor",
+          "counted_minor",
+          "difference_minor",
+          "open_tills",
+          "closed_tills"
+        ],
+        "title": "SettlementCash",
+        "description": "Cash across every till. Difference counts closed tills only."
+      },
+      "SettlementChannel": {
+        "properties": {
+          "issued": {
+            "type": "integer",
+            "title": "Issued"
+          },
+          "claimed": {
+            "type": "integer",
+            "title": "Claimed"
+          },
+          "admitted": {
+            "type": "integer",
+            "title": "Admitted"
+          },
+          "waiting": {
+            "type": "integer",
+            "title": "Waiting"
+          },
+          "cancelled": {
+            "type": "integer",
+            "title": "Cancelled"
+          },
+          "refunded": {
+            "type": "integer",
+            "title": "Refunded"
+          },
+          "value_minor": {
+            "type": "integer",
+            "title": "Value Minor"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/SettlementChannelPropertiesChannelEnum"
+          },
+          "collected_minor": {
+            "type": "integer",
+            "title": "Collected Minor"
+          },
+          "refunded_minor": {
+            "type": "integer",
+            "title": "Refunded Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "issued",
+          "claimed",
+          "admitted",
+          "waiting",
+          "cancelled",
+          "refunded",
+          "value_minor",
+          "channel",
+          "collected_minor",
+          "refunded_minor"
+        ],
+        "title": "SettlementChannel"
+      },
+      "SettlementCounts": {
+        "properties": {
+          "issued": {
+            "type": "integer",
+            "title": "Issued"
+          },
+          "claimed": {
+            "type": "integer",
+            "title": "Claimed"
+          },
+          "admitted": {
+            "type": "integer",
+            "title": "Admitted"
+          },
+          "waiting": {
+            "type": "integer",
+            "title": "Waiting"
+          },
+          "cancelled": {
+            "type": "integer",
+            "title": "Cancelled"
+          },
+          "refunded": {
+            "type": "integer",
+            "title": "Refunded"
+          },
+          "value_minor": {
+            "type": "integer",
+            "title": "Value Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "issued",
+          "claimed",
+          "admitted",
+          "waiting",
+          "cancelled",
+          "refunded",
+          "value_minor"
+        ],
+        "title": "SettlementCounts",
+        "description": "Ticket counts. ``claimed`` is issued minus cancelled and refunded."
+      },
+      "SettlementIssue": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/SettlementIssuePropertiesKindEnum"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "till_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Till Id"
+          },
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "message"
+        ],
+        "title": "SettlementIssue"
+      },
+      "SettlementOverview": {
+        "properties": {
+          "organiser_name": {
+            "type": "string",
+            "title": "Organiser Name"
+          },
+          "listings": {
+            "items": {
+              "$ref": "#/components/schemas/SettlementSummary"
+            },
+            "type": "array",
+            "title": "Listings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organiser_name",
+          "listings"
+        ],
+        "title": "SettlementOverview"
+      },
+      "SettlementSummary": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ListingUpsertPropertiesStatusEnum"
+          },
+          "issued": {
+            "type": "integer",
+            "title": "Issued"
+          },
+          "claimed": {
+            "type": "integer",
+            "title": "Claimed"
+          },
+          "admitted": {
+            "type": "integer",
+            "title": "Admitted"
+          },
+          "cancelled": {
+            "type": "integer",
+            "title": "Cancelled"
+          },
+          "cash_collected_minor": {
+            "type": "integer",
+            "title": "Cash Collected Minor"
+          },
+          "cash_expected_minor": {
+            "type": "integer",
+            "title": "Cash Expected Minor"
+          },
+          "cash_counted_minor": {
+            "type": "integer",
+            "title": "Cash Counted Minor"
+          },
+          "issues": {
+            "type": "integer",
+            "title": "Issues"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "title",
+          "starts_at",
+          "status",
+          "issued",
+          "claimed",
+          "admitted",
+          "cancelled",
+          "cash_collected_minor",
+          "cash_expected_minor",
+          "cash_counted_minor",
+          "issues"
+        ],
+        "title": "SettlementSummary"
+      },
+      "SettlementTier": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor"
+          },
+          "allocation": {
+            "type": "integer",
+            "title": "Allocation"
+          },
+          "online": {
+            "type": "integer",
+            "title": "Online"
+          },
+          "outlet": {
+            "type": "integer",
+            "title": "Outlet"
+          },
+          "admitted": {
+            "type": "integer",
+            "title": "Admitted"
+          },
+          "remaining": {
+            "type": "integer",
+            "title": "Remaining"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "price_minor",
+          "allocation",
+          "online",
+          "outlet",
+          "admitted",
+          "remaining"
+        ],
+        "title": "SettlementTier"
+      },
       "ShiftAssignmentCreate": {
         "properties": {
           "workDate": {
@@ -62054,6 +62707,22 @@
           "cimss",
           "trackthetropics",
           "uwyo"
+        ]
+      },
+      "SettlementChannelPropertiesChannelEnum": {
+        "type": "string",
+        "enum": [
+          "online",
+          "outlet_cash"
+        ]
+      },
+      "SettlementIssuePropertiesKindEnum": {
+        "type": "string",
+        "enum": [
+          "till_short",
+          "till_over",
+          "till_open",
+          "refund_without_till"
         ]
       },
       "StoredFilePropertiesStatusEnum": {

@@ -546,3 +546,101 @@ class OutletOverview(BaseModel):
     till: TillPublic | None = None
     #: Recent outlet sales for the event, newest first.
     sales: list[OutletSale]
+
+
+# --- Settlement (E4) ----------------------------------------------------------------------
+
+
+class SettlementCounts(BaseModel):
+    """Ticket counts. ``claimed`` is issued minus cancelled and refunded."""
+
+    issued: int
+    claimed: int
+    admitted: int
+    #: Claimed but not yet admitted.
+    waiting: int
+    cancelled: int
+    refunded: int
+    #: Face value of claimed tickets, in minor units.
+    value_minor: int
+
+
+class SettlementChannel(SettlementCounts):
+    channel: Literal["online", "outlet_cash"]
+    #: Cash taken at the outlet (always 0 online: payment isn't available yet).
+    collected_minor: int
+    #: Refunds recorded against this channel's tickets.
+    refunded_minor: int
+
+
+class SettlementTier(BaseModel):
+    id: uuid.UUID
+    name: str
+    price_minor: int
+    allocation: int
+    online: int
+    outlet: int
+    admitted: int
+    remaining: int
+
+
+class SettlementCash(BaseModel):
+    """Cash across every till. Difference counts closed tills only."""
+
+    collected_minor: int
+    cash_refunds_minor: int
+    #: Takings after cash refunds, excluding opening floats.
+    net_sales_minor: int
+    expected_minor: int
+    counted_minor: int
+    difference_minor: int
+    open_tills: int
+    closed_tills: int
+
+
+class SettlementIssue(BaseModel):
+    kind: Literal[
+        "till_short",
+        "till_over",
+        "till_open",
+        "refund_without_till",
+    ]
+    message: str
+    till_id: uuid.UUID | None = None
+    amount_minor: int | None = None
+
+
+class Settlement(BaseModel):
+    listing_id: uuid.UUID
+    title: str
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+    status: Literal["draft", "published", "cancelled"]
+    currency: Literal["XCD", "USD"]
+    generated_at: UtcDateTime
+    totals: SettlementCounts
+    channels: list[SettlementChannel]
+    tiers: list[SettlementTier]
+    tills: list[TillPublic]
+    cash: SettlementCash
+    discrepancies: list[SettlementIssue]
+
+
+class SettlementSummary(BaseModel):
+    listing_id: uuid.UUID
+    title: str
+    starts_at: UtcDateTime
+    status: Literal["draft", "published", "cancelled"]
+    issued: int
+    claimed: int
+    admitted: int
+    cancelled: int
+    cash_collected_minor: int
+    cash_expected_minor: int
+    cash_counted_minor: int
+    issues: int
+
+
+class SettlementOverview(BaseModel):
+    organiser_name: str
+    listings: list[SettlementSummary]

@@ -470,6 +470,15 @@ against the same inventory as online claims and returns the tickets with QR toke
 reprints a sale. Outlet buyers need no account (tickets have no `user_id`); the per-account limit
 does not apply. Another organiser's event is 404.
 
+### Events settlement (E4)
+
+`GET /events/manage/{listing_id}/settlement` (organiser admins/owners; another organiser's
+event is 404) returns tickets by channel (`online`, `outlet_cash`: `issued`, `claimed`,
+`admitted`, `waiting`, `cancelled`, `refunded`, `value_minor`, plus cash taken), per-tier
+stock, every till with expected, counted and difference, cash totals and `discrepancies`
+(`till_short`, `till_over`, `till_open`). `GET .../settlement.csv` downloads the same report
+as CSV. `GET /events/manage/settlement` returns one summary row per ticketed event.
+
 ## Pagination
 
 The standard helper is `src.pagination`:
