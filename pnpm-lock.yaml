@@ -1115,6 +1115,9 @@ importers:
 
   apps/web/mbia:
     dependencies:
+      '@barrelsgd/api-client':
+        specifier: workspace:*
+        version: link:../../../packages/api-client
       '@barrelsgd/auth':
         specifier: workspace:*
         version: link:../../../packages/auth
@@ -1212,6 +1215,9 @@ importers:
 
   apps/web/signal:
     dependencies:
+      '@barrelsgd/api-client':
+        specifier: workspace:*
+        version: link:../../../packages/api-client
       '@barrelsgd/auth':
         specifier: workspace:*
         version: link:../../../packages/auth
