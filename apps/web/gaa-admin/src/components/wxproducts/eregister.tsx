@@ -8,7 +8,7 @@ import {
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { REGISTER_KEYS, REGISTER_SECTIONS } from "./eregister-layout";
 import { metarFromCoded } from "./eregister-metar";
 import { observerInitials } from "./eregister-observer";
@@ -18,6 +18,7 @@ import {
   type ReportKind,
   type ReportRow,
 } from "./eregister-reports";
+import { useObservationSends } from "./eregister-send";
 import { observationTime } from "./eregister-time";
 import { RegisterTable, SectionCard } from "./eregister-ui";
 import { ERegisterWorkbook } from "./eregister-workbook";
@@ -158,13 +159,16 @@ export function ERegister() {
     await runValidation();
   }
 
-  async function saveDraft(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  // The last saved copy of the workbook, so sending an unchanged reading
+  // reuses its record instead of saving a duplicate.
+  const savedRef = useRef<{ id: string; key: string } | null>(null);
+
+  async function persistDraft(): Promise<string | null> {
     setSaveState("saving");
     // Errors block saving; warnings only advise.
     if (!(await runValidation())) {
       setSaveState("idle");
-      return;
+      return null;
     }
     const result = await eregisterCreateRegisterObservation({
       body: {
@@ -184,12 +188,30 @@ export function ERegister() {
     });
     if (result.error || !result.data) {
       setSaveState("error");
-      return;
+      return null;
     }
     setSaveState("saved");
+    savedRef.current = {
+      id: result.data.id,
+      key: JSON.stringify(structuredValues),
+    };
     setLiveObservations((current) => [result.data, ...current].slice(0, 24));
     setLiveState("ready");
+    return result.data.id;
   }
+
+  async function saveDraft(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await persistDraft();
+  }
+
+  const sends = useObservationSends(async () => {
+    const saved = savedRef.current;
+    if (saved && saved.key === JSON.stringify(structuredValues)) {
+      return saved.id;
+    }
+    return await persistDraft();
+  });
 
   const live = liveState === "ready";
   const reports: Record<ReportKind, readonly ReportRow[]> = {
@@ -226,6 +248,7 @@ export function ERegister() {
           setStructuredValues((current) => ({ ...current, [key]: value }))
         }
         saveStatus={saveState}
+        send={sends}
         station={station}
         validationStatus={validationState}
         values={structuredValues}

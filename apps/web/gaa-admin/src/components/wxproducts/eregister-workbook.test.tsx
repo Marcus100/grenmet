@@ -17,6 +17,16 @@ function renderWorkbook(
       onValidationStateChange={vi.fn()}
       onValueChange={vi.fn()}
       saveStatus="idle"
+      send={{
+        cancel: vi.fn(),
+        confirm: vi.fn(),
+        confirming: null,
+        error: null,
+        history: [],
+        pending: null,
+        repeat: false,
+        request: vi.fn(),
+      }}
       station={{
         icao: "TGPY",
         name: "Maurice Bishop International Airport",
