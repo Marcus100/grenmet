@@ -12,7 +12,7 @@ from urllib.parse import urlencode
 
 import jwt
 from jwt.exceptions import InvalidTokenError
-from sqlalchemy import select, update
+from sqlalchemy import or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +22,7 @@ from src.email_config import email_settings
 from src.exceptions import AppValidationError
 from src.notifications import service as notification_service
 from src.utils.datetime import utc_now
+from src.utils.email_hash import hash_email
 
 from .config import subscriptions_settings
 from .constants import (
@@ -105,32 +106,43 @@ async def subscribe(*, session: AsyncSession, list_key: str, email: str) -> None
         return
 
     now = utc_now()
+    address_hash = hash_email(email)
     await session.execute(
         pg_insert(ListSubscription)
         .values(
             id=uuid.uuid4(),
             list_key=list_key,
             email=email,
+            email_hash=address_hash,
             status=SubscriptionStatus.PENDING.value,
             requested_at=now,
             created_at=now,
             updated_at=now,
         )
-        .on_conflict_do_nothing(constraint="list_subscription_list_key_email_key")
+        .on_conflict_do_nothing()
     )
     row = await session.scalar(
         select(ListSubscription)
-        .where(ListSubscription.list_key == list_key, ListSubscription.email == email)
+        .where(
+            ListSubscription.list_key == list_key,
+            or_(
+                ListSubscription.email_hash == address_hash,
+                ListSubscription.email == email,
+            ),
+        )
         .with_for_update()
     )
     if row is None:  # pragma: no cover - the insert above guarantees a row
         return
+    if row.email_hash is None:  # legacy row: hash it on first contact
+        row.email_hash = address_hash
 
     if row.status == SubscriptionStatus.CONFIRMED.value:
         await session.commit()
         return
     if row.status == SubscriptionStatus.UNSUBSCRIBED.value:
         # A fresh request is fresh consent: start the double opt-in again.
+        row.email = email  # plaintext was dropped on unsubscribe; needed to send
         row.status = SubscriptionStatus.PENDING.value
         row.requested_at = now
         row.confirmed_at = None
@@ -197,6 +209,16 @@ async def confirm(*, session: AsyncSession, token: str) -> str:
     return _status_url(row.list_key, "confirmed")
 
 
+def _mark_unsubscribed(row: ListSubscription, now: datetime) -> None:
+    """Unsubscribe a row and drop its plaintext address, keeping only the hash."""
+    if row.email_hash is None and row.email is not None:
+        row.email_hash = hash_email(row.email)
+    row.status = SubscriptionStatus.UNSUBSCRIBED.value
+    row.unsubscribed_at = now
+    row.updated_at = now
+    row.email = None
+
+
 async def unsubscribe(*, session: AsyncSession, token: str) -> str:
     """Unsubscribe the address named by the token. Returns the redirect URL."""
     subscription_id = _read_token(token, purpose=UNSUBSCRIBE_PURPOSE)
@@ -209,9 +231,7 @@ async def unsubscribe(*, session: AsyncSession, token: str) -> str:
         return _status_url(None, "invalid")
     if row.status != SubscriptionStatus.UNSUBSCRIBED.value:
         now = utc_now()
-        row.status = SubscriptionStatus.UNSUBSCRIBED.value
-        row.unsubscribed_at = now
-        row.updated_at = now
+        _mark_unsubscribed(row, now)
         await session.commit()
     return _status_url(row.list_key, "unsubscribed")
 
@@ -219,16 +239,23 @@ async def unsubscribe(*, session: AsyncSession, token: str) -> str:
 async def unsubscribe_address(*, session: AsyncSession, email: str) -> int:
     """Unsubscribe an address from every list (spam complaint). Caller commits."""
     now = utc_now()
+    clean = notification_service.normalise_email(email)
+    address_hash = hash_email(clean)
     result = await session.execute(
         update(ListSubscription)
         .where(
-            ListSubscription.email == notification_service.normalise_email(email),
+            or_(
+                ListSubscription.email_hash == address_hash,
+                ListSubscription.email == clean,
+            ),
             ListSubscription.status != SubscriptionStatus.UNSUBSCRIBED.value,
         )
         .values(
             status=SubscriptionStatus.UNSUBSCRIBED.value,
             unsubscribed_at=now,
             updated_at=now,
+            email=None,
+            email_hash=address_hash,
         )
     )
     return int(getattr(result, "rowcount", 0) or 0)

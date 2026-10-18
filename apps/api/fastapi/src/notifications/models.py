@@ -152,7 +152,11 @@ class EmailSuppression(Base):
     __tablename__ = "email_suppression"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    email: Mapped[str] = mapped_column(String(320), unique=True)
+    # Legacy plaintext column: new rows leave it null and keep only ``email_hash``
+    # (HMAC-SHA256, src/utils/email_hash.py). Existing rows still hold the address
+    # until the plaintext-removal step has run after a verified backup.
+    email: Mapped[str | None] = mapped_column(String(320), unique=True)
+    email_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
     reason: Mapped[str] = mapped_column(String(30))
     source_event_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)

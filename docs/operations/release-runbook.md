@@ -85,6 +85,24 @@ The draft's generated notes only list pull request titles. Before publishing, ad
 - API health: `curl -fsS https://api.barrels.gd/api/v1/utils/health-check/`
 - Spot-check app domains: `auth` / `admin` / `docs` / `weather` / `signal` / `mbia` / `events` / `hapi` `.barrels.gd`.
 
+## Irreversible data migrations need a verified backup first
+
+`scripts/production/core.sh deploy` has no backup phase before `migrations`
+(phases: render-config, auth, disk, pull-verify, databases, migrations, grants,
+start, smoke), so a deploy is **not** a backup gate. Scheduled backups run
+separately (`monitoring-maintenance.yml`, `backup-database.yml`, `core.sh
+backup`). Before any migration that deletes, nulls or hashes existing data:
+
+1. Run the backup for the target environment and confirm it succeeded
+   (`backup-freshness.yml`, restore drill if practical).
+2. Record the backup id in the release notes.
+3. Only then deploy the migration.
+
+Email-hash change: revision `emailhash20261018` is additive and safe to deploy
+on its own (set the `EMAIL_HASH_PEPPER` secret first). The destructive "step 2"
+(backfill hashes, null plaintext of suppressed and unsubscribed rows, drop the
+plaintext suppression column) is not written yet and waits for this gate.
+
 ## Rollback / redeploy
 
 Re-deploying an existing release needs no builds: manually dispatch the

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +13,9 @@ from src.auth import policy as auth_policy
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.exceptions import AppException, NotFoundError
 from src.pagination import PaginatedResponse
+from src.utils import email_hash as email_hash_util
 from src.utils.datetime import utc_now
+from src.utils.email_hash import hash_email
 
 from . import events
 from .config import notification_settings
@@ -684,7 +686,7 @@ async def delete_snooze(
 
 
 def normalise_email(email: str) -> str:
-    return email.strip().lower()
+    return email_hash_util.normalise_email(email)
 
 
 async def suppress_email(
@@ -696,27 +698,44 @@ async def suppress_email(
 ) -> bool:
     """Add an address to the suppression list. Returns False if already listed.
 
-    Idempotent: the unique address makes a replayed webhook a no-op. The caller
-    commits.
+    Only the keyed hash of the address is stored. Idempotent: the unique hash
+    makes a replayed webhook a no-op. A legacy row that still holds the
+    plaintext address gets its hash filled in. The caller commits.
     """
+    clean = normalise_email(email)
+    address_hash = hash_email(clean)
+    legacy = await session.scalar(
+        select(EmailSuppression).where(
+            EmailSuppression.email == clean, EmailSuppression.email_hash.is_(None)
+        )
+    )
+    if legacy is not None:
+        legacy.email_hash = address_hash
+        return False
     result = await session.execute(
         pg_insert(EmailSuppression)
         .values(
             id=uuid.uuid4(),
-            email=normalise_email(email),
+            email=None,
+            email_hash=address_hash,
             reason=reason.value,
             source_event_id=source_event_id,
             created_at=utc_now(),
         )
-        .on_conflict_do_nothing(index_elements=["email"])
+        .on_conflict_do_nothing(index_elements=["email_hash"])
     )
     return bool(getattr(result, "rowcount", 0))
 
 
 async def is_suppressed(*, session: AsyncSession, email: str) -> bool:
+    """True when the address is suppressed (hash match, or a legacy plaintext row)."""
+    clean = normalise_email(email)
     found = await session.scalar(
         select(EmailSuppression.id).where(
-            EmailSuppression.email == normalise_email(email)
+            or_(
+                EmailSuppression.email_hash == hash_email(clean),
+                EmailSuppression.email == clean,
+            )
         )
     )
     return found is not None

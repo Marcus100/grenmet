@@ -28,12 +28,21 @@ class ListSubscription(Base):
         sa.UniqueConstraint(
             "list_key", "email", name="list_subscription_list_key_email_key"
         ),
+        sa.UniqueConstraint(
+            "list_key", "email_hash", name="list_subscription_list_key_email_hash_key"
+        ),
         sa.Index("ix_list_subscription_email", "email"),
+        sa.Index("ix_list_subscription_email_hash", "email_hash"),
+        sa.Index("ix_list_subscription_status_requested", "status", "requested_at"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     list_key: Mapped[str] = mapped_column(String(40))
-    email: Mapped[str] = mapped_column(String(320))
+    # Plaintext is kept only while pending or confirmed (needed to send). Once
+    # unsubscribed it is nulled; ``email_hash`` (HMAC-SHA256) stays as consent proof.
+    # Legacy rows have no hash until touched or backfilled.
+    email: Mapped[str | None] = mapped_column(String(320))
+    email_hash: Mapped[str | None] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(
         String(20), default=SubscriptionStatus.PENDING.value
     )

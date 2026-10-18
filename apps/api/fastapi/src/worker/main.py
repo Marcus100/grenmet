@@ -36,6 +36,7 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.events.outbox",
         "src.eregister.publisher",
         "src.billing.reminders",
+        "src.worker.retention",
     ):
         import_module(module)
     from src.config import settings
@@ -292,6 +293,28 @@ async def poll_flights(ctx: dict[str, Any]) -> int:
     return sum(result.values())
 
 
+async def purge_expired_data(ctx: dict[str, Any]) -> int:
+    """Daily retention purge (contact, data requests, pending subscriptions, comments)."""
+    from src.database import async_session_factory
+    from src.worker import retention
+
+    async with async_session_factory() as session:
+        try:
+            result = await retention.purge_expired(session=session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "purge_expired_data",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "purge_expired_data", str(ctx.get("job_id", "")), True
+    )
+    return result.total
+
+
 async def fetch_marine_environment(ctx: dict[str, Any]) -> int:
     """Fetch Copernicus Marine series. No-op unless credentials are set."""
     from src.database import async_session_factory
@@ -333,6 +356,7 @@ class WorkerSettings:
         send_wis2_publications,
         run_notification_sweeps,
         send_invoice_reminders,
+        purge_expired_data,
         check_nhc_failures,
         check_alert_outbox,
         poll_flights,
@@ -369,6 +393,8 @@ class WorkerSettings:
         cron(run_notification_sweeps, hour=10, minute=0, run_at_startup=False),
         # Invoice payment reminders at 07:00 Grenada (UTC-4); idempotent per stage.
         cron(send_invoice_reminders, hour=11, minute=0, run_at_startup=False),
+        # Retention purge, 03:30 UTC (23:30 Grenada); idempotent and batched.
+        cron(purge_expired_data, hour=3, minute=30, run_at_startup=False),
         # NHC job failures every 5 minutes; the 1-hour window stops repeat messages.
         cron(check_nhc_failures, minute=set(range(0, 60, 5)), run_at_startup=False),
         # Is the email outbox draining? Every 15 minutes.

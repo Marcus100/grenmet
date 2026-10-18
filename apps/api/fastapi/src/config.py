@@ -68,6 +68,10 @@ class Settings(BaseSettings):
             path=self.POSTGRES_DB,
         )
 
+    # Secret key for hashing suppressed and unsubscribed email addresses
+    # (src/utils/email_hash.py). Required outside local; never reuse SECRET_KEY.
+    EMAIL_HASH_PEPPER: str = ""
+
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 

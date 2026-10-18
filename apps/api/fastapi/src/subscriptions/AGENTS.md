@@ -18,3 +18,5 @@
 
 ## Tests
 `tests/subscriptions/test_subscriptions.py`, `tests/webhooks/test_suppression.py`.
+
+- Email privacy: `email_hash` (HMAC-SHA256, `src/utils/email_hash.py`, secret `EMAIL_HASH_PEPPER`) is written for every row. Pending and confirmed rows keep the plaintext `email` (needed to send); unsubscribing nulls it and keeps only the hash. Lookups match hash or legacy plaintext. Pending rows older than 30 days are purged by `src/worker/retention.py`.
