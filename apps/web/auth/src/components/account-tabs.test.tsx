@@ -14,6 +14,8 @@ describe("AccountTabs", () => {
         "Sessions",
         "Apps",
         "Organisations",
+        "Tickets",
+        "Rewards",
         "Access",
       ]
     );

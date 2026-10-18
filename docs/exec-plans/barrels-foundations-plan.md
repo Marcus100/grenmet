@@ -175,9 +175,9 @@ Alembic head.
 | F8 | Organisation-scoped uploads (presigned, size and type limits) | M | U — built, pending merge (`org.upload`, `/storage/uploads`; Events organiser logo and listing image; bucket CORS for browser PUT is an ops step) |
 | E1 | Orders and tickets for free and registration tiers; inventory guard; QR ticket page | L | U — built, pending merge (`events_0005`; per-account limit default 4 per tier; paid tiers refused until E6; verified-publish gate added with it) |
 | E2 | Idempotent admission scans, duplicate rejection, printable manifest | M | U — built, pending merge (`events_0006`; `/dash/events/[id]/door`, keyboard-scanner input, no camera) |
-| E3 | Outlet cash sales by the organiser's own staff, sharing inventory with online and door | M | U |
-| E4 | Settlement report replacing `/dash` demo fixtures | M | U |
-| E5 | Cancel, postpone and manual refund | M | U |
+| E3 | Outlet cash sales by the organiser's own staff, sharing inventory with online and door | M | U — built, pending merge (`events_0008`; admin/owner staff only, per-staff-per-day till with float and count; `/dash/events/[id]/outlet`) |
+| E4 | Settlement report replacing `/dash` demo fixtures | M | U — built, pending merge (`/dash/events/[id]/settlement`, CSV export, `/dash` panel) |
+| E5 | Cancel, postpone and manual refund | M | U — built, pending merge (`events_0009`; cancel cascades to tickets and notifies holders; refunds are manual cash/bank records for outlet cash tickets) |
 | C1 | `apps/web/admin` shell at `admin.barrels.gd` (port 3012), superuser via auth handoff, status cards (**built, pending merge**; deploy wiring and the `admin.*` host cutover deliberately not done, see "Host move") | L | U |
 | C2 | Control-plane organisations: list, detail, verify, app entitlements, members (**built, pending merge**) | M | U |
 | P1 | Invoice core: customer, invoice, lines, numbering, totals in minor units; entity, VAT and prefix are provisional settings | M | U — built, pending merge |
@@ -199,10 +199,10 @@ and the [loyalty reference study](../strategy/loyalty-reference-study.md).
 
 | # | Slice | Depends on | Mode |
 | --- | --- | --- | --- |
-| U1 | Barrels ID profile: one account page showing apps, organisations, tickets and rewards (extends A1) | A1, E1 | U |
-| U2 | Rewards ledger: append-only entries with pending and confirmed states, unique transaction references, automatic refund reversal, audited manual adjustment | F3, E1, E5 | U |
-| U3 | Merchant rewards: organisation-funded stamp cards and ticket credits, configured per organisation; redemption limits; duplicate check-in prevention | U2, C2 | U (generic templates) |
-| U4 | Trust signals: verified organiser, verified attendee, verified purchaser badges derived from records, never purchasable | C2, E2 | U |
+| U1 | Barrels ID profile: one account page showing apps, organisations, tickets and rewards (extends A1) | A1, E1 | U — built, pending merge |
+| U2 | Rewards ledger: append-only entries with pending and confirmed states, unique transaction references, automatic refund reversal, audited manual adjustment | F3, E1, E5 | U — built, pending merge |
+| U3 | Merchant rewards: organisation-funded stamp cards and ticket credits, configured per organisation; redemption limits; duplicate check-in prevention | U2, C2 | U (generic templates) — core built, pending merge; admin read-only UI open |
+| U4 | Trust signals: verified organiser, verified attendee, verified purchaser badges derived from records, never purchasable | C2, E2 | U — built, pending merge |
 | U5 | Barrels Passport: non-monetary stamps and collections for real attendance (parishes, Carriacou, Petite Martinique, festival trails) | E2, U2 | U (sample trail) |
 | U6 | Universal Barrels Points | Evidence from U3 and the Events pilot | Explore only |
 

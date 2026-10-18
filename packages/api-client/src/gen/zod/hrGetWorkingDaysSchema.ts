@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { leaveTypeSchema } from "./leaveTypeSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 import { workingDaysPublicSchema } from "./workingDaysPublicSchema.js";
 
@@ -14,6 +15,11 @@ export const hrGetWorkingDaysQueryStartSchema = z.iso
 export const hrGetWorkingDaysQueryEndSchema = z.iso
   .date()
   .describe("Last day of leave");
+
+export const hrGetWorkingDaysQueryLeaveTypeSchema = z
+  .union([leaveTypeSchema, z.null()])
+  .optional()
+  .describe("Leave type; VACATION adds the provisional extra-day hint");
 
 export const hrGetWorkingDaysStatus200Schema = workingDaysPublicSchema;
 

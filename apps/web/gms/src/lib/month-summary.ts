@@ -11,6 +11,9 @@ export interface MonthStat {
 export interface MonthStats {
   /** "Month to date · MBIA · provisional · to 18 October" */
   caption: string;
+  /** Time of the newest register reading behind the figures (ISO). */
+  lastObservationAt: string;
+  provisional: boolean;
   stats: MonthStat[];
 }
 
@@ -47,6 +50,8 @@ export function monthStats(summary: PublicMonthSummary): MonthStats {
     .join(" · ");
   return {
     caption,
+    lastObservationAt: summary.last_observation_at,
+    provisional: summary.provisional,
     stats: [
       {
         label: `Rainfall this month · ${station}`,

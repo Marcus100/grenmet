@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { manifestRowPropertiesChannelEnumSchema } from "./manifestRowPropertiesChannelEnumSchema.js";
 
 export const manifestRowSchema = z.object({
   ticket_id: z.uuid(),
@@ -11,4 +12,5 @@ export const manifestRowSchema = z.object({
   holder_name: z.union([z.string(), z.null()]).optional(),
   tier_name: z.string(),
   admitted_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  channel: manifestRowPropertiesChannelEnumSchema.optional().default("online"),
 });

@@ -26,6 +26,7 @@ from .models import (
     NotificationSetting,
     NotificationSnooze,
     OutboundEmail,
+    OutboundEmailStatus,
     SuppressionReason,
 )
 from .schemas import (
@@ -746,3 +747,42 @@ def enqueue_email(
     )
     session.add(row)
     return row
+
+
+async def enqueue_email_once(
+    *,
+    session: AsyncSession,
+    to_email: str,
+    subject: str,
+    dedupe_key: str,
+    template: str,
+    props: dict[str, Any],
+) -> bool:
+    """Queue a non-transactional email unless ``dedupe_key`` was already queued.
+
+    Returns True when a new row was written. Suppressed addresses are skipped
+    here and again at send time. The caller commits.
+    """
+    email = normalise_email(to_email)
+    if await is_suppressed(session=session, email=email):
+        return False
+    result = await session.execute(
+        pg_insert(OutboundEmail)
+        .values(
+            id=uuid.uuid4(),
+            to_email=email,
+            subject=subject[:300],
+            template=template,
+            props=props,
+            transactional=False,
+            dedupe_key=dedupe_key[:200],
+            status=OutboundEmailStatus.PENDING.value,
+            attempts=0,
+            created_at=utc_now(),
+        )
+        .on_conflict_do_nothing(
+            index_elements=["dedupe_key"],
+            index_where=OutboundEmail.dedupe_key.is_not(None),
+        )
+    )
+    return bool(getattr(result, "rowcount", 0))

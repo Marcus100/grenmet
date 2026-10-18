@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/page-header";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -18,16 +17,6 @@ export default function SeasonalPage() {
         title="Seasonal outlook"
       />
       <PlaceholderNotice product="The seasonal outlook" />
-      <PageSection heading="Next three months">
-        <InfoTable
-          headers={["Element", "Most likely category", "Confidence"]}
-          rows={[
-            ["Rainfall", "Below normal", "Moderate"],
-            ["Mean temperature", "Above normal", "High"],
-            ["Dry spell frequency", "Above normal", "Moderate"],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="How to read a seasonal outlook">
         <Prose
           paragraphs={[

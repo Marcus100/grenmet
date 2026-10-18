@@ -2,7 +2,10 @@ import type {
   AdmissionPublic,
   GroupDetail as ApiGroupDetail,
   GroupSummary as ApiGroupSummary,
+  OutletSale as ApiOutletSale,
   PersonChip as ApiPersonChip,
+  Settlement as ApiSettlement,
+  SettlementSummary as ApiSettlementSummary,
   ThreadDetail as ApiThreadDetail,
   ThreadSummary as ApiThreadSummary,
   ConnectionPublic,
@@ -14,10 +17,13 @@ import type {
   MyProfile,
   NetworkPublic,
   OrganiserPublic,
+  OutletOverview,
   PlansPublic,
   ProfilePublic,
+  RefundPublic,
   TicketDetail,
   TicketSummary,
+  TillPublic,
 } from "@barrelsgd/api-client";
 import type {
   Connection,
@@ -32,13 +38,20 @@ import type {
   MyTicketDetail,
   Network,
   Organiser,
+  Outlet,
+  OutletSale,
   PersonChip,
   PersonProfile,
   Plans,
   Profile,
   PublicEvent,
+  Refund,
+  Settlement,
+  SettlementCounts,
+  SettlementSummary,
   ThreadDetail,
   ThreadSummary,
+  Till,
 } from "@/domain/types";
 
 /**
@@ -301,5 +314,173 @@ export function toDoorAdmission(admission: AdmissionPublic): DoorAdmission {
     admittedAt: admission.admitted_at,
     admittedByName: admission.admitted_by_name ?? null,
     repeat: admission.repeat ?? false,
+  };
+}
+
+export function toRefund(refund: RefundPublic): Refund {
+  return {
+    id: refund.id,
+    ticketId: refund.ticket_id,
+    code: refund.code,
+    tierName: refund.tier_name,
+    amountMinor: refund.amount_minor,
+    method: refund.method,
+    reference: refund.reference ?? null,
+    refundedByName: refund.refunded_by_name ?? null,
+    refundedAt: refund.refunded_at,
+  };
+}
+
+export function toOutletSale(sale: ApiOutletSale): OutletSale {
+  return {
+    orderId: sale.order_id,
+    listingId: sale.listing_id,
+    listingTitle: sale.listing_title,
+    venue: sale.venue,
+    startsAt: sale.starts_at,
+    currency: sale.currency,
+    totalMinor: sale.total_minor,
+    collectedMinor: sale.collected_minor,
+    buyerName: sale.buyer_name ?? null,
+    buyerPhone: sale.buyer_phone ?? null,
+    soldByName: sale.sold_by_name ?? null,
+    createdAt: sale.created_at,
+    tickets: sale.tickets.map((ticket) => ({
+      id: ticket.id,
+      code: ticket.code,
+      qrToken: ticket.qr_token,
+      tierName: ticket.tier_name,
+      priceMinor: ticket.price_minor,
+      status: ticket.status,
+      admittedAt: ticket.admitted_at ?? null,
+      canRefund: ticket.can_refund ?? false,
+      refund: ticket.refund ? toRefund(ticket.refund) : null,
+    })),
+  };
+}
+
+export function toTill(till: TillPublic): Till {
+  return {
+    id: till.id,
+    staffName: till.staff_name ?? null,
+    day: till.day,
+    status: till.status,
+    openingFloatMinor: till.opening_float_minor,
+    openedAt: till.opened_at,
+    closedAt: till.closed_at ?? null,
+    salesCount: till.sales_count,
+    ticketsSold: till.tickets_sold,
+    collectedMinor: till.collected_minor,
+    cashRefundsMinor: till.cash_refunds_minor ?? 0,
+    expectedMinor: till.expected_minor,
+    countedMinor: till.counted_minor ?? null,
+    differenceMinor: till.difference_minor ?? null,
+    closeNote: till.close_note ?? null,
+  };
+}
+
+export function toOutlet(outlet: OutletOverview): Outlet {
+  return {
+    listingId: outlet.listing_id,
+    title: outlet.title,
+    startsAt: outlet.starts_at,
+    selling: outlet.selling,
+    tiers: outlet.tiers.map((tier) => ({
+      id: tier.id,
+      name: tier.name,
+      priceMinor: tier.price_minor,
+      currency: tier.currency,
+      allocation: tier.allocation,
+      sold: tier.sold,
+      remaining: tier.remaining,
+    })),
+    till: outlet.till ? toTill(outlet.till) : null,
+    sales: outlet.sales.map(toOutletSale),
+  };
+}
+
+function toSettlementCounts(counts: {
+  admitted: number;
+  cancelled: number;
+  claimed: number;
+  issued: number;
+  refunded: number;
+  value_minor: number;
+  waiting: number;
+}): SettlementCounts {
+  return {
+    issued: counts.issued,
+    claimed: counts.claimed,
+    admitted: counts.admitted,
+    waiting: counts.waiting,
+    cancelled: counts.cancelled,
+    refunded: counts.refunded,
+    valueMinor: counts.value_minor,
+  };
+}
+
+export function toSettlement(report: ApiSettlement): Settlement {
+  return {
+    listingId: report.listing_id,
+    title: report.title,
+    startsAt: report.starts_at,
+    endsAt: report.ends_at,
+    status: report.status,
+    currency: report.currency,
+    generatedAt: report.generated_at,
+    totals: toSettlementCounts(report.totals),
+    channels: report.channels.map((channel) => ({
+      ...toSettlementCounts(channel),
+      channel: channel.channel,
+      collectedMinor: channel.collected_minor,
+      refundedMinor: channel.refunded_minor,
+    })),
+    tiers: report.tiers.map((tier) => ({
+      id: tier.id,
+      name: tier.name,
+      priceMinor: tier.price_minor,
+      allocation: tier.allocation,
+      online: tier.online,
+      outlet: tier.outlet,
+      admitted: tier.admitted,
+      remaining: tier.remaining,
+    })),
+    tills: report.tills.map(toTill),
+    refunds: report.refunds.map(toRefund),
+    cash: {
+      collectedMinor: report.cash.collected_minor,
+      cashRefundsMinor: report.cash.cash_refunds_minor,
+      netSalesMinor: report.cash.net_sales_minor,
+      expectedMinor: report.cash.expected_minor,
+      countedMinor: report.cash.counted_minor,
+      differenceMinor: report.cash.difference_minor,
+      openTills: report.cash.open_tills,
+      closedTills: report.cash.closed_tills,
+    },
+    discrepancies: report.discrepancies.map((issue) => ({
+      kind: issue.kind,
+      message: issue.message,
+      tillId: issue.till_id ?? null,
+      amountMinor: issue.amount_minor ?? null,
+    })),
+  };
+}
+
+export function toSettlementSummary(
+  row: ApiSettlementSummary
+): SettlementSummary {
+  return {
+    listingId: row.listing_id,
+    title: row.title,
+    startsAt: row.starts_at,
+    status: row.status,
+    issued: row.issued,
+    claimed: row.claimed,
+    admitted: row.admitted,
+    cancelled: row.cancelled,
+    cashCollectedMinor: row.cash_collected_minor,
+    cashExpectedMinor: row.cash_expected_minor,
+    cashCountedMinor: row.cash_counted_minor,
+    issues: row.issues,
   };
 }

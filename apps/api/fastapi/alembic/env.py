@@ -94,6 +94,11 @@ from src.hr.workflow.models import (
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
+from src.models_guidance.models import (
+    GuidanceAccessRequest,
+    ModelGuidanceRun,
+    ModelGuidanceSeries,
+)
 from src.notifications.models import (
     EmailSuppression,
     Notification,
@@ -109,6 +114,8 @@ from src.organisations.models import (  # noqa: F401
     PlatformOrganisation,
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
+from src.push.models import PushSubscription
+from src.rewards.models import Entry, Program, ReviewFlag
 from src.storage.models import OrgUpload
 from src.stores.models import (
     Requisition,
@@ -130,7 +137,17 @@ Base.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
 target_metadata = Base.metadata
 
 # Schemas tracked by autogenerate. Extend this set when adding a new schema.
-_TRACKED_SCHEMAS = {None, "public", "hr", "cap", "org", "stores", "billing"}
+_TRACKED_SCHEMAS = {
+    None,
+    "public",
+    "hr",
+    "cap",
+    "org",
+    "stores",
+    "billing",
+    "environment",
+    "rewards",
+}
 
 
 def _include_object(

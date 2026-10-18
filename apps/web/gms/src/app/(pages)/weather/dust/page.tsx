@@ -18,38 +18,6 @@ export default function DustPage() {
         title="Saharan dust and haze"
       />
       <PlaceholderNotice product="The dust outlook" />
-      <PageSection heading="Five-day outlook">
-        <InfoTable
-          headers={["Day", "Concentration", "Visibility", "Guidance"]}
-          rows={[
-            ["Today", "Light", "Good — over 10 km", "No action needed"],
-            [
-              "Tomorrow",
-              "Moderate",
-              "Reduced — 7 to 10 km",
-              "Sensitive groups take care",
-            ],
-            [
-              "Day 3",
-              "Moderate to heavy",
-              "Hazy — 4 to 7 km",
-              "Limit strenuous outdoor activity",
-            ],
-            [
-              "Day 4",
-              "Heavy",
-              "Poor — under 4 km",
-              "Sensitive groups stay indoors where possible",
-            ],
-            [
-              "Day 5",
-              "Moderate",
-              "Reduced — 7 to 10 km",
-              "Sensitive groups take care",
-            ],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Concentration levels">
         <InfoTable
           headers={["Level", "What you notice", "Who is affected"]}

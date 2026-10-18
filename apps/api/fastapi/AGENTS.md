@@ -255,7 +255,8 @@ async def test_create_leave_request(
 
 - Authenticate with real JWTs (`superuser_token_headers_async`, `normal_user_token_headers_async`); use `app.dependency_overrides` only for external services or forced error paths (see `TESTING.md`).
 - Use a real database (the `db_async` fixture hits the actual DB). Don't mock `AsyncSession`.
-- `tests/test_api_fuzz.py` (Schemathesis) calls every GET operation with
+- `tests/test_api_fuzz.py` (Schemathesis, marked `fuzz`; skipped by default, CI runs
+  it in its own job, locally use `pytest -m fuzz`) calls every GET operation with
   generated inputs as the superuser and fails on any 5xx except 503 (a
   separate-database domain without its database). It found the unbounded
   `page` overflow fixed in `src/pagination.py`; bound every numeric query
@@ -281,9 +282,11 @@ async def test_create_leave_request(
   values above unless you already set them), e.g.
   `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests/hr -q`.
 - Before pushing API changes, run the touched domains' tests
-  (`pytest tests/<domain>/`); the pre-push hook does not run pytest. Parallelise
-  with at most `-n 2`, as CI does — higher worker counts against the shared local
-  Postgres cause fixture `TimeoutError`s that are not real failures.
+  (`pytest tests/<domain>/`); the pre-push hook does not run pytest. `pnpm verify:changed`
+  parallelises automatically (CPUs minus two, two under high load; override with
+  `PYTEST_WORKERS`). If higher worker counts against the shared local Postgres cause
+  fixture `TimeoutError`s that are not real failures, lower `PYTEST_WORKERS` (CI uses
+  `-n 2` per shard). `pytest --shard i/n` runs one of CI's file-aligned slices.
 
   The passwords above are local-development placeholders; use the local stack's
   actual values when they differ, and never commit real credentials. The main

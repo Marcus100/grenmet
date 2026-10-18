@@ -8,6 +8,8 @@ export const ACCOUNT_TABS = [
   { href: "/sessions", label: "Sessions" },
   { href: "/apps", label: "Apps" },
   { href: "/organisations", label: "Organisations" },
+  { href: "/tickets", label: "Tickets" },
+  { href: "/rewards", label: "Rewards" },
   { href: "/access", label: "Access" },
 ] as const;
 

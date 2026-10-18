@@ -89,6 +89,7 @@ from src.notifications.models import (
     NotificationSnooze,
 )
 from src.organisations import audit as _organisations_audit
+from src.rewards import audit as _rewards_audit
 from src.stores import audit as _stores_audit
 from src.stores import notifications as _stores_notifications
 from src.stores.models import (
@@ -110,6 +111,7 @@ _stores_audit.register()
 _stores_notifications.register()
 _organisations_audit.register()
 _billing_audit.register()
+_rewards_audit.register()
 _eregister_audit.register()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))

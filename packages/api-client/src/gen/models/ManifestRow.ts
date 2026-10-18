@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ManifestRowPropertiesChannelEnum } from "./ManifestRowPropertiesChannelEnum.js";
+
 export type ManifestRow = {
   /**
    * @description
@@ -14,4 +16,9 @@ export type ManifestRow = {
   holder_name?: string | null;
   tier_name: string;
   admitted_at?: string | null;
+  /**
+   * @default 'online'
+   * @type string | undefined
+   */
+  channel?: ManifestRowPropertiesChannelEnum;
 };

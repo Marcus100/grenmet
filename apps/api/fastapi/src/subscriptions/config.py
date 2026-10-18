@@ -15,6 +15,7 @@ class SubscriptionsConfig(BaseSettings):
     SUBSCRIPTIONS_SITE_URLS: dict[str, str] = {
         "signal": "http://localhost:3004",
         "barrels": "http://localhost:4173",
+        "gms-alerts": "http://localhost:3003",
     }
     # Public origin of this API, used for the links inside confirmation emails.
     # Falls back to API_BASE_URL, then localhost.

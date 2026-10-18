@@ -27,7 +27,7 @@ function TicketRow({ ticket }: { ticket: MyTicket }) {
           {ticket.tierName} ·{" "}
           <span className="font-mono tracking-wider">{ticket.code}</span>
           {used ? " · Used" : ""}
-          {ticket.status === "cancelled" ? " · Cancelled" : ""}
+          {ticket.status === "valid" ? "" : " · Cancelled"}
         </p>
       </div>
       {ticket.status === "valid" ? (

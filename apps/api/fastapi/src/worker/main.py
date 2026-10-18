@@ -18,6 +18,7 @@ from arq.connections import RedisSettings
 
 from src import operational_metrics
 from src.logging_config import configure_logging
+from src.models_guidance.config import guidance_settings
 from src.telemetry import sentry_options
 from src.worker.config import worker_settings
 
@@ -164,6 +165,33 @@ async def drain_events_outbox(ctx: dict[str, Any]) -> int:
         return result
 
 
+async def sync_event_rewards(ctx: dict[str, Any]) -> int:
+    """Credit stamps for Events admissions and reverse refunded ones (idempotent)."""
+    from src.database import async_session_factory
+    from src.events import database as events_database
+    from src.rewards import events_link
+
+    events = events_database.create_session()
+    if events is None:
+        return 0
+    async with events, async_session_factory() as session:
+        try:
+            result = await events_link.sync_admissions(session, events)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "sync_event_rewards",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "sync_event_rewards", str(ctx.get("job_id", "")), True
+        )
+        return result.credited + result.reversed
+
+
 async def send_wis2_publications(ctx: dict[str, Any]) -> int:
     """Move queued eRegister CSV files to wis2box; no-op unless configured."""
     from src.database import async_session_factory
@@ -292,6 +320,50 @@ async def poll_flights(ctx: dict[str, Any]) -> int:
     return sum(result.values())
 
 
+async def fetch_marine_environment(ctx: dict[str, Any]) -> int:
+    """Fetch Copernicus Marine series. No-op unless credentials are set."""
+    from src.database import async_session_factory
+    from src.environmental import service as environmental_service
+    from src.environmental.config import environmental_settings
+
+    _ = ctx
+    if not environmental_settings.marine_enabled:
+        return 0
+    async with async_session_factory() as session:
+        return await environmental_service.refresh_marine(session)
+
+
+async def fetch_air_environment(ctx: dict[str, Any]) -> int:
+    """Fetch CAMS UV and dust series. No-op unless ADS credentials are set."""
+    from src.database import async_session_factory
+    from src.environmental import service as environmental_service
+    from src.environmental.config import environmental_settings
+
+    _ = ctx
+    if not environmental_settings.air_enabled:
+        return 0
+    async with async_session_factory() as session:
+        return await environmental_service.refresh_air(session)
+
+
+async def fetch_model_guidance(ctx: dict[str, Any]) -> dict[str, str]:
+    """Store the newest ECMWF/GFS runs not yet held. No-op unless enabled."""
+    from src.database import async_session_factory
+    from src.models_guidance import ingest
+    from src.models_guidance.config import guidance_settings
+
+    if not guidance_settings.ENABLED:
+        return {}
+    outcomes = await ingest.refresh_all(async_session_factory)
+    await operational_metrics.record_job(
+        ctx.get("redis"),
+        "fetch_model_guidance",
+        str(ctx.get("job_id", "")),
+        "error" not in outcomes.values(),
+    )
+    return outcomes
+
+
 class WorkerSettings:
     # Bound heartbeat staleness and prevent another worker masking this one.
     health_check_interval = 30
@@ -304,12 +376,16 @@ class WorkerSettings:
         send_notification_emails,
         send_outbound_emails,
         drain_events_outbox,
+        sync_event_rewards,
         send_wis2_publications,
         run_notification_sweeps,
         send_invoice_reminders,
         check_nhc_failures,
         check_alert_outbox,
         poll_flights,
+        fetch_marine_environment,
+        fetch_air_environment,
+        fetch_model_guidance,
     ]
     # A poll/ingest run must not hang a worker slot; retries of the cron function
     # itself are pointless because the durable outbox already tracks per-job
@@ -335,6 +411,13 @@ class WorkerSettings:
         cron(send_outbound_emails, second={15, 45}, run_at_startup=True),
         # Events changes (publish, cancel, approve) become notifications.
         cron(drain_events_outbox, second={5, 35}, run_at_startup=False),
+        # Admissions become reward stamps; refunded ones are reversed.
+        cron(
+            sync_event_rewards,
+            second={25},
+            minute={0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55},
+            run_at_startup=False,
+        ),
         # eRegister observations queued for wis2box (retries live on the row).
         cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
@@ -347,4 +430,29 @@ class WorkerSettings:
         cron(check_alert_outbox, minute={0, 15, 30, 45}, run_at_startup=False),
         # OpenSky flight movements every 30 minutes; no-op unless the flag is on.
         cron(poll_flights, minute={5, 35}, run_at_startup=False),
+        # Copernicus Marine analysis/forecast, every 6 hours; no-op without credentials.
+        cron(
+            fetch_marine_environment,
+            hour={1, 7, 13, 19},
+            minute=20,
+            run_at_startup=False,
+            timeout=900,
+        ),
+        # CAMS runs (00/12 UTC) are published about 10 hours later. ADS requests
+        # queue, so allow a long job timeout.
+        cron(
+            fetch_air_environment,
+            hour={10, 22},
+            minute=30,
+            run_at_startup=False,
+            timeout=1800,
+        ),
+        # Model guidance (ECMWF IFS/AIFS, NOAA GFS point series): hourly check,
+        # fetches only runs not stored yet; no-op unless MODELS_GUIDANCE_ENABLED.
+        cron(
+            fetch_model_guidance,
+            minute={guidance_settings.POLL_MINUTE},
+            run_at_startup=False,
+            timeout=3600,
+        ),
     ]

@@ -68,12 +68,16 @@ Three anonymous, rate-limited (per IP) endpoints back public site forms. They
 never read existing data and return a fixed acknowledgement:
 
 - `POST /api/v1/subscriptions` (`subscriptionsSubscribe`): double opt-in sign-up
-  for a list key (`signal`, `barrels`); the reply is identical for every address state.
+  for a list key (`signal`, `barrels`, `gms-alerts`); the reply is identical for every address state.
   `GET /subscriptions/confirm` and `/subscriptions/unsubscribe` take a signed
   `token` and 303-redirect to the list's site.
+- `GET /api/v1/push/vapid-public-key` (`pushVapidPublicKey`), `POST` and
+  `DELETE /api/v1/push/subscriptions` (`pushSubscribe`, `pushUnsubscribe`):
+  browser Web Push for the `gms-alerts` list. Endpoints must belong to a known
+  push service; `enabled: false` / 503 until the `WEBPUSH_*` keys are set.
 - `POST /api/v1/contact/messages` (`contactSendContactMessage`): stores a
   website message and emails it to the inbox of its `site` (`mbia` by default,
-  or `barrels`). `turnstile_token` is accepted but not verified yet.
+  or `barrels`). `turnstile_token` is verified when `TURNSTILE_ENABLED` (400 "Verification failed").
 - `POST /api/v1/contact/data-requests` (`contactSendDataRequest`): GMS climate
   data request (structured fields, required `consent`, hidden `website`
   honeypot). Emails `GMS_DATA_REQUEST_RECIPIENT` and confirms to the requester.
@@ -96,6 +100,34 @@ returns Redis-cached OpenSky "recent movements" (`rows` with callsign,
 (the default) or nothing is cached; clients must show their own labelled
 sample then. Data is previous-day-or-earlier and research-licensed; see
 `docs/strategy/integration-opportunities.md`.
+
+`GET /api/v1/environment/marine?point=` and `GET /api/v1/environment/air?point=`
+(`point` is one of `st-georges`, `grenada-east`, `grenada-south`, `carriacou`)
+are anonymous and rate-limited (60/min per IP). They return stored Copernicus
+Marine (waves, swell, sea surface temperature) and CAMS (UV index, dust AOD)
+forecast series with `latest`, `provenance` (`source`, `issued_at`,
+`fetched_at`, `status: external`), `attribution`, `stale` and
+`is_gms_product: false`. `available` is false when credentials are unset or
+nothing has been fetched; clients must show an unavailable state, never sample
+data. Responses carry `Cache-Control` with `s-maxage` for Cloudflare. See
+`apps/api/fastapi/src/environmental/AGENTS.md`.
+
+## Model guidance (gmsdash)
+
+`GET /api/v1/models/meteogram?point=&model=` returns a stored point series
+(ECMWF IFS open data, ECMWF AIFS, NOAA GFS) with run time, units, attribution
+(ECMWF CC-BY-4.0; GFS public domain) and the disclaimer "Raw model guidance, not
+an official GMS forecast." `GET /models/catalogue` lists points and models.
+Access: a member of an organisation entitled to the `gmsdash` app (header
+`X-Barrels-Organisation`, `gmsdash` app token or account token), or GMS staff
+with `gmsdash.guidance.view` (no organisation header). A non-member gets 404, a
+member of a non-entitled organisation 403. Organisation owners and admins
+request access with `POST /models/access-requests`; staff with
+`gmsdash.access.review` list them (`GET /models/access-requests`) and decide
+(`POST /models/access-requests/{id}/decision`), which enables the `gmsdash`
+entitlement. `GET /models/organisations` and `GET /models/access` support the
+gmsdash app. Ingestion is off unless `MODELS_GUIDANCE_ENABLED`. See
+`apps/api/fastapi/src/models_guidance/AGENTS.md`.
 
 ## Public weather products
 
@@ -455,6 +487,42 @@ holder, tier and admission time plus `issued`, `admitted`, `waiting` and `cancel
 Each admission writes a `ticket.admitted` row to the listing's activity history, and the
 member's ticket carries `admitted_at`; used tickets cannot be cancelled.
 
+### Events outlet cash (E3)
+
+Organiser admins and owners (the door-admission gate; plain members are refused because
+they would handle cash) sell for cash. `GET /events/manage/{listing_id}/outlet` returns tier
+stock, the caller's till and recent outlet sales. `POST .../outlet/till`
+(`{opening_float_minor}`) opens the caller's till for the Grenada day (one per staff member,
+event and day; 409 if already opened) and `POST .../outlet/till/close` (`{counted_minor, note?}`)
+closes it, returning expected cash and the difference. `POST .../outlet/sales`
+(`{items, amount_collected_minor, buyer_name?, buyer_phone?, idempotency_key?}`) issues tickets
+against the same inventory as online claims and returns the tickets with QR tokens;
+`amount_collected_minor` must equal the price total, a till must be open, and a repeated
+`idempotency_key` replays the original sale (`repeat: true`). `GET .../outlet/sales/{order_id}`
+reprints a sale. Outlet buyers need no account (tickets have no `user_id`); the per-account limit
+does not apply. Another organiser's event is 404.
+
+### Events settlement (E4)
+
+`GET /events/manage/{listing_id}/settlement` (organiser admins/owners; another organiser's
+event is 404) returns tickets by channel (`online`, `outlet_cash`: `issued`, `claimed`,
+`admitted`, `waiting`, `cancelled`, `refunded`, `value_minor`, plus cash taken), per-tier
+stock, every till with expected, counted and difference, cash totals and `discrepancies`
+(`till_short`, `till_over`, `till_open`). `GET .../settlement.csv` downloads the same report
+as CSV. `GET /events/manage/settlement` returns one summary row per ticketed event.
+
+### Events cancel, postpone and refund (E5)
+
+`POST /events/manage/{listing_id}/cancel` (`{confirm: true}`) cancels a published event and all
+its valid tickets (`tickets_cancelled` in the response) and notifies going, saved and
+ticket-holding members through the outbox. `POST .../postpone` (`{starts_at, ends_at}`) moves a
+published event to future times and keeps tickets valid. `POST .../tickets/{ticket_id}/refund`
+(`{amount_minor, method: "cash"|"bank", reference?}`, 201) records a manual refund for an outlet
+cash ticket: 409 for online tickets (free), free tickets, amounts above the price, a bank refund
+without a reference, a ticket already refunded or cancelled by its holder, or a used ticket unless
+the event was cancelled. Ticket `status` can now be `refunded`; refunded tickets are not
+admitted. The settlement report lists `refunds` and per-channel `refunded`/`refunded_minor`.
+
 ## Pagination
 
 The standard helper is `src.pagination`:
@@ -474,6 +542,19 @@ Some older auth endpoints still use `skip` and `limit`. New list endpoints shoul
 | `GET /api/v1/utils/ready/` | Database readiness | `{"status":"ready"}` or 503 |
 
 Deployment smoke checks currently use liveness. Operational diagnosis should use readiness when database access matters.
+
+## Rewards (Barrels ID)
+
+Stamp cards funded by organisations; non-monetary, non-transferable. Domain
+rules: `apps/api/fastapi/src/rewards/AGENTS.md`.
+
+| Endpoint | Authentication | Contract |
+| --- | --- | --- |
+| `GET /api/v1/rewards/me`, `/me/entries`, `/me/badges`, `/me/tickets` | Any active account | Cards with SQL-computed balances; history; derived trust badges; the account's Events tickets (read-only) |
+| `POST /api/v1/rewards/me/redemptions`, `/me/redemptions/{id}/cancel` | Any active account | Hold a full card behind a one-time code; cancel an open redemption |
+| `GET/POST /api/v1/rewards/programs`, `PATCH /programs/{id}` | `X-Barrels-Organisation`; list for members, write for admin/owner | Configure the organisation's stamp card |
+| `POST /api/v1/rewards/redemptions/confirm` | `X-Barrels-Organisation`, any member | Staff confirm a customer's code (other organisations' codes 404) |
+| `/api/v1/rewards/admin/programs`, `/admin/adjustments`, `/admin/flags`, `/admin/flags/{id}/resolve` | Superuser or `rewards.manage` | Read all programmes, audited adjustments, velocity review flags |
 
 ## Billing
 
@@ -585,8 +666,8 @@ Read-only helpers that let the HR forms start from stored data. Each returns sug
 
 | Endpoint | Permission | Purpose |
 | --- | --- | --- |
-| `GET /api/v1/hr/leave/working-days?start=&end=` | `leave.request.create.self` | Working days for the caller (≤ 366 days). Uses the caller's published or closed roster work shifts when the roster covers every day in the range (`method: roster`), otherwise Monday to Friday (`method: weekdays`). Public holidays are excluded and listed; `provisional: true` marks dates HR has not verified |
-| `GET /api/v1/hr/timesheets/prefill?period=YYYY-MM` | `timesheet.submit.self` | The caller's published or closed roster work shifts for the month with shift times, scheduled hours and leave/absence availability. `roster_published: false` and no entries when there is none |
+| `GET /api/v1/hr/leave/working-days?start=&end=&leave_type=` | `leave.request.create.self` | Working days for the caller (≤ 366 days). Uses the caller's published or closed roster work shifts when the roster covers every day in the range (`method: roster`), otherwise Monday to Friday (`method: weekdays`). Public holidays are excluded and listed; `provisional: true` marks dates HR has not verified. With `leave_type=VACATION`, `suggested_extra_days` (and `suggested_extra_days_note`) counts holidays on would-be working days as a provisional hint for HR; it is never posted to a balance |
+| `GET /api/v1/hr/timesheets/prefill?period=YYYY-MM` | `timesheet.submit.self` | The caller's published or closed roster work shifts for the month with shift times, scheduled hours and leave/absence availability. `roster_published: false` and no entries when there is none. Rostered days that are public holidays carry `holiday_name` and `holiday_provisional`; `holidays` lists every holiday in the month. Visibility only, no pay rule |
 | `GET /api/v1/hr/signed-documents/me?entity_type=` | authenticated | Existing list, narrowed to one form type (for example `leave_request`, `timesheet`) before paging |
 
 ### Manual shift attendance
@@ -811,6 +892,7 @@ these anonymous endpoints:
 | `GET /api/cap/{identifier}.xml` | Latest CAP XML snapshot for an identifier |
 
 CAP management routes are under `/api/v1/cap` and require authenticated users plus permission checks.
+`POST /alerts/{id}/publish` accepts only an `APPROVED` alert whose approver is not its author (409 otherwise); `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
 
 Only Public alerts with `status=Actual` create CAP publish side-effect jobs. The
 worker also skips previously queued jobs for any other status or scope, so an
@@ -1041,6 +1123,8 @@ approval state at submission, while later decisions live in the workflow.
 ## WxWatch gallery reads
 
 `GET /api/v1/wxwatch/metadata?day=YYYY-MM-DD` accepts the existing bearer token or session cookie and returns `{groups: [{productKey, name, synopticImages}]}`. Each group contains all eight UTC three-hour slots, with null for missing images. Selection floors observations into their three-hour bucket; GOES-19 uses the closest observation to the bucket start, other sources use the latest fetch. Date bounds are inclusive midnight to exclusive next midnight. Responses are private/no-store; missing database configuration returns 503. Raw collector metadata is not exposed.
+
+`GET /api/v1/wxwatch/public/latest?product=` (added 18 Oct 2026) is anonymous and returns `{images: [...]}`: the newest ingested GOES-19 image per product (optional `product` filter), each with `id`, `product`, `title`, `observed_at`, `image_url`, `media_type`, size, `source` and the NOAA/NESDIS public-domain attribution. Only `goes19` rows are exposed; no storage paths. An empty list means nothing has been ingested. `Cache-Control: public, max-age=60, s-maxage=120, stale-while-revalidate=600, stale-if-error=86400`; a missing database is 503. `GET /api/v1/wxwatch/public/images/{image_id}` serves that image from the local archive or as a 60-second signed redirect (404 for unknown or non-GOES ids). The GMS site proxies images at `/api/satellite/{id}`.
 
 `GET /api/v1/wxwatch/ready` is an anonymous availability check returning 204 or 503 without image data. FastAPI uses its own `WXWATCH_DATABASE_URL`. Gaa-admin no longer connects directly to this database. FastAPI owns archive writes and migrations through `src/wxwatch/alembic.ini`. Legacy Drizzle history is verified before adoption. The collector has no SQL writer. Existing three-hour selection is retained for compatibility; product identities are source-qualified and each image reports timestamp provenance. Legacy records are explicitly `legacy_unknown`.
 

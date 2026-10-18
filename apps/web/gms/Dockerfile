@@ -19,12 +19,14 @@ WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY apps/web/admin/package.json apps/web/admin/
 COPY apps/web/auth/package.json apps/web/auth/
+COPY apps/web/cap/package.json apps/web/cap/
 COPY apps/web/cms/package.json apps/web/cms/
 COPY apps/web/docs/package.json apps/web/docs/
 COPY apps/web/elections/package.json apps/web/elections/
 COPY apps/web/events/package.json apps/web/events/
 COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/gms/package.json apps/web/gms/
+COPY apps/web/gmsdash/package.json apps/web/gmsdash/
 COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
 COPY packages/api-client/package.json packages/api-client/
@@ -49,6 +51,7 @@ ARG NEXT_PUBLIC_RELEASE=""
 ENV NEXT_PUBLIC_RELEASE=$NEXT_PUBLIC_RELEASE
 ARG NEXT_PUBLIC_SENTRY_DSN=""
 ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT="production"
+ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_ENVIRONMENT=$NEXT_PUBLIC_ENVIRONMENT
 ENV SENTRY_PROJECT=$SENTRY_PROJECT
@@ -57,6 +60,7 @@ ENV NEXT_PUBLIC_POSTHOG_KEY=$NEXT_PUBLIC_POSTHOG_KEY
 ENV NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_SENTRY_ENVIRONMENT=$NEXT_PUBLIC_SENTRY_ENVIRONMENT
+ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Explicit application sources and workspace dependency closure.

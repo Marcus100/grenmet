@@ -50,6 +50,8 @@ export const dataRequestSchema = z
     consent: z.literal(true, "Please agree to the conditions of use."),
     // Honeypot: people never see this field; bots fill it.
     website: z.string().max(200).optional(),
+    // Cloudflare Turnstile token; FastAPI verifies it.
+    turnstileToken: z.string().max(2048).optional(),
   })
   .refine((data) => data.periodEnd >= data.periodStart, {
     message: "The end date must not be before the start date.",

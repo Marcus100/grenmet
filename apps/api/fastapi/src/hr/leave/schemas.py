@@ -98,3 +98,8 @@ class WorkingDaysPublic(BaseModel):
     method: Literal["roster", "weekdays"]
     # Public holidays inside the range that were not counted as working days.
     holidays: list[WorkingDayHoliday]
+    # Provisional (GAA-LV-HOLIDAY-01): public holidays that fall on would-be
+    # working days inside an annual vacation request. Advice for HR only; it is
+    # never posted to a balance. Always 0 for other leave types.
+    suggested_extra_days: int = 0
+    suggested_extra_days_note: str | None = None

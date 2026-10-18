@@ -5,12 +5,12 @@
 
 import * as z from "zod";
 import { groupDetailPropertiesParishEnumSchema } from "./groupDetailPropertiesParishEnumSchema.js";
-import { ticketDetailPropertiesStatusEnumSchema } from "./ticketDetailPropertiesStatusEnumSchema.js";
+import { outletTicketPropertiesStatusEnumSchema } from "./outletTicketPropertiesStatusEnumSchema.js";
 
 export const ticketSummarySchema = z.object({
   id: z.uuid(),
   code: z.string(),
-  status: ticketDetailPropertiesStatusEnumSchema,
+  status: outletTicketPropertiesStatusEnumSchema,
   tier_name: z.string(),
   listing_slug: z.string(),
   listing_title: z.string(),

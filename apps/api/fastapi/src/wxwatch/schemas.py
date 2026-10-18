@@ -114,3 +114,24 @@ class EditionAsset(BaseModel):
     sha256: str
     byte_size: int
     media_type: str | None = None
+
+
+class PublicSatelliteImage(BaseModel):
+    """One ingested GOES image, with only fields that are safe to publish."""
+
+    id: int
+    product: str
+    title: str
+    observed_at: UtcDateTime
+    image_url: str
+    media_type: str
+    width: int | None = None
+    height: int | None = None
+    source: str
+    attribution: str
+
+
+class PublicSatelliteLatest(BaseModel):
+    """The newest image per GOES product; empty when nothing has been ingested."""
+
+    images: list[PublicSatelliteImage]

@@ -13,4 +13,5 @@ export const pageFeedbackCreateSchema = z.object({
     .regex(/^\/[^?#\s]{0,298}$/),
   helpful: z.boolean(),
   comment: z.union([z.string().max(1000), z.null()]).optional(),
+  turnstile_token: z.union([z.string().max(2048), z.null()]).optional(),
 });

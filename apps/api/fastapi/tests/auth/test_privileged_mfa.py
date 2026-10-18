@@ -621,3 +621,37 @@ async def test_google_factor_completion_mints_actual_scoped_evidence(
         endpoint, json={"challenge": token, "totp_code": codes[1]}
     )
     assert replay.status_code == 400
+
+
+@pytest.mark.parametrize(
+    "permission",
+    ["cap.alert.approve", "cap.alert.publish", "cap.alert.publish_emergency"],
+)
+async def test_cap_approvers_and_publishers_are_privileged(
+    db_async, monkeypatch, permission
+):
+    user = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, permission)
+    await assign_role(db_async, user=user, role=role)
+    user = await service.get_user_by_email(session=db_async, email=user.email)
+
+    monkeypatch.setattr(auth_settings, "AUTH_PRIVILEGED_MFA_MODE", "disabled")
+    await require_privileged_mfa(db_async, user)  # allowed without MFA
+
+    monkeypatch.setattr(auth_settings, "AUTH_PRIVILEGED_MFA_MODE", "enforce")
+    with pytest.raises(HTTPException) as refused:
+        await require_privileged_mfa(db_async, user)
+    assert refused.value.status_code == 403
+
+    before = await mfa_rollout.readiness(db_async)
+    assert before["privileged_accounts"] >= 1
+    assert before["missing_enrolment"] >= 1
+
+
+async def test_cap_author_alone_is_not_privileged(db_async, monkeypatch):
+    user = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, "cap.alert.create")
+    await assign_role(db_async, user=user, role=role)
+    user = await service.get_user_by_email(session=db_async, email=user.email)
+    monkeypatch.setattr(auth_settings, "AUTH_PRIVILEGED_MFA_MODE", "enforce")
+    await require_privileged_mfa(db_async, user)

@@ -1,5 +1,6 @@
 import { ProductContentView } from "@barrelsgd/gms/components/product-content";
 import { notFound } from "next/navigation";
+import { Provenance } from "@/components/pages/provenance";
 import { fetchPublishedProduct } from "@/lib/products";
 export const metadata = { title: "Issued product" };
 export const dynamic = "force-dynamic";
@@ -34,6 +35,15 @@ export default async function IssuedProductPage({
         Grenada Meteorological Service · Published {product.publishedAt} ·
         Revision {product.revision}
       </p>
+      {product.current &&
+        ["morning", "midday", "evening"].includes(product.kind) && (
+          <Provenance
+            kind="forecast"
+            source="Grenada Meteorological Service forecast"
+            status="verified"
+            time={product.values.issuedAt ?? product.publishedAt}
+          />
+        )}
       {/* A printable paper: stays light in dark mode (gm-paper). */}
       <div className="gm-paper rounded-gm-card">
         <ProductContentView content={product} />

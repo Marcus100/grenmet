@@ -24,6 +24,19 @@ describe("proxyCapFeed", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("application/rss+xml");
     expect(await response.text()).toBe("<rss/>");
+    expect(response.headers.get("cache-control")).toContain(
+      "stale-if-error=86400"
+    );
+  });
+
+  it("never caches an upstream error", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("boom", { status: 500 }))
+    );
+    const response = await proxyCapFeed("/api/cap/rss.xml", "text/xml");
+    expect(response.status).toBe(500);
+    expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
   it("returns 503, never an empty feed, when the API is unreachable", async () => {
@@ -33,5 +46,6 @@ describe("proxyCapFeed", () => {
     );
     const response = await proxyCapFeed("/api/cap/rss.xml", "text/xml");
     expect(response.status).toBe(503);
+    expect(response.headers.get("cache-control")).toBe("no-store");
   });
 });

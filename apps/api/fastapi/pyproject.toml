@@ -35,6 +35,12 @@ dependencies = [
     "defusedxml>=0.7.1",
     "stripe>=16.0.0,<17.0.0",
     "weasyprint>=70",
+    "copernicusmarine>=2.5.0",
+    "cdsapi>=0.7.7",
+    "pywebpush>=2.5.0",
+    "ecmwf-opendata>=0.3.34",
+    "eccodes>=2.49.0",
+    "eccodeslib>=2.49.0.30",
 ]
 
 [dependency-groups]
@@ -69,10 +75,17 @@ exclude = ["venv", ".venv", "alembic"]
 # py.typed marker). Importing them is fine; state it once instead of per import.
 module = [
     "boto3",
+    "cdsapi.*",
+    "eccodes.*",
+    "ecmwf.*",
+    "copernicusmarine.*",
+    "pandas.*",
     "botocore.*",
     "feedparser",
     "gms_ingest.*",
     "lxml.*",
+    "py_vapid.*",
+    "pywebpush.*",
     "shapely.*",
     "weasyprint.*",
 ]
@@ -132,7 +145,10 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "--import-mode=importlib"
+# The Schemathesis fuzz suite (tests/test_api_fuzz.py) is slow, so local runs skip
+# it. CI runs it in its own job with `-m fuzz`; a later -m on the command line
+# replaces this one.
+addopts = "--import-mode=importlib -m 'not fuzz'"
 norecursedirs = ["scripts", ".git", ".tox", "dist", "build"]
 asyncio_mode = "auto"
 asyncio_default_test_loop_scope = "function"
@@ -141,6 +157,7 @@ xfail_strict = true
 markers = [
     "unit: no database required",
     "integration: requires Postgres",
+    "fuzz: Schemathesis API fuzzing; skipped by default, CI runs it with -m fuzz",
 ]
 filterwarnings = [
     "error::DeprecationWarning:src.*",

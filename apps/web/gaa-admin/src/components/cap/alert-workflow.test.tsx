@@ -17,6 +17,7 @@ import { AlertWorkflow } from "./alert-workflow";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 const ID = "11111111-1111-4111-8111-111111111111";
 const URL = `http://localhost/api/v1/cap/alerts/${ID}`;
+const DRAFT_HINT = /Draft: request review\. Publishing needs approval/;
 const REVIEW = /I have reviewed this saved alert/;
 const initial: CapAlertPublic = {
   id: ID,
@@ -45,6 +46,8 @@ const initial: CapAlertPublic = {
 };
 let alert: CapAlertPublic;
 let actions: string[];
+let emergencyBody: unknown;
+let permissionKeys: string[];
 const server = setupServer(
   http.get(URL, () => HttpResponse.json(alert)),
   http.post(`${URL}/validate`, () =>
@@ -54,6 +57,19 @@ const server = setupServer(
       warnings: ["Check affected areas."],
     })
   ),
+  http.get("http://localhost/api/v1/auth/access/me", () =>
+    HttpResponse.json({
+      is_superuser: false,
+      role_names: [],
+      permission_keys: permissionKeys,
+    })
+  ),
+  http.post(`${URL}/emergency-publish`, async ({ request }) => {
+    emergencyBody = await request.json();
+    actions.push("emergency-publish");
+    alert = { ...alert, lifecycle_state: "PUBLISHED" };
+    return HttpResponse.json({ alert, snapshot: {} });
+  }),
   http.post(`${URL}/:action`, ({ params }) => {
     const action = String(params.action);
     actions.push(action);
@@ -81,6 +97,8 @@ beforeAll(() => {
 beforeEach(() => {
   alert = structuredClone(initial);
   actions = [];
+  emergencyBody = undefined;
+  permissionKeys = [];
 });
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
@@ -135,12 +153,44 @@ it("validates and reviews each step through publication using the backend respon
   ).not.toBeInTheDocument();
 });
 
-it("publishes straight from Draft without going through review", async () => {
+it("keeps Publish disabled until the alert is approved", async () => {
   show();
   await review();
-  fireEvent.click(screen.getByRole("button", { name: "Publish CAP alert" }));
+  expect(
+    screen.getByRole("button", { name: "Publish CAP alert" })
+  ).toBeDisabled();
+  expect(screen.getByText(DRAFT_HINT)).toBeInTheDocument();
+  expect(actions).toEqual([]);
+});
+
+it("hides Emergency publish from users without the emergency permission", async () => {
+  show();
+  await review();
+  expect(
+    screen.queryByRole("button", { name: "Emergency publish" })
+  ).not.toBeInTheDocument();
+});
+
+it("lets a duty supervisor emergency-publish a draft with a reason", async () => {
+  permissionKeys = ["cap.alert.publish_emergency"];
+  show();
+  const emergency = await screen.findByRole("button", {
+    name: "Emergency publish",
+  });
+  await review();
+  expect(emergency).toBeDisabled();
+  fireEvent.change(screen.getByLabelText("Workflow note"), {
+    target: { value: "Approver unreachable during tsunami watch" },
+  });
+  fireEvent.click(emergency);
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Confirm emergency publish" })
+  );
   await screen.findByText("CAP state: PUBLISHED.");
-  expect(actions).toEqual(["publish"]);
+  expect(actions).toEqual(["emergency-publish"]);
+  expect(emergencyBody).toEqual({
+    reason: "Approver unreachable during tsunami watch",
+  });
 });
 
 it("shows validation errors and prevents submission", async () => {

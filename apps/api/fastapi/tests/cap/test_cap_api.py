@@ -47,6 +47,7 @@ async def test_cap_workflow_publish_public_outputs_and_jobs(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
     superuser_token_headers_async: dict[str, str],
+    second_superuser_headers_async: dict[str, str],
 ) -> None:
     # Explicit single-actor policy for publication/feed tests.
     db_async.add(ApprovalPolicy(key="cap", allow_self_approval=True))
@@ -80,7 +81,7 @@ async def test_cap_workflow_publish_public_outputs_and_jobs(
 
     approve_response = await async_client.post(
         f"/api/v1/cap/alerts/{alert_id}/approve",
-        headers=superuser_token_headers_async,
+        headers=second_superuser_headers_async,
         json={"note": "Approved"},
     )
     assert approve_response.status_code == 200
@@ -115,7 +116,7 @@ async def test_cap_workflow_publish_public_outputs_and_jobs(
         headers=superuser_token_headers_async,
     )
     assert integrations_response.status_code == 200
-    assert len(integrations_response.json()["job_events"]) == 6
+    assert len(integrations_response.json()["job_events"]) == 9
 
 
 def _alert_payload() -> dict[str, Any]:

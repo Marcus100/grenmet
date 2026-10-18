@@ -20,7 +20,7 @@ export type ProductsResult =
   | { status: "ok"; products: PublicPublishedProduct[] }
   | { status: "unavailable"; products: [] };
 
-function endpoint(path: string, domain = "wxproducts") {
+export function endpoint(path: string, domain = "wxproducts") {
   const configured = env.AUTH_API_V1_STR.trim() || "/api/v1";
   const prefix = configured.startsWith("/") ? configured : `/${configured}`;
   const normalized = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;

@@ -41,6 +41,7 @@ from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
 from src.contact.router import router as contact_router
+from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
 from src.eregister.router import router as eregister_router
 from src.events import database as events_database
@@ -73,9 +74,11 @@ from src.janitorial import database as janitorial_database
 from src.janitorial.router import router as janitorial_router
 from src.logging_config import configure_logging
 from src.models import ValidationErrorResponse
+from src.models_guidance.router import router as models_guidance_router
 from src.notifications.router import router as notifications_router
 from src.organisations.dependencies import ORGANISATION_HEADER
 from src.organisations.router import router as organisations_router
+from src.push.router import router as push_router
 from src.rate_limit import limiter
 from src.request_context import (
     REQUEST_ID_HEADER,
@@ -83,6 +86,7 @@ from src.request_context import (
     reset_request_id,
     resolve_request_id,
 )
+from src.rewards.router import router as rewards_router
 
 # from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
@@ -99,6 +103,7 @@ from src.wxproducts.router import router as wxproducts_router
 from src.wxwatch import database as wxwatch_database
 from src.wxwatch.ingestion import router as wxwatch_ingestion_router
 from src.wxwatch.nhc_router import router as nhc_router
+from src.wxwatch.public_router import router as wxwatch_public_router
 from src.wxwatch.router import router as wxwatch_router
 
 configure_logging()
@@ -123,6 +128,7 @@ def _operation_domain(route: APIRoute) -> str:
         "wxproducts",
         "eregister",
         "billing",
+        "rewards",
         "utils",
         "janitorial",
         "transport",
@@ -164,11 +170,26 @@ OPENAPI_TAGS = [
     {"name": "auth", "description": "Authentication, identity, and account security."},
     {"name": "billing", "description": "Billing and subscription operations."},
     {
+        "name": "rewards",
+        "description": "Barrels ID rewards: stamp cards, trust badges, redemption.",
+    },
+    {
         "name": "browser-auth",
         "description": "Browser session authentication operations.",
     },
     {"name": "cap", "description": "CAP authoring and hazard alert operations."},
     {"name": "cap-public", "description": "Public CAP alert feeds and formats."},
+    {
+        "name": "environment",
+        "description": "Public marine, UV and dust forecasts (Copernicus; not a GMS product).",
+    },
+    {
+        "name": "models-guidance",
+        "description": (
+            "Raw ECMWF and NOAA model point guidance for the GMS Dashboard "
+            "(not an official GMS forecast)."
+        ),
+    },
     {
         "name": "flights",
         "description": "Public recent flight movements (OpenSky, research use).",
@@ -184,6 +205,10 @@ OPENAPI_TAGS = [
     {
         "name": "subscriptions",
         "description": "Public mailing-list sign-up with double opt-in (no sign-in).",
+    },
+    {
+        "name": "push",
+        "description": "Browser push subscriptions for public alerts (no sign-in).",
     },
     {
         "name": "eregister",
@@ -399,6 +424,7 @@ app.include_router(permissions_router, prefix="/api/v1")
 app.include_router(role_assignments_router, prefix="/api/v1")
 app.include_router(billing_router, prefix="/api/v1")
 app.include_router(billing_invoice_router, prefix="/api/v1")
+app.include_router(rewards_router, prefix="/api/v1")
 app.include_router(hr_profile_router, prefix="/api/v1")
 app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")
@@ -427,12 +453,16 @@ app.include_router(weather_images_router, prefix="/api/v1")
 app.include_router(uploads_router, prefix="/api/v1")
 app.include_router(webhooks_router, prefix="/api/v1")
 app.include_router(subscriptions_router, prefix="/api/v1")
+app.include_router(push_router, prefix="/api/v1")
 app.include_router(contact_router, prefix="/api/v1")
 app.include_router(feedback_router, prefix="/api/v1")
 app.include_router(flights_router, prefix="/api/v1")
+app.include_router(environmental_router, prefix="/api/v1")
+app.include_router(models_guidance_router, prefix="/api/v1")
 app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
 app.include_router(eregister_router, prefix=settings.API_V1_STR)
 app.include_router(wxwatch_router, prefix=settings.API_V1_STR)
+app.include_router(wxwatch_public_router, prefix=settings.API_V1_STR)
 app.include_router(nhc_router, prefix=settings.API_V1_STR)
 app.include_router(wxwatch_ingestion_router, prefix=settings.API_V1_STR)
 app.include_router(browser_auth_router, prefix=settings.API_V1_STR)

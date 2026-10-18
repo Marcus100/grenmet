@@ -1,0 +1,3 @@
+# Shared dependencies, builds, test reports, Python caches, environment files
+# and temporary-file rules are inherited from the repository .gitignore.
+/next-env.d.ts

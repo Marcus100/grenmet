@@ -90,4 +90,24 @@ describe("POST /api/feedback", () => {
     expect(response.status).toBe(502);
     expect(reportError).toHaveBeenCalledOnce();
   });
+
+  it("forwards the Turnstile token and maps a failed check to 400", async () => {
+    feedbackSendPageFeedback.mockReturnValue({
+      unwrap: () => Promise.resolve({ ok: true }),
+    });
+    await POST(
+      request({ pagePath: "/a", helpful: true, turnstileToken: "t1" })
+    );
+    expect(feedbackSendPageFeedback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ turnstile_token: "t1" }),
+      })
+    );
+    feedbackSendPageFeedback.mockReturnValue({
+      unwrap: () => Promise.reject(responseError(400)),
+    });
+    const response = await POST(request({ pagePath: "/a", helpful: true }));
+    expect(response.status).toBe(400);
+    expect(reportError).not.toHaveBeenCalled();
+  });
 });

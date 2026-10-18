@@ -32,9 +32,9 @@ No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
   without hiding the other. An unavailable feed says so. It never falls back to
   sample figures, and alert pages never render an empty list as "no alerts in
   effect".
-- Static samples remain in `src/lib/forecast-data.ts` (tests/reference),
-  `src/lib/events.ts`, and `src/components/home/sample-sections.tsx`
-  (to be replaced by FastAPI data + CMS copy).
+- Static reference data remains in `src/lib/forecast-data.ts` (tests and the
+  outage layout only) and `src/lib/events.ts`; neither may reach a public page
+  as a measurement or forecast.
 
 ## Routes
 
@@ -65,14 +65,19 @@ src/app/
   does not exist yet is marked `planned` and served by `[...planned]`;
   `nav-sections.test.ts` fails if a built link has no route or a planned link is
   shadowed by one. Build the page, then drop `planned`.
-- **Sample content:** a page or home section whose product is not yet issued
-  renders `<PlaceholderNotice />` (`compact` inside an otherwise live page).
-  Sample figures must never read as an operational product, and sample status
-  chips never use hazard colours.
-  Owner exception (30 Sep 2026): the home Explore today section carries no
-  notice (Grenada in data is live from FastAPI and shows an unavailable state), and the sky hero fills fields FastAPI does not
-  carry yet from `src/lib/hero-samples.ts` (only inside a real reading or
-  issued day, never during an outage). Delete a sample once FastAPI supplies it.
+- **No invented figures (owner rule, 18 Oct 2026):** the public site never
+  shows invented or sample figures; every page shows real data or an honest
+  notice. This reverses the 30 Sep 2026 decision that allowed sample content on
+  the home page. A page or home section whose product is not yet issued keeps
+  its structure and explanatory text and renders `<PlaceholderNotice />`
+  ("Not yet available from GMS"; `compact` inside an otherwise live page; the
+  optional `source` prop links a live page meanwhile). Never put placeholder
+  numbers, tables or stat tiles beside it. The sky hero shows real register
+  and issued-forecast values only, sun times computed by `src/lib/sky.ts`, and
+  "Not available yet" for fields no feed carries (UV, AQI, tides, swell, rain
+  chance, gusts, rainfall). Explore today says "Impact outlook not yet
+  published" per sector. Tests: `placeholder-notice.test.tsx` and the "hero
+  readings" block in `sky-hero-panels.test.tsx` guard this.
 - **Home hero:** table layout at every width (9 Oct 2026): a Now tab, then five
   day tabs, then the selected tab's panel inside the hero (`SkyHero selected=`).
   Now is selected on `/`; dated routes select their day, `/weather` selects
@@ -101,9 +106,28 @@ src/app/
   `system`, `ThemeToggle` in the main bar beside search and the alert pill). Headings use
   `text-gm-heading`, not `text-gm-navy`; printable products sit in `.gm-paper`.
 
+- **Provenance and staleness (foundations plan NFRs):** every public data block
+  carries `<Provenance>` (`components/pages/provenance.tsx`): source, observed or
+  issued time in Grenada time, status (provisional, verified, external) and, for
+  external sources such as NOAA GOES, "Not a GMS product". Limits live in
+  `lib/current-conditions.ts`: observations 90 min (`STALE_AFTER_MS`), forecasts
+  12 h since issue, satellite 30 min. A stale product says so in words ("Last
+  observed", warning line), never only by colour. GMS forms store offset-less
+  Grenada times; read them with `parseGrenadaTime`, never `new Date()`.
+- **Satellite:** `/weather/satellite` reads FastAPI `wxwatch/public/latest`
+  (`lib/satellite.ts`) and shows images through `app/api/satellite/[id]` (a proxy;
+  the API host and bucket are never exposed). No image is the "Not yet available"
+  notice; an unreachable feed is the unavailable notice.
+- **Storm mode:** alert pages (`next.config.ts` headers), the CAP feed proxies and
+  the satellite proxy send the cache headers in `lib/storm-cache.ts` so Cloudflare
+  can serve the last good copy while the origin is down; errors are `no-store`.
+  Setup: `docs/operations/cloudflare-storm-cache.md`.
+
 ## Forms
 
 `/climate/data-request` renders `DataRequestForm` (`components/pages/data-request-form.tsx`), which posts to `src/app/api/data-request/route.ts`, a validate-and-proxy handler for FastAPI `POST /api/v1/contact/data-requests` (stored, emailed to `GMS_DATA_REQUEST_RECIPIENT`, confirmation to the requester). Schema in `src/lib/data-request.ts`; hidden honeypot field `website`; consent is required.
+
+`/alerts/get-alerts` has email sign-up (`AlertEmailSignup` -> `src/app/api/alerts/subscribe/route.ts` -> FastAPI list `gms-alerts`, double opt-in) and a "Get browser notifications" button (`BrowserNotifications` -> `src/app/api/alerts/push/route.ts`, service worker `public/sw.js`). The service worker is registered and permission asked only on the button click. The confirm and unsubscribe links redirect to `/subscribe/status?result=`, which `ROUTE_MOVES` sends to `/alerts/get-alerts` (query kept) where `AlertSignupResult` shows the outcome. CAP stays the source; WhatsApp and SMS are not offered.
 
 ## Key dependencies (unique to this app)
 

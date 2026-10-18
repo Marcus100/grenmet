@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/page-header";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -18,32 +17,6 @@ export default function SchoolStationsPage() {
         title="School stations"
       />
       <PlaceholderNotice product="The school station listing on this page" />
-      <PageSection heading="Participating schools">
-        <InfoTable
-          headers={["School", "Parish", "Measuring", "Since"]}
-          rows={[
-            [
-              "Sample secondary school",
-              "St. George",
-              "Rain, temperature, wind",
-              "Sample year",
-            ],
-            [
-              "Sample secondary school",
-              "St. Andrew",
-              "Rain, temperature",
-              "Sample year",
-            ],
-            [
-              "Sample secondary school",
-              "St. Patrick",
-              "Rain, temperature",
-              "Sample year",
-            ],
-            ["Sample school", "Carriacou", "Rain, temperature", "Sample year"],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Two purposes at once">
         <Prose
           paragraphs={[

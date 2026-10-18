@@ -16,8 +16,8 @@ tooling. Start with `docs/technical-overview.md`.
 | Path | Covers |
 | --- | --- |
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
-| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline) |
-| `apps/web/<app>/AGENTS.md` | admin, auth, cms, docs, elections, events, gaa-admin, gms, mbia, signal |
+| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, push, rewards) |
+| `apps/web/<app>/AGENTS.md` | admin, auth, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `packages/<pkg>/AGENTS.md` | api-client, auth, email-templates, gms, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
@@ -27,8 +27,8 @@ tooling. Start with `docs/technical-overview.md`.
 ```bash
 pnpm install  # dependencies
 pnpm start  # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
-pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 admin:3012 — HOST ONLY
-pnpm verify:changed  # only the gates this diff needs (--dry-run to list)
+pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 — HOST ONLY
+pnpm verify:changed  # only the gates this diff needs (--dry-run to list; --full adds fuzz; PYTEST_WORKERS=n)
 pnpm fix:changed  # formats dirty files; in shared checkouts use `pnpm exec ultracite fix <owned-files>`
 pnpm type-check  # TypeScript across all packages
 pnpm e2e  # Playwright smoke tests (needs the app's dev server)
@@ -86,7 +86,7 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`; regenerate both.
 - Read `SESSION_LOG.md` (main checkout root) before assuming a task is untouched; append one entry after meaningful work. Run the `file-friction` skill if you worked around anything. Tool switches: `docs/agents/tool-usage.md`.
 - Use the `api-change` skill for FastAPI contract changes and `gaa-admin-change` before touching `apps/web/gaa-admin`. Check `.claude/skills/` (also `.agents/skills`) before improvising CI triage, pre-merge, release or diagnosis.
-- Issues: GitHub Issues for `Marcus100/grenmet` via `gh`. Triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` (`docs/agents/triage-labels.md`). Domain language: root `CONTEXT.md` (created lazily by `/domain-modeling`) plus `docs/adr/` (`docs/agents/domain.md`).
+- Issues: GitHub Issues for `Marcus100/grenmet` via `gh`. A "Fixes #N" in a commit closes the issue when it reaches `dev` (`close-issues-on-dev` workflow; GitHub alone only closes on `main`). Triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` (`docs/agents/triage-labels.md`). Domain language: root `CONTEXT.md` (created lazily by `/domain-modeling`) plus `docs/adr/` (`docs/agents/domain.md`).
 - Claude Code: spawn sub-agents only when the user asks, and pass them the relevant nested `AGENTS.md` paths.
 
 ## Code conventions

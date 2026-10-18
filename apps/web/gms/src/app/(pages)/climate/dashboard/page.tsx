@@ -2,7 +2,6 @@ import { PageHeader } from "@/components/page-header";
 import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
-import { StatTiles } from "@/components/pages/stat-tiles";
 
 export const metadata = {
   title: "Climate dashboard",
@@ -17,32 +16,6 @@ export default function ClimateDashboardPage() {
         title="Climate dashboard"
       />
       <PlaceholderNotice product="The climate dashboard" />
-      <PageSection heading="This month">
-        <StatTiles
-          stats={[
-            {
-              label: "Rainfall · MBIA",
-              value: "86 mm",
-              detail: "72% of normal to date",
-            },
-            {
-              label: "Mean temperature",
-              value: "+0.8°C",
-              detail: "Above normal",
-            },
-            {
-              label: "Sea temperature",
-              value: "29.4°C",
-              detail: "+0.6°C above normal",
-            },
-            {
-              label: "Dry days · MBIA",
-              value: "8",
-              detail: "Since the last day with 5 mm",
-            },
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Go deeper">
         <LinkList
           links={[

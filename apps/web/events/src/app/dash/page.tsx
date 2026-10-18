@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
 import { OrganiserOverview } from "@/components/dash/organiser-overview";
-import { getManagedOrganiser } from "@/data/events-api";
+import { getManagedOrganiser, getSettlementSummaries } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
 
 /** Organiser data is per-user and live; never prerender it. */
@@ -15,6 +15,8 @@ export default async function DashOverviewPage() {
   if (!managed) {
     return <NoOrganiserAccess />;
   }
+
+  const settlement = await getSettlementSummaries();
 
   return (
     <>
@@ -31,6 +33,7 @@ export default async function DashOverviewPage() {
         now={new Date()}
         organiser={managed.organiser}
         organisers={managed.organisers}
+        settlement={settlement}
       />
     </>
   );

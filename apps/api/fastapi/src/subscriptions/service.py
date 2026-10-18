@@ -86,6 +86,21 @@ def _site_url(list_key: str | None) -> str:
     return base.rstrip("/")
 
 
+def site_url(list_key: str | None) -> str:
+    """Public site origin of a list (no trailing slash); only configured origins."""
+    return _site_url(list_key)
+
+
+def unsubscribe_link(subscription_id: uuid.UUID) -> str:
+    """Signed one-click unsubscribe link for one subscription row."""
+    return _action_link(
+        "unsubscribe",
+        _make_token(
+            subscription_id=subscription_id, purpose=UNSUBSCRIBE_PURPOSE, ttl=None
+        ),
+    )
+
+
 def _status_url(list_key: str | None, result: str) -> str:
     return f"{_site_url(list_key)}/subscribe/status?{urlencode({'result': result})}"
 

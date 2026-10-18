@@ -1,6 +1,5 @@
 import { PageHeader } from "@/components/page-header";
 import { ImageryFrame } from "@/components/pages/imagery-frame";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -30,17 +29,6 @@ export default function WaveModelPage() {
             label="Model output will appear here once the nearshore model is connected."
           />
         </div>
-      </PageSection>
-      <PageSection heading="Model runs">
-        <InfoTable
-          headers={["Run", "Issued", "Covers"]}
-          rows={[
-            ["04 UTC", "Early morning", "Next 48 hours"],
-            ["10 UTC", "Late morning", "Next 48 hours"],
-            ["16 UTC", "Afternoon", "Next 48 hours"],
-            ["22 UTC", "Overnight", "Next 48 hours"],
-          ]}
-        />
       </PageSection>
       <PageSection heading="Why nearshore modelling is different">
         <Prose

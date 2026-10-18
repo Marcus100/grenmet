@@ -214,6 +214,7 @@ def render_leave_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
             ("Professional Appointment", "PROFESSIONAL_APPOINTMENT"),
             ("Family Bereavement", "BEREAVEMENT"),
             ("Paternity Leave", "PATERNITY"),
+            ("Jury Duty (provisional)", "JURY_DUTY"),
             ("Other", "OTHER"),
         )
     )
@@ -259,7 +260,7 @@ def render_leave_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
     <table><tr><td><span class="label">Employee Name</span><span class="answer">{value("employee_name")}</span></td><td><span class="label">Department</span><span class="answer">{value("department_name")}</span></td></tr>
     <tr><td><span class="label">Employee request for leave (days)</span><span class="answer">{value("days_requested")}</span></td><td><span class="label">Start Date / End Date</span><span class="answer">{value("start_date")} / {value("end_date")}</span></td></tr></table>
     <h2>TYPE OF LEAVE OF ABSENCE</h2><div class="choices">{leave_options}</div>
-    <table><tr><td><span class="label">Professional appointment (Bank / Medical / Legal / Dental)</span>{value("professional_appointment_subtype")}</td><td><span class="label">Other — state reason</span>{value("reason")}</td></tr></table>
+    <table><tr><td><span class="label">Professional appointment (Bank / Medical / Legal / Dental)</span>{value("professional_appointment_subtype")}</td><td><span class="label">Other / jury duty — state reason or summons reference</span>{value("reason")}</td></tr></table>
     <div class="row">Salary in advance: {choice("Yes", form.get("salary_in_advance") is True)} &nbsp; {choice("No", form.get("salary_in_advance") is False)}</div>
     <table><tr><td><span class="label">Where is the leave to be spent?</span><span class="answer">{value("leave_address")}</span></td><td><span class="label">Travel From / To</span><span class="answer">{value("travel_from_date")} / {value("travel_to_date")}</span></td></tr>
     <tr><td><span class="label">Employee Signature</span><span class="answer">{signature}</span></td><td><span class="label">Date (Grenada)</span><span class="answer">{document_date.isoformat()}</span></td></tr></table>

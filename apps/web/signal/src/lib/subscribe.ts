@@ -7,6 +7,8 @@ export const subscribeSchema = z.object({
     .trim()
     .min(5, "Please enter a valid WhatsApp number.")
     .optional(),
+  // Cloudflare Turnstile token; FastAPI verifies it.
+  turnstileToken: z.string().max(2048).optional(),
 });
 
 export type SubscribePayload = z.infer<typeof subscribeSchema>;

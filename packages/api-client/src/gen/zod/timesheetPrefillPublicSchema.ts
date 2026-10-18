@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { timesheetPrefillEntrySchema } from "./timesheetPrefillEntrySchema.js";
+import { timesheetPrefillHolidaySchema } from "./timesheetPrefillHolidaySchema.js";
 
 export const timesheetPrefillPublicSchema = z.object({
   department_id: z.union([z.string(), z.null()]).optional(),
@@ -13,4 +14,5 @@ export const timesheetPrefillPublicSchema = z.object({
   period_end: z.iso.date(),
   roster_published: z.boolean(),
   entries: z.array(timesheetPrefillEntrySchema),
+  holidays: z.array(timesheetPrefillHolidaySchema).optional().default([]),
 });

@@ -249,6 +249,10 @@ class CapAlertAction(BaseModel):
     note: str | None = Field(default=None, max_length=2000)
 
 
+class CapEmergencyPublish(BaseModel):
+    reason: str = Field(min_length=1, max_length=2000)
+
+
 class CapValidationResult(BaseModel):
     is_valid: bool
     errors: list[str] = Field(default_factory=list)

@@ -137,6 +137,10 @@ the API image and the local source mount contain the same migration assets.
 | `EVENTS_DATABASE_URL` | PostgreSQL URL for the Barrels Events database (e.g. `postgresql://events:changethis@grenmet-postgres:5432/events` locally). Optional: unset means `/api/v1/events/*` returns 503 and prestart skips its migrations. |
 | `EVENTS_APP_URL` | Public URL of the Barrels Events web app (app-scoped sign-in, ADR-0016). Default `http://localhost:3009`. |
 | `EVENTS_SSO_CLIENT_SECRET` | Secret the Events web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters (`openssl rand -base64 32`). Set the same value for the API and the Events web app (which also needs `AUTH_APP_URL`); deployment reads the GitHub environment secret of this name. Empty disables single sign-on into Events and hides "Continue with your Barrels account". |
+| `GMSDASH_APP_URL` | Public URL of the GMS Dashboard web app (app-scoped sign-in). Default `http://localhost:3013`. |
+| `GMSDASH_SSO_CLIENT_SECRET` | Secret the GMS Dashboard web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Set the same value for the API and `apps/web/gmsdash`. |
+| `MODELS_GUIDANCE_ENABLED` | Worker fetch of ECMWF IFS/AIFS and NOAA GFS point guidance (`src/models_guidance`). Default `false`; a run downloads hundreds of MB, so enable deliberately. |
+| `MODELS_GUIDANCE_MODELS` / `MODELS_GUIDANCE_POINTS` / `MODELS_GUIDANCE_POLL_MINUTE` / `MODELS_GUIDANCE_HORIZON_HOURS` / `MODELS_GUIDANCE_RETENTION_DAYS` / `MODELS_GUIDANCE_CACHE_DIR` | Optional. Models (`ifs,aifs,gfs`), JSON list of points (key, name, latitude, longitude; default MBIA, Lauriston, Petite Martinique), the minute of each hourly check (default 20), forecast length (default 240 h), stored-run retention (default 7 days) and the parent directory for temporary GRIB files. |
 | `EVENTS_GOOGLE_REDIRECT_URI` | Google OAuth redirect for Events sign-in (e.g. `https://events.barrels.gd/auth/google/callback`); Google sign-in for Events is offered only when this and `GOOGLE_CLIENT_ID` are set. |
 | `PHONE_OTP_PROVIDER` | `disabled` (default) or `console` (local only, logs codes). Phone/WhatsApp codes stay off until a paid provider is approved. |
 | `RESEND_API_KEY` | Email provider key — takes priority over SMTP when set |
@@ -154,11 +158,22 @@ the API image and the local source mount contain the same migration assets.
 | `MBIA_CONTACT_RECIPIENT` | Inbox that receives MBIA website contact messages (`site: "mbia"`). Unset: messages are stored and logged only, nothing is emailed. Sent through the worker outbox as transactional mail |
 | `BARRELS_CONTACT_RECIPIENT` | Inbox that receives Barrels Grenada website contact messages (`site: "barrels"`). Same behaviour as `MBIA_CONTACT_RECIPIENT`; each site has its own inbox and a message is never sent to another site's inbox |
 | `GMS_DATA_REQUEST_RECIPIENT` | Inbox that receives GMS climate data requests (`POST /api/v1/contact/data-requests`). Unset: requests are stored and logged only; the requester's confirmation email is still queued. Transactional mail through the worker outbox |
+| `TURNSTILE_ENABLED` | Default `false`. When `true`, contact messages, data requests, subscribe and page feedback require a valid Cloudflare Turnstile token (`turnstile_token`), verified server-side by `src/turnstile.py`: a missing or rejected token is 400 "Verification failed". A Cloudflare outage or timeout (5 s) also fails closed with 400, because every protected form sends email or stores visitor data. Enabled without `TURNSTILE_SECRET_KEY` is 503 and an error log |
+| `TURNSTILE_SECRET_KEY` | Turnstile widget secret (free Cloudflare account). Secret: environment secret store only, never a committed file |
 | `FLIGHTS_OPENSKY_ENABLED` | Feature flag, default `false`. When `true` the worker polls OpenSky every 30 minutes and `GET /api/v1/flights/board` serves the Redis-cached rows. Research use only: commercial use needs a written OpenSky licence (owner decision pending). Needs `REDIS_URL` |
 | `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | Optional OpenSky OAuth2 client credentials (free account). Unset: anonymous access with a very small daily quota. Set in the environment secret store, never in a committed file |
+| `COPERNICUSMARINE_SERVICE_USERNAME`, `COPERNICUSMARINE_SERVICE_PASSWORD` | Copernicus Marine free account (secrets). Both set enables the worker fetch (every 6 h) and `GET /api/v1/environment/marine`; unset: `available: false`, never sample data |
+| `CDSAPI_URL`, `CDSAPI_KEY` | Copernicus Atmosphere Data Store (ADS) personal access token (`CDSAPI_KEY`, secret) and URL (default `https://ads.atmosphere.copernicus.eu/api`). Key set enables the CAMS UV and dust fetch (twice daily) and `GET /api/v1/environment/air`; unset: `available: false`. Accept the CAMS dataset licence on the ADS once |
+| `COPERNICUS_WAVE_DATASET_ID`, `COPERNICUS_SST_DATASET_ID`, `CAMS_DATASET_ID`, `ENVIRONMENT_FORECAST_HOURS`, `ENVIRONMENT_STALE_AFTER_HOURS`, `ENVIRONMENT_REQUEST_TIMEOUT_SECONDS` | Optional overrides of the product ids (defaults in `src/environmental/AGENTS.md`), forecast horizon (120 h), stale limit (12 h) and ADS request timeout (600 s) |
 | `OPENSKY_API_URL`, `OPENSKY_TOKEN_URL`, `OPENSKY_TIMEOUT_SECONDS` | Override OpenSky endpoints and the request timeout (defaults: public API, public token URL, 20 s) |
 | `FLIGHTS_WINDOW_HOURS`, `FLIGHTS_CACHE_TTL_SECONDS` | History window requested from OpenSky (48, its maximum) and Redis cache lifetime (21600) |
+| `TURNSTILE_ENABLED` | GitHub environment **variable** (staging and production); API container only |
+| `TURNSTILE_SECRET_KEY` | GitHub environment **secret** (staging and production); API container only |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (mbia, signal, docs, gms) | GitHub environment **variable**; `build-web-images.yml` passes it as a Docker build arg because Next.js inlines `NEXT_PUBLIC_*` at build time. Public by design. Changing it needs an image rebuild |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (barrels.gd) | Vercel project environment variable; `apps/web/barrels/vercel.json` passes it to `build.mjs` as an argument, which writes `dist/turnstile-config.mjs` |
 | `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
+| `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd","gms-alerts":"https://weather.barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173","gms-alerts":"http://localhost:3003"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
+| `WEBPUSH_VAPID_PUBLIC_KEY`, `WEBPUSH_VAPID_PRIVATE_KEY`, `WEBPUSH_CONTACT` | Browser push for published CAP alerts (GMS Get alerts page). Generate the pair with `python -m src.push.cli generate-vapid` (prints only; never writes a file). `WEBPUSH_CONTACT` is a `mailto:` or `https:` URL sent to push services. Push is off, and `GET /api/v1/push/vapid-public-key` answers `enabled: false`, until all three are set. Also `WEBPUSH_MAX_FAILURES` (default 10): failures before a subscription is dropped |
 | `SUBSCRIPTIONS_API_BASE_URL` | Public API origin used in confirmation-email links (falls back to `API_BASE_URL`, then `http://localhost:8000`) |
 | `SUBSCRIPTIONS_CONFIRM_TTL_DAYS`, `SUBSCRIPTIONS_RESEND_MINUTES` | Confirmation link lifetime (7) and the window in which a pending address is not mailed again (10) |
 | `BILLING_STRIPE_SECRET_KEY` | Stripe secret API key; use an `sk_test_...` key locally |
@@ -257,6 +272,7 @@ site's secret is set; the same value must be set for the API.
 | signal | `signal` | `SIGNAL_SSO_CLIENT_SECRET` | `signal_session` |
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
 | elections (Vercel) | `elections` | `ELECTIONS_SSO_CLIENT_SECRET` | `elections_session` |
+| gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
 
 Each also needs `AUTH_API_URL`, `AUTH_API_V1_STR` and `AUTH_APP_URL`. The API
 needs `<SITE>_APP_URL` (defaults to the local port) and the matching secret.
@@ -304,6 +320,28 @@ The Barrels control plane. It holds no database credentials and calls FastAPI on
 | `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Same value as the API's; without it `/auth/callback` returns 503 and nobody can sign in |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting; the release label shows on the Overview. No analytics |
 
+### cap (`apps/web/cap/.env.local`)
+
+The public CAP alert hub. No sign-in, no database; it reads the unauthenticated `/api/cap/*` feeds from FastAPI on the server, so the browser never calls the API.
+
+| Variable | Purpose |
+|---|---|
+| `CAP_API_URL` | FastAPI base URL for the public CAP feeds (default `http://localhost:8000`; `http://api:8000` in deployment) |
+| `GMS_SITE_URL` | GMS website, for "official source" and "how to get alerts" links (default `https://weather.barrels.gd`) |
+| `NEXT_PUBLIC_SITE_URL` | Canonical address for absolute links (build-time; default `http://localhost:3010`) |
+| `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional server-side error reporting. No client SDK and no analytics, to keep pages light |
+
+### gmsdash (`apps/web/gmsdash/.env.local`)
+
+GMS Dashboard (model meteograms for entitled organisations). No database; it calls the `/models/*` routes with the person's app-scoped token.
+
+| Variable | Purpose |
+|---|---|
+| `AUTH_API_URL` / `AUTH_API_V1_STR` / `AUTH_APP_URL` | FastAPI base URL (`http://api:8000` in deployment), API prefix and the Barrels sign-in app |
+| `GMSDASH_SESSION_COOKIE_NAME` | Host-only session cookie (default `gmsdash_session`) |
+| `GMSDASH_SSO_CLIENT_SECRET` | Same value as the API's; without it `/auth/callback` returns 503 and nobody can sign in |
+| `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
+
 ### signal (`apps/web/signal/.env.local`)
 
 Signal has no database; newsletter sign-up is proxied to FastAPI (`/api/v1/subscriptions`). All variables are optional with sensible defaults.
@@ -326,6 +364,7 @@ Its typed defaults allow it to run without an env file.
 | `NEXT_PUBLIC_SITE_URL` | Public site URL (default: `http://localhost:3005`) |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry DSN |
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile site key for the contact form. Unset: no widget and no token (fine while FastAPI has `TURNSTILE_ENABLED` off) |
 
 ### Scrapy script (`scripts/scrapy-wxwatch/.env.local`)
 
@@ -693,6 +732,9 @@ back to each setting's default.
 | Setting | Where to set it |
 | --- | --- |
 | `MBIA_CONTACT_RECIPIENT`, `BARRELS_CONTACT_RECIPIENT`, `GMS_DATA_REQUEST_RECIPIENT`, `EREGISTER_OBS_RECIPIENTS` | GitHub environment **variables** (staging and production) |
+| `WEBPUSH_VAPID_PUBLIC_KEY`, `WEBPUSH_CONTACT` | GitHub environment **variables** |
 | `EREGISTER_SEND_REQUIRE_ACCEPTED`, `WIS2BOX_S3_ENDPOINT_URL`, `WIS2BOX_S3_BUCKET`, `WIS2BOX_TOPIC_HIERARCHY`, `FLIGHTS_OPENSKY_ENABLED` | GitHub environment **variables** |
-| `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY`, `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | GitHub environment **secrets** |
+| `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY`, `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET`, `COPERNICUSMARINE_SERVICE_USERNAME`, `COPERNICUSMARINE_SERVICE_PASSWORD`, `CDSAPI_KEY` | GitHub environment **secrets** |
+| `CDSAPI_URL` | GitHub environment **variable** (optional) |
+| `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY`, `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET`, `WEBPUSH_VAPID_PRIVATE_KEY` | GitHub environment **secrets** |
 | `SUBSCRIPTIONS_SITE_URLS` | Committed in `infra/docker/staging.env` and `production.env` (non-secret) |

@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/page-header";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -18,18 +17,6 @@ export default function DroughtPage() {
         title="Drought monitoring"
       />
       <PlaceholderNotice product="The drought status on this page" />
-      <PageSection heading="Current status">
-        <InfoTable
-          headers={["Area", "Status", "Trend"]}
-          rows={[
-            ["Southern Grenada", "Moderate dryness", "Worsening"],
-            ["Northern Grenada", "Mild dryness", "Steady"],
-            ["Interior highlands", "Normal", "Steady"],
-            ["Carriacou", "Moderate dryness", "Worsening"],
-            ["Petite Martinique", "Moderate dryness", "Worsening"],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Why Carriacou and Petite Martinique are more exposed">
         <Prose
           paragraphs={[

@@ -1,10 +1,12 @@
 "use client";
 
 import {
+  authGetEffectiveAccess,
   type CapAlertPublic,
   type CapValidationResult,
   capApproveAlert,
   capCancelAlert,
+  capEmergencyPublishAlert,
   capExpireAlert,
   capGetAlert,
   capPublishAlert,
@@ -47,6 +49,7 @@ type WorkflowAction =
   | "submit"
   | "approve"
   | "publish"
+  | "emergency"
   | "cancel"
   | "expire";
 
@@ -63,6 +66,13 @@ const LIFECYCLE_ACTIONS: Record<
   approve: (options) => capApproveAlert(options).unwrap(),
   cancel: (options) => capCancelAlert(options).unwrap(),
   expire: (options) => capExpireAlert(options).unwrap(),
+  emergency: async (options) =>
+    (
+      await capEmergencyPublishAlert({
+        path: options.path,
+        body: { reason: options.body.note ?? "" },
+      }).unwrap()
+    ).alert,
   publish: async (options) => (await capPublishAlert(options).unwrap()).alert,
   submit: (options) => capSubmitAlert(options).unwrap(),
 };
@@ -80,7 +90,20 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
       }).unwrap(),
     retry: false,
   });
+  // Server-authoritative: the API re-checks cap.alert.publish_emergency on the
+  // call itself. This query only decides whether to show the action.
+  const accessQuery = useQuery({
+    queryKey: ["cap", "authoring", "access"],
+    queryFn: () => authGetEffectiveAccess().unwrap(),
+    retry: false,
+  });
+  const canEmergencyPublish =
+    accessQuery.data?.is_superuser === true ||
+    accessQuery.data?.permission_keys.includes(
+      "cap.alert.publish_emergency"
+    ) === true;
   const [busy, setBusy] = useState(false);
+  const [emergencyOpen, setEmergencyOpen] = useState(false);
   const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
   const [reviewed, setReviewed] = useState(false);
@@ -114,6 +137,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
       setReviewed(false);
       setNote("");
       setCancelOpen(false);
+      setEmergencyOpen(false);
       setMessage(`CAP state: ${updated.lifecycle_state}.`);
       router.refresh();
     } catch (error) {
@@ -121,6 +145,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
       setValidation(null);
       setReviewed(false);
       setCancelOpen(false);
+      setEmergencyOpen(false);
       await alertQuery.refetch();
     } finally {
       setBusy(false);
@@ -166,7 +191,10 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
         <ReviewAndPublishSection
           alert={alert}
           busy={busy || alertQuery.isFetching}
+          canEmergencyPublish={canEmergencyPublish}
+          emergencyOpen={emergencyOpen}
           note={note}
+          onEmergencyOpenChange={setEmergencyOpen}
           onNoteChange={setNote}
           onReviewedChange={setReviewed}
           reviewed={reviewed}
@@ -190,9 +218,20 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
   );
 }
 
+const PUBLISH_STATUS_TEXT: Record<string, string> = {
+  DRAFT:
+    "Draft: request review. Publishing needs approval by a different person.",
+  SUBMITTED: "Awaiting approval by a different authorised person.",
+  APPROVED:
+    "Approved: publishing will issue this alert to the configured distribution channels.",
+};
+
 function ReviewAndPublishSection({
   alert,
   busy,
+  canEmergencyPublish,
+  emergencyOpen,
+  onEmergencyOpenChange,
   note,
   onNoteChange,
   onReviewedChange,
@@ -204,6 +243,9 @@ function ReviewAndPublishSection({
 }: {
   alert: CapAlertPublic;
   busy: boolean;
+  canEmergencyPublish: boolean;
+  emergencyOpen: boolean;
+  onEmergencyOpenChange: (open: boolean) => void;
   note: string;
   onNoteChange: (note: string) => void;
   onReviewedChange: (reviewed: boolean) => void;
@@ -218,8 +260,8 @@ function ReviewAndPublishSection({
       <legend className="font-semibold">Review and publication</legend>
       <p className="text-muted-foreground text-sm">
         Validate the saved alert, then review its content, status, scope, areas
-        and validity. Requesting review is optional — anyone can look at a draft
-        first, but publishing never requires it.
+        and validity. A different authorised person must approve the alert
+        before it can be published.
       </p>
       <Button onClick={() => run("validate")} type="button" variant="outline">
         Validate alert
@@ -277,17 +319,52 @@ function ReviewAndPublishSection({
           </Button>
         ) : null}
         <Button
-          disabled={!(valid && reviewed)}
+          disabled={
+            !(valid && reviewed && alert.lifecycle_state === "APPROVED")
+          }
           onClick={() => run("publish")}
           type="button"
         >
           Publish CAP alert
         </Button>
+        {canEmergencyPublish ? (
+          <Button
+            disabled={!(valid && reviewed && note.trim())}
+            onClick={() => onEmergencyOpenChange(true)}
+            type="button"
+            variant="destructive"
+          >
+            Emergency publish
+          </Button>
+        ) : null}
       </div>
       <p className="text-muted-foreground text-sm">
-        Publish will issue this {alert.status} alert to the configured
-        distribution channels, whether or not it went through review first.
+        {PUBLISH_STATUS_TEXT[alert.lifecycle_state] ??
+          "This alert cannot be published from its current state."}
       </p>
+      {canEmergencyPublish ? (
+        <p className="text-muted-foreground text-sm">
+          Emergency publish skips approval. Enter the reason in the workflow
+          note; it is recorded in the audit history.
+        </p>
+      ) : null}
+      <AlertDialog onOpenChange={onEmergencyOpenChange} open={emergencyOpen}>
+        <AlertDialogContent>
+          <AlertDialogTitle>
+            Emergency publish without approval?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            This issues the alert to the public without a second person's
+            approval. Your reason is recorded in the audit history.
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Do not publish</AlertDialogCancel>
+            <AlertDialogAction onClick={() => run("emergency")}>
+              Confirm emergency publish
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </fieldset>
   );
 }

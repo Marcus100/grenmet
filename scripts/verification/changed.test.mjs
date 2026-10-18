@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { apiTestTargets, planChecks } from "./changed.mjs";
+import { apiTestTargets, apiWorkers, planChecks } from "./changed.mjs";
 
 const HR_TESTS = /pytest -q tests\/hr$/;
 const FULL_SUITE = /pytest -q$/;
@@ -8,6 +8,10 @@ const SETTINGS_FILE = /pytest -q tests\/test_settings\.py$/;
 const LINT_TESTS =
   /ruff check src scripts tests .*ruff format src scripts tests --check/;
 const TEST_FILES = ["cap/", "hr/", "conftest.py", "test_eregister_public.py"];
+const PARALLEL_HR = /pytest -q -n 6 --dist load tests\/hr$/;
+const PARALLEL_FLAG = / -n /;
+const FULL_PARALLEL_FUZZ = /pytest -q -n 4 --dist load -m 'fuzz or not fuzz'$/;
+const FUZZ_FILE = /-m 'fuzz or not fuzz' tests\/test_api_fuzz\.py$/;
 const names = (checks) => checks.map((check) => check.name);
 const find = (checks, name) => checks.find((check) => check.name === name);
 
@@ -207,4 +211,53 @@ test("web UI changes in apps with smoke tests plan the e2e check", () => {
     "docs/web/development.md",
   ])
     assert.ok(!names(planChecks([file])).includes("e2e smoke"), file);
+});
+
+test("API workers: CPUs minus two, at least one", () => {
+  const idle = { env: {}, load: 0.5 };
+  assert.equal(apiWorkers({ ...idle, cpus: 8 }), 6);
+  assert.equal(apiWorkers({ ...idle, cpus: 3 }), 1);
+  assert.equal(apiWorkers({ ...idle, cpus: 1 }), 1);
+});
+
+test("API workers drop to two when the 1-minute load exceeds the CPUs", () => {
+  assert.equal(apiWorkers({ cpus: 8, env: {}, load: 9 }), 2);
+  assert.equal(apiWorkers({ cpus: 8, env: {}, load: 8 }), 6);
+  assert.equal(apiWorkers({ cpus: 2, env: {}, load: 5 }), 1);
+});
+
+test("PYTEST_WORKERS overrides the automatic worker count", () => {
+  const env = { PYTEST_WORKERS: "3" };
+  assert.equal(apiWorkers({ cpus: 16, env, load: 99 }), 3);
+  assert.equal(
+    apiWorkers({ cpus: 8, env: { PYTEST_WORKERS: "x" }, load: 0 }),
+    6
+  );
+});
+
+test("API tests run in parallel when workers are available", () => {
+  const checks = planChecks(["apps/api/fastapi/src/hr/service.py"], {
+    testFiles: TEST_FILES,
+    workers: 6,
+  });
+  assert.match(find(checks, "api tests").args.at(-1), PARALLEL_HR);
+  const single = planChecks(["apps/api/fastapi/src/hr/service.py"], {
+    testFiles: TEST_FILES,
+    workers: 1,
+  });
+  assert.doesNotMatch(find(single, "api tests").args.at(-1), PARALLEL_FLAG);
+});
+
+test("--full runs the whole API suite including fuzz, even with no API change", () => {
+  const checks = planChecks(["README.md"], { full: true, workers: 4 });
+  const command = find(checks, "api tests").args.at(-1);
+  assert.match(command, FULL_PARALLEL_FUZZ);
+  assert.ok(names(checks).includes("api lint+types"));
+});
+
+test("editing the fuzz test opts it back in", () => {
+  const checks = planChecks(["apps/api/fastapi/tests/test_api_fuzz.py"], {
+    testFiles: TEST_FILES,
+  });
+  assert.match(find(checks, "api tests").args.at(-1), FUZZ_FILE);
 });

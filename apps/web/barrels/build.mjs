@@ -1,5 +1,6 @@
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
+import { argv } from "node:process";
 
 const directory = new URL("./", import.meta.url);
 const foundation = readFileSync(
@@ -37,6 +38,14 @@ for (const page of PAGES) {
   mkdirSync(new URL("./", target), { recursive: true });
   writeFileSync(target, html);
 }
+// Turnstile site key (public), the first argument: vercel.json passes
+// $NEXT_PUBLIC_TURNSTILE_SITE_KEY from the Vercel project. Empty or absent
+// builds a site with no widget and no token.
+const siteKey = (argv[2] ?? "").trim();
+writeFileSync(
+  new URL("turnstile-config.mjs", output),
+  `export const TURNSTILE_SITE_KEY = ${JSON.stringify(siteKey)};\n`
+);
 for (const file of ["style.css", "analytics.mjs", "forms.mjs"])
   copyFileSync(new URL(file, directory), new URL(file, output));
 

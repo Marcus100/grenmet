@@ -17,13 +17,6 @@ export default function SargassumPage() {
         title="Sargassum outlook"
       />
       <PlaceholderNotice product="The sargassum outlook" />
-      <PageSection heading="Outlook">
-        <Prose
-          paragraphs={[
-            "Moderate amounts of sargassum are expected along the Atlantic-facing east and north-east coasts over the next two weeks. The south-west coast is expected to stay mostly clear.",
-          ]}
-        />
-      </PageSection>
       <PageSection heading="What sargassum is">
         <Prose
           paragraphs={[

@@ -40,9 +40,9 @@ afterEach(() => vi.clearAllMocks());
 describe("/organisations/accept", () => {
   it("sends a signed-out visitor to sign in and back to the same link", async () => {
     readSessionCookie.mockResolvedValue(null);
-    await expect(show({ token: "abc_DEF-123456" })).rejects.toThrow(
-      `redirect:/?returnTo=${encodeURIComponent("/organisations/accept?token=abc_DEF-123456")}`
-    );
+    await expect(show({ token: "abc_DEF-123456" })).rejects.toMatchObject({
+      message: `redirect:/?returnTo=${encodeURIComponent("/organisations/accept?token=abc_DEF-123456")}`,
+    });
   });
 
   it("carries the token in a hidden field that the action posts", async () => {

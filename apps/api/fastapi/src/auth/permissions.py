@@ -111,6 +111,11 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "billing.manage",
         "Manage Barrels invoicing: customers, invoices, manual payments and receivables",
     ),
+    # Platform — Barrels rewards
+    PermissionDef(
+        "rewards.manage",
+        "Manage Barrels rewards: view all programmes, audited stamp adjustments, review flags",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),
@@ -149,6 +154,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cap.alert.submit", "Submit CAP alerts for approval"),
     PermissionDef("cap.alert.approve", "Approve CAP alerts"),
     PermissionDef("cap.alert.publish", "Publish CAP alerts"),
+    PermissionDef(
+        "cap.alert.publish_emergency",
+        "Emergency-publish CAP alerts without approval (duty supervisor; audited)",
+    ),
     PermissionDef("cap.alert.read", "Read CAP alerts"),
     # CAP — administration
     PermissionDef("cap.integrations.manage", "Manage CAP integrations"),
@@ -175,6 +184,15 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("app.signal.access", "Sign in to Grenada Signal"),
     PermissionDef("app.docs.access", "Sign in to GMS Documentation"),
     PermissionDef("app.elections.access", "Sign in to Elections Grenada"),
+    PermissionDef("app.gmsdash.access", "Sign in to the GMS Dashboard"),
+    PermissionDef(
+        "gmsdash.guidance.view",
+        "Read raw model guidance meteograms without an organisation entitlement",
+    ),
+    PermissionDef(
+        "gmsdash.access.review",
+        "Review and decide GMS Dashboard organisation access requests",
+    ),
     PermissionDef("transport.view", "View the bus admin portal"),
     PermissionDef("transport.ride", "Register for and ride the staff bus"),
     PermissionDef("transport.drive", "Operate runs in the bus driver app"),
@@ -368,6 +386,17 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
         "CAP publisher: publish approved alerts",
         ("cap.alert.publish", "cap.alert.read"),
     ),
+    "cap-duty-supervisor": (
+        "CAP duty supervisor: may emergency-publish without approval (reason required, always audited)",
+        (
+            "cap.alert.create",
+            "cap.alert.edit",
+            "cap.alert.submit",
+            "cap.alert.publish",
+            "cap.alert.publish_emergency",
+            "cap.alert.read",
+        ),
+    ),
     "cap-admin": (
         "CAP administrator: full alert lifecycle + settings",
         (
@@ -421,6 +450,14 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "elections-member": (
         "Elections Grenada member: granted on first sign-in",
         ("app.elections.access",),
+    ),
+    "gmsdash-member": (
+        "GMS Dashboard member: granted on first sign-in",
+        ("app.gmsdash.access",),
+    ),
+    "gmsdash-operator": (
+        "GMS Dashboard operator: reads model guidance and decides organisation access requests",
+        ("gmsdash.guidance.view", "gmsdash.access.review"),
     ),
     "transport-officer": (
         "Transport officer: runs the staff bus service end to end",

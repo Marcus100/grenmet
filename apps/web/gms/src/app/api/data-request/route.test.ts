@@ -115,4 +115,22 @@ describe("POST /api/data-request", () => {
     expect((await POST(request(valid))).status).toBe(502);
     expect(reportError).toHaveBeenCalledOnce();
   });
+
+  it("forwards the Turnstile token and maps a failed check to 400", async () => {
+    contactSendDataRequest.mockReturnValue({
+      unwrap: () => Promise.resolve({ ok: true }),
+    });
+    await POST(request({ ...valid, turnstileToken: "t1" }));
+    expect(contactSendDataRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ turnstile_token: "t1" }),
+      })
+    );
+    contactSendDataRequest.mockReturnValue({
+      unwrap: () => Promise.reject(responseError(400)),
+    });
+    const response = await POST(request(valid));
+    expect(response.status).toBe(400);
+    expect(reportError).not.toHaveBeenCalled();
+  });
 });

@@ -10,7 +10,11 @@ from src.hr.absentee.models import AbsenteeReport
 from src.hr.dailystatus.models import StatusReport
 from src.hr.exchange.models import ShiftSwapRequest
 from src.hr.leave import ledger
-from src.hr.leave.models import LeaveEntryKind, LeaveRequest
+from src.hr.leave.models import (
+    UNTRACKED_LEAVE_TYPES,
+    LeaveEntryKind,
+    LeaveRequest,
+)
 from src.hr.models import RequestStatus
 from src.hr.parking.models import ParkingPermit
 from src.hr.timesheet.models import Timesheet, TimesheetStatus
@@ -153,7 +157,11 @@ async def finalize_entity(
                 "The other employee must agree before final approval", 400
             )
         await roster_effects.apply_exchange(session, entity, actor_id)
-    if isinstance(entity, LeaveRequest) and target == RequestStatus.APPROVED:
+    if (
+        isinstance(entity, LeaveRequest)
+        and target == RequestStatus.APPROVED
+        and entity.leave_type not in UNTRACKED_LEAVE_TYPES
+    ):
         from src.baseline.models import StaffCredential
 
         credential = await session.get(StaffCredential, entity.user_id)

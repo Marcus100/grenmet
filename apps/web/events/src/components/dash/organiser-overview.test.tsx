@@ -78,7 +78,7 @@ describe("countListings", () => {
 });
 
 describe("OrganiserOverview", () => {
-  it("lists real event titles and labels sales and settlement as unavailable", () => {
+  it("lists real event titles, labels sales as unavailable and shows settlement", () => {
     render(
       <OrganiserOverview
         listings={listings}
@@ -89,7 +89,10 @@ describe("OrganiserOverview", () => {
 
     expect(screen.getByText("Harbour Lights Fete")).toBeInTheDocument();
     expect(screen.getByText("Secret Draft")).toBeInTheDocument();
-    expect(screen.getAllByText(AVAILABLE_LABEL)).toHaveLength(2);
+    expect(screen.getAllByText(AVAILABLE_LABEL)).toHaveLength(1);
+    expect(
+      screen.getByText("No ticketed events to settle yet.")
+    ).toBeInTheDocument();
     expect(screen.queryByText("Demo workspace")).toBeNull();
     expect(screen.queryByText(SAMPLE_LABEL)).toBeNull();
   });

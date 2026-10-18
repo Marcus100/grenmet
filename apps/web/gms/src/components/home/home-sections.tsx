@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ExploreToday, GrenadaInData } from "@/components/home/data-sections";
 import { Discover } from "@/components/home/discover";
 import { HomeSection } from "@/components/home/home-section";
 import {
@@ -8,7 +9,6 @@ import {
   LatestReports,
   Stories,
 } from "@/components/home/live-sections";
-import { ExploreToday, GrenadaInData } from "@/components/home/sample-sections";
 import { WeatherNow } from "@/components/home/weather-now";
 
 function Loading({ title }: { title: string }) {

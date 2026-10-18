@@ -4,7 +4,6 @@ import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
-import { StatTiles } from "@/components/pages/stat-tiles";
 
 export const metadata = {
   title: "Heat index",
@@ -20,19 +19,6 @@ export default function HeatIndexPage() {
         title="Heat index"
       />
       <PlaceholderNotice product="The daily heat index" />
-      <PageSection heading="Today">
-        <StatTiles
-          stats={[
-            {
-              label: "Feels like at midday",
-              value: "38°C",
-              detail: "Extreme caution",
-            },
-            { label: "Air temperature", value: "31°C" },
-            { label: "Humidity", value: "70%" },
-          ]}
-        />
-      </PageSection>
       <PageSection heading="What the heat index is">
         <Prose
           paragraphs={[

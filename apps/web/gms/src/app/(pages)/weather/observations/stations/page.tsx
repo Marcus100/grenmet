@@ -17,50 +17,13 @@ export default function StationsPage() {
         description="Every station, what it measures and where it sits."
         title="Stations"
       />
-      <PlaceholderNotice product="The station details on this page" />
-      <PageSection heading="The network">
-        <InfoTable
-          headers={[
-            "Station",
-            "Parish / island",
-            "Elevation",
-            "Type",
-            "Reporting",
-          ]}
-          rows={[
-            [
-              "Point Salines",
-              "St. George",
-              "Coastal",
-              "Synoptic and aviation",
-              "Hourly, continuous",
-            ],
-            ["St. George's", "St. George", "Coastal", "Automatic", "Hourly"],
-            ["Pearls", "St. Andrew", "Coastal", "Automatic", "Hourly"],
-            [
-              "Grand Etang",
-              "St. Andrew",
-              "Highland interior",
-              "Automatic",
-              "Hourly",
-            ],
-            [
-              "Lauriston",
-              "Carriacou",
-              "Coastal",
-              "Automatic and aviation",
-              "Hourly",
-            ],
-            [
-              "Petite Martinique",
-              "Petite Martinique",
-              "Coastal",
-              "Rainfall only",
-              "Daily",
-            ],
-          ]}
-        />
-      </PageSection>
+      <PlaceholderNotice
+        product="The station details on this page"
+        source={{
+          href: "/weather/conditions",
+          label: "current conditions at MBIA",
+        }}
+      />
       <PageSection heading="What a station measures">
         <InfoTable
           headers={["Element", "Instrument", "Why it matters"]}

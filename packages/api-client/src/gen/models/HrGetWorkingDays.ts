@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { LeaveType } from "./LeaveType.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 import type { WorkingDaysPublic } from "./WorkingDaysPublic.js";
 
@@ -21,6 +22,10 @@ export type HrGetWorkingDaysQuery = {
    * @type string
    */
   end: string;
+  /**
+   * @description Leave type; VACATION adds the provisional extra-day hint
+   */
+  leave_type?: LeaveType | null;
 };
 
 export type HrGetWorkingDaysStatus200 = WorkingDaysPublic;

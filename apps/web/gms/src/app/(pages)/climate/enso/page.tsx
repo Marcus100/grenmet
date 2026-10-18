@@ -19,7 +19,6 @@ export default function EnsoPage() {
       />
       <PageSection heading="Current status">
         <PlaceholderNotice compact product="The ENSO status" />
-        <Prose paragraphs={["ENSO-neutral: neither El Niño nor La Niña."]} />
       </PageSection>
       <PageSection heading="What they are">
         <Prose

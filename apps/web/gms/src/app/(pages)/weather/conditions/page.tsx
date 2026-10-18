@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { PageSection } from "@/components/pages/page-section";
+import { Provenance } from "@/components/pages/provenance";
 import { StatTiles } from "@/components/pages/stat-tiles";
 import { UnavailableNotice } from "@/components/pages/unavailable-notice";
 import { fetchCurrentConditions } from "@/lib/products";
@@ -23,10 +24,12 @@ export default async function ConditionsPage() {
       />
       {reading ? (
         <PageSection heading={reading.stationName}>
-          <p className="mb-4 text-body text-gm-text-secondary leading-body">
-            {reading.observedAt}
-            {reading.provisional && " · Provisional, not yet quality checked"}
-          </p>
+          <Provenance
+            kind="observation"
+            source="GMS observation register, Maurice Bishop International Airport"
+            status={reading.provisional ? "provisional" : "verified"}
+            time={reading.observedAtIso}
+          />
           <StatTiles stats={reading.tiles} />
         </PageSection>
       ) : (

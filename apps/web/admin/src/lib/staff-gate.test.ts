@@ -95,15 +95,18 @@ describe("getStaffGate", () => {
     exchangeSessionForAccessToken.mockRejectedValue(
       new AuthApiError(502, "bad gateway")
     );
-    await expect(getStaffGate()).rejects.toThrow("bad gateway");
+    await expect(getStaffGate()).rejects.toMatchObject({
+      status: 502,
+      message: "bad gateway",
+    });
   });
 });
 
 describe("requireGate", () => {
   it("sends signed-out visitors to sign in with a return path", async () => {
     readSessionCookie.mockResolvedValue(null);
-    await expect(requireGate("/organisations")).rejects.toThrow(
-      "redirect:/signin?returnTo=%2Forganisations"
-    );
+    await expect(requireGate("/organisations")).rejects.toMatchObject({
+      message: "redirect:/signin?returnTo=%2Forganisations",
+    });
   });
 });

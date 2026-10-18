@@ -20,6 +20,7 @@ const ADD_ENTRY = /add entry/i;
 const SUBMIT_TO_HR = /sign & submit/i;
 const FILL_FROM_ROSTER = /fill from roster/i;
 const ROSTER_NOTE = /2 of 2 rostered shifts added from your published roster/;
+const HOLIDAY_NOTE = /1 rostered day is a public holiday/;
 const NOTHING_ADDED = /0 of 2 rostered shifts added/;
 
 const PROFILE = {
@@ -241,6 +242,8 @@ describe("TimesheetEditor", () => {
               roster_hours: "8.50",
               roster_assignment_id: "a1",
               availability: "SCHEDULED",
+              holiday_name: "Test Day",
+              holiday_provisional: true,
             },
             {
               entry_date: "2026-07-07",
@@ -267,6 +270,12 @@ describe("TimesheetEditor", () => {
     expect(screen.queryByText("Entry 3")).not.toBeInTheDocument();
     expect(screen.getAllByDisplayValue("8.50")).toHaveLength(5);
     expect(screen.getByDisplayValue("M - Approved leave")).toBeInTheDocument();
+    expect(
+      screen.getByDisplayValue(
+        "M - Public holiday: Test Day (provisional, HR to verify)"
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText(HOLIDAY_NOTE)).toBeInTheDocument();
     expect(screen.getByDisplayValue("July 2026")).toBeInTheDocument();
     expect(screen.getByText(ROSTER_NOTE)).toBeInTheDocument();
 

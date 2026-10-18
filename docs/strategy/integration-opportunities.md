@@ -54,7 +54,7 @@ become delivery channels in that domain, not separate notification systems.
 | Gap | Evidence | Why it matters |
 | --- | --- | --- |
 | Signal subscriptions (closed on dev) | `src/subscriptions` (double opt-in, signed confirm and unsubscribe links, per-list keys); Signal's `/api/subscribe` proxies to it. No reader-facing form exists yet, by design | Remaining: a sign-up form in the reader, and sending broadcasts to confirmed subscribers |
-| MBIA contact delivery (closed on dev) | `src/contact` stores each message and queues one email to `MBIA_CONTACT_RECIPIENT`; MBIA's `/api/contact` proxies to it | Remaining: set the recipient per environment and verify Turnstile (`contact.service.verify_turnstile` is the seam) |
+| MBIA contact delivery (closed on dev) | `src/contact` stores each message and queues one email to `MBIA_CONTACT_RECIPIENT`; MBIA's `/api/contact` proxies to it | Remaining: set the recipient per environment and set `TURNSTILE_*` (`src/turnstile.py`) |
 | Resend feedback (closed on dev) | Webhook writes hard bounces and complaints to `email_suppression`; complaints also unsubscribe list members; non-transactional outbox mail skips suppressed addresses | Remaining: the staff notification mailer does not check the list (transactional by decision) |
 | Stripe settlement unproven | `billing` checkout and webhook groundwork; no reconciliation loop | Pay/Invoice and Events depend on it |
 | NHC collection not scheduled end to end | Ingestion and operator APIs exist; no accepted periodic service | Operational acceptance before relying on it |
@@ -102,7 +102,7 @@ is chosen.
 
 | Source | What it enables | Priority |
 | --- | --- | --- |
-| Copernicus Marine | Marine forecasts, sea surface temperature, waves, currents, verification | High |
+| Copernicus Marine | Marine forecasts, sea surface temperature, waves, currents, verification. Waves and SST built in `src/environmental`; see [Copernicus Marine and CAMS](#copernicus-marine-and-cams-environment-api) | High |
 | NASA POWER | Solar, agricultural climate, historical rainfall, rainwater harvesting | High |
 | Aviation Weather Center | Independent TGPY METAR/TAF retrieval, IWXXM | High |
 | Planetary Computer STAC | Land use, coastal change, watershed and vegetation analysis | High |
@@ -117,6 +117,30 @@ is chosen.
 
 Copernicus Marine, NASA POWER, STAC, SensorThings, and EDR fit the existing
 Python, xarray, and PostGIS stack best.
+
+### Copernicus Marine and CAMS (environment API)
+
+Built in `src/environmental`; disabled until credentials are set. Both feeds
+are external, never GMS products, and every response carries provenance
+(`source`, `issued_at`, `fetched_at`, `status: external`), `is_gms_product:
+false` and the licence attribution text.
+
+| Item | Copernicus Marine | CAMS (Atmosphere Data Store) |
+| --- | --- | --- |
+| Owner | Barrels platform; consumed by the GMS public pages | Same |
+| Provider | Copernicus Marine Service, `copernicusmarine` client | ECMWF/Copernicus ADS, `cdsapi` client |
+| Products | `cmems_mod_glo_wav_anfc_0.083deg_PT3H-i` (waves: VHM0, VHM0_SW1, VTM01_SW1, VMDR_SW1); `cmems_mod_glo_phy_anfc_0.083deg_PT1H-m` (`thetao`, top level = SST) | `cams-global-atmospheric-composition-forecasts` (`uv_biologically_effective_dose`, `dust_aerosol_optical_depth_550nm`; 0.4 degree) |
+| Auth | `COPERNICUSMARINE_SERVICE_USERNAME`/`PASSWORD` (free account) | `CDSAPI_URL`/`CDSAPI_KEY` (free ADS account, accept the dataset licence) |
+| Licence | Copernicus Marine licence: free, full and open, attribution required (text returned in `attribution`) | Copernicus licence: free, attribution required with the CAMS disclaimer (returned in `attribution`) |
+| Limits | Fair use; the worker makes 2 small subsets every 6 h | ADS queue: requests can wait minutes; the worker makes 1 request every 12 h |
+| Cache | Postgres `environment.series` (one row per point), replaced each fetch; API sends `s-maxage=1800` for Cloudflare | Same |
+| Fallback | `available: false` when unset or nothing fetched; `stale: true` after 12 h; a failed fetch keeps the last series; never sample data | Same |
+| Cost | Free | Free |
+
+Caveats: the UV index is the mean over each 3-hour forecast step (CAMS
+exposes accumulated dose), so it is below the midday peak; dust is aerosol
+optical depth, not surface concentration; marine `issued_at` is the newest
+model step at fetch time because a subset does not expose the run time.
 
 ### OpenSky flight board (experimental)
 
