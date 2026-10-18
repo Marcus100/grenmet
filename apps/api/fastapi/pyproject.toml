@@ -37,6 +37,9 @@ dependencies = [
     "weasyprint>=70",
     "copernicusmarine>=2.5.0",
     "cdsapi>=0.7.7",
+    "ecmwf-opendata>=0.3.34",
+    "eccodes>=2.49.0",
+    "eccodeslib>=2.49.0.30",
 ]
 
 [dependency-groups]

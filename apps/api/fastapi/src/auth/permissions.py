@@ -179,6 +179,15 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("app.signal.access", "Sign in to Grenada Signal"),
     PermissionDef("app.docs.access", "Sign in to GMS Documentation"),
     PermissionDef("app.elections.access", "Sign in to Elections Grenada"),
+    PermissionDef("app.gmsdash.access", "Sign in to the GMS Dashboard"),
+    PermissionDef(
+        "gmsdash.guidance.view",
+        "Read raw model guidance meteograms without an organisation entitlement",
+    ),
+    PermissionDef(
+        "gmsdash.access.review",
+        "Review and decide GMS Dashboard organisation access requests",
+    ),
     PermissionDef("transport.view", "View the bus admin portal"),
     PermissionDef("transport.ride", "Register for and ride the staff bus"),
     PermissionDef("transport.drive", "Operate runs in the bus driver app"),
@@ -436,6 +445,14 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "elections-member": (
         "Elections Grenada member: granted on first sign-in",
         ("app.elections.access",),
+    ),
+    "gmsdash-member": (
+        "GMS Dashboard member: granted on first sign-in",
+        ("app.gmsdash.access",),
+    ),
+    "gmsdash-operator": (
+        "GMS Dashboard operator: reads model guidance and decides organisation access requests",
+        ("gmsdash.guidance.view", "gmsdash.access.review"),
     ),
     "transport-officer": (
         "Transport officer: runs the staff bus service end to end",

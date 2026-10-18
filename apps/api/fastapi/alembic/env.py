@@ -95,6 +95,11 @@ from src.hr.workflow.models import (
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
+from src.models_guidance.models import (
+    GuidanceAccessRequest,
+    ModelGuidanceRun,
+    ModelGuidanceSeries,
+)
 from src.notifications.models import (
     EmailSuppression,
     Notification,
