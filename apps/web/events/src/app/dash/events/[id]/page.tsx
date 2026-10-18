@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ActivityPanel } from "@/components/dash/activity-panel";
 import { DashShell } from "@/components/dash/dash-shell";
 import { draftFromEvent } from "@/components/dash/event-draft";
 import { EventEditor } from "@/components/dash/event-editor";
 import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
-import { getManagedOrganiser } from "@/data/events-api";
+import { getListingActivity, getManagedOrganiser } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
 
 /** Organiser data is per-user and live; never prerender it. */
@@ -29,6 +30,8 @@ export default async function EditEventPage({
     notFound();
   }
 
+  const activity = await getListingActivity(event.id);
+
   return (
     <DashShell
       active="build"
@@ -50,6 +53,7 @@ export default async function EditEventPage({
           </h1>
         </div>
         <EventEditor initial={draftFromEvent(event)} listingId={event.id} />
+        <ActivityPanel entries={activity} />
       </main>
     </DashShell>
   );

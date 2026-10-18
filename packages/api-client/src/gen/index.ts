@@ -132,6 +132,7 @@ export { eventsCreateSuggestion } from "./clients/eventsCreateSuggestion.js";
 export { eventsFollowOrganiser } from "./clients/eventsFollowOrganiser.js";
 export { eventsGetGroup } from "./clients/eventsGetGroup.js";
 export { eventsGetListing } from "./clients/eventsGetListing.js";
+export { eventsGetListingActivity } from "./clients/eventsGetListingActivity.js";
 export { eventsGetManagedOrganiser } from "./clients/eventsGetManagedOrganiser.js";
 export { eventsGetMyNetwork } from "./clients/eventsGetMyNetwork.js";
 export { eventsGetMyPlans } from "./clients/eventsGetMyPlans.js";
@@ -1079,6 +1080,11 @@ export {
   eventsGetListingQueryOptions,
   useEventsGetListing,
 } from "./hooks/useEventsGetListing.js";
+export {
+  eventsGetListingActivityQueryKey,
+  eventsGetListingActivityQueryOptions,
+  useEventsGetListingActivity,
+} from "./hooks/useEventsGetListingActivity.js";
 export {
   eventsGetManagedOrganiserQueryKey,
   eventsGetManagedOrganiserQueryOptions,
@@ -2555,6 +2561,7 @@ export type { ActivationAccountCreate } from "./models/ActivationAccountCreate.j
 export type { ActivationConfirm } from "./models/ActivationConfirm.js";
 export type { ActivationIssue } from "./models/ActivationIssue.js";
 export type { ActivationLink } from "./models/ActivationLink.js";
+export type { ActivityEntry } from "./models/ActivityEntry.js";
 export type { AddressPublic } from "./models/AddressPublic.js";
 export type { AddressUpdate } from "./models/AddressUpdate.js";
 export type { AnnouncementPublic } from "./models/AnnouncementPublic.js";
@@ -4100,6 +4107,20 @@ export type {
   EventsGetListingStatus404,
   EventsGetListingStatus422,
 } from "./models/EventsGetListing.js";
+export type {
+  EventsGetListingActivityOptions,
+  EventsGetListingActivityPath,
+  EventsGetListingActivityQuery,
+  EventsGetListingActivityResponse,
+  EventsGetListingActivityResponses,
+  EventsGetListingActivityStatus200,
+  EventsGetListingActivityStatus401,
+  EventsGetListingActivityStatus403,
+  EventsGetListingActivityStatus404,
+  EventsGetListingActivityStatus409,
+  EventsGetListingActivityStatus422,
+  EventsGetListingActivityStatus429,
+} from "./models/EventsGetListingActivity.js";
 export type {
   EventsGetManagedOrganiserOptions,
   EventsGetManagedOrganiserQuery,
@@ -7857,6 +7878,7 @@ export { activationAccountCreateSchema } from "./zod/activationAccountCreateSche
 export { activationConfirmSchema } from "./zod/activationConfirmSchema.js";
 export { activationIssueSchema } from "./zod/activationIssueSchema.js";
 export { activationLinkSchema } from "./zod/activationLinkSchema.js";
+export { activityEntrySchema } from "./zod/activityEntrySchema.js";
 export { addressPublicSchema } from "./zod/addressPublicSchema.js";
 export { addressUpdateSchema } from "./zod/addressUpdateSchema.js";
 export { announcementPublicSchema } from "./zod/announcementPublicSchema.js";
@@ -9245,6 +9267,20 @@ export {
   eventsGetGroupStatus404Schema,
   eventsGetGroupStatus422Schema,
 } from "./zod/eventsGetGroupSchema.js";
+export {
+  eventsGetListingActivityErrorSchema,
+  eventsGetListingActivityPathListingIdSchema,
+  eventsGetListingActivityQueryLimitSchema,
+  eventsGetListingActivityQueryOrganiserSchema,
+  eventsGetListingActivityResponseSchema,
+  eventsGetListingActivityStatus200Schema,
+  eventsGetListingActivityStatus401Schema,
+  eventsGetListingActivityStatus403Schema,
+  eventsGetListingActivityStatus404Schema,
+  eventsGetListingActivityStatus409Schema,
+  eventsGetListingActivityStatus422Schema,
+  eventsGetListingActivityStatus429Schema,
+} from "./zod/eventsGetListingActivitySchema.js";
 export {
   eventsGetListingErrorSchema,
   eventsGetListingPathSlugSchema,

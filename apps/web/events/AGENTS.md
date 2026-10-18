@@ -34,7 +34,8 @@ Port **3009**. Package: `@barrelsgd/web-events`. Design lane:
 - `/dash/events` uses the organiser API (`/manage`); members without organiser
   access see `NoOrganiserAccess`, which hosts `OrganiserRequestForm` (the `requestOrganiser` action creates an unverified organiser they own; `/dash` shows an awaiting-verification notice until a moderator verifies it). The `/dash` overview uses the same listings
   (counts and titles). Sales and settlement have no API yet, so they are
-  "available when ticketing launches" empty states, never figures. No page
+  "available when ticketing launches" empty states, never figures. The listing editor
+  shows the listing's History (`ActivityPanel`, `getListingActivity`). No page
   renders the demo fixtures in `src/data/fixtures.ts`.
 - Tests build events with `src/test/factories.ts`; never reintroduce runtime
   fixtures for public data.

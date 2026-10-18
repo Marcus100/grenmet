@@ -619,6 +619,28 @@ async def create_managed_listing(
     return await service.create_listing(session, user, body, scope, organiser)
 
 
+@router.get(
+    "/manage/{listing_id}/activity",
+    response_model=list[schemas.ActivityEntry],
+    status_code=status.HTTP_200_OK,
+    summary="Get a listing's activity history",
+    description="Append-only record of who changed the listing and what, newest first.",
+    responses=_ORGANISER,
+)
+async def get_listing_activity(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> list[schemas.ActivityEntry]:
+    return await service.listing_activity(
+        session, user, listing_id, scope, organiser, limit
+    )
+
+
 @router.put(
     "/manage/listings/{listing_id}",
     response_model=schemas.ManagedListing,
@@ -677,8 +699,7 @@ async def update_report(
     report_id: uuid.UUID,
     body: schemas.ReportUpdate,
 ) -> schemas.ReportPublic:
-    _ = user
-    row = await service.update_report(session, report_id, body)
+    row = await service.update_report(session, report_id, body, user)
     return schemas.ReportPublic.model_validate(row, from_attributes=True)
 
 
@@ -715,8 +736,7 @@ async def update_suggestion(
     suggestion_id: uuid.UUID,
     body: schemas.SuggestionUpdate,
 ) -> schemas.SuggestionPublic:
-    _ = user
-    row = await service.update_suggestion(session, suggestion_id, body)
+    row = await service.update_suggestion(session, suggestion_id, body, user)
     return schemas.SuggestionPublic.model_validate(row, from_attributes=True)
 
 

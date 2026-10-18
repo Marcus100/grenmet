@@ -324,3 +324,15 @@ class OrganiserReview(BaseModel):
 class ManagedOrganiser(OrganiserPublic):
     organisers: list[OrganiserOption]
     listings: list[ManagedListing]
+
+
+class ActivityEntry(BaseModel):
+    id: uuid.UUID
+    action: str
+    entity_type: str
+    entity_id: str
+    actor_id: uuid.UUID
+    #: Display name from the actor's current profile; null once they have none.
+    actor_name: str | None = None
+    summary: dict[str, object]
+    created_at: UtcDateTime

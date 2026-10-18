@@ -3,8 +3,7 @@
 import re
 import secrets
 import uuid
-from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import TypeAdapter
 from sqlalchemy import and_, delete, or_, select
@@ -15,7 +14,7 @@ from src.organisations import service as organisations
 from src.organisations.models import MembershipRole, OrganisationKind
 from src.utils.datetime import utc_now
 
-from .. import outbox, schemas
+from .. import activity, outbox, schemas
 from ..exceptions import EventsConflict, EventsForbidden, EventsNotFound
 from ..models import (
     Group,
@@ -191,49 +190,94 @@ async def _apply_listing(
     )
 
 
-async def _queue_listing_effects(
+async def _snapshot(db: AsyncSession, listing: Listing) -> dict[str, Any]:
+    """The listing's comparable state, for the activity diff."""
+    tiers = (
+        await db.execute(
+            select(TicketTier.name, TicketTier.price_minor, TicketTier.allocation)
+            .where(TicketTier.listing_id == listing.id)
+            .order_by(TicketTier.sort_order)
+        )
+    ).all()
+    return {
+        "title": listing.title,
+        "summary": listing.summary,
+        "description": listing.description,
+        "category": listing.category,
+        "parish": listing.parish,
+        "venue": listing.venue,
+        "admission": listing.admission,
+        "capacity": listing.capacity,
+        "recurrence": listing.recurrence,
+        "visibility": listing.visibility,
+        "status": listing.status,
+        "starts_at": listing.starts_at.isoformat(),
+        "ends_at": listing.ends_at.isoformat(),
+        "tags": list(listing.tags),
+        "group_id": str(listing.group_id) if listing.group_id else None,
+        "tiers": [[row.name, row.price_minor, row.allocation] for row in tiers],
+    }
+
+
+async def _record_listing_change(
     db: AsyncSession,
     listing: Listing,
     actor: User,
     *,
-    before_status: str | None,
-    before_starts: datetime | None,
+    before: dict[str, Any] | None,
 ) -> None:
-    """Outbox rows for what the change means to other people (same transaction)."""
-    payload = {"actor_id": str(actor.id), "starts_at": listing.starts_at.isoformat()}
+    """One activity row, plus outbox rows for effects other people care about,
+    both in the caller's transaction. ``before`` is None for a new listing."""
+    after = await _snapshot(db, listing)
+    before_status = before["status"] if before else None
+    before_starts = before["starts_at"] if before else None
     key = str(listing.id)
+    payload = {"actor_id": str(actor.id), "starts_at": listing.starts_at.isoformat()}
+    kind: str | None = None
+    dedupe = ""
     if listing.status == "published" and before_status != "published":
-        await outbox.enqueue(
-            db,
-            kind=outbox.PUBLISHED,
-            entity_type="listing",
-            entity_id=key,
-            dedupe_key=f"listing.published:{key}",
-            payload=payload,
+        kind, action, dedupe = (
+            outbox.PUBLISHED,
+            "listing.published",
+            f"listing.published:{key}",
         )
     elif listing.status == "cancelled" and before_status != "cancelled":
-        await outbox.enqueue(
-            db,
-            kind=outbox.CANCELLED,
-            entity_type="listing",
-            entity_id=key,
-            dedupe_key=f"listing.cancelled:{key}",
-            payload=payload,
+        kind, action, dedupe = (
+            outbox.CANCELLED,
+            "listing.cancelled",
+            f"listing.cancelled:{key}",
         )
     elif (
         listing.status == "published"
         and before_status == "published"
-        and before_starts is not None
-        and before_starts != listing.starts_at
+        and before_starts != after["starts_at"]
     ):
+        kind, action = outbox.POSTPONED, "listing.rescheduled"
+        dedupe = f"listing.postponed:{key}:{after['starts_at']}"
+    elif before is None:
+        action = "listing.created"
+    else:
+        action = "listing.updated"
+    if kind is not None:
         await outbox.enqueue(
             db,
-            kind=outbox.POSTPONED,
+            kind=kind,
             entity_type="listing",
             entity_id=key,
-            dedupe_key=f"listing.postponed:{key}:{listing.starts_at.isoformat()}",
+            dedupe_key=dedupe,
             payload=payload,
         )
+    summary = activity.diff(before or {}, after)
+    summary["created"] = before is None
+    activity.record(
+        db,
+        actor_id=actor.id,
+        action=action,
+        entity_type="listing",
+        entity_id=key,
+        organiser_id=listing.organiser_id,
+        summary=summary,
+    )
 
 
 async def create_listing(
@@ -246,9 +290,7 @@ async def create_listing(
     organiser = await _my_organiser(db, user, org_ids, slug)
     listing = Listing(slug=await _unique_slug(db, body.title))
     await _apply_listing(db, listing, body, organiser)
-    await _queue_listing_effects(
-        db, listing, user, before_status=None, before_starts=None
-    )
+    await _record_listing_change(db, listing, user, before=None)
     await db.commit()
     return await _managed(db, listing, user)
 
@@ -265,13 +307,28 @@ async def update_listing(
     listing = await db.get(Listing, listing_id)
     if listing is None or listing.organiser_id != organiser.id:
         raise EventsNotFound("Event not found")
-    before_status, before_starts = listing.status, listing.starts_at
+    before = await _snapshot(db, listing)
     await _apply_listing(db, listing, body, organiser)
-    await _queue_listing_effects(
-        db, listing, user, before_status=before_status, before_starts=before_starts
-    )
+    await _record_listing_change(db, listing, user, before=before)
     await db.commit()
     return await _managed(db, listing, user)
+
+
+async def listing_activity(
+    db: AsyncSession,
+    user: User,
+    listing_id: uuid.UUID,
+    org_ids: list[str],
+    slug: str | None = None,
+    limit: int = 50,
+) -> list[schemas.ActivityEntry]:
+    organiser = await _my_organiser(db, user, org_ids, slug)
+    listing = await db.get(Listing, listing_id)
+    if listing is None or listing.organiser_id != organiser.id:
+        raise EventsNotFound("Event not found")
+    return await activity.entries(
+        db, entity_type="listing", entity_id=str(listing.id), limit=limit
+    )
 
 
 async def create_organiser(
@@ -303,9 +360,22 @@ async def create_organiser(
     )
     await platform.commit()
     organiser = Organiser(
-        slug=wanted, name=clean, bio=bio, organisation_id=organisation.id
+        id=uuid.uuid4(),
+        slug=wanted,
+        name=clean,
+        bio=bio,
+        organisation_id=organisation.id,
     )
     events.add(organiser)
+    activity.record(
+        events,
+        actor_id=user.id,
+        action="organiser.created",
+        entity_type="organiser",
+        entity_id=str(organiser.id),
+        organiser_id=organiser.id,
+        summary={"slug": wanted},
+    )
     await events.commit()
     return organiser
 
@@ -359,6 +429,16 @@ async def review_organiser(
     was_verified = organiser.verified
     organiser.verified = verified
     db.add(organiser)
+    if verified != was_verified:
+        activity.record(
+            db,
+            actor_id=actor.id,
+            action="organiser.verified" if verified else "organiser.unverified",
+            entity_type="organiser",
+            entity_id=str(organiser.id),
+            organiser_id=organiser.id,
+            summary={"verified": verified},
+        )
     if verified and not was_verified:
         await outbox.enqueue(
             db,

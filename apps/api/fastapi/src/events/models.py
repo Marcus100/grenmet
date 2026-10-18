@@ -239,3 +239,17 @@ class Outbox(EventsModel):
     available_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     processed_at: Mapped[datetime | None] = mapped_column(DateTime)
     failed_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+class Activity(EventsModel):
+    """Append-only history (F7). A database trigger rejects UPDATE and DELETE."""
+
+    __tablename__ = "activity"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organiser_id: Mapped[uuid.UUID | None]
+    entity_type: Mapped[str] = mapped_column(Text)
+    entity_id: Mapped[str] = mapped_column(Text)
+    action: Mapped[str] = mapped_column(Text)
+    actor_id: Mapped[uuid.UUID]
+    summary: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)

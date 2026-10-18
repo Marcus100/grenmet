@@ -654,6 +654,11 @@ export {
   useEventsGetListing,
 } from "./useEventsGetListing.js";
 export {
+  eventsGetListingActivityQueryKey,
+  eventsGetListingActivityQueryOptions,
+  useEventsGetListingActivity,
+} from "./useEventsGetListingActivity.js";
+export {
   eventsGetManagedOrganiserQueryKey,
   eventsGetManagedOrganiserQueryOptions,
   useEventsGetManagedOrganiser,

@@ -129,6 +129,7 @@ export { eventsCreateSuggestion } from "./eventsCreateSuggestion.js";
 export { eventsFollowOrganiser } from "./eventsFollowOrganiser.js";
 export { eventsGetGroup } from "./eventsGetGroup.js";
 export { eventsGetListing } from "./eventsGetListing.js";
+export { eventsGetListingActivity } from "./eventsGetListingActivity.js";
 export { eventsGetManagedOrganiser } from "./eventsGetManagedOrganiser.js";
 export { eventsGetMyNetwork } from "./eventsGetMyNetwork.js";
 export { eventsGetMyPlans } from "./eventsGetMyPlans.js";

@@ -3,6 +3,7 @@ import "server-only";
 import {
   eventsGetGroup,
   eventsGetListing,
+  eventsGetListingActivity,
   eventsGetManagedOrganiser,
   eventsGetMyNetwork,
   eventsGetMyPlans,
@@ -15,6 +16,7 @@ import {
   ResponseError,
 } from "@barrelsgd/api-client";
 import type {
+  ActivityEntry,
   EventDetail,
   EventFilters,
   Group,
@@ -200,6 +202,40 @@ export async function getManagedOrganiser(): Promise<ManagedWorkspace | null> {
   } catch (error) {
     if (error instanceof ResponseError && error.status === 403) {
       return null;
+    }
+    throw error;
+  }
+}
+
+/** A listing's change history, newest first. Empty without organiser access. */
+export async function getListingActivity(
+  listingId: string
+): Promise<ActivityEntry[]> {
+  const organiser = await chosenOrganiser();
+  try {
+    const entries = await eventsGetListingActivity({
+      ...(await options()),
+      path: { listing_id: listingId },
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap();
+    return entries.map((entry) => {
+      const changed: unknown = entry.summary.changed;
+      return {
+        id: entry.id,
+        action: entry.action,
+        actorName: entry.actor_name ?? null,
+        createdAt: entry.created_at,
+        changed: Array.isArray(changed)
+          ? changed.filter((name): name is string => typeof name === "string")
+          : [],
+      };
+    });
+  } catch (error) {
+    if (
+      error instanceof ResponseError &&
+      (error.status === 403 || error.status === 404)
+    ) {
+      return [];
     }
     throw error;
   }

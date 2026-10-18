@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 
-from .. import schemas
+from .. import activity, schemas
 from ..exceptions import EventsNotFound
 from ..models import (
     Report,
@@ -38,11 +38,22 @@ async def list_suggestions(db: AsyncSession) -> Sequence[Suggestion]:
 
 
 async def update_suggestion(
-    db: AsyncSession, suggestion_id: uuid.UUID, body: schemas.SuggestionUpdate
+    db: AsyncSession,
+    suggestion_id: uuid.UUID,
+    body: schemas.SuggestionUpdate,
+    actor: User,
 ) -> Suggestion:
     suggestion = await db.get(Suggestion, suggestion_id)
     if suggestion is None:
         raise EventsNotFound("Suggestion not found")
+    activity.record(
+        db,
+        actor_id=actor.id,
+        action=f"suggestion.{body.status}",
+        entity_type="suggestion",
+        entity_id=str(suggestion.id),
+        summary={"from": {"status": suggestion.status}, "to": {"status": body.status}},
+    )
     suggestion.status = body.status
     db.add(suggestion)
     await db.commit()
@@ -58,11 +69,26 @@ async def list_reports(db: AsyncSession) -> Sequence[Report]:
 
 
 async def update_report(
-    db: AsyncSession, report_id: uuid.UUID, body: schemas.ReportUpdate
+    db: AsyncSession,
+    report_id: uuid.UUID,
+    body: schemas.ReportUpdate,
+    actor: User,
 ) -> Report:
     report = await db.get(Report, report_id)
     if report is None:
         raise EventsNotFound("Report not found")
+    activity.record(
+        db,
+        actor_id=actor.id,
+        action=f"report.{body.status}",
+        entity_type="report",
+        entity_id=str(report.id),
+        summary={
+            "subject_type": report.subject_type,
+            "from": {"status": report.status},
+            "to": {"status": body.status},
+        },
+    )
     report.status = body.status
     db.add(report)
     await db.commit()

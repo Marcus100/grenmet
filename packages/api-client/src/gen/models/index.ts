@@ -14,6 +14,7 @@ export type { ActivationAccountCreate } from "./ActivationAccountCreate.js";
 export type { ActivationConfirm } from "./ActivationConfirm.js";
 export type { ActivationIssue } from "./ActivationIssue.js";
 export type { ActivationLink } from "./ActivationLink.js";
+export type { ActivityEntry } from "./ActivityEntry.js";
 export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
 export type { AnnouncementPublic } from "./AnnouncementPublic.js";
@@ -1559,6 +1560,20 @@ export type {
   EventsGetListingStatus404,
   EventsGetListingStatus422,
 } from "./EventsGetListing.js";
+export type {
+  EventsGetListingActivityOptions,
+  EventsGetListingActivityPath,
+  EventsGetListingActivityQuery,
+  EventsGetListingActivityResponse,
+  EventsGetListingActivityResponses,
+  EventsGetListingActivityStatus200,
+  EventsGetListingActivityStatus401,
+  EventsGetListingActivityStatus403,
+  EventsGetListingActivityStatus404,
+  EventsGetListingActivityStatus409,
+  EventsGetListingActivityStatus422,
+  EventsGetListingActivityStatus429,
+} from "./EventsGetListingActivity.js";
 export type {
   EventsGetManagedOrganiserOptions,
   EventsGetManagedOrganiserQuery,
