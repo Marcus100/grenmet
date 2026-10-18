@@ -61,7 +61,8 @@ proof. Current deployment blockers and monitor IDs are in that rollout record.
   has `(admin)/error.tsx`. Caught-and-handled failures call each app's `src/lib/report-error.ts`
   (shared rule: `@barrelsgd/ui/lib/report-error`); the CMS reports Payload 5xx errors through a
   root `afterError` hook. One privacy policy applies to web and Python: only
-  `area` and `digest` tags are kept. Live delivery still needs the DSN secrets
+  `area`, `digest` and `request_id` tags are kept (`request_id` is the random,
+  non-personal per-request token returned in `X-Request-ID`). Live delivery still needs the DSN secrets
   configured per environment and a deploy.
 - The shared PostHog provider is mounted by auth, gaa-admin, gms and docs.
   Browser capture now retains anonymous page-section counts, with DOM capture,
