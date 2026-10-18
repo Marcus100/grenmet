@@ -649,6 +649,16 @@ export {
   useContactSendDataRequest,
 } from "./useContactSendDataRequest.js";
 export {
+  environmentGetAirQueryKey,
+  environmentGetAirQueryOptions,
+  useEnvironmentGetAir,
+} from "./useEnvironmentGetAir.js";
+export {
+  environmentGetMarineQueryKey,
+  environmentGetMarineQueryOptions,
+  useEnvironmentGetMarine,
+} from "./useEnvironmentGetMarine.js";
+export {
   eregisterAcceptRegisterObservationMutationKey,
   eregisterAcceptRegisterObservationMutationOptions,
   useEregisterAcceptRegisterObservation,

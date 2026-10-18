@@ -292,6 +292,32 @@ async def poll_flights(ctx: dict[str, Any]) -> int:
     return sum(result.values())
 
 
+async def fetch_marine_environment(ctx: dict[str, Any]) -> int:
+    """Fetch Copernicus Marine series. No-op unless credentials are set."""
+    from src.database import async_session_factory
+    from src.environmental import service as environmental_service
+    from src.environmental.config import environmental_settings
+
+    _ = ctx
+    if not environmental_settings.marine_enabled:
+        return 0
+    async with async_session_factory() as session:
+        return await environmental_service.refresh_marine(session)
+
+
+async def fetch_air_environment(ctx: dict[str, Any]) -> int:
+    """Fetch CAMS UV and dust series. No-op unless ADS credentials are set."""
+    from src.database import async_session_factory
+    from src.environmental import service as environmental_service
+    from src.environmental.config import environmental_settings
+
+    _ = ctx
+    if not environmental_settings.air_enabled:
+        return 0
+    async with async_session_factory() as session:
+        return await environmental_service.refresh_air(session)
+
+
 class WorkerSettings:
     # Bound heartbeat staleness and prevent another worker masking this one.
     health_check_interval = 30
@@ -310,6 +336,8 @@ class WorkerSettings:
         check_nhc_failures,
         check_alert_outbox,
         poll_flights,
+        fetch_marine_environment,
+        fetch_air_environment,
     ]
     # A poll/ingest run must not hang a worker slot; retries of the cron function
     # itself are pointless because the durable outbox already tracks per-job
@@ -347,4 +375,21 @@ class WorkerSettings:
         cron(check_alert_outbox, minute={0, 15, 30, 45}, run_at_startup=False),
         # OpenSky flight movements every 30 minutes; no-op unless the flag is on.
         cron(poll_flights, minute={5, 35}, run_at_startup=False),
+        # Copernicus Marine analysis/forecast, every 6 hours; no-op without credentials.
+        cron(
+            fetch_marine_environment,
+            hour={1, 7, 13, 19},
+            minute=20,
+            run_at_startup=False,
+            timeout=900,
+        ),
+        # CAMS runs (00/12 UTC) are published about 10 hours later. ADS requests
+        # queue, so allow a long job timeout.
+        cron(
+            fetch_air_environment,
+            hour={10, 22},
+            minute=30,
+            run_at_startup=False,
+            timeout=1800,
+        ),
     ]

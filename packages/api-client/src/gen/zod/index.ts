@@ -19,6 +19,8 @@ export { admissionCreateSchema } from "./admissionCreateSchema.js";
 export { admissionPublicSchema } from "./admissionPublicSchema.js";
 export { ageingBucketPublicSchema } from "./ageingBucketPublicSchema.js";
 export { ageingBucketSchema } from "./ageingBucketSchema.js";
+export { airResponseSchema } from "./airResponseSchema.js";
+export { airRowSchema } from "./airRowSchema.js";
 export { announcementPublicSchema } from "./announcementPublicSchema.js";
 export { apiErrorSchema } from "./apiErrorSchema.js";
 export { appAccessStatusSchema } from "./appAccessStatusSchema.js";
@@ -1432,6 +1434,21 @@ export { employmentRecordPublicSchema } from "./employmentRecordPublicSchema.js"
 export { employmentStatusSchema } from "./employmentStatusSchema.js";
 export { employmentTypeSchema } from "./employmentTypeSchema.js";
 export { employmentUpdateSchema } from "./employmentUpdateSchema.js";
+export {
+  environmentGetAirErrorSchema,
+  environmentGetAirQueryPointSchema,
+  environmentGetAirResponseSchema,
+  environmentGetAirStatus200Schema,
+  environmentGetAirStatus422Schema,
+} from "./environmentGetAirSchema.js";
+export { environmentGetMarineParametersSchemaEnumSchema } from "./environmentGetMarineParametersSchemaEnumSchema.js";
+export {
+  environmentGetMarineErrorSchema,
+  environmentGetMarineQueryPointSchema,
+  environmentGetMarineResponseSchema,
+  environmentGetMarineStatus200Schema,
+  environmentGetMarineStatus422Schema,
+} from "./environmentGetMarineSchema.js";
 export {
   eregisterAcceptRegisterObservationBodySchema,
   eregisterAcceptRegisterObservationErrorSchema,
@@ -3855,6 +3872,8 @@ export { managedListingSchema } from "./managedListingSchema.js";
 export { managedOrganiserSchema } from "./managedOrganiserSchema.js";
 export { manifestRowSchema } from "./manifestRowSchema.js";
 export { manifestSchema } from "./manifestSchema.js";
+export { marineResponseSchema } from "./marineResponseSchema.js";
+export { marineRowSchema } from "./marineRowSchema.js";
 export { memberListPublicSchema } from "./memberListPublicSchema.js";
 export { memberPublicSchema } from "./memberPublicSchema.js";
 export { memberRoleUpdateSchema } from "./memberRoleUpdateSchema.js";
@@ -4276,6 +4295,7 @@ export { profileIdentityPublicSchema } from "./profileIdentityPublicSchema.js";
 export { profilePublicPropertiesConnectionStateEnumSchema } from "./profilePublicPropertiesConnectionStateEnumSchema.js";
 export { profilePublicSchema } from "./profilePublicSchema.js";
 export { profileUpdateSchema } from "./profileUpdateSchema.js";
+export { provenanceSchema } from "./provenanceSchema.js";
 export { provisionalHolidaysRequestSchema } from "./provisionalHolidaysRequestSchema.js";
 export { publicCurrentConditionsSchema } from "./publicCurrentConditionsSchema.js";
 export { publicForecastSchema } from "./publicForecastSchema.js";

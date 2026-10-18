@@ -158,6 +158,9 @@ the API image and the local source mount contain the same migration assets.
 | `TURNSTILE_SECRET_KEY` | Turnstile widget secret (free Cloudflare account). Secret: environment secret store only, never a committed file |
 | `FLIGHTS_OPENSKY_ENABLED` | Feature flag, default `false`. When `true` the worker polls OpenSky every 30 minutes and `GET /api/v1/flights/board` serves the Redis-cached rows. Research use only: commercial use needs a written OpenSky licence (owner decision pending). Needs `REDIS_URL` |
 | `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | Optional OpenSky OAuth2 client credentials (free account). Unset: anonymous access with a very small daily quota. Set in the environment secret store, never in a committed file |
+| `COPERNICUSMARINE_SERVICE_USERNAME`, `COPERNICUSMARINE_SERVICE_PASSWORD` | Copernicus Marine free account (secrets). Both set enables the worker fetch (every 6 h) and `GET /api/v1/environment/marine`; unset: `available: false`, never sample data |
+| `CDSAPI_URL`, `CDSAPI_KEY` | Copernicus Atmosphere Data Store (ADS) personal access token (`CDSAPI_KEY`, secret) and URL (default `https://ads.atmosphere.copernicus.eu/api`). Key set enables the CAMS UV and dust fetch (twice daily) and `GET /api/v1/environment/air`; unset: `available: false`. Accept the CAMS dataset licence on the ADS once |
+| `COPERNICUS_WAVE_DATASET_ID`, `COPERNICUS_SST_DATASET_ID`, `CAMS_DATASET_ID`, `ENVIRONMENT_FORECAST_HOURS`, `ENVIRONMENT_STALE_AFTER_HOURS`, `ENVIRONMENT_REQUEST_TIMEOUT_SECONDS` | Optional overrides of the product ids (defaults in `src/environmental/AGENTS.md`), forecast horizon (120 h), stale limit (12 h) and ADS request timeout (600 s) |
 | `OPENSKY_API_URL`, `OPENSKY_TOKEN_URL`, `OPENSKY_TIMEOUT_SECONDS` | Override OpenSky endpoints and the request timeout (defaults: public API, public token URL, 20 s) |
 | `FLIGHTS_WINDOW_HOURS`, `FLIGHTS_CACHE_TTL_SECONDS` | History window requested from OpenSky (48, its maximum) and Redis cache lifetime (21600) |
 | `TURNSTILE_ENABLED` | GitHub environment **variable** (staging and production); API container only |
@@ -712,5 +715,6 @@ back to each setting's default.
 | --- | --- |
 | `MBIA_CONTACT_RECIPIENT`, `BARRELS_CONTACT_RECIPIENT`, `GMS_DATA_REQUEST_RECIPIENT`, `EREGISTER_OBS_RECIPIENTS` | GitHub environment **variables** (staging and production) |
 | `EREGISTER_SEND_REQUIRE_ACCEPTED`, `WIS2BOX_S3_ENDPOINT_URL`, `WIS2BOX_S3_BUCKET`, `WIS2BOX_TOPIC_HIERARCHY`, `FLIGHTS_OPENSKY_ENABLED` | GitHub environment **variables** |
-| `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY`, `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | GitHub environment **secrets** |
+| `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY`, `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET`, `COPERNICUSMARINE_SERVICE_USERNAME`, `COPERNICUSMARINE_SERVICE_PASSWORD`, `CDSAPI_KEY` | GitHub environment **secrets** |
+| `CDSAPI_URL` | GitHub environment **variable** (optional) |
 | `SUBSCRIPTIONS_SITE_URLS` | Committed in `infra/docker/staging.env` and `production.env` (non-secret) |

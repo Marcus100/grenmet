@@ -97,6 +97,17 @@ returns Redis-cached OpenSky "recent movements" (`rows` with callsign,
 sample then. Data is previous-day-or-earlier and research-licensed; see
 `docs/strategy/integration-opportunities.md`.
 
+`GET /api/v1/environment/marine?point=` and `GET /api/v1/environment/air?point=`
+(`point` is one of `st-georges`, `grenada-east`, `grenada-south`, `carriacou`)
+are anonymous and rate-limited (60/min per IP). They return stored Copernicus
+Marine (waves, swell, sea surface temperature) and CAMS (UV index, dust AOD)
+forecast series with `latest`, `provenance` (`source`, `issued_at`,
+`fetched_at`, `status: external`), `attribution`, `stale` and
+`is_gms_product: false`. `available` is false when credentials are unset or
+nothing has been fetched; clients must show an unavailable state, never sample
+data. Responses carry `Cache-Control` with `s-maxage` for Cloudflare. See
+`apps/api/fastapi/src/environmental/AGENTS.md`.
+
 ## Public weather products
 
 `GET /api/v1/wxproducts/public/products` is anonymous. Optional `kind` filters

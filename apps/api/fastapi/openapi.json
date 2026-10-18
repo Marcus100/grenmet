@@ -16510,6 +16510,90 @@
         }
       }
     },
+    "/api/v1/environment/marine": {
+      "get": {
+        "tags": [
+          "environment"
+        ],
+        "summary": "Marine forecast for a Grenada coastal point",
+        "description": "Public. Significant wave height, primary swell height/period/direction and sea surface temperature from the Copernicus Marine global analysis and forecast. External data, not a GMS product. `available` is false when Copernicus credentials are unset or nothing has been fetched; clients must show an unavailable state, never sample data.",
+        "operationId": "environmentGetMarine",
+        "parameters": [
+          {
+            "name": "point",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EnvironmentGetMarineParametersSchemaEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarineResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/v1/environment/air": {
+      "get": {
+        "tags": [
+          "environment"
+        ],
+        "summary": "UV index and Saharan dust forecast for a Grenada point",
+        "description": "Public. UV index (step-mean) and dust aerosol optical depth at 550 nm from the Copernicus Atmosphere Monitoring Service global forecast. External data, not a GMS product. `available` is false when CAMS credentials are unset or nothing has been fetched.",
+        "operationId": "environmentGetAir",
+        "parameters": [
+          {
+            "name": "point",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EnvironmentGetMarineParametersSchemaEnum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AirResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
     "/api/v1/wxproducts/observations": {
       "get": {
         "tags": [
@@ -30910,6 +30994,121 @@
         ],
         "title": "AgeingBucketPublic"
       },
+      "AirResponse": {
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "point": {
+            "type": "string",
+            "title": "Point"
+          },
+          "point_name": {
+            "type": "string",
+            "title": "Point Name"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution"
+          },
+          "is_gms_product": {
+            "type": "boolean",
+            "const": false,
+            "title": "Is Gms Product",
+            "default": false
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale",
+            "default": false
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AirRow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/AirRow"
+            },
+            "type": "array",
+            "title": "Series",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "available",
+          "point",
+          "point_name",
+          "lat",
+          "lon",
+          "attribution"
+        ],
+        "title": "AirResponse"
+      },
+      "AirRow": {
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Time"
+          },
+          "uv_index": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uv Index",
+            "description": "UV index averaged over the preceding 3-hour forecast step; the midday peak is higher"
+          },
+          "dust_aod_550": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dust Aod 550",
+            "description": "Dust aerosol optical depth at 550 nm (unitless)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "time"
+        ],
+        "title": "AirRow"
+      },
       "AnnouncementPublic": {
         "properties": {
           "id": {
@@ -43641,6 +43840,156 @@
         ],
         "title": "ManifestRow"
       },
+      "MarineResponse": {
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "point": {
+            "type": "string",
+            "title": "Point"
+          },
+          "point_name": {
+            "type": "string",
+            "title": "Point Name"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution"
+          },
+          "is_gms_product": {
+            "type": "boolean",
+            "const": false,
+            "title": "Is Gms Product",
+            "default": false
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale",
+            "default": false
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarineRow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/MarineRow"
+            },
+            "type": "array",
+            "title": "Series",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "available",
+          "point",
+          "point_name",
+          "lat",
+          "lon",
+          "attribution"
+        ],
+        "title": "MarineResponse"
+      },
+      "MarineRow": {
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Time"
+          },
+          "wave_height_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wave Height M",
+            "description": "Significant wave height (VHM0)"
+          },
+          "swell_height_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Swell Height M",
+            "description": "Primary swell height"
+          },
+          "swell_period_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Swell Period S",
+            "description": "Primary swell mean period"
+          },
+          "swell_direction_deg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Swell Direction Deg",
+            "description": "Primary swell mean direction (coming from), degrees"
+          },
+          "sea_surface_temp_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sea Surface Temp C"
+          }
+        },
+        "type": "object",
+        "required": [
+          "time"
+        ],
+        "title": "MarineRow"
+      },
       "MemberListPublic": {
         "properties": {
           "data": {
@@ -48107,6 +48456,50 @@
         },
         "type": "object",
         "title": "ProfileUpdate"
+      },
+      "Provenance": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "fetched_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fetched At"
+          },
+          "status": {
+            "type": "string",
+            "const": "external",
+            "title": "Status",
+            "default": "external"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "Provenance",
+        "description": "Where a value came from. Always external: these are not GMS products."
       },
       "ProvisionalHolidaysRequest": {
         "properties": {
@@ -61343,6 +61736,16 @@
         ],
         "type": "string"
       },
+      "EnvironmentGetMarineParametersSchemaEnum": {
+        "enum": [
+          "st-georges",
+          "grenada-east",
+          "grenada-south",
+          "carriacou"
+        ],
+        "type": "string",
+        "default": "st-georges"
+      },
       "EventsListListingsParametersSchemaAnyOfEnum": {
         "enum": [
           "tonight",
@@ -61405,6 +61808,10 @@
     {
       "name": "cap-public",
       "description": "Public CAP alert feeds and formats."
+    },
+    {
+      "name": "environment",
+      "description": "Public marine, UV and dust forecasts (Copernicus; not a GMS product)."
     },
     {
       "name": "flights",

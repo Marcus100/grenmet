@@ -131,6 +131,8 @@ export { capUpdateFeed } from "./clients/capUpdateFeed.js";
 export { capValidateAlert } from "./clients/capValidateAlert.js";
 export { contactSendContactMessage } from "./clients/contactSendContactMessage.js";
 export { contactSendDataRequest } from "./clients/contactSendDataRequest.js";
+export { environmentGetAir } from "./clients/environmentGetAir.js";
+export { environmentGetMarine } from "./clients/environmentGetMarine.js";
 export { eregisterAcceptRegisterObservation } from "./clients/eregisterAcceptRegisterObservation.js";
 export { eregisterCreateRegisterObservation } from "./clients/eregisterCreateRegisterObservation.js";
 export { eregisterEmailRegisterObservation } from "./clients/eregisterEmailRegisterObservation.js";
@@ -1114,6 +1116,16 @@ export {
   contactSendDataRequestMutationOptions,
   useContactSendDataRequest,
 } from "./hooks/useContactSendDataRequest.js";
+export {
+  environmentGetAirQueryKey,
+  environmentGetAirQueryOptions,
+  useEnvironmentGetAir,
+} from "./hooks/useEnvironmentGetAir.js";
+export {
+  environmentGetMarineQueryKey,
+  environmentGetMarineQueryOptions,
+  useEnvironmentGetMarine,
+} from "./hooks/useEnvironmentGetMarine.js";
 export {
   eregisterAcceptRegisterObservationMutationKey,
   eregisterAcceptRegisterObservationMutationOptions,
@@ -2803,6 +2815,8 @@ export type { AdmissionPublic } from "./models/AdmissionPublic.js";
 export type { AgeingBucket } from "./models/AgeingBucket.js";
 export { ageingBucket } from "./models/AgeingBucket.js";
 export type { AgeingBucketPublic } from "./models/AgeingBucketPublic.js";
+export type { AirResponse } from "./models/AirResponse.js";
+export type { AirRow } from "./models/AirRow.js";
 export type { AnnouncementPublic } from "./models/AnnouncementPublic.js";
 export type { ApiError } from "./models/ApiError.js";
 export type { AppAccessStatus } from "./models/AppAccessStatus.js";
@@ -4360,6 +4374,24 @@ export { employmentStatus } from "./models/EmploymentStatus.js";
 export type { EmploymentType } from "./models/EmploymentType.js";
 export { employmentType } from "./models/EmploymentType.js";
 export type { EmploymentUpdate } from "./models/EmploymentUpdate.js";
+export type {
+  EnvironmentGetAirOptions,
+  EnvironmentGetAirQuery,
+  EnvironmentGetAirResponse,
+  EnvironmentGetAirResponses,
+  EnvironmentGetAirStatus200,
+  EnvironmentGetAirStatus422,
+} from "./models/EnvironmentGetAir.js";
+export type {
+  EnvironmentGetMarineOptions,
+  EnvironmentGetMarineQuery,
+  EnvironmentGetMarineResponse,
+  EnvironmentGetMarineResponses,
+  EnvironmentGetMarineStatus200,
+  EnvironmentGetMarineStatus422,
+} from "./models/EnvironmentGetMarine.js";
+export type { EnvironmentGetMarineParametersSchemaEnum } from "./models/EnvironmentGetMarineParametersSchemaEnum.js";
+export { environmentGetMarineParametersSchemaEnum } from "./models/EnvironmentGetMarineParametersSchemaEnum.js";
 export type {
   EregisterAcceptRegisterObservationBody,
   EregisterAcceptRegisterObservationOptions,
@@ -6978,6 +7010,8 @@ export type { ManagedListing } from "./models/ManagedListing.js";
 export type { ManagedOrganiser } from "./models/ManagedOrganiser.js";
 export type { Manifest } from "./models/Manifest.js";
 export type { ManifestRow } from "./models/ManifestRow.js";
+export type { MarineResponse } from "./models/MarineResponse.js";
+export type { MarineRow } from "./models/MarineRow.js";
 export type { MemberListPublic } from "./models/MemberListPublic.js";
 export type { MemberPublic } from "./models/MemberPublic.js";
 export type { MemberRoleUpdate } from "./models/MemberRoleUpdate.js";
@@ -7438,6 +7472,7 @@ export type { ProfilePublic } from "./models/ProfilePublic.js";
 export type { ProfilePublicPropertiesConnectionStateEnum } from "./models/ProfilePublicPropertiesConnectionStateEnum.js";
 export { profilePublicPropertiesConnectionStateEnum } from "./models/ProfilePublicPropertiesConnectionStateEnum.js";
 export type { ProfileUpdate } from "./models/ProfileUpdate.js";
+export type { Provenance } from "./models/Provenance.js";
 export type { ProvisionalHolidaysRequest } from "./models/ProvisionalHolidaysRequest.js";
 export type { PublicCurrentConditions } from "./models/PublicCurrentConditions.js";
 export type { PublicForecast } from "./models/PublicForecast.js";
@@ -8649,6 +8684,8 @@ export { admissionCreateSchema } from "./zod/admissionCreateSchema.js";
 export { admissionPublicSchema } from "./zod/admissionPublicSchema.js";
 export { ageingBucketPublicSchema } from "./zod/ageingBucketPublicSchema.js";
 export { ageingBucketSchema } from "./zod/ageingBucketSchema.js";
+export { airResponseSchema } from "./zod/airResponseSchema.js";
+export { airRowSchema } from "./zod/airRowSchema.js";
 export { announcementPublicSchema } from "./zod/announcementPublicSchema.js";
 export { apiErrorSchema } from "./zod/apiErrorSchema.js";
 export { appAccessStatusSchema } from "./zod/appAccessStatusSchema.js";
@@ -10062,6 +10099,21 @@ export { employmentRecordPublicSchema } from "./zod/employmentRecordPublicSchema
 export { employmentStatusSchema } from "./zod/employmentStatusSchema.js";
 export { employmentTypeSchema } from "./zod/employmentTypeSchema.js";
 export { employmentUpdateSchema } from "./zod/employmentUpdateSchema.js";
+export {
+  environmentGetAirErrorSchema,
+  environmentGetAirQueryPointSchema,
+  environmentGetAirResponseSchema,
+  environmentGetAirStatus200Schema,
+  environmentGetAirStatus422Schema,
+} from "./zod/environmentGetAirSchema.js";
+export { environmentGetMarineParametersSchemaEnumSchema } from "./zod/environmentGetMarineParametersSchemaEnumSchema.js";
+export {
+  environmentGetMarineErrorSchema,
+  environmentGetMarineQueryPointSchema,
+  environmentGetMarineResponseSchema,
+  environmentGetMarineStatus200Schema,
+  environmentGetMarineStatus422Schema,
+} from "./zod/environmentGetMarineSchema.js";
 export {
   eregisterAcceptRegisterObservationBodySchema,
   eregisterAcceptRegisterObservationErrorSchema,
@@ -12485,6 +12537,8 @@ export { managedListingSchema } from "./zod/managedListingSchema.js";
 export { managedOrganiserSchema } from "./zod/managedOrganiserSchema.js";
 export { manifestRowSchema } from "./zod/manifestRowSchema.js";
 export { manifestSchema } from "./zod/manifestSchema.js";
+export { marineResponseSchema } from "./zod/marineResponseSchema.js";
+export { marineRowSchema } from "./zod/marineRowSchema.js";
 export { memberListPublicSchema } from "./zod/memberListPublicSchema.js";
 export { memberPublicSchema } from "./zod/memberPublicSchema.js";
 export { memberRoleUpdateSchema } from "./zod/memberRoleUpdateSchema.js";
@@ -12906,6 +12960,7 @@ export { profileIdentityPublicSchema } from "./zod/profileIdentityPublicSchema.j
 export { profilePublicPropertiesConnectionStateEnumSchema } from "./zod/profilePublicPropertiesConnectionStateEnumSchema.js";
 export { profilePublicSchema } from "./zod/profilePublicSchema.js";
 export { profileUpdateSchema } from "./zod/profileUpdateSchema.js";
+export { provenanceSchema } from "./zod/provenanceSchema.js";
 export { provisionalHolidaysRequestSchema } from "./zod/provisionalHolidaysRequestSchema.js";
 export { publicCurrentConditionsSchema } from "./zod/publicCurrentConditionsSchema.js";
 export { publicForecastSchema } from "./zod/publicForecastSchema.js";

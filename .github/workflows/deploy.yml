@@ -146,6 +146,10 @@ jobs:
           WIS2BOX_S3_SECRET_ACCESS_KEY: ${{ secrets.WIS2BOX_S3_SECRET_ACCESS_KEY }}
           OPENSKY_CLIENT_ID: ${{ secrets.OPENSKY_CLIENT_ID }}
           OPENSKY_CLIENT_SECRET: ${{ secrets.OPENSKY_CLIENT_SECRET }}
+          COPERNICUSMARINE_SERVICE_USERNAME: ${{ secrets.COPERNICUSMARINE_SERVICE_USERNAME }}
+          COPERNICUSMARINE_SERVICE_PASSWORD: ${{ secrets.COPERNICUSMARINE_SERVICE_PASSWORD }}
+          CDSAPI_URL: ${{ vars.CDSAPI_URL }}
+          CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Install declared monitoring after application acceptance
