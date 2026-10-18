@@ -62,6 +62,9 @@ const isoDay = (day: number) =>
   `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(day)}`;
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signed-documents/me`, () =>
+    HttpResponse.json({ data: [], count: 0 })
+  ),
   http.get(`${BASE}/api/v1/hr/rosters/assignments`, () =>
     HttpResponse.json({ data: [], count: 0 })
   ),

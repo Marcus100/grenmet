@@ -19,6 +19,7 @@ import { type FormEvent, useId, useState } from "react";
 import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { grenadaToday } from "@/components/hr/expiry";
+import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
 import { useSigning } from "@/components/hr/signatures/signature-api";
 import { SigningPanel } from "@/components/hr/signatures/signing-panel";
@@ -218,233 +219,242 @@ export function ParkingApplication() {
         </p>
       )}
       {canCreate && (
-        <div className="grid gap-6 xl:grid-cols-2">
-          <form
-            aria-label="Parking access application"
-            className="space-y-4"
-            onSubmit={async (event) => {
-              event.preventDefault();
-              await save(true);
-            }}
-          >
-            <h2 className="font-medium text-xl">
-              Airport security parking access application
-            </h2>
-            <p className="text-sm">
-              Employee and department come from the HR record. Each renewal or
-              replacement requires a new application.
-            </p>
-            <div className="grid gap-4 md:grid-cols-2">
-              <label htmlFor={`${id}-employee`}>
-                Employee
-                <Input
-                  id={`${id}-employee`}
-                  readOnly
-                  value={
-                    selected?.user_id && selected.user_id !== actor.id
-                      ? "Recorded employee (see signed copy)"
-                      : (actor.full_name ?? "")
-                  }
-                />
-              </label>
-              <label htmlFor={`${id}-department`}>
-                Department
-                <Input
-                  id={`${id}-department`}
-                  readOnly
-                  value={department?.name ?? body.department_id}
-                />
-              </label>
-              <label htmlFor={`${id}-date`}>
-                Application date
-                <Input
-                  id={`${id}-date`}
-                  readOnly
-                  value={grenadaToday(
-                    selected?.created_at
-                      ? new Date(selected.created_at)
-                      : new Date()
-                  )}
-                />
-              </label>
-              <label htmlFor={`${id}-fee`}>
-                Fee
-                <Input
-                  id={`${id}-fee`}
-                  readOnly
-                  value={`$${body.fee_amount}`}
-                />
-              </label>
-            </div>
-            <fieldset
-              className="grid gap-4 md:grid-cols-2"
-              disabled={busy || locked}
+        <HrFormDesk
+          editor={
+            <form
+              aria-label="Parking access application"
+              className="space-y-4 rounded-xl border bg-card p-4"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                await save(true);
+              }}
             >
-              <label htmlFor={`${id}-company`}>
-                Company name
-                <Input
-                  id={`${id}-company`}
-                  maxLength={255}
-                  onChange={(e) =>
-                    setValues({ ...values, company: e.target.value })
-                  }
-                  value={
-                    values.company ??
-                    (department?.organisation_id === "gaa"
-                      ? "Grenada Airports Authority"
-                      : "")
-                  }
-                />
-              </label>
-              <label htmlFor={`${id}-phone`}>
-                Phone
-                <Input
-                  id={`${id}-phone`}
-                  maxLength={30}
-                  onChange={(e) =>
-                    setValues({ ...values, phone: e.target.value })
-                  }
-                  value={values.phone ?? profile.data?.identity.phone ?? ""}
-                />
-              </label>
-              <label htmlFor={`${id}-registration`}>
-                Vehicle registration number
-                <Input
-                  id={`${id}-registration`}
-                  maxLength={50}
-                  onChange={(e) =>
-                    setValues({ ...values, registration: e.target.value })
-                  }
-                  required
-                  value={values.registration}
-                />
-              </label>
-              <label htmlFor={`${id}-action`}>
-                Action requested
-                <select
-                  className="block w-full rounded-md border border-input bg-background p-2"
-                  id={`${id}-action`}
-                  onChange={(e) => {
-                    const action = actions.find(
-                      ([code]) => code === e.target.value
-                    )?.[0];
-                    if (action) setValues({ ...values, action });
-                  }}
-                  value={values.action}
-                >
-                  {actions.map(([code, label]) => (
-                    <option key={code} value={code}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label htmlFor={`${id}-insurance-issue`}>
-                Insurance issue date
-                <Input
-                  id={`${id}-insurance-issue`}
-                  onChange={(e) =>
-                    setValues({ ...values, insuranceIssue: e.target.value })
-                  }
-                  type="date"
-                  value={values.insuranceIssue}
-                />
-              </label>
-              <label htmlFor={`${id}-insurance-expiry`}>
-                Insurance expiry date
-                <Input
-                  id={`${id}-insurance-expiry`}
-                  min={values.insuranceIssue || undefined}
-                  onChange={(e) =>
-                    setValues({ ...values, insuranceExpiry: e.target.value })
-                  }
-                  type="date"
-                  value={values.insuranceExpiry}
-                />
-              </label>
-              {values.action === "OTHER" && (
-                <label htmlFor={`${id}-other`}>
-                  Other action details
+              <h2 className="font-medium text-xl">
+                Airport security parking access application
+              </h2>
+              <p className="text-sm">
+                Employee and department come from your staff profile and cannot
+                be edited here. Company name and phone are prefilled from your
+                department and profile; change them if they are out of date.
+                Each renewal or replacement requires a new application.
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label htmlFor={`${id}-employee`}>
+                  Employee
                   <Input
-                    id={`${id}-other`}
-                    maxLength={255}
-                    onChange={(e) =>
-                      setValues({ ...values, other: e.target.value })
+                    id={`${id}-employee`}
+                    readOnly
+                    value={
+                      selected?.user_id && selected.user_id !== actor.id
+                        ? "Recorded employee (see signed copy)"
+                        : (actor.full_name ?? "")
                     }
-                    value={values.other}
                   />
                 </label>
-              )}
-            </fieldset>
-            <p className="text-sm">
-              A $40 fee is charged for each vehicle decal for one year or part
-              thereof. Affix it to the left windscreen above the Licence Disc.
-              Report changes, lost or stolen decals to Airport Security. Read
-              the full original conditions in the PDF before signing.
-            </p>
-            <CoApproverPicker
-              departmentId={body.department_id}
-              disabled={busy || locked}
-              excludeUserId={actor.id}
-              onChange={setCoApprovers}
-              selected={coApprovers}
+                <label htmlFor={`${id}-department`}>
+                  Department
+                  <Input
+                    id={`${id}-department`}
+                    readOnly
+                    value={department?.name ?? body.department_id}
+                  />
+                </label>
+                <label htmlFor={`${id}-date`}>
+                  Application date
+                  <Input
+                    id={`${id}-date`}
+                    readOnly
+                    value={grenadaToday(
+                      selected?.created_at
+                        ? new Date(selected.created_at)
+                        : new Date()
+                    )}
+                  />
+                </label>
+                <label htmlFor={`${id}-fee`}>
+                  Fee
+                  <Input
+                    id={`${id}-fee`}
+                    readOnly
+                    value={`$${body.fee_amount}`}
+                  />
+                </label>
+              </div>
+              <fieldset
+                className="grid gap-4 md:grid-cols-2"
+                disabled={busy || locked}
+              >
+                <label htmlFor={`${id}-company`}>
+                  Company name
+                  <Input
+                    id={`${id}-company`}
+                    maxLength={255}
+                    onChange={(e) =>
+                      setValues({ ...values, company: e.target.value })
+                    }
+                    value={
+                      values.company ??
+                      (department?.organisation_id === "gaa"
+                        ? "Grenada Airports Authority"
+                        : "")
+                    }
+                  />
+                </label>
+                <label htmlFor={`${id}-phone`}>
+                  Phone
+                  <Input
+                    id={`${id}-phone`}
+                    maxLength={30}
+                    onChange={(e) =>
+                      setValues({ ...values, phone: e.target.value })
+                    }
+                    value={values.phone ?? profile.data?.identity.phone ?? ""}
+                  />
+                </label>
+                <label htmlFor={`${id}-registration`}>
+                  Vehicle registration number
+                  <Input
+                    id={`${id}-registration`}
+                    maxLength={50}
+                    onChange={(e) =>
+                      setValues({ ...values, registration: e.target.value })
+                    }
+                    required
+                    value={values.registration}
+                  />
+                </label>
+                <label htmlFor={`${id}-action`}>
+                  Action requested
+                  <select
+                    className="block w-full rounded-md border border-input bg-background p-2"
+                    id={`${id}-action`}
+                    onChange={(e) => {
+                      const action = actions.find(
+                        ([code]) => code === e.target.value
+                      )?.[0];
+                      if (action) setValues({ ...values, action });
+                    }}
+                    value={values.action}
+                  >
+                    {actions.map(([code, label]) => (
+                      <option key={code} value={code}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label htmlFor={`${id}-insurance-issue`}>
+                  Insurance issue date
+                  <Input
+                    id={`${id}-insurance-issue`}
+                    onChange={(e) =>
+                      setValues({ ...values, insuranceIssue: e.target.value })
+                    }
+                    type="date"
+                    value={values.insuranceIssue}
+                  />
+                </label>
+                <label htmlFor={`${id}-insurance-expiry`}>
+                  Insurance expiry date
+                  <Input
+                    id={`${id}-insurance-expiry`}
+                    min={values.insuranceIssue || undefined}
+                    onChange={(e) =>
+                      setValues({ ...values, insuranceExpiry: e.target.value })
+                    }
+                    type="date"
+                    value={values.insuranceExpiry}
+                  />
+                </label>
+                {values.action === "OTHER" && (
+                  <label htmlFor={`${id}-other`}>
+                    Other action details
+                    <Input
+                      id={`${id}-other`}
+                      maxLength={255}
+                      onChange={(e) =>
+                        setValues({ ...values, other: e.target.value })
+                      }
+                      value={values.other}
+                    />
+                  </label>
+                )}
+              </fieldset>
+              <p className="text-sm">
+                A $40 fee is charged for each vehicle decal for one year or part
+                thereof. Affix it to the left windscreen above the Licence Disc.
+                Report changes, lost or stolen decals to Airport Security. Read
+                the full original conditions in the PDF before signing.
+              </p>
+              <CoApproverPicker
+                departmentId={body.department_id}
+                disabled={busy || locked}
+                excludeUserId={actor.id}
+                onChange={setCoApprovers}
+                selected={coApprovers}
+              />
+              <SigningPanel submission={locked ? selected : null} />
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  disabled={busy || locked || !ready}
+                  onClick={async () => {
+                    await save(false);
+                  }}
+                  type="button"
+                  variant="outline"
+                >
+                  Save draft
+                </Button>
+                <Button
+                  disabled={busy || locked || !ready || !signing.data}
+                  type="submit"
+                >
+                  Sign &amp; submit
+                </Button>
+                <Button
+                  disabled={busy}
+                  onClick={reset}
+                  type="button"
+                  variant="outline"
+                >
+                  New application
+                </Button>
+                <Button
+                  disabled={!ready || busy}
+                  onClick={() => {
+                    downloadHrPdf({
+                      previewPath: "/api/v1/hr/parking-permits/preview-pdf",
+                      payload: body,
+                      signedDocumentId: locked
+                        ? selected?.signed_document_id
+                        : null,
+                      filename: "parking-application.pdf",
+                    }).catch((caught: unknown) => {
+                      reportError(caught, "hr-parking-pdf");
+                      setError(hrApiErrorMessage(caught));
+                    });
+                  }}
+                  type="button"
+                  variant="outline"
+                >
+                  Download PDF
+                </Button>
+              </div>
+            </form>
+          }
+          entityType="parking_permit"
+          label="Parking application"
+          preview={
+            <HrPdfPreview
+              filename="parking-application.pdf"
+              payload={body}
+              previewPath="/api/v1/hr/parking-permits/preview-pdf"
+              ready={ready}
+              signedDocumentId={locked ? selected?.signed_document_id : null}
+              title="Parking application"
             />
-            <SigningPanel submission={locked ? selected : null} />
-            <div className="flex flex-wrap gap-2">
-              <Button
-                disabled={busy || locked || !ready}
-                onClick={async () => {
-                  await save(false);
-                }}
-                type="button"
-                variant="outline"
-              >
-                Save draft
-              </Button>
-              <Button
-                disabled={busy || locked || !ready || !signing.data}
-                type="submit"
-              >
-                Sign &amp; submit
-              </Button>
-              <Button
-                disabled={busy}
-                onClick={reset}
-                type="button"
-                variant="outline"
-              >
-                New application
-              </Button>
-              <Button
-                disabled={!ready || busy}
-                onClick={() => {
-                  downloadHrPdf({
-                    previewPath: "/api/v1/hr/parking-permits/preview-pdf",
-                    payload: body,
-                    signedDocumentId: locked
-                      ? selected?.signed_document_id
-                      : null,
-                    filename: "parking-application.pdf",
-                  }).catch((caught: unknown) => {
-                    reportError(caught, "hr-parking-pdf");
-                    setError(hrApiErrorMessage(caught));
-                  });
-                }}
-                type="button"
-                variant="outline"
-              >
-                Download PDF
-              </Button>
-            </div>
-          </form>
-          <HrPdfPreview
-            payload={body}
-            previewPath="/api/v1/hr/parking-permits/preview-pdf"
-            ready={ready}
-            signedDocumentId={locked ? selected?.signed_document_id : null}
-            title="Parking application"
-          />
-        </div>
+          }
+        />
       )}
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}

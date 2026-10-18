@@ -33,6 +33,9 @@ vi.mock("next/navigation", () => ({
 const BASE = "http://localhost";
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signed-documents/me`, () =>
+    HttpResponse.json({ data: [], count: 0 })
+  ),
   http.get(`${BASE}/api/v1/hr/signature/me`, () =>
     HttpResponse.json({
       version: "11111111-1111-4111-8111-111111111111",

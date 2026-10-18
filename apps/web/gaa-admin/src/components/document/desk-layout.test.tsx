@@ -1,6 +1,6 @@
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { ProductDeskLayout } from "./product-desk-layout";
+import { DeskLayout } from "./desk-layout";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -27,13 +27,12 @@ it("places one archive card below the shorter panel and responds to content resi
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
     function (this: HTMLElement) {
       return {
-        height:
-          this.dataset.slot === "product-editor-panel" ? editorHeight : 600,
+        height: this.dataset.slot === "desk-editor-panel" ? editorHeight : 600,
       } as DOMRect;
     }
   );
   const { unmount } = render(
-    <ProductDeskLayout
+    <DeskLayout
       archive={<p>Archive</p>}
       editor={<p>Editor</p>}
       preview={<p>Preview</p>}

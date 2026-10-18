@@ -265,4 +265,23 @@ describe("toHolidayLayer", () => {
     expect(mapped.allDay).toBe(true);
     expect(mapped.start).toBe("2026-08-03");
   });
+
+  it("labels a holiday that still needs verification as provisional", () => {
+    const mapped = nth(
+      toHolidayLayer([
+        {
+          id: "h2",
+          name: "Carnival Monday",
+          holiday_date: "2026-08-10",
+          is_recurring: false,
+          country_code: "GD",
+          needs_verification: true,
+          created_by_user_id: "u1",
+          created_at: "2026-07-01T00:00:00+0000",
+        },
+      ])
+    );
+
+    expect(mapped.title).toBe("Carnival Monday (provisional, verify with HR)");
+  });
 });

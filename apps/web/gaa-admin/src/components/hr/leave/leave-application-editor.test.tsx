@@ -33,6 +33,9 @@ vi.mock("next/navigation", () => ({
 const BASE = "http://localhost";
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signed-documents/me`, () =>
+    HttpResponse.json({ data: [], count: 0 })
+  ),
   http.post(`${BASE}/api/v1/hr/leave-requests/preview-pdf`, () =>
     HttpResponse.text("%PDF-1.7", {
       headers: { "content-type": "application/pdf" },
@@ -275,7 +278,7 @@ it("keeps a submitted draft printable with the server date and resets cleanly", 
   expect(
     screen.queryByRole("button", { name: "Sign & submit" })
   ).not.toBeInTheDocument();
-  expect(screen.getByText("Leave Application PDF preview")).toBeVisible();
+  expect(screen.getByText("Leave Application preview")).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Reset" }));
   expect(screen.getAllByText("Not submitted").length).toBeGreaterThan(0);
 });

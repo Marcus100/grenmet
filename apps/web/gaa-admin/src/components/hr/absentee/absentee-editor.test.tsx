@@ -28,6 +28,9 @@ vi.mock("next/navigation", () => ({
 const BASE = "http://localhost";
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signed-documents/me`, () =>
+    HttpResponse.json({ data: [], count: 0 })
+  ),
   http.post(
     `${BASE}/api/v1/hr/absentee-reports/preview-pdf`,
     () =>

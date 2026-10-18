@@ -8,8 +8,12 @@ import { useEffect, useRef } from "react";
 export interface EditorPrefillContext {
   /** The user's department name, or "" when they have no employment record. */
   department: string;
+  /** The employee number from the staff record, or "". */
+  employeeNumber: string;
   /** The signed-in user's full name, or "" when unknown. */
   fullName: string;
+  /** The supervisor name from the staff record, or "". */
+  supervisorName: string;
   /** Today as an ISO `yyyy-MM-dd` string, matching the date fields/DatePicker. */
   today: string;
 }
@@ -44,10 +48,31 @@ export function useEditorPrefill(
       return;
     }
     applyRef.current({
+      employeeNumber: profileQuery.data?.employment?.employee_number ?? "",
       fullName: sessionUser.full_name ?? "",
+      supervisorName: profileQuery.data?.employment?.supervisor_name ?? "",
       department: profileQuery.data?.employment?.department?.name ?? "",
       today: format(new Date(), "yyyy-MM-dd"),
     });
     appliedRef.current = true;
   }, [skip, profileReady, profileQuery.data, sessionUser]);
+}
+
+/**
+ * The stored reference data a form shows locked: name, employee number and
+ * department from the HR staff profile. A field is only locked when the
+ * profile actually holds a value, so a missing record never blocks typing.
+ */
+export function useProfileReference() {
+  const sessionUser = useSessionUser();
+  const profileQuery = useHrGetHrProfileMe();
+  const employment = profileQuery.data?.employment;
+  return {
+    department: employment?.department?.name ?? "",
+    employeeNumber: employment?.employee_number ?? "",
+    fullName: sessionUser.full_name ?? "",
+    supervisorName: employment?.supervisor_name ?? "",
+    unverifiedCarryOver: profileQuery.data?.leave?.unverified_carry_over,
+    vacationBalance: profileQuery.data?.leave?.balances?.VACATION,
+  };
 }
