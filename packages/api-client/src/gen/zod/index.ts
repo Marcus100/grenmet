@@ -3350,9 +3350,12 @@ export { listingUpsertPropertiesVisibilityEnumSchema } from "./listingUpsertProp
 export { listingUpsertSchema } from "./listingUpsertSchema.js";
 export { managedListingSchema } from "./managedListingSchema.js";
 export { managedOrganiserSchema } from "./managedOrganiserSchema.js";
+export { membershipRoleSchema } from "./membershipRoleSchema.js";
+export { membershipStatusSchema } from "./membershipStatusSchema.js";
 export { messageCreateSchema } from "./messageCreateSchema.js";
 export { messagePublicSchema } from "./messagePublicSchema.js";
 export { messageSchema } from "./messageSchema.js";
+export { myMembershipPublicSchema } from "./myMembershipPublicSchema.js";
 export { myProfilePropertiesIntentsItemsEnumSchema } from "./myProfilePropertiesIntentsItemsEnumSchema.js";
 export { myProfilePropertiesVisibilityEnumSchema } from "./myProfilePropertiesVisibilityEnumSchema.js";
 export { myProfileSchema } from "./myProfileSchema.js";
@@ -3487,8 +3490,19 @@ export { observationRecordSchema } from "./observationRecordSchema.js";
 export { onboardingStatusSchema } from "./onboardingStatusSchema.js";
 export { organisationCatalogueSchema } from "./organisationCatalogueSchema.js";
 export { organisationCreateSchema } from "./organisationCreateSchema.js";
+export { organisationKindSchema } from "./organisationKindSchema.js";
 export { organisationPreviewSchema } from "./organisationPreviewSchema.js";
 export { organisationPublicSchema } from "./organisationPublicSchema.js";
+export { organisationStatusSchema } from "./organisationStatusSchema.js";
+export { organisationSummarySchema } from "./organisationSummarySchema.js";
+export {
+  organisationsListMineErrorSchema,
+  organisationsListMineResponseSchema,
+  organisationsListMineStatus200Schema,
+  organisationsListMineStatus401Schema,
+  organisationsListMineStatus403Schema,
+  organisationsListMineStatus422Schema,
+} from "./organisationsListMineSchema.js";
 export { organisationUpdateSchema } from "./organisationUpdateSchema.js";
 export { organiserPublicSchema } from "./organiserPublicSchema.js";
 export { outlookProductPreviewInputSchema } from "./outlookProductPreviewInputSchema.js";

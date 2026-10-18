@@ -3657,9 +3657,14 @@ export type { ListingUpsertPropertiesVisibilityEnum } from "./ListingUpsertPrope
 export { listingUpsertPropertiesVisibilityEnum } from "./ListingUpsertPropertiesVisibilityEnum.js";
 export type { ManagedListing } from "./ManagedListing.js";
 export type { ManagedOrganiser } from "./ManagedOrganiser.js";
+export type { MembershipRole } from "./MembershipRole.js";
+export { membershipRole } from "./MembershipRole.js";
+export type { MembershipStatus } from "./MembershipStatus.js";
+export { membershipStatus } from "./MembershipStatus.js";
 export type { Message } from "./Message.js";
 export type { MessageCreate } from "./MessageCreate.js";
 export type { MessagePublic } from "./MessagePublic.js";
+export type { MyMembershipPublic } from "./MyMembershipPublic.js";
 export type { MyProfile } from "./MyProfile.js";
 export type { MyProfilePropertiesIntentsItemsEnum } from "./MyProfilePropertiesIntentsItemsEnum.js";
 export { myProfilePropertiesIntentsItemsEnum } from "./MyProfilePropertiesIntentsItemsEnum.js";
@@ -3813,8 +3818,22 @@ export { observationRecordPropertiesKindEnum } from "./ObservationRecordProperti
 export type { OnboardingStatus } from "./OnboardingStatus.js";
 export type { OrganisationCatalogue } from "./OrganisationCatalogue.js";
 export type { OrganisationCreate } from "./OrganisationCreate.js";
+export type { OrganisationKind } from "./OrganisationKind.js";
+export { organisationKind } from "./OrganisationKind.js";
 export type { OrganisationPreview } from "./OrganisationPreview.js";
 export type { OrganisationPublic } from "./OrganisationPublic.js";
+export type { OrganisationStatus } from "./OrganisationStatus.js";
+export { organisationStatus } from "./OrganisationStatus.js";
+export type { OrganisationSummary } from "./OrganisationSummary.js";
+export type {
+  OrganisationsListMineOptions,
+  OrganisationsListMineResponse,
+  OrganisationsListMineResponses,
+  OrganisationsListMineStatus200,
+  OrganisationsListMineStatus401,
+  OrganisationsListMineStatus403,
+  OrganisationsListMineStatus422,
+} from "./OrganisationsListMine.js";
 export type { OrganisationUpdate } from "./OrganisationUpdate.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OutlookProductPreview } from "./OutlookProductPreview.js";

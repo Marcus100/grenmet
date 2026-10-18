@@ -70,6 +70,7 @@ from src.janitorial.router import router as janitorial_router
 from src.logging_config import configure_logging
 from src.models import ValidationErrorResponse
 from src.notifications.router import router as notifications_router
+from src.organisations.router import router as organisations_router
 from src.rate_limit import limiter
 from src.request_context import (
     REQUEST_ID_HEADER,
@@ -194,6 +195,10 @@ OPENAPI_TAGS = [
     {
         "name": "notifications",
         "description": "In-app notifications, email preferences and settings.",
+    },
+    {
+        "name": "organisations",
+        "description": "Platform organisations and the caller's memberships.",
     },
     {"name": "permissions", "description": "Permission administration operations."},
     {
@@ -377,6 +382,7 @@ app.include_router(hr_parking_router, prefix="/api/v1")
 app.include_router(hr_documents_router, prefix="/api/v1")
 app.include_router(audit_router, prefix="/api/v1")
 app.include_router(notifications_router, prefix="/api/v1")
+app.include_router(organisations_router, prefix="/api/v1")
 app.include_router(cap_router, prefix="/api/v1")
 app.include_router(cap_public_router)
 

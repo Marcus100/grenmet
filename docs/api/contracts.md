@@ -303,6 +303,16 @@ Sentry tag, so a failed call can be traced from the browser to the API log and
 the Sentry event. It is random and carries no user data. The header is not part
 of the OpenAPI schema.
 
+## Organisations (ADR-0022)
+
+Platform organisations live in the `org` schema. `GET /api/v1/organisations/mine`
+returns the signed-in account's active memberships (`membership_id`, `role`
+`owner | admin | member`, `status`, `joined_at`) each with an organisation summary
+(`id`, `slug`, `name`, `kind` `barrels | client | business`, `status`,
+`verified_at`). It needs any active Barrels account, not staff approval. Existing
+HR employers keep their `hr.organisation` id (for example `gaa`); new
+organisations get immutable `org_<hex>` ids.
+
 ## Pagination
 
 The standard helper is `src.pagination`:

@@ -9641,6 +9641,53 @@
         }
       }
     },
+    "/api/v1/organisations/mine": {
+      "get": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "List my organisations",
+        "description": "The signed-in person's active organisation memberships, each with an organisation summary, ordered by organisation name.",
+        "operationId": "organisationsListMine",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MyMembershipPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Organisationslistmine"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/cap/hazard-profiles": {
       "get": {
         "tags": [
@@ -35627,6 +35674,24 @@
         ],
         "title": "ManagedOrganiser"
       },
+      "MembershipRole": {
+        "type": "string",
+        "enum": [
+          "owner",
+          "admin",
+          "member"
+        ],
+        "title": "MembershipRole"
+      },
+      "MembershipStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "invited",
+          "removed"
+        ],
+        "title": "MembershipStatus"
+      },
       "Message": {
         "properties": {
           "message": {
@@ -35695,6 +35760,37 @@
           "mine"
         ],
         "title": "MessagePublic"
+      },
+      "MyMembershipPublic": {
+        "properties": {
+          "membership_id": {
+            "type": "string",
+            "title": "Membership Id"
+          },
+          "role": {
+            "$ref": "#/components/schemas/MembershipRole"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MembershipStatus"
+          },
+          "joined_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Joined At"
+          },
+          "organisation": {
+            "$ref": "#/components/schemas/OrganisationSummary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "membership_id",
+          "role",
+          "status",
+          "joined_at",
+          "organisation"
+        ],
+        "title": "MyMembershipPublic"
       },
       "MyProfile": {
         "properties": {
@@ -37051,6 +37147,15 @@
         ],
         "title": "OrganisationCreate"
       },
+      "OrganisationKind": {
+        "type": "string",
+        "enum": [
+          "barrels",
+          "client",
+          "business"
+        ],
+        "title": "OrganisationKind"
+      },
       "OrganisationPreview": {
         "properties": {
           "catalogue": {
@@ -37127,6 +37232,57 @@
           "name"
         ],
         "title": "OrganisationPublic"
+      },
+      "OrganisationStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "suspended"
+        ],
+        "title": "OrganisationStatus"
+      },
+      "OrganisationSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/OrganisationKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrganisationStatus"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "kind",
+          "status"
+        ],
+        "title": "OrganisationSummary"
       },
       "OrganisationUpdate": {
         "properties": {
@@ -50606,6 +50762,10 @@
     {
       "name": "notifications",
       "description": "In-app notifications, email preferences and settings."
+    },
+    {
+      "name": "organisations",
+      "description": "Platform organisations and the caller's memberships."
     },
     {
       "name": "permissions",
