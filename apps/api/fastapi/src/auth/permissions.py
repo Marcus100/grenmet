@@ -149,6 +149,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cap.alert.submit", "Submit CAP alerts for approval"),
     PermissionDef("cap.alert.approve", "Approve CAP alerts"),
     PermissionDef("cap.alert.publish", "Publish CAP alerts"),
+    PermissionDef(
+        "cap.alert.publish_emergency",
+        "Emergency-publish CAP alerts without approval (duty supervisor; audited)",
+    ),
     PermissionDef("cap.alert.read", "Read CAP alerts"),
     # CAP — administration
     PermissionDef("cap.integrations.manage", "Manage CAP integrations"),
@@ -367,6 +371,17 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "cap-publisher": (
         "CAP publisher: publish approved alerts",
         ("cap.alert.publish", "cap.alert.read"),
+    ),
+    "cap-duty-supervisor": (
+        "CAP duty supervisor: may emergency-publish without approval (reason required, always audited)",
+        (
+            "cap.alert.create",
+            "cap.alert.edit",
+            "cap.alert.submit",
+            "cap.alert.publish",
+            "cap.alert.publish_emergency",
+            "cap.alert.read",
+        ),
     ),
     "cap-admin": (
         "CAP administrator: full alert lifecycle + settings",

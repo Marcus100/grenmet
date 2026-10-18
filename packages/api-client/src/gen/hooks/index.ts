@@ -499,6 +499,11 @@ export {
   useCapDuplicateAlert,
 } from "./useCapDuplicateAlert.js";
 export {
+  capEmergencyPublishAlertMutationKey,
+  capEmergencyPublishAlertMutationOptions,
+  useCapEmergencyPublishAlert,
+} from "./useCapEmergencyPublishAlert.js";
+export {
   capExpireAlertMutationKey,
   capExpireAlertMutationOptions,
   useCapExpireAlert,

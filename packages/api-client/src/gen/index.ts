@@ -101,6 +101,7 @@ export { capDeleteFeed } from "./clients/capDeleteFeed.js";
 export { capDownloadPublicAttachment } from "./clients/capDownloadPublicAttachment.js";
 export { capDraftFromHazardProfile } from "./clients/capDraftFromHazardProfile.js";
 export { capDuplicateAlert } from "./clients/capDuplicateAlert.js";
+export { capEmergencyPublishAlert } from "./clients/capEmergencyPublishAlert.js";
 export { capExpireAlert } from "./clients/capExpireAlert.js";
 export { capGetActiveMap } from "./clients/capGetActiveMap.js";
 export { capGetAlert } from "./clients/capGetAlert.js";
@@ -963,6 +964,11 @@ export {
   capDuplicateAlertMutationOptions,
   useCapDuplicateAlert,
 } from "./hooks/useCapDuplicateAlert.js";
+export {
+  capEmergencyPublishAlertMutationKey,
+  capEmergencyPublishAlertMutationOptions,
+  useCapEmergencyPublishAlert,
+} from "./hooks/useCapEmergencyPublishAlert.js";
 export {
   capExpireAlertMutationKey,
   capExpireAlertMutationOptions,
@@ -3954,6 +3960,19 @@ export type {
   CapDuplicateAlertStatus404,
   CapDuplicateAlertStatus422,
 } from "./models/CapDuplicateAlert.js";
+export type { CapEmergencyPublish } from "./models/CapEmergencyPublish.js";
+export type {
+  CapEmergencyPublishAlertBody,
+  CapEmergencyPublishAlertOptions,
+  CapEmergencyPublishAlertPath,
+  CapEmergencyPublishAlertResponse,
+  CapEmergencyPublishAlertResponses,
+  CapEmergencyPublishAlertStatus200,
+  CapEmergencyPublishAlertStatus401,
+  CapEmergencyPublishAlertStatus403,
+  CapEmergencyPublishAlertStatus404,
+  CapEmergencyPublishAlertStatus422,
+} from "./models/CapEmergencyPublishAlert.js";
 export type {
   CapExpireAlertBody,
   CapExpireAlertOptions,
@@ -9688,6 +9707,18 @@ export {
   capDuplicateAlertStatus404Schema,
   capDuplicateAlertStatus422Schema,
 } from "./zod/capDuplicateAlertSchema.js";
+export {
+  capEmergencyPublishAlertBodySchema,
+  capEmergencyPublishAlertErrorSchema,
+  capEmergencyPublishAlertPathAlertIdSchema,
+  capEmergencyPublishAlertResponseSchema,
+  capEmergencyPublishAlertStatus200Schema,
+  capEmergencyPublishAlertStatus401Schema,
+  capEmergencyPublishAlertStatus403Schema,
+  capEmergencyPublishAlertStatus404Schema,
+  capEmergencyPublishAlertStatus422Schema,
+} from "./zod/capEmergencyPublishAlertSchema.js";
+export { capEmergencyPublishSchema } from "./zod/capEmergencyPublishSchema.js";
 export {
   capExpireAlertBodySchema,
   capExpireAlertErrorSchema,

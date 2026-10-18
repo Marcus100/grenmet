@@ -23,6 +23,7 @@ pytestmark = pytest.mark.asyncio
 async def _publish_alert(
     async_client: httpx.AsyncClient,
     headers: dict[str, str],
+    approver_headers: dict[str, str],
     *,
     scope: str,
     restriction: str | None = None,
@@ -45,7 +46,9 @@ async def _publish_alert(
         ("publish", {"note": "Published"}),
     ):
         response = await async_client.post(
-            f"/api/v1/cap/alerts/{alert_id}/{action}", headers=headers, json=body
+            f"/api/v1/cap/alerts/{alert_id}/{action}",
+            headers=approver_headers if action == "approve" else headers,
+            json=body,
         )
         assert response.status_code == 200, response.text
 
@@ -56,16 +59,21 @@ async def test_restricted_alert_hidden_from_public_feeds(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
     superuser_token_headers_async: dict[str, str],
+    second_superuser_headers_async: dict[str, str],
 ) -> None:
     # Explicit single-actor policy for publication/feed tests.
     db_async.add(ApprovalPolicy(key="cap", allow_self_approval=True))
     await db_async.commit()
     public_id = await _publish_alert(
-        async_client, superuser_token_headers_async, scope="Public"
+        async_client,
+        superuser_token_headers_async,
+        second_superuser_headers_async,
+        scope="Public",
     )
     restricted_id = await _publish_alert(
         async_client,
         superuser_token_headers_async,
+        second_superuser_headers_async,
         scope="Restricted",
         restriction="Emergency responders only",
     )
@@ -94,6 +102,7 @@ async def test_private_alert_hidden_from_public_feeds(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
     superuser_token_headers_async: dict[str, str],
+    second_superuser_headers_async: dict[str, str],
 ) -> None:
     # Explicit single-actor policy for publication/feed tests.
     db_async.add(ApprovalPolicy(key="cap", allow_self_approval=True))
@@ -101,6 +110,7 @@ async def test_private_alert_hidden_from_public_feeds(
     private_id = await _publish_alert(
         async_client,
         superuser_token_headers_async,
+        second_superuser_headers_async,
         scope="Private",
         addresses=["ops@weather.gd"],
     )

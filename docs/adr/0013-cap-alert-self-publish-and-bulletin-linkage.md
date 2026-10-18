@@ -2,6 +2,7 @@
 
 ## Status
 
+Decisions 1 and 2 are superseded by [ADR-0023](0023-cap-approval-before-publish.md) (2026-10-18).
 Accepted. Supersedes [ADR-0007](0007-cap-warning-lifecycle.md)'s mandatory
 approval gate; the CAP-XML/audit/public-feed decisions in ADR-0007 stand.
 Also reverses the "linking is deferred" stance in

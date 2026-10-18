@@ -98,6 +98,7 @@ export { capDeleteFeed } from "./capDeleteFeed.js";
 export { capDownloadPublicAttachment } from "./capDownloadPublicAttachment.js";
 export { capDraftFromHazardProfile } from "./capDraftFromHazardProfile.js";
 export { capDuplicateAlert } from "./capDuplicateAlert.js";
+export { capEmergencyPublishAlert } from "./capEmergencyPublishAlert.js";
 export { capExpireAlert } from "./capExpireAlert.js";
 export { capGetActiveMap } from "./capGetActiveMap.js";
 export { capGetAlert } from "./capGetAlert.js";

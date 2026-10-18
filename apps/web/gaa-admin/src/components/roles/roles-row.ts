@@ -20,6 +20,7 @@ const SYSTEM_ROLE_NAMES: ReadonlySet<string> = new Set([
   "cap-author",
   "cap-approver",
   "cap-publisher",
+  "cap-duty-supervisor",
   "cap-admin",
   "workflow-admin",
 ]);
