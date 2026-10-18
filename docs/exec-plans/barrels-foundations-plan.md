@@ -139,9 +139,9 @@ Alembic head.
 | E5 | Cancel, postpone and manual refund | M | U |
 | C1 | `apps/web/admin` shell at `admin.barrels.gd` (port 3012), superuser via auth handoff, status cards (**built, pending merge**; deploy wiring and the `admin.*` host cutover deliberately not done, see "Host move") | L | U |
 | C2 | Control-plane organisations: list, detail, verify, app entitlements, members (**built, pending merge**) | M | U |
-| P1 | Invoice core: customer, invoice, lines, numbering, totals in minor units; entity, VAT and prefix are provisional settings | M | U |
-| P2 | Issue and email invoice PDF (stored through F8) | M | U |
-| P3 | Manual payments, receivables and ageing in the control plane | M | U |
+| P1 | Invoice core: customer, invoice, lines, numbering, totals in minor units; entity, VAT and prefix are provisional settings | M | U — built, pending merge |
+| P2 | Issue and email invoice PDF (stored through F8) | M | U — built, pending merge (PDF stored when object storage is configured, else rendered on demand; the email carries a 7-day link, not an attachment) |
+| P3 | Manual payments, receivables and ageing in the control plane | M | U — built, pending merge |
 | H1 | `barrels.gd` services page with contact and newsletter forms posting to FastAPI; drafted copy | S–M | U — built, pending merge; production CORS origins and copy review open |
 | E6 | Provider-neutral online payment adapter | L | Blocked (ePay) |
 | R1 | Phase 2 HR foreign key, then HR reads through `OrgContext` | L | O |

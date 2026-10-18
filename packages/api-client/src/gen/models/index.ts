@@ -19,6 +19,9 @@ export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
 export type { AdmissionCreate } from "./AdmissionCreate.js";
 export type { AdmissionPublic } from "./AdmissionPublic.js";
+export type { AgeingBucket } from "./AgeingBucket.js";
+export { ageingBucket } from "./AgeingBucket.js";
+export type { AgeingBucketPublic } from "./AgeingBucketPublic.js";
 export type { AnnouncementPublic } from "./AnnouncementPublic.js";
 export type { ApiError } from "./ApiError.js";
 export type { AppAccessStatus } from "./AppAccessStatus.js";
@@ -860,6 +863,29 @@ export type { BalanceImportRowPropertiesStatusEnum } from "./BalanceImportRowPro
 export { balanceImportRowPropertiesStatusEnum } from "./BalanceImportRowPropertiesStatusEnum.js";
 export type { BalanceInput } from "./BalanceInput.js";
 export type {
+  BillingCreateCustomerBody,
+  BillingCreateCustomerOptions,
+  BillingCreateCustomerResponse,
+  BillingCreateCustomerResponses,
+  BillingCreateCustomerStatus201,
+  BillingCreateCustomerStatus401,
+  BillingCreateCustomerStatus403,
+  BillingCreateCustomerStatus404,
+  BillingCreateCustomerStatus409,
+  BillingCreateCustomerStatus422,
+} from "./BillingCreateCustomer.js";
+export type {
+  BillingCreateInvoiceBody,
+  BillingCreateInvoiceOptions,
+  BillingCreateInvoiceResponse,
+  BillingCreateInvoiceResponses,
+  BillingCreateInvoiceStatus201,
+  BillingCreateInvoiceStatus401,
+  BillingCreateInvoiceStatus403,
+  BillingCreateInvoiceStatus404,
+  BillingCreateInvoiceStatus422,
+} from "./BillingCreateInvoice.js";
+export type {
   BillingCreateSubscriptionCheckoutOptions,
   BillingCreateSubscriptionCheckoutResponse,
   BillingCreateSubscriptionCheckoutResponses,
@@ -869,6 +895,145 @@ export type {
   BillingCreateSubscriptionCheckoutStatus502,
   BillingCreateSubscriptionCheckoutStatus503,
 } from "./BillingCreateSubscriptionCheckout.js";
+export type {
+  BillingDeleteInvoiceOptions,
+  BillingDeleteInvoicePath,
+  BillingDeleteInvoiceResponse,
+  BillingDeleteInvoiceResponses,
+  BillingDeleteInvoiceStatus204,
+  BillingDeleteInvoiceStatus401,
+  BillingDeleteInvoiceStatus403,
+  BillingDeleteInvoiceStatus404,
+  BillingDeleteInvoiceStatus409,
+  BillingDeleteInvoiceStatus422,
+} from "./BillingDeleteInvoice.js";
+export type {
+  BillingDownloadInvoicePdfOptions,
+  BillingDownloadInvoicePdfPath,
+  BillingDownloadInvoicePdfResponse,
+  BillingDownloadInvoicePdfResponses,
+  BillingDownloadInvoicePdfStatus200,
+  BillingDownloadInvoicePdfStatus401,
+  BillingDownloadInvoicePdfStatus403,
+  BillingDownloadInvoicePdfStatus404,
+  BillingDownloadInvoicePdfStatus422,
+} from "./BillingDownloadInvoicePdf.js";
+export type {
+  BillingGetCustomerOptions,
+  BillingGetCustomerPath,
+  BillingGetCustomerResponse,
+  BillingGetCustomerResponses,
+  BillingGetCustomerStatus200,
+  BillingGetCustomerStatus401,
+  BillingGetCustomerStatus403,
+  BillingGetCustomerStatus404,
+  BillingGetCustomerStatus422,
+} from "./BillingGetCustomer.js";
+export type {
+  BillingGetInvoiceOptions,
+  BillingGetInvoicePath,
+  BillingGetInvoiceResponse,
+  BillingGetInvoiceResponses,
+  BillingGetInvoiceStatus200,
+  BillingGetInvoiceStatus401,
+  BillingGetInvoiceStatus403,
+  BillingGetInvoiceStatus404,
+  BillingGetInvoiceStatus422,
+} from "./BillingGetInvoice.js";
+export type {
+  BillingGetReceivablesOptions,
+  BillingGetReceivablesQuery,
+  BillingGetReceivablesResponse,
+  BillingGetReceivablesResponses,
+  BillingGetReceivablesStatus200,
+  BillingGetReceivablesStatus401,
+  BillingGetReceivablesStatus403,
+  BillingGetReceivablesStatus422,
+} from "./BillingGetReceivables.js";
+export type {
+  BillingIssueInvoiceBody,
+  BillingIssueInvoiceOptions,
+  BillingIssueInvoicePath,
+  BillingIssueInvoiceResponse,
+  BillingIssueInvoiceResponses,
+  BillingIssueInvoiceStatus200,
+  BillingIssueInvoiceStatus401,
+  BillingIssueInvoiceStatus403,
+  BillingIssueInvoiceStatus404,
+  BillingIssueInvoiceStatus409,
+  BillingIssueInvoiceStatus422,
+} from "./BillingIssueInvoice.js";
+export type {
+  BillingListCustomersOptions,
+  BillingListCustomersQuery,
+  BillingListCustomersResponse,
+  BillingListCustomersResponses,
+  BillingListCustomersStatus200,
+  BillingListCustomersStatus401,
+  BillingListCustomersStatus403,
+  BillingListCustomersStatus422,
+} from "./BillingListCustomers.js";
+export type {
+  BillingListInvoicesOptions,
+  BillingListInvoicesQuery,
+  BillingListInvoicesResponse,
+  BillingListInvoicesResponses,
+  BillingListInvoicesStatus200,
+  BillingListInvoicesStatus401,
+  BillingListInvoicesStatus403,
+  BillingListInvoicesStatus422,
+} from "./BillingListInvoices.js";
+export type {
+  BillingRecordPaymentBody,
+  BillingRecordPaymentOptions,
+  BillingRecordPaymentPath,
+  BillingRecordPaymentResponse,
+  BillingRecordPaymentResponses,
+  BillingRecordPaymentStatus201,
+  BillingRecordPaymentStatus401,
+  BillingRecordPaymentStatus403,
+  BillingRecordPaymentStatus404,
+  BillingRecordPaymentStatus409,
+  BillingRecordPaymentStatus422,
+} from "./BillingRecordPayment.js";
+export type {
+  BillingUpdateCustomerBody,
+  BillingUpdateCustomerOptions,
+  BillingUpdateCustomerPath,
+  BillingUpdateCustomerResponse,
+  BillingUpdateCustomerResponses,
+  BillingUpdateCustomerStatus200,
+  BillingUpdateCustomerStatus401,
+  BillingUpdateCustomerStatus403,
+  BillingUpdateCustomerStatus404,
+  BillingUpdateCustomerStatus422,
+} from "./BillingUpdateCustomer.js";
+export type {
+  BillingUpdateInvoiceBody,
+  BillingUpdateInvoiceOptions,
+  BillingUpdateInvoicePath,
+  BillingUpdateInvoiceResponse,
+  BillingUpdateInvoiceResponses,
+  BillingUpdateInvoiceStatus200,
+  BillingUpdateInvoiceStatus401,
+  BillingUpdateInvoiceStatus403,
+  BillingUpdateInvoiceStatus404,
+  BillingUpdateInvoiceStatus409,
+  BillingUpdateInvoiceStatus422,
+} from "./BillingUpdateInvoice.js";
+export type {
+  BillingVoidInvoiceBody,
+  BillingVoidInvoiceOptions,
+  BillingVoidInvoicePath,
+  BillingVoidInvoiceResponse,
+  BillingVoidInvoiceResponses,
+  BillingVoidInvoiceStatus200,
+  BillingVoidInvoiceStatus401,
+  BillingVoidInvoiceStatus403,
+  BillingVoidInvoiceStatus404,
+  BillingVoidInvoiceStatus409,
+  BillingVoidInvoiceStatus422,
+} from "./BillingVoidInvoice.js";
 export type { BodyAuthLoginAccessToken } from "./BodyAuthLoginAccessToken.js";
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";
 export type { BrowserSession } from "./BrowserSession.js";
@@ -1356,6 +1521,10 @@ export { contactSite } from "./ContactSite.js";
 export type { ContractorCreate } from "./ContractorCreate.js";
 export type { ContractorUpdate } from "./ContractorUpdate.js";
 export type { CurrentOrganisationPublic } from "./CurrentOrganisationPublic.js";
+export type { CustomerCreate } from "./CustomerCreate.js";
+export type { CustomerListPublic } from "./CustomerListPublic.js";
+export type { CustomerPublic } from "./CustomerPublic.js";
+export type { CustomerUpdate } from "./CustomerUpdate.js";
 export type { DashboardApproval } from "./DashboardApproval.js";
 export type { DashboardPerson } from "./DashboardPerson.js";
 export type { DashboardRequest } from "./DashboardRequest.js";
@@ -3557,6 +3726,16 @@ export { intendedUse } from "./IntendedUse.js";
 export type { InvitationAccept } from "./InvitationAccept.js";
 export type { InvitationCreate } from "./InvitationCreate.js";
 export type { InvitationPublic } from "./InvitationPublic.js";
+export type { InvoiceDetailPublic } from "./InvoiceDetailPublic.js";
+export type { InvoiceDraftWrite } from "./InvoiceDraftWrite.js";
+export type { InvoiceIssue } from "./InvoiceIssue.js";
+export type { InvoiceLineInput } from "./InvoiceLineInput.js";
+export type { InvoiceLinePublic } from "./InvoiceLinePublic.js";
+export type { InvoiceListPublic } from "./InvoiceListPublic.js";
+export type { InvoiceStatus } from "./InvoiceStatus.js";
+export { invoiceStatus } from "./InvoiceStatus.js";
+export type { InvoiceSummaryPublic } from "./InvoiceSummaryPublic.js";
+export type { InvoiceVoid } from "./InvoiceVoid.js";
 export type { ItemCreate } from "./ItemCreate.js";
 export type { ItemListPublic } from "./ItemListPublic.js";
 export type { ItemPublic } from "./ItemPublic.js";
@@ -4355,6 +4534,10 @@ export type { ParkingPermitIssue } from "./ParkingPermitIssue.js";
 export type { ParkingPermitListPublic } from "./ParkingPermitListPublic.js";
 export type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
 export type { ParkingPermitSubmit } from "./ParkingPermitSubmit.js";
+export type { PaymentCreate } from "./PaymentCreate.js";
+export type { PaymentMethod } from "./PaymentMethod.js";
+export { paymentMethod } from "./PaymentMethod.js";
+export type { PaymentPublic } from "./PaymentPublic.js";
 export type { PermissionCreate } from "./PermissionCreate.js";
 export type { PermissionPublic } from "./PermissionPublic.js";
 export type { PersonChip } from "./PersonChip.js";
@@ -4406,6 +4589,8 @@ export type { PublicWarningPropertiesColourAnyOfEnum } from "./PublicWarningProp
 export { publicWarningPropertiesColourAnyOfEnum } from "./PublicWarningPropertiesColourAnyOfEnum.js";
 export type { PublicWarnings } from "./PublicWarnings.js";
 export type { PublishedProducts } from "./PublishedProducts.js";
+export type { ReceivableRowPublic } from "./ReceivableRowPublic.js";
+export type { ReceivablesPublic } from "./ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";
 export type { RegisterObservationCreate } from "./RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./RegisterObservationList.js";

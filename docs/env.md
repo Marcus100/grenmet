@@ -166,6 +166,11 @@ the API image and the local source mount contain the same migration assets.
 | `BILLING_STRIPE_PRICE_ID` | Recurring Stripe Price used by subscription Checkout Sessions |
 | `BILLING_CHECKOUT_SUCCESS_URL` | Stripe-hosted Checkout success redirect; may contain the literal `{CHECKOUT_SESSION_ID}` placeholder |
 | `BILLING_CHECKOUT_CANCEL_URL` | Stripe-hosted Checkout cancellation redirect |
+| `BILLING_INVOICE_LEGAL_ENTITY_NAME` | **Provisional.** Name printed on invoices and snapshotted onto each invoice when it is issued (default `Barrels Grenada`) |
+| `BILLING_INVOICE_DEFAULT_TAX_RATE` | **Provisional.** VAT percent applied to lines that do not set their own rate (default `15`) |
+| `BILLING_INVOICE_NUMBER_PREFIX`, `BILLING_INVOICE_NUMBER_PADDING` | **Provisional.** Invoice number is `<prefix>-YYYY-NNNN` (defaults `BG`, 4); the sequence is gapless and restarts each calendar year |
+| `BILLING_INVOICE_CURRENCY`, `BILLING_INVOICE_PAYMENT_TERMS_DAYS` | Invoice currency (`XCD`, minor units) and net terms in days (30); owner decision 2026-10-18 |
+| `BILLING_INVOICE_REMINDER_GRACE_DAYS` | Days after a reminder's trigger date (7 before due, due date, 7 after) in which a missed worker run may still send it (default 2). Reminders are sent by the 07:00 Grenada worker job, once per invoice and stage |
 | `STORAGE_ENDPOINT_URL` | Optional S3-compatible endpoint; storage is disabled when required storage values are absent |
 | `STORAGE_REGION` | S3 region label (default: `us-east-1`) |
 | `STORAGE_BUCKET` | S3 bucket or DigitalOcean Space name |

@@ -28,6 +28,18 @@ export default async function ConsoleLayout({
             >
               Organisations
             </Link>
+            <Link
+              className="underline-offset-4 hover:underline"
+              href="/invoices"
+            >
+              Invoices
+            </Link>
+            <Link
+              className="underline-offset-4 hover:underline"
+              href="/receivables"
+            >
+              Receivables
+            </Link>
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm">
             <span className="text-muted-foreground">{gate.email}</span>

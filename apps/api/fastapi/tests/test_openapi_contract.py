@@ -143,6 +143,8 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "preview_shift_swap",
         "preview_status_report_pdf",
         "preview_parking_permit",
+        # Invoicing renders the authenticated invoice PDF on demand.
+        "download_invoice_pdf",
     }
     offenders = [
         route.name

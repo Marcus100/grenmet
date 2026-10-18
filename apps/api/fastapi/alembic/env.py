@@ -17,6 +17,14 @@ sys.path.append(str(Path(__file__).parent.parent))
 # Import all models to ensure they're registered with SQLAlchemy metadata.
 from src.audit.models import AuditEntry
 from src.auth.models import User
+from src.billing.models import (
+    Customer,
+    Invoice,
+    InvoiceCounter,
+    InvoiceLine,
+    InvoiceReminder,
+    Payment,
+)
 from src.cap.models import (
     CapAlert,
     CapArea,
@@ -121,7 +129,7 @@ Base.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
 target_metadata = Base.metadata
 
 # Schemas tracked by autogenerate. Extend this set when adding a new schema.
-_TRACKED_SCHEMAS = {None, "public", "hr", "cap", "org", "stores"}
+_TRACKED_SCHEMAS = {None, "public", "hr", "cap", "org", "stores", "billing"}
 
 
 def _include_object(

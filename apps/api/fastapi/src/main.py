@@ -35,6 +35,7 @@ from src.auth.routers.twofa import router as twofa_router
 from src.auth.routers.users import router as users_router
 from src.baseline.governance_router import router as governance_router
 from src.baseline.router import router as staff_setup_router
+from src.billing.invoice_router import router as billing_invoice_router
 from src.billing.router import router as billing_router
 from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
@@ -392,6 +393,7 @@ app.include_router(roles_router, prefix="/api/v1")
 app.include_router(permissions_router, prefix="/api/v1")
 app.include_router(role_assignments_router, prefix="/api/v1")
 app.include_router(billing_router, prefix="/api/v1")
+app.include_router(billing_invoice_router, prefix="/api/v1")
 app.include_router(hr_profile_router, prefix="/api/v1")
 app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")
