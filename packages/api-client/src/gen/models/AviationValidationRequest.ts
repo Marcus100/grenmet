@@ -26,4 +26,8 @@ export type AviationValidationRequest = {
   issued_at?: string | null;
   valid_from?: string | null;
   valid_to?: string | null;
+  /**
+   * @description The preceding METAR or SPECI. For a SPECI it is compared with the Annex 3 App. 3 2.3 criteria (advisory warnings).
+   */
+  previous_message?: string | null;
 };

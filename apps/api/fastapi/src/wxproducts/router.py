@@ -397,6 +397,7 @@ async def validate_aviation_message(
         issued_at=body.issued_at,
         valid_from=body.valid_from,
         valid_to=body.valid_to,
+        previous_message=body.previous_message,
     )
     return AviationValidationResponse(
         valid=not any(issue.severity == "error" for issue in issues), issues=issues

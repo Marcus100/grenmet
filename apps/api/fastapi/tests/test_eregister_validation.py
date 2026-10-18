@@ -8,7 +8,7 @@ import pytest
 
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
-from src.eregister import rules
+from src.eregister import encode, rules
 from src.eregister.schemas import SynopDecoded, SynopWorkbook
 from src.main import app
 
@@ -465,4 +465,139 @@ def test_24h_pressure_change_group_is_j1_and_three_digits() -> None:
     issues, _ = check(s3_baro_change_24h="012")
     assert issues["error:s3_baro_change_24h"] == "invalid_format"
     issues, _ = check(s3_baro_change_24h="5012")
-    assert issues["warning:s3_baro_change_24h"] == "invalid_sign"
+    assert issues["error:s3_baro_change_24h"] == "invalid_sign"
+
+
+# --- remaining section 3 and section 5 rules (conformance checklist) --------------
+
+
+def tac(**changes: str) -> str:
+    return encode.synop_tac(SynopWorkbook.model_validate({**PAPER_ROW, **changes}))
+
+
+def test_pressure_change_24h_selects_group_58_or_59_and_decodes_the_sign() -> None:
+    _, rise = check(s3_baro_change_24h="0035")
+    _, fall = check(s3_baro_change_24h="1035")
+    assert rise.pressure_change_24h_pa == 350
+    assert fall.pressure_change_24h_pa == -350
+    assert tac(s3_baro_change_24h="0035").endswith("58035=")
+    assert tac(s3_baro_change_24h="1035").endswith("59035=")
+
+
+def test_pressure_change_24h_negative_zero_and_implausible_values_warn() -> None:
+    issues, _ = check(s3_baro_change_24h="1000")
+    assert issues["warning:s3_baro_change_24h"] == "negative_zero"
+    issues, _ = check(s3_baro_change_24h="0450")
+    assert issues["warning:s3_baro_change_24h"] == "implausible_change"
+    issues, _ = check(s3_baro_change_24h="0400")
+    assert "warning:s3_baro_change_24h" not in issues
+
+
+def test_max_and_min_temperature_are_advised_at_main_hours_only() -> None:
+    issues, _ = check(time_utc="09", s3_max_temp="0310", s3_min_temp="0240")
+    assert issues["warning:s3_max_temp"] == "txtn_hour"
+    assert issues["warning:s3_min_temp"] == "txtn_hour"
+    for hour in ("00", "06", "12", "18"):
+        issues, _ = check(time_utc=hour, s3_max_temp="0310", s3_min_temp="0240")
+        assert "warning:s3_max_temp" not in issues, hour
+
+
+def test_air_temperature_outside_the_reported_extremes_warns() -> None:
+    issues, _ = check(s3_max_temp="0250")  # air is 28.0
+    assert issues["warning:s3_max_temp"] == "air_above_max"
+    issues, _ = check(s3_min_temp="0290")
+    assert issues["warning:s3_min_temp"] == "air_below_min"
+
+
+def test_sunshine_is_hours_and_tenths_up_to_24() -> None:
+    issues, decoded = check(s3_sunshine_24h="087")
+    assert "error:s3_sunshine_24h" not in issues
+    assert decoded.sunshine_24h_hours == 8.7
+    issues, decoded = check(s3_sunshine_24h="241")
+    assert issues["error:s3_sunshine_24h"] == "out_of_range"
+    assert decoded.sunshine_24h_hours is None
+    issues, _ = check(s3_sunshine_24h="24")
+    assert issues["error:s3_sunshine_24h"] == "invalid_format"
+    issues, _ = check(s3_sunshine_24h="240")
+    assert "error:s3_sunshine_24h" not in issues
+
+
+def test_sunshine_is_reported_at_the_daily_summary_hour() -> None:
+    issues, _ = check(time_utc="15", s3_sunshine_24h="087")
+    assert issues["warning:s3_sunshine_24h"] == "sunshine_hour"
+    issues, _ = check(time_utc="12", s3_sunshine_24h="087")
+    assert "warning:s3_sunshine_24h" not in issues
+
+
+def test_state_of_ground_uses_code_table_0901() -> None:
+    for code in "0123456789":
+        issues, _ = check(s3_ground_state=code, air_temp="030")
+        assert "error:s3_ground_state" not in issues, code
+    issues, _ = check(s3_ground_state="A")
+    assert issues["error:s3_ground_state"] == "not_integer"
+    _, decoded = check(s3_ground_state="2")
+    assert decoded.ground_state == 2
+
+
+def test_ground_jjj_is_three_digits_and_needs_a_state() -> None:
+    issues, _ = check(s3_ground_state="2", s3_ground_jjj="012")
+    assert "error:s3_ground_jjj" not in issues
+    issues, _ = check(s3_ground_state="2", s3_ground_jjj="12")
+    assert issues["error:s3_ground_jjj"] == "invalid_format"
+    issues, _ = check(s3_ground_jjj="012")
+    assert issues["warning:s3_ground_state"] == "missing_group"
+
+
+def test_frozen_ground_in_warm_air_warns() -> None:
+    issues, _ = check(s3_ground_state="4")  # air 28.0
+    assert issues["warning:s3_ground_state"] == "ground_state_air"
+    issues, _ = check(s3_ground_state="4", air_temp="1020", dew_point="1030")
+    assert "warning:s3_ground_state" not in issues
+    issues, _ = check(s3_ground_state="2")
+    assert "warning:s3_ground_state" not in issues
+
+
+def test_supplementary_gust_groups_910ff_and_911ff_are_both_accepted() -> None:
+    for group in ("91025", "91125"):
+        issues, _ = check(s3_special_phenomena=group)
+        assert [key for key in issues if "special" in key] == [], group
+
+
+def test_supplementary_groups_are_checked_for_format_and_gusts() -> None:
+    issues, _ = check(s3_special_phenomena="9102")
+    assert issues["error:s3_special_phenomena"] == "invalid_supplementary"
+    issues, _ = check(s3_special_phenomena="81025")
+    assert issues["error:s3_special_phenomena"] == "invalid_supplementary"
+    issues, _ = check(s3_special_phenomena="91005")  # mean is 15
+    assert issues["warning:s3_special_phenomena"] == "gust_below_mean"
+    issues, _ = check(s3_special_phenomena="91025 91030")
+    assert issues["warning:s3_special_phenomena"] == "duplicate_supplementary"
+    issues, _ = check(s3_special_phenomena="91025", wind_gust="25")
+    assert issues["warning:s3_special_phenomena"] == "duplicate_gust"
+
+
+def test_supplementary_weather_960ww_is_accepted_and_others_pass_through() -> None:
+    issues, _ = check(s3_special_phenomena="96017")
+    assert [key for key in issues if "special" in key] == []
+    issues, _ = check(s3_special_phenomena="93012")
+    assert issues["warning:s3_special_phenomena"] == "unchecked_supplementary"
+    assert "error:s3_special_phenomena" not in issues
+
+
+def test_section_5_national_groups_are_preserved_without_validation() -> None:
+    national = "NAT 12 /// xx9"
+    issues, _ = check(s5_national=national)
+    assert [key for key in issues if "s5" in key] == []
+    assert tac(s5_national=national).endswith(f"555 {national}=")
+
+
+def test_tac_orders_the_new_section_3_groups() -> None:
+    message = tac(
+        s3_max_temp="0310",
+        s3_ground_state="2",
+        s3_ground_jjj="012",
+        s3_sunshine_24h="087",
+        s3_baro_change_24h="1015",
+        s3_special_phenomena="91125 96017",
+    )
+    assert "333 10310 32012 55087 59015 91125 96017=" in message

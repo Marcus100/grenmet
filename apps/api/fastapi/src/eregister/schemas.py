@@ -62,7 +62,11 @@ class SynopWorkbook(BaseModel):
     s3_layer4_amount: str | None = Field(default=None, max_length=2)
     s3_layer4_form: str | None = Field(default=None, max_length=2)
     s3_layer4_height: str | None = Field(default=None, max_length=4)
-    s3_special_phenomena: str | None = Field(default=None, max_length=32)
+    s3_special_phenomena: str | None = Field(default=None, max_length=120)
+    s3_sunshine_24h: str | None = Field(default=None, max_length=3)
+    s3_ground_state: str | None = Field(default=None, max_length=1)
+    s3_ground_jjj: str | None = Field(default=None, max_length=3)
+    s5_national: str | None = Field(default=None, max_length=400)
     s3_remarks: str | None = Field(default=None, max_length=4000)
     observer_initials: str | None = Field(default=None, max_length=4)
     notes: str | None = Field(default=None, max_length=4000)
@@ -99,6 +103,9 @@ class SynopDecoded(BaseModel):
     total_cloud_percent: int | None = None
     precipitation_kg_m2: float | None = None
     rainfall_24h_kg_m2: float | None = None
+    pressure_change_24h_pa: float | None = None
+    sunshine_24h_hours: float | None = None
+    ground_state: int | None = None
 
 
 class SynopValidationResponse(BaseModel):

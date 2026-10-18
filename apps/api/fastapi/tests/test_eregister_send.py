@@ -85,7 +85,7 @@ def workbook(**changes: str) -> SynopWorkbook:
 def test_tac_assembles_the_keyed_groups_in_section_order() -> None:
     assert encode.synop_tac(workbook()) == (
         "AAXX 30124 78958 11468 10715 10280 20213 30153 40163 52012 60041 70600 "
-        "81100 333 10310 20240 51015 70123 81810 91025="
+        "81100 333 10310 20240 59015 70123 81810 91025="
     )
 
 
@@ -159,6 +159,11 @@ def test_wis2_row_maps_si_values_to_the_template_columns() -> None:
     assert row["genus_of_cloud_l1"] == "8"
     assert row["height_of_cloud_base_l1"] == "300"
     assert row["low_cloud_type"] == "1"
+
+
+def test_wis2_row_carries_the_state_of_the_ground() -> None:
+    assert _csv_row(s3_ground_state="2")["ground_state"] == "2"
+    assert _csv_row()["ground_state"] == ""
 
 
 def test_wis2_row_leaves_unreported_values_empty() -> None:

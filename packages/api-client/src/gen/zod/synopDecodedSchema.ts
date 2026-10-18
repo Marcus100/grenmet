@@ -24,6 +24,9 @@ export const synopDecodedSchema = z
     total_cloud_percent: z.union([z.int(), z.null()]).optional(),
     precipitation_kg_m2: z.union([z.number(), z.null()]).optional(),
     rainfall_24h_kg_m2: z.union([z.number(), z.null()]).optional(),
+    pressure_change_24h_pa: z.union([z.number(), z.null()]).optional(),
+    sunshine_24h_hours: z.union([z.number(), z.null()]).optional(),
+    ground_state: z.union([z.int(), z.null()]).optional(),
   })
   .describe(
     "SI values decoded from the coded groups; missing or unobserved is null."

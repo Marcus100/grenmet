@@ -30878,6 +30878,19 @@
               }
             ],
             "title": "Valid To"
+          },
+          "previous_message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 6000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Message",
+            "description": "The preceding METAR or SPECI. For a SPECI it is compared with the Annex 3 App. 3 2.3 criteria (advisory warnings)."
           }
         },
         "additionalProperties": false,
@@ -51596,6 +51609,39 @@
               }
             ],
             "title": "Rainfall 24H Kg M2"
+          },
+          "pressure_change_24h_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pressure Change 24H Pa"
+          },
+          "sunshine_24h_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sunshine 24H Hours"
+          },
+          "ground_state": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ground State"
           }
         },
         "type": "object",
@@ -52273,13 +52319,61 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 32
+                "maxLength": 120
               },
               {
                 "type": "null"
               }
             ],
             "title": "S3 Special Phenomena"
+          },
+          "s3_sunshine_24h": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Sunshine 24H"
+          },
+          "s3_ground_state": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Ground State"
+          },
+          "s3_ground_jjj": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Ground Jjj"
+          },
+          "s5_national": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S5 National"
           },
           "s3_remarks": {
             "anyOf": [

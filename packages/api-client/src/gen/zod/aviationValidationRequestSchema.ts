@@ -15,6 +15,12 @@ export const aviationValidationRequestSchema = z
     issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
     valid_from: z.union([z.iso.datetime(), z.null()]).optional(),
     valid_to: z.union([z.iso.datetime(), z.null()]).optional(),
+    previous_message: z
+      .union([z.string().max(6000), z.null()])
+      .optional()
+      .describe(
+        "The preceding METAR or SPECI. For a SPECI it is compared with the Annex 3 App. 3 2.3 criteria (advisory warnings)."
+      ),
   })
   .describe(
     "A coded message to check; same fields as a draft, nothing is saved."

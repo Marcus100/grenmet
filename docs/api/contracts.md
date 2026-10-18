@@ -1222,8 +1222,11 @@ revision snapshots with author identity and recorded time.
 `severity` (`error` for a code violation, `warning` for reporting practice),
 `code`, the offending `group` (or null), a `message` and the `rule` source
 (WMO-No. 306 FM 15/16/51, ICAO Annex 3). Findings are advisory: saving a draft
-is never blocked, and nothing is saved or transmitted by the check. Rules and
-gaps: `docs/operations/eregister-wmo-conformance.md`.
+is never blocked, and nothing is saved or transmitted by the check. The
+optional `previous_message` (the preceding METAR/SPECI, validate only) lets a
+SPECI be compared with the Annex 3 App. 3 2.3 criteria (`speci_no_change`
+warning); TAF change groups are checked against App. 5 1.3 (`taf_change_criteria`
+warning). Rules and gaps: `docs/operations/eregister-wmo-conformance.md`.
 
 All four routes require the separate `aviation` product-access policy, using
 the existing configurable GMS-grade controls (manager, assistant manager and

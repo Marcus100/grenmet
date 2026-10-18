@@ -185,8 +185,19 @@ def _section3(workbook: SynopWorkbook) -> list[str]:
     ):
         if group:
             groups.append(group)
-    if _present(_v(workbook, "s3_baro_change_24h")):
-        groups.append(f"5{_v(workbook, 's3_baro_change_24h')}")
+    if _present(_v(workbook, "s3_ground_state")) or _present(
+        _v(workbook, "s3_ground_jjj")
+    ):
+        groups.append(
+            "3"
+            + _slashes(_v(workbook, "s3_ground_state"), 1)
+            + _slashes(_v(workbook, "s3_ground_jjj"), 3)
+        )
+    if _present(_v(workbook, "s3_sunshine_24h")):
+        groups.append(f"55{_v(workbook, 's3_sunshine_24h')}")
+    pressure_24h = _pressure_change_group(_v(workbook, "s3_baro_change_24h"))
+    if pressure_24h:
+        groups.append(pressure_24h)
     if _present(_v(workbook, "s3_rainfall_24h")):
         groups.append(f"7{_v(workbook, 's3_rainfall_24h')}")
     for n in (1, 2, 3, 4):
@@ -207,7 +218,21 @@ def _section3(workbook: SynopWorkbook) -> list[str]:
         groups.append(f"910{'99' if len(gust) == THREE_DIGIT_GROUP else gust}")
         if len(gust) == THREE_DIGIT_GROUP:
             groups.append(f"00{gust}")
+    groups.extend(_v(workbook, "s3_special_phenomena").split())
     return groups
+
+
+def _pressure_change_group(value: str) -> str | None:
+    """58P24P24P24 (rise or zero) or 59P24P24P24 (fall) from the keyed j1 + P24."""
+    if len(value) != FOUR_DIGIT_GROUP or not value.isdigit() or value[0] not in "01":
+        return None
+    return f"{'59' if value[0] == '1' else '58'}{value[1:]}"
+
+
+def _section5(workbook: SynopWorkbook) -> list[str]:
+    """Section 5 national groups: preserved as keyed, never validated."""
+    national = " ".join(_v(workbook, "s5_national").split())
+    return ["555", national] if national else []
 
 
 def synop_tac(workbook: SynopWorkbook) -> str:
@@ -224,6 +249,7 @@ def synop_tac(workbook: SynopWorkbook) -> str:
     section3 = _section3(workbook)
     if section3:
         parts.extend(["333", *section3])
+    parts.extend(_section5(workbook))
     return " ".join(parts) + "="
 
 
@@ -354,6 +380,7 @@ def wis2_row(
         middle_cloud_type=_int_field(workbook, "mid_cloud_type"),
         high_cloud_type=_int_field(workbook, "high_cloud_type"),
         state_of_sky=_int_field(workbook, "s3_state_of_sky"),
+        ground_state=_int_field(workbook, "s3_ground_state"),
         **{
             "24_hour_barometric_change": _number(
                 _signed_pascals(_v(workbook, "s3_baro_change_24h")), 0
