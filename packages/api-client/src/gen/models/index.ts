@@ -5158,6 +5158,7 @@ export type { TimesheetEntryInput } from "./TimesheetEntryInput.js";
 export type { TimesheetEntryPublic } from "./TimesheetEntryPublic.js";
 export type { TimesheetListPublic } from "./TimesheetListPublic.js";
 export type { TimesheetPrefillEntry } from "./TimesheetPrefillEntry.js";
+export type { TimesheetPrefillHoliday } from "./TimesheetPrefillHoliday.js";
 export type { TimesheetPrefillPublic } from "./TimesheetPrefillPublic.js";
 export type { TimesheetPublic } from "./TimesheetPublic.js";
 export type { TimesheetStatus } from "./TimesheetStatus.js";

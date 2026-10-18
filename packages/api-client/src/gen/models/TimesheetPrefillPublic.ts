@@ -4,6 +4,7 @@
  */
 
 import type { TimesheetPrefillEntry } from "./TimesheetPrefillEntry.js";
+import type { TimesheetPrefillHoliday } from "./TimesheetPrefillHoliday.js";
 
 export type TimesheetPrefillPublic = {
   department_id?: string | null;
@@ -22,4 +23,9 @@ export type TimesheetPrefillPublic = {
   period_end: string;
   roster_published: boolean;
   entries: TimesheetPrefillEntry[];
+  /**
+   * @default []
+   * @type array | undefined
+   */
+  holidays?: TimesheetPrefillHoliday[];
 };

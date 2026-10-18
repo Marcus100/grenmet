@@ -7,6 +7,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.hr.exceptions import HRValidationError
+from src.hr.leave.models import LeaveType
 from src.hr.leave.service import working_days_between
 from src.hr.roster.holidays import PROVISIONAL_SOURCE
 from src.hr.roster.models import PublicHoliday
@@ -16,11 +17,16 @@ from tests.hr.test_roster_calendar import _rostered_department
 
 
 async def _holiday(
-    session: AsyncSession, user_id, day: date, *, provisional: bool
+    session: AsyncSession,
+    user_id,
+    day: date,
+    *,
+    provisional: bool,
+    name: str = "Test Day",
 ) -> None:
     session.add(
         PublicHoliday(
-            name="Test Day",
+            name=name,
             holiday_date=day,
             source=PROVISIONAL_SOURCE if provisional else "gazette",
             needs_verification=False,
@@ -147,3 +153,67 @@ async def test_timesheet_prefill_rejects_bad_period(db_async: AsyncSession) -> N
         await prefill_from_roster(
             session=db_async, current_user=manager, period="2026-13"
         )
+
+
+async def test_vacation_suggests_extra_days_for_holidays_on_working_days(
+    db_async: AsyncSession,
+) -> None:
+    _, _, colleague = await _rostered_department(db_async, "wd_extra", publish=True)
+    role, _ = await make_role_with_permission(db_async, "leave.request.create.self")
+    await assign_role(db_async, user=colleague, role=role)
+    # Wednesday (counts), and Saturday (not a working day, so no extra day).
+    await _holiday(db_async, colleague.id, date(2026, 7, 8), provisional=True)
+    await _holiday(db_async, colleague.id, date(2026, 7, 11), provisional=False)
+
+    vacation = await working_days_between(
+        session=db_async,
+        current_user=colleague,
+        start=date(2026, 7, 6),
+        end=date(2026, 7, 12),
+        leave_type=LeaveType.VACATION,
+    )
+    other = await working_days_between(
+        session=db_async,
+        current_user=colleague,
+        start=date(2026, 7, 6),
+        end=date(2026, 7, 12),
+        leave_type=LeaveType.SICK,
+    )
+    no_type = await working_days_between(
+        session=db_async,
+        current_user=colleague,
+        start=date(2026, 7, 6),
+        end=date(2026, 7, 12),
+    )
+
+    assert vacation.working_days == 4
+    assert vacation.suggested_extra_days == 1
+    assert vacation.suggested_extra_days_note is not None
+    assert "provisional" in vacation.suggested_extra_days_note
+    assert "HR may grant 1 extra day" in vacation.suggested_extra_days_note
+    assert other.suggested_extra_days == 0
+    assert other.suggested_extra_days_note is None
+    assert no_type.suggested_extra_days == 0
+
+
+async def test_timesheet_prefill_marks_rostered_holidays(
+    db_async: AsyncSession,
+) -> None:
+    _, manager, _ = await _rostered_department(db_async, "ts_holiday", publish=True)
+    await _holiday(
+        db_async, manager.id, date(2026, 7, 6), provisional=True, name="Roster Day"
+    )
+    await _holiday(
+        db_async, manager.id, date(2026, 7, 20), provisional=False, name="Quiet Day"
+    )
+
+    result = await prefill_from_roster(
+        session=db_async, current_user=manager, period="2026-07"
+    )
+
+    assert result.entries[0].holiday_name == "Roster Day"
+    assert result.entries[0].holiday_provisional is True
+    assert [(h.name, h.provisional) for h in result.holidays] == [
+        ("Roster Day", True),
+        ("Quiet Day", False),
+    ]

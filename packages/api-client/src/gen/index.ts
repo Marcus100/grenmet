@@ -7933,6 +7933,7 @@ export type { TimesheetEntryInput } from "./models/TimesheetEntryInput.js";
 export type { TimesheetEntryPublic } from "./models/TimesheetEntryPublic.js";
 export type { TimesheetListPublic } from "./models/TimesheetListPublic.js";
 export type { TimesheetPrefillEntry } from "./models/TimesheetPrefillEntry.js";
+export type { TimesheetPrefillHoliday } from "./models/TimesheetPrefillHoliday.js";
 export type { TimesheetPrefillPublic } from "./models/TimesheetPrefillPublic.js";
 export type { TimesheetPublic } from "./models/TimesheetPublic.js";
 export type { TimesheetStatus } from "./models/TimesheetStatus.js";
@@ -11440,6 +11441,7 @@ export {
 export {
   hrGetWorkingDaysErrorSchema,
   hrGetWorkingDaysQueryEndSchema,
+  hrGetWorkingDaysQueryLeaveTypeSchema,
   hrGetWorkingDaysQueryStartSchema,
   hrGetWorkingDaysResponseSchema,
   hrGetWorkingDaysStatus200Schema,
@@ -13350,6 +13352,7 @@ export { timesheetEntryInputSchema } from "./zod/timesheetEntryInputSchema.js";
 export { timesheetEntryPublicSchema } from "./zod/timesheetEntryPublicSchema.js";
 export { timesheetListPublicSchema } from "./zod/timesheetListPublicSchema.js";
 export { timesheetPrefillEntrySchema } from "./zod/timesheetPrefillEntrySchema.js";
+export { timesheetPrefillHolidaySchema } from "./zod/timesheetPrefillHolidaySchema.js";
 export { timesheetPrefillPublicSchema } from "./zod/timesheetPrefillPublicSchema.js";
 export { timesheetPublicSchema } from "./zod/timesheetPublicSchema.js";
 export { timesheetStatusSchema } from "./zod/timesheetStatusSchema.js";

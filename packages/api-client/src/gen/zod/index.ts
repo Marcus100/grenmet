@@ -2830,6 +2830,7 @@ export {
 export {
   hrGetWorkingDaysErrorSchema,
   hrGetWorkingDaysQueryEndSchema,
+  hrGetWorkingDaysQueryLeaveTypeSchema,
   hrGetWorkingDaysQueryStartSchema,
   hrGetWorkingDaysResponseSchema,
   hrGetWorkingDaysStatus200Schema,
@@ -4740,6 +4741,7 @@ export { timesheetEntryInputSchema } from "./timesheetEntryInputSchema.js";
 export { timesheetEntryPublicSchema } from "./timesheetEntryPublicSchema.js";
 export { timesheetListPublicSchema } from "./timesheetListPublicSchema.js";
 export { timesheetPrefillEntrySchema } from "./timesheetPrefillEntrySchema.js";
+export { timesheetPrefillHolidaySchema } from "./timesheetPrefillHolidaySchema.js";
 export { timesheetPrefillPublicSchema } from "./timesheetPrefillPublicSchema.js";
 export { timesheetPublicSchema } from "./timesheetPublicSchema.js";
 export { timesheetStatusSchema } from "./timesheetStatusSchema.js";

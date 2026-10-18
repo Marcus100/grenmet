@@ -62,7 +62,7 @@ export function hrGetWorkingDaysQueryOptions(
 }
 
 /**
- * @description Suggest the days requested for a leave range: the caller's published roster work shifts when it covers the whole range, otherwise Monday to Friday, excluding public holidays. Holidays from the provisional list are flagged. Requires leave.request.create.self.
+ * @description Suggest the days requested for a leave range: the caller's published roster work shifts when it covers the whole range, otherwise Monday to Friday, excluding public holidays. Holidays from the provisional list are flagged. For an annual vacation (leave_type=VACATION) it also returns a provisional suggested_extra_days count for holidays that fall on would-be working days; it is advice for HR and never posts to a balance. Requires leave.request.create.self.
  * @summary Working days between two dates
  * {@link /api/v1/hr/leave/working-days}
  */

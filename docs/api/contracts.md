@@ -585,8 +585,8 @@ Read-only helpers that let the HR forms start from stored data. Each returns sug
 
 | Endpoint | Permission | Purpose |
 | --- | --- | --- |
-| `GET /api/v1/hr/leave/working-days?start=&end=` | `leave.request.create.self` | Working days for the caller (≤ 366 days). Uses the caller's published or closed roster work shifts when the roster covers every day in the range (`method: roster`), otherwise Monday to Friday (`method: weekdays`). Public holidays are excluded and listed; `provisional: true` marks dates HR has not verified |
-| `GET /api/v1/hr/timesheets/prefill?period=YYYY-MM` | `timesheet.submit.self` | The caller's published or closed roster work shifts for the month with shift times, scheduled hours and leave/absence availability. `roster_published: false` and no entries when there is none |
+| `GET /api/v1/hr/leave/working-days?start=&end=&leave_type=` | `leave.request.create.self` | Working days for the caller (≤ 366 days). Uses the caller's published or closed roster work shifts when the roster covers every day in the range (`method: roster`), otherwise Monday to Friday (`method: weekdays`). Public holidays are excluded and listed; `provisional: true` marks dates HR has not verified. With `leave_type=VACATION`, `suggested_extra_days` (and `suggested_extra_days_note`) counts holidays on would-be working days as a provisional hint for HR; it is never posted to a balance |
+| `GET /api/v1/hr/timesheets/prefill?period=YYYY-MM` | `timesheet.submit.self` | The caller's published or closed roster work shifts for the month with shift times, scheduled hours and leave/absence availability. `roster_published: false` and no entries when there is none. Rostered days that are public holidays carry `holiday_name` and `holiday_provisional`; `holidays` lists every holiday in the month. Visibility only, no pay rule |
 | `GET /api/v1/hr/signed-documents/me?entity_type=` | authenticated | Existing list, narrowed to one form type (for example `leave_request`, `timesheet`) before paging |
 
 ### Manual shift attendance

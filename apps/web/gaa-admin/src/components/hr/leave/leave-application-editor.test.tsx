@@ -19,7 +19,7 @@ import {
   LeaveApplicationEditor,
   validateLeaveValues,
 } from "./leave-application-editor";
-import { EMPTY_LEAVE } from "./leave-document";
+import { EMPTY_LEAVE, JURY_DUTY_LABEL } from "./leave-document";
 import { LeaveSubmissions } from "./leave-submissions";
 
 const navigation = vi.hoisted(() => ({ search: "" }));
@@ -393,6 +393,8 @@ function workingDaysServer(draftDays?: string) {
         holidays: [
           { holiday_date: "2026-10-07", name: "Test Day", provisional: true },
         ],
+        suggested_extra_days: 1,
+        suggested_extra_days_note: "Policy (provisional)",
       });
     }),
     http.get(`${BASE}/api/v1/hr/leave-requests/me`, () =>
@@ -426,6 +428,11 @@ it("fills days requested from working days, labels provisional holidays and show
   );
   expect(screen.getByText(SUGGESTED_FOUR)).toBeInTheDocument();
   expect(screen.getByText(HOLIDAY_HINT)).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      "Policy (provisional): 1 public holiday inside this vacation — HR may grant 1 extra day. Nothing is added to your balance automatically."
+    )
+  ).toBeInTheDocument();
   expect(await screen.findByText(BALANCE_AFTER)).toBeInTheDocument();
   const employeeNumber = screen.getByRole("textbox", {
     name: "Employee Number",
@@ -449,4 +456,24 @@ it("keeps a days figure the user already has instead of overwriting it", async (
   wrap(<LeaveApplicationEditor />);
   expect(await screen.findByText(SUGGESTED_FOUR)).toBeInTheDocument();
   expect(screen.getByLabelText(DAYS_REQUESTED)).toHaveValue(10);
+});
+
+it("sends jury duty with the summons reference as the reason and requires it to submit", () => {
+  const values = {
+    ...EMPTY_LEAVE,
+    leaveType: JURY_DUTY_LABEL,
+    startDate: "2026-10-05",
+    endDate: "2026-10-06",
+    daysRequested: "2",
+  };
+  expect(validateLeaveValues(values, false)).toBe(
+    "Enter the jury summons reference"
+  );
+  expect(validateLeaveValues(values, true)).toBeNull();
+  const payload = buildLeaveRequestPayload(
+    { ...values, otherReason: " HC-2026/114 " },
+    "dept_met"
+  );
+  expect(payload.leave_type).toBe("JURY_DUTY");
+  expect(payload.reason).toBe("HC-2026/114");
 });

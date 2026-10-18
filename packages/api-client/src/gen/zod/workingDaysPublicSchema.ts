@@ -14,4 +14,6 @@ export const workingDaysPublicSchema = z.object({
   working_days: z.int(),
   method: workingDaysPublicPropertiesMethodEnumSchema,
   holidays: z.array(workingDayHolidaySchema),
+  suggested_extra_days: z.int().optional().default(0),
+  suggested_extra_days_note: z.union([z.string(), z.null()]).optional(),
 });

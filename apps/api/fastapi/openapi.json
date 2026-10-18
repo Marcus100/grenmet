@@ -7825,7 +7825,7 @@
           "hr-leave"
         ],
         "summary": "Working days between two dates",
-        "description": "Suggest the days requested for a leave range: the caller's published roster work shifts when it covers the whole range, otherwise Monday to Friday, excluding public holidays. Holidays from the provisional list are flagged. Requires leave.request.create.self.",
+        "description": "Suggest the days requested for a leave range: the caller's published roster work shifts when it covers the whole range, otherwise Monday to Friday, excluding public holidays. Holidays from the provisional list are flagged. For an annual vacation (leave_type=VACATION) it also returns a provisional suggested_extra_days count for holidays that fall on would-be working days; it is advice for HR and never posts to a balance. Requires leave.request.create.self.",
         "operationId": "hrGetWorkingDays",
         "security": [
           {
@@ -7856,6 +7856,24 @@
               "title": "End"
             },
             "description": "Last day of leave"
+          },
+          {
+            "name": "leave_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/LeaveType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Leave type; VACATION adds the provisional extra-day hint",
+              "title": "Leave Type"
+            },
+            "description": "Leave type; VACATION adds the provisional extra-day hint"
           }
         ],
         "responses": {
@@ -42357,6 +42375,7 @@
           "PROFESSIONAL_APPOINTMENT",
           "BEREAVEMENT",
           "WITHOUT_PAY",
+          "JURY_DUTY",
           "OTHER"
         ],
         "title": "LeaveType"
@@ -56654,6 +56673,22 @@
           "availability": {
             "$ref": "#/components/schemas/RosterAvailability",
             "default": "SCHEDULED"
+          },
+          "holiday_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holiday Name"
+          },
+          "holiday_provisional": {
+            "type": "boolean",
+            "title": "Holiday Provisional",
+            "default": false
           }
         },
         "type": "object",
@@ -56665,6 +56700,30 @@
           "roster_assignment_id"
         ],
         "title": "TimesheetPrefillEntry"
+      },
+      "TimesheetPrefillHoliday": {
+        "properties": {
+          "holiday_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Holiday Date"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional"
+          }
+        },
+        "type": "object",
+        "required": [
+          "holiday_date",
+          "name",
+          "provisional"
+        ],
+        "title": "TimesheetPrefillHoliday"
       },
       "TimesheetPrefillPublic": {
         "properties": {
@@ -56703,6 +56762,14 @@
             },
             "type": "array",
             "title": "Entries"
+          },
+          "holidays": {
+            "items": {
+              "$ref": "#/components/schemas/TimesheetPrefillHoliday"
+            },
+            "type": "array",
+            "title": "Holidays",
+            "default": []
           }
         },
         "type": "object",
@@ -60399,6 +60466,22 @@
             },
             "type": "array",
             "title": "Holidays"
+          },
+          "suggested_extra_days": {
+            "type": "integer",
+            "title": "Suggested Extra Days",
+            "default": 0
+          },
+          "suggested_extra_days_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Extra Days Note"
           }
         },
         "type": "object",

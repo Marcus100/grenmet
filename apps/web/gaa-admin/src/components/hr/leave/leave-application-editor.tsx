@@ -60,7 +60,7 @@ import {
   useProfileReference,
 } from "@/components/hr/use-editor-prefill";
 import { reportError } from "@/lib/report-error";
-import { EMPTY_LEAVE, LEAVE_TYPES } from "./leave-document";
+import { EMPTY_LEAVE, JURY_DUTY_LABEL, LEAVE_TYPES } from "./leave-document";
 
 /** Paper-form labels → API LeaveType values. */
 const LEAVE_TYPE_MAP: Record<string, LeaveType> = {
@@ -69,6 +69,7 @@ const LEAVE_TYPE_MAP: Record<string, LeaveType> = {
   "Professional Appointment": "PROFESSIONAL_APPOINTMENT",
   "Family Bereavement": "BEREAVEMENT",
   "Paternity Leave": "PATERNITY",
+  [JURY_DUTY_LABEL]: "JURY_DUTY",
   Other: "OTHER",
 };
 
@@ -86,6 +87,7 @@ const REVERSE_LEAVE_TYPE: Partial<Record<LeaveType, string>> = {
   PROFESSIONAL_APPOINTMENT: "Professional Appointment",
   BEREAVEMENT: "Family Bereavement",
   PATERNITY: "Paternity Leave",
+  JURY_DUTY: JURY_DUTY_LABEL,
   OTHER: "Other",
 };
 
@@ -103,7 +105,7 @@ export function buildLeaveRequestPayload(
     end_date: values.endDate,
     days_requested: values.daysRequested || undefined,
     reason:
-      values.leaveType === "Other"
+      values.leaveType === "Other" || values.leaveType === JURY_DUTY_LABEL
         ? values.otherReason.trim() || undefined
         : undefined,
     professional_appointment_subtype:
@@ -138,6 +140,13 @@ export function validateLeaveValues(
   }
   if (!asDraft && values.leaveType === "Other" && !values.otherReason.trim()) {
     return "State the reason for other leave";
+  }
+  if (
+    !asDraft &&
+    values.leaveType === JURY_DUTY_LABEL &&
+    !values.otherReason.trim()
+  ) {
+    return "Enter the jury summons reference";
   }
   if (
     !asDraft &&
@@ -250,6 +259,8 @@ export function DaysRequestedHints({
 }) {
   const requested = Number(days);
   const remaining = Number(balance);
+  const extraDays = workingDays?.suggested_extra_days ?? 0;
+  const plural = extraDays === 1 ? "" : "s";
   const showBalance =
     isVacation &&
     balance !== undefined &&
@@ -281,6 +292,11 @@ export function DaysRequestedHints({
             .join(", ")}.`}
         </SourceHint>
       ) : null}
+      {extraDays > 0 ? (
+        <SourceHint>
+          {`Policy (provisional): ${extraDays} public holiday${plural} inside this vacation — HR may grant ${extraDays} extra day${plural}. Nothing is added to your balance automatically.`}
+        </SourceHint>
+      ) : null}
       {showBalance ? (
         <SourceHint>
           {`Vacation balance after this request: ${remaining - requested} days (from your leave ledger).`}
@@ -308,8 +324,18 @@ export function LeaveApplicationEditor() {
   const startDate = useStore(form.store, (state) => state.values.startDate);
   const endDate = useStore(form.store, (state) => state.values.endDate);
   const rangeValid = Boolean(startDate && endDate && endDate >= startDate);
+  const leaveTypeLabel = useStore(
+    form.store,
+    (state) => state.values.leaveType
+  );
   const workingDaysQuery = useHrGetWorkingDays(
-    { query: { start: startDate, end: endDate } },
+    {
+      query: {
+        start: startDate,
+        end: endDate,
+        leave_type: LEAVE_TYPE_MAP[leaveTypeLabel],
+      },
+    },
     { query: { enabled: rangeValid } }
   );
   const suggestedDaysRef = useRef("");
@@ -709,7 +735,8 @@ export function LeaveApplicationEditor() {
                       </form.Field>
                     </div>
 
-                    {values.leaveType === "Other" ? (
+                    {values.leaveType === "Other" ||
+                    values.leaveType === JURY_DUTY_LABEL ? (
                       <form.Field name="otherReason">
                         {(field) => (
                           <Field className="gap-1">
@@ -717,7 +744,9 @@ export function LeaveApplicationEditor() {
                               className="text-xs"
                               htmlFor={field.name}
                             >
-                              Other — please state reason
+                              {values.leaveType === JURY_DUTY_LABEL
+                                ? "Jury summons reference (provisional leave type, HR to confirm)"
+                                : "Other — please state reason"}
                             </FieldLabel>
                             <Input
                               id={field.name}
