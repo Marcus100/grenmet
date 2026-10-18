@@ -477,7 +477,7 @@ hurricane/spice hosts; no legacy redirects are installed.
 | --- | --- | --- | --- |
 | Barrels homepage | Static | https://barrels.gd (Vercel; www redirects here) | Vercel preview deployments |
 | Auth | 3000 | https://auth.barrels.gd | https://auth.staging.barrels.gd |
-| GAA Admin | 3001 | https://admin.barrels.gd (moving to https://gms-admin.barrels.gd) | https://admin.staging.barrels.gd (also served at https://gms-admin.staging.barrels.gd) |
+| GAA Admin | 3001 | https://admin.barrels.gd (moving to https://gmsadmin.barrels.gd) | https://admin.staging.barrels.gd (also served at https://gmsadmin.staging.barrels.gd) |
 | Docs | 3002 | https://docs.barrels.gd | https://docs.staging.barrels.gd |
 | Weather | 3003 | https://weather.barrels.gd | https://weather.staging.barrels.gd |
 | Signal | 3004 | https://signal.barrels.gd | https://signal.staging.barrels.gd |

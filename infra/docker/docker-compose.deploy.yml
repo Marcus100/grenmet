@@ -460,12 +460,12 @@ services:
       - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
       - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
-      # gms-admin.* is the portal's new host (2026-10-18); a separate router keeps
+      # gmsadmin.* is the portal's new host (2026-10-18); a separate router keeps
       # its certificate independent, so a missing DNS record cannot break admin.*.
-      - "traefik.http.routers.web-gms-admin${ROUTER_SUFFIX}.rule=Host(`gms-admin.${BASE_DOMAIN}`)"
-      - "traefik.http.routers.web-gms-admin${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-gms-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.web-gms-admin${ROUTER_SUFFIX}.service=web-admin${ROUTER_SUFFIX}"
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.rule=Host(`gmsadmin.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.service=web-admin${ROUTER_SUFFIX}"
     networks:
       - grenmet
 

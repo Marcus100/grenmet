@@ -114,19 +114,20 @@ janitorial or transport; a separate Barrels Business app; microservices.
 ## Host move for the GAA staff portal
 
 Owner decision 2026-10-18: the GAA staff portal (`apps/web/gaa-admin`, code name
-unchanged) moves to `gms-admin.barrels.gd`, freeing `admin.barrels.gd` for the
+unchanged) moves to `gmsadmin.barrels.gd`, freeing `admin.barrels.gd` for the
 Barrels control plane (C1).
 
 1. **Done:** `docker-compose.deploy.yml` serves the portal on both `admin.*` and
-   `gms-admin.*` (separate Traefik router and certificate), and both origins are
+   `gmsadmin.*` (separate Traefik router and certificate), and both origins are
    in `BACKEND_CORS_ORIGINS`. The sign-in return-to allowlist already accepts any
    `.barrels.gd` subdomain.
-2. **Owner:** add Cloudflare DNS records for `gms-admin.staging.barrels.gd` and,
-   when production is approved, `gms-admin.barrels.gd`.
+2. **DNS:** nothing to add. Wildcard records (`*.staging.barrels.gd` to the
+   staging VM, `*.barrels.gd` to production) already resolve `gmsadmin.*`;
+   Traefik obtains the certificate on the first deploy that includes the router.
 3. **After DNS is verified on staging:** point `GAA_ADMIN_APP_URL` at
-   `gms-admin.*`, update the service catalogue origin, email links
+   `gmsadmin.*`, update the service catalogue origin, email links
    (`packages/email-templates/src/notification.tsx`) and docs, then redirect
-   `admin.*` to `gms-admin.*`.
+   `admin.*` to `gmsadmin.*`.
 4. **C1:** once the redirect has run for a while, `admin.*` routes to `apps/web/admin`.
 
 ## Known documentation conflicts to fix
