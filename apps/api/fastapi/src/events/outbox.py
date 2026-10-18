@@ -23,7 +23,7 @@ from src.organisations.models import Membership, MembershipRole, MembershipStatu
 from src.utils.datetime import utc_now
 
 from . import notifications
-from .models import Follow, Listing, Organiser, Outbox, Rsvp, SavedListing
+from .models import Follow, Listing, Order, Organiser, Outbox, Rsvp, SavedListing
 from .service.common import GRENADA
 
 logger = logging.getLogger(__name__)
@@ -32,12 +32,14 @@ PUBLISHED = "listing.published"
 CANCELLED = "listing.cancelled"
 POSTPONED = "listing.postponed"
 ORGANISER_APPROVED = "organiser.approved"
+TICKET_ISSUED = "ticket.issued"
 
 _EVENT_KEYS = {
     PUBLISHED: notifications.LISTING_PUBLISHED,
     CANCELLED: notifications.LISTING_CANCELLED,
     POSTPONED: notifications.LISTING_POSTPONED,
     ORGANISER_APPROVED: notifications.ORGANISER_APPROVED,
+    TICKET_ISSUED: notifications.TICKET_ISSUED,
 }
 
 MAX_ATTEMPTS = 6
@@ -151,6 +153,8 @@ async def _deliver(events: AsyncSession, platform: AsyncSession, row: Outbox) ->
             entity_id=row.entity_id,
             dedupe_key=row.dedupe_key,
         )
+    if row.kind == TICKET_ISSUED:
+        return await _deliver_tickets(events, platform, row)
     listing = await events.get(Listing, uuid.UUID(row.entity_id))
     if listing is None:
         return 0
@@ -169,6 +173,32 @@ async def _deliver(events: AsyncSession, platform: AsyncSession, row: Outbox) ->
         entity_id=row.entity_id,
         dedupe_key=row.dedupe_key,
         exclude=exclude,
+    )
+
+
+async def _deliver_tickets(
+    events: AsyncSession, platform: AsyncSession, row: Outbox
+) -> int:
+    order = await events.get(Order, uuid.UUID(row.entity_id))
+    if order is None:
+        return 0
+    listing = await events.get(Listing, order.listing_id)
+    if listing is None:
+        return 0
+    organiser = await events.get(Organiser, listing.organiser_id)
+    return await notification_service.notify(
+        platform,
+        event_key=_EVENT_KEYS[row.kind],
+        organisation_id=organiser.organisation_id if organiser else None,
+        recipients={order.user_id},
+        context={
+            "title": listing.title,
+            "count": row.payload.get("count", "1"),
+            "starts": _when(row.payload.get("starts_at")),
+        },
+        entity_type="order",
+        entity_id=row.entity_id,
+        dedupe_key=row.dedupe_key,
     )
 
 

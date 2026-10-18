@@ -7,11 +7,13 @@ import {
   eventsGetManagedOrganiser,
   eventsGetMyNetwork,
   eventsGetMyPlans,
+  eventsGetMyTicket,
   eventsGetOrganiser,
   eventsGetPerson,
   eventsGetThread,
   eventsListGroups,
   eventsListListings,
+  eventsListMyTickets,
   eventsListThreads,
   ResponseError,
 } from "@barrelsgd/api-client";
@@ -22,6 +24,8 @@ import type {
   Group,
   GroupDetail,
   ManagedEvent,
+  MyTicket,
+  MyTicketDetail,
   Network,
   Organiser,
   OrganiserOption,
@@ -39,6 +43,8 @@ import {
   toGroup,
   toGroupDetail,
   toManagedEvent,
+  toMyTicket,
+  toMyTicketDetail,
   toNetwork,
   toOrganiser,
   toPersonProfile,
@@ -239,4 +245,24 @@ export async function getListingActivity(
     }
     throw error;
   }
+}
+
+/** The signed-in member's tickets, soonest event first. */
+export async function getMyTickets(): Promise<MyTicket[]> {
+  const tickets = await eventsListMyTickets({
+    ...(await options()),
+  }).unwrap();
+  return tickets.map(toMyTicket);
+}
+
+export async function getMyTicket(
+  ticketId: string
+): Promise<MyTicketDetail | null> {
+  const ticket = await orNull(
+    eventsGetMyTicket({
+      ...(await options()),
+      path: { ticket_id: ticketId },
+    }).unwrap()
+  );
+  return ticket ? toMyTicketDetail(ticket) : null;
 }

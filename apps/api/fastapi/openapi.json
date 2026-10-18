@@ -23907,6 +23907,246 @@
         }
       }
     },
+    "/api/v1/events/listings/{slug}/orders": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Claim tickets",
+        "description": "Claim free or registration tickets as the signed-in member. Each tier has an allocation and a per-account limit; paid tiers are refused until online payment exists.",
+        "operationId": "eventsClaimTickets",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "409": {
+            "description": "Sold out, over the per-account limit, paid tier or ended"
+          }
+        }
+      }
+    },
+    "/api/v1/events/me/tickets": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List my tickets",
+        "description": "The member's tickets, soonest event first, including cancelled ones.",
+        "operationId": "eventsListMyTickets",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TicketSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Eventslistmytickets"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/me/tickets/{ticket_id}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get one of my tickets",
+        "description": "A ticket with the signed token to render as its QR code.",
+        "operationId": "eventsGetMyTicket",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Ticket Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v1/events/me/tickets/{ticket_id}/cancel": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Cancel my ticket",
+        "description": "Cancel an unused ticket before the event starts; the seat goes back on sale.",
+        "operationId": "eventsCancelMyTicket",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Ticket Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "409": {
+            "description": "Already cancelled or event started"
+          }
+        }
+      }
+    },
     "/api/v1/events/moderation/reports": {
       "get": {
         "tags": [
@@ -42008,6 +42248,87 @@
         ],
         "title": "OnboardingStatus"
       },
+      "OrderCreate": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemInput"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "OrderCreate"
+      },
+      "OrderItemInput": {
+        "properties": {
+          "tier_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tier Id"
+          },
+          "quantity": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Quantity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tier_id",
+          "quantity"
+        ],
+        "title": "OrderItemInput"
+      },
+      "OrderPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "listing_slug": {
+            "type": "string",
+            "title": "Listing Slug"
+          },
+          "total_minor": {
+            "type": "integer",
+            "title": "Total Minor"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/ListingCardPropertiesCurrencyEnum"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "tickets": {
+            "items": {
+              "$ref": "#/components/schemas/TicketSummary"
+            },
+            "type": "array",
+            "title": "Tickets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "listing_slug",
+          "total_minor",
+          "currency",
+          "created_at",
+          "tickets"
+        ],
+        "title": "OrderPublic"
+      },
       "OrganisationAdminDetail": {
         "properties": {
           "id": {
@@ -52410,8 +52731,177 @@
         ],
         "title": "ThreadSummary"
       },
+      "TicketDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TicketDetailPropertiesStatusEnum"
+          },
+          "tier_name": {
+            "type": "string",
+            "title": "Tier Name"
+          },
+          "listing_slug": {
+            "type": "string",
+            "title": "Listing Slug"
+          },
+          "listing_title": {
+            "type": "string",
+            "title": "Listing Title"
+          },
+          "venue": {
+            "type": "string",
+            "title": "Venue"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "can_cancel": {
+            "type": "boolean",
+            "title": "Can Cancel"
+          },
+          "admitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted At"
+          },
+          "qr_token": {
+            "type": "string",
+            "title": "Qr Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "status",
+          "tier_name",
+          "listing_slug",
+          "listing_title",
+          "venue",
+          "parish",
+          "starts_at",
+          "ends_at",
+          "can_cancel",
+          "qr_token"
+        ],
+        "title": "TicketDetail"
+      },
+      "TicketSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TicketDetailPropertiesStatusEnum"
+          },
+          "tier_name": {
+            "type": "string",
+            "title": "Tier Name"
+          },
+          "listing_slug": {
+            "type": "string",
+            "title": "Listing Slug"
+          },
+          "listing_title": {
+            "type": "string",
+            "title": "Listing Title"
+          },
+          "venue": {
+            "type": "string",
+            "title": "Venue"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "can_cancel": {
+            "type": "boolean",
+            "title": "Can Cancel"
+          },
+          "admitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "status",
+          "tier_name",
+          "listing_slug",
+          "listing_title",
+          "venue",
+          "parish",
+          "starts_at",
+          "ends_at",
+          "can_cancel"
+        ],
+        "title": "TicketSummary"
+      },
       "TierInput": {
         "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
           "name": {
             "type": "string",
             "maxLength": 60,
@@ -52432,6 +52922,13 @@
             "maximum": 1000000.0,
             "minimum": 0.0,
             "title": "Allocation"
+          },
+          "per_account_limit": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Per Account Limit",
+            "default": 4
           }
         },
         "type": "object",
@@ -52463,6 +52960,21 @@
           "allocation": {
             "type": "integer",
             "title": "Allocation"
+          },
+          "per_account_limit": {
+            "type": "integer",
+            "title": "Per Account Limit",
+            "default": 4
+          },
+          "remaining": {
+            "type": "integer",
+            "title": "Remaining",
+            "default": 0
+          },
+          "held": {
+            "type": "integer",
+            "title": "Held",
+            "default": 0
           }
         },
         "type": "object",
@@ -57026,6 +57538,13 @@
         "enum": [
           "direct",
           "group"
+        ]
+      },
+      "TicketDetailPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "valid",
+          "cancelled"
         ]
       },
       "TrainingRecordInputPropertiesResultEnum": {

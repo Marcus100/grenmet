@@ -126,6 +126,8 @@ class TicketTier(EventsModel):
     currency: Mapped[str] = mapped_column(Text, default="XCD")
     allocation: Mapped[int] = mapped_column(Integer, default=0)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    #: Most valid tickets one account may hold for this tier (E1).
+    per_account_limit: Mapped[int] = mapped_column(Integer, default=4)
 
 
 class Rsvp(EventsModel):
@@ -253,3 +255,40 @@ class Activity(EventsModel):
     actor_id: Mapped[uuid.UUID]
     summary: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class Order(EventsModel):
+    """A claim of tickets by one account (E1). Free and registration tiers only."""
+
+    __tablename__ = "orders"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
+    user_id: Mapped[uuid.UUID]
+    status: Mapped[str] = mapped_column(Text, default="confirmed")
+    total_minor: Mapped[int] = mapped_column(Integer, default=0)
+    currency: Mapped[str] = mapped_column(Text, default="XCD")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class OrderItem(EventsModel):
+    __tablename__ = "order_items"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("orders.id"))
+    tier_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ticket_tiers.id"))
+    quantity: Mapped[int] = mapped_column(Integer)
+    unit_price_minor: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class Ticket(EventsModel):
+    """One admission. ``code`` is opaque and random; it carries no personal data."""
+
+    __tablename__ = "tickets"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("orders.id"))
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
+    tier_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ticket_tiers.id"))
+    user_id: Mapped[uuid.UUID]
+    code: Mapped[str] = mapped_column(Text, unique=True)
+    status: Mapped[str] = mapped_column(Text, default="valid")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime)

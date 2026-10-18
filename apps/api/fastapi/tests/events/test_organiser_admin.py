@@ -83,11 +83,7 @@ async def test_managing_needs_the_permission_and_an_organiser_membership(
             {"ends_at": "2030-01-01T10:00:00Z", "starts_at": "2030-01-01T10:00:00Z"},
             "End time must be after the start time",
         ),
-        ({"tiers": []}, "Ticketed events need at least one priced tier"),
-        (
-            {"tiers": [{"name": "Free", "price_minor": 0, "allocation": 10}]},
-            "Ticketed events need at least one priced tier",
-        ),
+        ({"tiers": []}, "Ticketed events need at least one ticket tier"),
         ({"capacity": 100}, "Tier allocations exceed capacity"),
     ],
 )

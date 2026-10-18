@@ -428,6 +428,21 @@ that the worker turns into notifications; no endpoint is involved.
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.
 
+### Events tickets (E1)
+
+`POST /events/listings/{slug}/orders` (Events member, 20/minute) claims free or
+registration tickets: `{items: [{tier_id, quantity}]}`, 201 with the order and its
+tickets. 409 when a tier is sold out, the claim exceeds the tier's `per_account_limit`
+(set by the organiser on the tier, default 4, counted over the account's valid
+tickets), the tier is paid (online payment is not built yet) or the event ended.
+`TierPublic` carries `remaining` and the viewer's `held` count. `GET /events/me/tickets`
+lists the member's tickets; `GET /events/me/tickets/{id}` adds `qr_token`, a signed
+token (`BT1.<code>.<tag>`, no personal data) to render as the QR code;
+`POST /events/me/tickets/{id}/cancel` cancels an unused ticket before the event
+starts and puts the seat back on sale. `TierInput.id` updates an existing tier in
+place; tiers with tickets issued cannot be removed or shrunk below their valid tickets.
+Issuing tickets writes a `ticket.issued` outbox row for the buyer's notification.
+
 ## Pagination
 
 The standard helper is `src.pagination`:

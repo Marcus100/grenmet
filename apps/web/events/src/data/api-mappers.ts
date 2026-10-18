@@ -14,6 +14,8 @@ import type {
   OrganiserPublic,
   PlansPublic,
   ProfilePublic,
+  TicketDetail,
+  TicketSummary,
 } from "@barrelsgd/api-client";
 import type {
   Connection,
@@ -22,6 +24,8 @@ import type {
   GroupDetail,
   ManagedEvent,
   Message,
+  MyTicket,
+  MyTicketDetail,
   Network,
   Organiser,
   PersonChip,
@@ -113,7 +117,10 @@ export function toEventDetail(listing: ListingDetail): EventDetail {
       id: tier.id,
       name: tier.name,
       allocation: tier.allocation,
+      held: tier.held ?? 0,
+      perAccountLimit: tier.per_account_limit ?? 4,
       price: money(tier.price_minor, tier.currency),
+      remaining: tier.remaining ?? 0,
     })),
   };
 }
@@ -237,4 +244,25 @@ export function toThread(thread: ApiThreadDetail): ThreadDetail {
     participants: thread.participants.map(toPersonChip),
     messages: thread.messages.map(toMessage),
   };
+}
+
+export function toMyTicket(ticket: TicketSummary): MyTicket {
+  return {
+    id: ticket.id,
+    code: ticket.code,
+    status: ticket.status,
+    tierName: ticket.tier_name,
+    listingSlug: ticket.listing_slug,
+    listingTitle: ticket.listing_title,
+    venue: ticket.venue,
+    parish: ticket.parish,
+    startsAt: ticket.starts_at,
+    endsAt: ticket.ends_at,
+    canCancel: ticket.can_cancel,
+    admittedAt: ticket.admitted_at ?? null,
+  };
+}
+
+export function toMyTicketDetail(ticket: TicketDetail): MyTicketDetail {
+  return { ...toMyTicket(ticket), qrToken: ticket.qr_token };
 }

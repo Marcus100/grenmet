@@ -1514,6 +1514,31 @@ export type {
   EventsCancelListingRsvpStatus429,
 } from "./EventsCancelListingRsvp.js";
 export type {
+  EventsCancelMyTicketOptions,
+  EventsCancelMyTicketPath,
+  EventsCancelMyTicketResponse,
+  EventsCancelMyTicketResponses,
+  EventsCancelMyTicketStatus200,
+  EventsCancelMyTicketStatus401,
+  EventsCancelMyTicketStatus404,
+  EventsCancelMyTicketStatus409,
+  EventsCancelMyTicketStatus422,
+  EventsCancelMyTicketStatus429,
+} from "./EventsCancelMyTicket.js";
+export type {
+  EventsClaimTicketsBody,
+  EventsClaimTicketsOptions,
+  EventsClaimTicketsPath,
+  EventsClaimTicketsResponse,
+  EventsClaimTicketsResponses,
+  EventsClaimTicketsStatus201,
+  EventsClaimTicketsStatus401,
+  EventsClaimTicketsStatus404,
+  EventsClaimTicketsStatus409,
+  EventsClaimTicketsStatus422,
+  EventsClaimTicketsStatus429,
+} from "./EventsClaimTickets.js";
+export type {
   EventsCreateManagedListingBody,
   EventsCreateManagedListingOptions,
   EventsCreateManagedListingQuery,
@@ -1634,6 +1659,17 @@ export type {
   EventsGetMyProfileStatus429,
 } from "./EventsGetMyProfile.js";
 export type {
+  EventsGetMyTicketOptions,
+  EventsGetMyTicketPath,
+  EventsGetMyTicketResponse,
+  EventsGetMyTicketResponses,
+  EventsGetMyTicketStatus200,
+  EventsGetMyTicketStatus401,
+  EventsGetMyTicketStatus404,
+  EventsGetMyTicketStatus422,
+  EventsGetMyTicketStatus429,
+} from "./EventsGetMyTicket.js";
+export type {
   EventsGetOrganiserOptions,
   EventsGetOrganiserPath,
   EventsGetOrganiserResponse,
@@ -1705,6 +1741,16 @@ export type { EventsListListingsParametersSchemaAnyOfEnum } from "./EventsListLi
 export { eventsListListingsParametersSchemaAnyOfEnum } from "./EventsListListingsParametersSchemaAnyOfEnum.js";
 export type { EventsListListingsParametersSchemaAnyOfEnum2 } from "./EventsListListingsParametersSchemaAnyOfEnum2.js";
 export { eventsListListingsParametersSchemaAnyOfEnum2 } from "./EventsListListingsParametersSchemaAnyOfEnum2.js";
+export type {
+  EventsListMyTicketsOptions,
+  EventsListMyTicketsResponse,
+  EventsListMyTicketsResponses,
+  EventsListMyTicketsStatus200,
+  EventsListMyTicketsStatus401,
+  EventsListMyTicketsStatus404,
+  EventsListMyTicketsStatus422,
+  EventsListMyTicketsStatus429,
+} from "./EventsListMyTickets.js";
 export type {
   EventsListPendingOrganisersOptions,
   EventsListPendingOrganisersResponse,
@@ -4020,6 +4066,9 @@ export { observationSendPropertiesStatusEnum } from "./ObservationSendProperties
 export type { ObservationSendPropertiesTargetEnum } from "./ObservationSendPropertiesTargetEnum.js";
 export { observationSendPropertiesTargetEnum } from "./ObservationSendPropertiesTargetEnum.js";
 export type { OnboardingStatus } from "./OnboardingStatus.js";
+export type { OrderCreate } from "./OrderCreate.js";
+export type { OrderItemInput } from "./OrderItemInput.js";
+export type { OrderPublic } from "./OrderPublic.js";
 export type { OrganisationAdminDetail } from "./OrganisationAdminDetail.js";
 export type { OrganisationAdminListPublic } from "./OrganisationAdminListPublic.js";
 export type { OrganisationAdminPublic } from "./OrganisationAdminPublic.js";
@@ -4748,6 +4797,10 @@ export type { ThreadDetail } from "./ThreadDetail.js";
 export type { ThreadDetailPropertiesKindEnum } from "./ThreadDetailPropertiesKindEnum.js";
 export { threadDetailPropertiesKindEnum } from "./ThreadDetailPropertiesKindEnum.js";
 export type { ThreadSummary } from "./ThreadSummary.js";
+export type { TicketDetail } from "./TicketDetail.js";
+export type { TicketDetailPropertiesStatusEnum } from "./TicketDetailPropertiesStatusEnum.js";
+export { ticketDetailPropertiesStatusEnum } from "./TicketDetailPropertiesStatusEnum.js";
+export type { TicketSummary } from "./TicketSummary.js";
 export type { TierInput } from "./TierInput.js";
 export type { TierPublic } from "./TierPublic.js";
 export type { TimesheetCreate } from "./TimesheetCreate.js";

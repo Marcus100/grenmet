@@ -4,6 +4,8 @@ import {
   eventsAcceptConnection,
   eventsBlockMember,
   eventsCancelListingRsvp,
+  eventsCancelMyTicket,
+  eventsClaimTickets,
   eventsCreateManagedListing,
   eventsCreateReport,
   eventsCreateSuggestion,
@@ -90,6 +92,35 @@ export async function setGoing(slug: string, going: boolean) {
   return await run("events-rsvp", async (options) => {
     const request = going ? eventsRsvpListing : eventsCancelListingRsvp;
     await request({ ...options, path: { slug } });
+  });
+}
+
+/** Claims free or registration tickets; resolves to the number issued. */
+export async function claimTickets(
+  slug: string,
+  items: readonly { readonly quantity: number; readonly tierId: string }[]
+) {
+  return await run("events-tickets", async (options) => {
+    const order = await eventsClaimTickets({
+      ...options,
+      path: { slug },
+      body: {
+        items: items.map((item) => ({
+          tier_id: item.tierId,
+          quantity: item.quantity,
+        })),
+      },
+    }).unwrap();
+    return order.tickets.length;
+  });
+}
+
+export async function cancelTicket(ticketId: string) {
+  return await run("events-ticket-cancel", async (options) => {
+    await eventsCancelMyTicket({
+      ...options,
+      path: { ticket_id: ticketId },
+    });
   });
 }
 

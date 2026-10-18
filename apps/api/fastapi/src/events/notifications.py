@@ -10,6 +10,7 @@ LISTING_PUBLISHED = "events.listing_published"
 LISTING_CANCELLED = "events.listing_cancelled"
 LISTING_POSTPONED = "events.listing_postponed"
 ORGANISER_APPROVED = "events.organiser_approved"
+TICKET_ISSUED = "events.ticket_issued"
 
 
 def register() -> None:
@@ -57,6 +58,18 @@ def register() -> None:
             title="{{ organiser }} is verified",
             body="Barrels verified {{ organiser }}.",
             variables=("organiser",),
+            email_mutable=False,
+        )
+    )
+    events.register(
+        EventDef(
+            key=TICKET_ISSUED,
+            label="Tickets issued",
+            description="You claimed tickets for an event.",
+            audience="The member who claimed the tickets",
+            title="Your tickets: {{ title }}",
+            body="You have {{ count }} ticket(s) for {{ title }} on {{ starts }}. Open My tickets to show the QR code at the door.",
+            variables=("title", "count", "starts"),
             email_mutable=False,
         )
     )

@@ -6,7 +6,7 @@ import uuid
 from typing import Any, Literal
 
 from pydantic import TypeAdapter
-from sqlalchemy import and_, delete, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -21,9 +21,10 @@ from ..models import (
     Listing,
     Organiser,
     OrganiserMember,
+    Ticket,
     TicketTier,
 )
-from .common import _naive_utc
+from .common import _naive_utc, _pairs
 from .discover import (
     _cards,
     _group,
@@ -96,7 +97,7 @@ async def _managed(
         capacity=listing.capacity,
         organiser=await _organiser_public(db, organiser, user.id),
         group=(await _group_summaries(db, [group], user.id))[0] if group else None,
-        tiers=await _tiers(db, listing.id),
+        tiers=await _tiers(db, listing.id, user.id),
         status=_STATUS.validate_python(listing.status),
         visibility=_VISIBILITY.validate_python(listing.visibility),
     )
@@ -147,8 +148,8 @@ def _validate_listing(body: schemas.ListingUpsert) -> None:
     if body.ends_at <= body.starts_at:
         raise EventsConflict("End time must be after the start time")
     if body.admission == "ticketed":
-        if not body.tiers or any(tier.price_minor <= 0 for tier in body.tiers):
-            raise EventsConflict("Ticketed events need at least one priced tier")
+        if not body.tiers:
+            raise EventsConflict("Ticketed events need at least one ticket tier")
         if sum(tier.allocation for tier in body.tiers) > body.capacity:
             raise EventsConflict("Tier allocations exceed capacity")
 
@@ -186,15 +187,66 @@ async def _apply_listing(
     listing.updated_at = utc_now()
     db.add(listing)
     await db.flush()
-    await db.execute(delete(TicketTier).where(TicketTier.listing_id == listing.id))
-    db.add_all(
-        [
-            TicketTier(listing_id=listing.id, sort_order=index, **tier.model_dump())
-            for index, tier in enumerate(
-                body.tiers if body.admission == "ticketed" else []
-            )
-        ]
+    await _sync_tiers(db, listing, body.tiers if body.admission == "ticketed" else [])
+
+
+async def _sync_tiers(
+    db: AsyncSession, listing: Listing, wanted: list[schemas.TierInput]
+) -> None:
+    """Update tiers in place so issued tickets keep their tier.
+
+    A tier with any ticket cannot be removed, and its allocation cannot drop
+    below the tickets already valid.
+    """
+    existing = {
+        row.id: row
+        for row in await db.scalars(
+            select(TicketTier)
+            .where(TicketTier.listing_id == listing.id)
+            .with_for_update()
+        )
+    }
+    issued = _pairs(
+        await db.execute(
+            select(Ticket.tier_id, func.count())
+            .where(Ticket.listing_id == listing.id)
+            .group_by(Ticket.tier_id)
+        )
     )
+    valid = _pairs(
+        await db.execute(
+            select(Ticket.tier_id, func.count())
+            .where(Ticket.listing_id == listing.id, Ticket.status == "valid")
+            .group_by(Ticket.tier_id)
+        )
+    )
+    keep: set[uuid.UUID] = set()
+    for index, tier in enumerate(wanted):
+        row = None
+        if tier.id is not None:
+            row = existing.get(tier.id)
+            if row is None or tier.id in keep:
+                raise EventsConflict("Unknown ticket tier")
+        values = tier.model_dump(exclude={"id"})
+        if row is None:
+            db.add(TicketTier(listing_id=listing.id, sort_order=index, **values))
+            continue
+        if tier.allocation < valid.get(row.id, 0):
+            raise EventsConflict(
+                f"{row.name} already has {valid[row.id]} tickets; "
+                "allocation can't go below that"
+            )
+        keep.add(row.id)
+        row.sort_order = index
+        for key, value in values.items():
+            setattr(row, key, value)
+    for tier_id, row in existing.items():
+        if tier_id in keep:
+            continue
+        if issued.get(tier_id, 0):
+            raise EventsConflict(f"{row.name} has tickets issued and can't be removed")
+        await db.delete(row)
+    await db.flush()
 
 
 async def _snapshot(db: AsyncSession, listing: Listing) -> dict[str, Any]:

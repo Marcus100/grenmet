@@ -59,6 +59,7 @@ from .people import (
     my_profile,
     update_profile,
 )
+from .ticketing import cancel_ticket, claim_tickets, my_ticket, my_tickets
 
 __all__ = [
     "FRIDAY",
@@ -69,6 +70,10 @@ __all__ = [
     "accept_connection",
     "blocked_ids",
     "can_message",
+    "cancel_ticket",
+    "claim_tickets",
+    "my_ticket",
+    "my_tickets",
     "connection_state",
     "create_listing",
     "create_report",

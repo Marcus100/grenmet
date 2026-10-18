@@ -51,6 +51,12 @@ class TierPublic(BaseModel):
     price_minor: int
     currency: Literal["XCD", "USD"]
     allocation: int
+    #: Most valid tickets one account may hold for this tier.
+    per_account_limit: int = 4
+    #: Tickets still available (allocation minus valid tickets).
+    remaining: int = 0
+    #: Valid tickets the signed-in viewer holds for this tier (0 when signed out).
+    held: int = 0
 
 
 class ListingCard(BaseModel):
@@ -273,10 +279,14 @@ class ReportUpdate(BaseModel):
 
 
 class TierInput(BaseModel):
+    #: Existing tier to update in place; omit to add one. Tiers with tickets
+    #: issued keep their identity across saves.
+    id: uuid.UUID | None = None
     name: str = Field(min_length=1, max_length=60)
     price_minor: int = Field(ge=0, le=10_000_000)
     currency: Literal["XCD", "USD"] = "XCD"
     allocation: int = Field(ge=0, le=1_000_000)
+    per_account_limit: int = Field(default=4, ge=1, le=50)
 
 
 class ListingUpsert(BaseModel):
@@ -336,3 +346,44 @@ class ActivityEntry(BaseModel):
     actor_name: str | None = None
     summary: dict[str, object]
     created_at: UtcDateTime
+
+
+class OrderItemInput(BaseModel):
+    tier_id: uuid.UUID
+    quantity: int = Field(ge=1, le=50)
+
+
+class OrderCreate(BaseModel):
+    items: list[OrderItemInput] = Field(min_length=1, max_length=10)
+
+
+class TicketSummary(BaseModel):
+    id: uuid.UUID
+    #: Opaque code printed under the QR, for manual entry at the door.
+    code: str
+    status: Literal["valid", "cancelled"]
+    tier_name: str
+    listing_slug: str
+    listing_title: str
+    venue: str
+    parish: Parish
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+    #: Valid, the event has not started and the holder has not been admitted.
+    can_cancel: bool
+    #: Set once door staff admit the ticket.
+    admitted_at: UtcDateTime | None = None
+
+
+class TicketDetail(TicketSummary):
+    #: Signed token to render as the ticket's QR code. Carries no personal data.
+    qr_token: str
+
+
+class OrderPublic(BaseModel):
+    id: uuid.UUID
+    listing_slug: str
+    total_minor: int
+    currency: Literal["XCD", "USD"]
+    created_at: UtcDateTime
+    tickets: list[TicketSummary]
