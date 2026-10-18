@@ -91,20 +91,54 @@ by adding tests that merely repeat the implementation.
 
 ## Coverage floors
 
-Line and branch coverage floors for the API and for each web app that has the v8
-provider (`auth`, `gaa-admin`, `gms`, `mbia`, `signal`) live in
-`scripts/guardrails/coverage-baseline.json`. `pnpm coverage:check` compares the
-latest reports (`apps/web/<app>/coverage/coverage-summary.json` from
-`vitest run --coverage --coverage.reporter=json-summary`, and
-`apps/api/fastapi/coverage.xml` from the backend suite) with those floors and
-fails when one falls below. Apps without a report are skipped, so a partial run
-still checks what it measured.
+Line and branch floors live in `scripts/guardrails/coverage-baseline.json`:
+the API and five web apps (`auth`, `gaa-admin`, `gms`, `mbia`, `signal`).
+Current floors (lines / branches): API 89 / 74; auth 79 / 71; gaa-admin 64.8 /
+63.7; gms 90 / 79; mbia 23 / 38; signal 64 / 55. Measured values and their
+source are in [quality-score](quality-score.md).
 
-Floors only rise. `pnpm coverage:check -- --write` raises a floor to the measured
-value minus a 0.5 point noise margin and never lowers one. The baseline is a
-high-risk path in `scripts/guardrails/risk-tier.mjs`, so lowering a floor always
-needs a human review and a stated reason. `cms`, `elections`, `events` and `docs`
-have no coverage provider yet; adding one is a separate change.
+Where each floor is enforced:
+
+- **API, in CI.** `ci-api.yml` runs the backend suite with pytest-cov
+  (`scripts/verification/backend.sh`, which writes `apps/api/fastapi/coverage.xml`)
+  and then `node scripts/guardrails/check-coverage.mjs --only api`. A drop below the
+  floor fails the job. Coverage is branch-aware (`branch = true` in
+  `apps/api/fastapi/pyproject.toml`); the floor check uses the Cobertura line and
+  branch rates, so no separate `fail_under` is set in pyproject.
+- **Web, locally.** Each of the five apps sets `coverage.thresholds` in its
+  `vitest.config.ts`, so `pnpm --filter <app> test:coverage` (or `vitest run --coverage`)
+  fails below the floor. `pnpm coverage:check` then compares the
+  `coverage/coverage-summary.json` reports with the baseline. Apps without a report
+  are skipped. **Web CI does not run coverage today**: the TypeScript Tests job
+  runs `pnpm test` without it, so web floors do not gate a PR yet (issue #363
+  stays open for this). Adding a coverage run there is a runtime decision to make
+  with measured CI timings first.
+
+Raising a floor (floors only rise; lowering one needs a human review and a stated
+reason, because `coverage-baseline.json` is a high-risk path in `risk-tier.mjs`):
+
+1. Measure. API: the backend suite in CI or `scripts/verification/backend.sh` on a
+   disposable Postgres. Web: `pnpm --filter <app> test:coverage`. Use the run's
+   reported line and branch percentages.
+2. Set the new value to the measured percentage rounded down to a whole number,
+   and never below the current floor. Put it in `coverage-baseline.json` and in
+   that app's `coverage.thresholds` (web only). The two places are not generated
+   from each other, so change both together. `pnpm coverage:check -- --write`
+   also raises the baseline, but it uses measured minus 0.5 and does not touch the
+   vitest thresholds.
+3. Run `pnpm coverage:check` and `pnpm test:guardrails`, then update the figures in
+   quality-score.md.
+
+Thresholds are only as honest as the measurement. The web figures on 2026-10-18
+were measured on the default coverage scope of each app (files the suite loads),
+except mbia and signal, which use `src/**` as configured. Keep the scope
+unchanged when raising a floor; changing it moves the number. gaa-admin's floor was
+not re-measured on 2026-10-18 because a full coverage run there took about 41
+minutes locally and hit a 30 s test timeout under instrumentation, so its floor
+stays at the committed value.
+
+`cms`, `elections`, `events` and `docs` have no coverage provider yet; adding one is
+a separate change.
 
 ## Current gaps and follow-up
 
