@@ -16242,7 +16242,7 @@
           "contact"
         ],
         "summary": "Send a website contact message",
-        "description": "Public contact form. Stores the message and emails it to the site's configured inbox. Accepts an optional Turnstile token (not yet verified).",
+        "description": "Public contact form. Stores the message and emails it to the site's configured inbox. Verifies the Turnstile token when enforcement is enabled.",
         "operationId": "contactSendContactMessage",
         "requestBody": {
           "content": {
@@ -16287,7 +16287,7 @@
           "contact"
         ],
         "summary": "Send a climate data request",
-        "description": "Public GMS climate data request form. Stores the request, emails it to the configured inbox and sends the requester a confirmation.",
+        "description": "Public GMS climate data request form. Stores the request, emails it to the configured inbox and sends the requester a confirmation. Verifies the Turnstile token when enforcement is enabled.",
         "operationId": "contactSendDataRequest",
         "requestBody": {
           "content": {
@@ -46181,6 +46181,18 @@
               }
             ],
             "title": "Comment"
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
           }
         },
         "type": "object",
@@ -54497,6 +54509,18 @@
             "maxLength": 254,
             "format": "email",
             "title": "Email"
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
           }
         },
         "type": "object",

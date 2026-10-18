@@ -54,7 +54,7 @@ become delivery channels in that domain, not separate notification systems.
 | Gap | Evidence | Why it matters |
 | --- | --- | --- |
 | Signal subscriptions (closed on dev) | `src/subscriptions` (double opt-in, signed confirm and unsubscribe links, per-list keys); Signal's `/api/subscribe` proxies to it. No reader-facing form exists yet, by design | Remaining: a sign-up form in the reader, and sending broadcasts to confirmed subscribers |
-| MBIA contact delivery (closed on dev) | `src/contact` stores each message and queues one email to `MBIA_CONTACT_RECIPIENT`; MBIA's `/api/contact` proxies to it | Remaining: set the recipient per environment and verify Turnstile (`contact.service.verify_turnstile` is the seam) |
+| MBIA contact delivery (closed on dev) | `src/contact` stores each message and queues one email to `MBIA_CONTACT_RECIPIENT`; MBIA's `/api/contact` proxies to it | Remaining: set the recipient per environment and set `TURNSTILE_*` (`src/turnstile.py`) |
 | Resend feedback (closed on dev) | Webhook writes hard bounces and complaints to `email_suppression`; complaints also unsubscribe list members; non-transactional outbox mail skips suppressed addresses | Remaining: the staff notification mailer does not check the list (transactional by decision) |
 | Stripe settlement unproven | `billing` checkout and webhook groundwork; no reconciliation loop | Pay/Invoice and Events depend on it |
 | NHC collection not scheduled end to end | Ingestion and operator APIs exist; no accepted periodic service | Operational acceptance before relying on it |

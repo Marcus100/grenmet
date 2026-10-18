@@ -13,4 +13,5 @@ export const subscribeRequestSchema = z.object({
     .regex(/^[a-z0-9-]+$/)
     .describe("Mailing list key, e.g. 'signal'."),
   email: z.email().max(254),
+  turnstile_token: z.union([z.string().max(2048), z.null()]).optional(),
 });

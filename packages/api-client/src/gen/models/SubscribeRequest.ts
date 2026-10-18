@@ -19,4 +19,5 @@ export type SubscribeRequest = {
    * @type string
    */
   email: string;
+  turnstile_token?: string | null;
 };

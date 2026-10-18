@@ -17,4 +17,5 @@ export type PageFeedbackCreate = {
   page_path: string;
   helpful: boolean;
   comment?: string | null;
+  turnstile_token?: string | null;
 };

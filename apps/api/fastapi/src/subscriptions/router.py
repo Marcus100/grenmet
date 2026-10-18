@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse
 from src.dependencies import SessionDep
 from src.openapi_responses import BAD_REQUEST
 from src.rate_limit import limiter
+from src.turnstile import require_turnstile
 
 from . import service
 from .schemas import SubscribeAccepted, SubscribeRequest
@@ -27,7 +28,7 @@ router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 async def subscribe(
     *, request: Request, session: SessionDep, body: SubscribeRequest
 ) -> SubscribeAccepted:
-    _ = request
+    await require_turnstile(request, body.turnstile_token)
     await service.subscribe(
         session=session, list_key=body.list_key, email=str(body.email)
     )
