@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed. Records direction only; each domain below requires its own approval,
+Proposed (tenancy accepted 2026-10-18 in [ADR-0022](0022-platform-organisations-and-memberships.md)). Records direction only; each domain below requires its own approval,
 migration review, and contract update before implementation.
 
 ## Context

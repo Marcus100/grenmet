@@ -27,6 +27,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0019](0019-workspace-toolchain-baseline.md) | Workspace toolchain baseline |
 | [0020](0020-feature-flags-with-success-metrics.md) | Proposed: feature flags with success metrics |
 | [0021](0021-timed-recovery-drill.md) | Accepted: monthly timed recovery drill (built, not yet run; API start phase pending) |
+| [0022](0022-platform-organisations-and-memberships.md) | Accepted: platform organisations and memberships (bridge A, workspaces deferred) |
 
 ## Template
 
