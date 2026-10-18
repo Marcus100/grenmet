@@ -1,8 +1,8 @@
 import { PageHeader } from "@/components/page-header";
 import { Checklist } from "@/components/pages/checklist";
+import { DataRequestForm } from "@/components/pages/data-request-form";
 import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
-import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
 
 export const metadata = {
@@ -18,7 +18,6 @@ export default function DataRequestPage() {
         description="Ask for climate data for research or business."
         title="Climate data request"
       />
-      <PlaceholderNotice product="The online request form" />
       <PageSection heading="What to include in a request">
         <Checklist
           items={[
@@ -58,12 +57,8 @@ export default function DataRequestPage() {
           ]}
         />
       </PageSection>
-      <PageSection heading="How to submit">
-        <Prose
-          paragraphs={[
-            "An online request form is being prepared. Until it is available, send requests through general enquiries with the details listed above.",
-          ]}
-        />
+      <PageSection heading="Send a request">
+        <DataRequestForm />
       </PageSection>
     </>
   );
