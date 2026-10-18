@@ -80,9 +80,12 @@ SUNSHINE_REPORT_HOURS = (SYNOP_NOON_HOUR,)
 SUNSHINE_MAX_TENTHS = 240
 SUNSHINE_DIGITS = 3
 # Groups 58P24P24P24 (rise or zero) and 59P24P24P24 (fall), tenths of hPa. The
-# keyed field is j1 (0 rise, 1 fall) then P24P24P24, which selects 58 or 59.
-PRESSURE_24H_RISE_SIGN = "0"
-PRESSURE_24H_FALL_SIGN = "1"
+# keyed field is j1 (8 rise or zero, 9 fall) then P24P24P24: the printed 5 and
+# the keyed j1 read 58 or 59 (WMO-No. 306 FM 12; paper register columns 43-44).
+PRESSURE_24H_RISE_SIGN = "8"
+PRESSURE_24H_FALL_SIGN = "9"
+# Rows keyed briefly with 0 (rise) or 1 (fall) are still read, with a warning.
+PRESSURE_24H_LEGACY_SIGNS = {"0": PRESSURE_24H_RISE_SIGN, "1": PRESSURE_24H_FALL_SIGN}
 # A 24 h pressure change beyond 40 hPa is unheard of away from a tropical
 # cyclone core: probably a keying slip.
 PRESSURE_24H_PLAUSIBLE_TENTHS = 400
@@ -663,16 +666,26 @@ def _check_pressure_change_24h(c: _Checker) -> float | None:
         c.add(
             field,
             "invalid_format",
-            "24 h pressure change must be four digits: sign j1 (0 rise, 1 fall) then "
-            "P24P24P24 in tenths of hPa (groups 58 and 59).",
+            "24 h pressure change must be four digits: j1 (8 rise or zero, 9 fall) "
+            "then P24P24P24 in tenths of hPa (groups 58 and 59).",
         )
         return None
     sign, tenths = change[0], int(change[1:])
+    if sign in PRESSURE_24H_LEGACY_SIGNS:
+        c.add(
+            field,
+            "legacy_sign",
+            f"24 h pressure change j1 {sign} is read as {PRESSURE_24H_LEGACY_SIGNS[sign]}"
+            ": the register keys j1 as 8 (rise or zero, group 58) or 9 (fall, "
+            "group 59). Rekey it.",
+            "warning",
+        )
+        sign = PRESSURE_24H_LEGACY_SIGNS[sign]
     if sign not in (PRESSURE_24H_RISE_SIGN, PRESSURE_24H_FALL_SIGN):
         c.add(
             field,
             "invalid_sign",
-            "24 h pressure change sign j1 is 0 (rise or zero, group 58) or 1 "
+            "24 h pressure change j1 is 8 (rise or zero, group 58) or 9 "
             "(fall, group 59).",
         )
         return None
@@ -680,7 +693,7 @@ def _check_pressure_change_24h(c: _Checker) -> float | None:
         c.add(
             field,
             "negative_zero",
-            "A 24 h change of 0.0 is group 58 (sign 0), never group 59.",
+            "A 24 h change of 0.0 is group 58 (j1 8), never group 59.",
             "warning",
         )
     if tenths > PRESSURE_24H_PLAUSIBLE_TENTHS:

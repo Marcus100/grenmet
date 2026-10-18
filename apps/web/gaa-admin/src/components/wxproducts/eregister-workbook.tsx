@@ -211,7 +211,7 @@ export function ERegisterWorkbook({
             }}
             placeholder={
               !upper && column.signed?.role === "sign"
-                ? `${column.signed.prefix}0`
+                ? `${column.signed.prefix}${column.signed.example ?? "0"}`
                 : undefined
             }
             value={

@@ -42,7 +42,7 @@ to SI).
 | 8NhCLCMCH | Nh not above N; N=0 or Nh=0 forces CL/CM (and CH when N=0) to 0; N=9 reports Nh 9 | Covered |
 | 333 0CsDLDMDH | Code ranges | Covered |
 | 1snTxTxTx, 2snTnTnTn | Max not below min; air temperature at the report time outside [Tn, Tx]: warning; reported at 00/06/12/18 UTC (`TXTN_REPORT_HOURS`): warning at other hours | Covered as advice. The exact RA IV period and hours are not confirmed (see below) |
-| 58P24P24P24, 59P24P24P24 | Keyed as j1 (0 rise or zero, 1 fall) + P24P24P24 in tenths; the TAC emits `58` or `59`; j1 other than 0/1 is an error; sign 1 with 000 and changes above 40 hPa: warning; decoded to Pa with sign | Covered |
+| 58P24P24P24, 59P24P24P24 | Keyed as j1 (8 rise or zero, 9 fall) + P24P24P24 in tenths; the TAC emits `58` or `59`; j1 other than 8/9 is an error (legacy 0/1 are read as 8/9 with a `legacy_sign` warning); 9 with 000 and changes above 40 hPa: warning; decoded to Pa with sign | Covered. Confirmed by the paper register and WMO-No. 306 (see below) |
 | 55SSS | Field `s3_sunshine_24h`: three digits, hours and tenths, at most 240 (24.0 h) is an error; reported at 12 UTC (`SUNSHINE_REPORT_HOURS`): warning elsewhere; decoded to hours | Covered. The regional reporting hour is not confirmed |
 | 3Ejjj | Fields `s3_ground_state` (E, Code table 0901, 0-9) and `s3_ground_jjj` (three digits, regional use): jjj without E warns; E 4 (frozen) or 5 (glaze) with air above 5 C warns; E goes to the CSV `ground_state` | Covered. jjj content (for example snTgTg) is passed through, not decoded |
 | 9SpSpspsp | Field `s3_special_phenomena`, space separated: each group is five digits starting with 9 (error otherwise); 910ff and 911ff gusts (both accepted), 960ww accepted; gust below mean, duplicate group and a gust also keyed in the gust field warn; other 9SpSp groups pass through with a warning | Covered for the common groups |
@@ -70,11 +70,39 @@ line by line:
   the 24 h rainfall (`SUNSHINE_REPORT_HOURS`). Warning only.
 - *Gust group.* The workbook gust field is encoded as `910ff` (past 10 minutes).
   Whether observers mean `910ff` or `911ff` (highest gust since the previous
-  main observation) is unconfirmed; both are accepted in `s3_special_phenomena`.
-- *58/59.* The paper register keys `5 j1 P24`; this is read as j1 0 = group 58
-  and j1 1 = group 59. The TAC used to emit `5j1PPP`, which is not a FM 12
-  group; it now emits `58PPP` / `59PPP`.
+  main observation) was unconfirmed. The paper register settles it: see
+  "Confirmed by the paper register" below. Both stay accepted in
+  `s3_special_phenomena`.
 - *3Ejjj.* jjj is regional use; only its shape is checked.
+
+**Confirmed by the paper register (GMS photographs, columns 43-44, 45-46, 33-38,
+47-62 and 63) and WMO-No. 306 Vol. I.1.**
+
+- *58/59.* Columns 43-44 are headed `5j1` + `P24P24P24`. The `5` is printed;
+  the observer keys j1 as 8 or 9. WMO-No. 306 FM 12 defines `58p24p24p24`
+  (positive or zero 24 h change) and `59p24p24p24` (negative change). Real
+  entries: `58 004` (+0.4 hPa), `59 011` (-1.1 hPa), `59 010` (-1.0 hPa). The
+  stored value is j1 + P24 (`8004`, `9011`); the TAC emits `58004` / `59011`.
+  An earlier reading of j1 as 0/1 was wrong; rows saved with 0/1 still encode
+  (0 as 58, 1 as 59) but warn to rekey as 8/9. The 1Sn / 2Sn temperature
+  groups are different: their sign digit really is 0 or 1.
+- *Gust.* The register records the gust only as the METAR-style `fmfm` above
+  `ff` in Section 1, column 11 (the 10-minute gust). Section 3 has no 910/911
+  column (column 63 is `9SpSpspsp` special phenomena). So the SYNOP gust goes
+  out as `910ff`: 910ff is confirmed by the register. 911ff stays accepted
+  when keyed in special phenomena.
+- *Groups the register does not carry.* There are no 55SSS (sunshine) and no
+  3Ejjj (ground state) columns, so those optional groups are unused by GMS
+  today; the API still accepts `s3_sunshine_24h`, `s3_ground_state` and
+  `s3_ground_jjj`.
+- *Groups the register does carry.* `333 0CsDLDMDH` (columns 33-38), `1snTxTxTx`
+  / `2snTnTnTn` at 12 UTC (39-42), `7R24R24R24R24` (45-46, for example `7 9999`
+  for a trace), four `8NsChshs` layers (47-62) and 9-groups for special
+  phenomena (63).
+- *Layout coverage.* `eregister-layout.ts` has a column for each of the groups
+  above (including the 5j1 sign cell hinted as `58`). Missing from the layout:
+  `s3_sunshine_24h`, `s3_ground_state`, `s3_ground_jjj` and `s5_national`, none
+  of which the register prints.
 
 The paper-register layout (`eregister-layout.ts`) does not have columns for the
 new fields yet (`s3_sunshine_24h`, `s3_ground_state`, `s3_ground_jjj`,
@@ -170,8 +198,7 @@ those groups in section order: `AAXX YYGGiw IIiii iRixhVV Nddff [00fff] 1snTTT
 with `0CsDLDMDH 1snTxTxTx 2snTnTnTn 5j1P24 7R24 8NsChshs 910ff [00fff]`, ending
 `=`. Absent groups are omitted, missing elements inside a kept group are `/`,
 an identification-only report is `AAXX YYGGiw IIiii NIL=`. Assumptions to
-confirm with the observers: the gust is sent as `910ff` (past 10 minutes), and
-remarks are not encoded (the email shows the notes). Supplementary 9-groups and section 5 (`555 ...`) are appended as keyed.
+confirm with the observers: remarks are not encoded (the email shows the notes). Supplementary 9-groups and section 5 (`555 ...`) are appended as keyed.
 
 **wis2box CSV.** wis2box runs csv2bufr with the vendored template
 `Surface-RA-IV-100` (`scripts/wis2-setup/`), the same columns SURFACE publishes

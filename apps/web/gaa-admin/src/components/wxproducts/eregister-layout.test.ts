@@ -76,3 +76,8 @@ it("numbers the columns like the paper register, 1 to 65", () => {
   );
   expect(missing).toEqual([17]);
 });
+
+it("hints the 24 h pressure change j1 as 8 in the sign cell placeholder", () => {
+  expect(find("s3_baro_change_24h:sign").signed?.example).toBe("8");
+  expect(find("air_temp:sign").signed?.example).toBe("0");
+});

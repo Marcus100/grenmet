@@ -26,6 +26,10 @@ from .schemas import SynopDecoded, SynopWorkbook
 LOWEST_CLOUD_BASE_M = (0, 50, 100, 200, 300, 600, 1000, 1500, 2000, 2500)
 FFF_MIN = 99
 STATION_TYPE_MANNED = 1
+# 24 h pressure change j1: 8 rise or zero (58), 9 fall (59); validation warns on
+# the legacy 0 / 1 keying, which is still encoded the same way.
+PRESSURE_24H_RISE_SIGNS = "80"
+PRESSURE_24H_FALL_SIGNS = "91"
 
 WIS2_COLUMNS = (
     "wsi_series,wsi_issuer,wsi_issue_number,wsi_local,wmo_block_number,"
@@ -224,9 +228,13 @@ def _section3(workbook: SynopWorkbook) -> list[str]:
 
 def _pressure_change_group(value: str) -> str | None:
     """58P24P24P24 (rise or zero) or 59P24P24P24 (fall) from the keyed j1 + P24."""
-    if len(value) != FOUR_DIGIT_GROUP or not value.isdigit() or value[0] not in "01":
+    if len(value) != FOUR_DIGIT_GROUP or not value.isdigit():
         return None
-    return f"{'59' if value[0] == '1' else '58'}{value[1:]}"
+    if value[0] in PRESSURE_24H_FALL_SIGNS:
+        return f"59{value[1:]}"
+    if value[0] in PRESSURE_24H_RISE_SIGNS:
+        return f"58{value[1:]}"
+    return None
 
 
 def _section5(workbook: SynopWorkbook) -> list[str]:
@@ -283,10 +291,14 @@ def _int_field(workbook: SynopWorkbook, field: str) -> str:
 
 
 def _signed_pascals(value: str) -> float | None:
-    """24 h pressure change 'j1 P24P24P24' (tenths of hPa, j1 1 = fall) in Pa."""
+    """24 h pressure change 'j1 P24P24P24' (tenths of hPa, j1 9 = fall) in Pa."""
     if len(value) != FOUR_DIGIT_GROUP or not value.isdigit():
         return None
-    return (-1 if value[0] == "1" else 1) * int(value[1:]) * 10.0
+    if value[0] in PRESSURE_24H_FALL_SIGNS:
+        return -int(value[1:]) * 10.0
+    if value[0] in PRESSURE_24H_RISE_SIGNS:
+        return int(value[1:]) * 10.0
+    return None
 
 
 def _gust_column(decoded: SynopDecoded) -> str:

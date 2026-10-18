@@ -460,12 +460,14 @@ def test_non_synoptic_hour_is_advised() -> None:
 
 
 def test_24h_pressure_change_group_is_j1_and_three_digits() -> None:
-    issues, _ = check(s3_baro_change_24h="0012")
+    issues, _ = check(s3_baro_change_24h="8012")
     assert "error:s3_baro_change_24h" not in issues
+    assert "warning:s3_baro_change_24h" not in issues
     issues, _ = check(s3_baro_change_24h="012")
     assert issues["error:s3_baro_change_24h"] == "invalid_format"
-    issues, _ = check(s3_baro_change_24h="5012")
-    assert issues["error:s3_baro_change_24h"] == "invalid_sign"
+    for bad in ("2012", "5012", "7012"):
+        issues, _ = check(s3_baro_change_24h=bad)
+        assert issues["error:s3_baro_change_24h"] == "invalid_sign"
 
 
 # --- remaining section 3 and section 5 rules (conformance checklist) --------------
@@ -476,20 +478,40 @@ def tac(**changes: str) -> str:
 
 
 def test_pressure_change_24h_selects_group_58_or_59_and_decodes_the_sign() -> None:
-    _, rise = check(s3_baro_change_24h="0035")
-    _, fall = check(s3_baro_change_24h="1035")
+    _, rise = check(s3_baro_change_24h="8035")
+    _, fall = check(s3_baro_change_24h="9035")
     assert rise.pressure_change_24h_pa == 350
+    assert fall.pressure_change_24h_pa == -350
+    assert tac(s3_baro_change_24h="8035").endswith("58035=")
+    assert tac(s3_baro_change_24h="9035").endswith("59035=")
+
+
+def test_pressure_change_24h_register_entries_encode_as_groups_58_and_59() -> None:
+    # Paper register columns 43-44: "58 004", "59 011", "59 010".
+    for keyed, group in (("8004", "58004"), ("9011", "59011"), ("9010", "59010")):
+        assert tac(s3_baro_change_24h=keyed).endswith(f"{group}=")
+    _, fall = check(s3_baro_change_24h="9011")
+    assert fall.pressure_change_24h_pa == -110
+
+
+def test_pressure_change_24h_legacy_0_and_1_still_encode_with_a_warning() -> None:
+    issues, rise = check(s3_baro_change_24h="0035")
+    assert issues["warning:s3_baro_change_24h"] == "legacy_sign"
+    assert "error:s3_baro_change_24h" not in issues
+    assert rise.pressure_change_24h_pa == 350
+    issues, fall = check(s3_baro_change_24h="1035")
+    assert issues["warning:s3_baro_change_24h"] == "legacy_sign"
     assert fall.pressure_change_24h_pa == -350
     assert tac(s3_baro_change_24h="0035").endswith("58035=")
     assert tac(s3_baro_change_24h="1035").endswith("59035=")
 
 
 def test_pressure_change_24h_negative_zero_and_implausible_values_warn() -> None:
-    issues, _ = check(s3_baro_change_24h="1000")
+    issues, _ = check(s3_baro_change_24h="9000")
     assert issues["warning:s3_baro_change_24h"] == "negative_zero"
-    issues, _ = check(s3_baro_change_24h="0450")
+    issues, _ = check(s3_baro_change_24h="8450")
     assert issues["warning:s3_baro_change_24h"] == "implausible_change"
-    issues, _ = check(s3_baro_change_24h="0400")
+    issues, _ = check(s3_baro_change_24h="8400")
     assert "warning:s3_baro_change_24h" not in issues
 
 
@@ -597,7 +619,7 @@ def test_tac_orders_the_new_section_3_groups() -> None:
         s3_ground_state="2",
         s3_ground_jjj="012",
         s3_sunshine_24h="087",
-        s3_baro_change_24h="1015",
+        s3_baro_change_24h="9015",
         s3_special_phenomena="91125 96017",
     )
     assert "333 10310 32012 55087 59015 91125 96017=" in message
