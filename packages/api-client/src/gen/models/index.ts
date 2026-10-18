@@ -6,7 +6,11 @@ export type { AbsenteeReportPublic } from "./AbsenteeReportPublic.js";
 export type { AbsenteeReportSubmit } from "./AbsenteeReportSubmit.js";
 export type { AccessBlocker } from "./AccessBlocker.js";
 export { accessBlocker } from "./AccessBlocker.js";
+export type { AccessRequestCreate } from "./AccessRequestCreate.js";
+export type { AccessRequestDecide } from "./AccessRequestDecide.js";
+export type { AccessRequestPublic } from "./AccessRequestPublic.js";
 export type { AccessReviewData } from "./AccessReviewData.js";
+export type { AccessStatusPublic } from "./AccessStatusPublic.js";
 export type { AccountAppPublic } from "./AccountAppPublic.js";
 export type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
 export type { AccountSessionRequest } from "./AccountSessionRequest.js";
@@ -2316,6 +2320,9 @@ export type { GroupMemberPublic } from "./GroupMemberPublic.js";
 export type { GroupMemberPublicPropertiesRoleEnum } from "./GroupMemberPublicPropertiesRoleEnum.js";
 export { groupMemberPublicPropertiesRoleEnum } from "./GroupMemberPublicPropertiesRoleEnum.js";
 export type { GroupSummary } from "./GroupSummary.js";
+export type { GuidanceCatalogue } from "./GuidanceCatalogue.js";
+export type { GuidanceDecision } from "./GuidanceDecision.js";
+export { guidanceDecision } from "./GuidanceDecision.js";
 export type { GuidanceFact } from "./GuidanceFact.js";
 export type { GuidanceFactPropertiesKeyEnum } from "./GuidanceFactPropertiesKeyEnum.js";
 export { guidanceFactPropertiesKeyEnum } from "./GuidanceFactPropertiesKeyEnum.js";
@@ -2323,6 +2330,11 @@ export type { GuidanceFactPropertiesRecordTypeEnum } from "./GuidanceFactPropert
 export { guidanceFactPropertiesRecordTypeEnum } from "./GuidanceFactPropertiesRecordTypeEnum.js";
 export type { GuidanceGraphic } from "./GuidanceGraphic.js";
 export type { GuidanceGridSample } from "./GuidanceGridSample.js";
+export type { GuidanceModel } from "./GuidanceModel.js";
+export { guidanceModel } from "./GuidanceModel.js";
+export type { GuidanceModelPublic } from "./GuidanceModelPublic.js";
+export type { GuidanceOrganisationPublic } from "./GuidanceOrganisationPublic.js";
+export type { GuidancePointPublic } from "./GuidancePointPublic.js";
 export type { GuidanceSource } from "./GuidanceSource.js";
 export type { GuidanceSystem } from "./GuidanceSystem.js";
 export type { GuidanceSystemPropertiesFeatureTypeEnum } from "./GuidanceSystemPropertiesFeatureTypeEnum.js";
@@ -4229,6 +4241,87 @@ export { membershipStatus } from "./MembershipStatus.js";
 export type { Message } from "./Message.js";
 export type { MessageCreate } from "./MessageCreate.js";
 export type { MessagePublic } from "./MessagePublic.js";
+export type { MeteogramPublic } from "./MeteogramPublic.js";
+export type { MeteogramSeries } from "./MeteogramSeries.js";
+export type { MeteogramUnits } from "./MeteogramUnits.js";
+export type {
+  ModelsCreateAccessRequestBody,
+  ModelsCreateAccessRequestHeaders,
+  ModelsCreateAccessRequestOptions,
+  ModelsCreateAccessRequestResponse,
+  ModelsCreateAccessRequestResponses,
+  ModelsCreateAccessRequestStatus201,
+  ModelsCreateAccessRequestStatus401,
+  ModelsCreateAccessRequestStatus403,
+  ModelsCreateAccessRequestStatus404,
+  ModelsCreateAccessRequestStatus409,
+  ModelsCreateAccessRequestStatus422,
+} from "./ModelsCreateAccessRequest.js";
+export type {
+  ModelsDecideAccessRequestBody,
+  ModelsDecideAccessRequestOptions,
+  ModelsDecideAccessRequestPath,
+  ModelsDecideAccessRequestResponse,
+  ModelsDecideAccessRequestResponses,
+  ModelsDecideAccessRequestStatus200,
+  ModelsDecideAccessRequestStatus401,
+  ModelsDecideAccessRequestStatus403,
+  ModelsDecideAccessRequestStatus404,
+  ModelsDecideAccessRequestStatus409,
+  ModelsDecideAccessRequestStatus422,
+} from "./ModelsDecideAccessRequest.js";
+export type {
+  ModelsGetAccessStatusHeaders,
+  ModelsGetAccessStatusOptions,
+  ModelsGetAccessStatusResponse,
+  ModelsGetAccessStatusResponses,
+  ModelsGetAccessStatusStatus200,
+  ModelsGetAccessStatusStatus401,
+  ModelsGetAccessStatusStatus403,
+  ModelsGetAccessStatusStatus404,
+  ModelsGetAccessStatusStatus422,
+} from "./ModelsGetAccessStatus.js";
+export type {
+  ModelsGetCatalogueHeaders,
+  ModelsGetCatalogueOptions,
+  ModelsGetCatalogueResponse,
+  ModelsGetCatalogueResponses,
+  ModelsGetCatalogueStatus200,
+  ModelsGetCatalogueStatus401,
+  ModelsGetCatalogueStatus403,
+  ModelsGetCatalogueStatus422,
+} from "./ModelsGetCatalogue.js";
+export type {
+  ModelsGetMeteogramHeaders,
+  ModelsGetMeteogramOptions,
+  ModelsGetMeteogramQuery,
+  ModelsGetMeteogramResponse,
+  ModelsGetMeteogramResponses,
+  ModelsGetMeteogramStatus200,
+  ModelsGetMeteogramStatus401,
+  ModelsGetMeteogramStatus403,
+  ModelsGetMeteogramStatus404,
+  ModelsGetMeteogramStatus422,
+} from "./ModelsGetMeteogram.js";
+export type {
+  ModelsListAccessRequestsOptions,
+  ModelsListAccessRequestsQuery,
+  ModelsListAccessRequestsResponse,
+  ModelsListAccessRequestsResponses,
+  ModelsListAccessRequestsStatus200,
+  ModelsListAccessRequestsStatus401,
+  ModelsListAccessRequestsStatus403,
+  ModelsListAccessRequestsStatus422,
+} from "./ModelsListAccessRequests.js";
+export type {
+  ModelsListOrganisationsOptions,
+  ModelsListOrganisationsResponse,
+  ModelsListOrganisationsResponses,
+  ModelsListOrganisationsStatus200,
+  ModelsListOrganisationsStatus401,
+  ModelsListOrganisationsStatus403,
+  ModelsListOrganisationsStatus422,
+} from "./ModelsListOrganisations.js";
 export type { MovementKind } from "./MovementKind.js";
 export { movementKind } from "./MovementKind.js";
 export type { MyMembershipPublic } from "./MyMembershipPublic.js";

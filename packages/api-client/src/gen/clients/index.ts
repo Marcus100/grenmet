@@ -356,6 +356,13 @@ export { janitorialUpdateShiftPattern } from "./janitorialUpdateShiftPattern.js"
 export { janitorialUpdateStaff } from "./janitorialUpdateStaff.js";
 export { janitorialUpdateTask } from "./janitorialUpdateTask.js";
 export { janitorialUpdateZone } from "./janitorialUpdateZone.js";
+export { modelsCreateAccessRequest } from "./modelsCreateAccessRequest.js";
+export { modelsDecideAccessRequest } from "./modelsDecideAccessRequest.js";
+export { modelsGetAccessStatus } from "./modelsGetAccessStatus.js";
+export { modelsGetCatalogue } from "./modelsGetCatalogue.js";
+export { modelsGetMeteogram } from "./modelsGetMeteogram.js";
+export { modelsListAccessRequests } from "./modelsListAccessRequests.js";
+export { modelsListOrganisations } from "./modelsListOrganisations.js";
 export { notificationsCreateNotificationSnooze } from "./notificationsCreateNotificationSnooze.js";
 export { notificationsDeleteNotificationSnooze } from "./notificationsDeleteNotificationSnooze.js";
 export { notificationsGetNotificationPreferences } from "./notificationsGetNotificationPreferences.js";
