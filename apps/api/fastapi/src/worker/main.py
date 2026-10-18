@@ -165,6 +165,33 @@ async def drain_events_outbox(ctx: dict[str, Any]) -> int:
         return result
 
 
+async def sync_event_rewards(ctx: dict[str, Any]) -> int:
+    """Credit stamps for Events admissions and reverse refunded ones (idempotent)."""
+    from src.database import async_session_factory
+    from src.events import database as events_database
+    from src.rewards import events_link
+
+    events = events_database.create_session()
+    if events is None:
+        return 0
+    async with events, async_session_factory() as session:
+        try:
+            result = await events_link.sync_admissions(session, events)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "sync_event_rewards",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "sync_event_rewards", str(ctx.get("job_id", "")), True
+        )
+        return result.credited + result.reversed
+
+
 async def send_wis2_publications(ctx: dict[str, Any]) -> int:
     """Move queued eRegister CSV files to wis2box; no-op unless configured."""
     from src.database import async_session_factory
@@ -349,6 +376,7 @@ class WorkerSettings:
         send_notification_emails,
         send_outbound_emails,
         drain_events_outbox,
+        sync_event_rewards,
         send_wis2_publications,
         run_notification_sweeps,
         send_invoice_reminders,
@@ -383,6 +411,13 @@ class WorkerSettings:
         cron(send_outbound_emails, second={15, 45}, run_at_startup=True),
         # Events changes (publish, cancel, approve) become notifications.
         cron(drain_events_outbox, second={5, 35}, run_at_startup=False),
+        # Admissions become reward stamps; refunded ones are reversed.
+        cron(
+            sync_event_rewards,
+            second={25},
+            minute={0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55},
+            run_at_startup=False,
+        ),
         # eRegister observations queued for wis2box (retries live on the row).
         cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).

@@ -44,7 +44,6 @@ from src.cap.models import (
 )
 from src.config import settings
 from src.contact.models import ContactDataRequest, ContactMessage
-from src.environmental.models import EnvironmentSeries
 from src.eregister.models import ERegisterSend  # noqa: F401
 from src.feedback.models import PageFeedback
 from src.hr.absentee.models import AbsenteeReport
@@ -116,6 +115,7 @@ from src.organisations.models import (  # noqa: F401
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
 from src.push.models import PushSubscription
+from src.rewards.models import Entry, Program, ReviewFlag
 from src.storage.models import OrgUpload
 from src.stores.models import (
     Requisition,
@@ -146,6 +146,7 @@ _TRACKED_SCHEMAS = {
     "stores",
     "billing",
     "environment",
+    "rewards",
 }
 
 

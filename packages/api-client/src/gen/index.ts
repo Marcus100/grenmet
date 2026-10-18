@@ -397,6 +397,20 @@ export { organisationsVerifyOne } from "./clients/organisationsVerifyOne.js";
 export { pushSubscribe } from "./clients/pushSubscribe.js";
 export { pushUnsubscribe } from "./clients/pushUnsubscribe.js";
 export { pushVapidPublicKey } from "./clients/pushVapidPublicKey.js";
+export { rewardsAdminAdjust } from "./clients/rewardsAdminAdjust.js";
+export { rewardsAdminListFlags } from "./clients/rewardsAdminListFlags.js";
+export { rewardsAdminListPrograms } from "./clients/rewardsAdminListPrograms.js";
+export { rewardsAdminResolveFlag } from "./clients/rewardsAdminResolveFlag.js";
+export { rewardsCancelRedemption } from "./clients/rewardsCancelRedemption.js";
+export { rewardsConfirmRedemption } from "./clients/rewardsConfirmRedemption.js";
+export { rewardsCreateProgram } from "./clients/rewardsCreateProgram.js";
+export { rewardsListMine } from "./clients/rewardsListMine.js";
+export { rewardsListMyBadges } from "./clients/rewardsListMyBadges.js";
+export { rewardsListMyEntries } from "./clients/rewardsListMyEntries.js";
+export { rewardsListMyTickets } from "./clients/rewardsListMyTickets.js";
+export { rewardsListPrograms } from "./clients/rewardsListPrograms.js";
+export { rewardsRequestRedemption } from "./clients/rewardsRequestRedemption.js";
+export { rewardsUpdateProgram } from "./clients/rewardsUpdateProgram.js";
 export { storageCompleteUpload } from "./clients/storageCompleteUpload.js";
 export { storageCreateUpload } from "./clients/storageCreateUpload.js";
 export { storageGetFile } from "./clients/storageGetFile.js";
@@ -2459,6 +2473,76 @@ export {
   usePushVapidPublicKey,
 } from "./hooks/usePushVapidPublicKey.js";
 export {
+  rewardsAdminAdjustMutationKey,
+  rewardsAdminAdjustMutationOptions,
+  useRewardsAdminAdjust,
+} from "./hooks/useRewardsAdminAdjust.js";
+export {
+  rewardsAdminListFlagsQueryKey,
+  rewardsAdminListFlagsQueryOptions,
+  useRewardsAdminListFlags,
+} from "./hooks/useRewardsAdminListFlags.js";
+export {
+  rewardsAdminListProgramsQueryKey,
+  rewardsAdminListProgramsQueryOptions,
+  useRewardsAdminListPrograms,
+} from "./hooks/useRewardsAdminListPrograms.js";
+export {
+  rewardsAdminResolveFlagMutationKey,
+  rewardsAdminResolveFlagMutationOptions,
+  useRewardsAdminResolveFlag,
+} from "./hooks/useRewardsAdminResolveFlag.js";
+export {
+  rewardsCancelRedemptionMutationKey,
+  rewardsCancelRedemptionMutationOptions,
+  useRewardsCancelRedemption,
+} from "./hooks/useRewardsCancelRedemption.js";
+export {
+  rewardsConfirmRedemptionMutationKey,
+  rewardsConfirmRedemptionMutationOptions,
+  useRewardsConfirmRedemption,
+} from "./hooks/useRewardsConfirmRedemption.js";
+export {
+  rewardsCreateProgramMutationKey,
+  rewardsCreateProgramMutationOptions,
+  useRewardsCreateProgram,
+} from "./hooks/useRewardsCreateProgram.js";
+export {
+  rewardsListMineQueryKey,
+  rewardsListMineQueryOptions,
+  useRewardsListMine,
+} from "./hooks/useRewardsListMine.js";
+export {
+  rewardsListMyBadgesQueryKey,
+  rewardsListMyBadgesQueryOptions,
+  useRewardsListMyBadges,
+} from "./hooks/useRewardsListMyBadges.js";
+export {
+  rewardsListMyEntriesQueryKey,
+  rewardsListMyEntriesQueryOptions,
+  useRewardsListMyEntries,
+} from "./hooks/useRewardsListMyEntries.js";
+export {
+  rewardsListMyTicketsQueryKey,
+  rewardsListMyTicketsQueryOptions,
+  useRewardsListMyTickets,
+} from "./hooks/useRewardsListMyTickets.js";
+export {
+  rewardsListProgramsQueryKey,
+  rewardsListProgramsQueryOptions,
+  useRewardsListPrograms,
+} from "./hooks/useRewardsListPrograms.js";
+export {
+  rewardsRequestRedemptionMutationKey,
+  rewardsRequestRedemptionMutationOptions,
+  useRewardsRequestRedemption,
+} from "./hooks/useRewardsRequestRedemption.js";
+export {
+  rewardsUpdateProgramMutationKey,
+  rewardsUpdateProgramMutationOptions,
+  useRewardsUpdateProgram,
+} from "./hooks/useRewardsUpdateProgram.js";
+export {
   storageCompleteUploadMutationKey,
   storageCompleteUploadMutationOptions,
   useStorageCompleteUpload,
@@ -2886,6 +2970,7 @@ export type { ActivationLink } from "./models/ActivationLink.js";
 export type { ActivityEntry } from "./models/ActivityEntry.js";
 export type { AddressPublic } from "./models/AddressPublic.js";
 export type { AddressUpdate } from "./models/AddressUpdate.js";
+export type { AdjustmentCreate } from "./models/AdjustmentCreate.js";
 export type { AdmissionCreate } from "./models/AdmissionCreate.js";
 export type { AdmissionPublic } from "./models/AdmissionPublic.js";
 export type { AgeingBucket } from "./models/AgeingBucket.js";
@@ -3727,6 +3812,9 @@ export { aviationIssuePropertiesSeverityEnum } from "./models/AviationIssuePrope
 export type { AviationRevisionRead } from "./models/AviationRevisionRead.js";
 export type { AviationValidationRequest } from "./models/AviationValidationRequest.js";
 export type { AviationValidationResponse } from "./models/AviationValidationResponse.js";
+export type { BadgeKey } from "./models/BadgeKey.js";
+export { badgeKey } from "./models/BadgeKey.js";
+export type { BadgePublic } from "./models/BadgePublic.js";
 export type { BalanceImportRequest } from "./models/BalanceImportRequest.js";
 export type { BalanceImportResult } from "./models/BalanceImportResult.js";
 export type { BalanceImportRow } from "./models/BalanceImportRow.js";
@@ -4450,6 +4538,10 @@ export { employmentStatus } from "./models/EmploymentStatus.js";
 export type { EmploymentType } from "./models/EmploymentType.js";
 export { employmentType } from "./models/EmploymentType.js";
 export type { EmploymentUpdate } from "./models/EmploymentUpdate.js";
+export type { EntryKind } from "./models/EntryKind.js";
+export { entryKind } from "./models/EntryKind.js";
+export type { EntryStatus } from "./models/EntryStatus.js";
+export { entryStatus } from "./models/EntryStatus.js";
 export type {
   EnvironmentGetAirOptions,
   EnvironmentGetAirQuery,
@@ -5140,6 +5232,10 @@ export type {
   FeedbackSendPageFeedbackStatus422,
 } from "./models/FeedbackSendPageFeedback.js";
 export type { FileAccess } from "./models/FileAccess.js";
+export type { FlagPublic } from "./models/FlagPublic.js";
+export type { FlagReason } from "./models/FlagReason.js";
+export { flagReason } from "./models/FlagReason.js";
+export type { FlagResolve } from "./models/FlagResolve.js";
 export type { FlightBoardResponse } from "./models/FlightBoardResponse.js";
 export type { FlightBoardResponsePropertiesBoardEnum } from "./models/FlightBoardResponsePropertiesBoardEnum.js";
 export { flightBoardResponsePropertiesBoardEnum } from "./models/FlightBoardResponsePropertiesBoardEnum.js";
@@ -7637,6 +7733,15 @@ export type { ProfilePublic } from "./models/ProfilePublic.js";
 export type { ProfilePublicPropertiesConnectionStateEnum } from "./models/ProfilePublicPropertiesConnectionStateEnum.js";
 export { profilePublicPropertiesConnectionStateEnum } from "./models/ProfilePublicPropertiesConnectionStateEnum.js";
 export type { ProfileUpdate } from "./models/ProfileUpdate.js";
+export type { ProgramAdminListPublic } from "./models/ProgramAdminListPublic.js";
+export type { ProgramAdminPublic } from "./models/ProgramAdminPublic.js";
+export type { ProgramCreate } from "./models/ProgramCreate.js";
+export type { ProgramKind } from "./models/ProgramKind.js";
+export { programKind } from "./models/ProgramKind.js";
+export type { ProgramPublic } from "./models/ProgramPublic.js";
+export type { ProgramStatus } from "./models/ProgramStatus.js";
+export { programStatus } from "./models/ProgramStatus.js";
+export type { ProgramUpdate } from "./models/ProgramUpdate.js";
 export type { Provenance } from "./models/Provenance.js";
 export type { ProvisionalHolidaysRequest } from "./models/ProvisionalHolidaysRequest.js";
 export type { PublicCurrentConditions } from "./models/PublicCurrentConditions.js";
@@ -7696,6 +7801,10 @@ export type { QcDecisionRequest } from "./models/QcDecisionRequest.js";
 export type { ReceivableRowPublic } from "./models/ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./models/ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./models/RecoveryCodesPublic.js";
+export type { RedemptionConfirm } from "./models/RedemptionConfirm.js";
+export type { RedemptionConfirmed } from "./models/RedemptionConfirmed.js";
+export type { RedemptionPublic } from "./models/RedemptionPublic.js";
+export type { RedemptionRequest } from "./models/RedemptionRequest.js";
 export type { RegisterObservationCreate } from "./models/RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./models/RegisterObservationList.js";
 export type { RegisterObservationRead } from "./models/RegisterObservationRead.js";
@@ -7728,6 +7837,174 @@ export type { ReviewInput } from "./models/ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./models/ReviewInputPropertiesDecisionEnum.js";
 export { reviewInputPropertiesDecisionEnum } from "./models/ReviewInputPropertiesDecisionEnum.js";
 export type { ReviewPublic } from "./models/ReviewPublic.js";
+export type { RewardCardPublic } from "./models/RewardCardPublic.js";
+export type { RewardEntryListPublic } from "./models/RewardEntryListPublic.js";
+export type { RewardEntryPublic } from "./models/RewardEntryPublic.js";
+export type {
+  RewardsAdminAdjustBody,
+  RewardsAdminAdjustOptions,
+  RewardsAdminAdjustResponse,
+  RewardsAdminAdjustResponses,
+  RewardsAdminAdjustStatus201,
+  RewardsAdminAdjustStatus400,
+  RewardsAdminAdjustStatus401,
+  RewardsAdminAdjustStatus403,
+  RewardsAdminAdjustStatus404,
+  RewardsAdminAdjustStatus409,
+  RewardsAdminAdjustStatus422,
+} from "./models/RewardsAdminAdjust.js";
+export type {
+  RewardsAdminListFlagsOptions,
+  RewardsAdminListFlagsQuery,
+  RewardsAdminListFlagsResponse,
+  RewardsAdminListFlagsResponses,
+  RewardsAdminListFlagsStatus200,
+  RewardsAdminListFlagsStatus401,
+  RewardsAdminListFlagsStatus403,
+  RewardsAdminListFlagsStatus422,
+} from "./models/RewardsAdminListFlags.js";
+export type {
+  RewardsAdminListProgramsOptions,
+  RewardsAdminListProgramsQuery,
+  RewardsAdminListProgramsResponse,
+  RewardsAdminListProgramsResponses,
+  RewardsAdminListProgramsStatus200,
+  RewardsAdminListProgramsStatus401,
+  RewardsAdminListProgramsStatus403,
+  RewardsAdminListProgramsStatus422,
+} from "./models/RewardsAdminListPrograms.js";
+export type {
+  RewardsAdminResolveFlagBody,
+  RewardsAdminResolveFlagOptions,
+  RewardsAdminResolveFlagPath,
+  RewardsAdminResolveFlagResponse,
+  RewardsAdminResolveFlagResponses,
+  RewardsAdminResolveFlagStatus200,
+  RewardsAdminResolveFlagStatus400,
+  RewardsAdminResolveFlagStatus401,
+  RewardsAdminResolveFlagStatus403,
+  RewardsAdminResolveFlagStatus404,
+  RewardsAdminResolveFlagStatus409,
+  RewardsAdminResolveFlagStatus422,
+} from "./models/RewardsAdminResolveFlag.js";
+export type {
+  RewardsCancelRedemptionOptions,
+  RewardsCancelRedemptionPath,
+  RewardsCancelRedemptionResponse,
+  RewardsCancelRedemptionResponses,
+  RewardsCancelRedemptionStatus200,
+  RewardsCancelRedemptionStatus400,
+  RewardsCancelRedemptionStatus401,
+  RewardsCancelRedemptionStatus403,
+  RewardsCancelRedemptionStatus404,
+  RewardsCancelRedemptionStatus409,
+  RewardsCancelRedemptionStatus422,
+} from "./models/RewardsCancelRedemption.js";
+export type {
+  RewardsConfirmRedemptionBody,
+  RewardsConfirmRedemptionHeaders,
+  RewardsConfirmRedemptionOptions,
+  RewardsConfirmRedemptionResponse,
+  RewardsConfirmRedemptionResponses,
+  RewardsConfirmRedemptionStatus200,
+  RewardsConfirmRedemptionStatus400,
+  RewardsConfirmRedemptionStatus401,
+  RewardsConfirmRedemptionStatus403,
+  RewardsConfirmRedemptionStatus404,
+  RewardsConfirmRedemptionStatus409,
+  RewardsConfirmRedemptionStatus422,
+} from "./models/RewardsConfirmRedemption.js";
+export type {
+  RewardsCreateProgramBody,
+  RewardsCreateProgramHeaders,
+  RewardsCreateProgramOptions,
+  RewardsCreateProgramResponse,
+  RewardsCreateProgramResponses,
+  RewardsCreateProgramStatus201,
+  RewardsCreateProgramStatus400,
+  RewardsCreateProgramStatus401,
+  RewardsCreateProgramStatus403,
+  RewardsCreateProgramStatus404,
+  RewardsCreateProgramStatus409,
+  RewardsCreateProgramStatus422,
+} from "./models/RewardsCreateProgram.js";
+export type {
+  RewardsListMineOptions,
+  RewardsListMineResponse,
+  RewardsListMineResponses,
+  RewardsListMineStatus200,
+  RewardsListMineStatus401,
+  RewardsListMineStatus403,
+  RewardsListMineStatus422,
+} from "./models/RewardsListMine.js";
+export type {
+  RewardsListMyBadgesOptions,
+  RewardsListMyBadgesResponse,
+  RewardsListMyBadgesResponses,
+  RewardsListMyBadgesStatus200,
+  RewardsListMyBadgesStatus401,
+  RewardsListMyBadgesStatus403,
+  RewardsListMyBadgesStatus422,
+} from "./models/RewardsListMyBadges.js";
+export type {
+  RewardsListMyEntriesOptions,
+  RewardsListMyEntriesQuery,
+  RewardsListMyEntriesResponse,
+  RewardsListMyEntriesResponses,
+  RewardsListMyEntriesStatus200,
+  RewardsListMyEntriesStatus401,
+  RewardsListMyEntriesStatus403,
+  RewardsListMyEntriesStatus422,
+} from "./models/RewardsListMyEntries.js";
+export type {
+  RewardsListMyTicketsOptions,
+  RewardsListMyTicketsResponse,
+  RewardsListMyTicketsResponses,
+  RewardsListMyTicketsStatus200,
+  RewardsListMyTicketsStatus401,
+  RewardsListMyTicketsStatus403,
+  RewardsListMyTicketsStatus422,
+} from "./models/RewardsListMyTickets.js";
+export type {
+  RewardsListProgramsHeaders,
+  RewardsListProgramsOptions,
+  RewardsListProgramsResponse,
+  RewardsListProgramsResponses,
+  RewardsListProgramsStatus200,
+  RewardsListProgramsStatus400,
+  RewardsListProgramsStatus401,
+  RewardsListProgramsStatus403,
+  RewardsListProgramsStatus404,
+  RewardsListProgramsStatus422,
+} from "./models/RewardsListPrograms.js";
+export type {
+  RewardsRequestRedemptionBody,
+  RewardsRequestRedemptionOptions,
+  RewardsRequestRedemptionResponse,
+  RewardsRequestRedemptionResponses,
+  RewardsRequestRedemptionStatus201,
+  RewardsRequestRedemptionStatus400,
+  RewardsRequestRedemptionStatus401,
+  RewardsRequestRedemptionStatus403,
+  RewardsRequestRedemptionStatus404,
+  RewardsRequestRedemptionStatus409,
+  RewardsRequestRedemptionStatus422,
+} from "./models/RewardsRequestRedemption.js";
+export type {
+  RewardsUpdateProgramBody,
+  RewardsUpdateProgramHeaders,
+  RewardsUpdateProgramOptions,
+  RewardsUpdateProgramPath,
+  RewardsUpdateProgramResponse,
+  RewardsUpdateProgramResponses,
+  RewardsUpdateProgramStatus200,
+  RewardsUpdateProgramStatus400,
+  RewardsUpdateProgramStatus401,
+  RewardsUpdateProgramStatus403,
+  RewardsUpdateProgramStatus404,
+  RewardsUpdateProgramStatus409,
+  RewardsUpdateProgramStatus422,
+} from "./models/RewardsUpdateProgram.js";
 export type { RoleAssignmentScope } from "./models/RoleAssignmentScope.js";
 export { roleAssignmentScope } from "./models/RoleAssignmentScope.js";
 export type { RoleConfiguration } from "./models/RoleConfiguration.js";
@@ -8900,6 +9177,7 @@ export { activationLinkSchema } from "./zod/activationLinkSchema.js";
 export { activityEntrySchema } from "./zod/activityEntrySchema.js";
 export { addressPublicSchema } from "./zod/addressPublicSchema.js";
 export { addressUpdateSchema } from "./zod/addressUpdateSchema.js";
+export { adjustmentCreateSchema } from "./zod/adjustmentCreateSchema.js";
 export { admissionCreateSchema } from "./zod/admissionCreateSchema.js";
 export { admissionPublicSchema } from "./zod/admissionPublicSchema.js";
 export { ageingBucketPublicSchema } from "./zod/ageingBucketPublicSchema.js";
@@ -9666,6 +9944,8 @@ export { aviationIssueSchema } from "./zod/aviationIssueSchema.js";
 export { aviationRevisionReadSchema } from "./zod/aviationRevisionReadSchema.js";
 export { aviationValidationRequestSchema } from "./zod/aviationValidationRequestSchema.js";
 export { aviationValidationResponseSchema } from "./zod/aviationValidationResponseSchema.js";
+export { badgeKeySchema } from "./zod/badgeKeySchema.js";
+export { badgePublicSchema } from "./zod/badgePublicSchema.js";
 export { balanceImportRequestSchema } from "./zod/balanceImportRequestSchema.js";
 export { balanceImportResultSchema } from "./zod/balanceImportResultSchema.js";
 export { balanceImportRowPropertiesStatusEnumSchema } from "./zod/balanceImportRowPropertiesStatusEnumSchema.js";
@@ -10319,6 +10599,8 @@ export { employmentRecordPublicSchema } from "./zod/employmentRecordPublicSchema
 export { employmentStatusSchema } from "./zod/employmentStatusSchema.js";
 export { employmentTypeSchema } from "./zod/employmentTypeSchema.js";
 export { employmentUpdateSchema } from "./zod/employmentUpdateSchema.js";
+export { entryKindSchema } from "./zod/entryKindSchema.js";
+export { entryStatusSchema } from "./zod/entryStatusSchema.js";
 export {
   environmentGetAirErrorSchema,
   environmentGetAirQueryPointSchema,
@@ -10958,6 +11240,9 @@ export {
   feedbackSendPageFeedbackStatus422Schema,
 } from "./zod/feedbackSendPageFeedbackSchema.js";
 export { fileAccessSchema } from "./zod/fileAccessSchema.js";
+export { flagPublicSchema } from "./zod/flagPublicSchema.js";
+export { flagReasonSchema } from "./zod/flagReasonSchema.js";
+export { flagResolveSchema } from "./zod/flagResolveSchema.js";
 export { flightBoardResponsePropertiesBoardEnumSchema } from "./zod/flightBoardResponsePropertiesBoardEnumSchema.js";
 export { flightBoardResponseSchema } from "./zod/flightBoardResponseSchema.js";
 export { flightRowSchema } from "./zod/flightRowSchema.js";
@@ -13261,6 +13546,13 @@ export { profileIdentityPublicSchema } from "./zod/profileIdentityPublicSchema.j
 export { profilePublicPropertiesConnectionStateEnumSchema } from "./zod/profilePublicPropertiesConnectionStateEnumSchema.js";
 export { profilePublicSchema } from "./zod/profilePublicSchema.js";
 export { profileUpdateSchema } from "./zod/profileUpdateSchema.js";
+export { programAdminListPublicSchema } from "./zod/programAdminListPublicSchema.js";
+export { programAdminPublicSchema } from "./zod/programAdminPublicSchema.js";
+export { programCreateSchema } from "./zod/programCreateSchema.js";
+export { programKindSchema } from "./zod/programKindSchema.js";
+export { programPublicSchema } from "./zod/programPublicSchema.js";
+export { programStatusSchema } from "./zod/programStatusSchema.js";
+export { programUpdateSchema } from "./zod/programUpdateSchema.js";
 export { provenanceSchema } from "./zod/provenanceSchema.js";
 export { provisionalHolidaysRequestSchema } from "./zod/provisionalHolidaysRequestSchema.js";
 export { publicCurrentConditionsSchema } from "./zod/publicCurrentConditionsSchema.js";
@@ -13314,6 +13606,10 @@ export { qcDecisionRequestSchema } from "./zod/qcDecisionRequestSchema.js";
 export { receivableRowPublicSchema } from "./zod/receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./zod/receivablesPublicSchema.js";
 export { recoveryCodesPublicSchema } from "./zod/recoveryCodesPublicSchema.js";
+export { redemptionConfirmedSchema } from "./zod/redemptionConfirmedSchema.js";
+export { redemptionConfirmSchema } from "./zod/redemptionConfirmSchema.js";
+export { redemptionPublicSchema } from "./zod/redemptionPublicSchema.js";
+export { redemptionRequestSchema } from "./zod/redemptionRequestSchema.js";
 export { registerObservationCreateSchema } from "./zod/registerObservationCreateSchema.js";
 export { registerObservationListSchema } from "./zod/registerObservationListSchema.js";
 export { registerObservationReadPropertiesStateEnumSchema } from "./zod/registerObservationReadPropertiesStateEnumSchema.js";
@@ -13339,6 +13635,162 @@ export { reviewAssignmentSchema } from "./zod/reviewAssignmentSchema.js";
 export { reviewInputPropertiesDecisionEnumSchema } from "./zod/reviewInputPropertiesDecisionEnumSchema.js";
 export { reviewInputSchema } from "./zod/reviewInputSchema.js";
 export { reviewPublicSchema } from "./zod/reviewPublicSchema.js";
+export { rewardCardPublicSchema } from "./zod/rewardCardPublicSchema.js";
+export { rewardEntryListPublicSchema } from "./zod/rewardEntryListPublicSchema.js";
+export { rewardEntryPublicSchema } from "./zod/rewardEntryPublicSchema.js";
+export {
+  rewardsAdminAdjustBodySchema,
+  rewardsAdminAdjustErrorSchema,
+  rewardsAdminAdjustResponseSchema,
+  rewardsAdminAdjustStatus201Schema,
+  rewardsAdminAdjustStatus400Schema,
+  rewardsAdminAdjustStatus401Schema,
+  rewardsAdminAdjustStatus403Schema,
+  rewardsAdminAdjustStatus404Schema,
+  rewardsAdminAdjustStatus409Schema,
+  rewardsAdminAdjustStatus422Schema,
+} from "./zod/rewardsAdminAdjustSchema.js";
+export {
+  rewardsAdminListFlagsErrorSchema,
+  rewardsAdminListFlagsQueryIncludeResolvedSchema,
+  rewardsAdminListFlagsResponseSchema,
+  rewardsAdminListFlagsStatus200Schema,
+  rewardsAdminListFlagsStatus401Schema,
+  rewardsAdminListFlagsStatus403Schema,
+  rewardsAdminListFlagsStatus422Schema,
+} from "./zod/rewardsAdminListFlagsSchema.js";
+export {
+  rewardsAdminListProgramsErrorSchema,
+  rewardsAdminListProgramsQueryPageSchema,
+  rewardsAdminListProgramsQuerySizeSchema,
+  rewardsAdminListProgramsResponseSchema,
+  rewardsAdminListProgramsStatus200Schema,
+  rewardsAdminListProgramsStatus401Schema,
+  rewardsAdminListProgramsStatus403Schema,
+  rewardsAdminListProgramsStatus422Schema,
+} from "./zod/rewardsAdminListProgramsSchema.js";
+export {
+  rewardsAdminResolveFlagBodySchema,
+  rewardsAdminResolveFlagErrorSchema,
+  rewardsAdminResolveFlagPathFlagIdSchema,
+  rewardsAdminResolveFlagResponseSchema,
+  rewardsAdminResolveFlagStatus200Schema,
+  rewardsAdminResolveFlagStatus400Schema,
+  rewardsAdminResolveFlagStatus401Schema,
+  rewardsAdminResolveFlagStatus403Schema,
+  rewardsAdminResolveFlagStatus404Schema,
+  rewardsAdminResolveFlagStatus409Schema,
+  rewardsAdminResolveFlagStatus422Schema,
+} from "./zod/rewardsAdminResolveFlagSchema.js";
+export {
+  rewardsCancelRedemptionErrorSchema,
+  rewardsCancelRedemptionPathRedemptionIdSchema,
+  rewardsCancelRedemptionResponseSchema,
+  rewardsCancelRedemptionStatus200Schema,
+  rewardsCancelRedemptionStatus400Schema,
+  rewardsCancelRedemptionStatus401Schema,
+  rewardsCancelRedemptionStatus403Schema,
+  rewardsCancelRedemptionStatus404Schema,
+  rewardsCancelRedemptionStatus409Schema,
+  rewardsCancelRedemptionStatus422Schema,
+} from "./zod/rewardsCancelRedemptionSchema.js";
+export {
+  rewardsConfirmRedemptionBodySchema,
+  rewardsConfirmRedemptionErrorSchema,
+  rewardsConfirmRedemptionHeaderXBarrelsOrganisationSchema,
+  rewardsConfirmRedemptionResponseSchema,
+  rewardsConfirmRedemptionStatus200Schema,
+  rewardsConfirmRedemptionStatus400Schema,
+  rewardsConfirmRedemptionStatus401Schema,
+  rewardsConfirmRedemptionStatus403Schema,
+  rewardsConfirmRedemptionStatus404Schema,
+  rewardsConfirmRedemptionStatus409Schema,
+  rewardsConfirmRedemptionStatus422Schema,
+} from "./zod/rewardsConfirmRedemptionSchema.js";
+export {
+  rewardsCreateProgramBodySchema,
+  rewardsCreateProgramErrorSchema,
+  rewardsCreateProgramHeaderXBarrelsOrganisationSchema,
+  rewardsCreateProgramResponseSchema,
+  rewardsCreateProgramStatus201Schema,
+  rewardsCreateProgramStatus400Schema,
+  rewardsCreateProgramStatus401Schema,
+  rewardsCreateProgramStatus403Schema,
+  rewardsCreateProgramStatus404Schema,
+  rewardsCreateProgramStatus409Schema,
+  rewardsCreateProgramStatus422Schema,
+} from "./zod/rewardsCreateProgramSchema.js";
+export {
+  rewardsListMineErrorSchema,
+  rewardsListMineResponseSchema,
+  rewardsListMineStatus200Schema,
+  rewardsListMineStatus401Schema,
+  rewardsListMineStatus403Schema,
+  rewardsListMineStatus422Schema,
+} from "./zod/rewardsListMineSchema.js";
+export {
+  rewardsListMyBadgesErrorSchema,
+  rewardsListMyBadgesResponseSchema,
+  rewardsListMyBadgesStatus200Schema,
+  rewardsListMyBadgesStatus401Schema,
+  rewardsListMyBadgesStatus403Schema,
+  rewardsListMyBadgesStatus422Schema,
+} from "./zod/rewardsListMyBadgesSchema.js";
+export {
+  rewardsListMyEntriesErrorSchema,
+  rewardsListMyEntriesQueryPageSchema,
+  rewardsListMyEntriesQuerySizeSchema,
+  rewardsListMyEntriesResponseSchema,
+  rewardsListMyEntriesStatus200Schema,
+  rewardsListMyEntriesStatus401Schema,
+  rewardsListMyEntriesStatus403Schema,
+  rewardsListMyEntriesStatus422Schema,
+} from "./zod/rewardsListMyEntriesSchema.js";
+export {
+  rewardsListMyTicketsErrorSchema,
+  rewardsListMyTicketsResponseSchema,
+  rewardsListMyTicketsStatus200Schema,
+  rewardsListMyTicketsStatus401Schema,
+  rewardsListMyTicketsStatus403Schema,
+  rewardsListMyTicketsStatus422Schema,
+} from "./zod/rewardsListMyTicketsSchema.js";
+export {
+  rewardsListProgramsErrorSchema,
+  rewardsListProgramsHeaderXBarrelsOrganisationSchema,
+  rewardsListProgramsResponseSchema,
+  rewardsListProgramsStatus200Schema,
+  rewardsListProgramsStatus400Schema,
+  rewardsListProgramsStatus401Schema,
+  rewardsListProgramsStatus403Schema,
+  rewardsListProgramsStatus404Schema,
+  rewardsListProgramsStatus422Schema,
+} from "./zod/rewardsListProgramsSchema.js";
+export {
+  rewardsRequestRedemptionBodySchema,
+  rewardsRequestRedemptionErrorSchema,
+  rewardsRequestRedemptionResponseSchema,
+  rewardsRequestRedemptionStatus201Schema,
+  rewardsRequestRedemptionStatus400Schema,
+  rewardsRequestRedemptionStatus401Schema,
+  rewardsRequestRedemptionStatus403Schema,
+  rewardsRequestRedemptionStatus404Schema,
+  rewardsRequestRedemptionStatus409Schema,
+  rewardsRequestRedemptionStatus422Schema,
+} from "./zod/rewardsRequestRedemptionSchema.js";
+export {
+  rewardsUpdateProgramBodySchema,
+  rewardsUpdateProgramErrorSchema,
+  rewardsUpdateProgramHeaderXBarrelsOrganisationSchema,
+  rewardsUpdateProgramPathProgramIdSchema,
+  rewardsUpdateProgramResponseSchema,
+  rewardsUpdateProgramStatus200Schema,
+  rewardsUpdateProgramStatus400Schema,
+  rewardsUpdateProgramStatus401Schema,
+  rewardsUpdateProgramStatus403Schema,
+  rewardsUpdateProgramStatus404Schema,
+  rewardsUpdateProgramStatus409Schema,
+  rewardsUpdateProgramStatus422Schema,
+} from "./zod/rewardsUpdateProgramSchema.js";
 export { roleAssignmentScopeSchema } from "./zod/roleAssignmentScopeSchema.js";
 export { roleConfigurationSchema } from "./zod/roleConfigurationSchema.js";
 export { roleCreateSchema } from "./zod/roleCreateSchema.js";

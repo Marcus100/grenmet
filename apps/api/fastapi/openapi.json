@@ -2974,6 +2974,941 @@
         }
       }
     },
+    "/api/v1/rewards/me": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "List my reward cards",
+        "description": "The signed-in account's stamp cards with balances computed from the ledger. Stamps are non-monetary and cannot be transferred.",
+        "operationId": "rewardsListMine",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RewardCardPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Rewardslistmine"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rewards/me/entries": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "My rewards history",
+        "description": "The account's ledger entries, newest first.",
+        "operationId": "rewardsListMyEntries",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardEntryListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/me/redemptions": {
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Start a redemption",
+        "description": "Hold a full card of stamps behind a one-time code. Staff of the funding organisation confirm the code to hand over the reward.",
+        "operationId": "rewardsRequestRedemption",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedemptionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedemptionPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rewards/me/redemptions/{redemption_id}/cancel": {
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Cancel an open redemption",
+        "description": "Release the stamps held by a redemption that staff have not confirmed.",
+        "operationId": "rewardsCancelRedemption",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "redemption_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Redemption Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedemptionPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/me/badges": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "My trust badges",
+        "description": "Verified organiser, attendee and purchaser, derived from records on every read. Badges cannot be bought, granted or transferred.",
+        "operationId": "rewardsListMyBadges",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BadgePublic"
+                  },
+                  "type": "array",
+                  "title": "Response Rewardslistmybadges"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rewards/me/tickets": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "My tickets (account page)",
+        "description": "The account's Events tickets for the Barrels ID page, read-only. Empty when Events has no database. Manage tickets in Barrels Events.",
+        "operationId": "rewardsListMyTickets",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TicketSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Rewardslistmytickets"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rewards/programs": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "List my organisation's reward programmes",
+        "description": "Programmes of the organisation named in X-Barrels-Organisation.",
+        "operationId": "rewardsListPrograms",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProgramPublic"
+                  },
+                  "title": "Response Rewardslistprograms"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Create a stamp card programme",
+        "description": "An organisation admin or owner configures a stamp card: N stamps earn a reward, one stamp per qualifying admission at this organiser.",
+        "operationId": "rewardsCreateProgram",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgramCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/programs/{program_id}": {
+      "patch": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Update a stamp card programme",
+        "description": "Rename, pause or resume a programme, or change its redemption cap.",
+        "operationId": "rewardsUpdateProgram",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "program_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Program Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgramUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/redemptions/confirm": {
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Confirm a customer's redemption code",
+        "description": "Staff of the funding organisation confirm a one-time code. A code from another organisation answers 404.",
+        "operationId": "rewardsConfirmRedemption",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedemptionConfirm"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedemptionConfirmed"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/admin/programs": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "List all reward programmes",
+        "description": "Every organisation's programmes, read-only, for the control plane.",
+        "operationId": "rewardsAdminListPrograms",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramAdminListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/admin/adjustments": {
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Adjust an account's stamps",
+        "description": "Audited manual correction with a required reason. It cannot take a card below zero.",
+        "operationId": "rewardsAdminAdjust",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdjustmentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardEntryPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rewards/admin/flags": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "List accounts flagged for review",
+        "description": "Open suspicious-activity flags, newest first.",
+        "operationId": "rewardsAdminListFlags",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "include_resolved",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Resolved"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FlagPublic"
+                  },
+                  "title": "Response Rewardsadminlistflags"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/admin/flags/{flag_id}/resolve": {
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Resolve a review flag",
+        "description": "Record the outcome of a review. A note is required.",
+        "operationId": "rewardsAdminResolveFlag",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "flag_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Flag Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlagResolve"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlagPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
     "/api/v1/hr/organisations": {
       "get": {
         "tags": [
@@ -31711,6 +32646,40 @@
         "type": "object",
         "title": "AddressUpdate"
       },
+      "AdjustmentCreate": {
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Account Id"
+          },
+          "program_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Program Id"
+          },
+          "amount": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": -1000.0,
+            "title": "Amount"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "account_id",
+          "program_id",
+          "amount",
+          "reason"
+        ],
+        "title": "AdjustmentCreate"
+      },
       "AdmissionCreate": {
         "properties": {
           "code": {
@@ -34063,6 +35032,66 @@
           "valid"
         ],
         "title": "AviationValidationResponse"
+      },
+      "BadgeKey": {
+        "type": "string",
+        "enum": [
+          "verified_organiser",
+          "verified_attendee",
+          "verified_purchaser"
+        ],
+        "title": "BadgeKey"
+      },
+      "BadgePublic": {
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/BadgeKey"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "earned": {
+            "type": "boolean",
+            "title": "Earned"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "since": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "description",
+          "earned",
+          "available",
+          "count",
+          "since"
+        ],
+        "title": "BadgePublic",
+        "description": "A derived trust signal. Computed from records on every read."
       },
       "BalanceImportRequest": {
         "properties": {
@@ -39881,6 +40910,25 @@
         "type": "object",
         "title": "EmploymentUpdate"
       },
+      "EntryKind": {
+        "type": "string",
+        "enum": [
+          "earn",
+          "redeem",
+          "reverse",
+          "adjust"
+        ],
+        "title": "EntryKind"
+      },
+      "EntryStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "confirmed",
+          "reversed"
+        ],
+        "title": "EntryStatus"
+      },
       "FileAccess": {
         "properties": {
           "url": {
@@ -39899,6 +40947,88 @@
         ],
         "title": "FileAccess",
         "description": "A short-lived presigned GET for a private read."
+      },
+      "FlagPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Account Id"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/FlagReason"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "resolution_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "account_id",
+          "reason",
+          "detail",
+          "created_at",
+          "resolved_at",
+          "resolution_note"
+        ],
+        "title": "FlagPublic"
+      },
+      "FlagReason": {
+        "type": "string",
+        "enum": [
+          "velocity"
+        ],
+        "title": "FlagReason"
+      },
+      "FlagResolve": {
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "note"
+        ],
+        "title": "FlagResolve"
       },
       "FlightBoardResponse": {
         "properties": {
@@ -49656,6 +50786,301 @@
         "type": "object",
         "title": "ProfileUpdate"
       },
+      "ProgramAdminListPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ProgramAdminPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count",
+          "page",
+          "size"
+        ],
+        "title": "ProgramAdminListPublic"
+      },
+      "ProgramAdminPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ProgramKind"
+          },
+          "stamps_required": {
+            "type": "integer",
+            "title": "Stamps Required"
+          },
+          "reward_description": {
+            "type": "string",
+            "title": "Reward Description"
+          },
+          "qualifying_source_type": {
+            "type": "string",
+            "title": "Qualifying Source Type"
+          },
+          "stamps_per_source": {
+            "type": "integer",
+            "title": "Stamps Per Source"
+          },
+          "max_redemptions_per_account": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Redemptions Per Account"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProgramStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "organisation_name": {
+            "type": "string",
+            "title": "Organisation Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organisation_id",
+          "name",
+          "kind",
+          "stamps_required",
+          "reward_description",
+          "qualifying_source_type",
+          "stamps_per_source",
+          "max_redemptions_per_account",
+          "status",
+          "created_at",
+          "organisation_name"
+        ],
+        "title": "ProgramAdminPublic"
+      },
+      "ProgramCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "stamps_required": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Stamps Required"
+          },
+          "reward_description": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reward Description"
+          },
+          "stamps_per_source": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Stamps Per Source",
+            "default": 1
+          },
+          "max_redemptions_per_account": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Redemptions Per Account"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "stamps_required",
+          "reward_description"
+        ],
+        "title": "ProgramCreate"
+      },
+      "ProgramKind": {
+        "type": "string",
+        "enum": [
+          "stamp_card"
+        ],
+        "title": "ProgramKind"
+      },
+      "ProgramPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ProgramKind"
+          },
+          "stamps_required": {
+            "type": "integer",
+            "title": "Stamps Required"
+          },
+          "reward_description": {
+            "type": "string",
+            "title": "Reward Description"
+          },
+          "qualifying_source_type": {
+            "type": "string",
+            "title": "Qualifying Source Type"
+          },
+          "stamps_per_source": {
+            "type": "integer",
+            "title": "Stamps Per Source"
+          },
+          "max_redemptions_per_account": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Redemptions Per Account"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProgramStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organisation_id",
+          "name",
+          "kind",
+          "stamps_required",
+          "reward_description",
+          "qualifying_source_type",
+          "stamps_per_source",
+          "max_redemptions_per_account",
+          "status",
+          "created_at"
+        ],
+        "title": "ProgramPublic"
+      },
+      "ProgramStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "paused"
+        ],
+        "title": "ProgramStatus"
+      },
+      "ProgramUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "reward_description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reward Description"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProgramStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "max_redemptions_per_account": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Redemptions Per Account"
+          }
+        },
+        "type": "object",
+        "title": "ProgramUpdate"
+      },
       "Provenance": {
         "properties": {
           "source": {
@@ -50856,6 +52281,122 @@
         ],
         "title": "RecoveryCodesPublic"
       },
+      "RedemptionConfirm": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 12,
+            "minLength": 4,
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "RedemptionConfirm"
+      },
+      "RedemptionConfirmed": {
+        "properties": {
+          "program_name": {
+            "type": "string",
+            "title": "Program Name"
+          },
+          "reward_description": {
+            "type": "string",
+            "title": "Reward Description"
+          },
+          "stamps": {
+            "type": "integer",
+            "title": "Stamps"
+          },
+          "confirmed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Confirmed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "program_name",
+          "reward_description",
+          "stamps",
+          "confirmed_at"
+        ],
+        "title": "RedemptionConfirmed",
+        "description": "What staff need to hand over the reward; no personal data."
+      },
+      "RedemptionPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "program_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Program Id"
+          },
+          "program_name": {
+            "type": "string",
+            "title": "Program Name"
+          },
+          "reward_description": {
+            "type": "string",
+            "title": "Reward Description"
+          },
+          "stamps": {
+            "type": "integer",
+            "title": "Stamps"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EntryStatus"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "program_id",
+          "program_name",
+          "reward_description",
+          "stamps",
+          "status",
+          "code",
+          "created_at"
+        ],
+        "title": "RedemptionPublic"
+      },
+      "RedemptionRequest": {
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Program Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "program_id"
+        ],
+        "title": "RedemptionRequest"
+      },
       "RegisterObservationCreate": {
         "properties": {
           "station_id": {
@@ -51910,6 +53451,187 @@
           "created_at"
         ],
         "title": "ReviewPublic"
+      },
+      "RewardCardPublic": {
+        "properties": {
+          "program_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Program Id"
+          },
+          "program_name": {
+            "type": "string",
+            "title": "Program Name"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "organisation_name": {
+            "type": "string",
+            "title": "Organisation Name"
+          },
+          "reward_description": {
+            "type": "string",
+            "title": "Reward Description"
+          },
+          "stamps_required": {
+            "type": "integer",
+            "title": "Stamps Required"
+          },
+          "balance": {
+            "type": "integer",
+            "title": "Balance"
+          },
+          "pending": {
+            "type": "integer",
+            "title": "Pending"
+          },
+          "available": {
+            "type": "integer",
+            "title": "Available"
+          },
+          "redemptions": {
+            "type": "integer",
+            "title": "Redemptions"
+          },
+          "open_redemption_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Open Redemption Code"
+          },
+          "can_redeem": {
+            "type": "boolean",
+            "title": "Can Redeem"
+          }
+        },
+        "type": "object",
+        "required": [
+          "program_id",
+          "program_name",
+          "organisation_id",
+          "organisation_name",
+          "reward_description",
+          "stamps_required",
+          "balance",
+          "pending",
+          "available",
+          "redemptions",
+          "open_redemption_code",
+          "can_redeem"
+        ],
+        "title": "RewardCardPublic",
+        "description": "One stamp card as the account holder sees it."
+      },
+      "RewardEntryListPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/RewardEntryPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count",
+          "page",
+          "size"
+        ],
+        "title": "RewardEntryListPublic"
+      },
+      "RewardEntryPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "program_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Program Id"
+          },
+          "program_name": {
+            "type": "string",
+            "title": "Program Name"
+          },
+          "organisation_name": {
+            "type": "string",
+            "title": "Organisation Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/EntryKind"
+          },
+          "amount": {
+            "type": "integer",
+            "title": "Amount"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EntryStatus"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "redeem_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redeem Code"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "program_id",
+          "program_name",
+          "organisation_name",
+          "kind",
+          "amount",
+          "status",
+          "reason",
+          "redeem_code",
+          "created_at"
+        ],
+        "title": "RewardEntryPublic"
       },
       "RoleAssignmentScope": {
         "type": "string",
@@ -63188,6 +64910,10 @@
     {
       "name": "billing",
       "description": "Billing and subscription operations."
+    },
+    {
+      "name": "rewards",
+      "description": "Barrels ID rewards: stamp cards, trust badges, redemption."
     },
     {
       "name": "browser-auth",

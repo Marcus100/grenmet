@@ -1979,6 +1979,76 @@ export {
   usePushVapidPublicKey,
 } from "./usePushVapidPublicKey.js";
 export {
+  rewardsAdminAdjustMutationKey,
+  rewardsAdminAdjustMutationOptions,
+  useRewardsAdminAdjust,
+} from "./useRewardsAdminAdjust.js";
+export {
+  rewardsAdminListFlagsQueryKey,
+  rewardsAdminListFlagsQueryOptions,
+  useRewardsAdminListFlags,
+} from "./useRewardsAdminListFlags.js";
+export {
+  rewardsAdminListProgramsQueryKey,
+  rewardsAdminListProgramsQueryOptions,
+  useRewardsAdminListPrograms,
+} from "./useRewardsAdminListPrograms.js";
+export {
+  rewardsAdminResolveFlagMutationKey,
+  rewardsAdminResolveFlagMutationOptions,
+  useRewardsAdminResolveFlag,
+} from "./useRewardsAdminResolveFlag.js";
+export {
+  rewardsCancelRedemptionMutationKey,
+  rewardsCancelRedemptionMutationOptions,
+  useRewardsCancelRedemption,
+} from "./useRewardsCancelRedemption.js";
+export {
+  rewardsConfirmRedemptionMutationKey,
+  rewardsConfirmRedemptionMutationOptions,
+  useRewardsConfirmRedemption,
+} from "./useRewardsConfirmRedemption.js";
+export {
+  rewardsCreateProgramMutationKey,
+  rewardsCreateProgramMutationOptions,
+  useRewardsCreateProgram,
+} from "./useRewardsCreateProgram.js";
+export {
+  rewardsListMineQueryKey,
+  rewardsListMineQueryOptions,
+  useRewardsListMine,
+} from "./useRewardsListMine.js";
+export {
+  rewardsListMyBadgesQueryKey,
+  rewardsListMyBadgesQueryOptions,
+  useRewardsListMyBadges,
+} from "./useRewardsListMyBadges.js";
+export {
+  rewardsListMyEntriesQueryKey,
+  rewardsListMyEntriesQueryOptions,
+  useRewardsListMyEntries,
+} from "./useRewardsListMyEntries.js";
+export {
+  rewardsListMyTicketsQueryKey,
+  rewardsListMyTicketsQueryOptions,
+  useRewardsListMyTickets,
+} from "./useRewardsListMyTickets.js";
+export {
+  rewardsListProgramsQueryKey,
+  rewardsListProgramsQueryOptions,
+  useRewardsListPrograms,
+} from "./useRewardsListPrograms.js";
+export {
+  rewardsRequestRedemptionMutationKey,
+  rewardsRequestRedemptionMutationOptions,
+  useRewardsRequestRedemption,
+} from "./useRewardsRequestRedemption.js";
+export {
+  rewardsUpdateProgramMutationKey,
+  rewardsUpdateProgramMutationOptions,
+  useRewardsUpdateProgram,
+} from "./useRewardsUpdateProgram.js";
+export {
   storageCompleteUploadMutationKey,
   storageCompleteUploadMutationOptions,
   useStorageCompleteUpload,

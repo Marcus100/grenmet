@@ -111,6 +111,11 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "billing.manage",
         "Manage Barrels invoicing: customers, invoices, manual payments and receivables",
     ),
+    # Platform — Barrels rewards
+    PermissionDef(
+        "rewards.manage",
+        "Manage Barrels rewards: view all programmes, audited stamp adjustments, review flags",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),

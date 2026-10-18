@@ -19,6 +19,7 @@ export { activationLinkSchema } from "./activationLinkSchema.js";
 export { activityEntrySchema } from "./activityEntrySchema.js";
 export { addressPublicSchema } from "./addressPublicSchema.js";
 export { addressUpdateSchema } from "./addressUpdateSchema.js";
+export { adjustmentCreateSchema } from "./adjustmentCreateSchema.js";
 export { admissionCreateSchema } from "./admissionCreateSchema.js";
 export { admissionPublicSchema } from "./admissionPublicSchema.js";
 export { ageingBucketPublicSchema } from "./ageingBucketPublicSchema.js";
@@ -785,6 +786,8 @@ export { aviationIssueSchema } from "./aviationIssueSchema.js";
 export { aviationRevisionReadSchema } from "./aviationRevisionReadSchema.js";
 export { aviationValidationRequestSchema } from "./aviationValidationRequestSchema.js";
 export { aviationValidationResponseSchema } from "./aviationValidationResponseSchema.js";
+export { badgeKeySchema } from "./badgeKeySchema.js";
+export { badgePublicSchema } from "./badgePublicSchema.js";
 export { balanceImportRequestSchema } from "./balanceImportRequestSchema.js";
 export { balanceImportResultSchema } from "./balanceImportResultSchema.js";
 export { balanceImportRowPropertiesStatusEnumSchema } from "./balanceImportRowPropertiesStatusEnumSchema.js";
@@ -1438,6 +1441,8 @@ export { employmentRecordPublicSchema } from "./employmentRecordPublicSchema.js"
 export { employmentStatusSchema } from "./employmentStatusSchema.js";
 export { employmentTypeSchema } from "./employmentTypeSchema.js";
 export { employmentUpdateSchema } from "./employmentUpdateSchema.js";
+export { entryKindSchema } from "./entryKindSchema.js";
+export { entryStatusSchema } from "./entryStatusSchema.js";
 export {
   environmentGetAirErrorSchema,
   environmentGetAirQueryPointSchema,
@@ -2077,6 +2082,9 @@ export {
   feedbackSendPageFeedbackStatus422Schema,
 } from "./feedbackSendPageFeedbackSchema.js";
 export { fileAccessSchema } from "./fileAccessSchema.js";
+export { flagPublicSchema } from "./flagPublicSchema.js";
+export { flagReasonSchema } from "./flagReasonSchema.js";
+export { flagResolveSchema } from "./flagResolveSchema.js";
 export { flightBoardResponsePropertiesBoardEnumSchema } from "./flightBoardResponsePropertiesBoardEnumSchema.js";
 export { flightBoardResponseSchema } from "./flightBoardResponseSchema.js";
 export { flightRowSchema } from "./flightRowSchema.js";
@@ -4380,6 +4388,13 @@ export { profileIdentityPublicSchema } from "./profileIdentityPublicSchema.js";
 export { profilePublicPropertiesConnectionStateEnumSchema } from "./profilePublicPropertiesConnectionStateEnumSchema.js";
 export { profilePublicSchema } from "./profilePublicSchema.js";
 export { profileUpdateSchema } from "./profileUpdateSchema.js";
+export { programAdminListPublicSchema } from "./programAdminListPublicSchema.js";
+export { programAdminPublicSchema } from "./programAdminPublicSchema.js";
+export { programCreateSchema } from "./programCreateSchema.js";
+export { programKindSchema } from "./programKindSchema.js";
+export { programPublicSchema } from "./programPublicSchema.js";
+export { programStatusSchema } from "./programStatusSchema.js";
+export { programUpdateSchema } from "./programUpdateSchema.js";
 export { provenanceSchema } from "./provenanceSchema.js";
 export { provisionalHolidaysRequestSchema } from "./provisionalHolidaysRequestSchema.js";
 export { publicCurrentConditionsSchema } from "./publicCurrentConditionsSchema.js";
@@ -4433,6 +4448,10 @@ export { qcDecisionRequestSchema } from "./qcDecisionRequestSchema.js";
 export { receivableRowPublicSchema } from "./receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./receivablesPublicSchema.js";
 export { recoveryCodesPublicSchema } from "./recoveryCodesPublicSchema.js";
+export { redemptionConfirmedSchema } from "./redemptionConfirmedSchema.js";
+export { redemptionConfirmSchema } from "./redemptionConfirmSchema.js";
+export { redemptionPublicSchema } from "./redemptionPublicSchema.js";
+export { redemptionRequestSchema } from "./redemptionRequestSchema.js";
 export { registerObservationCreateSchema } from "./registerObservationCreateSchema.js";
 export { registerObservationListSchema } from "./registerObservationListSchema.js";
 export { registerObservationReadPropertiesStateEnumSchema } from "./registerObservationReadPropertiesStateEnumSchema.js";
@@ -4458,6 +4477,162 @@ export { reviewAssignmentSchema } from "./reviewAssignmentSchema.js";
 export { reviewInputPropertiesDecisionEnumSchema } from "./reviewInputPropertiesDecisionEnumSchema.js";
 export { reviewInputSchema } from "./reviewInputSchema.js";
 export { reviewPublicSchema } from "./reviewPublicSchema.js";
+export { rewardCardPublicSchema } from "./rewardCardPublicSchema.js";
+export { rewardEntryListPublicSchema } from "./rewardEntryListPublicSchema.js";
+export { rewardEntryPublicSchema } from "./rewardEntryPublicSchema.js";
+export {
+  rewardsAdminAdjustBodySchema,
+  rewardsAdminAdjustErrorSchema,
+  rewardsAdminAdjustResponseSchema,
+  rewardsAdminAdjustStatus201Schema,
+  rewardsAdminAdjustStatus400Schema,
+  rewardsAdminAdjustStatus401Schema,
+  rewardsAdminAdjustStatus403Schema,
+  rewardsAdminAdjustStatus404Schema,
+  rewardsAdminAdjustStatus409Schema,
+  rewardsAdminAdjustStatus422Schema,
+} from "./rewardsAdminAdjustSchema.js";
+export {
+  rewardsAdminListFlagsErrorSchema,
+  rewardsAdminListFlagsQueryIncludeResolvedSchema,
+  rewardsAdminListFlagsResponseSchema,
+  rewardsAdminListFlagsStatus200Schema,
+  rewardsAdminListFlagsStatus401Schema,
+  rewardsAdminListFlagsStatus403Schema,
+  rewardsAdminListFlagsStatus422Schema,
+} from "./rewardsAdminListFlagsSchema.js";
+export {
+  rewardsAdminListProgramsErrorSchema,
+  rewardsAdminListProgramsQueryPageSchema,
+  rewardsAdminListProgramsQuerySizeSchema,
+  rewardsAdminListProgramsResponseSchema,
+  rewardsAdminListProgramsStatus200Schema,
+  rewardsAdminListProgramsStatus401Schema,
+  rewardsAdminListProgramsStatus403Schema,
+  rewardsAdminListProgramsStatus422Schema,
+} from "./rewardsAdminListProgramsSchema.js";
+export {
+  rewardsAdminResolveFlagBodySchema,
+  rewardsAdminResolveFlagErrorSchema,
+  rewardsAdminResolveFlagPathFlagIdSchema,
+  rewardsAdminResolveFlagResponseSchema,
+  rewardsAdminResolveFlagStatus200Schema,
+  rewardsAdminResolveFlagStatus400Schema,
+  rewardsAdminResolveFlagStatus401Schema,
+  rewardsAdminResolveFlagStatus403Schema,
+  rewardsAdminResolveFlagStatus404Schema,
+  rewardsAdminResolveFlagStatus409Schema,
+  rewardsAdminResolveFlagStatus422Schema,
+} from "./rewardsAdminResolveFlagSchema.js";
+export {
+  rewardsCancelRedemptionErrorSchema,
+  rewardsCancelRedemptionPathRedemptionIdSchema,
+  rewardsCancelRedemptionResponseSchema,
+  rewardsCancelRedemptionStatus200Schema,
+  rewardsCancelRedemptionStatus400Schema,
+  rewardsCancelRedemptionStatus401Schema,
+  rewardsCancelRedemptionStatus403Schema,
+  rewardsCancelRedemptionStatus404Schema,
+  rewardsCancelRedemptionStatus409Schema,
+  rewardsCancelRedemptionStatus422Schema,
+} from "./rewardsCancelRedemptionSchema.js";
+export {
+  rewardsConfirmRedemptionBodySchema,
+  rewardsConfirmRedemptionErrorSchema,
+  rewardsConfirmRedemptionHeaderXBarrelsOrganisationSchema,
+  rewardsConfirmRedemptionResponseSchema,
+  rewardsConfirmRedemptionStatus200Schema,
+  rewardsConfirmRedemptionStatus400Schema,
+  rewardsConfirmRedemptionStatus401Schema,
+  rewardsConfirmRedemptionStatus403Schema,
+  rewardsConfirmRedemptionStatus404Schema,
+  rewardsConfirmRedemptionStatus409Schema,
+  rewardsConfirmRedemptionStatus422Schema,
+} from "./rewardsConfirmRedemptionSchema.js";
+export {
+  rewardsCreateProgramBodySchema,
+  rewardsCreateProgramErrorSchema,
+  rewardsCreateProgramHeaderXBarrelsOrganisationSchema,
+  rewardsCreateProgramResponseSchema,
+  rewardsCreateProgramStatus201Schema,
+  rewardsCreateProgramStatus400Schema,
+  rewardsCreateProgramStatus401Schema,
+  rewardsCreateProgramStatus403Schema,
+  rewardsCreateProgramStatus404Schema,
+  rewardsCreateProgramStatus409Schema,
+  rewardsCreateProgramStatus422Schema,
+} from "./rewardsCreateProgramSchema.js";
+export {
+  rewardsListMineErrorSchema,
+  rewardsListMineResponseSchema,
+  rewardsListMineStatus200Schema,
+  rewardsListMineStatus401Schema,
+  rewardsListMineStatus403Schema,
+  rewardsListMineStatus422Schema,
+} from "./rewardsListMineSchema.js";
+export {
+  rewardsListMyBadgesErrorSchema,
+  rewardsListMyBadgesResponseSchema,
+  rewardsListMyBadgesStatus200Schema,
+  rewardsListMyBadgesStatus401Schema,
+  rewardsListMyBadgesStatus403Schema,
+  rewardsListMyBadgesStatus422Schema,
+} from "./rewardsListMyBadgesSchema.js";
+export {
+  rewardsListMyEntriesErrorSchema,
+  rewardsListMyEntriesQueryPageSchema,
+  rewardsListMyEntriesQuerySizeSchema,
+  rewardsListMyEntriesResponseSchema,
+  rewardsListMyEntriesStatus200Schema,
+  rewardsListMyEntriesStatus401Schema,
+  rewardsListMyEntriesStatus403Schema,
+  rewardsListMyEntriesStatus422Schema,
+} from "./rewardsListMyEntriesSchema.js";
+export {
+  rewardsListMyTicketsErrorSchema,
+  rewardsListMyTicketsResponseSchema,
+  rewardsListMyTicketsStatus200Schema,
+  rewardsListMyTicketsStatus401Schema,
+  rewardsListMyTicketsStatus403Schema,
+  rewardsListMyTicketsStatus422Schema,
+} from "./rewardsListMyTicketsSchema.js";
+export {
+  rewardsListProgramsErrorSchema,
+  rewardsListProgramsHeaderXBarrelsOrganisationSchema,
+  rewardsListProgramsResponseSchema,
+  rewardsListProgramsStatus200Schema,
+  rewardsListProgramsStatus400Schema,
+  rewardsListProgramsStatus401Schema,
+  rewardsListProgramsStatus403Schema,
+  rewardsListProgramsStatus404Schema,
+  rewardsListProgramsStatus422Schema,
+} from "./rewardsListProgramsSchema.js";
+export {
+  rewardsRequestRedemptionBodySchema,
+  rewardsRequestRedemptionErrorSchema,
+  rewardsRequestRedemptionResponseSchema,
+  rewardsRequestRedemptionStatus201Schema,
+  rewardsRequestRedemptionStatus400Schema,
+  rewardsRequestRedemptionStatus401Schema,
+  rewardsRequestRedemptionStatus403Schema,
+  rewardsRequestRedemptionStatus404Schema,
+  rewardsRequestRedemptionStatus409Schema,
+  rewardsRequestRedemptionStatus422Schema,
+} from "./rewardsRequestRedemptionSchema.js";
+export {
+  rewardsUpdateProgramBodySchema,
+  rewardsUpdateProgramErrorSchema,
+  rewardsUpdateProgramHeaderXBarrelsOrganisationSchema,
+  rewardsUpdateProgramPathProgramIdSchema,
+  rewardsUpdateProgramResponseSchema,
+  rewardsUpdateProgramStatus200Schema,
+  rewardsUpdateProgramStatus400Schema,
+  rewardsUpdateProgramStatus401Schema,
+  rewardsUpdateProgramStatus403Schema,
+  rewardsUpdateProgramStatus404Schema,
+  rewardsUpdateProgramStatus409Schema,
+  rewardsUpdateProgramStatus422Schema,
+} from "./rewardsUpdateProgramSchema.js";
 export { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 export { roleConfigurationSchema } from "./roleConfigurationSchema.js";
 export { roleCreateSchema } from "./roleCreateSchema.js";
