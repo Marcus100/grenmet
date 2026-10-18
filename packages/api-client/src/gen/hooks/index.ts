@@ -1214,6 +1214,11 @@ export {
   useHrListShiftCatalog,
 } from "./useHrListShiftCatalog.js";
 export {
+  hrLoadProvisionalHolidaysMutationKey,
+  hrLoadProvisionalHolidaysMutationOptions,
+  useHrLoadProvisionalHolidays,
+} from "./useHrLoadProvisionalHolidays.js";
+export {
   hrOffboardStaffMutationKey,
   hrOffboardStaffMutationOptions,
   useHrOffboardStaff,
@@ -1363,6 +1368,11 @@ export {
   hrUpdateDepartmentMutationOptions,
   useHrUpdateDepartment,
 } from "./useHrUpdateDepartment.js";
+export {
+  hrUpdateHolidayMutationKey,
+  hrUpdateHolidayMutationOptions,
+  useHrUpdateHoliday,
+} from "./useHrUpdateHoliday.js";
 export {
   hrUpdateHrEmploymentMutationKey,
   hrUpdateHrEmploymentMutationOptions,

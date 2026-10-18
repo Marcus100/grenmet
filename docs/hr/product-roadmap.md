@@ -99,7 +99,7 @@ pay period.
 
 - Get GAA HR's agreement, in writing, on the direction above and on the fact owners.
 - Obtain HR's opening balances (an anonymised Excel export from HrPlus) and load
-  them with the balance import; clear the "HR decision pending" rows in
+  them with the balance import; the "HR decision pending" rows now hold provisional defaults (2026-10-18) in
   [policy rules](policy-rules.md).
 - Find out who owns HrPlus (HR, Accounts Payroll or IT), the terminal model, whether
   it is networked, and how its punches reach HrPlus.

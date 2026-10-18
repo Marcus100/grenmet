@@ -2537,6 +2537,15 @@ export {
   hrListShiftCatalogStatus422Schema,
 } from "./hrListShiftCatalogSchema.js";
 export {
+  hrLoadProvisionalHolidaysBodySchema,
+  hrLoadProvisionalHolidaysErrorSchema,
+  hrLoadProvisionalHolidaysResponseSchema,
+  hrLoadProvisionalHolidaysStatus201Schema,
+  hrLoadProvisionalHolidaysStatus400Schema,
+  hrLoadProvisionalHolidaysStatus403Schema,
+  hrLoadProvisionalHolidaysStatus422Schema,
+} from "./hrLoadProvisionalHolidaysSchema.js";
+export {
   hrOffboardStaffErrorSchema,
   hrOffboardStaffPathUserIdSchema,
   hrOffboardStaffResponseSchema,
@@ -2848,6 +2857,17 @@ export {
   hrUpdateDepartmentStatus404Schema,
   hrUpdateDepartmentStatus422Schema,
 } from "./hrUpdateDepartmentSchema.js";
+export {
+  hrUpdateHolidayBodySchema,
+  hrUpdateHolidayErrorSchema,
+  hrUpdateHolidayPathHolidayIdSchema,
+  hrUpdateHolidayResponseSchema,
+  hrUpdateHolidayStatus200Schema,
+  hrUpdateHolidayStatus400Schema,
+  hrUpdateHolidayStatus403Schema,
+  hrUpdateHolidayStatus404Schema,
+  hrUpdateHolidayStatus422Schema,
+} from "./hrUpdateHolidaySchema.js";
 export {
   hrUpdateHrEmploymentBodySchema,
   hrUpdateHrEmploymentErrorSchema,
@@ -3532,11 +3552,13 @@ export { profileIdentityPublicSchema } from "./profileIdentityPublicSchema.js";
 export { profilePublicPropertiesConnectionStateEnumSchema } from "./profilePublicPropertiesConnectionStateEnumSchema.js";
 export { profilePublicSchema } from "./profilePublicSchema.js";
 export { profileUpdateSchema } from "./profileUpdateSchema.js";
+export { provisionalHolidaysRequestSchema } from "./provisionalHolidaysRequestSchema.js";
 export { publicCurrentConditionsSchema } from "./publicCurrentConditionsSchema.js";
 export { publicForecastSchema } from "./publicForecastSchema.js";
 export { publicHolidayCreateSchema } from "./publicHolidayCreateSchema.js";
 export { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
+export { publicHolidayUpdateSchema } from "./publicHolidayUpdateSchema.js";
 export { publicObservationPropertiesPressureTrendAnyOfEnumSchema } from "./publicObservationPropertiesPressureTrendAnyOfEnumSchema.js";
 export { publicObservationPropertiesStatusEnumSchema } from "./publicObservationPropertiesStatusEnumSchema.js";
 export { publicObservationSchema } from "./publicObservationSchema.js";
