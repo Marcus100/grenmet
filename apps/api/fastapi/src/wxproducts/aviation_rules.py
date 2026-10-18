@@ -11,6 +11,7 @@ report), so SPECI only gets a plausibility warning.
 """
 
 import re
+from calendar import monthrange
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal
@@ -63,6 +64,39 @@ VISIBILITY_HAZE_M = 5000
 RVR_LIMIT_M = 1500
 MIN_VIS_ABSOLUTE_M = 1500
 MIN_VIS_RELATIVE_LIMIT_M = 5000
+
+# Numeric limits from WMO-No. 306 FM 15/FM 51 and ICAO Annex 3 App. 3 / 5.
+MAX_DIRECTION_DEG = 360
+DIRECTION_STEP_DEG = 10
+GUST_TWO_DIGIT_MAX = 99
+GUST_DIGITS = 3
+VARIATION_MIN_EXTENT_DEG = 60
+VARIATION_MAX_EXTENT_DEG = 180
+VIS_50M_STEP_BELOW_M = 800
+VIS_100M_STEP_BELOW_M = 5000
+VIS_NEAR_CAVOK_FLOOR_M = 9000
+MAX_RUNWAY_NUMBER = 36
+RVR_UPPER_LIMIT_M = 2000
+RVR_LOWER_LIMIT_M = 50
+RVR_25M_STEP_BELOW_M = 400
+RVR_50M_STEP_UP_TO_M = 800
+HUNDREDS_FREE_BELOW = 100
+THIRD_LAYER_INDEX = 2
+MAX_DAY = 31
+MAX_HOUR = 23
+MAX_END_HOUR = 24
+MAX_MINUTE = 59
+SPECI_VISIBILITY_M = 5000
+SPECI_CEILING_FT = 1500
+SPECI_WIND_KT = 25
+TREND_MAX_HOUR = 24
+TEMP_MIN_C = -80
+TEMP_MAX_C = 60
+QNH_MIN_HPA = 850
+QNH_MAX_HPA = 1090
+ALTIMETER_MIN = 2500
+ALTIMETER_MAX = 3200
+TAF_TEMPERATURE_GROUPS = 2
 
 
 def _rule(code: str) -> str:
@@ -129,7 +163,7 @@ def _check_wind(
                 "North is 360, not 000; 000 is only for calm wind (00000KT).",
                 token,
             )
-        elif degrees > 360 or degrees % 10:  # noqa: PLR2004
+        elif degrees > MAX_DIRECTION_DEG or degrees % DIRECTION_STEP_DEG:
             r.error(
                 "wind_direction",
                 "Wind direction is rounded to the nearest 10 degrees, 010 to 360.",
@@ -150,7 +184,7 @@ def _check_wind(
                 f"{gust_step} {unit} or more.",
                 token,
             )
-        if int(gust) > 99 and len(gust) != 3:  # noqa: PLR2004
+        if int(gust) > GUST_TWO_DIGIT_MAX and len(gust) != GUST_DIGITS:
             r.error("wind_gust", "Gust speed has two or three digits.", token)
     return mean, variable
 
@@ -167,14 +201,16 @@ def _check_variation(
     if variable:
         r.error("variation_with_vrb", "Wind variation is not reported with VRB.", token)
         return
-    if any(v % 10 or not 0 < v <= 360 for v in (low, high)):  # noqa: PLR2004
+    if any(
+        v % DIRECTION_STEP_DEG or not 0 < v <= MAX_DIRECTION_DEG for v in (low, high)
+    ):
         r.error(
             "variation_direction",
             "Variation limits are 010 to 360 degrees in steps of 10.",
             token,
         )
         return
-    extent = (high - low) % 360
+    extent = (high - low) % MAX_DIRECTION_DEG
     limit = 3 if unit == "KT" else 2
     if mean is not None and mean < limit:
         r.error(
@@ -183,7 +219,7 @@ def _check_variation(
             "or more.",
             token,
         )
-    if not 60 <= extent < 180:  # noqa: PLR2004
+    if not VARIATION_MIN_EXTENT_DEG <= extent < VARIATION_MAX_EXTENT_DEG:
         r.error(
             "variation_extent",
             "Report the variation dndndnVdxdxdx (clockwise) only when it is 60 "
@@ -193,9 +229,9 @@ def _check_variation(
 
 
 def _visibility_step_ok(metres: int) -> bool:
-    if metres < 800:  # noqa: PLR2004
+    if metres < VIS_50M_STEP_BELOW_M:
         return metres % 50 == 0
-    if metres < 5000:  # noqa: PLR2004
+    if metres < VIS_100M_STEP_BELOW_M:
         return metres % 100 == 0
     return metres == CAVOK_VIS_M or metres % 1000 == 0
 
@@ -211,30 +247,36 @@ def _check_visibility(r: _Report, token: str, match: re.Match[str]) -> int:
             "9999 means 10 km or more.",
             token,
         )
-    if 9000 < metres < CAVOK_VIS_M:  # noqa: PLR2004
+    if VIS_NEAR_CAVOK_FLOOR_M < metres < CAVOK_VIS_M:
         r.error("visibility_step", "Use 9999 for 10 km or more.", token)
     return metres
 
 
+def _rvr_step(metres: int) -> int:
+    if metres < RVR_25M_STEP_BELOW_M:
+        return 25
+    return 50 if metres <= RVR_50M_STEP_UP_TO_M else 100
+
+
 def _check_rvr(r: _Report, token: str, match: re.Match[str]) -> int:
     runway, _, mod1, first, mod2, second, _trend = match.groups()
-    if not 1 <= int(runway) <= 36:  # noqa: PLR2004
+    if not 1 <= int(runway) <= MAX_RUNWAY_NUMBER:
         r.error("rvr_runway", "Runway designator is 01 to 36.", token)
     values = [(mod1, first)] + ([(mod2, second)] if second else [])
     for modifier, digits in values:
         metres = int(digits)
-        if modifier == "P" and metres != 2000:  # noqa: PLR2004
+        if modifier == "P" and metres != RVR_UPPER_LIMIT_M:
             r.error("rvr_limit", "P is followed by the upper limit, P2000.", token)
-        elif modifier == "M" and metres != 50:  # noqa: PLR2004
+        elif modifier == "M" and metres != RVR_LOWER_LIMIT_M:
             r.error("rvr_limit", "M is followed by the lower limit, M0050.", token)
         elif modifier is None:
-            if not 50 <= metres <= 2000:  # noqa: PLR2004
+            if not RVR_LOWER_LIMIT_M <= metres <= RVR_UPPER_LIMIT_M:
                 r.error(
                     "rvr_range",
                     "RVR is reported from 50 m to 2000 m (M0050 / P2000 outside).",
                     token,
                 )
-            step = 25 if metres < 400 else 50 if metres <= 800 else 100  # noqa: PLR2004
+            step = _rvr_step(metres)
             if metres % step:
                 r.error(
                     "rvr_step",
@@ -325,7 +367,11 @@ def _check_weather(
 
 
 def _hundreds_ok(code: str) -> bool:
-    return code == "///" or int(code) < 100 or int(code) % 10 == 0  # noqa: PLR2004
+    return (
+        code == "///"
+        or int(code) < HUNDREDS_FREE_BELOW
+        or int(code) % DIRECTION_STEP_DEG == 0
+    )
 
 
 @dataclass
@@ -359,7 +405,7 @@ def _check_cloud_layers(r: _Report, layers: list[_Layer], tokens: list[str]) -> 
                 "A second layer must be SCT, BKN or OVC (more than 2 oktas).",
                 token,
             )
-        if index == 2 and layer.amount in ("FEW", "SCT"):  # noqa: PLR2004
+        if index == THIRD_LAYER_INDEX and layer.amount in ("FEW", "SCT"):
             r.error(
                 "cloud_progression",
                 "A third layer must be BKN or OVC (more than 4 oktas).",
@@ -555,15 +601,18 @@ def _finish_section(r: _Report, section: _Section, *, label: str) -> None:
 
 def _valid_time(day: str, hour: str, minute: str | None = None) -> bool:
     return (
-        1 <= int(day) <= 31  # noqa: PLR2004
-        and int(hour) <= 23  # noqa: PLR2004
-        and (minute is None or int(minute) <= 59)  # noqa: PLR2004
+        1 <= int(day) <= MAX_DAY
+        and int(hour) <= MAX_HOUR
+        and (minute is None or int(minute) <= MAX_MINUTE)
     )
 
 
 def _clock(token: str) -> tuple[str, str, str] | None:
     m = TIME_Z.match(token)
-    return m.groups() if m else None  # type: ignore[return-value]
+    if not m:
+        return None
+    hh, mm, ss = m.groups()
+    return hh, mm, ss
 
 
 # --- header ---------------------------------------------------------------------
@@ -656,15 +705,15 @@ def _speci_plausible(section: _Section) -> bool:
     )
     wind = section.wind
     return bool(
-        (visibility is not None and visibility < 5000)  # noqa: PLR2004
-        or (ceiling is not None and ceiling <= 1500)  # noqa: PLR2004
+        (visibility is not None and visibility < SPECI_VISIBILITY_M)
+        or (ceiling is not None and ceiling <= SPECI_CEILING_FT)
         or section.vertical_vis
         or section.has_cb
         or any(
             any(p in w for p in SIGNIFICANT_PHENOMENA) or w.startswith("+")
             for w in section.weather
         )
-        or (wind is not None and wind[0] is not None and wind[0] >= 25)  # noqa: PLR2004
+        or (wind is not None and wind[0] is not None and wind[0] >= SPECI_WIND_KT)
     )
 
 
@@ -732,7 +781,7 @@ def _check_trend_times(
         )
     for token in times:
         m = TREND_TIME.match(token)
-        if m and (int(m.group(2)) > 24 or int(m.group(3)) > 59):  # noqa: PLR2004
+        if m and (int(m.group(2)) > TREND_MAX_HOUR or int(m.group(3)) > MAX_MINUTE):
             r.error("trend_time", "Trend times are hhmm UTC.", token)
         elif m and obs and obs[2].isdigit():
             start = int(obs[1]) * 60 + int(obs[2])
@@ -919,15 +968,15 @@ def _check_temperature(r: _Report, token: str, match: re.Match[str]) -> None:
             token,
         )
     for part in (air, dew):
-        if not -80 <= _signed(part) <= 60:  # noqa: PLR2004
+        if not TEMP_MIN_C <= _signed(part) <= TEMP_MAX_C:
             r.warn("temperature_range", "Temperature is outside -80 to 60 C.", token)
 
 
 def _check_qnh(r: _Report, token: str, match: re.Match[str]) -> None:
     if match.group(1):
-        if not 850 <= int(match.group(2)) <= 1090:  # noqa: PLR2004
+        if not QNH_MIN_HPA <= int(match.group(2)) <= QNH_MAX_HPA:
             r.warn("qnh_range", "QNH is outside 850 to 1090 hPa.", token)
-    elif not 2500 <= int(match.group(4)) <= 3200:  # noqa: PLR2004
+    elif not ALTIMETER_MIN <= int(match.group(4)) <= ALTIMETER_MAX:
         r.warn("qnh_range", "Altimeter setting is outside 25.00 to 32.00 inHg.", token)
 
 
@@ -951,11 +1000,9 @@ class _Calendar:
 
 
 def _month_days(*moments: datetime | None) -> int | None:
-    import calendar  # noqa: PLC0415
-
     for moment in moments:
         if moment is not None:
-            return calendar.monthrange(moment.year, moment.month)[1]
+            return monthrange(moment.year, moment.month)[1]
     return None
 
 
@@ -1017,7 +1064,10 @@ def _taf_header(
     d1, h1, d2, h2 = (int(v) for v in period.groups())
     token = tokens[i]
     if not (
-        1 <= d1 <= 31 and 1 <= d2 <= 31 and h1 <= 24 and h2 <= 24  # noqa: PLR2004
+        1 <= d1 <= MAX_DAY
+        and 1 <= d2 <= MAX_DAY
+        and h1 <= MAX_END_HOUR
+        and h2 <= MAX_END_HOUR
     ):
         r.error("validity", "Validity days are 01-31 and hours 00-24.", token)
         return i + 1, None, None
@@ -1084,7 +1134,11 @@ def _pair_period(
         r.error("change_period", f"{group} is followed by YYG1G1/YYG2G2.", token)
         return None, None
     d1, h1, d2, h2 = (int(v) for v in m.groups())
-    if h1 > 23 or h2 > 24 or not (1 <= d1 <= 31 and 1 <= d2 <= 31):  # noqa: PLR2004
+    if (
+        h1 > MAX_HOUR
+        or h2 > MAX_END_HOUR
+        or not (1 <= d1 <= MAX_DAY and 1 <= d2 <= MAX_DAY)
+    ):
         r.error(
             "change_period",
             "Hours are 00-23 for the start and 00-24 for the end.",
@@ -1183,7 +1237,7 @@ def _validate_taf(
         if not _valid_time(m.group(3), m.group(4)):
             r.error("temperature_time", "TX/TN time is YYGGZ (day, hour).", tokens[i])
         i += 1
-    if len(temps) == 2 and temps[0][0] == "TN":  # noqa: PLR2004
+    if len(temps) == TAF_TEMPERATURE_GROUPS and temps[0][0] == "TN":
         r.warn("temperature_order", "Report TX before TN.", "TN")
     values = dict(temps)
     if "TX" in values and "TN" in values and values["TX"] < values["TN"]:
@@ -1197,7 +1251,7 @@ def _validate_taf(
         section = _Section()
         if m := TAF_FM.match(token):
             day, hour, minute = (int(v) for v in m.groups())
-            if not (1 <= day <= 31 and hour <= 23 and minute <= 59):  # noqa: PLR2004
+            if not (1 <= day <= MAX_DAY and hour <= MAX_HOUR and minute <= MAX_MINUTE):
                 r.error(
                     "fm_time", "FM time is FMYYGGgg (hour 00-23, minute 00-59).", token
                 )

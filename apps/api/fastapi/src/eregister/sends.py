@@ -30,7 +30,13 @@ from .models import (
     TARGET_WIS2,
     ERegisterSend,
 )
-from .schemas import ObservationSend, SynopDecoded, SynopWorkbook
+from .schemas import (
+    ObservationSend,
+    SendStatus,
+    SendTarget,
+    SynopDecoded,
+    SynopWorkbook,
+)
 
 NOT_SENDABLE_STATES = ("rejected", "superseded")
 
@@ -115,8 +121,8 @@ def _to_read(row: ERegisterSend) -> ObservationSend:
     return ObservationSend(
         id=row.id,
         observation_id=row.observation_id,
-        target=row.target,  # type: ignore[arg-type]
-        status=row.status,  # type: ignore[arg-type]
+        target=cast(SendTarget, row.target),
+        status=cast(SendStatus, row.status),
         recipients=row.recipients,
         attempts=row.attempts,
         last_error=row.last_error,

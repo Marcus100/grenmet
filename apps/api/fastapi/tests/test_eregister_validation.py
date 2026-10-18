@@ -422,9 +422,9 @@ def test_layer_heights_follow_code_table_1677() -> None:
         s3_layer2_height="70",
     )
     assert issues["warning:s3_layer2_height"] == "layer_order"
-    assert rules._layer_height_metres(80) == 9000  # noqa: SLF001
-    assert rules._layer_height_metres(81) == 10500  # noqa: SLF001
-    assert rules._layer_height_metres(88) == 21000  # noqa: SLF001
+    assert rules.layer_height_metres(80) == 9000
+    assert rules.layer_height_metres(81) == 10500
+    assert rules.layer_height_metres(88) == 21000
 
 
 def test_negative_zero_is_a_coding_error_in_practice() -> None:

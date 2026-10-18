@@ -53,6 +53,22 @@ STEADY_TENDENCY = 4
 CHANGING_TENDENCY = (1, 2, 3, 6, 7)
 FOG_AT_STATION = range(41, 50)
 FOG_VISIBILITY_M = 1000
+# Fixed digit widths of keyed groups: ff/dd/hh, TTT/fff/ppp, snTTT/PPPP/RRRR.
+TWO_DIGIT_GROUP = 2
+THREE_DIGIT_GROUP = 3
+FOUR_DIGIT_GROUP = 4
+MAX_PERCENT = 100
+STATION_ID_DIGITS = 5
+SYNOP_NOON_HOUR = 12
+TEMPERATURE_MIN_C = -90
+TEMPERATURE_MAX_C = 60
+# Code table 4377 (VV) class boundaries: 00..50 are 100 m steps, 51..55 unused,
+# 56..80 are 1 km steps from 6 km (code - 50), 81..88 are 5 km steps from 35 km,
+# 89 is over 70 km.
+VISIBILITY_100M_MAX = 50
+VISIBILITY_1KM_MAX = 80
+VISIBILITY_5KM_MAX = 88
+VISIBILITY_OVER_70KM_CODE = 89
 
 
 class _Checker:
@@ -113,7 +129,10 @@ class _Checker:
         value = self.raw(field)
         if not self.present(field):
             return None
-        if not value.isdigit() or len(value) not in (2, 3):
+        if not value.isdigit() or len(value) not in (
+            TWO_DIGIT_GROUP,
+            THREE_DIGIT_GROUP,
+        ):
             self.add(
                 field,
                 "wrong_length" if value.isdigit() else "not_integer",
@@ -121,14 +140,14 @@ class _Checker:
             )
             return None
         number = int(value)
-        if len(value) == 3 and number < WIND_FFF_MIN:  # noqa: PLR2004
+        if len(value) == THREE_DIGIT_GROUP and number < WIND_FFF_MIN:
             self.add(
                 field,
                 "wrong_length",
                 f"{label} below 99 is two digits; three digits (00fff) start at 099.",
             )
             return None
-        if number == WIND_FFF_MIN and len(value) == 2:  # noqa: PLR2004
+        if number == WIND_FFF_MIN and len(value) == TWO_DIGIT_GROUP:
             self.add(
                 field,
                 "speed_needs_fff",
@@ -143,11 +162,11 @@ class _Checker:
         value = self.raw(field)
         if not self.present(field):
             return None
-        if not value.isdigit() or len(value) > 3:  # noqa: PLR2004
+        if not value.isdigit() or len(value) > THREE_DIGIT_GROUP:
             self.add(field, "invalid_format", f"{label} must be 0 to 100 per cent.")
             return None
         number = int(value)
-        if number > 100:  # noqa: PLR2004
+        if number > MAX_PERCENT:
             self.add(field, "out_of_range", f"{label} must be between 0 and 100.")
             return None
         return number
@@ -157,7 +176,10 @@ class _Checker:
         value = self.raw(field)
         if not self.present(field):
             return None
-        if not value.isdigit() or len(value) not in (3, 4):
+        if not value.isdigit() or len(value) not in (
+            THREE_DIGIT_GROUP,
+            FOUR_DIGIT_GROUP,
+        ):
             self.add(
                 field,
                 "invalid_format",
@@ -165,7 +187,7 @@ class _Checker:
             )
             return None
         sign = 1
-        if len(value) == 4:  # noqa: PLR2004
+        if len(value) == FOUR_DIGIT_GROUP:
             if value[0] not in "01":
                 self.add(field, "invalid_sign", f"{label} sign digit must be 0 or 1.")
                 return None
@@ -178,7 +200,7 @@ class _Checker:
                 f"{label}: 0.0 is coded with sign 0 (e.g. 0000), never 1000.",
                 "warning",
             )
-        if not -90 <= degrees <= 60:  # noqa: PLR2004
+        if not TEMPERATURE_MIN_C <= degrees <= TEMPERATURE_MAX_C:
             self.add(field, "out_of_range", f"{label} must be between -90 and 60 °C.")
             return None
         return degrees
@@ -190,7 +212,7 @@ class _Checker:
         value = self.raw(field)
         if not self.present(field):
             return None
-        if not value.isdigit() or len(value) != 4:  # noqa: PLR2004
+        if not value.isdigit() or len(value) != FOUR_DIGIT_GROUP:
             self.add(
                 field,
                 "invalid_format",
@@ -210,18 +232,18 @@ class _Checker:
 
 
 def _visibility_metres(code: int) -> float:
-    if code <= 50:  # noqa: PLR2004
+    if code <= VISIBILITY_100M_MAX:
         return code * 100
-    if code <= 80:  # noqa: PLR2004
+    if code <= VISIBILITY_1KM_MAX:
         return (code - 50) * 1000
-    if code <= 88:  # noqa: PLR2004
+    if code <= VISIBILITY_5KM_MAX:
         return (30 + (code - 80) * 5) * 1000
-    if code == 89:  # noqa: PLR2004
+    if code == VISIBILITY_OVER_70KM_CODE:
         return VISIBILITY_OVER_70KM_M
     return VISIBILITY_90_99[code - 90]
 
 
-def _layer_height_metres(code: int) -> float | None:
+def layer_height_metres(code: int) -> float | None:
     if code <= LAYER_HEIGHT_30M_MAX:
         return code * 30
     if LAYER_HEIGHT_300M_MIN <= code <= LAYER_HEIGHT_300M_MAX:
@@ -265,7 +287,7 @@ def _check_identification(c: _Checker) -> tuple[int | None, int | None]:
     station = c.raw("station_id")
     if station == "":
         c.add("station_id", "required", "Station identifier is required (B/C1.2.1).")
-    elif len(station) != 5 or not station.isdigit():  # noqa: PLR2004
+    elif len(station) != STATION_ID_DIGITS or not station.isdigit():
         c.add(
             "station_id", "invalid_station", "Station identifier must be five digits."
         )
@@ -450,7 +472,7 @@ def _check_layers(c: _Checker, total: int | None) -> None:
         previous_present = present
         if form is not None:
             forms.append(form)
-        metres = None if code is None else _layer_height_metres(code)
+        metres = None if code is None else layer_height_metres(code)
         if metres is not None and form != CUMULONIMBUS:
             if heights and metres < heights[-1]:
                 c.add(
@@ -508,7 +530,7 @@ def _check_precipitation(
     rainfall_24h = None
     rain = c.raw("s3_rainfall_24h")
     if c.present("s3_rainfall_24h"):
-        if not rain.isdigit() or len(rain) != 4:  # noqa: PLR2004
+        if not rain.isdigit() or len(rain) != FOUR_DIGIT_GROUP:
             c.add(
                 "s3_rainfall_24h",
                 "invalid_format",
@@ -516,7 +538,7 @@ def _check_precipitation(
             )
         else:
             rainfall_24h = -0.1 if int(rain) == RAIN_24H_TRACE else int(rain) / 10
-    elif rain == "" and hour == 12:  # noqa: PLR2004
+    elif rain == "" and hour == SYNOP_NOON_HOUR:
         c.add(
             "s3_rainfall_24h",
             "missing_24h_rainfall",
@@ -551,7 +573,9 @@ def _check_section3(c: _Checker) -> tuple[float | None, float | None]:
             "Maximum temperature cannot be below the minimum.",
         )
     change = c.raw("s3_baro_change_24h")
-    if c.present("s3_baro_change_24h") and (not change.isdigit() or len(change) != 4):  # noqa: PLR2004
+    if c.present("s3_baro_change_24h") and (
+        not change.isdigit() or len(change) != FOUR_DIGIT_GROUP
+    ):
         c.add(
             "s3_baro_change_24h",
             "invalid_format",
@@ -582,7 +606,7 @@ def _check_pressure_and_weather(c: _Checker) -> tuple[float | None, float | None
     change = c.raw("pressure_change")
     amount: int | None = None
     if c.present("pressure_change"):
-        if not change.isdigit() or len(change) != 3:  # noqa: PLR2004
+        if not change.isdigit() or len(change) != THREE_DIGIT_GROUP:
             c.add(
                 "pressure_change",
                 "invalid_format",

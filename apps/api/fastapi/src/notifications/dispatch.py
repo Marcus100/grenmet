@@ -63,7 +63,7 @@ async def render_email(notification: Notification) -> tuple[str, str]:
     url = link_url(notification.link_path)
     if email_settings.EMAIL_RENDER_URL:
         try:
-            rendered = await email_module._render_remote(  # noqa: SLF001 - shared renderer
+            rendered = await email_module.render_remote(
                 "notification",
                 {
                     "projectName": project_name,
@@ -189,9 +189,7 @@ async def _render_outbound(row: OutboundEmail) -> tuple[str, str]:
     template = row.template or ""
     if email_settings.EMAIL_RENDER_URL:
         try:
-            rendered = await email_module._render_remote(  # noqa: SLF001 - shared renderer
-                template, row.props
-            )
+            rendered = await email_module.render_remote(template, row.props)
             return rendered.subject, rendered.html_content
         except Exception:  # noqa: BLE001 - any render failure falls back to Jinja
             logger.warning("React Email render failed; using Jinja fallback")
