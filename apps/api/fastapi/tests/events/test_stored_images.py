@@ -48,6 +48,9 @@ async def _upload(
 async def _setup(events_db: SessionFactory, db_async: AsyncSession):
     user = await user_with_role(db_async, "events-organiser")
     mine = await make_org(db_async, "Crew", members=((user, MembershipRole.ADMIN),))
+    # Only verified organisers can publish (E1 gate); listings here go live.
+    mine.verified_at = utc_now()
+    await db_async.commit()
     other = await make_org(db_async, "Rivals")
     async with events_db() as db:
         db.add(Organiser(slug="crew", name="Crew", organisation_id=mine.id))
