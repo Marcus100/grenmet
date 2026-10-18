@@ -24,7 +24,14 @@ from ..models import (
     TicketTier,
 )
 from .common import _naive_utc
-from .discover import _cards, _group, _group_summaries, _organiser_public, _tiers
+from .discover import (
+    _cards,
+    _group,
+    _group_summaries,
+    _organiser_public,
+    _organiser_verified,
+    _tiers,
+)
 
 _STATUS = TypeAdapter(Literal["draft", "published", "cancelled"])
 _VISIBILITY = TypeAdapter(Literal["public", "unlisted"])
@@ -280,6 +287,21 @@ async def _record_listing_change(
     )
 
 
+UNVERIFIED_PUBLISH = (
+    "Only verified organisers can publish events. Save this one as a draft; "
+    "it can go live once Barrels verifies your organiser account."
+)
+
+
+async def _require_verified_to_publish(
+    organiser: Organiser, status: str, before_status: str | None
+) -> None:
+    """Publishing is for verified organisers; drafts are open to everyone."""
+    if status == "published" and before_status != "published":
+        if not await _organiser_verified(organiser):
+            raise EventsForbidden(UNVERIFIED_PUBLISH)
+
+
 async def create_listing(
     db: AsyncSession,
     user: User,
@@ -288,6 +310,7 @@ async def create_listing(
     slug: str | None = None,
 ) -> schemas.ManagedListing:
     organiser = await _my_organiser(db, user, org_ids, slug)
+    await _require_verified_to_publish(organiser, body.status, None)
     listing = Listing(slug=await _unique_slug(db, body.title))
     await _apply_listing(db, listing, body, organiser)
     await _record_listing_change(db, listing, user, before=None)
@@ -308,6 +331,7 @@ async def update_listing(
     if listing is None or listing.organiser_id != organiser.id:
         raise EventsNotFound("Event not found")
     before = await _snapshot(db, listing)
+    await _require_verified_to_publish(organiser, body.status, before["status"])
     await _apply_listing(db, listing, body, organiser)
     await _record_listing_change(db, listing, user, before=before)
     await db.commit()
