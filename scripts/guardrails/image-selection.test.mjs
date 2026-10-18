@@ -7,7 +7,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { changedPaths, selectImages, webImages } from "../ci/select-images.mjs";
+import {
+  changedPaths,
+  selectCoverage,
+  selectImages,
+  webImages,
+} from "../ci/select-images.mjs";
 
 test("documentation and editor changes need no image builds", () => {
   assert.deepEqual(
@@ -160,7 +165,13 @@ test("CLI selects all images when comparison history or event data is missing", 
             return [line.slice(0, index), JSON.parse(line.slice(index + 1))];
           })
       );
-      assert.deepEqual(outputs, selectImages([], "full"));
+      assert.deepEqual(outputs, {
+        ...selectImages([], "full"),
+        coverage: selectCoverage([], "full").map(({ app, path }) => ({
+          app,
+          path,
+        })),
+      });
     }
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -174,4 +185,22 @@ test("GMS source leaves unrelated application builds cached", () => {
     ),
     ["gms"]
   );
+});
+
+test("coverage runs only the floor-tracked apps and follows the image scope", () => {
+  assert.deepEqual(
+    selectCoverage([], "full").map((image) => image.app),
+    ["auth", "gms", "signal", "mbia"]
+  );
+  assert.deepEqual(
+    selectCoverage(["apps/web/gaa-admin/src/app/page.tsx"], "affected"),
+    []
+  );
+  assert.deepEqual(
+    selectCoverage(["apps/web/signal/src/app/page.tsx"], "affected").map(
+      (image) => image.app
+    ),
+    ["signal"]
+  );
+  assert.deepEqual(selectCoverage(["pnpm-lock.yaml"], "deployment"), []);
 });

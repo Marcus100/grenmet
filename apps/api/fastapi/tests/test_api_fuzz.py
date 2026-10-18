@@ -20,13 +20,41 @@ from src.auth import service as auth_service
 from src.auth.utils import create_access_token
 from src.config import settings as app_settings
 from src.database import async_session_factory, init_db_async
+from src.eregister.config import eregister_settings
+from src.events.config import events_settings
+from src.janitorial.config import janitorial_settings
 from src.main import app
+from src.transport.config import transport_settings
+from src.wxproducts.config import wxproducts_settings
+from src.wxwatch.config import wxwatch_settings
 
 # Build from app.openapi() directly: fetching the document over ASGI takes longer
 # than the client's 10 s timeout on a cold app with ~365 routes.
 schema = schemathesis.openapi.from_dict(app.openapi())
 schema.app = app
 read_only = schema.include(method="GET")
+
+# Domain databases are configured per domain (WXPRODUCTS_DATABASE_URL, ...) and
+# .env.local can point them at Compose hosts such as grenmet-postgres, which do
+# not resolve outside Compose. They also bypass the suite's per-run test database
+# (tests/conftest.py). Leave them unset, as CI does, so those routes answer 503 by
+# design. The main database stays on the suite's POSTGRES_* settings.
+DOMAIN_DATABASE_SETTINGS = (
+    eregister_settings,
+    events_settings,
+    janitorial_settings,
+    transport_settings,
+    wxproducts_settings,
+    wxwatch_settings,
+)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def unconfigured_domain_databases() -> Iterator[None]:
+    with pytest.MonkeyPatch.context() as patch:
+        for domain_settings in DOMAIN_DATABASE_SETTINGS:
+            patch.setattr(domain_settings, "DATABASE_URL", None)
+        yield
 
 
 @pytest.fixture(scope="module")

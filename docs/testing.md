@@ -109,10 +109,19 @@ Where each floor is enforced:
   `vitest.config.ts`, so `pnpm --filter <app> test:coverage` (or `vitest run --coverage`)
   fails below the floor. `pnpm coverage:check` then compares the
   `coverage/coverage-summary.json` reports with the baseline. Apps without a report
-  are skipped. **Web CI does not run coverage today**: the TypeScript Tests job
-  runs `pnpm test` without it, so web floors do not gate a PR yet (issue #363
-  stays open for this). Adding a coverage run there is a runtime decision to make
-  with measured CI timings first.
+  are skipped.
+- **Web, in CI.** `ci-web.yml` runs the `web-coverage` job: one matrix entry per
+  app in `coverageApps` (`scripts/ci/select-images.mjs`: `auth`, `gms`, `mbia`,
+  `signal`), each running `pnpm -C <app> run test:coverage` and then
+  `node scripts/guardrails/check-coverage.mjs --only web`. It runs beside the
+  TypeScript Tests job and is part of the `build` aggregate gate. Dev PRs and dev
+  pushes run only the apps whose files changed (shared packages and root files
+  select all, as in image selection); promotion PRs and pushes run all four. A
+  skipped matrix leaves the gate green only when selection succeeded.
+- **gaa-admin is not in CI coverage.** Its full run takes about 40 minutes locally
+  and hit a 30 s test timeout under instrumentation, so its floor is enforced only
+  by `pnpm -C apps/web/gaa-admin run test:coverage` on a developer machine. Add it
+  to `coverageApps` only after a measured CI run fits the job timeout.
 
 Raising a floor (floors only rise; lowering one needs a human review and a stated
 reason, because `coverage-baseline.json` is a high-risk path in `risk-tier.mjs`):
