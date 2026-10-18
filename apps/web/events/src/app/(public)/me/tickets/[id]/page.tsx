@@ -24,7 +24,7 @@ export default async function TicketPage({ params }: { params: Params }) {
   if (!ticket) {
     notFound();
   }
-  const cancelled = ticket.status === "cancelled";
+  const cancelled = ticket.status !== "valid";
 
   return (
     <div className="mx-auto max-w-md space-y-6">

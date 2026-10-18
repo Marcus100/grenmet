@@ -27,12 +27,16 @@ from .common import _naive_utc, _pairs
 
 _PARISH = TypeAdapter(schemas.Parish)
 _CURRENCY = TypeAdapter(Literal["XCD", "USD"])
-_STATUS = TypeAdapter(Literal["valid", "cancelled"])
+_STATUS = TypeAdapter(Literal["valid", "cancelled", "refunded"])
 
 
 async def _claimable_listing(db: AsyncSession, slug: str) -> Listing:
+    # A shared lock on the listing row serialises a claim against an organiser
+    # cancelling the event (which takes the exclusive lock).
     listing = await db.scalar(
-        select(Listing).where(Listing.slug == slug, Listing.status == "published")
+        select(Listing)
+        .where(Listing.slug == slug, Listing.status == "published")
+        .with_for_update(read=True)
     )
     if listing is None:
         raise EventsNotFound("Event not found")

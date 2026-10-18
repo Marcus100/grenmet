@@ -25718,6 +25718,461 @@
         }
       }
     },
+    "/api/v1/events/manage/{listing_id}/outlet": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get the outlet sale screen",
+        "description": "Tier stock, the caller's cash till and recent outlet sales for an event. Organiser admins and owners only.",
+        "operationId": "eventsGetOutlet",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutletOverview"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid listing"
+          }
+        }
+      }
+    },
+    "/api/v1/events/manage/{listing_id}/outlet/till": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Open my cash till",
+        "description": "Start today's till with an opening float. One till per staff member, event and Grenada day.",
+        "operationId": "eventsOpenTill",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TillOpen"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TillPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Sold out, wrong amount, till not open or event ended"
+          }
+        }
+      }
+    },
+    "/api/v1/events/manage/{listing_id}/outlet/till/close": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Close my cash till",
+        "description": "Record the counted cash. The response shows expected cash and the difference.",
+        "operationId": "eventsCloseTill",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TillClose"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TillPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Sold out, wrong amount, till not open or event ended"
+          }
+        }
+      }
+    },
+    "/api/v1/events/manage/{listing_id}/outlet/sales": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Sell tickets for cash",
+        "description": "Issue tickets against the shared inventory and record the cash collected. Needs an open till. The buyer needs no account.",
+        "operationId": "eventsSellOutletTickets",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutletSaleCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutletSale"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Sold out, wrong amount, till not open or event ended"
+          }
+        }
+      }
+    },
+    "/api/v1/events/manage/{listing_id}/outlet/sales/{order_id}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get an outlet sale",
+        "description": "One outlet sale with its tickets and QR tokens, for printing or reprinting.",
+        "operationId": "eventsGetOutletSale",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Order Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutletSale"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid listing"
+          }
+        }
+      }
+    },
     "/api/v1/events/manage/listings/{listing_id}": {
       "put": {
         "tags": [
@@ -43529,6 +43984,9 @@
               }
             ],
             "title": "Admitted At"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/ManifestRowPropertiesChannelEnum"
           }
         },
         "type": "object",
@@ -45789,6 +46247,356 @@
           "verified"
         ],
         "title": "OrganiserReview"
+      },
+      "OutletItemInput": {
+        "properties": {
+          "tier_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tier Id"
+          },
+          "quantity": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Quantity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tier_id",
+          "quantity"
+        ],
+        "title": "OutletItemInput"
+      },
+      "OutletOverview": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ListingUpsertPropertiesStatusEnum"
+          },
+          "selling": {
+            "type": "boolean",
+            "title": "Selling"
+          },
+          "tiers": {
+            "items": {
+              "$ref": "#/components/schemas/OutletTierStock"
+            },
+            "type": "array",
+            "title": "Tiers"
+          },
+          "till": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TillPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sales": {
+            "items": {
+              "$ref": "#/components/schemas/OutletSale"
+            },
+            "type": "array",
+            "title": "Sales"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "title",
+          "starts_at",
+          "status",
+          "selling",
+          "tiers",
+          "sales"
+        ],
+        "title": "OutletOverview"
+      },
+      "OutletSale": {
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Order Id"
+          },
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "listing_title": {
+            "type": "string",
+            "title": "Listing Title"
+          },
+          "venue": {
+            "type": "string",
+            "title": "Venue"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/ListingCardPropertiesCurrencyEnum"
+          },
+          "total_minor": {
+            "type": "integer",
+            "title": "Total Minor"
+          },
+          "collected_minor": {
+            "type": "integer",
+            "title": "Collected Minor"
+          },
+          "buyer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Name"
+          },
+          "buyer_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Phone"
+          },
+          "sold_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sold By Name"
+          },
+          "till_session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Till Session Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "repeat": {
+            "type": "boolean",
+            "title": "Repeat",
+            "default": false
+          },
+          "tickets": {
+            "items": {
+              "$ref": "#/components/schemas/OutletTicket"
+            },
+            "type": "array",
+            "title": "Tickets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "order_id",
+          "listing_id",
+          "listing_title",
+          "venue",
+          "starts_at",
+          "currency",
+          "total_minor",
+          "collected_minor",
+          "created_at",
+          "tickets"
+        ],
+        "title": "OutletSale"
+      },
+      "OutletSaleCreate": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OutletItemInput"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Items"
+          },
+          "amount_collected_minor": {
+            "type": "integer",
+            "maximum": 100000000.0,
+            "minimum": 0.0,
+            "title": "Amount Collected Minor"
+          },
+          "buyer_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Name"
+          },
+          "buyer_phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Phone"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "amount_collected_minor"
+        ],
+        "title": "OutletSaleCreate"
+      },
+      "OutletTicket": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "qr_token": {
+            "type": "string",
+            "title": "Qr Token"
+          },
+          "tier_name": {
+            "type": "string",
+            "title": "Tier Name"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OutletTicketPropertiesStatusEnum"
+          },
+          "admitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "qr_token",
+          "tier_name",
+          "price_minor",
+          "status"
+        ],
+        "title": "OutletTicket"
+      },
+      "OutletTierStock": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/ListingCardPropertiesCurrencyEnum"
+          },
+          "allocation": {
+            "type": "integer",
+            "title": "Allocation"
+          },
+          "sold": {
+            "type": "integer",
+            "title": "Sold"
+          },
+          "remaining": {
+            "type": "integer",
+            "title": "Remaining"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "price_minor",
+          "currency",
+          "allocation",
+          "sold",
+          "remaining"
+        ],
+        "title": "OutletTierStock"
       },
       "OutlookProductPreview": {
         "properties": {
@@ -56034,7 +56842,7 @@
             "title": "Code"
           },
           "status": {
-            "$ref": "#/components/schemas/TicketDetailPropertiesStatusEnum"
+            "$ref": "#/components/schemas/OutletTicketPropertiesStatusEnum"
           },
           "tier_name": {
             "type": "string",
@@ -56115,7 +56923,7 @@
             "title": "Code"
           },
           "status": {
-            "$ref": "#/components/schemas/TicketDetailPropertiesStatusEnum"
+            "$ref": "#/components/schemas/OutletTicketPropertiesStatusEnum"
           },
           "tier_name": {
             "type": "string",
@@ -56277,6 +57085,170 @@
           "allocation"
         ],
         "title": "TierPublic"
+      },
+      "TillClose": {
+        "properties": {
+          "counted_minor": {
+            "type": "integer",
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Counted Minor"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "counted_minor"
+        ],
+        "title": "TillClose"
+      },
+      "TillOpen": {
+        "properties": {
+          "opening_float_minor": {
+            "type": "integer",
+            "maximum": 100000000.0,
+            "minimum": 0.0,
+            "title": "Opening Float Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "opening_float_minor"
+        ],
+        "title": "TillOpen"
+      },
+      "TillPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "staff_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Staff Id"
+          },
+          "staff_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Name"
+          },
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TillPublicPropertiesStatusEnum"
+          },
+          "opening_float_minor": {
+            "type": "integer",
+            "title": "Opening Float Minor"
+          },
+          "opened_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Opened At"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "sales_count": {
+            "type": "integer",
+            "title": "Sales Count"
+          },
+          "tickets_sold": {
+            "type": "integer",
+            "title": "Tickets Sold"
+          },
+          "collected_minor": {
+            "type": "integer",
+            "title": "Collected Minor"
+          },
+          "cash_refunds_minor": {
+            "type": "integer",
+            "title": "Cash Refunds Minor",
+            "default": 0
+          },
+          "expected_minor": {
+            "type": "integer",
+            "title": "Expected Minor"
+          },
+          "counted_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counted Minor"
+          },
+          "difference_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difference Minor"
+          },
+          "close_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Close Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "staff_id",
+          "day",
+          "status",
+          "opening_float_minor",
+          "opened_at",
+          "sales_count",
+          "tickets_sold",
+          "collected_minor",
+          "expected_minor"
+        ],
+        "title": "TillPublic"
       },
       "TimesheetCreate": {
         "properties": {
@@ -60868,6 +61840,14 @@
         ],
         "default": "draft"
       },
+      "ManifestRowPropertiesChannelEnum": {
+        "type": "string",
+        "enum": [
+          "online",
+          "outlet"
+        ],
+        "default": "online"
+      },
       "MyProfilePropertiesIntentsItemsEnum": {
         "type": "string",
         "enum": [
@@ -60973,6 +61953,14 @@
           "queued",
           "sent",
           "failed"
+        ]
+      },
+      "OutletTicketPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "valid",
+          "cancelled",
+          "refunded"
         ]
       },
       "ProfilePublicPropertiesConnectionStateEnum": {
@@ -61097,11 +62085,11 @@
           "group"
         ]
       },
-      "TicketDetailPropertiesStatusEnum": {
+      "TillPublicPropertiesStatusEnum": {
         "type": "string",
         "enum": [
-          "valid",
-          "cancelled"
+          "open",
+          "closed"
         ]
       },
       "TrainingRecordInputPropertiesResultEnum": {

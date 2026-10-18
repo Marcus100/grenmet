@@ -53,6 +53,15 @@ from .organiser_admin import (
     set_organiser_logo,
     update_listing,
 )
+from .outlet import (
+    close_till,
+    get_sale,
+    open_till,
+    sell_tickets,
+)
+from .outlet import (
+    overview as outlet_overview,
+)
 from .people import (
     blocked_ids,
     can_message,
@@ -71,6 +80,11 @@ __all__ = [
     "UTC_TZ",
     "accept_connection",
     "admit_ticket",
+    "close_till",
+    "get_sale",
+    "open_till",
+    "outlet_overview",
+    "sell_tickets",
     "manifest",
     "blocked_ids",
     "can_message",

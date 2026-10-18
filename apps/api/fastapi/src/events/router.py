@@ -708,6 +708,111 @@ async def get_manifest(
     return await service.manifest(session, user, listing_id, scope, organiser)
 
 
+_OUTLET: dict[int | str, dict[str, Any]] = {
+    **_ORGANISER,
+    409: {"description": "Sold out, wrong amount, till not open or event ended"},
+}
+
+
+@router.get(
+    "/manage/{listing_id}/outlet",
+    response_model=schemas.OutletOverview,
+    status_code=status.HTTP_200_OK,
+    summary="Get the outlet sale screen",
+    description="Tier stock, the caller's cash till and recent outlet sales for an event. Organiser admins and owners only.",
+    responses=_ORGANISER,
+)
+async def get_outlet(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+) -> schemas.OutletOverview:
+    return await service.outlet_overview(session, user, listing_id, scope, organiser)
+
+
+@router.post(
+    "/manage/{listing_id}/outlet/till",
+    response_model=schemas.TillPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Open my cash till",
+    description="Start today's till with an opening float. One till per staff member, event and Grenada day.",
+    responses=_OUTLET,
+)
+async def open_till(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.TillOpen,
+    organiser: _ManagedSlug = None,
+) -> schemas.TillPublic:
+    return await service.open_till(session, user, listing_id, body, scope, organiser)
+
+
+@router.post(
+    "/manage/{listing_id}/outlet/till/close",
+    response_model=schemas.TillPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Close my cash till",
+    description="Record the counted cash. The response shows expected cash and the difference.",
+    responses=_OUTLET,
+)
+async def close_till(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.TillClose,
+    organiser: _ManagedSlug = None,
+) -> schemas.TillPublic:
+    return await service.close_till(session, user, listing_id, body, scope, organiser)
+
+
+@router.post(
+    "/manage/{listing_id}/outlet/sales",
+    response_model=schemas.OutletSale,
+    status_code=status.HTTP_201_CREATED,
+    summary="Sell tickets for cash",
+    description="Issue tickets against the shared inventory and record the cash collected. Needs an open till. The buyer needs no account.",
+    responses=_OUTLET,
+)
+async def sell_outlet_tickets(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.OutletSaleCreate,
+    organiser: _ManagedSlug = None,
+) -> schemas.OutletSale:
+    return await service.sell_tickets(session, user, listing_id, body, scope, organiser)
+
+
+@router.get(
+    "/manage/{listing_id}/outlet/sales/{order_id}",
+    response_model=schemas.OutletSale,
+    status_code=status.HTTP_200_OK,
+    summary="Get an outlet sale",
+    description="One outlet sale with its tickets and QR tokens, for printing or reprinting.",
+    responses=_ORGANISER,
+)
+async def get_outlet_sale(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    order_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+) -> schemas.OutletSale:
+    return await service.get_sale(session, user, listing_id, order_id, scope, organiser)
+
+
 @router.put(
     "/manage/listings/{listing_id}",
     response_model=schemas.ManagedListing,

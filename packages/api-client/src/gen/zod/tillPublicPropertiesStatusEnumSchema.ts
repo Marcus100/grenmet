@@ -5,7 +5,4 @@
 
 import * as z from "zod";
 
-export const ticketDetailPropertiesStatusEnumSchema = z.enum([
-  "valid",
-  "cancelled",
-]);
+export const tillPublicPropertiesStatusEnumSchema = z.enum(["open", "closed"]);

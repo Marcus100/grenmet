@@ -21,7 +21,7 @@ from src.utils.datetime import utc_now
 
 from .. import activity, schemas, tickets
 from ..exceptions import EventsConflict, EventsNotFound
-from ..models import Admission, Listing, MemberProfile, Ticket, TicketTier
+from ..models import Admission, Listing, MemberProfile, Order, Ticket, TicketTier
 from .common import GRENADA
 from .organiser_admin import _my_organiser
 
@@ -40,7 +40,10 @@ async def _door_listing(
     return listing
 
 
-async def _names(db: AsyncSession, user_ids: set[uuid.UUID]) -> dict[uuid.UUID, str]:
+async def _names(
+    db: AsyncSession, user_ids: set[uuid.UUID | None]
+) -> dict[uuid.UUID, str]:
+    user_ids = {value for value in user_ids if value is not None}
     if not user_ids:
         return {}
     rows = await db.execute(
@@ -61,13 +64,16 @@ def _result(
     admission: Admission,
     names: dict[uuid.UUID, str],
     *,
+    buyer_name: str | None,
     repeat: bool,
 ) -> schemas.AdmissionPublic:
     return schemas.AdmissionPublic(
         ticket_id=ticket.id,
         code=tickets.display_code(ticket.code),
         tier_name=tier_name,
-        holder_name=names.get(ticket.user_id),
+        holder_name=(
+            names.get(ticket.user_id) if ticket.user_id is not None else buyer_name
+        ),
         admitted_at=admission.admitted_at,
         admitted_by_name=names.get(admission.admitted_by),
         repeat=repeat,
@@ -93,9 +99,16 @@ async def admit_ticket(
     if ticket.listing_id != listing.id:
         raise EventsConflict("This ticket is for a different event")
     if ticket.status != "valid":
-        raise EventsConflict("This ticket was cancelled")
+        raise EventsConflict(
+            "This ticket was refunded"
+            if ticket.status == "refunded"
+            else "This ticket was cancelled"
+        )
     tier = await db.get(TicketTier, ticket.tier_id)
+    order = await db.get(Order, ticket.order_id)
     assert tier is not None
+    assert order is not None
+    buyer = order.buyer_name
     existing = await db.scalar(
         select(Admission).where(Admission.ticket_id == ticket.id)
     )
@@ -105,7 +118,9 @@ async def admit_ticket(
             body.idempotency_key is not None
             and existing.idempotency_key == body.idempotency_key
         ):
-            return _result(ticket, tier.name, existing, names, repeat=True)
+            return _result(
+                ticket, tier.name, existing, names, buyer_name=buyer, repeat=True
+            )
         who = names.get(existing.admitted_by, "door staff")
         raise EventsConflict(
             f"Already admitted at {_grenada_clock(existing.admitted_at)} by {who}"
@@ -140,7 +155,7 @@ async def admit_ticket(
     )
     await db.commit()
     names = await _names(db, {ticket.user_id, user.id})
-    return _result(ticket, tier.name, admission, names, repeat=False)
+    return _result(ticket, tier.name, admission, names, buyer_name=buyer, repeat=False)
 
 
 async def manifest(
@@ -154,8 +169,15 @@ async def manifest(
     rows: list[Any] = list(
         (
             await db.execute(
-                select(Ticket, TicketTier.name, Admission.admitted_at)
+                select(
+                    Ticket,
+                    TicketTier.name,
+                    Admission.admitted_at,
+                    Order.buyer_name,
+                    Order.channel,
+                )
                 .join(TicketTier, TicketTier.id == Ticket.tier_id)
+                .join(Order, Order.id == Ticket.order_id)
                 .outerjoin(Admission, Admission.ticket_id == Ticket.id)
                 .where(Ticket.listing_id == listing.id, Ticket.status == "valid")
             )
@@ -165,7 +187,10 @@ async def manifest(
         await db.scalar(
             select(func.count())
             .select_from(Ticket)
-            .where(Ticket.listing_id == listing.id, Ticket.status == "cancelled")
+            .where(
+                Ticket.listing_id == listing.id,
+                Ticket.status.in_(["cancelled", "refunded"]),
+            )
         )
         or 0
     )
@@ -175,9 +200,10 @@ async def manifest(
             schemas.ManifestRow(
                 ticket_id=row[0].id,
                 code=tickets.display_code(row[0].code),
-                holder_name=names.get(row[0].user_id),
+                holder_name=(names.get(row[0].user_id) if row[0].user_id else row[3]),
                 tier_name=row[1],
                 admitted_at=row[2],
+                channel=row[4],
             )
             for row in rows
         ),

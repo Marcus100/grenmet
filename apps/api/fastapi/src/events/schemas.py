@@ -372,7 +372,7 @@ class TicketSummary(BaseModel):
     id: uuid.UUID
     #: Opaque code printed under the QR, for manual entry at the door.
     code: str
-    status: Literal["valid", "cancelled"]
+    status: Literal["valid", "cancelled", "refunded"]
     tier_name: str
     listing_slug: str
     listing_title: str
@@ -425,6 +425,8 @@ class ManifestRow(BaseModel):
     holder_name: str | None = None
     tier_name: str
     admitted_at: UtcDateTime | None = None
+    #: "online" (member claim) or "outlet" (cash sale by staff).
+    channel: Literal["online", "outlet"] = "online"
 
 
 class Manifest(BaseModel):
@@ -438,3 +440,109 @@ class Manifest(BaseModel):
     waiting: int
     cancelled: int
     rows: list[ManifestRow]
+
+
+# --- Outlet cash sales (E3) -------------------------------------------------------------
+
+Currency = Literal["XCD", "USD"]
+
+
+class OutletItemInput(BaseModel):
+    tier_id: uuid.UUID
+    quantity: int = Field(ge=1, le=50)
+
+
+class OutletSaleCreate(BaseModel):
+    items: list[OutletItemInput] = Field(min_length=1, max_length=10)
+    #: Cash taken, in minor units of the tier currency. Must equal the price total.
+    amount_collected_minor: int = Field(ge=0, le=100_000_000)
+    buyer_name: str | None = Field(default=None, max_length=120)
+    buyer_phone: str | None = Field(default=None, max_length=40)
+    #: Client-generated key; a retried sale replays the original instead of selling twice.
+    idempotency_key: str | None = Field(default=None, min_length=1, max_length=64)
+
+
+class OutletTicket(BaseModel):
+    id: uuid.UUID
+    code: str
+    #: Signed token to print as the ticket's QR code. Carries no personal data.
+    qr_token: str
+    tier_name: str
+    price_minor: int
+    status: Literal["valid", "cancelled", "refunded"]
+    admitted_at: UtcDateTime | None = None
+
+
+class OutletSale(BaseModel):
+    order_id: uuid.UUID
+    listing_id: uuid.UUID
+    listing_title: str
+    venue: str
+    starts_at: UtcDateTime
+    currency: Currency
+    total_minor: int
+    collected_minor: int
+    buyer_name: str | None = None
+    buyer_phone: str | None = None
+    sold_by_name: str | None = None
+    till_session_id: uuid.UUID | None = None
+    created_at: UtcDateTime
+    #: True when this response replays an earlier sale with the same key.
+    repeat: bool = False
+    tickets: list[OutletTicket]
+
+
+class TillOpen(BaseModel):
+    opening_float_minor: int = Field(ge=0, le=100_000_000)
+
+
+class TillClose(BaseModel):
+    counted_minor: int = Field(ge=0, le=1_000_000_000)
+    note: str | None = Field(default=None, max_length=300)
+
+
+class TillPublic(BaseModel):
+    id: uuid.UUID
+    staff_id: uuid.UUID
+    staff_name: str | None = None
+    #: Grenada calendar day the till was opened.
+    day: date
+    status: Literal["open", "closed"]
+    opening_float_minor: int
+    opened_at: UtcDateTime
+    closed_at: UtcDateTime | None = None
+    sales_count: int
+    tickets_sold: int
+    collected_minor: int
+    #: Cash handed back as refunds from this till.
+    cash_refunds_minor: int = 0
+    #: Float plus takings minus cash refunds.
+    expected_minor: int
+    counted_minor: int | None = None
+    #: Counted minus expected once closed (negative is short, positive is over).
+    difference_minor: int | None = None
+    close_note: str | None = None
+
+
+class OutletTierStock(BaseModel):
+    id: uuid.UUID
+    name: str
+    price_minor: int
+    currency: Currency
+    allocation: int
+    sold: int
+    remaining: int
+
+
+class OutletOverview(BaseModel):
+    listing_id: uuid.UUID
+    title: str
+    starts_at: UtcDateTime
+    status: Literal["draft", "published", "cancelled"]
+    #: Whether the event can still be sold (published, ticketed, not ended).
+    selling: bool
+    tiers: list[OutletTierStock]
+    #: The caller's till for the current open session or today's closed one.
+    till: TillPublic | None = None
+    #: Recent outlet sales for the event, newest first.
+    sales: list[OutletSale]

@@ -147,6 +147,7 @@ export { eventsBlockMember } from "./clients/eventsBlockMember.js";
 export { eventsCancelListingRsvp } from "./clients/eventsCancelListingRsvp.js";
 export { eventsCancelMyTicket } from "./clients/eventsCancelMyTicket.js";
 export { eventsClaimTickets } from "./clients/eventsClaimTickets.js";
+export { eventsCloseTill } from "./clients/eventsCloseTill.js";
 export { eventsCreateManagedListing } from "./clients/eventsCreateManagedListing.js";
 export { eventsCreateReport } from "./clients/eventsCreateReport.js";
 export { eventsCreateSuggestion } from "./clients/eventsCreateSuggestion.js";
@@ -161,6 +162,8 @@ export { eventsGetMyPlans } from "./clients/eventsGetMyPlans.js";
 export { eventsGetMyProfile } from "./clients/eventsGetMyProfile.js";
 export { eventsGetMyTicket } from "./clients/eventsGetMyTicket.js";
 export { eventsGetOrganiser } from "./clients/eventsGetOrganiser.js";
+export { eventsGetOutlet } from "./clients/eventsGetOutlet.js";
+export { eventsGetOutletSale } from "./clients/eventsGetOutletSale.js";
 export { eventsGetPerson } from "./clients/eventsGetPerson.js";
 export { eventsGetThread } from "./clients/eventsGetThread.js";
 export { eventsJoinGroup } from "./clients/eventsJoinGroup.js";
@@ -173,12 +176,14 @@ export { eventsListReports } from "./clients/eventsListReports.js";
 export { eventsListSuggestions } from "./clients/eventsListSuggestions.js";
 export { eventsListThreads } from "./clients/eventsListThreads.js";
 export { eventsOpenThread } from "./clients/eventsOpenThread.js";
+export { eventsOpenTill } from "./clients/eventsOpenTill.js";
 export { eventsRemoveConnection } from "./clients/eventsRemoveConnection.js";
 export { eventsRequestConnection } from "./clients/eventsRequestConnection.js";
 export { eventsRequestOrganiser } from "./clients/eventsRequestOrganiser.js";
 export { eventsReviewOrganiser } from "./clients/eventsReviewOrganiser.js";
 export { eventsRsvpListing } from "./clients/eventsRsvpListing.js";
 export { eventsSaveListing } from "./clients/eventsSaveListing.js";
+export { eventsSellOutletTickets } from "./clients/eventsSellOutletTickets.js";
 export { eventsSendMessage } from "./clients/eventsSendMessage.js";
 export { eventsSetOrganiserLogo } from "./clients/eventsSetOrganiserLogo.js";
 export { eventsUnblockMember } from "./clients/eventsUnblockMember.js";
@@ -1194,6 +1199,11 @@ export {
   useEventsClaimTickets,
 } from "./hooks/useEventsClaimTickets.js";
 export {
+  eventsCloseTillMutationKey,
+  eventsCloseTillMutationOptions,
+  useEventsCloseTill,
+} from "./hooks/useEventsCloseTill.js";
+export {
   eventsCreateManagedListingMutationKey,
   eventsCreateManagedListingMutationOptions,
   useEventsCreateManagedListing,
@@ -1264,6 +1274,16 @@ export {
   useEventsGetOrganiser,
 } from "./hooks/useEventsGetOrganiser.js";
 export {
+  eventsGetOutletQueryKey,
+  eventsGetOutletQueryOptions,
+  useEventsGetOutlet,
+} from "./hooks/useEventsGetOutlet.js";
+export {
+  eventsGetOutletSaleQueryKey,
+  eventsGetOutletSaleQueryOptions,
+  useEventsGetOutletSale,
+} from "./hooks/useEventsGetOutletSale.js";
+export {
   eventsGetPersonQueryKey,
   eventsGetPersonQueryOptions,
   useEventsGetPerson,
@@ -1324,6 +1344,11 @@ export {
   useEventsOpenThread,
 } from "./hooks/useEventsOpenThread.js";
 export {
+  eventsOpenTillMutationKey,
+  eventsOpenTillMutationOptions,
+  useEventsOpenTill,
+} from "./hooks/useEventsOpenTill.js";
+export {
   eventsRemoveConnectionMutationKey,
   eventsRemoveConnectionMutationOptions,
   useEventsRemoveConnection,
@@ -1353,6 +1378,11 @@ export {
   eventsSaveListingMutationOptions,
   useEventsSaveListing,
 } from "./hooks/useEventsSaveListing.js";
+export {
+  eventsSellOutletTicketsMutationKey,
+  eventsSellOutletTicketsMutationOptions,
+  useEventsSellOutletTickets,
+} from "./hooks/useEventsSellOutletTickets.js";
 export {
   eventsSendMessageMutationKey,
   eventsSendMessageMutationOptions,
@@ -4539,6 +4569,21 @@ export type {
   EventsClaimTicketsStatus429,
 } from "./models/EventsClaimTickets.js";
 export type {
+  EventsCloseTillBody,
+  EventsCloseTillOptions,
+  EventsCloseTillPath,
+  EventsCloseTillQuery,
+  EventsCloseTillResponse,
+  EventsCloseTillResponses,
+  EventsCloseTillStatus200,
+  EventsCloseTillStatus401,
+  EventsCloseTillStatus403,
+  EventsCloseTillStatus404,
+  EventsCloseTillStatus409,
+  EventsCloseTillStatus422,
+  EventsCloseTillStatus429,
+} from "./models/EventsCloseTill.js";
+export type {
   EventsCreateManagedListingBody,
   EventsCreateManagedListingOptions,
   EventsCreateManagedListingQuery,
@@ -4693,6 +4738,34 @@ export type {
   EventsGetOrganiserStatus422,
 } from "./models/EventsGetOrganiser.js";
 export type {
+  EventsGetOutletOptions,
+  EventsGetOutletPath,
+  EventsGetOutletQuery,
+  EventsGetOutletResponse,
+  EventsGetOutletResponses,
+  EventsGetOutletStatus200,
+  EventsGetOutletStatus401,
+  EventsGetOutletStatus403,
+  EventsGetOutletStatus404,
+  EventsGetOutletStatus409,
+  EventsGetOutletStatus422,
+  EventsGetOutletStatus429,
+} from "./models/EventsGetOutlet.js";
+export type {
+  EventsGetOutletSaleOptions,
+  EventsGetOutletSalePath,
+  EventsGetOutletSaleQuery,
+  EventsGetOutletSaleResponse,
+  EventsGetOutletSaleResponses,
+  EventsGetOutletSaleStatus200,
+  EventsGetOutletSaleStatus401,
+  EventsGetOutletSaleStatus403,
+  EventsGetOutletSaleStatus404,
+  EventsGetOutletSaleStatus409,
+  EventsGetOutletSaleStatus422,
+  EventsGetOutletSaleStatus429,
+} from "./models/EventsGetOutletSale.js";
+export type {
   EventsGetPersonOptions,
   EventsGetPersonPath,
   EventsGetPersonResponse,
@@ -4821,6 +4894,21 @@ export type {
   EventsOpenThreadStatus429,
 } from "./models/EventsOpenThread.js";
 export type {
+  EventsOpenTillBody,
+  EventsOpenTillOptions,
+  EventsOpenTillPath,
+  EventsOpenTillQuery,
+  EventsOpenTillResponse,
+  EventsOpenTillResponses,
+  EventsOpenTillStatus201,
+  EventsOpenTillStatus401,
+  EventsOpenTillStatus403,
+  EventsOpenTillStatus404,
+  EventsOpenTillStatus409,
+  EventsOpenTillStatus422,
+  EventsOpenTillStatus429,
+} from "./models/EventsOpenTill.js";
+export type {
   EventsRemoveConnectionOptions,
   EventsRemoveConnectionPath,
   EventsRemoveConnectionResponse,
@@ -4890,6 +4978,21 @@ export type {
   EventsSaveListingStatus422,
   EventsSaveListingStatus429,
 } from "./models/EventsSaveListing.js";
+export type {
+  EventsSellOutletTicketsBody,
+  EventsSellOutletTicketsOptions,
+  EventsSellOutletTicketsPath,
+  EventsSellOutletTicketsQuery,
+  EventsSellOutletTicketsResponse,
+  EventsSellOutletTicketsResponses,
+  EventsSellOutletTicketsStatus201,
+  EventsSellOutletTicketsStatus401,
+  EventsSellOutletTicketsStatus403,
+  EventsSellOutletTicketsStatus404,
+  EventsSellOutletTicketsStatus409,
+  EventsSellOutletTicketsStatus422,
+  EventsSellOutletTicketsStatus429,
+} from "./models/EventsSellOutletTickets.js";
 export type {
   EventsSendMessageBody,
   EventsSendMessageOptions,
@@ -6959,6 +7062,8 @@ export type { ManagedListing } from "./models/ManagedListing.js";
 export type { ManagedOrganiser } from "./models/ManagedOrganiser.js";
 export type { Manifest } from "./models/Manifest.js";
 export type { ManifestRow } from "./models/ManifestRow.js";
+export type { ManifestRowPropertiesChannelEnum } from "./models/ManifestRowPropertiesChannelEnum.js";
+export { manifestRowPropertiesChannelEnum } from "./models/ManifestRowPropertiesChannelEnum.js";
 export type { MemberListPublic } from "./models/MemberListPublic.js";
 export type { MemberPublic } from "./models/MemberPublic.js";
 export type { MemberRoleUpdate } from "./models/MemberRoleUpdate.js";
@@ -7365,6 +7470,14 @@ export type { OrganiserLogoUpdate } from "./models/OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./models/OrganiserOption.js";
 export type { OrganiserPublic } from "./models/OrganiserPublic.js";
 export type { OrganiserReview } from "./models/OrganiserReview.js";
+export type { OutletItemInput } from "./models/OutletItemInput.js";
+export type { OutletOverview } from "./models/OutletOverview.js";
+export type { OutletSale } from "./models/OutletSale.js";
+export type { OutletSaleCreate } from "./models/OutletSaleCreate.js";
+export type { OutletTicket } from "./models/OutletTicket.js";
+export type { OutletTicketPropertiesStatusEnum } from "./models/OutletTicketPropertiesStatusEnum.js";
+export { outletTicketPropertiesStatusEnum } from "./models/OutletTicketPropertiesStatusEnum.js";
+export type { OutletTierStock } from "./models/OutletTierStock.js";
 export type { OutlookProductPreview } from "./models/OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./models/OutlookProductPreviewInput.js";
 export type { OutlookProductWrite } from "./models/OutlookProductWrite.js";
@@ -7922,11 +8035,14 @@ export type { ThreadDetailPropertiesKindEnum } from "./models/ThreadDetailProper
 export { threadDetailPropertiesKindEnum } from "./models/ThreadDetailPropertiesKindEnum.js";
 export type { ThreadSummary } from "./models/ThreadSummary.js";
 export type { TicketDetail } from "./models/TicketDetail.js";
-export type { TicketDetailPropertiesStatusEnum } from "./models/TicketDetailPropertiesStatusEnum.js";
-export { ticketDetailPropertiesStatusEnum } from "./models/TicketDetailPropertiesStatusEnum.js";
 export type { TicketSummary } from "./models/TicketSummary.js";
 export type { TierInput } from "./models/TierInput.js";
 export type { TierPublic } from "./models/TierPublic.js";
+export type { TillClose } from "./models/TillClose.js";
+export type { TillOpen } from "./models/TillOpen.js";
+export type { TillPublic } from "./models/TillPublic.js";
+export type { TillPublicPropertiesStatusEnum } from "./models/TillPublicPropertiesStatusEnum.js";
+export { tillPublicPropertiesStatusEnum } from "./models/TillPublicPropertiesStatusEnum.js";
 export type { TimesheetCreate } from "./models/TimesheetCreate.js";
 export type { TimesheetDetails } from "./models/TimesheetDetails.js";
 export type { TimesheetEntryInput } from "./models/TimesheetEntryInput.js";
@@ -10214,6 +10330,20 @@ export {
   eventsClaimTicketsStatus429Schema,
 } from "./zod/eventsClaimTicketsSchema.js";
 export {
+  eventsCloseTillBodySchema,
+  eventsCloseTillErrorSchema,
+  eventsCloseTillPathListingIdSchema,
+  eventsCloseTillQueryOrganiserSchema,
+  eventsCloseTillResponseSchema,
+  eventsCloseTillStatus200Schema,
+  eventsCloseTillStatus401Schema,
+  eventsCloseTillStatus403Schema,
+  eventsCloseTillStatus404Schema,
+  eventsCloseTillStatus409Schema,
+  eventsCloseTillStatus422Schema,
+  eventsCloseTillStatus429Schema,
+} from "./zod/eventsCloseTillSchema.js";
+export {
   eventsCreateManagedListingBodySchema,
   eventsCreateManagedListingErrorSchema,
   eventsCreateManagedListingQueryOrganiserSchema,
@@ -10355,6 +10485,33 @@ export {
   eventsGetOrganiserStatus422Schema,
 } from "./zod/eventsGetOrganiserSchema.js";
 export {
+  eventsGetOutletSaleErrorSchema,
+  eventsGetOutletSalePathListingIdSchema,
+  eventsGetOutletSalePathOrderIdSchema,
+  eventsGetOutletSaleQueryOrganiserSchema,
+  eventsGetOutletSaleResponseSchema,
+  eventsGetOutletSaleStatus200Schema,
+  eventsGetOutletSaleStatus401Schema,
+  eventsGetOutletSaleStatus403Schema,
+  eventsGetOutletSaleStatus404Schema,
+  eventsGetOutletSaleStatus409Schema,
+  eventsGetOutletSaleStatus422Schema,
+  eventsGetOutletSaleStatus429Schema,
+} from "./zod/eventsGetOutletSaleSchema.js";
+export {
+  eventsGetOutletErrorSchema,
+  eventsGetOutletPathListingIdSchema,
+  eventsGetOutletQueryOrganiserSchema,
+  eventsGetOutletResponseSchema,
+  eventsGetOutletStatus200Schema,
+  eventsGetOutletStatus401Schema,
+  eventsGetOutletStatus403Schema,
+  eventsGetOutletStatus404Schema,
+  eventsGetOutletStatus409Schema,
+  eventsGetOutletStatus422Schema,
+  eventsGetOutletStatus429Schema,
+} from "./zod/eventsGetOutletSchema.js";
+export {
   eventsGetPersonErrorSchema,
   eventsGetPersonPathHandleSchema,
   eventsGetPersonResponseSchema,
@@ -10478,6 +10635,20 @@ export {
   eventsOpenThreadStatus429Schema,
 } from "./zod/eventsOpenThreadSchema.js";
 export {
+  eventsOpenTillBodySchema,
+  eventsOpenTillErrorSchema,
+  eventsOpenTillPathListingIdSchema,
+  eventsOpenTillQueryOrganiserSchema,
+  eventsOpenTillResponseSchema,
+  eventsOpenTillStatus201Schema,
+  eventsOpenTillStatus401Schema,
+  eventsOpenTillStatus403Schema,
+  eventsOpenTillStatus404Schema,
+  eventsOpenTillStatus409Schema,
+  eventsOpenTillStatus422Schema,
+  eventsOpenTillStatus429Schema,
+} from "./zod/eventsOpenTillSchema.js";
+export {
   eventsRemoveConnectionErrorSchema,
   eventsRemoveConnectionPathConnectionIdSchema,
   eventsRemoveConnectionResponseSchema,
@@ -10541,6 +10712,20 @@ export {
   eventsSaveListingStatus422Schema,
   eventsSaveListingStatus429Schema,
 } from "./zod/eventsSaveListingSchema.js";
+export {
+  eventsSellOutletTicketsBodySchema,
+  eventsSellOutletTicketsErrorSchema,
+  eventsSellOutletTicketsPathListingIdSchema,
+  eventsSellOutletTicketsQueryOrganiserSchema,
+  eventsSellOutletTicketsResponseSchema,
+  eventsSellOutletTicketsStatus201Schema,
+  eventsSellOutletTicketsStatus401Schema,
+  eventsSellOutletTicketsStatus403Schema,
+  eventsSellOutletTicketsStatus404Schema,
+  eventsSellOutletTicketsStatus409Schema,
+  eventsSellOutletTicketsStatus422Schema,
+  eventsSellOutletTicketsStatus429Schema,
+} from "./zod/eventsSellOutletTicketsSchema.js";
 export {
   eventsSendMessageBodySchema,
   eventsSendMessageErrorSchema,
@@ -12450,6 +12635,7 @@ export { locationPublicSchema } from "./zod/locationPublicSchema.js";
 export { locationUpdateSchema } from "./zod/locationUpdateSchema.js";
 export { managedListingSchema } from "./zod/managedListingSchema.js";
 export { managedOrganiserSchema } from "./zod/managedOrganiserSchema.js";
+export { manifestRowPropertiesChannelEnumSchema } from "./zod/manifestRowPropertiesChannelEnumSchema.js";
 export { manifestRowSchema } from "./zod/manifestRowSchema.js";
 export { manifestSchema } from "./zod/manifestSchema.js";
 export { memberListPublicSchema } from "./zod/memberListPublicSchema.js";
@@ -12825,6 +13011,13 @@ export { organiserLogoUpdateSchema } from "./zod/organiserLogoUpdateSchema.js";
 export { organiserOptionSchema } from "./zod/organiserOptionSchema.js";
 export { organiserPublicSchema } from "./zod/organiserPublicSchema.js";
 export { organiserReviewSchema } from "./zod/organiserReviewSchema.js";
+export { outletItemInputSchema } from "./zod/outletItemInputSchema.js";
+export { outletOverviewSchema } from "./zod/outletOverviewSchema.js";
+export { outletSaleCreateSchema } from "./zod/outletSaleCreateSchema.js";
+export { outletSaleSchema } from "./zod/outletSaleSchema.js";
+export { outletTicketPropertiesStatusEnumSchema } from "./zod/outletTicketPropertiesStatusEnumSchema.js";
+export { outletTicketSchema } from "./zod/outletTicketSchema.js";
+export { outletTierStockSchema } from "./zod/outletTierStockSchema.js";
 export { outlookProductPreviewInputSchema } from "./zod/outlookProductPreviewInputSchema.js";
 export { outlookProductPreviewSchema } from "./zod/outlookProductPreviewSchema.js";
 export { outlookProductWriteSchema } from "./zod/outlookProductWriteSchema.js";
@@ -13339,11 +13532,14 @@ export { threadCreateSchema } from "./zod/threadCreateSchema.js";
 export { threadDetailPropertiesKindEnumSchema } from "./zod/threadDetailPropertiesKindEnumSchema.js";
 export { threadDetailSchema } from "./zod/threadDetailSchema.js";
 export { threadSummarySchema } from "./zod/threadSummarySchema.js";
-export { ticketDetailPropertiesStatusEnumSchema } from "./zod/ticketDetailPropertiesStatusEnumSchema.js";
 export { ticketDetailSchema } from "./zod/ticketDetailSchema.js";
 export { ticketSummarySchema } from "./zod/ticketSummarySchema.js";
 export { tierInputSchema } from "./zod/tierInputSchema.js";
 export { tierPublicSchema } from "./zod/tierPublicSchema.js";
+export { tillCloseSchema } from "./zod/tillCloseSchema.js";
+export { tillOpenSchema } from "./zod/tillOpenSchema.js";
+export { tillPublicPropertiesStatusEnumSchema } from "./zod/tillPublicPropertiesStatusEnumSchema.js";
+export { tillPublicSchema } from "./zod/tillPublicSchema.js";
 export { timesheetCreateSchema } from "./zod/timesheetCreateSchema.js";
 export { timesheetDetailsSchema } from "./zod/timesheetDetailsSchema.js";
 export { timesheetEntryInputSchema } from "./zod/timesheetEntryInputSchema.js";

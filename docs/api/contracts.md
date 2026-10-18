@@ -455,6 +455,21 @@ holder, tier and admission time plus `issued`, `admitted`, `waiting` and `cancel
 Each admission writes a `ticket.admitted` row to the listing's activity history, and the
 member's ticket carries `admitted_at`; used tickets cannot be cancelled.
 
+### Events outlet cash (E3)
+
+Organiser admins and owners (the door-admission gate; plain members are refused because
+they would handle cash) sell for cash. `GET /events/manage/{listing_id}/outlet` returns tier
+stock, the caller's till and recent outlet sales. `POST .../outlet/till`
+(`{opening_float_minor}`) opens the caller's till for the Grenada day (one per staff member,
+event and day; 409 if already opened) and `POST .../outlet/till/close` (`{counted_minor, note?}`)
+closes it, returning expected cash and the difference. `POST .../outlet/sales`
+(`{items, amount_collected_minor, buyer_name?, buyer_phone?, idempotency_key?}`) issues tickets
+against the same inventory as online claims and returns the tickets with QR tokens;
+`amount_collected_minor` must equal the price total, a till must be open, and a repeated
+`idempotency_key` replays the original sale (`repeat: true`). `GET .../outlet/sales/{order_id}`
+reprints a sale. Outlet buyers need no account (tickets have no `user_id`); the per-account limit
+does not apply. Another organiser's event is 404.
+
 ## Pagination
 
 The standard helper is `src.pagination`:

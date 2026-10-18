@@ -180,7 +180,7 @@ async def _deliver_tickets(
     events: AsyncSession, platform: AsyncSession, row: Outbox
 ) -> int:
     order = await events.get(Order, uuid.UUID(row.entity_id))
-    if order is None:
+    if order is None or order.user_id is None:
         return 0
     listing = await events.get(Listing, order.listing_id)
     if listing is None:

@@ -1,6 +1,6 @@
 import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { ScanLine } from "lucide-react";
+import { Banknote, ScanLine } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -57,13 +57,22 @@ export default async function EditEventPage({
             </h1>
           </div>
           {event.admission === "ticketed" ? (
-            <Link
-              className={cn(buttonVariants({ variant: "outline" }))}
-              href={`/dash/events/${event.id}/door`}
-            >
-              <ScanLine data-icon="inline-start" />
-              Door
-            </Link>
+            <div className="flex gap-2">
+              <Link
+                className={cn(buttonVariants({ variant: "outline" }))}
+                href={`/dash/events/${event.id}/outlet`}
+              >
+                <Banknote data-icon="inline-start" />
+                Outlet sales
+              </Link>
+              <Link
+                className={cn(buttonVariants({ variant: "outline" }))}
+                href={`/dash/events/${event.id}/door`}
+              >
+                <ScanLine data-icon="inline-start" />
+                Door
+              </Link>
+            </div>
           ) : null}
         </div>
         <EventEditor

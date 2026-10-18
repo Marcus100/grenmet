@@ -294,7 +294,7 @@ export interface MyTicket {
   readonly listingTitle: string;
   readonly parish: Parish;
   readonly startsAt: string;
-  readonly status: "valid" | "cancelled";
+  readonly status: "valid" | "cancelled" | "refunded";
   readonly tierName: string;
   readonly venue: string;
 }
@@ -489,4 +489,73 @@ export interface DoorAdmission {
   /** True when the scan repeated an earlier one with the same key. */
   readonly repeat: boolean;
   readonly tierName: string;
+}
+
+/** One ticket sold at the outlet; the QR token is printed on the slip. */
+export interface OutletTicket {
+  readonly admittedAt: string | null;
+  readonly code: string;
+  readonly id: string;
+  readonly priceMinor: number;
+  readonly qrToken: string;
+  readonly status: "valid" | "cancelled" | "refunded";
+  readonly tierName: string;
+}
+
+/** An outlet cash sale: one order with its tickets. */
+export interface OutletSale {
+  readonly buyerName: string | null;
+  readonly buyerPhone: string | null;
+  readonly collectedMinor: number;
+  readonly createdAt: string;
+  readonly currency: CurrencyCode;
+  readonly listingId: string;
+  readonly listingTitle: string;
+  readonly orderId: string;
+  readonly soldByName: string | null;
+  readonly startsAt: string;
+  readonly tickets: readonly OutletTicket[];
+  readonly totalMinor: number;
+  readonly venue: string;
+}
+
+/** One staff member's cash till for the event. */
+export interface Till {
+  readonly cashRefundsMinor: number;
+  readonly closedAt: string | null;
+  readonly closeNote: string | null;
+  readonly collectedMinor: number;
+  readonly countedMinor: number | null;
+  readonly day: string;
+  readonly differenceMinor: number | null;
+  readonly expectedMinor: number;
+  readonly id: string;
+  readonly openedAt: string;
+  readonly openingFloatMinor: number;
+  readonly salesCount: number;
+  readonly staffName: string | null;
+  readonly status: "open" | "closed";
+  readonly ticketsSold: number;
+}
+
+export interface OutletTier {
+  readonly allocation: number;
+  readonly currency: CurrencyCode;
+  readonly id: string;
+  readonly name: string;
+  readonly priceMinor: number;
+  readonly remaining: number;
+  readonly sold: number;
+}
+
+/** Everything the outlet sale screen shows. */
+export interface Outlet {
+  readonly listingId: string;
+  readonly sales: readonly OutletSale[];
+  /** False once the event has ended, been cancelled or is not ticketed. */
+  readonly selling: boolean;
+  readonly startsAt: string;
+  readonly tiers: readonly OutletTier[];
+  readonly till: Till | null;
+  readonly title: string;
 }

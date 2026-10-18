@@ -1604,6 +1604,20 @@ export {
   eventsClaimTicketsStatus429Schema,
 } from "./eventsClaimTicketsSchema.js";
 export {
+  eventsCloseTillBodySchema,
+  eventsCloseTillErrorSchema,
+  eventsCloseTillPathListingIdSchema,
+  eventsCloseTillQueryOrganiserSchema,
+  eventsCloseTillResponseSchema,
+  eventsCloseTillStatus200Schema,
+  eventsCloseTillStatus401Schema,
+  eventsCloseTillStatus403Schema,
+  eventsCloseTillStatus404Schema,
+  eventsCloseTillStatus409Schema,
+  eventsCloseTillStatus422Schema,
+  eventsCloseTillStatus429Schema,
+} from "./eventsCloseTillSchema.js";
+export {
   eventsCreateManagedListingBodySchema,
   eventsCreateManagedListingErrorSchema,
   eventsCreateManagedListingQueryOrganiserSchema,
@@ -1745,6 +1759,33 @@ export {
   eventsGetOrganiserStatus422Schema,
 } from "./eventsGetOrganiserSchema.js";
 export {
+  eventsGetOutletSaleErrorSchema,
+  eventsGetOutletSalePathListingIdSchema,
+  eventsGetOutletSalePathOrderIdSchema,
+  eventsGetOutletSaleQueryOrganiserSchema,
+  eventsGetOutletSaleResponseSchema,
+  eventsGetOutletSaleStatus200Schema,
+  eventsGetOutletSaleStatus401Schema,
+  eventsGetOutletSaleStatus403Schema,
+  eventsGetOutletSaleStatus404Schema,
+  eventsGetOutletSaleStatus409Schema,
+  eventsGetOutletSaleStatus422Schema,
+  eventsGetOutletSaleStatus429Schema,
+} from "./eventsGetOutletSaleSchema.js";
+export {
+  eventsGetOutletErrorSchema,
+  eventsGetOutletPathListingIdSchema,
+  eventsGetOutletQueryOrganiserSchema,
+  eventsGetOutletResponseSchema,
+  eventsGetOutletStatus200Schema,
+  eventsGetOutletStatus401Schema,
+  eventsGetOutletStatus403Schema,
+  eventsGetOutletStatus404Schema,
+  eventsGetOutletStatus409Schema,
+  eventsGetOutletStatus422Schema,
+  eventsGetOutletStatus429Schema,
+} from "./eventsGetOutletSchema.js";
+export {
   eventsGetPersonErrorSchema,
   eventsGetPersonPathHandleSchema,
   eventsGetPersonResponseSchema,
@@ -1868,6 +1909,20 @@ export {
   eventsOpenThreadStatus429Schema,
 } from "./eventsOpenThreadSchema.js";
 export {
+  eventsOpenTillBodySchema,
+  eventsOpenTillErrorSchema,
+  eventsOpenTillPathListingIdSchema,
+  eventsOpenTillQueryOrganiserSchema,
+  eventsOpenTillResponseSchema,
+  eventsOpenTillStatus201Schema,
+  eventsOpenTillStatus401Schema,
+  eventsOpenTillStatus403Schema,
+  eventsOpenTillStatus404Schema,
+  eventsOpenTillStatus409Schema,
+  eventsOpenTillStatus422Schema,
+  eventsOpenTillStatus429Schema,
+} from "./eventsOpenTillSchema.js";
+export {
   eventsRemoveConnectionErrorSchema,
   eventsRemoveConnectionPathConnectionIdSchema,
   eventsRemoveConnectionResponseSchema,
@@ -1931,6 +1986,20 @@ export {
   eventsSaveListingStatus422Schema,
   eventsSaveListingStatus429Schema,
 } from "./eventsSaveListingSchema.js";
+export {
+  eventsSellOutletTicketsBodySchema,
+  eventsSellOutletTicketsErrorSchema,
+  eventsSellOutletTicketsPathListingIdSchema,
+  eventsSellOutletTicketsQueryOrganiserSchema,
+  eventsSellOutletTicketsResponseSchema,
+  eventsSellOutletTicketsStatus201Schema,
+  eventsSellOutletTicketsStatus401Schema,
+  eventsSellOutletTicketsStatus403Schema,
+  eventsSellOutletTicketsStatus404Schema,
+  eventsSellOutletTicketsStatus409Schema,
+  eventsSellOutletTicketsStatus422Schema,
+  eventsSellOutletTicketsStatus429Schema,
+} from "./eventsSellOutletTicketsSchema.js";
 export {
   eventsSendMessageBodySchema,
   eventsSendMessageErrorSchema,
@@ -3840,6 +3909,7 @@ export { locationPublicSchema } from "./locationPublicSchema.js";
 export { locationUpdateSchema } from "./locationUpdateSchema.js";
 export { managedListingSchema } from "./managedListingSchema.js";
 export { managedOrganiserSchema } from "./managedOrganiserSchema.js";
+export { manifestRowPropertiesChannelEnumSchema } from "./manifestRowPropertiesChannelEnumSchema.js";
 export { manifestRowSchema } from "./manifestRowSchema.js";
 export { manifestSchema } from "./manifestSchema.js";
 export { memberListPublicSchema } from "./memberListPublicSchema.js";
@@ -4215,6 +4285,13 @@ export { organiserLogoUpdateSchema } from "./organiserLogoUpdateSchema.js";
 export { organiserOptionSchema } from "./organiserOptionSchema.js";
 export { organiserPublicSchema } from "./organiserPublicSchema.js";
 export { organiserReviewSchema } from "./organiserReviewSchema.js";
+export { outletItemInputSchema } from "./outletItemInputSchema.js";
+export { outletOverviewSchema } from "./outletOverviewSchema.js";
+export { outletSaleCreateSchema } from "./outletSaleCreateSchema.js";
+export { outletSaleSchema } from "./outletSaleSchema.js";
+export { outletTicketPropertiesStatusEnumSchema } from "./outletTicketPropertiesStatusEnumSchema.js";
+export { outletTicketSchema } from "./outletTicketSchema.js";
+export { outletTierStockSchema } from "./outletTierStockSchema.js";
 export { outlookProductPreviewInputSchema } from "./outlookProductPreviewInputSchema.js";
 export { outlookProductPreviewSchema } from "./outlookProductPreviewSchema.js";
 export { outlookProductWriteSchema } from "./outlookProductWriteSchema.js";
@@ -4729,11 +4806,14 @@ export { threadCreateSchema } from "./threadCreateSchema.js";
 export { threadDetailPropertiesKindEnumSchema } from "./threadDetailPropertiesKindEnumSchema.js";
 export { threadDetailSchema } from "./threadDetailSchema.js";
 export { threadSummarySchema } from "./threadSummarySchema.js";
-export { ticketDetailPropertiesStatusEnumSchema } from "./ticketDetailPropertiesStatusEnumSchema.js";
 export { ticketDetailSchema } from "./ticketDetailSchema.js";
 export { ticketSummarySchema } from "./ticketSummarySchema.js";
 export { tierInputSchema } from "./tierInputSchema.js";
 export { tierPublicSchema } from "./tierPublicSchema.js";
+export { tillCloseSchema } from "./tillCloseSchema.js";
+export { tillOpenSchema } from "./tillOpenSchema.js";
+export { tillPublicPropertiesStatusEnumSchema } from "./tillPublicPropertiesStatusEnumSchema.js";
+export { tillPublicSchema } from "./tillPublicSchema.js";
 export { timesheetCreateSchema } from "./timesheetCreateSchema.js";
 export { timesheetDetailsSchema } from "./timesheetDetailsSchema.js";
 export { timesheetEntryInputSchema } from "./timesheetEntryInputSchema.js";

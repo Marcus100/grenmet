@@ -2,6 +2,7 @@ import type {
   AdmissionPublic,
   GroupDetail as ApiGroupDetail,
   GroupSummary as ApiGroupSummary,
+  OutletSale as ApiOutletSale,
   PersonChip as ApiPersonChip,
   ThreadDetail as ApiThreadDetail,
   ThreadSummary as ApiThreadSummary,
@@ -14,10 +15,12 @@ import type {
   MyProfile,
   NetworkPublic,
   OrganiserPublic,
+  OutletOverview,
   PlansPublic,
   ProfilePublic,
   TicketDetail,
   TicketSummary,
+  TillPublic,
 } from "@barrelsgd/api-client";
 import type {
   Connection,
@@ -32,6 +35,8 @@ import type {
   MyTicketDetail,
   Network,
   Organiser,
+  Outlet,
+  OutletSale,
   PersonChip,
   PersonProfile,
   Plans,
@@ -39,6 +44,7 @@ import type {
   PublicEvent,
   ThreadDetail,
   ThreadSummary,
+  Till,
 } from "@/domain/types";
 
 /**
@@ -301,5 +307,71 @@ export function toDoorAdmission(admission: AdmissionPublic): DoorAdmission {
     admittedAt: admission.admitted_at,
     admittedByName: admission.admitted_by_name ?? null,
     repeat: admission.repeat ?? false,
+  };
+}
+
+export function toOutletSale(sale: ApiOutletSale): OutletSale {
+  return {
+    orderId: sale.order_id,
+    listingId: sale.listing_id,
+    listingTitle: sale.listing_title,
+    venue: sale.venue,
+    startsAt: sale.starts_at,
+    currency: sale.currency,
+    totalMinor: sale.total_minor,
+    collectedMinor: sale.collected_minor,
+    buyerName: sale.buyer_name ?? null,
+    buyerPhone: sale.buyer_phone ?? null,
+    soldByName: sale.sold_by_name ?? null,
+    createdAt: sale.created_at,
+    tickets: sale.tickets.map((ticket) => ({
+      id: ticket.id,
+      code: ticket.code,
+      qrToken: ticket.qr_token,
+      tierName: ticket.tier_name,
+      priceMinor: ticket.price_minor,
+      status: ticket.status,
+      admittedAt: ticket.admitted_at ?? null,
+    })),
+  };
+}
+
+export function toTill(till: TillPublic): Till {
+  return {
+    id: till.id,
+    staffName: till.staff_name ?? null,
+    day: till.day,
+    status: till.status,
+    openingFloatMinor: till.opening_float_minor,
+    openedAt: till.opened_at,
+    closedAt: till.closed_at ?? null,
+    salesCount: till.sales_count,
+    ticketsSold: till.tickets_sold,
+    collectedMinor: till.collected_minor,
+    cashRefundsMinor: till.cash_refunds_minor ?? 0,
+    expectedMinor: till.expected_minor,
+    countedMinor: till.counted_minor ?? null,
+    differenceMinor: till.difference_minor ?? null,
+    closeNote: till.close_note ?? null,
+  };
+}
+
+export function toOutlet(outlet: OutletOverview): Outlet {
+  return {
+    listingId: outlet.listing_id,
+    title: outlet.title,
+    startsAt: outlet.starts_at,
+    selling: outlet.selling,
+    tiers: outlet.tiers.map((tier) => ({
+      id: tier.id,
+      name: tier.name,
+      priceMinor: tier.price_minor,
+      currency: tier.currency,
+      allocation: tier.allocation,
+      sold: tier.sold,
+      remaining: tier.remaining,
+    })),
+    till: outlet.till ? toTill(outlet.till) : null,
+    sales: outlet.sales.map(toOutletSale),
   };
 }

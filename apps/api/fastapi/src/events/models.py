@@ -261,16 +261,44 @@ class Activity(EventsModel):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 
+class TillSession(EventsModel):
+    """One staff member's cash till for a listing and Grenada day (E3)."""
+
+    __tablename__ = "till_sessions"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
+    staff_id: Mapped[uuid.UUID]
+    day: Mapped[date] = mapped_column(Date)
+    opening_float_minor: Mapped[int] = mapped_column(Integer, default=0)
+    opened_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime)
+    counted_minor: Mapped[int | None] = mapped_column(Integer)
+    close_note: Mapped[str | None] = mapped_column(Text)
+
+
 class Order(EventsModel):
-    """A claim of tickets by one account (E1). Free and registration tiers only."""
+    """A claim of tickets: an account's free claim (E1) or an outlet cash sale (E3)."""
 
     __tablename__ = "orders"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
-    user_id: Mapped[uuid.UUID]
+    #: The claiming account; null for outlet sales (the buyer has no account).
+    user_id: Mapped[uuid.UUID | None]
     status: Mapped[str] = mapped_column(Text, default="confirmed")
     total_minor: Mapped[int] = mapped_column(Integer, default=0)
     currency: Mapped[str] = mapped_column(Text, default="XCD")
+    #: "online" (member claim) or "outlet" (sold by the organiser's staff).
+    channel: Mapped[str] = mapped_column(Text, default="online")
+    #: "none" for free claims, "cash_outlet" for outlet cash sales.
+    payment_method: Mapped[str] = mapped_column(Text, default="none")
+    collected_minor: Mapped[int] = mapped_column(Integer, default=0)
+    buyer_name: Mapped[str | None] = mapped_column(Text)
+    buyer_phone: Mapped[str | None] = mapped_column(Text)
+    sold_by: Mapped[uuid.UUID | None]
+    till_session_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("till_sessions.id")
+    )
+    idempotency_key: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 
@@ -291,7 +319,8 @@ class Ticket(EventsModel):
     order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("orders.id"))
     listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
     tier_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ticket_tiers.id"))
-    user_id: Mapped[uuid.UUID]
+    #: Holder account; null for outlet tickets (the order has the buyer's name).
+    user_id: Mapped[uuid.UUID | None]
     code: Mapped[str] = mapped_column(Text, unique=True)
     status: Mapped[str] = mapped_column(Text, default="valid")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)

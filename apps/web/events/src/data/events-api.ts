@@ -10,6 +10,8 @@ import {
   eventsGetMyPlans,
   eventsGetMyTicket,
   eventsGetOrganiser,
+  eventsGetOutlet,
+  eventsGetOutletSale,
   eventsGetPerson,
   eventsGetThread,
   eventsListGroups,
@@ -31,6 +33,8 @@ import type {
   Network,
   Organiser,
   OrganiserOption,
+  Outlet,
+  OutletSale,
   PersonProfile,
   Plans,
   PublicEvent,
@@ -50,6 +54,8 @@ import {
   toMyTicketDetail,
   toNetwork,
   toOrganiser,
+  toOutlet,
+  toOutletSale,
   toPersonProfile,
   toPlans,
   toThread,
@@ -283,4 +289,33 @@ export async function getDoorManifest(
     }).unwrap()
   );
   return manifest ? toDoorManifest(manifest) : null;
+}
+
+/** The outlet sale screen for an organiser's event; null when not theirs. */
+export async function getOutlet(listingId: string): Promise<Outlet | null> {
+  const organiser = await chosenOrganiser();
+  const outlet = await orNull(
+    eventsGetOutlet({
+      ...(await options()),
+      path: { listing_id: listingId },
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap()
+  );
+  return outlet ? toOutlet(outlet) : null;
+}
+
+/** One outlet sale with its tickets, for printing; null when not theirs. */
+export async function getOutletSale(
+  listingId: string,
+  orderId: string
+): Promise<OutletSale | null> {
+  const organiser = await chosenOrganiser();
+  const sale = await orNull(
+    eventsGetOutletSale({
+      ...(await options()),
+      path: { listing_id: listingId, order_id: orderId },
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap()
+  );
+  return sale ? toOutletSale(sale) : null;
 }

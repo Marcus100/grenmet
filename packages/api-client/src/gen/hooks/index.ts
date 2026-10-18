@@ -729,6 +729,11 @@ export {
   useEventsClaimTickets,
 } from "./useEventsClaimTickets.js";
 export {
+  eventsCloseTillMutationKey,
+  eventsCloseTillMutationOptions,
+  useEventsCloseTill,
+} from "./useEventsCloseTill.js";
+export {
   eventsCreateManagedListingMutationKey,
   eventsCreateManagedListingMutationOptions,
   useEventsCreateManagedListing,
@@ -799,6 +804,16 @@ export {
   useEventsGetOrganiser,
 } from "./useEventsGetOrganiser.js";
 export {
+  eventsGetOutletQueryKey,
+  eventsGetOutletQueryOptions,
+  useEventsGetOutlet,
+} from "./useEventsGetOutlet.js";
+export {
+  eventsGetOutletSaleQueryKey,
+  eventsGetOutletSaleQueryOptions,
+  useEventsGetOutletSale,
+} from "./useEventsGetOutletSale.js";
+export {
   eventsGetPersonQueryKey,
   eventsGetPersonQueryOptions,
   useEventsGetPerson,
@@ -859,6 +874,11 @@ export {
   useEventsOpenThread,
 } from "./useEventsOpenThread.js";
 export {
+  eventsOpenTillMutationKey,
+  eventsOpenTillMutationOptions,
+  useEventsOpenTill,
+} from "./useEventsOpenTill.js";
+export {
   eventsRemoveConnectionMutationKey,
   eventsRemoveConnectionMutationOptions,
   useEventsRemoveConnection,
@@ -888,6 +908,11 @@ export {
   eventsSaveListingMutationOptions,
   useEventsSaveListing,
 } from "./useEventsSaveListing.js";
+export {
+  eventsSellOutletTicketsMutationKey,
+  eventsSellOutletTicketsMutationOptions,
+  useEventsSellOutletTickets,
+} from "./useEventsSellOutletTickets.js";
 export {
   eventsSendMessageMutationKey,
   eventsSendMessageMutationOptions,
