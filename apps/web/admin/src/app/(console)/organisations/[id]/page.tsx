@@ -3,8 +3,18 @@ import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  AppEntitlements,
+  OrganisationActions,
+} from "@/components/organisation-actions";
+import { HistoryPanel, MembersPanel } from "@/components/organisation-panels";
 import { StaffOnly } from "@/components/staff-only";
-import { getOrganisation } from "@/lib/api";
+import {
+  getOrganisation,
+  getOrganisationHistory,
+  listOrganisationMembers,
+} from "@/lib/api";
+import { noticeFor } from "@/lib/organisation-form";
 import { requireGate } from "@/lib/staff-gate";
 
 export const metadata: Metadata = { title: "Organisation" };
@@ -16,10 +26,13 @@ function formatDate(iso: string): string {
 
 export default async function OrganisationPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const { notice: rawNotice } = await searchParams;
   const gate = await requireGate(`/organisations/${encodeURIComponent(id)}`);
   if (gate.status !== "staff") return <StaffOnly email={gate.email} />;
 
@@ -30,12 +43,26 @@ export default async function OrganisationPage({
     if (isAuthApiError(error) && error.status === 404) notFound();
     throw error;
   }
+  const [members, history] = await Promise.all([
+    listOrganisationMembers(gate.accessToken, id),
+    getOrganisationHistory(gate.accessToken, id),
+  ]);
+  const notice = noticeFor(Array.isArray(rawNotice) ? rawNotice[0] : rawNotice);
 
   return (
     <>
       <Link className="text-sm underline" href="/organisations">
         All organisations
       </Link>
+      {notice ? (
+        <p
+          className="rounded-md border px-3 py-2 text-sm"
+          role={notice.tone === "problem" ? "alert" : "status"}
+        >
+          {notice.tone === "problem" ? "Problem: " : "Done: "}
+          {notice.text}
+        </p>
+      ) : null}
       <div className="space-y-2">
         <h1 className="font-semibold text-2xl">{organisation.name}</h1>
         <div className="flex flex-wrap items-center gap-2">
@@ -47,6 +74,11 @@ export default async function OrganisationPage({
             }
           >
             {organisation.status === "active" ? "Active" : "Suspended"}
+          </Badge>
+          <Badge
+            variant={organisation.verified_at ? "light-success" : "outline"}
+          >
+            {organisation.verified_at ? "Verified" : "Not verified"}
           </Badge>
           <span className="text-muted-foreground text-sm capitalize">
             {organisation.kind}
@@ -61,41 +93,22 @@ export default async function OrganisationPage({
         <dd className="font-mono">{organisation.slug}</dd>
         <dt className="text-muted-foreground">Active members</dt>
         <dd>{organisation.active_member_count}</dd>
+        <dt className="text-muted-foreground">Verified</dt>
+        <dd>
+          {organisation.verified_at
+            ? formatDate(organisation.verified_at)
+            : "Not verified"}
+        </dd>
         <dt className="text-muted-foreground">Created</dt>
         <dd>{formatDate(organisation.created_at)}</dd>
         <dt className="text-muted-foreground">Updated</dt>
         <dd>{formatDate(organisation.updated_at)}</dd>
       </dl>
 
-      <section className="space-y-2">
-        <h2 className="font-medium">Apps</h2>
-        {organisation.apps.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            No app entitlements recorded.
-          </p>
-        ) : (
-          <ul className="space-y-1 text-sm">
-            {organisation.apps.map((app) => (
-              <li key={app.app_key}>
-                <span className="font-mono">{app.app_key}</span>
-                {" - "}
-                {app.enabled ? "enabled" : "disabled"}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="space-y-1 rounded-lg border border-dashed p-4">
-        <h2 className="font-medium">Verification and entitlements</h2>
-        <p className="text-muted-foreground text-sm">
-          {organisation.verified_at
-            ? `Verified on ${formatDate(organisation.verified_at)}.`
-            : "Not verified."}{" "}
-          Reviewing verification and changing app entitlements arrive in the
-          next slice (C2). This page is read only.
-        </p>
-      </section>
+      <OrganisationActions organisation={organisation} />
+      <AppEntitlements organisation={organisation} />
+      <MembersPanel count={members.count} rows={members.data} />
+      <HistoryPanel count={history.count} rows={history.data} />
     </>
   );
 }

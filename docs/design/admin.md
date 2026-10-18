@@ -30,9 +30,11 @@ modules, GMS tokens or client branding.
 - **Status:** every status is written out (OK, Problem, Unknown) next to a
   badge; colour is never the only signal. A status the API cannot report is
   `Unknown`, never a made-up green.
-- **Placeholders:** work that is not built (verification review, app
-  entitlement changes) is a dashed-border note saying it arrives in the next
-  slice. No fake rows, no disabled controls that look live.
+- **Placeholders:** work that is not built is a dashed-border note saying it
+  arrives in a later slice. No fake rows, no disabled controls that look live.
+- **Actions:** destructive or recorded actions (verify, unverify, suspend) sit
+  behind a disclosure with the reason field or an explicit confirm button, and
+  say what they change. Results come back as a written notice, never colour alone.
 - **Refusal:** signed-in non-superusers see a plain "Barrels staff only" page
   with no navigation and a sign-out button.
 - **Motion and analytics:** none. PostHog stays off; Sentry captures errors
