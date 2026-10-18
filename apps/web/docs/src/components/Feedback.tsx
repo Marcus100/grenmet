@@ -1,9 +1,11 @@
 "use client";
 
+import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { Transition } from "@headlessui/react";
 import { usePathname } from "next/navigation";
 import { forwardRef, useState } from "react";
+import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
 
 function CheckIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -84,6 +86,8 @@ export function Feedback() {
   const pathname = usePathname();
   const [submitted, setSubmitted] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -100,15 +104,18 @@ export function Feedback() {
         body: JSON.stringify({
           pagePath: pathname,
           helpful: response === "yes",
+          turnstileToken: turnstileToken ?? undefined,
         }),
       });
       if (!result.ok) {
+        setTurnstileReset((n) => n + 1);
         setFailed(true);
         return;
       }
       setSubmitted(true);
     } catch (error) {
       reportError(error, "docs-feedback");
+      setTurnstileReset((n) => n + 1);
       setFailed(true);
     }
   }
@@ -129,6 +136,11 @@ export function Feedback() {
           We could not save your feedback. Please try again.
         </p>
       )}
+      <Turnstile
+        onToken={setTurnstileToken}
+        resetKey={turnstileReset}
+        siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+      />
       <Transition show={submitted}>
         <FeedbackThanks className="delay-150 duration-300 data-closed:opacity-0" />
       </Transition>

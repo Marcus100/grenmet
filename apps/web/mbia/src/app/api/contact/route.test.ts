@@ -84,4 +84,17 @@ describe("POST /api/contact", () => {
     expect(response.status).toBe(502);
     expect(reportError).toHaveBeenCalledOnce();
   });
+
+  it("answers 400 when FastAPI rejects the Turnstile check", async () => {
+    contactSendContactMessage.mockReturnValue({
+      unwrap: () => Promise.reject(responseError(400)),
+    });
+    const response = await POST(request({ ...valid, turnstileToken: "bad" }));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: "Verification failed. Please try again.",
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
 });

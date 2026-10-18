@@ -75,4 +75,30 @@ describe("POST /api/subscribe", () => {
       POST(request({ email: "reader@example.test" }))
     ).rejects.toBeInstanceOf(ResponseError);
   });
+
+  it("forwards the Turnstile token and maps a failed check to 400", async () => {
+    subscriptionsSubscribe.mockReturnValue({
+      unwrap: () => Promise.resolve({ message: "ok" }),
+    });
+    await POST(request({ email: "reader@example.test", turnstileToken: "t1" }));
+    expect(subscriptionsSubscribe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: {
+          list_key: "signal",
+          email: "reader@example.test",
+          turnstile_token: "t1",
+        },
+      })
+    );
+    subscriptionsSubscribe.mockReturnValue({
+      unwrap: () => Promise.reject(responseError(400)),
+    });
+    const response = await POST(
+      request({ email: "reader@example.test", turnstileToken: "bad" })
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: "Verification failed. Please try again.",
+    });
+  });
 });

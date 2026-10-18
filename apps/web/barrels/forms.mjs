@@ -1,7 +1,10 @@
 // Contact and newsletter forms for barrels.gd. Progressive enhancement: the
 // pages work as static HTML, and without JavaScript the forms are not sent
-// (CSP form-action 'none', plus a noscript notice). Plain fetch to FastAPI;
-// no third-party scripts.
+// (CSP form-action 'none', plus a noscript notice). Plain fetch to FastAPI.
+// The only third-party script is Cloudflare Turnstile, loaded on pages with
+// a form and only when a site key was configured at build time.
+
+import { TURNSTILE_SITE_KEY } from "./turnstile-config.mjs";
 
 // Production API. Local preview talks to a locally running FastAPI.
 const API_ORIGIN =
@@ -11,7 +14,12 @@ const API_ORIGIN =
 const CONTACT_URL = `${API_ORIGIN}/api/v1/contact/messages`;
 const SUBSCRIBE_URL = `${API_ORIGIN}/api/v1/subscriptions`;
 
+const TURNSTILE_SCRIPT =
+  "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+
 const MESSAGES = {
+  verifying: "Verification is still running. Try again in a moment.",
+  verificationFailed: "Verification failed. Please try again.",
   sending: "Sending…",
   rejected: "Check the highlighted fields and try again.",
   rateLimited:
@@ -19,6 +27,13 @@ const MESSAGES = {
   failed: "We could not send this right now. Please try again later.",
   network:
     "We could not reach the server. Check your connection and try again.",
+};
+
+// Error text by HTTP status; 400 is a failed Turnstile check.
+const ERROR_BY_STATUS = {
+  400: MESSAGES.verificationFailed,
+  422: MESSAGES.rejected,
+  429: MESSAGES.rateLimited,
 };
 
 const CONTACT_SUCCESS =
@@ -62,7 +77,60 @@ function setStatus(element, text, tone) {
   element.className = `form-status${tone ? ` ${tone}` : ""}`;
 }
 
+let turnstileLoad;
+
+function loadTurnstile() {
+  turnstileLoad ??= new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = TURNSTILE_SCRIPT;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve(window.turnstile);
+    script.onerror = () => reject(new Error("Turnstile failed to load"));
+    document.head.append(script);
+  });
+  return turnstileLoad;
+}
+
+// Adds the Turnstile widget (explicit render, interaction-only) before the
+// submit button. Without a site key nothing is rendered and no token is sent.
+function setupTurnstile(form) {
+  const state = {
+    token: "",
+    widget: undefined,
+    enabled: Boolean(TURNSTILE_SITE_KEY),
+  };
+  if (!state.enabled) return state;
+  const container = document.createElement("div");
+  form.querySelector('button[type="submit"]').before(container);
+  loadTurnstile()
+    .then((turnstile) => {
+      state.widget = turnstile.render(container, {
+        sitekey: TURNSTILE_SITE_KEY,
+        appearance: "interaction-only",
+        callback: (token) => {
+          state.token = token;
+        },
+        "error-callback": () => {
+          state.token = "";
+        },
+        "expired-callback": () => {
+          state.token = "";
+        },
+      });
+    })
+    .catch(() => {
+      state.token = "";
+    });
+  state.reset = () => {
+    state.token = "";
+    if (state.widget !== undefined) window.turnstile?.reset(state.widget);
+  };
+  return state;
+}
+
 function setupForm(form, { url, body, success }) {
+  const turnstile = setupTurnstile(form);
   const status = form.querySelector(".form-status");
   const button = form.querySelector('button[type="submit"]');
   const fields = [...form.querySelectorAll("[data-validate]")];
@@ -97,28 +165,39 @@ function setupForm(form, { url, body, success }) {
       return;
     }
 
+    if (turnstile.enabled && !turnstile.token) {
+      setStatus(status, MESSAGES.verifying, "error");
+      return;
+    }
+
     button.disabled = true;
     setStatus(status, MESSAGES.sending, "");
     try {
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body(form)),
+        body: JSON.stringify(
+          turnstile.enabled
+            ? { ...body(form), turnstile_token: turnstile.token }
+            : body(form)
+        ),
       });
       if (response.status === 202) {
         const data = await response.json().catch(() => ({}));
         form.reset();
         setStatus(status, data.message ?? success, "success");
-      } else if (response.status === 429) {
-        setStatus(status, MESSAGES.rateLimited, "error");
-      } else if (response.status === 400 || response.status === 422) {
-        setStatus(status, MESSAGES.rejected, "error");
       } else {
-        setStatus(status, MESSAGES.failed, "error");
+        setStatus(
+          status,
+          ERROR_BY_STATUS[response.status] ?? MESSAGES.failed,
+          "error"
+        );
       }
     } catch {
       setStatus(status, MESSAGES.network, "error");
     } finally {
+      // Tokens are single-use: fetch a fresh one after every attempt.
+      turnstile.reset?.();
       button.disabled = false;
     }
   });

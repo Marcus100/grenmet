@@ -144,6 +144,7 @@ jobs:
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             SENTRY_PROJECT=${{ steps.telemetry.outputs.sentry_project }}
             NEXT_PUBLIC_RELEASE=${{ github.sha }}
+            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -188,6 +189,7 @@ jobs:
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             SENTRY_PROJECT=${{ steps.telemetry.outputs.sentry_project }}
             NEXT_PUBLIC_RELEASE=${{ github.sha }}
+            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}

@@ -24,7 +24,11 @@ export async function POST(request: Request) {
   try {
     const accepted = await subscriptionsSubscribe({
       baseURL: env.AUTH_API_URL,
-      body: { list_key: SIGNAL_LIST_KEY, email: parsed.data.email },
+      body: {
+        list_key: SIGNAL_LIST_KEY,
+        email: parsed.data.email,
+        turnstile_token: parsed.data.turnstileToken,
+      },
     }).unwrap();
     return NextResponse.json(
       { ok: true, message: accepted.message },
@@ -35,6 +39,12 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Too many attempts. Please try again in a minute." },
         { status: 429 }
+      );
+    }
+    if (error instanceof ResponseError && error.status === 400) {
+      return NextResponse.json(
+        { error: "Verification failed. Please try again." },
+        { status: 400 }
       );
     }
     if (error instanceof ResponseError && error.status === 422) {
