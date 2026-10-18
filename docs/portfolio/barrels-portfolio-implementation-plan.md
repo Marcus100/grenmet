@@ -4,7 +4,7 @@
 **Effective:** 2026-08-16  
 **Horizon:** Five-year strategy expressed through dependency horizons  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-17
+**Last updated:** 2026-10-18
 
 ## Purpose
 
@@ -62,7 +62,7 @@ checks and authenticated staging acceptance pass.
 | GAA/GMS engagement | Client portfolio | Multiple active workstreams at different maturity levels | Now → Later | Deliver accepted institutional outcomes without classifying the client as a product | Joint Barrels and GAA/GMS owners |
 | MBIA passenger experience | GAA public-service delivery | Working application; deployment and institutional boundary need reconciliation | Later | Deliver a distinct airport passenger service, separate from GAA staff tooling | GAA/airport owner |
 | GAA corporate surface | GAA public-service delivery | Reserved, not built | Later | Provide a GAA institutional site distinct from MBIA and staff administration | GAA |
-| Reusable workforce product | Productization option | Not approved; reusable architecture direction exists | Explore | Decide whether proven GAA staff capabilities warrant a separate Barrels product | Barrels after GAA delivery evidence and rights review |
+| Barrels Human Resource | Barrels product | Investment approved 2026-10-18; built from the same Barrels-owned workforce code as the GAA staff platform; no product surface yet | Next | Offer an organisation-scoped, configuration-driven HR product to other organisations without GAA-specific logic or data | Barrels product owner; launch gated on the [productization prerequisites](gaa-gms-client-programme-plan.md#productization-gate) |
 | Streaming/media platform | Barrels product option | Early product brief only | Explore | Validate audience, rights, operating model, and economics before investment | Barrels |
 | Pay/Invoice | Barrels product | Stripe gateway groundwork in the FastAPI `billing` domain; no settlement loop proven | Next | Prove invoicing, collection, and reconciliation as a product alongside Events; payment rails remain a platform capability that Events also consumes | Barrels product owner |
 | Loyalty and rewards | Barrels product option | Reference study only | Explore | Decide merchant-funded versus platform-funded rewards and validate with Events and merchant evidence | Barrels product owner |
@@ -143,8 +143,9 @@ checks and authenticated staging acceptance pass.
   and partner decision-support services after operational approval.
 - Develop Signal, MBIA, and GAA public surfaces according to their own product
   or client measures rather than treating them as migration checkboxes.
-- Evaluate commercialization of the workforce platform only after the GAA
-  programme proves reuse and the commercial/legal gates are resolved.
+- Launch Barrels Human Resource to external organisations once the GAA
+  programme proves reuse and the productization prerequisites (signed GAA
+  licence, tenant isolation, support and pricing) are met.
 
 ### Explore — preserve options without implying commitment
 

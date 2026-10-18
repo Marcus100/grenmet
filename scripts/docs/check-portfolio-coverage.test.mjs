@@ -152,13 +152,13 @@ test("fails when a new top-level surface is absent from the map", (t) => {
   assert.match(result.stderr, missingRootPattern);
 });
 
-test("fails when an active plan commits a Barrels HR product", (t) => {
+test("fails when an active plan calls the GAA staff platform a Barrels product", (t) => {
   const root = createFixture();
   t.after(() => rmSync(root, { force: true, recursive: true }));
   write(
     root,
     "docs/exec-plans/barrelsgd-transition.md",
-    "The future Barrels HR product is multi-tenant.\n"
+    "The GAA staff platform is the Barrels Human Resource product.\n"
   );
 
   const result = run(root);

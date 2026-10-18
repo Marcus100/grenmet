@@ -3,7 +3,7 @@
 **Status:** Authoritative repository coverage map  
 **Effective:** 2026-08-16  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-10
+**Last updated:** 2026-10-18
 
 ## Purpose
 
@@ -201,7 +201,7 @@ documented data boundaries.
 | GAA corporate site | GAA public-service delivery | Later | GAA content owner, domain, scope, and acceptance |
 | Barrels Shop | Barrels product option | Explore | Separate product discovery and investment approval |
 | Salesbus | Barrels product option/prototype extraction | Explore | Remove from client portal, then validate users and commercial case |
-| Reusable workforce product | Barrels productization option | Explore | GAA pilot evidence plus rights, demand, tenant, support, and pricing decisions |
+| Barrels Human Resource | Barrels product (investment approved 2026-10-18) | Next | Organisation-scoped HR built from shared workforce code; launch needs GAA pilot evidence, signed licence, tenant isolation, support and pricing |
 | Streaming/media application | Barrels product option | Explore | Audience, rights, economics, operating model, and architecture approval |
 
 Reserved ports, package names, hosts, or images prevent naming collisions; they
