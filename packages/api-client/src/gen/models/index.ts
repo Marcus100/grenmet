@@ -35,6 +35,7 @@ export type { AppPhoneCodeVerify } from "./AppPhoneCodeVerify.js";
 export type { AppPublic } from "./AppPublic.js";
 export type { ApprovalAuthorityPublic } from "./ApprovalAuthorityPublic.js";
 export type { ApprovalAuthorityUpdate } from "./ApprovalAuthorityUpdate.js";
+export type { ApprovalLine } from "./ApprovalLine.js";
 export type { ArchiveBulletin } from "./ArchiveBulletin.js";
 export type { ArchiveEdition } from "./ArchiveEdition.js";
 export type { ArchiveHistory } from "./ArchiveHistory.js";
@@ -1339,6 +1340,7 @@ export type { CurrentOrganisationPublic } from "./CurrentOrganisationPublic.js";
 export type { DashboardApproval } from "./DashboardApproval.js";
 export type { DashboardPerson } from "./DashboardPerson.js";
 export type { DashboardRequest } from "./DashboardRequest.js";
+export type { DeliveryLine } from "./DeliveryLine.js";
 export type { DepartmentCreate } from "./DepartmentCreate.js";
 export type { DepartmentMemberPublic } from "./DepartmentMemberPublic.js";
 export type { DepartmentMembersPublic } from "./DepartmentMembersPublic.js";
@@ -3331,6 +3333,10 @@ export { imageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBas
 export type { ImageResult } from "./ImageResult.js";
 export type { ImportStatus } from "./ImportStatus.js";
 export { importStatus } from "./ImportStatus.js";
+export type { ItemCreate } from "./ItemCreate.js";
+export type { ItemListPublic } from "./ItemListPublic.js";
+export type { ItemPublic } from "./ItemPublic.js";
+export type { ItemUpdate } from "./ItemUpdate.js";
 export type { JanitorialAccess } from "./JanitorialAccess.js";
 export type { JanitorialArea } from "./JanitorialArea.js";
 export type { JanitorialBuilding } from "./JanitorialBuilding.js";
@@ -3691,6 +3697,10 @@ export type { ListingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertie
 export { listingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
 export type { ListingUpsertPropertiesVisibilityEnum } from "./ListingUpsertPropertiesVisibilityEnum.js";
 export { listingUpsertPropertiesVisibilityEnum } from "./ListingUpsertPropertiesVisibilityEnum.js";
+export type { LocationCreate } from "./LocationCreate.js";
+export type { LocationListPublic } from "./LocationListPublic.js";
+export type { LocationPublic } from "./LocationPublic.js";
+export type { LocationUpdate } from "./LocationUpdate.js";
 export type { ManagedListing } from "./ManagedListing.js";
 export type { ManagedOrganiser } from "./ManagedOrganiser.js";
 export type { MembershipRole } from "./MembershipRole.js";
@@ -3700,6 +3710,8 @@ export { membershipStatus } from "./MembershipStatus.js";
 export type { Message } from "./Message.js";
 export type { MessageCreate } from "./MessageCreate.js";
 export type { MessagePublic } from "./MessagePublic.js";
+export type { MovementKind } from "./MovementKind.js";
+export { movementKind } from "./MovementKind.js";
 export type { MyMembershipPublic } from "./MyMembershipPublic.js";
 export type { MyProfile } from "./MyProfile.js";
 export type { MyProfilePropertiesIntentsItemsEnum } from "./MyProfilePropertiesIntentsItemsEnum.js";
@@ -3967,6 +3979,17 @@ export type { ReportUpdatePropertiesStatusEnum } from "./ReportUpdatePropertiesS
 export { reportUpdatePropertiesStatusEnum } from "./ReportUpdatePropertiesStatusEnum.js";
 export type { RequestStatus } from "./RequestStatus.js";
 export { requestStatus } from "./RequestStatus.js";
+export type { RequisitionApprove } from "./RequisitionApprove.js";
+export type { RequisitionCreate } from "./RequisitionCreate.js";
+export type { RequisitionDeliver } from "./RequisitionDeliver.js";
+export type { RequisitionLineCreate } from "./RequisitionLineCreate.js";
+export type { RequisitionLinePublic } from "./RequisitionLinePublic.js";
+export type { RequisitionListPublic } from "./RequisitionListPublic.js";
+export type { RequisitionPublic } from "./RequisitionPublic.js";
+export type { RequisitionReject } from "./RequisitionReject.js";
+export type { RequisitionStatus } from "./RequisitionStatus.js";
+export { requisitionStatus } from "./RequisitionStatus.js";
+export type { RequisitionUpdate } from "./RequisitionUpdate.js";
 export type { ReviewAssignment } from "./ReviewAssignment.js";
 export type { ReviewInput } from "./ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";
@@ -4070,7 +4093,244 @@ export type { StatusReportPublic } from "./StatusReportPublic.js";
 export type { StatusReportSubmit } from "./StatusReportSubmit.js";
 export type { StatusStaffingEntry } from "./StatusStaffingEntry.js";
 export type { StatusStaffingPublic } from "./StatusStaffingPublic.js";
+export type { StockLevelListPublic } from "./StockLevelListPublic.js";
+export type { StockLevelPublic } from "./StockLevelPublic.js";
+export type { StockMovementCreate } from "./StockMovementCreate.js";
+export type { StockMovementListPublic } from "./StockMovementListPublic.js";
+export type { StockMovementPublic } from "./StockMovementPublic.js";
 export type { StopView } from "./StopView.js";
+export type { StoresAccessPublic } from "./StoresAccessPublic.js";
+export type {
+  StoresApproveRequisitionBody,
+  StoresApproveRequisitionOptions,
+  StoresApproveRequisitionPath,
+  StoresApproveRequisitionResponse,
+  StoresApproveRequisitionResponses,
+  StoresApproveRequisitionStatus200,
+  StoresApproveRequisitionStatus400,
+  StoresApproveRequisitionStatus401,
+  StoresApproveRequisitionStatus403,
+  StoresApproveRequisitionStatus404,
+  StoresApproveRequisitionStatus409,
+  StoresApproveRequisitionStatus422,
+} from "./StoresApproveRequisition.js";
+export type {
+  StoresCancelRequisitionOptions,
+  StoresCancelRequisitionPath,
+  StoresCancelRequisitionResponse,
+  StoresCancelRequisitionResponses,
+  StoresCancelRequisitionStatus200,
+  StoresCancelRequisitionStatus400,
+  StoresCancelRequisitionStatus401,
+  StoresCancelRequisitionStatus403,
+  StoresCancelRequisitionStatus404,
+  StoresCancelRequisitionStatus409,
+  StoresCancelRequisitionStatus422,
+} from "./StoresCancelRequisition.js";
+export type {
+  StoresCreateItemBody,
+  StoresCreateItemOptions,
+  StoresCreateItemResponse,
+  StoresCreateItemResponses,
+  StoresCreateItemStatus201,
+  StoresCreateItemStatus400,
+  StoresCreateItemStatus401,
+  StoresCreateItemStatus403,
+  StoresCreateItemStatus404,
+  StoresCreateItemStatus409,
+  StoresCreateItemStatus422,
+} from "./StoresCreateItem.js";
+export type {
+  StoresCreateLocationBody,
+  StoresCreateLocationOptions,
+  StoresCreateLocationResponse,
+  StoresCreateLocationResponses,
+  StoresCreateLocationStatus201,
+  StoresCreateLocationStatus400,
+  StoresCreateLocationStatus401,
+  StoresCreateLocationStatus403,
+  StoresCreateLocationStatus404,
+  StoresCreateLocationStatus409,
+  StoresCreateLocationStatus422,
+} from "./StoresCreateLocation.js";
+export type {
+  StoresCreateRequisitionBody,
+  StoresCreateRequisitionOptions,
+  StoresCreateRequisitionResponse,
+  StoresCreateRequisitionResponses,
+  StoresCreateRequisitionStatus201,
+  StoresCreateRequisitionStatus400,
+  StoresCreateRequisitionStatus401,
+  StoresCreateRequisitionStatus403,
+  StoresCreateRequisitionStatus404,
+  StoresCreateRequisitionStatus409,
+  StoresCreateRequisitionStatus422,
+} from "./StoresCreateRequisition.js";
+export type {
+  StoresCreateStockMovementBody,
+  StoresCreateStockMovementOptions,
+  StoresCreateStockMovementResponse,
+  StoresCreateStockMovementResponses,
+  StoresCreateStockMovementStatus201,
+  StoresCreateStockMovementStatus400,
+  StoresCreateStockMovementStatus401,
+  StoresCreateStockMovementStatus403,
+  StoresCreateStockMovementStatus404,
+  StoresCreateStockMovementStatus409,
+  StoresCreateStockMovementStatus422,
+} from "./StoresCreateStockMovement.js";
+export type {
+  StoresDeliverRequisitionBody,
+  StoresDeliverRequisitionOptions,
+  StoresDeliverRequisitionPath,
+  StoresDeliverRequisitionResponse,
+  StoresDeliverRequisitionResponses,
+  StoresDeliverRequisitionStatus200,
+  StoresDeliverRequisitionStatus400,
+  StoresDeliverRequisitionStatus401,
+  StoresDeliverRequisitionStatus403,
+  StoresDeliverRequisitionStatus404,
+  StoresDeliverRequisitionStatus409,
+  StoresDeliverRequisitionStatus422,
+} from "./StoresDeliverRequisition.js";
+export type {
+  StoresGetAccessOptions,
+  StoresGetAccessResponse,
+  StoresGetAccessResponses,
+  StoresGetAccessStatus200,
+  StoresGetAccessStatus401,
+  StoresGetAccessStatus403,
+  StoresGetAccessStatus422,
+} from "./StoresGetAccess.js";
+export type {
+  StoresGetRequisitionOptions,
+  StoresGetRequisitionPath,
+  StoresGetRequisitionResponse,
+  StoresGetRequisitionResponses,
+  StoresGetRequisitionStatus200,
+  StoresGetRequisitionStatus401,
+  StoresGetRequisitionStatus403,
+  StoresGetRequisitionStatus404,
+  StoresGetRequisitionStatus422,
+} from "./StoresGetRequisition.js";
+export type {
+  StoresListItemsOptions,
+  StoresListItemsQuery,
+  StoresListItemsResponse,
+  StoresListItemsResponses,
+  StoresListItemsStatus200,
+  StoresListItemsStatus401,
+  StoresListItemsStatus403,
+  StoresListItemsStatus422,
+} from "./StoresListItems.js";
+export type {
+  StoresListLocationsOptions,
+  StoresListLocationsResponse,
+  StoresListLocationsResponses,
+  StoresListLocationsStatus200,
+  StoresListLocationsStatus401,
+  StoresListLocationsStatus403,
+  StoresListLocationsStatus422,
+} from "./StoresListLocations.js";
+export type {
+  StoresListRequisitionsOptions,
+  StoresListRequisitionsQuery,
+  StoresListRequisitionsResponse,
+  StoresListRequisitionsResponses,
+  StoresListRequisitionsStatus200,
+  StoresListRequisitionsStatus401,
+  StoresListRequisitionsStatus403,
+  StoresListRequisitionsStatus422,
+} from "./StoresListRequisitions.js";
+export type {
+  StoresListStockOptions,
+  StoresListStockQuery,
+  StoresListStockResponse,
+  StoresListStockResponses,
+  StoresListStockStatus200,
+  StoresListStockStatus401,
+  StoresListStockStatus403,
+  StoresListStockStatus422,
+} from "./StoresListStock.js";
+export type {
+  StoresListStockMovementsOptions,
+  StoresListStockMovementsQuery,
+  StoresListStockMovementsResponse,
+  StoresListStockMovementsResponses,
+  StoresListStockMovementsStatus200,
+  StoresListStockMovementsStatus401,
+  StoresListStockMovementsStatus403,
+  StoresListStockMovementsStatus422,
+} from "./StoresListStockMovements.js";
+export type {
+  StoresRejectRequisitionBody,
+  StoresRejectRequisitionOptions,
+  StoresRejectRequisitionPath,
+  StoresRejectRequisitionResponse,
+  StoresRejectRequisitionResponses,
+  StoresRejectRequisitionStatus200,
+  StoresRejectRequisitionStatus400,
+  StoresRejectRequisitionStatus401,
+  StoresRejectRequisitionStatus403,
+  StoresRejectRequisitionStatus404,
+  StoresRejectRequisitionStatus409,
+  StoresRejectRequisitionStatus422,
+} from "./StoresRejectRequisition.js";
+export type {
+  StoresSubmitRequisitionOptions,
+  StoresSubmitRequisitionPath,
+  StoresSubmitRequisitionResponse,
+  StoresSubmitRequisitionResponses,
+  StoresSubmitRequisitionStatus200,
+  StoresSubmitRequisitionStatus400,
+  StoresSubmitRequisitionStatus401,
+  StoresSubmitRequisitionStatus403,
+  StoresSubmitRequisitionStatus404,
+  StoresSubmitRequisitionStatus409,
+  StoresSubmitRequisitionStatus422,
+} from "./StoresSubmitRequisition.js";
+export type {
+  StoresUpdateItemBody,
+  StoresUpdateItemOptions,
+  StoresUpdateItemPath,
+  StoresUpdateItemResponse,
+  StoresUpdateItemResponses,
+  StoresUpdateItemStatus200,
+  StoresUpdateItemStatus400,
+  StoresUpdateItemStatus401,
+  StoresUpdateItemStatus403,
+  StoresUpdateItemStatus404,
+  StoresUpdateItemStatus409,
+  StoresUpdateItemStatus422,
+} from "./StoresUpdateItem.js";
+export type {
+  StoresUpdateLocationBody,
+  StoresUpdateLocationOptions,
+  StoresUpdateLocationPath,
+  StoresUpdateLocationResponse,
+  StoresUpdateLocationResponses,
+  StoresUpdateLocationStatus200,
+  StoresUpdateLocationStatus400,
+  StoresUpdateLocationStatus401,
+  StoresUpdateLocationStatus403,
+  StoresUpdateLocationStatus404,
+  StoresUpdateLocationStatus409,
+  StoresUpdateLocationStatus422,
+} from "./StoresUpdateLocation.js";
+export type {
+  StoresUpdateRequisitionBody,
+  StoresUpdateRequisitionOptions,
+  StoresUpdateRequisitionPath,
+  StoresUpdateRequisitionResponse,
+  StoresUpdateRequisitionResponses,
+  StoresUpdateRequisitionStatus200,
+  StoresUpdateRequisitionStatus400,
+  StoresUpdateRequisitionStatus401,
+  StoresUpdateRequisitionStatus403,
+  StoresUpdateRequisitionStatus404,
+  StoresUpdateRequisitionStatus409,
+  StoresUpdateRequisitionStatus422,
+} from "./StoresUpdateRequisition.js";
 export type { SubmissionMode } from "./SubmissionMode.js";
 export { submissionMode } from "./SubmissionMode.js";
 export type { SubscribeAccepted } from "./SubscribeAccepted.js";

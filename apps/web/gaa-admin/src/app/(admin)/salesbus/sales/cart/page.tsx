@@ -1,28 +1,47 @@
 "use client";
 
 import { cn } from "@barrelsgd/ui/lib/utils";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { createRequisition, errorMessage } from "@/components/salesbus/api";
 import { CartItemCard } from "@/components/salesbus/sales/CartItem";
-import { Button, SegmentedControl } from "@/components/salesbus/ui";
+import { Button } from "@/components/salesbus/ui";
 import { useIsTabletLandscape } from "@/hooks/salesbus";
 import { useCart } from "@/lib/salesbus/cart-store";
-import { formatPrice } from "@/lib/salesbus/types";
-
-const paymentOptions = [
-  { value: "cash", label: "CASH" },
-  { value: "credit", label: "CREDIT" },
-];
 
 export default function CartPage() {
   const router = useRouter();
   const isTabletLandscape = useIsTabletLandscape();
-  const { items, paymentType, setPaymentType, totalPrice, clearCart } =
+  const { items, clearCart, removeItem, updateItemQuantity, totalItems } =
     useCart();
+  const [purpose, setPurpose] = useState("");
+  const [neededBy, setNeededBy] = useState("");
+  const submit = useMutation({
+    mutationFn: () =>
+      createRequisition({
+        purpose: purpose.trim() || null,
+        needed_by: neededBy || null,
+        lines: items.map((item) => ({
+          item_id: item.itemId,
+          quantity: item.quantity,
+        })),
+        submit: true,
+      }),
+  });
 
-  const handleDone = () => {
-    // In a real app, this would submit the order
+  const handleDone = async () => {
+    try {
+      await submit.mutateAsync();
+    } catch (caught) {
+      toast.error(errorMessage(caught, "Could not submit the requisition"));
+      return;
+    }
+    toast.success("Requisition submitted for approval");
     clearCart();
     router.push("/salesbus/sales");
+    router.refresh();
   };
 
   return (
@@ -35,22 +54,47 @@ export default function CartPage() {
       )}
     >
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 p-4 sm:gap-5 sm:p-5">
-        <SegmentedControl
-          onChange={(value) => setPaymentType(value as "cash" | "credit")}
-          options={paymentOptions}
-          value={paymentType}
-        />
+        <div className="flex flex-col gap-3 rounded-xl bg-card p-4 sm:p-5">
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-foreground">
+              What is it for? (optional)
+            </span>
+            <input
+              className="min-h-12 rounded-lg border border-input bg-background px-3 text-base"
+              maxLength={500}
+              onChange={(e) => setPurpose(e.target.value)}
+              placeholder="e.g. Office supplies for the October roster"
+              value={purpose}
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-foreground">
+              Needed by (optional)
+            </span>
+            <input
+              className="min-h-12 rounded-lg border border-input bg-background px-3 text-base"
+              onChange={(e) => setNeededBy(e.target.value)}
+              type="date"
+              value={neededBy}
+            />
+          </label>
+        </div>
 
         <div className="flex flex-col gap-3 sm:gap-4">
           {items.map((item) => (
-            <CartItemCard item={item} key={item.id} />
+            <CartItemCard
+              item={item}
+              key={item.itemId}
+              onQuantityChange={updateItemQuantity}
+              onRemove={removeItem}
+            />
           ))}
         </div>
 
         {items.length === 0 && (
           <div className="flex flex-1 items-center justify-center">
             <p className="text-base text-muted-foreground sm:text-lg">
-              Your cart is empty
+              Your requisition is empty
             </p>
           </div>
         )}
@@ -65,14 +109,12 @@ export default function CartPage() {
       >
         <Button
           className="flex w-full justify-between bg-gm-blue-ink hover:bg-gm-navy"
-          disabled={items.length === 0}
+          disabled={items.length === 0 || submit.isPending}
           onClick={handleDone}
           size="touch"
         >
-          <span className="text-base sm:text-lg">DONE</span>
-          <span className="text-base sm:text-lg">
-            {formatPrice(totalPrice)}
-          </span>
+          <span className="text-base sm:text-lg">SUBMIT FOR APPROVAL</span>
+          <span className="text-base sm:text-lg">{totalItems} units</span>
         </Button>
       </div>
     </div>

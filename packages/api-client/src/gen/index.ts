@@ -332,6 +332,25 @@ export { notificationsUpdateNotificationPreferences } from "./clients/notificati
 export { notificationsUpdateNotificationSetting } from "./clients/notificationsUpdateNotificationSetting.js";
 export { organisationsGetCurrent } from "./clients/organisationsGetCurrent.js";
 export { organisationsListMine } from "./clients/organisationsListMine.js";
+export { storesApproveRequisition } from "./clients/storesApproveRequisition.js";
+export { storesCancelRequisition } from "./clients/storesCancelRequisition.js";
+export { storesCreateItem } from "./clients/storesCreateItem.js";
+export { storesCreateLocation } from "./clients/storesCreateLocation.js";
+export { storesCreateRequisition } from "./clients/storesCreateRequisition.js";
+export { storesCreateStockMovement } from "./clients/storesCreateStockMovement.js";
+export { storesDeliverRequisition } from "./clients/storesDeliverRequisition.js";
+export { storesGetAccess } from "./clients/storesGetAccess.js";
+export { storesGetRequisition } from "./clients/storesGetRequisition.js";
+export { storesListItems } from "./clients/storesListItems.js";
+export { storesListLocations } from "./clients/storesListLocations.js";
+export { storesListRequisitions } from "./clients/storesListRequisitions.js";
+export { storesListStock } from "./clients/storesListStock.js";
+export { storesListStockMovements } from "./clients/storesListStockMovements.js";
+export { storesRejectRequisition } from "./clients/storesRejectRequisition.js";
+export { storesSubmitRequisition } from "./clients/storesSubmitRequisition.js";
+export { storesUpdateItem } from "./clients/storesUpdateItem.js";
+export { storesUpdateLocation } from "./clients/storesUpdateLocation.js";
+export { storesUpdateRequisition } from "./clients/storesUpdateRequisition.js";
 export { subscriptionsConfirmSubscription } from "./clients/subscriptionsConfirmSubscription.js";
 export { subscriptionsSubscribe } from "./clients/subscriptionsSubscribe.js";
 export { subscriptionsUnsubscribe } from "./clients/subscriptionsUnsubscribe.js";
@@ -2043,6 +2062,101 @@ export {
   useOrganisationsListMine,
 } from "./hooks/useOrganisationsListMine.js";
 export {
+  storesApproveRequisitionMutationKey,
+  storesApproveRequisitionMutationOptions,
+  useStoresApproveRequisition,
+} from "./hooks/useStoresApproveRequisition.js";
+export {
+  storesCancelRequisitionMutationKey,
+  storesCancelRequisitionMutationOptions,
+  useStoresCancelRequisition,
+} from "./hooks/useStoresCancelRequisition.js";
+export {
+  storesCreateItemMutationKey,
+  storesCreateItemMutationOptions,
+  useStoresCreateItem,
+} from "./hooks/useStoresCreateItem.js";
+export {
+  storesCreateLocationMutationKey,
+  storesCreateLocationMutationOptions,
+  useStoresCreateLocation,
+} from "./hooks/useStoresCreateLocation.js";
+export {
+  storesCreateRequisitionMutationKey,
+  storesCreateRequisitionMutationOptions,
+  useStoresCreateRequisition,
+} from "./hooks/useStoresCreateRequisition.js";
+export {
+  storesCreateStockMovementMutationKey,
+  storesCreateStockMovementMutationOptions,
+  useStoresCreateStockMovement,
+} from "./hooks/useStoresCreateStockMovement.js";
+export {
+  storesDeliverRequisitionMutationKey,
+  storesDeliverRequisitionMutationOptions,
+  useStoresDeliverRequisition,
+} from "./hooks/useStoresDeliverRequisition.js";
+export {
+  storesGetAccessQueryKey,
+  storesGetAccessQueryOptions,
+  useStoresGetAccess,
+} from "./hooks/useStoresGetAccess.js";
+export {
+  storesGetRequisitionQueryKey,
+  storesGetRequisitionQueryOptions,
+  useStoresGetRequisition,
+} from "./hooks/useStoresGetRequisition.js";
+export {
+  storesListItemsQueryKey,
+  storesListItemsQueryOptions,
+  useStoresListItems,
+} from "./hooks/useStoresListItems.js";
+export {
+  storesListLocationsQueryKey,
+  storesListLocationsQueryOptions,
+  useStoresListLocations,
+} from "./hooks/useStoresListLocations.js";
+export {
+  storesListRequisitionsQueryKey,
+  storesListRequisitionsQueryOptions,
+  useStoresListRequisitions,
+} from "./hooks/useStoresListRequisitions.js";
+export {
+  storesListStockQueryKey,
+  storesListStockQueryOptions,
+  useStoresListStock,
+} from "./hooks/useStoresListStock.js";
+export {
+  storesListStockMovementsQueryKey,
+  storesListStockMovementsQueryOptions,
+  useStoresListStockMovements,
+} from "./hooks/useStoresListStockMovements.js";
+export {
+  storesRejectRequisitionMutationKey,
+  storesRejectRequisitionMutationOptions,
+  useStoresRejectRequisition,
+} from "./hooks/useStoresRejectRequisition.js";
+export {
+  storesSubmitRequisitionMutationKey,
+  storesSubmitRequisitionMutationOptions,
+  useStoresSubmitRequisition,
+} from "./hooks/useStoresSubmitRequisition.js";
+export {
+  storesUpdateItemMutationKey,
+  storesUpdateItemMutationOptions,
+  useStoresUpdateItem,
+} from "./hooks/useStoresUpdateItem.js";
+export {
+  storesUpdateLocationMutationKey,
+  storesUpdateLocationMutationOptions,
+  useStoresUpdateLocation,
+} from "./hooks/useStoresUpdateLocation.js";
+export {
+  storesUpdateRequisitionMutationKey,
+  storesUpdateRequisitionMutationOptions,
+  useStoresUpdateRequisition,
+} from "./hooks/useStoresUpdateRequisition.js";
+export {
   subscriptionsConfirmSubscriptionQueryKey,
   subscriptionsConfirmSubscriptionQueryOptions,
   useSubscriptionsConfirmSubscription,
@@ -2354,6 +2468,7 @@ export type { AppPhoneCodeVerify } from "./models/AppPhoneCodeVerify.js";
 export type { AppPublic } from "./models/AppPublic.js";
 export type { ApprovalAuthorityPublic } from "./models/ApprovalAuthorityPublic.js";
 export type { ApprovalAuthorityUpdate } from "./models/ApprovalAuthorityUpdate.js";
+export type { ApprovalLine } from "./models/ApprovalLine.js";
 export type { ArchiveBulletin } from "./models/ArchiveBulletin.js";
 export type { ArchiveEdition } from "./models/ArchiveEdition.js";
 export type { ArchiveHistory } from "./models/ArchiveHistory.js";
@@ -3658,6 +3773,7 @@ export type { CurrentOrganisationPublic } from "./models/CurrentOrganisationPubl
 export type { DashboardApproval } from "./models/DashboardApproval.js";
 export type { DashboardPerson } from "./models/DashboardPerson.js";
 export type { DashboardRequest } from "./models/DashboardRequest.js";
+export type { DeliveryLine } from "./models/DeliveryLine.js";
 export type { DepartmentCreate } from "./models/DepartmentCreate.js";
 export type { DepartmentMemberPublic } from "./models/DepartmentMemberPublic.js";
 export type { DepartmentMembersPublic } from "./models/DepartmentMembersPublic.js";
@@ -5650,6 +5766,10 @@ export { imageInputPropertiesTimeBasisEnum } from "./models/ImageInputProperties
 export type { ImageResult } from "./models/ImageResult.js";
 export type { ImportStatus } from "./models/ImportStatus.js";
 export { importStatus } from "./models/ImportStatus.js";
+export type { ItemCreate } from "./models/ItemCreate.js";
+export type { ItemListPublic } from "./models/ItemListPublic.js";
+export type { ItemPublic } from "./models/ItemPublic.js";
+export type { ItemUpdate } from "./models/ItemUpdate.js";
 export type { JanitorialAccess } from "./models/JanitorialAccess.js";
 export type { JanitorialArea } from "./models/JanitorialArea.js";
 export type { JanitorialBuilding } from "./models/JanitorialBuilding.js";
@@ -6010,6 +6130,10 @@ export type { ListingUpsertPropertiesStatusEnum } from "./models/ListingUpsertPr
 export { listingUpsertPropertiesStatusEnum } from "./models/ListingUpsertPropertiesStatusEnum.js";
 export type { ListingUpsertPropertiesVisibilityEnum } from "./models/ListingUpsertPropertiesVisibilityEnum.js";
 export { listingUpsertPropertiesVisibilityEnum } from "./models/ListingUpsertPropertiesVisibilityEnum.js";
+export type { LocationCreate } from "./models/LocationCreate.js";
+export type { LocationListPublic } from "./models/LocationListPublic.js";
+export type { LocationPublic } from "./models/LocationPublic.js";
+export type { LocationUpdate } from "./models/LocationUpdate.js";
 export type { ManagedListing } from "./models/ManagedListing.js";
 export type { ManagedOrganiser } from "./models/ManagedOrganiser.js";
 export type { MembershipRole } from "./models/MembershipRole.js";
@@ -6019,6 +6143,8 @@ export { membershipStatus } from "./models/MembershipStatus.js";
 export type { Message } from "./models/Message.js";
 export type { MessageCreate } from "./models/MessageCreate.js";
 export type { MessagePublic } from "./models/MessagePublic.js";
+export type { MovementKind } from "./models/MovementKind.js";
+export { movementKind } from "./models/MovementKind.js";
 export type { MyMembershipPublic } from "./models/MyMembershipPublic.js";
 export type { MyProfile } from "./models/MyProfile.js";
 export type { MyProfilePropertiesIntentsItemsEnum } from "./models/MyProfilePropertiesIntentsItemsEnum.js";
@@ -6286,6 +6412,17 @@ export type { ReportUpdatePropertiesStatusEnum } from "./models/ReportUpdateProp
 export { reportUpdatePropertiesStatusEnum } from "./models/ReportUpdatePropertiesStatusEnum.js";
 export type { RequestStatus } from "./models/RequestStatus.js";
 export { requestStatus } from "./models/RequestStatus.js";
+export type { RequisitionApprove } from "./models/RequisitionApprove.js";
+export type { RequisitionCreate } from "./models/RequisitionCreate.js";
+export type { RequisitionDeliver } from "./models/RequisitionDeliver.js";
+export type { RequisitionLineCreate } from "./models/RequisitionLineCreate.js";
+export type { RequisitionLinePublic } from "./models/RequisitionLinePublic.js";
+export type { RequisitionListPublic } from "./models/RequisitionListPublic.js";
+export type { RequisitionPublic } from "./models/RequisitionPublic.js";
+export type { RequisitionReject } from "./models/RequisitionReject.js";
+export type { RequisitionStatus } from "./models/RequisitionStatus.js";
+export { requisitionStatus } from "./models/RequisitionStatus.js";
+export type { RequisitionUpdate } from "./models/RequisitionUpdate.js";
 export type { ReviewAssignment } from "./models/ReviewAssignment.js";
 export type { ReviewInput } from "./models/ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./models/ReviewInputPropertiesDecisionEnum.js";
@@ -6389,7 +6526,244 @@ export type { StatusReportPublic } from "./models/StatusReportPublic.js";
 export type { StatusReportSubmit } from "./models/StatusReportSubmit.js";
 export type { StatusStaffingEntry } from "./models/StatusStaffingEntry.js";
 export type { StatusStaffingPublic } from "./models/StatusStaffingPublic.js";
+export type { StockLevelListPublic } from "./models/StockLevelListPublic.js";
+export type { StockLevelPublic } from "./models/StockLevelPublic.js";
+export type { StockMovementCreate } from "./models/StockMovementCreate.js";
+export type { StockMovementListPublic } from "./models/StockMovementListPublic.js";
+export type { StockMovementPublic } from "./models/StockMovementPublic.js";
 export type { StopView } from "./models/StopView.js";
+export type { StoresAccessPublic } from "./models/StoresAccessPublic.js";
+export type {
+  StoresApproveRequisitionBody,
+  StoresApproveRequisitionOptions,
+  StoresApproveRequisitionPath,
+  StoresApproveRequisitionResponse,
+  StoresApproveRequisitionResponses,
+  StoresApproveRequisitionStatus200,
+  StoresApproveRequisitionStatus400,
+  StoresApproveRequisitionStatus401,
+  StoresApproveRequisitionStatus403,
+  StoresApproveRequisitionStatus404,
+  StoresApproveRequisitionStatus409,
+  StoresApproveRequisitionStatus422,
+} from "./models/StoresApproveRequisition.js";
+export type {
+  StoresCancelRequisitionOptions,
+  StoresCancelRequisitionPath,
+  StoresCancelRequisitionResponse,
+  StoresCancelRequisitionResponses,
+  StoresCancelRequisitionStatus200,
+  StoresCancelRequisitionStatus400,
+  StoresCancelRequisitionStatus401,
+  StoresCancelRequisitionStatus403,
+  StoresCancelRequisitionStatus404,
+  StoresCancelRequisitionStatus409,
+  StoresCancelRequisitionStatus422,
+} from "./models/StoresCancelRequisition.js";
+export type {
+  StoresCreateItemBody,
+  StoresCreateItemOptions,
+  StoresCreateItemResponse,
+  StoresCreateItemResponses,
+  StoresCreateItemStatus201,
+  StoresCreateItemStatus400,
+  StoresCreateItemStatus401,
+  StoresCreateItemStatus403,
+  StoresCreateItemStatus404,
+  StoresCreateItemStatus409,
+  StoresCreateItemStatus422,
+} from "./models/StoresCreateItem.js";
+export type {
+  StoresCreateLocationBody,
+  StoresCreateLocationOptions,
+  StoresCreateLocationResponse,
+  StoresCreateLocationResponses,
+  StoresCreateLocationStatus201,
+  StoresCreateLocationStatus400,
+  StoresCreateLocationStatus401,
+  StoresCreateLocationStatus403,
+  StoresCreateLocationStatus404,
+  StoresCreateLocationStatus409,
+  StoresCreateLocationStatus422,
+} from "./models/StoresCreateLocation.js";
+export type {
+  StoresCreateRequisitionBody,
+  StoresCreateRequisitionOptions,
+  StoresCreateRequisitionResponse,
+  StoresCreateRequisitionResponses,
+  StoresCreateRequisitionStatus201,
+  StoresCreateRequisitionStatus400,
+  StoresCreateRequisitionStatus401,
+  StoresCreateRequisitionStatus403,
+  StoresCreateRequisitionStatus404,
+  StoresCreateRequisitionStatus409,
+  StoresCreateRequisitionStatus422,
+} from "./models/StoresCreateRequisition.js";
+export type {
+  StoresCreateStockMovementBody,
+  StoresCreateStockMovementOptions,
+  StoresCreateStockMovementResponse,
+  StoresCreateStockMovementResponses,
+  StoresCreateStockMovementStatus201,
+  StoresCreateStockMovementStatus400,
+  StoresCreateStockMovementStatus401,
+  StoresCreateStockMovementStatus403,
+  StoresCreateStockMovementStatus404,
+  StoresCreateStockMovementStatus409,
+  StoresCreateStockMovementStatus422,
+} from "./models/StoresCreateStockMovement.js";
+export type {
+  StoresDeliverRequisitionBody,
+  StoresDeliverRequisitionOptions,
+  StoresDeliverRequisitionPath,
+  StoresDeliverRequisitionResponse,
+  StoresDeliverRequisitionResponses,
+  StoresDeliverRequisitionStatus200,
+  StoresDeliverRequisitionStatus400,
+  StoresDeliverRequisitionStatus401,
+  StoresDeliverRequisitionStatus403,
+  StoresDeliverRequisitionStatus404,
+  StoresDeliverRequisitionStatus409,
+  StoresDeliverRequisitionStatus422,
+} from "./models/StoresDeliverRequisition.js";
+export type {
+  StoresGetAccessOptions,
+  StoresGetAccessResponse,
+  StoresGetAccessResponses,
+  StoresGetAccessStatus200,
+  StoresGetAccessStatus401,
+  StoresGetAccessStatus403,
+  StoresGetAccessStatus422,
+} from "./models/StoresGetAccess.js";
+export type {
+  StoresGetRequisitionOptions,
+  StoresGetRequisitionPath,
+  StoresGetRequisitionResponse,
+  StoresGetRequisitionResponses,
+  StoresGetRequisitionStatus200,
+  StoresGetRequisitionStatus401,
+  StoresGetRequisitionStatus403,
+  StoresGetRequisitionStatus404,
+  StoresGetRequisitionStatus422,
+} from "./models/StoresGetRequisition.js";
+export type {
+  StoresListItemsOptions,
+  StoresListItemsQuery,
+  StoresListItemsResponse,
+  StoresListItemsResponses,
+  StoresListItemsStatus200,
+  StoresListItemsStatus401,
+  StoresListItemsStatus403,
+  StoresListItemsStatus422,
+} from "./models/StoresListItems.js";
+export type {
+  StoresListLocationsOptions,
+  StoresListLocationsResponse,
+  StoresListLocationsResponses,
+  StoresListLocationsStatus200,
+  StoresListLocationsStatus401,
+  StoresListLocationsStatus403,
+  StoresListLocationsStatus422,
+} from "./models/StoresListLocations.js";
+export type {
+  StoresListRequisitionsOptions,
+  StoresListRequisitionsQuery,
+  StoresListRequisitionsResponse,
+  StoresListRequisitionsResponses,
+  StoresListRequisitionsStatus200,
+  StoresListRequisitionsStatus401,
+  StoresListRequisitionsStatus403,
+  StoresListRequisitionsStatus422,
+} from "./models/StoresListRequisitions.js";
+export type {
+  StoresListStockOptions,
+  StoresListStockQuery,
+  StoresListStockResponse,
+  StoresListStockResponses,
+  StoresListStockStatus200,
+  StoresListStockStatus401,
+  StoresListStockStatus403,
+  StoresListStockStatus422,
+} from "./models/StoresListStock.js";
+export type {
+  StoresListStockMovementsOptions,
+  StoresListStockMovementsQuery,
+  StoresListStockMovementsResponse,
+  StoresListStockMovementsResponses,
+  StoresListStockMovementsStatus200,
+  StoresListStockMovementsStatus401,
+  StoresListStockMovementsStatus403,
+  StoresListStockMovementsStatus422,
+} from "./models/StoresListStockMovements.js";
+export type {
+  StoresRejectRequisitionBody,
+  StoresRejectRequisitionOptions,
+  StoresRejectRequisitionPath,
+  StoresRejectRequisitionResponse,
+  StoresRejectRequisitionResponses,
+  StoresRejectRequisitionStatus200,
+  StoresRejectRequisitionStatus400,
+  StoresRejectRequisitionStatus401,
+  StoresRejectRequisitionStatus403,
+  StoresRejectRequisitionStatus404,
+  StoresRejectRequisitionStatus409,
+  StoresRejectRequisitionStatus422,
+} from "./models/StoresRejectRequisition.js";
+export type {
+  StoresSubmitRequisitionOptions,
+  StoresSubmitRequisitionPath,
+  StoresSubmitRequisitionResponse,
+  StoresSubmitRequisitionResponses,
+  StoresSubmitRequisitionStatus200,
+  StoresSubmitRequisitionStatus400,
+  StoresSubmitRequisitionStatus401,
+  StoresSubmitRequisitionStatus403,
+  StoresSubmitRequisitionStatus404,
+  StoresSubmitRequisitionStatus409,
+  StoresSubmitRequisitionStatus422,
+} from "./models/StoresSubmitRequisition.js";
+export type {
+  StoresUpdateItemBody,
+  StoresUpdateItemOptions,
+  StoresUpdateItemPath,
+  StoresUpdateItemResponse,
+  StoresUpdateItemResponses,
+  StoresUpdateItemStatus200,
+  StoresUpdateItemStatus400,
+  StoresUpdateItemStatus401,
+  StoresUpdateItemStatus403,
+  StoresUpdateItemStatus404,
+  StoresUpdateItemStatus409,
+  StoresUpdateItemStatus422,
+} from "./models/StoresUpdateItem.js";
+export type {
+  StoresUpdateLocationBody,
+  StoresUpdateLocationOptions,
+  StoresUpdateLocationPath,
+  StoresUpdateLocationResponse,
+  StoresUpdateLocationResponses,
+  StoresUpdateLocationStatus200,
+  StoresUpdateLocationStatus400,
+  StoresUpdateLocationStatus401,
+  StoresUpdateLocationStatus403,
+  StoresUpdateLocationStatus404,
+  StoresUpdateLocationStatus409,
+  StoresUpdateLocationStatus422,
+} from "./models/StoresUpdateLocation.js";
+export type {
+  StoresUpdateRequisitionBody,
+  StoresUpdateRequisitionOptions,
+  StoresUpdateRequisitionPath,
+  StoresUpdateRequisitionResponse,
+  StoresUpdateRequisitionResponses,
+  StoresUpdateRequisitionStatus200,
+  StoresUpdateRequisitionStatus400,
+  StoresUpdateRequisitionStatus401,
+  StoresUpdateRequisitionStatus403,
+  StoresUpdateRequisitionStatus404,
+  StoresUpdateRequisitionStatus409,
+  StoresUpdateRequisitionStatus422,
+} from "./models/StoresUpdateRequisition.js";
 export type { SubmissionMode } from "./models/SubmissionMode.js";
 export { submissionMode } from "./models/SubmissionMode.js";
 export type { SubscribeAccepted } from "./models/SubscribeAccepted.js";
@@ -7145,6 +7519,7 @@ export { appPhoneCodeVerifySchema } from "./zod/appPhoneCodeVerifySchema.js";
 export { appPublicSchema } from "./zod/appPublicSchema.js";
 export { approvalAuthorityPublicSchema } from "./zod/approvalAuthorityPublicSchema.js";
 export { approvalAuthorityUpdateSchema } from "./zod/approvalAuthorityUpdateSchema.js";
+export { approvalLineSchema } from "./zod/approvalLineSchema.js";
 export { archiveBulletinSchema } from "./zod/archiveBulletinSchema.js";
 export { archiveEditionSchema } from "./zod/archiveEditionSchema.js";
 export { archiveHistorySchema } from "./zod/archiveHistorySchema.js";
@@ -8321,6 +8696,7 @@ export { currentOrganisationPublicSchema } from "./zod/currentOrganisationPublic
 export { dashboardApprovalSchema } from "./zod/dashboardApprovalSchema.js";
 export { dashboardPersonSchema } from "./zod/dashboardPersonSchema.js";
 export { dashboardRequestSchema } from "./zod/dashboardRequestSchema.js";
+export { deliveryLineSchema } from "./zod/deliveryLineSchema.js";
 export { departmentCreateSchema } from "./zod/departmentCreateSchema.js";
 export { departmentMemberPublicSchema } from "./zod/departmentMemberPublicSchema.js";
 export { departmentMembersPublicSchema } from "./zod/departmentMembersPublicSchema.js";
@@ -10167,6 +10543,10 @@ export { imageInputPropertiesTimeBasisEnumSchema } from "./zod/imageInputPropert
 export { imageInputSchema } from "./zod/imageInputSchema.js";
 export { imageResultSchema } from "./zod/imageResultSchema.js";
 export { importStatusSchema } from "./zod/importStatusSchema.js";
+export { itemCreateSchema } from "./zod/itemCreateSchema.js";
+export { itemListPublicSchema } from "./zod/itemListPublicSchema.js";
+export { itemPublicSchema } from "./zod/itemPublicSchema.js";
+export { itemUpdateSchema } from "./zod/itemUpdateSchema.js";
 export { janitorialAccessSchema } from "./zod/janitorialAccessSchema.js";
 export { janitorialAreaSchema } from "./zod/janitorialAreaSchema.js";
 export { janitorialBuildingSchema } from "./zod/janitorialBuildingSchema.js";
@@ -10493,6 +10873,10 @@ export { listingDetailSchema } from "./zod/listingDetailSchema.js";
 export { listingUpsertPropertiesStatusEnumSchema } from "./zod/listingUpsertPropertiesStatusEnumSchema.js";
 export { listingUpsertPropertiesVisibilityEnumSchema } from "./zod/listingUpsertPropertiesVisibilityEnumSchema.js";
 export { listingUpsertSchema } from "./zod/listingUpsertSchema.js";
+export { locationCreateSchema } from "./zod/locationCreateSchema.js";
+export { locationListPublicSchema } from "./zod/locationListPublicSchema.js";
+export { locationPublicSchema } from "./zod/locationPublicSchema.js";
+export { locationUpdateSchema } from "./zod/locationUpdateSchema.js";
 export { managedListingSchema } from "./zod/managedListingSchema.js";
 export { managedOrganiserSchema } from "./zod/managedOrganiserSchema.js";
 export { membershipRoleSchema } from "./zod/membershipRoleSchema.js";
@@ -10500,6 +10884,7 @@ export { membershipStatusSchema } from "./zod/membershipStatusSchema.js";
 export { messageCreateSchema } from "./zod/messageCreateSchema.js";
 export { messagePublicSchema } from "./zod/messagePublicSchema.js";
 export { messageSchema } from "./zod/messageSchema.js";
+export { movementKindSchema } from "./zod/movementKindSchema.js";
 export { myMembershipPublicSchema } from "./zod/myMembershipPublicSchema.js";
 export { myProfilePropertiesIntentsItemsEnumSchema } from "./zod/myProfilePropertiesIntentsItemsEnumSchema.js";
 export { myProfilePropertiesVisibilityEnumSchema } from "./zod/myProfilePropertiesVisibilityEnumSchema.js";
@@ -10731,6 +11116,16 @@ export { reportPublicSchema } from "./zod/reportPublicSchema.js";
 export { reportUpdatePropertiesStatusEnumSchema } from "./zod/reportUpdatePropertiesStatusEnumSchema.js";
 export { reportUpdateSchema } from "./zod/reportUpdateSchema.js";
 export { requestStatusSchema } from "./zod/requestStatusSchema.js";
+export { requisitionApproveSchema } from "./zod/requisitionApproveSchema.js";
+export { requisitionCreateSchema } from "./zod/requisitionCreateSchema.js";
+export { requisitionDeliverSchema } from "./zod/requisitionDeliverSchema.js";
+export { requisitionLineCreateSchema } from "./zod/requisitionLineCreateSchema.js";
+export { requisitionLinePublicSchema } from "./zod/requisitionLinePublicSchema.js";
+export { requisitionListPublicSchema } from "./zod/requisitionListPublicSchema.js";
+export { requisitionPublicSchema } from "./zod/requisitionPublicSchema.js";
+export { requisitionRejectSchema } from "./zod/requisitionRejectSchema.js";
+export { requisitionStatusSchema } from "./zod/requisitionStatusSchema.js";
+export { requisitionUpdateSchema } from "./zod/requisitionUpdateSchema.js";
 export { reviewAssignmentSchema } from "./zod/reviewAssignmentSchema.js";
 export { reviewInputPropertiesDecisionEnumSchema } from "./zod/reviewInputPropertiesDecisionEnumSchema.js";
 export { reviewInputSchema } from "./zod/reviewInputSchema.js";
@@ -10824,7 +11219,240 @@ export { statusReportPublicSchema } from "./zod/statusReportPublicSchema.js";
 export { statusReportSubmitSchema } from "./zod/statusReportSubmitSchema.js";
 export { statusStaffingEntrySchema } from "./zod/statusStaffingEntrySchema.js";
 export { statusStaffingPublicSchema } from "./zod/statusStaffingPublicSchema.js";
+export { stockLevelListPublicSchema } from "./zod/stockLevelListPublicSchema.js";
+export { stockLevelPublicSchema } from "./zod/stockLevelPublicSchema.js";
+export { stockMovementCreateSchema } from "./zod/stockMovementCreateSchema.js";
+export { stockMovementListPublicSchema } from "./zod/stockMovementListPublicSchema.js";
+export { stockMovementPublicSchema } from "./zod/stockMovementPublicSchema.js";
 export { stopViewSchema } from "./zod/stopViewSchema.js";
+export { storesAccessPublicSchema } from "./zod/storesAccessPublicSchema.js";
+export {
+  storesApproveRequisitionBodySchema,
+  storesApproveRequisitionErrorSchema,
+  storesApproveRequisitionPathRequisitionIdSchema,
+  storesApproveRequisitionResponseSchema,
+  storesApproveRequisitionStatus200Schema,
+  storesApproveRequisitionStatus400Schema,
+  storesApproveRequisitionStatus401Schema,
+  storesApproveRequisitionStatus403Schema,
+  storesApproveRequisitionStatus404Schema,
+  storesApproveRequisitionStatus409Schema,
+  storesApproveRequisitionStatus422Schema,
+} from "./zod/storesApproveRequisitionSchema.js";
+export {
+  storesCancelRequisitionErrorSchema,
+  storesCancelRequisitionPathRequisitionIdSchema,
+  storesCancelRequisitionResponseSchema,
+  storesCancelRequisitionStatus200Schema,
+  storesCancelRequisitionStatus400Schema,
+  storesCancelRequisitionStatus401Schema,
+  storesCancelRequisitionStatus403Schema,
+  storesCancelRequisitionStatus404Schema,
+  storesCancelRequisitionStatus409Schema,
+  storesCancelRequisitionStatus422Schema,
+} from "./zod/storesCancelRequisitionSchema.js";
+export {
+  storesCreateItemBodySchema,
+  storesCreateItemErrorSchema,
+  storesCreateItemResponseSchema,
+  storesCreateItemStatus201Schema,
+  storesCreateItemStatus400Schema,
+  storesCreateItemStatus401Schema,
+  storesCreateItemStatus403Schema,
+  storesCreateItemStatus404Schema,
+  storesCreateItemStatus409Schema,
+  storesCreateItemStatus422Schema,
+} from "./zod/storesCreateItemSchema.js";
+export {
+  storesCreateLocationBodySchema,
+  storesCreateLocationErrorSchema,
+  storesCreateLocationResponseSchema,
+  storesCreateLocationStatus201Schema,
+  storesCreateLocationStatus400Schema,
+  storesCreateLocationStatus401Schema,
+  storesCreateLocationStatus403Schema,
+  storesCreateLocationStatus404Schema,
+  storesCreateLocationStatus409Schema,
+  storesCreateLocationStatus422Schema,
+} from "./zod/storesCreateLocationSchema.js";
+export {
+  storesCreateRequisitionBodySchema,
+  storesCreateRequisitionErrorSchema,
+  storesCreateRequisitionResponseSchema,
+  storesCreateRequisitionStatus201Schema,
+  storesCreateRequisitionStatus400Schema,
+  storesCreateRequisitionStatus401Schema,
+  storesCreateRequisitionStatus403Schema,
+  storesCreateRequisitionStatus404Schema,
+  storesCreateRequisitionStatus409Schema,
+  storesCreateRequisitionStatus422Schema,
+} from "./zod/storesCreateRequisitionSchema.js";
+export {
+  storesCreateStockMovementBodySchema,
+  storesCreateStockMovementErrorSchema,
+  storesCreateStockMovementResponseSchema,
+  storesCreateStockMovementStatus201Schema,
+  storesCreateStockMovementStatus400Schema,
+  storesCreateStockMovementStatus401Schema,
+  storesCreateStockMovementStatus403Schema,
+  storesCreateStockMovementStatus404Schema,
+  storesCreateStockMovementStatus409Schema,
+  storesCreateStockMovementStatus422Schema,
+} from "./zod/storesCreateStockMovementSchema.js";
+export {
+  storesDeliverRequisitionBodySchema,
+  storesDeliverRequisitionErrorSchema,
+  storesDeliverRequisitionPathRequisitionIdSchema,
+  storesDeliverRequisitionResponseSchema,
+  storesDeliverRequisitionStatus200Schema,
+  storesDeliverRequisitionStatus400Schema,
+  storesDeliverRequisitionStatus401Schema,
+  storesDeliverRequisitionStatus403Schema,
+  storesDeliverRequisitionStatus404Schema,
+  storesDeliverRequisitionStatus409Schema,
+  storesDeliverRequisitionStatus422Schema,
+} from "./zod/storesDeliverRequisitionSchema.js";
+export {
+  storesGetAccessErrorSchema,
+  storesGetAccessResponseSchema,
+  storesGetAccessStatus200Schema,
+  storesGetAccessStatus401Schema,
+  storesGetAccessStatus403Schema,
+  storesGetAccessStatus422Schema,
+} from "./zod/storesGetAccessSchema.js";
+export {
+  storesGetRequisitionErrorSchema,
+  storesGetRequisitionPathRequisitionIdSchema,
+  storesGetRequisitionResponseSchema,
+  storesGetRequisitionStatus200Schema,
+  storesGetRequisitionStatus401Schema,
+  storesGetRequisitionStatus403Schema,
+  storesGetRequisitionStatus404Schema,
+  storesGetRequisitionStatus422Schema,
+} from "./zod/storesGetRequisitionSchema.js";
+export {
+  storesListItemsErrorSchema,
+  storesListItemsQueryActiveSchema,
+  storesListItemsQueryCategorySchema,
+  storesListItemsQueryPageSchema,
+  storesListItemsQueryQSchema,
+  storesListItemsQuerySizeSchema,
+  storesListItemsResponseSchema,
+  storesListItemsStatus200Schema,
+  storesListItemsStatus401Schema,
+  storesListItemsStatus403Schema,
+  storesListItemsStatus422Schema,
+} from "./zod/storesListItemsSchema.js";
+export {
+  storesListLocationsErrorSchema,
+  storesListLocationsResponseSchema,
+  storesListLocationsStatus200Schema,
+  storesListLocationsStatus401Schema,
+  storesListLocationsStatus403Schema,
+  storesListLocationsStatus422Schema,
+} from "./zod/storesListLocationsSchema.js";
+export {
+  storesListRequisitionsErrorSchema,
+  storesListRequisitionsQueryDepartmentIdSchema,
+  storesListRequisitionsQueryMineSchema,
+  storesListRequisitionsQueryPageSchema,
+  storesListRequisitionsQuerySizeSchema,
+  storesListRequisitionsQueryStatusSchema,
+  storesListRequisitionsResponseSchema,
+  storesListRequisitionsStatus200Schema,
+  storesListRequisitionsStatus401Schema,
+  storesListRequisitionsStatus403Schema,
+  storesListRequisitionsStatus422Schema,
+} from "./zod/storesListRequisitionsSchema.js";
+export {
+  storesListStockMovementsErrorSchema,
+  storesListStockMovementsQueryItemIdSchema,
+  storesListStockMovementsQueryLocationIdSchema,
+  storesListStockMovementsQueryPageSchema,
+  storesListStockMovementsQueryRequisitionIdSchema,
+  storesListStockMovementsQuerySizeSchema,
+  storesListStockMovementsResponseSchema,
+  storesListStockMovementsStatus200Schema,
+  storesListStockMovementsStatus401Schema,
+  storesListStockMovementsStatus403Schema,
+  storesListStockMovementsStatus422Schema,
+} from "./zod/storesListStockMovementsSchema.js";
+export {
+  storesListStockErrorSchema,
+  storesListStockQueryItemIdSchema,
+  storesListStockQueryLocationIdSchema,
+  storesListStockQueryPageSchema,
+  storesListStockQuerySizeSchema,
+  storesListStockResponseSchema,
+  storesListStockStatus200Schema,
+  storesListStockStatus401Schema,
+  storesListStockStatus403Schema,
+  storesListStockStatus422Schema,
+} from "./zod/storesListStockSchema.js";
+export {
+  storesRejectRequisitionBodySchema,
+  storesRejectRequisitionErrorSchema,
+  storesRejectRequisitionPathRequisitionIdSchema,
+  storesRejectRequisitionResponseSchema,
+  storesRejectRequisitionStatus200Schema,
+  storesRejectRequisitionStatus400Schema,
+  storesRejectRequisitionStatus401Schema,
+  storesRejectRequisitionStatus403Schema,
+  storesRejectRequisitionStatus404Schema,
+  storesRejectRequisitionStatus409Schema,
+  storesRejectRequisitionStatus422Schema,
+} from "./zod/storesRejectRequisitionSchema.js";
+export {
+  storesSubmitRequisitionErrorSchema,
+  storesSubmitRequisitionPathRequisitionIdSchema,
+  storesSubmitRequisitionResponseSchema,
+  storesSubmitRequisitionStatus200Schema,
+  storesSubmitRequisitionStatus400Schema,
+  storesSubmitRequisitionStatus401Schema,
+  storesSubmitRequisitionStatus403Schema,
+  storesSubmitRequisitionStatus404Schema,
+  storesSubmitRequisitionStatus409Schema,
+  storesSubmitRequisitionStatus422Schema,
+} from "./zod/storesSubmitRequisitionSchema.js";
+export {
+  storesUpdateItemBodySchema,
+  storesUpdateItemErrorSchema,
+  storesUpdateItemPathItemIdSchema,
+  storesUpdateItemResponseSchema,
+  storesUpdateItemStatus200Schema,
+  storesUpdateItemStatus400Schema,
+  storesUpdateItemStatus401Schema,
+  storesUpdateItemStatus403Schema,
+  storesUpdateItemStatus404Schema,
+  storesUpdateItemStatus409Schema,
+  storesUpdateItemStatus422Schema,
+} from "./zod/storesUpdateItemSchema.js";
+export {
+  storesUpdateLocationBodySchema,
+  storesUpdateLocationErrorSchema,
+  storesUpdateLocationPathLocationIdSchema,
+  storesUpdateLocationResponseSchema,
+  storesUpdateLocationStatus200Schema,
+  storesUpdateLocationStatus400Schema,
+  storesUpdateLocationStatus401Schema,
+  storesUpdateLocationStatus403Schema,
+  storesUpdateLocationStatus404Schema,
+  storesUpdateLocationStatus409Schema,
+  storesUpdateLocationStatus422Schema,
+} from "./zod/storesUpdateLocationSchema.js";
+export {
+  storesUpdateRequisitionBodySchema,
+  storesUpdateRequisitionErrorSchema,
+  storesUpdateRequisitionPathRequisitionIdSchema,
+  storesUpdateRequisitionResponseSchema,
+  storesUpdateRequisitionStatus200Schema,
+  storesUpdateRequisitionStatus400Schema,
+  storesUpdateRequisitionStatus401Schema,
+  storesUpdateRequisitionStatus403Schema,
+  storesUpdateRequisitionStatus404Schema,
+  storesUpdateRequisitionStatus409Schema,
+  storesUpdateRequisitionStatus422Schema,
+} from "./zod/storesUpdateRequisitionSchema.js";
 export { submissionModeSchema } from "./zod/submissionModeSchema.js";
 export { subscribeAcceptedSchema } from "./zod/subscribeAcceptedSchema.js";
 export { subscribeRequestSchema } from "./zod/subscribeRequestSchema.js";

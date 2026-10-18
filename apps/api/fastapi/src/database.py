@@ -85,12 +85,22 @@ from src.notifications.models import (
     NotificationSetting,
     NotificationSnooze,
 )
+from src.stores import audit as _stores_audit
+from src.stores.models import (
+    Requisition,
+    RequisitionLine,
+    StockLevel,
+    StockMovement,
+    StoreItem,
+    StoreLocation,
+)
 from src.wxwatch import alerts as _wxwatch_alerts
 
 # Modules register what they audit and notify about before any session exists.
 _hr_audit.register()
 _hr_notifications.register()
 _wxwatch_alerts.register()
+_stores_audit.register()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 

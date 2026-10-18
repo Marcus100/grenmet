@@ -1,3 +1,3 @@
 export { CartItemCard } from "./CartItem";
-export { ProductCard } from "./ProductCard";
-export { ProductDetailModal } from "./ProductDetailModal";
+export { ItemCard } from "./ItemCard";
+export { ItemDetailModal } from "./ItemDetailModal";

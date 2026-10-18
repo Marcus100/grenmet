@@ -1,57 +1,33 @@
-"use client";
-
-import type { Transaction } from "@/lib/salesbus/types";
-import { formatCaseType, formatPrice } from "@/lib/salesbus/types";
+import type { LocationPublic, RequisitionPublic } from "@barrelsgd/api-client";
+import { RequisitionCard } from "./RequisitionCard";
 
 interface TransactionListProps {
-  showTotal?: boolean;
-  transactions: Transaction[];
+  emptyMessage?: string;
+  locations: LocationPublic[];
+  requisitions: RequisitionPublic[];
 }
 
 export function TransactionList({
-  transactions,
-  showTotal = true,
+  requisitions,
+  locations,
+  emptyMessage = "No requisitions",
 }: TransactionListProps) {
-  const total = transactions.reduce((sum, t) => sum + t.total, 0);
-
+  if (requisitions.length === 0) {
+    return (
+      <p className="py-12 text-center text-base text-muted-foreground sm:text-lg">
+        {emptyMessage}
+      </p>
+    );
+  }
   return (
-    <div className="flex flex-col">
-      {transactions.map((transaction) => (
-        <div
-          className="border-border border-b py-4 last:border-b-0 sm:py-5"
-          key={transaction.id}
-        >
-          {transaction.items.map((item) => (
-            <div
-              className="flex items-center justify-between py-2 sm:py-3"
-              key={item.id}
-            >
-              <div className="mr-4 min-w-0 flex-1">
-                <h4 className="truncate font-bold text-base text-foreground tracking-wide sm:text-lg">
-                  {item.productName}
-                </h4>
-                <p className="text-muted-foreground text-sm sm:text-base">
-                  {item.quantity} {formatCaseType(item.caseType)}
-                </p>
-              </div>
-              <span className="flex-shrink-0 font-bold text-foreground text-lg sm:text-xl">
-                {formatPrice(item.price)}
-              </span>
-            </div>
-          ))}
-        </div>
+    <div className="flex flex-col gap-3 sm:gap-4">
+      {requisitions.map((requisition) => (
+        <RequisitionCard
+          key={requisition.id}
+          locations={locations}
+          requisition={requisition}
+        />
       ))}
-
-      {showTotal && transactions.length > 0 && (
-        <div className="mt-2 flex items-center justify-between border-border border-t pt-4 sm:pt-5">
-          <span className="font-bold text-foreground text-lg sm:text-xl">
-            TOTAL
-          </span>
-          <span className="font-bold text-gm-blue text-xl sm:text-2xl">
-            {formatPrice(total)}
-          </span>
-        </div>
-      )}
     </div>
   );
 }

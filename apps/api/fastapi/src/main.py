@@ -83,6 +83,7 @@ from src.request_context import (
 
 # from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
+from src.stores.router import router as stores_router
 from src.subscriptions.router import router as subscriptions_router
 from src.telemetry import sentry_options
 from src.transport import database as transport_database
@@ -122,6 +123,7 @@ def _operation_domain(route: APIRoute) -> str:
         "janitorial",
         "transport",
         "events",
+        "stores",
     ):
         if f"/{domain}" in path:
             return domain
@@ -198,6 +200,10 @@ OPENAPI_TAGS = [
     {"name": "hr-training", "description": "HR training record operations."},
     {"name": "hr-workflows", "description": "HR workflow and approval operations."},
     {"name": "janitorial", "description": "Janitorial catalogue operations."},
+    {
+        "name": "stores",
+        "description": "Internal stores catalogue, stock and requisitions.",
+    },
     {"name": "login", "description": "Login, token, and password recovery operations."},
     {
         "name": "modern-auth",
@@ -392,6 +398,7 @@ app.include_router(hr_dailystatus_router, prefix="/api/v1")
 app.include_router(hr_parking_router, prefix="/api/v1")
 app.include_router(hr_documents_router, prefix="/api/v1")
 app.include_router(audit_router, prefix="/api/v1")
+app.include_router(stores_router, prefix="/api/v1")
 app.include_router(notifications_router, prefix="/api/v1")
 app.include_router(organisations_router, prefix="/api/v1")
 app.include_router(cap_router, prefix="/api/v1")

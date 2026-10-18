@@ -94,6 +94,14 @@ from src.notifications.models import (
 )
 from src.organisations.models import Membership, OrganisationApp, PlatformOrganisation
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
+from src.stores.models import (
+    Requisition,
+    RequisitionLine,
+    StockLevel,
+    StockMovement,
+    StoreItem,
+    StoreLocation,
+)
 from src.subscriptions.models import ListSubscription
 
 config = context.config
@@ -106,7 +114,7 @@ Base.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
 target_metadata = Base.metadata
 
 # Schemas tracked by autogenerate. Extend this set when adding a new schema.
-_TRACKED_SCHEMAS = {None, "public", "hr", "cap", "org"}
+_TRACKED_SCHEMAS = {None, "public", "hr", "cap", "org", "stores"}
 
 
 def _include_object(
