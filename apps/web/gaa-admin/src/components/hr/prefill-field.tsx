@@ -53,3 +53,23 @@ export function PrefillInput({
 export function SourceHint({ children }: { children: string }) {
   return <p className="text-muted-foreground text-xs">{children}</p>;
 }
+
+/**
+ * The employee number from the staff record, shown locked. Form payloads do
+ * not carry it (the printed form reads it from the record), so it is display
+ * only. Renders nothing when HR has not recorded one.
+ */
+export function EmployeeNumberField({ value }: { value: string }) {
+  if (!value) {
+    return null;
+  }
+  return (
+    <PrefillInput
+      id="employee-number"
+      label="Employee Number"
+      locked
+      onChange={() => undefined}
+      value={value}
+    />
+  );
+}

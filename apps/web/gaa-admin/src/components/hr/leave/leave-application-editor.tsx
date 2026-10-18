@@ -8,8 +8,10 @@ import {
   useHrCreateLeaveRequest,
   useHrGetHrProfileMe,
   useHrGetMyLeaveRequests,
+  useHrGetWorkingDays,
   useHrSubmitLeaveRequest,
   useHrUpdateLeaveRequest,
+  type WorkingDaysPublic,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
@@ -27,8 +29,9 @@ import {
   SelectValue,
 } from "@barrelsgd/ui/components/ui/select";
 import { Separator } from "@barrelsgd/ui/components/ui/separator";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -38,7 +41,11 @@ import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
 import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
-import { PrefillInput, SourceHint } from "@/components/hr/prefill-field";
+import {
+  EmployeeNumberField,
+  PrefillInput,
+  SourceHint,
+} from "@/components/hr/prefill-field";
 import {
   signedDocumentsKey,
   useSigning,
@@ -226,6 +233,63 @@ function LeaveBalanceHint({
   );
 }
 
+/**
+ * Where "Days Requested" came from, and what is left afterwards. The figure is
+ * only a suggestion; holidays come from a provisional list until HR verifies it.
+ */
+export function DaysRequestedHints({
+  balance,
+  days,
+  isVacation,
+  workingDays,
+}: {
+  balance?: string;
+  days: string;
+  isVacation: boolean;
+  workingDays?: WorkingDaysPublic;
+}) {
+  const requested = Number(days);
+  const remaining = Number(balance);
+  const showBalance =
+    isVacation &&
+    balance !== undefined &&
+    days !== "" &&
+    Number.isFinite(requested) &&
+    Number.isFinite(remaining);
+  return (
+    <>
+      {workingDays ? (
+        <SourceHint>
+          {`Suggested ${workingDays.working_days} working ${
+            workingDays.working_days === 1 ? "day" : "days"
+          } ${
+            workingDays.method === "roster"
+              ? "from your published roster"
+              : "(Monday to Friday)"
+          }. You can change it.`}
+        </SourceHint>
+      ) : null}
+      {workingDays && workingDays.holidays.length > 0 ? (
+        <SourceHint>
+          {`Public holidays not counted: ${workingDays.holidays
+            .map(
+              (holiday) =>
+                `${holiday.name} ${format(new Date(`${holiday.holiday_date}T00:00:00`), "d MMM")}${
+                  holiday.provisional ? " (provisional, HR to verify)" : ""
+                }`
+            )
+            .join(", ")}.`}
+        </SourceHint>
+      ) : null}
+      {showBalance ? (
+        <SourceHint>
+          {`Vacation balance after this request: ${remaining - requested} days (from your leave ledger).`}
+        </SourceHint>
+      ) : null}
+    </>
+  );
+}
+
 export function LeaveApplicationEditor() {
   const form = useForm({ defaultValues: EMPTY_LEAVE });
   const queryClient = useQueryClient();
@@ -241,6 +305,14 @@ export function LeaveApplicationEditor() {
   const myRequestsRef = useRef(myRequestsQuery.data?.data);
   myRequestsRef.current = myRequestsQuery.data?.data;
   const [addressFromLast, setAddressFromLast] = useState(false);
+  const startDate = useStore(form.store, (state) => state.values.startDate);
+  const endDate = useStore(form.store, (state) => state.values.endDate);
+  const rangeValid = Boolean(startDate && endDate && endDate >= startDate);
+  const workingDaysQuery = useHrGetWorkingDays(
+    { query: { start: startDate, end: endDate } },
+    { query: { enabled: rangeValid } }
+  );
+  const suggestedDaysRef = useRef("");
   const createMutation = useHrCreateLeaveRequest();
   const updateMutation = useHrUpdateLeaveRequest();
   const submitMutation = useHrSubmitLeaveRequest();
@@ -293,6 +365,25 @@ export function LeaveApplicationEditor() {
     form,
   ]);
 
+  // Suggest working days for the chosen dates, but never overwrite a figure the
+  // user typed (or one loaded from a draft): only an empty field or the
+  // previous suggestion is replaced.
+  const workingDays = workingDaysQuery.data;
+  useEffect(() => {
+    if (
+      !(workingDays && rangeValid) ||
+      workingDays.start !== startDate ||
+      workingDays.end !== endDate
+    ) {
+      return;
+    }
+    const current = form.getFieldValue("daysRequested");
+    if (current === "" || current === suggestedDaysRef.current) {
+      suggestedDaysRef.current = String(workingDays.working_days);
+      form.setFieldValue("daysRequested", suggestedDaysRef.current);
+    }
+  }, [workingDays, rangeValid, startDate, endDate, form]);
+
   // Prefill blank fields with the current user, their department, and today.
   useEditorPrefill(
     (ctx) => {
@@ -317,6 +408,7 @@ export function LeaveApplicationEditor() {
   function handleReset() {
     setSubmission(null);
     form.reset();
+    suggestedDaysRef.current = "";
     setCoApprovers([]);
     setStatusHint(null);
     setValidationError(null);
@@ -508,6 +600,8 @@ export function LeaveApplicationEditor() {
                       )}
                     </form.Field>
 
+                    <EmployeeNumberField value={reference.employeeNumber} />
+
                     <LeaveBalanceHint
                       carryOver={reference.unverifiedCarryOver}
                       supervisorName={reference.supervisorName}
@@ -533,6 +627,16 @@ export function LeaveApplicationEditor() {
                               step="any"
                               type="number"
                               value={field.state.value}
+                            />
+                            <DaysRequestedHints
+                              balance={reference.vacationBalance}
+                              days={field.state.value}
+                              isVacation={
+                                values.leaveType === "Annual Vacation"
+                              }
+                              workingDays={
+                                rangeValid ? workingDaysQuery.data : undefined
+                              }
                             />
                           </Field>
                         )}

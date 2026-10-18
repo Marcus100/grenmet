@@ -579,6 +579,16 @@ fails if a key used in code is missing from the catalog). Routers:
 `profile`, `rosters`, `calendar`, `timesheets`, `attendance`, `leave-requests`, `shift-swaps`,
 `absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
 
+### Form prefill endpoints
+
+Read-only helpers that let the HR forms start from stored data. Each returns suggestions; the requester still edits and signs the figures.
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET /api/v1/hr/leave/working-days?start=&end=` | `leave.request.create.self` | Working days for the caller (≤ 366 days). Uses the caller's published or closed roster work shifts when the roster covers every day in the range (`method: roster`), otherwise Monday to Friday (`method: weekdays`). Public holidays are excluded and listed; `provisional: true` marks dates HR has not verified |
+| `GET /api/v1/hr/timesheets/prefill?period=YYYY-MM` | `timesheet.submit.self` | The caller's published or closed roster work shifts for the month with shift times, scheduled hours and leave/absence availability. `roster_published: false` and no entries when there is none |
+| `GET /api/v1/hr/signed-documents/me?entity_type=` | authenticated | Existing list, narrowed to one form type (for example `leave_request`, `timesheet`) before paging |
+
 ### Manual shift attendance
 
 `PUT /attendance` saves actual arrival/departure against a published work roster

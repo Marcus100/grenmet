@@ -2,7 +2,9 @@
 
 import {
   hrGetMyTimesheetsQueryKey,
+  hrGetTimesheetPrefill,
   type TimesheetEntryInput,
+  type TimesheetPrefillEntry,
   useHrCreateTimesheet,
   useHrGetHrProfileMe,
   useHrSubmitTimesheet,
@@ -17,20 +19,29 @@ import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Separator } from "@barrelsgd/ui/components/ui/separator";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, RotateCcw, Send, Trash2 } from "lucide-react";
+import { format } from "date-fns";
+import { CalendarClock, Plus, RotateCcw, Send, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
 import { HrFormDesk } from "@/components/hr/hr-form-desk";
-import { PrefillInput } from "@/components/hr/prefill-field";
+import {
+  EmployeeNumberField,
+  PrefillInput,
+  SourceHint,
+} from "@/components/hr/prefill-field";
 import {
   signedDocumentsKey,
   useSigning,
 } from "@/components/hr/signatures/signature-api";
 import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import type { SubmissionMetadata } from "@/components/hr/submission-date";
-import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
+import {
+  useEditorPrefill,
+  useProfileReference,
+} from "@/components/hr/use-editor-prefill";
+import { reportError } from "@/lib/report-error";
 import {
   EMPTY_TIMESHEET,
   EMPTY_TIMESHEET_ROW,
@@ -57,6 +68,43 @@ function toEntry(row: TimesheetRow): TimesheetEntryInput {
   };
 }
 
+const MONTH_PATTERN = /^\d{4}-\d{2}$/;
+
+const REMARK_BY_AVAILABILITY: Record<string, string> = {
+  ABSENT: "Approved absence",
+  LEAVE: "Approved leave",
+  PARTIAL_ABSENCE: "Part-day absence",
+};
+
+/**
+ * A published-roster shift as a timesheet row. Actual hours start at the
+ * scheduled hours, or zero when approved leave or absence covers the shift;
+ * the employee edits them to what was really worked.
+ */
+export function rosterEntryToRow(
+  entry: TimesheetPrefillEntry,
+  name: string
+): TimesheetRow {
+  const availability = entry.availability ?? "SCHEDULED";
+  const worked =
+    availability === "LEAVE" || availability === "ABSENT"
+      ? "0"
+      : entry.roster_hours;
+  return {
+    ...EMPTY_TIMESHEET_ROW,
+    id: crypto.randomUUID(),
+    date: entry.entry_date,
+    name,
+    rosterHours: entry.roster_hours,
+    actualHours: worked,
+    totalHours: worked,
+    hoursWorked: worked,
+    remarks: [entry.shift_code, REMARK_BY_AVAILABILITY[availability]]
+      .filter(Boolean)
+      .join(" - "),
+  };
+}
+
 export function TimesheetEditor() {
   const form = useForm({ defaultValues: EMPTY_TIMESHEET });
   const queryClient = useQueryClient();
@@ -66,10 +114,15 @@ export function TimesheetEditor() {
   const createMutation = useHrCreateTimesheet();
 
   const submitMutation = useHrSubmitTimesheet();
+  const reference = useProfileReference();
+  const [rosterMonth, setRosterMonth] = useState(format(new Date(), "yyyy-MM"));
+  const [rosterBusy, setRosterBusy] = useState(false);
+  const [rosterNote, setRosterNote] = useState<string | null>(null);
   const [savedTimesheetId, setSavedTimesheetId] = useState<string | null>(null);
   const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
   function reset() {
     form.reset();
+    setRosterNote(null);
     setSavedTimesheetId(null);
     setSubmission(null);
   }
@@ -80,6 +133,45 @@ export function TimesheetEditor() {
       form.setFieldValue("department", ctx.department);
     }
   });
+
+  async function fillFromRoster() {
+    if (!MONTH_PATTERN.test(rosterMonth)) {
+      toast.error("Choose a month first");
+      return;
+    }
+    setRosterBusy(true);
+    try {
+      const prefill = await hrGetTimesheetPrefill({
+        query: { period: rosterMonth },
+      }).unwrap();
+      if (prefill.entries.length === 0) {
+        setRosterNote(null);
+        toast.info("No published roster shifts for that month");
+        return;
+      }
+      const have = new Set(
+        form.getFieldValue("rows").map((row: TimesheetRow) => row.date)
+      );
+      const added = prefill.entries
+        .filter((entry) => !have.has(entry.entry_date))
+        .map((entry) => rosterEntryToRow(entry, reference.fullName));
+      form.setFieldValue("rows", (rows: TimesheetRow[]) => [...rows, ...added]);
+      if (!form.getFieldValue("period")) {
+        form.setFieldValue(
+          "period",
+          format(new Date(`${rosterMonth}-01T00:00:00`), "MMMM yyyy")
+        );
+      }
+      setRosterNote(
+        `${added.length} of ${prefill.entries.length} rostered shifts added from your published roster. Scheduled hours are copied into actual hours; edit them to what you worked.`
+      );
+    } catch (error) {
+      reportError(error, "hr-timesheet-roster-prefill");
+      toast.error("Could not load your roster. Try again.");
+    } finally {
+      setRosterBusy(false);
+    }
+  }
 
   async function submitToHr(values: typeof EMPTY_TIMESHEET) {
     if (!signature.data) {
@@ -187,6 +279,7 @@ export function TimesheetEditor() {
                   }}
                 >
                   <FieldGroup>
+                    <EmployeeNumberField value={reference.employeeNumber} />
                     <div className="grid gap-5 md:grid-cols-2">
                       <form.Field name="department">
                         {(field) => (
@@ -220,6 +313,31 @@ export function TimesheetEditor() {
                       </form.Field>
                     </div>
                   </FieldGroup>
+
+                  <div className="flex flex-wrap items-end gap-2">
+                    <Field className="w-44 gap-1">
+                      <FieldLabel className="text-xs" htmlFor="roster-month">
+                        Roster month
+                      </FieldLabel>
+                      <Input
+                        id="roster-month"
+                        onChange={(event) => setRosterMonth(event.target.value)}
+                        type="month"
+                        value={rosterMonth}
+                      />
+                    </Field>
+                    <Button
+                      disabled={rosterBusy}
+                      onClick={fillFromRoster}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <CalendarClock data-icon="inline-start" />
+                      {rosterBusy ? "Loading…" : "Fill from roster"}
+                    </Button>
+                  </div>
+                  {rosterNote ? <SourceHint>{rosterNote}</SourceHint> : null}
 
                   <Separator />
 

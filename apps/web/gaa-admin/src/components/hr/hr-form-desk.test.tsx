@@ -33,12 +33,23 @@ const documents = vi.hoisted(() => ({
     isPending: false,
   },
 }));
-vi.mock("./signatures/signature-api", () => ({
-  useSignedDocuments: () => documents.value,
-}));
+// Stands in for the API, which filters by entity_type before paging.
+const useSignedDocuments = vi.hoisted(() =>
+  vi.fn((_page: number, entityType?: string) => ({
+    ...documents.value,
+    data: {
+      ...documents.value.data,
+      data: documents.value.data.data.filter(
+        (row) => row.entity_type === entityType
+      ),
+    },
+  }))
+);
+vi.mock("./signatures/signature-api", () => ({ useSignedDocuments }));
 
 it("lists only this form's signed copies with expand and download", () => {
   render(<SignedCopies entityType="leave_request" label="Leave Application" />);
+  expect(useSignedDocuments).toHaveBeenCalledWith(1, "leave_request");
   expect(screen.getByText("Revision 2")).toBeInTheDocument();
   expect(screen.queryByText("Revision 1")).toBeNull();
   expect(

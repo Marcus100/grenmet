@@ -30,6 +30,8 @@ const draft = {
   reference: "REQ-00009",
   status: "DRAFT",
   purpose: "Office use",
+  department_name: "Meteorology",
+  requester_name: "A. Forecaster",
   needed_by: "2026-11-01",
   can_edit: true,
   can_cancel: true,
@@ -92,6 +94,14 @@ function renderEditor() {
 }
 
 describe("DraftEditor", () => {
+  it("shows the department and requester stored on the requisition", () => {
+    renderEditor();
+
+    expect(screen.getByTestId("requisition-department")).toHaveTextContent(
+      "Requesting for: Meteorology (requested by A. Forecaster)"
+    );
+  });
+
   it("saves edited purpose, date and lines without submitting", async () => {
     renderEditor();
 

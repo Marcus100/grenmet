@@ -1,7 +1,7 @@
 from collections.abc import Sequence
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.dependencies import CurrentUser, SessionDep
@@ -19,6 +19,7 @@ from .schemas import (
     TimesheetDetails,
     TimesheetEntryPublic,
     TimesheetListPublic,
+    TimesheetPrefillPublic,
     TimesheetPublic,
     TimesheetSubmitRequest,
     TimesheetSummaryByShift,
@@ -140,6 +141,30 @@ async def approve_timesheet(
     )
 
     return await _public(session, result)
+
+
+@router.get(
+    "/prefill",
+    response_model=TimesheetPrefillPublic,
+    summary="Prefill my timesheet from the roster",
+    description="Return the caller's published or closed roster work shifts for a month (`period=YYYY-MM`) with scheduled hours and approved leave or absence, so the timesheet editor can start from the roster. Requires timesheet.submit.self.",
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_200_OK: {"description": "Roster-derived rows returned"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Invalid period"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
+async def read_timesheet_prefill(
+    session: SessionDep,
+    current_user: CurrentUser,
+    period: Annotated[
+        str, Query(description="Calendar month, YYYY-MM", pattern=r"^\d{4}-\d{2}$")
+    ],
+) -> Any:
+    return await service.prefill_from_roster(
+        session=session, current_user=current_user, period=period
+    )
 
 
 @router.get(

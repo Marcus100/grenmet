@@ -1,6 +1,7 @@
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Query, Response
 
 from src.dependencies import CurrentUser, SessionDep
 from src.pagination import PaginationDep
@@ -94,10 +95,21 @@ async def read_my_signed_documents(
     current_user: CurrentUser,
     pagination: PaginationDep,
     response: Response,
+    entity_type: Annotated[
+        str | None,
+        Query(
+            max_length=60,
+            description="Only documents for this form type, e.g. leave_request or timesheet.",
+        ),
+    ] = None,
 ) -> SignedDocumentList:
     response.headers["Cache-Control"] = "private, no-store"
     rows, count = await service.list_documents(
-        session, current_user, pagination.skip, pagination.limit
+        session,
+        current_user,
+        pagination.skip,
+        pagination.limit,
+        entity_type=entity_type,
     )
     return SignedDocumentList(
         data=[

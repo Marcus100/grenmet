@@ -475,6 +475,72 @@ it("opens older products across kinds from the shared archive and starts new for
   );
 });
 
+it("starts a new forecast from the last issued one without carrying over its timing or forecaster", async () => {
+  const last: StoredProduct = {
+    id: "9a517fe0-a25b-4f12-a2b4-eaaed8116011",
+    kind: "morning",
+    values: {
+      ...emptyProduct("morning", "2026-01-01"),
+      forecaster: "Previous Forecaster",
+      summary: "Showers over the northern parishes.",
+    },
+    revision: 2,
+    publishedRevision: 2,
+    updatedAt: "2026-01-01T11:00:00Z",
+  };
+  const draftOnly: StoredProduct = {
+    ...last,
+    id: "9a517fe0-a25b-4f12-a2b4-eaaed8116012",
+    values: { ...last.values, summary: "Unpublished draft wording" },
+    publishedRevision: null,
+    updatedAt: "2026-01-02T11:00:00Z",
+  };
+  actions.loadProductsAction.mockResolvedValue({
+    ok: true,
+    products: [draftOnly, last],
+  });
+  render(<ProductDesk kinds={["morning"]} title="Forecasts" />);
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Start from last issued" })
+  );
+  expect(screen.getByLabelText(WEATHER_SUMMARY_LABEL)).toHaveValue(
+    "Showers over the northern parishes."
+  );
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "Copied from the last issued"
+  );
+  actions.saveProductAction.mockResolvedValue({
+    ok: false,
+    error: "Test draft not persisted",
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+  await waitFor(() => expect(actions.saveProductAction).toHaveBeenCalled());
+  const saved = actions.saveProductAction.mock.calls[0]?.[0]?.values;
+  expect(saved.issuedAt).toBe(`${grenadaDate()}T07:00`);
+  expect(saved.forecaster).toBe("Signed In Forecaster");
+});
+
+it("does not offer to copy the last issued hazard bulletin", async () => {
+  actions.loadProductsAction.mockResolvedValue({
+    ok: true,
+    products: [
+      {
+        id: "9a517fe0-a25b-4f12-a2b4-eaaed8116013",
+        kind: "marine",
+        values: emptyProduct("marine", "2026-01-01"),
+        revision: 1,
+        publishedRevision: 1,
+        updatedAt: "2026-01-01T11:00:00Z",
+      },
+    ],
+  });
+  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  await screen.findByRole("button", { name: "Load example draft" });
+  expect(
+    screen.queryByRole("button", { name: "Start from last issued" })
+  ).toBeNull();
+});
+
 it("shows scheduled and fixed issue details only in the text preview", async () => {
   await openEditor();
   expect(screen.queryByLabelText(ISSUE_DATE_LABEL)).toBeNull();

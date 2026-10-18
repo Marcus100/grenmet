@@ -115,6 +115,11 @@ async def test_signed_pdf_and_audit_survive_signature_replacement_and_deletion(
     assert record.pdf == original
     assert (await service.get_document(db_async, actor, record.id)).pdf == original
     assert (await service.list_documents(db_async, actor, 0, 20))[1] == 1
+    for entity_type, expected in (("leave_request", 1), ("timesheet", 0)):
+        _, count = await service.list_documents(
+            db_async, actor, 0, 20, entity_type=entity_type
+        )
+        assert count == expected
 
 
 @pytest.mark.asyncio

@@ -1284,6 +1284,11 @@ export {
   useHrGetTimesheet,
 } from "./useHrGetTimesheet.js";
 export {
+  hrGetTimesheetPrefillQueryKey,
+  hrGetTimesheetPrefillQueryOptions,
+  useHrGetTimesheetPrefill,
+} from "./useHrGetTimesheetPrefill.js";
+export {
   hrGetTimesheetSummaryQueryKey,
   hrGetTimesheetSummaryQueryOptions,
   useHrGetTimesheetSummary,
@@ -1303,6 +1308,11 @@ export {
   hrGetWorkflowConfigurationQueryOptions,
   useHrGetWorkflowConfiguration,
 } from "./useHrGetWorkflowConfiguration.js";
+export {
+  hrGetWorkingDaysQueryKey,
+  hrGetWorkingDaysQueryOptions,
+  useHrGetWorkingDays,
+} from "./useHrGetWorkingDays.js";
 export {
   hrImportCatalogueMutationKey,
   hrImportCatalogueMutationOptions,

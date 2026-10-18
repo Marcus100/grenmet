@@ -125,10 +125,9 @@ export function SignedCopies({
   entityType: HrFormEntity;
   label: string;
 }) {
-  const documents = useSignedDocuments(1);
-  const rows = (documents.data?.data ?? []).filter(
-    (row) => row.entity_type === entityType
-  );
+  // The API narrows the list to this form type before paging.
+  const documents = useSignedDocuments(1, entityType);
+  const rows = documents.data?.data ?? [];
   let body: ReactNode = (
     <p className="text-muted-foreground text-sm">
       No signed copies yet. Submitted forms appear here.
