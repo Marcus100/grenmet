@@ -162,6 +162,12 @@ def _apps() -> dict[str, AppDefinition]:
                 auth_settings.ELECTIONS_APP_URL,
                 auth_settings.ELECTIONS_SSO_CLIENT_SECRET,
             ),
+            (
+                "gmsdash",
+                "GMS Dashboard",
+                auth_settings.GMSDASH_APP_URL,
+                auth_settings.GMSDASH_SSO_CLIENT_SECRET,
+            ),
         )
     ]
     return {app.key: app for app in (events, gaa_admin, barrels_admin, cms, *sites)}

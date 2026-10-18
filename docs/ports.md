@@ -35,6 +35,7 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | events | `@barrelsgd/web-events` | 3009 |
 | cap | `@barrelsgd/web-cap` | 3010 |
 | admin | `@barrelsgd/web-admin` | 3012 |
+| gmsdash | `@barrelsgd/web-gmsdash` | 3013 |
 
 ### Reserved and planned
 
@@ -44,7 +45,6 @@ change that plans the app, so the next person does not pick it.
 | Port | App | Status |
 | --- | --- | --- |
 | 3008 | `@barrelsgd/web-shop` (`shop.barrels.gd`) | Reserved; see `docs/exec-plans/barrelsgd-migration-plan.md` |
-| 3013 | `@barrelsgd/web-gmsdash` (`gmsdash.barrels.gd`) | Planned; GMS premium products for external users |
 
 In production only Traefik's entry points are published to the host; app ports stay
 on the Docker network and Traefik routes by hostname using an explicit

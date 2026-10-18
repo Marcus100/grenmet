@@ -41,7 +41,7 @@ class UploadContext:
         return self.org.user
 
 
-async def _caller(
+async def resolve_caller(
     session: SessionDep, credentials: OptionalBearer
 ) -> tuple[User, str | None]:
     if credentials is None:
@@ -74,7 +74,7 @@ async def get_upload_context(
         ),
     ] = None,
 ) -> AsyncGenerator[UploadContext]:
-    user, token_app = await _caller(session, credentials)
+    user, token_app = await resolve_caller(session, credentials)
     context = await resolve_org_context(session, user, organisation)
     token = bind_organisation_id(context.organisation.id)
     try:

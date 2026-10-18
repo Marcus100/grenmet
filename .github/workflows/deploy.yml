@@ -111,6 +111,7 @@ jobs:
           SIGNAL_SSO_CLIENT_SECRET: ${{ secrets.SIGNAL_SSO_CLIENT_SECRET }}
           DOCS_SSO_CLIENT_SECRET: ${{ secrets.DOCS_SSO_CLIENT_SECRET }}
           ELECTIONS_SSO_CLIENT_SECRET: ${{ secrets.ELECTIONS_SSO_CLIENT_SECRET }}
+          GMSDASH_SSO_CLIENT_SECRET: ${{ secrets.GMSDASH_SSO_CLIENT_SECRET }}
           EMAIL: ${{ secrets.EMAIL }}
           USERNAME: ${{ secrets.USERNAME }}
           HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}

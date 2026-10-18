@@ -112,6 +112,23 @@ nothing has been fetched; clients must show an unavailable state, never sample
 data. Responses carry `Cache-Control` with `s-maxage` for Cloudflare. See
 `apps/api/fastapi/src/environmental/AGENTS.md`.
 
+## Model guidance (gmsdash)
+
+`GET /api/v1/models/meteogram?point=&model=` returns a stored point series
+(ECMWF IFS open data, ECMWF AIFS, NOAA GFS) with run time, units, attribution
+(ECMWF CC-BY-4.0; GFS public domain) and the disclaimer "Raw model guidance, not
+an official GMS forecast." `GET /models/catalogue` lists points and models.
+Access: a member of an organisation entitled to the `gmsdash` app (header
+`X-Barrels-Organisation`, `gmsdash` app token or account token), or GMS staff
+with `gmsdash.guidance.view` (no organisation header). A non-member gets 404, a
+member of a non-entitled organisation 403. Organisation owners and admins
+request access with `POST /models/access-requests`; staff with
+`gmsdash.access.review` list them (`GET /models/access-requests`) and decide
+(`POST /models/access-requests/{id}/decision`), which enables the `gmsdash`
+entitlement. `GET /models/organisations` and `GET /models/access` support the
+gmsdash app. Ingestion is off unless `MODELS_GUIDANCE_ENABLED`. See
+`apps/api/fastapi/src/models_guidance/AGENTS.md`.
+
 ## Public weather products
 
 `GET /api/v1/wxproducts/public/products` is anonymous. Optional `kind` filters

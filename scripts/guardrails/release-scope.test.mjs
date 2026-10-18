@@ -19,8 +19,8 @@ const CHECK_SCRIPT = fileURLToPath(
   new URL("../ci/check-release-scope.mjs", import.meta.url)
 );
 
-test("release includes ten core images and rejects contradictory weather configuration", () => {
-  assert.equal(releaseScope.web.length, 10);
+test("release includes eleven core images and rejects contradictory weather configuration", () => {
+  assert.equal(releaseScope.web.length, 11);
   assert.equal(releaseScope.api, true);
   assert.deepEqual(releaseScope.weather, []);
   validateReleaseConfiguration({});

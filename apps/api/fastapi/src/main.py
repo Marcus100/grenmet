@@ -74,6 +74,7 @@ from src.janitorial import database as janitorial_database
 from src.janitorial.router import router as janitorial_router
 from src.logging_config import configure_logging
 from src.models import ValidationErrorResponse
+from src.models_guidance.router import router as models_guidance_router
 from src.notifications.router import router as notifications_router
 from src.organisations.dependencies import ORGANISATION_HEADER
 from src.organisations.router import router as organisations_router
@@ -175,6 +176,13 @@ OPENAPI_TAGS = [
     {
         "name": "environment",
         "description": "Public marine, UV and dust forecasts (Copernicus; not a GMS product).",
+    },
+    {
+        "name": "models-guidance",
+        "description": (
+            "Raw ECMWF and NOAA model point guidance for the GMS Dashboard "
+            "(not an official GMS forecast)."
+        ),
     },
     {
         "name": "flights",
@@ -443,6 +451,7 @@ app.include_router(contact_router, prefix="/api/v1")
 app.include_router(feedback_router, prefix="/api/v1")
 app.include_router(flights_router, prefix="/api/v1")
 app.include_router(environmental_router, prefix="/api/v1")
+app.include_router(models_guidance_router, prefix="/api/v1")
 app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
 app.include_router(eregister_router, prefix=settings.API_V1_STR)
 app.include_router(wxwatch_router, prefix=settings.API_V1_STR)

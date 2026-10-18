@@ -38,6 +38,9 @@ dependencies = [
     "copernicusmarine>=2.5.0",
     "cdsapi>=0.7.7",
     "pywebpush>=2.5.0",
+    "ecmwf-opendata>=0.3.34",
+    "eccodes>=2.49.0",
+    "eccodeslib>=2.49.0.30",
 ]
 
 [dependency-groups]
@@ -73,6 +76,8 @@ exclude = ["venv", ".venv", "alembic"]
 module = [
     "boto3",
     "cdsapi.*",
+    "eccodes.*",
+    "ecmwf.*",
     "copernicusmarine.*",
     "pandas.*",
     "botocore.*",

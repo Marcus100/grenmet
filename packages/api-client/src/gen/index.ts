@@ -359,6 +359,13 @@ export { janitorialUpdateShiftPattern } from "./clients/janitorialUpdateShiftPat
 export { janitorialUpdateStaff } from "./clients/janitorialUpdateStaff.js";
 export { janitorialUpdateTask } from "./clients/janitorialUpdateTask.js";
 export { janitorialUpdateZone } from "./clients/janitorialUpdateZone.js";
+export { modelsCreateAccessRequest } from "./clients/modelsCreateAccessRequest.js";
+export { modelsDecideAccessRequest } from "./clients/modelsDecideAccessRequest.js";
+export { modelsGetAccessStatus } from "./clients/modelsGetAccessStatus.js";
+export { modelsGetCatalogue } from "./clients/modelsGetCatalogue.js";
+export { modelsGetMeteogram } from "./clients/modelsGetMeteogram.js";
+export { modelsListAccessRequests } from "./clients/modelsListAccessRequests.js";
+export { modelsListOrganisations } from "./clients/modelsListOrganisations.js";
 export { notificationsCreateNotificationSnooze } from "./clients/notificationsCreateNotificationSnooze.js";
 export { notificationsDeleteNotificationSnooze } from "./clients/notificationsDeleteNotificationSnooze.js";
 export { notificationsGetNotificationPreferences } from "./clients/notificationsGetNotificationPreferences.js";
@@ -2262,6 +2269,41 @@ export {
   useJanitorialUpdateZone,
 } from "./hooks/useJanitorialUpdateZone.js";
 export {
+  modelsCreateAccessRequestMutationKey,
+  modelsCreateAccessRequestMutationOptions,
+  useModelsCreateAccessRequest,
+} from "./hooks/useModelsCreateAccessRequest.js";
+export {
+  modelsDecideAccessRequestMutationKey,
+  modelsDecideAccessRequestMutationOptions,
+  useModelsDecideAccessRequest,
+} from "./hooks/useModelsDecideAccessRequest.js";
+export {
+  modelsGetAccessStatusQueryKey,
+  modelsGetAccessStatusQueryOptions,
+  useModelsGetAccessStatus,
+} from "./hooks/useModelsGetAccessStatus.js";
+export {
+  modelsGetCatalogueQueryKey,
+  modelsGetCatalogueQueryOptions,
+  useModelsGetCatalogue,
+} from "./hooks/useModelsGetCatalogue.js";
+export {
+  modelsGetMeteogramQueryKey,
+  modelsGetMeteogramQueryOptions,
+  useModelsGetMeteogram,
+} from "./hooks/useModelsGetMeteogram.js";
+export {
+  modelsListAccessRequestsQueryKey,
+  modelsListAccessRequestsQueryOptions,
+  useModelsListAccessRequests,
+} from "./hooks/useModelsListAccessRequests.js";
+export {
+  modelsListOrganisationsQueryKey,
+  modelsListOrganisationsQueryOptions,
+  useModelsListOrganisations,
+} from "./hooks/useModelsListOrganisations.js";
+export {
   notificationsCreateNotificationSnoozeMutationKey,
   notificationsCreateNotificationSnoozeMutationOptions,
   useNotificationsCreateNotificationSnooze,
@@ -2829,7 +2871,11 @@ export type { AbsenteeReportPublic } from "./models/AbsenteeReportPublic.js";
 export type { AbsenteeReportSubmit } from "./models/AbsenteeReportSubmit.js";
 export type { AccessBlocker } from "./models/AccessBlocker.js";
 export { accessBlocker } from "./models/AccessBlocker.js";
+export type { AccessRequestCreate } from "./models/AccessRequestCreate.js";
+export type { AccessRequestDecide } from "./models/AccessRequestDecide.js";
+export type { AccessRequestPublic } from "./models/AccessRequestPublic.js";
 export type { AccessReviewData } from "./models/AccessReviewData.js";
+export type { AccessStatusPublic } from "./models/AccessStatusPublic.js";
 export type { AccountAppPublic } from "./models/AccountAppPublic.js";
 export type { AccountSecurityPublic } from "./models/AccountSecurityPublic.js";
 export type { AccountSessionRequest } from "./models/AccountSessionRequest.js";
@@ -5139,6 +5185,9 @@ export type { GroupMemberPublic } from "./models/GroupMemberPublic.js";
 export type { GroupMemberPublicPropertiesRoleEnum } from "./models/GroupMemberPublicPropertiesRoleEnum.js";
 export { groupMemberPublicPropertiesRoleEnum } from "./models/GroupMemberPublicPropertiesRoleEnum.js";
 export type { GroupSummary } from "./models/GroupSummary.js";
+export type { GuidanceCatalogue } from "./models/GuidanceCatalogue.js";
+export type { GuidanceDecision } from "./models/GuidanceDecision.js";
+export { guidanceDecision } from "./models/GuidanceDecision.js";
 export type { GuidanceFact } from "./models/GuidanceFact.js";
 export type { GuidanceFactPropertiesKeyEnum } from "./models/GuidanceFactPropertiesKeyEnum.js";
 export { guidanceFactPropertiesKeyEnum } from "./models/GuidanceFactPropertiesKeyEnum.js";
@@ -5146,6 +5195,11 @@ export type { GuidanceFactPropertiesRecordTypeEnum } from "./models/GuidanceFact
 export { guidanceFactPropertiesRecordTypeEnum } from "./models/GuidanceFactPropertiesRecordTypeEnum.js";
 export type { GuidanceGraphic } from "./models/GuidanceGraphic.js";
 export type { GuidanceGridSample } from "./models/GuidanceGridSample.js";
+export type { GuidanceModel } from "./models/GuidanceModel.js";
+export { guidanceModel } from "./models/GuidanceModel.js";
+export type { GuidanceModelPublic } from "./models/GuidanceModelPublic.js";
+export type { GuidanceOrganisationPublic } from "./models/GuidanceOrganisationPublic.js";
+export type { GuidancePointPublic } from "./models/GuidancePointPublic.js";
 export type { GuidanceSource } from "./models/GuidanceSource.js";
 export type { GuidanceSystem } from "./models/GuidanceSystem.js";
 export type { GuidanceSystemPropertiesFeatureTypeEnum } from "./models/GuidanceSystemPropertiesFeatureTypeEnum.js";
@@ -7052,6 +7106,87 @@ export { membershipStatus } from "./models/MembershipStatus.js";
 export type { Message } from "./models/Message.js";
 export type { MessageCreate } from "./models/MessageCreate.js";
 export type { MessagePublic } from "./models/MessagePublic.js";
+export type { MeteogramPublic } from "./models/MeteogramPublic.js";
+export type { MeteogramSeries } from "./models/MeteogramSeries.js";
+export type { MeteogramUnits } from "./models/MeteogramUnits.js";
+export type {
+  ModelsCreateAccessRequestBody,
+  ModelsCreateAccessRequestHeaders,
+  ModelsCreateAccessRequestOptions,
+  ModelsCreateAccessRequestResponse,
+  ModelsCreateAccessRequestResponses,
+  ModelsCreateAccessRequestStatus201,
+  ModelsCreateAccessRequestStatus401,
+  ModelsCreateAccessRequestStatus403,
+  ModelsCreateAccessRequestStatus404,
+  ModelsCreateAccessRequestStatus409,
+  ModelsCreateAccessRequestStatus422,
+} from "./models/ModelsCreateAccessRequest.js";
+export type {
+  ModelsDecideAccessRequestBody,
+  ModelsDecideAccessRequestOptions,
+  ModelsDecideAccessRequestPath,
+  ModelsDecideAccessRequestResponse,
+  ModelsDecideAccessRequestResponses,
+  ModelsDecideAccessRequestStatus200,
+  ModelsDecideAccessRequestStatus401,
+  ModelsDecideAccessRequestStatus403,
+  ModelsDecideAccessRequestStatus404,
+  ModelsDecideAccessRequestStatus409,
+  ModelsDecideAccessRequestStatus422,
+} from "./models/ModelsDecideAccessRequest.js";
+export type {
+  ModelsGetAccessStatusHeaders,
+  ModelsGetAccessStatusOptions,
+  ModelsGetAccessStatusResponse,
+  ModelsGetAccessStatusResponses,
+  ModelsGetAccessStatusStatus200,
+  ModelsGetAccessStatusStatus401,
+  ModelsGetAccessStatusStatus403,
+  ModelsGetAccessStatusStatus404,
+  ModelsGetAccessStatusStatus422,
+} from "./models/ModelsGetAccessStatus.js";
+export type {
+  ModelsGetCatalogueHeaders,
+  ModelsGetCatalogueOptions,
+  ModelsGetCatalogueResponse,
+  ModelsGetCatalogueResponses,
+  ModelsGetCatalogueStatus200,
+  ModelsGetCatalogueStatus401,
+  ModelsGetCatalogueStatus403,
+  ModelsGetCatalogueStatus422,
+} from "./models/ModelsGetCatalogue.js";
+export type {
+  ModelsGetMeteogramHeaders,
+  ModelsGetMeteogramOptions,
+  ModelsGetMeteogramQuery,
+  ModelsGetMeteogramResponse,
+  ModelsGetMeteogramResponses,
+  ModelsGetMeteogramStatus200,
+  ModelsGetMeteogramStatus401,
+  ModelsGetMeteogramStatus403,
+  ModelsGetMeteogramStatus404,
+  ModelsGetMeteogramStatus422,
+} from "./models/ModelsGetMeteogram.js";
+export type {
+  ModelsListAccessRequestsOptions,
+  ModelsListAccessRequestsQuery,
+  ModelsListAccessRequestsResponse,
+  ModelsListAccessRequestsResponses,
+  ModelsListAccessRequestsStatus200,
+  ModelsListAccessRequestsStatus401,
+  ModelsListAccessRequestsStatus403,
+  ModelsListAccessRequestsStatus422,
+} from "./models/ModelsListAccessRequests.js";
+export type {
+  ModelsListOrganisationsOptions,
+  ModelsListOrganisationsResponse,
+  ModelsListOrganisationsResponses,
+  ModelsListOrganisationsStatus200,
+  ModelsListOrganisationsStatus401,
+  ModelsListOrganisationsStatus403,
+  ModelsListOrganisationsStatus422,
+} from "./models/ModelsListOrganisations.js";
 export type { MovementKind } from "./models/MovementKind.js";
 export { movementKind } from "./models/MovementKind.js";
 export type { MyMembershipPublic } from "./models/MyMembershipPublic.js";
@@ -8750,7 +8885,11 @@ export { absenteeReportListPublicSchema } from "./zod/absenteeReportListPublicSc
 export { absenteeReportPublicSchema } from "./zod/absenteeReportPublicSchema.js";
 export { absenteeReportSubmitSchema } from "./zod/absenteeReportSubmitSchema.js";
 export { accessBlockerSchema } from "./zod/accessBlockerSchema.js";
+export { accessRequestCreateSchema } from "./zod/accessRequestCreateSchema.js";
+export { accessRequestDecideSchema } from "./zod/accessRequestDecideSchema.js";
+export { accessRequestPublicSchema } from "./zod/accessRequestPublicSchema.js";
 export { accessReviewDataSchema } from "./zod/accessReviewDataSchema.js";
+export { accessStatusPublicSchema } from "./zod/accessStatusPublicSchema.js";
 export { accountAppPublicSchema } from "./zod/accountAppPublicSchema.js";
 export { accountSecurityPublicSchema } from "./zod/accountSecurityPublicSchema.js";
 export { accountSessionRequestSchema } from "./zod/accountSessionRequestSchema.js";
@@ -10855,11 +10994,17 @@ export { groupDetailSchema } from "./zod/groupDetailSchema.js";
 export { groupMemberPublicPropertiesRoleEnumSchema } from "./zod/groupMemberPublicPropertiesRoleEnumSchema.js";
 export { groupMemberPublicSchema } from "./zod/groupMemberPublicSchema.js";
 export { groupSummarySchema } from "./zod/groupSummarySchema.js";
+export { guidanceCatalogueSchema } from "./zod/guidanceCatalogueSchema.js";
+export { guidanceDecisionSchema } from "./zod/guidanceDecisionSchema.js";
 export { guidanceFactPropertiesKeyEnumSchema } from "./zod/guidanceFactPropertiesKeyEnumSchema.js";
 export { guidanceFactPropertiesRecordTypeEnumSchema } from "./zod/guidanceFactPropertiesRecordTypeEnumSchema.js";
 export { guidanceFactSchema } from "./zod/guidanceFactSchema.js";
 export { guidanceGraphicSchema } from "./zod/guidanceGraphicSchema.js";
 export { guidanceGridSampleSchema } from "./zod/guidanceGridSampleSchema.js";
+export { guidanceModelPublicSchema } from "./zod/guidanceModelPublicSchema.js";
+export { guidanceModelSchema } from "./zod/guidanceModelSchema.js";
+export { guidanceOrganisationPublicSchema } from "./zod/guidanceOrganisationPublicSchema.js";
+export { guidancePointPublicSchema } from "./zod/guidancePointPublicSchema.js";
 export { guidanceSourceSchema } from "./zod/guidanceSourceSchema.js";
 export { guidanceSystemPropertiesFeatureTypeEnumSchema } from "./zod/guidanceSystemPropertiesFeatureTypeEnumSchema.js";
 export { guidanceSystemSchema } from "./zod/guidanceSystemSchema.js";
@@ -12628,6 +12773,81 @@ export { membershipStatusSchema } from "./zod/membershipStatusSchema.js";
 export { messageCreateSchema } from "./zod/messageCreateSchema.js";
 export { messagePublicSchema } from "./zod/messagePublicSchema.js";
 export { messageSchema } from "./zod/messageSchema.js";
+export { meteogramPublicSchema } from "./zod/meteogramPublicSchema.js";
+export { meteogramSeriesSchema } from "./zod/meteogramSeriesSchema.js";
+export { meteogramUnitsSchema } from "./zod/meteogramUnitsSchema.js";
+export {
+  modelsCreateAccessRequestBodySchema,
+  modelsCreateAccessRequestErrorSchema,
+  modelsCreateAccessRequestHeaderXBarrelsOrganisationSchema,
+  modelsCreateAccessRequestResponseSchema,
+  modelsCreateAccessRequestStatus201Schema,
+  modelsCreateAccessRequestStatus401Schema,
+  modelsCreateAccessRequestStatus403Schema,
+  modelsCreateAccessRequestStatus404Schema,
+  modelsCreateAccessRequestStatus409Schema,
+  modelsCreateAccessRequestStatus422Schema,
+} from "./zod/modelsCreateAccessRequestSchema.js";
+export {
+  modelsDecideAccessRequestBodySchema,
+  modelsDecideAccessRequestErrorSchema,
+  modelsDecideAccessRequestPathRequestIdSchema,
+  modelsDecideAccessRequestResponseSchema,
+  modelsDecideAccessRequestStatus200Schema,
+  modelsDecideAccessRequestStatus401Schema,
+  modelsDecideAccessRequestStatus403Schema,
+  modelsDecideAccessRequestStatus404Schema,
+  modelsDecideAccessRequestStatus409Schema,
+  modelsDecideAccessRequestStatus422Schema,
+} from "./zod/modelsDecideAccessRequestSchema.js";
+export {
+  modelsGetAccessStatusErrorSchema,
+  modelsGetAccessStatusHeaderXBarrelsOrganisationSchema,
+  modelsGetAccessStatusResponseSchema,
+  modelsGetAccessStatusStatus200Schema,
+  modelsGetAccessStatusStatus401Schema,
+  modelsGetAccessStatusStatus403Schema,
+  modelsGetAccessStatusStatus404Schema,
+  modelsGetAccessStatusStatus422Schema,
+} from "./zod/modelsGetAccessStatusSchema.js";
+export {
+  modelsGetCatalogueErrorSchema,
+  modelsGetCatalogueHeaderXBarrelsOrganisationSchema,
+  modelsGetCatalogueResponseSchema,
+  modelsGetCatalogueStatus200Schema,
+  modelsGetCatalogueStatus401Schema,
+  modelsGetCatalogueStatus403Schema,
+  modelsGetCatalogueStatus422Schema,
+} from "./zod/modelsGetCatalogueSchema.js";
+export {
+  modelsGetMeteogramErrorSchema,
+  modelsGetMeteogramHeaderXBarrelsOrganisationSchema,
+  modelsGetMeteogramQueryModelSchema,
+  modelsGetMeteogramQueryPointSchema,
+  modelsGetMeteogramResponseSchema,
+  modelsGetMeteogramStatus200Schema,
+  modelsGetMeteogramStatus401Schema,
+  modelsGetMeteogramStatus403Schema,
+  modelsGetMeteogramStatus404Schema,
+  modelsGetMeteogramStatus422Schema,
+} from "./zod/modelsGetMeteogramSchema.js";
+export {
+  modelsListAccessRequestsErrorSchema,
+  modelsListAccessRequestsQueryStatusSchema,
+  modelsListAccessRequestsResponseSchema,
+  modelsListAccessRequestsStatus200Schema,
+  modelsListAccessRequestsStatus401Schema,
+  modelsListAccessRequestsStatus403Schema,
+  modelsListAccessRequestsStatus422Schema,
+} from "./zod/modelsListAccessRequestsSchema.js";
+export {
+  modelsListOrganisationsErrorSchema,
+  modelsListOrganisationsResponseSchema,
+  modelsListOrganisationsStatus200Schema,
+  modelsListOrganisationsStatus401Schema,
+  modelsListOrganisationsStatus403Schema,
+  modelsListOrganisationsStatus422Schema,
+} from "./zod/modelsListOrganisationsSchema.js";
 export { movementKindSchema } from "./zod/movementKindSchema.js";
 export { myMembershipPublicSchema } from "./zod/myMembershipPublicSchema.js";
 export { myProfilePropertiesIntentsItemsEnumSchema } from "./zod/myProfilePropertiesIntentsItemsEnumSchema.js";

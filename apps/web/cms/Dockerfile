@@ -25,6 +25,7 @@ COPY apps/web/elections/package.json apps/web/elections/
 COPY apps/web/events/package.json apps/web/events/
 COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/gms/package.json apps/web/gms/
+COPY apps/web/gmsdash/package.json apps/web/gmsdash/
 COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
 COPY packages/api-client/package.json packages/api-client/

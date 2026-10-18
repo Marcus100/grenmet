@@ -18,6 +18,7 @@ from arq.connections import RedisSettings
 
 from src import operational_metrics
 from src.logging_config import configure_logging
+from src.models_guidance.config import guidance_settings
 from src.telemetry import sentry_options
 from src.worker.config import worker_settings
 
@@ -318,6 +319,24 @@ async def fetch_air_environment(ctx: dict[str, Any]) -> int:
         return await environmental_service.refresh_air(session)
 
 
+async def fetch_model_guidance(ctx: dict[str, Any]) -> dict[str, str]:
+    """Store the newest ECMWF/GFS runs not yet held. No-op unless enabled."""
+    from src.database import async_session_factory
+    from src.models_guidance import ingest
+    from src.models_guidance.config import guidance_settings
+
+    if not guidance_settings.ENABLED:
+        return {}
+    outcomes = await ingest.refresh_all(async_session_factory)
+    await operational_metrics.record_job(
+        ctx.get("redis"),
+        "fetch_model_guidance",
+        str(ctx.get("job_id", "")),
+        "error" not in outcomes.values(),
+    )
+    return outcomes
+
+
 class WorkerSettings:
     # Bound heartbeat staleness and prevent another worker masking this one.
     health_check_interval = 30
@@ -338,6 +357,7 @@ class WorkerSettings:
         poll_flights,
         fetch_marine_environment,
         fetch_air_environment,
+        fetch_model_guidance,
     ]
     # A poll/ingest run must not hang a worker slot; retries of the cron function
     # itself are pointless because the durable outbox already tracks per-job
@@ -391,5 +411,13 @@ class WorkerSettings:
             minute=30,
             run_at_startup=False,
             timeout=1800,
+        ),
+        # Model guidance (ECMWF IFS/AIFS, NOAA GFS point series): hourly check,
+        # fetches only runs not stored yet; no-op unless MODELS_GUIDANCE_ENABLED.
+        cron(
+            fetch_model_guidance,
+            minute={guidance_settings.POLL_MINUTE},
+            run_at_startup=False,
+            timeout=3600,
         ),
     ]

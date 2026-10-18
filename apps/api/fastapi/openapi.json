@@ -16717,6 +16717,484 @@
         }
       }
     },
+    "/api/v1/models/catalogue": {
+      "get": {
+        "tags": [
+          "models-guidance"
+        ],
+        "summary": "Forecast points and models with their latest stored run",
+        "description": "Raw model guidance, not an official GMS forecast. Caller is a member of an organisation entitled to the GMS Dashboard (`X-Barrels-Organisation`), or GMS staff with `gmsdash.guidance.view`.",
+        "operationId": "modelsGetCatalogue",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organisation entitled to the GMS Dashboard. Omit only when reading as GMS staff.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Organisation entitled to the GMS Dashboard. Omit only when reading as GMS staff."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuidanceCatalogue"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/models/meteogram": {
+      "get": {
+        "tags": [
+          "models-guidance"
+        ],
+        "summary": "Point meteogram from the latest stored model run",
+        "description": "Time series for one point from one model's newest stored run, with the run time and the provider attribution. Raw model guidance, not an official GMS forecast. Caller is a member of an organisation entitled to the GMS Dashboard (`X-Barrels-Organisation`), or GMS staff with `gmsdash.guidance.view`.",
+        "operationId": "modelsGetMeteogram",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "point",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 40,
+              "description": "Point key, e.g. `mbia`.",
+              "title": "Point"
+            },
+            "description": "Point key, e.g. `mbia`."
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GuidanceModel",
+              "description": "Model to read."
+            },
+            "description": "Model to read."
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organisation entitled to the GMS Dashboard. Omit only when reading as GMS staff.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Organisation entitled to the GMS Dashboard. Omit only when reading as GMS staff."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeteogramPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/models/organisations": {
+      "get": {
+        "tags": [
+          "models-guidance"
+        ],
+        "summary": "The caller's organisations and their GMS Dashboard standing",
+        "description": "Active memberships of the signed-in account (GMS Dashboard or account session) with entitlement and the latest access-request status.",
+        "operationId": "modelsListOrganisations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GuidanceOrganisationPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Modelslistorganisations"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/models/access": {
+      "get": {
+        "tags": [
+          "models-guidance"
+        ],
+        "summary": "Whether the organisation has GMS Dashboard access, and its latest request",
+        "description": "Any active member of the organisation named in `X-Barrels-Organisation`.",
+        "operationId": "modelsGetAccessStatus",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for (active member).",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for (active member)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessStatusPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/models/access-requests": {
+      "post": {
+        "tags": [
+          "models-guidance"
+        ],
+        "summary": "Ask GMS to enable the GMS Dashboard for the organisation",
+        "description": "Admins and owners of the organisation named in `X-Barrels-Organisation`. Staff with `gmsdash.access.review` decide the request.",
+        "operationId": "modelsCreateAccessRequest",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for (active member).",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for (active member)."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessRequestCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequestPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "models-guidance"
+        ],
+        "summary": "List organisation access requests (staff)",
+        "description": "Requires `gmsdash.access.review`. Newest first, at most 200.",
+        "operationId": "modelsListAccessRequests",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(pending|approved|rejected)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccessRequestPublic"
+                  },
+                  "title": "Response Modelslistaccessrequests"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/models/access-requests/{request_id}/decision": {
+      "post": {
+        "tags": [
+          "models-guidance"
+        ],
+        "summary": "Approve or reject an organisation access request (staff)",
+        "description": "Requires `gmsdash.access.review`. Approval enables the `gmsdash` app entitlement for the organisation.",
+        "operationId": "modelsDecideAccessRequest",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessRequestDecide"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequestPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
     "/api/v1/wxproducts/observations": {
       "get": {
         "tags": [
@@ -30646,6 +31124,120 @@
         ],
         "title": "AccessBlocker"
       },
+      "AccessRequestCreate": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "title": "AccessRequestCreate"
+      },
+      "AccessRequestDecide": {
+        "properties": {
+          "decision": {
+            "$ref": "#/components/schemas/GuidanceDecision"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "title": "AccessRequestDecide"
+      },
+      "AccessRequestPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "organisation_name": {
+            "type": "string",
+            "title": "Organisation Name"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "decision_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Note"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organisation_id",
+          "organisation_name",
+          "status",
+          "note",
+          "decision_note",
+          "created_at",
+          "decided_at"
+        ],
+        "title": "AccessRequestPublic"
+      },
       "AccessReviewData": {
         "properties": {
           "assignments": {
@@ -30677,6 +31269,32 @@
           "superusers"
         ],
         "title": "AccessReviewData"
+      },
+      "AccessStatusPublic": {
+        "properties": {
+          "entitled": {
+            "type": "boolean",
+            "title": "Entitled",
+            "description": "Whether the organisation holds gmsdash."
+          },
+          "request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AccessRequestPublic"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The organisation's most recent request, if any."
+          }
+        },
+        "type": "object",
+        "required": [
+          "entitled",
+          "request"
+        ],
+        "title": "AccessStatusPublic"
       },
       "AccountAppPublic": {
         "properties": {
@@ -40071,6 +40689,49 @@
         ],
         "title": "GroupSummary"
       },
+      "GuidanceCatalogue": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "description": "False while the worker fetch is switched off."
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/GuidancePointPublic"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/GuidanceModelPublic"
+            },
+            "type": "array",
+            "title": "Models"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled",
+          "points",
+          "models",
+          "disclaimer"
+        ],
+        "title": "GuidanceCatalogue"
+      },
+      "GuidanceDecision": {
+        "type": "string",
+        "enum": [
+          "approve",
+          "reject"
+        ],
+        "title": "GuidanceDecision"
+      },
       "GuidanceFact": {
         "properties": {
           "id": {
@@ -40353,6 +41014,115 @@
           "step_range"
         ],
         "title": "GuidanceGridSample"
+      },
+      "GuidanceModel": {
+        "type": "string",
+        "enum": [
+          "ifs",
+          "aifs",
+          "gfs"
+        ],
+        "title": "GuidanceModel"
+      },
+      "GuidanceModelPublic": {
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/GuidanceModel"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "latest_run_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Run Time",
+            "description": "Newest stored model cycle, or null if none yet."
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label"
+        ],
+        "title": "GuidanceModelPublic"
+      },
+      "GuidanceOrganisationPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "entitled": {
+            "type": "boolean",
+            "title": "Entitled"
+          },
+          "request_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Status",
+            "description": "Status of the organisation's latest access request, if any."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "role",
+          "entitled",
+          "request_status"
+        ],
+        "title": "GuidanceOrganisationPublic",
+        "description": "An organisation the caller belongs to, with its GMS Dashboard standing."
+      },
+      "GuidancePointPublic": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "latitude",
+          "longitude"
+        ],
+        "title": "GuidancePointPublic"
       },
       "GuidanceSource": {
         "properties": {
@@ -44375,6 +45145,218 @@
           "mine"
         ],
         "title": "MessagePublic"
+      },
+      "MeteogramPublic": {
+        "properties": {
+          "point": {
+            "$ref": "#/components/schemas/GuidancePointPublic"
+          },
+          "model": {
+            "$ref": "#/components/schemas/GuidanceModel"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "run_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Run Time"
+          },
+          "series": {
+            "$ref": "#/components/schemas/MeteogramSeries"
+          },
+          "units": {
+            "$ref": "#/components/schemas/MeteogramUnits"
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "point",
+          "model",
+          "label",
+          "run_time",
+          "series",
+          "units",
+          "attribution",
+          "disclaimer"
+        ],
+        "title": "MeteogramPublic"
+      },
+      "MeteogramSeries": {
+        "properties": {
+          "valid_times": {
+            "items": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": "array",
+            "title": "Valid Times"
+          },
+          "temperature_c": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Temperature C"
+          },
+          "wind_speed_ms": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Wind Speed Ms"
+          },
+          "wind_direction_deg": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Wind Direction Deg"
+          },
+          "wind_gust_ms": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Wind Gust Ms"
+          },
+          "precipitation_mm": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Precipitation Mm",
+            "description": "Precipitation accumulated over the interval ending at each time."
+          },
+          "mslp_hpa": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Mslp Hpa"
+          },
+          "cloud_cover_pct": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Cloud Cover Pct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "valid_times",
+          "temperature_c",
+          "wind_speed_ms",
+          "wind_direction_deg",
+          "wind_gust_ms",
+          "precipitation_mm",
+          "mslp_hpa",
+          "cloud_cover_pct"
+        ],
+        "title": "MeteogramSeries",
+        "description": "Parallel arrays aligned with ``valid_times``; null where the model has no value."
+      },
+      "MeteogramUnits": {
+        "properties": {
+          "temperature_c": {
+            "type": "string",
+            "title": "Temperature C"
+          },
+          "wind_speed_ms": {
+            "type": "string",
+            "title": "Wind Speed Ms"
+          },
+          "wind_direction_deg": {
+            "type": "string",
+            "title": "Wind Direction Deg"
+          },
+          "wind_gust_ms": {
+            "type": "string",
+            "title": "Wind Gust Ms"
+          },
+          "precipitation_mm": {
+            "type": "string",
+            "title": "Precipitation Mm"
+          },
+          "mslp_hpa": {
+            "type": "string",
+            "title": "Mslp Hpa"
+          },
+          "cloud_cover_pct": {
+            "type": "string",
+            "title": "Cloud Cover Pct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "temperature_c",
+          "wind_speed_ms",
+          "wind_direction_deg",
+          "wind_gust_ms",
+          "precipitation_mm",
+          "mslp_hpa",
+          "cloud_cover_pct"
+        ],
+        "title": "MeteogramUnits"
       },
       "MovementKind": {
         "type": "string",
@@ -62222,6 +63204,10 @@
     {
       "name": "environment",
       "description": "Public marine, UV and dust forecasts (Copernicus; not a GMS product)."
+    },
+    {
+      "name": "models-guidance",
+      "description": "Raw ECMWF and NOAA model point guidance for the GMS Dashboard (not an official GMS forecast)."
     },
     {
       "name": "flights",
