@@ -1,21 +1,78 @@
-import { expect, it, vi } from "vitest";
+// @vitest-environment node
+import { ResponseError } from "@barrelsgd/api-client";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const subscriptionsSubscribe = vi.hoisted(() => vi.fn());
+
+vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
+  subscriptionsSubscribe,
+}));
+
 import { POST } from "./route";
 
-it("does not accept or log subscriptions while storage is unavailable", async () => {
-  const log = vi.spyOn(console, "info").mockImplementation(() => undefined);
-  try {
-    const response = await POST(
-      new Request("https://signal.example.test/api/subscribe", {
-        method: "POST",
-        body: JSON.stringify({ email: "reader@example.test" }),
+function request(body: unknown) {
+  return new Request("https://signal.example.test/api/subscribe", {
+    method: "POST",
+    body: typeof body === "string" ? body : JSON.stringify(body),
+  });
+}
+
+function responseError(status: number) {
+  return new ResponseError({
+    data: {},
+    status,
+    statusText: "",
+    contentType: undefined,
+    request: new Request("https://api.example.test"),
+    response: new Response(null, { status }),
+  });
+}
+
+beforeEach(() => {
+  subscriptionsSubscribe.mockReset();
+});
+
+describe("POST /api/subscribe", () => {
+  it("forwards a valid email to FastAPI for the signal list", async () => {
+    subscriptionsSubscribe.mockReturnValue({
+      unwrap: () => Promise.resolve({ message: "Check your inbox." }),
+    });
+    const response = await POST(request({ email: "reader@example.test" }));
+    expect(response.status).toBe(202);
+    expect(await response.json()).toEqual({
+      ok: true,
+      message: "Check your inbox.",
+    });
+    expect(subscriptionsSubscribe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: { list_key: "signal", email: "reader@example.test" },
       })
     );
-    expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({
-      error: "Subscriptions are not open yet. No details have been saved.",
+  });
+
+  it("rejects malformed input without calling FastAPI", async () => {
+    for (const body of [{ email: "nope" }, "not json", {}]) {
+      const response = await POST(request(body));
+      expect(response.status).toBe(400);
+    }
+    expect(subscriptionsSubscribe).not.toHaveBeenCalled();
+  });
+
+  it("passes rate limiting through as 429", async () => {
+    subscriptionsSubscribe.mockReturnValue({
+      unwrap: () => Promise.reject(responseError(429)),
     });
-    expect(log).not.toHaveBeenCalled();
-  } finally {
-    log.mockRestore();
-  }
+    const response = await POST(request({ email: "reader@example.test" }));
+    expect(response.status).toBe(429);
+  });
+
+  it("lets unexpected failures surface instead of pretending success", async () => {
+    subscriptionsSubscribe.mockReturnValue({
+      unwrap: () => Promise.reject(responseError(500)),
+    });
+    await expect(
+      POST(request({ email: "reader@example.test" }))
+    ).rejects.toBeInstanceOf(ResponseError);
+  });
 });
