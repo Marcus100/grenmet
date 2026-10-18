@@ -17,6 +17,7 @@ export type { ActivationLink } from "./ActivationLink.js";
 export type { ActivityEntry } from "./ActivityEntry.js";
 export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
+export type { AdjustmentCreate } from "./AdjustmentCreate.js";
 export type { AdmissionCreate } from "./AdmissionCreate.js";
 export type { AdmissionPublic } from "./AdmissionPublic.js";
 export type { AgeingBucket } from "./AgeingBucket.js";
@@ -858,6 +859,9 @@ export { aviationIssuePropertiesSeverityEnum } from "./AviationIssuePropertiesSe
 export type { AviationRevisionRead } from "./AviationRevisionRead.js";
 export type { AviationValidationRequest } from "./AviationValidationRequest.js";
 export type { AviationValidationResponse } from "./AviationValidationResponse.js";
+export type { BadgeKey } from "./BadgeKey.js";
+export { badgeKey } from "./BadgeKey.js";
+export type { BadgePublic } from "./BadgePublic.js";
 export type { BalanceImportRequest } from "./BalanceImportRequest.js";
 export type { BalanceImportResult } from "./BalanceImportResult.js";
 export type { BalanceImportRow } from "./BalanceImportRow.js";
@@ -1581,6 +1585,10 @@ export { employmentStatus } from "./EmploymentStatus.js";
 export type { EmploymentType } from "./EmploymentType.js";
 export { employmentType } from "./EmploymentType.js";
 export type { EmploymentUpdate } from "./EmploymentUpdate.js";
+export type { EntryKind } from "./EntryKind.js";
+export { entryKind } from "./EntryKind.js";
+export type { EntryStatus } from "./EntryStatus.js";
+export { entryStatus } from "./EntryStatus.js";
 export type {
   EnvironmentGetAirOptions,
   EnvironmentGetAirQuery,
@@ -2271,6 +2279,10 @@ export type {
   FeedbackSendPageFeedbackStatus422,
 } from "./FeedbackSendPageFeedback.js";
 export type { FileAccess } from "./FileAccess.js";
+export type { FlagPublic } from "./FlagPublic.js";
+export type { FlagReason } from "./FlagReason.js";
+export { flagReason } from "./FlagReason.js";
+export type { FlagResolve } from "./FlagResolve.js";
 export type { FlightBoardResponse } from "./FlightBoardResponse.js";
 export type { FlightBoardResponsePropertiesBoardEnum } from "./FlightBoardResponsePropertiesBoardEnum.js";
 export { flightBoardResponsePropertiesBoardEnum } from "./FlightBoardResponsePropertiesBoardEnum.js";
@@ -4679,6 +4691,15 @@ export type { ProfilePublic } from "./ProfilePublic.js";
 export type { ProfilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";
 export { profilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";
 export type { ProfileUpdate } from "./ProfileUpdate.js";
+export type { ProgramAdminListPublic } from "./ProgramAdminListPublic.js";
+export type { ProgramAdminPublic } from "./ProgramAdminPublic.js";
+export type { ProgramCreate } from "./ProgramCreate.js";
+export type { ProgramKind } from "./ProgramKind.js";
+export { programKind } from "./ProgramKind.js";
+export type { ProgramPublic } from "./ProgramPublic.js";
+export type { ProgramStatus } from "./ProgramStatus.js";
+export { programStatus } from "./ProgramStatus.js";
+export type { ProgramUpdate } from "./ProgramUpdate.js";
 export type { Provenance } from "./Provenance.js";
 export type { ProvisionalHolidaysRequest } from "./ProvisionalHolidaysRequest.js";
 export type { PublicCurrentConditions } from "./PublicCurrentConditions.js";
@@ -4706,6 +4727,10 @@ export type { QcDecisionRequest } from "./QcDecisionRequest.js";
 export type { ReceivableRowPublic } from "./ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";
+export type { RedemptionConfirm } from "./RedemptionConfirm.js";
+export type { RedemptionConfirmed } from "./RedemptionConfirmed.js";
+export type { RedemptionPublic } from "./RedemptionPublic.js";
+export type { RedemptionRequest } from "./RedemptionRequest.js";
 export type { RegisterObservationCreate } from "./RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./RegisterObservationList.js";
 export type { RegisterObservationRead } from "./RegisterObservationRead.js";
@@ -4738,6 +4763,174 @@ export type { ReviewInput } from "./ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";
 export { reviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";
 export type { ReviewPublic } from "./ReviewPublic.js";
+export type { RewardCardPublic } from "./RewardCardPublic.js";
+export type { RewardEntryListPublic } from "./RewardEntryListPublic.js";
+export type { RewardEntryPublic } from "./RewardEntryPublic.js";
+export type {
+  RewardsAdminAdjustBody,
+  RewardsAdminAdjustOptions,
+  RewardsAdminAdjustResponse,
+  RewardsAdminAdjustResponses,
+  RewardsAdminAdjustStatus201,
+  RewardsAdminAdjustStatus400,
+  RewardsAdminAdjustStatus401,
+  RewardsAdminAdjustStatus403,
+  RewardsAdminAdjustStatus404,
+  RewardsAdminAdjustStatus409,
+  RewardsAdminAdjustStatus422,
+} from "./RewardsAdminAdjust.js";
+export type {
+  RewardsAdminListFlagsOptions,
+  RewardsAdminListFlagsQuery,
+  RewardsAdminListFlagsResponse,
+  RewardsAdminListFlagsResponses,
+  RewardsAdminListFlagsStatus200,
+  RewardsAdminListFlagsStatus401,
+  RewardsAdminListFlagsStatus403,
+  RewardsAdminListFlagsStatus422,
+} from "./RewardsAdminListFlags.js";
+export type {
+  RewardsAdminListProgramsOptions,
+  RewardsAdminListProgramsQuery,
+  RewardsAdminListProgramsResponse,
+  RewardsAdminListProgramsResponses,
+  RewardsAdminListProgramsStatus200,
+  RewardsAdminListProgramsStatus401,
+  RewardsAdminListProgramsStatus403,
+  RewardsAdminListProgramsStatus422,
+} from "./RewardsAdminListPrograms.js";
+export type {
+  RewardsAdminResolveFlagBody,
+  RewardsAdminResolveFlagOptions,
+  RewardsAdminResolveFlagPath,
+  RewardsAdminResolveFlagResponse,
+  RewardsAdminResolveFlagResponses,
+  RewardsAdminResolveFlagStatus200,
+  RewardsAdminResolveFlagStatus400,
+  RewardsAdminResolveFlagStatus401,
+  RewardsAdminResolveFlagStatus403,
+  RewardsAdminResolveFlagStatus404,
+  RewardsAdminResolveFlagStatus409,
+  RewardsAdminResolveFlagStatus422,
+} from "./RewardsAdminResolveFlag.js";
+export type {
+  RewardsCancelRedemptionOptions,
+  RewardsCancelRedemptionPath,
+  RewardsCancelRedemptionResponse,
+  RewardsCancelRedemptionResponses,
+  RewardsCancelRedemptionStatus200,
+  RewardsCancelRedemptionStatus400,
+  RewardsCancelRedemptionStatus401,
+  RewardsCancelRedemptionStatus403,
+  RewardsCancelRedemptionStatus404,
+  RewardsCancelRedemptionStatus409,
+  RewardsCancelRedemptionStatus422,
+} from "./RewardsCancelRedemption.js";
+export type {
+  RewardsConfirmRedemptionBody,
+  RewardsConfirmRedemptionHeaders,
+  RewardsConfirmRedemptionOptions,
+  RewardsConfirmRedemptionResponse,
+  RewardsConfirmRedemptionResponses,
+  RewardsConfirmRedemptionStatus200,
+  RewardsConfirmRedemptionStatus400,
+  RewardsConfirmRedemptionStatus401,
+  RewardsConfirmRedemptionStatus403,
+  RewardsConfirmRedemptionStatus404,
+  RewardsConfirmRedemptionStatus409,
+  RewardsConfirmRedemptionStatus422,
+} from "./RewardsConfirmRedemption.js";
+export type {
+  RewardsCreateProgramBody,
+  RewardsCreateProgramHeaders,
+  RewardsCreateProgramOptions,
+  RewardsCreateProgramResponse,
+  RewardsCreateProgramResponses,
+  RewardsCreateProgramStatus201,
+  RewardsCreateProgramStatus400,
+  RewardsCreateProgramStatus401,
+  RewardsCreateProgramStatus403,
+  RewardsCreateProgramStatus404,
+  RewardsCreateProgramStatus409,
+  RewardsCreateProgramStatus422,
+} from "./RewardsCreateProgram.js";
+export type {
+  RewardsListMineOptions,
+  RewardsListMineResponse,
+  RewardsListMineResponses,
+  RewardsListMineStatus200,
+  RewardsListMineStatus401,
+  RewardsListMineStatus403,
+  RewardsListMineStatus422,
+} from "./RewardsListMine.js";
+export type {
+  RewardsListMyBadgesOptions,
+  RewardsListMyBadgesResponse,
+  RewardsListMyBadgesResponses,
+  RewardsListMyBadgesStatus200,
+  RewardsListMyBadgesStatus401,
+  RewardsListMyBadgesStatus403,
+  RewardsListMyBadgesStatus422,
+} from "./RewardsListMyBadges.js";
+export type {
+  RewardsListMyEntriesOptions,
+  RewardsListMyEntriesQuery,
+  RewardsListMyEntriesResponse,
+  RewardsListMyEntriesResponses,
+  RewardsListMyEntriesStatus200,
+  RewardsListMyEntriesStatus401,
+  RewardsListMyEntriesStatus403,
+  RewardsListMyEntriesStatus422,
+} from "./RewardsListMyEntries.js";
+export type {
+  RewardsListMyTicketsOptions,
+  RewardsListMyTicketsResponse,
+  RewardsListMyTicketsResponses,
+  RewardsListMyTicketsStatus200,
+  RewardsListMyTicketsStatus401,
+  RewardsListMyTicketsStatus403,
+  RewardsListMyTicketsStatus422,
+} from "./RewardsListMyTickets.js";
+export type {
+  RewardsListProgramsHeaders,
+  RewardsListProgramsOptions,
+  RewardsListProgramsResponse,
+  RewardsListProgramsResponses,
+  RewardsListProgramsStatus200,
+  RewardsListProgramsStatus400,
+  RewardsListProgramsStatus401,
+  RewardsListProgramsStatus403,
+  RewardsListProgramsStatus404,
+  RewardsListProgramsStatus422,
+} from "./RewardsListPrograms.js";
+export type {
+  RewardsRequestRedemptionBody,
+  RewardsRequestRedemptionOptions,
+  RewardsRequestRedemptionResponse,
+  RewardsRequestRedemptionResponses,
+  RewardsRequestRedemptionStatus201,
+  RewardsRequestRedemptionStatus400,
+  RewardsRequestRedemptionStatus401,
+  RewardsRequestRedemptionStatus403,
+  RewardsRequestRedemptionStatus404,
+  RewardsRequestRedemptionStatus409,
+  RewardsRequestRedemptionStatus422,
+} from "./RewardsRequestRedemption.js";
+export type {
+  RewardsUpdateProgramBody,
+  RewardsUpdateProgramHeaders,
+  RewardsUpdateProgramOptions,
+  RewardsUpdateProgramPath,
+  RewardsUpdateProgramResponse,
+  RewardsUpdateProgramResponses,
+  RewardsUpdateProgramStatus200,
+  RewardsUpdateProgramStatus400,
+  RewardsUpdateProgramStatus401,
+  RewardsUpdateProgramStatus403,
+  RewardsUpdateProgramStatus404,
+  RewardsUpdateProgramStatus409,
+  RewardsUpdateProgramStatus422,
+} from "./RewardsUpdateProgram.js";
 export type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 export { roleAssignmentScope } from "./RoleAssignmentScope.js";
 export type { RoleConfiguration } from "./RoleConfiguration.js";

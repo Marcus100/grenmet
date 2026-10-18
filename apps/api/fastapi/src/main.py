@@ -84,6 +84,7 @@ from src.request_context import (
     reset_request_id,
     resolve_request_id,
 )
+from src.rewards.router import router as rewards_router
 
 # from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
@@ -124,6 +125,7 @@ def _operation_domain(route: APIRoute) -> str:
         "wxproducts",
         "eregister",
         "billing",
+        "rewards",
         "utils",
         "janitorial",
         "transport",
@@ -164,6 +166,10 @@ OPENAPI_TAGS = [
     {"name": "audit", "description": "Record change history."},
     {"name": "auth", "description": "Authentication, identity, and account security."},
     {"name": "billing", "description": "Billing and subscription operations."},
+    {
+        "name": "rewards",
+        "description": "Barrels ID rewards: stamp cards, trust badges, redemption.",
+    },
     {
         "name": "browser-auth",
         "description": "Browser session authentication operations.",
@@ -404,6 +410,7 @@ app.include_router(permissions_router, prefix="/api/v1")
 app.include_router(role_assignments_router, prefix="/api/v1")
 app.include_router(billing_router, prefix="/api/v1")
 app.include_router(billing_invoice_router, prefix="/api/v1")
+app.include_router(rewards_router, prefix="/api/v1")
 app.include_router(hr_profile_router, prefix="/api/v1")
 app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")

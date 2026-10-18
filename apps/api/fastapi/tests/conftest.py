@@ -105,6 +105,7 @@ _test_database_bootstrapped = False
 
 import httpx
 import pytest
+from sqlalchemy import text
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -237,8 +238,17 @@ def weather_engine(request: pytest.FixtureRequest) -> Generator[Engine]:
 async def _clear_database_async(session: AsyncSession) -> None:
     """Clear app tables in dependency order so FK constraints are respected."""
     await session.rollback()
+    # The rewards ledger refuses DELETE by trigger; test cleanup lifts it inside
+    # this one transaction (DDL is transactional) and restores it before commit.
+    ledger = "rewards.entry"
+    await session.execute(
+        text(f"ALTER TABLE {ledger} DISABLE TRIGGER entry_append_only")
+    )
     for table in reversed(Base.metadata.sorted_tables):
         await session.execute(table.delete())
+    await session.execute(
+        text(f"ALTER TABLE {ledger} ENABLE TRIGGER entry_append_only")
+    )
     await session.commit()
 
 

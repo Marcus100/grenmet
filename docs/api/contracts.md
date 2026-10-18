@@ -486,6 +486,19 @@ Some older auth endpoints still use `skip` and `limit`. New list endpoints shoul
 
 Deployment smoke checks currently use liveness. Operational diagnosis should use readiness when database access matters.
 
+## Rewards (Barrels ID)
+
+Stamp cards funded by organisations; non-monetary, non-transferable. Domain
+rules: `apps/api/fastapi/src/rewards/AGENTS.md`.
+
+| Endpoint | Authentication | Contract |
+| --- | --- | --- |
+| `GET /api/v1/rewards/me`, `/me/entries`, `/me/badges`, `/me/tickets` | Any active account | Cards with SQL-computed balances; history; derived trust badges; the account's Events tickets (read-only) |
+| `POST /api/v1/rewards/me/redemptions`, `/me/redemptions/{id}/cancel` | Any active account | Hold a full card behind a one-time code; cancel an open redemption |
+| `GET/POST /api/v1/rewards/programs`, `PATCH /programs/{id}` | `X-Barrels-Organisation`; list for members, write for admin/owner | Configure the organisation's stamp card |
+| `POST /api/v1/rewards/redemptions/confirm` | `X-Barrels-Organisation`, any member | Staff confirm a customer's code (other organisations' codes 404) |
+| `/api/v1/rewards/admin/programs`, `/admin/adjustments`, `/admin/flags`, `/admin/flags/{id}/resolve` | Superuser or `rewards.manage` | Read all programmes, audited adjustments, velocity review flags |
+
 ## Billing
 
 The first billing vertical slice uses Stripe-hosted Checkout for one configured
