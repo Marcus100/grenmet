@@ -27,7 +27,13 @@ authoritative for priority. Tenancy follows
 | Build order | Approved as written (2026-10-18) |
 | Invoicing details | Configurable settings with provisional defaults: entity "Barrels Grenada", VAT 15%, numbers `BG-YYYY-NNNN`; confirm with an accountant |
 | Hub copy | Agent drafts neutral copy from the service-lines doc; owner edits later |
-| Still open | ePay webhook (E6); first rewards merchants (U3) and Passport trail (U5) |
+| Tickets (E1) | Barrels account required to claim; per-tier limit set by the organiser, default 4 per account |
+| Outlet cash (E3) | Organiser's own staff (members of its organisation) only; no third-party outlets |
+| Invoices (P1) | XCD, net 30, reminder emails 7 and 0 days before due and 7 days overdue |
+| Rewards (U3, U5) | Generic templates: configurable stamp card and a sample "Parish Explorer" trail; real merchants and trails configured in admin later |
+| Control plane access | Owner is the only superuser for now |
+| eRegister QC | Add a QC accept step; only accepted observations go to WIS2; email allowed earlier for internal use. Gust group `910ff` stays flagged unconfirmed until observers confirm |
+| Still open | ePay webhook (E6) |
 
 ## What exists today
 
@@ -62,7 +68,7 @@ Alembic head.
 | F8 | Organisation-scoped uploads (presigned, size and type limits) | M | U |
 | E1 | Orders and tickets for free and registration tiers; inventory guard; QR ticket page | L | U |
 | E2 | Idempotent admission scans, duplicate rejection, printable manifest | M | U |
-| E3 | Outlet cash sales sharing inventory with online and door | M | U |
+| E3 | Outlet cash sales by the organiser's own staff, sharing inventory with online and door | M | U |
 | E4 | Settlement report replacing `/dash` demo fixtures | M | U |
 | E5 | Cancel, postpone and manual refund | M | U |
 | C1 | `apps/web/admin` shell at `admin.barrels.gd` (port 3012), superuser via auth handoff, status cards (**built, pending merge**; deploy wiring and the `admin.*` host cutover deliberately not done, see "Host move") | L | U |
@@ -88,9 +94,9 @@ and the [loyalty reference study](../strategy/loyalty-reference-study.md).
 | --- | --- | --- | --- |
 | U1 | Barrels ID profile: one account page showing apps, organisations, tickets and rewards (extends A1) | A1, E1 | U |
 | U2 | Rewards ledger: append-only entries with pending and confirmed states, unique transaction references, automatic refund reversal, audited manual adjustment | F3, E1, E5 | U |
-| U3 | Merchant rewards: organisation-funded stamp cards and ticket credits, configured per organisation; redemption limits; duplicate check-in prevention | U2, C2 | O (first merchants) |
+| U3 | Merchant rewards: organisation-funded stamp cards and ticket credits, configured per organisation; redemption limits; duplicate check-in prevention | U2, C2 | U (generic templates) |
 | U4 | Trust signals: verified organiser, verified attendee, verified purchaser badges derived from records, never purchasable | C2, E2 | U |
-| U5 | Barrels Passport: non-monetary stamps and collections for real attendance (parishes, Carriacou, Petite Martinique, festival trails) | E2, U2 | O (first trail) |
+| U5 | Barrels Passport: non-monetary stamps and collections for real attendance (parishes, Carriacou, Petite Martinique, festival trails) | E2, U2 | U (sample trail) |
 | U6 | Universal Barrels Points | Evidence from U3 and the Events pilot | Explore only |
 
 Rewards guardrails: no cash withdrawal, person-to-person transfer, point
