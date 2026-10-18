@@ -50,6 +50,7 @@ from src.exceptions import (
     integrity_error_handler,
     validation_exception_handler,
 )
+from src.feedback.router import router as feedback_router
 from src.flights.router import router as flights_router
 from src.hr.absentee.router import router as hr_absentee_router
 from src.hr.attendance.clock_router import router as hr_clock_router
@@ -173,6 +174,10 @@ OPENAPI_TAGS = [
     {
         "name": "contact",
         "description": "Public website contact forms (no sign-in).",
+    },
+    {
+        "name": "feedback",
+        "description": "Anonymous 'Was this page helpful?' answers (no sign-in).",
     },
     {
         "name": "subscriptions",
@@ -415,6 +420,7 @@ app.include_router(weather_images_router, prefix="/api/v1")
 app.include_router(webhooks_router, prefix="/api/v1")
 app.include_router(subscriptions_router, prefix="/api/v1")
 app.include_router(contact_router, prefix="/api/v1")
+app.include_router(feedback_router, prefix="/api/v1")
 app.include_router(flights_router, prefix="/api/v1")
 app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
 app.include_router(eregister_router, prefix=settings.API_V1_STR)

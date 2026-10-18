@@ -569,6 +569,11 @@ export {
   useContactSendContactMessage,
 } from "./useContactSendContactMessage.js";
 export {
+  contactSendDataRequestMutationKey,
+  contactSendDataRequestMutationOptions,
+  useContactSendDataRequest,
+} from "./useContactSendDataRequest.js";
+export {
   eregisterCreateRegisterObservationMutationKey,
   eregisterCreateRegisterObservationMutationOptions,
   useEregisterCreateRegisterObservation,
@@ -788,6 +793,11 @@ export {
   eventsUpdateSuggestionMutationOptions,
   useEventsUpdateSuggestion,
 } from "./useEventsUpdateSuggestion.js";
+export {
+  feedbackSendPageFeedbackMutationKey,
+  feedbackSendPageFeedbackMutationOptions,
+  useFeedbackSendPageFeedback,
+} from "./useFeedbackSendPageFeedback.js";
 export {
   flightsGetFlightBoardQueryKey,
   flightsGetFlightBoardQueryOptions,

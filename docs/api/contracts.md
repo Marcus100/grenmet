@@ -74,6 +74,12 @@ never read existing data and return a fixed acknowledgement:
 - `POST /api/v1/contact/messages` (`contactSendContactMessage`): stores a
   website message and emails it to the inbox of its `site` (`mbia` by default,
   or `barrels`). `turnstile_token` is accepted but not verified yet.
+- `POST /api/v1/contact/data-requests` (`contactSendDataRequest`): GMS climate
+  data request (structured fields, required `consent`, hidden `website`
+  honeypot). Emails `GMS_DATA_REQUEST_RECIPIENT` and confirms to the requester.
+- `POST /api/v1/feedback` (`feedbackSendPageFeedback`): anonymous "Was this page
+  helpful?" answer (`site`, `page_path`, `helpful`, optional `comment` up to
+  1000 characters); 10/min per IP; stores no personal data.
 
 See [integration readiness](../operations/integration-readiness.md) for matching
 environment endpoints and provider setup. Changes to this hidden callback's
