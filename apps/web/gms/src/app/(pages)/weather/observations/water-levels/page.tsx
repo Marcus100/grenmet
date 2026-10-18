@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/page-header";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -17,17 +16,6 @@ export default function WaterLevelsPage() {
         title="Water level sensors"
       />
       <PlaceholderNotice product="The water level readings on this page" />
-      <PageSection heading="Current levels">
-        <InfoTable
-          headers={["Location", "Level", "Status", "Trend"]}
-          rows={[
-            ["St. John's River", "0.42 m", "Normal", "Steady"],
-            ["Great River", "0.61 m", "Normal", "Rising slowly"],
-            ["Beausejour gully", "0.18 m", "Normal", "Steady"],
-            ["St. George's harbour", "0.35 m", "Normal", "Falling"],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Why level sensors matter here">
         <Prose
           paragraphs={[

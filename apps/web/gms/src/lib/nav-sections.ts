@@ -4,7 +4,7 @@ export interface NavLink {
   href: string;
   name: string;
   /**
-   * Not built yet. The planned-page route serves it as a sample-content
+   * Not built yet. The planned-page route serves it as a "not yet available"
    * placeholder so the menu can show the full IA; see `plannedPage`.
    */
   planned?: boolean;

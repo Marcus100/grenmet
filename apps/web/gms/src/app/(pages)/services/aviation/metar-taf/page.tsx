@@ -18,25 +18,6 @@ export default function MetarTafPage() {
         title="METAR and TAF"
       />
       <PlaceholderNotice product="The bulletins on this page" />
-      <PageSection heading="Latest bulletins">
-        <InfoTable
-          headers={["Aerodrome", "Type", "Bulletin"]}
-          monoColumns={[2]}
-          rows={[
-            [
-              "TGPY",
-              "METAR",
-              "TGPY 061600Z 06012KT 9999 FEW018 SCT100 28/23 Q1013 NOSIG",
-            ],
-            [
-              "TGPY",
-              "TAF",
-              "TGPY 061400Z 0615/0715 06012KT 9999 SCT018 TEMPO 0618/0622 4000 SHRA BKN014",
-            ],
-            ["TGPZ", "METAR", "TGPZ 061600Z 05014KT 9999 FEW020 29/24 Q1013"],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Reading a METAR">
         <InfoTable
           headers={["Group", "Example", "Meaning"]}

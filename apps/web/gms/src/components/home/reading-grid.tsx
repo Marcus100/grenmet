@@ -120,7 +120,13 @@ export function ReadingGrid({
               )}
               strokeWidth={1.6}
             />
-            <dd className="col-start-2 row-start-1 font-bold text-body-base tabular-nums leading-body-base lg:text-heading-sm lg:leading-heading-sm">
+            <dd
+              className={cn(
+                "col-start-2 row-start-1 font-bold text-body-base tabular-nums leading-body-base lg:text-heading-sm lg:leading-heading-sm",
+                reading.unavailable &&
+                  "font-normal text-body-sm text-gm-text-inverse/85 leading-body-sm lg:text-body-base lg:leading-body-base"
+              )}
+            >
               {quality ? reading.tag : reading.value}
               {reading.trend && <Trend trend={reading.trend} />}
             </dd>

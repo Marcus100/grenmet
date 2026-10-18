@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { Checklist } from "@/components/pages/checklist";
-import { InfoTable } from "@/components/pages/info-table";
+import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -38,25 +38,18 @@ export default function HealthPage() {
         />
       </PageSection>
       <PageSection heading="Heat">
-        <InfoTable
-          headers={["Category", "Feels-like temperature", "Guidance"]}
-          rows={[
-            [
-              "Caution",
-              "32 – 39 °C",
-              "Fatigue possible with prolonged exposure",
-            ],
-            [
-              "Extreme caution",
-              "39 – 46 °C",
-              "Heat cramps and exhaustion possible",
-            ],
-            [
-              "Danger",
-              "46 – 54 °C",
-              "Heat exhaustion likely; heat stroke possible",
-            ],
-            ["Extreme danger", "Above 54 °C", "Heat stroke highly likely"],
+        <Prose
+          paragraphs={[
+            "On hot, humid days the heat index, the temperature it feels like, is a better guide to risk than the thermometer. Levels and what to do at each are explained on the heat index page.",
+          ]}
+        />
+        <LinkList
+          links={[
+            {
+              name: "Heat index",
+              href: "/weather/heat",
+              description: "How hot it feels, and when to take care",
+            },
           ]}
         />
       </PageSection>

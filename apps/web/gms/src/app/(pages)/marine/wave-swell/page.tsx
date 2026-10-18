@@ -1,6 +1,5 @@
 import { PageHeader } from "@/components/page-header";
 import { ImageryFrame } from "@/components/pages/imagery-frame";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -23,16 +22,6 @@ export default function WaveSwellPage() {
         <ImageryFrame
           caption="Nearshore wave model output — model not yet connected"
           label="Wave model output will appear here once the nearshore model is connected."
-        />
-      </PageSection>
-      <PageSection heading="Three-day outlook">
-        <InfoTable
-          headers={["Day", "Significant height", "Period", "Direction"]}
-          rows={[
-            ["Today", "1.5–2.0 m", "7 s", "NE"],
-            ["Tomorrow", "1.8–2.4 m", "8 s", "NE"],
-            ["Day 3", "1.2–1.8 m", "7 s", "ENE"],
-          ]}
         />
       </PageSection>
       <PageSection heading="North swell events">

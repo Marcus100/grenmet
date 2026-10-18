@@ -26,42 +26,8 @@ export default function ContactPage() {
               "Address",
               "Grenada Meteorological Service, Maurice Bishop International Airport, Point Salines, St. George's, Grenada",
             ],
-            ["Office hours", "Monday to Friday, 08:00 – 16:00 AST"],
             ["Telephone", "To be confirmed"],
             ["General enquiries", "To be confirmed"],
-          ]}
-        />
-      </PageSection>
-      <PageSection heading="Who to contact">
-        <InfoTable
-          headers={["Enquiry", "Route", "Response"]}
-          rows={[
-            [
-              "General public enquiry",
-              "General enquiries",
-              "Within 3 working days",
-            ],
-            [
-              "Media and interview requests",
-              "Media desk",
-              "Same working day where possible",
-            ],
-            [
-              "Aviation briefing",
-              "Operational channels — not this website",
-              "Immediate",
-            ],
-            ["Marine enquiry", "General enquiries", "Within 3 working days"],
-            [
-              "Climate data request",
-              "Data request form",
-              "Within 10 working days",
-            ],
-            [
-              "Website fault or correction",
-              "General enquiries",
-              "Within 3 working days",
-            ],
           ]}
         />
       </PageSection>

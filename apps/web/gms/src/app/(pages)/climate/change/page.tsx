@@ -3,7 +3,6 @@ import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
-import { StatTiles } from "@/components/pages/stat-tiles";
 
 export const metadata = {
   title: "Climate change in Grenada",
@@ -20,16 +19,6 @@ export default function ClimateChangePage() {
       />
       <PageSection heading="The trend at MBIA">
         <PlaceholderNotice compact product="The station trend figures" />
-        <StatTiles
-          stats={[
-            {
-              label: "Mean temperature",
-              value: "+0.2°C",
-              detail: "Per decade",
-            },
-            { label: "Hot nights", value: "More", detail: "Nights above 26°C" },
-          ]}
-        />
       </PageSection>
       <PageSection heading="What is changing">
         <Prose

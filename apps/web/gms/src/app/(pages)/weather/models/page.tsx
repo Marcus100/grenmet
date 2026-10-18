@@ -1,6 +1,5 @@
 import { PageHeader } from "@/components/page-header";
 import { ImageryFrame } from "@/components/pages/imagery-frame";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -19,17 +18,6 @@ export default function ModelsPage() {
         title="Model guidance"
       />
       <PlaceholderNotice product="The model charts on this page" />
-      <PageSection heading="Models in use">
-        <InfoTable
-          headers={["Model", "Run by", "Covers", "Cycles"]}
-          rows={[
-            ["GFS", "NOAA / NCEP", "Global, to 16 days", "00, 06, 12, 18 UTC"],
-            ["ECMWF", "European Centre", "Global, to 10 days", "00, 12 UTC"],
-            ["WW3", "NOAA / NCEP", "Global ocean waves", "00, 06, 12, 18 UTC"],
-            ["ICON", "Deutscher Wetterdienst", "Global", "00, 06, 12, 18 UTC"],
-          ]}
-        />
-      </PageSection>
       <PageSection>
         <div className="grid gap-4 lg:grid-cols-2">
           <ImageryFrame

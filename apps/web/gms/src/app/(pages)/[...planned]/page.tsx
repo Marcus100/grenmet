@@ -8,7 +8,7 @@ import { plannedPage, plannedPaths, sectionLinks } from "@/lib/nav-sections";
 
 /**
  * Pages the navigation promises but that are not built yet (links marked
- * `planned` in NAV_SECTIONS). Each renders the sample-content notice and
+ * `planned` in NAV_SECTIONS). Each renders the not-yet-available notice and
  * points to the finished pages in the same section. Only planned paths are
  * generated; any other URL is a 404, and a real route always wins over this
  * catch-all.

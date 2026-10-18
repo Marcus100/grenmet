@@ -92,7 +92,7 @@ export default function ServicesPage() {
         <Prose
           paragraphs={[
             "Not every service listed above is fully available digitally today. Public weather, warnings, tropical cyclone products, aviation and marine are the priority set; climate, agriculture and health services are being built out as the underlying data infrastructure matures.",
-            "Where a page on this site carries a sample-content notice, that product is not yet issued from the operational forecast system.",
+            'Where a page on this site carries a "Not yet available from GMS" notice, that product is not yet issued from the operational forecast system.',
           ]}
         />
       </PageSection>

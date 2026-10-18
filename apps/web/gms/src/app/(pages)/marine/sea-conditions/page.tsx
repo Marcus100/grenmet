@@ -2,7 +2,6 @@ import { PageHeader } from "@/components/page-header";
 import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
-import { StatTiles } from "@/components/pages/stat-tiles";
 
 export const metadata = {
   title: "Sea conditions",
@@ -18,16 +17,6 @@ export default function SeaConditionsPage() {
         title="Sea conditions"
       />
       <PlaceholderNotice product="Observed sea state" />
-      <PageSection heading="Right now">
-        <StatTiles
-          stats={[
-            { label: "Significant wave height", value: "1.7 m" },
-            { label: "Dominant period", value: "7 s" },
-            { label: "Sea surface temp", value: "28.4 °C" },
-            { label: "Swell direction", value: "NE" },
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Sea state scale">
         <InfoTable
           headers={[

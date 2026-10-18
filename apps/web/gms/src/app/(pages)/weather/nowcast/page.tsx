@@ -1,6 +1,5 @@
 import { PageHeader } from "@/components/page-header";
 import { ImageryFrame } from "@/components/pages/imagery-frame";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -17,23 +16,13 @@ export default function NowcastPage() {
         description="Rainfall and wind expected in the next six hours."
         title="Nowcast"
       />
-      <PlaceholderNotice product="The nowcast" />
-      <PageSection heading="Next six hours">
-        <InfoTable
-          headers={["Period", "Rainfall", "Wind", "Confidence"]}
-          rows={[
-            ["Next hour", "Nil", "NE 14 kt", "High"],
-            ["1 – 2 hours", "Light, isolated", "NE 14 kt", "High"],
-            [
-              "2 – 4 hours",
-              "Moderate, scattered",
-              "ENE 16 kt gusting 24 kt",
-              "Moderate",
-            ],
-            ["4 – 6 hours", "Light, isolated", "ENE 14 kt", "Moderate"],
-          ]}
-        />
-      </PageSection>
+      <PlaceholderNotice
+        product="The nowcast"
+        source={{
+          href: "/weather/conditions",
+          label: "current conditions at MBIA",
+        }}
+      />
       <PageSection>
         <ImageryFrame
           caption="Short-range model output — model not yet connected"

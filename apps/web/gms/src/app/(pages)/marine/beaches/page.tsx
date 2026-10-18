@@ -1,6 +1,5 @@
 import { PageHeader } from "@/components/page-header";
 import { Checklist } from "@/components/pages/checklist";
-import { InfoTable } from "@/components/pages/info-table";
 import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
@@ -20,44 +19,6 @@ export default function BeachesPage() {
         title="Beach conditions"
       />
       <PlaceholderNotice product="Beach-by-beach conditions" />
-      <PageSection heading="Today by beach">
-        <InfoTable
-          headers={["Beach", "Coast", "Surf", "Notes"]}
-          rows={[
-            [
-              "Grand Anse",
-              "South-west",
-              "Calm",
-              "Sheltered; UV extreme after 10 AM",
-            ],
-            ["Morne Rouge", "South-west", "Calm", "Sheltered bay"],
-            [
-              "La Sagesse",
-              "South-east",
-              "Moderate",
-              "Swell wraps into the bay",
-            ],
-            [
-              "Bathway",
-              "North-east",
-              "Rough",
-              "Reef-protected pool; open water beyond is dangerous",
-            ],
-            [
-              "Levera",
-              "North-east",
-              "Rough",
-              "Atlantic swell; strong currents",
-            ],
-            [
-              "Paradise Beach, Carriacou",
-              "West",
-              "Calm",
-              "Sheltered from the trade winds",
-            ],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Reading the coast">
         <Prose
           paragraphs={[

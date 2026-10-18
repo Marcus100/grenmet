@@ -1,7 +1,7 @@
-import type { CurrentConditions } from "@/lib/current-conditions";
+import { type CurrentConditions, localTime } from "@/lib/current-conditions";
 import type { Condition, ForecastDayData } from "@/lib/forecast-data";
 import { UNAVAILABLE_SOURCE } from "@/lib/forecast-selection";
-import { SAMPLE_DAYS, SAMPLE_NOW, SAMPLE_SUN } from "@/lib/hero-samples";
+import { sunTimes } from "@/lib/sky";
 import type { WeatherCondition } from "@/lib/weather-icons";
 
 /* Condition labels, from FastAPI `presentation.conditions` and older issues. */
@@ -24,6 +24,8 @@ const HIGH_TIDE = /^high tide/i;
 const LOW_TIDE = /^low tide/i;
 const SUNRISE = /^sunrise/i;
 const SUNSET = /^sunset/i;
+const RAINFALL = /^(rainfall|rain amount)/i;
+const VISIBILITY = /^visibility/i;
 const PARTLY = /partly|intervals|mostly sunny/i;
 const SHOWERY = /shower|rain|drizzle|thunder|storm/i;
 const SUNNY = /sun|clear|fair|fine/i;
@@ -48,6 +50,9 @@ export type ReadingIcon =
   | "visibility"
   | "wind";
 
+/** Shown for a reading no real feed supplies yet; never a placeholder figure. */
+export const NOT_AVAILABLE = "Not available yet";
+
 export type PressureTrend = "falling" | "rising" | "steady";
 
 /** One icon · value · label item in the sky hero's reading grid. */
@@ -60,13 +65,35 @@ export interface Reading {
   tag?: string;
   /** Pressure tendency, drawn as an arrow beside the value. */
   trend?: PressureTrend;
+  /** True when no real source supplies this reading yet. */
+  unavailable?: boolean;
   value: string;
+}
+
+const missing = (icon: ReadingIcon, label: string): Reading => ({
+  icon,
+  label,
+  unavailable: true,
+  value: NOT_AVAILABLE,
+});
+
+/** Sunrise and sunset computed for a calendar day, as Grenada clock times. */
+function computedSun(
+  isoDate: string
+): { sunrise: string; sunset: string } | null {
+  if (Number.isNaN(Date.parse(`${isoDate}T12:00:00Z`))) return null;
+  const { sunrise, sunset } = sunTimes(isoDate);
+  return {
+    sunrise: localTime(sunrise.toISOString()),
+    sunset: localTime(sunset.toISOString()),
+  };
 }
 
 /**
  * The Now tab's readings, in reading order: wind and gusts, humidity and dew
  * point, pressure and visibility, cloud and UV, rain, then air quality.
- * Register values win; fields the register does not record take samples.
+ * Only real register values appear; a field the register does not record
+ * says "Not available yet" and never carries a stand-in figure.
  */
 export function nowReadings(current: CurrentConditions): Reading[] {
   const tile = (pattern: RegExp) =>
@@ -80,7 +107,12 @@ export function nowReadings(current: CurrentConditions): Reading[] {
   const cloud = tile(CLOUD);
   const rows: Reading[] = [];
   if (wind) rows.push({ icon: "wind", label: "Wind", value: wind.value });
-  rows.push({ icon: "gusts", label: "Gusts", value: SAMPLE_NOW.gusts });
+  const gusts = tile(GUSTS);
+  rows.push(
+    gusts
+      ? { icon: "gusts", label: "Gusts", value: gusts.value }
+      : missing("gusts", "Gusts")
+  );
   if (humidity)
     rows.push({ icon: "humidity", label: "Humidity", value: humidity.value });
   if (current.dewPoint !== null)
@@ -97,21 +129,14 @@ export function nowReadings(current: CurrentConditions): Reading[] {
       value: pressure.value,
     });
   rows.push(
-    { icon: "visibility", label: "Visibility", value: SAMPLE_NOW.visibility },
-    {
-      icon: "cloud",
-      label: "Cloud cover",
-      value: cloud?.value ?? SAMPLE_NOW.cloudCover,
-    },
-    { icon: "uv", label: "UV index", value: SAMPLE_NOW.uvIndex }
+    missing("visibility", "Visibility"),
+    cloud
+      ? { icon: "cloud", label: "Cloud cover", value: cloud.value }
+      : missing("cloud", "Cloud cover"),
+    missing("uv", "UV index")
   );
   if (rain) rows.push({ icon: "rain", label: "Rain", value: rain.value });
-  rows.push({
-    icon: "air",
-    label: "Air quality",
-    tag: SAMPLE_NOW.airQuality.level,
-    value: `${SAMPLE_NOW.airQuality.index} AQI`,
-  });
+  rows.push(missing("air", "Air quality"));
   return rows;
 }
 
@@ -139,24 +164,28 @@ function percent(value: string | undefined): number | null {
   return match ? Number(match[0]) : null;
 }
 
-/** The issued chance of rain, or the sample for this day offset. */
-export function rainChance(day: ForecastDayData, index: number): number | null {
+/** The issued chance of rain; null when the day carries none. */
+export function rainChance(day: ForecastDayData): number | null {
   if (!isIssued(day)) return null;
-  const issued = percent(find(day.conditions, RAIN_CHANCE)?.value);
-  return issued ?? SAMPLE_DAYS[index]?.rainChance ?? null;
+  return percent(find(day.conditions, RAIN_CHANCE)?.value);
 }
 
 /**
  * A day's forecast items in reading order, paired for two columns: wind and
  * gusts, rain chance and amount, humidity and cloud, seas and swell, sunrise
  * and sunset, high and low tides, then visibility and air quality. Forecasts
- * carry no feels-like or UV. Issued values win; gaps take samples.
+ * carry no feels-like or UV. Only issued values appear (sun times are
+ * computed from the date); a gap says "Not available yet".
  */
-export function dayReadings(day: ForecastDayData, index: number): Reading[] {
+export function dayReadings(day: ForecastDayData): Reading[] {
   if (!isIssued(day)) return [];
   const c = day.conditions;
-  const sample = SAMPLE_DAYS[index] ?? SAMPLE_DAYS[0];
-  if (!sample) return [];
+  const sun = computedSun(day.date);
+  const issuedOrMissing = (
+    icon: ReadingIcon,
+    label: string,
+    value: string | undefined
+  ): Reading => (value ? { icon, label, value } : missing(icon, label));
   const rows: Reading[] = [];
 
   const speed = find(c, WIND_SPEED);
@@ -167,19 +196,16 @@ export function dayReadings(day: ForecastDayData, index: number): Reading[] {
       label: "Wind",
       value: [direction?.value, speed.value].filter(Boolean).join(" "),
     });
-  rows.push({
-    icon: "gusts",
-    label: "Gusts",
-    value: find(c, GUSTS)?.value ?? sample.gusts,
-  });
+  rows.push(issuedOrMissing("gusts", "Gusts", find(c, GUSTS)?.value));
 
-  const rain = rainChance(day, index);
-  if (rain !== null)
-    rows.push({ icon: "rain", label: "Chance of rain", value: `${rain}%` });
+  const rain = rainChance(day);
   rows.push(
-    { icon: "rainfall", label: "Rainfall", value: sample.rainfall },
-    { icon: "humidity", label: "Humidity", value: sample.humidity },
-    { icon: "cloud", label: "Cloud cover", value: sample.cloudCover }
+    rain === null
+      ? missing("rain", "Chance of rain")
+      : { icon: "rain", label: "Chance of rain", value: `${rain}%` },
+    issuedOrMissing("rainfall", "Rainfall", find(c, RAINFALL)?.value),
+    issuedOrMissing("humidity", "Humidity", find(c, HUMIDITY)?.value),
+    issuedOrMissing("cloud", "Cloud cover", find(c, CLOUD)?.value)
   );
 
   const waves = find(c, WAVE_HEIGHT);
@@ -203,39 +229,25 @@ export function dayReadings(day: ForecastDayData, index: number): Reading[] {
           label: "Swell",
           value: swell.value,
         }
-      : {
-          detail: sample.swell.detail,
-          icon: "swell",
-          label: "Swell",
-          value: sample.swell.value,
-        },
-    {
-      icon: "sunrise",
-      label: "Sunrise",
-      value: find(c, SUNRISE)?.value ?? SAMPLE_SUN.sunrise,
-    },
-    {
-      icon: "sunset",
-      label: "Sunset",
-      value: find(c, SUNSET)?.value ?? SAMPLE_SUN.sunset,
-    },
-    {
-      icon: "tide-high",
-      label: "High tides",
-      value: tideTimes(c, HIGH_TIDE) ?? sample.highTides,
-    },
-    {
-      icon: "tide-low",
-      label: "Low tides",
-      value: tideTimes(c, LOW_TIDE) ?? sample.lowTides,
-    },
-    { icon: "visibility", label: "Visibility", value: sample.visibility },
-    {
-      icon: "air",
-      label: "Air quality",
-      tag: sample.airQuality.level,
-      value: `${sample.airQuality.index} AQI`,
-    }
+      : missing("swell", "Swell"),
+    issuedOrMissing(
+      "sunrise",
+      "Sunrise",
+      find(c, SUNRISE)?.value ?? sun?.sunrise
+    ),
+    issuedOrMissing("sunset", "Sunset", find(c, SUNSET)?.value ?? sun?.sunset),
+    issuedOrMissing(
+      "tide-high",
+      "High tides",
+      tideTimes(c, HIGH_TIDE) ?? undefined
+    ),
+    issuedOrMissing(
+      "tide-low",
+      "Low tides",
+      tideTimes(c, LOW_TIDE) ?? undefined
+    ),
+    issuedOrMissing("visibility", "Visibility", find(c, VISIBILITY)?.value),
+    missing("air", "Air quality")
   );
   return rows;
 }

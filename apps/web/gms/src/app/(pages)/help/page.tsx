@@ -46,7 +46,7 @@ export default function HelpPage() {
           paragraphs={[
             "The date strip moves between days. Each day shows expected conditions, the high and low, and wind.",
             "Rain chance is the likelihood that measurable rain falls at a given point in the forecast area — not how long it will rain or how heavy it will be. A 30% chance on a showery day in Grenada is normal, not a washout.",
-            "Sample content notices appear on pages whose product is not yet issued from the operational forecast system. Those figures are illustrative and must not be used for any real decision.",
+            'A "Not yet available from GMS" notice marks a page whose product is not yet issued from the operational forecast system. The site never shows invented or sample figures: such a page shows the notice instead of data.',
           ]}
         />
       </PageSection>

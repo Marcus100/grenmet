@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/page-header";
-import { InfoTable } from "@/components/pages/info-table";
 import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
@@ -18,19 +17,13 @@ export default function RainfallPage() {
         description="Rain totals from the last 24 hours, by station."
         title="Rainfall"
       />
-      <PlaceholderNotice product="24-hour rainfall totals" />
-      <PageSection heading="Last 24 hours">
-        <InfoTable
-          caption="Totals to 8:00 AM AST"
-          headers={["Station", "Area", "Rain (mm)"]}
-          rows={[
-            ["Maurice Bishop International (MBIA)", "South-west", "2.4"],
-            ["Grand Etang", "Interior", "18.6"],
-            ["Grenville", "East", "9.1"],
-            ["Lauriston, Carriacou", "Carriacou", "0.0"],
-          ]}
-        />
-      </PageSection>
+      <PlaceholderNotice
+        product="24-hour rainfall totals"
+        source={{
+          href: "/weather/conditions",
+          label: "current conditions at MBIA",
+        }}
+      />
       <PageSection heading="Why totals vary so much">
         <Prose
           paragraphs={[

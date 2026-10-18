@@ -3,7 +3,6 @@ import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
-import { StatTiles } from "@/components/pages/stat-tiles";
 
 export const metadata = {
   title: "Sea temperature",
@@ -19,18 +18,6 @@ export default function SeaTemperaturePage() {
         title="Sea temperature"
       />
       <PlaceholderNotice product="Sea surface temperature" />
-      <PageSection heading="Now">
-        <StatTiles
-          stats={[
-            { label: "Grenada waters", value: "29.4°C" },
-            {
-              label: "Against normal",
-              value: "+0.6°C",
-              detail: "Warmer than usual",
-            },
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Why sea temperature matters">
         <Prose
           paragraphs={[
