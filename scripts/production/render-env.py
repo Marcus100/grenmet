@@ -87,7 +87,7 @@ def render(config, environment):
         entry = service["environments"].get(config.get("ENVIRONMENT"), {})
         sentry = entry.get("sentry", {})
         secret_ref = sentry.get("secretRef")
-        if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "signal", "mbia", "events", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
+        if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "cap", "gmsdash", "signal", "mbia", "events", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
             raise ValueError("Invalid shared Sentry routing")
         values[f"SENTRY_DSN_{app}"] = environment.get(secret_ref, "") if secret_ref else sentry.get("dsn") or ""
     for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "EVENTS", "CMS"]:
