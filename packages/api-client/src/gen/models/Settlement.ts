@@ -5,6 +5,7 @@
 
 import type { ListingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurrencyEnum.js";
 import type { ListingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
+import type { RefundPublic } from "./RefundPublic.js";
 import type { SettlementCash } from "./SettlementCash.js";
 import type { SettlementChannel } from "./SettlementChannel.js";
 import type { SettlementCounts } from "./SettlementCounts.js";
@@ -58,4 +59,5 @@ export type Settlement = {
    */
   cash: SettlementCash;
   discrepancies: SettlementIssue[];
+  refunds: RefundPublic[];
 };

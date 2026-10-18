@@ -147,6 +147,8 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "preview_parking_permit",
         # Invoicing renders the authenticated invoice PDF on demand.
         "download_invoice_pdf",
+        # Events settlement export is a CSV download.
+        "get_settlement_csv",
     }
     offenders = [
         route.name

@@ -339,3 +339,23 @@ class Admission(EventsModel):
     #: "qr" for a scanned token, "code" for a typed or keyboard-wedge code.
     method: Mapped[str] = mapped_column(Text, default="qr")
     idempotency_key: Mapped[str | None] = mapped_column(Text)
+
+
+class Refund(EventsModel):
+    """Money handed back for an outlet cash ticket (E5). One per ticket."""
+
+    __tablename__ = "refunds"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
+    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("orders.id"))
+    ticket_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tickets.id"), unique=True)
+    amount_minor: Mapped[int] = mapped_column(Integer)
+    #: "cash" (paid from a till) or "bank".
+    method: Mapped[str] = mapped_column(Text)
+    reference: Mapped[str | None] = mapped_column(Text)
+    refunded_by: Mapped[uuid.UUID]
+    refunded_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+    #: The till a cash refund was paid from, if one was open.
+    till_session_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("till_sessions.id")
+    )

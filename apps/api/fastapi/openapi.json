@@ -25957,6 +25957,295 @@
         }
       }
     },
+    "/api/v1/events/manage/{listing_id}/cancel": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Cancel an event",
+        "description": "Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. Outlet cash tickets can then be refunded.",
+        "operationId": "eventsCancelEvent",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Not a published event"
+          }
+        }
+      }
+    },
+    "/api/v1/events/manage/{listing_id}/postpone": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Postpone an event",
+        "description": "Move a published event to new times. Tickets stay valid and holders are notified.",
+        "operationId": "eventsPostponeEvent",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostponeEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostponeResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid times or not published"
+          }
+        }
+      }
+    },
+    "/api/v1/events/manage/{listing_id}/tickets/{ticket_id}/refund": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Record a manual refund",
+        "description": "Record cash or bank money handed back for an outlet cash ticket. The ticket becomes refunded and can no longer be admitted. Online tickets are free and cannot be refunded.",
+        "operationId": "eventsRefundTicket",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Ticket Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Not refundable, already refunded or amount too high"
+          }
+        }
+      }
+    },
     "/api/v1/events/manage/{listing_id}/outlet": {
       "get": {
         "tags": [
@@ -34412,6 +34701,45 @@
           "count"
         ],
         "title": "CalendarEventsPublic"
+      },
+      "CancelEvent": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "const": true,
+            "title": "Confirm"
+          }
+        },
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "title": "CancelEvent"
+      },
+      "CancelResult": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "status": {
+            "type": "string",
+            "const": "cancelled",
+            "title": "Status"
+          },
+          "tickets_cancelled": {
+            "type": "integer",
+            "title": "Tickets Cancelled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "status",
+          "tickets_cancelled"
+        ],
+        "title": "CancelResult"
       },
       "CapAlertAction": {
         "properties": {
@@ -46781,6 +47109,21 @@
               }
             ],
             "title": "Admitted At"
+          },
+          "refund": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RefundPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "can_refund": {
+            "type": "boolean",
+            "title": "Can Refund",
+            "default": false
           }
         },
         "type": "object",
@@ -48403,6 +48746,52 @@
           "notes"
         ],
         "title": "PositionSpec"
+      },
+      "PostponeEvent": {
+        "properties": {
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "PostponeEvent"
+      },
+      "PostponeResult": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "PostponeResult"
       },
       "ProductAccessCurrent": {
         "properties": {
@@ -50029,6 +50418,116 @@
           "codes"
         ],
         "title": "RecoveryCodesPublic"
+      },
+      "RefundCreate": {
+        "properties": {
+          "amount_minor": {
+            "type": "integer",
+            "maximum": 100000000.0,
+            "minimum": 1.0,
+            "title": "Amount Minor"
+          },
+          "method": {
+            "$ref": "#/components/schemas/RefundCreatePropertiesMethodEnum"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount_minor",
+          "method"
+        ],
+        "title": "RefundCreate"
+      },
+      "RefundPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Ticket Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "tier_name": {
+            "type": "string",
+            "title": "Tier Name"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "title": "Amount Minor"
+          },
+          "method": {
+            "$ref": "#/components/schemas/RefundCreatePropertiesMethodEnum"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "refunded_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refunded By Name"
+          },
+          "refunded_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Refunded At"
+          },
+          "till_session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Till Session Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "ticket_id",
+          "code",
+          "tier_name",
+          "amount_minor",
+          "method",
+          "refunded_at"
+        ],
+        "title": "RefundPublic"
       },
       "RegisterObservationCreate": {
         "properties": {
@@ -52780,6 +53279,13 @@
             },
             "type": "array",
             "title": "Discrepancies"
+          },
+          "refunds": {
+            "items": {
+              "$ref": "#/components/schemas/RefundPublic"
+            },
+            "type": "array",
+            "title": "Refunds"
           }
         },
         "type": "object",
@@ -52796,7 +53302,8 @@
           "tiers",
           "tills",
           "cash",
-          "discrepancies"
+          "discrepancies",
+          "refunds"
         ],
         "title": "Settlement"
       },
@@ -62649,6 +63156,13 @@
           "yellow",
           "orange",
           "red"
+        ]
+      },
+      "RefundCreatePropertiesMethodEnum": {
+        "type": "string",
+        "enum": [
+          "cash",
+          "bank"
         ]
       },
       "RegisterObservationReadPropertiesStateEnum": {

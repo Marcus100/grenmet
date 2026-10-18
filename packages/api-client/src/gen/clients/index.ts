@@ -141,6 +141,7 @@ export { eregisterValidateSynopObservation } from "./eregisterValidateSynopObser
 export { eventsAcceptConnection } from "./eventsAcceptConnection.js";
 export { eventsAdmitTicket } from "./eventsAdmitTicket.js";
 export { eventsBlockMember } from "./eventsBlockMember.js";
+export { eventsCancelEvent } from "./eventsCancelEvent.js";
 export { eventsCancelListingRsvp } from "./eventsCancelListingRsvp.js";
 export { eventsCancelMyTicket } from "./eventsCancelMyTicket.js";
 export { eventsClaimTickets } from "./eventsClaimTickets.js";
@@ -177,6 +178,8 @@ export { eventsListSuggestions } from "./eventsListSuggestions.js";
 export { eventsListThreads } from "./eventsListThreads.js";
 export { eventsOpenThread } from "./eventsOpenThread.js";
 export { eventsOpenTill } from "./eventsOpenTill.js";
+export { eventsPostponeEvent } from "./eventsPostponeEvent.js";
+export { eventsRefundTicket } from "./eventsRefundTicket.js";
 export { eventsRemoveConnection } from "./eventsRemoveConnection.js";
 export { eventsRequestConnection } from "./eventsRequestConnection.js";
 export { eventsRequestOrganiser } from "./eventsRequestOrganiser.js";

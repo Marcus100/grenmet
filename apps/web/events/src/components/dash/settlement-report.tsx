@@ -244,6 +244,49 @@ export function SettlementReport({ report }: { report: Settlement }) {
           </table>
         </div>
       </section>
+      {report.refunds.length > 0 ? (
+        <section aria-labelledby="refunds-heading" className="space-y-2">
+          <h2
+            className="font-display font-semibold text-heading-sm"
+            id="refunds-heading"
+          >
+            Refunds
+          </h2>
+          <div className="overflow-x-auto rounded-xl border bg-card">
+            <table className="w-full text-left text-body">
+              <thead className="border-b text-caption text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Ticket</th>
+                  <th className="px-3 py-2 font-medium">Amount</th>
+                  <th className="px-3 py-2 font-medium">Method</th>
+                  <th className="px-3 py-2 font-medium">Reference</th>
+                  <th className="px-3 py-2 font-medium">By</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y tabular-nums">
+                {report.refunds.map((refund) => (
+                  <tr key={refund.id}>
+                    <td className="px-3 py-2 font-mono tracking-wider">
+                      {refund.code}
+                    </td>
+                    <td className="px-3 py-2">
+                      {amount(refund.amountMinor, currency)}
+                    </td>
+                    <td className="px-3 py-2 font-sans">{refund.method}</td>
+                    <td className="px-3 py-2 font-sans">
+                      {refund.reference ?? "—"}
+                    </td>
+                    <td className="px-3 py-2 font-sans">
+                      {refund.refundedByName ?? "Staff"} at{" "}
+                      {formatTime(refund.refundedAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -1050,6 +1050,8 @@ export { calendarEventKind } from "./CalendarEventKind.js";
 export type { CalendarEventPublic } from "./CalendarEventPublic.js";
 export type { CalendarEventsPublic } from "./CalendarEventsPublic.js";
 export type { CalendarEventUpdate } from "./CalendarEventUpdate.js";
+export type { CancelEvent } from "./CancelEvent.js";
+export type { CancelResult } from "./CancelResult.js";
 export type { CapAlertAction } from "./CapAlertAction.js";
 export type { CapAlertCreate } from "./CapAlertCreate.js";
 export type { CapAlertImportRequest } from "./CapAlertImportRequest.js";
@@ -1728,6 +1730,21 @@ export type {
   EventsBlockMemberStatus429,
 } from "./EventsBlockMember.js";
 export type {
+  EventsCancelEventBody,
+  EventsCancelEventOptions,
+  EventsCancelEventPath,
+  EventsCancelEventQuery,
+  EventsCancelEventResponse,
+  EventsCancelEventResponses,
+  EventsCancelEventStatus200,
+  EventsCancelEventStatus401,
+  EventsCancelEventStatus403,
+  EventsCancelEventStatus404,
+  EventsCancelEventStatus409,
+  EventsCancelEventStatus422,
+  EventsCancelEventStatus429,
+} from "./EventsCancelEvent.js";
+export type {
   EventsCancelListingRsvpOptions,
   EventsCancelListingRsvpPath,
   EventsCancelListingRsvpResponse,
@@ -2144,6 +2161,36 @@ export type {
   EventsOpenTillStatus422,
   EventsOpenTillStatus429,
 } from "./EventsOpenTill.js";
+export type {
+  EventsPostponeEventBody,
+  EventsPostponeEventOptions,
+  EventsPostponeEventPath,
+  EventsPostponeEventQuery,
+  EventsPostponeEventResponse,
+  EventsPostponeEventResponses,
+  EventsPostponeEventStatus200,
+  EventsPostponeEventStatus401,
+  EventsPostponeEventStatus403,
+  EventsPostponeEventStatus404,
+  EventsPostponeEventStatus409,
+  EventsPostponeEventStatus422,
+  EventsPostponeEventStatus429,
+} from "./EventsPostponeEvent.js";
+export type {
+  EventsRefundTicketBody,
+  EventsRefundTicketOptions,
+  EventsRefundTicketPath,
+  EventsRefundTicketQuery,
+  EventsRefundTicketResponse,
+  EventsRefundTicketResponses,
+  EventsRefundTicketStatus201,
+  EventsRefundTicketStatus401,
+  EventsRefundTicketStatus403,
+  EventsRefundTicketStatus404,
+  EventsRefundTicketStatus409,
+  EventsRefundTicketStatus422,
+  EventsRefundTicketStatus429,
+} from "./EventsRefundTicket.js";
 export type {
   EventsRemoveConnectionOptions,
   EventsRemoveConnectionPath,
@@ -4751,6 +4798,8 @@ export type { PlatformOrganisationUpdate } from "./PlatformOrganisationUpdate.js
 export type { PolicyInput } from "./PolicyInput.js";
 export type { PolicyPublic } from "./PolicyPublic.js";
 export type { PositionSpec } from "./PositionSpec.js";
+export type { PostponeEvent } from "./PostponeEvent.js";
+export type { PostponeResult } from "./PostponeResult.js";
 export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./ProductAccessInput.js";
 export type { ProductAccessPublic } from "./ProductAccessPublic.js";
@@ -4794,6 +4843,10 @@ export type { QcDecisionRequest } from "./QcDecisionRequest.js";
 export type { ReceivableRowPublic } from "./ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";
+export type { RefundCreate } from "./RefundCreate.js";
+export type { RefundCreatePropertiesMethodEnum } from "./RefundCreatePropertiesMethodEnum.js";
+export { refundCreatePropertiesMethodEnum } from "./RefundCreatePropertiesMethodEnum.js";
+export type { RefundPublic } from "./RefundPublic.js";
 export type { RegisterObservationCreate } from "./RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./RegisterObservationList.js";
 export type { RegisterObservationRead } from "./RegisterObservationRead.js";

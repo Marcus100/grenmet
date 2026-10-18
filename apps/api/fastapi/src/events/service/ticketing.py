@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Literal
 
 from pydantic import TypeAdapter
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -243,3 +243,18 @@ async def cancel_ticket(
     db.add(ticket)
     await db.commit()
     return _summary(ticket, listing, tier.name)
+
+
+async def cancel_valid_tickets(db: AsyncSession, listing_id: uuid.UUID) -> int:
+    """Cancel every valid ticket of a cancelled event; returns how many.
+
+    The caller holds the listing row lock (it just changed the listing), and
+    claims and outlet sales take a shared lock on it, so none can slip in.
+    """
+    result = await db.execute(
+        update(Ticket)
+        .where(Ticket.listing_id == listing_id, Ticket.status == "valid")
+        .values(status="cancelled", cancelled_at=utc_now())
+        .returning(Ticket.id)
+    )
+    return len(result.all())

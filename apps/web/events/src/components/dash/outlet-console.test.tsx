@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { sellOutletTickets } from "@/data/actions";
+import { refundTicket, sellOutletTickets } from "@/data/actions";
 import { parseMinor } from "@/domain/money";
 import type { Outlet, Till } from "@/domain/types";
 import { OutletConsole } from "./outlet-console";
@@ -12,6 +12,7 @@ const CASH_RECEIVED = /Cash received/;
 vi.mock("@/data/actions", () => ({
   closeTill: vi.fn(),
   openTill: vi.fn(),
+  refundTicket: vi.fn(),
   sellOutletTickets: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
@@ -116,5 +117,66 @@ describe("OutletConsole", () => {
     render(<OutletConsole outlet={{ ...outlet, till: null }} />);
     expect(screen.getByText("Open your till")).toBeInTheDocument();
     expect(screen.queryByText("Sell tickets")).toBeNull();
+  });
+
+  it("records a refund for a refundable ticket", async () => {
+    vi.mocked(refundTicket).mockResolvedValue({
+      ok: true,
+      data: {
+        id: "r",
+        ticketId: "t1",
+        code: "AAAAA-BBBBB",
+        tierName: "General",
+        amountMinor: 2500,
+        method: "cash",
+        reference: null,
+        refundedByName: "Dana",
+        refundedAt: "2026-10-30T21:30:00Z",
+      },
+    });
+    render(
+      <OutletConsole
+        outlet={{
+          ...outlet,
+          sales: [
+            {
+              orderId: "order",
+              listingId: "evt",
+              listingTitle: "Fete",
+              venue: "Carenage",
+              startsAt: "2026-10-31T22:00:00Z",
+              currency: "XCD",
+              totalMinor: 2500,
+              collectedMinor: 2500,
+              buyerName: "Marcia",
+              buyerPhone: null,
+              soldByName: "Dana",
+              createdAt: "2026-10-30T21:00:00Z",
+              tickets: [
+                {
+                  id: "t1",
+                  code: "AAAAA-BBBBB",
+                  qrToken: "BT1.x.y",
+                  tierName: "General",
+                  priceMinor: 2500,
+                  status: "valid",
+                  admittedAt: null,
+                  canRefund: true,
+                  refund: null,
+                },
+              ],
+            },
+          ],
+        }}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Record refund" }));
+    await vi.waitFor(() =>
+      expect(refundTicket).toHaveBeenCalledWith("evt", "t1", {
+        amountMinor: 2500,
+        method: "cash",
+        reference: "",
+      })
+    );
   });
 });

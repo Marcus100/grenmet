@@ -20,6 +20,7 @@ import type {
   OutletOverview,
   PlansPublic,
   ProfilePublic,
+  RefundPublic,
   TicketDetail,
   TicketSummary,
   TillPublic,
@@ -44,6 +45,7 @@ import type {
   Plans,
   Profile,
   PublicEvent,
+  Refund,
   Settlement,
   SettlementCounts,
   SettlementSummary,
@@ -315,6 +317,20 @@ export function toDoorAdmission(admission: AdmissionPublic): DoorAdmission {
   };
 }
 
+export function toRefund(refund: RefundPublic): Refund {
+  return {
+    id: refund.id,
+    ticketId: refund.ticket_id,
+    code: refund.code,
+    tierName: refund.tier_name,
+    amountMinor: refund.amount_minor,
+    method: refund.method,
+    reference: refund.reference ?? null,
+    refundedByName: refund.refunded_by_name ?? null,
+    refundedAt: refund.refunded_at,
+  };
+}
+
 export function toOutletSale(sale: ApiOutletSale): OutletSale {
   return {
     orderId: sale.order_id,
@@ -337,6 +353,8 @@ export function toOutletSale(sale: ApiOutletSale): OutletSale {
       priceMinor: ticket.price_minor,
       status: ticket.status,
       admittedAt: ticket.admitted_at ?? null,
+      canRefund: ticket.can_refund ?? false,
+      refund: ticket.refund ? toRefund(ticket.refund) : null,
     })),
   };
 }
@@ -428,6 +446,7 @@ export function toSettlement(report: ApiSettlement): Settlement {
       remaining: tier.remaining,
     })),
     tills: report.tills.map(toTill),
+    refunds: report.refunds.map(toRefund),
     cash: {
       collectedMinor: report.cash.collected_minor,
       cashRefundsMinor: report.cash.cash_refunds_minor,

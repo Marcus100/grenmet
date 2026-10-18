@@ -28,6 +28,7 @@ from ..models import (
     Order,
     OrderItem,
     Organiser,
+    Refund,
     Ticket,
     TicketTier,
     TillSession,
@@ -35,7 +36,7 @@ from ..models import (
 from .admission import _door_listing
 from .common import _naive_utc
 from .organiser_admin import _my_organiser
-from .outlet import money, till_views
+from .outlet import money, refund_views, till_views
 
 _STATUS = TypeAdapter(Literal["draft", "published", "cancelled"])
 _CURRENCY = TypeAdapter(Literal["XCD", "USD"])
@@ -140,8 +141,24 @@ async def _build(db: AsyncSession, listing: Listing) -> schemas.Settlement:
         ).all()
     )
     till_rows = await till_views(db, tills)
+    refund_rows = list(
+        (
+            await db.scalars(
+                select(Refund)
+                .where(Refund.listing_id == listing.id)
+                .order_by(Refund.refunded_at, Refund.id)
+            )
+        ).all()
+    )
+    refunds = await refund_views(db, refund_rows)
+    # Cash handed back outside any open till still left the cash box.
+    loose = [
+        row for row in refunds if row.method == "cash" and row.till_session_id is None
+    ]
     closed = [till for till in till_rows if till.status == "closed"]
-    cash_refunds = sum(till.cash_refunds_minor for till in till_rows)
+    cash_refunds = sum(till.cash_refunds_minor for till in till_rows) + sum(
+        row.amount_minor for row in loose
+    )
     cash = schemas.SettlementCash(
         collected_minor=collected.get("outlet", 0),
         cash_refunds_minor=cash_refunds,
@@ -186,6 +203,18 @@ async def _build(db: AsyncSession, listing: Listing) -> schemas.Settlement:
                 )
             )
 
+    for row in loose:
+        issues.append(
+            schemas.SettlementIssue(
+                kind="refund_without_till",
+                message=(
+                    f"Cash refund of {money(row.amount_minor)} for ticket {row.code}"
+                    " was not paid from an open till."
+                ),
+                amount_minor=row.amount_minor,
+            )
+        )
+
     tiers = list(
         (
             await db.scalars(
@@ -200,7 +229,9 @@ async def _build(db: AsyncSession, listing: Listing) -> schemas.Settlement:
         schemas.SettlementChannel(
             channel=name,
             collected_minor=collected.get(key, 0),
-            refunded_minor=0,
+            refunded_minor=(
+                sum(row.amount_minor for row in refunds) if key == "outlet" else 0
+            ),
             **by_channel[key].counts(),
         )
         for name, key in _CHANNELS
@@ -236,6 +267,7 @@ async def _build(db: AsyncSession, listing: Listing) -> schemas.Settlement:
         tills=till_rows,
         cash=cash,
         discrepancies=issues,
+        refunds=refunds,
     )
 
 
@@ -400,6 +432,22 @@ def to_csv(report: schemas.Settlement) -> str:
                 till.close_note or "",
             ]
             for till in report.tills
+        ],
+    )
+    block(
+        "Refunds",
+        ["ticket", "tier", "amount", "method", "reference", "by", "at"],
+        [
+            [
+                refund.code,
+                refund.tier_name,
+                _dollars(refund.amount_minor),
+                refund.method,
+                refund.reference or "",
+                refund.refunded_by_name or "Staff",
+                f"{refund.refunded_at:%Y-%m-%d %H:%M} UTC",
+            ]
+            for refund in report.refunds
         ],
     )
     block(

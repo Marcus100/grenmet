@@ -4,6 +4,7 @@ import {
   eventsAcceptConnection,
   eventsAdmitTicket,
   eventsBlockMember,
+  eventsCancelEvent,
   eventsCancelListingRsvp,
   eventsCancelMyTicket,
   eventsClaimTickets,
@@ -16,6 +17,8 @@ import {
   eventsLeaveGroup,
   eventsOpenThread,
   eventsOpenTill,
+  eventsPostponeEvent,
+  eventsRefundTicket,
   eventsRemoveConnection,
   eventsRequestConnection,
   eventsRequestOrganiser,
@@ -43,7 +46,7 @@ import { apiOptions } from "@/lib/api";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 import { type ActionResult, SIGN_IN_REQUIRED } from "./action-result";
-import { toDoorAdmission, toOutletSale, toTill } from "./api-mappers";
+import { toDoorAdmission, toOutletSale, toRefund, toTill } from "./api-mappers";
 import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
 
 /**
@@ -364,6 +367,64 @@ export async function sellOutletTickets(
           buyer_name: sale.buyerName.trim() || null,
           buyer_phone: sale.buyerPhone.trim() || null,
           idempotency_key: sale.idempotencyKey,
+        },
+      }).unwrap()
+    )
+  );
+}
+
+/** Cancels a published event; every valid ticket is cancelled and holders hear. */
+export async function cancelEvent(listingId: string) {
+  const organiser = await chosenOrganiser();
+  return await run("events-cancel", async (options) => {
+    const result = await eventsCancelEvent({
+      ...options,
+      path: { listing_id: listingId },
+      query: organiser ? { organiser } : {},
+      body: { confirm: true },
+    }).unwrap();
+    return { ticketsCancelled: result.tickets_cancelled };
+  });
+}
+
+/** Moves a published event to new times; tickets stay valid. */
+export async function postponeEvent(
+  listingId: string,
+  startsAt: string,
+  endsAt: string
+) {
+  const organiser = await chosenOrganiser();
+  return await run("events-postpone", async (options) => {
+    await eventsPostponeEvent({
+      ...options,
+      path: { listing_id: listingId },
+      query: organiser ? { organiser } : {},
+      body: { starts_at: startsAt, ends_at: endsAt },
+    }).unwrap();
+  });
+}
+
+/** Records cash or bank money handed back for an outlet cash ticket. */
+export async function refundTicket(
+  listingId: string,
+  ticketId: string,
+  refund: {
+    readonly amountMinor: number;
+    readonly method: "cash" | "bank";
+    readonly reference: string;
+  }
+) {
+  const organiser = await chosenOrganiser();
+  return await run("events-refund", async (options) =>
+    toRefund(
+      await eventsRefundTicket({
+        ...options,
+        path: { listing_id: listingId, ticket_id: ticketId },
+        query: organiser ? { organiser } : {},
+        body: {
+          amount_minor: refund.amountMinor,
+          method: refund.method,
+          reference: refund.reference.trim() || null,
         },
       }).unwrap()
     )

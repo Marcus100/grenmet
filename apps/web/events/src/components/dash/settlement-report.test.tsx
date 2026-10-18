@@ -45,6 +45,7 @@ const report: Settlement = {
     },
   ],
   tiers: [],
+  refunds: [],
   tills: [
     {
       id: "till",

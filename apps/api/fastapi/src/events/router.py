@@ -774,6 +774,75 @@ async def get_settlement_csv(
     )
 
 
+@router.post(
+    "/manage/{listing_id}/cancel",
+    response_model=schemas.CancelResult,
+    status_code=status.HTTP_200_OK,
+    summary="Cancel an event",
+    description="Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. Outlet cash tickets can then be refunded.",
+    responses={**_ORGANISER, 409: {"description": "Not a published event"}},
+)
+async def cancel_event(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.CancelEvent,
+    organiser: _ManagedSlug = None,
+) -> schemas.CancelResult:
+    _ = body
+    return await service.cancel_event(session, user, listing_id, scope, organiser)
+
+
+@router.post(
+    "/manage/{listing_id}/postpone",
+    response_model=schemas.PostponeResult,
+    status_code=status.HTTP_200_OK,
+    summary="Postpone an event",
+    description="Move a published event to new times. Tickets stay valid and holders are notified.",
+    responses={**_ORGANISER, 409: {"description": "Invalid times or not published"}},
+)
+async def postpone_event(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.PostponeEvent,
+    organiser: _ManagedSlug = None,
+) -> schemas.PostponeResult:
+    return await service.postpone_event(
+        session, user, listing_id, body, scope, organiser
+    )
+
+
+@router.post(
+    "/manage/{listing_id}/tickets/{ticket_id}/refund",
+    response_model=schemas.RefundPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Record a manual refund",
+    description="Record cash or bank money handed back for an outlet cash ticket. The ticket becomes refunded and can no longer be admitted. Online tickets are free and cannot be refunded.",
+    responses={
+        **_ORGANISER,
+        409: {"description": "Not refundable, already refunded or amount too high"},
+    },
+)
+async def refund_ticket(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    ticket_id: uuid.UUID,
+    body: schemas.RefundCreate,
+    organiser: _ManagedSlug = None,
+) -> schemas.RefundPublic:
+    return await service.refund_ticket(
+        session, user, listing_id, ticket_id, body, scope, organiser
+    )
+
+
 _OUTLET: dict[int | str, dict[str, Any]] = {
     **_ORGANISER,
     409: {"description": "Sold out, wrong amount, till not open or event ended"},

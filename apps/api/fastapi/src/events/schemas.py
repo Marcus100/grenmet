@@ -442,6 +442,32 @@ class Manifest(BaseModel):
     rows: list[ManifestRow]
 
 
+class RefundCreate(BaseModel):
+    amount_minor: int = Field(ge=1, le=100_000_000)
+    method: Literal["cash", "bank"]
+    #: Bank transfer reference; required for bank refunds.
+    reference: str | None = Field(default=None, max_length=120)
+
+
+class PostponeResult(BaseModel):
+    listing_id: uuid.UUID
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+
+
+class RefundPublic(BaseModel):
+    id: uuid.UUID
+    ticket_id: uuid.UUID
+    code: str
+    tier_name: str
+    amount_minor: int
+    method: Literal["cash", "bank"]
+    reference: str | None = None
+    refunded_by_name: str | None = None
+    refunded_at: UtcDateTime
+    till_session_id: uuid.UUID | None = None
+
+
 # --- Outlet cash sales (E3) -------------------------------------------------------------
 
 Currency = Literal["XCD", "USD"]
@@ -471,6 +497,10 @@ class OutletTicket(BaseModel):
     price_minor: int
     status: Literal["valid", "cancelled", "refunded"]
     admitted_at: UtcDateTime | None = None
+    #: Refund recorded for this ticket, if any.
+    refund: RefundPublic | None = None
+    #: A cash outlet ticket that can still be refunded.
+    can_refund: bool = False
 
 
 class OutletSale(BaseModel):
@@ -624,6 +654,7 @@ class Settlement(BaseModel):
     tills: list[TillPublic]
     cash: SettlementCash
     discrepancies: list[SettlementIssue]
+    refunds: list[RefundPublic]
 
 
 class SettlementSummary(BaseModel):
@@ -644,3 +675,23 @@ class SettlementSummary(BaseModel):
 class SettlementOverview(BaseModel):
     organiser_name: str
     listings: list[SettlementSummary]
+
+
+# --- Cancel, postpone and refund (E5) ---------------------------------------------------
+
+
+class CancelEvent(BaseModel):
+    #: Must be true; guards against an accidental call.
+    confirm: Literal[True]
+
+
+class CancelResult(BaseModel):
+    listing_id: uuid.UUID
+    status: Literal["cancelled"]
+    #: Valid tickets cancelled with the event (holders are notified).
+    tickets_cancelled: int
+
+
+class PostponeEvent(BaseModel):
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime

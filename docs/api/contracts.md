@@ -479,6 +479,18 @@ stock, every till with expected, counted and difference, cash totals and `discre
 (`till_short`, `till_over`, `till_open`). `GET .../settlement.csv` downloads the same report
 as CSV. `GET /events/manage/settlement` returns one summary row per ticketed event.
 
+### Events cancel, postpone and refund (E5)
+
+`POST /events/manage/{listing_id}/cancel` (`{confirm: true}`) cancels a published event and all
+its valid tickets (`tickets_cancelled` in the response) and notifies going, saved and
+ticket-holding members through the outbox. `POST .../postpone` (`{starts_at, ends_at}`) moves a
+published event to future times and keeps tickets valid. `POST .../tickets/{ticket_id}/refund`
+(`{amount_minor, method: "cash"|"bank", reference?}`, 201) records a manual refund for an outlet
+cash ticket: 409 for online tickets (free), free tickets, amounts above the price, a bank refund
+without a reference, a ticket already refunded or cancelled by its holder, or a used ticket unless
+the event was cancelled. Ticket `status` can now be `refunded`; refunded tickets are not
+admitted. The settlement report lists `refunds` and per-channel `refunded`/`refunded_minor`.
+
 ## Pagination
 
 The standard helper is `src.pagination`:

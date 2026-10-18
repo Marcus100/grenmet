@@ -23,7 +23,16 @@ from src.organisations.models import Membership, MembershipRole, MembershipStatu
 from src.utils.datetime import utc_now
 
 from . import notifications
-from .models import Follow, Listing, Order, Organiser, Outbox, Rsvp, SavedListing
+from .models import (
+    Follow,
+    Listing,
+    Order,
+    Organiser,
+    Outbox,
+    Rsvp,
+    SavedListing,
+    Ticket,
+)
 from .service.common import GRENADA
 
 logger = logging.getLogger(__name__)
@@ -119,7 +128,14 @@ async def _listing_audience(
     saved = await events.scalars(
         select(SavedListing.user_id).where(SavedListing.listing_id == listing.id)
     )
-    return set(going.all()) | set(saved.all())
+    audience = set(going.all()) | set(saved.all())
+    # Ticket holders (including those just cancelled by the event) hear too.
+    holders = await events.scalars(
+        select(Ticket.user_id).where(
+            Ticket.listing_id == listing.id, Ticket.user_id.is_not(None)
+        )
+    )
+    return audience | {holder for holder in holders.all() if holder is not None}
 
 
 async def _deliver(events: AsyncSession, platform: AsyncSession, row: Outbox) -> int:

@@ -144,6 +144,7 @@ export { eregisterValidateSynopObservation } from "./clients/eregisterValidateSy
 export { eventsAcceptConnection } from "./clients/eventsAcceptConnection.js";
 export { eventsAdmitTicket } from "./clients/eventsAdmitTicket.js";
 export { eventsBlockMember } from "./clients/eventsBlockMember.js";
+export { eventsCancelEvent } from "./clients/eventsCancelEvent.js";
 export { eventsCancelListingRsvp } from "./clients/eventsCancelListingRsvp.js";
 export { eventsCancelMyTicket } from "./clients/eventsCancelMyTicket.js";
 export { eventsClaimTickets } from "./clients/eventsClaimTickets.js";
@@ -180,6 +181,8 @@ export { eventsListSuggestions } from "./clients/eventsListSuggestions.js";
 export { eventsListThreads } from "./clients/eventsListThreads.js";
 export { eventsOpenThread } from "./clients/eventsOpenThread.js";
 export { eventsOpenTill } from "./clients/eventsOpenTill.js";
+export { eventsPostponeEvent } from "./clients/eventsPostponeEvent.js";
+export { eventsRefundTicket } from "./clients/eventsRefundTicket.js";
 export { eventsRemoveConnection } from "./clients/eventsRemoveConnection.js";
 export { eventsRequestConnection } from "./clients/eventsRequestConnection.js";
 export { eventsRequestOrganiser } from "./clients/eventsRequestOrganiser.js";
@@ -1187,6 +1190,11 @@ export {
   useEventsBlockMember,
 } from "./hooks/useEventsBlockMember.js";
 export {
+  eventsCancelEventMutationKey,
+  eventsCancelEventMutationOptions,
+  useEventsCancelEvent,
+} from "./hooks/useEventsCancelEvent.js";
+export {
   eventsCancelListingRsvpMutationKey,
   eventsCancelListingRsvpMutationOptions,
   useEventsCancelListingRsvp,
@@ -1366,6 +1374,16 @@ export {
   eventsOpenTillMutationOptions,
   useEventsOpenTill,
 } from "./hooks/useEventsOpenTill.js";
+export {
+  eventsPostponeEventMutationKey,
+  eventsPostponeEventMutationOptions,
+  useEventsPostponeEvent,
+} from "./hooks/useEventsPostponeEvent.js";
+export {
+  eventsRefundTicketMutationKey,
+  eventsRefundTicketMutationOptions,
+  useEventsRefundTicket,
+} from "./hooks/useEventsRefundTicket.js";
 export {
   eventsRemoveConnectionMutationKey,
   eventsRemoveConnectionMutationOptions,
@@ -3873,6 +3891,8 @@ export { calendarEventKind } from "./models/CalendarEventKind.js";
 export type { CalendarEventPublic } from "./models/CalendarEventPublic.js";
 export type { CalendarEventsPublic } from "./models/CalendarEventsPublic.js";
 export type { CalendarEventUpdate } from "./models/CalendarEventUpdate.js";
+export type { CancelEvent } from "./models/CancelEvent.js";
+export type { CancelResult } from "./models/CancelResult.js";
 export type { CapAlertAction } from "./models/CapAlertAction.js";
 export type { CapAlertCreate } from "./models/CapAlertCreate.js";
 export type { CapAlertImportRequest } from "./models/CapAlertImportRequest.js";
@@ -4551,6 +4571,21 @@ export type {
   EventsBlockMemberStatus429,
 } from "./models/EventsBlockMember.js";
 export type {
+  EventsCancelEventBody,
+  EventsCancelEventOptions,
+  EventsCancelEventPath,
+  EventsCancelEventQuery,
+  EventsCancelEventResponse,
+  EventsCancelEventResponses,
+  EventsCancelEventStatus200,
+  EventsCancelEventStatus401,
+  EventsCancelEventStatus403,
+  EventsCancelEventStatus404,
+  EventsCancelEventStatus409,
+  EventsCancelEventStatus422,
+  EventsCancelEventStatus429,
+} from "./models/EventsCancelEvent.js";
+export type {
   EventsCancelListingRsvpOptions,
   EventsCancelListingRsvpPath,
   EventsCancelListingRsvpResponse,
@@ -4967,6 +5002,36 @@ export type {
   EventsOpenTillStatus422,
   EventsOpenTillStatus429,
 } from "./models/EventsOpenTill.js";
+export type {
+  EventsPostponeEventBody,
+  EventsPostponeEventOptions,
+  EventsPostponeEventPath,
+  EventsPostponeEventQuery,
+  EventsPostponeEventResponse,
+  EventsPostponeEventResponses,
+  EventsPostponeEventStatus200,
+  EventsPostponeEventStatus401,
+  EventsPostponeEventStatus403,
+  EventsPostponeEventStatus404,
+  EventsPostponeEventStatus409,
+  EventsPostponeEventStatus422,
+  EventsPostponeEventStatus429,
+} from "./models/EventsPostponeEvent.js";
+export type {
+  EventsRefundTicketBody,
+  EventsRefundTicketOptions,
+  EventsRefundTicketPath,
+  EventsRefundTicketQuery,
+  EventsRefundTicketResponse,
+  EventsRefundTicketResponses,
+  EventsRefundTicketStatus201,
+  EventsRefundTicketStatus401,
+  EventsRefundTicketStatus403,
+  EventsRefundTicketStatus404,
+  EventsRefundTicketStatus409,
+  EventsRefundTicketStatus422,
+  EventsRefundTicketStatus429,
+} from "./models/EventsRefundTicket.js";
 export type {
   EventsRemoveConnectionOptions,
   EventsRemoveConnectionPath,
@@ -7574,6 +7639,8 @@ export type { PlatformOrganisationUpdate } from "./models/PlatformOrganisationUp
 export type { PolicyInput } from "./models/PolicyInput.js";
 export type { PolicyPublic } from "./models/PolicyPublic.js";
 export type { PositionSpec } from "./models/PositionSpec.js";
+export type { PostponeEvent } from "./models/PostponeEvent.js";
+export type { PostponeResult } from "./models/PostponeResult.js";
 export type { ProductAccessCurrent } from "./models/ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./models/ProductAccessInput.js";
 export type { ProductAccessPublic } from "./models/ProductAccessPublic.js";
@@ -7617,6 +7684,10 @@ export type { QcDecisionRequest } from "./models/QcDecisionRequest.js";
 export type { ReceivableRowPublic } from "./models/ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./models/ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./models/RecoveryCodesPublic.js";
+export type { RefundCreate } from "./models/RefundCreate.js";
+export type { RefundCreatePropertiesMethodEnum } from "./models/RefundCreatePropertiesMethodEnum.js";
+export { refundCreatePropertiesMethodEnum } from "./models/RefundCreatePropertiesMethodEnum.js";
+export type { RefundPublic } from "./models/RefundPublic.js";
 export type { RegisterObservationCreate } from "./models/RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./models/RegisterObservationList.js";
 export type { RegisterObservationRead } from "./models/RegisterObservationRead.js";
@@ -9760,6 +9831,8 @@ export { calendarEventKindSchema } from "./zod/calendarEventKindSchema.js";
 export { calendarEventPublicSchema } from "./zod/calendarEventPublicSchema.js";
 export { calendarEventsPublicSchema } from "./zod/calendarEventsPublicSchema.js";
 export { calendarEventUpdateSchema } from "./zod/calendarEventUpdateSchema.js";
+export { cancelEventSchema } from "./zod/cancelEventSchema.js";
+export { cancelResultSchema } from "./zod/cancelResultSchema.js";
 export { capAlertActionSchema } from "./zod/capAlertActionSchema.js";
 export { capAlertCreateSchema } from "./zod/capAlertCreateSchema.js";
 export { capAlertImportRequestPropertiesSourceEnumSchema } from "./zod/capAlertImportRequestPropertiesSourceEnumSchema.js";
@@ -10368,6 +10441,20 @@ export {
   eventsBlockMemberStatus429Schema,
 } from "./zod/eventsBlockMemberSchema.js";
 export {
+  eventsCancelEventBodySchema,
+  eventsCancelEventErrorSchema,
+  eventsCancelEventPathListingIdSchema,
+  eventsCancelEventQueryOrganiserSchema,
+  eventsCancelEventResponseSchema,
+  eventsCancelEventStatus200Schema,
+  eventsCancelEventStatus401Schema,
+  eventsCancelEventStatus403Schema,
+  eventsCancelEventStatus404Schema,
+  eventsCancelEventStatus409Schema,
+  eventsCancelEventStatus422Schema,
+  eventsCancelEventStatus429Schema,
+} from "./zod/eventsCancelEventSchema.js";
+export {
   eventsCancelListingRsvpErrorSchema,
   eventsCancelListingRsvpPathSlugSchema,
   eventsCancelListingRsvpResponseSchema,
@@ -10757,6 +10844,35 @@ export {
   eventsOpenTillStatus422Schema,
   eventsOpenTillStatus429Schema,
 } from "./zod/eventsOpenTillSchema.js";
+export {
+  eventsPostponeEventBodySchema,
+  eventsPostponeEventErrorSchema,
+  eventsPostponeEventPathListingIdSchema,
+  eventsPostponeEventQueryOrganiserSchema,
+  eventsPostponeEventResponseSchema,
+  eventsPostponeEventStatus200Schema,
+  eventsPostponeEventStatus401Schema,
+  eventsPostponeEventStatus403Schema,
+  eventsPostponeEventStatus404Schema,
+  eventsPostponeEventStatus409Schema,
+  eventsPostponeEventStatus422Schema,
+  eventsPostponeEventStatus429Schema,
+} from "./zod/eventsPostponeEventSchema.js";
+export {
+  eventsRefundTicketBodySchema,
+  eventsRefundTicketErrorSchema,
+  eventsRefundTicketPathListingIdSchema,
+  eventsRefundTicketPathTicketIdSchema,
+  eventsRefundTicketQueryOrganiserSchema,
+  eventsRefundTicketResponseSchema,
+  eventsRefundTicketStatus201Schema,
+  eventsRefundTicketStatus401Schema,
+  eventsRefundTicketStatus403Schema,
+  eventsRefundTicketStatus404Schema,
+  eventsRefundTicketStatus409Schema,
+  eventsRefundTicketStatus422Schema,
+  eventsRefundTicketStatus429Schema,
+} from "./zod/eventsRefundTicketSchema.js";
 export {
   eventsRemoveConnectionErrorSchema,
   eventsRemoveConnectionPathConnectionIdSchema,
@@ -13160,6 +13276,8 @@ export { platformOrganisationUpdateSchema } from "./zod/platformOrganisationUpda
 export { policyInputSchema } from "./zod/policyInputSchema.js";
 export { policyPublicSchema } from "./zod/policyPublicSchema.js";
 export { positionSpecSchema } from "./zod/positionSpecSchema.js";
+export { postponeEventSchema } from "./zod/postponeEventSchema.js";
+export { postponeResultSchema } from "./zod/postponeResultSchema.js";
 export { productAccessCurrentSchema } from "./zod/productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./zod/productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./zod/productAccessPublicSchema.js";
@@ -13198,6 +13316,9 @@ export { qcDecisionRequestSchema } from "./zod/qcDecisionRequestSchema.js";
 export { receivableRowPublicSchema } from "./zod/receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./zod/receivablesPublicSchema.js";
 export { recoveryCodesPublicSchema } from "./zod/recoveryCodesPublicSchema.js";
+export { refundCreatePropertiesMethodEnumSchema } from "./zod/refundCreatePropertiesMethodEnumSchema.js";
+export { refundCreateSchema } from "./zod/refundCreateSchema.js";
+export { refundPublicSchema } from "./zod/refundPublicSchema.js";
 export { registerObservationCreateSchema } from "./zod/registerObservationCreateSchema.js";
 export { registerObservationListSchema } from "./zod/registerObservationListSchema.js";
 export { registerObservationReadPropertiesStateEnumSchema } from "./zod/registerObservationReadPropertiesStateEnumSchema.js";

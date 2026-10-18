@@ -34,6 +34,7 @@ from .discover import (
     _organiser_verified,
     _tiers,
 )
+from .ticketing import cancel_valid_tickets
 
 _STATUS = TypeAdapter(Literal["draft", "published", "cancelled"])
 _VISIBILITY = TypeAdapter(Literal["public", "unlisted"])
@@ -407,6 +408,8 @@ async def update_listing(
     before = await _snapshot(db, listing)
     await _require_verified_to_publish(organiser, body.status, before["status"])
     await _apply_listing(db, listing, body, organiser)
+    if before["status"] != "cancelled" and listing.status == "cancelled":
+        await cancel_valid_tickets(db, listing.id)
     await _record_listing_change(db, listing, user, before=before)
     await db.commit()
     return await _managed(db, listing, user)

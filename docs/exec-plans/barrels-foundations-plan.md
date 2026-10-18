@@ -175,9 +175,9 @@ Alembic head.
 | F8 | Organisation-scoped uploads (presigned, size and type limits) | M | U — built, pending merge (`org.upload`, `/storage/uploads`; Events organiser logo and listing image; bucket CORS for browser PUT is an ops step) |
 | E1 | Orders and tickets for free and registration tiers; inventory guard; QR ticket page | L | U — built, pending merge (`events_0005`; per-account limit default 4 per tier; paid tiers refused until E6; verified-publish gate added with it) |
 | E2 | Idempotent admission scans, duplicate rejection, printable manifest | M | U — built, pending merge (`events_0006`; `/dash/events/[id]/door`, keyboard-scanner input, no camera) |
-| E3 | Outlet cash sales by the organiser's own staff, sharing inventory with online and door | M | U |
-| E4 | Settlement report replacing `/dash` demo fixtures | M | U |
-| E5 | Cancel, postpone and manual refund | M | U |
+| E3 | Outlet cash sales by the organiser's own staff, sharing inventory with online and door | M | U — built, pending merge (`events_0008`; admin/owner staff only, per-staff-per-day till with float and count; `/dash/events/[id]/outlet`) |
+| E4 | Settlement report replacing `/dash` demo fixtures | M | U — built, pending merge (`/dash/events/[id]/settlement`, CSV export, `/dash` panel) |
+| E5 | Cancel, postpone and manual refund | M | U — built, pending merge (`events_0009`; cancel cascades to tickets and notifies holders; refunds are manual cash/bank records for outlet cash tickets) |
 | C1 | `apps/web/admin` shell at `admin.barrels.gd` (port 3012), superuser via auth handoff, status cards (**built, pending merge**; deploy wiring and the `admin.*` host cutover deliberately not done, see "Host move") | L | U |
 | C2 | Control-plane organisations: list, detail, verify, app entitlements, members (**built, pending merge**) | M | U |
 | P1 | Invoice core: customer, invoice, lines, numbering, totals in minor units; entity, VAT and prefix are provisional settings | M | U — built, pending merge |

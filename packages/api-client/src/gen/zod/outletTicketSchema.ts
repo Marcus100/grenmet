@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { outletTicketPropertiesStatusEnumSchema } from "./outletTicketPropertiesStatusEnumSchema.js";
+import { refundPublicSchema } from "./refundPublicSchema.js";
 
 export const outletTicketSchema = z.object({
   id: z.uuid(),
@@ -14,4 +15,6 @@ export const outletTicketSchema = z.object({
   price_minor: z.int(),
   status: outletTicketPropertiesStatusEnumSchema,
   admitted_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  refund: z.union([refundPublicSchema, z.null()]).optional(),
+  can_refund: z.boolean().optional().default(false),
 });

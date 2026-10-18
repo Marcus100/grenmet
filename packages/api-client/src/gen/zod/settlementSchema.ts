@@ -6,6 +6,7 @@
 import * as z from "zod";
 import { listingCardPropertiesCurrencyEnumSchema } from "./listingCardPropertiesCurrencyEnumSchema.js";
 import { listingUpsertPropertiesStatusEnumSchema } from "./listingUpsertPropertiesStatusEnumSchema.js";
+import { refundPublicSchema } from "./refundPublicSchema.js";
 import { settlementCashSchema } from "./settlementCashSchema.js";
 import { settlementChannelSchema } from "./settlementChannelSchema.js";
 import { settlementCountsSchema } from "./settlementCountsSchema.js";
@@ -31,4 +32,5 @@ export const settlementSchema = z.object({
     "Cash across every till. Difference counts closed tills only."
   ),
   discrepancies: z.array(settlementIssueSchema),
+  refunds: z.array(refundPublicSchema),
 });

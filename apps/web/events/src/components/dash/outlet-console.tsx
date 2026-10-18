@@ -9,7 +9,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
-import { closeTill, openTill, sellOutletTickets } from "@/data/actions";
+import {
+  closeTill,
+  openTill,
+  refundTicket,
+  sellOutletTickets,
+} from "@/data/actions";
 import { formatMoney, money, parseMinor } from "@/domain/money";
 import type { CurrencyCode, Outlet, Till } from "@/domain/types";
 import { formatTime } from "@/lib/datetime";
@@ -60,6 +65,8 @@ export function OutletConsole({ outlet }: { outlet: Outlet }) {
       ) : null}
 
       <SalesList currency={currency} outlet={outlet} />
+
+      <RefundPanel currency={currency} outlet={outlet} />
     </div>
   );
 }
@@ -448,4 +455,168 @@ function FormError({ error }: { error: string | null }) {
       {error}
     </p>
   ) : null;
+}
+
+/**
+ * Manual refunds for outlet cash tickets: the organiser hands back cash or
+ * makes a bank transfer, then records it here. A refunded ticket can no
+ * longer be admitted and its place goes back on sale.
+ */
+function RefundPanel({
+  currency,
+  outlet,
+}: {
+  currency: CurrencyCode;
+  outlet: Outlet;
+}) {
+  const rows = outlet.sales.flatMap((sale) =>
+    sale.tickets.map((ticket) => ({ sale, ticket }))
+  );
+  const refundable = rows.filter(({ ticket }) => ticket.canRefund);
+  const refunded = rows.filter(({ ticket }) => ticket.refund !== null);
+  if (refundable.length === 0 && refunded.length === 0) {
+    return null;
+  }
+  return (
+    <section aria-labelledby="refund-heading" className="space-y-3">
+      <h2
+        className="font-display font-semibold text-heading-sm"
+        id="refund-heading"
+      >
+        Refunds
+      </h2>
+      <ul className="divide-y rounded-xl border bg-card">
+        {refundable.map(({ sale, ticket }) => (
+          <RefundRow
+            buyer={sale.buyerName}
+            currency={currency}
+            key={ticket.id}
+            listingId={outlet.listingId}
+            ticket={ticket}
+          />
+        ))}
+        {refunded.map(({ ticket }) =>
+          ticket.refund ? (
+            <li
+              className="flex flex-wrap items-center gap-2 px-4 py-2 text-body"
+              key={ticket.id}
+            >
+              <Badge variant="outline">Refunded</Badge>
+              <span className="font-mono tracking-wider">{ticket.code}</span>
+              <span className="tabular-nums">
+                {amount(ticket.refund.amountMinor, currency)} by{" "}
+                {ticket.refund.method}
+                {ticket.refund.reference ? ` (${ticket.refund.reference})` : ""}
+              </span>
+              <span className="text-caption text-muted-foreground">
+                {ticket.refund.refundedByName ?? "Staff"} at{" "}
+                {formatTime(ticket.refund.refundedAt)}
+              </span>
+            </li>
+          ) : null
+        )}
+      </ul>
+    </section>
+  );
+}
+
+function RefundRow({
+  buyer,
+  currency,
+  listingId,
+  ticket,
+}: {
+  buyer: string | null;
+  currency: CurrencyCode;
+  listingId: string;
+  ticket: Outlet["sales"][number]["tickets"][number];
+}) {
+  const router = useRouter();
+  const { error, pending, perform } = useMemberAction();
+  const [method, setMethod] = useState<"cash" | "bank">("cash");
+  const [value, setValue] = useState((ticket.priceMinor / 100).toFixed(2));
+  const [reference, setReference] = useState("");
+  const minor = parseMinor(value);
+
+  return (
+    <li className="space-y-2 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-2 text-body">
+        <span className="font-mono tracking-wider">{ticket.code}</span>
+        <span>
+          {ticket.tierName} · {amount(ticket.priceMinor, currency)}
+        </span>
+        <span className="text-caption text-muted-foreground">
+          {buyer ?? "Walk-up"}
+        </span>
+      </div>
+      <form
+        className="flex flex-wrap items-end gap-2"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          if (minor === null || minor === 0) {
+            return;
+          }
+          const result = await perform(() =>
+            refundTicket(listingId, ticket.id, {
+              amountMinor: minor,
+              method,
+              reference,
+            })
+          );
+          if (result.ok) {
+            router.refresh();
+          }
+        }}
+      >
+        <div className="flex gap-1">
+          <Button
+            aria-pressed={method === "cash"}
+            onClick={() => setMethod("cash")}
+            size="sm"
+            type="button"
+            variant={method === "cash" ? "default" : "outline"}
+          >
+            Cash
+          </Button>
+          <Button
+            aria-pressed={method === "bank"}
+            onClick={() => setMethod("bank")}
+            size="sm"
+            type="button"
+            variant={method === "bank" ? "default" : "outline"}
+          >
+            Bank
+          </Button>
+        </div>
+        <Field className="w-28">
+          <FieldLabel htmlFor={`refund-amount-${ticket.id}`}>Amount</FieldLabel>
+          <Input
+            id={`refund-amount-${ticket.id}`}
+            inputMode="decimal"
+            onChange={(event) => setValue(event.target.value)}
+            value={value}
+          />
+        </Field>
+        <Field className="min-w-40 flex-1">
+          <FieldLabel htmlFor={`refund-ref-${ticket.id}`}>
+            {method === "bank" ? "Bank reference" : "Reference (optional)"}
+          </FieldLabel>
+          <Input
+            id={`refund-ref-${ticket.id}`}
+            maxLength={120}
+            onChange={(event) => setReference(event.target.value)}
+            value={reference}
+          />
+        </Field>
+        <Button
+          disabled={pending || minor === null || minor === 0}
+          type="submit"
+          variant="outline"
+        >
+          Record refund
+        </Button>
+      </form>
+      <FormError error={error} />
+    </li>
+  );
 }

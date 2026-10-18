@@ -4,6 +4,7 @@
  */
 
 import type { OutletTicketPropertiesStatusEnum } from "./OutletTicketPropertiesStatusEnum.js";
+import type { RefundPublic } from "./RefundPublic.js";
 
 export type OutletTicket = {
   /**
@@ -18,4 +19,10 @@ export type OutletTicket = {
   price_minor: number;
   status: OutletTicketPropertiesStatusEnum;
   admitted_at?: string | null;
+  refund?: RefundPublic | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  can_refund?: boolean;
 };

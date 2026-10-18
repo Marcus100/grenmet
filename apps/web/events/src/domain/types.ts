@@ -491,13 +491,29 @@ export interface DoorAdmission {
   readonly tierName: string;
 }
 
+/** A manual refund recorded against an outlet cash ticket. */
+export interface Refund {
+  readonly amountMinor: number;
+  readonly code: string;
+  readonly id: string;
+  readonly method: "cash" | "bank";
+  readonly reference: string | null;
+  readonly refundedAt: string;
+  readonly refundedByName: string | null;
+  readonly ticketId: string;
+  readonly tierName: string;
+}
+
 /** One ticket sold at the outlet; the QR token is printed on the slip. */
 export interface OutletTicket {
   readonly admittedAt: string | null;
+  /** A cash outlet ticket that can still be refunded. */
+  readonly canRefund: boolean;
   readonly code: string;
   readonly id: string;
   readonly priceMinor: number;
   readonly qrToken: string;
+  readonly refund: Refund | null;
   readonly status: "valid" | "cancelled" | "refunded";
   readonly tierName: string;
 }
@@ -619,6 +635,7 @@ export interface Settlement {
   readonly endsAt: string;
   readonly generatedAt: string;
   readonly listingId: string;
+  readonly refunds: readonly Refund[];
   readonly startsAt: string;
   readonly status: "draft" | "published" | "cancelled";
   readonly tiers: readonly SettlementTier[];

@@ -34,6 +34,7 @@ from ..models import (
     Listing,
     Order,
     OrderItem,
+    Refund,
     Ticket,
     TicketTier,
     TillSession,
@@ -45,6 +46,7 @@ OUTLET_RECENT_SALES = 100
 _LISTING_STATUS = TypeAdapter(Literal["draft", "published", "cancelled"])
 _CURRENCY = TypeAdapter(Literal["XCD", "USD"])
 _TICKET_STATUS = TypeAdapter(Literal["valid", "cancelled", "refunded"])
+_REFUND_METHOD = TypeAdapter(Literal["cash", "bank"])
 _DAY_CLOSED = "Your till is closed for today"
 _NO_TILL = "Open your till before selling"
 
@@ -80,8 +82,8 @@ def _selling(listing: Listing) -> bool:
 
 async def _till_stats(
     db: AsyncSession, till_ids: list[uuid.UUID]
-) -> dict[uuid.UUID, tuple[int, int, int]]:
-    """``{till: (sales, tickets, collected_minor)}`` for outlet orders in a till."""
+) -> dict[uuid.UUID, tuple[int, int, int, int]]:
+    """``{till: (sales, tickets, collected_minor, cash_refunds_minor)}``."""
     if not till_ids:
         return {}
     orders = await db.execute(
@@ -101,10 +103,21 @@ async def _till_stats(
             .group_by(Order.till_session_id)
         )
     )
-    return {
-        row[0]: (int(row[1]), int(sold.get(row[0], 0)), int(row[2]))
+    refunded = _pairs(
+        await db.execute(
+            select(Refund.till_session_id, func.sum(Refund.amount_minor))
+            .where(Refund.till_session_id.in_(till_ids), Refund.method == "cash")
+            .group_by(Refund.till_session_id)
+        )
+    )
+    stats = {
+        row[0]: (int(row[1]), int(sold.get(row[0], 0)), int(row[2]), 0)
         for row in orders.all()
     }
+    for till_id, amount in refunded.items():
+        sales, tickets_sold, collected, _ = stats.get(till_id, (0, 0, 0, 0))
+        stats[till_id] = (sales, tickets_sold, collected, int(amount))
+    return stats
 
 
 async def till_views(
@@ -114,8 +127,8 @@ async def till_views(
     names = await _names(db, {till.staff_id for till in tills})
     views: list[schemas.TillPublic] = []
     for till in tills:
-        sales, sold, collected = stats.get(till.id, (0, 0, 0))
-        expected = till.opening_float_minor + collected
+        sales, sold, collected, refunded = stats.get(till.id, (0, 0, 0, 0))
+        expected = till.opening_float_minor + collected - refunded
         views.append(
             schemas.TillPublic(
                 id=till.id,
@@ -129,6 +142,7 @@ async def till_views(
                 sales_count=sales,
                 tickets_sold=sold,
                 collected_minor=collected,
+                cash_refunds_minor=refunded,
                 expected_minor=expected,
                 counted_minor=till.counted_minor,
                 difference_minor=(
@@ -236,6 +250,50 @@ async def close_till(
 # --- Sales -----------------------------------------------------------------------------
 
 
+def refundable(listing: Listing, status: str, price_minor: int, admitted: bool) -> bool:
+    """A paid outlet ticket that is still valid, or was cancelled with its event.
+
+    Used door tickets are refundable only when the event itself was cancelled.
+    """
+    cancelled_event = listing.status == "cancelled"
+    if price_minor <= 0 or status not in {"valid", "cancelled"}:
+        return False
+    if status == "cancelled" and not cancelled_event:
+        return False
+    return not admitted or cancelled_event
+
+
+async def refund_views(
+    db: AsyncSession, refunds: list[Refund]
+) -> list[schemas.RefundPublic]:
+    if not refunds:
+        return []
+    rows = (
+        await db.execute(
+            select(Ticket.id, Ticket.code, TicketTier.name)
+            .join(TicketTier, TicketTier.id == Ticket.tier_id)
+            .where(Ticket.id.in_([refund.ticket_id for refund in refunds]))
+        )
+    ).all()
+    detail = {row[0]: (row[1], row[2]) for row in rows}
+    names = await _names(db, {refund.refunded_by for refund in refunds})
+    return [
+        schemas.RefundPublic(
+            id=refund.id,
+            ticket_id=refund.ticket_id,
+            code=tickets.display_code(detail[refund.ticket_id][0]),
+            tier_name=detail[refund.ticket_id][1],
+            amount_minor=refund.amount_minor,
+            method=_REFUND_METHOD.validate_python(refund.method),
+            reference=refund.reference,
+            refunded_by_name=names.get(refund.refunded_by),
+            refunded_at=refund.refunded_at,
+            till_session_id=refund.till_session_id,
+        )
+        for refund in sorted(refunds, key=lambda row: (row.refunded_at, row.id))
+    ]
+
+
 async def sale_views(
     db: AsyncSession, listing: Listing, orders: list[Order]
 ) -> list[schemas.OutletSale]:
@@ -247,16 +305,36 @@ async def sale_views(
                 select(
                     Ticket,
                     TicketTier.name,
-                    TicketTier.price_minor,
+                    OrderItem.unit_price_minor,
                     Admission.admitted_at,
                 )
                 .join(TicketTier, TicketTier.id == Ticket.tier_id)
+                .join(
+                    OrderItem,
+                    (OrderItem.order_id == Ticket.order_id)
+                    & (OrderItem.tier_id == Ticket.tier_id),
+                )
                 .outerjoin(Admission, Admission.ticket_id == Ticket.id)
                 .where(Ticket.order_id.in_([order.id for order in orders]))
                 .order_by(Ticket.created_at, Ticket.id)
             )
         ).all()
     )
+    refunds = {
+        view.ticket_id: view
+        for view in await refund_views(
+            db,
+            list(
+                (
+                    await db.scalars(
+                        select(Refund).where(
+                            Refund.ticket_id.in_([row[0].id for row in rows])
+                        )
+                    )
+                ).all()
+            ),
+        )
+    }
     by_order: dict[uuid.UUID, list[schemas.OutletTicket]] = {}
     for ticket, tier_name, price, admitted_at in rows:
         by_order.setdefault(ticket.order_id, []).append(
@@ -268,6 +346,10 @@ async def sale_views(
                 price_minor=price,
                 status=_TICKET_STATUS.validate_python(ticket.status),
                 admitted_at=admitted_at,
+                refund=refunds.get(ticket.id),
+                can_refund=refundable(
+                    listing, ticket.status, price, admitted_at is not None
+                ),
             )
         )
     names = await _names(db, {order.sold_by for order in orders})
