@@ -1298,6 +1298,19 @@ an observation value). The endpoint does not save, publish, or
 transmit an observation; `POST /api/v1/eregister/observations` still stores a
 draft.
 
+#### eRegister send actions
+
+`POST /api/v1/eregister/observations/{id}/email` and `.../publish` (permission
+`eregister.send`, body `{"resend": false}` optional, `202` with an
+`ObservationSend`) queue a saved SYNOP: the first emails the FM 12 text and a
+decoded summary to `EREGISTER_OBS_RECIPIENTS` through the notifications outbox,
+the second writes a csv2bufr CSV for wis2box through an ARQ job with retries.
+`GET /api/v1/eregister/observations/{id}/sends` lists the history (`target`
+`email` or `wis2`, `status` `queued`, `sent` or `failed`). Errors: `404` unknown
+observation, `409` no recipients or WIS2 not configured, rejected or superseded
+or non-SYNOP observation, or already sent without `resend`, `422` the stored
+workbook fails validation. Details: `docs/operations/eregister-wmo-conformance.md`.
+
 ### GAA operational catalogues
 
 `GET /api/v1/janitorial/spec` and `GET /api/v1/transport/spec` are authenticated

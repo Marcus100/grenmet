@@ -1389,6 +1389,29 @@ export type {
   EregisterCreateRegisterObservationStatus422,
 } from "./EregisterCreateRegisterObservation.js";
 export type {
+  EregisterEmailRegisterObservationBody,
+  EregisterEmailRegisterObservationOptions,
+  EregisterEmailRegisterObservationPath,
+  EregisterEmailRegisterObservationResponse,
+  EregisterEmailRegisterObservationResponses,
+  EregisterEmailRegisterObservationStatus202,
+  EregisterEmailRegisterObservationStatus401,
+  EregisterEmailRegisterObservationStatus403,
+  EregisterEmailRegisterObservationStatus404,
+  EregisterEmailRegisterObservationStatus409,
+  EregisterEmailRegisterObservationStatus422,
+} from "./EregisterEmailRegisterObservation.js";
+export type {
+  EregisterListObservationSendsOptions,
+  EregisterListObservationSendsPath,
+  EregisterListObservationSendsResponse,
+  EregisterListObservationSendsResponses,
+  EregisterListObservationSendsStatus200,
+  EregisterListObservationSendsStatus401,
+  EregisterListObservationSendsStatus403,
+  EregisterListObservationSendsStatus422,
+} from "./EregisterListObservationSends.js";
+export type {
   EregisterListRegisterObservationsOptions,
   EregisterListRegisterObservationsQuery,
   EregisterListRegisterObservationsResponse,
@@ -1416,6 +1439,19 @@ export type {
   EregisterPublicMonthSummaryStatus429,
   EregisterPublicMonthSummaryStatus503,
 } from "./EregisterPublicMonthSummary.js";
+export type {
+  EregisterPublishRegisterObservationBody,
+  EregisterPublishRegisterObservationOptions,
+  EregisterPublishRegisterObservationPath,
+  EregisterPublishRegisterObservationResponse,
+  EregisterPublishRegisterObservationResponses,
+  EregisterPublishRegisterObservationStatus202,
+  EregisterPublishRegisterObservationStatus401,
+  EregisterPublishRegisterObservationStatus403,
+  EregisterPublishRegisterObservationStatus404,
+  EregisterPublishRegisterObservationStatus409,
+  EregisterPublishRegisterObservationStatus422,
+} from "./EregisterPublishRegisterObservation.js";
 export type {
   EregisterValidateSynopObservationBody,
   EregisterValidateSynopObservationOptions,
@@ -3899,6 +3935,12 @@ export { observationProvenancePropertiesTimeBasisEnum } from "./ObservationProve
 export type { ObservationRecord } from "./ObservationRecord.js";
 export type { ObservationRecordPropertiesKindEnum } from "./ObservationRecordPropertiesKindEnum.js";
 export { observationRecordPropertiesKindEnum } from "./ObservationRecordPropertiesKindEnum.js";
+export type { ObservationSend } from "./ObservationSend.js";
+export type { ObservationSendList } from "./ObservationSendList.js";
+export type { ObservationSendPropertiesStatusEnum } from "./ObservationSendPropertiesStatusEnum.js";
+export { observationSendPropertiesStatusEnum } from "./ObservationSendPropertiesStatusEnum.js";
+export type { ObservationSendPropertiesTargetEnum } from "./ObservationSendPropertiesTargetEnum.js";
+export { observationSendPropertiesTargetEnum } from "./ObservationSendPropertiesTargetEnum.js";
 export type { OnboardingStatus } from "./OnboardingStatus.js";
 export type { OrganisationCatalogue } from "./OrganisationCatalogue.js";
 export type { OrganisationCreate } from "./OrganisationCreate.js";
@@ -4181,6 +4223,7 @@ export type { SectionUpdate } from "./SectionUpdate.js";
 export type { SectionView } from "./SectionView.js";
 export type { SecurityProof } from "./SecurityProof.js";
 export type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
+export type { SendObservationRequest } from "./SendObservationRequest.js";
 export type { ServiceCalendarView } from "./ServiceCalendarView.js";
 export type { SessionAccessTokenResponse } from "./SessionAccessTokenResponse.js";
 export type { SessionLoginRequest } from "./SessionLoginRequest.js";

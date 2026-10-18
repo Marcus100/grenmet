@@ -1252,6 +1252,27 @@ export {
   eregisterCreateRegisterObservationStatus422Schema,
 } from "./eregisterCreateRegisterObservationSchema.js";
 export {
+  eregisterEmailRegisterObservationBodySchema,
+  eregisterEmailRegisterObservationErrorSchema,
+  eregisterEmailRegisterObservationPathObservationIdSchema,
+  eregisterEmailRegisterObservationResponseSchema,
+  eregisterEmailRegisterObservationStatus202Schema,
+  eregisterEmailRegisterObservationStatus401Schema,
+  eregisterEmailRegisterObservationStatus403Schema,
+  eregisterEmailRegisterObservationStatus404Schema,
+  eregisterEmailRegisterObservationStatus409Schema,
+  eregisterEmailRegisterObservationStatus422Schema,
+} from "./eregisterEmailRegisterObservationSchema.js";
+export {
+  eregisterListObservationSendsErrorSchema,
+  eregisterListObservationSendsPathObservationIdSchema,
+  eregisterListObservationSendsResponseSchema,
+  eregisterListObservationSendsStatus200Schema,
+  eregisterListObservationSendsStatus401Schema,
+  eregisterListObservationSendsStatus403Schema,
+  eregisterListObservationSendsStatus422Schema,
+} from "./eregisterListObservationSendsSchema.js";
+export {
   eregisterListRegisterObservationsErrorSchema,
   eregisterListRegisterObservationsQueryKindSchema,
   eregisterListRegisterObservationsQueryLimitSchema,
@@ -1278,6 +1299,18 @@ export {
   eregisterPublicMonthSummaryStatus429Schema,
   eregisterPublicMonthSummaryStatus503Schema,
 } from "./eregisterPublicMonthSummarySchema.js";
+export {
+  eregisterPublishRegisterObservationBodySchema,
+  eregisterPublishRegisterObservationErrorSchema,
+  eregisterPublishRegisterObservationPathObservationIdSchema,
+  eregisterPublishRegisterObservationResponseSchema,
+  eregisterPublishRegisterObservationStatus202Schema,
+  eregisterPublishRegisterObservationStatus401Schema,
+  eregisterPublishRegisterObservationStatus403Schema,
+  eregisterPublishRegisterObservationStatus404Schema,
+  eregisterPublishRegisterObservationStatus409Schema,
+  eregisterPublishRegisterObservationStatus422Schema,
+} from "./eregisterPublishRegisterObservationSchema.js";
 export {
   eregisterValidateSynopObservationBodySchema,
   eregisterValidateSynopObservationErrorSchema,
@@ -3563,6 +3596,10 @@ export { observationProvenancePropertiesTimeBasisEnumSchema } from "./observatio
 export { observationProvenanceSchema } from "./observationProvenanceSchema.js";
 export { observationRecordPropertiesKindEnumSchema } from "./observationRecordPropertiesKindEnumSchema.js";
 export { observationRecordSchema } from "./observationRecordSchema.js";
+export { observationSendListSchema } from "./observationSendListSchema.js";
+export { observationSendPropertiesStatusEnumSchema } from "./observationSendPropertiesStatusEnumSchema.js";
+export { observationSendPropertiesTargetEnumSchema } from "./observationSendPropertiesTargetEnumSchema.js";
+export { observationSendSchema } from "./observationSendSchema.js";
 export { onboardingStatusSchema } from "./onboardingStatusSchema.js";
 export { organisationCatalogueSchema } from "./organisationCatalogueSchema.js";
 export { organisationCreateSchema } from "./organisationCreateSchema.js";
@@ -3817,6 +3854,7 @@ export { sectionUpdateSchema } from "./sectionUpdateSchema.js";
 export { sectionViewSchema } from "./sectionViewSchema.js";
 export { securityProofSchema } from "./securityProofSchema.js";
 export { securitySessionPublicSchema } from "./securitySessionPublicSchema.js";
+export { sendObservationRequestSchema } from "./sendObservationRequestSchema.js";
 export { serviceCalendarViewSchema } from "./serviceCalendarViewSchema.js";
 export { sessionAccessTokenResponseSchema } from "./sessionAccessTokenResponseSchema.js";
 export { sessionLoginRequestSchema } from "./sessionLoginRequestSchema.js";

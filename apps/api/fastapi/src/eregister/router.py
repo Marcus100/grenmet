@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 from typing import Annotated, Any
+from uuid import UUID
 
 from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import JSONResponse
@@ -8,17 +9,22 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.auth.browser import BrowserUser
+from src.auth.policy import require_permission
+from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED
 from src.rate_limit import limiter
 
-from . import public, rules
+from . import public, rules, sends
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
+    ObservationSend,
+    ObservationSendList,
     PublicCurrentConditions,
     PublicMonthSummaryResponse,
     RegisterObservationCreate,
     RegisterObservationList,
     RegisterObservationRead,
+    SendObservationRequest,
     SynopValidationRequest,
     SynopValidationResponse,
 )
@@ -116,6 +122,93 @@ async def create_register_observation(
     )
     await session.commit()
     return _read(dict(result.mappings().one()))
+
+
+SEND_RESPONSES = {
+    **AUTHENTICATED,
+    404: {"description": "Observation not found"},
+    409: {"description": "Not configured, not sendable, or already sent (use resend)"},
+    422: {"description": "Observation does not pass validation"},
+}
+
+
+@router.post(
+    "/observations/{observation_id}/email",
+    response_model=ObservationSend,
+    status_code=202,
+    summary="Email a register observation",
+    description=(
+        "Queues the SYNOP text and a decoded summary for every address in "
+        "EREGISTER_OBS_RECIPIENTS through the email outbox. Requires "
+        "`eregister.send`. 409 when no recipients are configured or the "
+        "observation was already emailed (send `resend: true` to repeat)."
+    ),
+    responses=SEND_RESPONSES,
+)
+async def email_register_observation(
+    observation_id: UUID,
+    user: BrowserUser,
+    register: RegisterSession,
+    session: SessionDep,
+    body: SendObservationRequest | None = None,
+) -> ObservationSend:
+    require_permission(current_user=user, permission_key="eregister.send")
+    item = await sends.load_sendable(register, observation_id)
+    return await sends.queue_email(
+        session=session,
+        item=item,
+        observation_id=observation_id,
+        user=user,
+        resend=bool(body and body.resend),
+    )
+
+
+@router.post(
+    "/observations/{observation_id}/publish",
+    response_model=ObservationSend,
+    status_code=202,
+    summary="Queue a register observation for WIS2",
+    description=(
+        "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the "
+        "wis2box incoming drop through an ARQ job with retries. Requires "
+        "`eregister.send`. 409 unless WIS2BOX_* is configured, or when the "
+        "observation was already queued (send `resend: true` to repeat)."
+    ),
+    responses=SEND_RESPONSES,
+)
+async def publish_register_observation(
+    observation_id: UUID,
+    user: BrowserUser,
+    register: RegisterSession,
+    session: SessionDep,
+    body: SendObservationRequest | None = None,
+) -> ObservationSend:
+    require_permission(current_user=user, permission_key="eregister.send")
+    item = await sends.load_sendable(register, observation_id)
+    return await sends.queue_wis2(
+        session=session,
+        item=item,
+        observation_id=observation_id,
+        user=user,
+        resend=bool(body and body.resend),
+    )
+
+
+@router.get(
+    "/observations/{observation_id}/sends",
+    response_model=ObservationSendList,
+    summary="Send history of a register observation",
+    description="Newest first: each email and WIS2 hand-off with its status.",
+    responses={**AUTHENTICATED},
+)
+async def list_observation_sends(
+    observation_id: UUID,
+    _user: BrowserUser,
+    session: SessionDep,
+    response: Response,
+) -> ObservationSendList:
+    response.headers["Cache-Control"] = "private, no-store"
+    return ObservationSendList(sends=await sends.list_sends(session, observation_id))
 
 
 @router.get(

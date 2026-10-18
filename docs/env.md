@@ -630,6 +630,23 @@ Configure `WXWATCH_DATABASE_URL` in the FastAPI environment with access to the s
 
 `EREGISTER_DATABASE_URL` is the PostgreSQL URL for the dedicated manual observation register. `EREGISTER_DB_NAME` is the expected database name used by its Alembic guard (default `eregister`). Provision `EREGISTER_DB_USER`, `EREGISTER_DB_PASSWORD` and `EREGISTER_DB_NAME` alongside the other domain databases. The register stores manual SYNOP, METAR and SPECI entries, revisions, QC decisions and WIS2box publication state; it does not replace SURFACE's automated observation store.
 
+### eRegister send actions
+
+`EREGISTER_OBS_RECIPIENTS` is a comma-separated list of addresses that receive "Email observation" (one outbox email each, sent by the worker). Unset: the action answers 409 "No recipients configured". `EREGISTER_SEND_REQUIRE_ACCEPTED` (default `false`) requires QC state `accepted`; leave it off until a QC acceptance flow exists, otherwise only validated, non-rejected observations are sent.
+
+"Send last obs" writes a csv2bufr CSV for wis2box and needs one drop target, read by the API (to validate) and the worker (to transfer):
+
+| Variable | Meaning |
+| --- | --- |
+| `WIS2BOX_INCOMING_DIR` | Local directory that is (or mounts) the wis2box incoming data; takes precedence over S3 |
+| `WIS2BOX_S3_ENDPOINT_URL`, `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY` | wis2box MinIO endpoint and credentials; the bucket defaults to `WIS2BOX_S3_BUCKET=wis2box-incoming` |
+| `WIS2BOX_TOPIC_HIERARCHY` | Object key prefix; must equal the wis2box dataset topic (default `origin/a/wis2/gd-metservice/data/core/weather/surface-based-observations/synop`) |
+| `WIS2BOX_WIGOS_ID` | Station WIGOS identifier (default `0-20000-0-78958`); only this station can be published |
+| `WIS2BOX_STATION_LATITUDE`, `_LONGITUDE`, `_STATION_HEIGHT_M`, `_BAROMETER_HEIGHT_M`, `_THERMOMETER_HEIGHT_M`, `_ANEMOMETER_HEIGHT_M` | Station metadata for the CSV (MBIA defaults) |
+| `WIS2BOX_MAX_ATTEMPTS` | Transfer attempts before the send is marked failed (default 5, backoff 1 min doubling to 1 h) |
+
+With none of the drop variables set, publish answers 409 "WIS2 publication is not configured". Grant the `eregister.send` permission (role `eregister-sender`) to people allowed to send.
+
 ### Privileged MFA rollout
 
 FastAPI auth settings default to disabled enforcement; enable it only after the

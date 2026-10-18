@@ -7,6 +7,9 @@ vi.mock("@barrelsgd/api-client", () => ({
   eregisterListRegisterObservations: mocks.list,
   eregisterCreateRegisterObservation: vi.fn(),
   eregisterValidateSynopObservation: vi.fn(),
+  eregisterEmailRegisterObservation: vi.fn(),
+  eregisterPublishRegisterObservation: vi.fn(),
+  eregisterListObservationSends: vi.fn(),
 }));
 vi.mock("@barrelsgd/auth", () => ({
   useSessionUser: () => ({ full_name: "Test Observer", email: "obs@test" }),
