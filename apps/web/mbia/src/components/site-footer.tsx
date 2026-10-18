@@ -94,6 +94,12 @@ export function SiteFooter() {
             </Link>
             <Link
               className="transition-colors hover:text-white"
+              href="/privacy"
+            >
+              Privacy
+            </Link>
+            <Link
+              className="transition-colors hover:text-white"
               href="/contact"
             >
               Contact
