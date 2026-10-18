@@ -4,7 +4,7 @@
 **Recorded:** 2026-07-19  
 **Horizon:** Five years  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-17
 
 ## Purpose
 
@@ -33,10 +33,14 @@ boundary, and verification.
 
 ## Strategic identity
 
-Barrels Grenada is primarily a software product company. It may provide
-implementation and integration services when those services help institutions
-and businesses adopt Barrels products or strengthen reusable platform
-capabilities.
+Barrels Grenada is a software-led technology company. Its products and shared
+platform are the core. Around them it adds service lines in stages (software
+and web delivery, managed IT, AI and data, cloud and security, then
+infrastructure and training), with the aim of competing across most of
+Grenada's IT market. Barrels builds software and IP, partners for regulated or
+capital-intensive capabilities, and may acquire service firms once recurring
+revenue exists. The [Barrels Grenada Service Lines](barrels-service-lines.md)
+strategy records the sector map, entry strategy, and phases.
 
 Barrels should not become a collection of unrelated custom-software projects.
 Implementation work should produce configuration, connectors, and reusable
@@ -221,6 +225,8 @@ and engagement-oriented feeds are outside the initial product.
 - Annual institutional software and support agreements
 - Paid implementation and integration work
 - Hosting and managed-service agreements
+- Service-line packages and retainers: web and software, managed IT, AI and
+  data, cloud and security
 - Transparent service fees on paid event tickets
 
 The resident-facing core should remain free during the initial strategy period.
@@ -341,7 +347,8 @@ Barrels should not become:
 - A bank, speculative fintech company, or unapproved custodial wallet
 - A restaurant, retailer, promoter, utility, or government agency
 - A delivery-fleet operator without strong evidence that ownership is required
-- A telecommunications, semiconductor, or hardware manufacturer
+- A telecommunications operator, ISP, or semiconductor or hardware
+  manufacturer before a partnership and feasibility case justify it
 - A centralized owner of every participating organization's data
 - A collection of unrelated client-specific software forks
 - A closed platform that prevents reasonable data export or interoperability
@@ -352,9 +359,12 @@ purpose.
 
 Barrels should generally buy or partner for cloud infrastructure,
 telecommunications, payment rails, satellite services, data-centre hardware,
-sensors, energy equipment, and consumer devices. Its advantage should come
-from Grenadian knowledge, trusted relationships, integrated workflows, and
-locally appropriate software.
+sensors, energy equipment, and consumer devices. Managed IT, networking
+installation, and hardware resale or repair through partners are allowed
+service lines. Data centres, colocation, and telecom infrastructure remain
+long-term feasibility items. Its advantage should come from Grenadian
+knowledge, trusted relationships, integrated workflows, and locally appropriate
+software.
 
 ## Recommended sequence
 
@@ -406,7 +416,9 @@ gate for deciding whether to deepen the product, expand it, or stop.
 The following directions were explicitly confirmed during strategy discovery:
 
 - Barrels is primarily a software product company with supporting
-  implementation services.
+  implementation services. Amended 2026-10-17: Barrels is software-led and
+  full-service, adding staged service lines around its products (see
+  [service lines](barrels-service-lines.md)).
 - The long-term aim includes one coherent resident-facing Barrels App.
 - People living in Grenada are its primary users.
 - The initial resident proposition is trusted information and actionable local
