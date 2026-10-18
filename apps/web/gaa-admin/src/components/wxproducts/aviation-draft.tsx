@@ -193,7 +193,7 @@ export function AviationDraft() {
           }),
         })
       );
-      setCoding({ issues: result.issues, key: draftKey });
+      setCoding({ issues: result.issues ?? [], key: draftKey });
       setStatus(
         result.valid
           ? "Coding check passed. Drafts can still be saved with notes."
