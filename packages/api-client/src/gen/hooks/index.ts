@@ -2264,10 +2264,20 @@ export {
   wxwatchFinishRunMutationOptions,
 } from "./useWxwatchFinishRun.js";
 export {
+  useWxwatchImage,
+  wxwatchImageQueryKey,
+  wxwatchImageQueryOptions,
+} from "./useWxwatchImage.js";
+export {
   useWxwatchIngest,
   wxwatchIngestMutationKey,
   wxwatchIngestMutationOptions,
 } from "./useWxwatchIngest.js";
+export {
+  useWxwatchLatest,
+  wxwatchLatestQueryKey,
+  wxwatchLatestQueryOptions,
+} from "./useWxwatchLatest.js";
 export {
   useWxwatchMetadata,
   wxwatchMetadataQueryKey,

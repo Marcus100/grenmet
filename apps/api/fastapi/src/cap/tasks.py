@@ -9,6 +9,7 @@ PUBLISH_JOB_KINDS = (
     "publish.static_map",
     "publish.pdf",
     "publish.social_image",
+    "publish.last_known_good",
 )
 
 

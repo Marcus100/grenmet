@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { Prose } from "@/components/pages/prose";
+import { Provenance } from "@/components/pages/provenance";
 import { UnavailableNotice } from "@/components/pages/unavailable-notice";
 import { weatherFromForecast } from "@/lib/forecast-selection";
 import { fetchPublicForecast } from "@/lib/products";
@@ -18,6 +19,7 @@ export default async function ThreeDayPage() {
   const forecast = await fetchPublicForecast();
   const days = forecast ? weatherFromForecast(forecast).days : [];
   const live = hasIssuedForecast(days);
+  const issuedAt = forecast?.periods[0]?.source?.issued_at;
   return (
     <>
       <PageHeader
@@ -36,6 +38,14 @@ export default async function ThreeDayPage() {
       )}
       {live && (
         <PageSection heading="Grenada, Carriacou and Petite Martinique">
+          {issuedAt && (
+            <Provenance
+              kind="forecast"
+              source="GMS impact-based forecast"
+              status="verified"
+              time={issuedAt}
+            />
+          )}
           <InfoTable
             caption="From the latest issued GMS forecasts"
             headers={["Day", "Outlook", "High", "Low", "Wind", "Rain chance"]}

@@ -454,7 +454,9 @@ export { wxwatchEdition } from "./clients/wxwatchEdition.js";
 export { wxwatchEditionAssets } from "./clients/wxwatchEditionAssets.js";
 export { wxwatchEditions } from "./clients/wxwatchEditions.js";
 export { wxwatchFinishRun } from "./clients/wxwatchFinishRun.js";
+export { wxwatchImage } from "./clients/wxwatchImage.js";
 export { wxwatchIngest } from "./clients/wxwatchIngest.js";
+export { wxwatchLatest } from "./clients/wxwatchLatest.js";
 export { wxwatchMetadata } from "./clients/wxwatchMetadata.js";
 export { wxwatchPoint } from "./clients/wxwatchPoint.js";
 export { wxwatchPropose } from "./clients/wxwatchPropose.js";
@@ -2732,10 +2734,20 @@ export {
   wxwatchFinishRunMutationOptions,
 } from "./hooks/useWxwatchFinishRun.js";
 export {
+  useWxwatchImage,
+  wxwatchImageQueryKey,
+  wxwatchImageQueryOptions,
+} from "./hooks/useWxwatchImage.js";
+export {
   useWxwatchIngest,
   wxwatchIngestMutationKey,
   wxwatchIngestMutationOptions,
 } from "./hooks/useWxwatchIngest.js";
+export {
+  useWxwatchLatest,
+  wxwatchLatestQueryKey,
+  wxwatchLatestQueryOptions,
+} from "./hooks/useWxwatchLatest.js";
 export {
   useWxwatchMetadata,
   wxwatchMetadataQueryKey,
@@ -7489,6 +7501,8 @@ export type { PublicObservationPropertiesStatusEnum } from "./models/PublicObser
 export { publicObservationPropertiesStatusEnum } from "./models/PublicObservationPropertiesStatusEnum.js";
 export type { PublicProductDetail } from "./models/PublicProductDetail.js";
 export type { PublicPublishedProduct } from "./models/PublicPublishedProduct.js";
+export type { PublicSatelliteImage } from "./models/PublicSatelliteImage.js";
+export type { PublicSatelliteLatest } from "./models/PublicSatelliteLatest.js";
 export type { PublicWarning } from "./models/PublicWarning.js";
 export type { PublicWarningGroup } from "./models/PublicWarningGroup.js";
 export type { PublicWarningPropertiesColourAnyOfEnum } from "./models/PublicWarningPropertiesColourAnyOfEnum.js";
@@ -8534,6 +8548,16 @@ export type {
   WxwatchFinishRunStatus422,
 } from "./models/WxwatchFinishRun.js";
 export type {
+  WxwatchImageOptions,
+  WxwatchImagePath,
+  WxwatchImageResponse,
+  WxwatchImageResponses,
+  WxwatchImageStatus307,
+  WxwatchImageStatus400,
+  WxwatchImageStatus404,
+  WxwatchImageStatus422,
+} from "./models/WxwatchImage.js";
+export type {
   WxwatchIngestBody,
   WxwatchIngestHeaders,
   WxwatchIngestOptions,
@@ -8542,6 +8566,14 @@ export type {
   WxwatchIngestStatus200,
   WxwatchIngestStatus422,
 } from "./models/WxwatchIngest.js";
+export type {
+  WxwatchLatestOptions,
+  WxwatchLatestQuery,
+  WxwatchLatestResponse,
+  WxwatchLatestResponses,
+  WxwatchLatestStatus200,
+  WxwatchLatestStatus422,
+} from "./models/WxwatchLatest.js";
 export type {
   WxwatchMetadataOptions,
   WxwatchMetadataQuery,
@@ -12975,6 +13007,8 @@ export { publicObservationPropertiesStatusEnumSchema } from "./zod/publicObserva
 export { publicObservationSchema } from "./zod/publicObservationSchema.js";
 export { publicProductDetailSchema } from "./zod/publicProductDetailSchema.js";
 export { publicPublishedProductSchema } from "./zod/publicPublishedProductSchema.js";
+export { publicSatelliteImageSchema } from "./zod/publicSatelliteImageSchema.js";
+export { publicSatelliteLatestSchema } from "./zod/publicSatelliteLatestSchema.js";
 export { publicWarningGroupSchema } from "./zod/publicWarningGroupSchema.js";
 export { publicWarningPropertiesColourAnyOfEnumSchema } from "./zod/publicWarningPropertiesColourAnyOfEnumSchema.js";
 export { publicWarningSchema } from "./zod/publicWarningSchema.js";
@@ -13952,6 +13986,15 @@ export {
   wxwatchFinishRunStatus422Schema,
 } from "./zod/wxwatchFinishRunSchema.js";
 export {
+  wxwatchImageErrorSchema,
+  wxwatchImagePathImageIdSchema,
+  wxwatchImageResponseSchema,
+  wxwatchImageStatus307Schema,
+  wxwatchImageStatus400Schema,
+  wxwatchImageStatus404Schema,
+  wxwatchImageStatus422Schema,
+} from "./zod/wxwatchImageSchema.js";
+export {
   wxwatchIngestBodySchema,
   wxwatchIngestErrorSchema,
   wxwatchIngestHeaderAuthorizationSchema,
@@ -13959,6 +14002,13 @@ export {
   wxwatchIngestStatus200Schema,
   wxwatchIngestStatus422Schema,
 } from "./zod/wxwatchIngestSchema.js";
+export {
+  wxwatchLatestErrorSchema,
+  wxwatchLatestQueryProductSchema,
+  wxwatchLatestResponseSchema,
+  wxwatchLatestStatus200Schema,
+  wxwatchLatestStatus422Schema,
+} from "./zod/wxwatchLatestSchema.js";
 export {
   wxwatchMetadataErrorSchema,
   wxwatchMetadataQueryDaySchema,

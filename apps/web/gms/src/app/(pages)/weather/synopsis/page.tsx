@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { PageSection } from "@/components/pages/page-section";
 import { Prose } from "@/components/pages/prose";
+import { Provenance } from "@/components/pages/provenance";
 import { UnavailableNotice } from "@/components/pages/unavailable-notice";
 import { fetchPublishedProducts } from "@/lib/products";
 import { latestSynopsis } from "@/lib/weather-pages";
@@ -38,6 +39,12 @@ export default async function SynopsisPage() {
       {synopsis && (
         <>
           <PageSection heading="Current situation">
+            <Provenance
+              kind="forecast"
+              source={`GMS ${synopsis.kindLabel}`}
+              status="verified"
+              time={synopsis.issuedAt}
+            />
             <Prose paragraphs={synopsis.paragraphs} />
             <p className="mt-4 font-mono text-body-sm text-gm-text-secondary leading-body-sm">
               From the{" "}

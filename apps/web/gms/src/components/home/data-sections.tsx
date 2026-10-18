@@ -9,6 +9,7 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
+import { Provenance } from "@/components/pages/provenance";
 import {
   fetchHomeContent,
   isSectionHidden,
@@ -159,6 +160,12 @@ export async function GrenadaInData() {
           <p className="mt-2 text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
             {month.caption}
           </p>
+          <Provenance
+            kind="observation"
+            source="GMS observation register, Maurice Bishop International Airport"
+            status={month.provisional ? "provisional" : "verified"}
+            time={month.lastObservationAt}
+          />
         </>
       ) : (
         <p
