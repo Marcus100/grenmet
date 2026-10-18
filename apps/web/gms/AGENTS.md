@@ -106,6 +106,23 @@ src/app/
   `system`, `ThemeToggle` in the main bar beside search and the alert pill). Headings use
   `text-gm-heading`, not `text-gm-navy`; printable products sit in `.gm-paper`.
 
+- **Provenance and staleness (foundations plan NFRs):** every public data block
+  carries `<Provenance>` (`components/pages/provenance.tsx`): source, observed or
+  issued time in Grenada time, status (provisional, verified, external) and, for
+  external sources such as NOAA GOES, "Not a GMS product". Limits live in
+  `lib/current-conditions.ts`: observations 90 min (`STALE_AFTER_MS`), forecasts
+  12 h since issue, satellite 30 min. A stale product says so in words ("Last
+  observed", warning line), never only by colour. GMS forms store offset-less
+  Grenada times; read them with `parseGrenadaTime`, never `new Date()`.
+- **Satellite:** `/weather/satellite` reads FastAPI `wxwatch/public/latest`
+  (`lib/satellite.ts`) and shows images through `app/api/satellite/[id]` (a proxy;
+  the API host and bucket are never exposed). No image is the "Not yet available"
+  notice; an unreachable feed is the unavailable notice.
+- **Storm mode:** alert pages (`next.config.ts` headers), the CAP feed proxies and
+  the satellite proxy send the cache headers in `lib/storm-cache.ts` so Cloudflare
+  can serve the last good copy while the origin is down; errors are `no-store`.
+  Setup: `docs/operations/cloudflare-storm-cache.md`.
+
 ## Forms
 
 `/climate/data-request` renders `DataRequestForm` (`components/pages/data-request-form.tsx`), which posts to `src/app/api/data-request/route.ts`, a validate-and-proxy handler for FastAPI `POST /api/v1/contact/data-requests` (stored, emailed to `GMS_DATA_REQUEST_RECIPIENT`, confirmation to the requester). Schema in `src/lib/data-request.ts`; hidden honeypot field `website`; consent is required.

@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 import { routeMoveRedirects } from "./src/lib/route-moves";
+import { STORM_CACHE_CONTROL } from "./src/lib/storm-cache";
 
 const nextConfig: NextConfig = {
   // Link hrefs are checked against the app's routes at build time.
@@ -12,6 +13,13 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // Bold sky IA: old section roots redirect to their new homes.
   redirects: async () => routeMoveRedirects(),
+  // Storm mode: alert pages are cacheable so the CDN can serve the last good copy.
+  headers: async () => [
+    {
+      source: "/alerts/:path*",
+      headers: [{ key: "Cache-Control", value: STORM_CACHE_CONTROL }],
+    },
+  ],
   images: {
     remotePatterns: [{ hostname: "images.unsplash.com" }],
   },

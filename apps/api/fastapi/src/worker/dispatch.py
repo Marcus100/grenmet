@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap.models import CapAlert, CapJobEvent, CapJobStatus, CapScope, CapStatus
 from src.utils.datetime import utc_now
-from src.worker import publishers
+from src.worker import last_known_good, publishers
 from src.worker.publishers import PublishError
 
 logger = logging.getLogger(__name__)
@@ -42,6 +42,7 @@ KIND_HANDLERS: dict[str, Handler] = {
     "publish.pdf": publishers.publish_pdf,
     "publish.static_map": publishers.publish_static_map,
     "publish.social_image": publishers.publish_social_image,
+    "publish.last_known_good": last_known_good.publish_last_known_good,
 }
 
 

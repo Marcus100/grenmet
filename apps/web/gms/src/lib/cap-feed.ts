@@ -1,6 +1,7 @@
 import "server-only";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
+import { STORM_CACHE_CONTROL } from "@/lib/storm-cache";
 
 /**
  * Read-only proxy of a public CAP feed from FastAPI, so the feeds are served
@@ -21,14 +22,18 @@ export async function proxyCapFeed(
       status: upstream.status,
       headers: {
         "Content-Type": upstream.headers.get("content-type") ?? contentType,
-        "Cache-Control": "public, max-age=60",
+        // Only a good answer is cached for storms; an error never is.
+        "Cache-Control": upstream.ok ? STORM_CACHE_CONTROL : "no-store",
       },
     });
   } catch (error) {
     reportError(error, "gms-cap-feed");
     return new Response("CAP feed unavailable", {
       status: 503,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-store",
+      },
     });
   }
 }
