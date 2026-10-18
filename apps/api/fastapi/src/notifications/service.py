@@ -6,6 +6,7 @@ from datetime import timedelta
 from typing import Any
 
 from sqlalchemy import func, select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import policy as auth_policy
@@ -18,11 +19,14 @@ from . import events
 from .config import notification_settings
 from .models import (
     DeliveryStatus,
+    EmailSuppression,
     Notification,
     NotificationDelivery,
     NotificationPreference,
     NotificationSetting,
     NotificationSnooze,
+    OutboundEmail,
+    SuppressionReason,
 )
 from .schemas import (
     NotificationParams,
@@ -674,3 +678,71 @@ async def delete_snooze(
         raise NotFoundError("Snooze not found")
     await session.delete(row)
     await session.commit()
+
+
+# ── Suppression list and public-flow outbox ──────────────────────────────────
+
+
+def normalise_email(email: str) -> str:
+    return email.strip().lower()
+
+
+async def suppress_email(
+    *,
+    session: AsyncSession,
+    email: str,
+    reason: SuppressionReason,
+    source_event_id: str | None,
+) -> bool:
+    """Add an address to the suppression list. Returns False if already listed.
+
+    Idempotent: the unique address makes a replayed webhook a no-op. The caller
+    commits.
+    """
+    result = await session.execute(
+        pg_insert(EmailSuppression)
+        .values(
+            id=uuid.uuid4(),
+            email=normalise_email(email),
+            reason=reason.value,
+            source_event_id=source_event_id,
+            created_at=utc_now(),
+        )
+        .on_conflict_do_nothing(index_elements=["email"])
+    )
+    return bool(getattr(result, "rowcount", 0))
+
+
+async def is_suppressed(*, session: AsyncSession, email: str) -> bool:
+    found = await session.scalar(
+        select(EmailSuppression.id).where(
+            EmailSuppression.email == normalise_email(email)
+        )
+    )
+    return found is not None
+
+
+def enqueue_email(
+    *,
+    session: AsyncSession,
+    to_email: str,
+    subject: str,
+    transactional: bool,
+    template: str | None = None,
+    props: dict[str, Any] | None = None,
+    html: str | None = None,
+) -> OutboundEmail:
+    """Queue an email for the worker, inside the caller's transaction.
+
+    Non-transactional mail is dropped by the worker for suppressed addresses.
+    """
+    row = OutboundEmail(
+        to_email=normalise_email(to_email),
+        subject=subject[:300],
+        template=template,
+        props=props or {},
+        html=html,
+        transactional=transactional,
+    )
+    session.add(row)
+    return row

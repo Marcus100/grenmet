@@ -53,13 +53,13 @@ become delivery channels in that domain, not separate notification systems.
 
 | Gap | Evidence | Why it matters |
 | --- | --- | --- |
-| Signal subscriptions not implemented | `apps/web/signal/src/app/api/subscribe/route.ts` returns 503 | A real subscriber flow through FastAPI and Resend |
-| MBIA contact submissions not delivered | `apps/web/mbia/src/app/api/contact/route.ts` validates and logs only | Needs a FastAPI contact or ticket workflow |
-| Resend feedback incomplete | `apps/api/fastapi/src/webhooks/router.py` TODOs for bounce suppression and complaint unsubscribe | Protects sender reputation and consent |
+| Signal subscriptions (closed on dev) | `src/subscriptions` (double opt-in, signed confirm and unsubscribe links, per-list keys); Signal's `/api/subscribe` proxies to it. No reader-facing form exists yet, by design | Remaining: a sign-up form in the reader, and sending broadcasts to confirmed subscribers |
+| MBIA contact delivery (closed on dev) | `src/contact` stores each message and queues one email to `MBIA_CONTACT_RECIPIENT`; MBIA's `/api/contact` proxies to it | Remaining: set the recipient per environment and verify Turnstile (`contact.service.verify_turnstile` is the seam) |
+| Resend feedback (closed on dev) | Webhook writes hard bounces and complaints to `email_suppression`; complaints also unsubscribe list members; non-transactional outbox mail skips suppressed addresses | Remaining: the staff notification mailer does not check the list (transactional by decision) |
 | Stripe settlement unproven | `billing` checkout and webhook groundwork; no reconciliation loop | Pay/Invoice and Events depend on it |
 | NHC collection not scheduled end to end | Ingestion and operator APIs exist; no accepted periodic service | Operational acceptance before relying on it |
 
-The first three are small, contained fixes. The last two need product or
+The first three are now implemented on `dev`. The last two need product or
 operational acceptance first.
 
 ## External candidates

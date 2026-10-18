@@ -112,6 +112,29 @@ async def send_notification_emails(ctx: dict[str, Any]) -> int:
         return result
 
 
+async def send_outbound_emails(ctx: dict[str, Any]) -> int:
+    from src.database import async_session_factory
+    from src.notifications import dispatch as notification_dispatch
+
+    async with async_session_factory() as session:
+        try:
+            result = await notification_dispatch.process_outbound_emails(
+                session=session
+            )
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "send_outbound_emails",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "send_outbound_emails", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
 async def run_notification_sweeps(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.notifications import scheduler
@@ -190,6 +213,7 @@ class WorkerSettings:
         process_cap_jobs,
         ingest_cap_feeds,
         send_notification_emails,
+        send_outbound_emails,
         run_notification_sweeps,
         check_nhc_failures,
         check_alert_outbox,
@@ -214,6 +238,8 @@ class WorkerSettings:
         ),
         # Drain the notification email outbox every 30 seconds.
         cron(send_notification_emails, second={0, 30}, run_at_startup=True),
+        # Drain the public-flow email outbox (subscriptions, contact) too.
+        cron(send_outbound_emails, second={15, 45}, run_at_startup=True),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
         cron(run_notification_sweeps, hour=10, minute=0, run_at_startup=False),
         # NHC job failures every 5 minutes; the 1-hour window stops repeat messages.
