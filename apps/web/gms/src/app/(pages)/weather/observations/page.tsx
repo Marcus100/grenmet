@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { InfoTable } from "@/components/pages/info-table";
 import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
+import { Provenance } from "@/components/pages/provenance";
 import { UnavailableNotice } from "@/components/pages/unavailable-notice";
 import { fetchCurrentConditions } from "@/lib/products";
 import { stationReading } from "@/lib/weather-pages";
@@ -24,8 +25,14 @@ export default async function ObservationsPage() {
       />
       {reading ? (
         <PageSection heading="Latest reading">
+          <Provenance
+            kind="observation"
+            source="GMS observation register, Maurice Bishop International Airport"
+            status={reading.provisional ? "provisional" : "verified"}
+            time={reading.observedAtIso}
+          />
           <InfoTable
-            caption={`${reading.observedAt}${reading.provisional ? " · Provisional, not yet quality checked" : ""}`}
+            caption={reading.observedAt}
             headers={[
               "Station",
               "Time",

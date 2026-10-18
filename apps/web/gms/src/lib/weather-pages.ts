@@ -85,6 +85,8 @@ export interface StationTile {
 export interface StationReading {
   /** "Reported 16:00 AST", or "Last observed 11:00 AST" when stale. */
   observedAt: string;
+  /** The reading's own time (ISO), for the provenance line. */
+  observedAtIso: string;
   provisional: boolean;
   rows: string[][];
   stationName: string;
@@ -126,6 +128,7 @@ export function stationReading(
   if (rain)
     tiles.push({ label: rain.label, value: rain.value, detail: rain.detail });
   return {
+    observedAtIso: c.observedAt,
     observedAt: `${isStale(c.observedAt, now) ? "Last observed" : "Reported"} ${localTime(c.observedAt)} AST`,
     provisional: c.provisional,
     stationName,

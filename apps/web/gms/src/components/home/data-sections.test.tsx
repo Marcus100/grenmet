@@ -121,7 +121,10 @@ it("uses the editors' wording and keeps the standard wording when blank", async 
 
 it("shows the live month summary with its provisional label", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
-  vi.mocked(fetchMonthSummary).mockResolvedValue({ ...SUMMARY });
+  vi.mocked(fetchMonthSummary).mockResolvedValue({
+    ...SUMMARY,
+    last_observation_at: new Date().toISOString(),
+  });
   render(await GrenadaInData());
   expect(screen.getByText("12.3")).toBeInTheDocument();
   expect(screen.getByText("32.6")).toBeInTheDocument();
@@ -129,6 +132,18 @@ it("shows the live month summary with its provisional label", async () => {
     screen.getByText("Month to date · MBIA · provisional · to 18 October")
   ).toBeInTheDocument();
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(
+    screen.getByText((content) =>
+      content.includes("Provisional, not yet quality checked")
+    )
+  ).toBeInTheDocument();
+});
+
+it("warns when the register's newest reading is old", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchMonthSummary).mockResolvedValue({ ...SUMMARY });
+  render(await GrenadaInData());
+  expect(screen.getByRole("status").textContent).toContain("90 minutes");
 });
 
 it("shows an unavailable state instead of figures when the summary is missing", async () => {
