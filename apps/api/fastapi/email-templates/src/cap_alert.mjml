@@ -1,0 +1,20 @@
+<mjml>
+  <mj-head>
+    <mj-preview>{{ headline }}</mj-preview>
+  </mj-head>
+  <mj-body background-color="#f3f8fc">
+    <mj-section background-color="#ffffff" padding="32px 20px" border-radius="8px">
+      <mj-column width="100%">
+        <mj-text font-size="13px" font-family="Arial, Helvetica, sans-serif" color="#6b7280" text-transform="uppercase" letter-spacing="0.04em" padding-bottom="8px">{{ projectName }} &middot; {{ label }}</mj-text>
+        <mj-text font-size="22px" font-weight="600" font-family="Arial, Helvetica, sans-serif" color="#0b132b" line-height="1.4">{{ headline }}</mj-text>
+        <mj-text font-size="16px" font-family="Arial, Helvetica, sans-serif" color="#4b5563" line-height="1.6"><strong>{{ event }}</strong>{% if areas %} for {{ areas }}{% endif %}.</mj-text>
+        <mj-text font-size="14px" font-family="Arial, Helvetica, sans-serif" color="#4b5563" line-height="1.5">Severity: {{ severity }}. Urgency: {{ urgency }}. Certainty: {{ certainty }}.{% if effective %}<br>Effective: {{ effective }}{% endif %}{% if expires %}<br>Expires: {{ expires }}{% endif %}</mj-text>
+        {% if instruction %}<mj-text font-size="16px" font-family="Arial, Helvetica, sans-serif" color="#4b5563" line-height="1.6"><strong>What to do:</strong> {{ instruction }}</mj-text>{% endif %}
+        <mj-button align="left" background-color="#0b63ee" color="#ffffff" font-size="16px" font-weight="600" border-radius="8px" inner-padding="12px 28px" font-family="Arial, Helvetica, sans-serif" href="{{ alertLink }}">Read the full alert</mj-button>
+        <mj-text font-size="14px" font-family="Arial, Helvetica, sans-serif" color="#4b5563" line-height="1.5">Machine-readable CAP message: <a href="{{ capLink }}">CAP XML</a></mj-text>
+        <mj-divider border-color="#d0d5dd" border-width="1px"></mj-divider>
+        <mj-text font-size="14px" font-family="Arial, Helvetica, sans-serif" color="#6b7280" line-height="1.5">You receive this because you subscribed to {{ listName }}. Do not rely on email alone in an emergency. Unsubscribe any time: <a href="{{ unsubscribeLink }}">unsubscribe</a>.</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

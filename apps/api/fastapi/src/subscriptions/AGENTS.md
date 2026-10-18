@@ -15,6 +15,7 @@
 ## Invariants
 - Never reveal whether an address exists. Never send mail from a request. Redirect targets come only from config.
 - A new product adds its list in `constants.py` and its origin in `SUBSCRIPTIONS_SITE_URLS`; no schema change.
+- `gms-alerts` ("GMS weather alerts") is the CAP list: confirmed addresses get one email per published, updated or cancelled alert from the worker (`src/worker/cap_email.py`). The GMS site redirects `/subscribe/status` to `/alerts/get-alerts` with the query kept, where the page shows the result.
 
 ## Tests
 `tests/subscriptions/test_subscriptions.py`, `tests/webhooks/test_suppression.py`.

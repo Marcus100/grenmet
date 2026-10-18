@@ -1,3 +1,5 @@
+export type { CapAlertEmailProps } from "./cap-alert";
+export { CapAlertEmail } from "./cap-alert";
 export type { NotificationEmailProps } from "./notification";
 export { NotificationEmail } from "./notification";
 export type { OrganisationInvitationEmailProps } from "./organisation-invitation";

@@ -150,6 +150,9 @@ jobs:
           COPERNICUSMARINE_SERVICE_PASSWORD: ${{ secrets.COPERNICUSMARINE_SERVICE_PASSWORD }}
           CDSAPI_URL: ${{ vars.CDSAPI_URL }}
           CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
+          WEBPUSH_VAPID_PUBLIC_KEY: ${{ vars.WEBPUSH_VAPID_PUBLIC_KEY }}
+          WEBPUSH_CONTACT: ${{ vars.WEBPUSH_CONTACT }}
+          WEBPUSH_VAPID_PRIVATE_KEY: ${{ secrets.WEBPUSH_VAPID_PRIVATE_KEY }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Install declared monitoring after application acceptance

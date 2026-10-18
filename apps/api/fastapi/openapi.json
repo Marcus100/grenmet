@@ -16322,6 +16322,129 @@
         }
       }
     },
+    "/api/v1/push/vapid-public-key": {
+      "get": {
+        "tags": [
+          "push"
+        ],
+        "summary": "Get the Web Push public key",
+        "description": "Returns the VAPID public key a browser needs to subscribe, or `enabled: false` when browser notifications are not configured.",
+        "operationId": "pushVapidPublicKey",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VapidPublicKey"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/push/subscriptions": {
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "Subscribe a browser to push alerts",
+        "description": "Stores a browser PushSubscription for the list. Public and browser-origin only; the endpoint must belong to a known push service.",
+        "operationId": "pushSubscribe",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushSubscribeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "503": {
+            "description": "Browser push is not configured"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "push"
+        ],
+        "summary": "Unsubscribe a browser from push alerts",
+        "description": "Removes the browser's subscription by endpoint. Unknown endpoints succeed.",
+        "operationId": "pushUnsubscribe",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushUnsubscribeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
     "/api/v1/contact/messages": {
       "post": {
         "tags": [
@@ -49534,6 +49657,84 @@
         ],
         "title": "PublishedProducts"
       },
+      "PushAccepted": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "PushAccepted"
+      },
+      "PushKeys": {
+        "properties": {
+          "p256dh": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 8,
+            "pattern": "^[A-Za-z0-9_-]+=*$",
+            "title": "P256Dh"
+          },
+          "auth": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 8,
+            "pattern": "^[A-Za-z0-9_-]+=*$",
+            "title": "Auth"
+          }
+        },
+        "type": "object",
+        "required": [
+          "p256dh",
+          "auth"
+        ],
+        "title": "PushKeys"
+      },
+      "PushSubscribeRequest": {
+        "properties": {
+          "list_key": {
+            "type": "string",
+            "title": "List Key",
+            "description": "Push list key, e.g. 'gms-alerts'.",
+            "default": "gms-alerts"
+          },
+          "endpoint": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 10,
+            "title": "Endpoint",
+            "description": "PushSubscription.endpoint from the browser."
+          },
+          "keys": {
+            "$ref": "#/components/schemas/PushKeys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "endpoint",
+          "keys"
+        ],
+        "title": "PushSubscribeRequest"
+      },
+      "PushUnsubscribeRequest": {
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 10,
+            "title": "Endpoint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "endpoint"
+        ],
+        "title": "PushUnsubscribeRequest"
+      },
       "QcDecisionRequest": {
         "properties": {
           "reason": {
@@ -59972,6 +60173,32 @@
         "title": "ValidationErrorResponse",
         "description": "Validation error envelope returned for malformed requests."
       },
+      "VapidPublicKey": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "description": "False when browser push is not configured."
+          },
+          "public_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Key",
+            "description": "applicationServerKey for pushManager.subscribe."
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "VapidPublicKey"
+      },
       "VerificationDecision": {
         "properties": {
           "reason": {
@@ -62011,6 +62238,10 @@
     {
       "name": "subscriptions",
       "description": "Public mailing-list sign-up with double opt-in (no sign-in)."
+    },
+    {
+      "name": "push",
+      "description": "Browser push subscriptions for public alerts (no sign-in)."
     },
     {
       "name": "eregister",

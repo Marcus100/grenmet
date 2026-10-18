@@ -116,7 +116,7 @@ async def test_cap_workflow_publish_public_outputs_and_jobs(
         headers=superuser_token_headers_async,
     )
     assert integrations_response.status_code == 200
-    assert len(integrations_response.json()["job_events"]) == 7
+    assert len(integrations_response.json()["job_events"]) == 9
 
 
 def _alert_payload() -> dict[str, Any]:

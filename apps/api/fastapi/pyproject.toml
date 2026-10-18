@@ -37,6 +37,7 @@ dependencies = [
     "weasyprint>=70",
     "copernicusmarine>=2.5.0",
     "cdsapi>=0.7.7",
+    "pywebpush>=2.5.0",
 ]
 
 [dependency-groups]
@@ -78,6 +79,8 @@ module = [
     "feedparser",
     "gms_ingest.*",
     "lxml.*",
+    "py_vapid.*",
+    "pywebpush.*",
     "shapely.*",
     "weasyprint.*",
 ]

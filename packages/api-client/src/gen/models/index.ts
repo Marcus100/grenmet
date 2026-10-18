@@ -4704,6 +4704,36 @@ export type { PublicWarningPropertiesColourAnyOfEnum } from "./PublicWarningProp
 export { publicWarningPropertiesColourAnyOfEnum } from "./PublicWarningPropertiesColourAnyOfEnum.js";
 export type { PublicWarnings } from "./PublicWarnings.js";
 export type { PublishedProducts } from "./PublishedProducts.js";
+export type { PushAccepted } from "./PushAccepted.js";
+export type { PushKeys } from "./PushKeys.js";
+export type {
+  PushSubscribeBody,
+  PushSubscribeOptions,
+  PushSubscribeResponse,
+  PushSubscribeResponses,
+  PushSubscribeStatus201,
+  PushSubscribeStatus400,
+  PushSubscribeStatus422,
+  PushSubscribeStatus503,
+} from "./PushSubscribe.js";
+export type { PushSubscribeRequest } from "./PushSubscribeRequest.js";
+export type {
+  PushUnsubscribeBody,
+  PushUnsubscribeOptions,
+  PushUnsubscribeResponse,
+  PushUnsubscribeResponses,
+  PushUnsubscribeStatus200,
+  PushUnsubscribeStatus400,
+  PushUnsubscribeStatus422,
+} from "./PushUnsubscribe.js";
+export type { PushUnsubscribeRequest } from "./PushUnsubscribeRequest.js";
+export type {
+  PushVapidPublicKeyOptions,
+  PushVapidPublicKeyResponse,
+  PushVapidPublicKeyResponses,
+  PushVapidPublicKeyStatus200,
+  PushVapidPublicKeyStatus422,
+} from "./PushVapidPublicKey.js";
 export type { QcDecisionRequest } from "./QcDecisionRequest.js";
 export type { ReceivableRowPublic } from "./ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./ReceivablesPublic.js";
@@ -5487,6 +5517,7 @@ export type {
 } from "./UtilsTestEmail.js";
 export type { ValidationErrorItem } from "./ValidationErrorItem.js";
 export type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
+export type { VapidPublicKey } from "./VapidPublicKey.js";
 export type { VerificationDecision } from "./VerificationDecision.js";
 export type { WeatherImage } from "./WeatherImage.js";
 export type { WorkflowAction } from "./WorkflowAction.js";

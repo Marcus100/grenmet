@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ headline }}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f8fc;font-family:Arial,Helvetica,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;">{{ headline }}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f8fc;">
+<tr><td align="center" style="padding:20px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:8px;">
+<tr><td style="padding:32px 20px;">
+<p style="margin:0 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:0.04em;">{{ projectName }} &middot; {{ label }}</p>
+<p style="margin:0 0 12px;font-size:22px;font-weight:600;color:#0b132b;line-height:1.4;">{{ headline }}</p>
+<p style="margin:12px 0;font-size:16px;color:#4b5563;line-height:1.6;"><strong>{{ event }}</strong>{% if areas %} for {{ areas }}{% endif %}.</p>
+<p style="margin:12px 0;font-size:14px;color:#4b5563;line-height:1.5;">Severity: {{ severity }}. Urgency: {{ urgency }}. Certainty: {{ certainty }}.{% if effective %}<br>Effective: {{ effective }}{% endif %}{% if expires %}<br>Expires: {{ expires }}{% endif %}</p>
+{% if instruction %}<p style="margin:12px 0;font-size:16px;color:#4b5563;line-height:1.6;"><strong>What to do:</strong> {{ instruction }}</p>{% endif %}
+<p style="margin:24px 0;"><a href="{{ alertLink }}" style="display:inline-block;background-color:#0b63ee;color:#ffffff;font-size:16px;font-weight:600;padding:12px 28px;border-radius:8px;text-decoration:none;">Read the full alert</a></p>
+<p style="margin:12px 0;font-size:14px;color:#4b5563;line-height:1.5;">Machine-readable CAP message: <a href="{{ capLink }}">CAP XML</a></p>
+<hr style="border:0;border-top:1px solid #d0d5dd;margin:24px 0;">
+<p style="margin:0;font-size:14px;color:#6b7280;line-height:1.5;">You receive this because you subscribed to {{ listName }}. Do not rely on email alone in an emergency. Unsubscribe any time: <a href="{{ unsubscribeLink }}">unsubscribe</a>.</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

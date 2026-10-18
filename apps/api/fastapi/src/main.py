@@ -77,6 +77,7 @@ from src.models import ValidationErrorResponse
 from src.notifications.router import router as notifications_router
 from src.organisations.dependencies import ORGANISATION_HEADER
 from src.organisations.router import router as organisations_router
+from src.push.router import router as push_router
 from src.rate_limit import limiter
 from src.request_context import (
     REQUEST_ID_HEADER,
@@ -190,6 +191,10 @@ OPENAPI_TAGS = [
     {
         "name": "subscriptions",
         "description": "Public mailing-list sign-up with double opt-in (no sign-in).",
+    },
+    {
+        "name": "push",
+        "description": "Browser push subscriptions for public alerts (no sign-in).",
     },
     {
         "name": "eregister",
@@ -433,6 +438,7 @@ app.include_router(weather_images_router, prefix="/api/v1")
 app.include_router(uploads_router, prefix="/api/v1")
 app.include_router(webhooks_router, prefix="/api/v1")
 app.include_router(subscriptions_router, prefix="/api/v1")
+app.include_router(push_router, prefix="/api/v1")
 app.include_router(contact_router, prefix="/api/v1")
 app.include_router(feedback_router, prefix="/api/v1")
 app.include_router(flights_router, prefix="/api/v1")

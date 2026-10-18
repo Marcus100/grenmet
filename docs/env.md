@@ -168,6 +168,8 @@ the API image and the local source mount contain the same migration assets.
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (mbia, signal, docs, gms) | GitHub environment **variable**; `build-web-images.yml` passes it as a Docker build arg because Next.js inlines `NEXT_PUBLIC_*` at build time. Public by design. Changing it needs an image rebuild |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (barrels.gd) | Vercel project environment variable; `apps/web/barrels/vercel.json` passes it to `build.mjs` as an argument, which writes `dist/turnstile-config.mjs` |
 | `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
+| `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd","gms-alerts":"https://weather.barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173","gms-alerts":"http://localhost:3003"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
+| `WEBPUSH_VAPID_PUBLIC_KEY`, `WEBPUSH_VAPID_PRIVATE_KEY`, `WEBPUSH_CONTACT` | Browser push for published CAP alerts (GMS Get alerts page). Generate the pair with `python -m src.push.cli generate-vapid` (prints only; never writes a file). `WEBPUSH_CONTACT` is a `mailto:` or `https:` URL sent to push services. Push is off, and `GET /api/v1/push/vapid-public-key` answers `enabled: false`, until all three are set. Also `WEBPUSH_MAX_FAILURES` (default 10): failures before a subscription is dropped |
 | `SUBSCRIPTIONS_API_BASE_URL` | Public API origin used in confirmation-email links (falls back to `API_BASE_URL`, then `http://localhost:8000`) |
 | `SUBSCRIPTIONS_CONFIRM_TTL_DAYS`, `SUBSCRIPTIONS_RESEND_MINUTES` | Confirmation link lifetime (7) and the window in which a pending address is not mailed again (10) |
 | `BILLING_STRIPE_SECRET_KEY` | Stripe secret API key; use an `sk_test_...` key locally |
@@ -714,7 +716,9 @@ back to each setting's default.
 | Setting | Where to set it |
 | --- | --- |
 | `MBIA_CONTACT_RECIPIENT`, `BARRELS_CONTACT_RECIPIENT`, `GMS_DATA_REQUEST_RECIPIENT`, `EREGISTER_OBS_RECIPIENTS` | GitHub environment **variables** (staging and production) |
+| `WEBPUSH_VAPID_PUBLIC_KEY`, `WEBPUSH_CONTACT` | GitHub environment **variables** |
 | `EREGISTER_SEND_REQUIRE_ACCEPTED`, `WIS2BOX_S3_ENDPOINT_URL`, `WIS2BOX_S3_BUCKET`, `WIS2BOX_TOPIC_HIERARCHY`, `FLIGHTS_OPENSKY_ENABLED` | GitHub environment **variables** |
 | `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY`, `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET`, `COPERNICUSMARINE_SERVICE_USERNAME`, `COPERNICUSMARINE_SERVICE_PASSWORD`, `CDSAPI_KEY` | GitHub environment **secrets** |
 | `CDSAPI_URL` | GitHub environment **variable** (optional) |
+| `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY`, `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET`, `WEBPUSH_VAPID_PRIVATE_KEY` | GitHub environment **secrets** |
 | `SUBSCRIPTIONS_SITE_URLS` | Committed in `infra/docker/staging.env` and `production.env` (non-secret) |
