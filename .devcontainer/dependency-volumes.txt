@@ -1,4 +1,5 @@
 node_modules
+apps/web/admin/node_modules
 apps/web/auth/node_modules
 apps/web/cms/node_modules
 apps/web/docs/node_modules
@@ -17,6 +18,7 @@ packages/theme/node_modules
 packages/tsconfig/node_modules
 packages/ui/node_modules
 .turbo
+apps/web/admin/.next
 apps/web/auth/.next
 apps/web/cms/.next
 apps/web/docs/.next

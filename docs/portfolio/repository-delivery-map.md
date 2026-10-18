@@ -28,6 +28,7 @@ acceptance.
 | Repository surface | Primary classification and owner | Lifecycle | Planning destination |
 | --- | --- | --- | --- |
 | `apps/web/auth` | Barrels platform identity | Active | Product-aware shared sign-in with application-scoped access |
+| `apps/web/admin` | Barrels control plane (superuser-only; status, organisations; no GMS or GAA modules) | Built (C1), not deployed | `admin.barrels.gd` after the GAA portal moves to `gms-admin.barrels.gd`; never merges with the client portal |
 | `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Vercel site at barrels.gd |
 | `apps/web/gaa-admin` | GAA staff portal with GMS and GAA modules | Active; renamed at transition boundary 7 | `apps/web/gaa-admin`; GMS pilot followed by GAA department rollout |
 | `apps/web/gms` | GMS public weather service | Active foundation; renamed at transition boundary 6 | `apps/web/gms`; forecasts, observations, warnings, and public products |

@@ -26,6 +26,7 @@ async def seeded(monkeypatch, db_async):
     await seed_permissions_and_roles_async(db_async)
     monkeypatch.setattr(auth_settings, "EVENTS_SSO_CLIENT_SECRET", CLIENT_SECRET)
     monkeypatch.setattr(auth_settings, "GAA_ADMIN_SSO_CLIENT_SECRET", CLIENT_SECRET)
+    monkeypatch.setattr(auth_settings, "BARRELS_ADMIN_SSO_CLIENT_SECRET", CLIENT_SECRET)
     monkeypatch.setattr(app_service, "new_code", lambda: "123456")
     monkeypatch.setattr(app_service, "send_email", lambda **_: None)
 
@@ -304,3 +305,69 @@ async def test_legacy_login_cannot_claim_a_staff_app_session(async_client, db_as
     )
     assert response.status_code == 200
     assert response.json()["session"]["app_name"] is None
+
+
+CONTROL = "/api/v1/auth/apps/barrels-admin"
+
+
+@pytest.mark.asyncio
+async def test_barrels_admin_refuses_approved_staff_who_are_not_superusers(
+    async_client, db_async, seeded
+):
+    _ = seeded
+    secret = await _account_session(db_async)
+    started = await _start(async_client, secret, _state(), join=True, base=CONTROL)
+    assert started.status_code == 403
+    assert "Barrels staff only" in started.text
+
+    listed = await _list_apps(async_client, secret)
+    assert listed["barrels-admin"]["joined"] is False
+    assert listed["barrels-admin"]["can_join"] is False
+    joined = await async_client.post(
+        "/api/v1/auth/account/apps/barrels-admin/join",
+        json={"session_token": secret},
+    )
+    assert joined.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_barrels_admin_signs_in_superusers_with_staff_tokens(
+    async_client, db_async, seeded
+):
+    _ = seeded
+    secret = await _account_session(db_async, email="owner@example.com")
+    user = await service.get_user_by_email(session=db_async, email="owner@example.com")
+    assert user is not None
+    user.is_superuser = True
+    db_async.add(user)
+    await db_async.commit()
+
+    state = _state()
+    started = await _start(async_client, secret, state, base=CONTROL)
+    assert started.status_code == 200, started.text
+    redeemed = await _redeem(async_client, started.json()["code"], state, base=CONTROL)
+    assert redeemed.status_code == 200, redeemed.text
+    body = redeemed.json()
+    assert body["session"]["app_name"] == "barrels-admin"
+    claims = jwt.decode(
+        body["access_token"], auth_settings.SECRET_KEY, algorithms=[ALGORITHM]
+    )
+    assert "app" not in claims
+
+    # Demoting the account ends the session on its next exchange.
+    user.is_superuser = False
+    db_async.add(user)
+    await db_async.commit()
+    exchanged = await async_client.post(
+        "/api/v1/auth/sessions/access-token",
+        json={"session_token": body["session_token"]},
+    )
+    assert exchanged.status_code == 401
+
+
+async def _list_apps(async_client, secret) -> dict:
+    response = await async_client.post(
+        "/api/v1/auth/account/apps", json={"session_token": secret}
+    )
+    assert response.status_code == 200, response.text
+    return {row["key"]: row for row in response.json()}
