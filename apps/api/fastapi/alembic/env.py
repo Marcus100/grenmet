@@ -44,6 +44,7 @@ from src.cap.models import (
 )
 from src.config import settings
 from src.contact.models import ContactDataRequest, ContactMessage
+from src.environmental.models import EnvironmentSeries
 from src.eregister.models import ERegisterSend  # noqa: F401
 from src.feedback.models import PageFeedback
 from src.hr.absentee.models import AbsenteeReport
@@ -130,7 +131,16 @@ Base.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
 target_metadata = Base.metadata
 
 # Schemas tracked by autogenerate. Extend this set when adding a new schema.
-_TRACKED_SCHEMAS = {None, "public", "hr", "cap", "org", "stores", "billing"}
+_TRACKED_SCHEMAS = {
+    None,
+    "public",
+    "hr",
+    "cap",
+    "org",
+    "stores",
+    "billing",
+    "environment",
+}
 
 
 def _include_object(

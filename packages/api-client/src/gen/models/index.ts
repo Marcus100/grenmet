@@ -22,6 +22,8 @@ export type { AdmissionPublic } from "./AdmissionPublic.js";
 export type { AgeingBucket } from "./AgeingBucket.js";
 export { ageingBucket } from "./AgeingBucket.js";
 export type { AgeingBucketPublic } from "./AgeingBucketPublic.js";
+export type { AirResponse } from "./AirResponse.js";
+export type { AirRow } from "./AirRow.js";
 export type { AnnouncementPublic } from "./AnnouncementPublic.js";
 export type { ApiError } from "./ApiError.js";
 export type { AppAccessStatus } from "./AppAccessStatus.js";
@@ -1566,6 +1568,24 @@ export { employmentStatus } from "./EmploymentStatus.js";
 export type { EmploymentType } from "./EmploymentType.js";
 export { employmentType } from "./EmploymentType.js";
 export type { EmploymentUpdate } from "./EmploymentUpdate.js";
+export type {
+  EnvironmentGetAirOptions,
+  EnvironmentGetAirQuery,
+  EnvironmentGetAirResponse,
+  EnvironmentGetAirResponses,
+  EnvironmentGetAirStatus200,
+  EnvironmentGetAirStatus422,
+} from "./EnvironmentGetAir.js";
+export type {
+  EnvironmentGetMarineOptions,
+  EnvironmentGetMarineQuery,
+  EnvironmentGetMarineResponse,
+  EnvironmentGetMarineResponses,
+  EnvironmentGetMarineStatus200,
+  EnvironmentGetMarineStatus422,
+} from "./EnvironmentGetMarine.js";
+export type { EnvironmentGetMarineParametersSchemaEnum } from "./EnvironmentGetMarineParametersSchemaEnum.js";
+export { environmentGetMarineParametersSchemaEnum } from "./EnvironmentGetMarineParametersSchemaEnum.js";
 export type {
   EregisterAcceptRegisterObservationBody,
   EregisterAcceptRegisterObservationOptions,
@@ -4184,6 +4204,8 @@ export type { ManagedListing } from "./ManagedListing.js";
 export type { ManagedOrganiser } from "./ManagedOrganiser.js";
 export type { Manifest } from "./Manifest.js";
 export type { ManifestRow } from "./ManifestRow.js";
+export type { MarineResponse } from "./MarineResponse.js";
+export type { MarineRow } from "./MarineRow.js";
 export type { MemberListPublic } from "./MemberListPublic.js";
 export type { MemberPublic } from "./MemberPublic.js";
 export type { MemberRoleUpdate } from "./MemberRoleUpdate.js";
@@ -4644,6 +4666,7 @@ export type { ProfilePublic } from "./ProfilePublic.js";
 export type { ProfilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";
 export { profilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";
 export type { ProfileUpdate } from "./ProfileUpdate.js";
+export type { Provenance } from "./Provenance.js";
 export type { ProvisionalHolidaysRequest } from "./ProvisionalHolidaysRequest.js";
 export type { PublicCurrentConditions } from "./PublicCurrentConditions.js";
 export type { PublicForecast } from "./PublicForecast.js";

@@ -127,6 +127,8 @@ export { capUpdateFeed } from "./capUpdateFeed.js";
 export { capValidateAlert } from "./capValidateAlert.js";
 export { contactSendContactMessage } from "./contactSendContactMessage.js";
 export { contactSendDataRequest } from "./contactSendDataRequest.js";
+export { environmentGetAir } from "./environmentGetAir.js";
+export { environmentGetMarine } from "./environmentGetMarine.js";
 export { eregisterAcceptRegisterObservation } from "./eregisterAcceptRegisterObservation.js";
 export { eregisterCreateRegisterObservation } from "./eregisterCreateRegisterObservation.js";
 export { eregisterEmailRegisterObservation } from "./eregisterEmailRegisterObservation.js";

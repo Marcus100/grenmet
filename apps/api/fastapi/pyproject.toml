@@ -35,6 +35,8 @@ dependencies = [
     "defusedxml>=0.7.1",
     "stripe>=16.0.0,<17.0.0",
     "weasyprint>=70",
+    "copernicusmarine>=2.5.0",
+    "cdsapi>=0.7.7",
 ]
 
 [dependency-groups]
@@ -69,6 +71,9 @@ exclude = ["venv", ".venv", "alembic"]
 # py.typed marker). Importing them is fine; state it once instead of per import.
 module = [
     "boto3",
+    "cdsapi.*",
+    "copernicusmarine.*",
+    "pandas.*",
     "botocore.*",
     "feedparser",
     "gms_ingest.*",
