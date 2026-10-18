@@ -2,14 +2,16 @@
 # packages whose files changed in the commits being pushed (no dependants), read
 # from the refs git passes on stdin. CI runs the full suite.
 # Set PRE_PUSH_SCOPE to any turbo flags to scope all three steps by hand, or to ""
-# for a full local run of all three.
+# for a full local run of all three. Pass filters to turbo directly: under
+# pnpm 12, `pnpm test --filter=x` becomes pnpm's own recursive run, which
+# skips turbo's ^build ordering.
 refs=""
 [ -t 0 ] || refs=$(cat)
 
 if [ -n "${PRE_PUSH_SCOPE+x}" ]; then
-  pnpm check:ci $PRE_PUSH_SCOPE
-  pnpm type-check $PRE_PUSH_SCOPE
-  pnpm test $PRE_PUSH_SCOPE
+  pnpm exec turbo run check:ci $PRE_PUSH_SCOPE
+  pnpm exec turbo run type-check $PRE_PUSH_SCOPE
+  pnpm exec turbo run test --concurrency=2 $PRE_PUSH_SCOPE
   exit 0
 fi
 
@@ -26,6 +28,6 @@ case "$scope" in
     ;;
   *)
     echo "pre-push: testing changed packages only ($scope)"
-    pnpm test $scope
+    pnpm exec turbo run test --concurrency=2 $scope
     ;;
 esac

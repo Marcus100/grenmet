@@ -101,4 +101,20 @@ describe("/api/alerts/push", () => {
       body: { endpoint: subscription.endpoint },
     });
   });
+  it("maps rate limiting and rejected subscriptions", async () => {
+    pushSubscribe.mockReturnValueOnce(rejects(429));
+    expect((await POST(request("POST", subscription))).status).toBe(429);
+    pushSubscribe.mockReturnValueOnce(rejects(422));
+    expect((await POST(request("POST", subscription))).status).toBe(400);
+  });
+
+  it("lets unexpected FastAPI errors reach the error boundary", async () => {
+    pushVapidPublicKey.mockReturnValue(rejects(500));
+    await expect(GET()).rejects.toBeInstanceOf(ResponseError);
+  });
+
+  it("rejects an unsubscribe without an endpoint", async () => {
+    expect((await DELETE(request("DELETE", {}))).status).toBe(400);
+    expect(pushUnsubscribe).not.toHaveBeenCalled();
+  });
 });

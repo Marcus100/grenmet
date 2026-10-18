@@ -196,7 +196,7 @@ jobs:
         # below, so every other package runs here.
         env:
           TURBO_SCM_BASE: ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && 'origin/dev' || '' }}
-        run: pnpm test --filter='!@barrelsgd/web-gaa-admin' ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }}
+        run: pnpm exec turbo run test --concurrency=2 --filter='!@barrelsgd/web-gaa-admin' ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }}
 
   # Job 6b: gaa-admin Vitest suite split into three parallel shards. Together the
   # shards run every test file exactly once, with the same affected-only scope on
