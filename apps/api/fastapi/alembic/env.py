@@ -35,6 +35,7 @@ from src.cap.models import (
     CapWebhook,
 )
 from src.config import settings
+from src.contact.models import ContactMessage
 from src.hr.absentee.models import AbsenteeReport
 from src.hr.attendance.models import (
     AttendanceCorrection,
@@ -84,12 +85,15 @@ from src.hr.workflow.models import (
     WorkflowTemplate,
 )
 from src.notifications.models import (
+    EmailSuppression,
     Notification,
     NotificationDelivery,
     NotificationPreference,
     NotificationSetting,
+    OutboundEmail,
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
+from src.subscriptions.models import ListSubscription
 
 config = context.config
 config.set_main_option("sqlalchemy.url", str(settings.SQLALCHEMY_DATABASE_URI))

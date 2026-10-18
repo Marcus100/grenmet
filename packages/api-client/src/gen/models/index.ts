@@ -1320,6 +1320,19 @@ export type { ConnectionCreate } from "./ConnectionCreate.js";
 export type { ConnectionPublic } from "./ConnectionPublic.js";
 export type { ConnectionPublicPropertiesStateEnum } from "./ConnectionPublicPropertiesStateEnum.js";
 export { connectionPublicPropertiesStateEnum } from "./ConnectionPublicPropertiesStateEnum.js";
+export type { ContactMessageAccepted } from "./ContactMessageAccepted.js";
+export type { ContactMessageCreate } from "./ContactMessageCreate.js";
+export type {
+  ContactSendContactMessageBody,
+  ContactSendContactMessageOptions,
+  ContactSendContactMessageResponse,
+  ContactSendContactMessageResponses,
+  ContactSendContactMessageStatus202,
+  ContactSendContactMessageStatus400,
+  ContactSendContactMessageStatus422,
+} from "./ContactSendContactMessage.js";
+export type { ContactSite } from "./ContactSite.js";
+export { contactSite } from "./ContactSite.js";
 export type { ContractorCreate } from "./ContractorCreate.js";
 export type { ContractorUpdate } from "./ContractorUpdate.js";
 export type { DashboardApproval } from "./DashboardApproval.js";
@@ -4004,6 +4017,33 @@ export type { StatusStaffingPublic } from "./StatusStaffingPublic.js";
 export type { StopView } from "./StopView.js";
 export type { SubmissionMode } from "./SubmissionMode.js";
 export { submissionMode } from "./SubmissionMode.js";
+export type { SubscribeAccepted } from "./SubscribeAccepted.js";
+export type { SubscribeRequest } from "./SubscribeRequest.js";
+export type {
+  SubscriptionsConfirmSubscriptionOptions,
+  SubscriptionsConfirmSubscriptionQuery,
+  SubscriptionsConfirmSubscriptionResponse,
+  SubscriptionsConfirmSubscriptionResponses,
+  SubscriptionsConfirmSubscriptionStatus303,
+  SubscriptionsConfirmSubscriptionStatus422,
+} from "./SubscriptionsConfirmSubscription.js";
+export type {
+  SubscriptionsSubscribeBody,
+  SubscriptionsSubscribeOptions,
+  SubscriptionsSubscribeResponse,
+  SubscriptionsSubscribeResponses,
+  SubscriptionsSubscribeStatus202,
+  SubscriptionsSubscribeStatus400,
+  SubscriptionsSubscribeStatus422,
+} from "./SubscriptionsSubscribe.js";
+export type {
+  SubscriptionsUnsubscribeOptions,
+  SubscriptionsUnsubscribeQuery,
+  SubscriptionsUnsubscribeResponse,
+  SubscriptionsUnsubscribeResponses,
+  SubscriptionsUnsubscribeStatus303,
+  SubscriptionsUnsubscribeStatus422,
+} from "./SubscriptionsUnsubscribe.js";
 export type { SuggestionCreate } from "./SuggestionCreate.js";
 export type { SuggestionPublic } from "./SuggestionPublic.js";
 export type { SuggestionPublicPropertiesStatusEnum } from "./SuggestionPublicPropertiesStatusEnum.js";

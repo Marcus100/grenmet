@@ -58,8 +58,10 @@ consume it via `flightsFor()`.
 ## Contact form
 
 `contact-form.tsx` → `POST /api/contact`, validation in `src/lib/contact.ts`
-(Zod). **Delivery deferred** — the route validates and logs only. Keep the
-schema when wiring real delivery (email to gaa@gaa.gd).
+(Zod). The route validates and proxies to FastAPI `POST /api/v1/contact/messages`
+(site `mbia`; `src/contact` stores it and emails `MBIA_CONTACT_RECIPIENT`
+through the worker outbox). `turnstileToken` is forwarded but not verified yet
+(`contact.service.verify_turnstile`). The form does not send a token today.
 
 ## Testing
 

@@ -11848,6 +11848,168 @@
         }
       }
     },
+    "/api/v1/subscriptions": {
+      "post": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Subscribe to a mailing list",
+        "description": "Starts a double opt-in subscription and emails a confirmation link. The reply is identical whether or not the address is already known or suppressed.",
+        "operationId": "subscriptionsSubscribe",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscribeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscribeAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/confirm": {
+      "get": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Confirm a subscription",
+        "description": "Follows the emailed confirmation link, then redirects to the list's site with a result in the query string.",
+        "operationId": "subscriptionsConfirmSubscription",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/unsubscribe": {
+      "get": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Unsubscribe from a mailing list",
+        "description": "Follows the emailed unsubscribe link, then redirects to the list's site with a result in the query string.",
+        "operationId": "subscriptionsUnsubscribe",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/v1/contact/messages": {
+      "post": {
+        "tags": [
+          "contact"
+        ],
+        "summary": "Send a website contact message",
+        "description": "Public contact form. Stores the message and emails it to the site's configured inbox. Accepts an optional Turnstile token (not yet verified).",
+        "operationId": "contactSendContactMessage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactMessageCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactMessageAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
     "/api/v1/wxproducts/observations": {
       "get": {
         "tags": [
@@ -30379,6 +30541,78 @@
         ],
         "title": "ConnectionPublic"
       },
+      "ContactMessageAccepted": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "title": "ContactMessageAccepted"
+      },
+      "ContactMessageCreate": {
+        "properties": {
+          "site": {
+            "$ref": "#/components/schemas/ContactSite"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Email"
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 10,
+            "title": "Message"
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "site",
+          "name",
+          "email",
+          "subject",
+          "message"
+        ],
+        "title": "ContactMessageCreate"
+      },
+      "ContactSite": {
+        "type": "string",
+        "enum": [
+          "mbia"
+        ],
+        "title": "ContactSite"
+      },
       "ContractorCreate": {
         "properties": {
           "name": {
@@ -44401,6 +44635,43 @@
         ],
         "title": "SubmissionMode"
       },
+      "SubscribeAccepted": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "SubscribeAccepted"
+      },
+      "SubscribeRequest": {
+        "properties": {
+          "list_key": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "pattern": "^[a-z0-9-]+$",
+            "title": "List Key",
+            "description": "Mailing list key, e.g. 'signal'."
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "list_key",
+          "email"
+        ],
+        "title": "SubscribeRequest"
+      },
       "SuggestionCreate": {
         "properties": {
           "title": {
@@ -50522,6 +50793,14 @@
     {
       "name": "cap-public",
       "description": "Public CAP alert feeds and formats."
+    },
+    {
+      "name": "contact",
+      "description": "Public website contact forms (no sign-in)."
+    },
+    {
+      "name": "subscriptions",
+      "description": "Public mailing-list sign-up with double opt-in (no sign-in)."
     },
     {
       "name": "eregister",

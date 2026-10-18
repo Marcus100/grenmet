@@ -1,0 +1,17 @@
+<mjml>
+  <mj-head>
+    <mj-preview>Confirm your subscription to {{ listName }}</mj-preview>
+  </mj-head>
+  <mj-body background-color="#f3f8fc">
+    <mj-section background-color="#ffffff" padding="32px 20px" border-radius="8px">
+      <mj-column width="100%">
+        <mj-text font-size="13px" font-family="Arial, Helvetica, sans-serif" color="#6b7280" text-transform="uppercase" letter-spacing="0.04em" padding-bottom="8px">{{ projectName }}</mj-text>
+        <mj-text font-size="20px" font-weight="600" font-family="Arial, Helvetica, sans-serif" color="#0b132b" line-height="1.4">Confirm your subscription to {{ listName }}</mj-text>
+        <mj-text font-size="16px" font-family="Arial, Helvetica, sans-serif" color="#4b5563" line-height="1.6">Someone asked to receive {{ listName }} at this address. Confirm to start receiving it. If it was not you, ignore this email and nothing will be sent.</mj-text>
+        <mj-button align="left" background-color="#0b63ee" color="#ffffff" font-size="16px" font-weight="600" border-radius="8px" inner-padding="12px 28px" font-family="Arial, Helvetica, sans-serif" href="{{ confirmLink }}">Confirm subscription</mj-button>
+        <mj-divider border-color="#d0d5dd" border-width="1px"></mj-divider>
+        <mj-text font-size="14px" font-family="Arial, Helvetica, sans-serif" color="#6b7280" line-height="1.5">The link expires in 7 days. You can unsubscribe at any time: <a href="{{ unsubscribeLink }}">unsubscribe</a>.</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

@@ -1,0 +1,102 @@
+"""Public contact messages: stored, rate-limited at the edge, mailed via the outbox."""
+
+import uuid
+
+import httpx
+import pytest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.contact.config import contact_settings
+from src.contact.models import ContactMessage
+from src.notifications.models import OutboundEmail
+
+_URL = "/api/v1/contact/messages"
+
+
+def _payload(**overrides: object) -> dict[str, object]:
+    unique = uuid.uuid4().hex[:10]
+    return {
+        "site": "mbia",
+        "name": "Jane Reader",
+        "email": f"jane-{unique}@example.com",
+        "subject": f"Lost bag {unique}",
+        "message": "I lost a bag <script>alert(1)</script> on the 12th.",
+        **overrides,
+    }
+
+
+async def _stored(db: AsyncSession, subject: str) -> ContactMessage | None:
+    db.expire_all()
+    return await db.scalar(
+        select(ContactMessage).where(ContactMessage.subject == subject)
+    )
+
+
+async def test_message_is_stored_and_one_email_queued(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(contact_settings, "MBIA_CONTACT_RECIPIENT", "Inbox@Example.com")
+    payload = _payload(turnstile_token="token-not-checked-yet")
+    resp = await async_client.post(_URL, json=payload)
+    assert resp.status_code == 202
+    assert resp.json() == {"ok": True}
+
+    stored = await _stored(db_async, str(payload["subject"]))
+    assert stored is not None
+    assert stored.site == "mbia"
+    assert stored.email == payload["email"]
+
+    mails = list(
+        (
+            await db_async.scalars(
+                select(OutboundEmail).where(
+                    OutboundEmail.subject == f"Website message: {payload['subject']}"
+                )
+            )
+        ).all()
+    )
+    assert len(mails) == 1
+    assert mails[0].to_email == "inbox@example.com"
+    assert mails[0].transactional is True
+    assert mails[0].html is not None
+    assert "<script>" not in mails[0].html  # visitor text is escaped
+    assert "&lt;script&gt;" in mails[0].html
+
+
+async def test_without_recipient_message_is_only_stored(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(contact_settings, "MBIA_CONTACT_RECIPIENT", None)
+    payload = _payload()
+    resp = await async_client.post(_URL, json=payload)
+    assert resp.status_code == 202
+
+    assert await _stored(db_async, str(payload["subject"])) is not None
+    queued = await db_async.scalar(
+        select(OutboundEmail).where(
+            OutboundEmail.subject == f"Website message: {payload['subject']}"
+        )
+    )
+    assert queued is None
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"email": "nope"},
+        {"name": "x"},
+        {"message": "short"},
+        {"site": "other"},
+        {"message": "x" * 4001},
+    ],
+)
+async def test_invalid_payloads_are_rejected(
+    async_client: httpx.AsyncClient, overrides: dict[str, object]
+) -> None:
+    resp = await async_client.post(_URL, json=_payload(**overrides))
+    assert resp.status_code == 422

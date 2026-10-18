@@ -564,6 +564,11 @@ export {
   useCapValidateAlert,
 } from "./useCapValidateAlert.js";
 export {
+  contactSendContactMessageMutationKey,
+  contactSendContactMessageMutationOptions,
+  useContactSendContactMessage,
+} from "./useContactSendContactMessage.js";
+export {
   eregisterCreateRegisterObservationMutationKey,
   eregisterCreateRegisterObservationMutationOptions,
   useEregisterCreateRegisterObservation,
@@ -1628,6 +1633,21 @@ export {
   notificationsUpdateNotificationSettingMutationOptions,
   useNotificationsUpdateNotificationSetting,
 } from "./useNotificationsUpdateNotificationSetting.js";
+export {
+  subscriptionsConfirmSubscriptionQueryKey,
+  subscriptionsConfirmSubscriptionQueryOptions,
+  useSubscriptionsConfirmSubscription,
+} from "./useSubscriptionsConfirmSubscription.js";
+export {
+  subscriptionsSubscribeMutationKey,
+  subscriptionsSubscribeMutationOptions,
+  useSubscriptionsSubscribe,
+} from "./useSubscriptionsSubscribe.js";
+export {
+  subscriptionsUnsubscribeQueryKey,
+  subscriptionsUnsubscribeQueryOptions,
+  useSubscriptionsUnsubscribe,
+} from "./useSubscriptionsUnsubscribe.js";
 export {
   transportAddTimetableTripMutationKey,
   transportAddTimetableTripMutationOptions,

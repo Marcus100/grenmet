@@ -13,6 +13,8 @@ export const contactSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address"),
   subject: z.enum(CONTACT_SUBJECTS),
   message: z.string().trim().min(10, "Please tell us a little more").max(4000),
+  // Cloudflare Turnstile token; forwarded to FastAPI, which does not verify it yet.
+  turnstileToken: z.string().max(2048).optional(),
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;

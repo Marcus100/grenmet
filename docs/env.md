@@ -149,7 +149,11 @@ the API image and the local source mount contain the same migration assets.
 | `RESEND_WEBHOOK_SECRET` | Optional Svix signing secret for Resend webhook verification |
 | `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` | Comma-separated domains notification email may go to. Deployment reads the GitHub environment variable of this name; missing/blank staging values default to `barrels.gd`, while missing/blank production values allow all domains. Explicit values must be domain names (no wildcards, URLs or email addresses). Local development must configure its own restriction. |
 | `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (local default `http://localhost:3001`). Deployment sets `https://admin.${BASE_DOMAIN}` for both API and worker. |
-| `NOTIFICATIONS_BATCH_SIZE`, `NOTIFICATIONS_MAX_ATTEMPTS` | Worker email outbox batch size (50) and retry limit (5) |
+| `NOTIFICATIONS_BATCH_SIZE`, `NOTIFICATIONS_MAX_ATTEMPTS` | Worker email outbox batch size (50) and retry limit (5); also used for the public-flow outbox (subscriptions, contact) |
+| `MBIA_CONTACT_RECIPIENT` | Inbox that receives MBIA website contact messages. Unset: messages are stored and logged only, nothing is emailed. Sent through the worker outbox as transactional mail |
+| `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd"}` (local default `{"signal":"http://localhost:3004"}`). Confirm and unsubscribe links redirect only to these origins |
+| `SUBSCRIPTIONS_API_BASE_URL` | Public API origin used in confirmation-email links (falls back to `API_BASE_URL`, then `http://localhost:8000`) |
+| `SUBSCRIPTIONS_CONFIRM_TTL_DAYS`, `SUBSCRIPTIONS_RESEND_MINUTES` | Confirmation link lifetime (7) and the window in which a pending address is not mailed again (10) |
 | `BILLING_STRIPE_SECRET_KEY` | Stripe secret API key; use an `sk_test_...` key locally |
 | `BILLING_STRIPE_WEBHOOK_SECRET` | Stripe endpoint signing secret; locally use the `whsec_...` value printed by `stripe listen` |
 | `BILLING_STRIPE_PRICE_ID` | Recurring Stripe Price used by subscription Checkout Sessions |
@@ -277,10 +281,11 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/eRegister/janitorial/
 
 ### signal (`apps/web/signal/.env.local`)
 
-Signal has no auth or database. All variables are optional client-side publics with sensible defaults.
+Signal has no database; newsletter sign-up is proxied to FastAPI (`/api/v1/subscriptions`). All variables are optional with sensible defaults.
 
 | Variable | Purpose |
 |---|---|
+| `AUTH_API_URL` | FastAPI origin the subscribe route proxies to (default `http://localhost:8000`) |
 | `NEXT_PUBLIC_SITE_URL` | Public site URL (default `http://localhost:3004`) |
 | `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN (optional) |
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
@@ -292,6 +297,7 @@ Its typed defaults allow it to run without an env file.
 
 | Variable | Purpose |
 |---|---|
+| `AUTH_API_URL` | FastAPI origin the contact route proxies to (default `http://localhost:8000`). The recipient inbox is FastAPI's `MBIA_CONTACT_RECIPIENT` |
 | `NEXT_PUBLIC_SITE_URL` | Public site URL (default: `http://localhost:3005`) |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry DSN |
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |

@@ -39,6 +39,7 @@ from src.billing.router import router as billing_router
 from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
+from src.contact.router import router as contact_router
 from src.eregister import database as eregister_database
 from src.eregister.router import router as eregister_router
 from src.events import database as events_database
@@ -80,6 +81,7 @@ from src.request_context import (
 
 # from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
+from src.subscriptions.router import router as subscriptions_router
 from src.telemetry import sentry_options
 from src.transport import database as transport_database
 from src.transport.router import router as transport_router
@@ -159,6 +161,14 @@ OPENAPI_TAGS = [
     },
     {"name": "cap", "description": "CAP authoring and hazard alert operations."},
     {"name": "cap-public", "description": "Public CAP alert feeds and formats."},
+    {
+        "name": "contact",
+        "description": "Public website contact forms (no sign-in).",
+    },
+    {
+        "name": "subscriptions",
+        "description": "Public mailing-list sign-up with double opt-in (no sign-in).",
+    },
     {
         "name": "eregister",
         "description": "Electronic weather observation registration.",
@@ -384,6 +394,8 @@ app.include_router(cap_public_router)
 app.include_router(utils_router, prefix="/api/v1")
 app.include_router(weather_images_router, prefix="/api/v1")
 app.include_router(webhooks_router, prefix="/api/v1")
+app.include_router(subscriptions_router, prefix="/api/v1")
+app.include_router(contact_router, prefix="/api/v1")
 app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
 app.include_router(eregister_router, prefix=settings.API_V1_STR)
 app.include_router(wxwatch_router, prefix=settings.API_V1_STR)

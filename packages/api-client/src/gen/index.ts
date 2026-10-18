@@ -114,6 +114,7 @@ export { capUpdateAlert } from "./clients/capUpdateAlert.js";
 export { capUpdateCapSettings } from "./clients/capUpdateCapSettings.js";
 export { capUpdateFeed } from "./clients/capUpdateFeed.js";
 export { capValidateAlert } from "./clients/capValidateAlert.js";
+export { contactSendContactMessage } from "./clients/contactSendContactMessage.js";
 export { eregisterCreateRegisterObservation } from "./clients/eregisterCreateRegisterObservation.js";
 export { eregisterListRegisterObservations } from "./clients/eregisterListRegisterObservations.js";
 export { eregisterPublicCurrentConditions } from "./clients/eregisterPublicCurrentConditions.js";
@@ -327,6 +328,9 @@ export { notificationsMarkAllNotificationsRead } from "./clients/notificationsMa
 export { notificationsMarkNotificationRead } from "./clients/notificationsMarkNotificationRead.js";
 export { notificationsUpdateNotificationPreferences } from "./clients/notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./clients/notificationsUpdateNotificationSetting.js";
+export { subscriptionsConfirmSubscription } from "./clients/subscriptionsConfirmSubscription.js";
+export { subscriptionsSubscribe } from "./clients/subscriptionsSubscribe.js";
+export { subscriptionsUnsubscribe } from "./clients/subscriptionsUnsubscribe.js";
 export { transportAddTimetableTrip } from "./clients/transportAddTimetableTrip.js";
 export { transportCreateRouteEntry } from "./clients/transportCreateRouteEntry.js";
 export { transportCreateStop } from "./clients/transportCreateStop.js";
@@ -944,6 +948,11 @@ export {
   capValidateAlertMutationOptions,
   useCapValidateAlert,
 } from "./hooks/useCapValidateAlert.js";
+export {
+  contactSendContactMessageMutationKey,
+  contactSendContactMessageMutationOptions,
+  useContactSendContactMessage,
+} from "./hooks/useContactSendContactMessage.js";
 export {
   eregisterCreateRegisterObservationMutationKey,
   eregisterCreateRegisterObservationMutationOptions,
@@ -2009,6 +2018,21 @@ export {
   notificationsUpdateNotificationSettingMutationOptions,
   useNotificationsUpdateNotificationSetting,
 } from "./hooks/useNotificationsUpdateNotificationSetting.js";
+export {
+  subscriptionsConfirmSubscriptionQueryKey,
+  subscriptionsConfirmSubscriptionQueryOptions,
+  useSubscriptionsConfirmSubscription,
+} from "./hooks/useSubscriptionsConfirmSubscription.js";
+export {
+  subscriptionsSubscribeMutationKey,
+  subscriptionsSubscribeMutationOptions,
+  useSubscriptionsSubscribe,
+} from "./hooks/useSubscriptionsSubscribe.js";
+export {
+  subscriptionsUnsubscribeQueryKey,
+  subscriptionsUnsubscribeQueryOptions,
+  useSubscriptionsUnsubscribe,
+} from "./hooks/useSubscriptionsUnsubscribe.js";
 export {
   transportAddTimetableTripMutationKey,
   transportAddTimetableTripMutationOptions,
@@ -3591,6 +3615,19 @@ export type { ConnectionCreate } from "./models/ConnectionCreate.js";
 export type { ConnectionPublic } from "./models/ConnectionPublic.js";
 export type { ConnectionPublicPropertiesStateEnum } from "./models/ConnectionPublicPropertiesStateEnum.js";
 export { connectionPublicPropertiesStateEnum } from "./models/ConnectionPublicPropertiesStateEnum.js";
+export type { ContactMessageAccepted } from "./models/ContactMessageAccepted.js";
+export type { ContactMessageCreate } from "./models/ContactMessageCreate.js";
+export type {
+  ContactSendContactMessageBody,
+  ContactSendContactMessageOptions,
+  ContactSendContactMessageResponse,
+  ContactSendContactMessageResponses,
+  ContactSendContactMessageStatus202,
+  ContactSendContactMessageStatus400,
+  ContactSendContactMessageStatus422,
+} from "./models/ContactSendContactMessage.js";
+export type { ContactSite } from "./models/ContactSite.js";
+export { contactSite } from "./models/ContactSite.js";
 export type { ContractorCreate } from "./models/ContractorCreate.js";
 export type { ContractorUpdate } from "./models/ContractorUpdate.js";
 export type { DashboardApproval } from "./models/DashboardApproval.js";
@@ -6275,6 +6312,33 @@ export type { StatusStaffingPublic } from "./models/StatusStaffingPublic.js";
 export type { StopView } from "./models/StopView.js";
 export type { SubmissionMode } from "./models/SubmissionMode.js";
 export { submissionMode } from "./models/SubmissionMode.js";
+export type { SubscribeAccepted } from "./models/SubscribeAccepted.js";
+export type { SubscribeRequest } from "./models/SubscribeRequest.js";
+export type {
+  SubscriptionsConfirmSubscriptionOptions,
+  SubscriptionsConfirmSubscriptionQuery,
+  SubscriptionsConfirmSubscriptionResponse,
+  SubscriptionsConfirmSubscriptionResponses,
+  SubscriptionsConfirmSubscriptionStatus303,
+  SubscriptionsConfirmSubscriptionStatus422,
+} from "./models/SubscriptionsConfirmSubscription.js";
+export type {
+  SubscriptionsSubscribeBody,
+  SubscriptionsSubscribeOptions,
+  SubscriptionsSubscribeResponse,
+  SubscriptionsSubscribeResponses,
+  SubscriptionsSubscribeStatus202,
+  SubscriptionsSubscribeStatus400,
+  SubscriptionsSubscribeStatus422,
+} from "./models/SubscriptionsSubscribe.js";
+export type {
+  SubscriptionsUnsubscribeOptions,
+  SubscriptionsUnsubscribeQuery,
+  SubscriptionsUnsubscribeResponse,
+  SubscriptionsUnsubscribeResponses,
+  SubscriptionsUnsubscribeStatus303,
+  SubscriptionsUnsubscribeStatus422,
+} from "./models/SubscriptionsUnsubscribe.js";
 export type { SuggestionCreate } from "./models/SuggestionCreate.js";
 export type { SuggestionPublic } from "./models/SuggestionPublic.js";
 export type { SuggestionPublicPropertiesStatusEnum } from "./models/SuggestionPublicPropertiesStatusEnum.js";
@@ -8160,6 +8224,17 @@ export { clockSitesPublicSchema } from "./zod/clockSitesPublicSchema.js";
 export { connectionCreateSchema } from "./zod/connectionCreateSchema.js";
 export { connectionPublicPropertiesStateEnumSchema } from "./zod/connectionPublicPropertiesStateEnumSchema.js";
 export { connectionPublicSchema } from "./zod/connectionPublicSchema.js";
+export { contactMessageAcceptedSchema } from "./zod/contactMessageAcceptedSchema.js";
+export { contactMessageCreateSchema } from "./zod/contactMessageCreateSchema.js";
+export {
+  contactSendContactMessageBodySchema,
+  contactSendContactMessageErrorSchema,
+  contactSendContactMessageResponseSchema,
+  contactSendContactMessageStatus202Schema,
+  contactSendContactMessageStatus400Schema,
+  contactSendContactMessageStatus422Schema,
+} from "./zod/contactSendContactMessageSchema.js";
+export { contactSiteSchema } from "./zod/contactSiteSchema.js";
 export { contractorCreateSchema } from "./zod/contractorCreateSchema.js";
 export { contractorUpdateSchema } from "./zod/contractorUpdateSchema.js";
 export { dashboardApprovalSchema } from "./zod/dashboardApprovalSchema.js";
@@ -10623,6 +10698,30 @@ export { statusStaffingEntrySchema } from "./zod/statusStaffingEntrySchema.js";
 export { statusStaffingPublicSchema } from "./zod/statusStaffingPublicSchema.js";
 export { stopViewSchema } from "./zod/stopViewSchema.js";
 export { submissionModeSchema } from "./zod/submissionModeSchema.js";
+export { subscribeAcceptedSchema } from "./zod/subscribeAcceptedSchema.js";
+export { subscribeRequestSchema } from "./zod/subscribeRequestSchema.js";
+export {
+  subscriptionsConfirmSubscriptionErrorSchema,
+  subscriptionsConfirmSubscriptionQueryTokenSchema,
+  subscriptionsConfirmSubscriptionResponseSchema,
+  subscriptionsConfirmSubscriptionStatus303Schema,
+  subscriptionsConfirmSubscriptionStatus422Schema,
+} from "./zod/subscriptionsConfirmSubscriptionSchema.js";
+export {
+  subscriptionsSubscribeBodySchema,
+  subscriptionsSubscribeErrorSchema,
+  subscriptionsSubscribeResponseSchema,
+  subscriptionsSubscribeStatus202Schema,
+  subscriptionsSubscribeStatus400Schema,
+  subscriptionsSubscribeStatus422Schema,
+} from "./zod/subscriptionsSubscribeSchema.js";
+export {
+  subscriptionsUnsubscribeErrorSchema,
+  subscriptionsUnsubscribeQueryTokenSchema,
+  subscriptionsUnsubscribeResponseSchema,
+  subscriptionsUnsubscribeStatus303Schema,
+  subscriptionsUnsubscribeStatus422Schema,
+} from "./zod/subscriptionsUnsubscribeSchema.js";
 export { suggestionCreateSchema } from "./zod/suggestionCreateSchema.js";
 export { suggestionPublicPropertiesStatusEnumSchema } from "./zod/suggestionPublicPropertiesStatusEnumSchema.js";
 export { suggestionPublicSchema } from "./zod/suggestionPublicSchema.js";

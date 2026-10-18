@@ -26,6 +26,9 @@ international audience. Light mode; no reader account or subscription.
 - Seven topic folders are supported. `getCurrentArticles` selects sourced editorial previews for discovery; `getPublishedArticles` retains both previews and legacy samples for archive/static paths. `draft: false` means preview-visible, not human publication approval.
 - Test commands generate content before Vitest so clean CI checkouts exercise the real MDX fixtures. Keep originals for the later CMS import; do not implement a second publishing system during the frontend phase.
 
+## Newsletter
+`POST /api/subscribe` validates the email and proxies to FastAPI `POST /api/v1/subscriptions` (list `signal`, double opt-in, rate-limited, same reply for every address). Confirm and unsubscribe links in the email hit FastAPI, which redirects to `/subscribe/status?result=confirmed|unsubscribed|invalid`. There is deliberately no sign-up form in the reader yet.
+
 ## Verification
 `pnpm --filter @barrelsgd/web-signal build` and `test`; then root formatting,
 workspace types, design and documentation gates. Test desktop at 1280px and 1440px, mobile at 320px, keyboard

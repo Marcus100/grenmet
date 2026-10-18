@@ -111,6 +111,7 @@ export { capUpdateAlert } from "./capUpdateAlert.js";
 export { capUpdateCapSettings } from "./capUpdateCapSettings.js";
 export { capUpdateFeed } from "./capUpdateFeed.js";
 export { capValidateAlert } from "./capValidateAlert.js";
+export { contactSendContactMessage } from "./contactSendContactMessage.js";
 export { eregisterCreateRegisterObservation } from "./eregisterCreateRegisterObservation.js";
 export { eregisterListRegisterObservations } from "./eregisterListRegisterObservations.js";
 export { eregisterPublicCurrentConditions } from "./eregisterPublicCurrentConditions.js";
@@ -324,6 +325,9 @@ export { notificationsMarkAllNotificationsRead } from "./notificationsMarkAllNot
 export { notificationsMarkNotificationRead } from "./notificationsMarkNotificationRead.js";
 export { notificationsUpdateNotificationPreferences } from "./notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./notificationsUpdateNotificationSetting.js";
+export { subscriptionsConfirmSubscription } from "./subscriptionsConfirmSubscription.js";
+export { subscriptionsSubscribe } from "./subscriptionsSubscribe.js";
+export { subscriptionsUnsubscribe } from "./subscriptionsUnsubscribe.js";
 export { transportAddTimetableTrip } from "./transportAddTimetableTrip.js";
 export { transportCreateRouteEntry } from "./transportCreateRouteEntry.js";
 export { transportCreateStop } from "./transportCreateStop.js";
