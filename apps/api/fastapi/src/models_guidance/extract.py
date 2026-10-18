@@ -6,15 +6,33 @@ accumulation windows per file; cfgrib merges messages by step and cannot keep
 the ``startStep``/``endStep`` pair that the precipitation maths needs.
 """
 
+import importlib
 import math
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from functools import cache
 from pathlib import Path
-
-import eccodes
+from types import ModuleType
 
 from .config import GuidancePoint
+
+
+@cache
+def _eccodes() -> ModuleType:
+    """Load ecCodes on first use, never at API start-up.
+
+    ecCodes preloads eckitlib's own PROJ copy. If that happens before pyproj
+    binds its PROJ wheel (gms_ingest imports pyproj first for this reason), the
+    heap is corrupted at interpreter shutdown and the process aborts even though
+    every call succeeded. Bind pyproj first when it is installed, then ecCodes.
+    """
+    try:
+        importlib.import_module("pyproj")
+    except ImportError:
+        pass
+    return importlib.import_module("eccodes")
+
 
 #: GRIB shortName -> canonical field.
 _SHORT_NAMES: dict[str, str] = {
@@ -72,34 +90,36 @@ def read_points(path: Path, points: list[GuidancePoint], model: str) -> Readings
     scale = _SCALE.get(model, {})
     out = Readings()
     with path.open("rb") as handle:
-        while (message := eccodes.codes_grib_new_from_file(handle)) is not None:
+        while (message := _eccodes().codes_grib_new_from_file(handle)) is not None:
             try:
                 _read_message(message, points, scale, out)
             finally:
-                eccodes.codes_release(message)
+                _eccodes().codes_release(message)
     return out
 
 
 def _read_message(
     message: int, points: list[GuidancePoint], scale: dict[str, float], out: Readings
 ) -> None:
-    name = _SHORT_NAMES.get(str(eccodes.codes_get(message, "shortName")))
+    name = _SHORT_NAMES.get(str(_eccodes().codes_get(message, "shortName")))
     if name is None:
         return
-    start = int(eccodes.codes_get(message, "startStep"))
-    end = int(eccodes.codes_get(message, "endStep"))
+    start = int(_eccodes().codes_get(message, "startStep"))
+    end = int(_eccodes().codes_get(message, "endStep"))
     run = _parse_time(
-        int(eccodes.codes_get(message, "dataDate")),
-        int(eccodes.codes_get(message, "dataTime")),
+        int(_eccodes().codes_get(message, "dataDate")),
+        int(_eccodes().codes_get(message, "dataTime")),
     )
     out.run_time = out.run_time or run
     out.valid_times[end] = run + timedelta(hours=end)
-    first_lon = float(eccodes.codes_get(message, "longitudeOfFirstGridPointInDegrees"))
+    first_lon = float(
+        _eccodes().codes_get(message, "longitudeOfFirstGridPointInDegrees")
+    )
     factor = scale.get(name, 1.0)
     values: dict[str, float] = {}
     for point in points:
         lon = point.longitude if first_lon < 0 else point.longitude % 360.0
-        nearest = eccodes.codes_grib_find_nearest(message, point.latitude, lon)[0]
+        nearest = _eccodes().codes_grib_find_nearest(message, point.latitude, lon)[0]
         value = float(nearest.value)
         if math.isnan(value) or value >= 1e20:  # GRIB missing-value sentinel
             continue
