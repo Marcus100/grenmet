@@ -134,6 +134,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "eregister.send",
         "Email a register observation and queue it for WIS2 publication",
     ),
+    PermissionDef(
+        "eregister.qc",
+        "Accept, reject or reopen a register observation (QC; a different person from the observer)",
+    ),
     # CAP — alert lifecycle
     PermissionDef("cap.alert.create", "Create CAP alerts"),
     PermissionDef("cap.alert.edit", "Edit CAP alerts"),
@@ -388,6 +392,10 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "eregister-sender": (
         "eRegister: email observations and queue them for WIS2",
         ("eregister.send",),
+    ),
+    "eregister-qc": (
+        "eRegister QC: duty or senior forecaster who accepts observations",
+        ("eregister.qc", "eregister.send"),
     ),
     "weather-member": (
         "Weather website member: granted on first sign-in",

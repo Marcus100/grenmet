@@ -1257,6 +1257,18 @@ export { employmentStatusSchema } from "./employmentStatusSchema.js";
 export { employmentTypeSchema } from "./employmentTypeSchema.js";
 export { employmentUpdateSchema } from "./employmentUpdateSchema.js";
 export {
+  eregisterAcceptRegisterObservationBodySchema,
+  eregisterAcceptRegisterObservationErrorSchema,
+  eregisterAcceptRegisterObservationPathObservationIdSchema,
+  eregisterAcceptRegisterObservationResponseSchema,
+  eregisterAcceptRegisterObservationStatus200Schema,
+  eregisterAcceptRegisterObservationStatus401Schema,
+  eregisterAcceptRegisterObservationStatus403Schema,
+  eregisterAcceptRegisterObservationStatus404Schema,
+  eregisterAcceptRegisterObservationStatus409Schema,
+  eregisterAcceptRegisterObservationStatus422Schema,
+} from "./eregisterAcceptRegisterObservationSchema.js";
+export {
   eregisterCreateRegisterObservationBodySchema,
   eregisterCreateRegisterObservationErrorSchema,
   eregisterCreateRegisterObservationResponseSchema,
@@ -1290,6 +1302,7 @@ export {
   eregisterListRegisterObservationsErrorSchema,
   eregisterListRegisterObservationsQueryKindSchema,
   eregisterListRegisterObservationsQueryLimitSchema,
+  eregisterListRegisterObservationsQueryStateSchema,
   eregisterListRegisterObservationsQueryStationIdSchema,
   eregisterListRegisterObservationsResponseSchema,
   eregisterListRegisterObservationsStatus200Schema,
@@ -1325,6 +1338,30 @@ export {
   eregisterPublishRegisterObservationStatus409Schema,
   eregisterPublishRegisterObservationStatus422Schema,
 } from "./eregisterPublishRegisterObservationSchema.js";
+export {
+  eregisterRejectRegisterObservationBodySchema,
+  eregisterRejectRegisterObservationErrorSchema,
+  eregisterRejectRegisterObservationPathObservationIdSchema,
+  eregisterRejectRegisterObservationResponseSchema,
+  eregisterRejectRegisterObservationStatus200Schema,
+  eregisterRejectRegisterObservationStatus401Schema,
+  eregisterRejectRegisterObservationStatus403Schema,
+  eregisterRejectRegisterObservationStatus404Schema,
+  eregisterRejectRegisterObservationStatus409Schema,
+  eregisterRejectRegisterObservationStatus422Schema,
+} from "./eregisterRejectRegisterObservationSchema.js";
+export {
+  eregisterReopenRegisterObservationBodySchema,
+  eregisterReopenRegisterObservationErrorSchema,
+  eregisterReopenRegisterObservationPathObservationIdSchema,
+  eregisterReopenRegisterObservationResponseSchema,
+  eregisterReopenRegisterObservationStatus200Schema,
+  eregisterReopenRegisterObservationStatus401Schema,
+  eregisterReopenRegisterObservationStatus403Schema,
+  eregisterReopenRegisterObservationStatus404Schema,
+  eregisterReopenRegisterObservationStatus409Schema,
+  eregisterReopenRegisterObservationStatus422Schema,
+} from "./eregisterReopenRegisterObservationSchema.js";
 export {
   eregisterValidateSynopObservationBodySchema,
   eregisterValidateSynopObservationErrorSchema,
@@ -3958,6 +3995,7 @@ export { publicWarningPropertiesColourAnyOfEnumSchema } from "./publicWarningPro
 export { publicWarningSchema } from "./publicWarningSchema.js";
 export { publicWarningsSchema } from "./publicWarningsSchema.js";
 export { publishedProductsSchema } from "./publishedProductsSchema.js";
+export { qcDecisionRequestSchema } from "./qcDecisionRequestSchema.js";
 export { recoveryCodesPublicSchema } from "./recoveryCodesPublicSchema.js";
 export { registerObservationCreateSchema } from "./registerObservationCreateSchema.js";
 export { registerObservationListSchema } from "./registerObservationListSchema.js";

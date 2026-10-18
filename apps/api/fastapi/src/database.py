@@ -35,6 +35,7 @@ from src.cap.models import (
     CapWebhook,
 )
 from src.config import settings
+from src.eregister import audit as _eregister_audit
 from src.events import notifications as _events_notifications
 from src.hr import audit as _hr_audit
 from src.hr import notifications as _hr_notifications
@@ -107,6 +108,7 @@ _events_notifications.register()
 _stores_audit.register()
 _stores_notifications.register()
 _organisations_audit.register()
+_eregister_audit.register()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 

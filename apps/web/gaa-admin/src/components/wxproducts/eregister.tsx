@@ -12,6 +12,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { REGISTER_KEYS, REGISTER_SECTIONS } from "./eregister-layout";
 import { metarFromCoded } from "./eregister-metar";
 import { observerInitials } from "./eregister-observer";
+import { QcQueue } from "./eregister-qc";
 import {
   LatestReports,
   type LiveState,
@@ -47,6 +48,7 @@ function toReportRows(
           .replace("T", " ")
       : "Unknown",
     message: observation.raw_tac ?? `Structured ${observation.kind} record`,
+    state: observation.state,
   }));
 }
 
@@ -322,6 +324,18 @@ export function ERegister() {
         ))}
       </div>
 
+      {live ? (
+        <QcQueue
+          observations={liveObservations}
+          onDecided={(updated) =>
+            setLiveObservations((current) =>
+              current.map((item) => (item.id === updated.id ? updated : item))
+            )
+          }
+          userId={sessionUser.id}
+        />
+      ) : null}
+
       {/* Daily summaries beside the latest reports */}
       <div className="flex flex-wrap items-start gap-6">
         <SectionCard className="w-fit max-w-full" title="Daily Summaries">
@@ -339,8 +353,9 @@ export function ERegister() {
       </div>
 
       <p className="text-muted-foreground text-xs">
-        Latest saved records appear once the register service responds. QC
-        approval and WIS2box publication remain separate, explicit steps.
+        Latest saved records appear once the register service responds. A
+        different person from the observer accepts each observation, and only
+        accepted observations go to WIS2.
       </p>
     </div>
   );

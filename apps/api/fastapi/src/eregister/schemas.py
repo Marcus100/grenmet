@@ -125,6 +125,8 @@ class RegisterObservationRead(RegisterObservationWrite):
     id: UUID
     state: RegisterState
     qc_notes: str | None = None
+    qc_by: str | None = None
+    qc_at: UtcDateTime | None = None
     wis2_topic: str | None = None
     wis2_message_id: str | None = None
     wis2_published_at: UtcDateTime | None = None
@@ -147,6 +149,14 @@ class RegisterObservationCreate(RegisterObservationWrite):
     observed_at: Annotated[UtcDateTime, AwareDatetime()]
     issued_at: Annotated[UtcDateTime, AwareDatetime()] | None = None
     id: UUID = Field(default_factory=uuid4)
+
+
+class QcDecisionRequest(BaseModel):
+    reason: str | None = Field(
+        default=None,
+        max_length=1000,
+        description="Required to reject or reopen; optional note when accepting.",
+    )
 
 
 PressureTrend = Literal["rising", "steady", "falling"]

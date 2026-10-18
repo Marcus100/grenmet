@@ -16344,6 +16344,25 @@
             }
           },
           {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(draft|qc_pending|accepted|rejected|superseded)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only observations in this QC state (the QC queue is draft and qc_pending).",
+              "title": "State"
+            },
+            "description": "Only observations in this QC state (the QC queue is draft and qc_pending)."
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -16576,7 +16595,7 @@
           "eregister"
         ],
         "summary": "Queue a register observation for WIS2",
-        "description": "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. 409 unless WIS2BOX_* is configured, or when the observation was already queued (send `resend: true` to repeat).",
+        "description": "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. Only QC-accepted observations are published: 409 otherwise, unless WIS2BOX_* is configured, or when the observation was already queued (send `resend: true` to repeat).",
         "operationId": "eregisterPublishRegisterObservation",
         "security": [
           {
@@ -16640,6 +16659,228 @@
           },
           "409": {
             "description": "Not configured, not sendable, or already sent (use resend)"
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/observations/{observation_id}/accept": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Accept a register observation (QC)",
+        "description": "Moves a draft or qc_pending SYNOP to accepted. Requires `eregister.qc`. Four-eyes: always a different person from the observer who saved it, superusers included. The observation must pass validation. Audited.",
+        "operationId": "eregisterAcceptRegisterObservation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Observation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/QcDecisionRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterObservationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing reason, or the observation fails validation"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.qc`, or the observer deciding their own"
+          },
+          "404": {
+            "description": "Observation not found"
+          },
+          "409": {
+            "description": "The observation is not in a state that allows this"
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/observations/{observation_id}/reject": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Reject a register observation (QC)",
+        "description": "Moves a draft or qc_pending observation to rejected; a reason is required. Requires `eregister.qc`. Rejected observations are never sent or shown publicly. Audited.",
+        "operationId": "eregisterRejectRegisterObservation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Observation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/QcDecisionRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterObservationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing reason, or the observation fails validation"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.qc`, or the observer deciding their own"
+          },
+          "404": {
+            "description": "Observation not found"
+          },
+          "409": {
+            "description": "The observation is not in a state that allows this"
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/observations/{observation_id}/reopen": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Reopen an accepted or rejected observation (QC)",
+        "description": "Moves an accepted or rejected observation back to qc_pending; a reason is required. Requires `eregister.qc`. 409 once the observation was queued or sent to WIS2. Audited.",
+        "operationId": "eregisterReopenRegisterObservation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Observation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/QcDecisionRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterObservationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing reason, or the observation fails validation"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.qc`, or the observer deciding their own"
+          },
+          "404": {
+            "description": "Observation not found"
+          },
+          "409": {
+            "description": "The observation is not in a state that allows this"
           }
         }
       }
@@ -45531,6 +45772,25 @@
         ],
         "title": "PublishedProducts"
       },
+      "QcDecisionRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Required to reject or reopen; optional note when accepting."
+          }
+        },
+        "type": "object",
+        "title": "QcDecisionRequest"
+      },
       "RecoveryCodesPublic": {
         "properties": {
           "codes": {
@@ -45784,6 +46044,29 @@
               }
             ],
             "title": "Qc Notes"
+          },
+          "qc_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qc By"
+          },
+          "qc_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qc At"
           },
           "wis2_topic": {
             "anyOf": [

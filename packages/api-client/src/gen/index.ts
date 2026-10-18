@@ -116,6 +116,7 @@ export { capUpdateFeed } from "./clients/capUpdateFeed.js";
 export { capValidateAlert } from "./clients/capValidateAlert.js";
 export { contactSendContactMessage } from "./clients/contactSendContactMessage.js";
 export { contactSendDataRequest } from "./clients/contactSendDataRequest.js";
+export { eregisterAcceptRegisterObservation } from "./clients/eregisterAcceptRegisterObservation.js";
 export { eregisterCreateRegisterObservation } from "./clients/eregisterCreateRegisterObservation.js";
 export { eregisterEmailRegisterObservation } from "./clients/eregisterEmailRegisterObservation.js";
 export { eregisterListObservationSends } from "./clients/eregisterListObservationSends.js";
@@ -123,6 +124,8 @@ export { eregisterListRegisterObservations } from "./clients/eregisterListRegist
 export { eregisterPublicCurrentConditions } from "./clients/eregisterPublicCurrentConditions.js";
 export { eregisterPublicMonthSummary } from "./clients/eregisterPublicMonthSummary.js";
 export { eregisterPublishRegisterObservation } from "./clients/eregisterPublishRegisterObservation.js";
+export { eregisterRejectRegisterObservation } from "./clients/eregisterRejectRegisterObservation.js";
+export { eregisterReopenRegisterObservation } from "./clients/eregisterReopenRegisterObservation.js";
 export { eregisterValidateSynopObservation } from "./clients/eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./clients/eventsAcceptConnection.js";
 export { eventsBlockMember } from "./clients/eventsBlockMember.js";
@@ -1009,6 +1012,11 @@ export {
   useContactSendDataRequest,
 } from "./hooks/useContactSendDataRequest.js";
 export {
+  eregisterAcceptRegisterObservationMutationKey,
+  eregisterAcceptRegisterObservationMutationOptions,
+  useEregisterAcceptRegisterObservation,
+} from "./hooks/useEregisterAcceptRegisterObservation.js";
+export {
   eregisterCreateRegisterObservationMutationKey,
   eregisterCreateRegisterObservationMutationOptions,
   useEregisterCreateRegisterObservation,
@@ -1043,6 +1051,16 @@ export {
   eregisterPublishRegisterObservationMutationOptions,
   useEregisterPublishRegisterObservation,
 } from "./hooks/useEregisterPublishRegisterObservation.js";
+export {
+  eregisterRejectRegisterObservationMutationKey,
+  eregisterRejectRegisterObservationMutationOptions,
+  useEregisterRejectRegisterObservation,
+} from "./hooks/useEregisterRejectRegisterObservation.js";
+export {
+  eregisterReopenRegisterObservationMutationKey,
+  eregisterReopenRegisterObservationMutationOptions,
+  useEregisterReopenRegisterObservation,
+} from "./hooks/useEregisterReopenRegisterObservation.js";
 export {
   eregisterValidateSynopObservationMutationKey,
   eregisterValidateSynopObservationMutationOptions,
@@ -3991,6 +4009,19 @@ export type { EmploymentType } from "./models/EmploymentType.js";
 export { employmentType } from "./models/EmploymentType.js";
 export type { EmploymentUpdate } from "./models/EmploymentUpdate.js";
 export type {
+  EregisterAcceptRegisterObservationBody,
+  EregisterAcceptRegisterObservationOptions,
+  EregisterAcceptRegisterObservationPath,
+  EregisterAcceptRegisterObservationResponse,
+  EregisterAcceptRegisterObservationResponses,
+  EregisterAcceptRegisterObservationStatus200,
+  EregisterAcceptRegisterObservationStatus401,
+  EregisterAcceptRegisterObservationStatus403,
+  EregisterAcceptRegisterObservationStatus404,
+  EregisterAcceptRegisterObservationStatus409,
+  EregisterAcceptRegisterObservationStatus422,
+} from "./models/EregisterAcceptRegisterObservation.js";
+export type {
   EregisterCreateRegisterObservationBody,
   EregisterCreateRegisterObservationOptions,
   EregisterCreateRegisterObservationResponse,
@@ -4064,6 +4095,32 @@ export type {
   EregisterPublishRegisterObservationStatus409,
   EregisterPublishRegisterObservationStatus422,
 } from "./models/EregisterPublishRegisterObservation.js";
+export type {
+  EregisterRejectRegisterObservationBody,
+  EregisterRejectRegisterObservationOptions,
+  EregisterRejectRegisterObservationPath,
+  EregisterRejectRegisterObservationResponse,
+  EregisterRejectRegisterObservationResponses,
+  EregisterRejectRegisterObservationStatus200,
+  EregisterRejectRegisterObservationStatus401,
+  EregisterRejectRegisterObservationStatus403,
+  EregisterRejectRegisterObservationStatus404,
+  EregisterRejectRegisterObservationStatus409,
+  EregisterRejectRegisterObservationStatus422,
+} from "./models/EregisterRejectRegisterObservation.js";
+export type {
+  EregisterReopenRegisterObservationBody,
+  EregisterReopenRegisterObservationOptions,
+  EregisterReopenRegisterObservationPath,
+  EregisterReopenRegisterObservationResponse,
+  EregisterReopenRegisterObservationResponses,
+  EregisterReopenRegisterObservationStatus200,
+  EregisterReopenRegisterObservationStatus401,
+  EregisterReopenRegisterObservationStatus403,
+  EregisterReopenRegisterObservationStatus404,
+  EregisterReopenRegisterObservationStatus409,
+  EregisterReopenRegisterObservationStatus422,
+} from "./models/EregisterReopenRegisterObservation.js";
 export type {
   EregisterValidateSynopObservationBody,
   EregisterValidateSynopObservationOptions,
@@ -6919,6 +6976,7 @@ export type { PublicWarningPropertiesColourAnyOfEnum } from "./models/PublicWarn
 export { publicWarningPropertiesColourAnyOfEnum } from "./models/PublicWarningPropertiesColourAnyOfEnum.js";
 export type { PublicWarnings } from "./models/PublicWarnings.js";
 export type { PublishedProducts } from "./models/PublishedProducts.js";
+export type { QcDecisionRequest } from "./models/QcDecisionRequest.js";
 export type { RecoveryCodesPublic } from "./models/RecoveryCodesPublic.js";
 export type { RegisterObservationCreate } from "./models/RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./models/RegisterObservationList.js";
@@ -9277,6 +9335,18 @@ export { employmentStatusSchema } from "./zod/employmentStatusSchema.js";
 export { employmentTypeSchema } from "./zod/employmentTypeSchema.js";
 export { employmentUpdateSchema } from "./zod/employmentUpdateSchema.js";
 export {
+  eregisterAcceptRegisterObservationBodySchema,
+  eregisterAcceptRegisterObservationErrorSchema,
+  eregisterAcceptRegisterObservationPathObservationIdSchema,
+  eregisterAcceptRegisterObservationResponseSchema,
+  eregisterAcceptRegisterObservationStatus200Schema,
+  eregisterAcceptRegisterObservationStatus401Schema,
+  eregisterAcceptRegisterObservationStatus403Schema,
+  eregisterAcceptRegisterObservationStatus404Schema,
+  eregisterAcceptRegisterObservationStatus409Schema,
+  eregisterAcceptRegisterObservationStatus422Schema,
+} from "./zod/eregisterAcceptRegisterObservationSchema.js";
+export {
   eregisterCreateRegisterObservationBodySchema,
   eregisterCreateRegisterObservationErrorSchema,
   eregisterCreateRegisterObservationResponseSchema,
@@ -9310,6 +9380,7 @@ export {
   eregisterListRegisterObservationsErrorSchema,
   eregisterListRegisterObservationsQueryKindSchema,
   eregisterListRegisterObservationsQueryLimitSchema,
+  eregisterListRegisterObservationsQueryStateSchema,
   eregisterListRegisterObservationsQueryStationIdSchema,
   eregisterListRegisterObservationsResponseSchema,
   eregisterListRegisterObservationsStatus200Schema,
@@ -9345,6 +9416,30 @@ export {
   eregisterPublishRegisterObservationStatus409Schema,
   eregisterPublishRegisterObservationStatus422Schema,
 } from "./zod/eregisterPublishRegisterObservationSchema.js";
+export {
+  eregisterRejectRegisterObservationBodySchema,
+  eregisterRejectRegisterObservationErrorSchema,
+  eregisterRejectRegisterObservationPathObservationIdSchema,
+  eregisterRejectRegisterObservationResponseSchema,
+  eregisterRejectRegisterObservationStatus200Schema,
+  eregisterRejectRegisterObservationStatus401Schema,
+  eregisterRejectRegisterObservationStatus403Schema,
+  eregisterRejectRegisterObservationStatus404Schema,
+  eregisterRejectRegisterObservationStatus409Schema,
+  eregisterRejectRegisterObservationStatus422Schema,
+} from "./zod/eregisterRejectRegisterObservationSchema.js";
+export {
+  eregisterReopenRegisterObservationBodySchema,
+  eregisterReopenRegisterObservationErrorSchema,
+  eregisterReopenRegisterObservationPathObservationIdSchema,
+  eregisterReopenRegisterObservationResponseSchema,
+  eregisterReopenRegisterObservationStatus200Schema,
+  eregisterReopenRegisterObservationStatus401Schema,
+  eregisterReopenRegisterObservationStatus403Schema,
+  eregisterReopenRegisterObservationStatus404Schema,
+  eregisterReopenRegisterObservationStatus409Schema,
+  eregisterReopenRegisterObservationStatus422Schema,
+} from "./zod/eregisterReopenRegisterObservationSchema.js";
 export {
   eregisterValidateSynopObservationBodySchema,
   eregisterValidateSynopObservationErrorSchema,
@@ -11978,6 +12073,7 @@ export { publicWarningPropertiesColourAnyOfEnumSchema } from "./zod/publicWarnin
 export { publicWarningSchema } from "./zod/publicWarningSchema.js";
 export { publicWarningsSchema } from "./zod/publicWarningsSchema.js";
 export { publishedProductsSchema } from "./zod/publishedProductsSchema.js";
+export { qcDecisionRequestSchema } from "./zod/qcDecisionRequestSchema.js";
 export { recoveryCodesPublicSchema } from "./zod/recoveryCodesPublicSchema.js";
 export { registerObservationCreateSchema } from "./zod/registerObservationCreateSchema.js";
 export { registerObservationListSchema } from "./zod/registerObservationListSchema.js";

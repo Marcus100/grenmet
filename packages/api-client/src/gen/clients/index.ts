@@ -113,6 +113,7 @@ export { capUpdateFeed } from "./capUpdateFeed.js";
 export { capValidateAlert } from "./capValidateAlert.js";
 export { contactSendContactMessage } from "./contactSendContactMessage.js";
 export { contactSendDataRequest } from "./contactSendDataRequest.js";
+export { eregisterAcceptRegisterObservation } from "./eregisterAcceptRegisterObservation.js";
 export { eregisterCreateRegisterObservation } from "./eregisterCreateRegisterObservation.js";
 export { eregisterEmailRegisterObservation } from "./eregisterEmailRegisterObservation.js";
 export { eregisterListObservationSends } from "./eregisterListObservationSends.js";
@@ -120,6 +121,8 @@ export { eregisterListRegisterObservations } from "./eregisterListRegisterObserv
 export { eregisterPublicCurrentConditions } from "./eregisterPublicCurrentConditions.js";
 export { eregisterPublicMonthSummary } from "./eregisterPublicMonthSummary.js";
 export { eregisterPublishRegisterObservation } from "./eregisterPublishRegisterObservation.js";
+export { eregisterRejectRegisterObservation } from "./eregisterRejectRegisterObservation.js";
+export { eregisterReopenRegisterObservation } from "./eregisterReopenRegisterObservation.js";
 export { eregisterValidateSynopObservation } from "./eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./eventsAcceptConnection.js";
 export { eventsBlockMember } from "./eventsBlockMember.js";

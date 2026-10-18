@@ -1396,6 +1396,19 @@ export type { EmploymentType } from "./EmploymentType.js";
 export { employmentType } from "./EmploymentType.js";
 export type { EmploymentUpdate } from "./EmploymentUpdate.js";
 export type {
+  EregisterAcceptRegisterObservationBody,
+  EregisterAcceptRegisterObservationOptions,
+  EregisterAcceptRegisterObservationPath,
+  EregisterAcceptRegisterObservationResponse,
+  EregisterAcceptRegisterObservationResponses,
+  EregisterAcceptRegisterObservationStatus200,
+  EregisterAcceptRegisterObservationStatus401,
+  EregisterAcceptRegisterObservationStatus403,
+  EregisterAcceptRegisterObservationStatus404,
+  EregisterAcceptRegisterObservationStatus409,
+  EregisterAcceptRegisterObservationStatus422,
+} from "./EregisterAcceptRegisterObservation.js";
+export type {
   EregisterCreateRegisterObservationBody,
   EregisterCreateRegisterObservationOptions,
   EregisterCreateRegisterObservationResponse,
@@ -1469,6 +1482,32 @@ export type {
   EregisterPublishRegisterObservationStatus409,
   EregisterPublishRegisterObservationStatus422,
 } from "./EregisterPublishRegisterObservation.js";
+export type {
+  EregisterRejectRegisterObservationBody,
+  EregisterRejectRegisterObservationOptions,
+  EregisterRejectRegisterObservationPath,
+  EregisterRejectRegisterObservationResponse,
+  EregisterRejectRegisterObservationResponses,
+  EregisterRejectRegisterObservationStatus200,
+  EregisterRejectRegisterObservationStatus401,
+  EregisterRejectRegisterObservationStatus403,
+  EregisterRejectRegisterObservationStatus404,
+  EregisterRejectRegisterObservationStatus409,
+  EregisterRejectRegisterObservationStatus422,
+} from "./EregisterRejectRegisterObservation.js";
+export type {
+  EregisterReopenRegisterObservationBody,
+  EregisterReopenRegisterObservationOptions,
+  EregisterReopenRegisterObservationPath,
+  EregisterReopenRegisterObservationResponse,
+  EregisterReopenRegisterObservationResponses,
+  EregisterReopenRegisterObservationStatus200,
+  EregisterReopenRegisterObservationStatus401,
+  EregisterReopenRegisterObservationStatus403,
+  EregisterReopenRegisterObservationStatus404,
+  EregisterReopenRegisterObservationStatus409,
+  EregisterReopenRegisterObservationStatus422,
+} from "./EregisterReopenRegisterObservation.js";
 export type {
   EregisterValidateSynopObservationBody,
   EregisterValidateSynopObservationOptions,
@@ -4324,6 +4363,7 @@ export type { PublicWarningPropertiesColourAnyOfEnum } from "./PublicWarningProp
 export { publicWarningPropertiesColourAnyOfEnum } from "./PublicWarningPropertiesColourAnyOfEnum.js";
 export type { PublicWarnings } from "./PublicWarnings.js";
 export type { PublishedProducts } from "./PublishedProducts.js";
+export type { QcDecisionRequest } from "./QcDecisionRequest.js";
 export type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";
 export type { RegisterObservationCreate } from "./RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./RegisterObservationList.js";

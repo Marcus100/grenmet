@@ -18,12 +18,14 @@ import {
 } from "@barrelsgd/ui/components/ui/tabs";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { useState } from "react";
+import { QcBadge, type QcState } from "./eregister-qc";
 import { GRID_CELL, HEAD_ROW, SectionCard } from "./eregister-ui";
 
 export interface ReportRow {
   id: string;
   message: string;
   observed: string;
+  state?: QcState;
 }
 
 export type ReportKind = "SYNOP" | "METAR" | "SPECI";
@@ -73,7 +75,11 @@ function ReportPanel({
     <div className="space-y-3 px-4 py-3">
       <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
         <span>Latest · {latest.observed} UTC</span>
-        <Badge variant="secondary">Recorded</Badge>
+        {latest.state ? (
+          <QcBadge state={latest.state} />
+        ) : (
+          <Badge variant="secondary">Recorded</Badge>
+        )}
       </div>
       <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-2.5 font-mono text-sm tabular-nums">
         {latest.message}
@@ -105,7 +111,8 @@ function ReportPanel({
                   <TableCell
                     className={cn(GRID_CELL, "px-3.5 font-medium tabular-nums")}
                   >
-                    {row.observed}
+                    {row.observed}{" "}
+                    {row.state ? <QcBadge state={row.state} /> : null}
                   </TableCell>
                   <TableCell className="px-3.5 font-mono text-muted-foreground text-xs tabular-nums">
                     {row.message}

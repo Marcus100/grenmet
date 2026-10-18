@@ -1346,6 +1346,21 @@ observation, `409` no recipients or WIS2 not configured, rejected or superseded
 or non-SYNOP observation, or already sent without `resend`, `422` the stored
 workbook fails validation. Details: `docs/operations/eregister-wmo-conformance.md`.
 
+#### eRegister QC
+
+`POST /api/v1/eregister/observations/{id}/accept`, `.../reject` and `.../reopen`
+(permission `eregister.qc`, body `{"reason": "..."}`, `200` with the
+`RegisterObservationRead`) move a SYNOP between `draft`/`qc_pending`,
+`accepted` and `rejected`. `reject` and `reopen` need a reason. The observer who
+saved an observation can never accept it (`403`, superusers included).
+`409` wrong state or non-SYNOP, or reopen after a WIS2 send; `422` missing
+reason or the workbook fails validation. `GET /api/v1/eregister/observations`
+takes `state=` (the QC queue is `draft` and `qc_pending`). `.../publish` (WIS2)
+now answers `409` unless the observation is `accepted`; `.../email` still
+accepts a validated draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set.
+`RegisterObservationRead` gains `qc_by` and `qc_at`. Every decision is audited
+(`eregister_observation`).
+
 ### GAA operational catalogues
 
 `GET /api/v1/janitorial/spec` and `GET /api/v1/transport/spec` are authenticated

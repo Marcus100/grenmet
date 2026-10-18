@@ -62,7 +62,7 @@ class SendableObservation:
 
 
 async def load_sendable(
-    session: AsyncSession, observation_id: UUID
+    session: AsyncSession, observation_id: UUID, *, require_accepted: bool = False
 ) -> SendableObservation:
     """Fetch an observation and require that it is fit to leave the building."""
     result = await session.execute(
@@ -78,7 +78,9 @@ async def load_sendable(
     state = data["state"]
     if state in NOT_SENDABLE_STATES:
         raise HTTPException(409, f"A {state} observation cannot be sent")
-    if eregister_settings.SEND_REQUIRE_ACCEPTED and state != "accepted":
+    if (
+        require_accepted or eregister_settings.SEND_REQUIRE_ACCEPTED
+    ) and state != "accepted":
         raise HTTPException(409, "Only QC-accepted observations can be sent")
     workbook = encode.workbook_from_body(data["body"] or {})
     issues, decoded = rules.validate_synop(workbook)
@@ -136,6 +138,7 @@ def _celsius(kelvin: float | None) -> str:
 
 
 def email_content(item: SendableObservation, tac: str) -> tuple[str, str]:
+    accepted = item.row.get("state") == "accepted"
     observed = item.observed_at.astimezone(UTC)
     subject = f"SYNOP {item.station_id} {observed:%d %b %Y %H%M}Z"
     decoded = item.decoded
@@ -171,7 +174,9 @@ def email_content(item: SendableObservation, tac: str) -> tuple[str, str]:
         f"<pre style='font-size:14px'>{html.escape(tac)}</pre>"
         f"<table>{table}</table>"
         + (f"<p>Notes: {html.escape(note)}</p>" if note else "")
-        + "<p style='color:#666'>Sent from the GMS eRegister. Provisional until QC-accepted.</p>"
+        + "<p style='color:#666'>Sent from the GMS eRegister. "
+        + ("QC-accepted." if accepted else "Provisional until QC-accepted.")
+        + "</p>"
     )
     return subject, body
 

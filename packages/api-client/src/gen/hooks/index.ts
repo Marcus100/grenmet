@@ -574,6 +574,11 @@ export {
   useContactSendDataRequest,
 } from "./useContactSendDataRequest.js";
 export {
+  eregisterAcceptRegisterObservationMutationKey,
+  eregisterAcceptRegisterObservationMutationOptions,
+  useEregisterAcceptRegisterObservation,
+} from "./useEregisterAcceptRegisterObservation.js";
+export {
   eregisterCreateRegisterObservationMutationKey,
   eregisterCreateRegisterObservationMutationOptions,
   useEregisterCreateRegisterObservation,
@@ -608,6 +613,16 @@ export {
   eregisterPublishRegisterObservationMutationOptions,
   useEregisterPublishRegisterObservation,
 } from "./useEregisterPublishRegisterObservation.js";
+export {
+  eregisterRejectRegisterObservationMutationKey,
+  eregisterRejectRegisterObservationMutationOptions,
+  useEregisterRejectRegisterObservation,
+} from "./useEregisterRejectRegisterObservation.js";
+export {
+  eregisterReopenRegisterObservationMutationKey,
+  eregisterReopenRegisterObservationMutationOptions,
+  useEregisterReopenRegisterObservation,
+} from "./useEregisterReopenRegisterObservation.js";
 export {
   eregisterValidateSynopObservationMutationKey,
   eregisterValidateSynopObservationMutationOptions,

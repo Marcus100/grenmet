@@ -15,6 +15,16 @@ export const eregisterListRegisterObservationsQueryKindSchema = z
   .union([z.string().regex(/^(SYNOP|METAR|SPECI)$/), z.null()])
   .optional();
 
+export const eregisterListRegisterObservationsQueryStateSchema = z
+  .union([
+    z.string().regex(/^(draft|qc_pending|accepted|rejected|superseded)$/),
+    z.null(),
+  ])
+  .optional()
+  .describe(
+    "Only observations in this QC state (the QC queue is draft and qc_pending)."
+  );
+
 export const eregisterListRegisterObservationsQueryLimitSchema = z
   .int()
   .min(1)
