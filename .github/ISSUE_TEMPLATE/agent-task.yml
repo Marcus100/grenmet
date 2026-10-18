@@ -1,0 +1,30 @@
+name: Agent task
+description: A bounded task an agent (or a person) can pick up and close against a clear check.
+labels: ["needs-triage"]
+body:
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Deliverable
+      description: What exists when this is done (behaviour, endpoint, screen, doc).
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: Domains or apps in scope, dependencies allowed, contracts to keep.
+  - type: textarea
+    id: non-goals
+    attributes:
+      label: Non-goals
+      description: What must not change (neighbouring modules, public contracts, out-of-scope polish).
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: The checks that close the task, e.g. a test that must pass or a command and its expected output.
+      value: |
+        - [ ]
+    validations:
+      required: true

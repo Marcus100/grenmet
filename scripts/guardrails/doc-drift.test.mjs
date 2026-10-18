@@ -16,11 +16,13 @@ const read = (relativePath) =>
 
 const SKILL_MENTION = /`\/([a-z][a-z0-9-]+)`/g;
 const SKILL_CONTEXT = /\b(skill|skills|command|playbook|run|invoke)\b/i;
-// Built-in Claude Code commands, `/tmp`, and an upstream fallback that the root
+// Built-in Claude Code and Codex commands (`/code-review`, Codex `/review`), `/tmp`, and an upstream fallback that the root
 // AGENTS.md makes unnecessary (it already supplies the tracker and labels).
 const KNOWN_EXTERNAL = new Set([
+  "code-review",
   "compact",
   "context",
+  "review",
   "schedule",
   "tmp",
   "setup-matt-pocock-skills",

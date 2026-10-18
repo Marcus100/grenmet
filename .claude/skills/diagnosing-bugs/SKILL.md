@@ -13,7 +13,10 @@ When exploring the codebase, read `CONTEXT.md` (if it exists) to get a clear men
 
 **This is the skill.** Everything else is mechanical. If you have a **tight** pass/fail signal for the bug — one that goes red on _this_ bug — you will find the cause; bisection, hypothesis-testing, and instrumentation all just consume it. If you don't have one, no amount of staring at code will save you.
 
-Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to give up.**
+Spend disproportionate effort here. **Be aggressive. Be creative.** Try new loop
+constructions, but respect the failure budget in `AGENTS.md`: when the same fix
+attempt fails twice on the same error, stop and report the raw output and your
+next hypothesis to the user instead of retrying.
 
 ### Ways to construct one — try them in roughly this order
 
