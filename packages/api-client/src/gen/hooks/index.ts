@@ -619,6 +619,11 @@ export {
   useEventsAcceptConnection,
 } from "./useEventsAcceptConnection.js";
 export {
+  eventsAdmitTicketMutationKey,
+  eventsAdmitTicketMutationOptions,
+  useEventsAdmitTicket,
+} from "./useEventsAdmitTicket.js";
+export {
   eventsBlockMemberMutationKey,
   eventsBlockMemberMutationOptions,
   useEventsBlockMember,
@@ -678,6 +683,11 @@ export {
   eventsGetManagedOrganiserQueryOptions,
   useEventsGetManagedOrganiser,
 } from "./useEventsGetManagedOrganiser.js";
+export {
+  eventsGetManifestQueryKey,
+  eventsGetManifestQueryOptions,
+  useEventsGetManifest,
+} from "./useEventsGetManifest.js";
 export {
   eventsGetMyNetworkQueryKey,
   eventsGetMyNetworkQueryOptions,

@@ -23814,6 +23814,182 @@
         }
       }
     },
+    "/api/v1/events/manage/{listing_id}/admissions": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Admit a ticket at the door",
+        "description": "Scan a ticket's QR token or enter its code. A ticket is admitted once; a second scan is refused with who admitted it and when, unless it repeats the same idempotency key.",
+        "operationId": "eventsAdmitTicket",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdmissionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdmissionPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Already admitted, cancelled or for another event"
+          }
+        }
+      }
+    },
+    "/api/v1/events/manage/{listing_id}/manifest": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get the door manifest",
+        "description": "Every valid ticket for the event with its holder and admission time, plus live counts. Used for the printable door list.",
+        "operationId": "eventsGetManifest",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Manifest"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid listing"
+          }
+        }
+      }
+    },
     "/api/v1/events/manage/listings/{listing_id}": {
       "put": {
         "tags": [
@@ -28801,6 +28977,91 @@
         },
         "type": "object",
         "title": "AddressUpdate"
+      },
+      "AdmissionCreate": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Code"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "AdmissionCreate"
+      },
+      "AdmissionPublic": {
+        "properties": {
+          "ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Ticket Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "tier_name": {
+            "type": "string",
+            "title": "Tier Name"
+          },
+          "holder_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holder Name"
+          },
+          "admitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Admitted At"
+          },
+          "admitted_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted By Name"
+          },
+          "repeat": {
+            "type": "boolean",
+            "title": "Repeat",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticket_id",
+          "code",
+          "tier_name",
+          "admitted_at"
+        ],
+        "title": "AdmissionPublic"
       },
       "AnnouncementPublic": {
         "properties": {
@@ -40669,6 +40930,112 @@
           "listings"
         ],
         "title": "ManagedOrganiser"
+      },
+      "Manifest": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "issued": {
+            "type": "integer",
+            "title": "Issued"
+          },
+          "admitted": {
+            "type": "integer",
+            "title": "Admitted"
+          },
+          "waiting": {
+            "type": "integer",
+            "title": "Waiting"
+          },
+          "cancelled": {
+            "type": "integer",
+            "title": "Cancelled"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ManifestRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "title",
+          "starts_at",
+          "generated_at",
+          "issued",
+          "admitted",
+          "waiting",
+          "cancelled",
+          "rows"
+        ],
+        "title": "Manifest"
+      },
+      "ManifestRow": {
+        "properties": {
+          "ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Ticket Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "holder_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holder Name"
+          },
+          "tier_name": {
+            "type": "string",
+            "title": "Tier Name"
+          },
+          "admitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticket_id",
+          "code",
+          "tier_name"
+        ],
+        "title": "ManifestRow"
       },
       "MemberListPublic": {
         "properties": {

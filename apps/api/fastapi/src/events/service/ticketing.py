@@ -10,6 +10,7 @@ payment exists.
 
 import uuid
 from collections import Counter
+from datetime import datetime
 from typing import Literal
 
 from pydantic import TypeAdapter
@@ -21,7 +22,7 @@ from src.utils.datetime import utc_now
 
 from .. import outbox, schemas, tickets
 from ..exceptions import EventsConflict, EventsNotFound
-from ..models import Listing, Order, OrderItem, Ticket, TicketTier
+from ..models import Admission, Listing, Order, OrderItem, Ticket, TicketTier
 from .common import _naive_utc, _pairs
 
 _PARISH = TypeAdapter(schemas.Parish)
@@ -149,7 +150,10 @@ async def claim_tickets(
 
 
 def _summary(
-    ticket: Ticket, listing: Listing, tier_name: str, admitted_at: object = None
+    ticket: Ticket,
+    listing: Listing,
+    tier_name: str,
+    admitted_at: datetime | None = None,
 ) -> schemas.TicketSummary:
     can_cancel = (
         ticket.status == "valid"
@@ -176,23 +180,24 @@ def _summary(
 
 async def _my_ticket_rows(
     db: AsyncSession, user: User, ticket_id: uuid.UUID | None = None
-) -> list[tuple[Ticket, Listing, str]]:
+) -> list[tuple[Ticket, Listing, str, datetime | None]]:
     stmt = (
-        select(Ticket, Listing, TicketTier.name)
+        select(Ticket, Listing, TicketTier.name, Admission.admitted_at)
         .join(Listing, Listing.id == Ticket.listing_id)
         .join(TicketTier, TicketTier.id == Ticket.tier_id)
+        .outerjoin(Admission, Admission.ticket_id == Ticket.id)
         .where(Ticket.user_id == user.id)
         .order_by(Listing.starts_at, Ticket.created_at, Ticket.id)
     )
     if ticket_id is not None:
         stmt = stmt.where(Ticket.id == ticket_id)
-    return [(row[0], row[1], row[2]) for row in (await db.execute(stmt)).all()]
+    return [(row[0], row[1], row[2], row[3]) for row in (await db.execute(stmt)).all()]
 
 
 async def my_tickets(db: AsyncSession, user: User) -> list[schemas.TicketSummary]:
     return [
-        _summary(ticket, listing, tier)
-        for ticket, listing, tier in await _my_ticket_rows(db, user)
+        _summary(ticket, listing, tier, admitted)
+        for ticket, listing, tier, admitted in await _my_ticket_rows(db, user)
     ]
 
 
@@ -202,9 +207,9 @@ async def my_ticket(
     rows = await _my_ticket_rows(db, user, ticket_id)
     if not rows:
         raise EventsNotFound("Ticket not found")
-    ticket, listing, tier = rows[0]
+    ticket, listing, tier, admitted = rows[0]
     return schemas.TicketDetail(
-        **_summary(ticket, listing, tier).model_dump(),
+        **_summary(ticket, listing, tier, admitted).model_dump(),
         qr_token=tickets.qr_token(ticket.code),
     )
 
@@ -225,6 +230,8 @@ async def cancel_ticket(
     assert tier is not None
     if ticket.status != "valid":
         raise EventsConflict("This ticket is already cancelled")
+    if await db.scalar(select(Admission.id).where(Admission.ticket_id == ticket.id)):
+        raise EventsConflict("This ticket has already been used at the door")
     if listing.starts_at <= _naive_utc(utc_now()):
         raise EventsConflict("Tickets can't be cancelled once the event has started")
     ticket.status = "cancelled"

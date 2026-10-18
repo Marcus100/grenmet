@@ -1,4 +1,5 @@
 import type {
+  AdmissionPublic,
   GroupDetail as ApiGroupDetail,
   GroupSummary as ApiGroupSummary,
   PersonChip as ApiPersonChip,
@@ -8,6 +9,7 @@ import type {
   ListingCard,
   ListingDetail,
   ManagedListing,
+  Manifest,
   MessagePublic,
   MyProfile,
   NetworkPublic,
@@ -19,6 +21,8 @@ import type {
 } from "@barrelsgd/api-client";
 import type {
   Connection,
+  DoorAdmission,
+  DoorManifest,
   EventDetail,
   Group,
   GroupDetail,
@@ -265,4 +269,35 @@ export function toMyTicket(ticket: TicketSummary): MyTicket {
 
 export function toMyTicketDetail(ticket: TicketDetail): MyTicketDetail {
   return { ...toMyTicket(ticket), qrToken: ticket.qr_token };
+}
+
+export function toDoorManifest(manifest: Manifest): DoorManifest {
+  return {
+    listingId: manifest.listing_id,
+    title: manifest.title,
+    startsAt: manifest.starts_at,
+    generatedAt: manifest.generated_at,
+    issued: manifest.issued,
+    admitted: manifest.admitted,
+    waiting: manifest.waiting,
+    cancelled: manifest.cancelled,
+    rows: manifest.rows.map((row) => ({
+      ticketId: row.ticket_id,
+      code: row.code,
+      holderName: row.holder_name ?? null,
+      tierName: row.tier_name,
+      admittedAt: row.admitted_at ?? null,
+    })),
+  };
+}
+
+export function toDoorAdmission(admission: AdmissionPublic): DoorAdmission {
+  return {
+    code: admission.code,
+    tierName: admission.tier_name,
+    holderName: admission.holder_name ?? null,
+    admittedAt: admission.admitted_at,
+    admittedByName: admission.admitted_by_name ?? null,
+    repeat: admission.repeat ?? false,
+  };
 }

@@ -2,6 +2,7 @@
 
 import {
   eventsAcceptConnection,
+  eventsAdmitTicket,
   eventsBlockMember,
   eventsCancelListingRsvp,
   eventsCancelMyTicket,
@@ -36,6 +37,7 @@ import { apiOptions } from "@/lib/api";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 import { type ActionResult, SIGN_IN_REQUIRED } from "./action-result";
+import { toDoorAdmission } from "./api-mappers";
 import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
 
 /**
@@ -262,4 +264,26 @@ export async function requestOrganiser(organiser: OrganiserCreate) {
     await rememberOrganiser(created.slug);
     return created.slug;
   });
+}
+
+/**
+ * Admits a ticket at the door from a scanned QR token or a typed code. The
+ * idempotency key lets a retried scan replay its own success.
+ */
+export async function admitTicket(
+  listingId: string,
+  code: string,
+  idempotencyKey: string
+) {
+  const organiser = await chosenOrganiser();
+  return await run("events-admission", async (options) =>
+    toDoorAdmission(
+      await eventsAdmitTicket({
+        ...options,
+        path: { listing_id: listingId },
+        query: organiser ? { organiser } : {},
+        body: { code, idempotency_key: idempotencyKey },
+      }).unwrap()
+    )
+  );
 }

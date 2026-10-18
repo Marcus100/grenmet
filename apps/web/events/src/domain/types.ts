@@ -453,3 +453,36 @@ export interface EventFilters {
   readonly tag?: string;
   readonly when?: "tonight" | "weekend" | "week" | "month";
 }
+
+/** One ticket on the door list. */
+export interface DoorRow {
+  readonly admittedAt: string | null;
+  readonly code: string;
+  readonly holderName: string | null;
+  readonly ticketId: string;
+  readonly tierName: string;
+}
+
+/** The door list for one event, with live counts. */
+export interface DoorManifest {
+  readonly admitted: number;
+  readonly cancelled: number;
+  readonly generatedAt: string;
+  readonly issued: number;
+  readonly listingId: string;
+  readonly rows: readonly DoorRow[];
+  readonly startsAt: string;
+  readonly title: string;
+  readonly waiting: number;
+}
+
+/** The outcome of admitting one ticket. */
+export interface DoorAdmission {
+  readonly admittedAt: string;
+  readonly admittedByName: string | null;
+  readonly code: string;
+  readonly holderName: string | null;
+  /** True when the scan repeated an earlier one with the same key. */
+  readonly repeat: boolean;
+  readonly tierName: string;
+}

@@ -387,3 +387,43 @@ class OrderPublic(BaseModel):
     currency: Literal["XCD", "USD"]
     created_at: UtcDateTime
     tickets: list[TicketSummary]
+
+
+class AdmissionCreate(BaseModel):
+    #: The scanned QR token, or a ticket code typed or read by a keyboard scanner.
+    code: str = Field(min_length=1, max_length=200)
+    #: Client-generated key; a retry with the same key replays its own success.
+    idempotency_key: str | None = Field(default=None, min_length=1, max_length=64)
+
+
+class AdmissionPublic(BaseModel):
+    ticket_id: uuid.UUID
+    code: str
+    tier_name: str
+    #: Ticket holder's display name; null when they have no Events profile.
+    holder_name: str | None = None
+    admitted_at: UtcDateTime
+    admitted_by_name: str | None = None
+    #: True when this response replays an earlier scan with the same key.
+    repeat: bool = False
+
+
+class ManifestRow(BaseModel):
+    ticket_id: uuid.UUID
+    code: str
+    holder_name: str | None = None
+    tier_name: str
+    admitted_at: UtcDateTime | None = None
+
+
+class Manifest(BaseModel):
+    listing_id: uuid.UUID
+    title: str
+    starts_at: UtcDateTime
+    generated_at: UtcDateTime
+    #: Valid tickets (cancelled ones are not expected at the door).
+    issued: int
+    admitted: int
+    waiting: int
+    cancelled: int
+    rows: list[ManifestRow]

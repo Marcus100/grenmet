@@ -15,6 +15,8 @@ export { activationLinkSchema } from "./activationLinkSchema.js";
 export { activityEntrySchema } from "./activityEntrySchema.js";
 export { addressPublicSchema } from "./addressPublicSchema.js";
 export { addressUpdateSchema } from "./addressUpdateSchema.js";
+export { admissionCreateSchema } from "./admissionCreateSchema.js";
+export { admissionPublicSchema } from "./admissionPublicSchema.js";
 export { announcementPublicSchema } from "./announcementPublicSchema.js";
 export { apiErrorSchema } from "./apiErrorSchema.js";
 export { appAccessStatusSchema } from "./appAccessStatusSchema.js";
@@ -1345,6 +1347,20 @@ export {
   eventsAcceptConnectionStatus429Schema,
 } from "./eventsAcceptConnectionSchema.js";
 export {
+  eventsAdmitTicketBodySchema,
+  eventsAdmitTicketErrorSchema,
+  eventsAdmitTicketPathListingIdSchema,
+  eventsAdmitTicketQueryOrganiserSchema,
+  eventsAdmitTicketResponseSchema,
+  eventsAdmitTicketStatus200Schema,
+  eventsAdmitTicketStatus401Schema,
+  eventsAdmitTicketStatus403Schema,
+  eventsAdmitTicketStatus404Schema,
+  eventsAdmitTicketStatus409Schema,
+  eventsAdmitTicketStatus422Schema,
+  eventsAdmitTicketStatus429Schema,
+} from "./eventsAdmitTicketSchema.js";
+export {
   eventsBlockMemberErrorSchema,
   eventsBlockMemberPathHandleSchema,
   eventsBlockMemberResponseSchema,
@@ -1471,6 +1487,19 @@ export {
   eventsGetManagedOrganiserStatus422Schema,
   eventsGetManagedOrganiserStatus429Schema,
 } from "./eventsGetManagedOrganiserSchema.js";
+export {
+  eventsGetManifestErrorSchema,
+  eventsGetManifestPathListingIdSchema,
+  eventsGetManifestQueryOrganiserSchema,
+  eventsGetManifestResponseSchema,
+  eventsGetManifestStatus200Schema,
+  eventsGetManifestStatus401Schema,
+  eventsGetManifestStatus403Schema,
+  eventsGetManifestStatus404Schema,
+  eventsGetManifestStatus409Schema,
+  eventsGetManifestStatus422Schema,
+  eventsGetManifestStatus429Schema,
+} from "./eventsGetManifestSchema.js";
 export {
   eventsGetMyNetworkErrorSchema,
   eventsGetMyNetworkResponseSchema,
@@ -3567,6 +3596,8 @@ export { locationPublicSchema } from "./locationPublicSchema.js";
 export { locationUpdateSchema } from "./locationUpdateSchema.js";
 export { managedListingSchema } from "./managedListingSchema.js";
 export { managedOrganiserSchema } from "./managedOrganiserSchema.js";
+export { manifestRowSchema } from "./manifestRowSchema.js";
+export { manifestSchema } from "./manifestSchema.js";
 export { memberListPublicSchema } from "./memberListPublicSchema.js";
 export { memberPublicSchema } from "./memberPublicSchema.js";
 export { memberRoleUpdateSchema } from "./memberRoleUpdateSchema.js";

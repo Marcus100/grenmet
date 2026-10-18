@@ -641,6 +641,48 @@ async def get_listing_activity(
     )
 
 
+@router.post(
+    "/manage/{listing_id}/admissions",
+    response_model=schemas.AdmissionPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Admit a ticket at the door",
+    description="Scan a ticket's QR token or enter its code. A ticket is admitted once; a second scan is refused with who admitted it and when, unless it repeats the same idempotency key.",
+    responses={
+        **_ORGANISER,
+        409: {"description": "Already admitted, cancelled or for another event"},
+    },
+)
+async def admit_ticket(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.AdmissionCreate,
+    organiser: _ManagedSlug = None,
+) -> schemas.AdmissionPublic:
+    return await service.admit_ticket(session, user, listing_id, body, scope, organiser)
+
+
+@router.get(
+    "/manage/{listing_id}/manifest",
+    response_model=schemas.Manifest,
+    status_code=status.HTTP_200_OK,
+    summary="Get the door manifest",
+    description="Every valid ticket for the event with its holder and admission time, plus live counts. Used for the printable door list.",
+    responses=_ORGANISER,
+)
+async def get_manifest(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+) -> schemas.Manifest:
+    return await service.manifest(session, user, listing_id, scope, organiser)
+
+
 @router.put(
     "/manage/listings/{listing_id}",
     response_model=schemas.ManagedListing,

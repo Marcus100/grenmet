@@ -292,3 +292,17 @@ class Ticket(EventsModel):
     status: Mapped[str] = mapped_column(Text, default="valid")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+class Admission(EventsModel):
+    """A ticket admitted at the door (E2). ``ticket_id`` is unique: admitted once."""
+
+    __tablename__ = "admissions"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    ticket_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tickets.id"), unique=True)
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
+    admitted_by: Mapped[uuid.UUID]
+    admitted_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+    #: "qr" for a scanned token, "code" for a typed or keyboard-wedge code.
+    method: Mapped[str] = mapped_column(Text, default="qr")
+    idempotency_key: Mapped[str | None] = mapped_column(Text)

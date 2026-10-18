@@ -17,6 +17,8 @@ export type { ActivationLink } from "./ActivationLink.js";
 export type { ActivityEntry } from "./ActivityEntry.js";
 export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
+export type { AdmissionCreate } from "./AdmissionCreate.js";
+export type { AdmissionPublic } from "./AdmissionPublic.js";
 export type { AnnouncementPublic } from "./AnnouncementPublic.js";
 export type { ApiError } from "./ApiError.js";
 export type { AppAccessStatus } from "./AppAccessStatus.js";
@@ -1491,6 +1493,21 @@ export type {
   EventsAcceptConnectionStatus429,
 } from "./EventsAcceptConnection.js";
 export type {
+  EventsAdmitTicketBody,
+  EventsAdmitTicketOptions,
+  EventsAdmitTicketPath,
+  EventsAdmitTicketQuery,
+  EventsAdmitTicketResponse,
+  EventsAdmitTicketResponses,
+  EventsAdmitTicketStatus200,
+  EventsAdmitTicketStatus401,
+  EventsAdmitTicketStatus403,
+  EventsAdmitTicketStatus404,
+  EventsAdmitTicketStatus409,
+  EventsAdmitTicketStatus422,
+  EventsAdmitTicketStatus429,
+} from "./EventsAdmitTicket.js";
+export type {
   EventsBlockMemberOptions,
   EventsBlockMemberPath,
   EventsBlockMemberResponse,
@@ -1628,6 +1645,20 @@ export type {
   EventsGetManagedOrganiserStatus422,
   EventsGetManagedOrganiserStatus429,
 } from "./EventsGetManagedOrganiser.js";
+export type {
+  EventsGetManifestOptions,
+  EventsGetManifestPath,
+  EventsGetManifestQuery,
+  EventsGetManifestResponse,
+  EventsGetManifestResponses,
+  EventsGetManifestStatus200,
+  EventsGetManifestStatus401,
+  EventsGetManifestStatus403,
+  EventsGetManifestStatus404,
+  EventsGetManifestStatus409,
+  EventsGetManifestStatus422,
+  EventsGetManifestStatus429,
+} from "./EventsGetManifest.js";
 export type {
   EventsGetMyNetworkOptions,
   EventsGetMyNetworkResponse,
@@ -3896,6 +3927,8 @@ export type { LocationPublic } from "./LocationPublic.js";
 export type { LocationUpdate } from "./LocationUpdate.js";
 export type { ManagedListing } from "./ManagedListing.js";
 export type { ManagedOrganiser } from "./ManagedOrganiser.js";
+export type { Manifest } from "./Manifest.js";
+export type { ManifestRow } from "./ManifestRow.js";
 export type { MemberListPublic } from "./MemberListPublic.js";
 export type { MemberPublic } from "./MemberPublic.js";
 export type { MemberRoleUpdate } from "./MemberRoleUpdate.js";

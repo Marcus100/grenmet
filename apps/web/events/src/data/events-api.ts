@@ -5,6 +5,7 @@ import {
   eventsGetListing,
   eventsGetListingActivity,
   eventsGetManagedOrganiser,
+  eventsGetManifest,
   eventsGetMyNetwork,
   eventsGetMyPlans,
   eventsGetMyTicket,
@@ -19,6 +20,7 @@ import {
 } from "@barrelsgd/api-client";
 import type {
   ActivityEntry,
+  DoorManifest,
   EventDetail,
   EventFilters,
   Group,
@@ -38,6 +40,7 @@ import type {
 import { apiOptions } from "@/lib/api";
 import { getSession } from "@/lib/session";
 import {
+  toDoorManifest,
   toEvent,
   toEventDetail,
   toGroup,
@@ -265,4 +268,19 @@ export async function getMyTicket(
     }).unwrap()
   );
   return ticket ? toMyTicketDetail(ticket) : null;
+}
+
+/** The door list and live counts for an organiser's event; null when not theirs. */
+export async function getDoorManifest(
+  listingId: string
+): Promise<DoorManifest | null> {
+  const organiser = await chosenOrganiser();
+  const manifest = await orNull(
+    eventsGetManifest({
+      ...(await options()),
+      path: { listing_id: listingId },
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap()
+  );
+  return manifest ? toDoorManifest(manifest) : null;
 }

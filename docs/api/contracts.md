@@ -443,6 +443,18 @@ starts and puts the seat back on sale. `TierInput.id` updates an existing tier i
 place; tiers with tickets issued cannot be removed or shrunk below their valid tickets.
 Issuing tickets writes a `ticket.issued` outbox row for the buyer's notification.
 
+### Events door admission (E2)
+
+`POST /events/manage/{listing_id}/admissions` (organiser access, that organiser's event
+only) admits a ticket from `{code, idempotency_key?}`; `code` is the scanned QR token or a
+typed ticket code. 200 returns the holder, tier and who admitted it; repeating the same
+`idempotency_key` replays that success (`repeat: true`). Any other second scan, a cancelled
+ticket or another event's ticket is 409 (`Already admitted at HH:MM by <name>`); an unknown
+code is 404. `GET /events/manage/{listing_id}/manifest` returns every valid ticket with its
+holder, tier and admission time plus `issued`, `admitted`, `waiting` and `cancelled` counts.
+Each admission writes a `ticket.admitted` row to the listing's activity history, and the
+member's ticket carries `admitted_at`; used tickets cannot be cancelled.
+
 ## Pagination
 
 The standard helper is `src.pagination`:
