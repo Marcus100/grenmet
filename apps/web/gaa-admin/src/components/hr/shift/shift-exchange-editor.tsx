@@ -35,14 +35,20 @@ import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
 import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
-import { PrefillInput } from "@/components/hr/prefill-field";
+import {
+  EmployeeNumberField,
+  PrefillInput,
+} from "@/components/hr/prefill-field";
 import {
   signedDocumentsKey,
   useSigning,
 } from "@/components/hr/signatures/signature-api";
 import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import type { SubmissionMetadata } from "@/components/hr/submission-date";
-import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
+import {
+  useEditorPrefill,
+  useProfileReference,
+} from "@/components/hr/use-editor-prefill";
 import { displayName } from "@/lib/people";
 import { reportError } from "@/lib/report-error";
 import { EMPTY_SHIFT } from "./shift-exchange-document";
@@ -74,6 +80,7 @@ export function ShiftExchangeEditor() {
   const form = useForm({ defaultValues: EMPTY_FORM });
   const queryClient = useQueryClient();
   const signature = useSigning();
+  const reference = useProfileReference();
   const sessionUser = useSessionUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -366,6 +373,8 @@ export function ShiftExchangeEditor() {
                         />
                       )}
                     </form.Field>
+
+                    <EmployeeNumberField value={reference.employeeNumber} />
 
                     <div className="grid gap-5 md:grid-cols-2">
                       <form.Field name="counterpartUserId">

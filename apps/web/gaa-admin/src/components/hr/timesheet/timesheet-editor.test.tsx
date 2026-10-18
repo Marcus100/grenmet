@@ -1,7 +1,13 @@
 import { configureApiClient } from "@barrelsgd/api-client";
 import { SessionUserProvider } from "@barrelsgd/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format } from "date-fns";
 import { HttpResponse, http } from "msw";
@@ -12,6 +18,9 @@ import { TimesheetEditor } from "./timesheet-editor";
 const BASE = "http://localhost";
 const ADD_ENTRY = /add entry/i;
 const SUBMIT_TO_HR = /sign & submit/i;
+const FILL_FROM_ROSTER = /fill from roster/i;
+const ROSTER_NOTE = /2 of 2 rostered shifts added from your published roster/;
+const NOTHING_ADDED = /0 of 2 rostered shifts added/;
 
 const PROFILE = {
   id: "u-1",
@@ -211,4 +220,59 @@ describe("TimesheetEditor", () => {
       });
     }
   );
+
+  it("fills entries from the published roster without duplicating existing dates", async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/hr/timesheets/prefill`, ({ request }) => {
+        expect(new URL(request.url).searchParams.get("period")).toBe("2026-07");
+        return HttpResponse.json({
+          department_id: "dept_met",
+          period: "2026-07",
+          period_start: "2026-07-01",
+          period_end: "2026-07-31",
+          roster_published: true,
+          entries: [
+            {
+              entry_date: "2026-07-06",
+              shift_code: "M",
+              shift_label: "Morning",
+              start_time: "05:30",
+              end_time: "14:00",
+              roster_hours: "8.50",
+              roster_assignment_id: "a1",
+              availability: "SCHEDULED",
+            },
+            {
+              entry_date: "2026-07-07",
+              shift_code: "M",
+              shift_label: "Morning",
+              start_time: "05:30",
+              end_time: "14:00",
+              roster_hours: "8.50",
+              roster_assignment_id: "a2",
+              availability: "LEAVE",
+            },
+          ],
+        });
+      })
+    );
+    const user = userEvent.setup();
+    renderEditor();
+
+    const month = await screen.findByLabelText("Roster month");
+    fireEvent.change(month, { target: { value: "2026-07" } });
+    await user.click(screen.getByRole("button", { name: FILL_FROM_ROSTER }));
+
+    expect(await screen.findByText("Entry 2")).toBeInTheDocument();
+    expect(screen.queryByText("Entry 3")).not.toBeInTheDocument();
+    expect(screen.getAllByDisplayValue("8.50")).toHaveLength(5);
+    expect(screen.getByDisplayValue("M - Approved leave")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("July 2026")).toBeInTheDocument();
+    expect(screen.getByText(ROSTER_NOTE)).toBeInTheDocument();
+
+    // A second fill adds nothing: both dates are already on the sheet.
+    await user.click(screen.getByRole("button", { name: FILL_FROM_ROSTER }));
+    await screen.findByText(NOTHING_ADDED);
+    expect(screen.queryByText("Entry 3")).not.toBeInTheDocument();
+  });
 });
