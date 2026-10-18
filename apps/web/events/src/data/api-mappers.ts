@@ -66,6 +66,7 @@ export function toEvent(card: ListingCard): PublicEvent {
     recurrence: card.recurrence,
     tags: card.tags,
     featured: card.featured,
+    imageFileId: card.image_file_id ?? null,
     organiserSlug: card.organiser_slug,
     goingCount: card.going_count,
     goingNames: card.going_preview.map((chip) => chip.display_name),
@@ -82,6 +83,7 @@ export function toOrganiser(organiser: OrganiserPublic): Organiser {
     bio: organiser.bio,
     verified: organiser.verified,
     organisationId: organiser.organisation_id ?? null,
+    logoFileId: organiser.logo_file_id ?? null,
     followerCount: organiser.follower_count,
     viewerFollowing: organiser.viewer_following ?? null,
   };

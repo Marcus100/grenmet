@@ -5,9 +5,15 @@ import { makeEvent, makeOrganiser } from "@/test/factories";
 import { countListings, OrganiserOverview } from "./organiser-overview";
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: () => undefined }),
+  usePathname: () => "/dash",
+  useRouter: () => ({ push: () => undefined, refresh: () => undefined }),
 }));
-vi.mock("@/data/actions", () => ({ switchOrganiser: () => undefined }));
+vi.mock("@/data/actions", () => ({
+  finishUpload: () => undefined,
+  saveOrganiserLogo: () => undefined,
+  startUpload: () => undefined,
+  switchOrganiser: () => undefined,
+}));
 
 const AVAILABLE_LABEL = /Available when ticketing launches/;
 const SAMPLE_LABEL = /sample data/i;

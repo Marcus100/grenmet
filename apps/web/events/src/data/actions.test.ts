@@ -5,6 +5,9 @@ const getSession = vi.fn();
 const reportError = vi.fn();
 const rsvp = vi.fn();
 const cancelRsvp = vi.fn();
+const createUpload = vi.fn();
+const completeUpload = vi.fn();
+const setLogo = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSession: () => getSession() }));
@@ -20,9 +23,14 @@ vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
   eventsRsvpListing: (...args: unknown[]) => rsvp(...args),
   eventsCancelListingRsvp: (...args: unknown[]) => cancelRsvp(...args),
+  eventsSetOrganiserLogo: (...args: unknown[]) => setLogo(...args),
+  storageCompleteUpload: (...args: unknown[]) => completeUpload(...args),
+  storageCreateUpload: (...args: unknown[]) => createUpload(...args),
 }));
 
-const { setGoing } = await import("./actions");
+const { finishUpload, saveOrganiserLogo, setGoing, startUpload } = await import(
+  "./actions"
+);
 
 function responseError(status: number, data: unknown) {
   return new ResponseError({
@@ -87,5 +95,107 @@ describe("setGoing", () => {
       error: "Something went wrong. Try again shortly.",
     });
     expect(reportError).toHaveBeenCalledWith(expect.any(Error), "events-rsvp");
+  });
+});
+
+describe("image uploads", () => {
+  beforeEach(() => {
+    for (const mock of [
+      getSession,
+      reportError,
+      createUpload,
+      completeUpload,
+      setLogo,
+    ]) {
+      mock.mockReset();
+    }
+    getSession.mockResolvedValue({ accessToken: "tok" });
+  });
+
+  it("presigns for the given organisation and the events app", async () => {
+    createUpload.mockReturnValue({
+      unwrap: async () => ({
+        id: "up-1",
+        url: "https://bucket.test/put",
+        headers: { "Content-Type": "image/png" },
+      }),
+    });
+    const result = await startUpload("org_1", {
+      contentType: "image/png",
+      purpose: "listing-image",
+      sizeBytes: 10,
+    });
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        id: "up-1",
+        url: "https://bucket.test/put",
+        headers: { "Content-Type": "image/png" },
+      },
+    });
+    expect(createUpload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headers: { "X-Barrels-Organisation": "org_1" },
+        body: {
+          app: "events",
+          purpose: "listing-image",
+          content_type: "image/png",
+          size_bytes: 10,
+        },
+      })
+    );
+  });
+
+  it("shows the API's message when uploads are not configured, unreported", async () => {
+    createUpload.mockImplementation(() => {
+      throw responseError(503, { detail: "Uploads are not configured" });
+    });
+    expect(
+      await startUpload("org_1", {
+        contentType: "image/png",
+        purpose: "listing-image",
+        sizeBytes: 10,
+      })
+    ).toEqual({ ok: false, error: "Uploads are not configured" });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("still hides and reports other 5xx failures", async () => {
+    createUpload.mockImplementation(() => {
+      throw responseError(503, { detail: "Events is not set up" });
+    });
+    const result = await startUpload("org_1", {
+      contentType: "image/png",
+      purpose: "listing-image",
+      sizeBytes: 10,
+    });
+    expect(result.ok).toBe(false);
+    expect(reportError).toHaveBeenCalled();
+  });
+
+  it("confirms an upload and resolves to the stored file id", async () => {
+    completeUpload.mockReturnValue({ unwrap: async () => ({ id: "file-1" }) });
+    expect(await finishUpload("org_1", "up-1")).toEqual({
+      ok: true,
+      data: "file-1",
+    });
+    expect(completeUpload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headers: { "X-Barrels-Organisation": "org_1" },
+        path: { upload_id: "up-1" },
+      })
+    );
+  });
+
+  it("attaches or clears the organiser logo", async () => {
+    setLogo.mockResolvedValue({});
+    expect((await saveOrganiserLogo("file-1")).ok).toBe(true);
+    expect(setLogo).toHaveBeenCalledWith(
+      expect.objectContaining({ body: { file_id: "file-1" } })
+    );
+    await saveOrganiserLogo(null);
+    expect(setLogo).toHaveBeenLastCalledWith(
+      expect.objectContaining({ body: { file_id: null } })
+    );
   });
 });

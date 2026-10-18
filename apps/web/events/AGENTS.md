@@ -37,6 +37,7 @@ Port **3009**. Package: `@barrelsgd/web-events`. Design lane:
   "available when ticketing launches" empty states, never figures. The listing editor
   shows the listing's History (`ActivityPanel`, `getListingActivity`). No page
   renders the demo fixtures in `src/data/fixtures.ts`.
+- **Images (F8):** the organiser logo (`OrganiserLogo` on the `/dash` overview) and the listing cover (`EventEditor`) use `ImageUpload`: the `startUpload` action presigns through `POST /storage/uploads` (with `X-Barrels-Organisation` from the organiser's `organisationId`), the browser PUTs the file to storage, `finishUpload` confirms, then the file id is saved with the listing or `saveOrganiserLogo`. Stored images render via the same-origin `/files/{id}` route (proxy of the API's cached public redirect); never put a bucket URL in a page. Uploads need an organisation-linked organiser and configured storage (the API's 503 "Uploads are not configured" is shown as is). Public pages do not render the images yet.
 - Tests build events with `src/test/factories.ts`; never reintroduce runtime
   fixtures for public data.
 - Deployment requires `EVENTS_DB_PASSWORD`; the shared runtime renderer provisions the Events URL and backups include its database. Keep API/auth workspace sources in the web Docker build.

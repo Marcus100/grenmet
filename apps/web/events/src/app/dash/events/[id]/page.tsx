@@ -52,7 +52,11 @@ export default async function EditEventPage({
             Customise event
           </h1>
         </div>
-        <EventEditor initial={draftFromEvent(event)} listingId={event.id} />
+        <EventEditor
+          initial={draftFromEvent(event)}
+          listingId={event.id}
+          organisationId={managed.organiser.organisationId ?? null}
+        />
         <ActivityPanel entries={activity} />
       </main>
     </DashShell>

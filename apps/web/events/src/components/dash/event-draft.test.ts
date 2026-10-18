@@ -105,6 +105,14 @@ describe("draftToUpsert", () => {
     expect(body.group_slug).toBe("anse-runners");
   });
 
+  it("carries the stored cover image through an edit, and sends null without one", () => {
+    const withImage = draftFromEvent({ ...sunset, imageFileId: "file-1" });
+    expect(draftToUpsert(withImage, "draft").image_file_id).toBe("file-1");
+    expect(
+      draftToUpsert(draftFromEvent(sunset), "draft").image_file_id
+    ).toBeNull();
+  });
+
   it("ends the next day when the end time is past midnight", () => {
     const draft = {
       ...draftFromEvent(sunset),

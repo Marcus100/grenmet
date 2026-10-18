@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { ManagedEvent, Organiser, OrganiserOption } from "@/domain/types";
 import { formatEventDate } from "@/lib/datetime";
 import { DashShell } from "./dash-shell";
+import { OrganiserLogo } from "./organiser-logo";
 
 export interface ListingCounts {
   drafts: number;
@@ -115,6 +116,11 @@ export function OrganiserOverview({
             New event
           </Link>
         </div>
+
+        <OrganiserLogo
+          initialFileId={organiser.logoFileId ?? null}
+          organisationId={organiser.organisationId ?? null}
+        />
 
         <section aria-labelledby="listings-heading" className="space-y-3">
           <h2 className="font-semibold text-body-base" id="listings-heading">

@@ -27,6 +27,8 @@ export interface EventDraft {
   readonly endTime: string;
   /** Carried through edits so saving never drops them. */
   readonly groupSlug: string | null;
+  /** Stored cover image; carried through edits so saving never drops it. */
+  readonly imageFileId?: string | null;
   readonly parish: Parish;
   readonly recurrence: string | null;
   readonly startTime: string;
@@ -68,6 +70,7 @@ export function draftFromEvent(
     recurrence: event.recurrence,
     tags: event.tags,
     groupSlug: event.group?.slug ?? null,
+    imageFileId: event.imageFileId ?? null,
     tiers: event.tiers.map((tier) => ({
       id: tier.id,
       name: tier.name,
@@ -94,6 +97,7 @@ export function emptyDraft(now: Date): EventDraft {
     recurrence: null,
     tags: [],
     groupSlug: null,
+    imageFileId: null,
     tiers: [],
   };
 }
@@ -130,6 +134,7 @@ export function draftToUpsert(
     visibility: draft.visibility,
     status,
     group_slug: draft.groupSlug,
+    image_file_id: draft.imageFileId ?? null,
     tiers:
       draft.admission === "ticketed"
         ? draft.tiers.map((tier) => ({

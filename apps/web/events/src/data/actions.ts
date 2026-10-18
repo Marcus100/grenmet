@@ -17,6 +17,7 @@ import {
   eventsRsvpListing,
   eventsSaveListing,
   eventsSendMessage,
+  eventsSetOrganiserLogo,
   eventsUnblockMember,
   eventsUnfollowOrganiser,
   eventsUnsaveListing,
@@ -28,6 +29,8 @@ import {
   type ReportCreate,
   ResponseError,
   type SuggestionCreate,
+  storageCompleteUpload,
+  storageCreateUpload,
 } from "@barrelsgd/api-client";
 import { revalidatePath } from "next/cache";
 import { apiOptions } from "@/lib/api";
@@ -44,6 +47,9 @@ import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
  */
 
 type Options = ReturnType<typeof apiOptions>;
+
+/** The API's message when object storage is not set up; shown as is. */
+const UPLOADS_UNAVAILABLE = "Uploads are not configured";
 
 function detailOf(error: ResponseError): string | null {
   const data: unknown = error.data;
@@ -73,8 +79,8 @@ async function run<T>(
     }
     if (
       error instanceof ResponseError &&
-      error.status >= 400 &&
-      error.status < 500
+      ((error.status >= 400 && error.status < 500) ||
+        (error.status === 503 && detailOf(error) === UPLOADS_UNAVAILABLE))
     ) {
       return {
         ok: false,
@@ -230,5 +236,65 @@ export async function requestOrganiser(organiser: OrganiserCreate) {
     }).unwrap();
     await rememberOrganiser(created.slug);
     return created.slug;
+  });
+}
+
+const ORGANISATION_HEADER = "X-Barrels-Organisation";
+
+export type UploadPurpose = "listing-image" | "organiser-logo";
+
+/** A presigned PUT the browser sends the file to directly. */
+export interface UploadTarget {
+  readonly headers: Record<string, string>;
+  readonly id: string;
+  readonly url: string;
+}
+
+/** Step 1 of an image upload: the API checks type and size and presigns a PUT. */
+export async function startUpload(
+  organisationId: string,
+  upload: { contentType: string; purpose: UploadPurpose; sizeBytes: number }
+) {
+  return await run("events-upload", async (options) => {
+    const ticket = await storageCreateUpload({
+      ...options,
+      headers: { [ORGANISATION_HEADER]: organisationId },
+      body: {
+        app: "events",
+        purpose: upload.purpose,
+        content_type: upload.contentType,
+        size_bytes: upload.sizeBytes,
+      },
+    }).unwrap();
+    return {
+      id: ticket.id,
+      url: ticket.url,
+      headers: ticket.headers,
+    } satisfies UploadTarget;
+  });
+}
+
+/** Step 3: the API confirms the object arrived; resolves to the stored file id. */
+export async function finishUpload(organisationId: string, uploadId: string) {
+  return await run("events-upload", async (options) => {
+    const stored = await storageCompleteUpload({
+      ...options,
+      headers: { [ORGANISATION_HEADER]: organisationId },
+      path: { upload_id: uploadId },
+    }).unwrap();
+    return stored.id;
+  });
+}
+
+/** Sets (or, with null, clears) the organiser's logo from a completed upload. */
+export async function saveOrganiserLogo(fileId: string | null) {
+  const organiser = await chosenOrganiser();
+  const query = organiser ? { organiser } : {};
+  return await run("events-organiser-logo", async (options) => {
+    await eventsSetOrganiserLogo({
+      ...options,
+      query,
+      body: { file_id: fileId },
+    });
   });
 }
