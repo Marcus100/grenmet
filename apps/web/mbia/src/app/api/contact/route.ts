@@ -43,6 +43,12 @@ export async function POST(request: Request) {
       },
     }).unwrap();
   } catch (error) {
+    if (error instanceof ResponseError && error.status === 400) {
+      return NextResponse.json(
+        { ok: false, error: "Verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
     if (error instanceof ResponseError && error.status === 429) {
       return NextResponse.json(
         { ok: false, error: "Too many messages. Please try again shortly." },

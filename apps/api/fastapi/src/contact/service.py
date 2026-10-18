@@ -5,7 +5,6 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.exceptions import AppValidationError
 from src.notifications import service as notification_service
 from src.utils.datetime import utc_now
 
@@ -14,16 +13,6 @@ from .models import ContactDataRequest, ContactMessage
 from .schemas import ContactMessageCreate, DataRequestCreate
 
 logger = logging.getLogger(__name__)
-
-
-async def verify_turnstile(_token: str | None) -> bool:
-    """Seam for Cloudflare Turnstile (server-side Siteverify).
-
-    Not enforced yet: the token is accepted and ignored. To enforce, POST the
-    token to Siteverify here, return its ``success`` flag, and let
-    ``submit_message`` raise ``AppValidationError`` on False.
-    """
-    return True
 
 
 def _notification_html(message: ContactMessage) -> str:
@@ -40,9 +29,6 @@ async def submit_message(
     *, session: AsyncSession, payload: ContactMessageCreate
 ) -> ContactMessage:
     """Store the message; queue one email to the configured recipient."""
-    if not await verify_turnstile(payload.turnstile_token):
-        raise AppValidationError("Bot check failed")
-
     message = ContactMessage(
         site=payload.site.value,
         name=payload.name.strip(),
@@ -102,9 +88,6 @@ async def submit_data_request(
     if payload.website:
         logger.info("Data request honeypot tripped; dropped")
         return None
-    if not await verify_turnstile(payload.turnstile_token):
-        raise AppValidationError("Bot check failed")
-
     item = ContactDataRequest(
         site=GMS_SITE,
         name=payload.name.strip(),

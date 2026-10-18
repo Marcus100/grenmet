@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import "./build.mjs";
@@ -183,4 +184,54 @@ test("static modules share the reader policy and CSP permits only the required e
   );
   assert.ok(csp.includes("form-action 'none'"));
   assert.ok(!csp.includes("unsafe-inline"));
+});
+
+test("CSP allows Cloudflare Turnstile for scripts, frames and connections only", () => {
+  const config = JSON.parse(
+    readFileSync(new URL("./vercel.json", import.meta.url), "utf8")
+  );
+  const csp = config.headers[0].headers.find(
+    (header) => header.key === "Content-Security-Policy"
+  ).value;
+  const directive = (name) =>
+    csp.split(";").find((part) => part.trim().startsWith(`${name} `)) ?? "";
+  for (const name of ["script-src", "frame-src", "connect-src"])
+    assert.ok(
+      directive(name).includes("https://challenges.cloudflare.com"),
+      `${name} allows Turnstile`
+    );
+  assert.ok(!directive("style-src").includes("cloudflare"));
+  assert.ok(csp.includes("default-src 'none'"));
+});
+
+test("forms send a Turnstile token only when a site key is configured", () => {
+  const forms = read("forms.mjs");
+  assert.ok(forms.includes('from "./turnstile-config.mjs"'));
+  assert.ok(forms.includes("turnstile_token"));
+  assert.ok(forms.includes("challenges.cloudflare.com/turnstile/v0/api.js"));
+  assert.ok(forms.includes("render=explicit"));
+  // The script is loaded from forms.mjs, never from a page.
+  for (const page of PAGES)
+    assert.ok(!read(page).includes("challenges.cloudflare.com"), page);
+});
+
+test("the site key is written at build time and defaults to none", () => {
+  const build = (key) =>
+    execFileSync("node", [
+      new URL("./build.mjs", import.meta.url).pathname,
+      key,
+    ]);
+  try {
+    build("0xTESTKEY");
+    assert.equal(
+      read("turnstile-config.mjs"),
+      'export const TURNSTILE_SITE_KEY = "0xTESTKEY";\n'
+    );
+  } finally {
+    build("");
+  }
+  assert.equal(
+    read("turnstile-config.mjs"),
+    'export const TURNSTILE_SITE_KEY = "";\n'
+  );
 });

@@ -11,7 +11,7 @@ import type {
 } from "../models/ContactSendContactMessage.js";
 
 /**
- * @description Public contact form. Stores the message and emails it to the site's configured inbox. Accepts an optional Turnstile token (not yet verified).
+ * @description Public contact form. Stores the message and emails it to the site's configured inbox. Verifies the Turnstile token when enforcement is enabled.
  * @summary Send a website contact message
  * {@link /api/v1/contact/messages}
  */

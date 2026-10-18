@@ -11,6 +11,8 @@ export const feedbackSchema = z.object({
     .regex(/^\/[^?#\s]*$/, "Invalid page path."),
   helpful: z.boolean(),
   comment: z.string().trim().max(1000).optional(),
+  // Cloudflare Turnstile token; FastAPI verifies it.
+  turnstileToken: z.string().max(2048).optional(),
 });
 
 export type FeedbackInput = z.infer<typeof feedbackSchema>;

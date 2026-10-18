@@ -8,6 +8,7 @@ import {
   NativeSelectOption,
 } from "@barrelsgd/ui/components/ui/native-select";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
+import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
 import { useRef, useState } from "react";
 import {
   DATA_FORMATS,
@@ -15,6 +16,7 @@ import {
   dataRequestSchema,
   INTENDED_USES,
 } from "@/lib/data-request";
+import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
 
 type FormState =
@@ -45,6 +47,8 @@ function readForm(form: HTMLFormElement) {
 export function DataRequestForm() {
   const [state, setState] = useState<FormState>({ status: "idle" });
   const errorRef = useRef<HTMLParagraphElement>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   function fail(message: string) {
     setState({ status: "error", message });
@@ -65,9 +69,13 @@ export function DataRequestForm() {
       const res = await fetch("/api/data-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed.data),
+        body: JSON.stringify({
+          ...parsed.data,
+          turnstileToken: turnstileToken ?? undefined,
+        }),
       });
       if (!res.ok) {
+        setTurnstileReset((n) => n + 1);
         const body = (await res.json().catch(() => ({}))) as {
           error?: string;
         };
@@ -249,6 +257,11 @@ export function DataRequestForm() {
           email about this request.
         </span>
       </label>
+      <Turnstile
+        onToken={setTurnstileToken}
+        resetKey={turnstileReset}
+        siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+      />
       <Button disabled={state.status === "submitting"} type="submit">
         {state.status === "submitting" ? "Sending…" : "Send request"}
       </Button>

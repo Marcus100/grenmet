@@ -73,7 +73,7 @@ never read existing data and return a fixed acknowledgement:
   `token` and 303-redirect to the list's site.
 - `POST /api/v1/contact/messages` (`contactSendContactMessage`): stores a
   website message and emails it to the inbox of its `site` (`mbia` by default,
-  or `barrels`). `turnstile_token` is accepted but not verified yet.
+  or `barrels`). `turnstile_token` is verified when `TURNSTILE_ENABLED` (400 "Verification failed").
 - `POST /api/v1/contact/data-requests` (`contactSendDataRequest`): GMS climate
   data request (structured fields, required `consent`, hidden `website`
   honeypot). Emails `GMS_DATA_REQUEST_RECIPIENT` and confirms to the requester.

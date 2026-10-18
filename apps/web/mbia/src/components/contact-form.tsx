@@ -8,8 +8,10 @@ import {
   NativeSelectOption,
 } from "@barrelsgd/ui/components/ui/native-select";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
+import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
 import { useState } from "react";
 import { CONTACT_SUBJECTS, contactSchema } from "@/lib/contact";
+import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
 
 type FormState =
@@ -20,6 +22,8 @@ type FormState =
 
 export function ContactForm() {
   const [state, setState] = useState<FormState>({ status: "idle" });
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,9 +42,13 @@ export function ContactForm() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed.data),
+        body: JSON.stringify({
+          ...parsed.data,
+          turnstileToken: turnstileToken ?? undefined,
+        }),
       });
       if (!res.ok) {
+        setTurnstileReset((n) => n + 1);
         const body = (await res.json()) as { error?: string };
         setState({
           status: "error",
@@ -49,6 +57,7 @@ export function ContactForm() {
         return;
       }
       form.reset();
+      setTurnstileReset((n) => n + 1);
       setState({ status: "success" });
     } catch (error) {
       reportError(error, "mbia-contact");
@@ -85,6 +94,11 @@ export function ContactForm() {
         <Label htmlFor="contact-message">Message</Label>
         <Textarea id="contact-message" name="message" required rows={6} />
       </div>
+      <Turnstile
+        onToken={setTurnstileToken}
+        resetKey={turnstileReset}
+        siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+      />
       <Button
         className="bg-gaa-navy text-white hover:bg-gaa-navy-deep"
         disabled={state.status === "submitting"}

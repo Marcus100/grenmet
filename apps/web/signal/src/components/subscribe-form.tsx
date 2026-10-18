@@ -3,7 +3,9 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
+import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
 import { useState } from "react";
+import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
 import { parseSubscription } from "@/lib/subscribe";
 
@@ -19,6 +21,8 @@ type FormState =
  */
 export function SubscribeForm() {
   const [state, setState] = useState<FormState>({ status: "idle" });
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -47,9 +51,13 @@ export function SubscribeForm() {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: parsed.data.email }),
+        body: JSON.stringify({
+          email: parsed.data.email,
+          turnstileToken: turnstileToken ?? undefined,
+        }),
       });
       if (!res.ok) {
+        setTurnstileReset((n) => n + 1);
         const body = (await res.json().catch(() => ({}))) as {
           error?: string;
         };
@@ -107,6 +115,11 @@ export function SubscribeForm() {
           any time.
         </span>
       </label>
+      <Turnstile
+        onToken={setTurnstileToken}
+        resetKey={turnstileReset}
+        siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+      />
       <Button
         className="h-11 px-5 text-base"
         disabled={state.status === "submitting"}

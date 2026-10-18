@@ -3,6 +3,7 @@ from fastapi import APIRouter, Request, status
 from src.dependencies import SessionDep
 from src.openapi_responses import BAD_REQUEST
 from src.rate_limit import limiter
+from src.turnstile import require_turnstile
 
 from . import service
 from .schemas import PageFeedbackAccepted, PageFeedbackCreate
@@ -25,6 +26,6 @@ router = APIRouter(prefix="/feedback", tags=["feedback"])
 async def send_page_feedback(
     *, request: Request, session: SessionDep, body: PageFeedbackCreate
 ) -> PageFeedbackAccepted:
-    _ = request
+    await require_turnstile(request, body.turnstile_token)
     await service.submit_feedback(session=session, payload=body)
     return PageFeedbackAccepted(ok=True)

@@ -47,7 +47,7 @@ export function contactSendDataRequestMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Public GMS climate data request form. Stores the request, emails it to the configured inbox and sends the requester a confirmation.
+ * @description Public GMS climate data request form. Stores the request, emails it to the configured inbox and sends the requester a confirmation. Verifies the Turnstile token when enforcement is enabled.
  * @summary Send a climate data request
  * {@link /api/v1/contact/data-requests}
  */

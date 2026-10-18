@@ -26,9 +26,16 @@ export async function POST(request: Request) {
         page_path: parsed.data.pagePath,
         helpful: parsed.data.helpful,
         comment: parsed.data.comment || null,
+        turnstile_token: parsed.data.turnstileToken,
       },
     }).unwrap();
   } catch (error) {
+    if (error instanceof ResponseError && error.status === 400) {
+      return NextResponse.json(
+        { ok: false, error: "Verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
     if (error instanceof ResponseError && error.status === 429) {
       return NextResponse.json(
         { ok: false, error: "Too many answers. Please try again shortly." },
