@@ -30,17 +30,36 @@ export type ReportKind = "SYNOP" | "METAR" | "SPECI";
 
 const KINDS: readonly ReportKind[] = ["SYNOP", "METAR", "SPECI"];
 
+/** Only "ready" rows are real records; every other state shows a status line. */
+export type LiveState = "loading" | "ready" | "unavailable";
+
 function ReportPanel({
   kind,
   rows,
-  sample,
+  state,
 }: {
   kind: ReportKind;
   rows: readonly ReportRow[];
-  sample: boolean;
+  state: LiveState;
 }) {
   const [showAll, setShowAll] = useState(false);
   const latest = rows[0];
+
+  if (state === "loading") {
+    return (
+      <p className="px-4 py-3 text-muted-foreground text-sm" role="status">
+        Loading {kind} reports…
+      </p>
+    );
+  }
+
+  if (state === "unavailable") {
+    return (
+      <p className="px-4 py-3 text-sm" role="alert">
+        {kind} reports are unavailable. The register service did not respond.
+      </p>
+    );
+  }
 
   if (!latest) {
     return (
@@ -54,7 +73,7 @@ function ReportPanel({
     <div className="space-y-3 px-4 py-3">
       <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
         <span>Latest · {latest.observed} UTC</span>
-        <Badge variant="secondary">{sample ? "Sample data" : "Recorded"}</Badge>
+        <Badge variant="secondary">Recorded</Badge>
       </div>
       <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-2.5 font-mono text-sm tabular-nums">
         {latest.message}
@@ -103,10 +122,10 @@ function ReportPanel({
 
 export function LatestReports({
   reports,
-  sample,
+  state,
 }: {
   reports: Record<ReportKind, readonly ReportRow[]>;
-  sample: boolean;
+  state: LiveState;
 }) {
   return (
     <SectionCard title="Latest Reports">
@@ -120,7 +139,7 @@ export function LatestReports({
         </TabsList>
         {KINDS.map((kind) => (
           <TabsContent key={kind} value={kind}>
-            <ReportPanel kind={kind} rows={reports[kind]} sample={sample} />
+            <ReportPanel kind={kind} rows={reports[kind]} state={state} />
           </TabsContent>
         ))}
       </Tabs>

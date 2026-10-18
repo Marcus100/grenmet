@@ -8,127 +8,30 @@ import {
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@barrelsgd/ui/components/ui/table";
-import { cn } from "@barrelsgd/ui/lib/utils";
-import { Droplets, Thermometer, ThermometerSnowflake } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
 import { REGISTER_KEYS, REGISTER_SECTIONS } from "./eregister-layout";
 import { observerInitials } from "./eregister-observer";
 import { tenthsToCelsius } from "./eregister-readings";
 import {
   LatestReports,
+  type LiveState,
   type ReportKind,
   type ReportRow,
 } from "./eregister-reports";
 import { observationTime } from "./eregister-time";
-import {
-  GRID_CELL,
-  HEAD_ROW,
-  RegisterTable,
-  SectionCard,
-  SummaryHead,
-} from "./eregister-ui";
+import { RegisterTable, SectionCard } from "./eregister-ui";
 import { ERegisterWorkbook } from "./eregister-workbook";
 
 // Modernised Meteorological Observations eRegister (station 78958, MBIA).
-// The register is backed by the dedicated FastAPI eRegister database; the
-// representative rows remain visible when that service is unavailable.
+// The register is backed by the dedicated FastAPI eRegister database. Until a
+// live read succeeds the page shows loading, empty or error states; it never
+// shows sample observations as if they were recorded.
 
 const STATION = {
   name: "Maurice Bishop International Airport",
   number: "78958",
   icao: "TGPY",
   position: "12.0°N · 61.47°W",
-  date: "Tue 07 Jul 2026",
-  hour: "23:00 UTC",
-};
-
-// Daily summary grid — synoptic-hour readings as rows, elements as columns.
-const DAILY_SUMMARY = [
-  { id: "d00", hour: "00:00", rain: "0.0", max: "27.9", min: "25.1" },
-  { id: "d06", hour: "06:00", rain: "0.2", max: "26.1", min: "24.6" },
-  { id: "d12", hour: "12:00", rain: "1.4", max: "30.2", min: "25.8" },
-  { id: "d18", hour: "18:00", rain: "0.0", max: "30.2", min: "25.4" },
-];
-
-const DAILY_TOTALS = { rain: "1.6", max: "30.2", min: "24.6" };
-
-const METAR = "TGPY 072300Z 07010G18KT 9999 FEW018 SCT300 25/23 Q1015 NOSIG";
-
-// Sample latest SYNOP workbook, shown until a live record is available.
-const SAMPLE_LATEST: Record<string, string> = {
-  report_type: "AAXX",
-  day: "07",
-  time_utc: "23",
-  station_id: "78958",
-  wind_indicator: "4",
-  precip_indicator: "4",
-  station_wx_indicator: "1",
-  cloud_base: "4",
-  visibility: "65",
-  total_cloud: "6",
-  wind_dir: "07",
-  wind_speed: "10",
-  wind_gust: "18",
-  air_temp: "0254",
-  dew_point: "0228",
-  relative_humidity: "86",
-  station_pressure: "0135",
-  msl_pressure: "0149",
-  precip_amount: "000",
-  precip_period: "1",
-  present_wx: "05",
-  past_wx_1: "8",
-  past_wx_2: "2",
-  low_cloud_amount: "6",
-  low_cloud_type: "8",
-  mid_cloud_type: "7",
-  high_cloud_type: "/",
-  s3_state_of_sky: "0",
-  s3_max_temp: "0302",
-  s3_min_temp: "0246",
-  s3_baro_change_24h: "9010",
-  s3_rainfall_24h: "0004",
-  s3_layer1_amount: "1",
-  s3_layer1_form: "8",
-  s3_layer1_height: "18",
-  s3_layer2_amount: "6",
-  s3_layer2_form: "0",
-  s3_layer2_height: "77",
-  s3_special_phenomena: "909",
-};
-
-const SAMPLE_REPORTS: Record<ReportKind, ReportRow[]> = {
-  SYNOP: [
-    {
-      id: "l23",
-      observed: "2026-07-07 23:00",
-      message:
-        "AAXX 07234 78958 41465 82010 10254 20228 30135 40149 60001 70582 86870 333 10302 20246 59010 70004 81818 909//",
-    },
-    {
-      id: "l22",
-      observed: "2026-07-07 22:00",
-      message:
-        "AAXX 07224 78958 41464 82011 10256 20229 30134 40148 60001 70282 86870 333 81818",
-    },
-    {
-      id: "l21",
-      observed: "2026-07-07 21:00",
-      message:
-        "AAXX 07214 78958 41465 82013 10259 20230 30133 40147 60001 70282 85870 333 81717",
-    },
-  ],
-  METAR: [{ id: "m23", observed: "2026-07-07 23:00", message: METAR }],
-  SPECI: [],
 };
 
 function toReportRows(
@@ -144,6 +47,16 @@ function toReportRows(
       : "Unknown",
     message: observation.raw_tac ?? `Structured ${observation.kind} record`,
   }));
+}
+
+function lastObservedLabel(
+  state: LiveState,
+  latest: RegisterObservationRead | undefined
+): string {
+  if (state === "loading") return "Loading…";
+  if (state === "unavailable") return "Unavailable";
+  if (!latest?.observed_at) return "No saved observations yet";
+  return `${new Date(latest.observed_at).toISOString().slice(0, 16).replace("T", " ")} UTC`;
 }
 
 const OKTA_WORDS = [
@@ -244,9 +157,7 @@ export function ERegister() {
   const [saveState, setSaveState] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
-  const [liveState, setLiveState] = useState<
-    "loading" | "ready" | "unavailable"
-  >("loading");
+  const [liveState, setLiveState] = useState<LiveState>("loading");
   const [liveAviation, setLiveAviation] = useState<
     Record<"METAR" | "SPECI", RegisterObservationRead[]>
   >({ METAR: [], SPECI: [] });
@@ -333,13 +244,11 @@ export function ERegister() {
   }
 
   const live = liveState === "ready";
-  const reports: Record<ReportKind, readonly ReportRow[]> = live
-    ? {
-        SYNOP: toReportRows(liveObservations),
-        METAR: toReportRows(liveAviation.METAR),
-        SPECI: toReportRows(liveAviation.SPECI),
-      }
-    : SAMPLE_REPORTS;
+  const reports: Record<ReportKind, readonly ReportRow[]> = {
+    SYNOP: live ? toReportRows(liveObservations) : [],
+    METAR: live ? toReportRows(liveAviation.METAR) : [],
+    SPECI: live ? toReportRows(liveAviation.SPECI) : [],
+  };
   const latestBody = liveObservations[0]?.body;
   const latestValues: Record<string, string> =
     live && latestBody
@@ -349,7 +258,7 @@ export function ERegister() {
             typeof value === "string" ? value : "",
           ])
         )
-      : SAMPLE_LATEST;
+      : {};
 
   if (view === "new") {
     const iso = observationDate.toISOString();
@@ -376,10 +285,7 @@ export function ERegister() {
     );
   }
 
-  const lastObserved =
-    live && liveObservations[0]?.observed_at
-      ? `${new Date(liveObservations[0].observed_at).toISOString().slice(0, 16).replace("T", " ")} UTC`
-      : `${STATION.date} · ${STATION.hour}`;
+  const lastObserved = lastObservedLabel(liveState, liveObservations[0]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -403,6 +309,13 @@ export function ERegister() {
           </Button>
         </div>
       </div>
+
+      {liveState === "unavailable" ? (
+        <p className="rounded-lg border px-4 py-3 text-sm" role="alert">
+          The eRegister service is unavailable. No observations are shown until
+          it responds.
+        </p>
+      ) : null}
 
       {/* Last observation: Section 0 (station card on its right), then Sections 1 and 3 */}
       <div className="flex flex-col gap-4">
@@ -440,106 +353,23 @@ export function ERegister() {
 
       {/* Daily summaries beside the latest reports */}
       <div className="flex flex-wrap items-start gap-6">
-        <SectionCard
-          action={
-            <span className="text-muted-foreground text-xs">
-              Station day 12–12 UTC
-            </span>
-          }
-          className="w-fit max-w-full"
-          title="Daily Summaries"
-        >
-          <Table>
-            <TableHeader>
-              <TableRow className={HEAD_ROW}>
-                <TableHead className={cn(GRID_CELL, "px-3.5")}>
-                  Hour (UTC)
-                </TableHead>
-                <TableHead className={cn(GRID_CELL, "px-3.5 text-right")}>
-                  <SummaryHead icon={Droplets} label="Rainfall" unit="mm" />
-                </TableHead>
-                <TableHead className={cn(GRID_CELL, "px-3.5 text-right")}>
-                  <SummaryHead
-                    icon={Thermometer}
-                    label="Maximum temperature"
-                    unit="°C"
-                  />
-                </TableHead>
-                <TableHead className="px-3.5 text-right">
-                  <SummaryHead
-                    icon={ThermometerSnowflake}
-                    label="Minimum temperature"
-                    unit="°C"
-                  />
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {DAILY_SUMMARY.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell
-                    className={cn(GRID_CELL, "px-3.5 font-medium tabular-nums")}
-                  >
-                    {row.hour}
-                  </TableCell>
-                  <TableCell
-                    className={cn(
-                      GRID_CELL,
-                      "px-3.5 text-right font-mono tabular-nums"
-                    )}
-                  >
-                    {row.rain}
-                  </TableCell>
-                  <TableCell
-                    className={cn(
-                      GRID_CELL,
-                      "px-3.5 text-right font-mono tabular-nums"
-                    )}
-                  >
-                    {row.max}
-                  </TableCell>
-                  <TableCell className="px-3.5 text-right font-mono tabular-nums">
-                    {row.min}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-            <TableFooter>
-              <TableRow className="hover:bg-muted/50">
-                <TableCell className={cn(GRID_CELL, "px-3.5")}>
-                  Daily 12–12
-                </TableCell>
-                <TableCell
-                  className={cn(
-                    GRID_CELL,
-                    "px-3.5 text-right font-mono tabular-nums"
-                  )}
-                >
-                  {DAILY_TOTALS.rain}
-                </TableCell>
-                <TableCell
-                  className={cn(
-                    GRID_CELL,
-                    "px-3.5 text-right font-mono tabular-nums"
-                  )}
-                >
-                  {DAILY_TOTALS.max}
-                </TableCell>
-                <TableCell className="px-3.5 text-right font-mono tabular-nums">
-                  {DAILY_TOTALS.min}
-                </TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
+        <SectionCard className="w-fit max-w-full" title="Daily Summaries">
+          <p
+            className="max-w-xs px-4 py-3 text-muted-foreground text-sm"
+            role="status"
+          >
+            Daily summaries are not connected to the register yet. No figures
+            are shown.
+          </p>
         </SectionCard>
         <div className="min-w-80 flex-1">
-          <LatestReports reports={reports} sample={!live} />
+          <LatestReports reports={reports} state={liveState} />
         </div>
       </div>
 
       <p className="text-muted-foreground text-xs">
-        Showing the latest saved records. QC approval and WIS2box publication
-        remain separate, explicit steps.
+        Latest saved records appear once the register service responds. QC
+        approval and WIS2box publication remain separate, explicit steps.
       </p>
     </div>
   );
