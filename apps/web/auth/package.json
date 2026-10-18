@@ -33,6 +33,7 @@
     "qrcode": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "server-only": "catalog:",
     "sonner": "catalog:",
     "zod": "catalog:"
   },
