@@ -327,6 +327,8 @@ export { notificationsMarkAllNotificationsRead } from "./notificationsMarkAllNot
 export { notificationsMarkNotificationRead } from "./notificationsMarkNotificationRead.js";
 export { notificationsUpdateNotificationPreferences } from "./notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./notificationsUpdateNotificationSetting.js";
+export { organisationsGetCurrent } from "./organisationsGetCurrent.js";
+export { organisationsListMine } from "./organisationsListMine.js";
 export { subscriptionsConfirmSubscription } from "./subscriptionsConfirmSubscription.js";
 export { subscriptionsSubscribe } from "./subscriptionsSubscribe.js";
 export { subscriptionsUnsubscribe } from "./subscriptionsUnsubscribe.js";

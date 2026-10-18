@@ -330,6 +330,8 @@ export { notificationsMarkAllNotificationsRead } from "./clients/notificationsMa
 export { notificationsMarkNotificationRead } from "./clients/notificationsMarkNotificationRead.js";
 export { notificationsUpdateNotificationPreferences } from "./clients/notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./clients/notificationsUpdateNotificationSetting.js";
+export { organisationsGetCurrent } from "./clients/organisationsGetCurrent.js";
+export { organisationsListMine } from "./clients/organisationsListMine.js";
 export { subscriptionsConfirmSubscription } from "./clients/subscriptionsConfirmSubscription.js";
 export { subscriptionsSubscribe } from "./clients/subscriptionsSubscribe.js";
 export { subscriptionsUnsubscribe } from "./clients/subscriptionsUnsubscribe.js";
@@ -2031,6 +2033,16 @@ export {
   useNotificationsUpdateNotificationSetting,
 } from "./hooks/useNotificationsUpdateNotificationSetting.js";
 export {
+  organisationsGetCurrentQueryKey,
+  organisationsGetCurrentQueryOptions,
+  useOrganisationsGetCurrent,
+} from "./hooks/useOrganisationsGetCurrent.js";
+export {
+  organisationsListMineQueryKey,
+  organisationsListMineQueryOptions,
+  useOrganisationsListMine,
+} from "./hooks/useOrganisationsListMine.js";
+export {
   subscriptionsConfirmSubscriptionQueryKey,
   subscriptionsConfirmSubscriptionQueryOptions,
   useSubscriptionsConfirmSubscription,
@@ -3642,6 +3654,7 @@ export type { ContactSite } from "./models/ContactSite.js";
 export { contactSite } from "./models/ContactSite.js";
 export type { ContractorCreate } from "./models/ContractorCreate.js";
 export type { ContractorUpdate } from "./models/ContractorUpdate.js";
+export type { CurrentOrganisationPublic } from "./models/CurrentOrganisationPublic.js";
 export type { DashboardApproval } from "./models/DashboardApproval.js";
 export type { DashboardPerson } from "./models/DashboardPerson.js";
 export type { DashboardRequest } from "./models/DashboardRequest.js";
@@ -5999,9 +6012,14 @@ export type { ListingUpsertPropertiesVisibilityEnum } from "./models/ListingUpse
 export { listingUpsertPropertiesVisibilityEnum } from "./models/ListingUpsertPropertiesVisibilityEnum.js";
 export type { ManagedListing } from "./models/ManagedListing.js";
 export type { ManagedOrganiser } from "./models/ManagedOrganiser.js";
+export type { MembershipRole } from "./models/MembershipRole.js";
+export { membershipRole } from "./models/MembershipRole.js";
+export type { MembershipStatus } from "./models/MembershipStatus.js";
+export { membershipStatus } from "./models/MembershipStatus.js";
 export type { Message } from "./models/Message.js";
 export type { MessageCreate } from "./models/MessageCreate.js";
 export type { MessagePublic } from "./models/MessagePublic.js";
+export type { MyMembershipPublic } from "./models/MyMembershipPublic.js";
 export type { MyProfile } from "./models/MyProfile.js";
 export type { MyProfilePropertiesIntentsItemsEnum } from "./models/MyProfilePropertiesIntentsItemsEnum.js";
 export { myProfilePropertiesIntentsItemsEnum } from "./models/MyProfilePropertiesIntentsItemsEnum.js";
@@ -6155,8 +6173,34 @@ export { observationRecordPropertiesKindEnum } from "./models/ObservationRecordP
 export type { OnboardingStatus } from "./models/OnboardingStatus.js";
 export type { OrganisationCatalogue } from "./models/OrganisationCatalogue.js";
 export type { OrganisationCreate } from "./models/OrganisationCreate.js";
+export type { OrganisationKind } from "./models/OrganisationKind.js";
+export { organisationKind } from "./models/OrganisationKind.js";
 export type { OrganisationPreview } from "./models/OrganisationPreview.js";
 export type { OrganisationPublic } from "./models/OrganisationPublic.js";
+export type { OrganisationStatus } from "./models/OrganisationStatus.js";
+export { organisationStatus } from "./models/OrganisationStatus.js";
+export type { OrganisationSummary } from "./models/OrganisationSummary.js";
+export type {
+  OrganisationsGetCurrentHeaders,
+  OrganisationsGetCurrentOptions,
+  OrganisationsGetCurrentResponse,
+  OrganisationsGetCurrentResponses,
+  OrganisationsGetCurrentStatus200,
+  OrganisationsGetCurrentStatus400,
+  OrganisationsGetCurrentStatus401,
+  OrganisationsGetCurrentStatus403,
+  OrganisationsGetCurrentStatus404,
+  OrganisationsGetCurrentStatus422,
+} from "./models/OrganisationsGetCurrent.js";
+export type {
+  OrganisationsListMineOptions,
+  OrganisationsListMineResponse,
+  OrganisationsListMineResponses,
+  OrganisationsListMineStatus200,
+  OrganisationsListMineStatus401,
+  OrganisationsListMineStatus403,
+  OrganisationsListMineStatus422,
+} from "./models/OrganisationsListMine.js";
 export type { OrganisationUpdate } from "./models/OrganisationUpdate.js";
 export type { OrganiserPublic } from "./models/OrganiserPublic.js";
 export type { OutlookProductPreview } from "./models/OutlookProductPreview.js";
@@ -8273,6 +8317,7 @@ export {
 export { contactSiteSchema } from "./zod/contactSiteSchema.js";
 export { contractorCreateSchema } from "./zod/contractorCreateSchema.js";
 export { contractorUpdateSchema } from "./zod/contractorUpdateSchema.js";
+export { currentOrganisationPublicSchema } from "./zod/currentOrganisationPublicSchema.js";
 export { dashboardApprovalSchema } from "./zod/dashboardApprovalSchema.js";
 export { dashboardPersonSchema } from "./zod/dashboardPersonSchema.js";
 export { dashboardRequestSchema } from "./zod/dashboardRequestSchema.js";
@@ -10450,9 +10495,12 @@ export { listingUpsertPropertiesVisibilityEnumSchema } from "./zod/listingUpsert
 export { listingUpsertSchema } from "./zod/listingUpsertSchema.js";
 export { managedListingSchema } from "./zod/managedListingSchema.js";
 export { managedOrganiserSchema } from "./zod/managedOrganiserSchema.js";
+export { membershipRoleSchema } from "./zod/membershipRoleSchema.js";
+export { membershipStatusSchema } from "./zod/membershipStatusSchema.js";
 export { messageCreateSchema } from "./zod/messageCreateSchema.js";
 export { messagePublicSchema } from "./zod/messagePublicSchema.js";
 export { messageSchema } from "./zod/messageSchema.js";
+export { myMembershipPublicSchema } from "./zod/myMembershipPublicSchema.js";
 export { myProfilePropertiesIntentsItemsEnumSchema } from "./zod/myProfilePropertiesIntentsItemsEnumSchema.js";
 export { myProfilePropertiesVisibilityEnumSchema } from "./zod/myProfilePropertiesVisibilityEnumSchema.js";
 export { myProfileSchema } from "./zod/myProfileSchema.js";
@@ -10587,8 +10635,30 @@ export { observationRecordSchema } from "./zod/observationRecordSchema.js";
 export { onboardingStatusSchema } from "./zod/onboardingStatusSchema.js";
 export { organisationCatalogueSchema } from "./zod/organisationCatalogueSchema.js";
 export { organisationCreateSchema } from "./zod/organisationCreateSchema.js";
+export { organisationKindSchema } from "./zod/organisationKindSchema.js";
 export { organisationPreviewSchema } from "./zod/organisationPreviewSchema.js";
 export { organisationPublicSchema } from "./zod/organisationPublicSchema.js";
+export { organisationStatusSchema } from "./zod/organisationStatusSchema.js";
+export { organisationSummarySchema } from "./zod/organisationSummarySchema.js";
+export {
+  organisationsGetCurrentErrorSchema,
+  organisationsGetCurrentHeaderXBarrelsOrganisationSchema,
+  organisationsGetCurrentResponseSchema,
+  organisationsGetCurrentStatus200Schema,
+  organisationsGetCurrentStatus400Schema,
+  organisationsGetCurrentStatus401Schema,
+  organisationsGetCurrentStatus403Schema,
+  organisationsGetCurrentStatus404Schema,
+  organisationsGetCurrentStatus422Schema,
+} from "./zod/organisationsGetCurrentSchema.js";
+export {
+  organisationsListMineErrorSchema,
+  organisationsListMineResponseSchema,
+  organisationsListMineStatus200Schema,
+  organisationsListMineStatus401Schema,
+  organisationsListMineStatus403Schema,
+  organisationsListMineStatus422Schema,
+} from "./zod/organisationsListMineSchema.js";
 export { organisationUpdateSchema } from "./zod/organisationUpdateSchema.js";
 export { organiserPublicSchema } from "./zod/organiserPublicSchema.js";
 export { outlookProductPreviewInputSchema } from "./zod/outlookProductPreviewInputSchema.js";

@@ -12,7 +12,7 @@ export type ZoneCreate = {
    */
   name: string;
   /**
-   * @default
+   * @default []
    * @type array | undefined
    */
   areaIds?: number[];

@@ -14,6 +14,7 @@ from contextvars import ContextVar, Token
 REQUEST_ID_HEADER = "X-Request-ID"
 _VALID_INCOMING = re.compile(r"[A-Za-z0-9._-]{8,64}")
 _request_id: ContextVar[str | None] = ContextVar("request_id", default=None)
+_organisation_id: ContextVar[str | None] = ContextVar("organisation_id", default=None)
 
 
 def resolve_request_id(incoming: str | None) -> str:
@@ -35,9 +36,23 @@ def current_request_id() -> str | None:
     return _request_id.get()
 
 
+def bind_organisation_id(organisation_id: str) -> Token[str | None]:
+    """Bind the active organisation (set by ``OrgContext``) to this request's logs."""
+    return _organisation_id.set(organisation_id)
+
+
+def reset_organisation_id(token: Token[str | None]) -> None:
+    _organisation_id.reset(token)
+
+
+def current_organisation_id() -> str | None:
+    return _organisation_id.get()
+
+
 class RequestIdFilter(logging.Filter):
-    """Attach the active request ID (or ``-``) to every log record."""
+    """Attach the active request ID and organisation (or ``-``) to every log record."""
 
     def filter(self, record: logging.LogRecord) -> bool:
         record.request_id = current_request_id() or "-"
+        record.organisation_id = current_organisation_id() or "-"
         return True

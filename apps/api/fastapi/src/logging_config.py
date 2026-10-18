@@ -28,6 +28,9 @@ class _DatadogFormatter(JsonFormatter):
         request_id = record.__dict__.get("request_id")
         if request_id and request_id != "-":
             log_record["request_id"] = request_id
+        organisation_id = record.__dict__.get("organisation_id")
+        if organisation_id and organisation_id != "-":
+            log_record["organisation_id"] = organisation_id
         # ddtrace injects these onto the LogRecord when DD_LOGS_INJECTION=true
         for field in (
             "dd.trace_id",
@@ -56,7 +59,7 @@ def configure_logging(level: str = "INFO") -> None:
     if log_format == "text":
         handler.setFormatter(
             logging.Formatter(
-                "%(asctime)s %(levelname)s [%(name)s] [%(request_id)s] %(message)s",
+                "%(asctime)s %(levelname)s [%(name)s] [%(request_id)s] [%(organisation_id)s] %(message)s",
                 datefmt="%Y-%m-%dT%H:%M:%S",
             )
         )

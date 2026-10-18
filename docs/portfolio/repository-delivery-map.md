@@ -73,7 +73,8 @@ transition:
 | Billing | Barrels platform/product capability | Approved transactional products | Keep isolated until an approved product consumes it |
 | Storage | Barrels platform | Multiple domains | Preserve domain ownership, access controls, retention, and audit |
 | Worker and webhooks | Barrels platform runtime | Async product/client operations | Add consumers only with retry, idempotency, monitoring, and ownership |
-| Organizations, AI, Knowledge (planned, not present) | Barrels Core platform | Future Barrels products and approved client needs | Direction only per [ADR-0014](../adr/0014-barrels-platform-core-direction.md); each domain needs its own approval, migration, and contract update |
+| Organisations (`org` schema) | Barrels platform | All Barrels products; Events organisers, control plane and invoicing next | Built per [ADR-0022](../adr/0022-platform-organisations-and-memberships.md): organisations, memberships, app entitlements, HR dual-write and `OrgContext`; invites, Events bridge and control plane follow the [foundations plan](../exec-plans/barrels-foundations-plan.md) |
+| AI, Knowledge (planned, not present) | Barrels Core platform | Future Barrels products and approved client needs | Direction only per [ADR-0014](../adr/0014-barrels-platform-core-direction.md); each domain needs its own approval, migration, and contract update |
 
 WxWatch, WxProducts, eRegister, Janitorial, and Transport data remain in
 separate domain databases, but FastAPI now owns their schemas, migrations,

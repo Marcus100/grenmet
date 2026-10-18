@@ -29,7 +29,7 @@ export type TimetableTripInput = {
   notes?: string | null;
   sourceRef?: string | null;
   /**
-   * @default
+   * @default []
    * @type array | undefined
    */
   stops?: TimetableStopTimeInput[];

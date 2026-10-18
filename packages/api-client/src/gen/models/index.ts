@@ -1335,6 +1335,7 @@ export type { ContactSite } from "./ContactSite.js";
 export { contactSite } from "./ContactSite.js";
 export type { ContractorCreate } from "./ContractorCreate.js";
 export type { ContractorUpdate } from "./ContractorUpdate.js";
+export type { CurrentOrganisationPublic } from "./CurrentOrganisationPublic.js";
 export type { DashboardApproval } from "./DashboardApproval.js";
 export type { DashboardPerson } from "./DashboardPerson.js";
 export type { DashboardRequest } from "./DashboardRequest.js";
@@ -3692,9 +3693,14 @@ export type { ListingUpsertPropertiesVisibilityEnum } from "./ListingUpsertPrope
 export { listingUpsertPropertiesVisibilityEnum } from "./ListingUpsertPropertiesVisibilityEnum.js";
 export type { ManagedListing } from "./ManagedListing.js";
 export type { ManagedOrganiser } from "./ManagedOrganiser.js";
+export type { MembershipRole } from "./MembershipRole.js";
+export { membershipRole } from "./MembershipRole.js";
+export type { MembershipStatus } from "./MembershipStatus.js";
+export { membershipStatus } from "./MembershipStatus.js";
 export type { Message } from "./Message.js";
 export type { MessageCreate } from "./MessageCreate.js";
 export type { MessagePublic } from "./MessagePublic.js";
+export type { MyMembershipPublic } from "./MyMembershipPublic.js";
 export type { MyProfile } from "./MyProfile.js";
 export type { MyProfilePropertiesIntentsItemsEnum } from "./MyProfilePropertiesIntentsItemsEnum.js";
 export { myProfilePropertiesIntentsItemsEnum } from "./MyProfilePropertiesIntentsItemsEnum.js";
@@ -3848,8 +3854,34 @@ export { observationRecordPropertiesKindEnum } from "./ObservationRecordProperti
 export type { OnboardingStatus } from "./OnboardingStatus.js";
 export type { OrganisationCatalogue } from "./OrganisationCatalogue.js";
 export type { OrganisationCreate } from "./OrganisationCreate.js";
+export type { OrganisationKind } from "./OrganisationKind.js";
+export { organisationKind } from "./OrganisationKind.js";
 export type { OrganisationPreview } from "./OrganisationPreview.js";
 export type { OrganisationPublic } from "./OrganisationPublic.js";
+export type { OrganisationStatus } from "./OrganisationStatus.js";
+export { organisationStatus } from "./OrganisationStatus.js";
+export type { OrganisationSummary } from "./OrganisationSummary.js";
+export type {
+  OrganisationsGetCurrentHeaders,
+  OrganisationsGetCurrentOptions,
+  OrganisationsGetCurrentResponse,
+  OrganisationsGetCurrentResponses,
+  OrganisationsGetCurrentStatus200,
+  OrganisationsGetCurrentStatus400,
+  OrganisationsGetCurrentStatus401,
+  OrganisationsGetCurrentStatus403,
+  OrganisationsGetCurrentStatus404,
+  OrganisationsGetCurrentStatus422,
+} from "./OrganisationsGetCurrent.js";
+export type {
+  OrganisationsListMineOptions,
+  OrganisationsListMineResponse,
+  OrganisationsListMineResponses,
+  OrganisationsListMineStatus200,
+  OrganisationsListMineStatus401,
+  OrganisationsListMineStatus403,
+  OrganisationsListMineStatus422,
+} from "./OrganisationsListMine.js";
 export type { OrganisationUpdate } from "./OrganisationUpdate.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OutlookProductPreview } from "./OutlookProductPreview.js";

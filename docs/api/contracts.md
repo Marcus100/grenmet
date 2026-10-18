@@ -319,6 +319,39 @@ Sentry tag, so a failed call can be traced from the browser to the API log and
 the Sentry event. It is random and carries no user data. The header is not part
 of the OpenAPI schema.
 
+## Organisations (ADR-0022)
+
+Platform organisations live in the `org` schema. `GET /api/v1/organisations/mine`
+returns the signed-in account's active memberships (`membership_id`, `role`
+`owner | admin | member`, `status`, `joined_at`) each with an organisation summary
+(`id`, `slug`, `name`, `kind` `barrels | client | business`, `status`,
+`verified_at`). It needs any active Barrels account, not staff approval. Existing
+HR employers keep their `hr.organisation` id (for example `gaa`); new
+organisations get immutable `org_<hex>` ids.
+
+### Organisation context
+
+Routes that act for one organisation read it from the `X-Barrels-Organisation`
+request header (an `org_<hex>` id, or a legacy HR key such as `gaa`) through the
+`OrgContext` dependency (`src/organisations/dependencies.py`). Browsers may send
+the header cross-origin (it is in the CORS allow list).
+
+| Situation | Status |
+| --- | --- |
+| Header missing or blank | 400 |
+| Organisation unknown, or caller is not an active member | 404 `Organisation not found` (identical, so existence is not revealed) |
+| Organisation suspended | 403 |
+| Member whose role is too low for the route (`owner` > `admin` > `member`) | 403 |
+
+There is no superuser bypass. The caller needs any active Barrels account (the
+same as the account routes), not staff approval. The resolved organisation id is
+written to every log line for the request as `organisation_id`. A route is only
+described as organisation-isolated if it uses `OrgContext` and has a
+cross-organisation denial test.
+
+`GET /api/v1/organisations/current` returns the header's organisation and the
+caller's role.
+
 ## Pagination
 
 The standard helper is `src.pagination`:
