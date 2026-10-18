@@ -1,14 +1,16 @@
 from typing import Any
 
 from fastapi import APIRouter, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth import apps as auth_apps
 from src.auth.models import User
 from src.dependencies import AccountUser, AdminUser, SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgAdmin, OrgMember
 from src.pagination import PaginationDep
 
-from . import members, service
+from . import members, service, verification
 from .exceptions import OrganisationNotFoundError
 from .models import (
     Membership,
@@ -19,6 +21,8 @@ from .models import (
     PlatformOrganisation,
 )
 from .schemas import (
+    AppEntitlementUpdate,
+    AppOptionPublic,
     CurrentOrganisationPublic,
     InvitationAccept,
     InvitationCreate,
@@ -32,6 +36,9 @@ from .schemas import (
     OrganisationAdminPublic,
     OrganisationAppPublic,
     OrganisationSummary,
+    PlatformOrganisationCreate,
+    PlatformOrganisationUpdate,
+    VerificationDecision,
 )
 
 router = APIRouter(prefix="/organisations", tags=["organisations"])
@@ -153,6 +160,12 @@ async def list_all(
 async def get_one(
     *, session: SessionDep, _admin: AdminUser, organisation_id: str
 ) -> Any:
+    return await _admin_detail(session, organisation_id)
+
+
+async def _admin_detail(
+    session: AsyncSession, organisation_id: str
+) -> OrganisationAdminDetail:
     organisation, count, apps = await service.admin_get_organisation(
         session, organisation_id
     )
@@ -161,6 +174,172 @@ async def get_one(
         apps=[
             OrganisationAppPublic(app_key=a.app_key, enabled=a.enabled) for a in apps
         ],
+        available_apps=[
+            AppOptionPublic(key=app.key, label=app.label)
+            for app in auth_apps.all_apps()
+        ],
+    )
+
+
+# ── Control plane writes (C2, superuser only; audited as platform_organisation) ──
+
+WRITE_ERRORS = {**AUTHENTICATED, **NOT_FOUND, **CONFLICT}
+
+
+@router.post(
+    "",
+    response_model=OrganisationAdminDetail,
+    status_code=201,
+    summary="Create an organisation",
+    description=(
+        "Superuser only. Creates an organisation of kind barrels, client or "
+        "business with an immutable org_<hex> id. The slug is derived from the "
+        "name unless given; 409 when a given slug is taken."
+    ),
+    responses={**AUTHENTICATED, **CONFLICT},
+)
+async def create_one(
+    *, session: SessionDep, admin: AdminUser, payload: PlatformOrganisationCreate
+) -> Any:
+    organisation = await service.admin_create_organisation(
+        session, admin, name=payload.name, kind=payload.kind, slug=payload.slug
+    )
+    organisation_id = organisation.id
+    await session.commit()
+    return await _admin_detail(session, organisation_id)
+
+
+@router.patch(
+    "/{organisation_id}",
+    response_model=OrganisationAdminDetail,
+    summary="Edit an organisation",
+    description=(
+        "Superuser only. Changes name, slug, kind or status (active or "
+        "suspended). A suspended organisation is refused by every "
+        "organisation-scoped route. 409 when the slug is taken."
+    ),
+    responses=WRITE_ERRORS,
+)
+async def update_one(
+    *,
+    session: SessionDep,
+    admin: AdminUser,
+    organisation_id: str,
+    payload: PlatformOrganisationUpdate,
+) -> Any:
+    await service.admin_update_organisation(
+        session,
+        admin,
+        organisation_id,
+        name=payload.name,
+        slug=payload.slug,
+        status=payload.status,
+        kind=payload.kind,
+    )
+    await session.commit()
+    return await _admin_detail(session, organisation_id)
+
+
+@router.post(
+    "/{organisation_id}/verify",
+    response_model=OrganisationAdminDetail,
+    summary="Verify an organisation",
+    description=(
+        "Superuser only. Sets verified_at and records the reason in the "
+        "organisation's history. Events shows its organiser as verified. 409 "
+        "when already verified."
+    ),
+    responses=WRITE_ERRORS,
+)
+async def verify_one(
+    *,
+    session: SessionDep,
+    admin: AdminUser,
+    organisation_id: str,
+    payload: VerificationDecision,
+) -> Any:
+    await service.admin_set_verified(
+        session, admin, organisation_id, verified=True, reason=payload.reason
+    )
+    await session.commit()
+    verification.clear_cache(organisation_id)
+    return await _admin_detail(session, organisation_id)
+
+
+@router.post(
+    "/{organisation_id}/unverify",
+    response_model=OrganisationAdminDetail,
+    summary="Remove an organisation's verification",
+    description=(
+        "Superuser only. Clears verified_at and records the reason. 409 when "
+        "the organisation is not verified."
+    ),
+    responses=WRITE_ERRORS,
+)
+async def unverify_one(
+    *,
+    session: SessionDep,
+    admin: AdminUser,
+    organisation_id: str,
+    payload: VerificationDecision,
+) -> Any:
+    await service.admin_set_verified(
+        session, admin, organisation_id, verified=False, reason=payload.reason
+    )
+    await session.commit()
+    verification.clear_cache(organisation_id)
+    return await _admin_detail(session, organisation_id)
+
+
+@router.put(
+    "/{organisation_id}/apps/{app_key}",
+    response_model=OrganisationAdminDetail,
+    summary="Enable or disable an app for an organisation",
+    description=(
+        "Superuser only. Sets the organisation's entitlement to a registered "
+        "app. 422 when the app key is not in the app registry."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def set_app(
+    *,
+    session: SessionDep,
+    admin: AdminUser,
+    organisation_id: str,
+    app_key: str,
+    payload: AppEntitlementUpdate,
+) -> Any:
+    await service.admin_set_app(
+        session, admin, organisation_id, app_key, enabled=payload.enabled
+    )
+    await session.commit()
+    return await _admin_detail(session, organisation_id)
+
+
+@router.get(
+    "/{organisation_id}/admin/members",
+    response_model=MemberListPublic,
+    summary="List any organisation's members",
+    description=(
+        "Superuser only. Active members of any organisation, without needing a "
+        "membership. The organisation-scoped roster stays admin and owner only."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def list_members_admin(
+    *,
+    session: SessionDep,
+    _admin: AdminUser,
+    organisation_id: str,
+    pagination: PaginationDep,
+) -> Any:
+    await service.admin_get_organisation(session, organisation_id)
+    rows, total = await members.list_members_of(session, organisation_id, pagination)
+    return MemberListPublic(
+        data=[_member(m, u) for m, u in rows],
+        count=total,
+        page=pagination.page,
+        size=pagination.size,
     )
 
 

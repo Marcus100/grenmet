@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { appOptionPublicSchema } from "./appOptionPublicSchema.js";
 import { organisationAppPublicSchema } from "./organisationAppPublicSchema.js";
 import { organisationKindSchema } from "./organisationKindSchema.js";
 import { organisationStatusSchema } from "./organisationStatusSchema.js";
@@ -19,4 +20,5 @@ export const organisationAdminDetailSchema = z.object({
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
   apps: z.array(organisationAppPublicSchema),
+  available_apps: z.array(appOptionPublicSchema),
 });

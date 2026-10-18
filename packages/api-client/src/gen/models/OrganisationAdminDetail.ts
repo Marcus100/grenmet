@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { AppOptionPublic } from "./AppOptionPublic.js";
 import type { OrganisationAppPublic } from "./OrganisationAppPublic.js";
 import type { OrganisationKind } from "./OrganisationKind.js";
 import type { OrganisationStatus } from "./OrganisationStatus.js";
@@ -28,4 +29,5 @@ export type OrganisationAdminDetail = {
    */
   updated_at: string;
   apps: OrganisationAppPublic[];
+  available_apps: AppOptionPublic[];
 };

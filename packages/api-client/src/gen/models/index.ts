@@ -21,12 +21,14 @@ export type { ApiError } from "./ApiError.js";
 export type { AppAccessStatus } from "./AppAccessStatus.js";
 export type { AppEmailCodeStart } from "./AppEmailCodeStart.js";
 export type { AppEmailCodeVerify } from "./AppEmailCodeVerify.js";
+export type { AppEntitlementUpdate } from "./AppEntitlementUpdate.js";
 export type { AppHandoffCode } from "./AppHandoffCode.js";
 export type { AppHandoffRedeem } from "./AppHandoffRedeem.js";
 export type { AppHandoffStart } from "./AppHandoffStart.js";
 export type { AppIdentityPublic } from "./AppIdentityPublic.js";
 export type { AppJoinResult } from "./AppJoinResult.js";
 export type { AppLeaveResult } from "./AppLeaveResult.js";
+export type { AppOptionPublic } from "./AppOptionPublic.js";
 export type { AppPasswordLogin } from "./AppPasswordLogin.js";
 export type { AppPhoneCodeStart } from "./AppPhoneCodeStart.js";
 export type { AppPhoneCodeStartPropertiesChannelEnum } from "./AppPhoneCodeStartPropertiesChannelEnum.js";
@@ -3982,6 +3984,17 @@ export type {
   OrganisationsCreateInvitationStatus422,
 } from "./OrganisationsCreateInvitation.js";
 export type {
+  OrganisationsCreateOneBody,
+  OrganisationsCreateOneOptions,
+  OrganisationsCreateOneResponse,
+  OrganisationsCreateOneResponses,
+  OrganisationsCreateOneStatus201,
+  OrganisationsCreateOneStatus401,
+  OrganisationsCreateOneStatus403,
+  OrganisationsCreateOneStatus409,
+  OrganisationsCreateOneStatus422,
+} from "./OrganisationsCreateOne.js";
+export type {
   OrganisationsDeleteMemberHeaders,
   OrganisationsDeleteMemberOptions,
   OrganisationsDeleteMemberPath,
@@ -4058,6 +4071,18 @@ export type {
   OrganisationsListMembersStatus422,
 } from "./OrganisationsListMembers.js";
 export type {
+  OrganisationsListMembersAdminOptions,
+  OrganisationsListMembersAdminPath,
+  OrganisationsListMembersAdminQuery,
+  OrganisationsListMembersAdminResponse,
+  OrganisationsListMembersAdminResponses,
+  OrganisationsListMembersAdminStatus200,
+  OrganisationsListMembersAdminStatus401,
+  OrganisationsListMembersAdminStatus403,
+  OrganisationsListMembersAdminStatus404,
+  OrganisationsListMembersAdminStatus422,
+} from "./OrganisationsListMembersAdmin.js";
+export type {
   OrganisationsListMineOptions,
   OrganisationsListMineResponse,
   OrganisationsListMineResponses,
@@ -4081,6 +4106,31 @@ export type {
   OrganisationsRevokeInvitationStatus422,
 } from "./OrganisationsRevokeInvitation.js";
 export type {
+  OrganisationsSetAppBody,
+  OrganisationsSetAppOptions,
+  OrganisationsSetAppPath,
+  OrganisationsSetAppResponse,
+  OrganisationsSetAppResponses,
+  OrganisationsSetAppStatus200,
+  OrganisationsSetAppStatus401,
+  OrganisationsSetAppStatus403,
+  OrganisationsSetAppStatus404,
+  OrganisationsSetAppStatus422,
+} from "./OrganisationsSetApp.js";
+export type {
+  OrganisationsUnverifyOneBody,
+  OrganisationsUnverifyOneOptions,
+  OrganisationsUnverifyOnePath,
+  OrganisationsUnverifyOneResponse,
+  OrganisationsUnverifyOneResponses,
+  OrganisationsUnverifyOneStatus200,
+  OrganisationsUnverifyOneStatus401,
+  OrganisationsUnverifyOneStatus403,
+  OrganisationsUnverifyOneStatus404,
+  OrganisationsUnverifyOneStatus409,
+  OrganisationsUnverifyOneStatus422,
+} from "./OrganisationsUnverifyOne.js";
+export type {
   OrganisationsUpdateMemberBody,
   OrganisationsUpdateMemberHeaders,
   OrganisationsUpdateMemberOptions,
@@ -4095,6 +4145,32 @@ export type {
   OrganisationsUpdateMemberStatus409,
   OrganisationsUpdateMemberStatus422,
 } from "./OrganisationsUpdateMember.js";
+export type {
+  OrganisationsUpdateOneBody,
+  OrganisationsUpdateOneOptions,
+  OrganisationsUpdateOnePath,
+  OrganisationsUpdateOneResponse,
+  OrganisationsUpdateOneResponses,
+  OrganisationsUpdateOneStatus200,
+  OrganisationsUpdateOneStatus401,
+  OrganisationsUpdateOneStatus403,
+  OrganisationsUpdateOneStatus404,
+  OrganisationsUpdateOneStatus409,
+  OrganisationsUpdateOneStatus422,
+} from "./OrganisationsUpdateOne.js";
+export type {
+  OrganisationsVerifyOneBody,
+  OrganisationsVerifyOneOptions,
+  OrganisationsVerifyOnePath,
+  OrganisationsVerifyOneResponse,
+  OrganisationsVerifyOneResponses,
+  OrganisationsVerifyOneStatus200,
+  OrganisationsVerifyOneStatus401,
+  OrganisationsVerifyOneStatus403,
+  OrganisationsVerifyOneStatus404,
+  OrganisationsVerifyOneStatus409,
+  OrganisationsVerifyOneStatus422,
+} from "./OrganisationsVerifyOne.js";
 export type { OrganisationUpdate } from "./OrganisationUpdate.js";
 export type { OrganiserOption } from "./OrganiserOption.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
@@ -4124,6 +4200,8 @@ export type { PersonnelStatus } from "./PersonnelStatus.js";
 export { personnelStatus } from "./PersonnelStatus.js";
 export type { PersonSuggestion } from "./PersonSuggestion.js";
 export type { PlansPublic } from "./PlansPublic.js";
+export type { PlatformOrganisationCreate } from "./PlatformOrganisationCreate.js";
+export type { PlatformOrganisationUpdate } from "./PlatformOrganisationUpdate.js";
 export type { PolicyInput } from "./PolicyInput.js";
 export type { PolicyPublic } from "./PolicyPublic.js";
 export type { PositionSpec } from "./PositionSpec.js";
@@ -4884,6 +4962,7 @@ export type {
 } from "./UtilsTestEmail.js";
 export type { ValidationErrorItem } from "./ValidationErrorItem.js";
 export type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
+export type { VerificationDecision } from "./VerificationDecision.js";
 export type { WeatherImage } from "./WeatherImage.js";
 export type { WorkflowAction } from "./WorkflowAction.js";
 export { workflowAction } from "./WorkflowAction.js";

@@ -345,7 +345,20 @@ lists every organisation ordered by name (`page`, `size`, `q` on name or slug,
 `status`, `kind`) with `active_member_count`, and `GET /api/v1/organisations/{id}`
 adds the app entitlements (`apps`). Both return 403 to non-superusers, including
 organisation owners, and 404 for an unknown id. They read across organisations on
-purpose and take no `X-Barrels-Organisation` header.
+purpose and take no `X-Barrels-Organisation` header. The detail also lists
+`available_apps` (every key in the app registry).
+
+Control-plane writes (superuser only, all return the refreshed detail and are
+audited under the `platform_organisation` history subject): `POST /organisations`
+(`name`, `kind` barrels, client or business, optional `slug`; 409 when taken),
+`PATCH /organisations/{id}` (`name`, `slug`, `kind`, `status` active or
+suspended; at least one field), `POST /organisations/{id}/verify` and
+`/unverify` (body `{reason}`, 3 to 500 characters; 409 when already in that
+state), `PUT /organisations/{id}/apps/{app_key}` (body `{enabled}`; 422 for a key
+outside the registry) and `GET /organisations/{id}/admin/members` (roster of any
+organisation). A suspended organisation is refused with 403 by every
+`X-Barrels-Organisation` route. A verified organisation shows its linked Events
+organiser as `verified`.
 
 ### Organisation context
 

@@ -1,6 +1,7 @@
 import uuid
+from typing import Annotated
 
-from pydantic import EmailStr, Field
+from pydantic import EmailStr, Field, StringConstraints
 
 from src.models import BaseModel, UtcDateTime
 from src.organisations.models import (
@@ -88,8 +89,16 @@ class OrganisationAppPublic(BaseModel):
     enabled: bool
 
 
+class AppOptionPublic(BaseModel):
+    """An app in the registry that an entitlement can be set for."""
+
+    key: str
+    label: str
+
+
 class OrganisationAdminDetail(OrganisationAdminPublic):
     apps: list[OrganisationAppPublic]
+    available_apps: list[AppOptionPublic]
 
 
 class OrganisationAdminListPublic(BaseModel):
@@ -97,3 +106,35 @@ class OrganisationAdminListPublic(BaseModel):
     count: int
     page: int
     size: int
+
+
+SLUG_PATTERN = r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
+
+OrganisationName = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)
+]
+
+
+class PlatformOrganisationCreate(BaseModel):
+    name: OrganisationName
+    kind: OrganisationKind
+    slug: str | None = Field(default=None, max_length=100, pattern=SLUG_PATTERN)
+
+
+class PlatformOrganisationUpdate(BaseModel):
+    """Only the fields sent change. At least one is required."""
+
+    name: OrganisationName | None = None
+    slug: str | None = Field(default=None, max_length=100, pattern=SLUG_PATTERN)
+    status: OrganisationStatus | None = None
+    kind: OrganisationKind | None = None
+
+
+class VerificationDecision(BaseModel):
+    reason: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=3, max_length=500)
+    ]
+
+
+class AppEntitlementUpdate(BaseModel):
+    enabled: bool
