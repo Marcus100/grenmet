@@ -41,6 +41,15 @@ light mode, no DB. "Sign in" with the Barrels account (ADR-0017) via
 feed exists, swap the source in this one file; `FlightBoard` and `/flights`
 consume it via `flightsFor()`.
 
+`src/lib/live-flights.ts` `loadFlightData()` calls FastAPI `GET /api/v1/flights/board`
+(OpenSky "recent movements", flag `FLIGHTS_OPENSKY_ENABLED`, off by default) on `/`
+and `/flights` (`revalidate = 1800`, pages stay static). It returns live rows only
+when the API says `available`; otherwise (flag off, API down) the labelled sample
+board. `FlightBoard` shows a banner per `source`: never remove the "sample" label
+for sample data. Live data is previous-day-or-earlier and TGPY only, so Lauriston
+shows an empty state when live. Licence: OpenSky is research-only (see
+`docs/strategy/integration-opportunities.md`).
+
 ## Design system
 
 - `src/app/globals.css` imports `@barrelsgd/ui/styles/globals` then **overrides**

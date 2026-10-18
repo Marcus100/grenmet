@@ -203,6 +203,22 @@ async def check_alert_outbox(ctx: dict[str, Any]) -> int:
     return 0
 
 
+async def poll_flights(ctx: dict[str, Any]) -> int:
+    """Refresh cached OpenSky movements. Does nothing unless the flag is on."""
+    from src.flights import service as flights_service
+    from src.flights.config import flights_settings
+
+    if not flights_settings.FLIGHTS_OPENSKY_ENABLED:
+        return 0
+    result = await flights_service.poll_flights()
+    # A fully failed poll (nothing cached) is a failure for job metrics.
+    healthy = bool(result)
+    await operational_metrics.record_job(
+        ctx.get("redis"), "poll_flights", str(ctx.get("job_id", "")), healthy
+    )
+    return sum(result.values())
+
+
 class WorkerSettings:
     # Bound heartbeat staleness and prevent another worker masking this one.
     health_check_interval = 30
@@ -217,6 +233,7 @@ class WorkerSettings:
         run_notification_sweeps,
         check_nhc_failures,
         check_alert_outbox,
+        poll_flights,
     ]
     # A poll/ingest run must not hang a worker slot; retries of the cron function
     # itself are pointless because the durable outbox already tracks per-job
@@ -246,4 +263,6 @@ class WorkerSettings:
         cron(check_nhc_failures, minute=set(range(0, 60, 5)), run_at_startup=False),
         # Is the email outbox draining? Every 15 minutes.
         cron(check_alert_outbox, minute={0, 15, 30, 45}, run_at_startup=False),
+        # OpenSky flight movements every 30 minutes; no-op unless the flag is on.
+        cron(poll_flights, minute={5, 35}, run_at_startup=False),
     ]

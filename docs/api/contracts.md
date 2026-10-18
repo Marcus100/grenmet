@@ -80,6 +80,17 @@ environment endpoints and provider setup. Changes to this hidden callback's
 implementation do not alter generated client types; changing its registration,
 signature or schema exposure still invokes the contract companion gate.
 
+## Public flight board
+
+`GET /api/v1/flights/board?airport=TGPY&board=arrivals|departures`
+(`flightsGetFlightBoard`) is anonymous and rate-limited (60/min per IP). It
+returns Redis-cached OpenSky "recent movements" (`rows` with callsign,
+`time` seen, `other_airport_icao`), `source`, `fetched_at` and `is_sample`
+(always false). `available` is false when `FLIGHTS_OPENSKY_ENABLED` is off
+(the default) or nothing is cached; clients must show their own labelled
+sample then. Data is previous-day-or-earlier and research-licensed; see
+`docs/strategy/integration-opportunities.md`.
+
 ## Public weather products
 
 `GET /api/v1/wxproducts/public/products` is anonymous. Optional `kind` filters

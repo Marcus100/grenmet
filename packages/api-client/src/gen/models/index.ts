@@ -1808,6 +1808,18 @@ export type {
   EventsUpdateSuggestionStatus422,
   EventsUpdateSuggestionStatus429,
 } from "./EventsUpdateSuggestion.js";
+export type { FlightBoardResponse } from "./FlightBoardResponse.js";
+export type { FlightBoardResponsePropertiesBoardEnum } from "./FlightBoardResponsePropertiesBoardEnum.js";
+export { flightBoardResponsePropertiesBoardEnum } from "./FlightBoardResponsePropertiesBoardEnum.js";
+export type { FlightRow } from "./FlightRow.js";
+export type {
+  FlightsGetFlightBoardOptions,
+  FlightsGetFlightBoardQuery,
+  FlightsGetFlightBoardResponse,
+  FlightsGetFlightBoardResponses,
+  FlightsGetFlightBoardStatus200,
+  FlightsGetFlightBoardStatus422,
+} from "./FlightsGetFlightBoard.js";
 export type { ForecastCondition } from "./ForecastCondition.js";
 export type { ForecastObservation } from "./ForecastObservation.js";
 export type { ForecastPeriod } from "./ForecastPeriod.js";
