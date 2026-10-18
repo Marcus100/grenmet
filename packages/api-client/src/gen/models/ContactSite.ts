@@ -5,6 +5,7 @@
 
 export const contactSite = {
   mbia: "mbia",
+  barrels: "barrels",
 } as const;
 
 export type ContactSite = (typeof contactSite)[keyof typeof contactSite];

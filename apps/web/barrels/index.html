@@ -3,16 +3,16 @@
   <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <title>Barrels Grenada — Coming soon</title>
+    <title>Barrels Grenada — Software-led technology in Grenada</title>
     <meta
-      content="A new paradigm to business is coming Grenada. Built by Eugine Whint."
+      content="Barrels Grenada is a software-led technology company in Grenada: web and business software, managed IT, AI and data, and cloud and security."
       name="description"
     >
     <meta content="dark" name="color-scheme">
     <link href="https://barrels.gd/" rel="canonical">
-    <meta content="Barrels Grenada — Coming soon" property="og:title">
+    <meta content="Barrels Grenada" property="og:title">
     <meta
-      content="A new paradigm to business is coming Grenada. Built by Eugine Whint."
+      content="Software-led technology for Grenada: web and business software, managed IT, AI and data, cloud and security."
       property="og:description"
     >
     <meta content="https://barrels.gd/" property="og:url">
@@ -21,54 +21,92 @@
     <link href="/style.css" rel="stylesheet">
   </head>
   <body>
-    <header>
-      Barrels Grenada<span aria-hidden="true"> / </span
-      ><span class="location">Grenada, West Indies</span>
-    </header>
-    <main>
-      <h1>A new paradigm to business<br>is coming Grenada</h1>
-      <p class="byline">Built by Eugine Whint</p>
-      <a href="https://eugine.me/"
-        >Follow along at eugine.me <span aria-hidden="true">↗</span></a
-      >
+    <!-- @include site-header -->
+    <main id="main">
+      <!-- DRAFT COPY: neutral wording for the owner to edit. -->
+      <section class="hero">
+        <p class="eyebrow">Barrels Grenada</p>
+        <h1>Software-led technology for Grenada</h1>
+        <p class="lead">
+          Barrels Grenada is a software-led technology company. We build web and
+          business software, and we support the systems our customers rely on,
+          from managed IT to cloud and security.
+        </p>
+        <p class="actions">
+          <a class="button-link" href="/services/">See our services</a>
+          <a class="button-link button-link-quiet" href="/contact/"
+            >Contact us</a
+          >
+        </p>
+      </section>
+
+      <section aria-labelledby="clients-title" class="section">
+        <h2 id="clients-title">Clients, not products</h2>
+        <p>
+          The Grenada Airports Authority and the Grenada Meteorological Service
+          are clients of Barrels Grenada. They are not Barrels products.
+          Software we build for a client is Barrels intellectual property
+          licensed to that client, and the client's data and marks remain
+          theirs.
+        </p>
+      </section>
+
+      <section aria-labelledby="newsletter-title" class="section">
+        <h2 id="newsletter-title">Newsletter</h2>
+        <p>
+          Occasional news from Barrels Grenada. We send a confirmation link to
+          every address before anything else, so you only hear from us once you
+          have confirmed.
+        </p>
+        <form
+          aria-describedby="newsletter-note"
+          class="form"
+          id="newsletter-form"
+          method="post"
+          novalidate
+        >
+          <div aria-hidden="true" class="hp" inert>
+            <label
+              >Leave this field empty
+              <input
+                autocomplete="off"
+                name="website"
+                tabindex="-1"
+                type="text"
+              ></label
+            >
+          </div>
+          <div class="field">
+            <label for="newsletter-email">Email address</label>
+            <input
+              autocomplete="email"
+              data-validate
+              id="newsletter-email"
+              maxlength="254"
+              name="email"
+              required
+              type="email"
+            >
+            <p class="error" hidden id="newsletter-email-error"></p>
+          </div>
+          <p class="form-note" id="newsletter-note">
+            You can unsubscribe at any time from the link in our emails.
+          </p>
+          <div class="form-actions">
+            <button type="submit">Subscribe</button>
+          </div>
+          <p aria-live="polite" class="form-status" role="status"></p>
+        </form>
+        <noscript>
+          <p class="form-note">
+            Signing up needs JavaScript. Nothing is sent without it.
+          </p>
+        </noscript>
+      </section>
     </main>
-    <footer>Barrels Grenada<span>Coming soon</span></footer>
-    <!-- Shown only where optional analytics is configured: a popup on the
-         first visit, then a small button to change the choice. -->
-    <button
-      aria-label="Privacy settings"
-      class="privacy-open"
-      hidden
-      id="analytics-open"
-      type="button"
-    >
-      Privacy
-    </button>
-    <section
-      aria-labelledby="analytics-title"
-      class="privacy-card"
-      hidden
-      id="analytics-settings"
-      role="dialog"
-    >
-      <h2 id="analytics-title">We use cookies.</h2>
-      <details class="privacy-details">
-        <summary>Read more</summary>
-        <p>
-          Optional analytics helps us improve this site. It starts only if you
-          accept. You can change your choice using Privacy.
-        </p>
-        <p>
-          Google Analytics counts visits without advertising. Your choice is
-          saved on this site for six months.
-        </p>
-      </details>
-      <p hidden id="analytics-description"></p>
-      <div class="privacy-actions">
-        <button id="analytics-accept" type="button">Accept</button>
-        <button id="analytics-decline" type="button">Deny</button>
-      </div>
-    </section>
+    <!-- @include site-footer -->
+    <!-- @include privacy -->
     <script src="/analytics.mjs" type="module"></script>
+    <script src="/forms.mjs" type="module"></script>
   </body>
 </html>

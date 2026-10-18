@@ -11,6 +11,7 @@ class MailingList:
 # SUBSCRIPTIONS_SITE_URLS.
 MAILING_LISTS: dict[str, MailingList] = {
     "signal": MailingList(key="signal", name="Grenada Signal"),
+    "barrels": MailingList(key="barrels", name="Barrels Grenada"),
 }
 
 CONFIRM_PURPOSE = "subscription-confirm"

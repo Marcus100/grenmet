@@ -6,7 +6,11 @@
 import type { ContactSite } from "./ContactSite.js";
 
 export type ContactMessageCreate = {
-  site: ContactSite;
+  /**
+   * @default 'mbia'
+   * @type string | undefined
+   */
+  site?: ContactSite;
   /**
    * @minLength 2
    * @maxLength 120

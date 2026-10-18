@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.contact.config import contact_settings
+from src.contact.config import contact_settings, recipient_for
 from src.contact.models import ContactMessage
 from src.notifications.models import OutboundEmail
 
@@ -83,6 +83,70 @@ async def test_without_recipient_message_is_only_stored(
         )
     )
     assert queued is None
+
+
+async def test_site_defaults_to_mbia_and_routes_to_its_own_inbox(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(contact_settings, "MBIA_CONTACT_RECIPIENT", "mbia@example.com")
+    monkeypatch.setattr(
+        contact_settings, "BARRELS_CONTACT_RECIPIENT", "barrels@example.com"
+    )
+    payload = _payload()
+    payload.pop("site")
+    resp = await async_client.post(_URL, json=payload)
+    assert resp.status_code == 202
+
+    stored = await _stored(db_async, str(payload["subject"]))
+    assert stored is not None
+    assert stored.site == "mbia"
+    mails = list(
+        (
+            await db_async.scalars(
+                select(OutboundEmail).where(
+                    OutboundEmail.subject == f"Website message: {payload['subject']}"
+                )
+            )
+        ).all()
+    )
+    assert [mail.to_email for mail in mails] == ["mbia@example.com"]
+
+
+async def test_barrels_message_goes_to_barrels_inbox_only(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(contact_settings, "MBIA_CONTACT_RECIPIENT", "mbia@example.com")
+    monkeypatch.setattr(
+        contact_settings, "BARRELS_CONTACT_RECIPIENT", "barrels@example.com"
+    )
+    payload = _payload(site="barrels")
+    resp = await async_client.post(_URL, json=payload)
+    assert resp.status_code == 202
+
+    stored = await _stored(db_async, str(payload["subject"]))
+    assert stored is not None
+    assert stored.site == "barrels"
+    mails = list(
+        (
+            await db_async.scalars(
+                select(OutboundEmail).where(
+                    OutboundEmail.subject == f"Website message: {payload['subject']}"
+                )
+            )
+        ).all()
+    )
+    assert [mail.to_email for mail in mails] == ["barrels@example.com"]
+
+
+def test_recipient_for_reads_each_site_setting(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(contact_settings, "MBIA_CONTACT_RECIPIENT", "mbia@example.com")
+    monkeypatch.setattr(contact_settings, "BARRELS_CONTACT_RECIPIENT", None)
+    assert recipient_for("mbia") == "mbia@example.com"
+    assert recipient_for("barrels") is None
 
 
 @pytest.mark.parametrize(

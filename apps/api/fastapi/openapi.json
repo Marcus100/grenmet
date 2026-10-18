@@ -32843,7 +32843,8 @@
       "ContactMessageCreate": {
         "properties": {
           "site": {
-            "$ref": "#/components/schemas/ContactSite"
+            "$ref": "#/components/schemas/ContactSite",
+            "default": "mbia"
           },
           "name": {
             "type": "string",
@@ -32884,7 +32885,6 @@
         },
         "type": "object",
         "required": [
-          "site",
           "name",
           "email",
           "subject",
@@ -32895,7 +32895,8 @@
       "ContactSite": {
         "type": "string",
         "enum": [
-          "mbia"
+          "mbia",
+          "barrels"
         ],
         "title": "ContactSite"
       },

@@ -5,4 +5,4 @@
 
 import * as z from "zod";
 
-export const contactSiteSchema = z.enum(["mbia"]);
+export const contactSiteSchema = z.enum(["mbia", "barrels"]);

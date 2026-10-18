@@ -19,6 +19,7 @@ from src.notifications.models import (
     SuppressionReason,
 )
 from src.subscriptions import service
+from src.subscriptions.config import subscriptions_settings
 from src.subscriptions.constants import CONFIRM_PURPOSE
 from src.subscriptions.models import ListSubscription, SubscriptionStatus
 from src.utils.datetime import utc_now
@@ -74,6 +75,39 @@ async def test_subscribe_creates_pending_row_and_queues_confirmation(
     assert mails[0].transactional is False
     assert mails[0].template == "subscription-confirm"
     assert "/subscriptions/confirm?token=" in mails[0].props["confirmLink"]
+
+
+async def test_barrels_list_uses_its_own_site_for_confirmation(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        subscriptions_settings,
+        "SUBSCRIPTIONS_SITE_URLS",
+        {"signal": "https://signal.example", "barrels": "https://barrels.example"},
+    )
+    address = _address()
+    resp = await _subscribe(async_client, address, list_key="barrels")
+    assert resp.status_code == 202
+
+    row = await _row(db_async, address)
+    assert row is not None
+    assert row.list_key == "barrels"
+    assert row.status == SubscriptionStatus.PENDING.value
+    mails = await _outbox(db_async, address)
+    assert len(mails) == 1
+    assert mails[0].props["listName"] == "Barrels Grenada"
+
+    confirm = await async_client.get(
+        "/api/v1/subscriptions/confirm",
+        params={"token": _token(mails[0].props["confirmLink"])},
+        follow_redirects=False,
+    )
+    assert confirm.status_code == 303
+    assert confirm.headers["location"] == (
+        "https://barrels.example/subscribe/status?result=confirmed"
+    )
 
 
 async def test_response_is_identical_for_every_state(

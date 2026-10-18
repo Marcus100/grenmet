@@ -72,12 +72,185 @@ footer {
   justify-content: space-between;
   font-size: var(--font-size-caption);
 }
+.site-header {
+  align-items: center;
+  justify-content: space-between;
+}
+.brand {
+  padding-block: 0;
+}
+.nav-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--line-height-body-base);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.skip-link {
+  position: absolute;
+  left: var(--line-height-body-base);
+  padding: var(--line-height-caption) var(--line-height-body-base);
+  color: var(--brand-text-primary);
+  background: var(--brand-text-inverse);
+  transform: translateY(-200%);
+}
+.skip-link:focus {
+  transform: none;
+}
+.hero,
+.section {
+  display: grid;
+  gap: var(--line-height-body-base);
+  max-width: calc(var(--line-height-heading-lg) * 14);
+}
+.section {
+  margin-top: calc(var(--line-height-heading-lg) * 2);
+}
+.section h2,
+.package h2 {
+  margin: 0;
+  font-size: var(--font-size-heading-md);
+  font-weight: 600;
+  line-height: var(--line-height-heading-md);
+}
+.lead {
+  font-size: var(--font-size-heading-sm);
+  line-height: var(--line-height-heading-sm);
+  color: var(--brand-text-secondary);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--line-height-body-base);
+  margin: 0;
+}
+.button-link,
+button {
+  display: inline-flex;
+  padding: var(--line-height-caption) var(--line-height-heading-lg);
+  font: inherit;
+  font-weight: 600;
+  color: var(--brand-text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  background: var(--brand-text-inverse);
+  border: 0;
+  border-radius: var(--line-height-heading-lg);
+}
+.button-link:hover,
+button:hover {
+  color: var(--brand-text-primary);
+  background: var(--brand-accent);
+}
+.button-link-quiet {
+  color: inherit;
+  background: transparent;
+  border: thin solid currentColor;
+}
+.button-link-quiet:hover {
+  color: var(--brand-text-primary);
+}
+button:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+.packages {
+  display: grid;
+  gap: var(--line-height-body-base);
+  margin-top: calc(var(--line-height-heading-lg) * 2);
+}
+@media (min-width: 40rem) {
+  .packages {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.package {
+  display: grid;
+  gap: var(--line-height-caption);
+  align-content: start;
+  padding: var(--line-height-body-base);
+  background: var(--brand-surface-panel);
+  border: thin solid var(--brand-border);
+  border-radius: calc(var(--radius) * 3);
+}
+.package p {
+  margin: 0;
+}
+.suited {
+  font-size: var(--font-size-body-sm);
+  color: var(--brand-text-muted);
+}
+.suited span {
+  font-weight: 600;
+}
+.form {
+  display: grid;
+  gap: var(--line-height-body-base);
+  max-width: calc(var(--line-height-heading-lg) * 12);
+}
+.field {
+  display: grid;
+  gap: var(--line-height-caption);
+}
+.field label {
+  font-weight: 600;
+}
+.field input,
+.field textarea {
+  width: 100%;
+  padding: var(--line-height-caption) var(--line-height-body-base);
+  font: inherit;
+  color: var(--brand-text-inverse);
+  background: var(--brand-surface-secondary);
+  border: thin solid var(--brand-border);
+  border-radius: var(--radius);
+}
+.field input[aria-invalid="true"],
+.field textarea[aria-invalid="true"] {
+  border-color: var(--status-negative);
+}
+.field input:focus-visible,
+.field textarea:focus-visible,
+button:focus-visible {
+  outline: medium solid var(--brand-accent);
+  outline-offset: var(--font-size-caption);
+}
+.hint,
+.form-note {
+  margin: 0;
+  font-size: var(--font-size-body-sm);
+  color: var(--brand-text-muted);
+}
+.error {
+  margin: 0;
+  font-size: var(--font-size-body-sm);
+  color: var(--status-negative);
+}
+.form-status {
+  min-height: 1lh;
+  margin: 0;
+}
+.form-status.success {
+  color: var(--status-positive);
+}
+.form-status.error {
+  color: var(--status-negative);
+}
+/* Honeypot: off-screen for people, present in the DOM for bots. */
+.hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
 @media (max-width: 40rem) {
   body {
     padding: var(--line-height-body-base);
   }
   .location,
-  header > span[aria-hidden] {
+  .brand > span[aria-hidden] {
     display: none;
   }
 }

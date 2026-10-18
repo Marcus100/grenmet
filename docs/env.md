@@ -114,7 +114,7 @@ the API image and the local source mount contain the same migration assets.
 | `DOMAIN` | Root domain for routing |
 | `FRONTEND_HOST` | Client origin used in CORS and emails |
 | `API_V1_STR` | API version prefix (default: `/api/v1`) |
-| `BACKEND_CORS_ORIGINS` | Comma-separated or JSON array of allowed origins |
+| `BACKEND_CORS_ORIGINS` | Comma-separated or JSON array of allowed origins. The static Barrels site calls the API from the browser (contact and newsletter forms), so production must list `https://barrels.gd` and `https://www.barrels.gd`. Staging has no documented Barrels site origin yet; add one when it exists |
 | `SECRET_KEY` | JWT signing secret — generate with `openssl rand -base64 32` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Legacy bearer-token lifetime in minutes (default: `60`) |
 | `SESSION_ACCESS_TOKEN_EXPIRE_MINUTES` | Cookie-session access-token lifetime (default: `15`) |
@@ -150,8 +150,9 @@ the API image and the local source mount contain the same migration assets.
 | `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` | Comma-separated domains notification email may go to. Deployment reads the GitHub environment variable of this name; missing/blank staging values default to `barrels.gd`, while missing/blank production values allow all domains. Explicit values must be domain names (no wildcards, URLs or email addresses). Local development must configure its own restriction. |
 | `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (local default `http://localhost:3001`). Deployment sets `https://admin.${BASE_DOMAIN}` for both API and worker. |
 | `NOTIFICATIONS_BATCH_SIZE`, `NOTIFICATIONS_MAX_ATTEMPTS` | Worker email outbox batch size (50) and retry limit (5); also used for the public-flow outbox (subscriptions, contact) |
-| `MBIA_CONTACT_RECIPIENT` | Inbox that receives MBIA website contact messages. Unset: messages are stored and logged only, nothing is emailed. Sent through the worker outbox as transactional mail |
-| `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd"}` (local default `{"signal":"http://localhost:3004"}`). Confirm and unsubscribe links redirect only to these origins |
+| `MBIA_CONTACT_RECIPIENT` | Inbox that receives MBIA website contact messages (`site: "mbia"`). Unset: messages are stored and logged only, nothing is emailed. Sent through the worker outbox as transactional mail |
+| `BARRELS_CONTACT_RECIPIENT` | Inbox that receives Barrels Grenada website contact messages (`site: "barrels"`). Same behaviour as `MBIA_CONTACT_RECIPIENT`; each site has its own inbox and a message is never sent to another site's inbox |
+| `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
 | `SUBSCRIPTIONS_API_BASE_URL` | Public API origin used in confirmation-email links (falls back to `API_BASE_URL`, then `http://localhost:8000`) |
 | `SUBSCRIPTIONS_CONFIRM_TTL_DAYS`, `SUBSCRIPTIONS_RESEND_MINUTES` | Confirmation link lifetime (7) and the window in which a pending address is not mailed again (10) |
 | `BILLING_STRIPE_SECRET_KEY` | Stripe secret API key; use an `sk_test_...` key locally |

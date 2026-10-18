@@ -12,7 +12,10 @@ class SubscriptionsConfig(BaseSettings):
 
     # Public site of each list, as a JSON object (list key -> origin). Confirm and
     # unsubscribe links redirect here, so only configured origins are ever used.
-    SUBSCRIPTIONS_SITE_URLS: dict[str, str] = {"signal": "http://localhost:3004"}
+    SUBSCRIPTIONS_SITE_URLS: dict[str, str] = {
+        "signal": "http://localhost:3004",
+        "barrels": "http://localhost:4173",
+    }
     # Public origin of this API, used for the links inside confirmation emails.
     # Falls back to API_BASE_URL, then localhost.
     SUBSCRIPTIONS_API_BASE_URL: str | None = None

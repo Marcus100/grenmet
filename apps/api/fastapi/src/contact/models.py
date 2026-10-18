@@ -12,6 +12,7 @@ from src.utils.datetime import utc_now
 
 class ContactSite(str, Enum):
     MBIA = "mbia"
+    BARRELS = "barrels"
 
 
 class ContactMessage(Base):

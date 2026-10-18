@@ -70,7 +70,7 @@ Alembic head.
 | P1 | Invoice core: customer, invoice, lines, numbering, totals in minor units; entity, VAT and prefix are provisional settings | M | U |
 | P2 | Issue and email invoice PDF (stored through F8) | M | U |
 | P3 | Manual payments, receivables and ageing in the control plane | M | U |
-| H1 | `barrels.gd` services page with contact and newsletter forms posting to FastAPI; drafted copy | S–M | U |
+| H1 | `barrels.gd` services page with contact and newsletter forms posting to FastAPI; drafted copy | S–M | U — built, pending merge; production CORS origins and copy review open |
 | E6 | Provider-neutral online payment adapter | L | Blocked (ePay) |
 | R1 | Phase 2 HR foreign key, then HR reads through `OrgContext` | L | O |
 
