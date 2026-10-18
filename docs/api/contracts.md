@@ -68,12 +68,12 @@ Three anonymous, rate-limited (per IP) endpoints back public site forms. They
 never read existing data and return a fixed acknowledgement:
 
 - `POST /api/v1/subscriptions` (`subscriptionsSubscribe`): double opt-in sign-up
-  for a list key (`signal`); the reply is identical for every address state.
+  for a list key (`signal`, `barrels`); the reply is identical for every address state.
   `GET /subscriptions/confirm` and `/subscriptions/unsubscribe` take a signed
   `token` and 303-redirect to the list's site.
 - `POST /api/v1/contact/messages` (`contactSendContactMessage`): stores a
-  website message and emails it to the site's inbox. `turnstile_token` is
-  accepted but not verified yet.
+  website message and emails it to the inbox of its `site` (`mbia` by default,
+  or `barrels`). `turnstile_token` is accepted but not verified yet.
 
 See [integration readiness](../operations/integration-readiness.md) for matching
 environment endpoints and provider setup. Changes to this hidden callback's

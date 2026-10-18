@@ -7,7 +7,7 @@ import * as z from "zod";
 import { contactSiteSchema } from "./contactSiteSchema.js";
 
 export const contactMessageCreateSchema = z.object({
-  site: contactSiteSchema,
+  site: contactSiteSchema.optional().default("mbia"),
   name: z.string().min(2).max(120),
   email: z.email().max(254),
   subject: z.string().min(1).max(200),

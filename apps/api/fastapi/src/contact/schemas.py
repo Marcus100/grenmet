@@ -6,7 +6,9 @@ from .models import ContactSite
 
 
 class ContactMessageCreate(BaseModel):
-    site: ContactSite
+    # The website the message came from; selects its inbox. Defaults to MBIA so
+    # existing MBIA callers are unchanged.
+    site: ContactSite = ContactSite.MBIA
     name: str = Field(min_length=2, max_length=120)
     email: EmailStr = Field(max_length=254)
     subject: str = Field(min_length=1, max_length=200)

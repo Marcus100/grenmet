@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.exceptions import AppValidationError
 from src.notifications import service as notification_service
 
-from .config import contact_settings
+from .config import recipient_for
 from .models import ContactMessage
 from .schemas import ContactMessageCreate
 
@@ -52,7 +52,7 @@ async def submit_message(
     session.add(message)
     await session.flush()
 
-    recipient = contact_settings.MBIA_CONTACT_RECIPIENT
+    recipient = recipient_for(message.site)
     if recipient:
         notification_service.enqueue_email(
             session=session,
@@ -63,7 +63,7 @@ async def submit_message(
         )
     else:
         logger.info(
-            "Contact message stored; MBIA_CONTACT_RECIPIENT unset, not emailed",
+            "Contact message stored; site recipient unset, not emailed",
             extra={"message_id": str(message.id), "site": message.site},
         )
     await session.commit()
