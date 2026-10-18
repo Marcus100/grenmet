@@ -12,7 +12,7 @@ import Link from "next/link";
 import { FlightBoard } from "@/components/flight-board";
 import { getNews } from "@/lib/content";
 import { formatDate } from "@/lib/content-utils";
-import { SAMPLE_FLIGHTS } from "@/lib/flights";
+import { loadFlightData } from "@/lib/live-flights";
 import { QUICK_TASKS } from "@/lib/nav";
 
 const QUICK_TASK_ICONS = [PlaneLanding, PlaneTakeoff, CarFront, Armchair];
@@ -379,12 +379,21 @@ function BusinessBand() {
   );
 }
 
-export default function HomePage() {
+// Re-rendered at most every 30 minutes; the page stays statically cached.
+export const revalidate = 1800;
+
+export default async function HomePage() {
+  const data = await loadFlightData();
   return (
     <>
       <Hero />
       <div className="relative z-10 mx-auto -mt-24 max-w-5xl px-4 lg:px-8">
-        <FlightBoard compact flights={SAMPLE_FLIGHTS} />
+        <FlightBoard
+          compact
+          fetchedAt={data.fetchedAt}
+          flights={data.flights}
+          source={data.source}
+        />
       </div>
       <div className="py-16">
         <QuickTasks />
