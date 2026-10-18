@@ -115,6 +115,7 @@ export { contactSendContactMessage } from "./contactSendContactMessage.js";
 export { eregisterCreateRegisterObservation } from "./eregisterCreateRegisterObservation.js";
 export { eregisterListRegisterObservations } from "./eregisterListRegisterObservations.js";
 export { eregisterPublicCurrentConditions } from "./eregisterPublicCurrentConditions.js";
+export { eregisterPublicMonthSummary } from "./eregisterPublicMonthSummary.js";
 export { eregisterValidateSynopObservation } from "./eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./eventsAcceptConnection.js";
 export { eventsBlockMember } from "./eventsBlockMember.js";

@@ -1402,6 +1402,16 @@ export type {
   EregisterPublicCurrentConditionsStatus503,
 } from "./EregisterPublicCurrentConditions.js";
 export type {
+  EregisterPublicMonthSummaryOptions,
+  EregisterPublicMonthSummaryQuery,
+  EregisterPublicMonthSummaryResponse,
+  EregisterPublicMonthSummaryResponses,
+  EregisterPublicMonthSummaryStatus200,
+  EregisterPublicMonthSummaryStatus422,
+  EregisterPublicMonthSummaryStatus429,
+  EregisterPublicMonthSummaryStatus503,
+} from "./EregisterPublicMonthSummary.js";
+export type {
   EregisterValidateSynopObservationBody,
   EregisterValidateSynopObservationOptions,
   EregisterValidateSynopObservationResponse,
@@ -3949,6 +3959,8 @@ export type { PublicHolidayCreate } from "./PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./PublicHolidaysPublic.js";
 export type { PublicHolidayUpdate } from "./PublicHolidayUpdate.js";
+export type { PublicMonthSummary } from "./PublicMonthSummary.js";
+export type { PublicMonthSummaryResponse } from "./PublicMonthSummaryResponse.js";
 export type { PublicObservation } from "./PublicObservation.js";
 export type { PublicObservationPropertiesPressureTrendAnyOfEnum } from "./PublicObservationPropertiesPressureTrendAnyOfEnum.js";
 export { publicObservationPropertiesPressureTrendAnyOfEnum } from "./PublicObservationPropertiesPressureTrendAnyOfEnum.js";

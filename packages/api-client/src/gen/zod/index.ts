@@ -1266,6 +1266,15 @@ export {
   eregisterPublicCurrentConditionsStatus503Schema,
 } from "./eregisterPublicCurrentConditionsSchema.js";
 export {
+  eregisterPublicMonthSummaryErrorSchema,
+  eregisterPublicMonthSummaryQueryMonthSchema,
+  eregisterPublicMonthSummaryResponseSchema,
+  eregisterPublicMonthSummaryStatus200Schema,
+  eregisterPublicMonthSummaryStatus422Schema,
+  eregisterPublicMonthSummaryStatus429Schema,
+  eregisterPublicMonthSummaryStatus503Schema,
+} from "./eregisterPublicMonthSummarySchema.js";
+export {
   eregisterValidateSynopObservationBodySchema,
   eregisterValidateSynopObservationErrorSchema,
   eregisterValidateSynopObservationResponseSchema,
@@ -3607,6 +3616,8 @@ export { publicHolidayCreateSchema } from "./publicHolidayCreateSchema.js";
 export { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
 export { publicHolidayUpdateSchema } from "./publicHolidayUpdateSchema.js";
+export { publicMonthSummaryResponseSchema } from "./publicMonthSummaryResponseSchema.js";
+export { publicMonthSummarySchema } from "./publicMonthSummarySchema.js";
 export { publicObservationPropertiesPressureTrendAnyOfEnumSchema } from "./publicObservationPropertiesPressureTrendAnyOfEnumSchema.js";
 export { publicObservationPropertiesStatusEnumSchema } from "./publicObservationPropertiesStatusEnumSchema.js";
 export { publicObservationSchema } from "./publicObservationSchema.js";

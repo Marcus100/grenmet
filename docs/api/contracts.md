@@ -1092,6 +1092,21 @@ present weather and cloud cover. `status` is `provisional` until the reading is
 (actor, QC notes, raw TAC, WIS2 data) never leave `src/eregister/public.py`. No
 reading returns `{"observation": null}`; an unavailable register returns 503.
 
+### Public month summary
+
+`GET /api/v1/eregister/public/month-summary[?month=YYYY-MM]` is anonymous, rate
+limited (60/minute per IP) and cached (`public, max-age=300,
+stale-while-revalidate=600`; 503 is `no-store`). It aggregates, in SQL, the same
+non-rejected, non-superseded MBIA SYNOPs as `/public/current` for one UTC month
+(default: the current month to date; future months are empty). Rainfall is the sum
+of one daily total per UTC date, taken from the 24-hour rainfall group (RRR, trace
+990 counts as 0 mm); a rain day is a daily total of at least 0.2 mm (WMO-No. 100,
+`rain_day_threshold_mm`). Temperature extremes are the highest/lowest of the
+section 3 maximum/minimum groups and decimal air temperatures, with the time of
+each. `provisional` is true unless every contributing reading is `accepted`.
+`rain_report_days` out of `days_elapsed` shows completeness. No readings returns
+`{"summary": null}`; unreported figures are `null`, never zero.
+
 GMS now fetches this endpoint directly from the existing FastAPI origin
 `AUTH_API_URL` and prefix `AUTH_API_V1_STR`, without cookies. Its published-product
 pages use `/wxproducts/public/products` at the same origin and generated Kubb
