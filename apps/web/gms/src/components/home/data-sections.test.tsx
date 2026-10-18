@@ -1,7 +1,7 @@
 import type { PublicMonthSummary } from "@barrelsgd/api-client";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { ExploreToday, GrenadaInData } from "@/components/home/sample-sections";
+import { ExploreToday, GrenadaInData } from "@/components/home/data-sections";
 import { fetchHomeContent, type HomeContent } from "@/lib/cms";
 import { fetchMonthSummary } from "@/lib/products";
 
@@ -84,7 +84,7 @@ it("hangs a published explainer off its service", async () => {
   expect(screen.queryAllByText(READ_MORE)).toHaveLength(1);
 });
 
-it("shows each sector's hazard and its impact level", async () => {
+it("links each sector and states that no impact outlook is published", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   render(await ExploreToday());
   for (const [sector, href] of [
@@ -97,10 +97,10 @@ it("shows each sector's hazard and its impact level", async () => {
   ] as const) {
     expect(screen.getByText(sector).closest("a")).toHaveAttribute("href", href);
   }
-  expect(screen.getAllByRole("img", { name: "Minor impact" })).toHaveLength(5);
-  expect(screen.getAllByRole("img", { name: "Minimal impact" })).toHaveLength(
-    1
+  expect(screen.getAllByText("Impact outlook not yet published")).toHaveLength(
+    6
   );
+  expect(screen.queryByRole("img")).not.toBeInTheDocument();
 });
 
 it("uses the editors' wording and keeps the standard wording when blank", async () => {

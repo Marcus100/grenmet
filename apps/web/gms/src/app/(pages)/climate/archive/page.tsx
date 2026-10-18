@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/page-header";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -18,39 +17,6 @@ export default function ArchivePage() {
         title="Product archive"
       />
       <PlaceholderNotice product="The archive search on this page" />
-      <PageSection heading="What is archived">
-        <InfoTable
-          headers={["Product", "Retained", "Includes"]}
-          rows={[
-            [
-              "Public forecasts",
-              "10 years",
-              "Full text as issued, with issue time",
-            ],
-            [
-              "Warnings and advisories",
-              "10 years",
-              "Every version, including amendments and cancellations",
-            ],
-            [
-              "Tropical cyclone bulletins",
-              "Permanent",
-              "Full bulletin series per system",
-            ],
-            [
-              "Aviation products",
-              "Per ICAO requirement",
-              "METAR, SPECI, TAF as transmitted",
-            ],
-            ["Marine forecasts", "10 years", "Full text as issued"],
-            [
-              "Climate summaries",
-              "Permanent",
-              "Monthly and seasonal publications",
-            ],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Why the archive matters">
         <Prose
           paragraphs={[

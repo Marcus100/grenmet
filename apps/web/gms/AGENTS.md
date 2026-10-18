@@ -32,9 +32,9 @@ No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
   without hiding the other. An unavailable feed says so. It never falls back to
   sample figures, and alert pages never render an empty list as "no alerts in
   effect".
-- Static samples remain in `src/lib/forecast-data.ts` (tests/reference),
-  `src/lib/events.ts`, and `src/components/home/sample-sections.tsx`
-  (to be replaced by FastAPI data + CMS copy).
+- Static reference data remains in `src/lib/forecast-data.ts` (tests and the
+  outage layout only) and `src/lib/events.ts`; neither may reach a public page
+  as a measurement or forecast.
 
 ## Routes
 
@@ -65,14 +65,19 @@ src/app/
   does not exist yet is marked `planned` and served by `[...planned]`;
   `nav-sections.test.ts` fails if a built link has no route or a planned link is
   shadowed by one. Build the page, then drop `planned`.
-- **Sample content:** a page or home section whose product is not yet issued
-  renders `<PlaceholderNotice />` (`compact` inside an otherwise live page).
-  Sample figures must never read as an operational product, and sample status
-  chips never use hazard colours.
-  Owner exception (30 Sep 2026): the home Explore today section carries no
-  notice (Grenada in data is live from FastAPI and shows an unavailable state), and the sky hero fills fields FastAPI does not
-  carry yet from `src/lib/hero-samples.ts` (only inside a real reading or
-  issued day, never during an outage). Delete a sample once FastAPI supplies it.
+- **No invented figures (owner rule, 18 Oct 2026):** the public site never
+  shows invented or sample figures; every page shows real data or an honest
+  notice. This reverses the 30 Sep 2026 decision that allowed sample content on
+  the home page. A page or home section whose product is not yet issued keeps
+  its structure and explanatory text and renders `<PlaceholderNotice />`
+  ("Not yet available from GMS"; `compact` inside an otherwise live page; the
+  optional `source` prop links a live page meanwhile). Never put placeholder
+  numbers, tables or stat tiles beside it. The sky hero shows real register
+  and issued-forecast values only, sun times computed by `src/lib/sky.ts`, and
+  "Not available yet" for fields no feed carries (UV, AQI, tides, swell, rain
+  chance, gusts, rainfall). Explore today says "Impact outlook not yet
+  published" per sector. Tests: `placeholder-notice.test.tsx` and the "hero
+  readings" block in `sky-hero-panels.test.tsx` guard this.
 - **Home hero:** table layout at every width (9 Oct 2026): a Now tab, then five
   day tabs, then the selected tab's panel inside the hero (`SkyHero selected=`).
   Now is selected on `/`; dated routes select their day, `/weather` selects

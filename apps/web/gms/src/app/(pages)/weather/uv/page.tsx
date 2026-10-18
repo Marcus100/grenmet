@@ -4,7 +4,6 @@ import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
-import { StatTiles } from "@/components/pages/stat-tiles";
 
 export const metadata = {
   title: "UV index",
@@ -20,14 +19,6 @@ export default function UvIndexPage() {
         title="UV index"
       />
       <PlaceholderNotice product="The daily UV index" />
-      <PageSection heading="Today">
-        <StatTiles
-          stats={[
-            { label: "Peak UV index", value: "11", detail: "Extreme" },
-            { label: "Strongest", value: "10 AM – 2 PM", detail: "Seek shade" },
-          ]}
-        />
-      </PageSection>
       <PageSection heading="What the numbers mean">
         <InfoTable
           caption="World Health Organization UV index categories"

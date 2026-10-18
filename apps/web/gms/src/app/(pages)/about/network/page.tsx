@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/page-header";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -18,39 +17,6 @@ export default function NetworkPage() {
         title="Observing network"
       />
       <PlaceholderNotice product="The station list on this page" />
-      <PageSection heading="Stations">
-        <InfoTable
-          headers={["Station", "Location", "Type", "Elements"]}
-          rows={[
-            [
-              "Point Salines",
-              "Maurice Bishop International Airport, St. George's",
-              "Synoptic and aviation",
-              "Full surface suite",
-            ],
-            [
-              "St. George's",
-              "St. George",
-              "Automatic",
-              "Rain, temperature, wind",
-            ],
-            ["Pearls", "St. Andrew", "Automatic", "Rain, temperature, wind"],
-            [
-              "Grand Etang",
-              "St. Andrew, interior highland",
-              "Automatic",
-              "Rain, temperature",
-            ],
-            [
-              "Lauriston",
-              "Carriacou",
-              "Automatic and aviation",
-              "Rain, temperature, wind",
-            ],
-            ["Petite Martinique", "Petite Martinique", "Rainfall", "Rain"],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Why the network matters">
         <Prose
           paragraphs={[

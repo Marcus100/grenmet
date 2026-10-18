@@ -4,7 +4,6 @@ import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
-import { StatTiles } from "@/components/pages/stat-tiles";
 
 export const metadata = {
   title: "Hurricane season",
@@ -29,14 +28,6 @@ export default function HurricaneSeasonPage() {
       </PageSection>
       <PageSection heading="This season so far">
         <PlaceholderNotice compact product="The season summary" />
-        <StatTiles
-          stats={[
-            { label: "Named storms", value: "9" },
-            { label: "Hurricanes", value: "4" },
-            { label: "Major hurricanes", value: "2" },
-            { label: "Affecting Grenada", value: "0" },
-          ]}
-        />
       </PageSection>
       <PageSection heading="Storm categories">
         <InfoTable

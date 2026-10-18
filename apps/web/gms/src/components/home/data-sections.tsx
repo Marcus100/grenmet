@@ -1,14 +1,10 @@
 import {
-  DropletIcon,
   FishIcon,
   HardHatIcon,
   HeartPulseIcon,
-  type LucideIcon,
   PalmtreeIcon,
   PlaneIcon,
   SproutIcon,
-  SunIcon,
-  WavesIcon,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -24,144 +20,47 @@ import { fetchMonthSummary } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 /*
- * Explore today still has no data source: its sectors are sample content from
- * the Bold sky mockup and carry no notice by owner decision (30 Sep 2026).
- * Status chips are neutral, never hazard colours, so a sample can never read
- * as a warning. Grenada in data is live from the MBIA register month summary
- * and shows an unavailable state, never sample figures.
+ * Owner rule (18 Oct 2026): the public site never shows invented or sample
+ * figures. Explore today has no data source for sector impacts yet, so each
+ * sector says so honestly and links to its service page; nothing here states
+ * a hazard or an impact level. Grenada in data is live from the MBIA register
+ * month summary and shows an unavailable state, never sample figures.
  */
 
-/** wxproducts impact levels, lowest first; the meter fills one step per level. */
-const IMPACT_LEVELS = ["Minimal", "Minor", "Significant", "Severe"] as const;
-
-type HazardKind = "heat" | "rain" | "seas" | "wind";
-
-const HAZARD_GLYPH: Record<Exclude<HazardKind, "wind">, LucideIcon> = {
-  heat: SunIcon,
-  rain: DropletIcon,
-  seas: WavesIcon,
-};
-
-/** Wind steps rise like a signal meter; the other hazards repeat a glyph. */
-const WIND_STEP = ["h-1.5", "h-2.5", "h-3.5", "h-4.5"] as const;
-
-/**
- * Impact meter shaped by the hazard: droplets for rain, waves for seas,
- * suns for heat, rising bars for wind. One step fills per impact level.
- * Neutral colours only, so a sample never reads as a warning.
- */
-function HazardMeter({ kind, level }: { kind: HazardKind; level: number }) {
-  const label = `${IMPACT_LEVELS[level - 1]} impact`;
-  if (kind === "wind") {
-    return (
-      <span
-        aria-label={label}
-        className="flex h-4.5 items-end gap-1"
-        role="img"
-      >
-        {WIND_STEP.map((height, step) => (
-          <span
-            className={cn(
-              "w-2.5 rounded-sm",
-              height,
-              step < level ? "bg-gm-sky-ink" : "bg-gm-surface-muted"
-            )}
-            key={height}
-          />
-        ))}
-      </span>
-    );
-  }
-  const Glyph = HAZARD_GLYPH[kind];
-  return (
-    <span aria-label={label} className="flex gap-1" role="img">
-      {IMPACT_LEVELS.map((name, step) => (
-        <Glyph
-          aria-hidden="true"
-          className={cn(
-            "size-4.5",
-            step < level ? "text-gm-sky-ink" : "text-gm-surface-muted"
-          )}
-          fill={kind === "rain" && step < level ? "currentColor" : "none"}
-          key={name}
-          strokeWidth={2}
-        />
-      ))}
-    </span>
-  );
-}
-
-/**
- * Impact by sector: how this week's hazards affect each sector. Mirrors the
- * wxproducts impact fields (hazard, impact level); sample until FastAPI
- * supplies it. The meter is neutral, never hazard colours. `reading` is the
- * CMS key editors use to hang a story off a tile.
- */
+/** `reading` is the CMS key editors use to hang a story off a tile. */
 const SECTORS = [
   {
     Icon: PalmtreeIcon,
     sector: "Tourism",
-    period: "Today",
-    hazard: "PM showers",
-    kind: "rain",
-    level: 2,
     href: "/services/tourism",
     reading: "beach",
   },
   {
     Icon: FishIcon,
     sector: "Fisheries",
-    period: "Today",
-    hazard: "Moderate seas",
-    kind: "seas",
-    level: 2,
     href: "/marine/fishing",
     reading: "fishing",
   },
-  {
-    Icon: PlaneIcon,
-    sector: "Aviation",
-    period: "Today",
-    hazard: "Gusty showers",
-    kind: "wind",
-    level: 2,
-    href: "/services/aviation",
-  },
+  { Icon: PlaneIcon, sector: "Aviation", href: "/services/aviation" },
   {
     Icon: SproutIcon,
     sector: "Agriculture",
-    period: "This week",
-    hazard: "Rain Tuesday",
-    kind: "rain",
-    level: 1,
     href: "/services/agriculture",
     reading: "growing",
   },
-  {
-    Icon: HardHatIcon,
-    sector: "Construction",
-    period: "This week",
-    hazard: "Gusts 32 mph",
-    kind: "wind",
-    level: 2,
-    href: "/services/construction",
-  },
+  { Icon: HardHatIcon, sector: "Construction", href: "/services/construction" },
   {
     Icon: HeartPulseIcon,
     sector: "Health",
-    period: "This week",
-    hazard: "Midday heat",
-    kind: "heat",
-    level: 2,
     href: "/services/health",
     reading: "outdoors",
   },
 ] as const;
 
 /**
- * Hazard impacts by sector. Impacts will come from
- * FastAPI; editors can only reword the heading and hang a published story or
- * explainer off a tile.
+ * Sectors and where to read about each. Sector impacts will come from
+ * FastAPI once published; until then the tiles say so. Editors can reword the
+ * heading and hang a published story or explainer off a tile.
  */
 export async function ExploreToday() {
   if (await isSectionHidden("explore-today")) return null;
@@ -191,19 +90,13 @@ export async function ExploreToday() {
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gm-navy text-gm-lime sm:size-10">
                     <Icon aria-hidden="true" className="size-4 sm:size-5" />
                   </span>
-                  <span className="grid min-w-0 font-semibold text-label uppercase leading-label tracking-wider">
-                    <span className="truncate text-gm-sky-ink">
-                      {service.sector}
-                    </span>
-                    <span className="truncate text-gm-text-secondary">
-                      {service.period}
-                    </span>
+                  <span className="truncate font-semibold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+                    {service.sector}
                   </span>
                 </span>
-                <span className="truncate font-bold text-body-base text-gm-heading leading-body-base">
-                  {service.hazard}
+                <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+                  Impact outlook not yet published
                 </span>
-                <HazardMeter kind={service.kind} level={service.level} />
               </Link>
               {reading && (
                 <Link
