@@ -23,6 +23,9 @@ const PROFILE = {
 const EMPTY_TIMESHEETS = { data: [], count: 0 };
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signed-documents/me`, () =>
+    HttpResponse.json({ data: [], count: 0 })
+  ),
   http.get(`${BASE}/api/v1/hr/signature/me`, () =>
     HttpResponse.json({
       version: "11111111-1111-4111-8111-111111111111",
@@ -78,21 +81,23 @@ describe("TimesheetEditor", () => {
     expect(screen.getByText("Entry 2")).toBeInTheDocument();
   });
 
-  it("mirrors the department field into the preview document", async () => {
+  it("locks the profile department and shows it in the preview only after Preview", async () => {
     const user = userEvent.setup();
     renderEditor();
 
-    // Wait for prefill to seed the department, then replace it so the assertion
-    // isn't racing the profile-driven prefill (which fills "Meteorological
-    // Department" and would otherwise concatenate with the typed value).
     const department = screen.getByLabelText("Department") as HTMLInputElement;
     await waitFor(() =>
       expect(department.value).toBe("Meteorological Department")
     );
-    await user.clear(department);
-    await user.type(department, "Meteorology");
+    expect(department).toHaveAttribute("readonly");
+    expect(screen.getByText("From your staff profile")).toBeInTheDocument();
 
-    expect(screen.getAllByText("Meteorology").length).toBeGreaterThanOrEqual(1);
+    // Only the hidden print copy exists until the user asks for a preview.
+    const beforePreview = screen.getAllByText("Meteorological Department");
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+    expect(
+      screen.getAllByText("Meteorological Department").length
+    ).toBeGreaterThan(beforePreview.length);
   });
 
   it.each([false, true])(

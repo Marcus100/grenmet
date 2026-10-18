@@ -42,7 +42,9 @@ import { DatePicker } from "@/components/document/date-picker";
 import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
+import { PrefillInput, SourceHint } from "@/components/hr/prefill-field";
 import {
   signedDocumentsKey,
   useSigning,
@@ -52,7 +54,10 @@ import {
   SubmissionDate,
   type SubmissionMetadata,
 } from "@/components/hr/submission-date";
-import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
+import {
+  useEditorPrefill,
+  useProfileReference,
+} from "@/components/hr/use-editor-prefill";
 import { reportError } from "@/lib/report-error";
 import { ABSENTEE_REASONS, EMPTY_ABSENTEE } from "./absentee-document";
 
@@ -116,6 +121,7 @@ export function AbsenteeEditor() {
   const searchParams = useSearchParams();
   const draftParam = searchParams.get("draft");
   const profileQuery = useHrGetHrProfileMe();
+  const reference = useProfileReference();
   const userId = profileQuery.data?.id;
   const departmentId = profileQuery.data?.employment?.department?.id;
   const membersQuery = useHrListDepartmentMembers(
@@ -342,259 +348,291 @@ export function AbsenteeEditor() {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid @4xl:grid-cols-2 items-start gap-5">
-          <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
-            <div className="flex flex-col gap-3">
-              <SigningPanel submission={submission} />
-              <SubmissionDate submission={submission} />
-              <p className="text-muted-foreground text-xs">
-                Reported by {sessionUser.full_name}. Submit for supervisor
-                review.
-              </p>
-              <FormActionBar
-                isSaving={pendingAction === "save"}
-                isSubmitting={pendingAction === "submit"}
-                onDownloadPdf={handleDownloadPdf}
-                onReset={handleReset}
-                onSave={submission ? undefined : () => persist(values, true)}
-                onSubmit={submission ? undefined : () => persist(values, false)}
-                statusHint={statusHint}
-                submitDisabled={!(userId && departmentId)}
-                submitLabel="Sign & submit"
-              />
-            </div>
+        <HrFormDesk
+          editor={
+            <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+              <div className="flex flex-col gap-3">
+                <SigningPanel submission={submission} />
+                <SubmissionDate submission={submission} />
+                <p className="text-muted-foreground text-xs">
+                  Reported by {sessionUser.full_name}. Submit for supervisor
+                  review.
+                </p>
+                <FormActionBar
+                  isSaving={pendingAction === "save"}
+                  isSubmitting={pendingAction === "submit"}
+                  onDownloadPdf={handleDownloadPdf}
+                  onReset={handleReset}
+                  onSave={submission ? undefined : () => persist(values, true)}
+                  onSubmit={
+                    submission ? undefined : () => persist(values, false)
+                  }
+                  statusHint={statusHint}
+                  submitDisabled={!(userId && departmentId)}
+                  submitLabel="Sign & submit"
+                />
+              </div>
 
-            <Separator />
-            {validationError && (
-              <p className="text-destructive text-sm" role="alert">
-                {validationError}
-              </p>
-            )}
+              <Separator />
+              {validationError && (
+                <p className="text-destructive text-sm" role="alert">
+                  {validationError}
+                </p>
+              )}
 
-            {!submission && (
-              <form
-                className="flex flex-col gap-4"
-                inert={pendingAction !== null}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  form.handleSubmit();
-                }}
-              >
-                <FieldGroup>
-                  <form.Field name="employeeName">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Employee Name
-                        </FieldLabel>
-                        <NativeSelect
-                          id={field.name}
-                          onChange={(e) => {
-                            const id = e.target.value;
-                            form.setFieldValue("employeeId", id);
-                            field.handleChange(
-                              id === userId
-                                ? (sessionUser.full_name ?? "")
-                                : (membersQuery.data?.data.find(
-                                    (member) => member.user_id === id
-                                  )?.full_name ?? "")
-                            );
-                            form.setFieldValue("expectedShiftCode", "");
-                            form.setFieldValue("absenceStartTime", "");
-                            form.setFieldValue("absenceEndTime", "");
-                          }}
-                          value={values.employeeId || userId || ""}
-                        >
-                          <NativeSelectOption value={userId ?? ""}>
-                            {sessionUser.full_name || "Current employee"}
-                          </NativeSelectOption>
-                          {membersQuery.data?.data
-                            .filter((member) => member.user_id !== userId)
-                            .map((member) => (
-                              <NativeSelectOption
-                                key={member.user_id}
-                                value={member.user_id}
-                              >
-                                {member.full_name}
-                              </NativeSelectOption>
-                            ))}
-                        </NativeSelect>
-                        <p className="text-muted-foreground text-xs">
-                          Reporting another employee requires scoped supervisor
-                          access.
-                        </p>
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <form.Field name="department">
+              {!submission && (
+                <form
+                  className="flex flex-col gap-4"
+                  inert={pendingAction !== null}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    form.handleSubmit();
+                  }}
+                >
+                  <FieldGroup>
+                    <form.Field name="employeeName">
                       {(field) => (
                         <Field className="gap-1">
                           <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Department
+                            Employee Name
                           </FieldLabel>
-                          <Input
+                          <NativeSelect
                             id={field.name}
-                            readOnly
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-                    <form.Field name="date">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Date
-                          </FieldLabel>
-                          <DatePicker
-                            id={field.name}
-                            onChange={(value) => {
-                              field.handleChange(value);
+                            onChange={(e) => {
+                              const id = e.target.value;
+                              form.setFieldValue("employeeId", id);
+                              field.handleChange(
+                                id === userId
+                                  ? (sessionUser.full_name ?? "")
+                                  : (membersQuery.data?.data.find(
+                                      (member) => member.user_id === id
+                                    )?.full_name ?? "")
+                              );
                               form.setFieldValue("expectedShiftCode", "");
                               form.setFieldValue("absenceStartTime", "");
                               form.setFieldValue("absenceEndTime", "");
                             }}
-                            value={field.state.value}
-                          />
+                            value={values.employeeId || userId || ""}
+                          >
+                            <NativeSelectOption value={userId ?? ""}>
+                              {sessionUser.full_name || "Current employee"}
+                            </NativeSelectOption>
+                            {membersQuery.data?.data
+                              .filter((member) => member.user_id !== userId)
+                              .map((member) => (
+                                <NativeSelectOption
+                                  key={member.user_id}
+                                  value={member.user_id}
+                                >
+                                  {member.full_name}
+                                </NativeSelectOption>
+                              ))}
+                          </NativeSelect>
+                          <p className="text-muted-foreground text-xs">
+                            {reference.employeeNumber &&
+                            (!values.employeeId || values.employeeId === userId)
+                              ? `Employee number ${reference.employeeNumber}. From your staff profile. `
+                              : ""}
+                            Reporting another employee requires scoped
+                            supervisor access.
+                          </p>
                         </Field>
                       )}
                     </form.Field>
-                  </div>
 
-                  <AbsenteeShiftPrefill
-                    date={values.date}
-                    departmentId={departmentId}
-                    expectedShiftCode={values.expectedShiftCode}
-                    onPrefill={(code) =>
-                      form.setFieldValue("expectedShiftCode", code)
-                    }
-                    ownUserId={userId}
-                    subjectId={values.employeeId || userId}
-                  />
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <form.Field name="expectedShiftCode">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Expected shift
-                          </FieldLabel>
-                          <Input
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <form.Field name="department">
+                        {(field) => (
+                          <PrefillInput
                             id={field.name}
-                            maxLength={10}
-                            onChange={(e) => field.handleChange(e.target.value)}
+                            label="Department"
+                            locked
+                            onChange={field.handleChange}
                             value={field.state.value}
                           />
-                        </Field>
-                      )}
-                    </form.Field>
-                    <form.Field name="absenceStartTime">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Absence from
-                          </FieldLabel>
-                          <Input
-                            id={field.name}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            type="time"
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-                    <form.Field name="absenceEndTime">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Absence to
-                          </FieldLabel>
-                          <Input
-                            id={field.name}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            type="time"
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-                  </div>
-                  <p className="text-muted-foreground text-xs">
-                    Leave both times blank for the full shift. Overnight times
-                    belong to the date the shift starts.
-                  </p>
+                        )}
+                      </form.Field>
+                      <form.Field name="date">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Date
+                            </FieldLabel>
+                            <DatePicker
+                              id={field.name}
+                              onChange={(value) => {
+                                field.handleChange(value);
+                                form.setFieldValue("expectedShiftCode", "");
+                                form.setFieldValue("absenceStartTime", "");
+                                form.setFieldValue("absenceEndTime", "");
+                              }}
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+                    </div>
 
-                  <form.Field name="reason">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Reason
-                        </FieldLabel>
-                        <Select
-                          onValueChange={(v) => field.handleChange(v ?? "")}
-                          value={field.state.value}
-                        >
-                          <SelectTrigger id={field.name}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ABSENTEE_REASONS.map((r) => (
-                              <SelectItem key={r} value={r}>
-                                {r}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  <form.Field name="notes">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Reason(s) — details
-                        </FieldLabel>
-                        <Textarea
-                          id={field.name}
-                          maxLength={1000}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          rows={4}
-                          value={field.state.value}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  <Field className="gap-1">
-                    <FieldLabel className="text-xs">
-                      Co-approvers (all must approve before it reaches HR)
-                    </FieldLabel>
-                    <CoApproverPicker
+                    <AbsenteeShiftPrefill
+                      date={values.date}
                       departmentId={departmentId}
-                      excludeUserId={sessionUser.id}
-                      onChange={setCoApprovers}
-                      selected={coApprovers}
+                      expectedShiftCode={values.expectedShiftCode}
+                      onPrefill={(code) =>
+                        form.setFieldValue("expectedShiftCode", code)
+                      }
+                      ownUserId={userId}
+                      subjectId={values.employeeId || userId}
                     />
-                  </Field>
-                </FieldGroup>
-              </form>
-            )}
-          </div>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <form.Field name="expectedShiftCode">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Expected shift
+                            </FieldLabel>
+                            <Input
+                              id={field.name}
+                              maxLength={10}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              value={field.state.value}
+                            />
+                            {field.state.value ? (
+                              <SourceHint>
+                                From the published duty roster
+                              </SourceHint>
+                            ) : null}
+                          </Field>
+                        )}
+                      </form.Field>
+                      <form.Field name="absenceStartTime">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Absence from
+                            </FieldLabel>
+                            <Input
+                              id={field.name}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              type="time"
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+                      <form.Field name="absenceEndTime">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Absence to
+                            </FieldLabel>
+                            <Input
+                              id={field.name}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              type="time"
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+                    </div>
+                    <p className="text-muted-foreground text-xs">
+                      Leave both times blank for the full shift. Overnight times
+                      belong to the date the shift starts.
+                    </p>
 
-          <HrPdfPreview
-            payload={buildAbsenteeReportPayload(
-              values,
-              values.employeeId || userId || "",
-              departmentId ?? ""
-            )}
-            previewPath="/api/v1/hr/absentee-reports/preview-pdf"
-            ready={Boolean(userId && departmentId && values.date)}
-            signedDocumentId={submission?.signed_document_id}
-            title="Absentee Report"
-          />
-        </div>
+                    <form.Field name="reason">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Reason
+                          </FieldLabel>
+                          <Select
+                            onValueChange={(v) => field.handleChange(v ?? "")}
+                            value={field.state.value}
+                          >
+                            <SelectTrigger id={field.name}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ABSENTEE_REASONS.map((r) => (
+                                <SelectItem key={r} value={r}>
+                                  {r}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      )}
+                    </form.Field>
+
+                    <form.Field name="notes">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Reason(s) — details
+                          </FieldLabel>
+                          <Textarea
+                            id={field.name}
+                            maxLength={1000}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            rows={4}
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+
+                    <Field className="gap-1">
+                      <FieldLabel className="text-xs">
+                        Co-approvers (all must approve before it reaches HR)
+                      </FieldLabel>
+                      <CoApproverPicker
+                        departmentId={departmentId}
+                        excludeUserId={sessionUser.id}
+                        onChange={setCoApprovers}
+                        selected={coApprovers}
+                      />
+                    </Field>
+                  </FieldGroup>
+                </form>
+              )}
+            </div>
+          }
+          entityType="absentee_report"
+          label="Absentee Report"
+          preview={
+            <HrPdfPreview
+              filename="absentee-report.pdf"
+              payload={buildAbsenteeReportPayload(
+                values,
+                values.employeeId || userId || "",
+                departmentId ?? ""
+              )}
+              previewPath="/api/v1/hr/absentee-reports/preview-pdf"
+              ready={Boolean(userId && departmentId && values.date)}
+              signedDocumentId={submission?.signed_document_id}
+              title="Absentee Report"
+            />
+          }
+        />
       )}
     </form.Subscribe>
   );
