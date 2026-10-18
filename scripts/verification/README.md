@@ -3,7 +3,8 @@
 Run `pnpm verify:changed` to run only the gates the diff against `origin/dev`
 needs: Biome on changed files, affected Turbo type-check and tests, FastAPI lint
 and the changed domains' pytest suites, drift, blast radius, guardrails and docs.
-`--dry-run` prints the plan; `--skip <check>` drops one (for example `api tests`
+`--dry-run` prints the plan; `--full` runs the whole API suite including the
+fuzz tests that are skipped locally by default; `--skip <check>` drops one (for example `api tests`
 when no database is reachable); `--base <ref>` changes the comparison. API tests
 run through `scripts/agents/api-env.sh`, which supplies the local-development
 database settings (values already in the environment win).
@@ -26,11 +27,19 @@ Lint+types (`ruff check`/`ruff format --check` over `src scripts tests`, then
 
 `main.py` is also a contract file, so API-client drift runs. The subset is a
 local fast path: CI (`ci-api.yml`) still runs the full suite on every push, and
-the schemathesis fuzz test (`test_api_fuzz.py`) runs there. Run
+the schemathesis fuzz test (`test_api_fuzz.py`) runs there in its own job. Run
 `pnpm verify:changed --dry-run` to see the exact plan.
 
-Run `pnpm verify:quick` for lint, types and unit tests. The pre-push hook remains
-TypeScript plus unit tests. It does not claim backend or deployment acceptance.
+API pytest runs in parallel. Workers default to CPUs minus two (minimum 1) and
+drop to two when the 1-minute load average exceeds the CPU count; set
+`PYTEST_WORKERS=<n>` to override. The Schemathesis fuzz test is marked `fuzz` and
+deselected by default (`pyproject.toml` addopts); `--full` or `pytest -m fuzz` runs
+it, and editing `tests/test_api_fuzz.py` opts it back in automatically. CI runs it
+in its own parallel job.
+
+Run `pnpm verify:quick` for lint, types and unit tests. The pre-push hook runs lint
+and type-check everywhere, and tests only for the packages changed in the pushed
+commits (`pre-push-scope.mjs`). It does not claim backend or deployment acceptance.
 
 From the **host workstation**, with Docker Compose, Node/pnpm, uv and PostgreSQL
 client (`psql`) installed:
@@ -75,6 +84,9 @@ scripts can connect to the host-published port. Never supply application-service
 credentials. Backend database creation/teardown requires an administrative role
 on the disposable instance; ordinary application roles should remain restricted.
 Backend uses two workers by default; set `TEST_WORKERS` to measured capacity.
+CI passes `-m 'not fuzz' --shard i/3` (three jobs) or `-m fuzz` (one job) after the
+script name and sets `COVERAGE_DATA_ONLY=1` so each job writes only a coverage data
+file for the combining job to merge (see `docs/testing.md`, CI test sharding).
 Coverage and JUnit reports are written under `apps/api/fastapi/`.
 Backend verification creates and cleans up its own temporary uv environment,
 preserving the development `.venv` even when host and devcontainer interpreter
