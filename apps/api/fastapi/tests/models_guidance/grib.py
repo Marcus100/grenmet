@@ -1,9 +1,17 @@
 """Tiny synthetic GRIB2 files written with ecCodes (no network, no binary fixtures)."""
 
+import importlib
 from pathlib import Path
 
-import eccodes
 import numpy as np
+
+# Bind pyproj's PROJ before ecCodes loads eckitlib's copy, as gms_ingest and
+# src.models_guidance.extract do; the reverse order aborts at shutdown.
+try:
+    importlib.import_module("pyproj")
+except ImportError:
+    pass
+eccodes = importlib.import_module("eccodes")
 
 LATS = np.arange(13.0, 11.49, -0.25)  # 13.0 .. 11.5
 LONS = np.arange(298.0, 299.51, 0.25)  # -62.0 .. -60.5 on a 0-360 grid
