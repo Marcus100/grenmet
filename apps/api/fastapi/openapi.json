@@ -15804,6 +15804,212 @@
         ]
       }
     },
+    "/api/v1/eregister/observations/{observation_id}/email": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Email a register observation",
+        "description": "Queues the SYNOP text and a decoded summary for every address in EREGISTER_OBS_RECIPIENTS through the email outbox. Requires `eregister.send`. 409 when no recipients are configured or the observation was already emailed (send `resend: true` to repeat).",
+        "operationId": "eregisterEmailRegisterObservation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Observation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/SendObservationRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationSend"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Observation does not pass validation"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Observation not found"
+          },
+          "409": {
+            "description": "Not configured, not sendable, or already sent (use resend)"
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/observations/{observation_id}/publish": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Queue a register observation for WIS2",
+        "description": "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. 409 unless WIS2BOX_* is configured, or when the observation was already queued (send `resend: true` to repeat).",
+        "operationId": "eregisterPublishRegisterObservation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Observation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/SendObservationRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationSend"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Observation does not pass validation"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Observation not found"
+          },
+          "409": {
+            "description": "Not configured, not sendable, or already sent (use resend)"
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/observations/{observation_id}/sends": {
+      "get": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Send history of a register observation",
+        "description": "Newest first: each email and WIS2 hand-off with its status.",
+        "operationId": "eregisterListObservationSends",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Observation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationSendList"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
     "/api/v1/eregister/public/current": {
       "get": {
         "tags": [
@@ -40392,6 +40598,96 @@
         ],
         "title": "ObservationRecord"
       },
+      "ObservationSend": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "observation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Observation Id"
+          },
+          "target": {
+            "$ref": "#/components/schemas/ObservationSendPropertiesTargetEnum"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ObservationSendPropertiesStatusEnum"
+          },
+          "recipients": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipients"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "queued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Queued At"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "observation_id",
+          "target",
+          "status",
+          "attempts",
+          "queued_at"
+        ],
+        "title": "ObservationSend",
+        "description": "One email or WIS2 hand-off of a register observation."
+      },
+      "ObservationSendList": {
+        "properties": {
+          "sends": {
+            "items": {
+              "$ref": "#/components/schemas/ObservationSend"
+            },
+            "type": "array",
+            "title": "Sends"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sends"
+        ],
+        "title": "ObservationSendList"
+      },
       "OnboardingStatus": {
         "properties": {
           "user_id": {
@@ -45896,6 +46192,18 @@
           "expires_at"
         ],
         "title": "SecuritySessionPublic"
+      },
+      "SendObservationRequest": {
+        "properties": {
+          "resend": {
+            "type": "boolean",
+            "title": "Resend",
+            "description": "Send again although this observation already went to the same target.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "SendObservationRequest"
       },
       "ServiceCalendarView": {
         "properties": {
@@ -54875,6 +55183,21 @@
           "SYNOP",
           "METAR",
           "SPECI"
+        ]
+      },
+      "ObservationSendPropertiesTargetEnum": {
+        "type": "string",
+        "enum": [
+          "email",
+          "wis2"
+        ]
+      },
+      "ObservationSendPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "sent",
+          "failed"
         ]
       },
       "ProfilePublicPropertiesConnectionStateEnum": {

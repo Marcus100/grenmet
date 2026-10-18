@@ -112,14 +112,39 @@ or `Q1000`, VV codes 90-96 printed `9999`, cloud used total oktas instead of
 the layer amounts, bases ignored codes 56-89, CB was dropped, N=9 was not VV.
 QNH is still taken from the MSL pressure group (an approximation).
 
+## Send actions (email and WIS2), `src/eregister/encode.py`
+
+"Email observation" and "Send last obs" act on a saved SYNOP that re-validates
+without errors (rejected and superseded are refused). The sends are logged in
+`eregister_send`; see `src/eregister/AGENTS.md` and `docs/env.md`.
+
+**TAC (FM 12).** The workbook already holds the coded groups, so the message is
+those groups in section order: `AAXX YYGGiw IIiii iRixhVV Nddff [00fff] 1snTTT
+2snTdTdTd | 29UUU 3P0P0P0P0 4PPPP 5appp 6RRRtR 7wwW1W2 8NhCLCMCH`, then `333`
+with `0CsDLDMDH 1snTxTxTx 2snTnTnTn 5j1P24 7R24 8NsChshs 910ff [00fff]`, ending
+`=`. Absent groups are omitted, missing elements inside a kept group are `/`,
+an identification-only report is `AAXX YYGGiw IIiii NIL=`. Assumptions to
+confirm with the observers: the gust is sent as `910ff` (past 10 minutes), and
+`9SpSpspsp` and remarks are not encoded (the email shows the notes).
+
+**wis2box CSV.** wis2box runs csv2bufr with the vendored template
+`Surface-RA-IV-100` (`scripts/wis2-setup/`), the same columns SURFACE publishes
+(ADR-0010), so the existing dataset needs no change. One row per observation,
+file `wmo_data_<WIGOS>_<YYYYMMDDTHHMM>.csv`, object key
+`<WIS2BOX_TOPIC_HIERARCHY>/<file>` in `wis2box-incoming`. Mapping from the
+decoded SI values: temperatures K, pressures Pa, wind m/s (the `iw` unit is
+converted), precipitation mm (trace -0.1) with its period as negative hours,
+visibility in km (the template multiplies by 1000), cloud cover and Nh in
+oktas, CL/CM/CH plain codes (template adds 30/20/10), DL/DM/DH 1-8, layers as
+Ns / C / height in metres, lowest cloud base the lower bound of the h class,
+24 h pressure change in Pa with sign, station type 1 (manned). Not collected,
+so empty: soil, radiation, snow, ground state, wind gust direction.
+
 ## Not implemented (needs owner approval)
 
-- **BUFR (template TM 307080 for SYNOP, and the METAR/SPECI BUFR templates):** no
-  encoder exists. A pure-Python encoder is not practical; the practical route
-  is `eccodes` (native library plus Python bindings) or the vendored SURFACE /
-  wis2box stack. Adding a Python dependency needs approval.
+- **BUFR in the API (template TM 307080 for SYNOP, and the METAR/SPECI BUFR
+  templates):** no encoder exists. wis2box converts instead: "Send last obs"
+  hands it a CSV (see Send actions). METAR/SPECI have no WIS2 path yet.
 - **IWXXM (METAR/SPECI/TAF XML):** see `aviation-converter-evaluation.md`
   (tac2iwxxm candidate, validators need Schematron assets). No dependency added.
-- **TAC SYNOP encoder (AAXX line from the workbook):** the workbook is
-  validated and decoded to SI, but no transmitted bulletin text is produced.
 - **Annex 3 conformance of a whole SPECI decision** and **TAF forecast quality**.

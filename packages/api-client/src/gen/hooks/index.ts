@@ -574,6 +574,16 @@ export {
   useEregisterCreateRegisterObservation,
 } from "./useEregisterCreateRegisterObservation.js";
 export {
+  eregisterEmailRegisterObservationMutationKey,
+  eregisterEmailRegisterObservationMutationOptions,
+  useEregisterEmailRegisterObservation,
+} from "./useEregisterEmailRegisterObservation.js";
+export {
+  eregisterListObservationSendsQueryKey,
+  eregisterListObservationSendsQueryOptions,
+  useEregisterListObservationSends,
+} from "./useEregisterListObservationSends.js";
+export {
   eregisterListRegisterObservationsQueryKey,
   eregisterListRegisterObservationsQueryOptions,
   useEregisterListRegisterObservations,
@@ -588,6 +598,11 @@ export {
   eregisterPublicMonthSummaryQueryOptions,
   useEregisterPublicMonthSummary,
 } from "./useEregisterPublicMonthSummary.js";
+export {
+  eregisterPublishRegisterObservationMutationKey,
+  eregisterPublishRegisterObservationMutationOptions,
+  useEregisterPublishRegisterObservation,
+} from "./useEregisterPublishRegisterObservation.js";
 export {
   eregisterValidateSynopObservationMutationKey,
   eregisterValidateSynopObservationMutationOptions,

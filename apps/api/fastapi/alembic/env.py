@@ -36,6 +36,7 @@ from src.cap.models import (
 )
 from src.config import settings
 from src.contact.models import ContactMessage
+from src.eregister.models import ERegisterSend  # noqa: F401
 from src.hr.absentee.models import AbsenteeReport
 from src.hr.attendance.models import (
     AttendanceCorrection,

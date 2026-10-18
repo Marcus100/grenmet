@@ -207,3 +207,32 @@ class PublicMonthSummary(BaseModel):
 
 class PublicMonthSummaryResponse(BaseModel):
     summary: PublicMonthSummary | None = None
+
+
+SendTarget = Literal["email", "wis2"]
+SendStatus = Literal["queued", "sent", "failed"]
+
+
+class SendObservationRequest(BaseModel):
+    resend: bool = Field(
+        default=False,
+        description="Send again although this observation already went to the same target.",
+    )
+
+
+class ObservationSend(BaseModel):
+    """One email or WIS2 hand-off of a register observation."""
+
+    id: UUID
+    observation_id: UUID
+    target: SendTarget
+    status: SendStatus
+    recipients: int | None = None
+    attempts: int
+    last_error: str | None = None
+    queued_at: UtcDateTime
+    sent_at: UtcDateTime | None = None
+
+
+class ObservationSendList(BaseModel):
+    sends: list[ObservationSend]

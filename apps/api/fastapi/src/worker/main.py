@@ -33,6 +33,7 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.worker.dispatch",
         "src.notifications.dispatch",
         "src.notifications.scheduler",
+        "src.eregister.publisher",
     ):
         import_module(module)
     from src.config import settings
@@ -135,6 +136,28 @@ async def send_outbound_emails(ctx: dict[str, Any]) -> int:
         return result
 
 
+async def send_wis2_publications(ctx: dict[str, Any]) -> int:
+    """Move queued eRegister CSV files to wis2box; no-op unless configured."""
+    from src.database import async_session_factory
+    from src.eregister import publisher
+
+    async with async_session_factory() as session:
+        try:
+            result = await publisher.process_due_publications(session=session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "send_wis2_publications",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "send_wis2_publications", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
 async def run_notification_sweeps(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.notifications import scheduler
@@ -230,6 +253,7 @@ class WorkerSettings:
         ingest_cap_feeds,
         send_notification_emails,
         send_outbound_emails,
+        send_wis2_publications,
         run_notification_sweeps,
         check_nhc_failures,
         check_alert_outbox,
@@ -257,6 +281,8 @@ class WorkerSettings:
         cron(send_notification_emails, second={0, 30}, run_at_startup=True),
         # Drain the public-flow email outbox (subscriptions, contact) too.
         cron(send_outbound_emails, second={15, 45}, run_at_startup=True),
+        # eRegister observations queued for wis2box (retries live on the row).
+        cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
         cron(run_notification_sweeps, hour=10, minute=0, run_at_startup=False),
         # NHC job failures every 5 minutes; the 1-hour window stops repeat messages.

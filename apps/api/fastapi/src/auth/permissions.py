@@ -129,6 +129,11 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cms.article.unpublish", "Unpublish CMS articles"),
     PermissionDef("cms.article.social.manage", "Manage CMS social publishing"),
     PermissionDef("cms.article.manage", "Manage CMS editorial settings"),
+    # eRegister
+    PermissionDef(
+        "eregister.send",
+        "Email a register observation and queue it for WIS2 publication",
+    ),
     # CAP — alert lifecycle
     PermissionDef("cap.alert.create", "Create CAP alerts"),
     PermissionDef("cap.alert.edit", "Edit CAP alerts"),
@@ -379,6 +384,10 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "events-moderator": (
         "Barrels Events moderator: handles reports and suggestions",
         ("app.events.access", "events.member.write", "events.moderate"),
+    ),
+    "eregister-sender": (
+        "eRegister: email observations and queue them for WIS2",
+        ("eregister.send",),
     ),
     "weather-member": (
         "Weather website member: granted on first sign-in",
