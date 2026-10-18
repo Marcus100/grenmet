@@ -677,11 +677,17 @@ async def get_document(
 
 
 async def list_documents(
-    session: AsyncSession, actor: User, skip: int, limit: int
+    session: AsyncSession,
+    actor: User,
+    skip: int,
+    limit: int,
+    entity_type: str | None = None,
 ) -> tuple[list[SignedDocument], int]:
     query = select(SignedDocument).where(
         (SignedDocument.signer_id == actor.id) | (SignedDocument.subject_id == actor.id)
     )
+    if entity_type is not None:
+        query = query.where(SignedDocument.entity_type == entity_type)
     count = await session.scalar(select(func.count()).select_from(query.subquery()))
     rows = (
         (

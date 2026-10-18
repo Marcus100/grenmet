@@ -237,10 +237,12 @@ export { hrGetStatusReports } from "./clients/hrGetStatusReports.js";
 export { hrGetStatusStaffing } from "./clients/hrGetStatusStaffing.js";
 export { hrGetTemplates } from "./clients/hrGetTemplates.js";
 export { hrGetTimesheet } from "./clients/hrGetTimesheet.js";
+export { hrGetTimesheetPrefill } from "./clients/hrGetTimesheetPrefill.js";
 export { hrGetTimesheetSummary } from "./clients/hrGetTimesheetSummary.js";
 export { hrGetTrainingEmployees } from "./clients/hrGetTrainingEmployees.js";
 export { hrGetTrainingRecords } from "./clients/hrGetTrainingRecords.js";
 export { hrGetWorkflowConfiguration } from "./clients/hrGetWorkflowConfiguration.js";
+export { hrGetWorkingDays } from "./clients/hrGetWorkingDays.js";
 export { hrImportCatalogue } from "./clients/hrImportCatalogue.js";
 export { hrImportCsv } from "./clients/hrImportCsv.js";
 export { hrImportGrid } from "./clients/hrImportGrid.js";
@@ -1614,6 +1616,11 @@ export {
   useHrGetTimesheet,
 } from "./hooks/useHrGetTimesheet.js";
 export {
+  hrGetTimesheetPrefillQueryKey,
+  hrGetTimesheetPrefillQueryOptions,
+  useHrGetTimesheetPrefill,
+} from "./hooks/useHrGetTimesheetPrefill.js";
+export {
   hrGetTimesheetSummaryQueryKey,
   hrGetTimesheetSummaryQueryOptions,
   useHrGetTimesheetSummary,
@@ -1633,6 +1640,11 @@ export {
   hrGetWorkflowConfigurationQueryOptions,
   useHrGetWorkflowConfiguration,
 } from "./hooks/useHrGetWorkflowConfiguration.js";
+export {
+  hrGetWorkingDaysQueryKey,
+  hrGetWorkingDaysQueryOptions,
+  useHrGetWorkingDays,
+} from "./hooks/useHrGetWorkingDays.js";
 export {
   hrImportCatalogueMutationKey,
   hrImportCatalogueMutationOptions,
@@ -5322,6 +5334,17 @@ export type {
   HrGetTimesheetStatus422,
 } from "./models/HrGetTimesheet.js";
 export type {
+  HrGetTimesheetPrefillOptions,
+  HrGetTimesheetPrefillQuery,
+  HrGetTimesheetPrefillResponse,
+  HrGetTimesheetPrefillResponses,
+  HrGetTimesheetPrefillStatus200,
+  HrGetTimesheetPrefillStatus400,
+  HrGetTimesheetPrefillStatus401,
+  HrGetTimesheetPrefillStatus403,
+  HrGetTimesheetPrefillStatus422,
+} from "./models/HrGetTimesheetPrefill.js";
+export type {
   HrGetTimesheetSummaryOptions,
   HrGetTimesheetSummaryPath,
   HrGetTimesheetSummaryResponse,
@@ -5359,6 +5382,17 @@ export type {
   HrGetWorkflowConfigurationStatus409,
   HrGetWorkflowConfigurationStatus422,
 } from "./models/HrGetWorkflowConfiguration.js";
+export type {
+  HrGetWorkingDaysOptions,
+  HrGetWorkingDaysQuery,
+  HrGetWorkingDaysResponse,
+  HrGetWorkingDaysResponses,
+  HrGetWorkingDaysStatus200,
+  HrGetWorkingDaysStatus400,
+  HrGetWorkingDaysStatus401,
+  HrGetWorkingDaysStatus403,
+  HrGetWorkingDaysStatus422,
+} from "./models/HrGetWorkingDays.js";
 export type {
   HrImportCatalogueBody,
   HrImportCatalogueOptions,
@@ -7350,6 +7384,8 @@ export type { TimesheetDetails } from "./models/TimesheetDetails.js";
 export type { TimesheetEntryInput } from "./models/TimesheetEntryInput.js";
 export type { TimesheetEntryPublic } from "./models/TimesheetEntryPublic.js";
 export type { TimesheetListPublic } from "./models/TimesheetListPublic.js";
+export type { TimesheetPrefillEntry } from "./models/TimesheetPrefillEntry.js";
+export type { TimesheetPrefillPublic } from "./models/TimesheetPrefillPublic.js";
 export type { TimesheetPublic } from "./models/TimesheetPublic.js";
 export type { TimesheetStatus } from "./models/TimesheetStatus.js";
 export { timesheetStatus } from "./models/TimesheetStatus.js";
@@ -7661,6 +7697,10 @@ export type { WorkflowTemplatePublic } from "./models/WorkflowTemplatePublic.js"
 export type { WorkflowTemplatesPublic } from "./models/WorkflowTemplatesPublic.js";
 export type { WorkflowType } from "./models/WorkflowType.js";
 export { workflowType } from "./models/WorkflowType.js";
+export type { WorkingDayHoliday } from "./models/WorkingDayHoliday.js";
+export type { WorkingDaysPublic } from "./models/WorkingDaysPublic.js";
+export type { WorkingDaysPublicPropertiesMethodEnum } from "./models/WorkingDaysPublicPropertiesMethodEnum.js";
+export { workingDaysPublicPropertiesMethodEnum } from "./models/WorkingDaysPublicPropertiesMethodEnum.js";
 export type {
   WxproductsGetPublicProductOptions,
   WxproductsGetPublicProductPath,
@@ -10332,6 +10372,7 @@ export {
 } from "./zod/hrGetMySignatureSchema.js";
 export {
   hrGetMySignedDocumentsErrorSchema,
+  hrGetMySignedDocumentsQueryEntityTypeSchema,
   hrGetMySignedDocumentsQueryPageSchema,
   hrGetMySignedDocumentsQuerySizeSchema,
   hrGetMySignedDocumentsResponseSchema,
@@ -10503,6 +10544,16 @@ export {
   hrGetTemplatesStatus422Schema,
 } from "./zod/hrGetTemplatesSchema.js";
 export {
+  hrGetTimesheetPrefillErrorSchema,
+  hrGetTimesheetPrefillQueryPeriodSchema,
+  hrGetTimesheetPrefillResponseSchema,
+  hrGetTimesheetPrefillStatus200Schema,
+  hrGetTimesheetPrefillStatus400Schema,
+  hrGetTimesheetPrefillStatus401Schema,
+  hrGetTimesheetPrefillStatus403Schema,
+  hrGetTimesheetPrefillStatus422Schema,
+} from "./zod/hrGetTimesheetPrefillSchema.js";
+export {
   hrGetTimesheetErrorSchema,
   hrGetTimesheetPathTimesheetIdSchema,
   hrGetTimesheetResponseSchema,
@@ -10552,6 +10603,17 @@ export {
   hrGetWorkflowConfigurationStatus409Schema,
   hrGetWorkflowConfigurationStatus422Schema,
 } from "./zod/hrGetWorkflowConfigurationSchema.js";
+export {
+  hrGetWorkingDaysErrorSchema,
+  hrGetWorkingDaysQueryEndSchema,
+  hrGetWorkingDaysQueryStartSchema,
+  hrGetWorkingDaysResponseSchema,
+  hrGetWorkingDaysStatus200Schema,
+  hrGetWorkingDaysStatus400Schema,
+  hrGetWorkingDaysStatus401Schema,
+  hrGetWorkingDaysStatus403Schema,
+  hrGetWorkingDaysStatus422Schema,
+} from "./zod/hrGetWorkingDaysSchema.js";
 export {
   hrImportCatalogueBodySchema,
   hrImportCatalogueErrorSchema,
@@ -12381,6 +12443,8 @@ export { timesheetDetailsSchema } from "./zod/timesheetDetailsSchema.js";
 export { timesheetEntryInputSchema } from "./zod/timesheetEntryInputSchema.js";
 export { timesheetEntryPublicSchema } from "./zod/timesheetEntryPublicSchema.js";
 export { timesheetListPublicSchema } from "./zod/timesheetListPublicSchema.js";
+export { timesheetPrefillEntrySchema } from "./zod/timesheetPrefillEntrySchema.js";
+export { timesheetPrefillPublicSchema } from "./zod/timesheetPrefillPublicSchema.js";
 export { timesheetPublicSchema } from "./zod/timesheetPublicSchema.js";
 export { timesheetStatusSchema } from "./zod/timesheetStatusSchema.js";
 export { timesheetSubmitRequestSchema } from "./zod/timesheetSubmitRequestSchema.js";
@@ -12659,6 +12723,9 @@ export { workflowTemplateCreateSchema } from "./zod/workflowTemplateCreateSchema
 export { workflowTemplatePublicSchema } from "./zod/workflowTemplatePublicSchema.js";
 export { workflowTemplatesPublicSchema } from "./zod/workflowTemplatesPublicSchema.js";
 export { workflowTypeSchema } from "./zod/workflowTypeSchema.js";
+export { workingDayHolidaySchema } from "./zod/workingDayHolidaySchema.js";
+export { workingDaysPublicPropertiesMethodEnumSchema } from "./zod/workingDaysPublicPropertiesMethodEnumSchema.js";
+export { workingDaysPublicSchema } from "./zod/workingDaysPublicSchema.js";
 export {
   wxproductsGetPublicProductErrorSchema,
   wxproductsGetPublicProductPathProductIdSchema,

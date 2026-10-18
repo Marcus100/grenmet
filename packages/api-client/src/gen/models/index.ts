@@ -2727,6 +2727,17 @@ export type {
   HrGetTimesheetStatus422,
 } from "./HrGetTimesheet.js";
 export type {
+  HrGetTimesheetPrefillOptions,
+  HrGetTimesheetPrefillQuery,
+  HrGetTimesheetPrefillResponse,
+  HrGetTimesheetPrefillResponses,
+  HrGetTimesheetPrefillStatus200,
+  HrGetTimesheetPrefillStatus400,
+  HrGetTimesheetPrefillStatus401,
+  HrGetTimesheetPrefillStatus403,
+  HrGetTimesheetPrefillStatus422,
+} from "./HrGetTimesheetPrefill.js";
+export type {
   HrGetTimesheetSummaryOptions,
   HrGetTimesheetSummaryPath,
   HrGetTimesheetSummaryResponse,
@@ -2764,6 +2775,17 @@ export type {
   HrGetWorkflowConfigurationStatus409,
   HrGetWorkflowConfigurationStatus422,
 } from "./HrGetWorkflowConfiguration.js";
+export type {
+  HrGetWorkingDaysOptions,
+  HrGetWorkingDaysQuery,
+  HrGetWorkingDaysResponse,
+  HrGetWorkingDaysResponses,
+  HrGetWorkingDaysStatus200,
+  HrGetWorkingDaysStatus400,
+  HrGetWorkingDaysStatus401,
+  HrGetWorkingDaysStatus403,
+  HrGetWorkingDaysStatus422,
+} from "./HrGetWorkingDays.js";
 export type {
   HrImportCatalogueBody,
   HrImportCatalogueOptions,
@@ -4755,6 +4777,8 @@ export type { TimesheetDetails } from "./TimesheetDetails.js";
 export type { TimesheetEntryInput } from "./TimesheetEntryInput.js";
 export type { TimesheetEntryPublic } from "./TimesheetEntryPublic.js";
 export type { TimesheetListPublic } from "./TimesheetListPublic.js";
+export type { TimesheetPrefillEntry } from "./TimesheetPrefillEntry.js";
+export type { TimesheetPrefillPublic } from "./TimesheetPrefillPublic.js";
 export type { TimesheetPublic } from "./TimesheetPublic.js";
 export type { TimesheetStatus } from "./TimesheetStatus.js";
 export { timesheetStatus } from "./TimesheetStatus.js";
@@ -5066,6 +5090,10 @@ export type { WorkflowTemplatePublic } from "./WorkflowTemplatePublic.js";
 export type { WorkflowTemplatesPublic } from "./WorkflowTemplatesPublic.js";
 export type { WorkflowType } from "./WorkflowType.js";
 export { workflowType } from "./WorkflowType.js";
+export type { WorkingDayHoliday } from "./WorkingDayHoliday.js";
+export type { WorkingDaysPublic } from "./WorkingDaysPublic.js";
+export type { WorkingDaysPublicPropertiesMethodEnum } from "./WorkingDaysPublicPropertiesMethodEnum.js";
+export { workingDaysPublicPropertiesMethodEnum } from "./WorkingDaysPublicPropertiesMethodEnum.js";
 export type {
   WxproductsGetPublicProductOptions,
   WxproductsGetPublicProductPath,

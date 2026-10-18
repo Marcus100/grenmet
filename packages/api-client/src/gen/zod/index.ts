@@ -2312,6 +2312,7 @@ export {
 } from "./hrGetMySignatureSchema.js";
 export {
   hrGetMySignedDocumentsErrorSchema,
+  hrGetMySignedDocumentsQueryEntityTypeSchema,
   hrGetMySignedDocumentsQueryPageSchema,
   hrGetMySignedDocumentsQuerySizeSchema,
   hrGetMySignedDocumentsResponseSchema,
@@ -2483,6 +2484,16 @@ export {
   hrGetTemplatesStatus422Schema,
 } from "./hrGetTemplatesSchema.js";
 export {
+  hrGetTimesheetPrefillErrorSchema,
+  hrGetTimesheetPrefillQueryPeriodSchema,
+  hrGetTimesheetPrefillResponseSchema,
+  hrGetTimesheetPrefillStatus200Schema,
+  hrGetTimesheetPrefillStatus400Schema,
+  hrGetTimesheetPrefillStatus401Schema,
+  hrGetTimesheetPrefillStatus403Schema,
+  hrGetTimesheetPrefillStatus422Schema,
+} from "./hrGetTimesheetPrefillSchema.js";
+export {
   hrGetTimesheetErrorSchema,
   hrGetTimesheetPathTimesheetIdSchema,
   hrGetTimesheetResponseSchema,
@@ -2532,6 +2543,17 @@ export {
   hrGetWorkflowConfigurationStatus409Schema,
   hrGetWorkflowConfigurationStatus422Schema,
 } from "./hrGetWorkflowConfigurationSchema.js";
+export {
+  hrGetWorkingDaysErrorSchema,
+  hrGetWorkingDaysQueryEndSchema,
+  hrGetWorkingDaysQueryStartSchema,
+  hrGetWorkingDaysResponseSchema,
+  hrGetWorkingDaysStatus200Schema,
+  hrGetWorkingDaysStatus400Schema,
+  hrGetWorkingDaysStatus401Schema,
+  hrGetWorkingDaysStatus403Schema,
+  hrGetWorkingDaysStatus422Schema,
+} from "./hrGetWorkingDaysSchema.js";
 export {
   hrImportCatalogueBodySchema,
   hrImportCatalogueErrorSchema,
@@ -4361,6 +4383,8 @@ export { timesheetDetailsSchema } from "./timesheetDetailsSchema.js";
 export { timesheetEntryInputSchema } from "./timesheetEntryInputSchema.js";
 export { timesheetEntryPublicSchema } from "./timesheetEntryPublicSchema.js";
 export { timesheetListPublicSchema } from "./timesheetListPublicSchema.js";
+export { timesheetPrefillEntrySchema } from "./timesheetPrefillEntrySchema.js";
+export { timesheetPrefillPublicSchema } from "./timesheetPrefillPublicSchema.js";
 export { timesheetPublicSchema } from "./timesheetPublicSchema.js";
 export { timesheetStatusSchema } from "./timesheetStatusSchema.js";
 export { timesheetSubmitRequestSchema } from "./timesheetSubmitRequestSchema.js";
@@ -4639,6 +4663,9 @@ export { workflowTemplateCreateSchema } from "./workflowTemplateCreateSchema.js"
 export { workflowTemplatePublicSchema } from "./workflowTemplatePublicSchema.js";
 export { workflowTemplatesPublicSchema } from "./workflowTemplatesPublicSchema.js";
 export { workflowTypeSchema } from "./workflowTypeSchema.js";
+export { workingDayHolidaySchema } from "./workingDayHolidaySchema.js";
+export { workingDaysPublicPropertiesMethodEnumSchema } from "./workingDaysPublicPropertiesMethodEnumSchema.js";
+export { workingDaysPublicSchema } from "./workingDaysPublicSchema.js";
 export {
   wxproductsGetPublicProductErrorSchema,
   wxproductsGetPublicProductPathProductIdSchema,

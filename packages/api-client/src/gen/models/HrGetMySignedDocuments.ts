@@ -8,6 +8,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrGetMySignedDocumentsQuery = {
   /**
+   * @description Only documents for this form type, e.g. leave_request or timesheet.
+   */
+  entity_type?: string | null;
+  /**
    * @description Page number (1-indexed)
    * @minLength 1
    * @maxLength 1000000
