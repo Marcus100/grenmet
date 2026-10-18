@@ -50,6 +50,7 @@ from src.cap.mapping import (
 from src.cap.models import (
     CapAlert,
     CapArea,
+    CapAuditEvent,
     CapFeedImport,
     CapIncident,
     CapInfo,
@@ -80,6 +81,7 @@ from src.cap.schemas import (
     CapAlertPublic,
     CapAlertUpdate,
     CapAreaCreate,
+    CapEmergencyPublish,
     CapFeedImportCreate,
     CapFeedImportUpdate,
     CapInfoCreate,
@@ -291,6 +293,13 @@ async def update_alert(
             continue
         if value is not None:
             setattr(alert, key, _db_datetime(value) if key == "sent" else value)
+    # Editing after review invalidates it: approval applies to the content approved.
+    if alert.lifecycle_state in {
+        CapLifecycleState.SUBMITTED,
+        CapLifecycleState.APPROVED,
+    }:
+        alert.lifecycle_state = CapLifecycleState.DRAFT
+        alert.approved_at = None
     alert.updated_by_user_id = current_user.id
     alert.updated_at = utc_now()
     session.add(alert)
@@ -454,7 +463,9 @@ async def approve_alert(
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.approve")
     alert = await get_alert_or_404(session=session, alert_id=alert_id)
-    if not alert.allow_self_approval and alert.created_by_user_id == current_user.id:
+    # ADR-0023: approval always needs a different person; the legacy
+    # `allow_self_approval` policy flag no longer relaxes this for CAP.
+    if alert.created_by_user_id == current_user.id:
         from src.exceptions import AppException
 
         raise AppException("Another authorised person must approve this alert", 403)
@@ -470,6 +481,21 @@ async def approve_alert(
     )
 
 
+async def _approved_by_another(*, session: AsyncSession, alert: CapAlert) -> bool:
+    """True when the latest approval was recorded by someone other than the author."""
+    actor = (
+        await session.execute(
+            select(CapAuditEvent.actor_user_id)
+            .where(
+                CapAuditEvent.alert_id == alert.id, CapAuditEvent.action == "approve"
+            )
+            .order_by(CapAuditEvent.created_at.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    return actor is not None and actor != alert.created_by_user_id
+
+
 async def publish_alert(
     *,
     session: AsyncSession,
@@ -477,11 +503,38 @@ async def publish_alert(
     alert_id: uuid.UUID,
     payload: CapAlertAction,
 ) -> tuple[CapAlertPublic, CapSnapshotPublic]:
+    """Normal publish: only an Approved alert (approved by a non-author)."""
     require_permission(current_user=current_user, permission_key="cap.alert.publish")
     alert = await get_alert_or_404(session=session, alert_id=alert_id)
-    # Submit/approve remain available as an optional, non-blocking review step
-    # (ADR-0013) rather than a required gate: publish is allowed straight from
-    # Draft, or from Submitted/Approved for whoever chose to route through them.
+    if alert.lifecycle_state != CapLifecycleState.APPROVED:
+        raise CapStateError(
+            "Only an approved alert can be published. Submit it for approval, "
+            "or use emergency publish if you hold that permission."
+        )
+    if not await _approved_by_another(session=session, alert=alert):
+        raise CapStateError(
+            "This alert was not approved by someone other than its author."
+        )
+    return await _publish(
+        session=session, current_user=current_user, alert=alert, note=payload.note
+    )
+
+
+async def emergency_publish_alert(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    alert_id: uuid.UUID,
+    payload: CapEmergencyPublish,
+) -> tuple[CapAlertPublic, CapSnapshotPublic]:
+    """Duty-supervisor publish without approval; reason mandatory, always audited."""
+    require_permission(
+        current_user=current_user, permission_key="cap.alert.publish_emergency"
+    )
+    reason = payload.reason.strip()
+    if not reason:
+        raise CapValidationFailedError(["An emergency publish reason is required."])
+    alert = await get_alert_or_404(session=session, alert_id=alert_id)
     if alert.lifecycle_state not in {
         CapLifecycleState.DRAFT,
         CapLifecycleState.SUBMITTED,
@@ -490,6 +543,23 @@ async def publish_alert(
         raise CapStateError(
             "Only a draft, submitted or approved alert can be published."
         )
+    return await _publish(
+        session=session,
+        current_user=current_user,
+        alert=alert,
+        note=reason,
+        emergency_reason=reason,
+    )
+
+
+async def _publish(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    alert: CapAlert,
+    note: str | None,
+    emergency_reason: str | None = None,
+) -> tuple[CapAlertPublic, CapSnapshotPublic]:
     public = await _to_public(session=session, alert=alert)
     validation = validate_cap_alert(public)
     if not validation.is_valid:
@@ -534,15 +604,19 @@ async def publish_alert(
         status=alert.status,
         scope=alert.scope,
     )
+    audit_payload: dict[str, object] = {"snapshot_id": str(snapshot.id)}
+    if emergency_reason is not None:
+        audit_payload["emergency"] = True
+        audit_payload["reason"] = emergency_reason
     _record_audit(
         session=session,
         alert_id=alert.id,
         actor=current_user,
-        action="publish",
+        action="emergency_publish" if emergency_reason is not None else "publish",
         previous_state=previous_state,
         next_state=alert.lifecycle_state.value,
-        note=payload.note,
-        payload={"snapshot_id": str(snapshot.id)},
+        note=note,
+        payload=audit_payload,
     )
     await session.commit()
     await session.refresh(alert)

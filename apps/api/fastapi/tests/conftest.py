@@ -355,6 +355,21 @@ async def superuser_token_headers_async(
 
 
 @pytest.fixture
+async def second_superuser_headers_async(
+    db_async: AsyncSession,
+) -> dict[str, str]:
+    """A different superuser, for flows that need a second person (CAP approval)."""
+    from tests.factories import make_user
+
+    user = await make_user(db_async, superuser=True)
+    token = create_access_token(
+        user.id,
+        expires_delta=timedelta(minutes=auth_settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
 async def normal_user_token_headers_async(
     db_async: AsyncSession,
 ) -> dict[str, str]:

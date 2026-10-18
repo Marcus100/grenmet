@@ -57,9 +57,10 @@ CAP operations rely on permission keys:
 | `cap.alert.read` | Read CAP alert records and audit events |
 | `cap.alert.create` | Create or duplicate alerts |
 | `cap.alert.edit` | Edit draft, submitted, or approved alerts |
-| `cap.alert.submit` | Move draft alerts to submitted (optional review step, not required before publish — ADR-0013) |
-| `cap.alert.approve` | Approve submitted alerts (optional review step, not required before publish — ADR-0013) |
-| `cap.alert.publish` | Publish (from draft, submitted, or approved), cancel, or expire alerts |
+| `cap.alert.submit` | Move draft alerts to submitted for approval (ADR-0023) |
+| `cap.alert.approve` | Approve submitted alerts; never the author (ADR-0023). Privileged MFA applies |
+| `cap.alert.publish` | Publish approved alerts, cancel, or expire alerts. Privileged MFA applies |
+| `cap.alert.publish_emergency` | Duty supervisor only: publish without approval with a mandatory reason, always audited as `emergency_publish`. Privileged MFA applies |
 | `cap.settings.manage` | Manage CAP settings and predefined areas |
 | `cap.integrations.manage` | Read integration and job-event state |
 

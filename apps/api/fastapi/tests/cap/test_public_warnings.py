@@ -167,7 +167,10 @@ async def test_endpoint_and_failure(async_client: httpx.AsyncClient, monkeypatch
 
 
 async def test_warning_query_excludes_restricted_records(
-    async_client, db_async, superuser_token_headers_async
+    async_client,
+    db_async,
+    superuser_token_headers_async,
+    second_superuser_headers_async: dict[str, str],
 ):
     from src.baseline.models import ApprovalPolicy
     from tests.cap.test_cap_public_scope import _publish_alert
@@ -175,11 +178,15 @@ async def test_warning_query_excludes_restricted_records(
     db_async.add(ApprovalPolicy(key="cap", allow_self_approval=True))
     await db_async.commit()
     public = await _publish_alert(
-        async_client, superuser_token_headers_async, scope="Public"
+        async_client,
+        superuser_token_headers_async,
+        second_superuser_headers_async,
+        scope="Public",
     )
     private = await _publish_alert(
         async_client,
         superuser_token_headers_async,
+        second_superuser_headers_async,
         scope="Restricted",
         restriction="Staff",
     )

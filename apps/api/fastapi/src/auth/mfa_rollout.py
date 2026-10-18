@@ -11,8 +11,9 @@ import sys
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth import service, totp
+from src.auth import totp
 from src.auth.models import User
+from src.auth.privileged_mfa import is_privileged
 from src.database import async_session_factory
 
 
@@ -67,9 +68,7 @@ async def readiness(session: AsyncSession) -> dict[str, int]:
                     totals["unreadable_secrets"] += 1
         if not user.is_active or user.registration_pending:
             continue
-        if not user.is_superuser and not await service.has_effective_permission(
-            session=session, user=user, permission_key="user.manage"
-        ):
+        if not await is_privileged(session, user):
             continue
         totals["privileged_accounts"] += 1
         if not user.totp_enabled or not user.totp_secret:

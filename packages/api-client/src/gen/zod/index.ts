@@ -1079,6 +1079,18 @@ export {
   capDuplicateAlertStatus422Schema,
 } from "./capDuplicateAlertSchema.js";
 export {
+  capEmergencyPublishAlertBodySchema,
+  capEmergencyPublishAlertErrorSchema,
+  capEmergencyPublishAlertPathAlertIdSchema,
+  capEmergencyPublishAlertResponseSchema,
+  capEmergencyPublishAlertStatus200Schema,
+  capEmergencyPublishAlertStatus401Schema,
+  capEmergencyPublishAlertStatus403Schema,
+  capEmergencyPublishAlertStatus404Schema,
+  capEmergencyPublishAlertStatus422Schema,
+} from "./capEmergencyPublishAlertSchema.js";
+export { capEmergencyPublishSchema } from "./capEmergencyPublishSchema.js";
+export {
   capExpireAlertBodySchema,
   capExpireAlertErrorSchema,
   capExpireAlertPathAlertIdSchema,

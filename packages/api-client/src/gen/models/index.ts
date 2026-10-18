@@ -1179,6 +1179,19 @@ export type {
   CapDuplicateAlertStatus404,
   CapDuplicateAlertStatus422,
 } from "./CapDuplicateAlert.js";
+export type { CapEmergencyPublish } from "./CapEmergencyPublish.js";
+export type {
+  CapEmergencyPublishAlertBody,
+  CapEmergencyPublishAlertOptions,
+  CapEmergencyPublishAlertPath,
+  CapEmergencyPublishAlertResponse,
+  CapEmergencyPublishAlertResponses,
+  CapEmergencyPublishAlertStatus200,
+  CapEmergencyPublishAlertStatus401,
+  CapEmergencyPublishAlertStatus403,
+  CapEmergencyPublishAlertStatus404,
+  CapEmergencyPublishAlertStatus422,
+} from "./CapEmergencyPublishAlert.js";
 export type {
   CapExpireAlertBody,
   CapExpireAlertOptions,

@@ -14522,6 +14522,74 @@
         }
       }
     },
+    "/api/v1/cap/alerts/{alert_id}/emergency-publish": {
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Emergency-publish a CAP alert without approval",
+        "description": "Duty-supervisor only (cap.alert.publish_emergency). Publishes a draft, submitted or approved alert without approval. A reason is mandatory and the action is always audited as emergency_publish.",
+        "operationId": "capEmergencyPublishAlert",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapEmergencyPublish"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapPublishPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
     "/api/v1/cap/alerts/{alert_id}/cancel": {
       "post": {
         "tags": [
@@ -34784,6 +34852,21 @@
           "Unknown"
         ],
         "title": "CapCertainty"
+      },
+      "CapEmergencyPublish": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "CapEmergencyPublish"
       },
       "CapFeedImportCreate": {
         "properties": {

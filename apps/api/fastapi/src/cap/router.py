@@ -18,6 +18,7 @@ from src.cap.schemas import (
     CapAlertUpdate,
     CapAuditEventListPublic,
     CapCatalogsPublic,
+    CapEmergencyPublish,
     CapFeedImportCreate,
     CapFeedImportPublic,
     CapFeedImportUpdate,
@@ -233,6 +234,29 @@ async def publish_alert(
     payload: CapAlertAction,
 ) -> CapPublishPublic:
     alert, snapshot = await service.publish_alert(
+        session=session,
+        current_user=current_user,
+        alert_id=alert_id,
+        payload=payload,
+    )
+    return CapPublishPublic(alert=alert, snapshot=snapshot)
+
+
+@router.post(
+    "/alerts/{alert_id}/emergency-publish",
+    response_model=CapPublishPublic,
+    summary="Emergency-publish a CAP alert without approval",
+    description="Duty-supervisor only (cap.alert.publish_emergency). Publishes a draft, submitted or approved alert without approval. A reason is mandatory and the action is always audited as emergency_publish.",
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def emergency_publish_alert(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    alert_id: uuid.UUID,
+    payload: CapEmergencyPublish,
+) -> CapPublishPublic:
+    alert, snapshot = await service.emergency_publish_alert(
         session=session,
         current_user=current_user,
         alert_id=alert_id,
