@@ -13,6 +13,7 @@ from fastapi import APIRouter, Path, Query, Request, Response, status
 from src.dependencies import SessionDep
 from src.models import Message
 from src.openapi_responses import UNAUTHENTICATED
+from src.organisations import verification
 from src.rate_limit import limiter
 
 from . import schemas, service
@@ -769,9 +770,19 @@ async def list_pending_organisers(
 async def review_organiser(
     *,
     session: EventsSession,
+    platform: SessionDep,
     user: EventsModerator,
     organiser_id: uuid.UUID,
     body: schemas.OrganiserReview,
 ) -> schemas.OrganiserPublic:
     row = await service.review_organiser(session, organiser_id, body.verified, user)
+    if row.organisation_id is not None:
+        # Linked organisers read verification from the platform organisation.
+        await verification.moderator_set_verified(
+            platform,
+            row.organisation_id,
+            verified=body.verified,
+            actor_id=user.id,
+            source="Events",
+        )
     return await service.organiser_public(session, row, user.id)
