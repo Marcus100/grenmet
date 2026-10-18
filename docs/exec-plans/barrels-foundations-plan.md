@@ -49,7 +49,7 @@ Alembic head.
 | --- | --- | --- | --- |
 | F0 | ADR-0022 and this plan | S | Done |
 | F1 | `organisations` domain: `org.organisation`, `org.membership`, `org.organisation_app`; backfill from `hr.organisation`; `GET /api/v1/organisations/mine` | M | U — built, pending merge |
-| F2 | HR dual-write in `src/hr/organisations.py` and baseline seeds; reconciliation test | S | U |
+| F2 | HR dual-write in `src/hr/organisations.py` and baseline seeds; reconciliation test | S | U — built, pending merge |
 | F3 | `OrgContext` (`X-Barrels-Organisation`), `org.*` permission keys, `organisation_id` in log context, cross-organisation denial tests | M | U |
 | F4 | Membership invites (hashed, expiring, single use), accept, role change, removal, last-owner protection, audit | M | U |
 | A1 | Account "Organisations" tab in `apps/web/auth` | S | U |
