@@ -99,6 +99,13 @@ export function DraftEditor({
       </h1>
 
       <div className="flex flex-col gap-3 rounded-xl bg-card p-4 sm:p-5">
+        <p className="text-sm" data-testid="requisition-department">
+          <span className="font-medium text-foreground">Requesting for: </span>
+          {requisition.department_name}{" "}
+          <span className="text-muted-foreground text-xs">
+            (requested by {requisition.requester_name})
+          </span>
+        </p>
         <label className="flex flex-col gap-1 text-sm">
           <span className="font-medium text-foreground">
             What is it for? (optional)

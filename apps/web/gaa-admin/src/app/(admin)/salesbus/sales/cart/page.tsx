@@ -1,5 +1,6 @@
 "use client";
 
+import { useHrGetHrProfileMe } from "@barrelsgd/api-client";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -16,6 +17,8 @@ export default function CartPage() {
   const isTabletLandscape = useIsTabletLandscape();
   const { items, clearCart, removeItem, updateItemQuantity, totalItems } =
     useCart();
+  const department =
+    useHrGetHrProfileMe().data?.employment?.department?.name ?? "";
   const [purpose, setPurpose] = useState("");
   const [neededBy, setNeededBy] = useState("");
   const submit = useMutation({
@@ -66,6 +69,17 @@ export default function CartPage() {
     >
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 p-4 sm:gap-5 sm:p-5">
         <div className="flex flex-col gap-3 rounded-xl bg-card p-4 sm:p-5">
+          {department ? (
+            <p className="text-sm" data-testid="requisition-department">
+              <span className="font-medium text-foreground">
+                Requesting for:{" "}
+              </span>
+              {department}{" "}
+              <span className="text-muted-foreground text-xs">
+                (from your staff profile)
+              </span>
+            </p>
+          ) : null}
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium text-foreground">
               What is it for? (optional)

@@ -187,7 +187,9 @@ function ProductEditor({
   archive,
   sourceEditionIds,
   existingSystems,
+  lastIssued,
 }: {
+  lastIssued: StoredProduct | null;
   sourceEditionIds: string[];
   existingSystems: GuidanceSystem[];
   archive: ReactNode;
@@ -268,6 +270,31 @@ function ProductEditor({
   function replaceValues(values: ProductValues) {
     setDefaultValues(values);
     form.reset(values);
+  }
+  /**
+   * Forecast wording usually changes little between issues, so a new forecast
+   * can start from the last published one. Issue time, validity, area and
+   * forecaster are never carried over, and the usual review still gates
+   * publication. Hazard bulletins and outlooks are not offered this: each
+   * must be assessed afresh.
+   */
+  function startFromLastIssued(last: StoredProduct) {
+    const fresh = withIssuer(
+      kind,
+      emptyProduct(kind, issueDate),
+      sessionUser.full_name ?? sessionUser.email
+    );
+    const carried = Object.fromEntries(
+      Object.entries(last.values).filter(
+        ([key]) => key in fresh && !isComputedField(kind, key)
+      )
+    );
+    replaceValues({ ...fresh, ...carried });
+    setReviewed(false);
+    setPreview(null);
+    setMessage(
+      `Copied from the last issued ${PRODUCT_KINDS[kind]} (saved ${format(parseISO(last.updatedAt), "d MMM yyyy, HH:mm")}). Issue time, validity, area and forecaster are set for today. Check every section against current conditions before publishing.`
+    );
   }
   const fields = visibleProductFields(kind).filter(
     (f) =>
@@ -470,6 +497,16 @@ function ProductEditor({
                       ) : null}
                     </div>
                     <div className="flex flex-wrap gap-2">
+                      {isForecastKind(kind) && revision === 0 && lastIssued ? (
+                        <Button
+                          disabled={pending || disabled}
+                          onClick={() => startFromLastIssued(lastIssued)}
+                          type="button"
+                          variant="outline"
+                        >
+                          Start from last issued
+                        </Button>
+                      ) : null}
                       {isBulletin(kind) && revision === 0 ? (
                         <Button
                           onClick={() => {
@@ -986,6 +1023,11 @@ export function ProductDesk({
         issueDate={grenadaDate()}
         key={`${kind}-${editorKey}`}
         kind={kind}
+        lastIssued={
+          products.find(
+            (product) => product.kind === kind && product.publishedRevision
+          ) ?? null
+        }
         onBusy={setSaving}
         onDirty={setDirty}
         onSaved={() => {

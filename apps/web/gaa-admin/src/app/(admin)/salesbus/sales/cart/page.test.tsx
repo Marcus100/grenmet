@@ -29,6 +29,11 @@ const PEN = "22222222-2222-4222-8222-222222222222";
 
 let received: unknown;
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/profile/me`, () =>
+    HttpResponse.json({
+      employment: { department: { id: "dept_met", name: "Meteorology" } },
+    })
+  ),
   http.post(`${BASE}/api/v1/stores/requisitions`, async ({ request }) => {
     received = await request.json();
     return HttpResponse.json({ id: "x" }, { status: 201 });
@@ -65,6 +70,16 @@ function renderCart() {
 }
 
 describe("cart page", () => {
+  it("shows the requester's department from the staff profile", async () => {
+    renderCart();
+
+    expect(
+      await screen.findByTestId("requisition-department")
+    ).toHaveTextContent(
+      "Requesting for: Meteorology (from your staff profile)"
+    );
+  });
+
   it("saves the cart as a draft without submitting it", async () => {
     renderCart();
 
