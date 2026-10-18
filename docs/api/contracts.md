@@ -487,6 +487,42 @@ holder, tier and admission time plus `issued`, `admitted`, `waiting` and `cancel
 Each admission writes a `ticket.admitted` row to the listing's activity history, and the
 member's ticket carries `admitted_at`; used tickets cannot be cancelled.
 
+### Events outlet cash (E3)
+
+Organiser admins and owners (the door-admission gate; plain members are refused because
+they would handle cash) sell for cash. `GET /events/manage/{listing_id}/outlet` returns tier
+stock, the caller's till and recent outlet sales. `POST .../outlet/till`
+(`{opening_float_minor}`) opens the caller's till for the Grenada day (one per staff member,
+event and day; 409 if already opened) and `POST .../outlet/till/close` (`{counted_minor, note?}`)
+closes it, returning expected cash and the difference. `POST .../outlet/sales`
+(`{items, amount_collected_minor, buyer_name?, buyer_phone?, idempotency_key?}`) issues tickets
+against the same inventory as online claims and returns the tickets with QR tokens;
+`amount_collected_minor` must equal the price total, a till must be open, and a repeated
+`idempotency_key` replays the original sale (`repeat: true`). `GET .../outlet/sales/{order_id}`
+reprints a sale. Outlet buyers need no account (tickets have no `user_id`); the per-account limit
+does not apply. Another organiser's event is 404.
+
+### Events settlement (E4)
+
+`GET /events/manage/{listing_id}/settlement` (organiser admins/owners; another organiser's
+event is 404) returns tickets by channel (`online`, `outlet_cash`: `issued`, `claimed`,
+`admitted`, `waiting`, `cancelled`, `refunded`, `value_minor`, plus cash taken), per-tier
+stock, every till with expected, counted and difference, cash totals and `discrepancies`
+(`till_short`, `till_over`, `till_open`). `GET .../settlement.csv` downloads the same report
+as CSV. `GET /events/manage/settlement` returns one summary row per ticketed event.
+
+### Events cancel, postpone and refund (E5)
+
+`POST /events/manage/{listing_id}/cancel` (`{confirm: true}`) cancels a published event and all
+its valid tickets (`tickets_cancelled` in the response) and notifies going, saved and
+ticket-holding members through the outbox. `POST .../postpone` (`{starts_at, ends_at}`) moves a
+published event to future times and keeps tickets valid. `POST .../tickets/{ticket_id}/refund`
+(`{amount_minor, method: "cash"|"bank", reference?}`, 201) records a manual refund for an outlet
+cash ticket: 409 for online tickets (free), free tickets, amounts above the price, a bank refund
+without a reference, a ticket already refunded or cancelled by its holder, or a used ticket unless
+the event was cancelled. Ticket `status` can now be `refunded`; refunded tickets are not
+admitted. The settlement report lists `refunds` and per-channel `refunded`/`refunded_minor`.
+
 ## Pagination
 
 The standard helper is `src.pagination`:

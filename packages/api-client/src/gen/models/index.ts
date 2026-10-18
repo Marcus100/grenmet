@@ -1060,6 +1060,8 @@ export { calendarEventKind } from "./CalendarEventKind.js";
 export type { CalendarEventPublic } from "./CalendarEventPublic.js";
 export type { CalendarEventsPublic } from "./CalendarEventsPublic.js";
 export type { CalendarEventUpdate } from "./CalendarEventUpdate.js";
+export type { CancelEvent } from "./CancelEvent.js";
+export type { CancelResult } from "./CancelResult.js";
 export type { CapAlertAction } from "./CapAlertAction.js";
 export type { CapAlertCreate } from "./CapAlertCreate.js";
 export type { CapAlertImportRequest } from "./CapAlertImportRequest.js";
@@ -1773,6 +1775,21 @@ export type {
   EventsBlockMemberStatus429,
 } from "./EventsBlockMember.js";
 export type {
+  EventsCancelEventBody,
+  EventsCancelEventOptions,
+  EventsCancelEventPath,
+  EventsCancelEventQuery,
+  EventsCancelEventResponse,
+  EventsCancelEventResponses,
+  EventsCancelEventStatus200,
+  EventsCancelEventStatus401,
+  EventsCancelEventStatus403,
+  EventsCancelEventStatus404,
+  EventsCancelEventStatus409,
+  EventsCancelEventStatus422,
+  EventsCancelEventStatus429,
+} from "./EventsCancelEvent.js";
+export type {
   EventsCancelListingRsvpOptions,
   EventsCancelListingRsvpPath,
   EventsCancelListingRsvpResponse,
@@ -1808,6 +1825,21 @@ export type {
   EventsClaimTicketsStatus422,
   EventsClaimTicketsStatus429,
 } from "./EventsClaimTickets.js";
+export type {
+  EventsCloseTillBody,
+  EventsCloseTillOptions,
+  EventsCloseTillPath,
+  EventsCloseTillQuery,
+  EventsCloseTillResponse,
+  EventsCloseTillResponses,
+  EventsCloseTillStatus200,
+  EventsCloseTillStatus401,
+  EventsCloseTillStatus403,
+  EventsCloseTillStatus404,
+  EventsCloseTillStatus409,
+  EventsCloseTillStatus422,
+  EventsCloseTillStatus429,
+} from "./EventsCloseTill.js";
 export type {
   EventsCreateManagedListingBody,
   EventsCreateManagedListingOptions,
@@ -1963,6 +1995,47 @@ export type {
   EventsGetOrganiserStatus422,
 } from "./EventsGetOrganiser.js";
 export type {
+  EventsGetOrganiserSettlementOptions,
+  EventsGetOrganiserSettlementQuery,
+  EventsGetOrganiserSettlementResponse,
+  EventsGetOrganiserSettlementResponses,
+  EventsGetOrganiserSettlementStatus200,
+  EventsGetOrganiserSettlementStatus401,
+  EventsGetOrganiserSettlementStatus403,
+  EventsGetOrganiserSettlementStatus404,
+  EventsGetOrganiserSettlementStatus409,
+  EventsGetOrganiserSettlementStatus422,
+  EventsGetOrganiserSettlementStatus429,
+} from "./EventsGetOrganiserSettlement.js";
+export type {
+  EventsGetOutletOptions,
+  EventsGetOutletPath,
+  EventsGetOutletQuery,
+  EventsGetOutletResponse,
+  EventsGetOutletResponses,
+  EventsGetOutletStatus200,
+  EventsGetOutletStatus401,
+  EventsGetOutletStatus403,
+  EventsGetOutletStatus404,
+  EventsGetOutletStatus409,
+  EventsGetOutletStatus422,
+  EventsGetOutletStatus429,
+} from "./EventsGetOutlet.js";
+export type {
+  EventsGetOutletSaleOptions,
+  EventsGetOutletSalePath,
+  EventsGetOutletSaleQuery,
+  EventsGetOutletSaleResponse,
+  EventsGetOutletSaleResponses,
+  EventsGetOutletSaleStatus200,
+  EventsGetOutletSaleStatus401,
+  EventsGetOutletSaleStatus403,
+  EventsGetOutletSaleStatus404,
+  EventsGetOutletSaleStatus409,
+  EventsGetOutletSaleStatus422,
+  EventsGetOutletSaleStatus429,
+} from "./EventsGetOutletSale.js";
+export type {
   EventsGetPersonOptions,
   EventsGetPersonPath,
   EventsGetPersonResponse,
@@ -1971,6 +2044,34 @@ export type {
   EventsGetPersonStatus404,
   EventsGetPersonStatus422,
 } from "./EventsGetPerson.js";
+export type {
+  EventsGetSettlementOptions,
+  EventsGetSettlementPath,
+  EventsGetSettlementQuery,
+  EventsGetSettlementResponse,
+  EventsGetSettlementResponses,
+  EventsGetSettlementStatus200,
+  EventsGetSettlementStatus401,
+  EventsGetSettlementStatus403,
+  EventsGetSettlementStatus404,
+  EventsGetSettlementStatus409,
+  EventsGetSettlementStatus422,
+  EventsGetSettlementStatus429,
+} from "./EventsGetSettlement.js";
+export type {
+  EventsGetSettlementCsvOptions,
+  EventsGetSettlementCsvPath,
+  EventsGetSettlementCsvQuery,
+  EventsGetSettlementCsvResponse,
+  EventsGetSettlementCsvResponses,
+  EventsGetSettlementCsvStatus200,
+  EventsGetSettlementCsvStatus401,
+  EventsGetSettlementCsvStatus403,
+  EventsGetSettlementCsvStatus404,
+  EventsGetSettlementCsvStatus409,
+  EventsGetSettlementCsvStatus422,
+  EventsGetSettlementCsvStatus429,
+} from "./EventsGetSettlementCsv.js";
 export type {
   EventsGetThreadOptions,
   EventsGetThreadPath,
@@ -2091,6 +2192,51 @@ export type {
   EventsOpenThreadStatus429,
 } from "./EventsOpenThread.js";
 export type {
+  EventsOpenTillBody,
+  EventsOpenTillOptions,
+  EventsOpenTillPath,
+  EventsOpenTillQuery,
+  EventsOpenTillResponse,
+  EventsOpenTillResponses,
+  EventsOpenTillStatus201,
+  EventsOpenTillStatus401,
+  EventsOpenTillStatus403,
+  EventsOpenTillStatus404,
+  EventsOpenTillStatus409,
+  EventsOpenTillStatus422,
+  EventsOpenTillStatus429,
+} from "./EventsOpenTill.js";
+export type {
+  EventsPostponeEventBody,
+  EventsPostponeEventOptions,
+  EventsPostponeEventPath,
+  EventsPostponeEventQuery,
+  EventsPostponeEventResponse,
+  EventsPostponeEventResponses,
+  EventsPostponeEventStatus200,
+  EventsPostponeEventStatus401,
+  EventsPostponeEventStatus403,
+  EventsPostponeEventStatus404,
+  EventsPostponeEventStatus409,
+  EventsPostponeEventStatus422,
+  EventsPostponeEventStatus429,
+} from "./EventsPostponeEvent.js";
+export type {
+  EventsRefundTicketBody,
+  EventsRefundTicketOptions,
+  EventsRefundTicketPath,
+  EventsRefundTicketQuery,
+  EventsRefundTicketResponse,
+  EventsRefundTicketResponses,
+  EventsRefundTicketStatus201,
+  EventsRefundTicketStatus401,
+  EventsRefundTicketStatus403,
+  EventsRefundTicketStatus404,
+  EventsRefundTicketStatus409,
+  EventsRefundTicketStatus422,
+  EventsRefundTicketStatus429,
+} from "./EventsRefundTicket.js";
+export type {
   EventsRemoveConnectionOptions,
   EventsRemoveConnectionPath,
   EventsRemoveConnectionResponse,
@@ -2160,6 +2306,21 @@ export type {
   EventsSaveListingStatus422,
   EventsSaveListingStatus429,
 } from "./EventsSaveListing.js";
+export type {
+  EventsSellOutletTicketsBody,
+  EventsSellOutletTicketsOptions,
+  EventsSellOutletTicketsPath,
+  EventsSellOutletTicketsQuery,
+  EventsSellOutletTicketsResponse,
+  EventsSellOutletTicketsResponses,
+  EventsSellOutletTicketsStatus201,
+  EventsSellOutletTicketsStatus401,
+  EventsSellOutletTicketsStatus403,
+  EventsSellOutletTicketsStatus404,
+  EventsSellOutletTicketsStatus409,
+  EventsSellOutletTicketsStatus422,
+  EventsSellOutletTicketsStatus429,
+} from "./EventsSellOutletTickets.js";
 export type {
   EventsSendMessageBody,
   EventsSendMessageOptions,
@@ -4241,6 +4402,8 @@ export type { ManagedListing } from "./ManagedListing.js";
 export type { ManagedOrganiser } from "./ManagedOrganiser.js";
 export type { Manifest } from "./Manifest.js";
 export type { ManifestRow } from "./ManifestRow.js";
+export type { ManifestRowPropertiesChannelEnum } from "./ManifestRowPropertiesChannelEnum.js";
+export { manifestRowPropertiesChannelEnum } from "./ManifestRowPropertiesChannelEnum.js";
 export type { MarineResponse } from "./MarineResponse.js";
 export type { MarineRow } from "./MarineRow.js";
 export type { MemberListPublic } from "./MemberListPublic.js";
@@ -4730,6 +4893,14 @@ export type { OrganiserLogoUpdate } from "./OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./OrganiserOption.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OrganiserReview } from "./OrganiserReview.js";
+export type { OutletItemInput } from "./OutletItemInput.js";
+export type { OutletOverview } from "./OutletOverview.js";
+export type { OutletSale } from "./OutletSale.js";
+export type { OutletSaleCreate } from "./OutletSaleCreate.js";
+export type { OutletTicket } from "./OutletTicket.js";
+export type { OutletTicketPropertiesStatusEnum } from "./OutletTicketPropertiesStatusEnum.js";
+export { outletTicketPropertiesStatusEnum } from "./OutletTicketPropertiesStatusEnum.js";
+export type { OutletTierStock } from "./OutletTierStock.js";
 export type { OutlookProductPreview } from "./OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js";
 export type { OutlookProductWrite } from "./OutlookProductWrite.js";
@@ -4767,6 +4938,8 @@ export type { PlatformOrganisationUpdate } from "./PlatformOrganisationUpdate.js
 export type { PolicyInput } from "./PolicyInput.js";
 export type { PolicyPublic } from "./PolicyPublic.js";
 export type { PositionSpec } from "./PositionSpec.js";
+export type { PostponeEvent } from "./PostponeEvent.js";
+export type { PostponeResult } from "./PostponeResult.js";
 export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./ProductAccessInput.js";
 export type { ProductAccessPublic } from "./ProductAccessPublic.js";
@@ -4856,6 +5029,10 @@ export type { RedemptionConfirm } from "./RedemptionConfirm.js";
 export type { RedemptionConfirmed } from "./RedemptionConfirmed.js";
 export type { RedemptionPublic } from "./RedemptionPublic.js";
 export type { RedemptionRequest } from "./RedemptionRequest.js";
+export type { RefundCreate } from "./RefundCreate.js";
+export type { RefundCreatePropertiesMethodEnum } from "./RefundCreatePropertiesMethodEnum.js";
+export { refundCreatePropertiesMethodEnum } from "./RefundCreatePropertiesMethodEnum.js";
+export type { RefundPublic } from "./RefundPublic.js";
 export type { RegisterObservationCreate } from "./RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./RegisterObservationList.js";
 export type { RegisterObservationRead } from "./RegisterObservationRead.js";
@@ -5113,6 +5290,18 @@ export type { SessionLoginResponse } from "./SessionLoginResponse.js";
 export type { SessionPublic } from "./SessionPublic.js";
 export type { SessionTokenRequest } from "./SessionTokenRequest.js";
 export type { SessionUserPublic } from "./SessionUserPublic.js";
+export type { Settlement } from "./Settlement.js";
+export type { SettlementCash } from "./SettlementCash.js";
+export type { SettlementChannel } from "./SettlementChannel.js";
+export type { SettlementChannelPropertiesChannelEnum } from "./SettlementChannelPropertiesChannelEnum.js";
+export { settlementChannelPropertiesChannelEnum } from "./SettlementChannelPropertiesChannelEnum.js";
+export type { SettlementCounts } from "./SettlementCounts.js";
+export type { SettlementIssue } from "./SettlementIssue.js";
+export type { SettlementIssuePropertiesKindEnum } from "./SettlementIssuePropertiesKindEnum.js";
+export { settlementIssuePropertiesKindEnum } from "./SettlementIssuePropertiesKindEnum.js";
+export type { SettlementOverview } from "./SettlementOverview.js";
+export type { SettlementSummary } from "./SettlementSummary.js";
+export type { SettlementTier } from "./SettlementTier.js";
 export type { ShiftAssignmentCreate } from "./ShiftAssignmentCreate.js";
 export type { ShiftAssignmentUpdate } from "./ShiftAssignmentUpdate.js";
 export type { ShiftCatalogCreate } from "./ShiftCatalogCreate.js";
@@ -5501,11 +5690,14 @@ export type { ThreadDetailPropertiesKindEnum } from "./ThreadDetailPropertiesKin
 export { threadDetailPropertiesKindEnum } from "./ThreadDetailPropertiesKindEnum.js";
 export type { ThreadSummary } from "./ThreadSummary.js";
 export type { TicketDetail } from "./TicketDetail.js";
-export type { TicketDetailPropertiesStatusEnum } from "./TicketDetailPropertiesStatusEnum.js";
-export { ticketDetailPropertiesStatusEnum } from "./TicketDetailPropertiesStatusEnum.js";
 export type { TicketSummary } from "./TicketSummary.js";
 export type { TierInput } from "./TierInput.js";
 export type { TierPublic } from "./TierPublic.js";
+export type { TillClose } from "./TillClose.js";
+export type { TillOpen } from "./TillOpen.js";
+export type { TillPublic } from "./TillPublic.js";
+export type { TillPublicPropertiesStatusEnum } from "./TillPublicPropertiesStatusEnum.js";
+export { tillPublicPropertiesStatusEnum } from "./TillPublicPropertiesStatusEnum.js";
 export type { TimesheetCreate } from "./TimesheetCreate.js";
 export type { TimesheetDetails } from "./TimesheetDetails.js";
 export type { TimesheetEntryInput } from "./TimesheetEntryInput.js";

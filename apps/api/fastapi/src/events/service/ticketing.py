@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Literal
 
 from pydantic import TypeAdapter
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -27,12 +27,16 @@ from .common import _naive_utc, _pairs
 
 _PARISH = TypeAdapter(schemas.Parish)
 _CURRENCY = TypeAdapter(Literal["XCD", "USD"])
-_STATUS = TypeAdapter(Literal["valid", "cancelled"])
+_STATUS = TypeAdapter(Literal["valid", "cancelled", "refunded"])
 
 
 async def _claimable_listing(db: AsyncSession, slug: str) -> Listing:
+    # A shared lock on the listing row serialises a claim against an organiser
+    # cancelling the event (which takes the exclusive lock).
     listing = await db.scalar(
-        select(Listing).where(Listing.slug == slug, Listing.status == "published")
+        select(Listing)
+        .where(Listing.slug == slug, Listing.status == "published")
+        .with_for_update(read=True)
     )
     if listing is None:
         raise EventsNotFound("Event not found")
@@ -239,3 +243,18 @@ async def cancel_ticket(
     db.add(ticket)
     await db.commit()
     return _summary(ticket, listing, tier.name)
+
+
+async def cancel_valid_tickets(db: AsyncSession, listing_id: uuid.UUID) -> int:
+    """Cancel every valid ticket of a cancelled event; returns how many.
+
+    The caller holds the listing row lock (it just changed the listing), and
+    claims and outlet sales take a shared lock on it, so none can slip in.
+    """
+    result = await db.execute(
+        update(Ticket)
+        .where(Ticket.listing_id == listing_id, Ticket.status == "valid")
+        .values(status="cancelled", cancelled_at=utc_now())
+        .returning(Ticket.id)
+    )
+    return len(result.all())

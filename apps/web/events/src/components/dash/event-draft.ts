@@ -108,12 +108,16 @@ export function emptyDraft(now: Date): EventDraft {
   };
 }
 
-export function draftStartsAt(draft: EventDraft): string {
+export function draftStartsAt(
+  draft: Pick<EventDraft, "date" | "startTime">
+): string {
   return `${draft.date}T${draft.startTime}:00${GRENADA_OFFSET}`;
 }
 
 /** End instant; an end time at or before the start means "after midnight". */
-export function draftEndsAt(draft: EventDraft): string {
+export function draftEndsAt(
+  draft: Pick<EventDraft, "date" | "endTime" | "startTime">
+): string {
   const date =
     draft.endTime > draft.startTime ? draft.date : addDaysToKey(draft.date, 1);
   return `${date}T${draft.endTime}:00${GRENADA_OFFSET}`;

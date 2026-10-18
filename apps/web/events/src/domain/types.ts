@@ -294,7 +294,7 @@ export interface MyTicket {
   readonly listingTitle: string;
   readonly parish: Parish;
   readonly startsAt: string;
-  readonly status: "valid" | "cancelled";
+  readonly status: "valid" | "cancelled" | "refunded";
   readonly tierName: string;
   readonly venue: string;
 }
@@ -489,4 +489,172 @@ export interface DoorAdmission {
   /** True when the scan repeated an earlier one with the same key. */
   readonly repeat: boolean;
   readonly tierName: string;
+}
+
+/** A manual refund recorded against an outlet cash ticket. */
+export interface Refund {
+  readonly amountMinor: number;
+  readonly code: string;
+  readonly id: string;
+  readonly method: "cash" | "bank";
+  readonly reference: string | null;
+  readonly refundedAt: string;
+  readonly refundedByName: string | null;
+  readonly ticketId: string;
+  readonly tierName: string;
+}
+
+/** One ticket sold at the outlet; the QR token is printed on the slip. */
+export interface OutletTicket {
+  readonly admittedAt: string | null;
+  /** A cash outlet ticket that can still be refunded. */
+  readonly canRefund: boolean;
+  readonly code: string;
+  readonly id: string;
+  readonly priceMinor: number;
+  readonly qrToken: string;
+  readonly refund: Refund | null;
+  readonly status: "valid" | "cancelled" | "refunded";
+  readonly tierName: string;
+}
+
+/** An outlet cash sale: one order with its tickets. */
+export interface OutletSale {
+  readonly buyerName: string | null;
+  readonly buyerPhone: string | null;
+  readonly collectedMinor: number;
+  readonly createdAt: string;
+  readonly currency: CurrencyCode;
+  readonly listingId: string;
+  readonly listingTitle: string;
+  readonly orderId: string;
+  readonly soldByName: string | null;
+  readonly startsAt: string;
+  readonly tickets: readonly OutletTicket[];
+  readonly totalMinor: number;
+  readonly venue: string;
+}
+
+/** One staff member's cash till for the event. */
+export interface Till {
+  readonly cashRefundsMinor: number;
+  readonly closedAt: string | null;
+  readonly closeNote: string | null;
+  readonly collectedMinor: number;
+  readonly countedMinor: number | null;
+  readonly day: string;
+  readonly differenceMinor: number | null;
+  readonly expectedMinor: number;
+  readonly id: string;
+  readonly openedAt: string;
+  readonly openingFloatMinor: number;
+  readonly salesCount: number;
+  readonly staffName: string | null;
+  readonly status: "open" | "closed";
+  readonly ticketsSold: number;
+}
+
+export interface OutletTier {
+  readonly allocation: number;
+  readonly currency: CurrencyCode;
+  readonly id: string;
+  readonly name: string;
+  readonly priceMinor: number;
+  readonly remaining: number;
+  readonly sold: number;
+}
+
+/** Everything the outlet sale screen shows. */
+export interface Outlet {
+  readonly listingId: string;
+  readonly sales: readonly OutletSale[];
+  /** False once the event has ended, been cancelled or is not ticketed. */
+  readonly selling: boolean;
+  readonly startsAt: string;
+  readonly tiers: readonly OutletTier[];
+  readonly till: Till | null;
+  readonly title: string;
+}
+
+/** Ticket counts for one slice of the settlement report. */
+export interface SettlementCounts {
+  readonly admitted: number;
+  readonly cancelled: number;
+  readonly claimed: number;
+  readonly issued: number;
+  readonly refunded: number;
+  readonly valueMinor: number;
+  readonly waiting: number;
+}
+
+export interface SettlementChannel extends SettlementCounts {
+  readonly channel: "online" | "outlet_cash";
+  readonly collectedMinor: number;
+  readonly refundedMinor: number;
+}
+
+export interface SettlementTier {
+  readonly admitted: number;
+  readonly allocation: number;
+  readonly id: string;
+  readonly name: string;
+  readonly online: number;
+  readonly outlet: number;
+  readonly priceMinor: number;
+  readonly remaining: number;
+}
+
+export interface SettlementCash {
+  readonly cashRefundsMinor: number;
+  readonly closedTills: number;
+  readonly collectedMinor: number;
+  readonly countedMinor: number;
+  readonly differenceMinor: number;
+  readonly expectedMinor: number;
+  readonly netSalesMinor: number;
+  readonly openTills: number;
+}
+
+export interface SettlementIssue {
+  readonly amountMinor: number | null;
+  readonly kind:
+    | "till_short"
+    | "till_over"
+    | "till_open"
+    | "refund_without_till";
+  readonly message: string;
+  readonly tillId: string | null;
+}
+
+/** An event's settlement: tickets by channel, stock, tills and mismatches. */
+export interface Settlement {
+  readonly cash: SettlementCash;
+  readonly channels: readonly SettlementChannel[];
+  readonly currency: CurrencyCode;
+  readonly discrepancies: readonly SettlementIssue[];
+  readonly endsAt: string;
+  readonly generatedAt: string;
+  readonly listingId: string;
+  readonly refunds: readonly Refund[];
+  readonly startsAt: string;
+  readonly status: "draft" | "published" | "cancelled";
+  readonly tiers: readonly SettlementTier[];
+  readonly tills: readonly Till[];
+  readonly title: string;
+  readonly totals: SettlementCounts;
+}
+
+export interface SettlementSummary {
+  readonly admitted: number;
+  readonly cancelled: number;
+  readonly cashCollectedMinor: number;
+  readonly cashCountedMinor: number;
+  readonly cashExpectedMinor: number;
+  readonly claimed: number;
+  readonly issued: number;
+  readonly issues: number;
+  readonly listingId: string;
+  readonly startsAt: string;
+  readonly status: "draft" | "published" | "cancelled";
+  readonly title: string;
 }

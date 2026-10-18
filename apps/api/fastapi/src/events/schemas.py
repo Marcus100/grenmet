@@ -372,7 +372,7 @@ class TicketSummary(BaseModel):
     id: uuid.UUID
     #: Opaque code printed under the QR, for manual entry at the door.
     code: str
-    status: Literal["valid", "cancelled"]
+    status: Literal["valid", "cancelled", "refunded"]
     tier_name: str
     listing_slug: str
     listing_title: str
@@ -425,6 +425,8 @@ class ManifestRow(BaseModel):
     holder_name: str | None = None
     tier_name: str
     admitted_at: UtcDateTime | None = None
+    #: "online" (member claim) or "outlet" (cash sale by staff).
+    channel: Literal["online", "outlet"] = "online"
 
 
 class Manifest(BaseModel):
@@ -438,3 +440,258 @@ class Manifest(BaseModel):
     waiting: int
     cancelled: int
     rows: list[ManifestRow]
+
+
+class RefundCreate(BaseModel):
+    amount_minor: int = Field(ge=1, le=100_000_000)
+    method: Literal["cash", "bank"]
+    #: Bank transfer reference; required for bank refunds.
+    reference: str | None = Field(default=None, max_length=120)
+
+
+class PostponeResult(BaseModel):
+    listing_id: uuid.UUID
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+
+
+class RefundPublic(BaseModel):
+    id: uuid.UUID
+    ticket_id: uuid.UUID
+    code: str
+    tier_name: str
+    amount_minor: int
+    method: Literal["cash", "bank"]
+    reference: str | None = None
+    refunded_by_name: str | None = None
+    refunded_at: UtcDateTime
+    till_session_id: uuid.UUID | None = None
+
+
+# --- Outlet cash sales (E3) -------------------------------------------------------------
+
+Currency = Literal["XCD", "USD"]
+
+
+class OutletItemInput(BaseModel):
+    tier_id: uuid.UUID
+    quantity: int = Field(ge=1, le=50)
+
+
+class OutletSaleCreate(BaseModel):
+    items: list[OutletItemInput] = Field(min_length=1, max_length=10)
+    #: Cash taken, in minor units of the tier currency. Must equal the price total.
+    amount_collected_minor: int = Field(ge=0, le=100_000_000)
+    buyer_name: str | None = Field(default=None, max_length=120)
+    buyer_phone: str | None = Field(default=None, max_length=40)
+    #: Client-generated key; a retried sale replays the original instead of selling twice.
+    idempotency_key: str | None = Field(default=None, min_length=1, max_length=64)
+
+
+class OutletTicket(BaseModel):
+    id: uuid.UUID
+    code: str
+    #: Signed token to print as the ticket's QR code. Carries no personal data.
+    qr_token: str
+    tier_name: str
+    price_minor: int
+    status: Literal["valid", "cancelled", "refunded"]
+    admitted_at: UtcDateTime | None = None
+    #: Refund recorded for this ticket, if any.
+    refund: RefundPublic | None = None
+    #: A cash outlet ticket that can still be refunded.
+    can_refund: bool = False
+
+
+class OutletSale(BaseModel):
+    order_id: uuid.UUID
+    listing_id: uuid.UUID
+    listing_title: str
+    venue: str
+    starts_at: UtcDateTime
+    currency: Currency
+    total_minor: int
+    collected_minor: int
+    buyer_name: str | None = None
+    buyer_phone: str | None = None
+    sold_by_name: str | None = None
+    till_session_id: uuid.UUID | None = None
+    created_at: UtcDateTime
+    #: True when this response replays an earlier sale with the same key.
+    repeat: bool = False
+    tickets: list[OutletTicket]
+
+
+class TillOpen(BaseModel):
+    opening_float_minor: int = Field(ge=0, le=100_000_000)
+
+
+class TillClose(BaseModel):
+    counted_minor: int = Field(ge=0, le=1_000_000_000)
+    note: str | None = Field(default=None, max_length=300)
+
+
+class TillPublic(BaseModel):
+    id: uuid.UUID
+    staff_id: uuid.UUID
+    staff_name: str | None = None
+    #: Grenada calendar day the till was opened.
+    day: date
+    status: Literal["open", "closed"]
+    opening_float_minor: int
+    opened_at: UtcDateTime
+    closed_at: UtcDateTime | None = None
+    sales_count: int
+    tickets_sold: int
+    collected_minor: int
+    #: Cash handed back as refunds from this till.
+    cash_refunds_minor: int = 0
+    #: Float plus takings minus cash refunds.
+    expected_minor: int
+    counted_minor: int | None = None
+    #: Counted minus expected once closed (negative is short, positive is over).
+    difference_minor: int | None = None
+    close_note: str | None = None
+
+
+class OutletTierStock(BaseModel):
+    id: uuid.UUID
+    name: str
+    price_minor: int
+    currency: Currency
+    allocation: int
+    sold: int
+    remaining: int
+
+
+class OutletOverview(BaseModel):
+    listing_id: uuid.UUID
+    title: str
+    starts_at: UtcDateTime
+    status: Literal["draft", "published", "cancelled"]
+    #: Whether the event can still be sold (published, ticketed, not ended).
+    selling: bool
+    tiers: list[OutletTierStock]
+    #: The caller's till for the current open session or today's closed one.
+    till: TillPublic | None = None
+    #: Recent outlet sales for the event, newest first.
+    sales: list[OutletSale]
+
+
+# --- Settlement (E4) ----------------------------------------------------------------------
+
+
+class SettlementCounts(BaseModel):
+    """Ticket counts. ``claimed`` is issued minus cancelled and refunded."""
+
+    issued: int
+    claimed: int
+    admitted: int
+    #: Claimed but not yet admitted.
+    waiting: int
+    cancelled: int
+    refunded: int
+    #: Face value of claimed tickets, in minor units.
+    value_minor: int
+
+
+class SettlementChannel(SettlementCounts):
+    channel: Literal["online", "outlet_cash"]
+    #: Cash taken at the outlet (always 0 online: payment isn't available yet).
+    collected_minor: int
+    #: Refunds recorded against this channel's tickets.
+    refunded_minor: int
+
+
+class SettlementTier(BaseModel):
+    id: uuid.UUID
+    name: str
+    price_minor: int
+    allocation: int
+    online: int
+    outlet: int
+    admitted: int
+    remaining: int
+
+
+class SettlementCash(BaseModel):
+    """Cash across every till. Difference counts closed tills only."""
+
+    collected_minor: int
+    cash_refunds_minor: int
+    #: Takings after cash refunds, excluding opening floats.
+    net_sales_minor: int
+    expected_minor: int
+    counted_minor: int
+    difference_minor: int
+    open_tills: int
+    closed_tills: int
+
+
+class SettlementIssue(BaseModel):
+    kind: Literal[
+        "till_short",
+        "till_over",
+        "till_open",
+        "refund_without_till",
+    ]
+    message: str
+    till_id: uuid.UUID | None = None
+    amount_minor: int | None = None
+
+
+class Settlement(BaseModel):
+    listing_id: uuid.UUID
+    title: str
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+    status: Literal["draft", "published", "cancelled"]
+    currency: Literal["XCD", "USD"]
+    generated_at: UtcDateTime
+    totals: SettlementCounts
+    channels: list[SettlementChannel]
+    tiers: list[SettlementTier]
+    tills: list[TillPublic]
+    cash: SettlementCash
+    discrepancies: list[SettlementIssue]
+    refunds: list[RefundPublic]
+
+
+class SettlementSummary(BaseModel):
+    listing_id: uuid.UUID
+    title: str
+    starts_at: UtcDateTime
+    status: Literal["draft", "published", "cancelled"]
+    issued: int
+    claimed: int
+    admitted: int
+    cancelled: int
+    cash_collected_minor: int
+    cash_expected_minor: int
+    cash_counted_minor: int
+    issues: int
+
+
+class SettlementOverview(BaseModel):
+    organiser_name: str
+    listings: list[SettlementSummary]
+
+
+# --- Cancel, postpone and refund (E5) ---------------------------------------------------
+
+
+class CancelEvent(BaseModel):
+    #: Must be true; guards against an accidental call.
+    confirm: Literal[True]
+
+
+class CancelResult(BaseModel):
+    listing_id: uuid.UUID
+    status: Literal["cancelled"]
+    #: Valid tickets cancelled with the event (holders are notified).
+    tickets_cancelled: int
+
+
+class PostponeEvent(BaseModel):
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime

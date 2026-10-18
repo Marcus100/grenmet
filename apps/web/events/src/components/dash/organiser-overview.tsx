@@ -3,7 +3,13 @@ import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import type { ManagedEvent, Organiser, OrganiserOption } from "@/domain/types";
+import { formatMoney, money } from "@/domain/money";
+import type {
+  ManagedEvent,
+  Organiser,
+  OrganiserOption,
+  SettlementSummary,
+} from "@/domain/types";
 import { formatEventDate } from "@/lib/datetime";
 import { DashShell } from "./dash-shell";
 import { OrganiserLogo } from "./organiser-logo";
@@ -59,6 +65,57 @@ function CountTile({ label, value }: { label: string; value: number }) {
   );
 }
 
+function SettlementPanel({ rows }: { rows: readonly SettlementSummary[] }) {
+  return (
+    <section className="rounded-2xl border border-border bg-card p-4">
+      <h2 className="font-semibold text-body-base">Settlement</h2>
+      {rows.length === 0 ? (
+        <p className="mt-1 text-body text-muted-foreground">
+          No ticketed events to settle yet.
+        </p>
+      ) : (
+        <table className="mt-2 w-full text-left text-caption">
+          <thead className="text-muted-foreground">
+            <tr>
+              <th className="py-1 font-medium">Event</th>
+              <th className="py-1 font-medium">Issued</th>
+              <th className="py-1 font-medium">Admitted</th>
+              <th className="py-1 font-medium">Cash</th>
+              <th className="py-1 font-medium">Issues</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {rows.map((row) => (
+              <tr key={row.listingId}>
+                <td className="py-1.5">
+                  <Link
+                    className="font-medium hover:underline"
+                    href={`/dash/events/${row.listingId}/settlement`}
+                  >
+                    {row.title}
+                  </Link>
+                </td>
+                <td className="py-1.5 tabular-nums">{row.issued}</td>
+                <td className="py-1.5 tabular-nums">{row.admitted}</td>
+                <td className="py-1.5 tabular-nums">
+                  {formatMoney(money(row.cashCollectedMinor, "XCD"))}
+                </td>
+                <td className="py-1.5 tabular-nums">
+                  {row.issues > 0 ? (
+                    <Badge variant="light-warning">{row.issues}</Badge>
+                  ) : (
+                    "0"
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+
 function UnavailablePanel({ title }: { title: string }) {
   return (
     <section className="rounded-2xl border border-border border-dashed bg-card p-4">
@@ -71,19 +128,21 @@ function UnavailablePanel({ title }: { title: string }) {
 }
 
 /**
- * Organiser overview built from the real listings API. Sales and settlement
- * have no backing API yet, so they are empty states rather than figures.
+ * Organiser overview built from the real listings API. Sales has no backing
+ * API yet (an empty state); settlement comes from the settlement summaries.
  */
 export function OrganiserOverview({
   listings,
   now,
   organiser,
   organisers = [],
+  settlement = [],
 }: {
   listings: readonly ManagedEvent[];
   now: Date;
   organiser: Organiser;
   organisers?: readonly OrganiserOption[];
+  settlement?: readonly SettlementSummary[];
 }) {
   const counts = countListings(listings, now);
   const recent = [...listings]
@@ -177,7 +236,7 @@ export function OrganiserOverview({
 
         <div className="grid gap-4 md:grid-cols-2">
           <UnavailablePanel title="Ticket sales" />
-          <UnavailablePanel title="Settlement" />
+          <SettlementPanel rows={settlement} />
         </div>
       </main>
     </DashShell>

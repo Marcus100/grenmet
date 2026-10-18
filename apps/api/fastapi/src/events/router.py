@@ -708,6 +708,246 @@ async def get_manifest(
     return await service.manifest(session, user, listing_id, scope, organiser)
 
 
+@router.get(
+    "/manage/settlement",
+    response_model=schemas.SettlementOverview,
+    status_code=status.HTTP_200_OK,
+    summary="Settlement across my events",
+    description="One summary row per ticketed event: issued, claimed, admitted, cancelled and cash, with a count of discrepancies.",
+    responses=_ORGANISER,
+)
+async def get_organiser_settlement(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    organiser: _ManagedSlug = None,
+) -> schemas.SettlementOverview:
+    return await service.organiser_settlement(session, user, scope, organiser)
+
+
+@router.get(
+    "/manage/{listing_id}/settlement",
+    response_model=schemas.Settlement,
+    status_code=status.HTTP_200_OK,
+    summary="Get an event's settlement report",
+    description="Issued vs claimed vs admitted vs cancelled by channel, per-tier stock, and cash expected vs counted per till, with discrepancies listed.",
+    responses=_ORGANISER,
+)
+async def get_settlement(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+) -> schemas.Settlement:
+    return await service.settlement(session, user, listing_id, scope, organiser)
+
+
+@router.get(
+    "/manage/{listing_id}/settlement.csv",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+    summary="Export an event's settlement report as CSV",
+    description="The settlement report as a spreadsheet-ready CSV download.",
+    responses={
+        **_ORGANISER,
+        200: {"content": {"text/csv": {"schema": {"type": "string"}}}},
+    },
+)
+async def get_settlement_csv(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+) -> Response:
+    body = await service.settlement_csv(session, user, listing_id, scope, organiser)
+    return Response(
+        content=body,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="settlement-{listing_id}.csv"'
+        },
+    )
+
+
+@router.post(
+    "/manage/{listing_id}/cancel",
+    response_model=schemas.CancelResult,
+    status_code=status.HTTP_200_OK,
+    summary="Cancel an event",
+    description="Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. Outlet cash tickets can then be refunded.",
+    responses={**_ORGANISER, 409: {"description": "Not a published event"}},
+)
+async def cancel_event(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.CancelEvent,
+    organiser: _ManagedSlug = None,
+) -> schemas.CancelResult:
+    _ = body
+    return await service.cancel_event(session, user, listing_id, scope, organiser)
+
+
+@router.post(
+    "/manage/{listing_id}/postpone",
+    response_model=schemas.PostponeResult,
+    status_code=status.HTTP_200_OK,
+    summary="Postpone an event",
+    description="Move a published event to new times. Tickets stay valid and holders are notified.",
+    responses={**_ORGANISER, 409: {"description": "Invalid times or not published"}},
+)
+async def postpone_event(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.PostponeEvent,
+    organiser: _ManagedSlug = None,
+) -> schemas.PostponeResult:
+    return await service.postpone_event(
+        session, user, listing_id, body, scope, organiser
+    )
+
+
+@router.post(
+    "/manage/{listing_id}/tickets/{ticket_id}/refund",
+    response_model=schemas.RefundPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Record a manual refund",
+    description="Record cash or bank money handed back for an outlet cash ticket. The ticket becomes refunded and can no longer be admitted. Online tickets are free and cannot be refunded.",
+    responses={
+        **_ORGANISER,
+        409: {"description": "Not refundable, already refunded or amount too high"},
+    },
+)
+async def refund_ticket(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    ticket_id: uuid.UUID,
+    body: schemas.RefundCreate,
+    organiser: _ManagedSlug = None,
+) -> schemas.RefundPublic:
+    return await service.refund_ticket(
+        session, user, listing_id, ticket_id, body, scope, organiser
+    )
+
+
+_OUTLET: dict[int | str, dict[str, Any]] = {
+    **_ORGANISER,
+    409: {"description": "Sold out, wrong amount, till not open or event ended"},
+}
+
+
+@router.get(
+    "/manage/{listing_id}/outlet",
+    response_model=schemas.OutletOverview,
+    status_code=status.HTTP_200_OK,
+    summary="Get the outlet sale screen",
+    description="Tier stock, the caller's cash till and recent outlet sales for an event. Organiser admins and owners only.",
+    responses=_ORGANISER,
+)
+async def get_outlet(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+) -> schemas.OutletOverview:
+    return await service.outlet_overview(session, user, listing_id, scope, organiser)
+
+
+@router.post(
+    "/manage/{listing_id}/outlet/till",
+    response_model=schemas.TillPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Open my cash till",
+    description="Start today's till with an opening float. One till per staff member, event and Grenada day.",
+    responses=_OUTLET,
+)
+async def open_till(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.TillOpen,
+    organiser: _ManagedSlug = None,
+) -> schemas.TillPublic:
+    return await service.open_till(session, user, listing_id, body, scope, organiser)
+
+
+@router.post(
+    "/manage/{listing_id}/outlet/till/close",
+    response_model=schemas.TillPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Close my cash till",
+    description="Record the counted cash. The response shows expected cash and the difference.",
+    responses=_OUTLET,
+)
+async def close_till(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.TillClose,
+    organiser: _ManagedSlug = None,
+) -> schemas.TillPublic:
+    return await service.close_till(session, user, listing_id, body, scope, organiser)
+
+
+@router.post(
+    "/manage/{listing_id}/outlet/sales",
+    response_model=schemas.OutletSale,
+    status_code=status.HTTP_201_CREATED,
+    summary="Sell tickets for cash",
+    description="Issue tickets against the shared inventory and record the cash collected. Needs an open till. The buyer needs no account.",
+    responses=_OUTLET,
+)
+async def sell_outlet_tickets(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.OutletSaleCreate,
+    organiser: _ManagedSlug = None,
+) -> schemas.OutletSale:
+    return await service.sell_tickets(session, user, listing_id, body, scope, organiser)
+
+
+@router.get(
+    "/manage/{listing_id}/outlet/sales/{order_id}",
+    response_model=schemas.OutletSale,
+    status_code=status.HTTP_200_OK,
+    summary="Get an outlet sale",
+    description="One outlet sale with its tickets and QR tokens, for printing or reprinting.",
+    responses=_ORGANISER,
+)
+async def get_outlet_sale(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    order_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+) -> schemas.OutletSale:
+    return await service.get_sale(session, user, listing_id, order_id, scope, organiser)
+
+
 @router.put(
     "/manage/listings/{listing_id}",
     response_model=schemas.ManagedListing,
