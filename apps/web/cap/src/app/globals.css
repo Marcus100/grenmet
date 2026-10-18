@@ -1,0 +1,13 @@
+@import "tailwindcss";
+/* Native-app touch behaviour shared by every app (no PWA features). */
+@import "@barrelsgd/ui/styles/app-feel";
+@import "@barrelsgd/ui/styles/globals";
+
+/* GMS brand palette: this is a GMS-branded public alert hub. */
+@import "@barrelsgd/gms/styles/foundation";
+
+/* Tailwind v4 only auto-scans this app's own source; scan the shared package
+   so the reused primitives' utilities are generated (docs/design/gms.md). */
+@source "../../node_modules/@barrelsgd/ui/src";
+/* The GMS package's components (logo) sit outside this app too. */
+@source "../../node_modules/@barrelsgd/gms/src";
