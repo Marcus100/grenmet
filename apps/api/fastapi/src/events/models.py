@@ -8,7 +8,7 @@ import uuid
 from datetime import date, datetime
 
 from sqlalchemy import Date, DateTime, ForeignKey, Integer, MetaData, Text
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from src.utils.datetime import utc_now
@@ -221,3 +221,21 @@ class Suggestion(EventsModel):
     notes: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(Text, default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class Outbox(EventsModel):
+    """Changes that must notify people (F6); drained by the worker, never inline."""
+
+    __tablename__ = "outbox"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    kind: Mapped[str] = mapped_column(Text)
+    entity_type: Mapped[str] = mapped_column(Text)
+    entity_id: Mapped[str] = mapped_column(Text)
+    payload: Mapped[dict[str, str]] = mapped_column(JSONB, default=dict)
+    dedupe_key: Mapped[str] = mapped_column(Text, unique=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    last_error: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+    available_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime)
+    failed_at: Mapped[datetime | None] = mapped_column(DateTime)

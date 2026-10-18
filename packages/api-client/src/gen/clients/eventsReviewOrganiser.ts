@@ -11,7 +11,7 @@ import type {
 } from "../models/EventsReviewOrganiser.js";
 
 /**
- * @description Approve (or withdraw approval of) an organiser account.
+ * @description Approve (or withdraw approval of) an organiser account. Approving queues a notification to the organiser's owners and admins.
  * @summary Verify an organiser
  * {@link /api/v1/events/moderation/organisers/:organiser_id}
  */

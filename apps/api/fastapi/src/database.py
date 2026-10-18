@@ -35,6 +35,7 @@ from src.cap.models import (
     CapWebhook,
 )
 from src.config import settings
+from src.events import notifications as _events_notifications
 from src.hr import audit as _hr_audit
 from src.hr import notifications as _hr_notifications
 from src.hr.absentee.models import AbsenteeReport
@@ -101,6 +102,7 @@ from src.wxwatch import alerts as _wxwatch_alerts
 _hr_audit.register()
 _hr_notifications.register()
 _wxwatch_alerts.register()
+_events_notifications.register()
 _stores_audit.register()
 _organisations_audit.register()
 

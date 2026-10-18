@@ -402,7 +402,9 @@ optional `?organiser=<slug>` to act for one of them. Access is the
 `POST /events/manage/organiser` (any Events member) creates an unverified organiser
 backed by a new platform organisation with the caller as owner (409 for a taken
 address or a second pending request); moderators verify it through
-`PATCH /events/moderation/organisers/{id}`.
+`PATCH /events/moderation/organisers/{id}`. Publishing, cancelling or rescheduling a
+listing and approving an organiser also write `outbox` rows (same Events transaction)
+that the worker turns into notifications; no endpoint is involved.
 
 ## Pagination
 

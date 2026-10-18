@@ -740,7 +740,10 @@ async def list_pending_organisers(
     response_model=schemas.OrganiserPublic,
     status_code=status.HTTP_200_OK,
     summary="Verify an organiser",
-    description="Approve (or withdraw approval of) an organiser account.",
+    description=(
+        "Approve (or withdraw approval of) an organiser account. "
+        "Approving queues a notification to the organiser's owners and admins."
+    ),
     responses=_MODERATOR,
 )
 async def review_organiser(
@@ -750,5 +753,5 @@ async def review_organiser(
     organiser_id: uuid.UUID,
     body: schemas.OrganiserReview,
 ) -> schemas.OrganiserPublic:
-    row = await service.review_organiser(session, organiser_id, body.verified)
+    row = await service.review_organiser(session, organiser_id, body.verified, user)
     return await service.organiser_public(session, row, user.id)

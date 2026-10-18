@@ -3,6 +3,7 @@
 import re
 import secrets
 import uuid
+from datetime import datetime
 from typing import Literal
 
 from pydantic import TypeAdapter
@@ -14,7 +15,7 @@ from src.organisations import service as organisations
 from src.organisations.models import MembershipRole, OrganisationKind
 from src.utils.datetime import utc_now
 
-from .. import schemas
+from .. import outbox, schemas
 from ..exceptions import EventsConflict, EventsForbidden, EventsNotFound
 from ..models import (
     Group,
@@ -190,6 +191,51 @@ async def _apply_listing(
     )
 
 
+async def _queue_listing_effects(
+    db: AsyncSession,
+    listing: Listing,
+    actor: User,
+    *,
+    before_status: str | None,
+    before_starts: datetime | None,
+) -> None:
+    """Outbox rows for what the change means to other people (same transaction)."""
+    payload = {"actor_id": str(actor.id), "starts_at": listing.starts_at.isoformat()}
+    key = str(listing.id)
+    if listing.status == "published" and before_status != "published":
+        await outbox.enqueue(
+            db,
+            kind=outbox.PUBLISHED,
+            entity_type="listing",
+            entity_id=key,
+            dedupe_key=f"listing.published:{key}",
+            payload=payload,
+        )
+    elif listing.status == "cancelled" and before_status != "cancelled":
+        await outbox.enqueue(
+            db,
+            kind=outbox.CANCELLED,
+            entity_type="listing",
+            entity_id=key,
+            dedupe_key=f"listing.cancelled:{key}",
+            payload=payload,
+        )
+    elif (
+        listing.status == "published"
+        and before_status == "published"
+        and before_starts is not None
+        and before_starts != listing.starts_at
+    ):
+        await outbox.enqueue(
+            db,
+            kind=outbox.POSTPONED,
+            entity_type="listing",
+            entity_id=key,
+            dedupe_key=f"listing.postponed:{key}:{listing.starts_at.isoformat()}",
+            payload=payload,
+        )
+
+
 async def create_listing(
     db: AsyncSession,
     user: User,
@@ -200,6 +246,9 @@ async def create_listing(
     organiser = await _my_organiser(db, user, org_ids, slug)
     listing = Listing(slug=await _unique_slug(db, body.title))
     await _apply_listing(db, listing, body, organiser)
+    await _queue_listing_effects(
+        db, listing, user, before_status=None, before_starts=None
+    )
     await db.commit()
     return await _managed(db, listing, user)
 
@@ -216,7 +265,11 @@ async def update_listing(
     listing = await db.get(Listing, listing_id)
     if listing is None or listing.organiser_id != organiser.id:
         raise EventsNotFound("Event not found")
+    before_status, before_starts = listing.status, listing.starts_at
     await _apply_listing(db, listing, body, organiser)
+    await _queue_listing_effects(
+        db, listing, user, before_status=before_status, before_starts=before_starts
+    )
     await db.commit()
     return await _managed(db, listing, user)
 
@@ -298,12 +351,22 @@ async def pending_organisers(db: AsyncSession) -> list[Organiser]:
 
 
 async def review_organiser(
-    db: AsyncSession, organiser_id: uuid.UUID, verified: bool
+    db: AsyncSession, organiser_id: uuid.UUID, verified: bool, actor: User
 ) -> Organiser:
     organiser = await db.get(Organiser, organiser_id)
     if organiser is None:
         raise EventsNotFound("Organiser not found")
+    was_verified = organiser.verified
     organiser.verified = verified
     db.add(organiser)
+    if verified and not was_verified:
+        await outbox.enqueue(
+            db,
+            kind=outbox.ORGANISER_APPROVED,
+            entity_type="organiser",
+            entity_id=str(organiser.id),
+            dedupe_key=f"organiser.approved:{organiser.id}",
+            payload={"actor_id": str(actor.id)},
+        )
     await db.commit()
     return organiser
