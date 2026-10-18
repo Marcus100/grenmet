@@ -201,7 +201,7 @@ async def _session_response(
     # Staff apps (ADR-0017) keep the staff gate and mint ordinary staff tokens.
     staff = app.scope == "staff"
     eligible = (
-        service.is_staff_eligible(user)
+        service.is_staff_eligible(user) and app.allows(user)
         if staff
         else await service.is_eligible_for_app(
             session=session, user=user, app_key=app.key
@@ -660,6 +660,8 @@ async def handoff_start(
     _require_sso(app)
     account, user = await _account_session_user(session, body.session_token)
     if app.scope == "staff":
+        if not app.allows(user):
+            raise AppException(f"{app.label} is for Barrels staff only.", 403)
         if not service.is_staff_eligible(user):
             await _staff_app_request(session, user, app, join=body.join)
     elif not await service.is_eligible_for_app(
@@ -839,12 +841,12 @@ def _self_service(app: AppDefinition) -> bool:
 
 def _can_join(app: AppDefinition) -> bool:
     """Self-service apps join instantly; staff apps take an access request."""
-    return _self_service(app) or app.scope == "staff"
+    return _self_service(app) or (app.scope == "staff" and not app.superuser_only)
 
 
 async def _uses_app(session: AsyncSession, user: User, app: AppDefinition) -> bool:
     if app.scope == "staff":
-        return service.is_staff_eligible(user)
+        return service.is_staff_eligible(user) and app.allows(user)
     return await service.is_eligible_for_app(
         session=session, user=user, app_key=app.key
     )
@@ -884,6 +886,8 @@ async def join_account_app(
     """
     _, user = await _account_session_user(session, session_token)
     if app.scope == "staff":
+        if not app.allows(user):
+            raise AppException(f"{app.label} is for Barrels staff only.", 403)
         if service.is_staff_eligible(user):
             return AppJoinResult(joined=True)
         if not user.registration_pending:

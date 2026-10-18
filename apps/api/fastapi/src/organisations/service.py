@@ -9,7 +9,7 @@ import re
 import uuid
 from dataclasses import dataclass
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -292,3 +292,84 @@ async def list_managed_organisation_ids(
         )
     )
     return list(rows.all())
+
+
+async def _member_counts(
+    session: AsyncSession, organisation_ids: list[str]
+) -> dict[str, int]:
+    if not organisation_ids:
+        return {}
+    rows = await session.execute(
+        select(Membership.organisation_id, func.count())
+        .where(
+            Membership.organisation_id.in_(organisation_ids),
+            Membership.status == MembershipStatus.ACTIVE.value,
+        )
+        .group_by(Membership.organisation_id)
+    )
+    return dict(rows.tuples().all())
+
+
+async def admin_list_organisations(
+    session: AsyncSession,
+    *,
+    skip: int,
+    limit: int,
+    query: str | None = None,
+    status: OrganisationStatus | None = None,
+    kind: OrganisationKind | None = None,
+) -> tuple[list[tuple[PlatformOrganisation, int]], int]:
+    """Control-plane list: every organisation with its active member count."""
+    conditions = []
+    if query and query.strip():
+        pattern = f"%{query.strip().lower()}%"
+        conditions.append(
+            or_(
+                func.lower(PlatformOrganisation.name).like(pattern),
+                func.lower(PlatformOrganisation.slug).like(pattern),
+            )
+        )
+    if status is not None:
+        conditions.append(PlatformOrganisation.status == status.value)
+    if kind is not None:
+        conditions.append(PlatformOrganisation.kind == kind.value)
+    total = await session.scalar(
+        select(func.count()).select_from(PlatformOrganisation).where(*conditions)
+    )
+    rows = (
+        (
+            await session.execute(
+                select(PlatformOrganisation)
+                .where(*conditions)
+                .order_by(PlatformOrganisation.name, PlatformOrganisation.id)
+                .offset(skip)
+                .limit(limit)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    counts = await _member_counts(session, [row.id for row in rows])
+    return [(row, counts.get(row.id, 0)) for row in rows], total or 0
+
+
+async def admin_get_organisation(
+    session: AsyncSession, organisation_id: str
+) -> tuple[PlatformOrganisation, int, list[OrganisationApp]]:
+    """Control-plane detail: the organisation, member count and app entitlements."""
+    organisation = await session.get(PlatformOrganisation, organisation_id)
+    if organisation is None:
+        raise OrganisationNotFoundError()
+    counts = await _member_counts(session, [organisation.id])
+    apps = (
+        (
+            await session.execute(
+                select(OrganisationApp)
+                .where(OrganisationApp.organisation_id == organisation.id)
+                .order_by(OrganisationApp.app_key)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return organisation, counts.get(organisation.id, 0), list(apps)

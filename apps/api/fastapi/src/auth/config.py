@@ -33,6 +33,8 @@ class AuthConfig(BaseSettings):
     # secret switches single sign-on off for that app.
     GAA_ADMIN_APP_URL: str = "http://localhost:3001"
     GAA_ADMIN_SSO_CLIENT_SECRET: str = ""
+    BARRELS_ADMIN_APP_URL: str = "http://localhost:3012"
+    BARRELS_ADMIN_SSO_CLIENT_SECRET: str = ""
     CMS_APP_URL: str = "http://localhost:3006"
     CMS_SSO_CLIENT_SECRET: str = ""
     # Public sites with "Sign in" (ADR-0017 step 4); members join automatically.

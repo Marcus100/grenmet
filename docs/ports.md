@@ -33,6 +33,7 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | cms | `@barrelsgd/web-cms` | 3006 |
 | elections | `@barrelsgd/web-elections` | 3007 |
 | events | `@barrelsgd/web-events` | 3009 |
+| admin | `@barrelsgd/web-admin` | 3012 |
 
 ### Reserved and planned
 
