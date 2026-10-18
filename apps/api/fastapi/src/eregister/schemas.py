@@ -181,3 +181,29 @@ class PublicObservation(BaseModel):
 
 class PublicCurrentConditions(BaseModel):
     observation: PublicObservation | None = None
+
+
+class PublicMonthSummary(BaseModel):
+    """MBIA month-to-date figures aggregated from the register; no staff fields."""
+
+    station_id: str
+    station_name: str | None = None
+    month: str
+    period_start: UtcDateTime
+    period_end: UtcDateTime
+    last_observation_at: UtcDateTime
+    observation_count: int
+    days_elapsed: int
+    rain_report_days: int
+    rainfall_mm: float | None = None
+    rain_days: int | None = None
+    rain_day_threshold_mm: float
+    max_temperature_c: float | None = None
+    max_temperature_at: UtcDateTime | None = None
+    min_temperature_c: float | None = None
+    min_temperature_at: UtcDateTime | None = None
+    provisional: bool
+
+
+class PublicMonthSummaryResponse(BaseModel):
+    summary: PublicMonthSummary | None = None

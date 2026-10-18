@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy import bindparam, text
 from sqlalchemy.dialects.postgresql import JSONB
@@ -9,11 +9,13 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.auth.browser import BrowserUser
 from src.openapi_responses import AUTHENTICATED
+from src.rate_limit import limiter
 
 from . import public, rules
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
     PublicCurrentConditions,
+    PublicMonthSummaryResponse,
     RegisterObservationCreate,
     RegisterObservationList,
     RegisterObservationRead,
@@ -144,3 +146,47 @@ async def public_current_conditions(
         )
     except SQLAlchemyError, OSError, TimeoutError:
         return unavailable
+
+
+@router.get(
+    "/public/month-summary",
+    response_model=PublicMonthSummaryResponse,
+    summary="MBIA month-to-date summary",
+    description=(
+        "Anonymous. Rainfall, rain days (24 h total of at least 0.2 mm, WMO), "
+        "highest and lowest temperature from non-rejected SYNOPs for station "
+        "78958, for one UTC month (default: the current month to date). "
+        "Provisional until every contributing reading is accepted. `summary` is "
+        "null with no readings; individual figures are null when not reported, "
+        "never zero. Returns 503 when the register is unavailable."
+    ),
+    responses={
+        429: {"description": "Rate limit exceeded"},
+        503: {"description": "Register unavailable"},
+    },
+)
+@limiter.limit("60/minute")
+async def public_month_summary(
+    request: Request,
+    session: PublicRegisterSession,
+    response: Response,
+    month: Annotated[
+        str | None, Query(pattern=r"^\d{4}-(0[1-9]|1[0-2])$", examples=["2026-10"])
+    ] = None,
+) -> PublicMonthSummaryResponse | JSONResponse:
+    _ = request
+    unavailable = JSONResponse(
+        {"error": "Month summary is unavailable"},
+        status_code=503,
+        headers={"Cache-Control": "no-store"},
+    )
+    if session is None:
+        return unavailable
+    try:
+        summary = await public.month_summary(session, month, datetime.now(UTC))
+    except SQLAlchemyError, OSError, TimeoutError:
+        return unavailable
+    response.headers["Cache-Control"] = (
+        "public, max-age=300, stale-while-revalidate=600"
+    )
+    return PublicMonthSummaryResponse(summary=summary)

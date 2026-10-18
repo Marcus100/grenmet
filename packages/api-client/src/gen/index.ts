@@ -118,6 +118,7 @@ export { contactSendContactMessage } from "./clients/contactSendContactMessage.j
 export { eregisterCreateRegisterObservation } from "./clients/eregisterCreateRegisterObservation.js";
 export { eregisterListRegisterObservations } from "./clients/eregisterListRegisterObservations.js";
 export { eregisterPublicCurrentConditions } from "./clients/eregisterPublicCurrentConditions.js";
+export { eregisterPublicMonthSummary } from "./clients/eregisterPublicMonthSummary.js";
 export { eregisterValidateSynopObservation } from "./clients/eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./clients/eventsAcceptConnection.js";
 export { eventsBlockMember } from "./clients/eventsBlockMember.js";
@@ -999,6 +1000,11 @@ export {
   eregisterPublicCurrentConditionsQueryOptions,
   useEregisterPublicCurrentConditions,
 } from "./hooks/useEregisterPublicCurrentConditions.js";
+export {
+  eregisterPublicMonthSummaryQueryKey,
+  eregisterPublicMonthSummaryQueryOptions,
+  useEregisterPublicMonthSummary,
+} from "./hooks/useEregisterPublicMonthSummary.js";
 export {
   eregisterValidateSynopObservationMutationKey,
   eregisterValidateSynopObservationMutationOptions,
@@ -3883,6 +3889,16 @@ export type {
   EregisterPublicCurrentConditionsStatus503,
 } from "./models/EregisterPublicCurrentConditions.js";
 export type {
+  EregisterPublicMonthSummaryOptions,
+  EregisterPublicMonthSummaryQuery,
+  EregisterPublicMonthSummaryResponse,
+  EregisterPublicMonthSummaryResponses,
+  EregisterPublicMonthSummaryStatus200,
+  EregisterPublicMonthSummaryStatus422,
+  EregisterPublicMonthSummaryStatus429,
+  EregisterPublicMonthSummaryStatus503,
+} from "./models/EregisterPublicMonthSummary.js";
+export type {
   EregisterValidateSynopObservationBody,
   EregisterValidateSynopObservationOptions,
   EregisterValidateSynopObservationResponse,
@@ -6546,6 +6562,8 @@ export type { PublicHolidayCreate } from "./models/PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./models/PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./models/PublicHolidaysPublic.js";
 export type { PublicHolidayUpdate } from "./models/PublicHolidayUpdate.js";
+export type { PublicMonthSummary } from "./models/PublicMonthSummary.js";
+export type { PublicMonthSummaryResponse } from "./models/PublicMonthSummaryResponse.js";
 export type { PublicObservation } from "./models/PublicObservation.js";
 export type { PublicObservationPropertiesPressureTrendAnyOfEnum } from "./models/PublicObservationPropertiesPressureTrendAnyOfEnum.js";
 export { publicObservationPropertiesPressureTrendAnyOfEnum } from "./models/PublicObservationPropertiesPressureTrendAnyOfEnum.js";
@@ -8916,6 +8934,15 @@ export {
   eregisterPublicCurrentConditionsStatus422Schema,
   eregisterPublicCurrentConditionsStatus503Schema,
 } from "./zod/eregisterPublicCurrentConditionsSchema.js";
+export {
+  eregisterPublicMonthSummaryErrorSchema,
+  eregisterPublicMonthSummaryQueryMonthSchema,
+  eregisterPublicMonthSummaryResponseSchema,
+  eregisterPublicMonthSummaryStatus200Schema,
+  eregisterPublicMonthSummaryStatus422Schema,
+  eregisterPublicMonthSummaryStatus429Schema,
+  eregisterPublicMonthSummaryStatus503Schema,
+} from "./zod/eregisterPublicMonthSummarySchema.js";
 export {
   eregisterValidateSynopObservationBodySchema,
   eregisterValidateSynopObservationErrorSchema,
@@ -11370,6 +11397,8 @@ export { publicHolidayCreateSchema } from "./zod/publicHolidayCreateSchema.js";
 export { publicHolidayPublicSchema } from "./zod/publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./zod/publicHolidaysPublicSchema.js";
 export { publicHolidayUpdateSchema } from "./zod/publicHolidayUpdateSchema.js";
+export { publicMonthSummaryResponseSchema } from "./zod/publicMonthSummaryResponseSchema.js";
+export { publicMonthSummarySchema } from "./zod/publicMonthSummarySchema.js";
 export { publicObservationPropertiesPressureTrendAnyOfEnumSchema } from "./zod/publicObservationPropertiesPressureTrendAnyOfEnumSchema.js";
 export { publicObservationPropertiesStatusEnumSchema } from "./zod/publicObservationPropertiesStatusEnumSchema.js";
 export { publicObservationSchema } from "./zod/publicObservationSchema.js";

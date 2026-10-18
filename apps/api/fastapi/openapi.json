@@ -15779,6 +15779,66 @@
         }
       }
     },
+    "/api/v1/eregister/public/month-summary": {
+      "get": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "MBIA month-to-date summary",
+        "description": "Anonymous. Rainfall, rain days (24 h total of at least 0.2 mm, WMO), highest and lowest temperature from non-rejected SYNOPs for station 78958, for one UTC month (default: the current month to date). Provisional until every contributing reading is accepted. `summary` is null with no readings; individual figures are null when not reported, never zero. Returns 503 when the register is unavailable.",
+        "operationId": "eregisterPublicMonthSummary",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "examples": [
+                "2026-10"
+              ],
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicMonthSummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "Register unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/wxwatch/metadata": {
       "get": {
         "tags": [
@@ -42682,6 +42742,163 @@
           "count"
         ],
         "title": "PublicHolidaysPublic"
+      },
+      "PublicMonthSummary": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "station_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Name"
+          },
+          "month": {
+            "type": "string",
+            "title": "Month"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Period End"
+          },
+          "last_observation_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Observation At"
+          },
+          "observation_count": {
+            "type": "integer",
+            "title": "Observation Count"
+          },
+          "days_elapsed": {
+            "type": "integer",
+            "title": "Days Elapsed"
+          },
+          "rain_report_days": {
+            "type": "integer",
+            "title": "Rain Report Days"
+          },
+          "rainfall_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rainfall Mm"
+          },
+          "rain_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rain Days"
+          },
+          "rain_day_threshold_mm": {
+            "type": "number",
+            "title": "Rain Day Threshold Mm"
+          },
+          "max_temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Temperature C"
+          },
+          "max_temperature_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Temperature At"
+          },
+          "min_temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Temperature C"
+          },
+          "min_temperature_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Temperature At"
+          },
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "month",
+          "period_start",
+          "period_end",
+          "last_observation_at",
+          "observation_count",
+          "days_elapsed",
+          "rain_report_days",
+          "rain_day_threshold_mm",
+          "provisional"
+        ],
+        "title": "PublicMonthSummary",
+        "description": "MBIA month-to-date figures aggregated from the register; no staff fields."
+      },
+      "PublicMonthSummaryResponse": {
+        "properties": {
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicMonthSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "PublicMonthSummaryResponse"
       },
       "PublicObservation": {
         "properties": {

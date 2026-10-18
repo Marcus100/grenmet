@@ -19,14 +19,16 @@ import {
   relatedHref,
   sectionWords,
 } from "@/lib/cms";
+import { monthStats } from "@/lib/month-summary";
+import { fetchMonthSummary } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 /*
- * Home sections with no data source yet. Every figure here is sample content
- * from the Bold sky mockup. Explore today and Grenada in data carry no
- * notice by owner decision (30 Sep 2026); their figures move to
- * FastAPI endpoints. Status chips are neutral, never hazard colours, so a sample can never read
- * as a warning. Replace each with its product once it is issued.
+ * Explore today still has no data source: its sectors are sample content from
+ * the Bold sky mockup and carry no notice by owner decision (30 Sep 2026).
+ * Status chips are neutral, never hazard colours, so a sample can never read
+ * as a warning. Grenada in data is live from the MBIA register month summary
+ * and shows an unavailable state, never sample figures.
  */
 
 /** wxproducts impact levels, lowest first; the meter fills one step per level. */
@@ -220,83 +222,59 @@ export async function ExploreToday() {
   );
 }
 
-const RAIN_SO_FAR = 86;
-const RAIN_NORMAL = 120;
-const RAIN_SCALE = 140;
-
 export async function GrenadaInData() {
   if (await isSectionHidden("grenada-in-data")) return null;
-  const { settings } = await fetchHomeContent();
+  const [{ settings }, summary] = await Promise.all([
+    fetchHomeContent(),
+    fetchMonthSummary(),
+  ]);
   const words = sectionWords(settings, "grenada-in-data", {
-    kicker: "This month so far, from the monthly climate summary",
+    kicker: "This month so far, from the MBIA observation register",
     title: "Grenada in data",
   });
-  const stats = [
-    {
-      label: "Rainfall this month · MBIA",
-      value: String(RAIN_SO_FAR),
-      unit: "mm",
-      detail: `${Math.round((RAIN_SO_FAR / RAIN_NORMAL) * 100)}% of the October normal to date (${RAIN_NORMAL} mm)`,
-      bar: true,
-    },
-    {
-      label: "Highest temperature · MBIA",
-      value: "32.6",
-      unit: "°C",
-      detail: "on 3 October; normal monthly high 31.4 °C",
-    },
-    {
-      label: "Lowest temperature · MBIA",
-      value: "23.8",
-      unit: "°C",
-      detail: "on 6 October; normal monthly low 23.5 °C",
-    },
-    {
-      label: "Rain days · MBIA",
-      value: "5",
-      unit: "days",
-      detail: "with 1 mm or more; normal to date is 6",
-    },
-  ];
+  const month = summary ? monthStats(summary) : null;
   return (
     <HomeSection {...words} link={{ href: "/climate", label: "Climate" }}>
-      <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <li
-            className={cn(HOME_CARD, "flex flex-col gap-1 p-3 sm:p-4 lg:p-5")}
-            key={stat.label}
-          >
-            <span className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
-              {stat.label}
-            </span>
-            <span className="font-bold font-gm-display text-gm-heading text-heading-md tabular-nums leading-heading-md lg:text-gm-numeral">
-              {stat.value}
-              <span className="ml-1 font-sans font-semibold text-body-sm text-gm-text-secondary leading-body-sm lg:text-body-base lg:leading-body-base">
-                {stat.unit}
-              </span>
-            </span>
-            <span className="text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
-              {stat.detail}
-            </span>
-            {stat.bar && (
-              <span
-                aria-label={`${RAIN_SO_FAR} mm against a ${RAIN_NORMAL} mm normal`}
-                className="relative mt-1 block h-2 rounded-full bg-gm-surface-muted lg:mt-2 lg:h-3"
-                role="img"
+      {month ? (
+        <>
+          <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+            {month.stats.map((stat) => (
+              <li
+                className={cn(
+                  HOME_CARD,
+                  "flex flex-col gap-1 p-3 sm:p-4 lg:p-5"
+                )}
+                key={stat.label}
               >
-                <span
-                  className="absolute inset-y-0 left-0 rounded-full bg-gm-blue"
-                  style={{ width: `${(RAIN_SO_FAR / RAIN_SCALE) * 100}%` }}
-                />
-                <span
-                  className="absolute -inset-y-1 w-0.5 bg-gm-navy"
-                  style={{ left: `${(RAIN_NORMAL / RAIN_SCALE) * 100}%` }}
-                />
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
+                <span className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
+                  {stat.label}
+                </span>
+                <span className="font-bold font-gm-display text-gm-heading text-heading-md tabular-nums leading-heading-md lg:text-gm-numeral">
+                  {stat.value ?? "—"}
+                  {stat.value !== null && (
+                    <span className="ml-1 font-sans font-semibold text-body-sm text-gm-text-secondary leading-body-sm lg:text-body-base lg:leading-body-base">
+                      {stat.unit}
+                    </span>
+                  )}
+                </span>
+                <span className="text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
+                  {stat.value === null ? "Not reported yet" : stat.detail}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
+            {month.caption}
+          </p>
+        </>
+      ) : (
+        <p
+          className={cn(HOME_CARD, "p-4 text-body-sm text-gm-text-secondary")}
+          role="status"
+        >
+          Month-to-date figures are not available right now.
+        </p>
+      )}
     </HomeSection>
   );
 }
