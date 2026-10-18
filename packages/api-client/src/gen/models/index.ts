@@ -3333,6 +3333,9 @@ export { imageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBas
 export type { ImageResult } from "./ImageResult.js";
 export type { ImportStatus } from "./ImportStatus.js";
 export { importStatus } from "./ImportStatus.js";
+export type { InvitationAccept } from "./InvitationAccept.js";
+export type { InvitationCreate } from "./InvitationCreate.js";
+export type { InvitationPublic } from "./InvitationPublic.js";
 export type { ItemCreate } from "./ItemCreate.js";
 export type { ItemListPublic } from "./ItemListPublic.js";
 export type { ItemPublic } from "./ItemPublic.js";
@@ -3703,6 +3706,9 @@ export type { LocationPublic } from "./LocationPublic.js";
 export type { LocationUpdate } from "./LocationUpdate.js";
 export type { ManagedListing } from "./ManagedListing.js";
 export type { ManagedOrganiser } from "./ManagedOrganiser.js";
+export type { MemberListPublic } from "./MemberListPublic.js";
+export type { MemberPublic } from "./MemberPublic.js";
+export type { MemberRoleUpdate } from "./MemberRoleUpdate.js";
 export type { MembershipRole } from "./MembershipRole.js";
 export { membershipRole } from "./MembershipRole.js";
 export type { MembershipStatus } from "./MembershipStatus.js";
@@ -3874,6 +3880,46 @@ export type { OrganisationStatus } from "./OrganisationStatus.js";
 export { organisationStatus } from "./OrganisationStatus.js";
 export type { OrganisationSummary } from "./OrganisationSummary.js";
 export type {
+  OrganisationsAcceptInvitationBody,
+  OrganisationsAcceptInvitationOptions,
+  OrganisationsAcceptInvitationResponse,
+  OrganisationsAcceptInvitationResponses,
+  OrganisationsAcceptInvitationStatus200,
+  OrganisationsAcceptInvitationStatus400,
+  OrganisationsAcceptInvitationStatus401,
+  OrganisationsAcceptInvitationStatus403,
+  OrganisationsAcceptInvitationStatus422,
+} from "./OrganisationsAcceptInvitation.js";
+export type {
+  OrganisationsCreateInvitationBody,
+  OrganisationsCreateInvitationHeaders,
+  OrganisationsCreateInvitationOptions,
+  OrganisationsCreateInvitationPath,
+  OrganisationsCreateInvitationResponse,
+  OrganisationsCreateInvitationResponses,
+  OrganisationsCreateInvitationStatus201,
+  OrganisationsCreateInvitationStatus400,
+  OrganisationsCreateInvitationStatus401,
+  OrganisationsCreateInvitationStatus403,
+  OrganisationsCreateInvitationStatus404,
+  OrganisationsCreateInvitationStatus409,
+  OrganisationsCreateInvitationStatus422,
+} from "./OrganisationsCreateInvitation.js";
+export type {
+  OrganisationsDeleteMemberHeaders,
+  OrganisationsDeleteMemberOptions,
+  OrganisationsDeleteMemberPath,
+  OrganisationsDeleteMemberResponse,
+  OrganisationsDeleteMemberResponses,
+  OrganisationsDeleteMemberStatus204,
+  OrganisationsDeleteMemberStatus400,
+  OrganisationsDeleteMemberStatus401,
+  OrganisationsDeleteMemberStatus403,
+  OrganisationsDeleteMemberStatus404,
+  OrganisationsDeleteMemberStatus409,
+  OrganisationsDeleteMemberStatus422,
+} from "./OrganisationsDeleteMember.js";
+export type {
   OrganisationsGetCurrentHeaders,
   OrganisationsGetCurrentOptions,
   OrganisationsGetCurrentResponse,
@@ -3886,6 +3932,35 @@ export type {
   OrganisationsGetCurrentStatus422,
 } from "./OrganisationsGetCurrent.js";
 export type {
+  OrganisationsListInvitationsHeaders,
+  OrganisationsListInvitationsOptions,
+  OrganisationsListInvitationsPath,
+  OrganisationsListInvitationsResponse,
+  OrganisationsListInvitationsResponses,
+  OrganisationsListInvitationsStatus200,
+  OrganisationsListInvitationsStatus400,
+  OrganisationsListInvitationsStatus401,
+  OrganisationsListInvitationsStatus403,
+  OrganisationsListInvitationsStatus404,
+  OrganisationsListInvitationsStatus409,
+  OrganisationsListInvitationsStatus422,
+} from "./OrganisationsListInvitations.js";
+export type {
+  OrganisationsListMembersHeaders,
+  OrganisationsListMembersOptions,
+  OrganisationsListMembersPath,
+  OrganisationsListMembersQuery,
+  OrganisationsListMembersResponse,
+  OrganisationsListMembersResponses,
+  OrganisationsListMembersStatus200,
+  OrganisationsListMembersStatus400,
+  OrganisationsListMembersStatus401,
+  OrganisationsListMembersStatus403,
+  OrganisationsListMembersStatus404,
+  OrganisationsListMembersStatus409,
+  OrganisationsListMembersStatus422,
+} from "./OrganisationsListMembers.js";
+export type {
   OrganisationsListMineOptions,
   OrganisationsListMineResponse,
   OrganisationsListMineResponses,
@@ -3894,6 +3969,35 @@ export type {
   OrganisationsListMineStatus403,
   OrganisationsListMineStatus422,
 } from "./OrganisationsListMine.js";
+export type {
+  OrganisationsRevokeInvitationHeaders,
+  OrganisationsRevokeInvitationOptions,
+  OrganisationsRevokeInvitationPath,
+  OrganisationsRevokeInvitationResponse,
+  OrganisationsRevokeInvitationResponses,
+  OrganisationsRevokeInvitationStatus204,
+  OrganisationsRevokeInvitationStatus400,
+  OrganisationsRevokeInvitationStatus401,
+  OrganisationsRevokeInvitationStatus403,
+  OrganisationsRevokeInvitationStatus404,
+  OrganisationsRevokeInvitationStatus409,
+  OrganisationsRevokeInvitationStatus422,
+} from "./OrganisationsRevokeInvitation.js";
+export type {
+  OrganisationsUpdateMemberBody,
+  OrganisationsUpdateMemberHeaders,
+  OrganisationsUpdateMemberOptions,
+  OrganisationsUpdateMemberPath,
+  OrganisationsUpdateMemberResponse,
+  OrganisationsUpdateMemberResponses,
+  OrganisationsUpdateMemberStatus200,
+  OrganisationsUpdateMemberStatus400,
+  OrganisationsUpdateMemberStatus401,
+  OrganisationsUpdateMemberStatus403,
+  OrganisationsUpdateMemberStatus404,
+  OrganisationsUpdateMemberStatus409,
+  OrganisationsUpdateMemberStatus422,
+} from "./OrganisationsUpdateMember.js";
 export type { OrganisationUpdate } from "./OrganisationUpdate.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OutlookProductPreview } from "./OutlookProductPreview.js";

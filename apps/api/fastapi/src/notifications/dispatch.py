@@ -177,7 +177,10 @@ async def process_due_deliveries(
 # ── Public-flow outbox (subscriptions, contact messages) ─────────────────────
 
 # React Email template name -> Jinja fallback file in email-templates/build.
-_OUTBOUND_JINJA = {"subscription-confirm": "subscription_confirm.html"}
+_OUTBOUND_JINJA = {
+    "subscription-confirm": "subscription_confirm.html",
+    "organisation-invitation": "organisation_invitation.html",
+}
 
 
 async def _render_outbound(row: OutboundEmail) -> tuple[str, str]:

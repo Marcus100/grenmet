@@ -330,8 +330,15 @@ export { notificationsMarkAllNotificationsRead } from "./clients/notificationsMa
 export { notificationsMarkNotificationRead } from "./clients/notificationsMarkNotificationRead.js";
 export { notificationsUpdateNotificationPreferences } from "./clients/notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./clients/notificationsUpdateNotificationSetting.js";
+export { organisationsAcceptInvitation } from "./clients/organisationsAcceptInvitation.js";
+export { organisationsCreateInvitation } from "./clients/organisationsCreateInvitation.js";
+export { organisationsDeleteMember } from "./clients/organisationsDeleteMember.js";
 export { organisationsGetCurrent } from "./clients/organisationsGetCurrent.js";
+export { organisationsListInvitations } from "./clients/organisationsListInvitations.js";
+export { organisationsListMembers } from "./clients/organisationsListMembers.js";
 export { organisationsListMine } from "./clients/organisationsListMine.js";
+export { organisationsRevokeInvitation } from "./clients/organisationsRevokeInvitation.js";
+export { organisationsUpdateMember } from "./clients/organisationsUpdateMember.js";
 export { storesApproveRequisition } from "./clients/storesApproveRequisition.js";
 export { storesCancelRequisition } from "./clients/storesCancelRequisition.js";
 export { storesCreateItem } from "./clients/storesCreateItem.js";
@@ -2052,15 +2059,50 @@ export {
   useNotificationsUpdateNotificationSetting,
 } from "./hooks/useNotificationsUpdateNotificationSetting.js";
 export {
+  organisationsAcceptInvitationMutationKey,
+  organisationsAcceptInvitationMutationOptions,
+  useOrganisationsAcceptInvitation,
+} from "./hooks/useOrganisationsAcceptInvitation.js";
+export {
+  organisationsCreateInvitationMutationKey,
+  organisationsCreateInvitationMutationOptions,
+  useOrganisationsCreateInvitation,
+} from "./hooks/useOrganisationsCreateInvitation.js";
+export {
+  organisationsDeleteMemberMutationKey,
+  organisationsDeleteMemberMutationOptions,
+  useOrganisationsDeleteMember,
+} from "./hooks/useOrganisationsDeleteMember.js";
+export {
   organisationsGetCurrentQueryKey,
   organisationsGetCurrentQueryOptions,
   useOrganisationsGetCurrent,
 } from "./hooks/useOrganisationsGetCurrent.js";
 export {
+  organisationsListInvitationsQueryKey,
+  organisationsListInvitationsQueryOptions,
+  useOrganisationsListInvitations,
+} from "./hooks/useOrganisationsListInvitations.js";
+export {
+  organisationsListMembersQueryKey,
+  organisationsListMembersQueryOptions,
+  useOrganisationsListMembers,
+} from "./hooks/useOrganisationsListMembers.js";
+export {
   organisationsListMineQueryKey,
   organisationsListMineQueryOptions,
   useOrganisationsListMine,
 } from "./hooks/useOrganisationsListMine.js";
+export {
+  organisationsRevokeInvitationMutationKey,
+  organisationsRevokeInvitationMutationOptions,
+  useOrganisationsRevokeInvitation,
+} from "./hooks/useOrganisationsRevokeInvitation.js";
+export {
+  organisationsUpdateMemberMutationKey,
+  organisationsUpdateMemberMutationOptions,
+  useOrganisationsUpdateMember,
+} from "./hooks/useOrganisationsUpdateMember.js";
 export {
   storesApproveRequisitionMutationKey,
   storesApproveRequisitionMutationOptions,
@@ -5766,6 +5808,9 @@ export { imageInputPropertiesTimeBasisEnum } from "./models/ImageInputProperties
 export type { ImageResult } from "./models/ImageResult.js";
 export type { ImportStatus } from "./models/ImportStatus.js";
 export { importStatus } from "./models/ImportStatus.js";
+export type { InvitationAccept } from "./models/InvitationAccept.js";
+export type { InvitationCreate } from "./models/InvitationCreate.js";
+export type { InvitationPublic } from "./models/InvitationPublic.js";
 export type { ItemCreate } from "./models/ItemCreate.js";
 export type { ItemListPublic } from "./models/ItemListPublic.js";
 export type { ItemPublic } from "./models/ItemPublic.js";
@@ -6136,6 +6181,9 @@ export type { LocationPublic } from "./models/LocationPublic.js";
 export type { LocationUpdate } from "./models/LocationUpdate.js";
 export type { ManagedListing } from "./models/ManagedListing.js";
 export type { ManagedOrganiser } from "./models/ManagedOrganiser.js";
+export type { MemberListPublic } from "./models/MemberListPublic.js";
+export type { MemberPublic } from "./models/MemberPublic.js";
+export type { MemberRoleUpdate } from "./models/MemberRoleUpdate.js";
 export type { MembershipRole } from "./models/MembershipRole.js";
 export { membershipRole } from "./models/MembershipRole.js";
 export type { MembershipStatus } from "./models/MembershipStatus.js";
@@ -6307,6 +6355,46 @@ export type { OrganisationStatus } from "./models/OrganisationStatus.js";
 export { organisationStatus } from "./models/OrganisationStatus.js";
 export type { OrganisationSummary } from "./models/OrganisationSummary.js";
 export type {
+  OrganisationsAcceptInvitationBody,
+  OrganisationsAcceptInvitationOptions,
+  OrganisationsAcceptInvitationResponse,
+  OrganisationsAcceptInvitationResponses,
+  OrganisationsAcceptInvitationStatus200,
+  OrganisationsAcceptInvitationStatus400,
+  OrganisationsAcceptInvitationStatus401,
+  OrganisationsAcceptInvitationStatus403,
+  OrganisationsAcceptInvitationStatus422,
+} from "./models/OrganisationsAcceptInvitation.js";
+export type {
+  OrganisationsCreateInvitationBody,
+  OrganisationsCreateInvitationHeaders,
+  OrganisationsCreateInvitationOptions,
+  OrganisationsCreateInvitationPath,
+  OrganisationsCreateInvitationResponse,
+  OrganisationsCreateInvitationResponses,
+  OrganisationsCreateInvitationStatus201,
+  OrganisationsCreateInvitationStatus400,
+  OrganisationsCreateInvitationStatus401,
+  OrganisationsCreateInvitationStatus403,
+  OrganisationsCreateInvitationStatus404,
+  OrganisationsCreateInvitationStatus409,
+  OrganisationsCreateInvitationStatus422,
+} from "./models/OrganisationsCreateInvitation.js";
+export type {
+  OrganisationsDeleteMemberHeaders,
+  OrganisationsDeleteMemberOptions,
+  OrganisationsDeleteMemberPath,
+  OrganisationsDeleteMemberResponse,
+  OrganisationsDeleteMemberResponses,
+  OrganisationsDeleteMemberStatus204,
+  OrganisationsDeleteMemberStatus400,
+  OrganisationsDeleteMemberStatus401,
+  OrganisationsDeleteMemberStatus403,
+  OrganisationsDeleteMemberStatus404,
+  OrganisationsDeleteMemberStatus409,
+  OrganisationsDeleteMemberStatus422,
+} from "./models/OrganisationsDeleteMember.js";
+export type {
   OrganisationsGetCurrentHeaders,
   OrganisationsGetCurrentOptions,
   OrganisationsGetCurrentResponse,
@@ -6319,6 +6407,35 @@ export type {
   OrganisationsGetCurrentStatus422,
 } from "./models/OrganisationsGetCurrent.js";
 export type {
+  OrganisationsListInvitationsHeaders,
+  OrganisationsListInvitationsOptions,
+  OrganisationsListInvitationsPath,
+  OrganisationsListInvitationsResponse,
+  OrganisationsListInvitationsResponses,
+  OrganisationsListInvitationsStatus200,
+  OrganisationsListInvitationsStatus400,
+  OrganisationsListInvitationsStatus401,
+  OrganisationsListInvitationsStatus403,
+  OrganisationsListInvitationsStatus404,
+  OrganisationsListInvitationsStatus409,
+  OrganisationsListInvitationsStatus422,
+} from "./models/OrganisationsListInvitations.js";
+export type {
+  OrganisationsListMembersHeaders,
+  OrganisationsListMembersOptions,
+  OrganisationsListMembersPath,
+  OrganisationsListMembersQuery,
+  OrganisationsListMembersResponse,
+  OrganisationsListMembersResponses,
+  OrganisationsListMembersStatus200,
+  OrganisationsListMembersStatus400,
+  OrganisationsListMembersStatus401,
+  OrganisationsListMembersStatus403,
+  OrganisationsListMembersStatus404,
+  OrganisationsListMembersStatus409,
+  OrganisationsListMembersStatus422,
+} from "./models/OrganisationsListMembers.js";
+export type {
   OrganisationsListMineOptions,
   OrganisationsListMineResponse,
   OrganisationsListMineResponses,
@@ -6327,6 +6444,35 @@ export type {
   OrganisationsListMineStatus403,
   OrganisationsListMineStatus422,
 } from "./models/OrganisationsListMine.js";
+export type {
+  OrganisationsRevokeInvitationHeaders,
+  OrganisationsRevokeInvitationOptions,
+  OrganisationsRevokeInvitationPath,
+  OrganisationsRevokeInvitationResponse,
+  OrganisationsRevokeInvitationResponses,
+  OrganisationsRevokeInvitationStatus204,
+  OrganisationsRevokeInvitationStatus400,
+  OrganisationsRevokeInvitationStatus401,
+  OrganisationsRevokeInvitationStatus403,
+  OrganisationsRevokeInvitationStatus404,
+  OrganisationsRevokeInvitationStatus409,
+  OrganisationsRevokeInvitationStatus422,
+} from "./models/OrganisationsRevokeInvitation.js";
+export type {
+  OrganisationsUpdateMemberBody,
+  OrganisationsUpdateMemberHeaders,
+  OrganisationsUpdateMemberOptions,
+  OrganisationsUpdateMemberPath,
+  OrganisationsUpdateMemberResponse,
+  OrganisationsUpdateMemberResponses,
+  OrganisationsUpdateMemberStatus200,
+  OrganisationsUpdateMemberStatus400,
+  OrganisationsUpdateMemberStatus401,
+  OrganisationsUpdateMemberStatus403,
+  OrganisationsUpdateMemberStatus404,
+  OrganisationsUpdateMemberStatus409,
+  OrganisationsUpdateMemberStatus422,
+} from "./models/OrganisationsUpdateMember.js";
 export type { OrganisationUpdate } from "./models/OrganisationUpdate.js";
 export type { OrganiserPublic } from "./models/OrganiserPublic.js";
 export type { OutlookProductPreview } from "./models/OutlookProductPreview.js";
@@ -10543,6 +10689,9 @@ export { imageInputPropertiesTimeBasisEnumSchema } from "./zod/imageInputPropert
 export { imageInputSchema } from "./zod/imageInputSchema.js";
 export { imageResultSchema } from "./zod/imageResultSchema.js";
 export { importStatusSchema } from "./zod/importStatusSchema.js";
+export { invitationAcceptSchema } from "./zod/invitationAcceptSchema.js";
+export { invitationCreateSchema } from "./zod/invitationCreateSchema.js";
+export { invitationPublicSchema } from "./zod/invitationPublicSchema.js";
 export { itemCreateSchema } from "./zod/itemCreateSchema.js";
 export { itemListPublicSchema } from "./zod/itemListPublicSchema.js";
 export { itemPublicSchema } from "./zod/itemPublicSchema.js";
@@ -10879,6 +11028,9 @@ export { locationPublicSchema } from "./zod/locationPublicSchema.js";
 export { locationUpdateSchema } from "./zod/locationUpdateSchema.js";
 export { managedListingSchema } from "./zod/managedListingSchema.js";
 export { managedOrganiserSchema } from "./zod/managedOrganiserSchema.js";
+export { memberListPublicSchema } from "./zod/memberListPublicSchema.js";
+export { memberPublicSchema } from "./zod/memberPublicSchema.js";
+export { memberRoleUpdateSchema } from "./zod/memberRoleUpdateSchema.js";
 export { membershipRoleSchema } from "./zod/membershipRoleSchema.js";
 export { membershipStatusSchema } from "./zod/membershipStatusSchema.js";
 export { messageCreateSchema } from "./zod/messageCreateSchema.js";
@@ -11026,6 +11178,44 @@ export { organisationPublicSchema } from "./zod/organisationPublicSchema.js";
 export { organisationStatusSchema } from "./zod/organisationStatusSchema.js";
 export { organisationSummarySchema } from "./zod/organisationSummarySchema.js";
 export {
+  organisationsAcceptInvitationBodySchema,
+  organisationsAcceptInvitationErrorSchema,
+  organisationsAcceptInvitationResponseSchema,
+  organisationsAcceptInvitationStatus200Schema,
+  organisationsAcceptInvitationStatus400Schema,
+  organisationsAcceptInvitationStatus401Schema,
+  organisationsAcceptInvitationStatus403Schema,
+  organisationsAcceptInvitationStatus422Schema,
+} from "./zod/organisationsAcceptInvitationSchema.js";
+export {
+  organisationsCreateInvitationBodySchema,
+  organisationsCreateInvitationErrorSchema,
+  organisationsCreateInvitationHeaderXBarrelsOrganisationSchema,
+  organisationsCreateInvitationPathOrganisationIdSchema,
+  organisationsCreateInvitationResponseSchema,
+  organisationsCreateInvitationStatus201Schema,
+  organisationsCreateInvitationStatus400Schema,
+  organisationsCreateInvitationStatus401Schema,
+  organisationsCreateInvitationStatus403Schema,
+  organisationsCreateInvitationStatus404Schema,
+  organisationsCreateInvitationStatus409Schema,
+  organisationsCreateInvitationStatus422Schema,
+} from "./zod/organisationsCreateInvitationSchema.js";
+export {
+  organisationsDeleteMemberErrorSchema,
+  organisationsDeleteMemberHeaderXBarrelsOrganisationSchema,
+  organisationsDeleteMemberPathMembershipIdSchema,
+  organisationsDeleteMemberPathOrganisationIdSchema,
+  organisationsDeleteMemberResponseSchema,
+  organisationsDeleteMemberStatus204Schema,
+  organisationsDeleteMemberStatus400Schema,
+  organisationsDeleteMemberStatus401Schema,
+  organisationsDeleteMemberStatus403Schema,
+  organisationsDeleteMemberStatus404Schema,
+  organisationsDeleteMemberStatus409Schema,
+  organisationsDeleteMemberStatus422Schema,
+} from "./zod/organisationsDeleteMemberSchema.js";
+export {
   organisationsGetCurrentErrorSchema,
   organisationsGetCurrentHeaderXBarrelsOrganisationSchema,
   organisationsGetCurrentResponseSchema,
@@ -11037,6 +11227,34 @@ export {
   organisationsGetCurrentStatus422Schema,
 } from "./zod/organisationsGetCurrentSchema.js";
 export {
+  organisationsListInvitationsErrorSchema,
+  organisationsListInvitationsHeaderXBarrelsOrganisationSchema,
+  organisationsListInvitationsPathOrganisationIdSchema,
+  organisationsListInvitationsResponseSchema,
+  organisationsListInvitationsStatus200Schema,
+  organisationsListInvitationsStatus400Schema,
+  organisationsListInvitationsStatus401Schema,
+  organisationsListInvitationsStatus403Schema,
+  organisationsListInvitationsStatus404Schema,
+  organisationsListInvitationsStatus409Schema,
+  organisationsListInvitationsStatus422Schema,
+} from "./zod/organisationsListInvitationsSchema.js";
+export {
+  organisationsListMembersErrorSchema,
+  organisationsListMembersHeaderXBarrelsOrganisationSchema,
+  organisationsListMembersPathOrganisationIdSchema,
+  organisationsListMembersQueryPageSchema,
+  organisationsListMembersQuerySizeSchema,
+  organisationsListMembersResponseSchema,
+  organisationsListMembersStatus200Schema,
+  organisationsListMembersStatus400Schema,
+  organisationsListMembersStatus401Schema,
+  organisationsListMembersStatus403Schema,
+  organisationsListMembersStatus404Schema,
+  organisationsListMembersStatus409Schema,
+  organisationsListMembersStatus422Schema,
+} from "./zod/organisationsListMembersSchema.js";
+export {
   organisationsListMineErrorSchema,
   organisationsListMineResponseSchema,
   organisationsListMineStatus200Schema,
@@ -11044,6 +11262,35 @@ export {
   organisationsListMineStatus403Schema,
   organisationsListMineStatus422Schema,
 } from "./zod/organisationsListMineSchema.js";
+export {
+  organisationsRevokeInvitationErrorSchema,
+  organisationsRevokeInvitationHeaderXBarrelsOrganisationSchema,
+  organisationsRevokeInvitationPathInvitationIdSchema,
+  organisationsRevokeInvitationPathOrganisationIdSchema,
+  organisationsRevokeInvitationResponseSchema,
+  organisationsRevokeInvitationStatus204Schema,
+  organisationsRevokeInvitationStatus400Schema,
+  organisationsRevokeInvitationStatus401Schema,
+  organisationsRevokeInvitationStatus403Schema,
+  organisationsRevokeInvitationStatus404Schema,
+  organisationsRevokeInvitationStatus409Schema,
+  organisationsRevokeInvitationStatus422Schema,
+} from "./zod/organisationsRevokeInvitationSchema.js";
+export {
+  organisationsUpdateMemberBodySchema,
+  organisationsUpdateMemberErrorSchema,
+  organisationsUpdateMemberHeaderXBarrelsOrganisationSchema,
+  organisationsUpdateMemberPathMembershipIdSchema,
+  organisationsUpdateMemberPathOrganisationIdSchema,
+  organisationsUpdateMemberResponseSchema,
+  organisationsUpdateMemberStatus200Schema,
+  organisationsUpdateMemberStatus400Schema,
+  organisationsUpdateMemberStatus401Schema,
+  organisationsUpdateMemberStatus403Schema,
+  organisationsUpdateMemberStatus404Schema,
+  organisationsUpdateMemberStatus409Schema,
+  organisationsUpdateMemberStatus422Schema,
+} from "./zod/organisationsUpdateMemberSchema.js";
 export { organisationUpdateSchema } from "./zod/organisationUpdateSchema.js";
 export { organiserPublicSchema } from "./zod/organiserPublicSchema.js";
 export { outlookProductPreviewInputSchema } from "./zod/outlookProductPreviewInputSchema.js";

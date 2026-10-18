@@ -327,8 +327,15 @@ export { notificationsMarkAllNotificationsRead } from "./notificationsMarkAllNot
 export { notificationsMarkNotificationRead } from "./notificationsMarkNotificationRead.js";
 export { notificationsUpdateNotificationPreferences } from "./notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./notificationsUpdateNotificationSetting.js";
+export { organisationsAcceptInvitation } from "./organisationsAcceptInvitation.js";
+export { organisationsCreateInvitation } from "./organisationsCreateInvitation.js";
+export { organisationsDeleteMember } from "./organisationsDeleteMember.js";
 export { organisationsGetCurrent } from "./organisationsGetCurrent.js";
+export { organisationsListInvitations } from "./organisationsListInvitations.js";
+export { organisationsListMembers } from "./organisationsListMembers.js";
 export { organisationsListMine } from "./organisationsListMine.js";
+export { organisationsRevokeInvitation } from "./organisationsRevokeInvitation.js";
+export { organisationsUpdateMember } from "./organisationsUpdateMember.js";
 export { storesApproveRequisition } from "./storesApproveRequisition.js";
 export { storesCancelRequisition } from "./storesCancelRequisition.js";
 export { storesCreateItem } from "./storesCreateItem.js";

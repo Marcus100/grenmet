@@ -1,3 +1,7 @@
+import uuid
+
+from pydantic import EmailStr, Field
+
 from src.models import BaseModel, UtcDateTime
 from src.organisations.models import (
     MembershipRole,
@@ -29,3 +33,43 @@ class CurrentOrganisationPublic(BaseModel):
 
     organisation: OrganisationSummary
     role: MembershipRole
+
+
+class MemberPublic(BaseModel):
+    membership_id: str
+    user_id: uuid.UUID
+    email: str
+    full_name: str
+    role: MembershipRole
+    joined_at: UtcDateTime
+
+
+class MemberListPublic(BaseModel):
+    data: list[MemberPublic]
+    count: int
+    page: int
+    size: int
+
+
+class MemberRoleUpdate(BaseModel):
+    role: MembershipRole
+
+
+class InvitationCreate(BaseModel):
+    email: EmailStr
+    role: MembershipRole = MembershipRole.MEMBER
+
+
+class InvitationPublic(BaseModel):
+    """A pending offer. The token is only ever emailed, never returned."""
+
+    id: str
+    email: str
+    role: MembershipRole
+    expires_at: UtcDateTime
+    created_at: UtcDateTime
+    invited_by_user_id: uuid.UUID | None = None
+
+
+class InvitationAccept(BaseModel):
+    token: str = Field(min_length=10, max_length=200)
