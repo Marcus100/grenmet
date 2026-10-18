@@ -125,6 +125,7 @@ MAP_TYPE_EXEMPTIONS = {
     "src.wxproducts.schemas.PublicPublishedProduct.values": "frozen anonymous product feed contract",
     "src.wxproducts.schemas.PublishedProductBase[dict[str, str]].values": "frozen legacy product payload",
     "src.wxproducts.schemas.StoredProductBase[dict[str, str]].values": "frozen legacy product payload",
+    "src.storage.schemas.UploadTicket.headers": "presigned PUT headers are dictated by the object store signature",
     "src.wxwatch.nhc_schemas.NhcPrefill.values": "proposed legacy scalar product values; structured facts are typed separately",
 }
 
