@@ -10,8 +10,8 @@ import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { type FormEvent, useEffect, useState } from "react";
 import { REGISTER_KEYS, REGISTER_SECTIONS } from "./eregister-layout";
+import { metarFromCoded } from "./eregister-metar";
 import { observerInitials } from "./eregister-observer";
-import { tenthsToCelsius } from "./eregister-readings";
 import {
   LatestReports,
   type LiveState,
@@ -57,58 +57,6 @@ function lastObservedLabel(
   if (state === "unavailable") return "Unavailable";
   if (!latest?.observed_at) return "No saved observations yet";
   return `${new Date(latest.observed_at).toISOString().slice(0, 16).replace("T", " ")} UTC`;
-}
-
-const OKTA_WORDS = [
-  "NSC",
-  "FEW",
-  "FEW",
-  "SCT",
-  "SCT",
-  "BKN",
-  "BKN",
-  "BKN",
-  "OVC",
-];
-
-function metarTemperature(group: string | undefined): string {
-  const value = tenthsToCelsius(group);
-  if (value === null) return "//";
-  const rounded = Math.round(Math.abs(value)).toString().padStart(2, "0");
-  return value < 0 ? `M${rounded}` : rounded;
-}
-
-// Illustrative METAR line built from the coded workbook entries; the API owns
-// validation and decoding, this only previews them.
-function metarFromCoded(iso: string, v: Record<string, string>): string {
-  const dd = v.wind_dir ?? "";
-  const direction = dd === "99" ? "VRB" : `${dd.padStart(2, "0")}0`;
-  const speed = Number(v.wind_speed ?? "");
-  const knots = ["0", "1"].includes(v.wind_indicator ?? "")
-    ? Math.round(speed * 1.943_84)
-    : speed;
-  const vv = Number(v.visibility ?? "");
-  let visibility = "////";
-  if (v.visibility) {
-    visibility =
-      vv >= 60
-        ? "9999"
-        : String(vv <= 50 ? vv * 100 : (vv - 50) * 1000).padStart(4, "0");
-  }
-  const total = Number(v.total_cloud ?? "");
-  const layer = Number(v.s3_layer1_height ?? "");
-  const height = Number.isNaN(layer)
-    ? "///"
-    : String(Math.round((layer * 30 * 3.280_84) / 100)).padStart(3, "0");
-  const cloud =
-    total === 0
-      ? "NSC"
-      : `${OKTA_WORDS[total] ?? "///"}${v.s3_layer1_height ? height : "///"}`;
-  const group = Number(v.msl_pressure ?? "");
-  const qnh = Number.isNaN(group)
-    ? "////"
-    : String(Math.round(group / 10 + (group >= 5000 ? 0 : 1000)));
-  return `TGPY ${iso.slice(8, 10)}${iso.slice(11, 15)}Z ${direction}${String(knots).padStart(2, "0")}KT ${visibility} ${cloud} ${metarTemperature(v.air_temp)}/${metarTemperature(v.dew_point)} Q${qnh}`;
 }
 
 const REGISTER_DEFAULTS: Record<string, string> = Object.fromEntries(

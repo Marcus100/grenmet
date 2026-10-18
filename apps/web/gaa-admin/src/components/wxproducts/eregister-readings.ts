@@ -37,6 +37,8 @@ function digits(value: string | undefined, length: number): number | "" | null {
 
 export function tenthsToCelsius(group: string | undefined): number | null {
   if (!(group && TENTHS_GROUP.test(group))) return null;
+  // A four-digit group starts with the sign digit: 0 positive, 1 negative.
+  if (group.length === 4 && !"01".includes(group.charAt(0))) return null;
   const negative = group.length === 4 && group.startsWith("1");
   return (negative ? -1 : 1) * (Number(group.slice(-3)) / 10);
 }
@@ -73,6 +75,8 @@ function layerHeight(key: string): Reading {
     if (code === "" || code === null) return code;
     if (code <= 50) return String(code * 30);
     if (code >= 56 && code <= 80) return String((code - 50) * 300);
+    // 81 to 89 climb from 10 500 m in 1500 m steps (Code table 1677).
+    if (code >= 81 && code <= 89) return String(10_500 + (code - 81) * 1500);
     return null;
   };
 }
