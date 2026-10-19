@@ -138,6 +138,10 @@ export function Calendar() {
     rosterQuery.data?.data,
   ]);
 
+  const provisionalHolidays = (holidaysQuery.data?.data ?? []).filter(
+    (holiday) => holiday.needs_verification
+  ).length;
+
   const entryCount = events.filter(
     (event) => event.extendedProps.kind !== "holiday"
   ).length;
@@ -158,6 +162,13 @@ export function Calendar() {
           <p className="text-muted-foreground text-sm">
             {days} days - {entryCount} entries
           </p>
+          {provisionalHolidays > 0 ? (
+            <p className="text-muted-foreground text-xs" role="status">
+              {provisionalHolidays} public holiday
+              {provisionalHolidays === 1 ? " is" : "s are"} provisional. Verify
+              with HR (HR setup, Holidays).
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

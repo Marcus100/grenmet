@@ -12,6 +12,25 @@ from src.auth.models import Session as LoginSession
 from src.auth.models import User
 from src.auth.utils import ALGORITHM
 
+# Anyone who can manage users or approve/publish CAP warnings is privileged.
+PRIVILEGED_PERMISSION_KEYS = (
+    "user.manage",
+    "cap.alert.approve",
+    "cap.alert.publish",
+    "cap.alert.publish_emergency",
+)
+
+
+async def is_privileged(session: AsyncSession, user: User) -> bool:
+    if user.is_superuser:
+        return True
+    for key in PRIVILEGED_PERMISSION_KEYS:
+        if await service.has_effective_permission(
+            session=session, user=user, permission_key=key
+        ):
+            return True
+    return False
+
 
 async def require_privileged_mfa(
     session: AsyncSession,
@@ -23,9 +42,7 @@ async def require_privileged_mfa(
 ) -> None:
     if auth_settings.AUTH_PRIVILEGED_MFA_MODE != "enforce":
         return
-    if not user.is_superuser and not await service.has_effective_permission(
-        session=session, user=user, permission_key="user.manage"
-    ):
+    if not await is_privileged(session, user):
         return
     if login_session is None and token is not None:
         try:

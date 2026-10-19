@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/page-header";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -17,17 +16,6 @@ export default function TidesPage() {
         title="Tide information"
       />
       <PlaceholderNotice product="Tide predictions" />
-      <PageSection heading="St. George's">
-        <InfoTable
-          headers={["Tide", "Time (AST)", "Height"]}
-          rows={[
-            ["High", "03:14", "0.9 m"],
-            ["Low", "09:32", "0.2 m"],
-            ["High", "15:48", "1.0 m"],
-            ["Low", "21:56", "0.2 m"],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Tides around Grenada">
         <Prose
           paragraphs={[

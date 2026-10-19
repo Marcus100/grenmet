@@ -130,6 +130,11 @@
     "should_not_use": ["teach"]
   },
   {
+    "prompt": "Get a fresh-context review of this diff, plus the security reviewer on the new public endpoint.",
+    "should_use": ["team-roles"],
+    "should_not_use": ["pre-merge"]
+  },
+  {
     "prompt": "What does the wxwatch router return for /metadata?",
     "should_use": [],
     "should_not_use": ["teach", "diagnosing-bugs"]

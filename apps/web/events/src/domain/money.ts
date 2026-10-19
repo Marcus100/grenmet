@@ -13,6 +13,7 @@ const CURRENCY_SYMBOL: Record<CurrencyCode, string> = {
 };
 
 const MINOR_UNITS_PER_MAJOR = 100;
+const DOLLARS = /^\d+(\.\d{1,2})?$/;
 
 const groupingFormat = new Intl.NumberFormat("en-US", {
   useGrouping: true,
@@ -73,4 +74,21 @@ function assertSameCurrency(a: Money, b: Money): void {
       `Cannot combine ${a.currency} with ${b.currency}. Convert before calculating.`
     );
   }
+}
+
+/**
+ * Parses a typed dollar amount ("25", "25.5", "1,250.00") into minor units.
+ * Returns null when the text isn't a non-negative amount with at most two
+ * decimals, so the UI never guesses at a cash figure.
+ */
+export function parseMinor(text: string): number | null {
+  const cleaned = text.trim().replaceAll(",", "");
+  if (!DOLLARS.test(cleaned)) {
+    return null;
+  }
+  const [whole = "0", fraction = ""] = cleaned.split(".");
+  return (
+    Number.parseInt(whole, 10) * MINOR_UNITS_PER_MAJOR +
+    Number.parseInt(fraction.padEnd(2, "0"), 10)
+  );
 }

@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-14
+**Last updated:** 2026-10-19
 
 Detail behind the short rules in the root `AGENTS.md`. Read the matching section
 before parallel work, integrating or pushing, a cross-layer change, or editing
@@ -48,9 +48,11 @@ agent instructions. Nothing here relaxes a root rule.
   before pushing. If remote `dev` advances, integrate it locally and revalidate
   before retrying.
 - Standing authorization: after local validation and a direct `dev` push,
-  create or update the `dev → staging` PR and merge it once all applicable checks
-  pass for its current head. Review the promotion diff, verify `dev` has not
-  advanced, and use `--match-head-commit`; never merge pending or failing checks.
+  create or update the `dev → staging` PR, review the promotion diff, verify `dev`
+  has not advanced, and arm auto-merge with
+  `gh pr merge <num> --auto --merge --match-head-commit <sha>`. GitHub merges only
+  after the staging ruleset's required checks pass; `CI Success` and
+  `Build Web Apps` aggregate every API and web job. Re-arm if `dev` advances.
 - Monitor the staging deployment and report actionable failures or readiness for
   acceptance. Reuse an open promotion PR. Production (`staging → main`), releases
   and deploys need separate explicit authorization. Do not promote unrelated or
@@ -107,9 +109,29 @@ step, newest at the bottom. If you worked around anything, run the
 
 Hook scripts live in `.claude/hooks/` and are wired in `.claude/settings.json`
 (Claude Code) and `.codex/config.toml` (Codex), so one script serves both tools.
-`block-dangerous-git.mjs` blocks force pushes, `git reset --hard`, `git clean -f`,
-`git branch -D`, `git checkout .`/`git restore .` and `gh pr merge`;
+`block-dangerous-git.mjs` blocks force pushes (`--force`, `-f`, `+ref`),
+`git reset --hard`, `git clean -f`, forced branch deletes, `git checkout .`,
+`git restore .` (unstaging with `--staged` is allowed), `git stash clear`, forced
+switches and worktree removals, and merges through `gh api`. It also scans
+commands inside `bash -c`, `sh -c` and `eval`. `gh pr merge` is allowed only
+when the PR's base is `staging` and `--admin` is absent; an unknown base blocks.
 `protect-files.mjs` blocks `.env*` writes and edits to the generated API client.
+Claude Code also enforces `permissions.deny` in `.claude/settings.json`, which a
+hook cannot override. In Codex these hooks sit alongside its own sandbox and
+approval policy.
+`session-handoff.mjs` prints the newest `SESSION_LOG.md` entries first, capped
+under both clients' preview limits. `audit-log.mjs` logs every Bash command to
+the main checkout's `.agents-bash-audit.log`, redacting credentials and rotating
+at 5 MB.
+`verify-before-stop.mjs` (Stop, both clients) sends an agent back once when its
+changes since `origin/dev` don't match the receipt a passing `pnpm verify:changed`
+writes to the worktree's git dir; the agent runs the checks or says in one line
+why it is stopping first. It reads only and never runs a check itself.
+
+For UI work, `pnpm ui:screenshots --app <app> --path <route>` renders a running
+dev server at 375 and 1280 px in light and dark mode into `.ui-review/` and flags
+horizontal overflow, console errors and failed requests. `/ui-check` feeds the
+PNGs to a fresh-context reviewer and repairs at most two rounds per finding.
 To extend the git blocklist, edit `DANGEROUS_PATTERNS` in
 `block-dangerous-git.mjs` and add a blocking case (and, for phrases that can appear
 in quoted text, a non-blocking case) to

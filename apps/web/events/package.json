@@ -25,8 +25,10 @@
     "@t3-oss/env-nextjs": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",
+    "qrcode": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "server-only": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -35,6 +37,7 @@
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
     "@types/node": "catalog:",
+    "@types/qrcode": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "babel-plugin-react-compiler": "catalog:",

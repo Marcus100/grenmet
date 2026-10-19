@@ -2,10 +2,12 @@ import "server-only";
 import {
   type PublicCurrentConditions,
   type PublicForecast,
+  type PublicMonthSummary,
   type PublicProductDetail,
   type PublicPublishedProduct,
   publicCurrentConditionsSchema,
   publicForecastSchema,
+  publicMonthSummaryResponseSchema,
   publicProductDetailSchema,
   publishedProductsSchema,
 } from "@barrelsgd/api-client";
@@ -18,7 +20,7 @@ export type ProductsResult =
   | { status: "ok"; products: PublicPublishedProduct[] }
   | { status: "unavailable"; products: [] };
 
-function endpoint(path: string, domain = "wxproducts") {
+export function endpoint(path: string, domain = "wxproducts") {
   const configured = env.AUTH_API_V1_STR.trim() || "/api/v1";
   const prefix = configured.startsWith("/") ? configured : `/${configured}`;
   const normalized = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
@@ -124,6 +126,30 @@ export const fetchCurrentConditions = cache(
       return parsed.data;
     } catch (error) {
       reportError(error, "gms-current");
+      return null;
+    }
+  }
+);
+
+/** MBIA month-to-date summary; null when there are no readings or on any failure. */
+export const fetchMonthSummary = cache(
+  async function fetchMonthSummary(): Promise<PublicMonthSummary | null> {
+    try {
+      const response = await fetch(
+        endpoint("month-summary", "eregister"),
+        requestOptions()
+      );
+      if (!response.ok) return null;
+      const parsed = publicMonthSummaryResponseSchema.safeParse(
+        await response.json()
+      );
+      if (!parsed.success) {
+        reportError(parsed.error, "gms-month-summary-contract");
+        return null;
+      }
+      return parsed.data.summary ?? null;
+    } catch (error) {
+      reportError(error, "gms-month-summary");
       return null;
     }
   }

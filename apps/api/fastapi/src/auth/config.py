@@ -33,6 +33,8 @@ class AuthConfig(BaseSettings):
     # secret switches single sign-on off for that app.
     GAA_ADMIN_APP_URL: str = "http://localhost:3001"
     GAA_ADMIN_SSO_CLIENT_SECRET: str = ""
+    BARRELS_ADMIN_APP_URL: str = "http://localhost:3012"
+    BARRELS_ADMIN_SSO_CLIENT_SECRET: str = ""
     CMS_APP_URL: str = "http://localhost:3006"
     CMS_SSO_CLIENT_SECRET: str = ""
     # Public sites with "Sign in" (ADR-0017 step 4); members join automatically.
@@ -46,6 +48,8 @@ class AuthConfig(BaseSettings):
     DOCS_SSO_CLIENT_SECRET: str = ""
     ELECTIONS_APP_URL: str = "http://localhost:3007"
     ELECTIONS_SSO_CLIENT_SECRET: str = ""
+    GMSDASH_APP_URL: str = "http://localhost:3013"
+    GMSDASH_SSO_CLIENT_SECRET: str = ""
     # One-time codes by SMS/WhatsApp. "disabled" until a provider is chosen
     # (every message costs money); "console" logs codes for local development.
     PHONE_OTP_PROVIDER: Literal["disabled", "console"] = "disabled"

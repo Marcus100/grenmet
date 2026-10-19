@@ -16,9 +16,10 @@ tooling. Start with `docs/technical-overview.md`.
 | Path | Covers |
 | --- | --- |
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
-| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, storage, billing, worker, eregister, janitorial, transport, events, baseline) |
-| `apps/web/<app>/AGENTS.md` | auth, cms, docs, elections, events, gaa-admin, gms, mbia, signal |
+| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, push, rewards, bookings) |
+| `apps/web/<app>/AGENTS.md` | admin, auth, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
+| `apps/web/babydoll/AGENTS.md` | Babydoll Beauty Bar client website (Next.js, Vercel) |
 | `packages/<pkg>/AGENTS.md` | api-client, auth, email-templates, gms, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
 
@@ -27,8 +28,8 @@ tooling. Start with `docs/technical-overview.md`.
 ```bash
 pnpm install  # dependencies
 pnpm start  # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
-pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 — HOST ONLY
-pnpm verify:changed  # only the gates this diff needs (--dry-run to list)
+pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 — HOST ONLY
+pnpm verify:changed  # only the gates this diff needs (--dry-run to list; --full adds fuzz; PYTEST_WORKERS=n)
 pnpm fix:changed  # formats dirty files; in shared checkouts use `pnpm exec ultracite fix <owned-files>`
 pnpm type-check  # TypeScript across all packages
 pnpm e2e  # Playwright smoke tests (needs the app's dev server)
@@ -54,8 +55,10 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 ## Always
 
 - Work locally first: run formatting, types, affected tests and integration checks before pushing; CI is extra verification, not the first test run.
-- Before calling a task done, run `pnpm fix:changed` and `pnpm type-check` (or `pnpm verify:changed`), then grep every importer and callsite of changed symbols and finish every affected layer. See the blast-radius table in `docs/agents/workflow.md`.
+- Before calling a task done, run `pnpm verify:changed` (or `pnpm fix:changed` and `pnpm type-check`); a Stop hook asks once if the current changes have no passing receipt, then grep every importer and callsite of changed symbols and finish every affected layer. See the blast-radius table in `docs/agents/workflow.md`.
 - Put backend logic in Python (FastAPI). The only TypeScript backend is the Payload CMS (`apps/web/cms`). Next.js route handlers may only validate, proxy to FastAPI, or render; never add database access, business rules, or delivery there.
+- Failure budget: if the same check fails twice on the same error, stop editing. Report the raw output and your proposed fix, then wait for the user (routines: record it in the run record, mark the outcome `blocked` and stop).
+- Before building, state the task contract: deliverable, constraints, non-goals and acceptance check. Skip it only for one-line fixes.
 - Every new feature or significant logic change ships with tests in the same task; if there is no clear test target, say what you verified and its limits.
 - Follow existing patterns. Before introducing a new pattern, library or abstraction, state the problem, why the existing approach falls short, and the tradeoffs.
 - Treat GAA as the client and GMS as its meteorological department. Software is Barrels IP; client data, marks and `Owner: GAA/GMS` docs are GAA's. The repo is public: keep confidential client material in gitignored `/private/`.
@@ -80,12 +83,12 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 
 ## Git, parallel agents and handoff
 
-- **Attended sessions:** work in a worktree per task, merge into local `dev`, validate, then push `dev`. Standing authorization covers creating and merging the `dev → staging` PR once all its checks pass (`--match-head-commit`). **Unattended routines** push only their own branch and open a PR to `dev` (`docs/agents/routines.md`). Full rules: `docs/agents/workflow.md`.
+- **Attended sessions:** work in a worktree per task, merge into local `dev`, validate, then push `dev`. Standing authorization covers creating the `dev → staging` PR and arming auto-merge on its reviewed head (`--auto --match-head-commit`); the hook allows merges into `staging` only. **Unattended routines** push only their own branch and open a PR to `dev` (`docs/agents/routines.md`). Full rules: `docs/agents/workflow.md`.
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`; regenerate both.
 - Read `SESSION_LOG.md` (main checkout root) before assuming a task is untouched; append one entry after meaningful work. Run the `file-friction` skill if you worked around anything. Tool switches: `docs/agents/tool-usage.md`.
-- Use the `api-change` skill for FastAPI contract changes and `gaa-admin-change` before touching `apps/web/gaa-admin`. Check `.claude/skills/` (also `.agents/skills`) before improvising CI triage, pre-merge, release or diagnosis.
-- Issues: GitHub Issues for `Marcus100/grenmet` via `gh`. Triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` (`docs/agents/triage-labels.md`). Domain language: root `CONTEXT.md` (created lazily by `/domain-modeling`) plus `docs/adr/` (`docs/agents/domain.md`).
-- Claude Code: spawn sub-agents only when the user asks, and pass them the relevant nested `AGENTS.md` paths.
+- Use the `api-change` skill for FastAPI contract changes and `gaa-admin-change` before touching `apps/web/gaa-admin`. Check `.claude/skills/` (also `.agents/skills`) before improvising CI triage, pre-merge, release or diagnosis. Write and change skills to `docs/agents/skill-standard.md`; `pnpm test:guardrails` lints them.
+- Issues: GitHub Issues for `Marcus100/grenmet` via `gh`. A "Fixes #N" in a commit closes the issue when it reaches `dev` (`close-issues-on-dev` workflow; GitHub alone only closes on `main`). Triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` (`docs/agents/triage-labels.md`). Domain language: root `CONTEXT.md` (created lazily by `/domain-modeling`) plus `docs/adr/` (`docs/agents/domain.md`).
+- Sub-agents: for role-spanning work or a fresh-context review, use the `team-roles` skill (role briefs in `.claude/agents/`, works in Claude Code and Codex; `docs/agents/roles.md`). For exploration or anything else, delegate only when the user asks. Pass the relevant nested `AGENTS.md` paths.
 
 ## Code conventions
 
@@ -100,6 +103,7 @@ Frontend (full style rules in `.agents/rules/ultracite.mdc`):
 Backend (details in `apps/api/fastapi/AGENTS.md`):
 - SQLAlchemy models in `models.py`, `src.models.BaseModel` schemas in `schemas.py`; never expose ORM models.
 - Thin routers, logic in `service.py`, typed `AppException` subclasses; filter, join and paginate in SQL.
+- Frontend-agnostic routes per ADR-0025: zones `public`/`me`/`org`/`admin`, kebab-case nouns, unique schema names, shared helpers (`src/utils/timezones.py`); `tests/test_api_conventions.py` enforces it.
 - `require_permission(current_user=…, permission_key=…)` with every key in `src/auth/permissions.py`.
 - No sync network calls in `async def`; background work goes to the ARQ worker.
 - geonetcast runs devcontainer-first; never `uv sync --package geonetcast` on the host.
@@ -134,5 +138,6 @@ Design: read the lane spec `docs/design/<lane>.md` before building UI; style onl
 | HR forms, roster, attendance and timesheet alignment | `docs/hr/end-to-end-alignment.md` |
 | Agent workflow, git, blast radius, hooks | `docs/agents/workflow.md` |
 | Agent helpers, principles, routines, run records, benchmarks | `docs/agents/README.md` |
+| Writing or changing a skill (spec limits, testing, Codex parity) | `docs/agents/skill-standard.md` |
 | Agent configuration (how this layout works) | `docs/agent-configuration-guide.md` |
 | Vendored ops apps (SURFACE, wis2box) | `VENDORED.md` |

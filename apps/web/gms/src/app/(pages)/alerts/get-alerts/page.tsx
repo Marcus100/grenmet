@@ -1,7 +1,12 @@
+import { Suspense } from "react";
 import { PageHeader } from "@/components/page-header";
+import {
+  AlertEmailSignup,
+  AlertSignupResult,
+} from "@/components/pages/alert-email-signup";
+import { BrowserNotifications } from "@/components/pages/browser-notifications";
 import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
-import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
 
 export const metadata = {
@@ -17,15 +22,38 @@ export default function SubscribePage() {
         description="How to receive warnings, and which channel to rely on."
         title="Get alerts"
       />
-      <PlaceholderNotice product="The subscription channels on this page" />
+      <Suspense fallback={null}>
+        <AlertSignupResult />
+      </Suspense>
+      <PageSection heading="Get alerts by email">
+        <Prose
+          paragraphs={[
+            "We email you when a weather alert is published, updated or cancelled. You confirm your address first, and every email has an unsubscribe link.",
+          ]}
+        />
+        <div className="mt-4">
+          <AlertEmailSignup />
+        </div>
+      </PageSection>
+      <PageSection heading="Get browser notifications">
+        <Prose
+          paragraphs={[
+            "Allow notifications and this browser shows a message when an alert is published. Nothing is asked until you press the button, and you can turn it off here at any time. Notifications need a connection and, on some phones, the browser to be allowed to run in the background.",
+          ]}
+        />
+        <div className="mt-4">
+          <BrowserNotifications />
+        </div>
+      </PageSection>
       <PageSection heading="Channels">
         <InfoTable
           headers={["Channel", "Best for", "Works without power?"]}
           rows={[
             ["This website", "Full detail and the current picture", "No"],
+            ["Email alerts", "A message in the inbox you already check", "No"],
             [
-              "WhatsApp channel",
-              "Fast notification on the phone you already check",
+              "Browser notifications",
+              "A pop-up on the device where you allowed them",
               "No",
             ],
             ["Social media", "Reach and sharing", "No"],
@@ -35,7 +63,6 @@ export default function SubscribePage() {
               "Yes, with a battery radio",
             ],
             ["CAP feed", "Broadcasters, agencies and app developers", "No"],
-            ["Email digest", "Daily summaries rather than urgent alerts", "No"],
           ]}
         />
       </PageSection>
@@ -44,6 +71,7 @@ export default function SubscribePage() {
           paragraphs={[
             "Every digital channel depends on power and on the mobile network — the two things a severe event takes out first. A battery or wind-up radio is the one channel that keeps working when the rest fail, and every household should have one.",
             "Treat phone alerts as the fast channel and radio as the reliable one. Neither replaces the other.",
+            "The Common Alerting Protocol (CAP) feed remains the authoritative source: email and browser notifications are copies of it. We do not offer WhatsApp or SMS alerts.",
           ]}
         />
       </PageSection>

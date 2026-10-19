@@ -26,6 +26,11 @@ from tests.hr.test_workflow import _setup_leave_template
         ({"end_date": date(2026, 9, 30)}, "End date must be"),
         ({"days_requested": Decimal("0")}, "positive number of days"),
         ({"leave_type": LeaveType.OTHER}, "reason for other leave"),
+        ({"leave_type": LeaveType.JURY_DUTY}, "jury summons reference"),
+        (
+            {"leave_type": LeaveType.JURY_DUTY, "reason": "   "},
+            "jury summons reference",
+        ),
         (
             {"leave_type": LeaveType.PROFESSIONAL_APPOINTMENT},
             "professional appointment type",
@@ -199,3 +204,17 @@ async def test_action_leave_request_approved_writes_balance_event(
     events = list(result.scalars().all())
     assert len(events) == 1
     assert events[0].delta_days == Decimal("-3.0")
+
+
+def test_jury_duty_submission_accepts_a_summons_reference():
+    validate_leave_fields(
+        start_date=date(2026, 10, 1),
+        end_date=date(2026, 10, 3),
+        days_requested=Decimal("2"),
+        leave_type=LeaveType.JURY_DUTY,
+        professional_appointment_subtype=None,
+        reason="Summons HC-2026/114",
+        travel_from_date=None,
+        travel_to_date=None,
+        submitting=True,
+    )

@@ -1,6 +1,9 @@
+import calendar
 import logging
+import re
 import uuid
 from collections import defaultdict
+from datetime import date
 from decimal import Decimal
 
 from pydantic import ValidationError
@@ -25,11 +28,17 @@ from src.hr.exceptions import (
 )
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus
 from src.hr.organisations import require_organisation_permission
+from src.hr.roster import service as roster_service
+from src.hr.roster.expansion import shift_hours
+from src.hr.roster.holidays import PROVISIONAL_SOURCE
 from src.hr.roster.models import (
+    PublicHoliday,
     RosterAssignment,
+    RosterAvailability,
     RosterPeriod,
     RosterPeriodStatus,
     ShiftCatalog,
+    ShiftCategory,
 )
 from src.hr.signatures import service as signature_service
 from src.hr.workflow import service as workflow_service
@@ -51,7 +60,14 @@ from .models import (
     TimesheetStatus,
     TimesheetSubmission,
 )
-from .schemas import ShiftHoursSummary, TimesheetCreate, TimesheetSummaryByShift
+from .schemas import (
+    ShiftHoursSummary,
+    TimesheetCreate,
+    TimesheetPrefillEntry,
+    TimesheetPrefillHoliday,
+    TimesheetPrefillPublic,
+    TimesheetSummaryByShift,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -576,4 +592,109 @@ async def ensure_timesheet_workflow(
         action_in=WorkflowActionRequest(action=WorkflowAction.SUBMIT),
         require_actor_permission=False,
         commit=False,
+    )
+
+
+_PERIOD_PATTERN = re.compile(r"^(\d{4})-(0[1-9]|1[0-2])$")
+
+
+async def prefill_from_roster(
+    *, session: AsyncSession, current_user: User, period: str
+) -> TimesheetPrefillPublic:
+    """The caller's published roster work shifts for a month, as timesheet rows.
+
+    `period` is a calendar month (`YYYY-MM`). Only published or closed rosters
+    count, matching what `create_timesheet` links. The figures are the
+    scheduled hours; the employee still records what was actually worked.
+    """
+    require_permission(
+        current_user=current_user, permission_key="timesheet.submit.self"
+    )
+    match = _PERIOD_PATTERN.match(period)
+    if match is None:
+        raise HRValidationError("Period must be a month in the form YYYY-MM")
+    year, month = int(match.group(1)), int(match.group(2))
+    period_start = date(year, month, 1)
+    period_end = date(year, month, calendar.monthrange(year, month)[1])
+
+    department_id = await session.scalar(
+        select(EmploymentRecord.department_id).where(
+            EmploymentRecord.user_id == current_user.id
+        )
+    )
+    rows: list[tuple[RosterAssignment, ShiftCatalog]] = []
+    if department_id is not None:
+        result = await session.execute(
+            select(RosterAssignment, ShiftCatalog)
+            .join(RosterPeriod, RosterPeriod.id == RosterAssignment.roster_period_id)
+            .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
+            .where(
+                RosterPeriod.department_id == department_id,
+                RosterPeriod.status.in_(
+                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
+                ),
+                RosterAssignment.user_id == current_user.id,
+                RosterAssignment.assignment_date >= period_start,
+                RosterAssignment.assignment_date <= period_end,
+                ShiftCatalog.category == ShiftCategory.WORK,
+                ShiftCatalog.counts_as_work_hours.is_(True),
+            )
+            .order_by(RosterAssignment.assignment_date)
+        )
+        rows = [(row[0], row[1]) for row in result.all()]
+
+    availability = await roster_service.assignment_availability(
+        session, [assignment.id for assignment, _ in rows]
+    )
+    holiday_rows = (
+        await session.scalars(
+            select(PublicHoliday)
+            .where(
+                PublicHoliday.holiday_date >= period_start,
+                PublicHoliday.holiday_date <= period_end,
+                PublicHoliday.country_code == "GD",
+            )
+            .order_by(PublicHoliday.holiday_date)
+        )
+    ).all()
+    holidays = [
+        TimesheetPrefillHoliday(
+            holiday_date=row.holiday_date,
+            name=row.name,
+            provisional=row.needs_verification or row.source == PROVISIONAL_SOURCE,
+        )
+        for row in holiday_rows
+    ]
+    holiday_by_date = {holiday.holiday_date: holiday for holiday in holidays}
+    entries = [
+        TimesheetPrefillEntry(
+            entry_date=assignment.assignment_date,
+            shift_code=shift.code,
+            shift_label=shift.label,
+            start_time=shift.start_time,
+            end_time=shift.end_time,
+            roster_hours=shift_hours(shift) or Decimal("0.00"),
+            roster_assignment_id=assignment.id,
+            availability=availability.get(assignment.id, RosterAvailability.SCHEDULED),
+            holiday_name=(
+                holiday_by_date[assignment.assignment_date].name
+                if assignment.assignment_date in holiday_by_date
+                else None
+            ),
+            holiday_provisional=(
+                holiday_by_date[assignment.assignment_date].provisional
+                if assignment.assignment_date in holiday_by_date
+                else False
+            ),
+        )
+        for assignment, shift in rows
+    ]
+    return TimesheetPrefillPublic(
+        department_id=department_id,
+        period=period,
+        period_start=period_start,
+        period_end=period_end,
+        roster_published=bool(entries),
+        entries=entries,
+        holidays=holidays,
     )

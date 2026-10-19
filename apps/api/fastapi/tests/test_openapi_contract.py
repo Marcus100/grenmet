@@ -126,8 +126,15 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "download_signed_document",
         "weather_image",
         "archive_asset",
+        # Public satellite images are a file or a short-lived signed redirect.
+        "image",
         # Public CAP attachments redirect to short-lived signed storage URLs.
         "download_public_attachment",
+        # Public organisation images redirect to short-lived signed storage URLs.
+        "public_file",
+        # Subscription links redirect to the list's site with a result.
+        "confirm_subscription",
+        "unsubscribe",
         "get_scalar_docs",
         "read_rss",
         "read_cap_xml",
@@ -140,6 +147,10 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "preview_shift_swap",
         "preview_status_report_pdf",
         "preview_parking_permit",
+        # Invoicing renders the authenticated invoice PDF on demand.
+        "download_invoice_pdf",
+        # Events settlement export is a CSV download.
+        "get_settlement_csv",
     }
     offenders = [
         route.name

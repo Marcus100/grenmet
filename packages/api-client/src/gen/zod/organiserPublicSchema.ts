@@ -11,6 +11,8 @@ export const organiserPublicSchema = z.object({
   name: z.string(),
   bio: z.string(),
   verified: z.boolean(),
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+  logo_file_id: z.union([z.uuid(), z.null()]).optional(),
   follower_count: z.int(),
   viewer_following: z.union([z.boolean(), z.null()]).optional(),
 });

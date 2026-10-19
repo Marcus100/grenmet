@@ -3,7 +3,7 @@
 Two scopes:
 
 - ``app`` (self-service, e.g. Events): described below.
-- ``staff`` (GAA Admin): sessions come only from the auth.barrels.gd
+- ``staff`` (GAA Admin, Barrels admin): sessions come only from the auth.barrels.gd
   handoff, require an approved staff account, and mint ordinary staff tokens
   so existing staff routes keep working. "Join" asks for staff access; an
   administrator approves it.
@@ -18,10 +18,13 @@ permissions come from the app's roles. See ADR-0016.
 """
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from src.auth.config import auth_settings
 from src.exceptions import AppException
+
+if TYPE_CHECKING:
+    from src.auth.models import User
 
 SignInMethod = Literal["email_code", "password", "google", "phone"]
 Scope = Literal["app", "staff"]
@@ -44,6 +47,12 @@ class AppDefinition:
     #: Path on ``url`` that redeems a handoff code.
     callback_path: str = "/auth/callback"
     scope: Scope = "app"
+    #: Staff-scope apps only: also require ``is_superuser`` (Barrels control plane).
+    superuser_only: bool = False
+
+    def allows(self, user: User) -> bool:
+        """Whether this app's own rule admits an otherwise staff-eligible user."""
+        return user.is_superuser or not self.superuser_only
 
     @property
     def access_permission(self) -> str:
@@ -97,6 +106,20 @@ def _apps() -> dict[str, AppDefinition]:
         client_secret=auth_settings.CMS_SSO_CLIENT_SECRET,
         scope="app",
     )
+    # Barrels control plane: staff-scope token (superuser routes keep working),
+    # but only superusers may sign in (apps/web/admin).
+    barrels_admin = AppDefinition(
+        key="barrels-admin",
+        label="Barrels admin",
+        url=auth_settings.BARRELS_ADMIN_APP_URL.rstrip("/"),
+        self_signup=False,
+        default_role="",
+        google_redirect_uri="",
+        methods=frozenset(),
+        client_secret=auth_settings.BARRELS_ADMIN_SSO_CLIENT_SECRET,
+        scope="staff",
+        superuser_only=True,
+    )
     sites = [
         AppDefinition(
             key=key,
@@ -139,14 +162,25 @@ def _apps() -> dict[str, AppDefinition]:
                 auth_settings.ELECTIONS_APP_URL,
                 auth_settings.ELECTIONS_SSO_CLIENT_SECRET,
             ),
+            (
+                "gmsdash",
+                "GMS Dashboard",
+                auth_settings.GMSDASH_APP_URL,
+                auth_settings.GMSDASH_SSO_CLIENT_SECRET,
+            ),
         )
     ]
-    return {app.key: app for app in (events, gaa_admin, cms, *sites)}
+    return {app.key: app for app in (events, gaa_admin, barrels_admin, cms, *sites)}
 
 
 def registered_apps() -> list[AppDefinition]:
     """Apps that take part in single sign-on, in display order."""
     return [app for app in _apps().values() if app.sso]
+
+
+def all_apps() -> list[AppDefinition]:
+    """Every registered app, single sign-on or not, in registry order."""
+    return list(_apps().values())
 
 
 def is_registered(app_name: str | None) -> bool:

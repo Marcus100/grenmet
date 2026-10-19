@@ -28,7 +28,7 @@ Local commands use each workspace's `.env.local`. No developer secret file is wr
 | wis2box authentication / configuration | separate weather project | `WIS2BOX_HOST_DATADIR` | metadata/config commands | `auth-data`, `mosquitto-config`, host data and SSH keys | publishing/auth checks; private off-host archives |
 | wis2box monitoring | separate weather project | monitoring Compose configuration | upstream | `loki-data`, `prometheus-data`; external Grafana data volume | dashboards/metrics; snapshot required configuration |
 | Sutron / edge collector | SQLite archive | collector CLI/config | collector schema | edge persistent archive and handoff files | collector tests; SQLite backup API and file archives |
-| Uploaded files / weather images | environment-specific Spaces buckets | `STORAGE_*` | no database migration | immutable object keys plus local collector files | object retrieval + gallery; separate bucket backups |
+| Uploaded files / weather images | environment-specific Spaces buckets | `STORAGE_*`; browser uploads also need a bucket CORS rule allowing `PUT` + `Content-Type` from the web origins | `org.upload` records organisation uploads (keys `org/{organisation}/{app}/{purpose}/{uuid}.{ext}`); weather objects need no migration | immutable object keys plus local collector files | object retrieval + gallery; separate bucket backups |
 | GEONETCast and GMS ingestion | mounted inputs / output stores | source-specific collector config | bounded collectors | preserve receiver inputs and generated outputs | source freshness and handoff checks; archive required files |
 | Events / Salesbus | subsequent releases | dedicated URLs planned | separate FastAPI domain migrations planned | core PostgreSQL | independent release acceptance required |
 

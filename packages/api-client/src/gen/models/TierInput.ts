@@ -6,6 +6,7 @@
 import type { ListingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurrencyEnum.js";
 
 export type TierInput = {
+  id?: string | null;
   /**
    * @minLength 1
    * @maxLength 60
@@ -25,4 +26,11 @@ export type TierInput = {
    * @type integer
    */
   allocation: number;
+  /**
+   * @minLength 1
+   * @maxLength 50
+   * @default 4
+   * @type integer | undefined
+   */
+  per_account_limit?: number;
 };

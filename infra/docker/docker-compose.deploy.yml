@@ -105,6 +105,8 @@ services:
       FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
       ENVIRONMENT: ${ENVIRONMENT}
       PROJECT_NAME: ${PROJECT_NAME}
+      # Used by the email-hash data migration (a later, separately authorized step).
+      EMAIL_HASH_PEPPER: ${EMAIL_HASH_PEPPER:-}
     networks:
       - grenmet
 
@@ -170,6 +172,8 @@ services:
       # presents to redeem codes. Events is optional; staff apps are required.
       EVENTS_APP_URL: https://events.${BASE_DOMAIN}
       EVENTS_SSO_CLIENT_SECRET: ${EVENTS_SSO_CLIENT_SECRET:-}
+      GMSDASH_APP_URL: https://gmsdash.${BASE_DOMAIN}
+      GMSDASH_SSO_CLIENT_SECRET: ${GMSDASH_SSO_CLIENT_SECRET:-}
       GAA_ADMIN_APP_URL: https://admin.${BASE_DOMAIN}
       GAA_ADMIN_SSO_CLIENT_SECRET: ${GAA_ADMIN_SSO_CLIENT_SECRET:?GAA_ADMIN_SSO_CLIENT_SECRET required}
       CMS_APP_URL: https://cms.${BASE_DOMAIN}
@@ -187,6 +191,31 @@ services:
       ELECTIONS_APP_URL: https://elections.${BASE_DOMAIN}
       ELECTIONS_SSO_CLIENT_SECRET: ${ELECTIONS_SSO_CLIENT_SECRET:-}
       RESEND_API_KEY: ${RESEND_API_KEY}
+      # Optional integrations (2026-10-18); empty values fall back to defaults.
+      MBIA_CONTACT_RECIPIENT: ${MBIA_CONTACT_RECIPIENT:-}
+      BARRELS_CONTACT_RECIPIENT: ${BARRELS_CONTACT_RECIPIENT:-}
+      GMS_DATA_REQUEST_RECIPIENT: ${GMS_DATA_REQUEST_RECIPIENT:-}
+      TURNSTILE_ENABLED: ${TURNSTILE_ENABLED:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      EMAIL_HASH_PEPPER: ${EMAIL_HASH_PEPPER:-}
+      EREGISTER_OBS_RECIPIENTS: ${EREGISTER_OBS_RECIPIENTS:-}
+      EREGISTER_SEND_REQUIRE_ACCEPTED: ${EREGISTER_SEND_REQUIRE_ACCEPTED:-}
+      WIS2BOX_S3_ENDPOINT_URL: ${WIS2BOX_S3_ENDPOINT_URL:-}
+      WIS2BOX_S3_BUCKET: ${WIS2BOX_S3_BUCKET:-}
+      WIS2BOX_TOPIC_HIERARCHY: ${WIS2BOX_TOPIC_HIERARCHY:-}
+      FLIGHTS_OPENSKY_ENABLED: ${FLIGHTS_OPENSKY_ENABLED:-}
+      WIS2BOX_S3_ACCESS_KEY_ID: ${WIS2BOX_S3_ACCESS_KEY_ID:-}
+      WIS2BOX_S3_SECRET_ACCESS_KEY: ${WIS2BOX_S3_SECRET_ACCESS_KEY:-}
+      OPENSKY_CLIENT_ID: ${OPENSKY_CLIENT_ID:-}
+      OPENSKY_CLIENT_SECRET: ${OPENSKY_CLIENT_SECRET:-}
+      COPERNICUSMARINE_SERVICE_USERNAME: ${COPERNICUSMARINE_SERVICE_USERNAME:-}
+      COPERNICUSMARINE_SERVICE_PASSWORD: ${COPERNICUSMARINE_SERVICE_PASSWORD:-}
+      CDSAPI_URL: ${CDSAPI_URL:-}
+      CDSAPI_KEY: ${CDSAPI_KEY:-}
+      WEBPUSH_VAPID_PUBLIC_KEY: ${WEBPUSH_VAPID_PUBLIC_KEY:-}
+      WEBPUSH_VAPID_PRIVATE_KEY: ${WEBPUSH_VAPID_PRIVATE_KEY:-}
+      WEBPUSH_CONTACT: ${WEBPUSH_CONTACT:-}
+      SUBSCRIPTIONS_SITE_URLS: ${SUBSCRIPTIONS_SITE_URLS:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URI: https://auth.${BASE_DOMAIN}/google/callback
@@ -274,6 +303,29 @@ services:
       CAP_SIGNING_KEY_REF: ${CAP_SIGNING_KEY_REF:-cap-signing-key}
       PROJECT_NAME: ${PROJECT_NAME}
       RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAIL_HASH_PEPPER: ${EMAIL_HASH_PEPPER:-}
+      # Optional integrations (2026-10-18); empty values fall back to defaults.
+      MBIA_CONTACT_RECIPIENT: ${MBIA_CONTACT_RECIPIENT:-}
+      BARRELS_CONTACT_RECIPIENT: ${BARRELS_CONTACT_RECIPIENT:-}
+      GMS_DATA_REQUEST_RECIPIENT: ${GMS_DATA_REQUEST_RECIPIENT:-}
+      EREGISTER_OBS_RECIPIENTS: ${EREGISTER_OBS_RECIPIENTS:-}
+      EREGISTER_SEND_REQUIRE_ACCEPTED: ${EREGISTER_SEND_REQUIRE_ACCEPTED:-}
+      WIS2BOX_S3_ENDPOINT_URL: ${WIS2BOX_S3_ENDPOINT_URL:-}
+      WIS2BOX_S3_BUCKET: ${WIS2BOX_S3_BUCKET:-}
+      WIS2BOX_TOPIC_HIERARCHY: ${WIS2BOX_TOPIC_HIERARCHY:-}
+      FLIGHTS_OPENSKY_ENABLED: ${FLIGHTS_OPENSKY_ENABLED:-}
+      WIS2BOX_S3_ACCESS_KEY_ID: ${WIS2BOX_S3_ACCESS_KEY_ID:-}
+      WIS2BOX_S3_SECRET_ACCESS_KEY: ${WIS2BOX_S3_SECRET_ACCESS_KEY:-}
+      OPENSKY_CLIENT_ID: ${OPENSKY_CLIENT_ID:-}
+      OPENSKY_CLIENT_SECRET: ${OPENSKY_CLIENT_SECRET:-}
+      COPERNICUSMARINE_SERVICE_USERNAME: ${COPERNICUSMARINE_SERVICE_USERNAME:-}
+      COPERNICUSMARINE_SERVICE_PASSWORD: ${COPERNICUSMARINE_SERVICE_PASSWORD:-}
+      CDSAPI_URL: ${CDSAPI_URL:-}
+      CDSAPI_KEY: ${CDSAPI_KEY:-}
+      WEBPUSH_VAPID_PUBLIC_KEY: ${WEBPUSH_VAPID_PUBLIC_KEY:-}
+      WEBPUSH_VAPID_PRIVATE_KEY: ${WEBPUSH_VAPID_PRIVATE_KEY:-}
+      WEBPUSH_CONTACT: ${WEBPUSH_CONTACT:-}
+      SUBSCRIPTIONS_SITE_URLS: ${SUBSCRIPTIONS_SITE_URLS:-}
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       EMAIL_RENDER_URL: ${EMAIL_RENDER_URL:-}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
@@ -460,6 +512,12 @@ services:
       - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
       - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
+      # gmsadmin.* is the portal's new host (2026-10-18); a separate router keeps
+      # its certificate independent, so a missing DNS record cannot break admin.*.
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.rule=Host(`gmsadmin.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.service=web-admin${ROUTER_SUFFIX}"
     networks:
       - grenmet
 
@@ -594,6 +652,63 @@ services:
       - "traefik.http.routers.web-events${ROUTER_SUFFIX}.entrypoints=websecure"
       - "traefik.http.routers.web-events${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-events${ROUTER_SUFFIX}.loadbalancer.server.port=3009"
+    networks:
+      - grenmet
+
+  web-cap:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-cap:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3010/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      # Public alert hub: server-side fetches of the unauthenticated CAP feeds
+      # only, so there is no sign-in, cookie or CORS configuration here.
+      CAP_API_URL: http://api:8000
+      GMS_SITE_URL: https://weather.${BASE_DOMAIN}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_CAP:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
+    labels:
+      - "traefik.enable=true"
+      # Its own router (and so its own certificate): a missing cap.* DNS record
+      # cannot affect any other host.
+      - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.rule=Host(`cap.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-cap${ROUTER_SUFFIX}.loadbalancer.server.port=3010"
+    networks:
+      - grenmet
+
+  web-gmsdash:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-gmsdash:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3013/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      AUTH_API_URL: http://api:8000
+      AUTH_API_V1_STR: /api/v1
+      AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      # Optional: empty keeps sign-in off (single sign-on, ADR-0017).
+      GMSDASH_SSO_CLIENT_SECRET: ${GMSDASH_SSO_CLIENT_SECRET:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_GMSDASH:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
+    labels:
+      - "traefik.enable=true"
+      # Its own router (and so its own certificate): a missing gmsdash.* DNS
+      # record cannot affect any other host.
+      - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.rule=Host(`gmsdash.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-gmsdash${ROUTER_SUFFIX}.loadbalancer.server.port=3013"
     networks:
       - grenmet
 

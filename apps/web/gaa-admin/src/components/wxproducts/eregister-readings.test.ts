@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { READINGS } from "./eregister-readings";
+import { READINGS, tenthsToCelsius } from "./eregister-readings";
 
 // Paper register, Thursday 30 March 2023, 12 UTC (r1.jpg).
 const row: Record<string, string> = {
@@ -49,4 +49,30 @@ it("is blank while empty and a dash-worthy null for an invalid code", () => {
   expect(read("visibility", { visibility: "52" })).toBeNull();
   expect(read("wind_dir", { wind_dir: "070" })).toBeNull();
   expect(read("s3_layer1_height", { s3_layer1_height: "53" })).toBeNull();
+});
+
+it("rejects a sign digit other than 0 or 1 and decodes high layer heights", () => {
+  expect(tenthsToCelsius("2254")).toBeNull();
+  expect(tenthsToCelsius("1034")).toBe(-3.4);
+  expect(read("s3_layer1_height", { s3_layer1_height: "81" })).toBe("10500");
+  expect(read("s3_layer1_height", { s3_layer1_height: "88" })).toBe("21000");
+  expect(read("s3_layer1_height", { s3_layer1_height: "89" })).toBe(">21000");
+  expect(read("s3_layer1_height", { s3_layer1_height: "53" })).toBeNull();
+});
+
+it("reads the 24 h pressure change keyed as j1 8 (rise) or 9 (fall)", () => {
+  const read24 = (value: string) =>
+    read("s3_baro_change_24h", { s3_baro_change_24h: value });
+  // Paper register columns 43-44: 58 004, 59 011, 59 010.
+  expect(read24("8004")).toBe("+0.4");
+  expect(read24("9011")).toBe("-1.1");
+  expect(read24("9010")).toBe("-1.0");
+  expect(read24("8000")).toBe("+0.0");
+  expect(read24("9000")).toBe("0.0");
+  // Legacy 0 (rise) and 1 (fall) still read; other digits and short entries do not.
+  expect(read24("0004")).toBe("+0.4");
+  expect(read24("1011")).toBe("-1.1");
+  expect(read24("5011")).toBeNull();
+  expect(read24("011")).toBeNull();
+  expect(read24("")).toBe("");
 });

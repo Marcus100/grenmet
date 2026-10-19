@@ -40,7 +40,13 @@ export default async function DashEventsPage() {
   const now = new Date();
 
   return (
-    <DashShell active="events" eventName={organiser.name} isDemo={false}>
+    <DashShell
+      active="events"
+      currentOrganiser={organiser.slug}
+      eventName={organiser.name}
+      isDemo={false}
+      organisers={managed.organisers}
+    >
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>

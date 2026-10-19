@@ -60,11 +60,11 @@ from .schemas import (
     EmploymentCreate,
     EmploymentPublic,
     EmploymentUpdate,
+    HrRolePublic,
     LeavePublic,
     ProfileAuditPublic,
     ProfileDetailsPublic,
     ProfileIdentityPublic,
-    RolePublic,
     RosterPreferencesPublic,
     UserProfilePublic,
 )
@@ -440,7 +440,7 @@ async def _build_profile_response(
     )
 
     roles = [
-        RolePublic(
+        HrRolePublic(
             name=role.name,
             scope=scope_by_role.get(role.id, RoleAssignmentScope.SELF),
         )

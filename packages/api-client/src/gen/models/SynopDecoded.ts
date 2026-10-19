@@ -29,4 +29,7 @@ export type SynopDecoded = {
   total_cloud_percent?: number | null;
   precipitation_kg_m2?: number | null;
   rainfall_24h_kg_m2?: number | null;
+  pressure_change_24h_pa?: number | null;
+  sunshine_24h_hours?: number | null;
+  ground_state?: number | null;
 };

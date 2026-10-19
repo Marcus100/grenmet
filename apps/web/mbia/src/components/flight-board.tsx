@@ -8,6 +8,7 @@ import {
   type AirportCode,
   type Board,
   type Flight,
+  type FlightSource,
   type FlightStatus,
   flightsFor,
   STATUS_LABELS,
@@ -87,7 +88,46 @@ function AirportToggle({
   );
 }
 
+const updatedFormat = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  hour: "2-digit",
+  hour12: false,
+  minute: "2-digit",
+  month: "short",
+  timeZone: "America/Grenada",
+});
+
+function SourceBanner({
+  fetchedAt,
+  source,
+}: {
+  fetchedAt?: string;
+  source: FlightSource;
+}) {
+  if (source === "sample") {
+    return (
+      <p className="border-white/10 border-b px-5 py-3 text-sm sm:px-6">
+        Demo flight board. Times and statuses are sample data. Confirm your
+        flight with your airline.
+      </p>
+    );
+  }
+  const updated = fetchedAt
+    ? ` Updated ${updatedFormat.format(new Date(fetchedAt))} (Grenada time).`
+    : "";
+  return (
+    <p className="border-white/10 border-b px-5 py-3 text-sm sm:px-6">
+      Recent movements at Maurice Bishop International from OpenSky Network
+      (research data). This is not a live board or a schedule: it lists aircraft
+      seen on the previous day or earlier, with the time they were seen.
+      {updated} Confirm your flight with your airline.
+    </p>
+  );
+}
+
 export function FlightBoard({
+  fetchedAt,
+  source = "sample",
   flights,
   initialAirport = "GND",
   initialBoard = "arrivals",
@@ -98,6 +138,8 @@ export function FlightBoard({
   initialBoard?: Board;
   /** Homepage preview: fewer rows, no airport toggle. */
   compact?: boolean;
+  fetchedAt?: string;
+  source?: FlightSource;
 }) {
   const [board, setBoard] = useState<Board>(initialBoard);
   const [airport, setAirport] = useState<AirportCode>(initialAirport);
@@ -110,10 +152,7 @@ export function FlightBoard({
       aria-label={`${AIRPORTS[airport].name} ${board}`}
       className="overflow-hidden rounded-2xl bg-gaa-navy-ink text-white shadow-xl"
     >
-      <p className="border-white/10 border-b px-5 py-3 text-sm sm:px-6">
-        Demo flight board. Times and statuses are sample data. Confirm your
-        flight with your airline.
-      </p>
+      <SourceBanner fetchedAt={fetchedAt} source={source} />
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-6">
         <BoardToggle board={board} onChange={setBoard} />
         {compact ? null : (
@@ -183,7 +222,9 @@ export function FlightBoard({
             {visible.length === 0 && (
               <tr className="border-white/10 border-t">
                 <td className="px-5 py-8 text-center text-white/60" colSpan={5}>
-                  No {board} listed for {AIRPORTS[airport].shortName} today.
+                  {source === "sample"
+                    ? `No ${board} listed for ${AIRPORTS[airport].shortName} today.`
+                    : `No recent ${board} available for ${AIRPORTS[airport].shortName}.`}
                 </td>
               </tr>
             )}

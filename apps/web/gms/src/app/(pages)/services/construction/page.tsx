@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/page-header";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -25,32 +24,10 @@ export default function ConstructionPage() {
           ]}
         />
       </PageSection>
-      <PageSection heading="Common operating thresholds">
-        <InfoTable
-          caption="Indicative thresholds — always follow the equipment manufacturer and site safety plan"
-          headers={["Activity", "Typical limit"]}
-          rows={[
-            [
-              "Tower crane operation",
-              "Wind gusts above 20 m/s (approx. 39 kt)",
-            ],
-            ["Concrete pour", "Heavy rain during placement or initial cure"],
-            [
-              "Roofing and cladding",
-              "Sustained wind above 15 kt, or any lightning",
-            ],
-            ["Scaffold erection", "Sustained wind above 17 kt"],
-            [
-              "Excavation on slopes",
-              "After sustained heavy rainfall — saturated ground raises collapse risk",
-            ],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Hurricane season and site security">
         <Prose
           paragraphs={[
-            "Sites carrying loose material, scaffold and temporary structures need a securing plan that can be executed inside the warning lead time — typically 36 hours for a tropical cyclone warning, and considerably less for a severe thunderstorm.",
+            "Sites carrying loose material, scaffold and temporary structures need a securing plan that can be executed inside the warning lead time, which is much shorter for a severe thunderstorm than for a tropical cyclone.",
             "Plan for the time it takes to secure the site, not the time until the weather arrives.",
           ]}
         />

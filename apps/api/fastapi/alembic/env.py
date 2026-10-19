@@ -17,6 +17,14 @@ sys.path.append(str(Path(__file__).parent.parent))
 # Import all models to ensure they're registered with SQLAlchemy metadata.
 from src.audit.models import AuditEntry
 from src.auth.models import User
+from src.billing.models import (
+    Customer,
+    Invoice,
+    InvoiceCounter,
+    InvoiceLine,
+    InvoiceReminder,
+    Payment,
+)
 from src.cap.models import (
     CapAlert,
     CapArea,
@@ -35,6 +43,9 @@ from src.cap.models import (
     CapWebhook,
 )
 from src.config import settings
+from src.contact.models import ContactDataRequest, ContactMessage
+from src.eregister.models import ERegisterSend  # noqa: F401
+from src.feedback.models import PageFeedback
 from src.hr.absentee.models import AbsenteeReport
 from src.hr.attendance.models import (
     AttendanceCorrection,
@@ -83,13 +94,38 @@ from src.hr.workflow.models import (
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
+from src.models_guidance.models import (
+    GuidanceAccessRequest,
+    ModelGuidanceRun,
+    ModelGuidanceSeries,
+)
 from src.notifications.models import (
+    EmailSuppression,
     Notification,
     NotificationDelivery,
     NotificationPreference,
     NotificationSetting,
+    OutboundEmail,
+)
+from src.organisations.models import (  # noqa: F401
+    Invitation,
+    Membership,
+    OrganisationApp,
+    PlatformOrganisation,
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
+from src.push.models import PushSubscription
+from src.rewards.models import Entry, Program, ReviewFlag
+from src.storage.models import OrgUpload
+from src.stores.models import (
+    Requisition,
+    RequisitionLine,
+    StockLevel,
+    StockMovement,
+    StoreItem,
+    StoreLocation,
+)
+from src.subscriptions.models import ListSubscription
 
 config = context.config
 config.set_main_option("sqlalchemy.url", str(settings.SQLALCHEMY_DATABASE_URI))
@@ -101,7 +137,18 @@ Base.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
 target_metadata = Base.metadata
 
 # Schemas tracked by autogenerate. Extend this set when adding a new schema.
-_TRACKED_SCHEMAS = {None, "public", "hr", "cap"}
+_TRACKED_SCHEMAS = {
+    None,
+    "public",
+    "hr",
+    "cap",
+    "org",
+    "bookings",
+    "stores",
+    "billing",
+    "environment",
+    "rewards",
+}
 
 
 def _include_object(

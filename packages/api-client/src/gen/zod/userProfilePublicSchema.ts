@@ -8,12 +8,12 @@ import { addressPublicSchema } from "./addressPublicSchema.js";
 import { approvalAuthorityPublicSchema } from "./approvalAuthorityPublicSchema.js";
 import { emergencyContactPublicSchema } from "./emergencyContactPublicSchema.js";
 import { employmentPublicSchema } from "./employmentPublicSchema.js";
+import { hrRolePublicSchema } from "./hrRolePublicSchema.js";
 import { leavePublicSchema } from "./leavePublicSchema.js";
 import { profileAuditPublicSchema } from "./profileAuditPublicSchema.js";
 import { profileDetailsPublicSchema } from "./profileDetailsPublicSchema.js";
 import { profileIdentityPublicSchema } from "./profileIdentityPublicSchema.js";
 import { rosterPreferencesPublicSchema } from "./rosterPreferencesPublicSchema.js";
-import { srcHrSchemasRolePublicSchema } from "./srcHrSchemasRolePublicSchema.js";
 
 export const userProfilePublicSchema = z.object({
   id: z.uuid(),
@@ -22,7 +22,7 @@ export const userProfilePublicSchema = z.object({
   address: addressPublicSchema,
   emergency_contact: emergencyContactPublicSchema,
   employment: employmentPublicSchema,
-  roles: z.array(srcHrSchemasRolePublicSchema).optional(),
+  roles: z.array(hrRolePublicSchema).optional(),
   permissions: z.array(z.string()).optional(),
   roster_preferences: rosterPreferencesPublicSchema,
   leave: leavePublicSchema,

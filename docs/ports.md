@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-15
+**Last updated:** 2026-10-18
 
 Canonical port map for the monorepo. **This file is the single source of truth** —
 when a port changes, update it here first, then propagate to the locations listed
@@ -33,6 +33,10 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | cms | `@barrelsgd/web-cms` | 3006 |
 | elections | `@barrelsgd/web-elections` | 3007 |
 | events | `@barrelsgd/web-events` | 3009 |
+| cap | `@barrelsgd/web-cap` | 3010 |
+| admin | `@barrelsgd/web-admin` | 3012 |
+| gmsdash | `@barrelsgd/web-gmsdash` | 3013 |
+| babydoll | `@barrelsgd/web-babydoll` | 3014 |
 
 ### Reserved and planned
 
@@ -42,7 +46,6 @@ change that plans the app, so the next person does not pick it.
 | Port | App | Status |
 | --- | --- | --- |
 | 3008 | `@barrelsgd/web-shop` (`shop.barrels.gd`) | Reserved; see `docs/exec-plans/barrelsgd-migration-plan.md` |
-| 3010 | `@barrelsgd/web-cap` | Planned; CAP split out of gaa-admin |
 
 In production only Traefik's entry points are published to the host; app ports stay
 on the Docker network and Traefik routes by hostname using an explicit
@@ -54,6 +57,74 @@ allocation does not indicate deployment status; see the
 
 Run a single app on the host with `pnpm dev:web:<name>`; run all in parallel
 with `pnpm dev`.
+
+## Domains by environment
+
+Every hostname, in one place. Staging and production share one Traefik
+config (`infra/docker/docker-compose.deploy.yml`) with `BASE_DOMAIN` set to
+`staging.barrels.gd` or `barrels.gd` (`infra/docker/{staging,production}.env`).
+DNS is a wildcard, so a new subdomain needs only its Traefik router. App
+metadata (Sentry, analytics, health) lives in
+`packages/ui/src/lib/service-catalogue.json`; a deployed web app must have an
+entry there or its image build fails.
+
+### Served by the DigitalOcean stack (Traefik)
+
+| Service | Local dev | Container port | Staging | Production | Health check |
+| --- | --- | --- | --- | --- | --- |
+| auth (Barrels ID) | `localhost:3000` | 3000 | `auth.staging.barrels.gd` | `auth.barrels.gd` | `/` |
+| gaa-admin (GAA/GMS staff portal) | `localhost:3001` | 3001 | `gmsadmin.staging.barrels.gd` and `admin.staging.barrels.gd` | `gmsadmin.barrels.gd` and `admin.barrels.gd` | `/` (redirects to sign-in) |
+| docs | `localhost:3002` | 3002 | `docs.staging.barrels.gd` | `docs.barrels.gd` | `/` |
+| gms (public weather site) | `localhost:3003` | 3003 | `weather.staging.barrels.gd` | `weather.barrels.gd` | `/` |
+| signal | `localhost:3004` | 3004 | `signal.staging.barrels.gd` | `signal.barrels.gd` | `/` |
+| mbia | `localhost:3005` | 3005 | `mbia.staging.barrels.gd` | `mbia.barrels.gd` | `/` |
+| cms (Payload) | `localhost:3006` | 3006 | `cms.staging.barrels.gd` | `cms.barrels.gd` | `/admin` |
+| events | `localhost:3009` | 3009 | `events.staging.barrels.gd` | `events.barrels.gd` | `/` |
+| cap (public CAP alert hub) | `localhost:3010` | 3010 | `cap.staging.barrels.gd` | `cap.barrels.gd` | `/api/health` |
+| gmsdash (GMS Dashboard) | `localhost:3013` | 3013 | `gmsdash.staging.barrels.gd` | `gmsdash.barrels.gd` | `/api/health` |
+| FastAPI | `localhost:8000` | 8000 | `api.staging.barrels.gd` | `api.barrels.gd` | `/api/v1/utils/health-check/` |
+| Adminer (password) | `localhost:8080` | 8080 | `adminer.staging.barrels.gd` | `adminer.barrels.gd` | — |
+| Traefik dashboard (password) | `localhost:8090` | built in (`api@internal`) | `traefik.staging.barrels.gd` | `traefik.barrels.gd` | — |
+
+Internal only (no hostname): Postgres 5432, Redis 6379, the ARQ `worker`, the
+`nhc-worker`, `prestart` (migrations) and `cms-migrate`.
+
+`admin.<domain>` serves the GAA/GMS staff portal until the gmsadmin cutover;
+it then moves to the Barrels control plane (`apps/web/admin`, port 3012),
+which is built but not deployed and has no catalogue entry yet.
+
+### Hosted on Vercel (production only, no staging)
+
+| Site | Production |
+| --- | --- |
+| Barrels company homepage (`apps/web/barrels`) | `barrels.gd` (`www.barrels.gd` redirects) |
+| elections (`apps/web/elections`, dev port 3007) | `elections.barrels.gd` |
+| babydoll (`apps/web/babydoll`, dev port 3014; Babydoll Beauty Bar client site) | `babydoll.barrels.gd` (explicit DNS record; overrides the DigitalOcean wildcard) |
+
+### Planned (no app yet)
+
+| Hostname | For | Port |
+| --- | --- | --- |
+| `hr.barrels.gd` | Barrels HR (stays in gaa-admin for now) | not claimed |
+| `shop.barrels.gd` | Barrels Shop | 3008 reserved |
+
+### Retired hostnames
+
+Not routed any more. Old CORS lists in `infra/docker/.env.*.example` still
+name some of them.
+
+| Hostname | Replaced by |
+| --- | --- |
+| `gms.*`, `gaa-admin.*` | `weather.*`, `gmsadmin.*` |
+| `wxwatch.*`, `wxproducts.*`, `salesbus.*`, `sales.*` | modules inside gaa-admin |
+| `hurricane.*` | docs (redirect-only during the rename) |
+| `spice.*` | retired Spice weather app |
+| `proxy.*` | retired Hono weather-data proxy (port 4000 range) |
+| `gaa.*` | GAA corporate site plan, not built |
+
+The browser-facing API origins are `BACKEND_CORS_ORIGINS` in
+`infra/docker/{staging,production}.env`. cap and gmsdash call FastAPI from
+their servers only, so they are not listed there.
 
 ## APIs
 

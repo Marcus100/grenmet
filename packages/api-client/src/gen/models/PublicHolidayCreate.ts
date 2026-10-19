@@ -21,4 +21,10 @@ export type PublicHolidayCreate = {
    * @type string | undefined
    */
   country_code?: string;
+  source?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  needs_verification?: boolean;
 };

@@ -4,6 +4,10 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:next-forge.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:code.claude.com)",
+      "WebFetch(domain:platform.claude.com)",
+      "WebFetch(domain:learn.chatgpt.com)",
+      "WebFetch(domain:agentskills.io)",
       "Bash(pnpm fix:*)",
       "Bash(pnpm check:*)",
       "Bash(pnpm lint:*)",
@@ -12,14 +16,45 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm biome:*)",
       "Bash(pnpm turbo:*)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm verify:*)",
+      "Bash(pnpm guardrails:*)",
+      "Bash(pnpm design-system:*)",
+      "Bash(pnpm docs:*)",
+      "Bash(pnpm generate:api-client)",
       "Bash(turbo run:*)",
+      "Bash(git fetch *)",
+      "Bash(git add *)",
+      "Bash(git grep *)",
+      "Bash(git check-ignore *)",
+      "Bash(git merge-tree *)",
+      "Bash(git worktree list *)",
       "Bash(gh pr view:*)",
       "Bash(gh pr diff:*)",
       "Bash(gh pr list:*)",
       "Bash(gh pr checks:*)",
       "Bash(gh pr status:*)",
       "Bash(gh pr comment:*)",
+      "Bash(gh issue view *)",
+      "Bash(gh issue list *)",
+      "Bash(gh repo view *)",
       "Bash(gh run *)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push * --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * -f*)",
+      "Bash(git reset --hard)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -f*)",
+      "Bash(git clean -xf*)",
+      "Bash(gh pr merge * --admin*)",
+      "Edit(.env)",
+      "Edit(.env.*)",
+      "Edit(!*.example)",
+      "Edit(packages/api-client/src/gen/**)"
     ]
   },
   "worktree": {
@@ -32,11 +67,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-dangerous-git.mjs\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-dangerous-git.mjs\"",
+            "onFailure": "block"
           },
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-files.mjs\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-files.mjs\"",
+            "onFailure": "block"
           },
           {
             "type": "command",
@@ -49,7 +86,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-files.mjs\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-files.mjs\"",
+            "onFailure": "block"
           }
         ]
       }
@@ -75,7 +113,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(dirname \"$(git -C \"$CLAUDE_PROJECT_DIR\" rev-parse --path-format=absolute --git-common-dir)\")\" && { test ! -f SESSION_LOG.md || tail -c 50000 SESSION_LOG.md | tail -n 40; } || true"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-handoff.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/verify-before-stop.mjs\"",
+            "timeout": 30
           }
         ]
       }

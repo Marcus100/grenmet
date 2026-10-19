@@ -5,14 +5,17 @@ Readings go public when saved and are labelled provisional until accepted
 decoded fields in ``PublicObservation`` leave this module.
 """
 
+import calendar
 import math
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .schemas import PressureTrend, PublicObservation
+from .rules import FOUR_DIGIT_GROUP, THREE_DIGIT_GROUP
+from .schemas import PressureTrend, PublicMonthSummary, PublicObservation
 
 MBIA_STATION = "78958"
 COMPASS = ("N NNE NE ENE E ESE SE SSE S SSW SW WSW W WNW NW NNW").split()
@@ -80,8 +83,21 @@ def _code(text_value: str) -> int | None:
 
 
 def temperature(text_value: str) -> float | None:
-    """Workbook temperatures are entered in °C (e.g. ``25.4``)."""
-    value = _number(text_value)
+    """Degrees C from the coded group (``254``, ``1034``) or a plain value (``25.4``).
+
+    The register keys TTT or snTTT in tenths (sn 0 positive, 1 negative); earlier
+    clients saved plain degrees. A decimal point marks the plain form.
+    """
+    if text_value.isdigit() and len(text_value) in (
+        THREE_DIGIT_GROUP,
+        FOUR_DIGIT_GROUP,
+    ):
+        if len(text_value) == FOUR_DIGIT_GROUP and text_value[0] not in "01":
+            return None
+        sign = -1 if len(text_value) == FOUR_DIGIT_GROUP and text_value[0] == "1" else 1
+        value: float | None = sign * int(text_value[-3:]) / 10
+    else:
+        value = _number(text_value)
     return value if value is not None and -10 <= value <= 50 else None
 
 
@@ -149,6 +165,13 @@ def rain(text_value: str) -> tuple[float | None, bool]:
     return float(value), False
 
 
+def rain_24h_mm(text_value: str) -> float | None:
+    """Group 7R24R24R24R24: four digits in tenths of a millimetre, 9999 trace."""
+    if text_value.isdigit() and len(text_value) == FOUR_DIGIT_GROUP:
+        return 0.0 if text_value == "9999" else int(text_value) / 10
+    return _number(text_value)
+
+
 def weather(code: str) -> str | None:
     value = _code(code)
     if value is None:
@@ -166,7 +189,7 @@ def decode(row: dict[str, Any]) -> PublicObservation:
     calm, direction, speed_kt = wind(workbook)
     change = _code(_value(workbook, "pressure_change"))
     amount, trace = rain(_value(workbook, "precip_amount"))
-    rain_24h, _ = rain(_value(workbook, "s3_rainfall_24h"))
+    rain_24h = rain_24h_mm(_value(workbook, "s3_rainfall_24h"))
     oktas = _code(_value(workbook, "total_cloud"))
     return PublicObservation(
         station_id=row["station_id"],
@@ -220,3 +243,139 @@ async def latest(session: AsyncSession, now: datetime) -> PublicObservation | No
     )
     row = result.mappings().first()
     return decode(dict(row)) if row else None
+
+
+# WMO Guide to Climatological Practices (WMO-No. 100): a rain day has at least
+# 0.2 mm in the climatological day. Daily totals come from the 24 h rainfall
+# group (RRR, code table 3590) of the section 3 report, one per UTC date.
+RAIN_DAY_MM = Decimal("0.2")
+
+_MONTH_SQL = text(
+    """
+    WITH usable AS (
+      SELECT o.station_name, o.observed_at, o.state,
+             CASE WHEN jsonb_typeof(o.body -> 'workbook') = 'object'
+                  THEN o.body -> 'workbook' ELSE o.body END AS wb
+      FROM register_observations o
+      WHERE o.kind = 'SYNOP'
+        AND o.station_id = :station
+        AND o.state NOT IN ('rejected', 'superseded')
+        AND o.observed_at >= :start AND o.observed_at < :stop
+        AND NOT EXISTS (
+          SELECT 1 FROM register_observations newer
+          WHERE newer.supersedes_id = o.id AND newer.state <> 'rejected'
+        )
+    ),
+    raw AS (
+      SELECT station_name, observed_at, state,
+             btrim(wb ->> 's3_rainfall_24h') AS rr,
+             btrim(wb ->> 's3_max_temp') AS tx,
+             btrim(wb ->> 's3_min_temp') AS tn,
+             btrim(wb ->> 'air_temp') AS ta
+      FROM usable
+    ),
+    parsed AS (
+      SELECT station_name, observed_at, state,
+        CASE WHEN rr ~ '^[0-9]{3}$' THEN
+               CASE WHEN CAST(rr AS int) = 990 THEN 0
+                    WHEN CAST(rr AS int) > 990 THEN (CAST(rr AS int) - 990) / 10.0
+                    ELSE CAST(rr AS int) END
+             WHEN rr ~ '^[0-9]{1,2}([.][0-9]+)?$' THEN CAST(rr AS numeric)
+        END AS rain,
+        CASE WHEN tx ~ '^[01]?[0-9]{3}$' THEN
+               CASE WHEN length(tx) = 4 AND left(tx, 1) = '1' THEN -1 ELSE 1 END
+               * CAST(right(tx, 3) AS int) / 10.0 END AS tmax,
+        CASE WHEN tn ~ '^[01]?[0-9]{3}$' THEN
+               CASE WHEN length(tn) = 4 AND left(tn, 1) = '1' THEN -1 ELSE 1 END
+               * CAST(right(tn, 3) AS int) / 10.0 END AS tmin,
+        CASE WHEN ta ~ '^-?[0-9]{1,2}[.][0-9]+$' AND CAST(ta AS numeric) BETWEEN -10 AND 50
+             THEN CAST(ta AS numeric) END AS tair
+      FROM raw
+    ),
+    daily AS (
+      SELECT max(rain) AS rain
+      FROM parsed
+      WHERE rain IS NOT NULL
+      GROUP BY CAST(observed_at AT TIME ZONE 'UTC' AS date)
+    ),
+    extremes AS (
+      SELECT observed_at,
+             greatest(tmax, tair) AS hi,
+             least(tmin, tair) AS lo
+      FROM parsed
+    )
+    SELECT
+      (SELECT count(*) FROM parsed) AS observation_count,
+      (SELECT max(observed_at) FROM parsed) AS last_observation_at,
+      (SELECT max(station_name) FROM parsed) AS station_name,
+      (SELECT bool_or(state <> 'accepted') FROM parsed) AS provisional,
+      (SELECT count(*) FROM daily) AS rain_report_days,
+      (SELECT sum(rain) FROM daily) AS rainfall_mm,
+      (SELECT count(*) FROM daily WHERE rain >= :rain_day) AS rain_days,
+      (SELECT max(hi) FROM extremes) AS tmax,
+      (SELECT min(observed_at) FROM extremes
+         WHERE hi = (SELECT max(hi) FROM extremes)) AS tmax_at,
+      (SELECT min(lo) FROM extremes) AS tmin,
+      (SELECT min(observed_at) FROM extremes
+         WHERE lo = (SELECT min(lo) FROM extremes)) AS tmin_at
+    """
+)
+
+
+def month_bounds(month: str | None, now: datetime) -> tuple[str, datetime, datetime]:
+    """(YYYY-MM, UTC start, exclusive end) for ``month`` or the current UTC month."""
+    now = now.astimezone(UTC)
+    year, number = (
+        (now.year, now.month) if month is None else map(int, month.split("-"))
+    )
+    start = datetime(year, number, 1, tzinfo=UTC)
+    stop = start + timedelta(days=calendar.monthrange(year, number)[1])
+    return f"{year:04d}-{number:02d}", start, stop
+
+
+def _tenths(value: Any) -> float | None:
+    return None if value is None else round(float(value), 1)
+
+
+async def month_summary(
+    session: AsyncSession, month: str | None, now: datetime
+) -> PublicMonthSummary | None:
+    label, start, stop = month_bounds(month, now)
+    now = now.astimezone(UTC)
+    if start > now:
+        return None
+    # A reading timed in the future is a typo (same guard as ``latest``).
+    cutoff = min(stop, now + timedelta(minutes=15))
+    result = await session.execute(
+        _MONTH_SQL,
+        {
+            "station": MBIA_STATION,
+            "start": start,
+            "stop": cutoff,
+            "rain_day": RAIN_DAY_MM,
+        },
+    )
+    row = result.mappings().one()
+    if not row["observation_count"]:
+        return None
+    period_end = min(stop, now)
+    rain_known = row["rain_report_days"] > 0
+    return PublicMonthSummary(
+        station_id=MBIA_STATION,
+        station_name=row["station_name"],
+        month=label,
+        period_start=start,
+        period_end=period_end,
+        last_observation_at=row["last_observation_at"],
+        observation_count=row["observation_count"],
+        days_elapsed=(period_end - start).days + 1,
+        rain_report_days=row["rain_report_days"],
+        rainfall_mm=_tenths(row["rainfall_mm"]) if rain_known else None,
+        rain_days=row["rain_days"] if rain_known else None,
+        rain_day_threshold_mm=float(RAIN_DAY_MM),
+        max_temperature_c=_tenths(row["tmax"]),
+        max_temperature_at=row["tmax_at"] if row["tmax"] is not None else None,
+        min_temperature_c=_tenths(row["tmin"]),
+        min_temperature_at=row["tmin_at"] if row["tmin"] is not None else None,
+        provisional=bool(row["provisional"]),
+    )

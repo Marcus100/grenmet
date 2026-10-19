@@ -91,20 +91,122 @@ by adding tests that merely repeat the implementation.
 
 ## Coverage floors
 
-Line and branch coverage floors for the API and for each web app that has the v8
-provider (`auth`, `gaa-admin`, `gms`, `mbia`, `signal`) live in
-`scripts/guardrails/coverage-baseline.json`. `pnpm coverage:check` compares the
-latest reports (`apps/web/<app>/coverage/coverage-summary.json` from
-`vitest run --coverage --coverage.reporter=json-summary`, and
-`apps/api/fastapi/coverage.xml` from the backend suite) with those floors and
-fails when one falls below. Apps without a report are skipped, so a partial run
-still checks what it measured.
+Line and branch floors live in `scripts/guardrails/coverage-baseline.json`:
+the API and five web apps (`auth`, `gaa-admin`, `gms`, `mbia`, `signal`).
+Current floors (lines / branches): API 89 / 74; auth 79 / 71; gaa-admin 64.8 /
+63.7; gms 90 / 79; mbia 23 / 38; signal 64 / 55. Measured values and their
+source are in [quality-score](quality-score.md).
 
-Floors only rise. `pnpm coverage:check -- --write` raises a floor to the measured
-value minus a 0.5 point noise margin and never lowers one. The baseline is a
-high-risk path in `scripts/guardrails/risk-tier.mjs`, so lowering a floor always
-needs a human review and a stated reason. `cms`, `elections`, `events` and `docs`
-have no coverage provider yet; adding one is a separate change.
+Where each floor is enforced:
+
+- **API, in CI.** `ci-api.yml` runs the backend suite as four parallel
+  `test-shard` jobs (see [CI test sharding](#ci-test-sharding)), each measuring
+  coverage with pytest-cov but writing only a data file
+  (`COVERAGE_DATA_ONLY=1` in `scripts/verification/backend.sh`). The `coverage`
+  job downloads the four data files, runs `coverage combine`, writes
+  `coverage.xml` and the HTML report, and then runs
+  `node scripts/guardrails/check-coverage.mjs --only api`. A drop below the
+  floor fails that job. Combining is the only correct approach for shards: each
+  shard sees a fraction of the suite, so a per-shard floor would always fail and
+  an average of percentages is not the union of covered lines. The fuzz job's
+  data is merged too, so the measured coverage equals the old single-job run.
+  Coverage is branch-aware (`branch = true` in
+  `apps/api/fastapi/pyproject.toml`); the floor check uses the Cobertura line and
+  branch rates, so no separate `fail_under` is set in pyproject.
+- **Web, locally.** Each of the five apps sets `coverage.thresholds` in its
+  `vitest.config.ts`, so `pnpm --filter <app> test:coverage` (or `vitest run --coverage`)
+  fails below the floor. `pnpm coverage:check` then compares the
+  `coverage/coverage-summary.json` reports with the baseline. Apps without a report
+  are skipped.
+- **Web, in CI.** `ci-web.yml` runs the `web-coverage` job: one matrix entry per
+  app in `coverageApps` (`scripts/ci/select-images.mjs`: `auth`, `gms`, `mbia`,
+  `signal`), each running `pnpm -C <app> run test:coverage` and then
+  `node scripts/guardrails/check-coverage.mjs --only web`. It runs beside the
+  TypeScript Tests job and is part of the `build` aggregate gate. Dev PRs and dev
+  pushes run only the apps whose files changed (shared packages and root files
+  select all, as in image selection); promotion PRs and pushes run all four. A
+  skipped matrix leaves the gate green only when selection succeeded.
+- **gaa-admin is not in CI coverage.** Its full run takes about 40 minutes locally
+  and hit a 30 s test timeout under instrumentation, so its floor is enforced only
+  by `pnpm -C apps/web/gaa-admin run test:coverage` on a developer machine. Add it
+  to `coverageApps` only after a measured CI run fits the job timeout. If that
+  happens, shard it with `vitest run --coverage --shard=i/n --reporter=blob` and
+  merge in a final job with `vitest --mergeReports --coverage`; do not check a
+  floor per shard.
+
+## CI test sharding
+
+CI splits the two slowest suites into parallel jobs on free runners. Every test
+still runs on every push; only wall time changes.
+
+- **API (`ci-api.yml`).** `test-shard` is a matrix of four jobs, each with its own
+  Postgres service: `shard 1/3`, `2/3`, `3/3` and `fuzz`. Shards use
+  `pytest --shard i/n` (`tests/conftest.py`, `tests/sharding.py`), which keeps
+  whole files together and balances by test count (577 / 577 / 576 tests). The
+  Schemathesis suite (`tests/test_api_fuzz.py`, marked `fuzz`) is deselected by
+  `addopts = "-m 'not fuzz'"` in `pyproject.toml`; the fuzz job passes `-m fuzz`
+  and the shards pass `-m 'not fuzz'`. The migration smoke steps (database
+  isolation contract, `alembic upgrade head`, CMS rollback) run in shard 1 only.
+- **gaa-admin (`ci-web.yml`).** `gaa-admin-tests` runs
+  `turbo run test --filter=@barrelsgd/web-gaa-admin -- --shard=i/3` for i = 1..3 (Vitest
+  splits across its `node` and `dom` projects). The `tests` job runs every other
+  package (`--filter='!@barrelsgd/web-gaa-admin'`).
+- **Required checks.** The names `Run Tests` (an aggregate job with id `test`),
+  `TypeScript Tests`, `Build Web Apps` and `CI Success` are unchanged. `Run Tests`
+  now only passes when all four `test-shard` jobs and `coverage` pass, so
+  `ci-success` and any branch-protection rule that names `Run Tests` keep
+  resolving. The new per-shard names (`API Tests (shard 1/3)` ..., `API Tests (fuzz)`,
+  `API Coverage Floor`, `gaa-admin Tests (shard i/3)`) are aggregated by those jobs and
+  need not be added to branch protection; `build` lists `gaa-admin-tests` in its
+  `needs`.
+- **Locally.** `pytest --shard 2/3` reproduces a CI slice. The fuzz suite is skipped
+  by default: run it with `pytest -m fuzz`, or run everything with
+  `pnpm verify:changed --full`. `pnpm verify:backend -m fuzz` runs only fuzz.
+
+## Local gates and workers
+
+- `pnpm verify:changed` runs API tests with `pytest-xdist`. Workers default to
+  CPUs minus two (minimum 1), and drop to two when the 1-minute load average
+  exceeds the CPU count. Set `PYTEST_WORKERS=<n>` to override. The plan printed by
+  `--dry-run` shows the count. If a shared local Postgres produces fixture
+  `TimeoutError`s at high counts, lower `PYTEST_WORKERS`.
+- The pre-push hook (`.husky/pre-push`) runs `check:ci` and `type-check` for the
+  whole workspace (Turbo caches them) but tests only the packages whose files
+  changed in the commits being pushed, with no dependants. It reads the pushed
+  refs from stdin (`scripts/verification/pre-push-scope.mjs`). A change to
+  `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `turbo.json` or the root `package.json`,
+  or a range git cannot resolve, runs every package's tests; commits touching no
+  package skip tests. CI still runs the full suite. `PRE_PUSH_SCOPE="--affected"`
+  (or any Turbo flags) scopes all three steps by hand; `PRE_PUSH_SCOPE=""` is a
+  full local run.
+- gaa-admin pure-logic tests are `*.test.ts` and run in the fast `node` Vitest
+  project; only tests that need a DOM are `*.test.tsx` (the `dom` project).
+
+Raising a floor (floors only rise; lowering one needs a human review and a stated
+reason, because `coverage-baseline.json` is a high-risk path in `risk-tier.mjs`):
+
+1. Measure. API: the backend suite in CI or `scripts/verification/backend.sh` on a
+   disposable Postgres. Web: `pnpm --filter <app> test:coverage`. Use the run's
+   reported line and branch percentages.
+2. Set the new value to the measured percentage rounded down to a whole number,
+   and never below the current floor. Put it in `coverage-baseline.json` and in
+   that app's `coverage.thresholds` (web only). The two places are not generated
+   from each other, so change both together. `pnpm coverage:check -- --write`
+   also raises the baseline, but it uses measured minus 0.5 and does not touch the
+   vitest thresholds.
+3. Run `pnpm coverage:check` and `pnpm test:guardrails`, then update the figures in
+   quality-score.md.
+
+Thresholds are only as honest as the measurement. The web figures on 2026-10-18
+were measured on the default coverage scope of each app (files the suite loads),
+except mbia and signal, which use `src/**` as configured. Keep the scope
+unchanged when raising a floor; changing it moves the number. gaa-admin's floor was
+not re-measured on 2026-10-18 because a full coverage run there took about 41
+minutes locally and hit a 30 s test timeout under instrumentation, so its floor
+stays at the committed value.
+
+`cms`, `elections`, `events` and `docs` have no coverage provider yet; adding one is
+a separate change.
 
 ## Current gaps and follow-up
 

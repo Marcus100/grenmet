@@ -1,10 +1,11 @@
 import { MapPinIcon } from "lucide-react";
 import { ReadingGrid } from "@/components/home/reading-grid";
 import { SkyScene } from "@/components/home/sky-scene";
+import { Provenance } from "@/components/pages/provenance";
 import { isStale, localTime } from "@/lib/current-conditions";
+import { feelsLike } from "@/lib/feels-like";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { nowReadings, skyFromWords } from "@/lib/hero-readings";
-import { feelsLike } from "@/lib/hero-samples";
 import { cn } from "@/lib/utils";
 
 function Numeral({
@@ -106,6 +107,18 @@ export function NowSummary({
         className={compact ? "w-16 lg:w-24" : "w-28"}
         sky={skyFromWords(current?.weather ?? null)}
       />
+      {current && (isStale(current.observedAt, now) || current.provisional) && (
+        <div className="col-span-2">
+          <Provenance
+            kind="observation"
+            now={now}
+            source={`GMS observation register, ${station}`}
+            status={current.provisional ? "provisional" : "verified"}
+            time={current.observedAt}
+            tone="inverse"
+          />
+        </div>
+      )}
     </div>
   );
 }

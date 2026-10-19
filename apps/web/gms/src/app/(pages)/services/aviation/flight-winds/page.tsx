@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/page-header";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -18,19 +17,6 @@ export default function FlightWindsPage() {
         title="Flight winds"
       />
       <PlaceholderNotice product="The flight level data on this page" />
-      <PageSection heading="Forecast winds — Grenada area">
-        <InfoTable
-          headers={["Flight level", "Approx. altitude", "Wind", "Temperature"]}
-          rows={[
-            ["FL050", "5 000 ft", "070° 18 kt", "+18 °C"],
-            ["FL100", "10 000 ft", "080° 20 kt", "+9 °C"],
-            ["FL180", "18 000 ft", "090° 16 kt", "−5 °C"],
-            ["FL240", "24 000 ft", "100° 14 kt", "−18 °C"],
-            ["FL300", "30 000 ft", "120° 18 kt", "−36 °C"],
-            ["FL390", "39 000 ft", "150° 24 kt", "−56 °C"],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Why the wind turns with height">
         <Prose
           paragraphs={[

@@ -7,9 +7,9 @@ const variantStyles = {
 
 const colorStyles = {
   emerald: {
-    small: "text-emerald-500 dark:text-emerald-400",
+    small: "text-gm-blue-ink dark:text-gm-sky",
     medium:
-      "ring-emerald-300 dark:ring-emerald-400/30 bg-emerald-400/10 text-emerald-500 dark:text-emerald-400",
+      "ring-gm-blue dark:ring-gm-sky/30 bg-gm-blue/10 text-gm-blue-ink dark:text-gm-sky",
   },
   sky: {
     small: "text-sky-500",

@@ -9,7 +9,6 @@ from datetime import datetime
 from html import escape
 from pathlib import Path
 from typing import TypedDict
-from zoneinfo import ZoneInfo
 
 from fastapi.concurrency import run_in_threadpool
 from fastapi.encoders import jsonable_encoder
@@ -28,6 +27,7 @@ from src.hr.organisations import (
     require_organisation_permission,
 )
 from src.utils.datetime import utc_now
+from src.utils.timezones import GRENADA
 
 from .models import SavedSignature, SignedDocument
 from .schemas import SignaturePublic
@@ -214,6 +214,7 @@ def render_leave_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
             ("Professional Appointment", "PROFESSIONAL_APPOINTMENT"),
             ("Family Bereavement", "BEREAVEMENT"),
             ("Paternity Leave", "PATERNITY"),
+            ("Jury Duty (provisional)", "JURY_DUTY"),
             ("Other", "OTHER"),
         )
     )
@@ -225,7 +226,7 @@ def render_leave_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
         else '<span class="pending">Not signed</span>'
     )
     submitted = snapshot["signed_at"]
-    grenada_time = ZoneInfo("America/Grenada")
+    grenada_time = GRENADA
     document_date = (
         datetime.fromisoformat(submitted).astimezone(grenada_time).date()
         if submitted
@@ -259,7 +260,7 @@ def render_leave_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
     <table><tr><td><span class="label">Employee Name</span><span class="answer">{value("employee_name")}</span></td><td><span class="label">Department</span><span class="answer">{value("department_name")}</span></td></tr>
     <tr><td><span class="label">Employee request for leave (days)</span><span class="answer">{value("days_requested")}</span></td><td><span class="label">Start Date / End Date</span><span class="answer">{value("start_date")} / {value("end_date")}</span></td></tr></table>
     <h2>TYPE OF LEAVE OF ABSENCE</h2><div class="choices">{leave_options}</div>
-    <table><tr><td><span class="label">Professional appointment (Bank / Medical / Legal / Dental)</span>{value("professional_appointment_subtype")}</td><td><span class="label">Other — state reason</span>{value("reason")}</td></tr></table>
+    <table><tr><td><span class="label">Professional appointment (Bank / Medical / Legal / Dental)</span>{value("professional_appointment_subtype")}</td><td><span class="label">Other / jury duty — state reason or summons reference</span>{value("reason")}</td></tr></table>
     <div class="row">Salary in advance: {choice("Yes", form.get("salary_in_advance") is True)} &nbsp; {choice("No", form.get("salary_in_advance") is False)}</div>
     <table><tr><td><span class="label">Where is the leave to be spent?</span><span class="answer">{value("leave_address")}</span></td><td><span class="label">Travel From / To</span><span class="answer">{value("travel_from_date")} / {value("travel_to_date")}</span></td></tr>
     <tr><td><span class="label">Employee Signature</span><span class="answer">{signature}</span></td><td><span class="label">Date (Grenada)</span><span class="answer">{document_date.isoformat()}</span></td></tr></table>
@@ -311,9 +312,7 @@ def render_absentee_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> byte
     )
     signed_at = snapshot["signed_at"]
     submission_date = (
-        datetime.fromisoformat(signed_at)
-        .astimezone(ZoneInfo("America/Grenada"))
-        .strftime("%Y-%m-%d %H:%M")
+        datetime.fromisoformat(signed_at).astimezone(GRENADA).strftime("%Y-%m-%d %H:%M")
         if signed_at
         else "Not submitted"
     )
@@ -376,9 +375,7 @@ def render_shift_exchange_pdf(snapshot: DocumentSnapshot, image: bytes | None) -
     )
     submitted = snapshot["signed_at"]
     date_label = (
-        datetime.fromisoformat(submitted)
-        .astimezone(ZoneInfo("America/Grenada"))
-        .strftime("%Y-%m-%d %H:%M")
+        datetime.fromisoformat(submitted).astimezone(GRENADA).strftime("%Y-%m-%d %H:%M")
         if submitted
         else "Not submitted"
     )
@@ -677,11 +674,17 @@ async def get_document(
 
 
 async def list_documents(
-    session: AsyncSession, actor: User, skip: int, limit: int
+    session: AsyncSession,
+    actor: User,
+    skip: int,
+    limit: int,
+    entity_type: str | None = None,
 ) -> tuple[list[SignedDocument], int]:
     query = select(SignedDocument).where(
         (SignedDocument.signer_id == actor.id) | (SignedDocument.subject_id == actor.id)
     )
+    if entity_type is not None:
+        query = query.where(SignedDocument.entity_type == entity_type)
     count = await session.scalar(select(func.count()).select_from(query.subquery()))
     rows = (
         (

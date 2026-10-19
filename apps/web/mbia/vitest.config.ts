@@ -13,9 +13,11 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html"],
+      reporter: ["text", "json", "json-summary", "html"],
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.test.{ts,tsx}", "src/test/**"],
+      // Floors only rise; mirrored in scripts/guardrails/coverage-baseline.json.
+      thresholds: { lines: 23, branches: 38 },
     },
   },
   resolve: {

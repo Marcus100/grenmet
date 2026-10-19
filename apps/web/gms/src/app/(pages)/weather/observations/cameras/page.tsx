@@ -1,5 +1,4 @@
 import { PageHeader } from "@/components/page-header";
-import { ImageryFrame } from "@/components/pages/imagery-frame";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -18,26 +17,6 @@ export default function CamerasPage() {
         title="Weather cameras"
       />
       <PlaceholderNotice product="The camera views on this page" />
-      <PageSection>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <ImageryFrame
-            caption="Point Salines — looking west over the approach"
-            label="Camera view will appear here once the camera is connected."
-          />
-          <ImageryFrame
-            caption="St. George's — harbour and Carenage"
-            label="Camera view will appear here once the camera is connected."
-          />
-          <ImageryFrame
-            caption="Grand Etang — interior highlands"
-            label="Camera view will appear here once the camera is connected."
-          />
-          <ImageryFrame
-            caption="Lauriston, Carriacou — looking south"
-            label="Camera view will appear here once the camera is connected."
-          />
-        </div>
-      </PageSection>
       <PageSection heading="What a camera adds">
         <Prose
           paragraphs={[

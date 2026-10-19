@@ -9,6 +9,7 @@ from typing import Any, cast
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
+from fastapi.responses import JSONResponse, Response
 from fastapi.routing import APIRoute
 from pydantic import ValidationError
 from scalar_fastapi import get_scalar_api_reference
@@ -34,10 +35,14 @@ from src.auth.routers.twofa import router as twofa_router
 from src.auth.routers.users import router as users_router
 from src.baseline.governance_router import router as governance_router
 from src.baseline.router import router as staff_setup_router
+from src.billing.invoice_router import router as billing_invoice_router
 from src.billing.router import router as billing_router
+from src.bookings.router import router as bookings_router
 from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
+from src.contact.router import router as contact_router
+from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
 from src.eregister.router import router as eregister_router
 from src.events import database as events_database
@@ -48,6 +53,8 @@ from src.exceptions import (
     integrity_error_handler,
     validation_exception_handler,
 )
+from src.feedback.router import router as feedback_router
+from src.flights.router import router as flights_router
 from src.hr.absentee.router import router as hr_absentee_router
 from src.hr.attendance.clock_router import router as hr_clock_router
 from src.hr.attendance.router import router as hr_attendance_router
@@ -68,7 +75,11 @@ from src.janitorial import database as janitorial_database
 from src.janitorial.router import router as janitorial_router
 from src.logging_config import configure_logging
 from src.models import ValidationErrorResponse
+from src.models_guidance.router import router as models_guidance_router
 from src.notifications.router import router as notifications_router
+from src.organisations.dependencies import ORGANISATION_HEADER
+from src.organisations.router import router as organisations_router
+from src.push.router import router as push_router
 from src.rate_limit import limiter
 from src.request_context import (
     REQUEST_ID_HEADER,
@@ -76,9 +87,13 @@ from src.request_context import (
     reset_request_id,
     resolve_request_id,
 )
+from src.rewards.router import router as rewards_router
 
 # from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
+from src.storage.uploads_router import router as uploads_router
+from src.stores.router import router as stores_router
+from src.subscriptions.router import router as subscriptions_router
 from src.telemetry import sentry_options
 from src.transport import database as transport_database
 from src.transport.router import router as transport_router
@@ -89,6 +104,7 @@ from src.wxproducts.router import router as wxproducts_router
 from src.wxwatch import database as wxwatch_database
 from src.wxwatch.ingestion import router as wxwatch_ingestion_router
 from src.wxwatch.nhc_router import router as nhc_router
+from src.wxwatch.public_router import router as wxwatch_public_router
 from src.wxwatch.router import router as wxwatch_router
 
 configure_logging()
@@ -113,10 +129,13 @@ def _operation_domain(route: APIRoute) -> str:
         "wxproducts",
         "eregister",
         "billing",
+        "rewards",
+        "bookings",
         "utils",
         "janitorial",
         "transport",
         "events",
+        "stores",
     ):
         if f"/{domain}" in path:
             return domain
@@ -153,11 +172,50 @@ OPENAPI_TAGS = [
     {"name": "auth", "description": "Authentication, identity, and account security."},
     {"name": "billing", "description": "Billing and subscription operations."},
     {
+        "name": "bookings",
+        "description": "Barrels Bookings: services, availability and appointments.",
+    },
+    {
+        "name": "rewards",
+        "description": "Barrels ID rewards: stamp cards, trust badges, redemption.",
+    },
+    {
         "name": "browser-auth",
         "description": "Browser session authentication operations.",
     },
     {"name": "cap", "description": "CAP authoring and hazard alert operations."},
     {"name": "cap-public", "description": "Public CAP alert feeds and formats."},
+    {
+        "name": "environment",
+        "description": "Public marine, UV and dust forecasts (Copernicus; not a GMS product).",
+    },
+    {
+        "name": "models-guidance",
+        "description": (
+            "Raw ECMWF and NOAA model point guidance for the GMS Dashboard "
+            "(not an official GMS forecast)."
+        ),
+    },
+    {
+        "name": "flights",
+        "description": "Public recent flight movements (OpenSky, research use).",
+    },
+    {
+        "name": "contact",
+        "description": "Public website contact forms (no sign-in).",
+    },
+    {
+        "name": "feedback",
+        "description": "Anonymous 'Was this page helpful?' answers (no sign-in).",
+    },
+    {
+        "name": "subscriptions",
+        "description": "Public mailing-list sign-up with double opt-in (no sign-in).",
+    },
+    {
+        "name": "push",
+        "description": "Browser push subscriptions for public alerts (no sign-in).",
+    },
     {
         "name": "eregister",
         "description": "Electronic weather observation registration.",
@@ -185,6 +243,10 @@ OPENAPI_TAGS = [
     {"name": "hr-training", "description": "HR training record operations."},
     {"name": "hr-workflows", "description": "HR workflow and approval operations."},
     {"name": "janitorial", "description": "Janitorial catalogue operations."},
+    {
+        "name": "stores",
+        "description": "Internal stores catalogue, stock and requisitions.",
+    },
     {"name": "login", "description": "Login, token, and password recovery operations."},
     {
         "name": "modern-auth",
@@ -193,6 +255,10 @@ OPENAPI_TAGS = [
     {
         "name": "notifications",
         "description": "In-app notifications, email preferences and settings.",
+    },
+    {
+        "name": "organisations",
+        "description": "Platform organisations and the caller's memberships.",
     },
     {"name": "permissions", "description": "Permission administration operations."},
     {
@@ -209,6 +275,10 @@ OPENAPI_TAGS = [
     {"name": "users", "description": "User administration operations."},
     {"name": "utils", "description": "Health, readiness, and utility operations."},
     {"name": "weather-images", "description": "Weather image retrieval operations."},
+    {
+        "name": "storage",
+        "description": "Organisation-scoped uploads and file reads.",
+    },
     {"name": "wxproducts", "description": "Weather product authoring and publication."},
     {
         "name": "wxwatch",
@@ -302,6 +372,7 @@ async def request_logging_middleware(request: Request, call_next: Any) -> Any:
     start = time.perf_counter()
     status = 500
     request_id = resolve_request_id(request.headers.get(REQUEST_ID_HEADER))
+    request.state.request_id = request_id
     token = bind_request_id(request_id)
     sentry_sdk.set_tag("request_id", request_id)
     try:
@@ -323,6 +394,18 @@ async def request_logging_middleware(request: Request, call_next: Any) -> Any:
     return response
 
 
+async def unhandled_exception_handler(request: Request, _exc: Exception) -> Response:
+    # Runs in ServerErrorMiddleware, outside the logging middleware, so the
+    # header is added here; Starlette re-raises afterwards so Sentry still sees it.
+    request_id = getattr(request.state, "request_id", None)
+    headers = {REQUEST_ID_HEADER: request_id} if request_id else {}
+    return JSONResponse(
+        {"detail": "Internal Server Error"}, status_code=500, headers=headers
+    )
+
+
+app.add_exception_handler(Exception, unhandled_exception_handler)
+
 # Set all CORS enabled origins
 if settings.all_cors_origins:
     app.add_middleware(
@@ -332,47 +415,61 @@ if settings.all_cors_origins:
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         # Browser clients and observability integrations may add headers beyond
         # the authentication and content headers used by the API itself.
-        allow_headers=["Authorization", "Content-Type"],
+        allow_headers=["Authorization", "Content-Type", ORGANISATION_HEADER],
         expose_headers=[REQUEST_ID_HEADER],
     )
 app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
 # Include routers
-# app.include_router(shipments_router, prefix="/api/v1")
+# app.include_router(shipments_router, prefix=settings.API_V1_STR)
 # Auth-related routers (split for better organization)
-app.include_router(login_router, prefix="/api/v1")
-app.include_router(users_router, prefix="/api/v1")
-app.include_router(twofa_router, prefix="/api/v1")
-app.include_router(roles_router, prefix="/api/v1")
-app.include_router(permissions_router, prefix="/api/v1")
-app.include_router(role_assignments_router, prefix="/api/v1")
-app.include_router(billing_router, prefix="/api/v1")
-app.include_router(hr_profile_router, prefix="/api/v1")
-app.include_router(hr_workflow_router, prefix="/api/v1")
-app.include_router(hr_roster_router, prefix="/api/v1")
-app.include_router(hr_calendar_router, prefix="/api/v1")
-app.include_router(hr_timesheet_router, prefix="/api/v1")
-app.include_router(hr_clock_router, prefix="/api/v1")
-app.include_router(hr_attendance_router, prefix="/api/v1")
-app.include_router(hr_training_router, prefix="/api/v1")
-app.include_router(hr_signatures_router, prefix="/api/v1")
-app.include_router(hr_leave_router, prefix="/api/v1")
-app.include_router(hr_absentee_router, prefix="/api/v1")
-app.include_router(hr_exchange_router, prefix="/api/v1")
-app.include_router(hr_dailystatus_router, prefix="/api/v1")
-app.include_router(hr_parking_router, prefix="/api/v1")
-app.include_router(hr_documents_router, prefix="/api/v1")
-app.include_router(audit_router, prefix="/api/v1")
-app.include_router(notifications_router, prefix="/api/v1")
-app.include_router(cap_router, prefix="/api/v1")
+app.include_router(login_router, prefix=settings.API_V1_STR)
+app.include_router(users_router, prefix=settings.API_V1_STR)
+app.include_router(twofa_router, prefix=settings.API_V1_STR)
+app.include_router(roles_router, prefix=settings.API_V1_STR)
+app.include_router(permissions_router, prefix=settings.API_V1_STR)
+app.include_router(role_assignments_router, prefix=settings.API_V1_STR)
+app.include_router(billing_router, prefix=settings.API_V1_STR)
+app.include_router(billing_invoice_router, prefix=settings.API_V1_STR)
+app.include_router(rewards_router, prefix=settings.API_V1_STR)
+app.include_router(bookings_router, prefix=settings.API_V1_STR)
+app.include_router(hr_profile_router, prefix=settings.API_V1_STR)
+app.include_router(hr_workflow_router, prefix=settings.API_V1_STR)
+app.include_router(hr_roster_router, prefix=settings.API_V1_STR)
+app.include_router(hr_calendar_router, prefix=settings.API_V1_STR)
+app.include_router(hr_timesheet_router, prefix=settings.API_V1_STR)
+app.include_router(hr_clock_router, prefix=settings.API_V1_STR)
+app.include_router(hr_attendance_router, prefix=settings.API_V1_STR)
+app.include_router(hr_training_router, prefix=settings.API_V1_STR)
+app.include_router(hr_signatures_router, prefix=settings.API_V1_STR)
+app.include_router(hr_leave_router, prefix=settings.API_V1_STR)
+app.include_router(hr_absentee_router, prefix=settings.API_V1_STR)
+app.include_router(hr_exchange_router, prefix=settings.API_V1_STR)
+app.include_router(hr_dailystatus_router, prefix=settings.API_V1_STR)
+app.include_router(hr_parking_router, prefix=settings.API_V1_STR)
+app.include_router(hr_documents_router, prefix=settings.API_V1_STR)
+app.include_router(audit_router, prefix=settings.API_V1_STR)
+app.include_router(stores_router, prefix=settings.API_V1_STR)
+app.include_router(notifications_router, prefix=settings.API_V1_STR)
+app.include_router(organisations_router, prefix=settings.API_V1_STR)
+app.include_router(cap_router, prefix=settings.API_V1_STR)
 app.include_router(cap_public_router)
 
 # Other routers
-app.include_router(utils_router, prefix="/api/v1")
-app.include_router(weather_images_router, prefix="/api/v1")
-app.include_router(webhooks_router, prefix="/api/v1")
+app.include_router(utils_router, prefix=settings.API_V1_STR)
+app.include_router(weather_images_router, prefix=settings.API_V1_STR)
+app.include_router(uploads_router, prefix=settings.API_V1_STR)
+app.include_router(webhooks_router, prefix=settings.API_V1_STR)
+app.include_router(subscriptions_router, prefix=settings.API_V1_STR)
+app.include_router(push_router, prefix=settings.API_V1_STR)
+app.include_router(contact_router, prefix=settings.API_V1_STR)
+app.include_router(feedback_router, prefix=settings.API_V1_STR)
+app.include_router(flights_router, prefix=settings.API_V1_STR)
+app.include_router(environmental_router, prefix=settings.API_V1_STR)
+app.include_router(models_guidance_router, prefix=settings.API_V1_STR)
 app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
 app.include_router(eregister_router, prefix=settings.API_V1_STR)
 app.include_router(wxwatch_router, prefix=settings.API_V1_STR)
+app.include_router(wxwatch_public_router, prefix=settings.API_V1_STR)
 app.include_router(nhc_router, prefix=settings.API_V1_STR)
 app.include_router(wxwatch_ingestion_router, prefix=settings.API_V1_STR)
 app.include_router(browser_auth_router, prefix=settings.API_V1_STR)
@@ -392,7 +489,7 @@ if settings.ENVIRONMENT == "local":
             router as private_router,
         )
 
-        app.include_router(private_router, prefix="/api/v1")
+        app.include_router(private_router, prefix=settings.API_V1_STR)
     except ImportError:
         # Private module is optional
         pass

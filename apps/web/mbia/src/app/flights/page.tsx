@@ -1,8 +1,8 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
-import { FlightBoard } from "@/components/flight-board";
+import { FlightsPageBoard } from "@/components/flights-page-board";
 import { SectionHero } from "@/components/section-hero";
-import { isAirportCode, isBoard, SAMPLE_FLIGHTS } from "@/lib/flights";
+import { loadFlightData } from "@/lib/live-flights";
 
 export const metadata: Metadata = {
   title: "Flight Information",
@@ -17,28 +17,25 @@ const HELP_LINKS = [
   { label: "Getting to the airport", href: "/travel/ground-transportation" },
 ];
 
-export default async function FlightsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ board?: string; airport?: string }>;
-}) {
-  const params = await searchParams;
-  const board = isBoard(params.board) ? params.board : "arrivals";
-  const airport = isAirportCode(params.airport) ? params.airport : "GND";
+// Re-rendered at most every 30 minutes; the page stays statically cached.
+export const revalidate = 1800;
 
+export default async function FlightsPage() {
+  const data = await loadFlightData();
+  const isSample = data.source === "sample";
   return (
     <>
       <SectionHero
-        dek="Sample arrivals and departures for Maurice Bishop International Airport (GND) and Lauriston Airport, Carriacou (CRU)."
+        dek={
+          isSample
+            ? "Sample arrivals and departures for Maurice Bishop International Airport (GND) and Lauriston Airport, Carriacou (CRU)."
+            : "Recent aircraft movements at Maurice Bishop International Airport (GND), from OpenSky Network research data."
+        }
         eyebrow="Flight Information"
         title="Arrivals & departures"
       />
       <div className="mx-auto max-w-5xl px-4 py-12 lg:px-8">
-        <FlightBoard
-          flights={SAMPLE_FLIGHTS}
-          initialAirport={airport}
-          initialBoard={board}
-        />
+        <FlightsPageBoard data={data} />
         <nav
           aria-label="Related travel information"
           className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"

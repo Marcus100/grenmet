@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 // Runs only the gates the current diff needs, so agents stop re-deriving them.
-// Usage: pnpm verify:changed [--base <ref>] [--dry-run] [--skip <check>]...
+// Usage: pnpm verify:changed [--base <ref>] [--dry-run] [--full] [--skip <check>]...
+//   --full runs the whole API suite including the fuzz tests CI runs separately.
+//   PYTEST_WORKERS=<n> overrides the automatic API test worker count.
 
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
+import { availableParallelism, loadavg } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { changedFiles, fingerprint, writeReceipt } from "./receipt.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const API = "apps/api/fastapi/";
@@ -30,6 +34,9 @@ const WEB = /^(?:apps\/web|packages)\//;
 const API_DOMAIN = /^src\/([^/]+)\//;
 const API_SHARED = /^src\/[^/]+\.py$/;
 const API_TEST = /^tests\/.+\.py$/;
+// Test infrastructure every domain imports.
+const API_TEST_INFRA =
+  /^tests\/(?:conftest|factories|database_target|__init__)\.py$/;
 const AGENT_CONFIG =
   /^(?:\.claude|\.codex|\.agents|scripts\/(?:guardrails|agents)|\.github)\//;
 const VERIFICATION = /^scripts\/(?:verification|integrations|perf)\//;
@@ -37,6 +44,22 @@ const DELIVERY = /^scripts\/(?:ci|production)\//;
 // The suppression ratchet in the guardrail tests counts lint and type suppressions
 // in every first-party source file, so any added or edited source file can fail it.
 const SUPPRESSIBLE = /\.(?:py|[cm]?[jt]sx?)$/;
+
+// Local API test workers: CPUs minus two (min 1) so the machine stays usable,
+// dropping to two when the 1-minute load average already exceeds the CPU count.
+// PYTEST_WORKERS (a positive integer) overrides both rules.
+const RESERVED_CPUS = 2;
+const BUSY_WORKERS = 2;
+export function apiWorkers({
+  cpus = availableParallelism(),
+  load = loadavg()[0],
+  env = process.env,
+} = {}) {
+  const override = Number.parseInt(env.PYTEST_WORKERS ?? "", 10);
+  if (override > 0) return override;
+  const base = Math.max(1, cpus - RESERVED_CPUS);
+  return load > cpus ? Math.min(base, BUSY_WORKERS) : base;
+}
 
 const check = (name, command, args, cwd) => ({ name, command, args, cwd });
 const pnpm = (name, ...args) => check(name, "pnpm", args);
@@ -85,45 +108,92 @@ export function apiTestTargets(domain, testFiles) {
   return targets;
 }
 
+// Dependency manifests: a bump can break any domain, so these run lint+types and
+// the full suite. The uv workspace lock lives at the repo root.
+const API_DEPENDENCIES = new Set([
+  "uv.lock",
+  "pyproject.toml",
+  `${API}pyproject.toml`,
+  `${API}uv.lock`,
+]);
+// main.py wires every router, middleware and handler. A change there is checked
+// by a core subset (startup, OpenAPI, settings, release contract) plus the
+// domains it touches, not the whole suite. CI still runs everything.
+const API_ENTRYPOINT = "src/main.py";
+const API_CORE_TESTS = [
+  "tests/test_startup_imports.py",
+  "tests/test_openapi_contract.py",
+  "tests/test_release_contract_inputs.py",
+  "tests/test_settings.py",
+  "tests/test_schema_datetime_guard.py",
+  "tests/utils",
+];
+// tests/<dir>/... runs that directory; tests/test_x.py runs itself.
+const API_TEST_DIR = /^tests\/([^/]+)\/.+$/;
+
+// Pytest targets for one changed API file: "full" for the whole suite, else a list.
+function apiFileTargets(file, testFiles) {
+  if (API_DEPENDENCIES.has(file)) return "full";
+  const rest = file.slice(API.length);
+  const domain = API_DOMAIN.exec(rest)?.[1];
+  if (domain) return apiTestTargets(domain, testFiles);
+  if (rest === API_ENTRYPOINT) return API_CORE_TESTS;
+  if (API_SHARED.test(rest) || API_TEST_INFRA.test(rest)) return "full";
+  const testDir = API_TEST_DIR.exec(rest)?.[1];
+  if (testDir) return [`tests/${testDir}`];
+  return API_TEST.test(rest) ? [rest] : [];
+}
+
 // Pytest targets for changed API files; an empty list means the full suite,
-// because shared modules and conftest affect every domain.
+// because shared modules, conftest and dependencies affect every domain.
 function apiPytestTargets(apiFiles, testFiles) {
   const targets = new Set();
   for (const file of apiFiles) {
-    const rest = file.slice(API.length);
-    const domain = API_DOMAIN.exec(rest)?.[1];
-    if (domain)
-      for (const target of apiTestTargets(domain, testFiles))
-        targets.add(target);
-    else if (API_SHARED.test(rest) || rest === "tests/conftest.py") return [];
-    else if (API_TEST.test(rest)) targets.add(rest);
+    const fileTargets = apiFileTargets(file, testFiles);
+    if (fileTargets === "full") return [];
+    for (const target of fileTargets) targets.add(target);
   }
   return targets.size > 0 ? [...targets].sort() : undefined;
 }
 
-function apiChecks(files, testFiles) {
-  const apiFiles = files.filter((f) => f.startsWith(API) && f.endsWith(".py"));
-  if (apiFiles.length === 0) return [];
+// Runs from apps/api/fastapi; the wrapper supplies the local-development API
+// settings so a fresh worktree without .env.local still works.
+const API_ENV = "../../../scripts/agents/api-env.sh";
+
+// Overrides the pyproject default (-m 'not fuzz') so the fuzz suite runs too.
+const WITH_FUZZ = ["-m", "'fuzz or not fuzz'"];
+const FUZZ_TEST = "tests/test_api_fuzz.py";
+
+function apiChecks(files, testFiles, { workers = 1, full = false } = {}) {
+  const apiFiles = files.filter(
+    (f) =>
+      API_DEPENDENCIES.has(f) ||
+      (f.startsWith(API) && (f.endsWith(".py") || f.startsWith(`${API}tests/`)))
+  );
+  if (apiFiles.length === 0 && !full) return [];
   const lint = [
     API_SYNC,
-    `${UV_RUN} ruff check src scripts`,
-    `${UV_RUN} ruff format src scripts --check`,
+    `${UV_RUN} ruff check src scripts tests`,
+    `${UV_RUN} ruff format src scripts tests --check`,
     `${UV_RUN} mypy src`,
   ].join(" && ");
-  const checks = [check("api lint+types", "bash", ["-c", lint], API)];
-  const targets = apiPytestTargets(apiFiles, testFiles);
-  if (targets)
+  const checks = [check("api lint+types", API_ENV, ["bash", "-c", lint], API)];
+  // --full runs everything, including the fuzz suite that local runs skip.
+  const targets = full ? [] : apiPytestTargets(apiFiles, testFiles);
+  if (targets) {
+    const parallel =
+      workers > 1 ? ["-n", String(workers), "--dist", "load"] : [];
+    const fuzz = full || targets.includes(FUZZ_TEST) ? WITH_FUZZ : [];
+    const pytest = [UV_RUN, "pytest", "-q", ...parallel, ...fuzz, ...targets];
     checks.push(
       check(
         "api tests",
-        "bash",
-        [
-          "-c",
-          `${API_SYNC} && ${[UV_RUN, "pytest", "-q", ...targets].join(" ")}`,
-        ],
+        API_ENV,
+        ["bash", "-c", `${API_SYNC} && ${pytest.join(" ")}`],
         API
       )
     );
+  }
   return checks;
 }
 
@@ -131,7 +201,10 @@ function apiChecks(files, testFiles) {
 // apps/api/fastapi/tests (directories end with "/").
 // `deleted` paths still trigger type-check, tests and drift, but are never
 // passed to the formatter because they no longer exist.
-export function planChecks(files, { base, testFiles = [], deleted = [] } = {}) {
+export function planChecks(
+  files,
+  { base, testFiles = [], deleted = [], workers = 1, full = false } = {}
+) {
   const checks = [];
   const gone = new Set(deleted);
   const biomeFiles = files.filter(
@@ -141,7 +214,7 @@ export function planChecks(files, { base, testFiles = [], deleted = [] } = {}) {
     checks.push(
       pnpm("format+lint", "exec", "ultracite", "check", ...biomeFiles)
     );
-  checks.push(...apiChecks(files, testFiles));
+  checks.push(...apiChecks(files, testFiles, { workers, full }));
   for (const [matches, ruleChecks] of RULES)
     if (files.some(matches)) checks.push(...ruleChecks);
   // CI runs the guardrail tests on every change; a deleted file cannot add a suppression.
@@ -176,10 +249,16 @@ function git(args) {
 }
 
 function parseArgs(argv) {
-  const options = { base: "origin/dev", dryRun: false, skip: new Set() };
+  const options = {
+    base: "origin/dev",
+    dryRun: false,
+    full: false,
+    skip: new Set(),
+  };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--base") options.base = argv[++i];
     else if (argv[i] === "--dry-run") options.dryRun = true;
+    else if (argv[i] === "--full") options.full = true;
     else if (argv[i] === "--skip") options.skip.add(argv[++i]);
     else throw new Error(`Unknown argument: ${argv[i]}`);
   }
@@ -198,7 +277,7 @@ function main() {
     ]),
   ];
   const deleted = files.filter((file) => !existsSync(join(root, file)));
-  if (files.length === 0) {
+  if (files.length === 0 && !options.full) {
     console.log(`verify:changed: nothing changed since ${options.base}.`);
     return;
   }
@@ -208,15 +287,18 @@ function main() {
         entry.isDirectory() ? `${entry.name}/` : entry.name
       )
     : [];
+  const workers = apiWorkers();
   const committed = git(["rev-parse", "HEAD"]) !== mergeBase;
   const checks = planChecks(files, {
     base: committed ? mergeBase : undefined,
     deleted,
+    full: options.full,
     testFiles,
+    workers,
   }).filter((check) => !options.skip.has(check.name));
 
   console.log(
-    `verify:changed: ${files.length} file(s) since ${options.base}; ${checks.length} check(s).`
+    `verify:changed: ${files.length} file(s) since ${options.base}; ${checks.length} check(s); API test workers: ${workers}.`
   );
   const results = [];
   for (const check of checks) {
@@ -236,7 +318,24 @@ function main() {
   console.log("\nverify:changed summary");
   for (const { name, ok } of results)
     console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
-  if (results.some((r) => !r.ok)) process.exitCode = 1;
+  if (results.some((r) => !r.ok)) {
+    process.exitCode = 1;
+    return;
+  }
+  if (options.skip.size > 0) {
+    console.log(
+      "No verification receipt: checks were skipped, so the Stop gate still asks."
+    );
+    return;
+  }
+  // Fingerprint after the checks run, so the receipt matches what passed.
+  const verifiedFiles = changedFiles(root, options.base) ?? files;
+  writeReceipt(root, {
+    base: options.base,
+    checks: results.map((r) => r.name),
+    verified: fingerprint(root, verifiedFiles),
+    verifiedAt: new Date().toISOString(),
+  });
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

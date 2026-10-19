@@ -106,6 +106,16 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "notifications.manage",
         "Configure organisation notifications: on/off, recipients, wording, timings",
     ),
+    # Platform — Barrels invoicing (customers, invoices, payments, receivables)
+    PermissionDef(
+        "billing.manage",
+        "Manage Barrels invoicing: customers, invoices, manual payments and receivables",
+    ),
+    # Platform — Barrels rewards
+    PermissionDef(
+        "rewards.manage",
+        "Manage Barrels rewards: view all programmes, audited stamp adjustments, review flags",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),
@@ -129,12 +139,25 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cms.article.unpublish", "Unpublish CMS articles"),
     PermissionDef("cms.article.social.manage", "Manage CMS social publishing"),
     PermissionDef("cms.article.manage", "Manage CMS editorial settings"),
+    # eRegister
+    PermissionDef(
+        "eregister.send",
+        "Email a register observation and queue it for WIS2 publication",
+    ),
+    PermissionDef(
+        "eregister.qc",
+        "Accept, reject or reopen a register observation (QC; a different person from the observer)",
+    ),
     # CAP — alert lifecycle
     PermissionDef("cap.alert.create", "Create CAP alerts"),
     PermissionDef("cap.alert.edit", "Edit CAP alerts"),
     PermissionDef("cap.alert.submit", "Submit CAP alerts for approval"),
     PermissionDef("cap.alert.approve", "Approve CAP alerts"),
     PermissionDef("cap.alert.publish", "Publish CAP alerts"),
+    PermissionDef(
+        "cap.alert.publish_emergency",
+        "Emergency-publish CAP alerts without approval (duty supervisor; audited)",
+    ),
     PermissionDef("cap.alert.read", "Read CAP alerts"),
     # CAP — administration
     PermissionDef("cap.integrations.manage", "Manage CAP integrations"),
@@ -161,6 +184,15 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("app.signal.access", "Sign in to Grenada Signal"),
     PermissionDef("app.docs.access", "Sign in to GMS Documentation"),
     PermissionDef("app.elections.access", "Sign in to Elections Grenada"),
+    PermissionDef("app.gmsdash.access", "Sign in to the GMS Dashboard"),
+    PermissionDef(
+        "gmsdash.guidance.view",
+        "Read raw model guidance meteograms without an organisation entitlement",
+    ),
+    PermissionDef(
+        "gmsdash.access.review",
+        "Review and decide GMS Dashboard organisation access requests",
+    ),
     PermissionDef("transport.view", "View the bus admin portal"),
     PermissionDef("transport.ride", "Register for and ride the staff bus"),
     PermissionDef("transport.drive", "Operate runs in the bus driver app"),
@@ -202,6 +234,20 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "Grant buildings to supervisors; act on every building",
     ),
     PermissionDef("janitorial.work", "Record cleaning work in the janitor app"),
+    # Stores — internal supplies requisition
+    PermissionDef(
+        "stores.view",
+        "View the stores catalogue, stock levels and own or department requisitions",
+    ),
+    PermissionDef("stores.request", "Raise stores requisitions for own department"),
+    PermissionDef(
+        "stores.approve",
+        "Approve or reject submitted requisitions of departments in scope (never own)",
+    ),
+    PermissionDef(
+        "stores.manage",
+        "Keep the catalogue, store locations and stock; deliver approved requisitions",
+    ),
 )
 
 ALL_PERMISSION_KEYS: frozenset[str] = frozenset(p.key for p in PERMISSIONS)
@@ -340,6 +386,17 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
         "CAP publisher: publish approved alerts",
         ("cap.alert.publish", "cap.alert.read"),
     ),
+    "cap-duty-supervisor": (
+        "CAP duty supervisor: may emergency-publish without approval (reason required, always audited)",
+        (
+            "cap.alert.create",
+            "cap.alert.edit",
+            "cap.alert.submit",
+            "cap.alert.publish",
+            "cap.alert.publish_emergency",
+            "cap.alert.read",
+        ),
+    ),
     "cap-admin": (
         "CAP administrator: full alert lifecycle + settings",
         (
@@ -366,6 +423,14 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
         "Barrels Events moderator: handles reports and suggestions",
         ("app.events.access", "events.member.write", "events.moderate"),
     ),
+    "eregister-sender": (
+        "eRegister: email observations and queue them for WIS2",
+        ("eregister.send",),
+    ),
+    "eregister-qc": (
+        "eRegister QC: duty or senior forecaster who accepts observations",
+        ("eregister.qc", "eregister.send"),
+    ),
     "weather-member": (
         "Weather website member: granted on first sign-in",
         ("app.weather.access",),
@@ -385,6 +450,14 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "elections-member": (
         "Elections Grenada member: granted on first sign-in",
         ("app.elections.access",),
+    ),
+    "gmsdash-member": (
+        "GMS Dashboard member: granted on first sign-in",
+        ("app.gmsdash.access",),
+    ),
+    "gmsdash-operator": (
+        "GMS Dashboard operator: reads model guidance and decides organisation access requests",
+        ("gmsdash.guidance.view", "gmsdash.access.review"),
     ),
     "transport-officer": (
         "Transport officer: runs the staff bus service end to end",
@@ -451,6 +524,18 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "janitorial-contractor-supervisor": (
         "Cleaning contractor supervisor: works in the janitor app",
         ("janitorial.work",),
+    ),
+    "stores-requester": (
+        "Raises stores requisitions for own department",
+        ("stores.view", "stores.request"),
+    ),
+    "stores-approver": (
+        "Approves stores requisitions for the departments in scope",
+        ("stores.view", "stores.request", "stores.approve"),
+    ),
+    "stores-keeper": (
+        "Storekeeper: catalogue, locations, stock and deliveries",
+        ("stores.view", "stores.request", "stores.manage"),
     ),
     "workflow-admin": (
         "Workflow administrator",

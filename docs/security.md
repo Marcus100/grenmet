@@ -57,9 +57,10 @@ CAP operations rely on permission keys:
 | `cap.alert.read` | Read CAP alert records and audit events |
 | `cap.alert.create` | Create or duplicate alerts |
 | `cap.alert.edit` | Edit draft, submitted, or approved alerts |
-| `cap.alert.submit` | Move draft alerts to submitted (optional review step, not required before publish — ADR-0013) |
-| `cap.alert.approve` | Approve submitted alerts (optional review step, not required before publish — ADR-0013) |
-| `cap.alert.publish` | Publish (from draft, submitted, or approved), cancel, or expire alerts |
+| `cap.alert.submit` | Move draft alerts to submitted for approval (ADR-0023) |
+| `cap.alert.approve` | Approve submitted alerts; never the author (ADR-0023). Privileged MFA applies |
+| `cap.alert.publish` | Publish approved alerts, cancel, or expire alerts. Privileged MFA applies |
+| `cap.alert.publish_emergency` | Duty supervisor only: publish without approval with a mandatory reason, always audited as `emergency_publish`. Privileged MFA applies |
 | `cap.settings.manage` | Manage CAP settings and predefined areas |
 | `cap.integrations.manage` | Read integration and job-event state |
 
@@ -84,7 +85,7 @@ The following are not globally implemented yet:
 - Verification of deployed Redis-backed rate limiting configuration; the implementation already supports Redis.
 - WAF or bot-protection layer.
 - Formal backup restore drill evidence.
-- Formal data retention and deletion policy in code.
+- Formal data retention and deletion policy in code for account, HR and Events data (public-form retention is implemented, see Data retention below).
 
 Do not document these as complete controls until code or infrastructure exists.
 
@@ -278,3 +279,37 @@ Superusers may approve identity in person and deliver a single-use activation li
 ## Privileged two-step verification
 
 Privileged access has a separately activated MFA gate with encrypted authenticator storage, live session evidence, saved recovery codes and an operator readiness command. The default rollout preserves existing access while administrators enrol; it does not claim production enforcement. See [rollout and recovery](operations/privileged-mfa.md).
+
+## Data retention (public forms and mailing lists)
+
+Implemented by the daily ARQ job `purge_expired_data` (03:30 UTC,
+`src/worker/retention.py`). It is idempotent, deletes in batches of 500 and logs
+counts only, never addresses or message text.
+
+| Data | Rule |
+| --- | --- |
+| `contact_message`, `contact_data_request` | Deleted 24 calendar months after closing. These tables have no status, so a request counts as closed when received and the clock is `created_at`. |
+| `list_subscription` still `pending` | Deleted 30 days after `requested_at` (never confirmed). |
+| `list_subscription` unsubscribed | Plaintext address nulled at unsubscribe; the row keeps `email_hash` as consent proof. Not purged. |
+| `email_suppression` | Stores only `email_hash`; kept so a bounced or complaining address is never mailed again. |
+| `page_feedback` comments | Comment nulled after 24 months; the row stays so helpful / not helpful counts do not change. |
+
+Address hash: `hash_email` = HMAC-SHA256 keyed by the `EMAIL_HASH_PEPPER`
+secret over the stripped, lower-cased address, hex encoded. Pending and
+confirmed subscriptions keep the plaintext address (needed to send) plus the
+hash.
+
+Legacy rows written before the hash columns existed keep their plaintext until
+the separate, destructive "step 2" data migration runs (backfill hashes with the
+production pepper, null plaintext of suppressed and unsubscribed rows, drop the
+plaintext suppression column). Step 2 is irreversible and must follow a verified
+backup; it is not part of revision `emailhash20261018`. Until then the code
+matches both hash and plaintext, and hashes a legacy row the first time it is
+touched.
+
+Not covered by the purge: `outbound_email` rows (they hold recipient addresses and
+rendered content after sending) and Events or account data. Both need an owner
+retention decision.
+
+Privacy notices: `/privacy` on gms, mbia, signal and events, and the privacy
+partial on barrels.gd. Copy is marked for owner review.

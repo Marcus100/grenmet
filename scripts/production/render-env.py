@@ -37,11 +37,11 @@ def render(config, environment):
         values[key] = environment[key]
     if len(values["PAYLOAD_SECRET"]) < 32:
         raise ValueError("PAYLOAD_SECRET must contain at least 32 characters")
-    for key in ["WXWATCH_INGEST_TOKEN", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "SENTRY_DSN", "STORAGE_ENDPOINT_URL", "STORAGE_REGION", "STORAGE_BUCKET", "STORAGE_ACCESS_KEY_ID", "STORAGE_SECRET_ACCESS_KEY", "STORAGE_PUBLIC_BASE_URL", 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'ELECTIONS_SSO_CLIENT_SECRET']:
+    for key in ['WXWATCH_INGEST_TOKEN', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SENTRY_DSN', 'STORAGE_ENDPOINT_URL', 'STORAGE_REGION', 'STORAGE_BUCKET', 'STORAGE_ACCESS_KEY_ID', 'STORAGE_SECRET_ACCESS_KEY', 'STORAGE_PUBLIC_BASE_URL', 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'ELECTIONS_SSO_CLIENT_SECRET', 'MBIA_CONTACT_RECIPIENT', 'BARRELS_CONTACT_RECIPIENT', 'GMS_DATA_REQUEST_RECIPIENT', 'TURNSTILE_ENABLED', 'TURNSTILE_SECRET_KEY', 'EMAIL_HASH_PEPPER', 'EREGISTER_OBS_RECIPIENTS', 'EREGISTER_SEND_REQUIRE_ACCEPTED', 'WIS2BOX_S3_ENDPOINT_URL', 'WIS2BOX_S3_BUCKET', 'WIS2BOX_TOPIC_HIERARCHY', 'FLIGHTS_OPENSKY_ENABLED', 'WIS2BOX_S3_ACCESS_KEY_ID', 'WIS2BOX_S3_SECRET_ACCESS_KEY', 'OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET', 'COPERNICUSMARINE_SERVICE_USERNAME', 'COPERNICUSMARINE_SERVICE_PASSWORD', 'CDSAPI_URL', 'CDSAPI_KEY', 'WEBPUSH_VAPID_PUBLIC_KEY', 'WEBPUSH_VAPID_PRIVATE_KEY', 'WEBPUSH_CONTACT', 'GMSDASH_SSO_CLIENT_SECRET']:
         values[key] = environment.get(key, "")
     # Single sign-on (ADR-0017): staff apps can't sign in without theirs;
     # Events stays off until its secret is set.
-    for key in ["GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET", "EVENTS_SSO_CLIENT_SECRET", "WEATHER_SSO_CLIENT_SECRET", "MBIA_SSO_CLIENT_SECRET", "SIGNAL_SSO_CLIENT_SECRET", "DOCS_SSO_CLIENT_SECRET", "ELECTIONS_SSO_CLIENT_SECRET"]:
+    for key in ["GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET", "EVENTS_SSO_CLIENT_SECRET", "WEATHER_SSO_CLIENT_SECRET", "MBIA_SSO_CLIENT_SECRET", "SIGNAL_SSO_CLIENT_SECRET", "DOCS_SSO_CLIENT_SECRET", "ELECTIONS_SSO_CLIENT_SECRET", "GMSDASH_SSO_CLIENT_SECRET"]:
         if values[key] and len(values[key]) < 32:
             raise ValueError(f"{key} must contain at least 32 characters")
     mode = environment.get("AUTH_PRIVILEGED_MFA_MODE", "") or "disabled"
@@ -87,7 +87,7 @@ def render(config, environment):
         entry = service["environments"].get(config.get("ENVIRONMENT"), {})
         sentry = entry.get("sentry", {})
         secret_ref = sentry.get("secretRef")
-        if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "signal", "mbia", "events", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
+        if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "cap", "gmsdash", "signal", "mbia", "events", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
             raise ValueError("Invalid shared Sentry routing")
         values[f"SENTRY_DSN_{app}"] = environment.get(secret_ref, "") if secret_ref else sentry.get("dsn") or ""
     for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "EVENTS", "CMS"]:

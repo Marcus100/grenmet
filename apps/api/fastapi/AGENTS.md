@@ -219,7 +219,7 @@ my_domain_settings = MyDomainConfig()
 
 **ddtrace** — Installed as a runtime dep. The production image defaults trace exports, instrumentation telemetry and remote configuration to disabled until a Datadog Agent is provisioned. In production, run the app via `ddtrace-run uvicorn src.main:app` so APM tracing, trace ID injection into logs, and auto-instrumentation of FastAPI/SQLAlchemy/httpx are active. Set `DD_LOGS_INJECTION=true`, `DD_SERVICE`, `DD_ENV`, `DD_VERSION` in the environment.
 
-**Sentry** — Captures exceptions automatically via `sentry_sdk.init` in `main.py` (API) and `src/worker/main.py` (worker), with the content-minimising policy in `src/telemetry.py`. `logger.error`/`logger.exception` calls are reported too, so never swallow an unexpected exception silently: log it or re-raise. Only `area` and `digest` tags survive scrubbing. Controlled by `SENTRY_DSN`.
+**Sentry** — Captures exceptions automatically via `sentry_sdk.init` in `main.py` (API) and `src/worker/main.py` (worker), with the content-minimising policy in `src/telemetry.py`. `logger.error`/`logger.exception` calls are reported too, so never swallow an unexpected exception silently: log it or re-raise. Only `area`, `digest` and `request_id` tags survive scrubbing. Controlled by `SENTRY_DSN`.
 
 **Domain logging** — Every service file has `logger = logging.getLogger(__name__)`. Log key business events at `INFO` with structured `extra={}` dicts. Log permission denials at `WARNING`.
 
@@ -255,7 +255,8 @@ async def test_create_leave_request(
 
 - Authenticate with real JWTs (`superuser_token_headers_async`, `normal_user_token_headers_async`); use `app.dependency_overrides` only for external services or forced error paths (see `TESTING.md`).
 - Use a real database (the `db_async` fixture hits the actual DB). Don't mock `AsyncSession`.
-- `tests/test_api_fuzz.py` (Schemathesis) calls every GET operation with
+- `tests/test_api_fuzz.py` (Schemathesis, marked `fuzz`; skipped by default, CI runs
+  it in its own job, locally use `pytest -m fuzz`) calls every GET operation with
   generated inputs as the superuser and fails on any 5xx except 503 (a
   separate-database domain without its database). It found the unbounded
   `page` overflow fixed in `src/pagination.py`; bound every numeric query
@@ -281,9 +282,11 @@ async def test_create_leave_request(
   values above unless you already set them), e.g.
   `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests/hr -q`.
 - Before pushing API changes, run the touched domains' tests
-  (`pytest tests/<domain>/`); the pre-push hook does not run pytest. Parallelise
-  with at most `-n 2`, as CI does — higher worker counts against the shared local
-  Postgres cause fixture `TimeoutError`s that are not real failures.
+  (`pytest tests/<domain>/`); the pre-push hook does not run pytest. `pnpm verify:changed`
+  parallelises automatically (CPUs minus two, two under high load; override with
+  `PYTEST_WORKERS`). If higher worker counts against the shared local Postgres cause
+  fixture `TimeoutError`s that are not real failures, lower `PYTEST_WORKERS` (CI uses
+  `-n 2` per shard). `pytest --shard i/n` runs one of CI's file-aligned slices.
 
   The passwords above are local-development placeholders; use the local stack's
   actual values when they differ, and never commit real credentials. The main

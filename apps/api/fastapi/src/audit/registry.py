@@ -62,6 +62,11 @@ def register_entity(entity_type: str, read_check: ReadCheck) -> None:
     The check must answer exactly as the owning module's own read access would,
     so history is never visible to someone who cannot see the record.
     """
+    existing = _read_checks.get(entity_type)
+    if existing is not None and existing is not read_check:
+        # Two modules claiming one subject would silently swap who may read it.
+        msg = f"History subject {entity_type!r} is already registered"
+        raise ValueError(msg)
     _read_checks[entity_type] = read_check
 
 

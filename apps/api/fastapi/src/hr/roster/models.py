@@ -101,6 +101,10 @@ class PublicHoliday(Base):
     holiday_date: Mapped[date] = mapped_column(index=True)
     is_recurring: Mapped[bool] = mapped_column(default=False)
     country_code: Mapped[str] = mapped_column(String(3), default="GD")
+    source: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    needs_verification: Mapped[bool] = mapped_column(
+        default=False, server_default=sa.false()
+    )
     created_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 

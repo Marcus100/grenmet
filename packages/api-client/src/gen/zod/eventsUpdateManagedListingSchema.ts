@@ -10,6 +10,11 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const eventsUpdateManagedListingPathListingIdSchema = z.uuid();
 
+export const eventsUpdateManagedListingQueryOrganiserSchema = z
+  .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+  .optional()
+  .describe("Organiser to act for when the member manages several.");
+
 export const eventsUpdateManagedListingStatus200Schema = managedListingSchema;
 
 export const eventsUpdateManagedListingStatus401Schema = z.unknown();

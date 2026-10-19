@@ -1,38 +1,49 @@
 "use client";
 
-import Image from "next/image";
+import { Package, Trash2 } from "lucide-react";
+import { QuantitySelector } from "@/components/salesbus/ui";
 import type { CartItem as CartItemType } from "@/lib/salesbus/types";
-import { formatCaseType, formatPrice } from "@/lib/salesbus/types";
 
 interface CartItemProps {
   item: CartItemType;
+  onQuantityChange: (itemId: string, quantity: number) => void;
+  onRemove: (itemId: string) => void;
 }
 
-export function CartItemCard({ item }: CartItemProps) {
+export function CartItemCard({
+  item,
+  onQuantityChange,
+  onRemove,
+}: CartItemProps) {
   return (
     <div className="flex items-center gap-4 rounded-xl bg-card p-4 sm:p-5">
-      <div className="flex h-20 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted sm:h-24 sm:w-20">
-        <Image
-          alt={item.product.name}
-          className="object-contain"
-          height={90}
-          src={item.product.image}
-          width={70}
-        />
+      <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground sm:h-20 sm:w-20">
+        <Package className="h-7 w-7" />
       </div>
 
       <div className="min-w-0 flex-1">
         <h3 className="truncate font-bold text-base text-foreground tracking-wide sm:text-lg">
-          {item.product.name}
+          {item.name}
         </h3>
         <p className="mt-1 text-muted-foreground text-sm sm:text-base">
-          {item.quantity} {formatCaseType(item.caseType)}
+          {item.sku} • {item.unit}
         </p>
       </div>
 
-      <span className="flex-shrink-0 font-bold text-foreground text-lg sm:text-xl">
-        {formatPrice(item.price)}
-      </span>
+      <QuantitySelector
+        max={10_000}
+        onChange={(quantity) => onQuantityChange(item.itemId, quantity)}
+        value={item.quantity}
+      />
+
+      <button
+        aria-label={`Remove ${item.name}`}
+        className="flex h-12 w-12 flex-shrink-0 touch-manipulation items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
+        onClick={() => onRemove(item.itemId)}
+        type="button"
+      >
+        <Trash2 className="h-5 w-5" />
+      </button>
     </div>
   );
 }

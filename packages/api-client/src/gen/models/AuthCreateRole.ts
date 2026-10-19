@@ -4,10 +4,10 @@
  */
 
 import type { RoleCreate } from "./RoleCreate.js";
-import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
+import type { RolePublic } from "./RolePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
-export type AuthCreateRoleStatus201 = SrcAuthSchemasRolePublic;
+export type AuthCreateRoleStatus201 = RolePublic;
 
 export type AuthCreateRoleStatus401 = unknown;
 

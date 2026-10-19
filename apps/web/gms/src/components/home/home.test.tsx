@@ -1,6 +1,6 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { ExploreToday, GrenadaInData } from "@/components/home/sample-sections";
+import { ExploreToday, GrenadaInData } from "@/components/home/data-sections";
 import { SkyHero } from "@/components/home/sky-hero";
 import { WarningTakeover } from "@/components/home/warning-takeover";
 import { WeatherNow } from "@/components/home/weather-now";
@@ -10,6 +10,7 @@ import { unavailableWeather } from "@/lib/forecast-selection";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 vi.mock("@/lib/env", () => ({ env: { CMS_API_URL: "" } }));
+vi.mock("@/lib/products", () => ({ fetchMonthSummary: async () => null }));
 
 const HERO_NAME = /^Grenada weather/;
 const STATION_NAME = /Maurice Bishop International \(MBIA\)/;
@@ -92,14 +93,17 @@ describe("SkyHero", () => {
   });
 });
 
-describe("sample sections", () => {
+describe("data sections", () => {
   it.each([
     ["Explore today", ExploreToday],
     ["Grenada in data", GrenadaInData],
-  ])("shows %s without a sample notice", async (_name, Section) => {
-    render(await Section());
-    expect(screen.queryByRole("note")).not.toBeInTheDocument();
-  });
+  ])(
+    "shows %s without a sample or placeholder notice",
+    async (_name, Section) => {
+      render(await Section());
+      expect(screen.queryByRole("note")).not.toBeInTheDocument();
+    }
+  );
 
   it("offers imagery, audio and video as tabs in the Weather now panel", async () => {
     render(await WeatherNow());

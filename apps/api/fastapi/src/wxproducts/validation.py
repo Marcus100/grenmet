@@ -3,13 +3,14 @@
 import json
 import math
 import re
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import UUID
 
 from pydantic import TypeAdapter
 
 from src.models import BaseModel
+from src.utils.timezones import GRENADA as GRENADA
 
 from . import units
 from .schemas import (
@@ -22,7 +23,6 @@ from .schemas import (
     values_as_dict,
 )
 
-GRENADA = timezone(timedelta(hours=-4))
 ISSUE_HOURS = {"morning": 7, "midday": 12, "evening": 18}
 
 

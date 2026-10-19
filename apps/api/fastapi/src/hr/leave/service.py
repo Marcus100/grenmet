@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from fastapi.concurrency import run_in_threadpool
@@ -19,7 +19,16 @@ from src.hr.exceptions import (
     HRPermissionDeniedError,
     HRValidationError,
 )
-from src.hr.models import RequestStatus
+from src.hr.models import EmploymentRecord, RequestStatus
+from src.hr.roster.holidays import PROVISIONAL_SOURCE
+from src.hr.roster.models import (
+    PublicHoliday,
+    RosterAssignment,
+    RosterPeriod,
+    RosterPeriodStatus,
+    ShiftCatalog,
+    ShiftCategory,
+)
 from src.hr.signatures import service as signature_service
 from src.hr.workflow import service as workflow_service
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
@@ -27,8 +36,20 @@ from src.hr.workflow.service import start_workflow_for_entity, submit_draft_work
 from src.utils.datetime import utc_now
 
 from . import ledger
-from .models import LeaveEntryKind, LeaveRequest, LeaveType, ProfAppointmentType
-from .schemas import LeaveRequestAction, LeaveRequestCreate, LeaveRequestSubmit
+from .models import (
+    UNTRACKED_LEAVE_TYPES,
+    LeaveEntryKind,
+    LeaveRequest,
+    LeaveType,
+    ProfAppointmentType,
+)
+from .schemas import (
+    LeaveRequestAction,
+    LeaveRequestCreate,
+    LeaveRequestSubmit,
+    WorkingDayHoliday,
+    WorkingDaysPublic,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +88,8 @@ def validate_leave_fields(
         raise HRValidationError("Enter a positive number of days requested")
     if submitting and leave_type == LeaveType.OTHER and not (reason or "").strip():
         raise HRValidationError("State the reason for other leave")
+    if submitting and leave_type == LeaveType.JURY_DUTY and not (reason or "").strip():
+        raise HRValidationError("Enter the jury summons reference as the reason")
     if (
         submitting
         and leave_type == LeaveType.PROFESSIONAL_APPOINTMENT
@@ -145,10 +168,13 @@ async def create_leave_request(
         session, payload.department_id, payload.acting_officer_id
     )
     await require_ready(session, current_user.id, payload.department_id)
-    if await session.get(
-        StaffCredential, current_user.id
-    ) and not await ledger.has_entry(
-        session, current_user.id, payload.leave_type.value
+    credential = await session.get(StaffCredential, current_user.id)
+    if (
+        credential is not None
+        and payload.leave_type not in UNTRACKED_LEAVE_TYPES
+        and not await ledger.has_entry(
+            session, current_user.id, payload.leave_type.value
+        )
     ):
         raise HRValidationError(
             "An administrator must verify the opening balance for this leave type first"
@@ -446,7 +472,10 @@ async def action_leave_request(
         leave_request.head_of_dept_comments = payload.head_of_dept_comments
     leave_request.updated_at = utc_now()
     session.add(leave_request)
-    if payload.status == RequestStatus.APPROVED:
+    if (
+        payload.status == RequestStatus.APPROVED
+        and leave_request.leave_type not in UNTRACKED_LEAVE_TYPES
+    ):
         await ledger.post(
             session,
             user_id=leave_request.user_id,
@@ -483,3 +512,112 @@ async def list_leave_requests(
         base.order_by(LeaveRequest.created_at.desc()).offset(skip).limit(limit)
     )
     return list(result.scalars().all()), total or 0
+
+
+WORKING_DAYS_MAX_RANGE = 366
+_FIRST_WEEKEND_DAY = 5
+
+
+async def working_days_between(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    start: date,
+    end: date,
+    leave_type: LeaveType | None = None,
+) -> WorkingDaysPublic:
+    """Working days in a range for the caller, excluding public holidays.
+
+    A suggestion for the leave form's "days requested" field, never a policy
+    decision: the requester and approver can still change the figure. When the
+    caller's published roster covers every day in the range, working days are
+    the rostered work shifts; otherwise they are Monday to Friday. Holidays
+    come from the (provisional) public holiday table and are reported with a
+    flag so the form can say so.
+    """
+    require_permission(
+        current_user=current_user, permission_key="leave.request.create.self"
+    )
+    if end < start:
+        raise HRValidationError("End date must be on or after start date")
+    calendar_days = (end - start).days + 1
+    if calendar_days > WORKING_DAYS_MAX_RANGE:
+        raise HRValidationError(
+            f"Date range must not exceed {WORKING_DAYS_MAX_RANGE} days"
+        )
+
+    holiday_rows = (
+        await session.scalars(
+            select(PublicHoliday)
+            .where(
+                PublicHoliday.holiday_date >= start,
+                PublicHoliday.holiday_date <= end,
+                PublicHoliday.country_code == "GD",
+            )
+            .order_by(PublicHoliday.holiday_date)
+        )
+    ).all()
+    holiday_dates = {row.holiday_date for row in holiday_rows}
+
+    department_id = await session.scalar(
+        select(EmploymentRecord.department_id).where(
+            EmploymentRecord.user_id == current_user.id
+        )
+    )
+    rostered: dict[date, bool] = {}
+    if department_id is not None:
+        assignments = await session.execute(
+            select(RosterAssignment.assignment_date, ShiftCatalog)
+            .join(RosterPeriod, RosterPeriod.id == RosterAssignment.roster_period_id)
+            .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
+            .where(
+                RosterPeriod.department_id == department_id,
+                RosterPeriod.status.in_(
+                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
+                ),
+                RosterAssignment.user_id == current_user.id,
+                RosterAssignment.assignment_date >= start,
+                RosterAssignment.assignment_date <= end,
+            )
+        )
+        for assignment_date, shift in assignments.all():
+            rostered[assignment_date] = (
+                shift.category == ShiftCategory.WORK and shift.counts_as_work_hours
+            )
+
+    days = [start + timedelta(days=offset) for offset in range(calendar_days)]
+    use_roster = all(day in rostered for day in days)
+    counted = 0
+    extra_days = 0
+    for day in days:
+        would_work = rostered[day] if use_roster else day.weekday() < _FIRST_WEEKEND_DAY
+        if day in holiday_dates:
+            extra_days += 1 if would_work else 0
+            continue
+        counted += 1 if would_work else 0
+    suggested_extra = extra_days if leave_type == LeaveType.VACATION else 0
+    return WorkingDaysPublic(
+        start=start,
+        end=end,
+        calendar_days=calendar_days,
+        working_days=counted,
+        suggested_extra_days=suggested_extra,
+        suggested_extra_days_note=(
+            f"Policy (provisional): {suggested_extra} public holiday"
+            f"{'' if suggested_extra == 1 else 's'} inside this vacation. "
+            f"HR may grant {suggested_extra} extra day"
+            f"{'' if suggested_extra == 1 else 's'}; nothing is added "
+            "to your balance automatically."
+            if suggested_extra
+            else None
+        ),
+        method="roster" if use_roster else "weekdays",
+        holidays=[
+            WorkingDayHoliday(
+                holiday_date=row.holiday_date,
+                name=row.name,
+                provisional=row.needs_verification or row.source == PROVISIONAL_SOURCE,
+            )
+            for row in holiday_rows
+        ],
+    )

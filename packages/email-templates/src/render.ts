@@ -1,12 +1,27 @@
 import { render } from "react-email";
+import { CapAlertEmail, type CapAlertEmailProps } from "./cap-alert";
 import { NotificationEmail, type NotificationEmailProps } from "./notification";
+import {
+  OrganisationInvitationEmail,
+  type OrganisationInvitationEmailProps,
+} from "./organisation-invitation";
 import {
   ResetPasswordEmail,
   type ResetPasswordEmailProps,
 } from "./reset-password";
+import {
+  SubscriptionConfirmEmail,
+  type SubscriptionConfirmEmailProps,
+} from "./subscription-confirm";
 import { WelcomeEmail, type WelcomeEmailProps } from "./welcome";
 
-export type TemplateName = "notification" | "reset-password" | "welcome";
+export type TemplateName =
+  | "cap-alert"
+  | "notification"
+  | "organisation-invitation"
+  | "reset-password"
+  | "subscription-confirm"
+  | "welcome";
 
 export interface RenderResult {
   html: string;
@@ -18,6 +33,18 @@ export async function renderTemplate(
   props: Record<string, unknown>
 ): Promise<RenderResult> {
   switch (template) {
+    case "cap-alert": {
+      const p = props as unknown as CapAlertEmailProps;
+      if (!(p.headline && p.alertLink && p.unsubscribeLink)) {
+        throw new Error(
+          "cap-alert requires headline, alertLink and unsubscribeLink"
+        );
+      }
+      return {
+        html: await render(CapAlertEmail(p)),
+        subject: `${p.label}: ${p.headline}`,
+      };
+    }
     case "notification": {
       const p = props as unknown as NotificationEmailProps;
       return {
@@ -25,11 +52,33 @@ export async function renderTemplate(
         subject: p.title,
       };
     }
+    case "organisation-invitation": {
+      const p = props as unknown as OrganisationInvitationEmailProps;
+      if (!(p.acceptLink && p.organisationName && p.inviterName)) {
+        throw new Error(
+          "organisation-invitation requires acceptLink, organisationName and inviterName"
+        );
+      }
+      return {
+        html: await render(OrganisationInvitationEmail(p)),
+        subject: `You are invited to join ${p.organisationName}`,
+      };
+    }
     case "reset-password": {
       const p = props as unknown as ResetPasswordEmailProps;
       return {
         html: await render(ResetPasswordEmail(p)),
         subject: `${p.projectName} — Reset your password`,
+      };
+    }
+    case "subscription-confirm": {
+      const p = props as unknown as SubscriptionConfirmEmailProps;
+      if (!(p.confirmLink && p.unsubscribeLink && p.listName)) {
+        throw new Error("subscription-confirm requires its links and listName");
+      }
+      return {
+        html: await render(SubscriptionConfirmEmail(p)),
+        subject: `Confirm your subscription to ${p.listName}`,
       };
     }
     case "welcome": {

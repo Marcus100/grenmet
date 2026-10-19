@@ -1,6 +1,6 @@
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import type { Metadata } from "next";
-import { Inter, Manrope, Noto_Sans } from "next/font/google";
+import { Inter, Manrope } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
@@ -10,12 +10,6 @@ import {
   SkipLink,
 } from "@barrelsgd/ui/components/ui/skip-link";
 import { env } from "@/lib/env";
-
-const notoSans = Noto_Sans({
-  subsets: ["latin"],
-  variable: "--font-noto-sans",
-  display: "swap",
-});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -47,7 +41,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
-      className={`${inter.variable} ${manrope.variable} ${notoSans.variable}`}
+      className={`${inter.variable} ${manrope.variable}`}
       lang="en"
       style={{ colorScheme: "light" }}
     >

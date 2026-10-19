@@ -18,19 +18,6 @@ export default function MediaPage() {
         title="For media"
       />
       <PlaceholderNotice product="The media feeds on this page" />
-      <PageSection heading="Present weather summary">
-        <InfoTable
-          headers={["Field", "Value"]}
-          rows={[
-            ["Issued", "16:00 AST"],
-            ["Conditions", "Sunny intervals with isolated showers"],
-            ["Temperature", "28 °C, feels like 32 °C"],
-            ["Wind", "North-easterly 14 knots"],
-            ["Outlook tonight", "Partly cloudy, isolated showers"],
-            ["Warnings in effect", "None"],
-          ]}
-        />
-      </PageSection>
       <PageSection heading="What we can supply">
         <InfoTable
           headers={["Item", "Format", "Notes"]}

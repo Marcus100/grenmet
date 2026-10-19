@@ -70,4 +70,5 @@ export type ListingUpsert = {
   status?: ListingUpsertPropertiesStatusEnum;
   group_slug?: string | null;
   tiers?: TierInput[];
+  image_file_id?: string | null;
 };

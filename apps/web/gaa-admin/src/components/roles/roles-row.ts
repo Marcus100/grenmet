@@ -1,5 +1,5 @@
 import type {
-  SrcAuthSchemasRolePublic as RolePublic,
+  RolePublic,
   UserRoleAssignmentPublic,
 } from "@barrelsgd/api-client";
 import { format } from "date-fns";
@@ -20,6 +20,7 @@ const SYSTEM_ROLE_NAMES: ReadonlySet<string> = new Set([
   "cap-author",
   "cap-approver",
   "cap-publisher",
+  "cap-duty-supervisor",
   "cap-admin",
   "workflow-admin",
 ]);

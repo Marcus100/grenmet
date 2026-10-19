@@ -1,0 +1,40 @@
+# API breaking-change gate
+# Compares the PR's apps/api/fastapi/openapi.json with the base branch and fails
+# on changes that break existing clients. Label the PR `breaking-change` to
+# accept them (every consumer must then be updated in the same PR).
+# Not path-filtered on purpose: the script exits fast when the spec is unchanged,
+# and a path-skipped check cannot be marked required without deadlocking PRs.
+
+name: API breaking changes
+
+on:
+  pull_request:
+    branches:
+      - dev
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+concurrency:
+  group: api-breaking-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  breaking:
+    name: API breaking changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      - name: Check openapi.json against the base branch
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          ALLOW_BREAKING: ${{ contains(github.event.pull_request.labels.*.name, 'breaking-change') }}
+        run: |
+          flags=()
+          if [ "$ALLOW_BREAKING" = "true" ]; then flags+=(--allow-breaking); fi
+          node scripts/api/check-api-breaking.mjs --base "origin/${BASE_REF}" "${flags[@]}"

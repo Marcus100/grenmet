@@ -1,6 +1,7 @@
 # Barrels Grenada
 
-Static holding page for `https://barrels.gd`, independently hosted on Vercel.
+Static company hub for `https://barrels.gd`, independently hosted on Vercel.
+Its contact and newsletter forms post to the FastAPI API at `api.barrels.gd`.
 `www.barrels.gd` redirects permanently to the apex. Application wildcards remain
 on DigitalOcean; Elections remains its own Vercel project.
 

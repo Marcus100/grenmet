@@ -7,8 +7,10 @@ import * as z from "zod";
 import { listingCardPropertiesCurrencyEnumSchema } from "./listingCardPropertiesCurrencyEnumSchema.js";
 
 export const tierInputSchema = z.object({
+  id: z.union([z.uuid(), z.null()]).optional(),
   name: z.string().min(1).max(60),
   price_minor: z.int().min(0).max(10000000),
   currency: listingCardPropertiesCurrencyEnumSchema.optional(),
   allocation: z.int().min(0).max(1000000),
+  per_account_limit: z.int().min(1).max(50).optional().default(4),
 });

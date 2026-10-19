@@ -1,7 +1,13 @@
 import { configureApiClient } from "@barrelsgd/api-client";
 import { SessionUserProvider } from "@barrelsgd/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format } from "date-fns";
 import { HttpResponse, http } from "msw";
@@ -12,6 +18,10 @@ import { TimesheetEditor } from "./timesheet-editor";
 const BASE = "http://localhost";
 const ADD_ENTRY = /add entry/i;
 const SUBMIT_TO_HR = /sign & submit/i;
+const FILL_FROM_ROSTER = /fill from roster/i;
+const ROSTER_NOTE = /2 of 2 rostered shifts added from your published roster/;
+const HOLIDAY_NOTE = /1 rostered day is a public holiday/;
+const NOTHING_ADDED = /0 of 2 rostered shifts added/;
 
 const PROFILE = {
   id: "u-1",
@@ -23,6 +33,9 @@ const PROFILE = {
 const EMPTY_TIMESHEETS = { data: [], count: 0 };
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signed-documents/me`, () =>
+    HttpResponse.json({ data: [], count: 0 })
+  ),
   http.get(`${BASE}/api/v1/hr/signature/me`, () =>
     HttpResponse.json({
       version: "11111111-1111-4111-8111-111111111111",
@@ -78,21 +91,23 @@ describe("TimesheetEditor", () => {
     expect(screen.getByText("Entry 2")).toBeInTheDocument();
   });
 
-  it("mirrors the department field into the preview document", async () => {
+  it("locks the profile department and shows it in the preview only after Preview", async () => {
     const user = userEvent.setup();
     renderEditor();
 
-    // Wait for prefill to seed the department, then replace it so the assertion
-    // isn't racing the profile-driven prefill (which fills "Meteorological
-    // Department" and would otherwise concatenate with the typed value).
     const department = screen.getByLabelText("Department") as HTMLInputElement;
     await waitFor(() =>
       expect(department.value).toBe("Meteorological Department")
     );
-    await user.clear(department);
-    await user.type(department, "Meteorology");
+    expect(department).toHaveAttribute("readonly");
+    expect(screen.getByText("From your staff profile")).toBeInTheDocument();
 
-    expect(screen.getAllByText("Meteorology").length).toBeGreaterThanOrEqual(1);
+    // Only the hidden print copy exists until the user asks for a preview.
+    const beforePreview = screen.getAllByText("Meteorological Department");
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+    expect(
+      screen.getAllByText("Meteorological Department").length
+    ).toBeGreaterThan(beforePreview.length);
   });
 
   it.each([false, true])(
@@ -206,4 +221,67 @@ describe("TimesheetEditor", () => {
       });
     }
   );
+
+  it("fills entries from the published roster without duplicating existing dates", async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/hr/timesheets/prefill`, ({ request }) => {
+        expect(new URL(request.url).searchParams.get("period")).toBe("2026-07");
+        return HttpResponse.json({
+          department_id: "dept_met",
+          period: "2026-07",
+          period_start: "2026-07-01",
+          period_end: "2026-07-31",
+          roster_published: true,
+          entries: [
+            {
+              entry_date: "2026-07-06",
+              shift_code: "M",
+              shift_label: "Morning",
+              start_time: "05:30",
+              end_time: "14:00",
+              roster_hours: "8.50",
+              roster_assignment_id: "a1",
+              availability: "SCHEDULED",
+              holiday_name: "Test Day",
+              holiday_provisional: true,
+            },
+            {
+              entry_date: "2026-07-07",
+              shift_code: "M",
+              shift_label: "Morning",
+              start_time: "05:30",
+              end_time: "14:00",
+              roster_hours: "8.50",
+              roster_assignment_id: "a2",
+              availability: "LEAVE",
+            },
+          ],
+        });
+      })
+    );
+    const user = userEvent.setup();
+    renderEditor();
+
+    const month = await screen.findByLabelText("Roster month");
+    fireEvent.change(month, { target: { value: "2026-07" } });
+    await user.click(screen.getByRole("button", { name: FILL_FROM_ROSTER }));
+
+    expect(await screen.findByText("Entry 2")).toBeInTheDocument();
+    expect(screen.queryByText("Entry 3")).not.toBeInTheDocument();
+    expect(screen.getAllByDisplayValue("8.50")).toHaveLength(5);
+    expect(screen.getByDisplayValue("M - Approved leave")).toBeInTheDocument();
+    expect(
+      screen.getByDisplayValue(
+        "M - Public holiday: Test Day (provisional, HR to verify)"
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText(HOLIDAY_NOTE)).toBeInTheDocument();
+    expect(screen.getByDisplayValue("July 2026")).toBeInTheDocument();
+    expect(screen.getByText(ROSTER_NOTE)).toBeInTheDocument();
+
+    // A second fill adds nothing: both dates are already on the sheet.
+    await user.click(screen.getByRole("button", { name: FILL_FROM_ROSTER }));
+    await screen.findByText(NOTHING_ADDED);
+    expect(screen.queryByText("Entry 3")).not.toBeInTheDocument();
+  });
 });

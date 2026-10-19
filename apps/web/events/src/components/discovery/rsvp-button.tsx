@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@barrelsgd/ui/components/ui/button";
-import { Check, Ticket } from "lucide-react";
+import { Check } from "lucide-react";
 import { useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
 import { setGoing } from "@/data/actions";
@@ -12,32 +12,18 @@ const IDLE_LABEL: Record<Exclude<Admission, "ticketed">, string> = {
   rsvp: "RSVP — it's free",
 };
 
-/** RSVP for free events. Ticketed events get checkout with the payments step. */
+/** RSVP for free events. Ticketed events use `TicketClaim`. */
 export function RsvpButton({
   admission,
   initiallyGoing,
   slug,
 }: {
-  admission: Admission;
+  admission: Exclude<Admission, "ticketed">;
   initiallyGoing: boolean;
   slug: string;
 }) {
   const [going, setGoingState] = useState(initiallyGoing);
   const { error, pending, perform } = useMemberAction();
-
-  if (admission === "ticketed") {
-    return (
-      <Button
-        className="h-11 w-full text-body-base"
-        disabled
-        size="lg"
-        title="Ticket checkout arrives with the payments step"
-      >
-        <Ticket data-icon="inline-start" />
-        Get tickets
-      </Button>
-    );
-  }
 
   async function toggle() {
     const next = !going;

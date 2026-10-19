@@ -2,7 +2,7 @@
 
 import {
   hrGetOrganisationCatalogue,
-  type SrcAuthSchemasRolePublic as RolePublic,
+  type RolePublic,
   useAuthCreateRoleAssignment,
   useAuthCreateUser,
   useHrCreateHrEmployment,

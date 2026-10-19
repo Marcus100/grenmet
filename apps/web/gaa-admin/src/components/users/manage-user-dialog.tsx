@@ -6,7 +6,7 @@ import {
   authGetUsersQueryKey,
   type EmploymentStatus,
   type RoleAssignmentScope,
-  type SrcAuthSchemasRolePublic as RolePublic,
+  type RolePublic,
   type UserPublic,
   useAuthCreateRoleAssignment,
   useAuthDeleteRoleAssignment,

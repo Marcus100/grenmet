@@ -145,3 +145,39 @@ class TimesheetSummaryByShift(BaseModel):
     grand_total_roster: Decimal
     grand_total_actual: Decimal
     grand_total_overtime: Decimal
+
+
+class TimesheetPrefillEntry(BaseModel):
+    entry_date: date
+    shift_code: str
+    shift_label: str
+    start_time: str | None = None
+    end_time: str | None = None
+    roster_hours: Decimal
+    roster_assignment_id: uuid.UUID
+    availability: RosterAvailability = RosterAvailability.SCHEDULED
+    # Set when this rostered day is a public holiday. Visibility only: no pay
+    # rule is applied, HR and the approver decide how the day is treated.
+    holiday_name: str | None = None
+    holiday_provisional: bool = False
+
+
+class TimesheetPrefillHoliday(BaseModel):
+    holiday_date: date
+    name: str
+    # True when the date comes from the provisional list HR has not verified.
+    provisional: bool
+
+
+class TimesheetPrefillPublic(BaseModel):
+    department_id: str | None = None
+    period: str
+    period_start: date
+    period_end: date
+    # False when the caller has no published roster in this period; entries is
+    # then empty and the form stays blank.
+    roster_published: bool
+    entries: list[TimesheetPrefillEntry]
+    # Public holidays inside the month (provisional ones flagged), whether or
+    # not the employee is rostered on them.
+    holidays: list[TimesheetPrefillHoliday] = []

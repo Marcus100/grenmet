@@ -1,6 +1,5 @@
 "use client";
 
-import { captureException } from "@sentry/nextjs";
 import { useEffect } from "react";
 
 // Last-resort boundary: replaces the root layout, so it renders its own
@@ -13,7 +12,13 @@ export default function GlobalError({
   retry: () => void;
 }) {
   useEffect(() => {
-    captureException(error, { tags: { digest: error.digest } });
+    import("@sentry/nextjs")
+      .then(({ captureException }) =>
+        captureException(error, { tags: { digest: error.digest } })
+      )
+      .catch(() => {
+        /* Reporting must never break the error page. */
+      });
   }, [error]);
 
   return (

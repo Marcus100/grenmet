@@ -22,6 +22,9 @@
    node_modules symlink path (stays inside the app tree for turbopack; the
    explicit @source overrides Tailwind's default node_modules ignore). */
 @source "../../node_modules/@barrelsgd/ui/src";
+/* The GMS package (Logo light/dark swap uses dark:hidden / dark:block) is
+   outside this app too, so scan it as well. */
+@source "../../node_modules/@barrelsgd/gms/src";
 
 /* BEGIN BARRELS DESIGN SYSTEM V1 */
 @custom-variant dark (&:where(.dark, .dark *));

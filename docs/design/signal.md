@@ -149,7 +149,7 @@ Body links are underlined. Dates are absolute and rendered in UTC for consistenc
   column, with `px-4` gutters; desktop gutters use `sm:px-8`.
 - Article and edition bodies retain a comfortable `max-w-2xl` measure. No shadows,
   gradients or decorative image placeholders. Text-only stories stand on their own.
-- No disabled signup promotions, dummy social links, or empty media promotions.
+- No disabled signup promotions, dummy social links, or empty media promotions. The one working newsletter form (`SubscribeForm`: email, consent, double opt-in) sits on `/about#newsletter` and the footer links to it.
   Discovery and archive links provide the next reading action.
 
 ### Editorial supply
@@ -198,6 +198,7 @@ on the device; the query is neither sent to a server nor added to a URL.
 - `EmptyState`: states that no stories exist and links to all topics.
 - `SearchReader`: visible label, initial guidance, live result count and no-results help.
 - `ArchiveInvitation`: a next reading action without collecting contact details.
+- `SubscribeForm`: labelled email field, required consent checkbox, `Subscribe` button; errors in an alert, success says to check email to confirm.
 
 Missing stories return a designed 404. Unexpected route failures keep the site
 shell, report to Sentry and offer retry. Missing images produce no empty boxes.

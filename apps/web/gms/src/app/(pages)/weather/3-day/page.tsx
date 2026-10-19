@@ -1,71 +1,58 @@
 import { PageHeader } from "@/components/page-header";
 import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
-import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
+import { Provenance } from "@/components/pages/provenance";
+import { UnavailableNotice } from "@/components/pages/unavailable-notice";
+import { weatherFromForecast } from "@/lib/forecast-selection";
+import { fetchPublicForecast } from "@/lib/products";
+import { hasIssuedForecast, threeDayRows } from "@/lib/weather-pages";
 
+export const dynamic = "force-dynamic";
 export const metadata = {
   title: "3-day forecast",
   description:
     "The next three days for Grenada, Carriacou and Petite Martinique.",
 };
 
-export default function ThreeDayPage() {
+export default async function ThreeDayPage() {
+  const forecast = await fetchPublicForecast();
+  const days = forecast ? weatherFromForecast(forecast).days : [];
+  const live = hasIssuedForecast(days);
+  const issuedAt = forecast?.periods[0]?.source?.issued_at;
   return (
     <>
       <PageHeader
         description="The next three days at a glance."
         title="3-day forecast"
       />
-      <PlaceholderNotice product="The 3-day forecast" />
-      <PageSection heading="Grenada">
-        <InfoTable
-          headers={["Day", "Outlook", "High", "Low", "Wind", "Rain chance"]}
-          rows={[
-            [
-              "Today",
-              "Sunny intervals, isolated showers",
-              "31 °C",
-              "25 °C",
-              "NE 14 kt",
-              "30%",
-            ],
-            [
-              "Tomorrow",
-              "Cloudy periods, scattered showers",
-              "30 °C",
-              "25 °C",
-              "ENE 16 kt",
-              "50%",
-            ],
-            [
-              "Day 3",
-              "Showers, some heavy at times",
-              "29 °C",
-              "24 °C",
-              "E 12 kt",
-              "70%",
-            ],
-          ]}
-        />
-      </PageSection>
-      <PageSection heading="Carriacou and Petite Martinique">
-        <InfoTable
-          headers={["Day", "Outlook", "High", "Low", "Wind", "Rain chance"]}
-          rows={[
-            ["Today", "Mostly sunny", "31 °C", "26 °C", "NE 16 kt", "20%"],
-            [
-              "Tomorrow",
-              "Sunny intervals",
-              "31 °C",
-              "26 °C",
-              "ENE 18 kt",
-              "30%",
-            ],
-            ["Day 3", "Scattered showers", "30 °C", "25 °C", "E 14 kt", "50%"],
-          ]}
-        />
-      </PageSection>
+      {forecast ? null : <UnavailableNotice product="The 3-day forecast" />}
+      {forecast && !live && (
+        <p
+          className="rounded-gm-card border border-gm-border p-4 text-body-base leading-body-base"
+          role="status"
+        >
+          No forecast has been published for the next three days yet. Check back
+          after the next issue.
+        </p>
+      )}
+      {live && (
+        <PageSection heading="Grenada, Carriacou and Petite Martinique">
+          {issuedAt && (
+            <Provenance
+              kind="forecast"
+              source="GMS impact-based forecast"
+              status="verified"
+              time={issuedAt}
+            />
+          )}
+          <InfoTable
+            caption="From the latest issued GMS forecasts"
+            headers={["Day", "Outlook", "High", "Low", "Wind", "Rain chance"]}
+            rows={threeDayRows(days)}
+          />
+        </PageSection>
+      )}
       <PageSection heading="Issue schedule">
         <Prose
           paragraphs={[

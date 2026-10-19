@@ -1,6 +1,7 @@
 import uuid
 from datetime import date
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import Field
 
@@ -78,3 +79,27 @@ class LeaveRequestListPublic(BaseModel):
     count: int
     page: int = 1
     size: int = 100
+
+
+class WorkingDayHoliday(BaseModel):
+    holiday_date: date
+    name: str
+    # True when the date comes from the provisional list HR has not verified.
+    provisional: bool
+
+
+class WorkingDaysPublic(BaseModel):
+    start: date
+    end: date
+    calendar_days: int
+    working_days: int
+    # "roster": counted from the caller's published roster (every day in the
+    # range is rostered). "weekdays": Monday to Friday, used when it is not.
+    method: Literal["roster", "weekdays"]
+    # Public holidays inside the range that were not counted as working days.
+    holidays: list[WorkingDayHoliday]
+    # Provisional (GAA-LV-HOLIDAY-01): public holidays that fall on would-be
+    # working days inside an annual vacation request. Advice for HR only; it is
+    # never posted to a balance. Always 0 for other leave types.
+    suggested_extra_days: int = 0
+    suggested_extra_days_note: str | None = None

@@ -5,24 +5,31 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, or_, select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import policy as auth_policy
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.exceptions import AppException, NotFoundError
 from src.pagination import PaginatedResponse
+from src.utils import email_hash as email_hash_util
 from src.utils.datetime import utc_now
+from src.utils.email_hash import hash_email
 
 from . import events
 from .config import notification_settings
 from .models import (
     DeliveryStatus,
+    EmailSuppression,
     Notification,
     NotificationDelivery,
     NotificationPreference,
     NotificationSetting,
     NotificationSnooze,
+    OutboundEmail,
+    OutboundEmailStatus,
+    SuppressionReason,
 )
 from .schemas import (
     NotificationParams,
@@ -674,3 +681,127 @@ async def delete_snooze(
         raise NotFoundError("Snooze not found")
     await session.delete(row)
     await session.commit()
+
+
+# ── Suppression list and public-flow outbox ──────────────────────────────────
+
+
+def normalise_email(email: str) -> str:
+    return email_hash_util.normalise_email(email)
+
+
+async def suppress_email(
+    *,
+    session: AsyncSession,
+    email: str,
+    reason: SuppressionReason,
+    source_event_id: str | None,
+) -> bool:
+    """Add an address to the suppression list. Returns False if already listed.
+
+    Only the keyed hash of the address is stored. Idempotent: the unique hash
+    makes a replayed webhook a no-op. A legacy row that still holds the
+    plaintext address gets its hash filled in. The caller commits.
+    """
+    clean = normalise_email(email)
+    address_hash = hash_email(clean)
+    legacy = await session.scalar(
+        select(EmailSuppression).where(
+            EmailSuppression.email == clean, EmailSuppression.email_hash.is_(None)
+        )
+    )
+    if legacy is not None:
+        legacy.email_hash = address_hash
+        return False
+    result = await session.execute(
+        pg_insert(EmailSuppression)
+        .values(
+            id=uuid.uuid4(),
+            email=None,
+            email_hash=address_hash,
+            reason=reason.value,
+            source_event_id=source_event_id,
+            created_at=utc_now(),
+        )
+        .on_conflict_do_nothing(index_elements=["email_hash"])
+    )
+    return bool(getattr(result, "rowcount", 0))
+
+
+async def is_suppressed(*, session: AsyncSession, email: str) -> bool:
+    """True when the address is suppressed (hash match, or a legacy plaintext row)."""
+    clean = normalise_email(email)
+    found = await session.scalar(
+        select(EmailSuppression.id).where(
+            or_(
+                EmailSuppression.email_hash == hash_email(clean),
+                EmailSuppression.email == clean,
+            )
+        )
+    )
+    return found is not None
+
+
+def enqueue_email(
+    *,
+    session: AsyncSession,
+    to_email: str,
+    subject: str,
+    transactional: bool,
+    template: str | None = None,
+    props: dict[str, Any] | None = None,
+    html: str | None = None,
+) -> OutboundEmail:
+    """Queue an email for the worker, inside the caller's transaction.
+
+    Non-transactional mail is dropped by the worker for suppressed addresses.
+    """
+    row = OutboundEmail(
+        to_email=normalise_email(to_email),
+        subject=subject[:300],
+        template=template,
+        props=props or {},
+        html=html,
+        transactional=transactional,
+    )
+    session.add(row)
+    return row
+
+
+async def enqueue_email_once(
+    *,
+    session: AsyncSession,
+    to_email: str,
+    subject: str,
+    dedupe_key: str,
+    template: str,
+    props: dict[str, Any],
+) -> bool:
+    """Queue a non-transactional email unless ``dedupe_key`` was already queued.
+
+    Returns True when a new row was written. Suppressed addresses are skipped
+    here and again at send time. The caller commits.
+    """
+    email = normalise_email(to_email)
+    if await is_suppressed(session=session, email=email):
+        return False
+    result = await session.execute(
+        pg_insert(OutboundEmail)
+        .values(
+            id=uuid.uuid4(),
+            to_email=email,
+            subject=subject[:300],
+            template=template,
+            props=props,
+            transactional=False,
+            dedupe_key=dedupe_key[:200],
+            status=OutboundEmailStatus.PENDING.value,
+            attempts=0,
+            created_at=utc_now(),
+        )
+        .on_conflict_do_nothing(
+            index_elements=["dedupe_key"],
+            index_where=OutboundEmail.dedupe_key.is_not(None),
+        )
+    )
+    return bool(getattr(result, "rowcount", 0))

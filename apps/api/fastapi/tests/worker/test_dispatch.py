@@ -358,4 +358,4 @@ async def test_publish_batch_runs_every_side_effect_for_an_alert(
     assert all(status == CapJobStatus.SUCCEEDED for status, _ in outcomes.values()), (
         outcomes
     )
-    assert len(stored) == 3
+    assert len(stored) == 5

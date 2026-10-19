@@ -27,10 +27,11 @@ from src.hr.roster.models import (
 )
 from src.hr.roster.service import require_roster_manage_scope
 from src.utils.datetime import utc_now
+from src.utils.timezones import GRENADA
 
 from .models import AttendanceRecord, ClockSite
 from .schemas import AttendanceSave
-from .service import GRENADA, save_attendance, scheduled_bounds
+from .service import save_attendance, scheduled_bounds
 
 EARLY_WINDOW = timedelta(hours=2)
 LATE_WINDOW = timedelta(hours=1)

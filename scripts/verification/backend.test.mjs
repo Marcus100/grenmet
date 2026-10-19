@@ -83,3 +83,41 @@ process.exit(args[0] === process.env.FAILED_STAGE ? 23 : 0);
     }
   });
 }
+
+test("coverage shards defer reports so one job can combine the data", () => {
+  const dir = mkdtempSync(join(tmpdir(), "backend-verification-"));
+  try {
+    const log = join(dir, "arguments.jsonl");
+    writeFileSync(
+      join(dir, "uv"),
+      `#!/usr/bin/env node
+require("node:fs").appendFileSync(process.env.CALL_LOG, JSON.stringify(process.argv.slice(2)) + "\\n");
+`,
+      { mode: 0o755 }
+    );
+    const run = (extra) => {
+      rmSync(log, { force: true });
+      const result = spawnSync("bash", [script, "-m", "fuzz"], {
+        env: {
+          ...process.env,
+          ...extra,
+          PATH: `${dir}:${process.env.PATH}`,
+          CALL_LOG: log,
+          POSTGRES_SERVER: "disposable.invalid",
+          POSTGRES_USER: "verification",
+          POSTGRES_PASSWORD: "test-only",
+        },
+        encoding: "utf8",
+      });
+      assert.equal(result.status, 0, result.stderr);
+      return JSON.parse(readFileSync(log, "utf8").trim().split("\n")[1]);
+    };
+    const shard = run({ COVERAGE_DATA_ONLY: "1" });
+    assert.ok(shard.includes("--cov-report="));
+    assert.ok(!shard.includes("--cov-report=xml"));
+    assert.deepEqual(shard.slice(-2), ["-m", "fuzz"]);
+    assert.ok(run({}).includes("--cov-report=xml"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

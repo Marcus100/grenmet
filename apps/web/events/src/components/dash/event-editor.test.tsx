@@ -1,7 +1,11 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/data/actions", () => ({ saveListing: vi.fn() }));
+vi.mock("@/data/actions", () => ({
+  finishUpload: vi.fn(),
+  saveListing: vi.fn(),
+  startUpload: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({
   usePathname: () => "/dash/events/new",
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),

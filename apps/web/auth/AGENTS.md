@@ -21,6 +21,10 @@ src/app/
   reset-password/page.tsx
   code/page.tsx                   ← sign in with an emailed one-time code (account session)
   continue/page.tsx               ← single sign-on into another app (ADR-0017): hand off, "Join <app>?", or "no access"
+  organisations/page.tsx          ← account tab: my memberships (`GET /organisations/mine`)
+  organisations/accept/page.tsx   ← emailed invitation link (`?token=`); a form posts the token in the body (ADR-0022)
+  tickets/page.tsx                ← account tab: my Events tickets (`GET /rewards/me/tickets`, read-only)
+  rewards/page.tsx                ← account tab: stamp cards, redeem (server action), trust badges
   api/email/render/route.ts       ← internal endpoint: FastAPI calls this to render email templates
   api/health/route.ts
 ```
@@ -44,7 +48,7 @@ src/app/
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+## This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 

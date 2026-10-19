@@ -1,6 +1,6 @@
 # @barrelsgd/email-templates — agent context
 
-React Email templates (`notification`, `reset-password`, `welcome`) with `renderTemplate(name, props)` → `{ html, subject }`.
+React Email templates (`cap-alert`, `notification`, `organisation-invitation`, `reset-password`, `subscription-confirm`, `welcome`) with `renderTemplate(name, props)` → `{ html, subject }`.
 
 ## How email is rendered
 FastAPI (`src/email.py`) POSTs to the auth app's `/api/email/render` (`EMAIL_RENDER_URL`, guarded by the `x-email-render-secret` header). That route (`apps/web/auth/src/app/api/email/render/route.ts`) calls `renderTemplate`. FastAPI falls back to Jinja templates in `apps/api/fastapi/email-templates/build` when rendering isn't configured.

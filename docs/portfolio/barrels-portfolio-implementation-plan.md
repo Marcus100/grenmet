@@ -4,7 +4,7 @@
 **Effective:** 2026-08-16  
 **Horizon:** Five-year strategy expressed through dependency horizons  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-08
+**Last updated:** 2026-10-18
 
 ## Purpose
 
@@ -62,13 +62,18 @@ checks and authenticated staging acceptance pass.
 | GAA/GMS engagement | Client portfolio | Multiple active workstreams at different maturity levels | Now → Later | Deliver accepted institutional outcomes without classifying the client as a product | Joint Barrels and GAA/GMS owners |
 | MBIA passenger experience | GAA public-service delivery | Working application; deployment and institutional boundary need reconciliation | Later | Deliver a distinct airport passenger service, separate from GAA staff tooling | GAA/airport owner |
 | GAA corporate surface | GAA public-service delivery | Reserved, not built | Later | Provide a GAA institutional site distinct from MBIA and staff administration | GAA |
-| Reusable workforce product | Productization option | Not approved; reusable architecture direction exists | Explore | Decide whether proven GAA staff capabilities warrant a separate Barrels product | Barrels after GAA delivery evidence and rights review |
+| Barrels Human Resource | Barrels product | Investment approved 2026-10-18; built from the same Barrels-owned workforce code as the GAA staff platform; HR stays in `apps/web/gaa-admin` for now, with `hr.barrels.gd` as the eventual product host | Next | Offer an organisation-scoped, configuration-driven HR product to other organisations without GAA-specific logic or data | Barrels product owner; launch gated on the [productization prerequisites](gaa-gms-client-programme-plan.md#productization-gate) |
 | Streaming/media platform | Barrels product option | Early product brief only | Explore | Validate audience, rights, operating model, and economics before investment | Barrels |
 | Pay/Invoice | Barrels product | Stripe gateway groundwork in the FastAPI `billing` domain; no settlement loop proven | Next | Prove invoicing, collection, and reconciliation as a product alongside Events; payment rails remain a platform capability that Events also consumes | Barrels product owner |
+| Barrels Bookings | Barrels platform capability | Approved 2026-10-19 ([ADR-0024](../adr/0024-bookings-domain.md)); not built; Babydoll Beauty Bar is the pilot tenant | Now → Next | One organisation-scoped appointments API that any Barrels app or client site uses for services, availability, booking, reminders and deposits | Barrels product owner; pilot accepted by the Babydoll owner |
 | Loyalty and rewards | Barrels product option | Reference study only | Explore | Decide merchant-funded versus platform-funded rewards and validate with Events and merchant evidence | Barrels product owner |
 | Shop, Salesbus, and other transactions | Barrels product options | Reserved identities or prototypes only | Explore | Promote only when evidence and operating capacity justify a product | Barrels |
 | Barrels Core AI and data capabilities | Company/platform programme | Direction recorded in [ADR-0014](../adr/0014-barrels-platform-core-direction.md); not implemented | Next (organizations, tenancy, audit) → Explore (AI gateway, Knowledge, Automate) | Provide organization-scoped, auditable, vendor-portable AI and data capabilities pulled by approved needs | Barrels |
 | Knowledge pilot over GAA/GMS procedures | Client-pulled platform pilot | Idea only; requires client request and data terms | Explore | Prove cited retrieval over institutional documents before any wider Knowledge offer | Joint Barrels and GAA/GMS owners |
+| Barrels Technology services | Barrels service lines | Strategy recorded in [service lines](../strategy/barrels-service-lines.md); no packages, pricing, or contracts yet | Next | Sell four defined packages (web and software, managed IT, AI and data, cloud and security) to SMEs with repeatable delivery and positive margins | Barrels |
+| Infrastructure service lines | Barrels service-line option | Strategy only | Explore | Decide networking, hosting, data-centre, and telecom partnerships on proven demand before capital investment | Barrels |
+| Existing integration gaps | Platform hardening | Signal subscribe returns 503; MBIA contact logs only; Resend suppression TODOs | Now | Close small delivery gaps listed in [integration opportunities](../strategy/integration-opportunities.md#gaps-to-close-first) | Barrels |
+| Integration and API expansion | Company/platform option | Options catalogue only | Explore | Add external providers and internal domain APIs only when an approved product or client need pulls them | Barrels |
 | Barrels Academy | Barrels training unit | Not started | Explore | Validate demand for AI literacy and engineering training and a talent pipeline | Barrels |
 | Barrels Labs | Barrels applied-research unit | Not started | Explore | Produce datasets, prototypes, and product candidates once core cash flow allows | Barrels |
 
@@ -139,8 +144,9 @@ checks and authenticated staging acceptance pass.
   and partner decision-support services after operational approval.
 - Develop Signal, MBIA, and GAA public surfaces according to their own product
   or client measures rather than treating them as migration checkboxes.
-- Evaluate commercialization of the workforce platform only after the GAA
-  programme proves reuse and the commercial/legal gates are resolved.
+- Launch Barrels Human Resource to external organisations once the GAA
+  programme proves reuse and the productization prerequisites (signed GAA
+  licence, tenant isolation, support and pricing) are met.
 
 ### Explore — preserve options without implying commitment
 
@@ -157,6 +163,12 @@ checks and authenticated staging acceptance pass.
 - AI gateway, Knowledge, Automate, Barrels Academy, and Barrels Labs as
   described in the
   [Barrels AI and Data Platform Strategy](../strategy/barrels-ai-strategy.md).
+- Service-line expansion beyond the first four packages (networking, hardware
+  partners, training, infrastructure, acquisitions) as described in
+  [Barrels Grenada Service Lines](../strategy/barrels-service-lines.md).
+- External providers and internal domain APIs (Places, Weather Verification,
+  Marine Conditions, and others) catalogued in
+  [Integration and API Opportunities](../strategy/integration-opportunities.md).
 
 ## Capacity and interruption rules
 

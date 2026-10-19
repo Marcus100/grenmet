@@ -1,0 +1,5 @@
+[
+  {"icao24": "a1b2c3", "firstSeen": 1760700000, "estDepartureAirport": "KMIA", "lastSeen": 1760712000, "estArrivalAirport": "TGPY", "callsign": "AAL1509 ", "estDepartureAirportHorizDistance": 1200, "estDepartureAirportVertDistance": 40, "estArrivalAirportHorizDistance": 900, "estArrivalAirportVertDistance": 20, "departureAirportCandidatesCount": 1, "arrivalAirportCandidatesCount": 1},
+  {"icao24": "4ca123", "firstSeen": 1760703000, "estDepartureAirport": null, "lastSeen": 1760715000, "estArrivalAirport": "TGPY", "callsign": null, "estDepartureAirportHorizDistance": null, "estDepartureAirportVertDistance": null, "estArrivalAirportHorizDistance": 800, "estArrivalAirportVertDistance": 15, "departureAirportCandidatesCount": 0, "arrivalAirportCandidatesCount": 1},
+  {"icao24": "bad000", "estDepartureAirport": "TTPP", "callsign": "BWA419  "}
+]

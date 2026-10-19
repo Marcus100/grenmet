@@ -51,6 +51,12 @@ class TierPublic(BaseModel):
     price_minor: int
     currency: Literal["XCD", "USD"]
     allocation: int
+    #: Most valid tickets one account may hold for this tier.
+    per_account_limit: int = 4
+    #: Tickets still available (allocation minus valid tickets).
+    remaining: int = 0
+    #: Valid tickets the signed-in viewer holds for this tier (0 when signed out).
+    held: int = 0
 
 
 class ListingCard(BaseModel):
@@ -69,6 +75,8 @@ class ListingCard(BaseModel):
     recurrence: str | None
     tags: list[str]
     featured: bool
+    #: Stored cover image; render through the public storage redirect.
+    image_file_id: uuid.UUID | None = None
     organiser_slug: str
     going_count: int
     going_preview: list[PersonChip]
@@ -88,6 +96,9 @@ class OrganiserPublic(BaseModel):
     name: str
     bio: str
     verified: bool
+    organisation_id: str | None = None
+    #: Stored logo; render through the public storage redirect.
+    logo_file_id: uuid.UUID | None = None
     follower_count: int
     viewer_following: bool | None = None
 
@@ -272,10 +283,14 @@ class ReportUpdate(BaseModel):
 
 
 class TierInput(BaseModel):
+    #: Existing tier to update in place; omit to add one. Tiers with tickets
+    #: issued keep their identity across saves.
+    id: uuid.UUID | None = None
     name: str = Field(min_length=1, max_length=60)
     price_minor: int = Field(ge=0, le=10_000_000)
     currency: Literal["XCD", "USD"] = "XCD"
     allocation: int = Field(ge=0, le=1_000_000)
+    per_account_limit: int = Field(default=4, ge=1, le=50)
 
 
 class ListingUpsert(BaseModel):
@@ -295,6 +310,8 @@ class ListingUpsert(BaseModel):
     status: Literal["draft", "published", "cancelled"] = "draft"
     group_slug: str | None = Field(default=None, pattern=SLUG_PATTERN)
     tiers: list[TierInput] = Field(default_factory=list, max_length=20)
+    #: A completed `listing-image` upload of this organiser; null clears it.
+    image_file_id: uuid.UUID | None = None
 
 
 class ManagedListing(ListingDetail):
@@ -302,5 +319,379 @@ class ManagedListing(ListingDetail):
     visibility: Literal["public", "unlisted"]
 
 
+class OrganiserOption(BaseModel):
+    id: uuid.UUID
+    slug: str
+    name: str
+    organisation_id: str | None = None
+    verified: bool = False
+
+
+class OrganiserCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=80)
+    slug: str | None = Field(default=None, pattern=SLUG_PATTERN, max_length=60)
+    bio: str = Field(default="", max_length=500)
+
+
+class OrganiserLogoUpdate(BaseModel):
+    #: A completed `organiser-logo` upload of this organiser; null clears it.
+    file_id: uuid.UUID | None = None
+
+
+class OrganiserReview(BaseModel):
+    verified: bool
+
+
 class ManagedOrganiser(OrganiserPublic):
+    organisers: list[OrganiserOption]
     listings: list[ManagedListing]
+
+
+class ActivityEntry(BaseModel):
+    id: uuid.UUID
+    action: str
+    entity_type: str
+    entity_id: str
+    actor_id: uuid.UUID
+    #: Display name from the actor's current profile; null once they have none.
+    actor_name: str | None = None
+    summary: dict[str, object]
+    created_at: UtcDateTime
+
+
+class OrderItemInput(BaseModel):
+    tier_id: uuid.UUID
+    quantity: int = Field(ge=1, le=50)
+
+
+class OrderCreate(BaseModel):
+    items: list[OrderItemInput] = Field(min_length=1, max_length=10)
+
+
+class TicketSummary(BaseModel):
+    id: uuid.UUID
+    #: Opaque code printed under the QR, for manual entry at the door.
+    code: str
+    status: Literal["valid", "cancelled", "refunded"]
+    tier_name: str
+    listing_slug: str
+    listing_title: str
+    venue: str
+    parish: Parish
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+    #: Valid, the event has not started and the holder has not been admitted.
+    can_cancel: bool
+    #: Set once door staff admit the ticket.
+    admitted_at: UtcDateTime | None = None
+
+
+class TicketDetail(TicketSummary):
+    #: Signed token to render as the ticket's QR code. Carries no personal data.
+    qr_token: str
+
+
+class OrderPublic(BaseModel):
+    id: uuid.UUID
+    listing_slug: str
+    total_minor: int
+    currency: Literal["XCD", "USD"]
+    created_at: UtcDateTime
+    tickets: list[TicketSummary]
+
+
+class AdmissionCreate(BaseModel):
+    #: The scanned QR token, or a ticket code typed or read by a keyboard scanner.
+    code: str = Field(min_length=1, max_length=200)
+    #: Client-generated key; a retry with the same key replays its own success.
+    idempotency_key: str | None = Field(default=None, min_length=1, max_length=64)
+
+
+class AdmissionPublic(BaseModel):
+    ticket_id: uuid.UUID
+    code: str
+    tier_name: str
+    #: Ticket holder's display name; null when they have no Events profile.
+    holder_name: str | None = None
+    admitted_at: UtcDateTime
+    admitted_by_name: str | None = None
+    #: True when this response replays an earlier scan with the same key.
+    repeat: bool = False
+
+
+class ManifestRow(BaseModel):
+    ticket_id: uuid.UUID
+    code: str
+    holder_name: str | None = None
+    tier_name: str
+    admitted_at: UtcDateTime | None = None
+    #: "online" (member claim) or "outlet" (cash sale by staff).
+    channel: Literal["online", "outlet"] = "online"
+
+
+class Manifest(BaseModel):
+    listing_id: uuid.UUID
+    title: str
+    starts_at: UtcDateTime
+    generated_at: UtcDateTime
+    #: Valid tickets (cancelled ones are not expected at the door).
+    issued: int
+    admitted: int
+    waiting: int
+    cancelled: int
+    rows: list[ManifestRow]
+
+
+class RefundCreate(BaseModel):
+    amount_minor: int = Field(ge=1, le=100_000_000)
+    method: Literal["cash", "bank"]
+    #: Bank transfer reference; required for bank refunds.
+    reference: str | None = Field(default=None, max_length=120)
+
+
+class PostponeResult(BaseModel):
+    listing_id: uuid.UUID
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+
+
+class RefundPublic(BaseModel):
+    id: uuid.UUID
+    ticket_id: uuid.UUID
+    code: str
+    tier_name: str
+    amount_minor: int
+    method: Literal["cash", "bank"]
+    reference: str | None = None
+    refunded_by_name: str | None = None
+    refunded_at: UtcDateTime
+    till_session_id: uuid.UUID | None = None
+
+
+# --- Outlet cash sales (E3) -------------------------------------------------------------
+
+Currency = Literal["XCD", "USD"]
+
+
+class OutletItemInput(BaseModel):
+    tier_id: uuid.UUID
+    quantity: int = Field(ge=1, le=50)
+
+
+class OutletSaleCreate(BaseModel):
+    items: list[OutletItemInput] = Field(min_length=1, max_length=10)
+    #: Cash taken, in minor units of the tier currency. Must equal the price total.
+    amount_collected_minor: int = Field(ge=0, le=100_000_000)
+    buyer_name: str | None = Field(default=None, max_length=120)
+    buyer_phone: str | None = Field(default=None, max_length=40)
+    #: Client-generated key; a retried sale replays the original instead of selling twice.
+    idempotency_key: str | None = Field(default=None, min_length=1, max_length=64)
+
+
+class OutletTicket(BaseModel):
+    id: uuid.UUID
+    code: str
+    #: Signed token to print as the ticket's QR code. Carries no personal data.
+    qr_token: str
+    tier_name: str
+    price_minor: int
+    status: Literal["valid", "cancelled", "refunded"]
+    admitted_at: UtcDateTime | None = None
+    #: Refund recorded for this ticket, if any.
+    refund: RefundPublic | None = None
+    #: A cash outlet ticket that can still be refunded.
+    can_refund: bool = False
+
+
+class OutletSale(BaseModel):
+    order_id: uuid.UUID
+    listing_id: uuid.UUID
+    listing_title: str
+    venue: str
+    starts_at: UtcDateTime
+    currency: Currency
+    total_minor: int
+    collected_minor: int
+    buyer_name: str | None = None
+    buyer_phone: str | None = None
+    sold_by_name: str | None = None
+    till_session_id: uuid.UUID | None = None
+    created_at: UtcDateTime
+    #: True when this response replays an earlier sale with the same key.
+    repeat: bool = False
+    tickets: list[OutletTicket]
+
+
+class TillOpen(BaseModel):
+    opening_float_minor: int = Field(ge=0, le=100_000_000)
+
+
+class TillClose(BaseModel):
+    counted_minor: int = Field(ge=0, le=1_000_000_000)
+    note: str | None = Field(default=None, max_length=300)
+
+
+class TillPublic(BaseModel):
+    id: uuid.UUID
+    staff_id: uuid.UUID
+    staff_name: str | None = None
+    #: Grenada calendar day the till was opened.
+    day: date
+    status: Literal["open", "closed"]
+    opening_float_minor: int
+    opened_at: UtcDateTime
+    closed_at: UtcDateTime | None = None
+    sales_count: int
+    tickets_sold: int
+    collected_minor: int
+    #: Cash handed back as refunds from this till.
+    cash_refunds_minor: int = 0
+    #: Float plus takings minus cash refunds.
+    expected_minor: int
+    counted_minor: int | None = None
+    #: Counted minus expected once closed (negative is short, positive is over).
+    difference_minor: int | None = None
+    close_note: str | None = None
+
+
+class OutletTierStock(BaseModel):
+    id: uuid.UUID
+    name: str
+    price_minor: int
+    currency: Currency
+    allocation: int
+    sold: int
+    remaining: int
+
+
+class OutletOverview(BaseModel):
+    listing_id: uuid.UUID
+    title: str
+    starts_at: UtcDateTime
+    status: Literal["draft", "published", "cancelled"]
+    #: Whether the event can still be sold (published, ticketed, not ended).
+    selling: bool
+    tiers: list[OutletTierStock]
+    #: The caller's till for the current open session or today's closed one.
+    till: TillPublic | None = None
+    #: Recent outlet sales for the event, newest first.
+    sales: list[OutletSale]
+
+
+# --- Settlement (E4) ----------------------------------------------------------------------
+
+
+class SettlementCounts(BaseModel):
+    """Ticket counts. ``claimed`` is issued minus cancelled and refunded."""
+
+    issued: int
+    claimed: int
+    admitted: int
+    #: Claimed but not yet admitted.
+    waiting: int
+    cancelled: int
+    refunded: int
+    #: Face value of claimed tickets, in minor units.
+    value_minor: int
+
+
+class SettlementChannel(SettlementCounts):
+    channel: Literal["online", "outlet_cash"]
+    #: Cash taken at the outlet (always 0 online: payment isn't available yet).
+    collected_minor: int
+    #: Refunds recorded against this channel's tickets.
+    refunded_minor: int
+
+
+class SettlementTier(BaseModel):
+    id: uuid.UUID
+    name: str
+    price_minor: int
+    allocation: int
+    online: int
+    outlet: int
+    admitted: int
+    remaining: int
+
+
+class SettlementCash(BaseModel):
+    """Cash across every till. Difference counts closed tills only."""
+
+    collected_minor: int
+    cash_refunds_minor: int
+    #: Takings after cash refunds, excluding opening floats.
+    net_sales_minor: int
+    expected_minor: int
+    counted_minor: int
+    difference_minor: int
+    open_tills: int
+    closed_tills: int
+
+
+class SettlementIssue(BaseModel):
+    kind: Literal[
+        "till_short",
+        "till_over",
+        "till_open",
+        "refund_without_till",
+    ]
+    message: str
+    till_id: uuid.UUID | None = None
+    amount_minor: int | None = None
+
+
+class Settlement(BaseModel):
+    listing_id: uuid.UUID
+    title: str
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+    status: Literal["draft", "published", "cancelled"]
+    currency: Literal["XCD", "USD"]
+    generated_at: UtcDateTime
+    totals: SettlementCounts
+    channels: list[SettlementChannel]
+    tiers: list[SettlementTier]
+    tills: list[TillPublic]
+    cash: SettlementCash
+    discrepancies: list[SettlementIssue]
+    refunds: list[RefundPublic]
+
+
+class SettlementSummary(BaseModel):
+    listing_id: uuid.UUID
+    title: str
+    starts_at: UtcDateTime
+    status: Literal["draft", "published", "cancelled"]
+    issued: int
+    claimed: int
+    admitted: int
+    cancelled: int
+    cash_collected_minor: int
+    cash_expected_minor: int
+    cash_counted_minor: int
+    issues: int
+
+
+class SettlementOverview(BaseModel):
+    organiser_name: str
+    listings: list[SettlementSummary]
+
+
+# --- Cancel, postpone and refund (E5) ---------------------------------------------------
+
+
+class CancelEvent(BaseModel):
+    #: Must be true; guards against an accidental call.
+    confirm: Literal[True]
+
+
+class CancelResult(BaseModel):
+    listing_id: uuid.UUID
+    status: Literal["cancelled"]
+    #: Valid tickets cancelled with the event (holders are notified).
+    tickets_cancelled: int
+
+
+class PostponeEvent(BaseModel):
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime

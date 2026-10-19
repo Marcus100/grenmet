@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
+// Not scanned: cms (Payload's own admin UI), barrels (static HTML) and
+// babydoll (a client brand in plain CSS, outside the token contract).
 const webApps = [
   {
     name: "@barrelsgd/ui",
@@ -17,12 +19,25 @@ const webApps = [
     note: "Template-origin theme scales are expected to be noisy; treat them as migration debt.",
     root: "apps/web/gaa-admin",
   },
+  { name: "admin", root: "apps/web/admin" },
   { name: "auth", root: "apps/web/auth" },
+  { name: "cap", root: "apps/web/cap" },
   {
     name: "docs",
     note: "Docs-template styling is expected to be noisy; review global shell colors first.",
     root: "apps/web/docs",
   },
+  {
+    name: "elections",
+    note: "--el-* party, referendum and map colours are data colours by design (docs/design/elections.md).",
+    root: "apps/web/elections",
+  },
+  {
+    name: "events",
+    note: "Barrels Events brand; Bricolage Grotesque display face is a documented lane choice (docs/design/events.md).",
+    root: "apps/web/events",
+  },
+  { name: "gmsdash", root: "apps/web/gmsdash" },
   { name: "mbia", root: "apps/web/mbia" },
   { name: "signal", root: "apps/web/signal" },
   {
@@ -539,7 +554,9 @@ function printReport(reports) {
 
   console.log("Design-system foundation audit");
   console.log("Mode: warning only; this command exits 0.");
-  console.log("Web UI font: Inter.");
+  console.log(
+    "Web UI font: Noto Sans via --brand-font-sans; lane overrides (Inter, Manrope, Source Serif 4, Bricolage Grotesque) are documented in docs/design-system.md."
+  );
   console.log("Official document font: Noto Sans via --font-document.");
   console.log("Pilot cleanup app: gms.");
   console.log("");

@@ -19,7 +19,7 @@ import {
   LeaveApplicationEditor,
   validateLeaveValues,
 } from "./leave-application-editor";
-import { EMPTY_LEAVE } from "./leave-document";
+import { EMPTY_LEAVE, JURY_DUTY_LABEL } from "./leave-document";
 import { LeaveSubmissions } from "./leave-submissions";
 
 const navigation = vi.hoisted(() => ({ search: "" }));
@@ -33,6 +33,9 @@ vi.mock("next/navigation", () => ({
 const BASE = "http://localhost";
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signed-documents/me`, () =>
+    HttpResponse.json({ data: [], count: 0 })
+  ),
   http.post(`${BASE}/api/v1/hr/leave-requests/preview-pdf`, () =>
     HttpResponse.text("%PDF-1.7", {
       headers: { "content-type": "application/pdf" },
@@ -55,6 +58,17 @@ const server = setupServer(
       employment: { department: { id: "dept_met", name: "Met" } },
     })
   ),
+  http.get(`${BASE}/api/v1/hr/leave/working-days`, ({ request }) => {
+    const params = new URL(request.url).searchParams;
+    return HttpResponse.json({
+      start: params.get("start"),
+      end: params.get("end"),
+      calendar_days: 5,
+      working_days: 5,
+      method: "weekdays",
+      holidays: [],
+    });
+  }),
   http.get(`${BASE}/api/v1/hr/departments/:departmentId/members`, () =>
     HttpResponse.json({ data: [], count: 0 })
   ),
@@ -275,7 +289,7 @@ it("keeps a submitted draft printable with the server date and resets cleanly", 
   expect(
     screen.queryByRole("button", { name: "Sign & submit" })
   ).not.toBeInTheDocument();
-  expect(screen.getByText("Leave Application PDF preview")).toBeVisible();
+  expect(screen.getByText("Leave Application preview")).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Reset" }));
   expect(screen.getAllByText("Not submitted").length).toBeGreaterThan(0);
 });
@@ -349,4 +363,117 @@ it("shows the API reason when leave submission is rejected", async () => {
       "Submission failed: Verify the opening balance for this leave type"
     )
   );
+});
+
+const DAYS_REQUESTED = /^Days Requested/;
+const SUGGESTED_FOUR = /Suggested 4 working days \(Monday to Friday\)/;
+const HOLIDAY_HINT =
+  /Public holidays not counted: Test Day 7 Oct \(provisional, HR to verify\)/;
+const BALANCE_AFTER = /Vacation balance after this request: 8 days/;
+
+function workingDaysServer(draftDays?: string) {
+  server.use(
+    http.get(`${BASE}/api/v1/hr/profile/me`, () =>
+      HttpResponse.json({
+        employment: {
+          department: { id: "dept_met", name: "Met" },
+          employee_number: "E-1042",
+        },
+        leave: { balances: { VACATION: "12" } },
+      })
+    ),
+    http.get(`${BASE}/api/v1/hr/leave/working-days`, ({ request }) => {
+      const params = new URL(request.url).searchParams;
+      return HttpResponse.json({
+        start: params.get("start"),
+        end: params.get("end"),
+        calendar_days: 5,
+        working_days: 4,
+        method: "weekdays",
+        holidays: [
+          { holiday_date: "2026-10-07", name: "Test Day", provisional: true },
+        ],
+        suggested_extra_days: 1,
+        suggested_extra_days_note: "Policy (provisional)",
+      });
+    }),
+    http.get(`${BASE}/api/v1/hr/leave-requests/me`, () =>
+      HttpResponse.json({
+        data: [
+          {
+            id: "lr-draft",
+            user_id: "u-1",
+            department_id: "dept_met",
+            leave_type: "VACATION",
+            start_date: "2026-10-05",
+            end_date: "2026-10-09",
+            days_requested: draftDays,
+            status: "DRAFT",
+            created_at: "2020-01-01T00:00:00Z",
+            updated_at: "2020-01-01T00:00:00Z",
+          },
+        ],
+        count: 1,
+      })
+    )
+  );
+}
+
+it("fills days requested from working days, labels provisional holidays and shows the balance after", async () => {
+  navigation.search = "draft=lr-draft";
+  workingDaysServer();
+  wrap(<LeaveApplicationEditor />);
+  await waitFor(() =>
+    expect(screen.getByLabelText(DAYS_REQUESTED)).toHaveValue(4)
+  );
+  expect(screen.getByText(SUGGESTED_FOUR)).toBeInTheDocument();
+  expect(screen.getByText(HOLIDAY_HINT)).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      "Policy (provisional): 1 public holiday inside this vacation — HR may grant 1 extra day. Nothing is added to your balance automatically."
+    )
+  ).toBeInTheDocument();
+  expect(await screen.findByText(BALANCE_AFTER)).toBeInTheDocument();
+  const employeeNumber = screen.getByRole("textbox", {
+    name: "Employee Number",
+  });
+  expect(employeeNumber).toHaveValue("E-1042");
+  expect(employeeNumber).toHaveAttribute("readonly");
+  // Still editable: the balance hint follows the edit.
+  fireEvent.change(screen.getByLabelText(DAYS_REQUESTED), {
+    target: { value: "3" },
+  });
+  expect(
+    await screen.findByText(
+      "Vacation balance after this request: 9 days (from your leave ledger)."
+    )
+  ).toBeInTheDocument();
+});
+
+it("keeps a days figure the user already has instead of overwriting it", async () => {
+  navigation.search = "draft=lr-draft";
+  workingDaysServer("10");
+  wrap(<LeaveApplicationEditor />);
+  expect(await screen.findByText(SUGGESTED_FOUR)).toBeInTheDocument();
+  expect(screen.getByLabelText(DAYS_REQUESTED)).toHaveValue(10);
+});
+
+it("sends jury duty with the summons reference as the reason and requires it to submit", () => {
+  const values = {
+    ...EMPTY_LEAVE,
+    leaveType: JURY_DUTY_LABEL,
+    startDate: "2026-10-05",
+    endDate: "2026-10-06",
+    daysRequested: "2",
+  };
+  expect(validateLeaveValues(values, false)).toBe(
+    "Enter the jury summons reference"
+  );
+  expect(validateLeaveValues(values, true)).toBeNull();
+  const payload = buildLeaveRequestPayload(
+    { ...values, otherReason: " HC-2026/114 " },
+    "dept_met"
+  );
+  expect(payload.leave_type).toBe("JURY_DUTY");
+  expect(payload.reason).toBe("HC-2026/114");
 });

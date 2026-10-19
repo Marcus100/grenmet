@@ -3,7 +3,6 @@
 import uuid
 from datetime import datetime
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
@@ -14,6 +13,8 @@ from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
 from src.exceptions import AppException
 from src.hr.exceptions import DepartmentNotFoundError
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Organisation
+from src.organisations import service as organisations_service
+from src.utils.timezones import GRENADA
 
 
 async def active_assignments(
@@ -215,7 +216,7 @@ async def validate_service_facts(
         raise AppException(
             "Probation dates must not precede employment commencement", 400
         )
-    if completed and completed > datetime.now(ZoneInfo("America/Grenada")).date():
+    if completed and completed > datetime.now(GRENADA).date():
         raise AppException(
             "Probation completion must be a recorded past or current date", 400
         )
@@ -252,6 +253,10 @@ async def create_organisation(
     organisation = Organisation(id=organisation_id, code=code, name=clean_name)
     session.add(organisation)
     try:
+        # Bridge A (ADR-0022): the platform row shares the HR id and commits with it.
+        await organisations_service.ensure_for_hr_organisation(
+            session, organisation_id=organisation_id, name=clean_name, code=code
+        )
         await session.commit()
     except IntegrityError as exc:
         await session.rollback()
@@ -272,6 +277,9 @@ async def rename_organisation(
     if not name.strip():
         raise AppException("Organisation name is required", 422)
     organisation.name = name.strip()
+    await organisations_service.rename_for_hr_organisation(
+        session, organisation_id=organisation.id, name=organisation.name
+    )
     await session.commit()
     await session.refresh(organisation)
     return organisation

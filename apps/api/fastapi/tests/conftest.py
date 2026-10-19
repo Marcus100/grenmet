@@ -31,6 +31,8 @@ from tests.database_target import (
 
 configure_database(os.environ)
 
+from tests.sharding import parse_shard, shard_of
+
 
 def _bootstrap_test_database() -> None:
     import psycopg
@@ -105,6 +107,7 @@ _test_database_bootstrapped = False
 
 import httpx
 import pytest
+from sqlalchemy import text
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -237,8 +240,17 @@ def weather_engine(request: pytest.FixtureRequest) -> Generator[Engine]:
 async def _clear_database_async(session: AsyncSession) -> None:
     """Clear app tables in dependency order so FK constraints are respected."""
     await session.rollback()
+    # The rewards ledger refuses DELETE by trigger; test cleanup lifts it inside
+    # this one transaction (DDL is transactional) and restores it before commit.
+    ledger = "rewards.entry"
+    await session.execute(
+        text(f"ALTER TABLE {ledger} DISABLE TRIGGER entry_append_only")
+    )
     for table in reversed(Base.metadata.sorted_tables):
         await session.execute(table.delete())
+    await session.execute(
+        text(f"ALTER TABLE {ledger} ENABLE TRIGGER entry_append_only")
+    )
     await session.commit()
 
 
@@ -317,6 +329,43 @@ async def async_client(test_database: None) -> AsyncGenerator[httpx.AsyncClient]
         yield client
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--shard",
+        default=None,
+        metavar="INDEX/TOTAL",
+        help="Run one of TOTAL balanced, file-aligned slices of the selected tests (1-based).",
+    )
+
+
+class _ShardSelector:
+    """Deselects tests outside this shard, after ``-m`` and other filters ran."""
+
+    def __init__(self, index: int, total: int) -> None:
+        self.index = index
+        self.total = total
+
+    @pytest.hookimpl(trylast=True)
+    def pytest_collection_modifyitems(
+        self, config: pytest.Config, items: list[pytest.Item]
+    ) -> None:
+        mine = shard_of(
+            [item.path.as_posix() for item in items], self.index, self.total
+        )
+        kept = [item for item in items if item.path.as_posix() in mine]
+        dropped = [item for item in items if item.path.as_posix() not in mine]
+        if dropped:
+            config.hook.pytest_deselected(items=dropped)
+        items[:] = kept
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    shard = config.getoption("--shard")
+    if shard:
+        index, total = parse_shard(shard)
+        config.pluginmanager.register(_ShardSelector(index, total), "shard-selector")
+
+
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
     """Classify tests by whether they request the real application database."""
     integration_fixtures = {
@@ -347,6 +396,21 @@ async def superuser_token_headers_async(
     )
     if user is None or user.id is None:
         raise RuntimeError("Test template did not contain the superuser")
+    token = create_access_token(
+        user.id,
+        expires_delta=timedelta(minutes=auth_settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+async def second_superuser_headers_async(
+    db_async: AsyncSession,
+) -> dict[str, str]:
+    """A different superuser, for flows that need a second person (CAP approval)."""
+    from tests.factories import make_user
+
+    user = await make_user(db_async, superuser=True)
     token = create_access_token(
         user.id,
         expires_delta=timedelta(minutes=auth_settings.ACCESS_TOKEN_EXPIRE_MINUTES),

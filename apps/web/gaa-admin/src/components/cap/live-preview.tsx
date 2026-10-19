@@ -198,7 +198,7 @@ export function ReadinessChecklist({
               }}
               className={cn(
                 "flex size-4 flex-shrink-0 items-center justify-center rounded-full border",
-                item.ok ? "border-[#3f7a0f]" : "border-gm-border"
+                item.ok ? "border-gm-lime-ink" : "border-gm-border"
               )}
               transition={{ duration: 0.15 }}
             >

@@ -1,6 +1,7 @@
-from typing import Any
+from datetime import date
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Query, Response, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import LeaveRequestDep
@@ -9,12 +10,14 @@ from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
 
 from . import service
+from .models import LeaveType
 from .schemas import (
     LeaveRequestAction,
     LeaveRequestCreate,
     LeaveRequestListPublic,
     LeaveRequestPublic,
     LeaveRequestSubmit,
+    WorkingDaysPublic,
 )
 
 router = APIRouter(prefix="/hr", tags=["hr-leave"])
@@ -212,4 +215,35 @@ async def read_my_leave_requests(
         count=total,
         page=pagination.page,
         size=pagination.size,
+    )
+
+
+@router.get(
+    "/leave/working-days",
+    response_model=WorkingDaysPublic,
+    summary="Working days between two dates",
+    description="Suggest the days requested for a leave range: the caller's published roster work shifts when it covers the whole range, otherwise Monday to Friday, excluding public holidays. Holidays from the provisional list are flagged. For an annual vacation (leave_type=VACATION) it also returns a provisional suggested_extra_days count for holidays that fall on would-be working days; it is advice for HR and never posts to a balance. Requires leave.request.create.self.",
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_200_OK: {"description": "Working day count returned"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Invalid or too long range"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
+async def read_working_days(
+    session: SessionDep,
+    current_user: CurrentUser,
+    start: Annotated[date, Query(description="First day of leave")],
+    end: Annotated[date, Query(description="Last day of leave")],
+    leave_type: Annotated[
+        LeaveType | None,
+        Query(description="Leave type; VACATION adds the provisional extra-day hint"),
+    ] = None,
+) -> Any:
+    return await service.working_days_between(
+        session=session,
+        current_user=current_user,
+        start=start,
+        end=end,
+        leave_type=leave_type,
     )

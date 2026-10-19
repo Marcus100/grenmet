@@ -1,5 +1,5 @@
 import type {
-  SrcAuthSchemasRolePublic as RolePublic,
+  RolePublic,
   UserPublic,
   UserRoleAssignmentPublic,
 } from "@barrelsgd/api-client";

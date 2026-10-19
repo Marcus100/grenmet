@@ -92,6 +92,10 @@ test("pre-push stops on lint, type-check and test failures", (t) => {
     pnpm,
     [
       "#!/bin/sh",
+      // The scoped path calls turbo directly (`pnpm exec turbo run <task>`);
+      // log it as the task so both paths read the same.
+      'if [ "$1 $2 $3" = "exec turbo run" ]; then shift 3; fi',
+      'if [ "$2" = "--concurrency=2" ]; then t="$1"; shift 2; set -- "$t" "$@"; fi',
       'printf "%s\\n" "$*" >> "$CALL_LOG"',
       'if [ "$1" = "$FAIL_STEP" ]; then',
       "  exit 1",
@@ -140,4 +144,36 @@ test("pre-push stops on lint, type-check and test failures", (t) => {
     readFileSync(log, "utf8"),
     "check:ci --affected\ntype-check --affected\ntest --affected\n"
   );
+});
+
+test("pre-push tests only the pushed packages by default", (t) => {
+  const fixture = mkdtempSync(join(tmpdir(), "grenmet-pre-push-scope-"));
+  t.after(() => rmSync(fixture, { force: true, recursive: true }));
+  const bin = join(fixture, "bin");
+  const log = join(fixture, "calls.log");
+  mkdirSync(bin);
+  const pnpm = join(bin, "pnpm");
+  writeFileSync(pnpm, '#!/bin/sh\nprintf "%s\\n" "$*" >> "$CALL_LOG"\n');
+  chmodSync(pnpm, 0o755);
+
+  const { PRE_PUSH_SCOPE: _unset, ...inherited } = process.env;
+  const head = git(workspace, "rev-parse", "HEAD").trim();
+  const hook = (refs) =>
+    spawnSync("sh", ["-e", prePushHook], {
+      cwd: workspace,
+      encoding: "utf8",
+      env: { ...inherited, CALL_LOG: log, PATH: `${bin}:${process.env.PATH}` },
+      input: refs,
+    });
+
+  // Nothing new in the pushed range: lint and type-check everywhere, no tests.
+  let result = hook(`refs/heads/x ${head} refs/heads/x ${head}\n`);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(log, "utf8"), "check:ci\ntype-check\n");
+
+  // An unreadable range cannot be scoped, so the hook runs every test.
+  writeFileSync(log, "");
+  result = hook(`refs/heads/x ${head} refs/heads/x ${"1".repeat(40)}\n`);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(log, "utf8"), "check:ci\ntype-check\ntest\n");
 });

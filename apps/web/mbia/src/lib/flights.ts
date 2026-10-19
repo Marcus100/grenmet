@@ -45,7 +45,19 @@ export interface Flight {
   flightNumber: string;
   /** Scheduled local time, 24h "HH:mm". */
   scheduled: string;
+  /** Live rows only: epoch ms used to list newest first (rows span two days). */
+  sortKey?: number;
   status: FlightStatus;
+}
+
+/** Where a board's rows come from. Anything but "sample" is real provider data. */
+export type FlightSource = "sample" | "opensky";
+
+export interface FlightData {
+  /** ISO time the provider data was cached; absent for the sample board. */
+  fetchedAt?: string;
+  flights: Flight[];
+  source: FlightSource;
 }
 
 export const STATUS_LABELS: Record<FlightStatus, string> = {
@@ -231,7 +243,11 @@ export function flightsFor(
 ): Flight[] {
   return flights
     .filter((f) => f.airport === airport && f.board === board)
-    .sort((a, b) => a.scheduled.localeCompare(b.scheduled));
+    .sort((a, b) =>
+      a.sortKey !== undefined && b.sortKey !== undefined
+        ? b.sortKey - a.sortKey
+        : a.scheduled.localeCompare(b.scheduled)
+    );
 }
 
 export function isBoard(value: string | undefined): value is Board {
@@ -241,3 +257,8 @@ export function isBoard(value: string | undefined): value is Board {
 export function isAirportCode(value: string | undefined): value is AirportCode {
   return value === "GND" || value === "CRU";
 }
+
+export const SAMPLE_DATA: FlightData = {
+  flights: SAMPLE_FLIGHTS,
+  source: "sample",
+};

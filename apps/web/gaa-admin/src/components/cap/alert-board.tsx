@@ -146,7 +146,10 @@ export function AlertBoard({ alerts }: { alerts: CapAlertList }) {
               filter === "ALL" ? "var(--gm-navy)" : "var(--gm-border)",
             background:
               filter === "ALL" ? "var(--gm-navy)" : "var(--gm-surface-page)",
-            color: filter === "ALL" ? "#fff" : "var(--gm-text-secondary)",
+            color:
+              filter === "ALL"
+                ? "var(--gm-text-inverse)"
+                : "var(--gm-text-secondary)",
           }}
           type="button"
         >

@@ -1,25 +1,46 @@
+import { requisitionStatus } from "@barrelsgd/api-client";
+import type { Metadata } from "next";
+import { NoAccess } from "@/components/salesbus/NoAccess";
 import { TransactionList } from "@/components/salesbus/settlements/TransactionList";
-import { getTransactionsByType, transactions } from "@/lib/salesbus/mock-data";
-export const metadata = { title: "Transactions" };
+import {
+  getLocations,
+  getRequisitions,
+  getStoresAccessOrNull,
+} from "@/db/stores/queries";
+import { STATUS_LABELS } from "@/lib/salesbus/types";
+
+export const metadata: Metadata = { title: "Requisitions" };
+
+export const dynamic = "force-dynamic";
+
 export default async function TransactionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ status?: string | string[] }>;
 }) {
-  const { type } = await searchParams;
-  const rows =
-    type === "cash" || type === "credit"
-      ? getTransactionsByType(type)
-      : transactions;
+  const access = await getStoresAccessOrNull();
+  if (!access) return <NoAccess />;
+
+  const { status } = await searchParams;
+  const known = Object.values(requisitionStatus) as string[];
+  const statuses = [status ?? []]
+    .flat()
+    .filter((value) => known.includes(value));
+  const [requisitions, locations] = await Promise.all([
+    getRequisitions({ statuses }),
+    access.can_manage ? getLocations() : Promise.resolve([]),
+  ]);
+  const heading =
+    statuses.length === 0
+      ? "Requisitions"
+      : statuses
+          .map((value) => STATUS_LABELS[value as keyof typeof STATUS_LABELS])
+          .join(" / ");
+
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-5">
-      <h1 className="font-semibold text-2xl">
-        {type === "cash" ? "Cash transactions" : "Transactions"}
-      </h1>
-      <p className="text-muted-foreground text-sm">
-        Development example records, matching the existing settlements summary.
-      </p>
-      <TransactionList transactions={rows} />
+      <h1 className="font-semibold text-2xl">{heading}</h1>
+      <TransactionList locations={locations} requisitions={requisitions.data} />
     </div>
   );
 }

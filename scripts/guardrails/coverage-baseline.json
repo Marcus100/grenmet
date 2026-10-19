@@ -2,28 +2,28 @@
   "note": "Line and branch coverage floors. They only rise: pnpm coverage:check --write raises a floor to the measured value minus 0.5. Lowering one needs a human review and a stated reason (this file is high risk in risk-tier.mjs).",
   "floors": {
     "api": {
-      "lines": 87.6,
-      "branches": 71.7
+      "lines": 89,
+      "branches": 74
     },
     "web/auth": {
-      "lines": 77.6,
-      "branches": 68.6
+      "lines": 79,
+      "branches": 71
     },
     "web/gaa-admin": {
       "lines": 64.8,
       "branches": 63.7
     },
     "web/gms": {
-      "lines": 89.4,
+      "lines": 90,
       "branches": 79
     },
     "web/mbia": {
-      "lines": 22.1,
-      "branches": 37.8
+      "lines": 23,
+      "branches": 38
     },
     "web/signal": {
-      "lines": 63.6,
-      "branches": 54.8
+      "lines": 64,
+      "branches": 55
     }
   }
 }

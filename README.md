@@ -19,6 +19,7 @@ barrelsgd/
 │   └── web/
 │       ├── gaa-admin/          # Current GAA staff portal; GMS pilot plus GAA-wide modules
 │       ├── auth/               # Shared staff sign-in/sign-up interface
+│       ├── babydoll/           # Babydoll Beauty Bar client website (Next.js on Vercel)
 │       ├── barrels/            # Static Barrels Grenada company homepage
 │       ├── cms/                # GMS editorial content service (Payload CMS)
 │       ├── elections/          # Elections Grenada coverage and civic education
@@ -237,6 +238,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | --- | --- |
 | gaa-admin | [apps/web/gaa-admin/README.md](apps/web/gaa-admin/README.md) |
 | auth | [apps/web/auth/README.md](apps/web/auth/README.md) |
+| babydoll | [apps/web/babydoll/README.md](apps/web/babydoll/README.md) |
 | barrels | [apps/web/barrels/README.md](apps/web/barrels/README.md) |
 | cms | [apps/web/cms/README.md](apps/web/cms/README.md) |
 | elections | [apps/web/elections/AGENTS.md](apps/web/elections/AGENTS.md) |

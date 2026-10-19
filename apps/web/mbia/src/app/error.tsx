@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@barrelsgd/ui/components/ui/button";
-import { captureException } from "@sentry/nextjs";
 import { useEffect } from "react";
 
 // Renders inside the root layout, so site navigation stays usable.
@@ -13,7 +12,13 @@ export default function RouteError({
   retry: () => void;
 }) {
   useEffect(() => {
-    captureException(error, { tags: { digest: error.digest } });
+    import("@sentry/nextjs")
+      .then(({ captureException }) =>
+        captureException(error, { tags: { digest: error.digest } })
+      )
+      .catch(() => {
+        /* Reporting must never break the error page. */
+      });
   }, [error]);
 
   return (

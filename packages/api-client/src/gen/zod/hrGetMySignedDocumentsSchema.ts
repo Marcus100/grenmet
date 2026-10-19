@@ -7,6 +7,13 @@ import * as z from "zod";
 import { signedDocumentListSchema } from "./signedDocumentListSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
+export const hrGetMySignedDocumentsQueryEntityTypeSchema = z
+  .union([z.string().max(60), z.null()])
+  .optional()
+  .describe(
+    "Only documents for this form type, e.g. leave_request or timesheet."
+  );
+
 export const hrGetMySignedDocumentsQueryPageSchema = z
   .int()
   .min(1)

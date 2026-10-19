@@ -10,6 +10,7 @@ import { EventFlyer } from "@/components/discovery/event-flyer";
 import { RsvpButton } from "@/components/discovery/rsvp-button";
 import { SaveButton } from "@/components/discovery/save-button";
 import { ShareActions } from "@/components/discovery/share-actions";
+import { TicketClaim } from "@/components/discovery/ticket-claim";
 import { setFollowing } from "@/data/actions";
 import { getEventBySlug, listEvents } from "@/data/events-api";
 import { CATEGORY_LABELS, PARISH_LABELS, priceLabel } from "@/domain/labels";
@@ -121,11 +122,15 @@ export default async function EventPage({ params }: { params: Params }) {
                 {event.goingCount} going
               </p>
             </div>
-            <RsvpButton
-              admission={event.admission}
-              initiallyGoing={event.viewerGoing ?? false}
-              slug={event.slug}
-            />
+            {event.admission === "ticketed" ? (
+              <TicketClaim slug={event.slug} tiers={event.tiers} />
+            ) : (
+              <RsvpButton
+                admission={event.admission}
+                initiallyGoing={event.viewerGoing ?? false}
+                slug={event.slug}
+              />
+            )}
             <SaveButton
               className="w-full"
               initiallySaved={event.viewerSaved ?? false}

@@ -13,6 +13,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { eventsGetManagedOrganiser } from "../clients/eventsGetManagedOrganiser.js";
 import type {
+  EventsGetManagedOrganiserOptions,
   EventsGetManagedOrganiserStatus200,
   EventsGetManagedOrganiserStatus401,
   EventsGetManagedOrganiserStatus403,
@@ -22,19 +23,22 @@ import type {
   EventsGetManagedOrganiserStatus429,
 } from "../models/EventsGetManagedOrganiser.js";
 
-export const eventsGetManagedOrganiserQueryKey = () =>
-  [{ url: "/api/v1/events/manage" }] as const;
+export const eventsGetManagedOrganiserQueryKey = ({
+  query,
+}: Omit<EventsGetManagedOrganiserOptions, "headers"> = {}) =>
+  [{ url: "/api/v1/events/manage" }, ...(query ? [query] : [])] as const;
 
 type EventsGetManagedOrganiserQueryKey = ReturnType<
   typeof eventsGetManagedOrganiserQueryKey
 >;
 
 export function eventsGetManagedOrganiserQueryOptions(
+  { query }: EventsGetManagedOrganiserOptions = {},
   config: Partial<
     Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
   > = {}
 ) {
-  const queryKey = eventsGetManagedOrganiserQueryKey();
+  const queryKey = eventsGetManagedOrganiserQueryKey({ query });
   return queryOptions<
     EventsGetManagedOrganiserStatus200,
     ResponseErrorConfig<
@@ -52,6 +56,7 @@ export function eventsGetManagedOrganiserQueryOptions(
     queryFn: async ({ signal }) => {
       return eventsGetManagedOrganiser({
         ...config,
+        query,
         signal: config.signal ?? signal,
         throwOnError: true,
       }).unwrap();
@@ -69,6 +74,13 @@ export function useEventsGetManagedOrganiser<
   TQueryData = EventsGetManagedOrganiserStatus200,
   TQueryKey extends QueryKey = EventsGetManagedOrganiserQueryKey,
 >(
+  {
+    query,
+  }: {
+    query?:
+      | EventsGetManagedOrganiserOptions["query"]
+      | (() => EventsGetManagedOrganiserOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
@@ -93,12 +105,16 @@ export function useEventsGetManagedOrganiser<
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
   const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    resolvedOptions?.queryKey ?? eventsGetManagedOrganiserQueryKey();
+    resolvedOptions?.queryKey ??
+    eventsGetManagedOrganiserQueryKey(resolvedParams);
 
   const queryResult = useQuery(
     {
-      ...eventsGetManagedOrganiserQueryOptions(config),
+      ...eventsGetManagedOrganiserQueryOptions(resolvedParams, config),
       ...resolvedOptions,
       queryKey,
     } as unknown as QueryObserverOptions,

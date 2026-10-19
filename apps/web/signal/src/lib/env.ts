@@ -21,6 +21,8 @@ export const env = createEnv({
       .url()
       .optional()
       .default("http://localhost:3004"),
+    // Cloudflare Turnstile public site key. Unset: no widget, no token sent.
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional().default(""),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: z
       .string()
@@ -34,6 +36,7 @@ export const env = createEnv({
     SIGNAL_SESSION_COOKIE_NAME: process.env.SIGNAL_SESSION_COOKIE_NAME,
     SIGNAL_SSO_CLIENT_SECRET: process.env.SIGNAL_SSO_CLIENT_SECRET,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
   },

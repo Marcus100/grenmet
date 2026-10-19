@@ -9,6 +9,8 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 const read = (path) => readFileSync(`${root}${path}`, "utf8").toLowerCase();
 
 const sources = {
+  "admin.md": ["packages/ui/src/styles/globals.css"],
+  "babydoll.md": ["apps/web/babydoll/src/app/globals.css"],
   "barrels.md": ["packages/ui/src/styles/globals.css"],
   "gaa-admin.md": [
     "packages/gms/src/styles/foundation.css",

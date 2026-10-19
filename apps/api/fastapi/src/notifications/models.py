@@ -134,3 +134,75 @@ class NotificationSnooze(Base):
         ForeignKey("user.id", ondelete="SET NULL"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class SuppressionReason(str, Enum):
+    HARD_BOUNCE = "hard_bounce"
+    COMPLAINT = "complaint"
+
+
+class EmailSuppression(Base):
+    """An address that must not receive non-transactional email.
+
+    Written by the Resend webhook (hard bounce, spam complaint). One row per
+    address (lower-cased); a replayed webhook finds the row and changes nothing.
+    Transactional mail (sign-in codes, password resets) ignores this list.
+    """
+
+    __tablename__ = "email_suppression"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    # Legacy plaintext column: new rows leave it null and keep only ``email_hash``
+    # (HMAC-SHA256, src/utils/email_hash.py). Existing rows still hold the address
+    # until the plaintext-removal step has run after a verified backup.
+    email: Mapped[str | None] = mapped_column(String(320), unique=True)
+    email_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
+    reason: Mapped[str] = mapped_column(String(30))
+    source_event_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class OutboundEmailStatus(str, Enum):
+    PENDING = "pending"
+    SENT = "sent"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+
+
+class OutboundEmail(Base):
+    """Email outbox for public flows (subscriptions, contact messages).
+
+    Rows are written inside the request transaction and drained by the worker,
+    so a request never waits on Resend. Either ``template`` + ``props`` (React
+    Email render, Jinja fallback) or pre-rendered ``html`` is set.
+    Non-transactional rows are skipped for suppressed addresses.
+    """
+
+    __tablename__ = "outbound_email"
+    __table_args__ = (
+        sa.Index("ix_outbound_email_due", "status", "next_retry_at"),
+        # One row per dedupe key (e.g. a CAP alert and one subscriber).
+        sa.Index(
+            "uq_outbound_email_dedupe_key",
+            "dedupe_key",
+            unique=True,
+            postgresql_where=sa.text("dedupe_key IS NOT NULL"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    to_email: Mapped[str] = mapped_column(String(320))
+    subject: Mapped[str] = mapped_column(String(300))
+    template: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    props: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    html: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
+    transactional: Mapped[bool] = mapped_column(default=False)
+    dedupe_key: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    status: Mapped[str] = mapped_column(
+        String(20), default=OutboundEmailStatus.PENDING.value
+    )
+    attempts: Mapped[int] = mapped_column(default=0)
+    next_retry_at: Mapped[datetime | None]
+    last_error: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    sent_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)

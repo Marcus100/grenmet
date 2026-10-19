@@ -46,6 +46,7 @@ from src.utils.datetime import utc_now
 
 from .expansion import expand_shift
 from .grid import parse_grid, resolve_user
+from .holidays import MAX_YEAR, MIN_YEAR, PROVISIONAL_SOURCE, provisional_holidays
 from .models import (
     ImportStatus,
     PublicHoliday,
@@ -63,6 +64,7 @@ from .models import (
 from .rules import RuleViolation
 from .schemas import (
     PublicHolidayCreate,
+    PublicHolidayUpdate,
     RosterAssignmentBulkCreate,
     RosterAssignmentInput,
     RosterCsvRowValidation,
@@ -251,12 +253,79 @@ async def create_public_holiday(
         holiday_date=payload.holiday_date,
         is_recurring=payload.is_recurring,
         country_code=payload.country_code,
+        source=payload.source,
+        needs_verification=payload.needs_verification,
         created_by_user_id=current_user.id,
     )
     session.add(holiday)
     await session.commit()
     await session.refresh(holiday)
     return holiday
+
+
+async def update_public_holiday(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    holiday_id: uuid.UUID,
+    payload: PublicHolidayUpdate,
+) -> PublicHoliday:
+    await require_global_roster_manage(session, current_user)
+    holiday = await get_public_holiday_or_404(session=session, holiday_id=holiday_id)
+    clash = await session.scalar(
+        select(PublicHoliday).where(
+            PublicHoliday.holiday_date == payload.holiday_date,
+            PublicHoliday.id != holiday.id,
+        )
+    )
+    if clash:
+        raise HRValidationError(ERROR_PUBLIC_HOLIDAY_DUPLICATE_DATE)
+    holiday.name = payload.name
+    holiday.holiday_date = payload.holiday_date
+    holiday.is_recurring = payload.is_recurring
+    holiday.source = payload.source
+    holiday.needs_verification = payload.needs_verification
+    await session.commit()
+    await session.refresh(holiday)
+    return holiday
+
+
+async def load_provisional_holidays(
+    *, session: AsyncSession, current_user: User, year: int
+) -> list[PublicHoliday]:
+    """Add the provisional Grenada calendar for a year; existing dates are kept."""
+    await require_global_roster_manage(session, current_user)
+    if not MIN_YEAR <= year <= MAX_YEAR:
+        raise HRValidationError(f"Year must be between {MIN_YEAR} and {MAX_YEAR}")
+    taken = set(
+        (
+            await session.scalars(
+                select(PublicHoliday.holiday_date).where(
+                    PublicHoliday.holiday_date >= date(year, 1, 1),
+                    PublicHoliday.holiday_date <= date(year, 12, 31),
+                )
+            )
+        ).all()
+    )
+    created: list[PublicHoliday] = []
+    for item in provisional_holidays(year):
+        if item.holiday_date in taken:
+            continue
+        holiday = PublicHoliday(
+            name=item.name,
+            holiday_date=item.holiday_date,
+            is_recurring=False,
+            country_code="GD",
+            source=PROVISIONAL_SOURCE,
+            needs_verification=item.needs_verification,
+            created_by_user_id=current_user.id,
+        )
+        session.add(holiday)
+        created.append(holiday)
+    await session.commit()
+    for holiday in created:
+        await session.refresh(holiday)
+    return created
 
 
 async def list_public_holidays(

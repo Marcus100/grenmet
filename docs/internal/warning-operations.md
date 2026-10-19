@@ -25,12 +25,12 @@ The domain stores:
 
 ## Lifecycle
 
-Per [ADR-0013](../adr/0013-cap-alert-self-publish-and-bulletin-linkage.md)
-(supersedes [ADR-0007](../adr/0007-cap-warning-lifecycle.md)'s mandatory
-approval gate), CAP Alerts self-publish like every other authored product.
-Submit/Approve remain implemented but are an **optional, non-blocking**
-review path — recording that someone looked at a draft — not a required
-step before Publish:
+Per [ADR-0023](../adr/0023-cap-approval-before-publish.md) (supersedes
+[ADR-0013](../adr/0013-cap-alert-self-publish-and-bulletin-linkage.md)'s
+self-publish), a CAP Alert must be approved by a different person before it can
+be published. Only the duty supervisor may emergency-publish without approval,
+with a mandatory reason, always audited. The diagram shows the states; normal
+publish is only from APPROVED:
 
 ```text
 DRAFT ---------------------------------> PUBLISHED -> EXPIRED
@@ -50,12 +50,13 @@ Supported actions:
 | Action | Endpoint | Required state | Next state | Permission |
 | --- | --- | --- | --- | --- |
 | Create | `POST /api/v1/cap/alerts` | N/A | `DRAFT` | `cap.alert.create` |
-| Edit | `PATCH /api/v1/cap/alerts/{alert_id}` | `DRAFT`, `SUBMITTED`, `APPROVED` | unchanged | `cap.alert.edit` |
+| Edit | `PATCH /api/v1/cap/alerts/{alert_id}` | `DRAFT`, `SUBMITTED`, `APPROVED` | `DRAFT` (an edit voids submission or approval) | `cap.alert.edit` |
 | Duplicate | `POST /api/v1/cap/alerts/{alert_id}/duplicate` | any readable alert | `DRAFT` copy | `cap.alert.create` |
 | Validate | `POST /api/v1/cap/alerts/{alert_id}/validate` | any readable alert | unchanged | `cap.alert.read` |
-| Submit (optional review) | `POST /api/v1/cap/alerts/{alert_id}/submit` | `DRAFT` | `SUBMITTED` | `cap.alert.submit` |
-| Approve (optional review) | `POST /api/v1/cap/alerts/{alert_id}/approve` | `SUBMITTED` | `APPROVED` | `cap.alert.approve` |
-| Publish | `POST /api/v1/cap/alerts/{alert_id}/publish` | `DRAFT`, `SUBMITTED`, or `APPROVED` | `PUBLISHED` or `CANCELLED` for cancel messages | `cap.alert.publish` |
+| Submit for approval | `POST /api/v1/cap/alerts/{alert_id}/submit` | `DRAFT` | `SUBMITTED` | `cap.alert.submit` |
+| Approve (not the author) | `POST /api/v1/cap/alerts/{alert_id}/approve` | `SUBMITTED` | `APPROVED` | `cap.alert.approve` |
+| Publish | `POST /api/v1/cap/alerts/{alert_id}/publish` | `APPROVED` by someone other than the author | `PUBLISHED` or `CANCELLED` for cancel messages | `cap.alert.publish` |
+| Emergency publish | `POST /api/v1/cap/alerts/{alert_id}/emergency-publish` (body `reason`, required) | `DRAFT`, `SUBMITTED`, or `APPROVED` | `PUBLISHED`; audited as `emergency_publish` | `cap.alert.publish_emergency` (duty supervisor) |
 | Cancel | `POST /api/v1/cap/alerts/{alert_id}/cancel` | `PUBLISHED` | `CANCELLED` | `cap.alert.publish` |
 | Expire | `POST /api/v1/cap/alerts/{alert_id}/expire` | `PUBLISHED` | `EXPIRED` | `cap.alert.publish` |
 

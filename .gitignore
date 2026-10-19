@@ -191,6 +191,10 @@ artifacts/
 
 # Bash command audit trail (defense-in-depth for the git-guardrail hook) — local scratch
 /.agents-bash-audit.log
+/.agents-bash-audit.log.1
+
+# UI screenshots for agent visual review (pnpm ui:screenshots)
+/.ui-review/
 
 
 next-shadcn-admin-dashboard-baseui/

@@ -1,6 +1,6 @@
 ---
 name: design-critique
-description: Critique a UI surface against the Refactoring UI ladder and return a ranked, token-legal fix list. No design reference needed.
+description: "Critiques a UI surface against the Refactoring UI ladder and returns a ranked, token-legal fix list. Needs no design reference."
 disable-model-invocation: true
 ---
 
@@ -19,6 +19,11 @@ You need one of:
 - a published Claude Design canvas URL
 
 and the intended viewport (375px mobile, 1280px desktop, or both).
+
+Given only a file path, render it before critiquing:
+`pnpm ui:screenshots --app <app> --path <route>` writes phone and desktop PNGs in
+both themes (the dev server must be running on the host). Critique the PNGs, not
+the source.
 
 Ask for the app if the path does not make it obvious — the lane changes the verdict. `gms` is the public reference app and should read spacious; `gaa-admin` is deliberately dense and must not be critiqued into looking like a marketing page; `wxproducts` and `hr` are fixed-dimension document/print surfaces where A4 constraints outrank white-space advice.
 

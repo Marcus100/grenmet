@@ -3,46 +3,71 @@ import "server-only";
 import {
   eventsGetGroup,
   eventsGetListing,
+  eventsGetListingActivity,
   eventsGetManagedOrganiser,
+  eventsGetManifest,
   eventsGetMyNetwork,
   eventsGetMyPlans,
+  eventsGetMyTicket,
   eventsGetOrganiser,
+  eventsGetOrganiserSettlement,
+  eventsGetOutlet,
+  eventsGetOutletSale,
   eventsGetPerson,
+  eventsGetSettlement,
   eventsGetThread,
   eventsListGroups,
   eventsListListings,
+  eventsListMyTickets,
   eventsListThreads,
   ResponseError,
 } from "@barrelsgd/api-client";
 import type {
+  ActivityEntry,
+  DoorManifest,
   EventDetail,
   EventFilters,
   Group,
   GroupDetail,
   ManagedEvent,
+  MyTicket,
+  MyTicketDetail,
   Network,
   Organiser,
+  OrganiserOption,
+  Outlet,
+  OutletSale,
   PersonProfile,
   Plans,
   PublicEvent,
+  Settlement,
+  SettlementSummary,
   ThreadDetail,
   ThreadSummary,
 } from "@/domain/types";
 import { apiOptions } from "@/lib/api";
 import { getSession } from "@/lib/session";
 import {
+  toDoorManifest,
   toEvent,
   toEventDetail,
   toGroup,
   toGroupDetail,
   toManagedEvent,
+  toMyTicket,
+  toMyTicketDetail,
   toNetwork,
   toOrganiser,
+  toOutlet,
+  toOutletSale,
   toPersonProfile,
   toPlans,
+  toSettlement,
+  toSettlementSummary,
   toThread,
   toThreadSummary,
 } from "./api-mappers";
+import { chosenOrganiser } from "./organiser-choice";
 
 /**
  * Server-side reads from the Events API. Each call carries the signed-in
@@ -157,15 +182,42 @@ export async function getThread(id: string): Promise<ThreadDetail | null> {
   return thread ? toThread(thread) : null;
 }
 
-/** The organiser's own listings, drafts included. Null without organiser access. */
-export async function getManagedOrganiser(): Promise<{
-  organiser: Organiser;
+export interface ManagedWorkspace {
   listings: ManagedEvent[];
-} | null> {
+  organiser: Organiser;
+  organisers: OrganiserOption[];
+}
+
+/**
+ * The organiser's own listings, drafts included, for the organiser picked in
+ * the switcher (cookie) or the first one. Null without organiser access.
+ */
+export async function getManagedOrganiser(): Promise<ManagedWorkspace | null> {
+  const chosen = await chosenOrganiser();
+  const load = async (organiser: string | undefined) =>
+    await eventsGetManagedOrganiser({
+      ...(await options()),
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap();
   try {
-    const managed = await eventsGetManagedOrganiser(await options()).unwrap();
+    let managed: Awaited<ReturnType<typeof load>>;
+    try {
+      managed = await load(chosen);
+    } catch (error) {
+      // A remembered organiser the member no longer manages: fall back.
+      if (chosen && error instanceof ResponseError && error.status === 403) {
+        managed = await load(undefined);
+      } else {
+        throw error;
+      }
+    }
     return {
       organiser: toOrganiser(managed),
+      organisers: managed.organisers.map((row) => ({
+        slug: row.slug,
+        name: row.name,
+        organisationId: row.organisation_id ?? null,
+      })),
       listings: managed.listings.map(toManagedEvent),
     };
   } catch (error) {
@@ -174,4 +226,129 @@ export async function getManagedOrganiser(): Promise<{
     }
     throw error;
   }
+}
+
+/** A listing's change history, newest first. Empty without organiser access. */
+export async function getListingActivity(
+  listingId: string
+): Promise<ActivityEntry[]> {
+  const organiser = await chosenOrganiser();
+  try {
+    const entries = await eventsGetListingActivity({
+      ...(await options()),
+      path: { listing_id: listingId },
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap();
+    return entries.map((entry) => {
+      const changed: unknown = entry.summary.changed;
+      return {
+        id: entry.id,
+        action: entry.action,
+        actorName: entry.actor_name ?? null,
+        createdAt: entry.created_at,
+        changed: Array.isArray(changed)
+          ? changed.filter((name): name is string => typeof name === "string")
+          : [],
+      };
+    });
+  } catch (error) {
+    if (
+      error instanceof ResponseError &&
+      (error.status === 403 || error.status === 404)
+    ) {
+      return [];
+    }
+    throw error;
+  }
+}
+
+/** The signed-in member's tickets, soonest event first. */
+export async function getMyTickets(): Promise<MyTicket[]> {
+  const tickets = await eventsListMyTickets({
+    ...(await options()),
+  }).unwrap();
+  return tickets.map(toMyTicket);
+}
+
+export async function getMyTicket(
+  ticketId: string
+): Promise<MyTicketDetail | null> {
+  const ticket = await orNull(
+    eventsGetMyTicket({
+      ...(await options()),
+      path: { ticket_id: ticketId },
+    }).unwrap()
+  );
+  return ticket ? toMyTicketDetail(ticket) : null;
+}
+
+/** The door list and live counts for an organiser's event; null when not theirs. */
+export async function getDoorManifest(
+  listingId: string
+): Promise<DoorManifest | null> {
+  const organiser = await chosenOrganiser();
+  const manifest = await orNull(
+    eventsGetManifest({
+      ...(await options()),
+      path: { listing_id: listingId },
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap()
+  );
+  return manifest ? toDoorManifest(manifest) : null;
+}
+
+/** The outlet sale screen for an organiser's event; null when not theirs. */
+export async function getOutlet(listingId: string): Promise<Outlet | null> {
+  const organiser = await chosenOrganiser();
+  const outlet = await orNull(
+    eventsGetOutlet({
+      ...(await options()),
+      path: { listing_id: listingId },
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap()
+  );
+  return outlet ? toOutlet(outlet) : null;
+}
+
+/** One outlet sale with its tickets, for printing; null when not theirs. */
+export async function getOutletSale(
+  listingId: string,
+  orderId: string
+): Promise<OutletSale | null> {
+  const organiser = await chosenOrganiser();
+  const sale = await orNull(
+    eventsGetOutletSale({
+      ...(await options()),
+      path: { listing_id: listingId, order_id: orderId },
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap()
+  );
+  return sale ? toOutletSale(sale) : null;
+}
+
+/** An event's settlement report; null when the event isn't theirs. */
+export async function getSettlement(
+  listingId: string
+): Promise<Settlement | null> {
+  const organiser = await chosenOrganiser();
+  const report = await orNull(
+    eventsGetSettlement({
+      ...(await options()),
+      path: { listing_id: listingId },
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap()
+  );
+  return report ? toSettlement(report) : null;
+}
+
+/** One summary row per ticketed event, for the /dash overview. */
+export async function getSettlementSummaries(): Promise<
+  readonly SettlementSummary[]
+> {
+  const organiser = await chosenOrganiser();
+  const overview = await eventsGetOrganiserSettlement({
+    ...(await options()),
+    ...(organiser ? { query: { organiser } } : {}),
+  }).unwrap();
+  return overview.listings.map(toSettlementSummary);
 }

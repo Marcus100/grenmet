@@ -17,6 +17,10 @@ pnpm build  # runs: node scripts/generate-sections.mjs && next build --turbopack
 routes `src/app/auth/{start,callback,me,logout}`, config `src/lib/auth-config.ts`
 (registry key `docs`). Off until `DOCS_SSO_CLIENT_SECRET` is set.
 
+## Page feedback
+
+`Feedback.tsx` ("Was this page helpful?") posts `{ pagePath, helpful }` to `src/app/api/feedback/route.ts`, which validates (`src/lib/feedback.ts`) and proxies to FastAPI `POST /api/v1/feedback` with site key `docs`. Anonymous: no personal data is sent or stored. Tests: `pnpm --filter @barrelsgd/web-docs test`.
+
 ## MDX pipeline — Content Collections
 
 MDX is compiled outside the Turbopack pipeline via `@content-collections/next`. This is how custom remark/rehype/recma plugins (which are functions) can be used with Turbopack — they run in a separate Node.js process, not as loader options.
@@ -83,7 +87,7 @@ node scripts/generate-sections.mjs
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+## This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 

@@ -19,7 +19,12 @@ export interface FieldColumn {
    * 1Sn" beside the 3-digit temperature: `sign` holds the printed indicator
    * plus the sign digit ("10"), `digits` holds the rest.
    */
-  signed?: { prefix: string; role: "digits" | "sign" };
+  signed?: {
+    prefix: string;
+    role: "digits" | "sign";
+    /** Typical keyed digit after the prefix, shown as the sign cell placeholder. */
+    example?: string;
+  };
   /** The upper cell is an entry for another field (Gust above Wind Speed). */
   upper?: { code: string; key: string; label: string };
   /** Header name of the upper layer when it differs (Wet Bulb over Dew Point). */
@@ -70,11 +75,12 @@ const signedPair = (
   label: string,
   code: string,
   numbers: [number, number],
-  extra: Partial<FieldColumn> = {}
+  extra: Partial<FieldColumn> = {},
+  example = "0"
 ): FieldColumn[] => [
   field(key, "Ind. & Sign", signCode, {
     no: numbers[0],
-    signed: { prefix, role: "sign" },
+    signed: { prefix, role: "sign", example },
   }),
   field(key, label, code, {
     no: numbers[1],
@@ -196,7 +202,10 @@ export const SECTION_3: RegisterGroup = {
       "5j1",
       "24-hour Barometric Change",
       "P24P24P24",
-      [43, 44]
+      [43, 44],
+      {},
+      // The register keys j1 as 8 (rise or zero, group 58) or 9 (fall, 59).
+      "8"
     ),
     fixed("7", 45),
     field("s3_rainfall_24h", "24-hour Rainfall", "R24R24R24R24", { no: 46 }),

@@ -1,4 +1,5 @@
 import { PageIntro } from "@/components/editorial";
+import { SubscribeForm } from "@/components/subscribe-form";
 export const metadata = { title: "About Signal" };
 export default function AboutPage() {
   return (
@@ -39,10 +40,16 @@ export default function AboutPage() {
           Source attribution identifies the underlying reporting, not authorship
           of these summaries.
         </p>
+        <p>Reading is free and requires no account.</p>
+        <h2 className="font-semibold font-serif text-3xl" id="newsletter">
+          Get the newsletter
+        </h2>
         <p>
-          Reading is free and requires no account. Email subscriptions are not
-          available, and this preview does not collect email addresses.
+          Sign up for email updates from Grenada Signal. We will send one
+          message to confirm your address; you are only subscribed once you
+          click the link in it.
         </p>
+        <SubscribeForm />
       </div>
     </article>
   );

@@ -7,7 +7,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { changedPaths, selectImages, webImages } from "../ci/select-images.mjs";
+import {
+  changedPaths,
+  selectCoverage,
+  selectImages,
+  webImages,
+} from "../ci/select-images.mjs";
 
 test("documentation and editor changes need no image builds", () => {
   assert.deepEqual(
@@ -42,6 +47,8 @@ test("Elections source deploys independently while mixed changes retain core che
     "apps/web/elections/vercel.json",
     "apps/web/barrels/index.html",
     "apps/web/barrels/build.mjs",
+    "apps/web/babydoll/src/app/page.tsx",
+    "apps/web/babydoll/vercel.json",
   ])
     assert.deepEqual(selectImages([path]), {
       web: [],
@@ -77,13 +84,13 @@ test("unknown, lockfile and CI inputs conservatively select everything", () => {
     "infra/weather/Dockerfile.collectors",
   ]) {
     const selected = selectImages([path]);
-    assert.equal(selected.web.length, 9);
+    assert.equal(selected.web.length, 11);
     assert.equal(selected.weather.length, 0);
     assert.equal(selected.api, true);
   }
 });
 test("promotion checks are full; deployment builds own their smoke checks", () => {
-  assert.equal(selectImages([], "full").web.length, 9);
+  assert.equal(selectImages([], "full").web.length, 11);
   assert.deepEqual(selectImages(["pnpm-lock.yaml"], "deployment"), {
     web: [],
     weather: [],
@@ -160,7 +167,13 @@ test("CLI selects all images when comparison history or event data is missing", 
             return [line.slice(0, index), JSON.parse(line.slice(index + 1))];
           })
       );
-      assert.deepEqual(outputs, selectImages([], "full"));
+      assert.deepEqual(outputs, {
+        ...selectImages([], "full"),
+        coverage: selectCoverage([], "full").map(({ app, path }) => ({
+          app,
+          path,
+        })),
+      });
     }
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -174,4 +187,22 @@ test("GMS source leaves unrelated application builds cached", () => {
     ),
     ["gms"]
   );
+});
+
+test("coverage runs only the floor-tracked apps and follows the image scope", () => {
+  assert.deepEqual(
+    selectCoverage([], "full").map((image) => image.app),
+    ["auth", "gms", "signal", "mbia"]
+  );
+  assert.deepEqual(
+    selectCoverage(["apps/web/gaa-admin/src/app/page.tsx"], "affected"),
+    []
+  );
+  assert.deepEqual(
+    selectCoverage(["apps/web/signal/src/app/page.tsx"], "affected").map(
+      (image) => image.app
+    ),
+    ["signal"]
+  );
+  assert.deepEqual(selectCoverage(["pnpm-lock.yaml"], "deployment"), []);
 });

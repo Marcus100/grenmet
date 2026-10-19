@@ -2,13 +2,14 @@
 
 import uuid
 from collections.abc import Iterable
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
+
+from src.utils.timezones import GRENADA as GRENADA
 
 from .. import schemas
 
 #: Grenada does not observe daylight saving.
-GRENADA = timezone(timedelta(hours=-4))
 
 FRIDAY, SUNDAY = 4, 6  # datetime.weekday()
 

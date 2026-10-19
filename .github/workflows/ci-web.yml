@@ -37,6 +37,7 @@ jobs:
       web: ${{ steps.select.outputs.web }}
       weather: ${{ steps.select.outputs.weather }}
       api: ${{ steps.select.outputs.api }}
+      coverage: ${{ steps.select.outputs.coverage }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -191,15 +192,85 @@ jobs:
         uses: ./.github/actions/setup-node
 
       - name: Run all TypeScript unit tests
+        # gaa-admin is the slowest suite and runs sharded in `gaa-admin-tests`
+        # below, so every other package runs here.
         env:
           TURBO_SCM_BASE: ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && 'origin/dev' || '' }}
-        run: pnpm test ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }}
+        run: pnpm exec turbo run test --concurrency=2 --filter='!@barrelsgd/web-gaa-admin' ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }}
+
+  # Job 6b: gaa-admin Vitest suite split into three parallel shards. Together the
+  # shards run every test file exactly once, with the same affected-only scope on
+  # dev PRs as the job above. Coverage for gaa-admin is not enforced in CI (see
+  # coverageApps in scripts/ci/select-images.mjs), so there is nothing to merge.
+  gaa-admin-tests:
+    name: gaa-admin Tests (shard ${{ matrix.shard }}/3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          # Full history for diffs, but no historic blobs (the repo carries ~2 GB of old images).
+          filter: blob:none
+
+      - name: Setup Node.js with pnpm
+        uses: ./.github/actions/setup-node
+
+      - name: Run gaa-admin tests (shard ${{ matrix.shard }}/3)
+        env:
+          TURBO_SCM_BASE: ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && 'origin/dev' || '' }}
+        run: pnpm exec turbo run test --concurrency=2 --filter=@barrelsgd/web-gaa-admin ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }} -- --shard=${{ matrix.shard }}/3
+
+  # Job 7: Vitest coverage floors for the apps in coverageApps (select-images.mjs).
+  # Runs beside the test job, one matrix entry per app, and fails when a measured
+  # line or branch rate falls below its committed floor. Dev PRs and pushes run
+  # only the affected apps; promotion PRs and pushes run all of them.
+  web-coverage:
+    name: Coverage floors (${{ matrix.app }})
+    needs: [image-selection]
+    if: needs.image-selection.outputs.coverage != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.image-selection.outputs.coverage) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+
+      - name: Setup Node.js with pnpm
+        # Turbo's task cache is not used: vitest runs directly so the coverage
+        # summary is always produced by a fresh run.
+        uses: ./.github/actions/setup-node
+        with:
+          turbo-cache: "false"
+
+      - name: Build API client
+        # Turbo's test task builds ^build dependencies first; this job calls vitest
+        # directly, so the generated client's entry must exist before the suite runs.
+        run: pnpm --filter @barrelsgd/api-client build
+
+      - name: Run tests with coverage
+        env:
+          APP_DIR: ${{ matrix.path }}
+        run: pnpm -C "$APP_DIR" run test:coverage
+
+      - name: Check coverage floor
+        # Floors only rise (scripts/guardrails/coverage-baseline.json). With --only web
+        # the check reads this app's summary and skips the others, which are not run here.
+        run: node scripts/guardrails/check-coverage.mjs --only web
 
   # Stable required gate: absent images are intentional only when selection succeeds.
   # Runtime Dockerfiles already compile each application; do not rebuild with pnpm.
   build:
     name: Build Web Apps
-    needs: [image-selection, biome, type-check, peer-check, guardrails, drift, tests, container-smoke, storage-integration, weather-images]
+    needs: [image-selection, biome, type-check, peer-check, guardrails, drift, tests, gaa-admin-tests, web-coverage, container-smoke, storage-integration, weather-images]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -212,7 +283,7 @@ jobs:
           const results = JSON.parse(process.env.RESULTS);
           const selection = results['image-selection'];
           for (const [name, job] of Object.entries(results)) {
-            const key = name === 'container-smoke' ? 'web' : name === 'weather-images' ? 'weather' : null;
+            const key = name === 'container-smoke' ? 'web' : name === 'weather-images' ? 'weather' : name === 'web-coverage' ? 'coverage' : null;
             const omitted = key && selection.result === 'success' && selection.outputs[key] === '[]';
             if (job.result !== 'success' && !(omitted && job.result === 'skipped')) {
               console.error(`${name}: ${job.result}`);

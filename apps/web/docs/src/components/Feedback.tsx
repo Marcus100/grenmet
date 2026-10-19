@@ -1,8 +1,12 @@
 "use client";
 
+import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { Transition } from "@headlessui/react";
+import { usePathname } from "next/navigation";
 import { forwardRef, useState } from "react";
+import { env } from "@/lib/env";
+import { reportError } from "@/lib/report-error";
 
 function CheckIcon(props: React.ComponentPropsWithoutRef<"svg">) {
   return (
@@ -70,8 +74,8 @@ const FeedbackThanks = forwardRef<
       )}
       ref={ref}
     >
-      <div className="flex items-center gap-3 rounded-full bg-emerald-50/50 py-1 pr-3 pl-1.5 text-emerald-900 text-sm ring-1 ring-emerald-500/20 ring-inset dark:bg-emerald-500/5 dark:text-emerald-200 dark:ring-emerald-500/30">
-        <CheckIcon className="h-5 w-5 flex-none fill-emerald-500 stroke-white dark:fill-emerald-200/20 dark:stroke-emerald-200" />
+      <div className="flex items-center gap-3 rounded-full bg-gm-blue/5 py-1 pr-3 pl-1.5 text-gm-navy text-sm ring-1 ring-gm-blue/20 ring-inset dark:bg-gm-blue-ink/5 dark:text-gm-sky dark:ring-gm-sky/30">
+        <CheckIcon className="h-5 w-5 flex-none fill-gm-blue stroke-white dark:fill-gm-sky/20 dark:stroke-gm-sky" />
         Thanks for your feedback!
       </div>
     </div>
@@ -79,15 +83,41 @@ const FeedbackThanks = forwardRef<
 });
 
 export function Feedback() {
+  const pathname = usePathname();
   const [submitted, setSubmitted] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    // event.nativeEvent.submitter.dataset.response
-    // => "yes" or "no"
-
-    setSubmitted(true);
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    const response = submitter?.getAttribute("data-response");
+    if (response !== "yes" && response !== "no") {
+      return;
+    }
+    setFailed(false);
+    try {
+      const result = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pagePath: pathname,
+          helpful: response === "yes",
+          turnstileToken: turnstileToken ?? undefined,
+        }),
+      });
+      if (!result.ok) {
+        setTurnstileReset((n) => n + 1);
+        setFailed(true);
+        return;
+      }
+      setSubmitted(true);
+    } catch (error) {
+      reportError(error, "docs-feedback");
+      setTurnstileReset((n) => n + 1);
+      setFailed(true);
+    }
   }
 
   return (
@@ -98,6 +128,19 @@ export function Feedback() {
           onSubmit={onSubmit}
         />
       </Transition>
+      {failed && (
+        <p
+          className="absolute inset-x-0 top-9 text-center text-red-700 text-sm md:text-left dark:text-red-400"
+          role="alert"
+        >
+          We could not save your feedback. Please try again.
+        </p>
+      )}
+      <Turnstile
+        onToken={setTurnstileToken}
+        resetKey={turnstileReset}
+        siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+      />
       <Transition show={submitted}>
         <FeedbackThanks className="delay-150 duration-300 data-closed:opacity-0" />
       </Transition>

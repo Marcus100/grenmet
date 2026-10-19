@@ -1,7 +1,6 @@
 """Read dashboard facts from persisted HR records, scoped to the signed-in user."""
 
 from datetime import datetime
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import String, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,12 +31,13 @@ from src.hr.roster.models import (
 )
 from src.hr.timesheet.models import Timesheet
 from src.hr.workflow import service as workflow_service
+from src.utils.timezones import GRENADA
 
 
 async def read_dashboard(
     *, session: AsyncSession, current_user: User
 ) -> HrDashboardPublic:
-    today = datetime.now(ZoneInfo("America/Grenada")).date()
+    today = datetime.now(GRENADA).date()
     employment = await employment_for(session, current_user.id)
     department_id = (
         employment.department_id

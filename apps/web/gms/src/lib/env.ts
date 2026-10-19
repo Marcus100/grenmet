@@ -36,6 +36,8 @@ export const env = createEnv({
       .regex(/^(G-[A-Z0-9]+)?$/)
       .optional()
       .default(""),
+    // Cloudflare Turnstile public site key. Unset: no widget, no token sent.
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional().default(""),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: z
       .string()
@@ -58,6 +60,7 @@ export const env = createEnv({
     WEATHER_SSO_CLIENT_SECRET: process.env.WEATHER_SSO_CLIENT_SECRET,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
     CAP_API_URL: process.env.CAP_API_URL,
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
