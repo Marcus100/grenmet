@@ -14,6 +14,7 @@ from src.email_config import email_settings
 from src.notifications import dispatch
 from src.notifications import service as notification_service
 from src.notifications.models import (
+    EmailSuppression,
     OutboundEmail,
     OutboundEmailStatus,
     SuppressionReason,
@@ -23,6 +24,7 @@ from src.subscriptions.config import subscriptions_settings
 from src.subscriptions.constants import CONFIRM_PURPOSE
 from src.subscriptions.models import ListSubscription, SubscriptionStatus
 from src.utils.datetime import utc_now
+from src.utils.email_hash import hash_email
 
 _URL = "/api/v1/subscriptions"
 
@@ -40,7 +42,7 @@ async def _subscribe(
 async def _row(db: AsyncSession, email: str) -> ListSubscription | None:
     db.expire_all()
     return await db.scalar(
-        select(ListSubscription).where(ListSubscription.email == email)
+        select(ListSubscription).where(ListSubscription.email_hash == hash_email(email))
     )
 
 
@@ -241,12 +243,15 @@ async def test_unsubscribe_then_resubscribe_restarts_double_opt_in(
     assert row is not None
     assert row.status == SubscriptionStatus.UNSUBSCRIBED.value
     assert row.unsubscribed_at is not None
+    assert row.email is None  # only the keyed hash is kept as consent proof
+    assert row.email_hash == hash_email(address)
 
     await _subscribe(async_client, address)
     row = await _row(db_async, address)
     assert row is not None
     assert row.status == SubscriptionStatus.PENDING.value
     assert row.confirmed_at is None
+    assert row.email == address  # plaintext restored: needed to send
     assert len(await _outbox(db_async, address)) == 2
 
 
@@ -329,3 +334,58 @@ async def test_worker_renders_confirmation_with_jinja_fallback(
     db_async.expire_all()
     # Tokens are scrubbed once the mail is out.
     assert (await _outbox(db_async, address))[0].props == {}
+
+
+async def test_legacy_plaintext_rows_are_still_matched_and_hashed_on_contact(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    pending, suppressed = _address(), _address()
+    db_async.add(ListSubscription(list_key="signal", email=pending))
+    db_async.add(
+        EmailSuppression(email=suppressed, reason=SuppressionReason.COMPLAINT.value)
+    )
+    await db_async.commit()
+
+    await _subscribe(async_client, pending)
+    await _subscribe(async_client, suppressed)
+
+    row = await _row(db_async, pending)
+    assert row is not None
+    assert row.email == pending
+    assert row.email_hash == hash_email(pending)  # lazily backfilled
+    assert len(await _outbox(db_async, pending)) == 1
+    assert await _outbox(db_async, suppressed) == []  # legacy plaintext suppression
+    assert await notification_service.is_suppressed(
+        session=db_async, email=suppressed.upper()
+    )
+
+
+async def test_suppression_stores_only_the_hash_and_checks_by_hash(
+    db_async: AsyncSession,
+) -> None:
+    address = _address()
+    added = await notification_service.suppress_email(
+        session=db_async,
+        email=f"  {address.upper()} ",
+        reason=SuppressionReason.HARD_BOUNCE,
+        source_event_id=None,
+    )
+    again = await notification_service.suppress_email(
+        session=db_async,
+        email=address,
+        reason=SuppressionReason.HARD_BOUNCE,
+        source_event_id=None,
+    )
+    await db_async.commit()
+    assert (added, again) == (True, False)
+    row = await db_async.scalar(
+        select(EmailSuppression).where(
+            EmailSuppression.email_hash == hash_email(address)
+        )
+    )
+    assert row is not None
+    assert row.email is None
+    assert await notification_service.is_suppressed(session=db_async, email=address)
+    assert not await notification_service.is_suppressed(
+        session=db_async, email=_address()
+    )

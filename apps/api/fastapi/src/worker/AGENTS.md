@@ -13,3 +13,5 @@
 - Related: `src/cap/AGENTS.md`, `src/notifications/AGENTS.md`.
 
 - `nhc.py` owns queue `grenmet:nhc`. Its dispatcher drains persisted WxWatch pull/point requests only; never install automatic NHC collection. Preserve archive locking, conditional requests, bounded downloads, coalescing and recoverable leases.
+
+- `purge_expired_data` (03:30 UTC daily, `retention.py`): deletes contact messages and data requests 24 months after receipt, pending subscriptions after 30 days, and nulls page-feedback comments after 24 months. Idempotent, batched, logs counts only. Policy table: docs/security.md, Data retention.
