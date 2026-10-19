@@ -1,6 +1,6 @@
 import {
   configureApiClient,
-  type SrcAuthSchemasRolePublic as RolePublic,
+  type RolePublic,
   type UserPublic,
 } from "@barrelsgd/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

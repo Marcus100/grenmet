@@ -29,6 +29,8 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0021](0021-timed-recovery-drill.md) | Accepted: monthly timed recovery drill (built, not yet run; API start phase pending) |
 | [0022](0022-platform-organisations-and-memberships.md) | Accepted: platform organisations and memberships (bridge A, workspaces deferred) |
 | [0023](0023-cap-approval-before-publish.md) | Accepted: CAP needs approval by a different person before publish; audited emergency publish for the duty supervisor (supersedes ADR-0013 decisions 1-2) |
+| [0024](0024-bookings-domain.md) | Accepted: Barrels Bookings, a shared organisation-scoped appointments domain (clean-room port of Easy!Appointments' model; deposits via the payment adapter) |
+| [0025](0025-api-conventions.md) | Accepted: API conventions — frontend-agnostic, audience zones (`public`/`me`/`org`/`admin`), unique schema names, shared helpers; enforced by `test_api_conventions.py` |
 
 ## Template
 

@@ -8,7 +8,6 @@ import logging
 import uuid
 from datetime import date, datetime
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,6 +19,7 @@ from src.notifications import events
 from src.notifications import service as notification_service
 from src.notifications.events import EventDef
 from src.utils.datetime import utc_now
+from src.utils.timezones import GRENADA
 
 from .absentee.models import AbsenteeReport
 from .dailystatus.models import StatusReport
@@ -42,7 +42,6 @@ from .workflow.models import (
 
 logger = logging.getLogger(__name__)
 
-GRENADA = ZoneInfo("America/Grenada")
 
 REQUEST_TYPE_LABELS: dict[WorkflowType, str] = {
     WorkflowType.LEAVE_REQUEST: "Leave request",

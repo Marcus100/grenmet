@@ -36,6 +36,7 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | cap | `@barrelsgd/web-cap` | 3010 |
 | admin | `@barrelsgd/web-admin` | 3012 |
 | gmsdash | `@barrelsgd/web-gmsdash` | 3013 |
+| babydoll | `@barrelsgd/web-babydoll` | 3014 |
 
 ### Reserved and planned
 
@@ -98,6 +99,7 @@ which is built but not deployed and has no catalogue entry yet.
 | --- | --- |
 | Barrels company homepage (`apps/web/barrels`) | `barrels.gd` (`www.barrels.gd` redirects) |
 | elections (`apps/web/elections`, dev port 3007) | `elections.barrels.gd` |
+| babydoll (`apps/web/babydoll`, dev port 3014; Babydoll Beauty Bar client site) | `babydoll.barrels.gd` (explicit DNS record; overrides the DigitalOcean wildcard) |
 
 ### Planned (no app yet)
 

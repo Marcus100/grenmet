@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.email_config import email_settings
 from src.notifications.models import EmailSuppression
 from src.subscriptions.models import ListSubscription, SubscriptionStatus
+from src.utils.email_hash import hash_email
 from tests.webhooks.test_webhooks import _SECRET, _URL, _headers, _sign
 
 
@@ -37,7 +38,7 @@ async def _count(db: AsyncSession, email: str) -> int:
         await db.scalar(
             select(func.count())
             .select_from(EmailSuppression)
-            .where(EmailSuppression.email == email)
+            .where(EmailSuppression.email_hash == hash_email(email))
         )
         or 0
     )
@@ -63,11 +64,14 @@ async def test_hard_bounce_suppresses_address_and_replay_is_idempotent(
 
     assert await _count(db_async, address) == 1
     row = await db_async.scalar(
-        select(EmailSuppression).where(EmailSuppression.email == address)
+        select(EmailSuppression).where(
+            EmailSuppression.email_hash == hash_email(address)
+        )
     )
     assert row is not None
     assert row.reason == "hard_bounce"
     assert row.source_event_id == "msg_bounce"
+    assert row.email is None  # only the keyed hash is stored
 
 
 async def test_transient_bounce_does_not_suppress(
@@ -119,8 +123,11 @@ async def test_complaint_suppresses_and_unsubscribes_from_lists(
     db_async.expire_all()
     assert await _count(db_async, address) == 1
     sub = await db_async.scalar(
-        select(ListSubscription).where(ListSubscription.email == address)
+        select(ListSubscription).where(
+            ListSubscription.email_hash == hash_email(address)
+        )
     )
     assert sub is not None
     assert sub.status == SubscriptionStatus.UNSUBSCRIBED.value
     assert sub.unsubscribed_at is not None
+    assert sub.email is None  # plaintext dropped, hash kept as proof

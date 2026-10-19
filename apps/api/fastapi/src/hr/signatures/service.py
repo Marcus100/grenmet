@@ -9,7 +9,6 @@ from datetime import datetime
 from html import escape
 from pathlib import Path
 from typing import TypedDict
-from zoneinfo import ZoneInfo
 
 from fastapi.concurrency import run_in_threadpool
 from fastapi.encoders import jsonable_encoder
@@ -28,6 +27,7 @@ from src.hr.organisations import (
     require_organisation_permission,
 )
 from src.utils.datetime import utc_now
+from src.utils.timezones import GRENADA
 
 from .models import SavedSignature, SignedDocument
 from .schemas import SignaturePublic
@@ -226,7 +226,7 @@ def render_leave_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
         else '<span class="pending">Not signed</span>'
     )
     submitted = snapshot["signed_at"]
-    grenada_time = ZoneInfo("America/Grenada")
+    grenada_time = GRENADA
     document_date = (
         datetime.fromisoformat(submitted).astimezone(grenada_time).date()
         if submitted
@@ -312,9 +312,7 @@ def render_absentee_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> byte
     )
     signed_at = snapshot["signed_at"]
     submission_date = (
-        datetime.fromisoformat(signed_at)
-        .astimezone(ZoneInfo("America/Grenada"))
-        .strftime("%Y-%m-%d %H:%M")
+        datetime.fromisoformat(signed_at).astimezone(GRENADA).strftime("%Y-%m-%d %H:%M")
         if signed_at
         else "Not submitted"
     )
@@ -377,9 +375,7 @@ def render_shift_exchange_pdf(snapshot: DocumentSnapshot, image: bytes | None) -
     )
     submitted = snapshot["signed_at"]
     date_label = (
-        datetime.fromisoformat(submitted)
-        .astimezone(ZoneInfo("America/Grenada"))
-        .strftime("%Y-%m-%d %H:%M")
+        datetime.fromisoformat(submitted).astimezone(GRENADA).strftime("%Y-%m-%d %H:%M")
         if submitted
         else "Not submitted"
     )

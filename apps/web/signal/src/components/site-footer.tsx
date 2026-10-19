@@ -23,6 +23,7 @@ export function SiteFooter() {
             { label: "About Signal", href: "/about" as const },
             { label: "Newsletter", href: "/about#newsletter" as const },
             { label: "Editorial approach", href: "/about#editorial" as const },
+            { label: "Privacy", href: "/privacy" as const },
           ].map((link) => (
             <Link
               className="inline-flex min-h-11 items-center text-base hover:underline"

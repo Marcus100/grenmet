@@ -5,10 +5,10 @@
 
 import * as z from "zod";
 import { roleCreateSchema } from "./roleCreateSchema.js";
-import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
+import { rolePublicSchema } from "./rolePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const authCreateRoleStatus201Schema = srcAuthSchemasRolePublicSchema;
+export const authCreateRoleStatus201Schema = rolePublicSchema;
 
 export const authCreateRoleStatus401Schema = z.unknown();
 

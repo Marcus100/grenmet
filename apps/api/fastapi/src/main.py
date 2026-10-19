@@ -37,6 +37,7 @@ from src.baseline.governance_router import router as governance_router
 from src.baseline.router import router as staff_setup_router
 from src.billing.invoice_router import router as billing_invoice_router
 from src.billing.router import router as billing_router
+from src.bookings.router import router as bookings_router
 from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
@@ -129,6 +130,7 @@ def _operation_domain(route: APIRoute) -> str:
         "eregister",
         "billing",
         "rewards",
+        "bookings",
         "utils",
         "janitorial",
         "transport",
@@ -169,6 +171,10 @@ OPENAPI_TAGS = [
     {"name": "audit", "description": "Record change history."},
     {"name": "auth", "description": "Authentication, identity, and account security."},
     {"name": "billing", "description": "Billing and subscription operations."},
+    {
+        "name": "bookings",
+        "description": "Barrels Bookings: services, availability and appointments.",
+    },
     {
         "name": "rewards",
         "description": "Barrels ID rewards: stamp cards, trust badges, redemption.",
@@ -414,51 +420,52 @@ if settings.all_cors_origins:
     )
 app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
 # Include routers
-# app.include_router(shipments_router, prefix="/api/v1")
+# app.include_router(shipments_router, prefix=settings.API_V1_STR)
 # Auth-related routers (split for better organization)
-app.include_router(login_router, prefix="/api/v1")
-app.include_router(users_router, prefix="/api/v1")
-app.include_router(twofa_router, prefix="/api/v1")
-app.include_router(roles_router, prefix="/api/v1")
-app.include_router(permissions_router, prefix="/api/v1")
-app.include_router(role_assignments_router, prefix="/api/v1")
-app.include_router(billing_router, prefix="/api/v1")
-app.include_router(billing_invoice_router, prefix="/api/v1")
-app.include_router(rewards_router, prefix="/api/v1")
-app.include_router(hr_profile_router, prefix="/api/v1")
-app.include_router(hr_workflow_router, prefix="/api/v1")
-app.include_router(hr_roster_router, prefix="/api/v1")
-app.include_router(hr_calendar_router, prefix="/api/v1")
-app.include_router(hr_timesheet_router, prefix="/api/v1")
-app.include_router(hr_clock_router, prefix="/api/v1")
-app.include_router(hr_attendance_router, prefix="/api/v1")
-app.include_router(hr_training_router, prefix="/api/v1")
-app.include_router(hr_signatures_router, prefix="/api/v1")
-app.include_router(hr_leave_router, prefix="/api/v1")
-app.include_router(hr_absentee_router, prefix="/api/v1")
-app.include_router(hr_exchange_router, prefix="/api/v1")
-app.include_router(hr_dailystatus_router, prefix="/api/v1")
-app.include_router(hr_parking_router, prefix="/api/v1")
-app.include_router(hr_documents_router, prefix="/api/v1")
-app.include_router(audit_router, prefix="/api/v1")
-app.include_router(stores_router, prefix="/api/v1")
-app.include_router(notifications_router, prefix="/api/v1")
-app.include_router(organisations_router, prefix="/api/v1")
-app.include_router(cap_router, prefix="/api/v1")
+app.include_router(login_router, prefix=settings.API_V1_STR)
+app.include_router(users_router, prefix=settings.API_V1_STR)
+app.include_router(twofa_router, prefix=settings.API_V1_STR)
+app.include_router(roles_router, prefix=settings.API_V1_STR)
+app.include_router(permissions_router, prefix=settings.API_V1_STR)
+app.include_router(role_assignments_router, prefix=settings.API_V1_STR)
+app.include_router(billing_router, prefix=settings.API_V1_STR)
+app.include_router(billing_invoice_router, prefix=settings.API_V1_STR)
+app.include_router(rewards_router, prefix=settings.API_V1_STR)
+app.include_router(bookings_router, prefix=settings.API_V1_STR)
+app.include_router(hr_profile_router, prefix=settings.API_V1_STR)
+app.include_router(hr_workflow_router, prefix=settings.API_V1_STR)
+app.include_router(hr_roster_router, prefix=settings.API_V1_STR)
+app.include_router(hr_calendar_router, prefix=settings.API_V1_STR)
+app.include_router(hr_timesheet_router, prefix=settings.API_V1_STR)
+app.include_router(hr_clock_router, prefix=settings.API_V1_STR)
+app.include_router(hr_attendance_router, prefix=settings.API_V1_STR)
+app.include_router(hr_training_router, prefix=settings.API_V1_STR)
+app.include_router(hr_signatures_router, prefix=settings.API_V1_STR)
+app.include_router(hr_leave_router, prefix=settings.API_V1_STR)
+app.include_router(hr_absentee_router, prefix=settings.API_V1_STR)
+app.include_router(hr_exchange_router, prefix=settings.API_V1_STR)
+app.include_router(hr_dailystatus_router, prefix=settings.API_V1_STR)
+app.include_router(hr_parking_router, prefix=settings.API_V1_STR)
+app.include_router(hr_documents_router, prefix=settings.API_V1_STR)
+app.include_router(audit_router, prefix=settings.API_V1_STR)
+app.include_router(stores_router, prefix=settings.API_V1_STR)
+app.include_router(notifications_router, prefix=settings.API_V1_STR)
+app.include_router(organisations_router, prefix=settings.API_V1_STR)
+app.include_router(cap_router, prefix=settings.API_V1_STR)
 app.include_router(cap_public_router)
 
 # Other routers
-app.include_router(utils_router, prefix="/api/v1")
-app.include_router(weather_images_router, prefix="/api/v1")
-app.include_router(uploads_router, prefix="/api/v1")
-app.include_router(webhooks_router, prefix="/api/v1")
-app.include_router(subscriptions_router, prefix="/api/v1")
-app.include_router(push_router, prefix="/api/v1")
-app.include_router(contact_router, prefix="/api/v1")
-app.include_router(feedback_router, prefix="/api/v1")
-app.include_router(flights_router, prefix="/api/v1")
-app.include_router(environmental_router, prefix="/api/v1")
-app.include_router(models_guidance_router, prefix="/api/v1")
+app.include_router(utils_router, prefix=settings.API_V1_STR)
+app.include_router(weather_images_router, prefix=settings.API_V1_STR)
+app.include_router(uploads_router, prefix=settings.API_V1_STR)
+app.include_router(webhooks_router, prefix=settings.API_V1_STR)
+app.include_router(subscriptions_router, prefix=settings.API_V1_STR)
+app.include_router(push_router, prefix=settings.API_V1_STR)
+app.include_router(contact_router, prefix=settings.API_V1_STR)
+app.include_router(feedback_router, prefix=settings.API_V1_STR)
+app.include_router(flights_router, prefix=settings.API_V1_STR)
+app.include_router(environmental_router, prefix=settings.API_V1_STR)
+app.include_router(models_guidance_router, prefix=settings.API_V1_STR)
 app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
 app.include_router(eregister_router, prefix=settings.API_V1_STR)
 app.include_router(wxwatch_router, prefix=settings.API_V1_STR)
@@ -482,7 +489,7 @@ if settings.ENVIRONMENT == "local":
             router as private_router,
         )
 
-        app.include_router(private_router, prefix="/api/v1")
+        app.include_router(private_router, prefix=settings.API_V1_STR)
     except ImportError:
         # Private module is optional
         pass

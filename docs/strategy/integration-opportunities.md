@@ -193,7 +193,7 @@ modular monolith, with its own data boundary where needed, not a new service.
 | Marine Conditions | GMS marine products, Copernicus Marine | Waves, swell, currents, sea surface temperature, buoys |
 | Grenada Places | `transport` stops, new geospatial data | Addresses, villages, landmarks, delivery points, boundaries |
 | Inventory and Orders | New commerce domain | Catalogues, stock, suppliers, barcode lookup, fulfilment, returns |
-| Appointments | New booking domain | Garages, car washes, salons, hotels |
+| Appointments | Planned: Barrels Bookings (`bookings` domain, B1–B7, [ADR-0024](../adr/0024-bookings-domain.md)) | Garages, car washes, salons, hotels; Babydoll Beauty Bar first |
 | Ticketing | `events` | Paid tickets, QR admission, refunds, settlement |
 | Publishing | CMS, `wxproducts`, `notifications` | Controlled multichannel publication |
 | Local Economy | New ingestion domain | Price monitoring and economic indicators |

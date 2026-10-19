@@ -2,7 +2,6 @@ import logging
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +11,7 @@ from src.exceptions import AppException
 from src.hr import organisations
 from src.hr.models import Department, EmploymentRecord
 from src.utils.datetime import utc_now
+from src.utils.timezones import GRENADA
 
 from .models import TrainingRecord
 from .schemas import (
@@ -99,7 +99,7 @@ async def create_record(
     )
     if employment is None or employment.department_id not in access.managed:
         raise AppException("Training management access denied for this employee", 403)
-    if payload.completed_on > datetime.now(ZoneInfo("America/Grenada")).date():
+    if payload.completed_on > datetime.now(GRENADA).date():
         raise AppException("Training history cannot be dated in the future", 400)
     record = TrainingRecord(
         **payload.model_dump(),

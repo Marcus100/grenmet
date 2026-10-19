@@ -236,7 +236,8 @@ Rules:
 2. After changing FastAPI route contracts, update `apps/api/fastapi/openapi.json`.
 3. Run `pnpm generate:api-client`.
 4. Run `pnpm check:drift`.
-5. Commit `openapi.json` and generated client changes together.
+5. Run `node scripts/api/check-api-breaking.mjs --base origin/dev`. CI runs the same check on PRs into `dev` (`api-breaking-changes` workflow) and fails on a removed route or method, new required input, or removed or retyped output. Prefer an additive change; if a break is intended, update every consumer and label the PR `breaking-change`.
+6. Commit `openapi.json` and generated client changes together.
 
 CI also regenerates the client and fails if `packages/api-client/src/gen` differs from the committed output.
 
@@ -555,6 +556,27 @@ rules: `apps/api/fastapi/src/rewards/AGENTS.md`.
 | `GET/POST /api/v1/rewards/programs`, `PATCH /programs/{id}` | `X-Barrels-Organisation`; list for members, write for admin/owner | Configure the organisation's stamp card |
 | `POST /api/v1/rewards/redemptions/confirm` | `X-Barrels-Organisation`, any member | Staff confirm a customer's code (other organisations' codes 404) |
 | `/api/v1/rewards/admin/programs`, `/admin/adjustments`, `/admin/flags`, `/admin/flags/{id}/resolve` | Superuser or `rewards.manage` | Read all programmes, audited adjustments, velocity review flags |
+
+## Bookings (ADR-0024)
+
+Shared, organisation-scoped appointments for every app and client site.
+Frontend-agnostic: UTC times with the profile's IANA `timezone`, money in minor
+units with `currency`, no HTML, links to a business's own pages only from profile
+settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
+
+| Endpoint | Authentication | Contract |
+| --- | --- | --- |
+| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409 |
+| `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
+| `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
+| `GET/PUT /api/v1/bookings/org/providers/{id}/hours` | Same | Replace the weekly plan; overlapping periods on one day 422 |
+| `GET/POST /api/v1/bookings/org/providers/{id}/exceptions`, `DELETE /studio/exceptions/{id}` | Same | Dated `time_off` and `extra_hours` |
+| `GET /api/v1/bookings/org/bookings?starts_from&ends_before` | `X-Barrels-Organisation`, any member | Agenda of bookings overlapping the range |
+| `GET /api/v1/bookings/public/{slug}` | None (60/minute) | Storefront: active services and providers; unknown or disabled 404 |
+| `GET /api/v1/bookings/public/{slug}/availability?service_id&first_day&last_day[&provider_id]` | None (60/minute) | Open slots (UTC) with free provider ids; at most 14 local days |
+
+Overlapping active bookings for one provider are refused by the database
+(`booking_no_overlap`).
 
 ## Billing
 

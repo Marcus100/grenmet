@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
-import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
+import type { RolePublic } from "./RolePublic.js";
 
 export type PaginatedResponseRolePublic = {
-  data: SrcAuthSchemasRolePublic[];
+  data: RolePublic[];
   count: number;
   /**
    * @default 1

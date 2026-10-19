@@ -7,12 +7,12 @@ import type { AddressPublic } from "./AddressPublic.js";
 import type { ApprovalAuthorityPublic } from "./ApprovalAuthorityPublic.js";
 import type { EmergencyContactPublic } from "./EmergencyContactPublic.js";
 import type { EmploymentPublic } from "./EmploymentPublic.js";
+import type { HrRolePublic } from "./HrRolePublic.js";
 import type { LeavePublic } from "./LeavePublic.js";
 import type { ProfileAuditPublic } from "./ProfileAuditPublic.js";
 import type { ProfileDetailsPublic } from "./ProfileDetailsPublic.js";
 import type { ProfileIdentityPublic } from "./ProfileIdentityPublic.js";
 import type { RosterPreferencesPublic } from "./RosterPreferencesPublic.js";
-import type { SrcHrSchemasRolePublic } from "./SrcHrSchemasRolePublic.js";
 
 export type UserProfilePublic = {
   /**
@@ -26,7 +26,7 @@ export type UserProfilePublic = {
   address: AddressPublic;
   emergency_contact: EmergencyContactPublic;
   employment: EmploymentPublic;
-  roles?: SrcHrSchemasRolePublic[];
+  roles?: HrRolePublic[];
   permissions?: string[];
   roster_preferences: RosterPreferencesPublic;
   leave: LeavePublic;

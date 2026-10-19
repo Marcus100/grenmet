@@ -10,7 +10,6 @@ import uuid
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import sqlalchemy as sa
 from fastapi.concurrency import run_in_threadpool
@@ -26,6 +25,7 @@ from src.organisations.models import PlatformOrganisation
 from src.storage.config import storage_settings
 from src.storage.service import storage_service
 from src.utils.datetime import utc_now
+from src.utils.timezones import GRENADA
 
 from . import calc, emails, pdf
 from .config import billing_settings
@@ -59,7 +59,6 @@ from .schemas import (
 
 logger = logging.getLogger(__name__)
 
-GRENADA = ZoneInfo("America/Grenada")
 OPEN_STATUSES = (InvoiceStatus.ISSUED.value, InvoiceStatus.PARTIALLY_PAID.value)
 PDF_LINK_SECONDS = 7 * 24 * 3600
 ENTITY = "billing_invoice"

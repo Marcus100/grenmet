@@ -4,9 +4,9 @@ import base64
 from datetime import datetime
 from html import escape
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from src.hr.signatures.service import DocumentSnapshot, gaa_letterhead
+from src.utils.timezones import GRENADA
 
 
 def render_status_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
@@ -49,7 +49,7 @@ def render_status_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
     signed_at = snapshot["signed_at"]
     stamp = (
         datetime.fromisoformat(signed_at)
-        .astimezone(ZoneInfo("America/Grenada"))
+        .astimezone(GRENADA)
         .strftime("%d %b %Y %H:%M %Z")
         if signed_at
         else "Draft — not submitted"

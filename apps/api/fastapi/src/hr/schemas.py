@@ -169,7 +169,7 @@ class EmploymentPublic(BaseModel):
     status: EmploymentStatus | None = None
 
 
-class RolePublic(BaseModel):
+class HrRolePublic(BaseModel):
     name: str
     scope: RoleAssignmentScope
 
@@ -216,7 +216,7 @@ class UserProfilePublic(BaseModel):
     address: AddressPublic
     emergency_contact: EmergencyContactPublic
     employment: EmploymentPublic
-    roles: list[RolePublic] = Field(default_factory=list)
+    roles: list[HrRolePublic] = Field(default_factory=list)
     permissions: list[str] = Field(default_factory=list)
     roster_preferences: RosterPreferencesPublic
     leave: LeavePublic

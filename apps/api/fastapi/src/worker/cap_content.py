@@ -21,8 +21,9 @@ from src.cap.models import (
 from src.config import settings
 from src.subscriptions.constants import CAP_ALERTS_LIST_KEY
 from src.subscriptions.service import site_url
+from src.utils.timezones import GRENADA
 
-_GRENADA = ZoneInfo("America/Grenada")
+_GRENADA = GRENADA
 
 _LABELS = {
     CapMessageType.ALERT: "Weather alert",

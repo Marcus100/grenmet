@@ -16,9 +16,10 @@ tooling. Start with `docs/technical-overview.md`.
 | Path | Covers |
 | --- | --- |
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
-| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, push, rewards) |
+| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, push, rewards, bookings) |
 | `apps/web/<app>/AGENTS.md` | admin, auth, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
+| `apps/web/babydoll/AGENTS.md` | Babydoll Beauty Bar client website (Next.js, Vercel) |
 | `packages/<pkg>/AGENTS.md` | api-client, auth, email-templates, gms, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
 
@@ -87,7 +88,7 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 - Read `SESSION_LOG.md` (main checkout root) before assuming a task is untouched; append one entry after meaningful work. Run the `file-friction` skill if you worked around anything. Tool switches: `docs/agents/tool-usage.md`.
 - Use the `api-change` skill for FastAPI contract changes and `gaa-admin-change` before touching `apps/web/gaa-admin`. Check `.claude/skills/` (also `.agents/skills`) before improvising CI triage, pre-merge, release or diagnosis. Write and change skills to `docs/agents/skill-standard.md`; `pnpm test:guardrails` lints them.
 - Issues: GitHub Issues for `Marcus100/grenmet` via `gh`. A "Fixes #N" in a commit closes the issue when it reaches `dev` (`close-issues-on-dev` workflow; GitHub alone only closes on `main`). Triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` (`docs/agents/triage-labels.md`). Domain language: root `CONTEXT.md` (created lazily by `/domain-modeling`) plus `docs/adr/` (`docs/agents/domain.md`).
-- Claude Code: spawn sub-agents only when the user asks, and pass them the relevant nested `AGENTS.md` paths.
+- Sub-agents: for role-spanning work or a fresh-context review, use the `team-roles` skill (role briefs in `.claude/agents/`, works in Claude Code and Codex; `docs/agents/roles.md`). For exploration or anything else, delegate only when the user asks. Pass the relevant nested `AGENTS.md` paths.
 
 ## Code conventions
 
@@ -102,6 +103,7 @@ Frontend (full style rules in `.agents/rules/ultracite.mdc`):
 Backend (details in `apps/api/fastapi/AGENTS.md`):
 - SQLAlchemy models in `models.py`, `src.models.BaseModel` schemas in `schemas.py`; never expose ORM models.
 - Thin routers, logic in `service.py`, typed `AppException` subclasses; filter, join and paginate in SQL.
+- Frontend-agnostic routes per ADR-0025: zones `public`/`me`/`org`/`admin`, kebab-case nouns, unique schema names, shared helpers (`src/utils/timezones.py`); `tests/test_api_conventions.py` enforces it.
 - `require_permission(current_user=…, permission_key=…)` with every key in `src/auth/permissions.py`.
 - No sync network calls in `async def`; background work goes to the ARQ worker.
 - geonetcast runs devcontainer-first; never `uv sync --package geonetcast` on the host.

@@ -1,0 +1,49 @@
+# Independent AI review of pull requests into dev (advisory, never blocks).
+#
+# GitHub runs pull_request_target workflows from the repository's DEFAULT branch
+# (main), not the PR's base branch, and checks out that branch. So this file is
+# inactive until it reaches main through the dev -> staging -> main promotion.
+# The PR's code is never checked out or executed here: the script reads the PR
+# diff as text through the API and treats it as data. Do not add a step that
+# checks out or runs the PR head.
+#
+# Needs the repository secret ANTHROPIC_API_KEY. Without it the job logs a skip
+# and passes. Optional repository variable AI_REVIEW_MODEL overrides the model.
+# Not a required check; PRs from forks, drafts and bots are skipped.
+
+name: AI review
+
+on:
+  pull_request_target:
+    branches:
+      - dev
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ai-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: AI review
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Review the diff
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AI_REVIEW_MODEL: ${{ vars.AI_REVIEW_MODEL }}
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node scripts/ci/ai-review.mjs

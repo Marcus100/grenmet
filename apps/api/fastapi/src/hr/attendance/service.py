@@ -4,7 +4,6 @@ import logging
 import uuid
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,12 +30,12 @@ from src.hr.workflow.models import (
     WorkflowType,
 )
 from src.utils.datetime import utc_now
+from src.utils.timezones import GRENADA
 
 from .models import AttendanceCorrection, AttendanceRecord
 from .schemas import AttendanceCorrectionCreate, AttendanceSave
 
 logger = logging.getLogger(__name__)
-GRENADA = ZoneInfo("America/Grenada")
 
 
 def utc_naive(value: datetime) -> datetime:

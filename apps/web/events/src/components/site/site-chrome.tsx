@@ -82,6 +82,9 @@ export function SiteFooter() {
           <Link className="hover:text-white" href="/dash/events">
             Organiser dashboard
           </Link>
+          <Link className="hover:text-white" href="/privacy">
+            Privacy
+          </Link>
         </nav>
         <p className="text-caption text-white/60">A Barrels Grenada product.</p>
       </div>

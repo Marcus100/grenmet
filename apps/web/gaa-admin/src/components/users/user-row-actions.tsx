@@ -2,7 +2,7 @@
 
 import {
   authGetUsersQueryKey,
-  type SrcAuthSchemasRolePublic as RolePublic,
+  type RolePublic,
   type UserPublic,
   useAuthUpdateUser,
 } from "@barrelsgd/api-client";

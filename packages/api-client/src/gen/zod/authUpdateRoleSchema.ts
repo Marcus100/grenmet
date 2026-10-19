@@ -4,13 +4,13 @@
  */
 
 import * as z from "zod";
+import { rolePublicSchema } from "./rolePublicSchema.js";
 import { roleUpdateSchema } from "./roleUpdateSchema.js";
-import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authUpdateRolePathRoleIdSchema = z.uuid();
 
-export const authUpdateRoleStatus200Schema = srcAuthSchemasRolePublicSchema;
+export const authUpdateRoleStatus200Schema = rolePublicSchema;
 
 export const authUpdateRoleStatus404Schema = z.unknown();
 

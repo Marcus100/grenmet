@@ -32,6 +32,7 @@ acceptance.
 | `apps/web/cap` | GMS-branded public CAP alert hub (active alerts, map, history, feeds); built and operated by Barrels for GMS | Built, deploy wired (compose + release scope), awaiting DNS for `cap.barrels.gd` | Public alert hub first; sign-in CAP authoring moves here from `apps/web/gaa-admin` later |
 | `apps/web/gmsdash` | GMS Dashboard: GMS client service giving organisations raw ECMWF/NOAA model point meteograms (not an official forecast); access by organisation entitlement approved by GMS | Built, deploy wired (compose + release scope), awaiting DNS for `gmsdash.barrels.gd` and `GMSDASH_SSO_CLIENT_SECRET` | Premium GMS products for external users; more products join later |
 | `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Vercel site at barrels.gd |
+| `apps/web/babydoll` | Client website for Babydoll Beauty Bar (lash, brow and skin studio); built by Barrels, client owns its name, logo and content | Live (static) at `babydoll.barrels.gd`; pilot tenant for Barrels Bookings | Independent Next.js Vercel site; `/book`, `/booking/[token]` and `/studio` arrive with B4 and B5; the client's own domain `babydollbeautybar.com` later |
 | `apps/web/gaa-admin` | GAA staff portal with GMS and GAA modules | Active; renamed at transition boundary 7 | `apps/web/gaa-admin`; GMS pilot followed by GAA department rollout |
 | `apps/web/gms` | GMS public weather service | Active foundation; renamed at transition boundary 6 | `apps/web/gms`; forecasts, observations, warnings, and public products |
 | `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |
@@ -153,6 +154,7 @@ references rather than duplicated here.
 | `SECURITY.md` | Vulnerability reporting policy | Active | How researchers report privately through GitHub private vulnerability reporting, and which versions receive fixes; linked from the security baseline |
 | `VENDORED.md` | Third-party provenance policy | Active | Defines upgrade and local-change boundaries for vendored stacks |
 | `.agents/skills` and `.claude/skills` | Agent workflow playbooks | Active tooling | Support engineering work; they do not set portfolio priority |
+| `.claude/agents` | Claude Code role agents (planner, architect, engineers, QA, reviewers) | Active tooling | Delegate engineering work by role; they do not set portfolio priority |
 | `.codex` | Codex agent configuration and hooks | Active tooling | Preserve the same repository guardrails used by supported agent tools |
 | `.claude/hooks`, `.claude/settings.json`, `.agents/commands`, `.agents/rules`, and `.agents/hooks.json` | Agent/editor configuration | Active tooling | Must preserve repository guardrails across supported tools |
 | `.devcontainer` and `.vscode` | Developer environment | Active tooling | Reproducible local setup; not a deployment environment |
@@ -240,14 +242,6 @@ retired, an ADR changes the boundary, or institutional acceptance is recorded.
 Do not infer production status from a package manifest, passing tests, or a
 completed interface.
 
-
 ### Planned PWA surfaces
 
 Separate Janitor, Bus and GMS PWAs are planned; paths/deployments are not yet selected. Janitor and Bus belong to GAA departmental operations; the GMS PWA belongs to GMS public services. They call FastAPI business capabilities directly (the Hono stub was retired, ADR-0015), with Payload retaining CMS ownership. See the [implementation guide](../exec-plans/gaa-modular-monolith-implementation.md).
-
-### Local architecture review artifacts
-
-| Surface | Ownership | Maturity / treatment |
-| --- | --- | --- |
-| `architecture-review-gaa-admin-20260914.html` | Barrels engineering research for GAA Admin | Existing local review artifact; not an accepted architecture decision or deployed application |
-| `architecture-review-gaa-admin-detailed.html` | Barrels engineering research for GAA Admin | Existing local review artifact; recommendations require reconciliation with approved scope |
