@@ -148,7 +148,7 @@ function HighlightQuery({ text, query }: { text: string; query: string }) {
   return (
     <Highlighter
       autoEscape={true}
-      highlightClassName="underline bg-transparent text-emerald-500"
+      highlightClassName="underline bg-transparent text-gm-blue-ink"
       searchWords={[query]}
       textToHighlight={text}
     />
@@ -191,7 +191,7 @@ function SearchResult({
     >
       <div
         aria-hidden="true"
-        className="font-medium text-sm text-zinc-900 group-aria-selected:text-emerald-500 dark:text-white"
+        className="font-medium text-sm text-zinc-900 group-aria-selected:text-gm-blue-ink dark:text-white"
         id={`${id}-title`}
       >
         <HighlightQuery query={query} text={result.title} />
@@ -303,7 +303,7 @@ const SearchInput = forwardRef<
       />
       {autocompleteState.status === "stalled" && (
         <div className="absolute inset-y-0 right-3 flex items-center">
-          <LoadingIcon className="h-5 w-5 animate-spin stroke-zinc-200 text-zinc-900 dark:stroke-zinc-800 dark:text-emerald-400" />
+          <LoadingIcon className="h-5 w-5 animate-spin stroke-zinc-200 text-zinc-900 dark:stroke-zinc-800 dark:text-gm-sky" />
         </div>
       )}
     </div>

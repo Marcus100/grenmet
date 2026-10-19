@@ -5,9 +5,18 @@ import {
   SkipLink,
 } from "@barrelsgd/ui/components/ui/skip-link";
 import type { Metadata, Viewport } from "next";
+import { Noto_Sans } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { env } from "@/lib/env";
+
+// The brand font: --brand-font-sans resolves to --font-noto-sans, so without
+// this load every device fell back to its own system font.
+const notoSans = Noto_Sans({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-noto-sans",
+});
 
 export const metadata: Metadata = {
   description:
@@ -28,7 +37,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html className="gm-site" lang="en">
+    <html className={`gm-site ${notoSans.variable}`} lang="en">
       <body className="flex min-h-screen flex-col bg-background text-foreground antialiased">
         <SkipLink />
         <SiteHeader />

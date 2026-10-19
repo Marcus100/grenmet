@@ -33,6 +33,7 @@ export function GoogleConfirm({ requiresTotp }: { requiresTotp: boolean }) {
       <Link
         className={`${textLinkClass} block text-center text-body-sm`}
         href="/google/start"
+        prefetch={false}
       >
         Start again
       </Link>

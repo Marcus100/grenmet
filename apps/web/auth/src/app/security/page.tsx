@@ -97,7 +97,11 @@ export default async function SecurityPage() {
             <SettingsRow
               action={
                 security.google_configured && !security.google_linked ? (
-                  <Link className={outlineLink} href="/google/start">
+                  <Link
+                    className={outlineLink}
+                    href="/google/start"
+                    prefetch={false}
+                  >
                     Connect
                   </Link>
                 ) : null

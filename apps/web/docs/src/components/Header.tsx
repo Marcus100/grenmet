@@ -80,7 +80,7 @@ export function Header({
       <div className={cn("flex items-center gap-5", !catalogue && "lg:hidden")}>
         <MobileNavigation />
         <CloseButton aria-label="Home" as={Link} href={"/" as Route}>
-          <Logo className="h-6" />
+          <Logo className="h-7 w-auto" variant="monogram" />
         </CloseButton>
       </div>
       <div className="flex items-center gap-5">

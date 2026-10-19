@@ -90,13 +90,13 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
         </div>
 
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 xl:px-8">
-          {/* The `dark` scope swaps the Logo to its white lockup on navy. */}
+          {/* The `dark` scope inks the GMS monogram white on navy. */}
           <Link
             aria-label="Grenada Meteorological Service — home"
             className="dark shrink-0"
             href="/"
           >
-            <Logo className="h-9 w-auto" priority variant="primary" />
+            <Logo className="h-9 w-auto" variant="monogram" />
           </Link>
 
           <div className="flex min-w-0 flex-1 justify-center">

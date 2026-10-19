@@ -1,3 +1,4 @@
+import { Logo } from "@barrelsgd/gms/components/logo";
 import { MAIN_CONTENT_ID } from "@barrelsgd/ui/components/ui/skip-link";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
@@ -13,10 +14,17 @@ export default async function SiteLayout({
     <div className="flex min-h-screen flex-col">
       <header className="border-b bg-card">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-          <Link className="leading-tight" href="/">
-            <span className="block font-semibold">GMS Dashboard</span>
-            <span className="block text-muted-foreground text-xs">
-              Grenada Meteorological Service
+          <Link className="flex items-center gap-3 leading-tight" href="/">
+            <Logo
+              alt="Grenada Meteorological Service"
+              className="h-8 w-auto"
+              variant="monogram"
+            />
+            <span>
+              <span className="block font-semibold">GMS Dashboard</span>
+              <span className="block text-muted-foreground text-xs">
+                Grenada Meteorological Service
+              </span>
             </span>
           </Link>
           <nav aria-label="Main" className="flex gap-4 text-sm">
