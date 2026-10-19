@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-17
+**Last updated:** 2026-10-19
 
 `@barrelsgd/ui` owns the token contract and repo enforcement. `packages/ui/src/styles/globals.css` is the single source of `--gm-*`; every app receives a generated copy of it.
 
@@ -18,7 +18,7 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
 
 - Web UI typography is lane-split by design, not one family — ratified as final v1
   policy after a full app-by-app review:
-  1. **GMS institutional** (`gms`, `auth`, `docs`, `events`) — Noto Sans through
+  1. **GMS institutional** (`gms`, `auth`, `docs`, `cap`, `gmsdash`; plus brand-neutral `admin`) — Noto Sans through
      `--brand-font-sans`, unmodified (screen and print share one family — see commit
      `7dcfc9ff`).
   2. **Internal staff tool** (`gaa-admin`) — Inter by default, user-switchable (Geist,
@@ -37,6 +37,8 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
      Inter (body), same override pattern as `mbia`.
   4b. **`elections`** (Elections Grenada, a separate consumer brand) — Source Serif 4 +
       Inter like `signal`, with its own `--el-*` palette; see `docs/design/elections.md`.
+  4c. **`events`** (Barrels Events, a Barrels consumer brand) — Bricolage Grotesque
+      (display) + Inter (body); see `docs/design/events.md`.
   5. **Transactional email** (`packages/email-templates`) — hardcoded
      `Arial, Helvetica, sans-serif`. Intentional, not a gap: email clients don't
      reliably honor custom/web fonts, so a web-safe stack is the correct choice here.
@@ -245,12 +247,26 @@ Two lines in the app stylesheet, in this order:
 2. A **GMS brand layer** block *after* the generated design-system block, which
    remaps the layer 1 primitives onto `--gm-*`.
 
+Apps that import `@barrelsgd/ui/styles/globals` directly instead of carrying
+the generated block (`cap`, `gmsdash`) get step 2 from
+`@import "@barrelsgd/gms/styles/brand";`, placed after the globals and
+foundation imports. Keep it in step with the inline copies.
+
+Every app that renders a shared component must also point Tailwind at that
+package — `@source "../../node_modules/@barrelsgd/ui/src";` and, for the
+Logo, `@source "../../node_modules/@barrelsgd/gms/src";`. Tailwind v4 scans
+only the app's own source, so without it a utility used only inside the
+package (the Logo's `dark:block`) is never generated. The auth sign-in panel
+shipped an invisible logo this way; `scripts/guardrails/tailwind-sources.test.mjs`
+now fails the build when an app imports a package's components without the
+matching `@source`.
+
 Step 2 is what actually rebrands shared shadcn primitives. Because layer 2
 resolves entirely through layer 1, remapping ~19 primitives rebrands every
 Button, Input, Card, Badge, Sidebar and chart without restating the semantic
 contract. It cannot be an `@import`: CSS requires imports to precede other
 rules, so the generated block would win. `gms`, `gaa-admin`, `auth` and `docs`
-all carry it.
+carry it inline; `cap` and `gmsdash` import it.
 
 One correction lives in that block because layer 1 cannot express it:
 `--accent` is the kit sky, a light hue, so it carries `--gm-text-primary`
@@ -294,6 +310,13 @@ set "GRENADA METEOROLOGICAL SERVICE" as live `<text>` in Corbel, which ships
 only with Windows — elsewhere it falls back to a generic sans. Ask the designer
 for the lockups with text converted to outlines; then they can move to
 `logo-marks.tsx` the same way.
+
+**Where each variant goes.** The owner prefers the kit's secondary logos (the
+`monogram`). Use it in headers and other tight bars: the `gms`, `docs`,
+`cap` and `gmsdash` headers and the `auth` mobile header. Keep the
+`primary` lockup where the full name earns its space: the `gms` footer, the
+`auth` brand panel, the `gaa-admin` sidebar and official documents. Use
+`icon` below ~32px, and the `submark` badge only at 180px and above.
 
 The caller constrains the size — `className="h-9 w-auto"` for a lockup,
 `className="size-7"` for the icon (the vector keeps its ratio inside the box).
@@ -390,7 +413,7 @@ App-local aliases are acceptable during migration only when they resolve back to
 The next v1 milestone is foundation compliance, not component migration. Apps should converge first on shared colors, typography, spacing, radius, shadows, and light-mode behavior.
 
 Noto Sans is the Barrels design-system default and flows through `--brand-font-sans`
-(`gms`, `auth`, `docs`, `events`); `gaa-admin` overrides it to Inter by default via its
+(`gms`, `auth`, `docs`, `cap`, `gmsdash`, `admin`); `gaa-admin` overrides it to Inter by default via its
 font-switcher registry (see Confirmed v1 decisions, above). Official bulletins, PDFs, and
 fixed-output documents use Noto Sans through `--brand-font-document` and the
 `font-document` Tailwind alias. (No `--gm-font-document` or `font-gm-document` token
@@ -437,6 +460,9 @@ they are folded into `gaa-admin` as internal modules (a cross-cutting surface; s
 | `signal` | Not yet on the generated foundation block; imports `@barrelsgd/ui/styles/globals` directly | Uses `Source_Serif_4` instead of the shared sans; carries app-local `--signal-*` tokens unmapped to the design system. |
 | `events` | Not yet on the generated foundation block; imports `@barrelsgd/ui/styles/globals` directly | Lowest drift of the three direct-import apps as of this writing. |
 | `elections` | Imports `@barrelsgd/ui/styles/globals` directly with app-local `--el-*` tokens (party, referendum and map colours) | Colour is reserved for data; lane spec in `docs/design/elections.md`. |
+| `cap` | GMS-branded public CAP alert hub; imports `@barrelsgd/ui/styles/globals` directly plus `@barrelsgd/gms/styles/brand` | Noto Sans via `next/font`; monogram header. |
+| `gmsdash` | GMS Dashboard (a GMS client service); same pattern as `cap` | Noto Sans via `next/font`; monogram header; GMS brand layer since 2026-10-19. |
+| `admin` | Barrels control plane; brand-neutral `@barrelsgd/ui` defaults only (`docs/design/admin.md`) | Noto Sans via `next/font`. |
 | `cms` | Payload CMS admin; out of design-system scope | Payload's own admin UI is not migrated; do not extend `--gm-*`/foundation coverage here without a separate decision. |
 
 **Foundation block coverage.** `gms`, `gaa-admin`, `auth`, and `docs` receive the generated
@@ -494,17 +520,21 @@ Repo-side audit status as of 2026-06-13 (the `design-system:*` scripts were brok
 - `pnpm design-system:contrast` passes for all five warning foreground/background pairs.
 - `pnpm design-system:audit` remains warning-only. It reports expected migration debt, not CI failures.
 
-Current audit summary (after the `darkMode` rule was narrowed — see below):
+Current audit summary (2026-10-19, after the audit was widened to every
+Tailwind app; `cms`, `barrels` and `babydoll` stay out of scope):
 
 | App/package | Audit status |
 |---|---|
-| `auth` | No findings. |
+| `admin`, `cap`, `gmsdash` | No findings. |
+| `auth` | 2 findings: `next-themes` system-preference hooks instead of the `@barrelsgd/theme` store. |
 | `gms` | Reference app with only accepted pilot exceptions: fixed media heights, `WeatherDateNav` active-state compensation, and month label leading. |
-| `signal` | 33 findings: hard-coded colors (12), unmapped local `--signal-*` tokens (11), and typography drift (10) including the `Source_Serif_4` import. Not on the generated foundation block. |
-| `mbia` | 52 findings: hard-coded colors (18), unmapped local tokens (18), typography drift (13). Not on the generated foundation block. |
-| `docs` | 58 findings: unmapped local tokens (29), hard-coded colors (13), spacing (11). Highest template migration debt among the four gated apps. |
-| `gaa-admin` | 79 findings: spacing (38), typography drift (27), hard-coded colors (6), unmapped local tokens (6). Mostly TailAdmin-scale compatibility in the shell and its cap/hr/wxwatch/wxproducts/salesbus modules. |
-| `@barrelsgd/ui` | 63 findings, almost entirely arbitrary spacing (37) and radius (16) in upstream shadcn primitives (`chart.tsx`, `sidebar.tsx`, `combobox.tsx`) that predate the token contract. |
+| `signal` | 24 findings: hard-coded colors (12), unmapped local `--signal-*` tokens (11), typography (1). Documented editorial lane. |
+| `mbia` | 52 findings: hard-coded colors (18), unmapped local tokens (18), typography drift (13). Separate GAA consumer brand. |
+| `events` | 38 findings: colors (18), local tokens (15), typography (3), spacing (2). Barrels Events brand. |
+| `docs` | 46 findings: unmapped local tokens (29), spacing (11), typography (4), color (1). The template's emerald accent moved to GMS blue on 2026-10-19 (colors 13 → 1). |
+| `gaa-admin` | 83 findings: typography (27), colors (25, mostly MapLibre/canvas and motion literals that cannot read CSS variables), spacing (23), local tokens (6). |
+| `elections` | ~330 findings, nearly all the documented `--el-*` palette, 2px seat squares and editorial tracking (`docs/design/elections.md`). Treat as lane-local, not drift. |
+| `@barrelsgd/ui` | 65 findings, almost entirely arbitrary spacing (39) and radius (16) in upstream shadcn primitives (`chart.tsx`, `sidebar.tsx`, `combobox.tsx`) that predate the token contract. |
 
 The audit also surfaces two additional categories not present in the initial pilot:
 - **darkMode** — now scoped to system-preference auto-detection (`prefers-color-scheme`, `enableSystem`, `defaultTheme="system"`, `resolvedTheme`, `setTheme("dark")`) that bypasses the `@barrelsgd/theme` preferences store. It no longer flags `dark:` utility classes or `.dark {}` rule blocks — those are the sanctioned dark-mode mechanism (see [Dark Mode](#dark-mode)) and were previously ~144 false positives across the repo (90 of them in `docs` alone). Zero live findings as of this pass.
