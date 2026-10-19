@@ -35,6 +35,8 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
     <div className="space-y-6">
       {needsCode ? null : (
         <>
+          {/* No prefetch: /google/start redirects to Google, and a prefetch
+              of it fails CORS and logs a console error on every visit. */}
           <Link
             className={secondaryButtonClass}
             href={
@@ -42,6 +44,7 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
                 ? `/google/start?returnTo=${encodeURIComponent(returnTo)}`
                 : "/google/start"
             }
+            prefetch={false}
           >
             Continue with Google
           </Link>
