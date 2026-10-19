@@ -264,8 +264,8 @@ Babydoll first. Main-database slices, one at a time.
 | # | Slice | Size | Mode |
 | --- | --- | --- | --- |
 | B0 | ADR-0024, this section, portfolio and strategy updates | S | Done |
-| B1 | `bookings` schema and models; migration with the `btree_gist` exclusion constraint; studio CRUD for profile, services, providers, working plans and exceptions; `src/utils/timezones.py`; domain `AGENTS.md`; contracts and regenerated client | L | U |
-| B2 | Pure availability engine with property-style tests; public services and availability endpoints | M | U |
+| B1 | `bookings` schema and models; migration with the `btree_gist` exclusion constraint; studio CRUD for profile, services, providers, working plans and exceptions; `src/utils/timezones.py`; domain `AGENTS.md`; contracts and regenerated client | L | U — built on branch `claude/bookings-b1-b2`, pending CI (database tests) and merge |
+| B2 | Pure availability engine with property-style tests; public services and availability endpoints | M | U — built with B1, pending CI and merge |
 | B3 | Public create, manage, cancel and reschedule (Turnstile, honeypot, idempotency, hashed manage token); ICS; confirmation, studio and 24-hour reminder emails; retention | L | U |
 | B4 | Babydoll organisation and service seed; `/book` and `/booking/[token]` pages behind a switch flag (Acuity stays live) | M | U |
 | B5 | Babydoll Barrels ID sign-on and `/studio` (agenda, actions, services, hours, time off) | L | O (SSO secret and app URL) |

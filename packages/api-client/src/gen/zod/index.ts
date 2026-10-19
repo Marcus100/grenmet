@@ -960,6 +960,228 @@ export {
 } from "./billingVoidInvoiceSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";
+export { bookingAvailabilitySchema } from "./bookingAvailabilitySchema.js";
+export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js";
+export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
+export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
+export { bookingProfilePublicSchema } from "./bookingProfilePublicSchema.js";
+export { bookingProfileUpdateSchema } from "./bookingProfileUpdateSchema.js";
+export { bookingProviderCreateSchema } from "./bookingProviderCreateSchema.js";
+export { bookingProviderPublicSchema } from "./bookingProviderPublicSchema.js";
+export { bookingProviderUpdateSchema } from "./bookingProviderUpdateSchema.js";
+export { bookingPublicProviderSchema } from "./bookingPublicProviderSchema.js";
+export { bookingPublicServiceSchema } from "./bookingPublicServiceSchema.js";
+export { bookingServiceCreateSchema } from "./bookingServiceCreateSchema.js";
+export { bookingServicePublicSchema } from "./bookingServicePublicSchema.js";
+export { bookingServiceUpdateSchema } from "./bookingServiceUpdateSchema.js";
+export { bookingSlotSchema } from "./bookingSlotSchema.js";
+export { bookingSourceSchema } from "./bookingSourceSchema.js";
+export { bookingStatusSchema } from "./bookingStatusSchema.js";
+export { bookingStorefrontSchema } from "./bookingStorefrontSchema.js";
+export {
+  bookingsCreateExceptionBodySchema,
+  bookingsCreateExceptionErrorSchema,
+  bookingsCreateExceptionHeaderXBarrelsOrganisationSchema,
+  bookingsCreateExceptionPathProviderIdSchema,
+  bookingsCreateExceptionResponseSchema,
+  bookingsCreateExceptionStatus201Schema,
+  bookingsCreateExceptionStatus400Schema,
+  bookingsCreateExceptionStatus401Schema,
+  bookingsCreateExceptionStatus403Schema,
+  bookingsCreateExceptionStatus404Schema,
+  bookingsCreateExceptionStatus409Schema,
+  bookingsCreateExceptionStatus422Schema,
+} from "./bookingsCreateExceptionSchema.js";
+export {
+  bookingsCreateProviderBodySchema,
+  bookingsCreateProviderErrorSchema,
+  bookingsCreateProviderHeaderXBarrelsOrganisationSchema,
+  bookingsCreateProviderResponseSchema,
+  bookingsCreateProviderStatus201Schema,
+  bookingsCreateProviderStatus400Schema,
+  bookingsCreateProviderStatus401Schema,
+  bookingsCreateProviderStatus403Schema,
+  bookingsCreateProviderStatus404Schema,
+  bookingsCreateProviderStatus409Schema,
+  bookingsCreateProviderStatus422Schema,
+} from "./bookingsCreateProviderSchema.js";
+export {
+  bookingsCreateServiceBodySchema,
+  bookingsCreateServiceErrorSchema,
+  bookingsCreateServiceHeaderXBarrelsOrganisationSchema,
+  bookingsCreateServiceResponseSchema,
+  bookingsCreateServiceStatus201Schema,
+  bookingsCreateServiceStatus400Schema,
+  bookingsCreateServiceStatus401Schema,
+  bookingsCreateServiceStatus403Schema,
+  bookingsCreateServiceStatus404Schema,
+  bookingsCreateServiceStatus409Schema,
+  bookingsCreateServiceStatus422Schema,
+} from "./bookingsCreateServiceSchema.js";
+export {
+  bookingsDeleteExceptionErrorSchema,
+  bookingsDeleteExceptionHeaderXBarrelsOrganisationSchema,
+  bookingsDeleteExceptionPathExceptionIdSchema,
+  bookingsDeleteExceptionResponseSchema,
+  bookingsDeleteExceptionStatus204Schema,
+  bookingsDeleteExceptionStatus400Schema,
+  bookingsDeleteExceptionStatus401Schema,
+  bookingsDeleteExceptionStatus403Schema,
+  bookingsDeleteExceptionStatus404Schema,
+  bookingsDeleteExceptionStatus409Schema,
+  bookingsDeleteExceptionStatus422Schema,
+} from "./bookingsDeleteExceptionSchema.js";
+export {
+  bookingsGetAvailabilityErrorSchema,
+  bookingsGetAvailabilityPathSlugSchema,
+  bookingsGetAvailabilityQueryFirstDaySchema,
+  bookingsGetAvailabilityQueryLastDaySchema,
+  bookingsGetAvailabilityQueryProviderIdSchema,
+  bookingsGetAvailabilityQueryServiceIdSchema,
+  bookingsGetAvailabilityResponseSchema,
+  bookingsGetAvailabilityStatus200Schema,
+  bookingsGetAvailabilityStatus400Schema,
+  bookingsGetAvailabilityStatus404Schema,
+  bookingsGetAvailabilityStatus422Schema,
+} from "./bookingsGetAvailabilitySchema.js";
+export {
+  bookingsGetProfileErrorSchema,
+  bookingsGetProfileHeaderXBarrelsOrganisationSchema,
+  bookingsGetProfileResponseSchema,
+  bookingsGetProfileStatus200Schema,
+  bookingsGetProfileStatus400Schema,
+  bookingsGetProfileStatus401Schema,
+  bookingsGetProfileStatus403Schema,
+  bookingsGetProfileStatus404Schema,
+  bookingsGetProfileStatus422Schema,
+} from "./bookingsGetProfileSchema.js";
+export {
+  bookingsGetStorefrontErrorSchema,
+  bookingsGetStorefrontPathSlugSchema,
+  bookingsGetStorefrontResponseSchema,
+  bookingsGetStorefrontStatus200Schema,
+  bookingsGetStorefrontStatus404Schema,
+  bookingsGetStorefrontStatus422Schema,
+} from "./bookingsGetStorefrontSchema.js";
+export {
+  bookingsGetWorkingHoursErrorSchema,
+  bookingsGetWorkingHoursHeaderXBarrelsOrganisationSchema,
+  bookingsGetWorkingHoursPathProviderIdSchema,
+  bookingsGetWorkingHoursResponseSchema,
+  bookingsGetWorkingHoursStatus200Schema,
+  bookingsGetWorkingHoursStatus400Schema,
+  bookingsGetWorkingHoursStatus401Schema,
+  bookingsGetWorkingHoursStatus403Schema,
+  bookingsGetWorkingHoursStatus404Schema,
+  bookingsGetWorkingHoursStatus422Schema,
+} from "./bookingsGetWorkingHoursSchema.js";
+export {
+  bookingsListExceptionsErrorSchema,
+  bookingsListExceptionsHeaderXBarrelsOrganisationSchema,
+  bookingsListExceptionsPathProviderIdSchema,
+  bookingsListExceptionsQueryEndsBeforeSchema,
+  bookingsListExceptionsQueryStartsFromSchema,
+  bookingsListExceptionsResponseSchema,
+  bookingsListExceptionsStatus200Schema,
+  bookingsListExceptionsStatus400Schema,
+  bookingsListExceptionsStatus401Schema,
+  bookingsListExceptionsStatus403Schema,
+  bookingsListExceptionsStatus404Schema,
+  bookingsListExceptionsStatus422Schema,
+} from "./bookingsListExceptionsSchema.js";
+export {
+  bookingsListProvidersErrorSchema,
+  bookingsListProvidersHeaderXBarrelsOrganisationSchema,
+  bookingsListProvidersResponseSchema,
+  bookingsListProvidersStatus200Schema,
+  bookingsListProvidersStatus400Schema,
+  bookingsListProvidersStatus401Schema,
+  bookingsListProvidersStatus403Schema,
+  bookingsListProvidersStatus404Schema,
+  bookingsListProvidersStatus422Schema,
+} from "./bookingsListProvidersSchema.js";
+export {
+  bookingsListServicesErrorSchema,
+  bookingsListServicesHeaderXBarrelsOrganisationSchema,
+  bookingsListServicesResponseSchema,
+  bookingsListServicesStatus200Schema,
+  bookingsListServicesStatus400Schema,
+  bookingsListServicesStatus401Schema,
+  bookingsListServicesStatus403Schema,
+  bookingsListServicesStatus404Schema,
+  bookingsListServicesStatus422Schema,
+} from "./bookingsListServicesSchema.js";
+export {
+  bookingsListStudioBookingsErrorSchema,
+  bookingsListStudioBookingsHeaderXBarrelsOrganisationSchema,
+  bookingsListStudioBookingsQueryEndsBeforeSchema,
+  bookingsListStudioBookingsQueryStartsFromSchema,
+  bookingsListStudioBookingsResponseSchema,
+  bookingsListStudioBookingsStatus200Schema,
+  bookingsListStudioBookingsStatus400Schema,
+  bookingsListStudioBookingsStatus401Schema,
+  bookingsListStudioBookingsStatus403Schema,
+  bookingsListStudioBookingsStatus404Schema,
+  bookingsListStudioBookingsStatus422Schema,
+} from "./bookingsListStudioBookingsSchema.js";
+export {
+  bookingsReplaceWorkingHoursBodySchema,
+  bookingsReplaceWorkingHoursErrorSchema,
+  bookingsReplaceWorkingHoursHeaderXBarrelsOrganisationSchema,
+  bookingsReplaceWorkingHoursPathProviderIdSchema,
+  bookingsReplaceWorkingHoursResponseSchema,
+  bookingsReplaceWorkingHoursStatus200Schema,
+  bookingsReplaceWorkingHoursStatus400Schema,
+  bookingsReplaceWorkingHoursStatus401Schema,
+  bookingsReplaceWorkingHoursStatus403Schema,
+  bookingsReplaceWorkingHoursStatus404Schema,
+  bookingsReplaceWorkingHoursStatus409Schema,
+  bookingsReplaceWorkingHoursStatus422Schema,
+} from "./bookingsReplaceWorkingHoursSchema.js";
+export {
+  bookingsUpdateProviderBodySchema,
+  bookingsUpdateProviderErrorSchema,
+  bookingsUpdateProviderHeaderXBarrelsOrganisationSchema,
+  bookingsUpdateProviderPathProviderIdSchema,
+  bookingsUpdateProviderResponseSchema,
+  bookingsUpdateProviderStatus200Schema,
+  bookingsUpdateProviderStatus400Schema,
+  bookingsUpdateProviderStatus401Schema,
+  bookingsUpdateProviderStatus403Schema,
+  bookingsUpdateProviderStatus404Schema,
+  bookingsUpdateProviderStatus409Schema,
+  bookingsUpdateProviderStatus422Schema,
+} from "./bookingsUpdateProviderSchema.js";
+export {
+  bookingsUpdateServiceBodySchema,
+  bookingsUpdateServiceErrorSchema,
+  bookingsUpdateServiceHeaderXBarrelsOrganisationSchema,
+  bookingsUpdateServicePathServiceIdSchema,
+  bookingsUpdateServiceResponseSchema,
+  bookingsUpdateServiceStatus200Schema,
+  bookingsUpdateServiceStatus400Schema,
+  bookingsUpdateServiceStatus401Schema,
+  bookingsUpdateServiceStatus403Schema,
+  bookingsUpdateServiceStatus404Schema,
+  bookingsUpdateServiceStatus409Schema,
+  bookingsUpdateServiceStatus422Schema,
+} from "./bookingsUpdateServiceSchema.js";
+export {
+  bookingsUpsertProfileBodySchema,
+  bookingsUpsertProfileErrorSchema,
+  bookingsUpsertProfileHeaderXBarrelsOrganisationSchema,
+  bookingsUpsertProfileResponseSchema,
+  bookingsUpsertProfileStatus200Schema,
+  bookingsUpsertProfileStatus400Schema,
+  bookingsUpsertProfileStatus401Schema,
+  bookingsUpsertProfileStatus403Schema,
+  bookingsUpsertProfileStatus404Schema,
+  bookingsUpsertProfileStatus409Schema,
+  bookingsUpsertProfileStatus422Schema,
+} from "./bookingsUpsertProfileSchema.js";
+export { bookingWorkingHoursUpdateSchema } from "./bookingWorkingHoursUpdateSchema.js";
+export { bookingWorkingPeriodInSchema } from "./bookingWorkingPeriodInSchema.js";
+export { bookingWorkingPeriodPublicSchema } from "./bookingWorkingPeriodPublicSchema.js";
 export { browserSessionSchema } from "./browserSessionSchema.js";
 export { buildingCreatePropertiesKindEnumSchema } from "./buildingCreatePropertiesKindEnumSchema.js";
 export { buildingCreateSchema } from "./buildingCreateSchema.js";
@@ -5180,6 +5402,7 @@ export {
   storesUpdateRequisitionStatus409Schema,
   storesUpdateRequisitionStatus422Schema,
 } from "./storesUpdateRequisitionSchema.js";
+export { studioBookingPublicSchema } from "./studioBookingPublicSchema.js";
 export { submissionModeSchema } from "./submissionModeSchema.js";
 export { subscribeAcceptedSchema } from "./subscribeAcceptedSchema.js";
 export { subscribeRequestSchema } from "./subscribeRequestSchema.js";

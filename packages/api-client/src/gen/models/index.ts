@@ -1046,6 +1046,242 @@ export type {
 } from "./BillingVoidInvoice.js";
 export type { BodyAuthLoginAccessToken } from "./BodyAuthLoginAccessToken.js";
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";
+export type { BookingAvailability } from "./BookingAvailability.js";
+export type { BookingExceptionCreate } from "./BookingExceptionCreate.js";
+export type { BookingExceptionKind } from "./BookingExceptionKind.js";
+export { bookingExceptionKind } from "./BookingExceptionKind.js";
+export type { BookingExceptionPublic } from "./BookingExceptionPublic.js";
+export type { BookingProfilePublic } from "./BookingProfilePublic.js";
+export type { BookingProfileUpdate } from "./BookingProfileUpdate.js";
+export type { BookingProviderCreate } from "./BookingProviderCreate.js";
+export type { BookingProviderPublic } from "./BookingProviderPublic.js";
+export type { BookingProviderUpdate } from "./BookingProviderUpdate.js";
+export type { BookingPublicProvider } from "./BookingPublicProvider.js";
+export type { BookingPublicService } from "./BookingPublicService.js";
+export type { BookingServiceCreate } from "./BookingServiceCreate.js";
+export type { BookingServicePublic } from "./BookingServicePublic.js";
+export type { BookingServiceUpdate } from "./BookingServiceUpdate.js";
+export type { BookingSlot } from "./BookingSlot.js";
+export type { BookingSource } from "./BookingSource.js";
+export { bookingSource } from "./BookingSource.js";
+export type { BookingStatus } from "./BookingStatus.js";
+export { bookingStatus } from "./BookingStatus.js";
+export type { BookingStorefront } from "./BookingStorefront.js";
+export type {
+  BookingsCreateExceptionBody,
+  BookingsCreateExceptionHeaders,
+  BookingsCreateExceptionOptions,
+  BookingsCreateExceptionPath,
+  BookingsCreateExceptionResponse,
+  BookingsCreateExceptionResponses,
+  BookingsCreateExceptionStatus201,
+  BookingsCreateExceptionStatus400,
+  BookingsCreateExceptionStatus401,
+  BookingsCreateExceptionStatus403,
+  BookingsCreateExceptionStatus404,
+  BookingsCreateExceptionStatus409,
+  BookingsCreateExceptionStatus422,
+} from "./BookingsCreateException.js";
+export type {
+  BookingsCreateProviderBody,
+  BookingsCreateProviderHeaders,
+  BookingsCreateProviderOptions,
+  BookingsCreateProviderResponse,
+  BookingsCreateProviderResponses,
+  BookingsCreateProviderStatus201,
+  BookingsCreateProviderStatus400,
+  BookingsCreateProviderStatus401,
+  BookingsCreateProviderStatus403,
+  BookingsCreateProviderStatus404,
+  BookingsCreateProviderStatus409,
+  BookingsCreateProviderStatus422,
+} from "./BookingsCreateProvider.js";
+export type {
+  BookingsCreateServiceBody,
+  BookingsCreateServiceHeaders,
+  BookingsCreateServiceOptions,
+  BookingsCreateServiceResponse,
+  BookingsCreateServiceResponses,
+  BookingsCreateServiceStatus201,
+  BookingsCreateServiceStatus400,
+  BookingsCreateServiceStatus401,
+  BookingsCreateServiceStatus403,
+  BookingsCreateServiceStatus404,
+  BookingsCreateServiceStatus409,
+  BookingsCreateServiceStatus422,
+} from "./BookingsCreateService.js";
+export type {
+  BookingsDeleteExceptionHeaders,
+  BookingsDeleteExceptionOptions,
+  BookingsDeleteExceptionPath,
+  BookingsDeleteExceptionResponse,
+  BookingsDeleteExceptionResponses,
+  BookingsDeleteExceptionStatus204,
+  BookingsDeleteExceptionStatus400,
+  BookingsDeleteExceptionStatus401,
+  BookingsDeleteExceptionStatus403,
+  BookingsDeleteExceptionStatus404,
+  BookingsDeleteExceptionStatus409,
+  BookingsDeleteExceptionStatus422,
+} from "./BookingsDeleteException.js";
+export type {
+  BookingsGetAvailabilityOptions,
+  BookingsGetAvailabilityPath,
+  BookingsGetAvailabilityQuery,
+  BookingsGetAvailabilityResponse,
+  BookingsGetAvailabilityResponses,
+  BookingsGetAvailabilityStatus200,
+  BookingsGetAvailabilityStatus400,
+  BookingsGetAvailabilityStatus404,
+  BookingsGetAvailabilityStatus422,
+} from "./BookingsGetAvailability.js";
+export type {
+  BookingsGetProfileHeaders,
+  BookingsGetProfileOptions,
+  BookingsGetProfileResponse,
+  BookingsGetProfileResponses,
+  BookingsGetProfileStatus200,
+  BookingsGetProfileStatus400,
+  BookingsGetProfileStatus401,
+  BookingsGetProfileStatus403,
+  BookingsGetProfileStatus404,
+  BookingsGetProfileStatus422,
+} from "./BookingsGetProfile.js";
+export type {
+  BookingsGetStorefrontOptions,
+  BookingsGetStorefrontPath,
+  BookingsGetStorefrontResponse,
+  BookingsGetStorefrontResponses,
+  BookingsGetStorefrontStatus200,
+  BookingsGetStorefrontStatus404,
+  BookingsGetStorefrontStatus422,
+} from "./BookingsGetStorefront.js";
+export type {
+  BookingsGetWorkingHoursHeaders,
+  BookingsGetWorkingHoursOptions,
+  BookingsGetWorkingHoursPath,
+  BookingsGetWorkingHoursResponse,
+  BookingsGetWorkingHoursResponses,
+  BookingsGetWorkingHoursStatus200,
+  BookingsGetWorkingHoursStatus400,
+  BookingsGetWorkingHoursStatus401,
+  BookingsGetWorkingHoursStatus403,
+  BookingsGetWorkingHoursStatus404,
+  BookingsGetWorkingHoursStatus422,
+} from "./BookingsGetWorkingHours.js";
+export type {
+  BookingsListExceptionsHeaders,
+  BookingsListExceptionsOptions,
+  BookingsListExceptionsPath,
+  BookingsListExceptionsQuery,
+  BookingsListExceptionsResponse,
+  BookingsListExceptionsResponses,
+  BookingsListExceptionsStatus200,
+  BookingsListExceptionsStatus400,
+  BookingsListExceptionsStatus401,
+  BookingsListExceptionsStatus403,
+  BookingsListExceptionsStatus404,
+  BookingsListExceptionsStatus422,
+} from "./BookingsListExceptions.js";
+export type {
+  BookingsListProvidersHeaders,
+  BookingsListProvidersOptions,
+  BookingsListProvidersResponse,
+  BookingsListProvidersResponses,
+  BookingsListProvidersStatus200,
+  BookingsListProvidersStatus400,
+  BookingsListProvidersStatus401,
+  BookingsListProvidersStatus403,
+  BookingsListProvidersStatus404,
+  BookingsListProvidersStatus422,
+} from "./BookingsListProviders.js";
+export type {
+  BookingsListServicesHeaders,
+  BookingsListServicesOptions,
+  BookingsListServicesResponse,
+  BookingsListServicesResponses,
+  BookingsListServicesStatus200,
+  BookingsListServicesStatus400,
+  BookingsListServicesStatus401,
+  BookingsListServicesStatus403,
+  BookingsListServicesStatus404,
+  BookingsListServicesStatus422,
+} from "./BookingsListServices.js";
+export type {
+  BookingsListStudioBookingsHeaders,
+  BookingsListStudioBookingsOptions,
+  BookingsListStudioBookingsQuery,
+  BookingsListStudioBookingsResponse,
+  BookingsListStudioBookingsResponses,
+  BookingsListStudioBookingsStatus200,
+  BookingsListStudioBookingsStatus400,
+  BookingsListStudioBookingsStatus401,
+  BookingsListStudioBookingsStatus403,
+  BookingsListStudioBookingsStatus404,
+  BookingsListStudioBookingsStatus422,
+} from "./BookingsListStudioBookings.js";
+export type {
+  BookingsReplaceWorkingHoursBody,
+  BookingsReplaceWorkingHoursHeaders,
+  BookingsReplaceWorkingHoursOptions,
+  BookingsReplaceWorkingHoursPath,
+  BookingsReplaceWorkingHoursResponse,
+  BookingsReplaceWorkingHoursResponses,
+  BookingsReplaceWorkingHoursStatus200,
+  BookingsReplaceWorkingHoursStatus400,
+  BookingsReplaceWorkingHoursStatus401,
+  BookingsReplaceWorkingHoursStatus403,
+  BookingsReplaceWorkingHoursStatus404,
+  BookingsReplaceWorkingHoursStatus409,
+  BookingsReplaceWorkingHoursStatus422,
+} from "./BookingsReplaceWorkingHours.js";
+export type {
+  BookingsUpdateProviderBody,
+  BookingsUpdateProviderHeaders,
+  BookingsUpdateProviderOptions,
+  BookingsUpdateProviderPath,
+  BookingsUpdateProviderResponse,
+  BookingsUpdateProviderResponses,
+  BookingsUpdateProviderStatus200,
+  BookingsUpdateProviderStatus400,
+  BookingsUpdateProviderStatus401,
+  BookingsUpdateProviderStatus403,
+  BookingsUpdateProviderStatus404,
+  BookingsUpdateProviderStatus409,
+  BookingsUpdateProviderStatus422,
+} from "./BookingsUpdateProvider.js";
+export type {
+  BookingsUpdateServiceBody,
+  BookingsUpdateServiceHeaders,
+  BookingsUpdateServiceOptions,
+  BookingsUpdateServicePath,
+  BookingsUpdateServiceResponse,
+  BookingsUpdateServiceResponses,
+  BookingsUpdateServiceStatus200,
+  BookingsUpdateServiceStatus400,
+  BookingsUpdateServiceStatus401,
+  BookingsUpdateServiceStatus403,
+  BookingsUpdateServiceStatus404,
+  BookingsUpdateServiceStatus409,
+  BookingsUpdateServiceStatus422,
+} from "./BookingsUpdateService.js";
+export type {
+  BookingsUpsertProfileBody,
+  BookingsUpsertProfileHeaders,
+  BookingsUpsertProfileOptions,
+  BookingsUpsertProfileResponse,
+  BookingsUpsertProfileResponses,
+  BookingsUpsertProfileStatus200,
+  BookingsUpsertProfileStatus400,
+  BookingsUpsertProfileStatus401,
+  BookingsUpsertProfileStatus403,
+  BookingsUpsertProfileStatus404,
+  BookingsUpsertProfileStatus409,
+  BookingsUpsertProfileStatus422,
+} from "./BookingsUpsertProfile.js";
+export type { BookingWorkingHoursUpdate } from "./BookingWorkingHoursUpdate.js";
+export type { BookingWorkingPeriodIn } from "./BookingWorkingPeriodIn.js";
+export type { BookingWorkingPeriodPublic } from "./BookingWorkingPeriodPublic.js";
 export type { BrowserSession } from "./BrowserSession.js";
 export type { BuildingCreate } from "./BuildingCreate.js";
 export type { BuildingCreatePropertiesKindEnum } from "./BuildingCreatePropertiesKindEnum.js";
@@ -5635,6 +5871,7 @@ export type {
   StoresUpdateRequisitionStatus409,
   StoresUpdateRequisitionStatus422,
 } from "./StoresUpdateRequisition.js";
+export type { StudioBookingPublic } from "./StudioBookingPublic.js";
 export type { SubmissionMode } from "./SubmissionMode.js";
 export { submissionMode } from "./SubmissionMode.js";
 export type { SubscribeAccepted } from "./SubscribeAccepted.js";

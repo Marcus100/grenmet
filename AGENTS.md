@@ -16,7 +16,7 @@ tooling. Start with `docs/technical-overview.md`.
 | Path | Covers |
 | --- | --- |
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
-| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, push, rewards) |
+| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, push, rewards, bookings) |
 | `apps/web/<app>/AGENTS.md` | admin, auth, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `apps/web/babydoll/AGENTS.md` | Babydoll Beauty Bar client website (Next.js, Vercel) |

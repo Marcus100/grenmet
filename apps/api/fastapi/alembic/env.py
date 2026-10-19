@@ -143,6 +143,7 @@ _TRACKED_SCHEMAS = {
     "hr",
     "cap",
     "org",
+    "bookings",
     "stores",
     "billing",
     "environment",

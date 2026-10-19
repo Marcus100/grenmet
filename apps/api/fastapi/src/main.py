@@ -37,6 +37,7 @@ from src.baseline.governance_router import router as governance_router
 from src.baseline.router import router as staff_setup_router
 from src.billing.invoice_router import router as billing_invoice_router
 from src.billing.router import router as billing_router
+from src.bookings.router import router as bookings_router
 from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
@@ -129,6 +130,7 @@ def _operation_domain(route: APIRoute) -> str:
         "eregister",
         "billing",
         "rewards",
+        "bookings",
         "utils",
         "janitorial",
         "transport",
@@ -169,6 +171,10 @@ OPENAPI_TAGS = [
     {"name": "audit", "description": "Record change history."},
     {"name": "auth", "description": "Authentication, identity, and account security."},
     {"name": "billing", "description": "Billing and subscription operations."},
+    {
+        "name": "bookings",
+        "description": "Barrels Bookings: services, availability and appointments.",
+    },
     {
         "name": "rewards",
         "description": "Barrels ID rewards: stamp cards, trust badges, redemption.",
@@ -425,6 +431,7 @@ app.include_router(role_assignments_router, prefix="/api/v1")
 app.include_router(billing_router, prefix="/api/v1")
 app.include_router(billing_invoice_router, prefix="/api/v1")
 app.include_router(rewards_router, prefix="/api/v1")
+app.include_router(bookings_router, prefix="/api/v1")
 app.include_router(hr_profile_router, prefix="/api/v1")
 app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")

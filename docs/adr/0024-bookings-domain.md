@@ -89,6 +89,19 @@ tenant data is scoped by platform organisation
    - Barrels pays clients out through settlement and invoicing.
    - Payments are built only after a provider has onboarded Barrels.
 
+7. **Frontend-agnostic API** (owner rule, 2026-10-19). Any client can use it:
+   web, mobile, kiosk or bot.
+   - Plain HTTP and JSON described by OpenAPI. Times are UTC, alongside the
+     business's IANA timezone. Money is in minor units with a currency. No
+     HTML or framework assumptions.
+   - Links to a business's own pages come from profile settings
+     (`manage_url_template`), never a hard-coded site.
+   - Public endpoints are keyed by slug, not origin. Bot protection on booking
+     creation must not depend on a single browser widget. Trusted server and
+     mobile clients get a key-based path when they need one.
+   - Schema names carry a `Booking` prefix so they never collide in the shared
+     OpenAPI document.
+
 ## Consequences
 
 - Any Barrels app can add booking with a booking profile and a few pages. The
