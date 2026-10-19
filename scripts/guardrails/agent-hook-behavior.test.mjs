@@ -18,6 +18,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -41,7 +42,10 @@ import {
   MAX_OUTPUT_CHARS,
   renderHandoff,
 } from "../../.claude/hooks/session-handoff.mjs";
-import { decideStop } from "../../.claude/hooks/verify-before-stop.mjs";
+import {
+  decideStop,
+  sessionCheckout,
+} from "../../.claude/hooks/verify-before-stop.mjs";
 import {
   changedFiles,
   fingerprint,
@@ -549,6 +553,29 @@ test("verify-before-stop: verified work stays verified after commit, not after a
     git("commit", "--quiet", "-am", "change");
     assert.equal(decideStop(dir), "allow");
     writeFileSync(join(dir, "app.js"), "export const a = 4;\n");
+    assert.equal(decideStop(dir), "block");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("verify-before-stop: gates the checkout the session works in, not the hooks' own", () => {
+  const { dir } = scratchRepo();
+  try {
+    mkdirSync(join(dir, "src"));
+    assert.equal(sessionCheckout({ cwd: join(dir, "src") }), realpathSync(dir));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("verify-before-stop: a rename back onto a verified path still needs verification", () => {
+  const { dir, git } = scratchRepo();
+  try {
+    git("mv", "app.js", "renamed.js");
+    git("commit", "--quiet", "-m", "rename");
+    writeReceipt(dir, { verified: fingerprint(dir, changedFiles(dir)) });
+    writeFileSync(join(dir, "app.js"), "export const back = true;\n");
     assert.equal(decideStop(dir), "block");
   } finally {
     rmSync(dir, { recursive: true, force: true });

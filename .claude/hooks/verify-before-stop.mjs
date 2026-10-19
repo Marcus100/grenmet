@@ -17,6 +17,7 @@ import {
   readReceipt,
   writeReceipt,
 } from "../../scripts/verification/receipt.mjs";
+import { spawnSync } from "node:child_process";
 import { hookCheckoutRoot } from "./main-checkout.mjs";
 
 export const STOP_REASON =
@@ -24,6 +25,21 @@ export const STOP_REASON =
   "Run it (`--dry-run` lists the gates) and report the result before finishing. " +
   "If you are deliberately stopping first (a question for the user, review-only work, " +
   "work in progress), say so in one line and stop again.";
+
+/**
+ * The checkout the session is working in: the git top level of the hook
+ * input's `cwd`, which can be a worktree other than the one the hooks were
+ * loaded from. Falls back to the hooks' own checkout.
+ */
+export function sessionCheckout(input) {
+  const cwd = typeof input?.cwd === "string" ? input.cwd : null;
+  if (!cwd) return hookCheckoutRoot;
+  const result = spawnSync("git", ["rev-parse", "--show-toplevel"], {
+    cwd,
+    encoding: "utf8",
+  });
+  return result.status === 0 ? result.stdout.trim() : hookCheckoutRoot;
+}
 
 /**
  * "allow" when nothing changed, the changes are verified, or this state was
@@ -54,7 +70,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       process.exit(0);
     }
     try {
-      const decision = decideStop(hookCheckoutRoot, {
+      const decision = decideStop(sessionCheckout(input), {
         stopHookActive: input?.stop_hook_active === true,
       });
       if (decision === "block") {

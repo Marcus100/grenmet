@@ -27,6 +27,8 @@ const VIEWPORT_HEIGHT = 812;
 const NAVIGATION_TIMEOUT_MS = 60_000;
 const THEMES = new Set(DEFAULT_THEMES);
 const SLUG_UNSAFE = /[^a-z0-9]+/gi;
+// Dev-server noise that says nothing about the page: favicons and source maps.
+const IGNORED_REQUEST = /\/favicon\.ico(?:\?|$)|\.map(?:\?|$)/;
 const EDGE_DASHES = /^-|-$/g;
 
 export function parseArgs(argv) {
@@ -112,10 +114,14 @@ async function capture(browser, shot, outDir) {
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
   });
-  page.on("requestfailed", (request) => failedRequests.push(request.url()));
+  page.on("requestfailed", (request) => {
+    if (!IGNORED_REQUEST.test(request.url()))
+      failedRequests.push(request.url());
+  });
   page.on("response", (response) => {
-    if (response.status() >= 400)
+    if (response.status() >= 400 && !IGNORED_REQUEST.test(response.url())) {
       failedRequests.push(`${response.status()} ${response.url()}`);
+    }
   });
   let error = null;
   try {

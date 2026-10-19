@@ -322,12 +322,17 @@ function main() {
     process.exitCode = 1;
     return;
   }
+  if (options.skip.size > 0) {
+    console.log(
+      "No verification receipt: checks were skipped, so the Stop gate still asks."
+    );
+    return;
+  }
   // Fingerprint after the checks run, so the receipt matches what passed.
   const verifiedFiles = changedFiles(root, options.base) ?? files;
   writeReceipt(root, {
     base: options.base,
     checks: results.map((r) => r.name),
-    skipped: [...options.skip],
     verified: fingerprint(root, verifiedFiles),
     verifiedAt: new Date().toISOString(),
   });

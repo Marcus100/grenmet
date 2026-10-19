@@ -26,7 +26,10 @@ const lines = (text) => (text ? text.split("\n").filter(Boolean) : []);
 export function changedFiles(root, base = DEFAULT_BASE) {
   const mergeBase = git(root, ["merge-base", base, "HEAD"]);
   if (!mergeBase) return null;
-  const tracked = lines(git(root, ["diff", "--name-only", mergeBase]));
+  // --no-renames lists both sides of a rename, so the old path stays covered.
+  const tracked = lines(
+    git(root, ["diff", "--name-only", "--no-renames", mergeBase])
+  );
   const untracked = lines(
     git(root, ["ls-files", "--others", "--exclude-standard"])
   );
