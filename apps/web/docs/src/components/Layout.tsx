@@ -47,7 +47,7 @@ export function Layout({
           >
             <div className={catalogue ? "hidden" : "hidden lg:flex"}>
               <Link aria-label="Home" href="/">
-                <Logo className="h-6" />
+                <Logo className="h-7 w-auto" variant="monogram" />
               </Link>
             </div>
             <Header accountLabel={accountLabel} catalogue={catalogue} />

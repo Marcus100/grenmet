@@ -53,7 +53,7 @@ export function AuthShell({
         <div
           className={cn("w-full space-y-8", wide ? "max-w-2xl" : "max-w-md")}
         >
-          <Logo className="h-7 w-auto lg:hidden" />
+          <Logo className="h-8 w-auto lg:hidden" variant="monogram" />
           {children}
         </div>
       </main>
