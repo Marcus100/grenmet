@@ -4,10 +4,14 @@
 **Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-10-19
 
-Claude Code can delegate to specialist agents defined in `.claude/agents/`. Each
+Specialist roles are defined once, as Markdown briefs in `.claude/agents/`. Each
 has the tools its job needs and nothing more, and reads the nested `AGENTS.md`
-for the code it touches. Codex does not read this folder; it uses the skills in
-`.agents/skills` and the same `AGENTS.md` files.
+for the code it touches. Both tools use them through the shared `team-roles`
+skill (`.claude/skills/team-roles`, which Codex reads as `.agents/skills`):
+
+- **Claude Code** also loads the briefs as native subagents, so it can delegate by name.
+- **Codex** has no native subagent step in this setup. The skill tells it to open a
+  new task, read the role's brief and follow it, which gives the same clean context.
 
 ## The team
 
@@ -36,10 +40,14 @@ request → planner (spec, slices)
         → /commit (gates) → PR → AI review comment + CI → human merge
 ```
 
-Use it for work that spans roles. A small fix needs one agent or none. Ask
-Claude Code to "use the planner agent" or name the role; subagents see only
-the brief you give them, so name the files, the acceptance criteria and what
-is out of scope.
+Use it for work that spans roles. A small fix needs one role or none. Name the
+role ("use the planner", "get a code review") or let the `team-roles` skill
+select it. A role sees only the brief you give it, so name the files, the
+acceptance criteria and what is out of scope.
+
+Mixing tools is encouraged: a diff written in Codex gets its fresh-context
+review in Claude Code, and the reverse. The automatic AI review below adds a
+third, tool-independent pass.
 
 ## Gates that do not depend on the author
 

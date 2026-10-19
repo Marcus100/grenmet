@@ -10,7 +10,7 @@ direct them need beyond the root `AGENTS.md`.
 | Document | Read it to |
 | --- | --- |
 | [workflow.md](workflow.md) | Work in parallel worktrees, integrate and push, check blast radius, hand off, extend hooks. |
-| [roles.md](roles.md) | Delegate to the planner, architect, engineer, QA and reviewer agents, and see the automated review and API-break gates. |
+| [roles.md](roles.md) | Split work across the planner, architect, engineer, QA and reviewer roles in Claude Code or Codex, and see the automated review and API-break gates. |
 | [tool-usage.md](tool-usage.md) | Hand work between tools and keep the session log short. |
 | [extended-rules.md](extended-rules.md) | Follow design, branding, telemetry and monitoring rules. |
 | [primitives.md](primitives.md) | Reuse shared helpers before writing new ones. |

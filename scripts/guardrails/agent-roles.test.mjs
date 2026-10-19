@@ -115,3 +115,16 @@ test("qa-engineer is told to change tests only", () => {
   const qa = agents.find((a) => a.fields.name === "qa-engineer");
   assert.ok(qa.body.includes("test files only"));
 });
+
+test("the shared team-roles skill names every role, so Codex can use them too", () => {
+  const skill = readFileSync(
+    join(repoRoot, ".claude", "skills", "team-roles", "SKILL.md"),
+    "utf8"
+  );
+  for (const { fields } of agents) {
+    assert.ok(
+      skill.includes(`\`${fields.name}\``),
+      `team-roles does not mention ${fields.name}`
+    );
+  }
+});
