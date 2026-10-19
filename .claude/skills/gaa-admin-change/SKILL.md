@@ -1,6 +1,6 @@
 ---
 name: gaa-admin-change
-description: Checklist before changing apps/web/gaa-admin — five formerly-separate apps (cap, hr, wxwatch, wxproducts, salesbus) folded into one, so edits can have cross-module blast radius. Use before touching apps/web/gaa-admin/src, especially shared layout, providers, or auth.
+description: "Checklist to run before changing apps/web/gaa-admin, which folds five formerly separate apps (cap, hr, wxwatch, wxproducts, salesbus) into one, so an edit can break another module. Use when about to edit apps/web/gaa-admin/src, especially shared layout, providers or auth."
 ---
 
 # gaa-admin Cross-Cutting Change

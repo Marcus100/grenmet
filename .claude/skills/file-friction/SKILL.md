@@ -1,6 +1,6 @@
 ---
 name: file-friction
-description: File the friction you worked around during a task as deduplicated GitHub issues so a later agent fixes the cause. Use at the end of /commit, before ending any task where you hit a flaky or slow gate, a confusing convention, stale docs, a tooling failure or a missing shared primitive, or when the user says "file friction".
+description: "Files the friction worked around during a task as deduplicated GitHub issues so a later agent fixes the cause. Use when finishing /commit, before ending any task that hit a flaky or slow gate, a confusing convention, stale docs, a tooling failure or a missing shared primitive, or when the user says \"file friction\"."
 ---
 
 # File Friction

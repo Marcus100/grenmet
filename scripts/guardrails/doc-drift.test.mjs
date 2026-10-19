@@ -53,22 +53,15 @@ function trackedFiles(...patterns) {
 }
 
 /** The root map and the agent docs that every agent is pointed at. */
-const agentDocs = () => [
-  "AGENTS.md",
-  ...trackedFiles("docs/agents/*.md", ".claude/commands/*.md"),
-];
+const agentDocs = () => ["AGENTS.md", ...trackedFiles("docs/agents/*.md")];
 
-/** Skills and commands an agent can actually invoke by `/name`. */
+/** Skills an agent can actually invoke by `/name`. */
 function invocableNames() {
-  const skills = readdirSync(join(repoRoot, ".claude/skills"), {
-    withFileTypes: true,
-  })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name);
-  const commands = readdirSync(join(repoRoot, ".claude/commands"))
-    .filter((name) => name.endsWith(".md"))
-    .map((name) => name.slice(0, -3));
-  return new Set([...skills, ...commands]);
+  return new Set(
+    readdirSync(join(repoRoot, ".claude/skills"), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+  );
 }
 
 test("every /skill named in agent docs and skills exists", () => {

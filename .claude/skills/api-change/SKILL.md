@@ -1,6 +1,6 @@
 ---
 name: api-change
-description: Propagate a FastAPI route/schema change to the generated TypeScript client and API docs. Use when editing apps/api/fastapi/src/**/router.py, routes.py, schemas.py, or routers/, or when a web app needs a field/endpoint @barrelsgd/api-client doesn't have yet.
+description: "Propagates a FastAPI route or schema change to the generated TypeScript client and API docs. Use when editing apps/api/fastapi/src/**/router.py, routes.py, schemas.py or routers/, or when a web app needs a field or endpoint that @barrelsgd/api-client doesn't have yet."
 ---
 
 # FastAPI Contract Change

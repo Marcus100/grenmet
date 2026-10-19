@@ -1,6 +1,6 @@
 ---
 name: design-critique
-description: Critique a UI surface against the Refactoring UI ladder and return a ranked, token-legal fix list. No design reference needed.
+description: "Critiques a UI surface against the Refactoring UI ladder and returns a ranked, token-legal fix list. Needs no design reference."
 disable-model-invocation: true
 ---
 

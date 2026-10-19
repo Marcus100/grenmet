@@ -82,10 +82,10 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 
 ## Git, parallel agents and handoff
 
-- **Attended sessions:** work in a worktree per task, merge into local `dev`, validate, then push `dev`. Standing authorization covers creating and merging the `dev → staging` PR once all its checks pass (`--match-head-commit`). **Unattended routines** push only their own branch and open a PR to `dev` (`docs/agents/routines.md`). Full rules: `docs/agents/workflow.md`.
+- **Attended sessions:** work in a worktree per task, merge into local `dev`, validate, then push `dev`. Standing authorization covers creating the `dev → staging` PR and arming auto-merge on its reviewed head (`--auto --match-head-commit`); the hook allows merges into `staging` only. **Unattended routines** push only their own branch and open a PR to `dev` (`docs/agents/routines.md`). Full rules: `docs/agents/workflow.md`.
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`; regenerate both.
 - Read `SESSION_LOG.md` (main checkout root) before assuming a task is untouched; append one entry after meaningful work. Run the `file-friction` skill if you worked around anything. Tool switches: `docs/agents/tool-usage.md`.
-- Use the `api-change` skill for FastAPI contract changes and `gaa-admin-change` before touching `apps/web/gaa-admin`. Check `.claude/skills/` (also `.agents/skills`) before improvising CI triage, pre-merge, release or diagnosis.
+- Use the `api-change` skill for FastAPI contract changes and `gaa-admin-change` before touching `apps/web/gaa-admin`. Check `.claude/skills/` (also `.agents/skills`) before improvising CI triage, pre-merge, release or diagnosis. Write and change skills to `docs/agents/skill-standard.md`; `pnpm test:guardrails` lints them.
 - Issues: GitHub Issues for `Marcus100/grenmet` via `gh`. A "Fixes #N" in a commit closes the issue when it reaches `dev` (`close-issues-on-dev` workflow; GitHub alone only closes on `main`). Triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` (`docs/agents/triage-labels.md`). Domain language: root `CONTEXT.md` (created lazily by `/domain-modeling`) plus `docs/adr/` (`docs/agents/domain.md`).
 - Claude Code: spawn sub-agents only when the user asks, and pass them the relevant nested `AGENTS.md` paths.
 
@@ -136,5 +136,6 @@ Design: read the lane spec `docs/design/<lane>.md` before building UI; style onl
 | HR forms, roster, attendance and timesheet alignment | `docs/hr/end-to-end-alignment.md` |
 | Agent workflow, git, blast radius, hooks | `docs/agents/workflow.md` |
 | Agent helpers, principles, routines, run records, benchmarks | `docs/agents/README.md` |
+| Writing or changing a skill (spec limits, testing, Codex parity) | `docs/agents/skill-standard.md` |
 | Agent configuration (how this layout works) | `docs/agent-configuration-guide.md` |
 | Vendored ops apps (SURFACE, wis2box) | `VENDORED.md` |
