@@ -88,7 +88,7 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 - Read `SESSION_LOG.md` (main checkout root) before assuming a task is untouched; append one entry after meaningful work. Run the `file-friction` skill if you worked around anything. Tool switches: `docs/agents/tool-usage.md`.
 - Use the `api-change` skill for FastAPI contract changes and `gaa-admin-change` before touching `apps/web/gaa-admin`. Check `.claude/skills/` (also `.agents/skills`) before improvising CI triage, pre-merge, release or diagnosis. Write and change skills to `docs/agents/skill-standard.md`; `pnpm test:guardrails` lints them.
 - Issues: GitHub Issues for `Marcus100/grenmet` via `gh`. A "Fixes #N" in a commit closes the issue when it reaches `dev` (`close-issues-on-dev` workflow; GitHub alone only closes on `main`). Triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` (`docs/agents/triage-labels.md`). Domain language: root `CONTEXT.md` (created lazily by `/domain-modeling`) plus `docs/adr/` (`docs/agents/domain.md`).
-- Claude Code: spawn sub-agents only when the user asks, and pass them the relevant nested `AGENTS.md` paths.
+- Sub-agents: for role-spanning work or a fresh-context review, use the `team-roles` skill (role briefs in `.claude/agents/`, works in Claude Code and Codex; `docs/agents/roles.md`). For exploration or anything else, delegate only when the user asks. Pass the relevant nested `AGENTS.md` paths.
 
 ## Code conventions
 

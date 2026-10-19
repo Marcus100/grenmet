@@ -64,6 +64,7 @@
     "knip": "PAYLOAD_SECRET=knip-placeholder-secret-0123456789 DATABASE_URL=postgres://knip@localhost/knip knip --dependencies --no-exit-code",
     "knip:unused": "PAYLOAD_SECRET=knip-placeholder-secret-0123456789 DATABASE_URL=postgres://knip@localhost/knip knip --files --no-exit-code",
     "check:drift": "node scripts/api/check-api-drift.mjs",
+    "check:api-breaking": "node scripts/api/check-api-breaking.mjs --base origin/dev",
     "dev:web:cms": "turbo run dev --filter=@barrelsgd/web-cms",
     "cms:setup-db": "docker exec -i grenmet-postgres bash < infra/postgres/init-cms.sh",
     "storage:init": "bash scripts/production/init-local.sh",
