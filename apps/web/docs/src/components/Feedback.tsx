@@ -74,8 +74,8 @@ const FeedbackThanks = forwardRef<
       )}
       ref={ref}
     >
-      <div className="flex items-center gap-3 rounded-full bg-emerald-50/50 py-1 pr-3 pl-1.5 text-emerald-900 text-sm ring-1 ring-emerald-500/20 ring-inset dark:bg-emerald-500/5 dark:text-emerald-200 dark:ring-emerald-500/30">
-        <CheckIcon className="h-5 w-5 flex-none fill-emerald-500 stroke-white dark:fill-emerald-200/20 dark:stroke-emerald-200" />
+      <div className="flex items-center gap-3 rounded-full bg-gm-blue/5 py-1 pr-3 pl-1.5 text-gm-navy text-sm ring-1 ring-gm-blue/20 ring-inset dark:bg-gm-blue-ink/5 dark:text-gm-sky dark:ring-gm-sky/30">
+        <CheckIcon className="h-5 w-5 flex-none fill-gm-blue stroke-white dark:fill-gm-sky/20 dark:stroke-gm-sky" />
         Thanks for your feedback!
       </div>
     </div>

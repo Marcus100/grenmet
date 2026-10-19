@@ -76,7 +76,7 @@ function CopyButton({ code }: { code: string }) {
       className={cn(
         "group/button absolute top-3.5 right-4 overflow-hidden rounded-full py-1 pr-3 pl-2 font-medium text-2xs opacity-0 backdrop-blur-sm transition focus:opacity-100 group-hover:opacity-100",
         copied
-          ? "bg-emerald-400/10 ring-1 ring-emerald-400/20 ring-inset"
+          ? "bg-gm-blue/10 ring-1 ring-gm-blue/20 ring-inset"
           : "bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5"
       )}
       onClick={() => {
@@ -99,7 +99,7 @@ function CopyButton({ code }: { code: string }) {
       <span
         aria-hidden={!copied}
         className={cn(
-          "pointer-events-none absolute inset-0 flex items-center justify-center text-emerald-400 transition duration-300",
+          "pointer-events-none absolute inset-0 flex items-center justify-center text-gm-blue-ink transition duration-300",
           !copied && "translate-y-1.5 opacity-0"
         )}
       >
@@ -201,7 +201,7 @@ function CodeGroupHeader({
               className={cn(
                 "border-b py-3 transition data-selected:not-data-focus:outline-hidden",
                 childIndex === selectedIndex
-                  ? "border-emerald-500 text-emerald-400"
+                  ? "border-gm-blue text-gm-blue-ink"
                   : "border-transparent text-zinc-400 hover:text-zinc-300"
               )}
             >
