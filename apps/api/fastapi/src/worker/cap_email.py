@@ -11,7 +11,7 @@ import logging
 from typing import Any
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap.models import CapJobEvent
@@ -42,11 +42,17 @@ async def publish_email(
         await session.scalars(
             select(ListSubscription)
             .outerjoin(
-                EmailSuppression, EmailSuppression.email == ListSubscription.email
+                EmailSuppression,
+                # New suppressions keep only the keyed hash; legacy rows the address.
+                or_(
+                    EmailSuppression.email_hash == ListSubscription.email_hash,
+                    EmailSuppression.email == ListSubscription.email,
+                ),
             )
             .where(
                 ListSubscription.list_key == CAP_ALERTS_LIST_KEY,
                 ListSubscription.status == SubscriptionStatus.CONFIRMED.value,
+                ListSubscription.email.is_not(None),
                 EmailSuppression.id.is_(None),
             )
             .order_by(ListSubscription.created_at)
@@ -56,6 +62,8 @@ async def publish_email(
     subject = f"{content.label}: {content.headline}"
     queued = 0
     for subscription in subscribers:
+        if subscription.email is None:  # unreachable after the filter; narrows the type
+            continue
         created = await notification_service.enqueue_email_once(
             session=session,
             to_email=subscription.email,

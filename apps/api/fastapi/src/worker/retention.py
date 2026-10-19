@@ -18,7 +18,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from sqlalchemy import ColumnElement, delete, select, update
+from sqlalchemy import ColumnElement, delete, inspect, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.contact.models import ContactDataRequest, ContactMessage
@@ -67,12 +67,12 @@ def months_before(moment: datetime, months: int) -> datetime:
 async def _delete_batched(
     session: AsyncSession, model: type[Base], *conditions: ColumnElement[bool]
 ) -> int:
+    # Every retained model has a single-column primary key ("id").
+    primary_key = inspect(model).primary_key[0]
     total = 0
     while True:
-        ids = select(model.id).where(*conditions).limit(BATCH_SIZE)  # type: ignore[attr-defined]
-        result = await session.execute(
-            delete(model).where(model.id.in_(ids))  # type: ignore[attr-defined]
-        )
+        ids = select(primary_key).where(*conditions).limit(BATCH_SIZE)
+        result = await session.execute(delete(model).where(primary_key.in_(ids)))
         await session.commit()
         count = int(getattr(result, "rowcount", 0) or 0)
         total += count
