@@ -207,6 +207,38 @@ test("Claude Code and Codex guardrail hooks reference the same scripts (no forke
   );
 });
 
+test("Claude Code and Codex both start sessions with the shared handoff hook", () => {
+  const handoff = ".claude/hooks/session-handoff.mjs";
+  const claudeStart = JSON.stringify(
+    JSON.parse(read(".claude/settings.json")).hooks?.SessionStart ?? []
+  );
+  const codexStart =
+    read(".codex/config.toml").split("[[hooks.SessionStart]]")[1] ?? "";
+  assert.ok(
+    claudeStart.includes(handoff),
+    `.claude/settings.json SessionStart must run ${handoff}`
+  );
+  assert.ok(
+    codexStart.includes(handoff),
+    `.codex/config.toml SessionStart must run ${handoff}`
+  );
+});
+
+test("Claude Code denies the destructive commands the git hook blocks", () => {
+  const deny =
+    JSON.parse(read(".claude/settings.json")).permissions?.deny ?? [];
+  for (const rule of [
+    "Bash(git push --force*)",
+    "Bash(git reset --hard *)",
+    "Edit(.env)",
+  ]) {
+    assert.ok(
+      deny.includes(rule),
+      `.claude/settings.json permissions.deny is missing ${rule}`
+    );
+  }
+});
+
 test(".agents/skills is a symlink to .claude/skills, not a forked copy", () => {
   const link = resolve(".agents/skills");
   if (!lstatSync(link).isSymbolicLink()) {
