@@ -13,17 +13,46 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import {
+  appendAuditLine,
+  redactSecrets,
+} from "../../.claude/hooks/audit-log.mjs";
 import { findBlockedPattern } from "../../.claude/hooks/block-dangerous-git.mjs";
+import { isInsideRepo } from "../../.claude/hooks/format-changed-file.mjs";
+import { mainCheckoutRoot } from "../../.claude/hooks/main-checkout.mjs";
 import {
   findAskFirstEdit,
   findProtectedViolation,
   findShellWriteViolation,
 } from "../../.claude/hooks/protect-files.mjs";
+import {
+  MAX_OUTPUT_CHARS,
+  renderHandoff,
+} from "../../.claude/hooks/session-handoff.mjs";
 
 const BLOCKED_MESSAGE = /BLOCKED/;
+const baseIs = (base) => ({ lookupBase: () => base });
+const MAIN_BASE = /main/;
+const UNKNOWN_BASE = /unknown base/;
+const ADMIN_FLAG = /--admin/;
+const REDACTED_MARK = /\[REDACTED\]/;
+const NEWEST_ENTRY = /entry 59 /;
+const SECOND_NEWEST_ENTRY = /entry 58 /;
+const ELLIPSIS = /…/;
+const FIRST_BULLET = /first/;
+const SECOND_BULLET = /second\n {2}continued/;
 
 const hooksDir = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -66,8 +95,93 @@ test("block-dangerous-git: still blocks the real, unquoted commands", () => {
   assert.ok(findBlockedPattern("git reset --hard HEAD~1"));
   assert.ok(findBlockedPattern("git clean -fd"));
   assert.ok(findBlockedPattern("git branch -D feature-x"));
-  assert.ok(findBlockedPattern("gh pr merge 42"));
+  assert.ok(findBlockedPattern("gh pr merge 42", baseIs("main")));
   assert.equal(findBlockedPattern("npm test && git push"), undefined);
+});
+
+test("block-dangerous-git: blocks force and discard variants that slipped past the old patterns", () => {
+  for (const command of [
+    "git push -f origin dev",
+    "git push origin +dev",
+    "git push --force-with-lease",
+    "git checkout -- .",
+    "git restore .",
+    "git restore --staged --worktree .",
+    "git stash clear",
+    "git worktree remove --force old",
+    "git branch --delete --force feature-x",
+    "git clean -xfd",
+    "git switch -f main",
+    "git switch --discard-changes main",
+    "gh api -X PUT repos/o/r/pulls/5/merge",
+  ]) {
+    assert.ok(findBlockedPattern(command, baseIs("main")), command);
+  }
+});
+
+test("block-dangerous-git: scans commands run through bash -c, sh -c and eval", () => {
+  assert.ok(findBlockedPattern('bash -c "git reset --hard"'));
+  assert.ok(findBlockedPattern("sh -c 'git clean -xfd'"));
+  assert.ok(findBlockedPattern('eval "git push -f origin dev"'));
+  assert.equal(findBlockedPattern('bash -c "git status"'), undefined);
+});
+
+test("block-dangerous-git: treats heredoc text as text unless a shell runs it", () => {
+  const message =
+    "git commit -F - <<'EOF'\nfix(hooks): allow gh pr merge into staging, block git push -f\nEOF";
+  assert.equal(findBlockedPattern(message, baseIs("main")), undefined);
+  assert.equal(
+    findBlockedPattern("cat > notes.md <<EOF\nnever run git reset --hard\nEOF"),
+    undefined
+  );
+  assert.ok(findBlockedPattern("bash <<'EOF'\ngit reset --hard\nEOF"));
+  assert.ok(findBlockedPattern("cat <<'EOF' | sh\ngit clean -fd\nEOF"));
+  assert.ok(
+    findBlockedPattern("cat > out.txt <<EOF\n$(git reset --hard)\nEOF")
+  );
+});
+
+test("block-dangerous-git: allows the safe neighbours of blocked commands", () => {
+  for (const command of [
+    "git push -u origin dev",
+    "git push && rm -f build.log",
+    "git restore --staged .",
+    "git restore src/app.ts",
+    "git stash drop stash@{0}",
+    "git worktree remove old",
+    "git branch -d feature-x",
+    "git checkout -b feature-x",
+    "git clean -n",
+    "git log --follow -- src/app.ts",
+  ]) {
+    assert.equal(
+      findBlockedPattern(command, baseIs("main")),
+      undefined,
+      command
+    );
+  }
+});
+
+test("block-dangerous-git: allows gh pr merge only into staging, failing closed", () => {
+  const command = "gh pr merge 42 --merge --match-head-commit abc123";
+  assert.equal(findBlockedPattern(command, baseIs("staging")), undefined);
+  assert.match(String(findBlockedPattern(command, baseIs("main"))), MAIN_BASE);
+  assert.match(String(findBlockedPattern(command, baseIs(null))), UNKNOWN_BASE);
+  assert.match(
+    String(findBlockedPattern("gh pr merge 42 --admin", baseIs("staging"))),
+    ADMIN_FLAG
+  );
+});
+
+test("block-dangerous-git: looks up the merge base for the PR and repo named", () => {
+  const seen = [];
+  findBlockedPattern("gh pr merge 42 --repo Marcus100/grenmet --auto", {
+    lookupBase: (args) => {
+      seen.push(args);
+      return "staging";
+    },
+  });
+  assert.deepEqual(seen, [["42", "--repo", "Marcus100/grenmet", "--auto"]]);
 });
 
 test("block-dangerous-git: still blocks command substitution (not just literal quotes)", () => {
@@ -275,4 +389,110 @@ test("protect-files hook: emits an ask decision for Claude edits, nothing for Co
   });
   assert.equal(codex.status, 0);
   assert.equal(codex.stdout, "");
+});
+
+test("format-changed-file: formats files in this checkout, never scratchpad or /tmp files", () => {
+  const root = "/repo";
+  assert.equal(isInsideRepo("/repo/apps/web/page.tsx", root), true);
+  assert.equal(isInsideRepo("apps/web/page.tsx", root), true);
+  assert.equal(
+    isInsideRepo("/tmp/claude-1000/scratchpad/site.html", root),
+    false
+  );
+  assert.equal(isInsideRepo("/repo-other/file.ts", root), false);
+  assert.equal(isInsideRepo("../outside.ts", root), false);
+});
+
+test("audit-log: redacts credentials but keeps ordinary commands readable", () => {
+  for (const [input, secret] of [
+    [
+      'curl -H "Authorization: Bearer abcdefghijklmnop1234" https://x',
+      "abcdefghijklmnop1234",
+    ],
+    [
+      "export GITHUB_TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123",
+      "ghp_abcdefghijklmnopqrstuvwxyz0123",
+    ],
+    ["psql postgres://app:S3cret@db:5432/app", "S3cret"],
+    ["mysql -u root -pHunter22 app", "Hunter22"],
+    ["POSTGRES_PASSWORD=changethis uv run pytest", "changethis"],
+  ]) {
+    const redacted = redactSecrets(input);
+    assert.ok(!redacted.includes(secret), redacted);
+    assert.match(redacted, REDACTED_MARK);
+  }
+  for (const ordinary of [
+    'git commit -m "fix token refresh"',
+    "pnpm test --filter api-key-utils",
+  ]) {
+    assert.equal(redactSecrets(ordinary), ordinary);
+  }
+});
+
+test("audit-log: rotates the log once it passes the size cap", () => {
+  const dir = mkdtempSync(join(tmpdir(), "audit-log-"));
+  try {
+    const logPath = join(dir, "audit.log");
+    writeFileSync(logPath, "x".repeat(5 * 1024 * 1024 + 1));
+    appendAuditLine(logPath, "git status", new Date("2026-10-19T00:00:00Z"));
+    assert.ok(existsSync(`${logPath}.1`));
+    assert.equal(
+      readFileSync(logPath, "utf8"),
+      "2026-10-19T00:00:00.000Z\tgit status\n"
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("session-handoff: shows whole entries newest first within the preview budget", () => {
+  const entries = Array.from(
+    { length: 60 },
+    (_, index) =>
+      `2026-10-${String(index + 1).padStart(2, "0")} | entry ${index} ${"·".repeat(300)}`
+  );
+  const output = renderHandoff(entries.join("\n\n"), "/repo/SESSION_LOG.md");
+  assert.ok(output.length <= MAX_OUTPUT_CHARS, `${output.length} chars`);
+  const body = output.split("\n\n").slice(1);
+  assert.match(body[0], NEWEST_ENTRY);
+  assert.match(body[1], SECOND_NEWEST_ENTRY);
+  assert.ok(body.every((entry) => entry.trim().endsWith("·")));
+});
+
+test("session-handoff: splits bullet entries that have no blank line between them", () => {
+  const output = renderHandoff(
+    "- 2026-10-03T21:52:15Z first\n- 2026-10-03T21:53:52Z second\n  continued\n",
+    "/repo/SESSION_LOG.md"
+  );
+  const body = output.split("\n\n").slice(1);
+  assert.match(body[0], SECOND_BULLET);
+  assert.match(body[1], FIRST_BULLET);
+});
+
+test("main-checkout: resolves a worktree's .git file to the owning checkout", () => {
+  const dir = mkdtempSync(join(tmpdir(), "main-checkout-"));
+  try {
+    const main = join(dir, "repo");
+    const worktree = join(main, ".claude", "worktrees", "task");
+    mkdirSync(join(main, ".git", "worktrees", "task"), { recursive: true });
+    mkdirSync(worktree, { recursive: true });
+    writeFileSync(
+      join(worktree, ".git"),
+      `gitdir: ${join(main, ".git", "worktrees", "task")}\n`
+    );
+    assert.equal(mainCheckoutRoot(worktree), main);
+    assert.equal(mainCheckoutRoot(main), main);
+    assert.equal(mainCheckoutRoot(join(dir, "missing")), join(dir, "missing"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("session-handoff: truncates a single oversized entry instead of printing nothing", () => {
+  const output = renderHandoff(
+    `2026-10-19T00:00:00Z ${"x".repeat(20_000)}`,
+    "/repo/SESSION_LOG.md"
+  );
+  assert.ok(output.length <= MAX_OUTPUT_CHARS + 2);
+  assert.match(output, ELLIPSIS);
 });

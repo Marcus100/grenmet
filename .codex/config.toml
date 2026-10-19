@@ -41,8 +41,8 @@ timeout = 30
 # automatically on Stop: another client may own them.
 
 [[hooks.SessionStart]]
-matcher = "^(startup|resume|clear|compact)$"
+matcher = "^(startup|resume|clear|compact|fork)$"
 [[hooks.SessionStart.hooks]]
 type = "command"
-command = "hook_root=$(dirname \"$(git rev-parse --path-format=absolute --git-common-dir)\") && cd \"$hook_root\" && { test ! -f SESSION_LOG.md || tail -c 50000 SESSION_LOG.md | tail -n 40; }"
+command = 'hook_root=$(git rev-parse --show-toplevel) && node "$hook_root/.claude/hooks/session-handoff.mjs"'
 timeout = 10

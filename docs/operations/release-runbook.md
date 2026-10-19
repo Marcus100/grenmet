@@ -37,12 +37,14 @@ required checks on `staging` and `main` PRs.
 - After completing and locally validating an authorized batch, push dev and
   automatically create or update its staging promotion PR. Reuse an open PR.
 - Review the entire promotion diff; exclude unrelated or unfinished work.
-- Wait for all applicable CI checks on the current PR head to pass. Expected
-  skipped jobs are acceptable; pending or failed checks block merging.
-- Verify dev still matches that head, then merge without another confirmation:
-  `gh pr merge <num> --merge --match-head-commit <sha>`.
-  Do not arm auto-merge before all applicable checks pass: repository-required
-  checks may cover only a subset. Never use an admin bypass.
+- Arm auto-merge on the reviewed head without another confirmation:
+  `gh pr merge <num> --auto --merge --match-head-commit <sha>`. The staging
+  ruleset requires `CI Success` and `Build Web Apps`, which aggregate every API
+  and web CI job, plus `api-client`, `Biome Check`, `Type Check` and
+  `Peer Dependencies`; GitHub merges only when all pass. If a job is added
+  outside those aggregates, add it to an aggregate before relying on
+  auto-merge. Never use an admin bypass; the agent hook blocks `--admin` and
+  any merge whose base is not `staging`.
 - If dev advances, review and verify the new head. Fix failures locally and
   revalidate before pushing; do not blindly retry CI.
 - The push to `staging` triggers `pipeline-staging.yml`,

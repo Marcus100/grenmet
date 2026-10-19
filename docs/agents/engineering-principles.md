@@ -13,7 +13,7 @@ easier to delete.
 
 | Principle | How it shows up here | Enforced by |
 | --- | --- | --- |
-| **One source of truth for each fact** | `AGENTS.md` is canonical, skills are generated from commands, the API client is generated from OpenAPI. Shared helpers live in [primitives.md](primitives.md). | `pnpm check:drift`, `scripts/guardrails/command-skills.test.mjs`. `scripts/guardrails/report-error-wiring.test.mjs` keeps each app's `report-error.ts` a 3-line wiring of the shared factory. |
+| **One source of truth for each fact** | `AGENTS.md` is canonical, each workflow is one skill shared by Claude Code and Codex, the API client is generated from OpenAPI. Shared helpers live in [primitives.md](primitives.md). | `pnpm check:drift`, `scripts/guardrails/skill-lint.test.mjs`. `scripts/guardrails/report-error-wiring.test.mjs` keeps each app's `report-error.ts` a 3-line wiring of the shared factory. |
 | **Keep parts independent** | Each API domain owns its models, router and service, with its own database where needed ([ADR-0003](../adr/0003-domain-databases.md)). Read the nested `AGENTS.md` first. | Blast-radius gate, [risk tiers](../../scripts/guardrails/risk-tier.mjs). Open: four files over 1,000 lines ([#364](https://github.com/Marcus100/grenmet/issues/364)). |
 | **Prove the path end to end first** | Build the thinnest slice through every layer, then widen it ([full-stack playbook](../playbooks/full-stack-feature.md)). | `pnpm verify:changed`, staging pipeline. |
 | **Make contracts explicit** | Pydantic schemas, OpenAPI, the permission catalogue and generated types. Never hand-write an API response type. | `pnpm check:drift`, `tests/auth/test_permission_registry.py`. |

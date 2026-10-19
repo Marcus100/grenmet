@@ -81,8 +81,7 @@ The following sections preserve the detailed concepts, resources, and repository
 | `AGENTS.md` | Persistent repository instructions for coding agents | [`AGENTS.md`](../AGENTS.md) |
 | Claude Code AGENTS.md support | Reads the shared project instruction files natively in supported versions | [Claude Code memory docs](https://code.claude.com/docs/en/memory#agentsmd) |
 | Skill | Reusable knowledge or workflow | [`.claude/skills/implement/SKILL.md`](../.claude/skills/implement/SKILL.md) |
-| Command | Older Claude slash-command format | [`.claude/commands/pre-merge.md`](../.claude/commands/pre-merge.md) |
-| Hook | Automatic lifecycle action | [`.agents/hooks.json`](../.codex/config.toml) |
+| Hook | Automatic lifecycle action | [`.claude/settings.json`](../.claude/settings.json) and [`.codex/config.toml`](../.codex/config.toml) |
 | Settings | Tool permissions and configuration | [`.claude/settings.json`](../.claude/settings.json) |
 | MCP | Connection to external tools and data | No MCP servers are permitted in `settings.json` |
 | Subagent | Isolated worker for a focused task | Claude Code agent feature |
@@ -226,16 +225,7 @@ Skills are best for reasoning-heavy procedures and reference material. Scripts a
 
 ## Commands versus skills
 
-Files under `.claude/commands/` are Claude slash commands. They remain useful for short, explicitly invoked actions, but skills provide additional capabilities such as supporting files, automatic invocation, controlled visibility, and isolated execution.
-
-The local [`pre-merge.md`](../.claude/commands/pre-merge.md) is a strong workflow example. It defines checks, an analysis-only boundary, and a required output format. A gradual migration approach is safer than rewriting every command:
-
-1. Choose one command.
-2. Copy it into a skill directory.
-3. Improve its description and structure.
-4. Verify equivalent behavior.
-5. Keep the command temporarily as a compatibility layer.
-6. Remove it only after the skill is proven.
+Claude Code treats `.claude/commands/` as the legacy format; a skill with the same name wins, and skills add supporting files, automatic invocation and `name`/`paths` frontmatter. This repository keeps every workflow as a skill under `.claude/skills/`, which Codex also reads through `.agents/skills`. The former commands (`ci-triage`, `commit`, `pre-merge`, `release`, `ui-check`) are ordinary skills now; edit their `SKILL.md` directly. Follow [the skill standard](agents/skill-standard.md) when writing or changing one.
 
 ## Hooks and enforcement
 
@@ -446,9 +436,9 @@ The central lesson is:
 
 > Agent configuration is software. It has interfaces, loading rules, dependencies, permissions, tests, security boundaries, and maintenance costs.
 
-## Portable command skills
+## Portable skills
 
-Codex and Claude Code share the skills exposed by `.agents/skills` and `.claude/skills`. The five command-based procedures (`ci-triage`, `commit`, `pre-merge`, `release`, `ui-check`) are maintained in `.claude/commands/*.md`. Regenerate their skill copies with `node scripts/guardrails/sync-command-skills.mjs --write`; do not edit the generated copies. `pnpm test:guardrails` checks parity. Client invocation syntax and permissions remain client-specific.
+Codex and Claude Code share the skills exposed by `.agents/skills` and `.claude/skills`. A skill that only runs when invoked sets `disable-model-invocation: true` for Claude and ships `agents/openai.yaml` with `policy.allow_implicit_invocation: false` for Codex. `scripts/guardrails/skill-lint.test.mjs` checks every skill against [the skill standard](agents/skill-standard.md), including that parity. Live-context lines (`` !`cmd` ``) are expanded by Claude Code only; each one says that Codex should run the command itself.
 
 ### Formatting ownership
 
