@@ -14,4 +14,4 @@ Checked by hand in fresh Claude Code and Codex sessions; see docs/agents/skill-s
 
 ## Expected behaviour
 
-Gathers the reference, file and viewport, maps intent onto tokens, lists discrepancies before editing, applies token-legal changes and runs pnpm design-system:check.
+Gathers the reference, file and viewport, maps intent onto tokens, lists discrepancies before editing, applies token-legal changes, runs pnpm design-system:check, renders with pnpm ui:screenshots, has a fresh subagent critique the PNGs, and repairs at most two rounds per finding.

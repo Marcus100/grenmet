@@ -224,6 +224,22 @@ test("Claude Code and Codex both start sessions with the shared handoff hook", (
   );
 });
 
+test("Claude Code and Codex both gate Stop on the shared read-only verification hook", () => {
+  const gate = ".claude/hooks/verify-before-stop.mjs";
+  const claudeStop = JSON.stringify(
+    JSON.parse(read(".claude/settings.json")).hooks?.Stop ?? []
+  );
+  const codexStop = read(".codex/config.toml").split("[[hooks.Stop]]")[1] ?? "";
+  assert.ok(
+    claudeStop.includes(gate),
+    `.claude/settings.json Stop must run ${gate}`
+  );
+  assert.ok(
+    codexStop.includes(gate),
+    `.codex/config.toml Stop must run ${gate}`
+  );
+});
+
 test("Claude Code denies the destructive commands the git hook blocks", () => {
   const deny =
     JSON.parse(read(".claude/settings.json")).permissions?.deny ?? [];
