@@ -10,9 +10,8 @@
 // redacted before writing, and the file rotates instead of growing forever.
 
 import { appendFileSync, renameSync, statSync } from "node:fs";
-import { spawnSync } from "node:child_process";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+import { mainCheckoutRoot } from "./main-checkout.mjs";
 
 const LOG_NAME = ".agents-bash-audit.log";
 // About 30,000 typical commands. One rotated copy (.1) caps disk use at
@@ -41,16 +40,6 @@ export function redactSecrets(command) {
       ),
     command
   );
-}
-
-function mainCheckoutRoot() {
-  const hookRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-  const result = spawnSync(
-    "git",
-    ["rev-parse", "--path-format=absolute", "--git-common-dir"],
-    { cwd: hookRoot, encoding: "utf8" }
-  );
-  return result.status === 0 ? dirname(result.stdout.trim()) : hookRoot;
 }
 
 export function appendAuditLine(logPath, command, now = new Date()) {

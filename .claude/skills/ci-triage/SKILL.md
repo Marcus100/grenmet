@@ -27,5 +27,5 @@ After the fix is applied, run and report the exact command that confirms it reso
 ---
 
 Current PR info (Claude Code fills these in; in Codex, run the commands):
-- Branch: !`git branch --show-current 2>/dev/null || true`
-- Recent commits: !`git log --oneline -5 2>/dev/null || true`
+- Branch: !`git branch --show-current`
+- Recent commits: !`git log --oneline -5`

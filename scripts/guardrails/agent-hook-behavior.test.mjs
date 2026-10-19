@@ -15,6 +15,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -30,6 +31,7 @@ import {
 } from "../../.claude/hooks/audit-log.mjs";
 import { findBlockedPattern } from "../../.claude/hooks/block-dangerous-git.mjs";
 import { isInsideRepo } from "../../.claude/hooks/format-changed-file.mjs";
+import { mainCheckoutRoot } from "../../.claude/hooks/main-checkout.mjs";
 import {
   findAskFirstEdit,
   findProtectedViolation,
@@ -49,6 +51,8 @@ const REDACTED_MARK = /\[REDACTED\]/;
 const NEWEST_ENTRY = /entry 59 /;
 const SECOND_NEWEST_ENTRY = /entry 58 /;
 const ELLIPSIS = /…/;
+const FIRST_BULLET = /first/;
+const SECOND_BULLET = /second\n {2}continued/;
 
 const hooksDir = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -455,8 +459,40 @@ test("session-handoff: shows whole entries newest first within the preview budge
   assert.ok(body.every((entry) => entry.trim().endsWith("·")));
 });
 
+test("session-handoff: splits bullet entries that have no blank line between them", () => {
+  const output = renderHandoff(
+    "- 2026-10-03T21:52:15Z first\n- 2026-10-03T21:53:52Z second\n  continued\n",
+    "/repo/SESSION_LOG.md"
+  );
+  const body = output.split("\n\n").slice(1);
+  assert.match(body[0], SECOND_BULLET);
+  assert.match(body[1], FIRST_BULLET);
+});
+
+test("main-checkout: resolves a worktree's .git file to the owning checkout", () => {
+  const dir = mkdtempSync(join(tmpdir(), "main-checkout-"));
+  try {
+    const main = join(dir, "repo");
+    const worktree = join(main, ".claude", "worktrees", "task");
+    mkdirSync(join(main, ".git", "worktrees", "task"), { recursive: true });
+    mkdirSync(worktree, { recursive: true });
+    writeFileSync(
+      join(worktree, ".git"),
+      `gitdir: ${join(main, ".git", "worktrees", "task")}\n`
+    );
+    assert.equal(mainCheckoutRoot(worktree), main);
+    assert.equal(mainCheckoutRoot(main), main);
+    assert.equal(mainCheckoutRoot(join(dir, "missing")), join(dir, "missing"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("session-handoff: truncates a single oversized entry instead of printing nothing", () => {
-  const output = renderHandoff("x".repeat(20_000), "/repo/SESSION_LOG.md");
+  const output = renderHandoff(
+    `2026-10-19T00:00:00Z ${"x".repeat(20_000)}`,
+    "/repo/SESSION_LOG.md"
+  );
   assert.ok(output.length <= MAX_OUTPUT_CHARS + 2);
   assert.match(output, ELLIPSIS);
 });

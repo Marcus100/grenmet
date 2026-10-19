@@ -38,10 +38,12 @@ Keep each skill to one job.
   characters and Codex shortens descriptions when many skills are installed.
 - Model-invoked skills include a "Use when…" clause. **(linted, repo-owned
   skills)**
-- Workflows with side effects (commit, push, merge, deploy, publish) set
+- Workflows with side effects (push, merge, deploy, publish) set
   `disable-model-invocation: true` and ship `agents/openai.yaml` with
   `policy.allow_implicit_invocation: false`, so neither agent starts them on
-  its own. **(linted)**
+  its own. **(linted)** Exception: a workflow `AGENTS.md` already authorizes
+  and that routines or other skills must load (`commit`, `release`) stays
+  model-invoked; its own steps and the hooks hold the boundaries.
 - `allowed-tools` pre-approves only what the skill needs. Claude Code honours
   it; other clients may ignore it.
 
@@ -66,8 +68,9 @@ Keep each skill to one job.
   put superseded methods under an "Old patterns" heading.
 - Use forward-slash paths and fully qualified MCP tool names
   (`server:tool`).
-- Live context (`` !`cmd` ``) is expanded by Claude Code only. End each command
-  with `|| true` when failure is expected, and tell Codex to run it.
+- Live context (`` !`cmd` ``) is expanded by Claude Code only, and a failing or
+  unapproved command aborts the skill. Use simple read-only commands covered
+  by `allowed-tools` (no `|| true` or redirects), and tell Codex to run them.
 
 ## Scripts
 

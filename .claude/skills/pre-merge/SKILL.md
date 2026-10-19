@@ -51,5 +51,5 @@ List the exact commands or diffs to fix each failure. Do not apply any fixes. Wa
 
 Live context (Claude Code fills these in; in Codex, run the commands):
 
-Current branch: !`git branch --show-current 2>/dev/null || true`
-Changed files vs main: !`git diff --name-only origin/main...HEAD 2>/dev/null || true`
+Current branch: !`git branch --show-current`
+Changed files vs main: !`git diff --name-only origin/main...HEAD`

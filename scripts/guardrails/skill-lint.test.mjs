@@ -172,16 +172,44 @@ function lintTriggers(name) {
   return problems;
 }
 
-/** Reference files linked from SKILL.md that run long need a contents list. */
+/**
+ * Reference files sit one level below SKILL.md: each is linked from SKILL.md,
+ * links to no other reference file, and opens with a contents list when long.
+ */
+function localMarkdownLinks(text) {
+  return [...text.matchAll(MARKDOWN_LINK)]
+    .map(([, target]) => target.split("#")[0])
+    .filter(
+      (target) =>
+        target.endsWith(".md") &&
+        !EXTERNAL_OR_ANCHOR.test(target) &&
+        !target.includes("/")
+    );
+}
+
 function lintReferenceFiles(name) {
   const problems = [];
+  const linkedFromSkill = new Set(
+    localMarkdownLinks(readFileSync(skillFile(name, "SKILL.md"), "utf8"))
+  );
   for (const entry of readdirSync(skillFile(name), { withFileTypes: true })) {
     if (
       !(entry.isFile() && entry.name.endsWith(".md")) ||
       entry.name === "SKILL.md"
     )
       continue;
-    const lines = readFileSync(skillFile(name, entry.name), "utf8").split("\n");
+    const text = readFileSync(skillFile(name, entry.name), "utf8");
+    if (!linkedFromSkill.has(entry.name)) {
+      problems.push(`${entry.name} is not linked from SKILL.md`);
+    }
+    for (const target of localMarkdownLinks(text)) {
+      if (target !== "SKILL.md") {
+        problems.push(
+          `${entry.name} links to ${target}; link reference files only from SKILL.md (one level deep)`
+        );
+      }
+    }
+    const lines = text.split("\n");
     if (lines.length <= TOC_THRESHOLD_LINES) continue;
     const opening = lines.slice(0, TOC_SEARCH_LINES).join("\n");
     if (!CONTENTS_HEADING.test(opening)) {

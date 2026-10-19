@@ -1,3 +1,0 @@
-# Codex mirror of disable-model-invocation: run only when invoked as $commit.
-policy:
-  allow_implicit_invocation: false

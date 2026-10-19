@@ -9,28 +9,18 @@
 // entries and never the latest one.
 
 import { existsSync, readFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
+import { parseEntries } from "../../scripts/agents/archive-session-log.mjs";
+import { mainCheckoutRoot } from "./main-checkout.mjs";
 
 const LOG_NAME = "SESSION_LOG.md";
 // Below both clients' preview thresholds (10,000 chars; ~2,500 tokens).
 export const MAX_OUTPUT_CHARS = 8000;
-const ENTRY_SEPARATOR = /\n\s*\n/;
-
-function mainCheckoutRoot(cwd) {
-  const result = spawnSync(
-    "git",
-    ["rev-parse", "--path-format=absolute", "--git-common-dir"],
-    { cwd, encoding: "utf8" }
-  );
-  return result.status === 0 ? dirname(result.stdout.trim()) : null;
-}
 
 /** Newest entries first, whole entries only, within `budget` characters. */
 export function renderHandoff(logText, logPath, budget = MAX_OUTPUT_CHARS) {
-  const entries = logText
-    .split(ENTRY_SEPARATOR)
-    .map((entry) => entry.trim())
+  const entries = parseEntries(logText)
+    .entries.map((entry) => entry.lines.join("\n").trim())
     .filter(Boolean)
     .reverse();
   const header = `Latest ${LOG_NAME} entries, newest first. Older entries: ${logPath}\n`;
@@ -52,10 +42,8 @@ export function renderHandoff(logText, logPath, budget = MAX_OUTPUT_CHARS) {
 
 /* c8 ignore start -- exercised via scripts/guardrails/agent-hook-behavior.test.mjs, not by running this file directly */
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const cwd = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-  const root = mainCheckoutRoot(cwd);
-  const logPath = root ? join(root, LOG_NAME) : "";
-  if (logPath && existsSync(logPath)) {
+  const logPath = join(mainCheckoutRoot(), LOG_NAME);
+  if (existsSync(logPath)) {
     process.stdout.write(renderHandoff(readFileSync(logPath, "utf8"), logPath));
   }
   process.exit(0);

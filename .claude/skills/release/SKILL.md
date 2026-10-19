@@ -1,7 +1,6 @@
 ---
 name: release
-description: "Drives the release pipeline dev → staging → main → tagged release with CI gating: promotes verified dev to staging automatically and stops for the owner at main and production. Run as /release."
-disable-model-invocation: true
+description: "Drives the release pipeline dev → staging → main → tagged release with CI gating, arming staging auto-merge automatically and stopping for the owner before main and production. Use when promoting dev to staging, or when the user asks to release, promote or ship to production."
 allowed-tools: Bash(pnpm *), Bash(turbo run *), Bash(gh *), Bash(git *), Bash(curl *)
 ---
 

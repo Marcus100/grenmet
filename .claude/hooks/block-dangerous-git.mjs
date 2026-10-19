@@ -17,6 +17,8 @@ import { spawnSync } from "node:child_process";
 // `[^;&|]*` keeps a match inside one subcommand, so `git push && rm -f x`
 // does not read as a forced push.
 const SAME_COMMAND = "[^;&|\\n]*";
+// `.` and `:/` both name the whole working tree as a pathspec.
+const WHOLE_TREE = "(?:\\.|:/)(?:\\s|$)";
 const DANGEROUS_PATTERNS = [
   /reset\s+--hard/,
   new RegExp(
@@ -28,7 +30,12 @@ const DANGEROUS_PATTERNS = [
   new RegExp(
     `\\bgit\\b${SAME_COMMAND}\\bbranch\\b(?=${SAME_COMMAND}\\s(?:--delete|-d)\\b)(?=${SAME_COMMAND}\\s(?:--force|-f)\\b)`
   ),
-  new RegExp(`\\bgit\\b${SAME_COMMAND}\\bcheckout\\s+(?:--\\s+)?\\.(?:\\s|$)`),
+  // `git checkout .`, `git checkout HEAD -- .` and `git checkout -- :/`
+  // overwrite every uncommitted edit.
+  new RegExp(`\\bgit\\b${SAME_COMMAND}\\bcheckout\\s+(?:--\\s+)?${WHOLE_TREE}`),
+  new RegExp(
+    `\\bgit\\b${SAME_COMMAND}\\bcheckout\\b${SAME_COMMAND}\\s--\\s+${WHOLE_TREE}`
+  ),
   new RegExp(
     `\\bgit\\b${SAME_COMMAND}\\bcheckout\\b${SAME_COMMAND}\\s(?:-f|--force)\\b`
   ),
@@ -49,7 +56,7 @@ const DANGEROUS_PATTERNS = [
 // `git restore .` discards working-tree edits; `git restore --staged .` only
 // unstages, which loses nothing.
 const RESTORE_ALL = new RegExp(
-  `\\bgit\\b${SAME_COMMAND}\\brestore\\b(${SAME_COMMAND})\\s\\.(?:\\s|$)`
+  `\\bgit\\b${SAME_COMMAND}\\brestore\\b(${SAME_COMMAND})\\s${WHOLE_TREE}`
 );
 const STAGED_ONLY = /--staged|\s-S\b/;
 const WORKTREE_FLAG = /--worktree|\s-W\b/;
@@ -64,11 +71,27 @@ const MAX_WRAPPER_DEPTH = 3;
 const HEREDOC =
   /([^\n]*<<-?\s*(['"]?)(\w+)\2[^\n]*)\n([\s\S]*?)\n(\s*\3)(?=\n|$)/g;
 const SUBCOMMAND_BREAK = /[;&|]/;
-const SHELL_CONSUMER = /^\s*(?:\w+=\S*\s+)*(?:sudo\s+)?(?:(?:ba|z|da)?sh|eval|source)\b/;
+const SHELL_CONSUMER =
+  /^\s*(?:\w+=\S*\s+)*(?:sudo\s+)?(?:(?:ba|z|da)?sh|eval|source)\b/;
+const PIPED_TO_SHELL = /\|\s*(?:sudo\s+)?(?:(?:ba|z|da)?sh|eval|source)\b/;
 const COMMAND_SUBSTITUTION = /\$\([^)]*\)|`[^`]*`/g;
 
 const GH_PR_MERGE = new RegExp(`\\bgh\\s+pr\\s+merge\\b(${SAME_COMMAND})`, "g");
 const ALLOWED_MERGE_BASE = "staging";
+// Merge flags that take a separate value, so the value is not the PR.
+const MERGE_FLAGS_WITH_VALUE = new Set([
+  "-A",
+  "--author-email",
+  "-b",
+  "--body",
+  "-F",
+  "--body-file",
+  "--match-head-commit",
+  "-R",
+  "--repo",
+  "-t",
+  "--subject",
+]);
 // gh pr view usually answers in under 2 s; 15 s covers a slow network
 // without stalling the agent's turn for long.
 const GH_LOOKUP_TIMEOUT_MS = 15_000;
@@ -100,8 +123,13 @@ function separateHeredocs(command) {
   const outer = command.replace(
     HEREDOC,
     (_match, opener, quote, _delimiter, body, closer) => {
-      const consumer = opener.split(SUBCOMMAND_BREAK).at(-1) ?? "";
-      if (SHELL_CONSUMER.test(consumer)) {
+      // The command that reads the heredoc is the one written before `<<`;
+      // anything after it on the line (`&& echo`, `; …`) runs separately,
+      // except a pipe into a shell.
+      const redirect = opener.indexOf("<<");
+      const reader = opener.slice(0, redirect).split(SUBCOMMAND_BREAK).at(-1);
+      const rest = opener.slice(redirect);
+      if (SHELL_CONSUMER.test(reader ?? "") || PIPED_TO_SHELL.test(rest)) {
         executed.push(body);
       } else if (!quote) {
         executed.push(...(body.match(COMMAND_SUBSTITUTION) ?? []));
@@ -126,14 +154,28 @@ function executedSegments(command, depth = 0) {
   return segments;
 }
 
+/** The PR (number, URL or branch) and repo named by merge arguments. */
+export function parseMergeTarget(args) {
+  let prRef;
+  let repo;
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index];
+    if (MERGE_FLAGS_WITH_VALUE.has(arg)) {
+      if (arg === "-R" || arg === "--repo") repo = args[index + 1] ?? "";
+      index++;
+    } else if (arg.startsWith("--repo=")) {
+      repo = arg.slice("--repo=".length);
+    } else if (!(arg.startsWith("-") || prRef)) {
+      prRef = arg;
+    }
+  }
+  return { prRef, repo };
+}
+
 /** Ask GitHub which branch a PR merges into; null when it can't tell. */
 export function lookupMergeBase(args) {
-  const repoIndex = args.findIndex((arg) => arg === "-R" || arg === "--repo");
-  const repoArgs =
-    repoIndex === -1 ? [] : ["--repo", args[repoIndex + 1] ?? ""];
-  const prRef = args.find(
-    (arg, index) => !arg.startsWith("-") && index !== repoIndex + 1
-  );
+  const { prRef, repo } = parseMergeTarget(args);
+  const repoArgs = repo === undefined ? [] : ["--repo", repo];
   const result = spawnSync(
     "gh",
     [

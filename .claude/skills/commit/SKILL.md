@@ -1,7 +1,6 @@
 ---
 name: commit
-description: "Reviews, validates and commits authorized changes, merges the task branch into local dev, pushes dev and arms the staging promotion. Run as /commit when a task is ready to land."
-disable-model-invocation: true
+description: "Reviews, validates and commits authorized changes, merges the task branch into local dev, pushes dev and arms the staging promotion. Use when a task is ready to land, when the user says commit, ship or push it, or when a routine reaches its commit gates."
 allowed-tools: Bash(git *), Bash(pnpm *), Bash(gh *)
 ---
 
@@ -9,9 +8,9 @@ allowed-tools: Bash(git *), Bash(pnpm *), Bash(gh *)
 
 Claude Code fills these in; in Codex, run the commands.
 
-- Current git status: !`git status 2>/dev/null || true`
-- Current diff (staged and unstaged): !`git diff HEAD 2>/dev/null || true`
-- Recent commits (for style reference): !`git log --oneline -5 2>/dev/null || true`
+- Current git status: !`git status`
+- Current diff (staged and unstaged): !`git diff HEAD`
+- Recent commits (for style reference): !`git log --oneline -5`
 
 ## Your task
 
