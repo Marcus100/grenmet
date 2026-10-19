@@ -54,7 +54,7 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 ## Always
 
 - Work locally first: run formatting, types, affected tests and integration checks before pushing; CI is extra verification, not the first test run.
-- Before calling a task done, run `pnpm fix:changed` and `pnpm type-check` (or `pnpm verify:changed`), then grep every importer and callsite of changed symbols and finish every affected layer. See the blast-radius table in `docs/agents/workflow.md`.
+- Before calling a task done, run `pnpm verify:changed` (or `pnpm fix:changed` and `pnpm type-check`); a Stop hook asks once if the current changes have no passing receipt, then grep every importer and callsite of changed symbols and finish every affected layer. See the blast-radius table in `docs/agents/workflow.md`.
 - Put backend logic in Python (FastAPI). The only TypeScript backend is the Payload CMS (`apps/web/cms`). Next.js route handlers may only validate, proxy to FastAPI, or render; never add database access, business rules, or delivery there.
 - Failure budget: if the same check fails twice on the same error, stop editing. Report the raw output and your proposed fix, then wait for the user (routines: record it in the run record, mark the outcome `blocked` and stop).
 - Before building, state the task contract: deliverable, constraints, non-goals and acceptance check. Skip it only for one-line fixes.

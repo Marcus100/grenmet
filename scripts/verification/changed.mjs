@@ -9,6 +9,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { availableParallelism, loadavg } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { changedFiles, fingerprint, writeReceipt } from "./receipt.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const API = "apps/api/fastapi/";
@@ -317,7 +318,19 @@ function main() {
   console.log("\nverify:changed summary");
   for (const { name, ok } of results)
     console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
-  if (results.some((r) => !r.ok)) process.exitCode = 1;
+  if (results.some((r) => !r.ok)) {
+    process.exitCode = 1;
+    return;
+  }
+  // Fingerprint after the checks run, so the receipt matches what passed.
+  const verifiedFiles = changedFiles(root, options.base) ?? files;
+  writeReceipt(root, {
+    base: options.base,
+    checks: results.map((r) => r.name),
+    skipped: [...options.skip],
+    verified: fingerprint(root, verifiedFiles),
+    verifiedAt: new Date().toISOString(),
+  });
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

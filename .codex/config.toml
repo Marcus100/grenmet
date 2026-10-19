@@ -38,7 +38,14 @@ command = 'hook_root=$(git rev-parse --show-toplevel) && node "$hook_root/.claud
 timeout = 30
 
 # Formatting is explicit or staged at commit time. Never mutate all dirty files
-# automatically on Stop: another client may own them.
+# automatically on Stop: another client may own them. The Stop hook below only
+# reads: it asks once for `pnpm verify:changed` when changes are unverified.
+
+[[hooks.Stop]]
+[[hooks.Stop.hooks]]
+type = "command"
+command = 'hook_root=$(git rev-parse --show-toplevel) && node "$hook_root/.claude/hooks/verify-before-stop.mjs"'
+timeout = 30
 
 [[hooks.SessionStart]]
 matcher = "^(startup|resume|clear|compact|fork)$"
