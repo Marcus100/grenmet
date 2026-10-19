@@ -59,8 +59,9 @@ third, tool-independent pass.
 **AI review setup.** Add the repository secret `ANTHROPIC_API_KEY`. Without it the
 job logs a skip and passes. Set the repository variable `AI_REVIEW_MODEL` to
 change the model (default `claude-sonnet-5-5`). The workflow uses
-`pull_request_target` so it runs from the base branch and never executes PR
-code; keep it that way. It only starts reviewing PRs once it is on `dev`.
+`pull_request_target`, which GitHub runs from the default branch (`main`), so it
+never executes PR code; keep it that way. It only starts reviewing PRs once it
+has reached `main` through the normal promotion.
 
 **Limits.** The reviewer sees the diff and the `AGENTS.md` rules, not the running
 system, and it can be wrong; treat findings as claims to check. The breaking

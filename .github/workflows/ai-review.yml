@@ -1,9 +1,11 @@
 # Independent AI review of pull requests into dev (advisory, never blocks).
 #
-# pull_request_target runs this workflow and scripts/ci/ai-review.mjs from the
-# BASE branch, and checks out the base only. The PR's code is never checked out
-# or executed here: the script reads the PR diff as text through the API and
-# treats it as data. Do not add a step that checks out or runs the PR head.
+# GitHub runs pull_request_target workflows from the repository's DEFAULT branch
+# (main), not the PR's base branch, and checks out that branch. So this file is
+# inactive until it reaches main through the dev -> staging -> main promotion.
+# The PR's code is never checked out or executed here: the script reads the PR
+# diff as text through the API and treats it as data. Do not add a step that
+# checks out or runs the PR head.
 #
 # Needs the repository secret ANTHROPIC_API_KEY. Without it the job logs a skip
 # and passes. Optional repository variable AI_REVIEW_MODEL overrides the model.
