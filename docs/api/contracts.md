@@ -236,7 +236,8 @@ Rules:
 2. After changing FastAPI route contracts, update `apps/api/fastapi/openapi.json`.
 3. Run `pnpm generate:api-client`.
 4. Run `pnpm check:drift`.
-5. Commit `openapi.json` and generated client changes together.
+5. Run `node scripts/api/check-api-breaking.mjs --base origin/dev`. CI runs the same check on PRs into `dev` (`api-breaking-changes` workflow) and fails on a removed route or method, new required input, or removed or retyped output. Prefer an additive change; if a break is intended, update every consumer and label the PR `breaking-change`.
+6. Commit `openapi.json` and generated client changes together.
 
 CI also regenerates the client and fails if `packages/api-client/src/gen` differs from the committed output.
 

@@ -41,8 +41,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Test API drift checker
-        run: node --test scripts/api/check-api-drift.test.mjs
+      - name: Test API drift and breaking-change checkers
+        run: node --test scripts/api/check-api-drift.test.mjs scripts/api/check-api-breaking.test.mjs
 
       - name: Ensure generated client is committed
         run: pnpm check:drift
