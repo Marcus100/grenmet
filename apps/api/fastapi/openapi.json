@@ -6803,7 +6803,7 @@
           "hr-rosters"
         ],
         "summary": "Preview a grid roster import",
-        "description": "Parse a name\u00d7day grid CSV, match names to department staff, and report unmatched names / invalid codes without importing. Requires roster.manage permission.",
+        "description": "Parse a name×day grid CSV, match names to department staff, and report unmatched names / invalid codes without importing. Requires roster.manage permission.",
         "operationId": "hrValidateGrid",
         "requestBody": {
           "content": {
@@ -6856,7 +6856,7 @@
           "hr-rosters"
         ],
         "summary": "Import a grid roster",
-        "description": "Import a name\u00d7day grid CSV into a draft roster period (created or reused for the month). Blocked if any name is unmatched or any code invalid. Requires roster.manage permission.",
+        "description": "Import a name×day grid CSV into a draft roster period (created or reused for the month). Blocked if any name is unmatched or any code invalid. Requires roster.manage permission.",
         "operationId": "hrImportGrid",
         "requestBody": {
           "content": {
@@ -7633,7 +7633,7 @@
           "hr-calendar"
         ],
         "summary": "List department calendar events",
-        "description": "Return the department's calendar entries overlapping the date range \u2014 meetings, training, inspections, visits, maintenance and anything else staff have recorded. The duty roster is a separate layer, read from /hr/rosters/assignments. Requires calendar.view; the range is capped at 92 days. Cancelled entries are omitted unless include_cancelled is set.",
+        "description": "Return the department's calendar entries overlapping the date range — meetings, training, inspections, visits, maintenance and anything else staff have recorded. The duty roster is a separate layer, read from /hr/rosters/assignments. Requires calendar.view; the range is capped at 92 days. Cancelled entries are omitted unless include_cancelled is set.",
         "operationId": "hrListCalendarEvents",
         "security": [
           {
@@ -12271,7 +12271,7 @@
           "hr-documents"
         ],
         "summary": "Correct employee document metadata",
-        "description": "Update correctable metadata. Requires hr.document.manage, or being the uploader of a document on their own record. Management is scoped. Category cannot be changed \u2014 re-file the document instead.",
+        "description": "Update correctable metadata. Requires hr.document.manage, or being the uploader of a document on their own record. Management is scoped. Category cannot be changed — re-file the document instead.",
         "operationId": "hrPatchDocument",
         "security": [
           {
@@ -18014,39 +18014,6 @@
           },
           "403": {
             "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
-          }
-        }
-      }
-    },
-    "/api/v1/utils/health-check/": {
-      "get": {
-        "tags": [
-          "utils"
-        ],
-        "summary": "Liveness",
-        "description": "Simple liveness probe; returns 200 if the process is running.",
-        "operationId": "utilsHealthCheck",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean",
-                  "title": "Response Utilshealthcheck"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Content",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationErrorResponse"
-                }
-              }
-            }
           }
         }
       }
@@ -39188,7 +39155,7 @@
           "created_at"
         ],
         "title": "CalendarEventPublic",
-        "description": "A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset \u2014 the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC."
+        "description": "A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset — the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC."
       },
       "CalendarEventUpdate": {
         "properties": {
@@ -57990,7 +57957,7 @@
           "is_draft"
         ],
         "title": "RosterCalendarEntry",
-        "description": "One rostered day for one person, expanded to concrete time.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 **without an offset**: they are\ndepartment-local wall-clock times, exactly as the shift catalog records them\nand as the printed roster reads. They are deliberately not UtcDateTime \u2014 a\n05:30 morning shift is 05:30 on the wall in Grenada, and stamping it UTC\nwould move it four hours. Codes with no clock time (Off, Leave, Vacation,\nStudy Leave) carry `all_day: true` and no times."
+        "description": "One rostered day for one person, expanded to concrete time.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 **without an offset**: they are\ndepartment-local wall-clock times, exactly as the shift catalog records them\nand as the printed roster reads. They are deliberately not UtcDateTime — a\n05:30 morning shift is 05:30 on the wall in Grenada, and stamping it UTC\nwould move it four hours. Codes with no clock time (Off, Leave, Vacation,\nStudy Leave) carry `all_day: true` and no times."
       },
       "RosterCalendarPublic": {
         "properties": {
