@@ -23,7 +23,7 @@ import type {
 } from "../models/BookingsGetProfile.js";
 
 export const bookingsGetProfileQueryKey = () =>
-  [{ url: "/api/v1/bookings/studio/profile" }] as const;
+  [{ url: "/api/v1/bookings/org/profile" }] as const;
 
 type BookingsGetProfileQueryKey = ReturnType<typeof bookingsGetProfileQueryKey>;
 
@@ -61,7 +61,7 @@ export function bookingsGetProfileQueryOptions(
 /**
  * @description The organisation's booking page settings and rules.
  * @summary Get my booking profile
- * {@link /api/v1/bookings/studio/profile}
+ * {@link /api/v1/bookings/org/profile}
  */
 export function useBookingsGetProfile<
   TData = BookingsGetProfileStatus200,

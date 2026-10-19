@@ -13,7 +13,7 @@ import type {
 /**
  * @description All services, active and inactive, in menu order.
  * @summary List my services
- * {@link /api/v1/bookings/studio/services}
+ * {@link /api/v1/bookings/org/services}
  */
 export function bookingsListServices<ThrowOnError extends boolean = true>(
   options: Options<BookingsListServicesOptions, ThrowOnError> = {}
@@ -23,7 +23,7 @@ export function bookingsListServices<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "GET",
-      url: "/api/v1/bookings/studio/services",
+      url: "/api/v1/bookings/org/services",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

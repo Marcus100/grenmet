@@ -23,7 +23,7 @@ import type {
 } from "../models/BookingsUpdateProvider.js";
 
 export const bookingsUpdateProviderMutationKey = () =>
-  [{ url: "/api/v1/bookings/studio/providers/:provider_id" }] as const;
+  [{ url: "/api/v1/bookings/org/providers/:provider_id" }] as const;
 
 export function bookingsUpdateProviderMutationOptions<TContext = unknown>(
   config: Partial<
@@ -60,7 +60,7 @@ export function bookingsUpdateProviderMutationOptions<TContext = unknown>(
 /**
  * @description Rename, deactivate, or replace the services a provider performs.
  * @summary Update a provider
- * {@link /api/v1/bookings/studio/providers/:provider_id}
+ * {@link /api/v1/bookings/org/providers/:provider_id}
  */
 export function useBookingsUpdateProvider<TContext>(
   options: {

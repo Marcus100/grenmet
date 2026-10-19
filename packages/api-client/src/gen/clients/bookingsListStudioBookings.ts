@@ -13,7 +13,7 @@ import type {
 /**
  * @description The agenda: bookings overlapping the range, earliest first.
  * @summary List bookings in a period
- * {@link /api/v1/bookings/studio/bookings}
+ * {@link /api/v1/bookings/org/bookings}
  */
 export function bookingsListStudioBookings<ThrowOnError extends boolean = true>(
   options: Options<BookingsListStudioBookingsOptions, ThrowOnError>
@@ -25,7 +25,7 @@ export function bookingsListStudioBookings<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "GET",
-      url: "/api/v1/bookings/studio/bookings",
+      url: "/api/v1/bookings/org/bookings",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

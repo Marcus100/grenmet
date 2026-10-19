@@ -13,7 +13,7 @@ import type {
 /**
  * @description The organisation's booking page settings and rules.
  * @summary Get my booking profile
- * {@link /api/v1/bookings/studio/profile}
+ * {@link /api/v1/bookings/org/profile}
  */
 export function bookingsGetProfile<ThrowOnError extends boolean = true>(
   options: Options<BookingsGetProfileOptions, ThrowOnError> = {}
@@ -23,7 +23,7 @@ export function bookingsGetProfile<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "GET",
-      url: "/api/v1/bookings/studio/profile",
+      url: "/api/v1/bookings/org/profile",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

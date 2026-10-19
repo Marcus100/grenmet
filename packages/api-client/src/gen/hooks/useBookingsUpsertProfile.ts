@@ -23,7 +23,7 @@ import type {
 } from "../models/BookingsUpsertProfile.js";
 
 export const bookingsUpsertProfileMutationKey = () =>
-  [{ url: "/api/v1/bookings/studio/profile" }] as const;
+  [{ url: "/api/v1/bookings/org/profile" }] as const;
 
 export function bookingsUpsertProfileMutationOptions<TContext = unknown>(
   config: Partial<
@@ -59,7 +59,7 @@ export function bookingsUpsertProfileMutationOptions<TContext = unknown>(
 /**
  * @description Set the public booking address, timezone, currency and booking rules. Online booking stays off until `enabled` is true.
  * @summary Create or update my booking profile
- * {@link /api/v1/bookings/studio/profile}
+ * {@link /api/v1/bookings/org/profile}
  */
 export function useBookingsUpsertProfile<TContext>(
   options: {

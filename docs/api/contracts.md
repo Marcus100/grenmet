@@ -565,12 +565,12 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 
 | Endpoint | Authentication | Contract |
 | --- | --- | --- |
-| `GET/PUT /api/v1/bookings/studio/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409 |
-| `GET/POST /api/v1/bookings/studio/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
-| `GET/POST /api/v1/bookings/studio/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
-| `GET/PUT /api/v1/bookings/studio/providers/{id}/hours` | Same | Replace the weekly plan; overlapping periods on one day 422 |
-| `GET/POST /api/v1/bookings/studio/providers/{id}/exceptions`, `DELETE /studio/exceptions/{id}` | Same | Dated `time_off` and `extra_hours` |
-| `GET /api/v1/bookings/studio/bookings?starts_from&ends_before` | `X-Barrels-Organisation`, any member | Agenda of bookings overlapping the range |
+| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409 |
+| `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
+| `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
+| `GET/PUT /api/v1/bookings/org/providers/{id}/hours` | Same | Replace the weekly plan; overlapping periods on one day 422 |
+| `GET/POST /api/v1/bookings/org/providers/{id}/exceptions`, `DELETE /studio/exceptions/{id}` | Same | Dated `time_off` and `extra_hours` |
+| `GET /api/v1/bookings/org/bookings?starts_from&ends_before` | `X-Barrels-Organisation`, any member | Agenda of bookings overlapping the range |
 | `GET /api/v1/bookings/public/{slug}` | None (60/minute) | Storefront: active services and providers; unknown or disabled 404 |
 | `GET /api/v1/bookings/public/{slug}/availability?service_id&first_day&last_day[&provider_id]` | None (60/minute) | Open slots (UTC) with free provider ids; at most 14 local days |
 

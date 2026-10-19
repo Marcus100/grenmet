@@ -6,7 +6,7 @@
 import * as z from "zod";
 import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 
-export const srcHrSchemasRolePublicSchema = z.object({
+export const hrRolePublicSchema = z.object({
   name: z.string(),
   scope: roleAssignmentScopeSchema,
 });

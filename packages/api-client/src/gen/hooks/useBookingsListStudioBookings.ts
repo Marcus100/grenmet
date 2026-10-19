@@ -26,7 +26,7 @@ export const bookingsListStudioBookingsQueryKey = ({
   query,
 }: Omit<BookingsListStudioBookingsOptions, "headers">) =>
   [
-    { url: "/api/v1/bookings/studio/bookings" },
+    { url: "/api/v1/bookings/org/bookings" },
     ...(query ? [query] : []),
   ] as const;
 
@@ -69,7 +69,7 @@ export function bookingsListStudioBookingsQueryOptions(
 /**
  * @description The agenda: bookings overlapping the range, earliest first.
  * @summary List bookings in a period
- * {@link /api/v1/bookings/studio/bookings}
+ * {@link /api/v1/bookings/org/bookings}
  */
 export function useBookingsListStudioBookings<
   TData = BookingsListStudioBookingsStatus200,

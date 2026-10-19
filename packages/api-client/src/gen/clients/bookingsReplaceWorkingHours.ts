@@ -13,7 +13,7 @@ import type {
 /**
  * @description Send the whole week. Several periods on one day make breaks between them; a day with no periods is a day off.
  * @summary Replace a provider's weekly hours
- * {@link /api/v1/bookings/studio/providers/:provider_id/hours}
+ * {@link /api/v1/bookings/org/providers/:provider_id/hours}
  */
 export function bookingsReplaceWorkingHours<
   ThrowOnError extends boolean = true,
@@ -27,7 +27,7 @@ export function bookingsReplaceWorkingHours<
   return withUnwrap(
     request({
       method: "PUT",
-      url: "/api/v1/bookings/studio/providers/{provider_id}/hours",
+      url: "/api/v1/bookings/org/providers/{provider_id}/hours",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

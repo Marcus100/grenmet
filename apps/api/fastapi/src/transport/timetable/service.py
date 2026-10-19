@@ -11,7 +11,6 @@ import logging
 from collections import defaultdict
 from datetime import date, datetime
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.exc import IntegrityError
@@ -32,6 +31,7 @@ from src.transport.models import (
     TimetableVersionStatus,
     TransportTripStatus,
 )
+from src.utils.timezones import GRENADA
 
 from . import schemas
 
@@ -43,7 +43,6 @@ def _coordinate(value: float | None) -> Decimal | None:
     return None if value is None else Decimal(str(value))
 
 
-GRENADA = ZoneInfo("America/Grenada")
 WEEKDAYS = tuple(schemas.TransportWeekday)
 
 

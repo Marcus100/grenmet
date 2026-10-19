@@ -13,7 +13,7 @@ import type {
 /**
  * @description Dated changes to a provider's weekly hours, optionally in a range.
  * @summary List time off and extra hours
- * {@link /api/v1/bookings/studio/providers/:provider_id/exceptions}
+ * {@link /api/v1/bookings/org/providers/:provider_id/exceptions}
  */
 export function bookingsListExceptions<ThrowOnError extends boolean = true>(
   options: Options<BookingsListExceptionsOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function bookingsListExceptions<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "GET",
-      url: "/api/v1/bookings/studio/providers/{provider_id}/exceptions",
+      url: "/api/v1/bookings/org/providers/{provider_id}/exceptions",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

@@ -197,10 +197,10 @@ class BookingExceptionPublic(BaseModel):
     reason: str | None
 
 
-# --- studio booking list -----------------------------------------------------------
+# --- organisation agenda -----------------------------------------------------------
 
 
-class StudioBookingPublic(BaseModel):
+class BookingAgendaItem(BaseModel):
     id: uuid.UUID
     provider_id: uuid.UUID
     service_id: uuid.UUID

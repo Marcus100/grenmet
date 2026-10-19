@@ -23,7 +23,7 @@ import type {
 } from "../models/BookingsReplaceWorkingHours.js";
 
 export const bookingsReplaceWorkingHoursMutationKey = () =>
-  [{ url: "/api/v1/bookings/studio/providers/:provider_id/hours" }] as const;
+  [{ url: "/api/v1/bookings/org/providers/:provider_id/hours" }] as const;
 
 export function bookingsReplaceWorkingHoursMutationOptions<TContext = unknown>(
   config: Partial<
@@ -60,7 +60,7 @@ export function bookingsReplaceWorkingHoursMutationOptions<TContext = unknown>(
 /**
  * @description Send the whole week. Several periods on one day make breaks between them; a day with no periods is a day off.
  * @summary Replace a provider's weekly hours
- * {@link /api/v1/bookings/studio/providers/:provider_id/hours}
+ * {@link /api/v1/bookings/org/providers/:provider_id/hours}
  */
 export function useBookingsReplaceWorkingHours<TContext>(
   options: {

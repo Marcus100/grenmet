@@ -23,7 +23,7 @@ import type {
 } from "../models/BookingsListProviders.js";
 
 export const bookingsListProvidersQueryKey = () =>
-  [{ url: "/api/v1/bookings/studio/providers" }] as const;
+  [{ url: "/api/v1/bookings/org/providers" }] as const;
 
 type BookingsListProvidersQueryKey = ReturnType<
   typeof bookingsListProvidersQueryKey
@@ -63,7 +63,7 @@ export function bookingsListProvidersQueryOptions(
 /**
  * @description People (or chairs, bays, rooms) who perform services.
  * @summary List my providers
- * {@link /api/v1/bookings/studio/providers}
+ * {@link /api/v1/bookings/org/providers}
  */
 export function useBookingsListProviders<
   TData = BookingsListProvidersStatus200,

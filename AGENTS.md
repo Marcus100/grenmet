@@ -103,6 +103,7 @@ Frontend (full style rules in `.agents/rules/ultracite.mdc`):
 Backend (details in `apps/api/fastapi/AGENTS.md`):
 - SQLAlchemy models in `models.py`, `src.models.BaseModel` schemas in `schemas.py`; never expose ORM models.
 - Thin routers, logic in `service.py`, typed `AppException` subclasses; filter, join and paginate in SQL.
+- Frontend-agnostic routes per ADR-0025: zones `public`/`me`/`org`/`admin`, kebab-case nouns, unique schema names, shared helpers (`src/utils/timezones.py`); `tests/test_api_conventions.py` enforces it.
 - `require_permission(current_user=…, permission_key=…)` with every key in `src/auth/permissions.py`.
 - No sync network calls in `async def`; background work goes to the ARQ worker.
 - geonetcast runs devcontainer-first; never `uv sync --package geonetcast` on the host.

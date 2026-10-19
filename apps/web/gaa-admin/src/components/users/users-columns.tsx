@@ -1,7 +1,7 @@
 "use client";
 "use no memo";
 
-import type { SrcAuthSchemasRolePublic as RolePublic } from "@barrelsgd/api-client";
+import type { RolePublic } from "@barrelsgd/api-client";
 import {
   Avatar,
   AvatarBadge,

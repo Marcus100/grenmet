@@ -4,9 +4,9 @@ import base64
 from datetime import datetime
 from html import escape
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from src.hr.signatures.service import DocumentSnapshot, gaa_letterhead
+from src.utils.timezones import GRENADA
 
 RULES = (
     "A $40.00 fee is charged for each vehicle decal for one year, or any part thereof.",
@@ -31,11 +31,11 @@ def render_parking_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes
 
     document_date = (
         datetime.fromisoformat(str(form.get("created_at") or snapshot["signed_at"]))
-        .astimezone(ZoneInfo("America/Grenada"))
+        .astimezone(GRENADA)
         .date()
         .isoformat()
         if form.get("created_at") or snapshot["signed_at"]
-        else datetime.now(ZoneInfo("America/Grenada")).date().isoformat()
+        else datetime.now(GRENADA).date().isoformat()
     )
     options = " · ".join(
         f"{'☑' if form.get('action_requested') == code else '☐'} {label}"

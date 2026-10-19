@@ -13,7 +13,7 @@ import type {
 /**
  * @description Set the public booking address, timezone, currency and booking rules. Online booking stays off until `enabled` is true.
  * @summary Create or update my booking profile
- * {@link /api/v1/bookings/studio/profile}
+ * {@link /api/v1/bookings/org/profile}
  */
 export function bookingsUpsertProfile<ThrowOnError extends boolean = true>(
   options: Options<BookingsUpsertProfileOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function bookingsUpsertProfile<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "PUT",
-      url: "/api/v1/bookings/studio/profile",
+      url: "/api/v1/bookings/org/profile",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

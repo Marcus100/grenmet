@@ -23,7 +23,7 @@ import type {
 } from "../models/BookingsDeleteException.js";
 
 export const bookingsDeleteExceptionMutationKey = () =>
-  [{ url: "/api/v1/bookings/studio/exceptions/:exception_id" }] as const;
+  [{ url: "/api/v1/bookings/org/exceptions/:exception_id" }] as const;
 
 export function bookingsDeleteExceptionMutationOptions<TContext = unknown>(
   config: Partial<
@@ -59,7 +59,7 @@ export function bookingsDeleteExceptionMutationOptions<TContext = unknown>(
 /**
  * @description Delete one dated exception.
  * @summary Remove time off or extra hours
- * {@link /api/v1/bookings/studio/exceptions/:exception_id}
+ * {@link /api/v1/bookings/org/exceptions/:exception_id}
  */
 export function useBookingsDeleteException<TContext>(
   options: {

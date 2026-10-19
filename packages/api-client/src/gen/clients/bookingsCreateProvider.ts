@@ -13,7 +13,7 @@ import type {
 /**
  * @description Add a provider and the services they perform.
  * @summary Add a provider
- * {@link /api/v1/bookings/studio/providers}
+ * {@link /api/v1/bookings/org/providers}
  */
 export function bookingsCreateProvider<ThrowOnError extends boolean = true>(
   options: Options<BookingsCreateProviderOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function bookingsCreateProvider<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/bookings/studio/providers",
+      url: "/api/v1/bookings/org/providers",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

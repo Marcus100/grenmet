@@ -4,10 +4,10 @@
  */
 
 import * as z from "zod";
-import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
+import { rolePublicSchema } from "./rolePublicSchema.js";
 
 export const paginatedResponseRolePublicSchema = z.object({
-  data: z.array(srcAuthSchemasRolePublicSchema),
+  data: z.array(rolePublicSchema),
   count: z.int(),
   page: z.int().optional().default(1),
   size: z.int().optional().default(100),

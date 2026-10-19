@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export type SrcAuthSchemasRolePublic = {
+export type RolePublic = {
   name: string;
   /**
    * @default ''

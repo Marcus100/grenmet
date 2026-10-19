@@ -23,7 +23,7 @@ import type {
 } from "../models/BookingsCreateProvider.js";
 
 export const bookingsCreateProviderMutationKey = () =>
-  [{ url: "/api/v1/bookings/studio/providers" }] as const;
+  [{ url: "/api/v1/bookings/org/providers" }] as const;
 
 export function bookingsCreateProviderMutationOptions<TContext = unknown>(
   config: Partial<
@@ -59,7 +59,7 @@ export function bookingsCreateProviderMutationOptions<TContext = unknown>(
 /**
  * @description Add a provider and the services they perform.
  * @summary Add a provider
- * {@link /api/v1/bookings/studio/providers}
+ * {@link /api/v1/bookings/org/providers}
  */
 export function useBookingsCreateProvider<TContext>(
   options: {

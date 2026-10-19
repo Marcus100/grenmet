@@ -13,7 +13,7 @@ import type {
 /**
  * @description Change a service, or set `active` to false to stop new bookings.
  * @summary Update a service
- * {@link /api/v1/bookings/studio/services/:service_id}
+ * {@link /api/v1/bookings/org/services/:service_id}
  */
 export function bookingsUpdateService<ThrowOnError extends boolean = true>(
   options: Options<BookingsUpdateServiceOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function bookingsUpdateService<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "PATCH",
-      url: "/api/v1/bookings/studio/services/{service_id}",
+      url: "/api/v1/bookings/org/services/{service_id}",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

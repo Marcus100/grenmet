@@ -23,7 +23,7 @@ import type {
 } from "../models/BookingsUpdateService.js";
 
 export const bookingsUpdateServiceMutationKey = () =>
-  [{ url: "/api/v1/bookings/studio/services/:service_id" }] as const;
+  [{ url: "/api/v1/bookings/org/services/:service_id" }] as const;
 
 export function bookingsUpdateServiceMutationOptions<TContext = unknown>(
   config: Partial<
@@ -60,7 +60,7 @@ export function bookingsUpdateServiceMutationOptions<TContext = unknown>(
 /**
  * @description Change a service, or set `active` to false to stop new bookings.
  * @summary Update a service
- * {@link /api/v1/bookings/studio/services/:service_id}
+ * {@link /api/v1/bookings/org/services/:service_id}
  */
 export function useBookingsUpdateService<TContext>(
   options: {

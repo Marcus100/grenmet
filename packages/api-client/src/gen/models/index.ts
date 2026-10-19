@@ -1046,6 +1046,7 @@ export type {
 } from "./BillingVoidInvoice.js";
 export type { BodyAuthLoginAccessToken } from "./BodyAuthLoginAccessToken.js";
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";
+export type { BookingAgendaItem } from "./BookingAgendaItem.js";
 export type { BookingAvailability } from "./BookingAvailability.js";
 export type { BookingExceptionCreate } from "./BookingExceptionCreate.js";
 export type { BookingExceptionKind } from "./BookingExceptionKind.js";
@@ -3859,6 +3860,7 @@ export type {
   HrRenameOrganisationStatus404,
   HrRenameOrganisationStatus422,
 } from "./HrRenameOrganisation.js";
+export type { HrRolePublic } from "./HrRolePublic.js";
 export type {
   HrRotateClockSiteOptions,
   HrRotateClockSitePath,
@@ -5474,6 +5476,7 @@ export { roleAssignmentScope } from "./RoleAssignmentScope.js";
 export type { RoleConfiguration } from "./RoleConfiguration.js";
 export type { RoleCreate } from "./RoleCreate.js";
 export type { RolePermissionsInput } from "./RolePermissionsInput.js";
+export type { RolePublic } from "./RolePublic.js";
 export type { RoleUpdate } from "./RoleUpdate.js";
 export type { RosterAssignmentBulkCreate } from "./RosterAssignmentBulkCreate.js";
 export type { RosterAssignmentInput } from "./RosterAssignmentInput.js";
@@ -5564,8 +5567,6 @@ export type { SignatureInput } from "./SignatureInput.js";
 export type { SignaturePublic } from "./SignaturePublic.js";
 export type { SignedDocumentList } from "./SignedDocumentList.js";
 export type { SignedDocumentPublic } from "./SignedDocumentPublic.js";
-export type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
-export type { SrcHrSchemasRolePublic } from "./SrcHrSchemasRolePublic.js";
 export type { StaffCard } from "./StaffCard.js";
 export type { StaffCreate } from "./StaffCreate.js";
 export type { StaffInput } from "./StaffInput.js";
@@ -5871,7 +5872,6 @@ export type {
   StoresUpdateRequisitionStatus409,
   StoresUpdateRequisitionStatus422,
 } from "./StoresUpdateRequisition.js";
-export type { StudioBookingPublic } from "./StudioBookingPublic.js";
 export type { SubmissionMode } from "./SubmissionMode.js";
 export { submissionMode } from "./SubmissionMode.js";
 export type { SubscribeAccepted } from "./SubscribeAccepted.js";

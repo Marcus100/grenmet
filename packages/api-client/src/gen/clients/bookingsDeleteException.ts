@@ -13,7 +13,7 @@ import type {
 /**
  * @description Delete one dated exception.
  * @summary Remove time off or extra hours
- * {@link /api/v1/bookings/studio/exceptions/:exception_id}
+ * {@link /api/v1/bookings/org/exceptions/:exception_id}
  */
 export function bookingsDeleteException<ThrowOnError extends boolean = true>(
   options: Options<BookingsDeleteExceptionOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function bookingsDeleteException<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "DELETE",
-      url: "/api/v1/bookings/studio/exceptions/{exception_id}",
+      url: "/api/v1/bookings/org/exceptions/{exception_id}",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

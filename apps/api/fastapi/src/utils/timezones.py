@@ -21,6 +21,11 @@ def zone(name: str = DEFAULT_TIMEZONE) -> ZoneInfo:
         raise ValueError(f"Unknown timezone: {name}") from error
 
 
+#: Grenada's zone (UTC-4, no daylight saving). Import this instead of
+#: constructing ``ZoneInfo("America/Grenada")`` in a module.
+GRENADA = zone(DEFAULT_TIMEZONE)
+
+
 def is_valid_timezone(name: str) -> bool:
     try:
         zone(name)

@@ -4,7 +4,7 @@
  */
 
 import * as z from "zod";
-import { studioBookingPublicSchema } from "./studioBookingPublicSchema.js";
+import { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const bookingsListStudioBookingsQueryStartsFromSchema = z.iso.datetime();
@@ -19,7 +19,7 @@ export const bookingsListStudioBookingsHeaderXBarrelsOrganisationSchema = z
   );
 
 export const bookingsListStudioBookingsStatus200Schema = z.array(
-  studioBookingPublicSchema
+  bookingAgendaItemSchema
 );
 
 export const bookingsListStudioBookingsStatus400Schema = z.unknown();

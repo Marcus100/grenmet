@@ -3,7 +3,6 @@
 import uuid
 from datetime import datetime
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
@@ -15,6 +14,7 @@ from src.exceptions import AppException
 from src.hr.exceptions import DepartmentNotFoundError
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Organisation
 from src.organisations import service as organisations_service
+from src.utils.timezones import GRENADA
 
 
 async def active_assignments(
@@ -216,7 +216,7 @@ async def validate_service_facts(
         raise AppException(
             "Probation dates must not precede employment commencement", 400
         )
-    if completed and completed > datetime.now(ZoneInfo("America/Grenada")).date():
+    if completed and completed > datetime.now(GRENADA).date():
         raise AppException(
             "Probation completion must be a recorded past or current date", 400
         )

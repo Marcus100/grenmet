@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
+import type { RolePublic } from "./RolePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthGetRolePath = {
@@ -15,7 +15,7 @@ export type AuthGetRolePath = {
   role_id: string;
 };
 
-export type AuthGetRoleStatus200 = SrcAuthSchemasRolePublic;
+export type AuthGetRoleStatus200 = RolePublic;
 
 export type AuthGetRoleStatus404 = unknown;
 

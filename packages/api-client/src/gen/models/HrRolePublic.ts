@@ -5,7 +5,7 @@
 
 import type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 
-export type SrcHrSchemasRolePublic = {
+export type HrRolePublic = {
   name: string;
   scope: RoleAssignmentScope;
 };

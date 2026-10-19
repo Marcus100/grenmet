@@ -13,7 +13,7 @@ import type {
 /**
  * @description A bookable service with its duration, buffers, price and deposit.
  * @summary Add a service
- * {@link /api/v1/bookings/studio/services}
+ * {@link /api/v1/bookings/org/services}
  */
 export function bookingsCreateService<ThrowOnError extends boolean = true>(
   options: Options<BookingsCreateServiceOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function bookingsCreateService<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/bookings/studio/services",
+      url: "/api/v1/bookings/org/services",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

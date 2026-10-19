@@ -1,6 +1,6 @@
 """Bookings routes (ADR-0024).
 
-Studio routes act for the organisation in ``X-Barrels-Organisation``: members
+Organisation routes (`/bookings/org/*`) act for the organisation in ``X-Barrels-Organisation``: members
 read, admins and owners change. Public routes are keyed by a profile's
 ``public_slug`` and need no sign-in. Routers commit; service functions flush.
 """
@@ -18,6 +18,7 @@ from src.rate_limit import limiter
 
 from . import service
 from .schemas import (
+    BookingAgendaItem,
     BookingAvailability,
     BookingExceptionCreate,
     BookingExceptionPublic,
@@ -33,7 +34,6 @@ from .schemas import (
     BookingStorefront,
     BookingWorkingHoursUpdate,
     BookingWorkingPeriodPublic,
-    StudioBookingPublic,
 )
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
@@ -42,11 +42,11 @@ READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 
 
-# --- studio: profile -----------------------------------------------------------------
+# --- organisation: profile -----------------------------------------------------------------
 
 
 @router.get(
-    "/studio/profile",
+    "/org/profile",
     response_model=BookingProfilePublic,
     summary="Get my booking profile",
     description="The organisation's booking page settings and rules.",
@@ -58,7 +58,7 @@ async def get_profile(*, session: SessionDep, org: OrgMember) -> Any:
 
 
 @router.put(
-    "/studio/profile",
+    "/org/profile",
     response_model=BookingProfilePublic,
     summary="Create or update my booking profile",
     description=(
@@ -78,11 +78,11 @@ async def upsert_profile(
     return profile
 
 
-# --- studio: services ----------------------------------------------------------------
+# --- organisation: services ----------------------------------------------------------------
 
 
 @router.get(
-    "/studio/services",
+    "/org/services",
     response_model=list[BookingServicePublic],
     summary="List my services",
     description="All services, active and inactive, in menu order.",
@@ -94,7 +94,7 @@ async def list_services(*, session: SessionDep, org: OrgMember) -> Any:
 
 
 @router.post(
-    "/studio/services",
+    "/org/services",
     response_model=BookingServicePublic,
     status_code=status.HTTP_201_CREATED,
     summary="Add a service",
@@ -113,7 +113,7 @@ async def create_service(
 
 
 @router.patch(
-    "/studio/services/{service_id}",
+    "/org/services/{service_id}",
     response_model=BookingServicePublic,
     summary="Update a service",
     description="Change a service, or set `active` to false to stop new bookings.",
@@ -135,11 +135,11 @@ async def update_service(
     return row
 
 
-# --- studio: providers, hours, time off ------------------------------------------------
+# --- organisation: providers, hours, time off ------------------------------------------------
 
 
 @router.get(
-    "/studio/providers",
+    "/org/providers",
     response_model=list[BookingProviderPublic],
     summary="List my providers",
     description="People (or chairs, bays, rooms) who perform services.",
@@ -151,7 +151,7 @@ async def list_providers(*, session: SessionDep, org: OrgMember) -> Any:
 
 
 @router.post(
-    "/studio/providers",
+    "/org/providers",
     response_model=BookingProviderPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Add a provider",
@@ -170,7 +170,7 @@ async def create_provider(
 
 
 @router.patch(
-    "/studio/providers/{provider_id}",
+    "/org/providers/{provider_id}",
     response_model=BookingProviderPublic,
     summary="Update a provider",
     description="Rename, deactivate, or replace the services a provider performs.",
@@ -193,7 +193,7 @@ async def update_provider(
 
 
 @router.get(
-    "/studio/providers/{provider_id}/hours",
+    "/org/providers/{provider_id}/hours",
     response_model=list[BookingWorkingPeriodPublic],
     summary="Get a provider's weekly hours",
     description="Working periods per weekday (Monday = 0), in the profile's timezone.",
@@ -210,7 +210,7 @@ async def get_working_hours(
 
 
 @router.put(
-    "/studio/providers/{provider_id}/hours",
+    "/org/providers/{provider_id}/hours",
     response_model=list[BookingWorkingPeriodPublic],
     summary="Replace a provider's weekly hours",
     description=(
@@ -236,7 +236,7 @@ async def replace_working_hours(
 
 
 @router.get(
-    "/studio/providers/{provider_id}/exceptions",
+    "/org/providers/{provider_id}/exceptions",
     response_model=list[BookingExceptionPublic],
     summary="List time off and extra hours",
     description="Dated changes to a provider's weekly hours, optionally in a range.",
@@ -260,7 +260,7 @@ async def list_exceptions(
 
 
 @router.post(
-    "/studio/providers/{provider_id}/exceptions",
+    "/org/providers/{provider_id}/exceptions",
     response_model=BookingExceptionPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Add time off or extra hours",
@@ -284,7 +284,7 @@ async def create_exception(
 
 
 @router.delete(
-    "/studio/exceptions/{exception_id}",
+    "/org/exceptions/{exception_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Remove time off or extra hours",
     description="Delete one dated exception.",
@@ -301,8 +301,8 @@ async def delete_exception(
 
 
 @router.get(
-    "/studio/bookings",
-    response_model=list[StudioBookingPublic],
+    "/org/bookings",
+    response_model=list[BookingAgendaItem],
     summary="List bookings in a period",
     description="The agenda: bookings overlapping the range, earliest first.",
     operation_id="bookingsListStudioBookings",

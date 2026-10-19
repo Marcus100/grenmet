@@ -13,7 +13,7 @@ import type {
 /**
  * @description Rename, deactivate, or replace the services a provider performs.
  * @summary Update a provider
- * {@link /api/v1/bookings/studio/providers/:provider_id}
+ * {@link /api/v1/bookings/org/providers/:provider_id}
  */
 export function bookingsUpdateProvider<ThrowOnError extends boolean = true>(
   options: Options<BookingsUpdateProviderOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function bookingsUpdateProvider<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "PATCH",
-      url: "/api/v1/bookings/studio/providers/{provider_id}",
+      url: "/api/v1/bookings/org/providers/{provider_id}",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

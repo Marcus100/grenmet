@@ -28,7 +28,7 @@ export const bookingsListExceptionsQueryKey = ({
 }: Omit<BookingsListExceptionsOptions, "headers">) =>
   [
     {
-      url: "/api/v1/bookings/studio/providers/:provider_id/exceptions",
+      url: "/api/v1/bookings/org/providers/:provider_id/exceptions",
       params: path,
     },
     ...(query ? [query] : []),
@@ -74,7 +74,7 @@ export function bookingsListExceptionsQueryOptions(
 /**
  * @description Dated changes to a provider's weekly hours, optionally in a range.
  * @summary List time off and extra hours
- * {@link /api/v1/bookings/studio/providers/:provider_id/exceptions}
+ * {@link /api/v1/bookings/org/providers/:provider_id/exceptions}
  */
 export function useBookingsListExceptions<
   TData = BookingsListExceptionsStatus200,

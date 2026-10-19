@@ -6,7 +6,7 @@
 import type { BookingSource } from "./BookingSource.js";
 import type { BookingStatus } from "./BookingStatus.js";
 
-export type StudioBookingPublic = {
+export type BookingAgendaItem = {
   /**
    * @description
    * Format: `uuid`

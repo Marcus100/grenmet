@@ -5,7 +5,7 @@
 
 import * as z from "zod";
 
-export const srcAuthSchemasRolePublicSchema = z.object({
+export const rolePublicSchema = z.object({
   name: z.string(),
   description: z.string().optional().default(""),
   id: z.uuid(),

@@ -13,7 +13,7 @@ import type {
 /**
  * @description Working periods per weekday (Monday = 0), in the profile's timezone.
  * @summary Get a provider's weekly hours
- * {@link /api/v1/bookings/studio/providers/:provider_id/hours}
+ * {@link /api/v1/bookings/org/providers/:provider_id/hours}
  */
 export function bookingsGetWorkingHours<ThrowOnError extends boolean = true>(
   options: Options<BookingsGetWorkingHoursOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function bookingsGetWorkingHours<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "GET",
-      url: "/api/v1/bookings/studio/providers/{provider_id}/hours",
+      url: "/api/v1/bookings/org/providers/{provider_id}/hours",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

@@ -23,9 +23,7 @@ import type {
 } from "../models/BookingsCreateException.js";
 
 export const bookingsCreateExceptionMutationKey = () =>
-  [
-    { url: "/api/v1/bookings/studio/providers/:provider_id/exceptions" },
-  ] as const;
+  [{ url: "/api/v1/bookings/org/providers/:provider_id/exceptions" }] as const;
 
 export function bookingsCreateExceptionMutationOptions<TContext = unknown>(
   config: Partial<
@@ -62,7 +60,7 @@ export function bookingsCreateExceptionMutationOptions<TContext = unknown>(
 /**
  * @description Block time (`time_off`) or open time outside the weekly plan (`extra_hours`).
  * @summary Add time off or extra hours
- * {@link /api/v1/bookings/studio/providers/:provider_id/exceptions}
+ * {@link /api/v1/bookings/org/providers/:provider_id/exceptions}
  */
 export function useBookingsCreateException<TContext>(
   options: {

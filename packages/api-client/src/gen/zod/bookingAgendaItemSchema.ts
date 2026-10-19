@@ -7,7 +7,7 @@ import * as z from "zod";
 import { bookingSourceSchema } from "./bookingSourceSchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
 
-export const studioBookingPublicSchema = z.object({
+export const bookingAgendaItemSchema = z.object({
   id: z.uuid(),
   provider_id: z.uuid(),
   service_id: z.uuid(),

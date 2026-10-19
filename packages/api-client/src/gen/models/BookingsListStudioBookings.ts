@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import type { StudioBookingPublic } from "./StudioBookingPublic.js";
+import type { BookingAgendaItem } from "./BookingAgendaItem.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsListStudioBookingsQuery = {
@@ -28,7 +28,7 @@ export type BookingsListStudioBookingsHeaders = {
   "X-Barrels-Organisation"?: string | null;
 };
 
-export type BookingsListStudioBookingsStatus200 = StudioBookingPublic[];
+export type BookingsListStudioBookingsStatus200 = BookingAgendaItem[];
 
 export type BookingsListStudioBookingsStatus400 = unknown;
 

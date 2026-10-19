@@ -256,6 +256,22 @@ Alembic head.
 Order: F1 → F2 → F3 → (F4, F5, F8) → A1, F6, F7 → E1 → E2 → E3 → E4 → E5. C1 → C2
 can start after F3. P1 to P3 follow C2. H1 is independent.
 
+### API conventions
+
+[ADR-0025](../adr/0025-api-conventions.md): frontend-agnostic, audience zones
+(`public`, `me`, `org`, `admin`), unique schema names, shared helpers.
+`tests/test_api_conventions.py` enforces it, with shrink-only allowlists.
+
+| # | Slice | Size | Mode |
+| --- | --- | --- | --- |
+| N0 | ADR-0025, conventions test, shared `GRENADA`/`zone()` everywhere, one router prefix style, `HrRolePublic` rename, Bookings on `org`/`public` zones | S | U — built on branch `claude/bookings-b1-b2` |
+| N1 | Per-organisation settings tables replace per-site environment settings (`contact` recipients, `SUBSCRIPTIONS_SITE_URLS`, Barrels/MBIA branches) | M | U |
+| N2 | Public forms take an organisation-owned public slug instead of a free `site` field; Turnstile per organisation | M | U |
+| N3 | Migrate legacy zones with deprecated aliases: `events/manage` → `events/org`, `organisations/mine` → `organisations/me`, `hr/dashboard`; regenerate the client, move consumers, delete aliases | L | U (one domain per PR) |
+| N4 | Non-browser credential: organisation-scoped API keys or tokens for mobile, kiosk and partner clients | M | O (when the first such client is approved) |
+
+Order: N0 → N1 → N2. N3 runs alongside, one domain at a time. N4 waits for a client.
+
 ### Bookings
 
 Shared appointments domain ([ADR-0024](../adr/0024-bookings-domain.md)),

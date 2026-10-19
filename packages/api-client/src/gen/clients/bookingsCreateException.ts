@@ -13,7 +13,7 @@ import type {
 /**
  * @description Block time (`time_off`) or open time outside the weekly plan (`extra_hours`).
  * @summary Add time off or extra hours
- * {@link /api/v1/bookings/studio/providers/:provider_id/exceptions}
+ * {@link /api/v1/bookings/org/providers/:provider_id/exceptions}
  */
 export function bookingsCreateException<ThrowOnError extends boolean = true>(
   options: Options<BookingsCreateExceptionOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function bookingsCreateException<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/bookings/studio/providers/{provider_id}/exceptions",
+      url: "/api/v1/bookings/org/providers/{provider_id}/exceptions",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

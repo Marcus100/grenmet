@@ -23,7 +23,7 @@ import type {
 } from "../models/BookingsCreateService.js";
 
 export const bookingsCreateServiceMutationKey = () =>
-  [{ url: "/api/v1/bookings/studio/services" }] as const;
+  [{ url: "/api/v1/bookings/org/services" }] as const;
 
 export function bookingsCreateServiceMutationOptions<TContext = unknown>(
   config: Partial<
@@ -59,7 +59,7 @@ export function bookingsCreateServiceMutationOptions<TContext = unknown>(
 /**
  * @description A bookable service with its duration, buffers, price and deposit.
  * @summary Add a service
- * {@link /api/v1/bookings/studio/services}
+ * {@link /api/v1/bookings/org/services}
  */
 export function useBookingsCreateService<TContext>(
   options: {

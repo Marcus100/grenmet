@@ -26,10 +26,7 @@ export const bookingsGetWorkingHoursQueryKey = ({
   path,
 }: Omit<BookingsGetWorkingHoursOptions, "headers">) =>
   [
-    {
-      url: "/api/v1/bookings/studio/providers/:provider_id/hours",
-      params: path,
-    },
+    { url: "/api/v1/bookings/org/providers/:provider_id/hours", params: path },
   ] as const;
 
 type BookingsGetWorkingHoursQueryKey = ReturnType<
@@ -71,7 +68,7 @@ export function bookingsGetWorkingHoursQueryOptions(
 /**
  * @description Working periods per weekday (Monday = 0), in the profile's timezone.
  * @summary Get a provider's weekly hours
- * {@link /api/v1/bookings/studio/providers/:provider_id/hours}
+ * {@link /api/v1/bookings/org/providers/:provider_id/hours}
  */
 export function useBookingsGetWorkingHours<
   TData = BookingsGetWorkingHoursStatus200,

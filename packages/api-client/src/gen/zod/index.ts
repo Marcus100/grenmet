@@ -960,6 +960,7 @@ export {
 } from "./billingVoidInvoiceSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";
+export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
 export { bookingAvailabilitySchema } from "./bookingAvailabilitySchema.js";
 export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
@@ -3556,6 +3557,7 @@ export {
   hrRenameOrganisationStatus404Schema,
   hrRenameOrganisationStatus422Schema,
 } from "./hrRenameOrganisationSchema.js";
+export { hrRolePublicSchema } from "./hrRolePublicSchema.js";
 export {
   hrRotateClockSiteErrorSchema,
   hrRotateClockSitePathSiteIdSchema,
@@ -5024,6 +5026,7 @@ export { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 export { roleConfigurationSchema } from "./roleConfigurationSchema.js";
 export { roleCreateSchema } from "./roleCreateSchema.js";
 export { rolePermissionsInputSchema } from "./rolePermissionsInputSchema.js";
+export { rolePublicSchema } from "./rolePublicSchema.js";
 export { roleUpdateSchema } from "./roleUpdateSchema.js";
 export { rosterAssignmentBulkCreateSchema } from "./rosterAssignmentBulkCreateSchema.js";
 export { rosterAssignmentInputSchema } from "./rosterAssignmentInputSchema.js";
@@ -5104,8 +5107,6 @@ export { signatureInputSchema } from "./signatureInputSchema.js";
 export { signaturePublicSchema } from "./signaturePublicSchema.js";
 export { signedDocumentListSchema } from "./signedDocumentListSchema.js";
 export { signedDocumentPublicSchema } from "./signedDocumentPublicSchema.js";
-export { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
-export { srcHrSchemasRolePublicSchema } from "./srcHrSchemasRolePublicSchema.js";
 export { staffCardSchema } from "./staffCardSchema.js";
 export { staffCreateSchema } from "./staffCreateSchema.js";
 export { staffInputSchema } from "./staffInputSchema.js";
@@ -5402,7 +5403,6 @@ export {
   storesUpdateRequisitionStatus409Schema,
   storesUpdateRequisitionStatus422Schema,
 } from "./storesUpdateRequisitionSchema.js";
-export { studioBookingPublicSchema } from "./studioBookingPublicSchema.js";
 export { submissionModeSchema } from "./submissionModeSchema.js";
 export { subscribeAcceptedSchema } from "./subscribeAcceptedSchema.js";
 export { subscribeRequestSchema } from "./subscribeRequestSchema.js";

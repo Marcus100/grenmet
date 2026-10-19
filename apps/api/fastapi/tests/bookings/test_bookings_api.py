@@ -37,7 +37,7 @@ async def _configure(
 ) -> tuple[str, str]:
     headers = headers_for(owner, org_id)
     profile = await client.put(
-        f"{API}/studio/profile",
+        f"{API}/org/profile",
         headers=headers,
         json={
             "public_slug": slug,
@@ -49,7 +49,7 @@ async def _configure(
     )
     assert profile.status_code == 200, profile.text
     created = await client.post(
-        f"{API}/studio/services",
+        f"{API}/org/services",
         headers=headers,
         json={
             "name": "Classic full set",
@@ -62,14 +62,14 @@ async def _configure(
     assert created.status_code == 201, created.text
     service_id = created.json()["id"]
     provider = await client.post(
-        f"{API}/studio/providers",
+        f"{API}/org/providers",
         headers=headers,
         json={"name": "Jeriann", "service_ids": [service_id]},
     )
     assert provider.status_code == 201, provider.text
     provider_id = provider.json()["id"]
     hours = await client.put(
-        f"{API}/studio/providers/{provider_id}/hours",
+        f"{API}/org/providers/{provider_id}/hours",
         headers=headers,
         json={
             "periods": [
@@ -92,18 +92,18 @@ async def test_owner_configures_and_member_reads(
     )
 
     services = await async_client.get(
-        f"{API}/studio/services", headers=headers_for(member, org_id)
+        f"{API}/org/services", headers=headers_for(member, org_id)
     )
     assert services.status_code == 200
     assert [s["id"] for s in services.json()] == [service_id]
 
     providers = await async_client.get(
-        f"{API}/studio/providers", headers=headers_for(member, org_id)
+        f"{API}/org/providers", headers=headers_for(member, org_id)
     )
     assert providers.json()[0]["service_ids"] == [service_id]
 
     hours = await async_client.get(
-        f"{API}/studio/providers/{provider_id}/hours",
+        f"{API}/org/providers/{provider_id}/hours",
         headers=headers_for(member, org_id),
     )
     assert [(p["weekday"], p["start_time"]) for p in hours.json()] == [
@@ -118,7 +118,7 @@ async def test_members_cannot_change_configuration(
 ) -> None:
     _, member, org_id = await _studio(db_async)
     response = await async_client.post(
-        f"{API}/studio/services",
+        f"{API}/org/services",
         headers=headers_for(member, org_id),
         json={"name": "Brow wax", "duration_min": 30},
     )
@@ -136,31 +136,29 @@ async def test_other_organisations_see_nothing(
     rival, _, rival_org = await _studio(db_async)
     headers = headers_for(rival, rival_org)
 
-    assert (
-        await async_client.get(f"{API}/studio/services", headers=headers)
-    ).json() == []
+    assert (await async_client.get(f"{API}/org/services", headers=headers)).json() == []
     assert (
         await async_client.patch(
-            f"{API}/studio/services/{service_id}",
+            f"{API}/org/services/{service_id}",
             headers=headers,
             json={"active": False},
         )
     ).status_code == 404
     assert (
         await async_client.get(
-            f"{API}/studio/providers/{provider_id}/hours", headers=headers
+            f"{API}/org/providers/{provider_id}/hours", headers=headers
         )
     ).status_code == 404
     # A rival cannot attach another organisation's service to its own provider.
     attach = await async_client.post(
-        f"{API}/studio/providers",
+        f"{API}/org/providers",
         headers=headers,
         json={"name": "Spy", "service_ids": [service_id]},
     )
     assert attach.status_code == 404
     # Without the organisation header the request is refused.
     assert (
-        await async_client.get(f"{API}/studio/services", headers=headers_for(rival))
+        await async_client.get(f"{API}/org/services", headers=headers_for(rival))
     ).status_code == 400
 
 
@@ -173,7 +171,7 @@ async def test_slug_is_unique_across_organisations(
     await _configure(async_client, owner, org_id, slug)
     other, _, other_org = await _studio(db_async)
     clash = await async_client.put(
-        f"{API}/studio/profile",
+        f"{API}/org/profile",
         headers=headers_for(other, other_org),
         json={"public_slug": slug, "display_name": "Copycat"},
     )
@@ -187,13 +185,13 @@ async def test_invalid_configuration_is_rejected(
     owner, _, org_id = await _studio(db_async)
     headers = headers_for(owner, org_id)
     bad_timezone = await async_client.put(
-        f"{API}/studio/profile",
+        f"{API}/org/profile",
         headers=headers,
         json={"public_slug": "fine-slug", "display_name": "X", "timezone": "Mars/Base"},
     )
     assert bad_timezone.status_code == 422
     no_token = await async_client.put(
-        f"{API}/studio/profile",
+        f"{API}/org/profile",
         headers=headers,
         json={
             "public_slug": "fine-slug",
@@ -203,7 +201,7 @@ async def test_invalid_configuration_is_rejected(
     )
     assert no_token.status_code == 422
     deposit = await async_client.post(
-        f"{API}/studio/services",
+        f"{API}/org/services",
         headers=headers,
         json={
             "name": "Lash lift",
@@ -214,10 +212,10 @@ async def test_invalid_configuration_is_rejected(
     )
     assert deposit.status_code == 422
     provider = await async_client.post(
-        f"{API}/studio/providers", headers=headers, json={"name": "Jeriann"}
+        f"{API}/org/providers", headers=headers, json={"name": "Jeriann"}
     )
     overlap = await async_client.put(
-        f"{API}/studio/providers/{provider.json()['id']}/hours",
+        f"{API}/org/providers/{provider.json()['id']}/hours",
         headers=headers,
         json={
             "periods": [
@@ -361,7 +359,7 @@ async def test_public_page_hidden_when_disabled_or_unknown(
     owner, _, org_id = await _studio(db_async)
     await _configure(async_client, owner, org_id, slug)
     await async_client.put(
-        f"{API}/studio/profile",
+        f"{API}/org/profile",
         headers=headers_for(owner, org_id),
         json={"public_slug": slug, "display_name": "Babydoll", "enabled": False},
     )

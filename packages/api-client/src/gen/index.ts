@@ -4157,6 +4157,7 @@ export type {
 } from "./models/BillingVoidInvoice.js";
 export type { BodyAuthLoginAccessToken } from "./models/BodyAuthLoginAccessToken.js";
 export type { BodyHrUploadDocument } from "./models/BodyHrUploadDocument.js";
+export type { BookingAgendaItem } from "./models/BookingAgendaItem.js";
 export type { BookingAvailability } from "./models/BookingAvailability.js";
 export type { BookingExceptionCreate } from "./models/BookingExceptionCreate.js";
 export type { BookingExceptionKind } from "./models/BookingExceptionKind.js";
@@ -6970,6 +6971,7 @@ export type {
   HrRenameOrganisationStatus404,
   HrRenameOrganisationStatus422,
 } from "./models/HrRenameOrganisation.js";
+export type { HrRolePublic } from "./models/HrRolePublic.js";
 export type {
   HrRotateClockSiteOptions,
   HrRotateClockSitePath,
@@ -8585,6 +8587,7 @@ export { roleAssignmentScope } from "./models/RoleAssignmentScope.js";
 export type { RoleConfiguration } from "./models/RoleConfiguration.js";
 export type { RoleCreate } from "./models/RoleCreate.js";
 export type { RolePermissionsInput } from "./models/RolePermissionsInput.js";
+export type { RolePublic } from "./models/RolePublic.js";
 export type { RoleUpdate } from "./models/RoleUpdate.js";
 export type { RosterAssignmentBulkCreate } from "./models/RosterAssignmentBulkCreate.js";
 export type { RosterAssignmentInput } from "./models/RosterAssignmentInput.js";
@@ -8675,8 +8678,6 @@ export type { SignatureInput } from "./models/SignatureInput.js";
 export type { SignaturePublic } from "./models/SignaturePublic.js";
 export type { SignedDocumentList } from "./models/SignedDocumentList.js";
 export type { SignedDocumentPublic } from "./models/SignedDocumentPublic.js";
-export type { SrcAuthSchemasRolePublic } from "./models/SrcAuthSchemasRolePublic.js";
-export type { SrcHrSchemasRolePublic } from "./models/SrcHrSchemasRolePublic.js";
 export type { StaffCard } from "./models/StaffCard.js";
 export type { StaffCreate } from "./models/StaffCreate.js";
 export type { StaffInput } from "./models/StaffInput.js";
@@ -8982,7 +8983,6 @@ export type {
   StoresUpdateRequisitionStatus409,
   StoresUpdateRequisitionStatus422,
 } from "./models/StoresUpdateRequisition.js";
-export type { StudioBookingPublic } from "./models/StudioBookingPublic.js";
 export type { SubmissionMode } from "./models/SubmissionMode.js";
 export { submissionMode } from "./models/SubmissionMode.js";
 export type { SubscribeAccepted } from "./models/SubscribeAccepted.js";
@@ -10709,6 +10709,7 @@ export {
 } from "./zod/billingVoidInvoiceSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./zod/bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrUploadDocumentSchema } from "./zod/bodyHrUploadDocumentSchema.js";
+export { bookingAgendaItemSchema } from "./zod/bookingAgendaItemSchema.js";
 export { bookingAvailabilitySchema } from "./zod/bookingAvailabilitySchema.js";
 export { bookingExceptionCreateSchema } from "./zod/bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./zod/bookingExceptionKindSchema.js";
@@ -13305,6 +13306,7 @@ export {
   hrRenameOrganisationStatus404Schema,
   hrRenameOrganisationStatus422Schema,
 } from "./zod/hrRenameOrganisationSchema.js";
+export { hrRolePublicSchema } from "./zod/hrRolePublicSchema.js";
 export {
   hrRotateClockSiteErrorSchema,
   hrRotateClockSitePathSiteIdSchema,
@@ -14773,6 +14775,7 @@ export { roleAssignmentScopeSchema } from "./zod/roleAssignmentScopeSchema.js";
 export { roleConfigurationSchema } from "./zod/roleConfigurationSchema.js";
 export { roleCreateSchema } from "./zod/roleCreateSchema.js";
 export { rolePermissionsInputSchema } from "./zod/rolePermissionsInputSchema.js";
+export { rolePublicSchema } from "./zod/rolePublicSchema.js";
 export { roleUpdateSchema } from "./zod/roleUpdateSchema.js";
 export { rosterAssignmentBulkCreateSchema } from "./zod/rosterAssignmentBulkCreateSchema.js";
 export { rosterAssignmentInputSchema } from "./zod/rosterAssignmentInputSchema.js";
@@ -14853,8 +14856,6 @@ export { signatureInputSchema } from "./zod/signatureInputSchema.js";
 export { signaturePublicSchema } from "./zod/signaturePublicSchema.js";
 export { signedDocumentListSchema } from "./zod/signedDocumentListSchema.js";
 export { signedDocumentPublicSchema } from "./zod/signedDocumentPublicSchema.js";
-export { srcAuthSchemasRolePublicSchema } from "./zod/srcAuthSchemasRolePublicSchema.js";
-export { srcHrSchemasRolePublicSchema } from "./zod/srcHrSchemasRolePublicSchema.js";
 export { staffCardSchema } from "./zod/staffCardSchema.js";
 export { staffCreateSchema } from "./zod/staffCreateSchema.js";
 export { staffInputSchema } from "./zod/staffInputSchema.js";
@@ -15151,7 +15152,6 @@ export {
   storesUpdateRequisitionStatus409Schema,
   storesUpdateRequisitionStatus422Schema,
 } from "./zod/storesUpdateRequisitionSchema.js";
-export { studioBookingPublicSchema } from "./zod/studioBookingPublicSchema.js";
 export { submissionModeSchema } from "./zod/submissionModeSchema.js";
 export { subscribeAcceptedSchema } from "./zod/subscribeAcceptedSchema.js";
 export { subscribeRequestSchema } from "./zod/subscribeRequestSchema.js";

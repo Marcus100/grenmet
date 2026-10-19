@@ -13,7 +13,7 @@ import type {
 /**
  * @description People (or chairs, bays, rooms) who perform services.
  * @summary List my providers
- * {@link /api/v1/bookings/studio/providers}
+ * {@link /api/v1/bookings/org/providers}
  */
 export function bookingsListProviders<ThrowOnError extends boolean = true>(
   options: Options<BookingsListProvidersOptions, ThrowOnError> = {}
@@ -23,7 +23,7 @@ export function bookingsListProviders<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "GET",
-      url: "/api/v1/bookings/studio/providers",
+      url: "/api/v1/bookings/org/providers",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

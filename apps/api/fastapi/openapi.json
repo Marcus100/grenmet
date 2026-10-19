@@ -1318,7 +1318,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/src__auth__schemas__RolePublic"
+                  "$ref": "#/components/schemas/RolePublic"
                 }
               }
             }
@@ -1373,7 +1373,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/src__auth__schemas__RolePublic"
+                  "$ref": "#/components/schemas/RolePublic"
                 }
               }
             }
@@ -1433,7 +1433,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/src__auth__schemas__RolePublic"
+                  "$ref": "#/components/schemas/RolePublic"
                 }
               }
             }
@@ -3909,7 +3909,7 @@
         }
       }
     },
-    "/api/v1/bookings/studio/profile": {
+    "/api/v1/bookings/org/profile": {
       "get": {
         "tags": [
           "bookings"
@@ -4058,7 +4058,7 @@
         }
       }
     },
-    "/api/v1/bookings/studio/services": {
+    "/api/v1/bookings/org/services": {
       "get": {
         "tags": [
           "bookings"
@@ -4211,7 +4211,7 @@
         }
       }
     },
-    "/api/v1/bookings/studio/services/{service_id}": {
+    "/api/v1/bookings/org/services/{service_id}": {
       "patch": {
         "tags": [
           "bookings"
@@ -4303,7 +4303,7 @@
         }
       }
     },
-    "/api/v1/bookings/studio/providers": {
+    "/api/v1/bookings/org/providers": {
       "get": {
         "tags": [
           "bookings"
@@ -4456,7 +4456,7 @@
         }
       }
     },
-    "/api/v1/bookings/studio/providers/{provider_id}": {
+    "/api/v1/bookings/org/providers/{provider_id}": {
       "patch": {
         "tags": [
           "bookings"
@@ -4548,7 +4548,7 @@
         }
       }
     },
-    "/api/v1/bookings/studio/providers/{provider_id}/hours": {
+    "/api/v1/bookings/org/providers/{provider_id}/hours": {
       "get": {
         "tags": [
           "bookings"
@@ -4725,7 +4725,7 @@
         }
       }
     },
-    "/api/v1/bookings/studio/providers/{provider_id}/exceptions": {
+    "/api/v1/bookings/org/providers/{provider_id}/exceptions": {
       "get": {
         "tags": [
           "bookings"
@@ -4932,7 +4932,7 @@
         }
       }
     },
-    "/api/v1/bookings/studio/exceptions/{exception_id}": {
+    "/api/v1/bookings/org/exceptions/{exception_id}": {
       "delete": {
         "tags": [
           "bookings"
@@ -5007,7 +5007,7 @@
         }
       }
     },
-    "/api/v1/bookings/studio/bookings": {
+    "/api/v1/bookings/org/bookings": {
       "get": {
         "tags": [
           "bookings"
@@ -5068,7 +5068,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/StudioBookingPublic"
+                    "$ref": "#/components/schemas/BookingAgendaItem"
                   },
                   "title": "Response Bookingsliststudiobookings"
                 }
@@ -37752,6 +37752,83 @@
         ],
         "title": "Body_hrUploadDocument"
       },
+      "BookingAgendaItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "provider_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Provider Id"
+          },
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "service_name": {
+            "type": "string",
+            "title": "Service Name"
+          },
+          "customer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Customer Id"
+          },
+          "customer_name": {
+            "type": "string",
+            "title": "Customer Name"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BookingStatus"
+          },
+          "source": {
+            "$ref": "#/components/schemas/BookingSource"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor"
+          },
+          "deposit_minor": {
+            "type": "integer",
+            "title": "Deposit Minor"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "provider_id",
+          "service_id",
+          "service_name",
+          "customer_id",
+          "customer_name",
+          "starts_at",
+          "ends_at",
+          "status",
+          "source",
+          "price_minor",
+          "deposit_minor",
+          "currency"
+        ],
+        "title": "BookingAgendaItem"
+      },
       "BookingAvailability": {
         "properties": {
           "timezone": {
@@ -45885,6 +45962,23 @@
         ],
         "title": "HrDashboardPublic"
       },
+      "HrRolePublic": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/RoleAssignmentScope"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "scope"
+        ],
+        "title": "HrRolePublic"
+      },
       "ImageInput": {
         "properties": {
           "time_basis": {
@@ -52863,7 +52957,7 @@
         "properties": {
           "data": {
             "items": {
-              "$ref": "#/components/schemas/src__auth__schemas__RolePublic"
+              "$ref": "#/components/schemas/RolePublic"
             },
             "type": "array",
             "title": "Data"
@@ -57627,6 +57721,42 @@
           "permission_keys"
         ],
         "title": "RolePermissionsInput"
+      },
+      "RolePublic": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RolePublic"
       },
       "RoleUpdate": {
         "properties": {
@@ -62402,83 +62532,6 @@
         "title": "StoresAccessPublic",
         "description": "UI hint: the API still enforces every permission."
       },
-      "StudioBookingPublic": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "provider_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Provider Id"
-          },
-          "service_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Service Id"
-          },
-          "service_name": {
-            "type": "string",
-            "title": "Service Name"
-          },
-          "customer_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Customer Id"
-          },
-          "customer_name": {
-            "type": "string",
-            "title": "Customer Name"
-          },
-          "starts_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Starts At"
-          },
-          "ends_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Ends At"
-          },
-          "status": {
-            "$ref": "#/components/schemas/BookingStatus"
-          },
-          "source": {
-            "$ref": "#/components/schemas/BookingSource"
-          },
-          "price_minor": {
-            "type": "integer",
-            "title": "Price Minor"
-          },
-          "deposit_minor": {
-            "type": "integer",
-            "title": "Deposit Minor"
-          },
-          "currency": {
-            "type": "string",
-            "title": "Currency"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "provider_id",
-          "service_id",
-          "service_name",
-          "customer_id",
-          "customer_name",
-          "starts_at",
-          "ends_at",
-          "status",
-          "source",
-          "price_minor",
-          "deposit_minor",
-          "currency"
-        ],
-        "title": "StudioBookingPublic"
-      },
       "SubmissionMode": {
         "type": "string",
         "enum": [
@@ -66751,7 +66804,7 @@
           },
           "roles": {
             "items": {
-              "$ref": "#/components/schemas/src__hr__schemas__RolePublic"
+              "$ref": "#/components/schemas/HrRolePublic"
             },
             "type": "array",
             "title": "Roles"
@@ -68759,59 +68812,6 @@
           "expectedRevision"
         ],
         "title": "ZoneUpdate"
-      },
-      "src__auth__schemas__RolePublic": {
-        "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "default": ""
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "name",
-          "id",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "RolePublic"
-      },
-      "src__hr__schemas__RolePublic": {
-        "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "scope": {
-            "$ref": "#/components/schemas/RoleAssignmentScope"
-          }
-        },
-        "type": "object",
-        "required": [
-          "name",
-          "scope"
-        ],
-        "title": "RolePublic"
       },
       "AppPhoneCodeStartPropertiesChannelEnum": {
         "type": "string",

@@ -1,5 +1,5 @@
 import type {
-  SrcAuthSchemasRolePublic as RolePublic,
+  RolePublic,
   UserRoleAssignmentPublic,
 } from "@barrelsgd/api-client";
 import { format } from "date-fns";
