@@ -5,6 +5,9 @@
 
 /* GMS brand palette: this is a GMS-branded public alert hub. */
 @import "@barrelsgd/gms/styles/foundation";
+/* Then the brand layer, so shared primitives (skip link, buttons) take GMS
+   colours instead of the brand-neutral defaults. Must follow both imports. */
+@import "@barrelsgd/gms/styles/brand";
 
 /* Tailwind v4 only auto-scans this app's own source; scan the shared package
    so the reused primitives' utilities are generated (docs/design/gms.md). */

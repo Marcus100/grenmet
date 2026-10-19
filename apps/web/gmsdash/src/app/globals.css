@@ -3,6 +3,14 @@
 @import "@barrelsgd/ui/styles/app-feel";
 @import "@barrelsgd/ui/styles/globals";
 
+/* GMS Dashboard is a Grenada Meteorological Service client service: GMS
+   palette, then the brand layer that rebrands the shared primitives. Order
+   matters; the brand layer must come after both. */
+@import "@barrelsgd/gms/styles/foundation";
+@import "@barrelsgd/gms/styles/brand";
+
 /* Tailwind v4 only auto-scans this app's own source; scan the shared package
    so the reused primitives' utilities are generated (docs/design-system.md). */
 @source "../../node_modules/@barrelsgd/ui/src";
+/* The GMS package's components (logo) sit outside this app too. */
+@source "../../node_modules/@barrelsgd/gms/src";

@@ -1,0 +1,53 @@
+/*
+  GMS brand layer — Mini Brand Presentation 2026, as an importable stylesheet.
+
+  For apps that import @barrelsgd/ui/styles/globals directly (cap, gmsdash).
+  Import it AFTER that stylesheet and after ./foundation: both write :root in
+  @layer base, so import order decides and this one must come last.
+
+  Apps that carry the generated BARRELS DESIGN SYSTEM V1 block (gms, auth,
+  docs, gaa-admin) cannot use it: CSS puts every @import before that block, so
+  the block would win. They keep an inline copy after the block instead; keep
+  the two in step (docs/design-system.md → "How a GMS surface picks up the
+  brand").
+
+  Remapping layer 1 onto --gm-* rebrands every shared shadcn primitive
+  (Button, Input, Card, Badge, charts) without restating the semantic layer.
+*/
+@layer base {
+  :root {
+    --brand-primary: var(--gm-navy);
+    --brand-primary-accent: var(--gm-blue-ink);
+    --brand-accent: var(--gm-sky);
+    --brand-highlight: var(--gm-lime);
+
+    --brand-surface-page: var(--gm-surface-page);
+    --brand-surface: var(--gm-surface);
+    --brand-surface-panel: var(--gm-surface-panel);
+    --brand-surface-secondary: var(--gm-surface-secondary);
+    --brand-surface-muted: var(--gm-surface-muted);
+
+    --brand-text-primary: var(--gm-text-primary);
+    --brand-text-secondary: var(--gm-text-secondary);
+    --brand-text-muted: var(--gm-text-muted);
+    --brand-text-inverse: var(--gm-text-inverse);
+
+    --brand-border: var(--gm-border);
+
+    /* Hazard colours carry regulated meaning and follow the CAP risk scale,
+       not the brand. */
+    --status-positive: var(--gm-risk-green);
+    --status-caution: var(--gm-risk-yellow);
+    --status-warning: var(--gm-risk-amber);
+    --status-negative: var(--gm-risk-red);
+    --status-neutral: var(--gm-risk-grey);
+
+    /* --accent is the kit sky, a light hue, so it carries dark ink (6.46:1);
+       the inverse text layer 2 defaults to would be 2.75:1. */
+    --accent-foreground: var(--gm-text-primary);
+
+    /* Inputs are identified by their outline: the 3:1 input border, not the
+       1.47:1 hairline --brand-border resolves to. */
+    --input: var(--gm-border-input);
+  }
+}

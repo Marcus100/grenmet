@@ -21,6 +21,7 @@
   "dependencies": {
     "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
+    "@barrelsgd/gms": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
