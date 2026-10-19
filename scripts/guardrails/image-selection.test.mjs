@@ -47,6 +47,8 @@ test("Elections source deploys independently while mixed changes retain core che
     "apps/web/elections/vercel.json",
     "apps/web/barrels/index.html",
     "apps/web/barrels/build.mjs",
+    "apps/web/babydoll/src/app/page.tsx",
+    "apps/web/babydoll/vercel.json",
   ])
     assert.deepEqual(selectImages([path]), {
       web: [],

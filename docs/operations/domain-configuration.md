@@ -54,6 +54,10 @@ both zones become Active after the registrar publishes their DS records.
 
 ## Deployment work still needed
 
+- Babydoll Beauty Bar (`apps/web/babydoll`, Next.js) needs a new Vercel project
+  with root `apps/web/babydoll` and the custom domain `babydoll.barrels.gd`, plus
+  an explicit Cloudflare DNS record for that host (CNAME to Vercel, DNS only) so
+  it does not fall through the DigitalOcean wildcard.
 - `barrels-grenada` and `elections-grenada` are manual Vercel deployments. Commit
   and push their reviewed files, then promote through the repository's normal
   branch flow before connecting production Git builds to `main`. Their app

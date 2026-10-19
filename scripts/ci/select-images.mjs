@@ -26,13 +26,14 @@ function imagesForPath(path) {
   if (deferredPath.test(path)) return noImages;
   if (path.startsWith("packages/") || workspaceManifest.test(path))
     return { ...noImages, web: webImages };
-  // Elections deploys independently on Vercel. Its manifest still affects
-  // Docker installation layers above, but its source does not enter them.
+  // Elections and Babydoll deploy independently on Vercel. Their manifests still affect
+  // Docker installation layers above, but their source does not enter them.
   // The Barrels control plane (apps/web/admin) has a Dockerfile but is not
   // deployed yet (docs/exec-plans/barrels-foundations-plan.md, "Host move"):
   // move it into release-scope.mjs when its service is added.
   if (
     path.startsWith("apps/web/elections/") ||
+    path.startsWith("apps/web/babydoll/") ||
     path.startsWith("apps/web/barrels/") ||
     path.startsWith("apps/web/admin/")
   )
