@@ -7,6 +7,12 @@
 @plugin "@tailwindcss/typography";
 @config "../../typography.ts";
 
+/* Tailwind v4 only auto-scans this app's own source. Shared primitives and the
+   GMS Logo (its light/dark swap uses dark:hidden / dark:block) live outside it,
+   so scan both packages or those classes are never generated. */
+@source "../../node_modules/@barrelsgd/ui/src";
+@source "../../node_modules/@barrelsgd/gms/src";
+
 /* BEGIN BARRELS DESIGN SYSTEM V1 */
 @custom-variant dark (&:where(.dark, .dark *));
 
