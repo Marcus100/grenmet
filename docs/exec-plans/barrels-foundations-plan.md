@@ -1,8 +1,8 @@
 # Barrels Foundations Plan
 
-**Status:** Active plan — owner decisions recorded 2026-10-18  
+**Status:** Active plan — owner decisions recorded 2026-10-18 and 2026-10-19  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-18 (late: staging deploy and edge review)
+**Last updated:** 2026-10-19 (Barrels Bookings, B-series)
 
 ## Purpose
 
@@ -34,6 +34,15 @@ authoritative for priority. Tenancy follows
 | Control plane access | Owner is the only superuser for now |
 | eRegister QC | Add a QC accept step; only accepted observations go to WIS2; email allowed earlier for internal use. Gust group `910ff` stays flagged unconfirmed until observers confirm |
 | Still open | ePay webhook (E6) |
+
+## Owner decisions (2026-10-19)
+
+| Decision | Choice |
+| --- | --- |
+| Bookings | One shared, organisation-scoped appointments API in FastAPI for every app; Babydoll Beauty Bar is the first tenant ([ADR-0024](../adr/0024-bookings-domain.md)) |
+| Booking engine | Port Easy!Appointments' model and availability rules into a native domain (clean-room; GPL code is never copied); no external engine |
+| Studio | Each client manages bookings in a signed-in `/studio` area of its own site (Barrels ID, organisation admin) |
+| Deposits | Taken on Barrels' merchant account through the provider-neutral adapter; Stripe and Republic Bank ePay (owner approaching the bank); whichever onboards first ships first |
 
 ## 30-day plan (2026-10-18 to 2026-11-17)
 
@@ -209,6 +218,7 @@ Three staging failures tonight passed every local gate:
 | Billing | Stripe checkout and webhook only (`src/billing`) | Invoices, manual payments, receivables |
 | Storage | Spaces service; weather images only | Organisation-scoped uploads |
 | Audit | `src/audit`, main database only | Events activity log |
+| Bookings | None; Babydoll links to Acuity (`apps/web/babydoll/src/data/site.ts`) | Services, availability, public booking, studio, reminders, deposits (B-series) |
 
 ## Slices
 
@@ -240,11 +250,30 @@ Alembic head.
 | P2 | Issue and email invoice PDF (stored through F8) | M | U — built, pending merge (PDF stored when object storage is configured, else rendered on demand; the email carries a 7-day link, not an attachment) |
 | P3 | Manual payments, receivables and ageing in the control plane | M | U — built, pending merge |
 | H1 | `barrels.gd` services page with contact and newsletter forms posting to FastAPI; drafted copy | S–M | U — built, pending merge; production CORS origins and copy review open |
-| E6 | Provider-neutral online payment adapter | L | Blocked (ePay) |
+| E6 | Provider-neutral online payment adapter | L | Planned via B6: Stripe or Republic Bank ePay, whichever onboards first (owner approaching Republic Bank) |
 | R1 | Phase 2 HR foreign key, then HR reads through `OrgContext` | L | O |
 
 Order: F1 → F2 → F3 → (F4, F5, F8) → A1, F6, F7 → E1 → E2 → E3 → E4 → E5. C1 → C2
 can start after F3. P1 to P3 follow C2. H1 is independent.
+
+### Bookings
+
+Shared appointments domain ([ADR-0024](../adr/0024-bookings-domain.md)),
+Babydoll first. Main-database slices, one at a time.
+
+| # | Slice | Size | Mode |
+| --- | --- | --- | --- |
+| B0 | ADR-0024, this section, portfolio and strategy updates | S | Done |
+| B1 | `bookings` schema and models; migration with the `btree_gist` exclusion constraint; studio CRUD for profile, services, providers, working plans and exceptions; `src/utils/timezones.py`; domain `AGENTS.md`; contracts and regenerated client | L | U |
+| B2 | Pure availability engine with property-style tests; public services and availability endpoints | M | U |
+| B3 | Public create, manage, cancel and reschedule (Turnstile, honeypot, idempotency, hashed manage token); ICS; confirmation, studio and 24-hour reminder emails; retention | L | U |
+| B4 | Babydoll organisation and service seed; `/book` and `/booking/[token]` pages behind a switch flag (Acuity stays live) | M | U |
+| B5 | Babydoll Barrels ID sign-on and `/studio` (agenda, actions, services, hours, time off) | L | O (SSO secret and app URL) |
+| B6 | Provider-neutral payments (E6) on Barrels' merchant account: Stripe and Republic Bank ePay; deposits held as `pending_payment`; callback; refunds; settlement and payouts | L | O (a provider onboards Barrels) |
+| B7 | Switch Babydoll off Acuity; second tenant | S | O |
+
+Order: B1 → B2 → B3 → B4. B5 can start after B1. B6 follows B3 once a payment
+provider has onboarded Barrels.
 
 ## Barrels ID and rewards
 
@@ -270,7 +299,8 @@ opening the app.
 ## Do not build yet
 
 AI gateway, Knowledge and Automate; workspaces; Places API and a search engine;
-SMS, push and WhatsApp; card checkout, payouts and wallets; Shop and Salesbus
+SMS, push and WhatsApp; card checkout, payouts and wallets (except booking
+deposits through the B6 adapter, owner decision 2026-10-19); Shop and Salesbus
 extraction; `hr.barrels.gd` as its own app; organisation scope for CAP, weather,
 janitorial or transport; a separate Barrels Business app; microservices.
 
