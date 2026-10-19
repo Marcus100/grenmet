@@ -47,6 +47,7 @@
     "agents:sweep": "node scripts/agents/claim-issue.mjs sweep",
     "coverage:check": "node scripts/guardrails/check-coverage.mjs",
     "e2e": "node scripts/verification/e2e-if-up.mjs",
+    "ui:screenshots": "node scripts/agents/ui-screenshots.mjs",
     "test:docs": "node --test scripts/docs/*.test.mjs",
     "prepare": "husky",
     "lint": "turbo run lint",

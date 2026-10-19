@@ -20,6 +20,11 @@ You need one of:
 
 and the intended viewport (375px mobile, 1280px desktop, or both).
 
+Given only a file path, render it before critiquing:
+`pnpm ui:screenshots --app <app> --path <route>` writes phone and desktop PNGs in
+both themes (the dev server must be running on the host). Critique the PNGs, not
+the source.
+
 Ask for the app if the path does not make it obvious — the lane changes the verdict. `gms` is the public reference app and should read spacious; `gaa-admin` is deliberately dense and must not be critiqued into looking like a marketing page; `wxproducts` and `hr` are fixed-dimension document/print surfaces where A4 constraints outrank white-space advice.
 
 Do not proceed on a described-from-memory surface. If there is no screenshot and no file, ask the user to run the app on the host (see `docs/ports.md`) and screenshot it.

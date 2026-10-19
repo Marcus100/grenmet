@@ -18,6 +18,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -41,6 +42,15 @@ import {
   MAX_OUTPUT_CHARS,
   renderHandoff,
 } from "../../.claude/hooks/session-handoff.mjs";
+import {
+  decideStop,
+  sessionCheckout,
+} from "../../.claude/hooks/verify-before-stop.mjs";
+import {
+  changedFiles,
+  fingerprint,
+  writeReceipt,
+} from "../../scripts/verification/receipt.mjs";
 
 const BLOCKED_MESSAGE = /BLOCKED/;
 const baseIs = (base) => ({ lookupBase: () => base });
@@ -495,4 +505,79 @@ test("session-handoff: truncates a single oversized entry instead of printing no
   );
   assert.ok(output.length <= MAX_OUTPUT_CHARS + 2);
   assert.match(output, ELLIPSIS);
+});
+
+function scratchRepo() {
+  const dir = mkdtempSync(join(tmpdir(), "stop-gate-"));
+  const git = (...args) =>
+    spawnSync("git", args, { cwd: dir, encoding: "utf8" });
+  git("init", "--quiet");
+  git("config", "user.email", "test@example.com");
+  git("config", "user.name", "Test");
+  writeFileSync(join(dir, "app.js"), "export const a = 1;\n");
+  git("add", ".");
+  git("commit", "--quiet", "-m", "base");
+  git("update-ref", "refs/remotes/origin/dev", "HEAD");
+  return { dir, git };
+}
+
+test("verify-before-stop: allows a turn with nothing changed since origin/dev", () => {
+  const { dir } = scratchRepo();
+  try {
+    assert.equal(decideStop(dir), "allow");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("verify-before-stop: blocks unverified changes once, then lets the agent stop", () => {
+  const { dir } = scratchRepo();
+  try {
+    writeFileSync(join(dir, "app.js"), "export const a = 2;\n");
+    assert.equal(decideStop(dir), "block");
+    assert.equal(decideStop(dir), "allow");
+    writeFileSync(join(dir, "new.js"), "export const b = 1;\n");
+    assert.equal(decideStop(dir), "block");
+    assert.equal(decideStop(dir, { stopHookActive: true }), "allow");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("verify-before-stop: verified work stays verified after commit, not after an edit", () => {
+  const { dir, git } = scratchRepo();
+  try {
+    writeFileSync(join(dir, "app.js"), "export const a = 3;\n");
+    writeReceipt(dir, { verified: fingerprint(dir, changedFiles(dir)) });
+    assert.equal(decideStop(dir), "allow");
+    git("commit", "--quiet", "-am", "change");
+    assert.equal(decideStop(dir), "allow");
+    writeFileSync(join(dir, "app.js"), "export const a = 4;\n");
+    assert.equal(decideStop(dir), "block");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("verify-before-stop: gates the checkout the session works in, not the hooks' own", () => {
+  const { dir } = scratchRepo();
+  try {
+    mkdirSync(join(dir, "src"));
+    assert.equal(sessionCheckout({ cwd: join(dir, "src") }), realpathSync(dir));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("verify-before-stop: a rename back onto a verified path still needs verification", () => {
+  const { dir, git } = scratchRepo();
+  try {
+    git("mv", "app.js", "renamed.js");
+    git("commit", "--quiet", "-m", "rename");
+    writeReceipt(dir, { verified: fingerprint(dir, changedFiles(dir)) });
+    writeFileSync(join(dir, "app.js"), "export const back = true;\n");
+    assert.equal(decideStop(dir), "block");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

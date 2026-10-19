@@ -118,6 +118,17 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/verify-before-stop.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }
