@@ -2013,6 +2013,8 @@ export type { DataParameter } from "./DataParameter.js";
 export { dataParameter } from "./DataParameter.js";
 export type { DataRequestCreate } from "./DataRequestCreate.js";
 export type { DeliveryLine } from "./DeliveryLine.js";
+export type { DeliveryStatus } from "./DeliveryStatus.js";
+export { deliveryStatus } from "./DeliveryStatus.js";
 export type { DepartmentCreate } from "./DepartmentCreate.js";
 export type { DepartmentMemberPublic } from "./DepartmentMemberPublic.js";
 export type { DepartmentMembersPublic } from "./DepartmentMembersPublic.js";
@@ -2045,6 +2047,8 @@ export { employmentStatus } from "./EmploymentStatus.js";
 export type { EmploymentType } from "./EmploymentType.js";
 export { employmentType } from "./EmploymentType.js";
 export type { EmploymentUpdate } from "./EmploymentUpdate.js";
+export type { EndpointStatus } from "./EndpointStatus.js";
+export { endpointStatus } from "./EndpointStatus.js";
 export type { EntryKind } from "./EntryKind.js";
 export { entryKind } from "./EntryKind.js";
 export type { EntryStatus } from "./EntryStatus.js";
@@ -7123,6 +7127,152 @@ export type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 export type { VapidPublicKey } from "./VapidPublicKey.js";
 export type { VerificationDecision } from "./VerificationDecision.js";
 export type { WeatherImage } from "./WeatherImage.js";
+export type { WebhookAdminDisable } from "./WebhookAdminDisable.js";
+export type { WebhookDeliveryList } from "./WebhookDeliveryList.js";
+export type { WebhookDeliveryPublic } from "./WebhookDeliveryPublic.js";
+export type { WebhookEndpointCreate } from "./WebhookEndpointCreate.js";
+export type { WebhookEndpointCreated } from "./WebhookEndpointCreated.js";
+export type { WebhookEndpointList } from "./WebhookEndpointList.js";
+export type { WebhookEndpointPublic } from "./WebhookEndpointPublic.js";
+export type { WebhookEndpointUpdate } from "./WebhookEndpointUpdate.js";
+export type { WebhookEventTypeList } from "./WebhookEventTypeList.js";
+export type { WebhookEventTypePublic } from "./WebhookEventTypePublic.js";
+export type {
+  WebhooksOutAdminDisableEndpointBody,
+  WebhooksOutAdminDisableEndpointOptions,
+  WebhooksOutAdminDisableEndpointPath,
+  WebhooksOutAdminDisableEndpointResponse,
+  WebhooksOutAdminDisableEndpointResponses,
+  WebhooksOutAdminDisableEndpointStatus200,
+  WebhooksOutAdminDisableEndpointStatus400,
+  WebhooksOutAdminDisableEndpointStatus401,
+  WebhooksOutAdminDisableEndpointStatus403,
+  WebhooksOutAdminDisableEndpointStatus404,
+  WebhooksOutAdminDisableEndpointStatus409,
+  WebhooksOutAdminDisableEndpointStatus422,
+} from "./WebhooksOutAdminDisableEndpoint.js";
+export type {
+  WebhooksOutAdminListEndpointsOptions,
+  WebhooksOutAdminListEndpointsQuery,
+  WebhooksOutAdminListEndpointsResponse,
+  WebhooksOutAdminListEndpointsResponses,
+  WebhooksOutAdminListEndpointsStatus200,
+  WebhooksOutAdminListEndpointsStatus400,
+  WebhooksOutAdminListEndpointsStatus401,
+  WebhooksOutAdminListEndpointsStatus403,
+  WebhooksOutAdminListEndpointsStatus404,
+  WebhooksOutAdminListEndpointsStatus422,
+} from "./WebhooksOutAdminListEndpoints.js";
+export type {
+  WebhooksOutCreateEndpointBody,
+  WebhooksOutCreateEndpointHeaders,
+  WebhooksOutCreateEndpointOptions,
+  WebhooksOutCreateEndpointResponse,
+  WebhooksOutCreateEndpointResponses,
+  WebhooksOutCreateEndpointStatus201,
+  WebhooksOutCreateEndpointStatus400,
+  WebhooksOutCreateEndpointStatus401,
+  WebhooksOutCreateEndpointStatus403,
+  WebhooksOutCreateEndpointStatus404,
+  WebhooksOutCreateEndpointStatus409,
+  WebhooksOutCreateEndpointStatus422,
+} from "./WebhooksOutCreateEndpoint.js";
+export type {
+  WebhooksOutDeleteEndpointHeaders,
+  WebhooksOutDeleteEndpointOptions,
+  WebhooksOutDeleteEndpointPath,
+  WebhooksOutDeleteEndpointResponse,
+  WebhooksOutDeleteEndpointResponses,
+  WebhooksOutDeleteEndpointStatus204,
+  WebhooksOutDeleteEndpointStatus400,
+  WebhooksOutDeleteEndpointStatus401,
+  WebhooksOutDeleteEndpointStatus403,
+  WebhooksOutDeleteEndpointStatus404,
+  WebhooksOutDeleteEndpointStatus422,
+} from "./WebhooksOutDeleteEndpoint.js";
+export type {
+  WebhooksOutListDeliveriesHeaders,
+  WebhooksOutListDeliveriesOptions,
+  WebhooksOutListDeliveriesPath,
+  WebhooksOutListDeliveriesQuery,
+  WebhooksOutListDeliveriesResponse,
+  WebhooksOutListDeliveriesResponses,
+  WebhooksOutListDeliveriesStatus200,
+  WebhooksOutListDeliveriesStatus400,
+  WebhooksOutListDeliveriesStatus401,
+  WebhooksOutListDeliveriesStatus403,
+  WebhooksOutListDeliveriesStatus404,
+  WebhooksOutListDeliveriesStatus422,
+} from "./WebhooksOutListDeliveries.js";
+export type {
+  WebhooksOutListEndpointsHeaders,
+  WebhooksOutListEndpointsOptions,
+  WebhooksOutListEndpointsQuery,
+  WebhooksOutListEndpointsResponse,
+  WebhooksOutListEndpointsResponses,
+  WebhooksOutListEndpointsStatus200,
+  WebhooksOutListEndpointsStatus400,
+  WebhooksOutListEndpointsStatus401,
+  WebhooksOutListEndpointsStatus403,
+  WebhooksOutListEndpointsStatus404,
+  WebhooksOutListEndpointsStatus422,
+} from "./WebhooksOutListEndpoints.js";
+export type {
+  WebhooksOutListEventTypesHeaders,
+  WebhooksOutListEventTypesOptions,
+  WebhooksOutListEventTypesResponse,
+  WebhooksOutListEventTypesResponses,
+  WebhooksOutListEventTypesStatus200,
+  WebhooksOutListEventTypesStatus400,
+  WebhooksOutListEventTypesStatus401,
+  WebhooksOutListEventTypesStatus403,
+  WebhooksOutListEventTypesStatus404,
+  WebhooksOutListEventTypesStatus422,
+} from "./WebhooksOutListEventTypes.js";
+export type {
+  WebhooksOutRotateSecretHeaders,
+  WebhooksOutRotateSecretOptions,
+  WebhooksOutRotateSecretPath,
+  WebhooksOutRotateSecretResponse,
+  WebhooksOutRotateSecretResponses,
+  WebhooksOutRotateSecretStatus200,
+  WebhooksOutRotateSecretStatus400,
+  WebhooksOutRotateSecretStatus401,
+  WebhooksOutRotateSecretStatus403,
+  WebhooksOutRotateSecretStatus404,
+  WebhooksOutRotateSecretStatus409,
+  WebhooksOutRotateSecretStatus422,
+} from "./WebhooksOutRotateSecret.js";
+export type {
+  WebhooksOutTestEndpointHeaders,
+  WebhooksOutTestEndpointOptions,
+  WebhooksOutTestEndpointPath,
+  WebhooksOutTestEndpointResponse,
+  WebhooksOutTestEndpointResponses,
+  WebhooksOutTestEndpointStatus200,
+  WebhooksOutTestEndpointStatus400,
+  WebhooksOutTestEndpointStatus401,
+  WebhooksOutTestEndpointStatus403,
+  WebhooksOutTestEndpointStatus404,
+  WebhooksOutTestEndpointStatus409,
+  WebhooksOutTestEndpointStatus422,
+} from "./WebhooksOutTestEndpoint.js";
+export type {
+  WebhooksOutUpdateEndpointBody,
+  WebhooksOutUpdateEndpointHeaders,
+  WebhooksOutUpdateEndpointOptions,
+  WebhooksOutUpdateEndpointPath,
+  WebhooksOutUpdateEndpointResponse,
+  WebhooksOutUpdateEndpointResponses,
+  WebhooksOutUpdateEndpointStatus200,
+  WebhooksOutUpdateEndpointStatus400,
+  WebhooksOutUpdateEndpointStatus401,
+  WebhooksOutUpdateEndpointStatus403,
+  WebhooksOutUpdateEndpointStatus404,
+  WebhooksOutUpdateEndpointStatus409,
+  WebhooksOutUpdateEndpointStatus422,
+} from "./WebhooksOutUpdateEndpoint.js";
+export type { WebhookTestResult } from "./WebhookTestResult.js";
 export type { WorkflowAction } from "./WorkflowAction.js";
 export { workflowAction } from "./WorkflowAction.js";
 export type { WorkflowActionRequest } from "./WorkflowActionRequest.js";

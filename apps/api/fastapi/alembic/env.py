@@ -139,6 +139,7 @@ from src.stores.models import (
     StoreLocation,
 )
 from src.subscriptions.models import ListSubscription
+from src.webhooks_out.models import WebhookDelivery, WebhookEndpoint  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", str(settings.SQLALCHEMY_DATABASE_URI))
@@ -164,6 +165,7 @@ _TRACKED_SCHEMAS = {
     "flags",
     "payments",
     "platform",
+    "webhooks",
 }
 
 

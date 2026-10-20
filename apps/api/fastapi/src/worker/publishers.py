@@ -12,8 +12,6 @@ are implemented in the CAP-features step; MQTT/WIS2 are intentionally out of sco
 
 from __future__ import annotations
 
-import hashlib
-import hmac
 import json
 import logging
 import uuid
@@ -36,6 +34,7 @@ from src.cap.models import (
 )
 from src.cap.pdf import render_alert_pdf
 from src.storage.service import StorageNotConfiguredError, storage_service
+from src.utils.signing import sign_body
 
 logger = logging.getLogger(__name__)
 
@@ -80,10 +79,7 @@ async def publish_webhooks(
             continue
         headers = {"Content-Type": "application/json"}
         if hook.secret_ref:
-            signature = hmac.new(
-                hook.secret_ref.encode(), body, hashlib.sha256
-            ).hexdigest()
-            headers["X-Cap-Signature"] = f"sha256={signature}"
+            headers["X-Cap-Signature"] = sign_body(hook.secret_ref, body)
         try:
             response = await http_client.post(
                 hook.url, content=body, headers=headers, timeout=10.0

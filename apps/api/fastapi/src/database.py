@@ -103,6 +103,7 @@ from src.stores.models import (
     StoreItem,
     StoreLocation,
 )
+from src.webhooks_out import audit as _webhooks_out_audit
 from src.wxwatch import alerts as _wxwatch_alerts
 
 # Modules register what they audit and notify about before any session exists.
@@ -113,6 +114,7 @@ _events_notifications.register()
 _stores_audit.register()
 _stores_notifications.register()
 _organisations_audit.register()
+_webhooks_out_audit.register()
 _billing_audit.register()
 _rewards_audit.register()
 _eregister_audit.register()
