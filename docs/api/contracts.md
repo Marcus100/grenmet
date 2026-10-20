@@ -550,7 +550,13 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   `/organisations/org/key-info` and superuser `/organisations/admin/api-keys`. The
   secret `bk_<prefix>_<random>` is returned once; only its SHA-256 is stored. Keys
   authenticate with `Authorization: Bearer bk_…`, never as a user, and carry scopes
-  `<product>.<read|write>`.
+  `<product>.<read|write>`. Selected organisation routes accept either a signed-in
+  member or a key (`organisations.api_key_auth.org_or_key`; a `bk_` bearer takes the
+  key path, other errors keep their order for members): the bookings reads under
+  `/bookings/org/` (`bookings.read`), `GET /rewards/programs` (`rewards.read`) and
+  `POST /rewards/redemptions/confirm` (`rewards.write`). A key acts on its own
+  organisation only (the organisation header is ignored), needs the scope and the
+  organisation's entitlement (403), and a revoked or expired key is 401.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
   which return only flags marked exposed.

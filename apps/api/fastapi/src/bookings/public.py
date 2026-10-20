@@ -16,11 +16,15 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.contacts import service as contacts_service
+from src.contacts.models import ConsentPurpose, Contact
 from src.notifications import outbox_handlers
+from src.organisations import service as org_service
 from src.organisations import sites
+from src.rewards import service as rewards_service
 from src.utils.datetime import utc_now
 from src.utils.email_hash import hash_email
 from src.utils.timezones import utc_to_local, zone
@@ -108,6 +112,37 @@ async def transition(
         session, booking, current, target, actor_user_id=actor_user_id, note=note
     )
     await session.flush()
+    if target is BookingStatus.COMPLETED:
+        await _emit_completed_reward(session, booking)
+
+
+async def _emit_completed_reward(session: AsyncSession, booking: Booking) -> None:
+    """Queue a `bookings.completed` earn for the customer's Barrels account (PF8).
+
+    The account is known only through the customer's organisation contact
+    (`contact.user_id`, PF3). Without a live contact or a linked account the
+    booking earns nothing and nothing is queued."""
+    contact_id = await session.scalar(
+        select(Customer.contact_id).where(Customer.id == booking.customer_id)
+    )
+    if contact_id is None:
+        return
+    user_id = await session.scalar(
+        select(Contact.user_id).where(
+            Contact.id == contact_id,
+            Contact.organisation_id == booking.organisation_id,
+            Contact.erased_at.is_(None),
+        )
+    )
+    if user_id is None:
+        return
+    await rewards_service.emit_qualifying_action(
+        session,
+        source_type="bookings.completed",
+        source_id=str(booking.id),
+        organisation_id=booking.organisation_id,
+        user_id=user_id,
+    )
 
 
 def record_event(
@@ -343,7 +378,42 @@ async def _upsert_customer(
         customer.marketing_consent = payload.marketing_consent
         customer.last_booked_at = now
     await session.flush()
+    await _link_contact(session, customer, email=email, phone=phone, payload=payload)
     return customer
+
+
+async def _link_contact(
+    session: AsyncSession,
+    customer: Customer,
+    *,
+    email: str,
+    phone: str | None,
+    payload: BookingPublicCreate,
+) -> None:
+    """Link the customer to the organisation's contact (PF3, ADR-0028).
+
+    Only for organisations entitled to ``contacts``; otherwise, or on any
+    database error, the booking goes ahead without a link. The upsert runs in a
+    savepoint so a failure cannot poison the booking's transaction."""
+    try:
+        if not await org_service.is_app_enabled(
+            session, organisation_id=customer.organisation_id, app_key="contacts"
+        ):
+            return
+        async with session.begin_nested():
+            contact = await contacts_service.upsert_contact(
+                session,
+                customer.organisation_id,
+                email=email,
+                name=customer.name,
+                phone=phone,
+                source="bookings",
+                consents={ConsentPurpose.MARKETING: payload.marketing_consent},
+            )
+            customer.contact_id = contact.id
+            await session.flush()
+    except SQLAlchemyError:
+        logger.warning("Booking customer could not be linked to a contact")
 
 
 async def create_booking(

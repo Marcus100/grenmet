@@ -12,7 +12,7 @@ export const rewardsConfirmRedemptionHeaderXBarrelsOrganisationSchema = z
   .union([z.string(), z.null()])
   .optional()
   .describe(
-    "Id of the organisation the request acts for. The caller must be an active member."
+    "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
   );
 
 export const rewardsConfirmRedemptionStatus200Schema =

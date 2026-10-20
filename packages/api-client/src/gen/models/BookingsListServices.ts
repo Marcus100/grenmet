@@ -8,7 +8,7 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsListServicesHeaders = {
   /**
-   * @description Id of the organisation the request acts for. The caller must be an active member.
+   * @description Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.
    */
   "X-Barrels-Organisation"?: string | null;
 };

@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, Path, Query, Request, Response, status
 from src import idempotency
 from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
+from src.organisations.api_key_auth import OrgAccess, org_or_key
 from src.organisations.dependencies import OrgContext, require_org_app
 from src.organisations.models import MembershipRole
 from src.rate_limit import limiter
@@ -51,6 +52,9 @@ BookingsOrgMember = Annotated[OrgContext, Depends(require_org_app("bookings"))]
 BookingsOrgAdmin = Annotated[
     OrgContext, Depends(require_org_app("bookings", MembershipRole.ADMIN))
 ]
+# Organisation reads also accept an API key with `bookings.read` (PF5, ADR-0029),
+# e.g. a kiosk or partner site; the user path behaves as BookingsOrgMember.
+BookingsOrgRead = Annotated[OrgAccess, Depends(org_or_key("bookings", "bookings.read"))]
 
 READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
@@ -67,7 +71,7 @@ WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
     operation_id="bookingsGetProfile",
     responses=READ_ERRORS,
 )
-async def get_profile(*, session: SessionDep, org: BookingsOrgMember) -> Any:
+async def get_profile(*, session: SessionDep, org: BookingsOrgRead) -> Any:
     return await service.get_profile(session, org.organisation_id)
 
 
@@ -103,7 +107,7 @@ async def upsert_profile(
     operation_id="bookingsListServices",
     responses=READ_ERRORS,
 )
-async def list_services(*, session: SessionDep, org: BookingsOrgMember) -> Any:
+async def list_services(*, session: SessionDep, org: BookingsOrgRead) -> Any:
     return await service.list_services(session, org.organisation_id)
 
 
@@ -160,7 +164,7 @@ async def update_service(
     operation_id="bookingsListProviders",
     responses=READ_ERRORS,
 )
-async def list_providers(*, session: SessionDep, org: BookingsOrgMember) -> Any:
+async def list_providers(*, session: SessionDep, org: BookingsOrgRead) -> Any:
     return await service.list_providers(session, org.organisation_id)
 
 
@@ -215,7 +219,7 @@ async def update_provider(
     responses=READ_ERRORS,
 )
 async def get_working_hours(
-    *, session: SessionDep, org: BookingsOrgMember, provider_id: uuid.UUID
+    *, session: SessionDep, org: BookingsOrgRead, provider_id: uuid.UUID
 ) -> Any:
     provider = await service.get_provider(
         session, provider_id, organisation_id=org.organisation_id
@@ -260,7 +264,7 @@ async def replace_working_hours(
 async def list_exceptions(
     *,
     session: SessionDep,
-    org: BookingsOrgMember,
+    org: BookingsOrgRead,
     provider_id: uuid.UUID,
     starts_from: datetime | None = None,
     ends_before: datetime | None = None,
@@ -325,7 +329,7 @@ async def delete_exception(
 async def list_bookings(
     *,
     session: SessionDep,
-    org: BookingsOrgMember,
+    org: BookingsOrgRead,
     starts_from: datetime,
     ends_before: datetime,
 ) -> Any:

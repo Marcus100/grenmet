@@ -25,6 +25,11 @@ Logic is in `public.py` (service.py keeps studio config and availability); route
 - **ICS:** `ics.py` is a pure RFC 5545 writer (CRLF, 75-octet folding, escaping, UTC, `STATUS`, `SEQUENCE` = history length - 1).
 - Deposits (`pending_payment`) are not wired until B6.
 
+## Wiring (PF3, PF5, PF8)
+- **API keys:** the `/bookings/org/*` GET routes (`BookingsOrgRead`) accept a member or an API key with `bookings.read` (`organisations.api_key_auth.org_or_key`); no studio create/cancel org route exists yet (B5), so there is no `bookings.write` route: B5 must use `org_or_key("bookings", "bookings.write", MembershipRole.ADMIN)` and pass `actor_id` (None for a key) to `public.transition`.
+- **Contacts:** `bookings.customer.contact_id` (nullable, `ON DELETE SET NULL`, migration `wiring20261020`). Public create calls `contacts.service.upsert_contact(source="bookings", consents={marketing: marketing_consent})` only when the organisation has the `contacts` entitlement, inside a savepoint; any database error is logged and the booking proceeds unlinked. Erasure keeps the contact row (erased) and a merge clears the link; neither breaks a booking. Existing customers link on their next booking (no backfill).
+- **Rewards:** `public.transition` to `completed` calls `rewards.service.emit_qualifying_action` (`bookings.completed`, source id = booking id) when the customer's contact is live and has a `user_id`; otherwise nothing is queued. Tests: `tests/bookings/test_wiring.py`, `test_wiring_migration.py`.
+
 ## Next slices
 B5: studio actions (use `public.transition`). B6: deposits via the provider-neutral payment adapter (Stripe, Republic Bank ePay).
 

@@ -23,6 +23,8 @@ from .dependencies import (
     RewardsManager,
     RewardsOrgAdmin,
     RewardsOrgMember,
+    RewardsOrgRead,
+    RewardsOrgStaff,
 )
 from .models import EntryKind, EntryStatus, ProgramStatus
 from .router_gamification import router as gamification_router
@@ -202,7 +204,7 @@ async def list_my_tickets(
     operation_id="rewardsListPrograms",
     responses={**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND},
 )
-async def list_programs(*, session: SessionDep, org: RewardsOrgMember) -> Any:
+async def list_programs(*, session: SessionDep, org: RewardsOrgRead) -> Any:
     return await service.list_programs(session, organisation_id=org.organisation_id)
 
 
@@ -263,7 +265,7 @@ async def update_program(
     responses={**WRITE_ERRORS},
 )
 async def confirm_redemption(
-    *, session: SessionDep, org: RewardsOrgMember, payload: RedemptionConfirm
+    *, session: SessionDep, org: RewardsOrgStaff, payload: RedemptionConfirm
 ) -> Any:
     entry, program = await service.confirm_redemption(
         session,

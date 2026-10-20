@@ -20,6 +20,7 @@ from sqlalchemy import and_, func, or_, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import outbox
 from src.audit import service as audit_service
 from src.auth.models import User
 from src.exceptions import NotFoundError
@@ -435,6 +436,39 @@ async def record_qualifying_action(
     )
 
 
+QUALIFYING_ACTION_TOPIC = "rewards.qualifying_action"
+
+
+async def emit_qualifying_action(
+    session: AsyncSession,
+    *,
+    source_type: str,
+    source_id: str,
+    organisation_id: str,
+    user_id: uuid.UUID,
+) -> bool:
+    """Queue ``record_qualifying_action`` on the outbox, in the caller's transaction.
+
+    The row commits or rolls back with the change that caused it, and the worker
+    credits the stamps later (``outbox_handlers``). Deduplicated per source and
+    person (``<source_type>:<source_id>:<user_id>``), so a repeat adds nothing.
+    No commit; returns False for a repeat."""
+    if not sources.is_qualifying_source(source_type):
+        raise RewardsValidationError("Unknown qualifying source type")
+    return await outbox.enqueue(
+        session,
+        topic=QUALIFYING_ACTION_TOPIC,
+        dedupe_key=f"{source_type}:{source_id}:{user_id}",
+        organisation_id=organisation_id,
+        payload={
+            "source_type": source_type,
+            "source_id": source_id,
+            "organisation_id": organisation_id,
+            "user_id": str(user_id),
+        },
+    )
+
+
 async def confirm_pending_earn(session: AsyncSession, entry_id: uuid.UUID) -> bool:
     """Settle a pending earn (e.g. once its source can no longer be refunded)."""
     entry = await session.scalar(
@@ -646,9 +680,10 @@ async def cancel_redemption(
 
 
 async def confirm_redemption(
-    session: AsyncSession, *, organisation_id: str, code: str, staff: User
+    session: AsyncSession, *, organisation_id: str, code: str, staff: User | None
 ) -> tuple[Entry, Program]:
-    """Staff of the funding organisation confirm a customer's code. One use only."""
+    """Staff of the funding organisation (``None``: an API key) confirm a
+    customer's code. One use only."""
     entry = await session.scalar(
         select(Entry)
         .where(
@@ -662,10 +697,11 @@ async def confirm_redemption(
         raise RedemptionNotFoundError()
     if entry.status != EntryStatus.PENDING.value:
         raise RewardsConflictError("This code has already been used or cancelled")
-    audit_service.set_actor(session, staff.id)
+    staff_id = staff.id if staff else None
+    audit_service.set_actor(session, staff_id)
     entry.status = EntryStatus.CONFIRMED.value
     entry.settled_at = utc_now()
-    entry.settled_by_user_id = staff.id
+    entry.settled_by_user_id = staff_id
     await session.flush()
     program = await get_program(session, entry.program_id)
     return entry, program
