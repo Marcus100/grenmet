@@ -1,6 +1,8 @@
 import "server-only";
 
 import {
+  apiKeyListPublicSchema,
+  apiKeyPublicSchema,
   memberListPublicSchema,
   organisationAdminDetailSchema,
   organisationAdminListPublicSchema,
@@ -155,6 +157,31 @@ export function listOrganisationSites(
     `/organisations/admin/sites?organisation_id=${encodeURIComponent(organisationId)}`,
     publicSiteListPublicSchema,
     { accessToken }
+  );
+}
+
+export const API_KEYS_PAGE_SIZE = 100;
+
+/** Superuser-only `GET /organisations/admin/api-keys?organisation_id=`; never has secrets. */
+export function listOrganisationApiKeys(
+  accessToken: string,
+  organisationId: string
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    `/organisations/admin/api-keys?organisation_id=${encodeURIComponent(organisationId)}&size=${API_KEYS_PAGE_SIZE}`,
+    apiKeyListPublicSchema,
+    { accessToken }
+  );
+}
+
+/** Superuser-only, idempotent `POST /organisations/admin/api-keys/{id}/revoke`. */
+export function revokeApiKey(accessToken: string, keyId: string) {
+  return authApiFetch(
+    getAuthConfig(),
+    `/organisations/admin/api-keys/${encodeURIComponent(keyId)}/revoke`,
+    apiKeyPublicSchema,
+    { accessToken, method: "POST" }
   );
 }
 
