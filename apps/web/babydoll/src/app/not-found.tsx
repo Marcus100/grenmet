@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BOOKING_URL } from "@/data/site";
+import { siteBookingLink } from "@/lib/book-link";
 
 export const metadata: Metadata = {
   title: "Page not found",
@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function NotFound() {
+  const booking = siteBookingLink();
   return (
     <header className="page-head">
       <div className="wrap">
@@ -19,12 +20,7 @@ export default function NotFound() {
           The link may be old. Try the home page or book straight away.
         </p>
         <div className="ctas">
-          <a
-            className="btn btn-solid"
-            href={BOOKING_URL}
-            rel="noopener"
-            target="_blank"
-          >
+          <a className="btn btn-solid" {...booking}>
             Book now
           </a>
           <Link className="btn btn-ghost" href="/">
