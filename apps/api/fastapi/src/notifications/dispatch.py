@@ -11,14 +11,16 @@ import logging
 from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from sqlalchemy import or_, select
+from sqlalchemy import String, cast, exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import email as email_module
 from src.auth.models import User
 from src.email_config import email_settings
+from src.outbox import Outbox
 from src.utils.datetime import utc_now
 
 from . import service
@@ -184,18 +186,66 @@ _OUTBOUND_JINJA = {
 }
 
 
-async def _render_outbound(row: OutboundEmail) -> tuple[str, str]:
-    if row.html is not None:
-        return row.subject, row.html
-    template = row.template or ""
+async def _render_content(
+    *, subject: str, html: str | None, template: str | None, props: dict[str, Any]
+) -> tuple[str, str]:
+    if html is not None:
+        return subject, html
+    name = template or ""
     if email_settings.EMAIL_RENDER_URL:
         try:
-            rendered = await email_module.render_remote(template, row.props)
+            rendered = await email_module.render_remote(name, props)
             return rendered.subject, rendered.html_content
         except Exception:  # noqa: BLE001 - any render failure falls back to Jinja
             logger.warning("React Email render failed; using Jinja fallback")
-    html = _templates.get_template(_OUTBOUND_JINJA[template]).render(**row.props)
-    return row.subject, html
+    return subject, _templates.get_template(_OUTBOUND_JINJA[name]).render(**props)
+
+
+async def _render_outbound(row: OutboundEmail) -> tuple[str, str]:
+    return await _render_content(
+        subject=row.subject, html=row.html, template=row.template, props=row.props
+    )
+
+
+async def send_outbound_row(
+    session: AsyncSession,
+    row: OutboundEmail,
+    *,
+    attempts: int,
+    sender: Sender | None = None,
+) -> None:
+    """Send one email for the outbox handlers (``outbox_handlers``).
+
+    Mirrors the legacy drain: suppression is checked at send time for
+    non-transactional mail and an unconfigured sender marks the row ``skipped``.
+    A send or render failure is raised so the outbox backs off and retries; the
+    caller's transaction (including this row) is then rolled back. Whatever the
+    outcome, the content (props, html) is cleared once the row is final.
+    """
+    send = sender or email_module.send_email
+    row.attempts = attempts
+    skip_reason = None
+    if not row.transactional and await service.is_suppressed(
+        session=session, email=row.to_email
+    ):
+        skip_reason = "Address is on the suppression list"
+    elif not email_settings.emails_enabled:
+        skip_reason = "Email is not configured"
+    if skip_reason:
+        row.status = OutboundEmailStatus.SKIPPED.value
+        row.last_error = skip_reason
+    else:
+        subject, html = await _render_outbound(row)
+        await asyncio.to_thread(
+            send, email_to=row.to_email, subject=subject, html_content=html
+        )
+        row.status = OutboundEmailStatus.SENT.value
+        row.sent_at = utc_now()
+        row.last_error = None
+    row.next_retry_at = None
+    # Links in props carry tokens; nothing needs them once the mail is final.
+    row.props = {}
+    row.html = None
 
 
 async def _deliver_outbound(
@@ -243,7 +293,10 @@ async def process_outbound_emails(
     max_attempts: int | None = None,
     sender: Sender | None = None,
 ) -> int:
-    """Send pending public-flow emails and due retries. Returns how many were handled."""
+    """Drain legacy public-flow emails (queued before the outbox move). Returns the count.
+
+    Rows with an ``email.deliver`` outbox row are sent by ``outbox.drain`` instead.
+    Remove this job once no ``outbound_email`` row is pending without one."""
     limit = limit or notification_settings.NOTIFICATIONS_BATCH_SIZE
     max_attempts = max_attempts or notification_settings.NOTIFICATIONS_MAX_ATTEMPTS
     send = sender or email_module.send_email
@@ -251,6 +304,12 @@ async def process_outbound_emails(
     due = (
         select(OutboundEmail)
         .where(
+            # Rows queued before the outbox move have no ``email.deliver`` row;
+            # newer ones are retried by ``outbox.drain`` and left alone here.
+            ~exists().where(
+                Outbox.topic == service.EMAIL_DELIVER,
+                Outbox.dedupe_key == cast(OutboundEmail.id, String),
+            ),
             or_(
                 OutboundEmail.status == OutboundEmailStatus.PENDING.value,
                 (OutboundEmail.status == OutboundEmailStatus.FAILED.value)
@@ -259,7 +318,7 @@ async def process_outbound_emails(
                     OutboundEmail.next_retry_at.is_(None)
                     | (OutboundEmail.next_retry_at <= now)
                 ),
-            )
+            ),
         )
         .order_by(OutboundEmail.created_at)
         .limit(1)
