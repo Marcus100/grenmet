@@ -46,7 +46,14 @@ import { apiOptions } from "@/lib/api";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 import { type ActionResult, SIGN_IN_REQUIRED } from "./action-result";
-import { toDoorAdmission, toOutletSale, toRefund, toTill } from "./api-mappers";
+import {
+  toDoorAdmission,
+  toMyOrder,
+  toOutletSale,
+  toRefund,
+  toTill,
+} from "./api-mappers";
+import { friendlyConflict } from "./order-errors";
 import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
 
 /**
@@ -73,7 +80,10 @@ function detailOf(error: ResponseError): string | null {
 async function run<T>(
   area: string,
   call: (options: Options) => Promise<T>,
-  { requireSession = true }: { requireSession?: boolean } = {}
+  {
+    requireSession = true,
+    explainConflict = false,
+  }: { explainConflict?: boolean; requireSession?: boolean } = {}
 ): Promise<ActionResult<T>> {
   const session = await getSession();
   if (!session && requireSession) {
@@ -92,9 +102,14 @@ async function run<T>(
       ((error.status >= 400 && error.status < 500) ||
         (error.status === 503 && detailOf(error) === UPLOADS_UNAVAILABLE))
     ) {
+      const detail = detailOf(error);
+      const message =
+        explainConflict && error.status === 409
+          ? friendlyConflict(detail)
+          : detail;
       return {
         ok: false,
-        error: detailOf(error) ?? "That didn't work. Check it and try again.",
+        error: message ?? "That didn't work. Check it and try again.",
       };
     }
     reportError(error, area);
@@ -109,33 +124,50 @@ export async function setGoing(slug: string, going: boolean) {
   });
 }
 
-/** Claims free or registration tickets; resolves to the number issued. */
+/**
+ * Claims tickets. Free tiers issue at once; a paid tier returns an order that
+ * waits for payment (`checkoutUrl` to send the buyer to, or null when the
+ * organiser records the payment by hand). The idempotency key makes a retried
+ * submit converge on the same order.
+ */
 export async function claimTickets(
   slug: string,
-  items: readonly { readonly quantity: number; readonly tierId: string }[]
+  items: readonly { readonly quantity: number; readonly tierId: string }[],
+  idempotencyKey?: string
 ) {
-  return await run("events-tickets", async (options) => {
-    const order = await eventsClaimTickets({
-      ...options,
-      path: { slug },
-      body: {
-        items: items.map((item) => ({
-          tier_id: item.tierId,
-          quantity: item.quantity,
-        })),
-      },
-    }).unwrap();
-    return order.tickets.length;
-  });
+  return await run(
+    "events-tickets",
+    async (options) => {
+      const order = await eventsClaimTickets({
+        ...options,
+        path: { slug },
+        body: {
+          items: items.map((item) => ({
+            tier_id: item.tierId,
+            quantity: item.quantity,
+          })),
+        },
+        ...(idempotencyKey
+          ? { headers: { "Idempotency-Key": idempotencyKey } }
+          : {}),
+      }).unwrap();
+      return toMyOrder(order);
+    },
+    { explainConflict: true }
+  );
 }
 
 export async function cancelTicket(ticketId: string) {
-  return await run("events-ticket-cancel", async (options) => {
-    await eventsCancelMyTicket({
-      ...options,
-      path: { ticket_id: ticketId },
-    });
-  });
+  return await run(
+    "events-ticket-cancel",
+    async (options) => {
+      await eventsCancelMyTicket({
+        ...options,
+        path: { ticket_id: ticketId },
+      });
+    },
+    { explainConflict: true }
+  );
 }
 
 export async function setSaved(slug: string, saved: boolean) {
