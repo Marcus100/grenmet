@@ -34,6 +34,20 @@ Codex has Playwright and Bishop but not Claude in Chrome or the claude.ai
 plugins (Sentry, PostHog, Cloudflare); a Codex session that needs those hands
 the step to the owner or to a Claude session.
 
+## Cloud sessions
+
+Claude Code cloud containers ship a toolchain older than the repo's pins. `scripts/agents/cloud-bootstrap.sh` runs as a `SessionStart` hook for cloud sessions (`CLAUDE_CODE_REMOTE=true`), is idempotent, never edits tracked files and always exits 0. Run it by hand with `--dry-run` to list the steps. It:
+
+| Problem in the image | What the script does |
+| --- | --- |
+| uv cannot install the pinned Python (`.python-version`) | upgrades uv through pip and shadows the old one on `PATH` |
+| Node is older than `engines.node` | downloads the matching Node release into `~/.cache/barrels-bootstrap` |
+| `pnpm` re-execs into a placeholder tool shim (turbo fails with `Exec format error`) and rewrites `pnpm-lock.yaml` | installs the pinned `@pnpm/exe` and exports `npm_config_manage_package_manager_versions=false` |
+| `uv sync --package fast-back` misses `gms-ingest` | syncs both packages |
+| no Postgres or Redis for API tests | starts both on `localhost`, creates the `app` role and database; Redis runs with `--dir /tmp --save ""` so no `dump.rdb` lands in the repo |
+
+Hooks still run (never bypass them): with the bootstrap done, `git push` runs lint, type-check and the changed packages' tests. If `pnpm-lock.yaml` shows as modified after a gate, the bootstrap did not run in that shell; restore it with `git checkout -- pnpm-lock.yaml` before committing and do not commit it.
+
 ## Switching between Codex and Claude Code
 
 Before a handoff, append the current task, checkout path, branch, changed files,

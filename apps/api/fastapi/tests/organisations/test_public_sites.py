@@ -264,3 +264,30 @@ async def test_default_sites_seed_is_idempotent(db_async: AsyncSession) -> None:
     if await db_async.get(PlatformOrganisation, "gaa") is not None:
         assert keys["mbia"] == "gaa"
         assert keys["gms-alerts"] == "gaa"
+
+
+async def test_fresh_seed_creates_every_default_site(db_async: AsyncSession) -> None:
+    """Public-form tests post to these keys; ``db_async`` seeds them on setup."""
+    keys = set((await db_async.scalars(select(PublicSite.key))).all())
+    assert {d.key for d in sites.DEFAULT_SITES} <= keys
+
+
+def test_site_key_fits_downstream_columns() -> None:
+    """A site key is stored in contact_message.site and list_subscription.list_key."""
+    from src.contact.models import ContactMessage
+    from src.organisations.schemas import PublicSiteCreate
+    from src.subscriptions.models import ListSubscription
+
+    widths = {
+        "public_site.key": PublicSite.__table__.c.key.type.length,
+        "contact_message.site": ContactMessage.__table__.c.site.type.length,
+        "list_subscription.list_key": ListSubscription.__table__.c.list_key.type.length,
+    }
+    api_max = next(
+        m.max_length
+        for m in PublicSiteCreate.model_fields["key"].metadata
+        if hasattr(m, "max_length")
+    )
+    assert api_max <= min(widths.values()), (api_max, widths)
+    assert widths["public_site.key"] <= min(widths.values()), widths
+    assert all(len(d.key) <= api_max for d in sites.DEFAULT_SITES)
