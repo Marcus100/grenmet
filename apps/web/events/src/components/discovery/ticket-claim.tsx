@@ -1,23 +1,27 @@
 "use client";
 
 import { Button } from "@barrelsgd/ui/components/ui/button";
-import { Check, Minus, Plus, Ticket } from "lucide-react";
+import { Check, Clock, Minus, Plus, Ticket } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
 import { claimTickets } from "@/data/actions";
-import type { EventDetail } from "@/domain/types";
+import type { EventDetail, MyOrder } from "@/domain/types";
+import { formatTime } from "@/lib/datetime";
+import { goToCheckout } from "@/lib/navigation";
+import { formatPrice, safeCheckoutUrl } from "@/lib/orders";
 
 type Tier = EventDetail["tiers"][number];
 
-const PAID_NOTE = "Online payment arrives with the payments step";
+/** What the buyer sees after a submit that did not issue tickets at once. */
+type Outcome =
+  | { readonly kind: "issued"; readonly count: number }
+  | { readonly kind: "redirecting" }
+  | { readonly kind: "reserved"; readonly order: MyOrder };
 
 /** How many more tickets this member can claim for the tier right now. */
 export function claimableCount(tier: Tier): number {
-  if (tier.price.amountMinor > 0) {
-    return 0;
-  }
   return Math.max(
     Math.min(tier.perAccountLimit - tier.held, tier.remaining),
     0
@@ -25,9 +29,6 @@ export function claimableCount(tier: Tier): number {
 }
 
 function tierNote(tier: Tier): string | null {
-  if (tier.price.amountMinor > 0) {
-    return PAID_NOTE;
-  }
   if (tier.remaining <= 0) {
     return "Sold out";
   }
@@ -37,16 +38,15 @@ function tierNote(tier: Tier): string | null {
   return null;
 }
 
-function priceText(tier: Tier): string {
-  if (tier.price.amountMinor === 0) {
-    return "Free";
-  }
-  return `EC$${Math.trunc(tier.price.amountMinor / 100).toLocaleString("en-US")}`;
+function newKey(): string {
+  return crypto.randomUUID();
 }
 
 /**
- * Claim free and registration tickets. Paid tiers stay disabled until online
- * payment exists. Guests can see the tiers; claiming sends them to sign in.
+ * Claim tickets. Free and registration tiers issue at once. A paid tier
+ * creates an order that holds the stock: the buyer is sent to the payment
+ * page, or, when the organiser takes payment by hand, told the tickets are
+ * reserved. Guests can see the tiers; claiming sends them to sign in.
  */
 export function TicketClaim({
   slug,
@@ -57,14 +57,21 @@ export function TicketClaim({
 }) {
   const router = useRouter();
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [claimed, setClaimed] = useState<number | null>(null);
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
   const { error, pending, perform } = useMemberAction();
+  // One key per distinct selection: a retry of the same basket reuses it so a
+  // double click or a dropped response converges on a single order.
+  const attempt = useRef<{ key: string; signature: string } | null>(null);
 
   const chosen = tiers
     .map((tier) => ({ tierId: tier.id, quantity: quantities[tier.id] ?? 0 }))
     .filter((item) => item.quantity > 0);
   const total = chosen.reduce((sum, item) => sum + item.quantity, 0);
-  const anyClaimable = tiers.some((tier) => claimableCount(tier) > 0);
+  const paid = chosen.some(
+    (item) =>
+      (tiers.find((tier) => tier.id === item.tierId)?.price.amountMinor ?? 0) >
+      0
+  );
 
   function change(tier: Tier, delta: number) {
     const next = (quantities[tier.id] ?? 0) + delta;
@@ -74,13 +81,38 @@ export function TicketClaim({
     });
   }
 
-  async function submit() {
-    const result = await perform(() => claimTickets(slug, chosen));
-    if (result.ok) {
-      setClaimed(result.data);
-      setQuantities({});
-      router.refresh();
+  function keyFor(): string | undefined {
+    if (!paid) {
+      return undefined;
     }
+    const signature = JSON.stringify(chosen);
+    if (attempt.current?.signature !== signature) {
+      attempt.current = { key: newKey(), signature };
+    }
+    return attempt.current.key;
+  }
+
+  async function submit() {
+    setOutcome(null);
+    const result = await perform(() => claimTickets(slug, chosen, keyFor()));
+    if (!result.ok) {
+      return;
+    }
+    attempt.current = null;
+    setQuantities({});
+    const order = result.data;
+    if (order.status === "pending_payment" && order.paymentRequired) {
+      const url = safeCheckoutUrl(order.checkoutUrl);
+      if (url) {
+        setOutcome({ kind: "redirecting" });
+        goToCheckout(url);
+        return;
+      }
+      setOutcome({ kind: "reserved", order });
+    } else {
+      setOutcome({ kind: "issued", count: order.ticketIds.length });
+    }
+    router.refresh();
   }
 
   return (
@@ -98,7 +130,7 @@ export function TicketClaim({
               <div className="min-w-0">
                 <p className="font-medium text-body">{tier.name}</p>
                 <p className="text-caption text-muted-foreground">
-                  {priceText(tier)}
+                  {formatPrice(tier.price)}
                   {note ? ` · ${note}` : ` · ${tier.remaining} left`}
                 </p>
               </div>
@@ -136,33 +168,74 @@ export function TicketClaim({
       </ul>
       <Button
         className="h-11 w-full text-body-base"
-        disabled={pending || total === 0}
+        disabled={pending || total === 0 || outcome?.kind === "redirecting"}
         onClick={submit}
         size="lg"
-        title={anyClaimable ? undefined : PAID_NOTE}
       >
         <Ticket data-icon="inline-start" />
-        {total > 0
-          ? `Get ${total} ticket${total === 1 ? "" : "s"}`
-          : "Get tickets"}
+        {buttonLabel(total, paid)}
       </Button>
-      {claimed === null ? null : (
-        <p
-          className="flex items-center gap-1 text-body text-primary"
-          role="status"
-        >
-          <Check className="size-4" />
-          You have {claimed} new ticket{claimed === 1 ? "" : "s"}.{" "}
-          <Link className="underline" href="/me/tickets">
-            Open My tickets
-          </Link>
-        </p>
-      )}
+      <OutcomeNotice outcome={outcome} />
       {error ? (
         <p className="text-caption text-destructive" role="alert">
           {error}
         </p>
       ) : null}
     </div>
+  );
+}
+
+function buttonLabel(total: number, paid: boolean): string {
+  if (total === 0) {
+    return "Get tickets";
+  }
+  const noun = `ticket${total === 1 ? "" : "s"}`;
+  return paid ? `Pay for ${total} ${noun}` : `Get ${total} ${noun}`;
+}
+
+function OutcomeNotice({ outcome }: { outcome: Outcome | null }) {
+  if (outcome === null) {
+    return null;
+  }
+  if (outcome.kind === "redirecting") {
+    return (
+      <p className="text-body text-muted-foreground" role="status">
+        Taking you to secure payment…
+      </p>
+    );
+  }
+  if (outcome.kind === "reserved") {
+    const { order } = outcome;
+    return (
+      <div
+        className="space-y-1 rounded-xl border border-border bg-muted p-3 text-body"
+        role="status"
+      >
+        <p className="flex items-center gap-1 font-semibold">
+          <Clock className="size-4" />
+          Reserved, awaiting payment
+        </p>
+        <p>
+          {order.paymentExpiresAt
+            ? `We are holding your tickets until ${formatTime(order.paymentExpiresAt)}. `
+            : "We are holding your tickets for a short time. "}
+          Pay the organiser before then; they will record your payment and your
+          tickets appear in My tickets. If the hold runs out the tickets go back
+          on sale.
+        </p>
+        <Link className="underline" href={`/me/orders/${order.id}`}>
+          View this order
+        </Link>
+      </div>
+    );
+  }
+  return (
+    <p className="flex items-center gap-1 text-body text-primary" role="status">
+      <Check className="size-4" />
+      You have {outcome.count} new ticket{outcome.count === 1 ? "" : "s"}.{" "}
+      <Link className="underline" href="/me/tickets">
+        Open My tickets
+      </Link>
+    </p>
   );
 }
