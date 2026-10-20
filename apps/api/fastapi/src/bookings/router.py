@@ -9,15 +9,17 @@ import uuid
 from datetime import date, datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi import APIRouter, Depends, Path, Query, Request, Response, status
 
+from src import idempotency
 from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgContext, require_org_app
 from src.organisations.models import MembershipRole
 from src.rate_limit import limiter
+from src.turnstile import require_turnstile
 
-from . import service
+from . import public, service
 from .schemas import (
     BookingAgendaItem,
     BookingAvailability,
@@ -28,6 +30,11 @@ from .schemas import (
     BookingProviderCreate,
     BookingProviderPublic,
     BookingProviderUpdate,
+    BookingPublicCancel,
+    BookingPublicCreate,
+    BookingPublicDetail,
+    BookingPublicReceipt,
+    BookingPublicReschedule,
     BookingServiceCreate,
     BookingServicePublic,
     BookingServiceUpdate,
@@ -395,4 +402,171 @@ async def get_availability(
             )
             for slot in slots
         ],
+    )
+
+
+# --- public bookings (B3) ---------------------------------------------------------------
+
+ManageToken = Annotated[
+    str,
+    Path(
+        min_length=16,
+        max_length=100,
+        description="The manage token returned when the booking was made.",
+    ),
+]
+
+
+@router.post(
+    "/public/{slug}/bookings",
+    response_model=BookingPublicReceipt,
+    status_code=status.HTTP_201_CREATED,
+    summary="Book a slot",
+    description=(
+        "Books an open slot without an account. Requires an `Idempotency-Key` "
+        "header: repeating the request with the same key and body replays the "
+        "first answer (header `Idempotency-Replayed: true`), the same key with a "
+        "different body is 409. Applies the organisation's Turnstile policy. "
+        "A slot that was taken answers 409. The response carries the manage "
+        "token once; only its hash is stored. Confirmation emails are queued on "
+        "the outbox. Unknown, disabled and unentitled pages answer 404."
+    ),
+    operation_id="bookingsCreatePublicBooking",
+    responses={**BAD_REQUEST, **NOT_FOUND, **CONFLICT},
+)
+@limiter.limit("10/minute")
+async def create_public_booking(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    slug: Annotated[str, Path(max_length=60)],
+    payload: BookingPublicCreate,
+    idempotency_key: idempotency.RequiredIdempotencyKey,
+) -> Any:
+    profile = await service.get_public_profile(session, slug)
+    await require_turnstile(
+        request,
+        payload.turnstile_token,
+        await public.turnstile_policy(session, profile),
+    )
+    if payload.website:
+        # Honeypot: look successful, store nothing.
+        public.logger.info("Booking honeypot tripped; dropped")
+        return public.decoy_receipt(profile, payload)
+
+    result = await idempotency.run_idempotent(
+        session,
+        scope="bookings.create",
+        organisation_id=profile.organisation_id,
+        key=idempotency_key,
+        request_body=payload.model_dump(
+            mode="json", exclude={"turnstile_token", "website"}
+        ),
+        handler=lambda: public.create_booking(session, profile, payload),
+    )
+    await session.commit()
+    response.status_code = result.status_code
+    if result.replayed:
+        response.headers["Idempotency-Replayed"] = "true"
+    return result.body
+
+
+@router.get(
+    "/public/bookings/{token}",
+    response_model=BookingPublicDetail,
+    summary="Get a booking by its manage token",
+    description=(
+        "A customer's own booking. Unknown, expired and unentitled tokens all "
+        "answer 404."
+    ),
+    operation_id="bookingsGetPublicBooking",
+    responses={**NOT_FOUND},
+)
+@limiter.limit("60/minute")
+async def get_public_booking(
+    *, request: Request, session: SessionDep, token: ManageToken
+) -> Any:
+    _ = request
+    return await public.get_booking(session, token)
+
+
+@router.post(
+    "/public/bookings/{token}/cancel",
+    response_model=BookingPublicDetail,
+    summary="Cancel a booking",
+    description=(
+        "Cancels the booking and frees the slot. 409 inside the business's "
+        "cancellation cutoff (`cancel_cutoff_hours`) or when the booking is "
+        "already finished. Cancelling twice is harmless."
+    ),
+    operation_id="bookingsCancelPublicBooking",
+    responses={**NOT_FOUND, **CONFLICT},
+)
+@limiter.limit("20/minute")
+async def cancel_public_booking(
+    *,
+    request: Request,
+    session: SessionDep,
+    token: ManageToken,
+    payload: BookingPublicCancel | None = None,
+) -> Any:
+    _ = request
+    result = await public.cancel_booking(
+        session, token, reason=payload.reason if payload else None
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/public/bookings/{token}/reschedule",
+    response_model=BookingPublicDetail,
+    summary="Move a booking to another slot",
+    description=(
+        "Moves the booking to another open slot with the same provider and "
+        "service; the booking stays active and keeps its token. 409 when the "
+        "slot is taken or the booking is inside the cancellation cutoff."
+    ),
+    operation_id="bookingsReschedulePublicBooking",
+    responses={**NOT_FOUND, **CONFLICT},
+)
+@limiter.limit("20/minute")
+async def reschedule_public_booking(
+    *,
+    request: Request,
+    session: SessionDep,
+    token: ManageToken,
+    payload: BookingPublicReschedule,
+) -> Any:
+    _ = request
+    result = await public.reschedule_booking(session, token, payload.starts_at)
+    await session.commit()
+    return result
+
+
+@router.get(
+    "/public/bookings/{token}/ics",
+    response_class=Response,
+    summary="Download a booking as a calendar file",
+    description="The booking as an iCalendar (RFC 5545) event, UTC times.",
+    operation_id="bookingsGetPublicBookingIcs",
+    responses={
+        200: {
+            "description": "iCalendar file",
+            "content": {"text/calendar": {"schema": {"type": "string"}}},
+        },
+        **NOT_FOUND,
+    },
+)
+@limiter.limit("60/minute")
+async def get_public_booking_ics(
+    *, request: Request, session: SessionDep, token: ManageToken
+) -> Response:
+    _ = request
+    text = await public.booking_ics(session, token)
+    return Response(
+        content=text,
+        media_type="text/calendar; charset=utf-8",
+        headers={"Content-Disposition": 'inline; filename="booking.ics"'},
     )
