@@ -13,7 +13,7 @@ const TOP_LEVEL_KEY = /^\S/;
 const SERVICE_HEADER = /^ {2}([a-z0-9-]+):\s*$/;
 const LIST_ITEM = /^ {6}- (.+?)\s*$/;
 const SECTION = /^ {4}([a-z_]+):(.*)$/;
-const VARIABLE = /\$\{([A-Z0-9_]+)(?:(:-|:\+|:\?)([^}]*))?\}/g;
+const VARIABLE = /\$\{([A-Z0-9_]+)(?:(:-|:\+|:\?)([^${}]*))?\}/g;
 const SOCKET = "/var/run/docker.sock";
 const STAGING_ONLY = ["staging-auth", "staging-noindex"];
 const DASHBOARD_USER = /\$\{USERNAME\}/;
@@ -79,13 +79,27 @@ function envFile(name) {
   return values;
 }
 
+// Innermost `${...}` first, so `${A:+x${B}}` nests as Compose does.
 function interpolate(value, variables) {
-  return value.replace(VARIABLE, (_match, name, operator, word = "") => {
-    const set = Boolean(variables[name]);
-    if (operator === ":+") return set ? word : "";
-    if (operator === ":-") return set ? variables[name] : word;
-    return variables[name] ?? "";
-  });
+  let current = value;
+  let previous;
+  while (current !== previous) {
+    previous = current;
+    current = current.replace(VARIABLE, (_match, name, operator, word = "") => {
+      const set = Boolean(variables[name]);
+      if (operator === ":+") return set ? word : "";
+      if (operator === ":-") return set ? variables[name] : word;
+      return variables[name] ?? "";
+    });
+  }
+  return current;
+}
+
+// A router's flattened middleware list; none when it has no middlewares label.
+function routerMiddlewares(router, labels) {
+  return router.middlewares
+    ? resolve(router.middlewares.split(","), labels)
+    : [];
 }
 
 function labelsOf(service, variables) {
@@ -293,7 +307,7 @@ test("secure headers add a permissions policy and COOP and keep HSTS at 30 days"
   }
 });
 
-test("every websecure router limits request bodies and every request is capped per IP", () => {
+test("upload routers limit request bodies, web routers stay unbuffered, every request is capped per IP", () => {
   const hrLimit = Number(
     read("apps/api/fastapi/src/hr/documents/service.py")
       .match(HR_LIMIT)[1]
@@ -314,28 +328,48 @@ test("every websecure router limits request bodies and every request is capped p
     const routers = websecureRouters(environment);
     assert.ok(routers.length >= 12, `${environment} has its routers`);
     for (const [name, router] of routers) {
-      assert.ok(router.middlewares, `${name} has middlewares`);
-      const buffering = resolve(router.middlewares.split(","), labels).filter(
+      const buffering = routerMiddlewares(router, labels).filter(
         (middleware) => middlewareKind(middleware, labels) === "buffering"
       );
+      if (!UPLOAD_ROUTER.test(name)) {
+        // Buffering also buffers responses and would break Next.js streaming.
+        assert.deepEqual(buffering, [], `${name} must not buffer`);
+        continue;
+      }
       assert.equal(buffering.length, 1, `${name} has one body limit`);
       const limit = Number(
         labels[
           `traefik.http.middlewares.${buffering[0]}.buffering.maxRequestBodyBytes`
         ]
       );
-      const uploads = UPLOAD_ROUTER.test(name);
-      if (uploads)
-        assert.ok(limit > hrLimit, `${name} fits a ${hrLimit}-byte upload`);
-      else assert.equal(limit, 2 * 1024 * 1024, `${name} web limit`);
+      assert.ok(limit > hrLimit, `${name} fits a ${hrLimit}-byte upload`);
     }
+    const upload = routers.filter(([name]) => UPLOAD_ROUTER.test(name));
+    assert.equal(
+      upload.length,
+      environment === "staging" ? 3 : 2,
+      `${environment} api, cms (and staging adminer) routers`
+    );
+  }
+});
+
+test("production web routers carry no middlewares and no empty chain", () => {
+  const { labels } = edge("production");
+  for (const [name, router] of websecureRouters("production")) {
+    if (UPLOAD_ROUTER.test(name)) continue;
+    assert.equal(router.middlewares, undefined, `${name} middlewares label`);
+  }
+  for (const [key, value] of Object.entries(labels)) {
+    if (key.endsWith(".chain.middlewares"))
+      assert.ok(value.split(",").every(Boolean), `${key} is not empty`);
+    assert.notEqual(key, "", "no empty label key");
   }
 });
 
 test("staging protection never reaches production routers", () => {
   for (const [name, router] of websecureRouters("production")) {
     const { labels } = edge("production");
-    const chain = resolve(router.middlewares.split(","), labels);
+    const chain = routerMiddlewares(router, labels);
     for (const middleware of STAGING_ONLY)
       assert.equal(
         chain.some((entry) => entry.startsWith(middleware)),
@@ -349,7 +383,7 @@ test("staging protection never reaches production routers", () => {
 test("staging web hosts get basic auth and noindex; the staging API only noindex", () => {
   const { labels, variables } = edge("staging");
   for (const [name, router] of websecureRouters("staging")) {
-    const chain = resolve(router.middlewares.split(","), labels);
+    const chain = routerMiddlewares(router, labels);
     const auth = chain.filter(
       (entry) => middlewareKind(entry, labels) === "basicauth"
     );

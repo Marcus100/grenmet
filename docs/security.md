@@ -76,7 +76,7 @@ Security-sensitive deployment facts:
 - Adminer is included in staging and local development. Production compose currently does not include Adminer.
 - Traefik reads Docker only through `traefik-socket-proxy` (read-only container/event endpoints on an internal network); no internet-facing container mounts the Docker socket. Traefik runs read-only with all capabilities dropped except `NET_BIND_SERVICE`.
 - Staging web hosts require `STAGING_BASIC_AUTH_USERS` basic auth and send `X-Robots-Tag: noindex, nofollow`; the staging API sends only the header. Production is unaffected.
-- Every HTTPS request is capped at 100 concurrent requests per client IP; request bodies are limited to 30 MiB on the API and CMS and 2 MiB on the other web apps. Access logs are JSON without request headers or query strings.
+- Every HTTPS request is capped at 100 concurrent requests per client IP; request bodies are limited to 30 MiB at the edge on the API, CMS and staging Adminer (Traefik `buffering`, which also buffers responses). The Next.js web apps have no edge body limit on purpose, because response buffering would break streaming and loading states: Next.js 16 caps server-action bodies at 1 MB by default (no app raises `serverActions.bodySizeLimit`) and no web route accepts file uploads. Access logs are JSON without request headers or query strings.
 
 ## Security Gaps To Track
 

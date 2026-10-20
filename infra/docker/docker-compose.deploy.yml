@@ -487,7 +487,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.rule=Host(`auth.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.middlewares=edge-web${ROUTER_SUFFIX}"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-auth${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-auth${ROUTER_SUFFIX}.loadbalancer.server.port=3000"
     networks:
@@ -524,7 +524,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.rule=Host(`admin.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.middlewares=edge-web${ROUTER_SUFFIX}"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-admin${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
       - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
@@ -532,7 +532,7 @@ services:
       # its certificate independent, so a missing DNS record cannot break admin.*.
       - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.rule=Host(`gmsadmin.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.middlewares=edge-web${ROUTER_SUFFIX}"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.service=web-admin${ROUTER_SUFFIX}"
     networks:
@@ -560,7 +560,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.rule=Host(`docs.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.middlewares=edge-web${ROUTER_SUFFIX}"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-docs${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-docs${ROUTER_SUFFIX}.loadbalancer.server.port=3002"
     networks:
@@ -590,7 +590,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.rule=Host(`weather.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.middlewares=edge-web${ROUTER_SUFFIX}"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-gms${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-gms${ROUTER_SUFFIX}.loadbalancer.server.port=3003"
     networks:
@@ -617,7 +617,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.rule=Host(`signal.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.middlewares=edge-web${ROUTER_SUFFIX}"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-signal${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-signal${ROUTER_SUFFIX}.loadbalancer.server.port=3004"
     networks:
@@ -644,7 +644,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.rule=Host(`mbia.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.middlewares=edge-web${ROUTER_SUFFIX}"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-mbia${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-mbia${ROUTER_SUFFIX}.loadbalancer.server.port=3005"
     networks:
@@ -671,7 +671,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-events${ROUTER_SUFFIX}.rule=Host(`events.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-events${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-events${ROUTER_SUFFIX}.middlewares=edge-web${ROUTER_SUFFIX}"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-events${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-events${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-events${ROUTER_SUFFIX}.loadbalancer.server.port=3009"
     networks:
@@ -700,7 +700,7 @@ services:
       # cannot affect any other host.
       - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.rule=Host(`cap.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.middlewares=edge-web${ROUTER_SUFFIX}"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-cap${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-cap${ROUTER_SUFFIX}.loadbalancer.server.port=3010"
     networks:
@@ -730,7 +730,7 @@ services:
       # record cannot affect any other host.
       - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.rule=Host(`gmsdash.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.middlewares=edge-web${ROUTER_SUFFIX}"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-gmsdash${ROUTER_SUFFIX}.loadbalancer.server.port=3013"
     networks:
@@ -882,20 +882,22 @@ services:
       # by Host header instead.
       - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.amount=100"
       - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.sourceCriterion.ipStrategy.depth=0"
-      # Request body limits per class (413 above the limit). Upload class: largest
-      # API upload is an HR document (25 MiB, src/hr/documents/service.py); event
-      # images go straight to object storage via presigned PUT. Web class: Next
-      # server actions (1 MB default) and forms; no web app accepts files except
-      # the CMS (Payload media), which uses the upload class.
-      # NOTE: Traefik's buffering middleware also buffers responses (in memory up
-      # to 1 MiB, then /tmp); it cannot be disabled from labels.
+      # Request body limit for the routers that accept uploads (API, CMS, Adminer;
+      # 413 above it). Largest API upload: an HR document (25 MiB,
+      # src/hr/documents/service.py); event images go straight to object storage
+      # via presigned PUT; CMS = Payload media.
+      # Traefik's buffering middleware also buffers responses (in memory up to
+      # 1 MiB, then /tmp) and that cannot be disabled from labels, so the Next.js
+      # web routers deliberately have NO buffering: it would kill streaming and
+      # loading states. Next 16 already caps server-action bodies at 1 MB and no
+      # web route accepts files.
       - "traefik.http.middlewares.body-upload${ROUTER_SUFFIX}.buffering.maxRequestBodyBytes=31457280"
-      - "traefik.http.middlewares.body-web${ROUTER_SUFFIX}.buffering.maxRequestBodyBytes=2097152"
-      # Per-class chains every websecure router uses. STAGING_*_MIDDLEWARES are
-      # set in staging.env only, so production chains hold just the body limit.
+      # Upload-class chains. STAGING_*_MIDDLEWARES are set in staging.env only, so
+      # production chains hold just the body limit. Web routers reference
+      # STAGING_WEB_MIDDLEWARES directly; in production that label is replaced by
+      # the inert `gd.barrels.staging-gate=off`, so they carry no middlewares.
       - "traefik.http.middlewares.edge-api${ROUTER_SUFFIX}.chain.middlewares=body-upload${ROUTER_SUFFIX}${STAGING_API_MIDDLEWARES:+,}${STAGING_API_MIDDLEWARES:-}"
       - "traefik.http.middlewares.edge-cms${ROUTER_SUFFIX}.chain.middlewares=body-upload${ROUTER_SUFFIX}${STAGING_WEB_MIDDLEWARES:+,}${STAGING_WEB_MIDDLEWARES:-}"
-      - "traefik.http.middlewares.edge-web${ROUTER_SUFFIX}.chain.middlewares=body-web${ROUTER_SUFFIX}${STAGING_WEB_MIDDLEWARES:+,}${STAGING_WEB_MIDDLEWARES:-}"
       # Staging protection (referenced only through STAGING_*_MIDDLEWARES; unused
       # and unbuilt in production). Web hosts: basic auth + noindex. The API gets
       # noindex only: browser apps call it cross-origin.
