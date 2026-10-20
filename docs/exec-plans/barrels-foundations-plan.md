@@ -293,10 +293,10 @@ Babydoll first. Main-database slices, one at a time.
 | B0 | ADR-0024, this section, portfolio and strategy updates | S | Done |
 | B1 | `bookings` schema and models; migration with the `btree_gist` exclusion constraint; studio CRUD for profile, services, providers, working plans and exceptions; `src/utils/timezones.py`; domain `AGENTS.md`; contracts and regenerated client | L | U — built on branch `claude/bookings-b1-b2`, pending CI (database tests) and merge |
 | B2 | Pure availability engine with property-style tests; public services and availability endpoints | M | U — built with B1, pending CI and merge |
-| B3 | Public create, manage, cancel and reschedule (Turnstile, honeypot, idempotency, hashed manage token); ICS; confirmation, studio and 24-hour reminder emails; retention | L | U |
-| B4 | Babydoll organisation and service seed; `/book` and `/booking/[token]` pages behind a switch flag (Acuity stays live) | M | U |
+| B3 | Public create, manage, cancel and reschedule (Turnstile, honeypot, idempotency, hashed manage token); ICS; confirmation, studio and 24-hour reminder emails; retention | L | Done: on dev (checked 2026-10-20: `src/bookings/public.py`, `ics.py`, `reminders.py`, `emails.py`, `tests/bookings/test_public_bookings.py`); CI not re-run |
+| B4 | Babydoll organisation and service seed; `/book` and `/booking/[token]` pages behind a switch flag (Acuity stays live) | M | O: built on dev (checked 2026-10-20: `src/bookings/seed.py`, `apps/web/babydoll/src/app/book`, `booking/[token]`, `BABYDOLL_ONLINE_BOOKING` in `src/env.ts`, default off). Owner: confirm durations, run the seed, flip the switch. See `docs/operations/babydoll-bookings-cutover.md` |
 | B5 | Babydoll Barrels ID sign-on and `/studio` (agenda, actions, services, hours, time off) | L | O (SSO secret and app URL) |
-| B6 | Provider-neutral payments (E6) on Barrels' merchant account: Stripe and Republic Bank ePay; deposits held as `pending_payment`; callback; refunds; settlement and payouts | L | O (a provider onboards Barrels) |
+| B6 | Provider-neutral payments (E6) on Barrels' merchant account: Stripe and Republic Bank ePay; deposits held as `pending_payment`; callback; refunds; settlement and payouts | L | Partly built on dev (checked 2026-10-20: `src/bookings/deposit_payments.py`, `deposits.py`, `outbox_handlers.py`, `expire_unpaid_bookings` job; `src/payments/providers` has `manual` and `stripe` only, no ePay adapter; `/admin/payouts` records payouts by hand, no automated settlement). O: a provider approved in writing (handoff A2). Deposits stay at 0 until then |
 | B7 | Switch Babydoll off Acuity; second tenant | S | O |
 
 Order: B1 → B2 → B3 → B4. B5 can start after B1. B6 follows B3 once a payment
