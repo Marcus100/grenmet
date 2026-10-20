@@ -11,7 +11,7 @@ docker compose exec api bash
 | Script | Purpose |
 |---|---|
 | `seed_data.py` | Create custom users defined in `CUSTOM_USERS` |
-| `clear_seed_data.py` | Remove test users matching `testuser*@weather.gd` |
+| `clear_seed_data.py` | Remove test users matching `testuser*@example.com` |
 | `format.sh` | Run ruff check --fix + ruff format |
 | `lint.sh` | Run ruff check, ruff format --check, and mypy |
 | `dev.sh` | Convenience wrapper for common docker compose commands |

@@ -34,7 +34,7 @@ const ALERTS = {
       msg_type: "Alert",
       note: null,
       scope: "Public",
-      sender: "cap@weather.gd",
+      sender: "cap@example.com",
       sent: "2026-07-06T00:00:00Z",
       status: "Draft",
       xml_url: null,

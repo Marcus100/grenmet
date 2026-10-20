@@ -155,13 +155,13 @@ jobs:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: changethis
       POSTGRES_DB: app
-      FIRST_SUPERUSER: admin@weather.gd
+      FIRST_SUPERUSER: admin@example.com
       FIRST_SUPERUSER_PASSWORD: changethis
       SECRET_KEY: test-secret-key-min-32-characters-long
       ENVIRONMENT: local
       PROJECT_NAME: FastAPI Backend (Test)
-      EMAILS_FROM_EMAIL: test@weather.gd
-      SMTP_HOST: smtp.weather.gd
+      EMAILS_FROM_EMAIL: test@example.com
+      SMTP_HOST: smtp.example.invalid
       COVERAGE_DATA_ONLY: "1"
       COVERAGE_FILE: reports/coverage-${{ matrix.id }}.data
     defaults:
@@ -465,13 +465,13 @@ jobs:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: changethis
       POSTGRES_DB: app
-      FIRST_SUPERUSER: admin@weather.gd
+      FIRST_SUPERUSER: admin@example.com
       FIRST_SUPERUSER_PASSWORD: changethis
       SECRET_KEY: test-secret-key-min-32-characters-long
       ENVIRONMENT: local
       PROJECT_NAME: FastAPI Backend (Test)
-      EMAILS_FROM_EMAIL: test@weather.gd
-      SMTP_HOST: smtp.weather.gd
+      EMAILS_FROM_EMAIL: test@example.com
+      SMTP_HOST: smtp.example.invalid
     defaults:
       run:
         working-directory: apps/api/fastapi
@@ -504,7 +504,7 @@ jobs:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: changethis
           SECRET_KEY: test-secret-key-min-32-characters-long
-          FIRST_SUPERUSER: admin@weather.gd
+          FIRST_SUPERUSER: admin@example.com
           FIRST_SUPERUSER_PASSWORD: changethis
           # info.title comes from PROJECT_NAME; the committed openapi.json is
           # generated with the real project name, so pin it here or the drift

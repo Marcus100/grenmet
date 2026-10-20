@@ -9,7 +9,7 @@ function makeAlert(overrides: Partial<CapAlert> = {}): CapAlert {
   return {
     id: "alert_1",
     identifier: "GD-2026-001",
-    sender: "cap@weather.gd",
+    sender: "cap@example.com",
     sent: "2026-07-06T00:00:00Z",
     status: "Actual",
     msg_type: "Alert",

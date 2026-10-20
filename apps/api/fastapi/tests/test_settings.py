@@ -33,11 +33,11 @@ def test_wildcard_cors_rejected_in_production() -> None:
 def test_explicit_cors_allowed_in_production() -> None:
     settings = Settings(
         ENVIRONMENT="production",
-        FRONTEND_HOST="https://app.weather.gd",
+        FRONTEND_HOST="https://app.example.test",
         _env_file=None,
         **_required(),
     )
-    assert "https://app.weather.gd" in settings.all_cors_origins
+    assert settings.all_cors_origins[-1] == "https://app.example.test"
 
 
 def test_wildcard_cors_allowed_locally() -> None:
