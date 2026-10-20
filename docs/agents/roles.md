@@ -89,8 +89,10 @@ unresolved goes to the owner.
 6. **Session log.** `SESSION_LOG.md` is local and gitignored, so it does not
    synchronize separate cloud environments or machines. The owner relays
    handoffs, or explicitly authorizes a GitHub comment. The reviewer does not
-   write to it; the author records the review outcome in its own local log. Never
-   commit the log to synchronize agents.
+   write to it, an exception that `AGENTS.md` states and that overrides the
+   logging requirement there and in [workflow.md](workflow.md); the author records
+   the review outcome in its own local log. Never commit the log to synchronize
+   agents.
 7. **Staging and production.** A review of a deployed environment identifies the
    deployed version where available, and states plainly when it cannot be
    verified. Fixes follow the normal integration and promotion workflow, subject
