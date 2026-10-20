@@ -8,6 +8,8 @@ from src.auth.models import User
 from src.auth.policy import require_permission
 from src.dependencies import CurrentUser
 from src.events import database as events_database
+from src.organisations.dependencies import OrgContext, require_org_app
+from src.organisations.models import MembershipRole
 
 
 async def optional_events_session() -> AsyncGenerator[AsyncSession | None]:
@@ -34,3 +36,10 @@ async def get_rewards_manager(current_user: CurrentUser) -> User:
 
 
 RewardsManager = Annotated[User, Depends(get_rewards_manager)]
+
+
+# Organisation routes require the "rewards" entitlement (org.organisation_app).
+RewardsOrgMember = Annotated[OrgContext, Depends(require_org_app("rewards"))]
+RewardsOrgAdmin = Annotated[
+    OrgContext, Depends(require_org_app("rewards", MembershipRole.ADMIN))
+]

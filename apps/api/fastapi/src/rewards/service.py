@@ -26,6 +26,7 @@ from src.exceptions import NotFoundError
 from src.organisations.models import PlatformOrganisation
 from src.utils.datetime import utc_now
 
+from . import sources
 from .config import rewards_settings
 from .exceptions import (
     ProgramNotFoundError,
@@ -50,7 +51,7 @@ logger = logging.getLogger(__name__)
 _CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 _CODE_LENGTH = 8
 SETTLED = (EntryStatus.CONFIRMED.value, EntryStatus.REVERSED.value)
-EVENTS_ADMISSION = "events.admission"
+EVENTS_ADMISSION = sources.EVENTS_ADMISSION
 
 
 # --- programmes ---------------------------------------------------------------
@@ -66,6 +67,7 @@ async def create_program(
         stamps_required=payload.stamps_required,
         reward_description=payload.reward_description,
         stamps_per_source=payload.stamps_per_source,
+        qualifying_source_type=payload.qualifying_source_type,
         max_redemptions_per_account=payload.max_redemptions_per_account,
     )
     session.add(program)
@@ -109,6 +111,66 @@ async def list_programs(
         .order_by(Program.created_at, Program.id)
     )
     return list(result)
+
+
+async def set_program_status(
+    session: AsyncSession, program: Program, *, actor: User, status: ProgramStatus
+) -> Program:
+    """Pause or resume a programme. Idempotent; paused programmes earn and redeem nothing."""
+    audit_service.set_actor(session, actor.id)
+    program.status = status.value
+    await session.flush()
+    return program
+
+
+async def list_org_entries(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    skip: int,
+    limit: int,
+    program_id: uuid.UUID | None = None,
+    kind: EntryKind | None = None,
+    redemptions_only: bool = False,
+) -> tuple[list[dict[str, Any]], int]:
+    """The organisation's ledger entries without any account identity."""
+    conditions = [Entry.organisation_id == organisation_id]
+    if program_id is not None:
+        conditions.append(Entry.program_id == program_id)
+    if kind is not None:
+        conditions.append(Entry.kind == kind.value)
+    if redemptions_only:
+        conditions.append(Entry.kind == EntryKind.REDEEM.value)
+    total = (
+        await session.scalar(select(func.count()).select_from(Entry).where(*conditions))
+        or 0
+    )
+    rows = (
+        await session.execute(
+            select(Entry, Program.name)
+            .join(Program, Program.id == Entry.program_id)
+            .where(*conditions)
+            .order_by(Entry.created_at.desc(), Entry.id)
+            .offset(skip)
+            .limit(limit)
+        )
+    ).all()
+    data = [
+        {
+            "id": entry.id,
+            "program_id": entry.program_id,
+            "program_name": program_name,
+            "kind": entry.kind,
+            "amount": entry.amount,
+            "status": entry.status,
+            "source_type": entry.source_type,
+            "reason": entry.reason,
+            "created_at": entry.created_at,
+            "settled_at": entry.settled_at,
+        }
+        for entry, program_name in rows
+    ]
+    return data, total
 
 
 async def list_programs_admin(
@@ -343,6 +405,34 @@ async def earn_for_source(
     if created:
         await _check_velocity(session, account_id)
     return created
+
+
+async def record_qualifying_action(
+    session: AsyncSession,
+    *,
+    source_type: str,
+    source_id: str,
+    organisation_id: str,
+    user_id: uuid.UUID,
+) -> list[Entry]:
+    """Credit every active programme of the organisation that qualifies for this action.
+
+    The single entry point for earn sources (ADR-0030): Events, Bookings,
+    Billing, Payments and venue check-ins call it, directly or from an outbox
+    handler. ``source_type`` must be in the ``sources`` catalogue. Idempotent per
+    programme and ``source_id`` (a replay credits nothing), and it applies the
+    velocity flag through ``earn_for_source``. Returns the entries created by
+    this call; the caller commits.
+    """
+    if not sources.is_qualifying_source(source_type):
+        raise RewardsValidationError("Unknown qualifying source type")
+    return await earn_for_source(
+        session,
+        account_id=user_id,
+        organisation_id=organisation_id,
+        source_type=source_type,
+        source_id=source_id,
+    )
 
 
 async def confirm_pending_earn(session: AsyncSession, entry_id: uuid.UUID) -> bool:

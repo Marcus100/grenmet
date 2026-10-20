@@ -18,6 +18,26 @@ class RewardsConflictError(AppException):
         super().__init__(message, status.HTTP_409_CONFLICT)
 
 
+class VenueNotFoundError(AppException):
+    def __init__(self) -> None:
+        super().__init__("Venue not found", status.HTTP_404_NOT_FOUND)
+
+
+class TrailNotFoundError(AppException):
+    def __init__(self) -> None:
+        super().__init__("Trail not found", status.HTTP_404_NOT_FOUND)
+
+
+class InvalidCheckInCodeError(AppException):
+    """One message for unknown venue, tampered, expired or inactive: no oracle."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This check-in code is not valid or has expired",
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+
 class RewardsValidationError(AppException):
     def __init__(self, message: str) -> None:
         super().__init__(message, status.HTTP_422_UNPROCESSABLE_ENTITY)

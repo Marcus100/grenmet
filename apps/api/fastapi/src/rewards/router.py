@@ -5,23 +5,27 @@ Routers commit; service functions flush.
 """
 
 import uuid
-from typing import Annotated, Any
+from typing import Any
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Query, status
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.dependencies import AccountUser, SessionDep
 from src.events import schemas as events_schemas
 from src.events import service as events_service
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
-from src.organisations.dependencies import OrgContext, require_org_app
-from src.organisations.models import MembershipRole
 from src.pagination import PaginationDep
 from src.utils.datetime import utc_now
 
 from . import badges, service
-from .dependencies import OptionalEventsSession, RewardsManager
-from .models import EntryKind, EntryStatus
+from .dependencies import (
+    OptionalEventsSession,
+    RewardsManager,
+    RewardsOrgAdmin,
+    RewardsOrgMember,
+)
+from .models import EntryKind, EntryStatus, ProgramStatus
+from .router_gamification import router as gamification_router
 from .schemas import (
     AdjustmentCreate,
     BadgePublic,
@@ -40,14 +44,11 @@ from .schemas import (
     RewardEntryListPublic,
     RewardEntryPublic,
 )
+from .schemas_gamification import RewardsOrgEntryListPublic, RewardsOrgEntryPublic
 
 router = APIRouter(prefix="/rewards", tags=["rewards"])
 
-# Organisation routes require the "rewards" entitlement (org.organisation_app).
-RewardsOrgMember = Annotated[OrgContext, Depends(require_org_app("rewards"))]
-RewardsOrgAdmin = Annotated[
-    OrgContext, Depends(require_org_app("rewards", MembershipRole.ADMIN))
-]
+router.include_router(gamification_router)
 
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 
@@ -274,6 +275,128 @@ async def confirm_redemption(
         reward_description=program.reward_description,
         stamps=-entry.amount,
         confirmed_at=entry.settled_at or utc_now(),
+    )
+
+
+@router.post(
+    "/org/programs/{program_id}/pause",
+    response_model=ProgramPublic,
+    summary="Pause a programme",
+    description="A paused programme earns and redeems nothing. Idempotent.",
+    operation_id="rewardsOrgPauseProgram",
+    responses={**WRITE_ERRORS},
+)
+async def org_pause_program(
+    *, session: SessionDep, org: RewardsOrgAdmin, program_id: uuid.UUID
+) -> Any:
+    program = await service.get_program(
+        session, program_id, organisation_id=org.organisation_id
+    )
+    await service.set_program_status(
+        session, program, actor=org.user, status=ProgramStatus.PAUSED
+    )
+    await session.commit()
+    return program
+
+
+@router.post(
+    "/org/programs/{program_id}/resume",
+    response_model=ProgramPublic,
+    summary="Resume a programme",
+    description="Makes a paused programme active again. Idempotent.",
+    operation_id="rewardsOrgResumeProgram",
+    responses={**WRITE_ERRORS},
+)
+async def org_resume_program(
+    *, session: SessionDep, org: RewardsOrgAdmin, program_id: uuid.UUID
+) -> Any:
+    program = await service.get_program(
+        session, program_id, organisation_id=org.organisation_id
+    )
+    await service.set_program_status(
+        session, program, actor=org.user, status=ProgramStatus.ACTIVE
+    )
+    await session.commit()
+    return program
+
+
+async def _org_entries(
+    *,
+    session: Any,
+    org: Any,
+    pagination: Any,
+    program_id: uuid.UUID | None,
+    kind: EntryKind | None,
+    redemptions_only: bool,
+) -> RewardsOrgEntryListPublic:
+    rows, total = await service.list_org_entries(
+        session,
+        organisation_id=org.organisation_id,
+        skip=pagination.skip,
+        limit=pagination.limit,
+        program_id=program_id,
+        kind=kind,
+        redemptions_only=redemptions_only,
+    )
+    return RewardsOrgEntryListPublic(
+        data=[RewardsOrgEntryPublic(**row) for row in rows],
+        count=total,
+        page=pagination.page,
+        size=pagination.size,
+    )
+
+
+@router.get(
+    "/org/entries",
+    response_model=RewardsOrgEntryListPublic,
+    summary="List my organisation's ledger entries",
+    description=(
+        "Earn, redeem, reversal and adjustment entries of the organisation's "
+        "programmes, newest first. No account identity is returned."
+    ),
+    operation_id="rewardsOrgListEntries",
+    responses={**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND},
+)
+async def org_list_entries(
+    *,
+    session: SessionDep,
+    org: RewardsOrgMember,
+    pagination: PaginationDep,
+    program_id: uuid.UUID | None = Query(default=None),
+    kind: EntryKind | None = Query(default=None),
+) -> Any:
+    return await _org_entries(
+        session=session,
+        org=org,
+        pagination=pagination,
+        program_id=program_id,
+        kind=kind,
+        redemptions_only=False,
+    )
+
+
+@router.get(
+    "/org/redemptions",
+    response_model=RewardsOrgEntryListPublic,
+    summary="List my organisation's redemptions",
+    description="Pending and confirmed redemptions of the organisation's programmes.",
+    operation_id="rewardsOrgListRedemptions",
+    responses={**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND},
+)
+async def org_list_redemptions(
+    *,
+    session: SessionDep,
+    org: RewardsOrgMember,
+    pagination: PaginationDep,
+    program_id: uuid.UUID | None = Query(default=None),
+) -> Any:
+    return await _org_entries(
+        session=session,
+        org=org,
+        pagination=pagination,
+        program_id=program_id,
+        kind=None,
+        redemptions_only=True,
     )
 
 
