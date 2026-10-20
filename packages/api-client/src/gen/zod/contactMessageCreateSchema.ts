@@ -6,11 +6,15 @@
 import * as z from "zod";
 import { contactSiteSchema } from "./contactSiteSchema.js";
 
-export const contactMessageCreateSchema = z.object({
-  site: contactSiteSchema.optional().default("mbia"),
-  name: z.string().min(2).max(120),
-  email: z.email().max(254),
-  subject: z.string().min(1).max(200),
-  message: z.string().min(10).max(4000),
-  turnstile_token: z.union([z.string().max(2048), z.null()]).optional(),
-});
+export const contactMessageCreateSchema = z
+  .object({
+    name: z.string().min(2).max(120),
+    email: z.email().max(254),
+    subject: z.string().min(1).max(200),
+    message: z.string().min(10).max(4000),
+    turnstile_token: z.union([z.string().max(2048), z.null()]).optional(),
+    site: contactSiteSchema.optional().default("mbia"),
+  })
+  .describe(
+    "Deprecated body for ``POST /contact/messages``: the site is a body field."
+  );

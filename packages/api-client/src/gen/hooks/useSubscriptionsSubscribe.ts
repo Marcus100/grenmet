@@ -47,8 +47,9 @@ export function subscriptionsSubscribeMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Starts a double opt-in subscription and emails a confirmation link. The reply is identical whether or not the address is already known or suppressed.
+ * @description Deprecated: use `POST /subscriptions/public/{site_key}`. Starts a double opt-in subscription and emails a confirmation link. The reply is identical whether or not the address is already known or suppressed.
  * @summary Subscribe to a mailing list
+ * @deprecated
  * {@link /api/v1/subscriptions}
  */
 export function useSubscriptionsSubscribe<TContext>(

@@ -154,3 +154,58 @@ class Invitation(Base):
     revoked_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class TurnstileMode(str, Enum):
+    """Bot check for one public site's forms.
+
+    ``inherit`` uses the global ``TURNSTILE_*`` settings, ``off`` skips the check
+    and ``enforce`` requires the site's own secret (503 while it is unset).
+    """
+
+    INHERIT = "inherit"
+    OFF = "off"
+    ENFORCE = "enforce"
+
+
+def new_public_site_id() -> str:
+    return f"site_{secrets.token_hex(8)}"
+
+
+class PublicSite(Base):
+    """A public website or list owned by an organisation (ADR-0025 N1/N2).
+
+    Public forms name a site by its immutable ``key``; the row holds what used to
+    be per-site environment settings. Null settings fall back to the environment
+    during the deprecation window. The Turnstile secret is stored encrypted
+    (``src/utils/secret_box.py``) and is never returned by the API.
+    """
+
+    __tablename__ = "public_site"
+    __table_args__ = (
+        sa.CheckConstraint(r"key ~ '^[a-z0-9]+(-[a-z0-9]+)*$'", name="key_format"),
+        sa.CheckConstraint(
+            f"turnstile_mode IN ({_values(TurnstileMode)})", name="turnstile_mode"
+        ),
+        sa.Index("public_site_organisation_id_idx", "organisation_id"),
+        {"schema": "org"},
+    )
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    organisation_id: Mapped[str] = mapped_column(
+        ForeignKey("org.organisation.id", ondelete="CASCADE")
+    )
+    # 40 matches contact_message.site and list_subscription.list_key.
+    key: Mapped[str] = mapped_column(String(40), unique=True)
+    name: Mapped[str] = mapped_column(String(255))
+    site_url: Mapped[str | None] = mapped_column(String(255))
+    contact_recipient: Mapped[str | None] = mapped_column(String(254))
+    accepts_contact: Mapped[bool] = mapped_column(default=False)
+    accepts_subscriptions: Mapped[bool] = mapped_column(default=False)
+    turnstile_mode: Mapped[str] = mapped_column(
+        String(20), default=TurnstileMode.INHERIT.value
+    )
+    turnstile_site_key: Mapped[str | None] = mapped_column(String(255))
+    turnstile_secret_encrypted: Mapped[str | None] = mapped_column(sa.Text)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)

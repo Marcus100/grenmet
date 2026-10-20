@@ -7,13 +7,14 @@ read, admins and owners change. Public routes are keyed by a profile's
 
 import uuid
 from datetime import date, datetime
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Query, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 
 from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
-from src.organisations.dependencies import OrgAdmin, OrgMember
+from src.organisations.dependencies import OrgContext, require_org_app
+from src.organisations.models import MembershipRole
 from src.rate_limit import limiter
 
 from . import service
@@ -38,6 +39,12 @@ from .schemas import (
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
+# Organisation routes require the "bookings" entitlement (org.organisation_app).
+BookingsOrgMember = Annotated[OrgContext, Depends(require_org_app("bookings"))]
+BookingsOrgAdmin = Annotated[
+    OrgContext, Depends(require_org_app("bookings", MembershipRole.ADMIN))
+]
+
 READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 
@@ -53,7 +60,7 @@ WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
     operation_id="bookingsGetProfile",
     responses=READ_ERRORS,
 )
-async def get_profile(*, session: SessionDep, org: OrgMember) -> Any:
+async def get_profile(*, session: SessionDep, org: BookingsOrgMember) -> Any:
     return await service.get_profile(session, org.organisation_id)
 
 
@@ -69,7 +76,7 @@ async def get_profile(*, session: SessionDep, org: OrgMember) -> Any:
     responses=WRITE_ERRORS,
 )
 async def upsert_profile(
-    *, session: SessionDep, org: OrgAdmin, payload: BookingProfileUpdate
+    *, session: SessionDep, org: BookingsOrgAdmin, payload: BookingProfileUpdate
 ) -> Any:
     profile = await service.upsert_profile(
         session, organisation_id=org.organisation_id, payload=payload
@@ -89,7 +96,7 @@ async def upsert_profile(
     operation_id="bookingsListServices",
     responses=READ_ERRORS,
 )
-async def list_services(*, session: SessionDep, org: OrgMember) -> Any:
+async def list_services(*, session: SessionDep, org: BookingsOrgMember) -> Any:
     return await service.list_services(session, org.organisation_id)
 
 
@@ -103,7 +110,7 @@ async def list_services(*, session: SessionDep, org: OrgMember) -> Any:
     responses=WRITE_ERRORS,
 )
 async def create_service(
-    *, session: SessionDep, org: OrgAdmin, payload: BookingServiceCreate
+    *, session: SessionDep, org: BookingsOrgAdmin, payload: BookingServiceCreate
 ) -> Any:
     row = await service.create_service(
         session, organisation_id=org.organisation_id, payload=payload
@@ -123,7 +130,7 @@ async def create_service(
 async def update_service(
     *,
     session: SessionDep,
-    org: OrgAdmin,
+    org: BookingsOrgAdmin,
     service_id: uuid.UUID,
     payload: BookingServiceUpdate,
 ) -> Any:
@@ -146,7 +153,7 @@ async def update_service(
     operation_id="bookingsListProviders",
     responses=READ_ERRORS,
 )
-async def list_providers(*, session: SessionDep, org: OrgMember) -> Any:
+async def list_providers(*, session: SessionDep, org: BookingsOrgMember) -> Any:
     return await service.list_providers(session, org.organisation_id)
 
 
@@ -160,7 +167,7 @@ async def list_providers(*, session: SessionDep, org: OrgMember) -> Any:
     responses=WRITE_ERRORS,
 )
 async def create_provider(
-    *, session: SessionDep, org: OrgAdmin, payload: BookingProviderCreate
+    *, session: SessionDep, org: BookingsOrgAdmin, payload: BookingProviderCreate
 ) -> Any:
     row = await service.create_provider(
         session, organisation_id=org.organisation_id, payload=payload
@@ -180,7 +187,7 @@ async def create_provider(
 async def update_provider(
     *,
     session: SessionDep,
-    org: OrgAdmin,
+    org: BookingsOrgAdmin,
     provider_id: uuid.UUID,
     payload: BookingProviderUpdate,
 ) -> Any:
@@ -201,7 +208,7 @@ async def update_provider(
     responses=READ_ERRORS,
 )
 async def get_working_hours(
-    *, session: SessionDep, org: OrgMember, provider_id: uuid.UUID
+    *, session: SessionDep, org: BookingsOrgMember, provider_id: uuid.UUID
 ) -> Any:
     provider = await service.get_provider(
         session, provider_id, organisation_id=org.organisation_id
@@ -223,7 +230,7 @@ async def get_working_hours(
 async def replace_working_hours(
     *,
     session: SessionDep,
-    org: OrgAdmin,
+    org: BookingsOrgAdmin,
     provider_id: uuid.UUID,
     payload: BookingWorkingHoursUpdate,
 ) -> Any:
@@ -246,7 +253,7 @@ async def replace_working_hours(
 async def list_exceptions(
     *,
     session: SessionDep,
-    org: OrgMember,
+    org: BookingsOrgMember,
     provider_id: uuid.UUID,
     starts_from: datetime | None = None,
     ends_before: datetime | None = None,
@@ -271,7 +278,7 @@ async def list_exceptions(
 async def create_exception(
     *,
     session: SessionDep,
-    org: OrgAdmin,
+    org: BookingsOrgAdmin,
     provider_id: uuid.UUID,
     payload: BookingExceptionCreate,
 ) -> Any:
@@ -292,7 +299,7 @@ async def create_exception(
     responses=WRITE_ERRORS,
 )
 async def delete_exception(
-    *, session: SessionDep, org: OrgAdmin, exception_id: uuid.UUID
+    *, session: SessionDep, org: BookingsOrgAdmin, exception_id: uuid.UUID
 ) -> None:
     await service.delete_exception(
         session, exception_id, organisation_id=org.organisation_id
@@ -311,7 +318,7 @@ async def delete_exception(
 async def list_bookings(
     *,
     session: SessionDep,
-    org: OrgMember,
+    org: BookingsOrgMember,
     starts_from: datetime,
     ends_before: datetime,
 ) -> Any:

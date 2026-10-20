@@ -726,6 +726,16 @@ convert existing secrets and verify privileged enrolment/recovery readiness whil
 still disabled before enabling the gate; follow the MFA operator guide. This code
 change does not provision secrets or enable enforcement in production.
 
+### Organisation secrets (PF1)
+
+`ORG_SECRET_ENCRYPTION_KEYS` is a JSON array of dedicated Fernet keys: the current key first, then retained decryption keys. Never reuse `AUTH_TOTP_ENCRYPTION_KEYS` or `SECRET_KEY`. It encrypts secrets that organisations store on the platform, starting with a public site's Turnstile secret (`org.public_site`, `src/utils/secret_box.py`).
+
+- **Unset (the default):** saving such a secret returns 503. Sites keep the `inherit` Turnstile mode, which uses the global `TURNSTILE_*` settings.
+- **Malformed keys:** the API refuses to start.
+- **Not yet wired into the deployment renderer.** Add it to the API, worker and prestart secrets before any site uses `turnstile_mode: enforce` with its own secret.
+
+`MBIA_CONTACT_RECIPIENT`, `BARRELS_CONTACT_RECIPIENT` and `SUBSCRIPTIONS_SITE_URLS` are now fallbacks for the same values on the public site rows. Remove them once every environment sets `contact_recipient` and `site_url` through `PATCH /api/v1/organisations/admin/sites/{site_id}`.
+
 ## Deploy wiring for the 2026-10-18 integrations
 
 `deploy.yml` passes these to the API and worker containers. Unset values fall

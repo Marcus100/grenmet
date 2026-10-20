@@ -9,6 +9,7 @@ from src.organisations.models import (
     MembershipStatus,
     OrganisationKind,
     OrganisationStatus,
+    TurnstileMode,
 )
 
 
@@ -138,3 +139,80 @@ class VerificationDecision(BaseModel):
 
 class AppEntitlementUpdate(BaseModel):
     enabled: bool
+
+
+SITE_KEY_PATTERN = r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
+SiteName = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)
+]
+SiteUrl = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True, max_length=255, pattern=r"^https?://[^/\s?#]+$"
+    ),
+]
+
+
+class PublicSitePublic(BaseModel):
+    """What a public website needs to render its forms. Never holds a secret."""
+
+    key: str
+    name: str
+    accepts_contact: bool
+    accepts_subscriptions: bool
+    turnstile_site_key: str | None = None
+
+
+class PublicSiteAdmin(BaseModel):
+    """A public site's settings for organisation admins and the control plane.
+
+    The Turnstile secret is write-only: only whether it is set is returned.
+    """
+
+    id: str
+    organisation_id: str
+    key: str
+    name: str
+    site_url: str | None = None
+    contact_recipient: str | None = None
+    accepts_contact: bool
+    accepts_subscriptions: bool
+    turnstile_mode: TurnstileMode
+    turnstile_site_key: str | None = None
+    turnstile_secret_set: bool
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
+
+
+class PublicSiteCreate(BaseModel):
+    organisation_id: str = Field(min_length=1, max_length=100)
+    key: str = Field(min_length=1, max_length=40, pattern=SITE_KEY_PATTERN)
+    name: SiteName
+    site_url: SiteUrl | None = Field(
+        default=None, description="Origin only, e.g. https://barrels.gd"
+    )
+    contact_recipient: EmailStr | None = None
+    accepts_contact: bool = False
+    accepts_subscriptions: bool = False
+    turnstile_mode: TurnstileMode = TurnstileMode.INHERIT
+    turnstile_site_key: str | None = Field(default=None, max_length=255)
+    turnstile_secret: str | None = Field(default=None, min_length=1, max_length=255)
+
+
+class PublicSiteUpdate(BaseModel):
+    """Only the fields sent change. Send ``null`` to clear a nullable setting,
+    including ``turnstile_secret``. The key and owner never change."""
+
+    name: SiteName | None = None
+    site_url: SiteUrl | None = None
+    contact_recipient: EmailStr | None = None
+    accepts_contact: bool | None = None
+    accepts_subscriptions: bool | None = None
+    turnstile_mode: TurnstileMode | None = None
+    turnstile_site_key: str | None = Field(default=None, max_length=255)
+    turnstile_secret: str | None = Field(default=None, min_length=1, max_length=255)
+
+
+class PublicSiteListPublic(BaseModel):
+    data: list[PublicSiteAdmin]
+    count: int

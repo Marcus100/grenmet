@@ -13,6 +13,8 @@
 - Schema and enum names are prefixed `Booking*` so OpenAPI never renames a clashing name (Events already owns `ProfilePublic`).
 - Routers commit; service functions flush.
 
+- Organisation routes (`/bookings/org/*`) require the `bookings` entitlement (`require_org_app`, PF1); the B4 tenant seed must grant it. Tests use `make_org(..., apps=("bookings",))`.
+
 ## Next slices
 B3 (paths per ADR-0025: `/bookings/public/{slug}/bookings` to create, `/bookings/public/bookings/{token}` with `/cancel` and `/reschedule` to manage): public create/manage/cancel/reschedule (Turnstile when a browser key is configured, honeypot, `Idempotency-Key`, hashed manage token), ICS, outbox emails and a 24-hour reminder cron, retention. B5: studio actions. B6: deposits via the provider-neutral payment adapter (Stripe, Republic Bank ePay).
 

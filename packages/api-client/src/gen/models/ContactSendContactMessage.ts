@@ -17,8 +17,16 @@ export type ContactSendContactMessageStatus400 = unknown;
  */
 export type ContactSendContactMessageStatus422 = ValidationErrorResponse;
 
+/**
+ * @description Deprecated body for ``POST /contact/messages``: the site is a body field.
+ * @type object
+ */
 export type ContactSendContactMessageBody = ContactMessageCreate;
 
+/**
+ * @deprecated
+ * @type object
+ */
 export type ContactSendContactMessageOptions = {
   body: ContactSendContactMessageBody;
   path?: never;

@@ -77,3 +77,26 @@ class InvitationAcceptedError(AppException):
         super().__init__(
             "This invitation has already been accepted", status.HTTP_409_CONFLICT
         )
+
+
+class OrganisationAppNotEntitledError(AppException):
+    """Only raised after membership is proven, so it reveals nothing to outsiders."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This organisation is not entitled to this app",
+            status.HTTP_403_FORBIDDEN,
+        )
+
+
+class PublicSiteNotFoundError(AppException):
+    def __init__(self) -> None:
+        super().__init__("Site not found", status.HTTP_404_NOT_FOUND)
+
+
+class SecretStorageUnavailableError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            "Secret storage is not configured; contact the platform operator",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )

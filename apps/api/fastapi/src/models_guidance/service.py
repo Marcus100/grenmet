@@ -12,7 +12,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.organisations import service as org_service
-from src.organisations.models import OrganisationApp, PlatformOrganisation
+from src.organisations.models import PlatformOrganisation
 from src.utils.datetime import utc_now
 
 from . import extract
@@ -197,13 +197,9 @@ async def get_meteogram(
 
 
 async def is_entitled(session: AsyncSession, organisation_id: str) -> bool:
-    enabled = await session.scalar(
-        select(OrganisationApp.enabled).where(
-            OrganisationApp.organisation_id == organisation_id,
-            OrganisationApp.app_key == GUIDANCE_APP_KEY,
-        )
+    return await org_service.is_app_enabled(
+        session, organisation_id=organisation_id, app_key=GUIDANCE_APP_KEY
     )
-    return bool(enabled)
 
 
 def _request_public(

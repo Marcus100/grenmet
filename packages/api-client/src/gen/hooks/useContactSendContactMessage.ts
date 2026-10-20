@@ -47,8 +47,9 @@ export function contactSendContactMessageMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Public contact form. Stores the message and emails it to the site's configured inbox. Verifies the Turnstile token when enforcement is enabled.
+ * @description Deprecated: use `POST /contact/public/{site_key}/messages`. Public contact form. Stores the message and emails it to the site's inbox. Verifies the Turnstile token when enforcement is enabled.
  * @summary Send a website contact message
+ * @deprecated
  * {@link /api/v1/contact/messages}
  */
 export function useContactSendContactMessage<TContext>(

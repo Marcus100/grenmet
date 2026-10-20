@@ -88,14 +88,13 @@ async def test_reconciliation_every_hr_organisation_has_a_platform_row(
     )
     # Drift: an HR row written around the bridge (legacy code path or manual SQL).
     db_async.add(Organisation(id="legacy", code="LEG", name="Legacy Org"))
+    # The platform "barrels" row is seeded (PF1), so an HR "barrels" row is
+    # already mirrored and never counts as drift.
     db_async.add(Organisation(id="barrels", code="BRL", name="Barrels Grenada"))
     await db_async.commit()
 
-    assert await service.missing_platform_organisations(db_async) == [
-        "barrels",
-        "legacy",
-    ]
-    assert await service.reconcile_hr_organisations(db_async) == ["barrels", "legacy"]
+    assert await service.missing_platform_organisations(db_async) == ["legacy"]
+    assert await service.reconcile_hr_organisations(db_async) == ["legacy"]
     await db_async.commit()
 
     assert await service.missing_platform_organisations(db_async) == []

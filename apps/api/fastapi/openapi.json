@@ -14724,6 +14724,308 @@
         }
       }
     },
+    "/api/v1/organisations/public/sites/{site_key}": {
+      "get": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "Read a public site",
+        "description": "What a public website needs to render its forms: its name, which forms it accepts and its Turnstile site key. 404 when the key is unknown or its organisation is suspended. Never returns a secret.",
+        "operationId": "organisationsGetPublicSite",
+        "parameters": [
+          {
+            "name": "site_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 40,
+              "title": "Site Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSitePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/organisations/org/sites": {
+      "get": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "List my organisation's public sites",
+        "description": "The public sites of the organisation in X-Barrels-Organisation. Admins and owners only. Secrets are never returned.",
+        "operationId": "organisationsListOrgSites",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSiteListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/organisations/admin/sites": {
+      "get": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "List public sites",
+        "description": "Control plane, superuser only: every public site, or one organisation's with `organisation_id`.",
+        "operationId": "organisationsListAdminSites",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSiteListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "Create a public site",
+        "description": "Control plane, superuser only. The key is permanent. A Turnstile secret is stored encrypted and never returned; 503 when secret storage is not configured. 409 when the key is taken.",
+        "operationId": "organisationsCreateAdminSite",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicSiteCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSiteAdmin"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/organisations/admin/sites/{site_id}": {
+      "patch": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "Update a public site",
+        "description": "Control plane, superuser only. Only the fields sent change; `null` clears a nullable setting, including the Turnstile secret.",
+        "operationId": "organisationsUpdateAdminSite",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicSiteUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSiteAdmin"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
     "/api/v1/organisations": {
       "get": {
         "tags": [
@@ -18479,7 +18781,7 @@
           "subscriptions"
         ],
         "summary": "Subscribe to a mailing list",
-        "description": "Starts a double opt-in subscription and emails a confirmation link. The reply is identical whether or not the address is already known or suppressed.",
+        "description": "Deprecated: use `POST /subscriptions/public/{site_key}`. Starts a double opt-in subscription and emails a confirmation link. The reply is identical whether or not the address is already known or suppressed.",
         "operationId": "subscriptionsSubscribe",
         "requestBody": {
           "content": {
@@ -18514,6 +18816,67 @@
           },
           "400": {
             "description": "Malformed request"
+          }
+        },
+        "deprecated": true
+      }
+    },
+    "/api/v1/subscriptions/public/{site_key}": {
+      "post": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Subscribe to a site's mailing list",
+        "description": "Starts a double opt-in subscription to the list of the public site named by `site_key` and emails a confirmation link. Applies the site's Turnstile policy. The reply is identical whether or not the address is already known or suppressed. 404 when the site is unknown, its organisation is suspended or it has no mailing list.",
+        "operationId": "subscriptionsSubscribeToSite",
+        "parameters": [
+          {
+            "name": "site_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 40,
+              "title": "Site Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiteSubscribeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscribeAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -18719,7 +19082,7 @@
           "contact"
         ],
         "summary": "Send a website contact message",
-        "description": "Public contact form. Stores the message and emails it to the site's configured inbox. Verifies the Turnstile token when enforcement is enabled.",
+        "description": "Deprecated: use `POST /contact/public/{site_key}/messages`. Public contact form. Stores the message and emails it to the site's inbox. Verifies the Turnstile token when enforcement is enabled.",
         "operationId": "contactSendContactMessage",
         "requestBody": {
           "content": {
@@ -18754,6 +19117,67 @@
           },
           "400": {
             "description": "Malformed request"
+          }
+        },
+        "deprecated": true
+      }
+    },
+    "/api/v1/contact/public/{site_key}/messages": {
+      "post": {
+        "tags": [
+          "contact"
+        ],
+        "summary": "Send a contact message to a site",
+        "description": "Public contact form of the site named by `site_key` (an organisation's public site). Stores the message and emails it to the site's inbox. Applies the site's Turnstile policy. 404 when the site is unknown, its organisation is suspended or it does not accept contact messages.",
+        "operationId": "contactSendSiteContactMessage",
+        "parameters": [
+          {
+            "name": "site_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 40,
+              "title": "Site Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactMessageBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactMessageAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -42394,12 +42818,8 @@
         ],
         "title": "ContactMessageAccepted"
       },
-      "ContactMessageCreate": {
+      "ContactMessageBody": {
         "properties": {
-          "site": {
-            "$ref": "#/components/schemas/ContactSite",
-            "default": "mbia"
-          },
           "name": {
             "type": "string",
             "maxLength": 120,
@@ -42444,7 +42864,61 @@
           "subject",
           "message"
         ],
-        "title": "ContactMessageCreate"
+        "title": "ContactMessageBody",
+        "description": "A contact message sent to the site named in the path."
+      },
+      "ContactMessageCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Email"
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 10,
+            "title": "Message"
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
+          },
+          "site": {
+            "$ref": "#/components/schemas/ContactSite",
+            "default": "mbia"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "subject",
+          "message"
+        ],
+        "title": "ContactMessageCreate",
+        "description": "Deprecated body for ``POST /contact/messages``: the site is a body field."
       },
       "ContactSite": {
         "type": "string",
@@ -55833,6 +56307,357 @@
         "title": "PublicSatelliteLatest",
         "description": "The newest image per GOES product; empty when nothing has been ingested."
       },
+      "PublicSiteAdmin": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "site_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site Url"
+          },
+          "contact_recipient": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Recipient"
+          },
+          "accepts_contact": {
+            "type": "boolean",
+            "title": "Accepts Contact"
+          },
+          "accepts_subscriptions": {
+            "type": "boolean",
+            "title": "Accepts Subscriptions"
+          },
+          "turnstile_mode": {
+            "$ref": "#/components/schemas/TurnstileMode"
+          },
+          "turnstile_site_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Site Key"
+          },
+          "turnstile_secret_set": {
+            "type": "boolean",
+            "title": "Turnstile Secret Set"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organisation_id",
+          "key",
+          "name",
+          "accepts_contact",
+          "accepts_subscriptions",
+          "turnstile_mode",
+          "turnstile_secret_set",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PublicSiteAdmin",
+        "description": "A public site's settings for organisation admins and the control plane.\n\nThe Turnstile secret is write-only: only whether it is set is returned."
+      },
+      "PublicSiteCreate": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "key": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "site_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "pattern": "^https?://[^/\\s?#]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site Url",
+            "description": "Origin only, e.g. https://barrels.gd"
+          },
+          "contact_recipient": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Recipient"
+          },
+          "accepts_contact": {
+            "type": "boolean",
+            "title": "Accepts Contact",
+            "default": false
+          },
+          "accepts_subscriptions": {
+            "type": "boolean",
+            "title": "Accepts Subscriptions",
+            "default": false
+          },
+          "turnstile_mode": {
+            "$ref": "#/components/schemas/TurnstileMode",
+            "default": "inherit"
+          },
+          "turnstile_site_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Site Key"
+          },
+          "turnstile_secret": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "key",
+          "name"
+        ],
+        "title": "PublicSiteCreate"
+      },
+      "PublicSiteListPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PublicSiteAdmin"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "PublicSiteListPublic"
+      },
+      "PublicSitePublic": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "accepts_contact": {
+            "type": "boolean",
+            "title": "Accepts Contact"
+          },
+          "accepts_subscriptions": {
+            "type": "boolean",
+            "title": "Accepts Subscriptions"
+          },
+          "turnstile_site_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Site Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "accepts_contact",
+          "accepts_subscriptions"
+        ],
+        "title": "PublicSitePublic",
+        "description": "What a public website needs to render its forms. Never holds a secret."
+      },
+      "PublicSiteUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "site_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "pattern": "^https?://[^/\\s?#]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site Url"
+          },
+          "contact_recipient": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Recipient"
+          },
+          "accepts_contact": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepts Contact"
+          },
+          "accepts_subscriptions": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepts Subscriptions"
+          },
+          "turnstile_mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TurnstileMode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "turnstile_site_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Site Key"
+          },
+          "turnstile_secret": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Secret"
+          }
+        },
+        "type": "object",
+        "title": "PublicSiteUpdate",
+        "description": "Only the fields sent change. Send ``null`` to clear a nullable setting,\nincluding ``turnstile_secret``. The key and owner never change."
+      },
       "PublicWarning": {
         "properties": {
           "identifier": {
@@ -60785,6 +61610,34 @@
           "sha256"
         ],
         "title": "SignedDocumentPublic"
+      },
+      "SiteSubscribeRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Email"
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "SiteSubscribeRequest",
+        "description": "Subscribe to the list of the public site named in the path."
       },
       "StaffCard": {
         "properties": {
@@ -66469,6 +67322,16 @@
           "stops"
         ],
         "title": "TripView"
+      },
+      "TurnstileMode": {
+        "type": "string",
+        "enum": [
+          "inherit",
+          "off",
+          "enforce"
+        ],
+        "title": "TurnstileMode",
+        "description": "Bot check for one public site's forms.\n\n``inherit`` uses the global ``TURNSTILE_*`` settings, ``off`` skips the check\nand ``enforce`` requires the site's own secret (503 while it is unset)."
       },
       "TwoFactorCodeRequest": {
         "properties": {

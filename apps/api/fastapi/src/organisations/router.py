@@ -1,16 +1,16 @@
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Path, Query
+from fastapi import status as http_status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth import apps as auth_apps
 from src.auth.models import User
 from src.dependencies import AccountUser, AdminUser, SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgAdmin, OrgMember
 from src.pagination import PaginationDep
 
-from . import members, service, verification
+from . import entitlements, members, service, sites, verification
 from .exceptions import OrganisationNotFoundError
 from .models import (
     Membership,
@@ -38,6 +38,11 @@ from .schemas import (
     OrganisationSummary,
     PlatformOrganisationCreate,
     PlatformOrganisationUpdate,
+    PublicSiteAdmin,
+    PublicSiteCreate,
+    PublicSiteListPublic,
+    PublicSitePublic,
+    PublicSiteUpdate,
     VerificationDecision,
 )
 
@@ -93,6 +98,108 @@ async def get_current(*, context: OrgMember) -> Any:
         ),
         role=context.role,
     )
+
+
+# ── Public sites (ADR-0025 N1/N2) ────────────────────────────────────────────
+
+
+@router.get(
+    "/public/sites/{site_key}",
+    response_model=PublicSitePublic,
+    summary="Read a public site",
+    description=(
+        "What a public website needs to render its forms: its name, which forms "
+        "it accepts and its Turnstile site key. 404 when the key is unknown or "
+        "its organisation is suspended. Never returns a secret."
+    ),
+    responses={**NOT_FOUND},
+)
+async def get_public_site(
+    *, session: SessionDep, site_key: Annotated[str, Path(max_length=40)]
+) -> Any:
+    site = await sites.require_public_site(session, site_key)
+    return PublicSitePublic(
+        key=site.key,
+        name=site.name,
+        accepts_contact=site.accepts_contact,
+        accepts_subscriptions=site.accepts_subscriptions,
+        turnstile_site_key=site.turnstile_site_key,
+    )
+
+
+@router.get(
+    "/org/sites",
+    response_model=PublicSiteListPublic,
+    summary="List my organisation's public sites",
+    description=(
+        "The public sites of the organisation in X-Barrels-Organisation. Admins "
+        "and owners only. Secrets are never returned."
+    ),
+    responses={**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND},
+)
+async def list_org_sites(*, session: SessionDep, context: OrgAdmin) -> Any:
+    rows = await sites.list_sites(session, organisation_id=context.organisation_id)
+    return PublicSiteListPublic(data=[sites.to_admin(r) for r in rows], count=len(rows))
+
+
+@router.get(
+    "/admin/sites",
+    response_model=PublicSiteListPublic,
+    summary="List public sites",
+    description=(
+        "Control plane, superuser only: every public site, or one "
+        "organisation's with `organisation_id`."
+    ),
+    responses={**AUTHENTICATED},
+)
+async def list_admin_sites(
+    *,
+    session: SessionDep,
+    _admin: AdminUser,
+    organisation_id: str | None = Query(default=None, max_length=100),
+) -> Any:
+    rows = await sites.list_sites(session, organisation_id=organisation_id)
+    return PublicSiteListPublic(data=[sites.to_admin(r) for r in rows], count=len(rows))
+
+
+@router.post(
+    "/admin/sites",
+    response_model=PublicSiteAdmin,
+    status_code=http_status.HTTP_201_CREATED,
+    summary="Create a public site",
+    description=(
+        "Control plane, superuser only. The key is permanent. A Turnstile "
+        "secret is stored encrypted and never returned; 503 when secret "
+        "storage is not configured. 409 when the key is taken."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND, **CONFLICT},
+)
+async def create_admin_site(
+    *, session: SessionDep, admin: AdminUser, payload: PublicSiteCreate
+) -> Any:
+    site = await sites.create_site(session, admin, payload)
+    await session.commit()
+    await session.refresh(site)
+    return sites.to_admin(site)
+
+
+@router.patch(
+    "/admin/sites/{site_id}",
+    response_model=PublicSiteAdmin,
+    summary="Update a public site",
+    description=(
+        "Control plane, superuser only. Only the fields sent change; `null` "
+        "clears a nullable setting, including the Turnstile secret."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def update_admin_site(
+    *, session: SessionDep, admin: AdminUser, site_id: str, payload: PublicSiteUpdate
+) -> Any:
+    site = await sites.update_site(session, admin, site_id, payload)
+    await session.commit()
+    await session.refresh(site)
+    return sites.to_admin(site)
 
 
 # ── Control plane (C1, superuser only) ───────────────────────────────────────
@@ -175,8 +282,8 @@ async def _admin_detail(
             OrganisationAppPublic(app_key=a.app_key, enabled=a.enabled) for a in apps
         ],
         available_apps=[
-            AppOptionPublic(key=app.key, label=app.label)
-            for app in auth_apps.all_apps()
+            AppOptionPublic(key=option.key, label=option.label)
+            for option in entitlements.options()
         ],
     )
 

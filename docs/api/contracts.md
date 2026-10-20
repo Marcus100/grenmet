@@ -64,10 +64,23 @@ suppressed addresses; transactional mail does not.
 
 ## Public forms
 
-Three anonymous, rate-limited (per IP) endpoints back public site forms. They
-never read existing data and return a fixed acknowledgement:
+Anonymous, rate-limited (per IP) endpoints back public site forms. They
+never read existing data and return a fixed acknowledgement. Since PF1
+(ADR-0025 N1/N2), forms name an organisation-owned **public site** in the path.
+The site row (`org.public_site`) holds the inbox, the origin and the Turnstile
+policy (`inherit`, `off`, or `enforce` with the site's own encrypted secret).
+`GET /api/v1/organisations/public/sites/{site_key}` (`organisationsGetPublicSite`)
+returns what a site needs to render its forms (name, accepted forms, Turnstile
+site key), never a secret. Superusers manage sites through
+`/api/v1/organisations/admin/sites`; organisation admins read theirs through
+`GET /api/v1/organisations/org/sites`.
 
-- `POST /api/v1/subscriptions` (`subscriptionsSubscribe`): double opt-in sign-up
+- `POST /api/v1/contact/public/{site_key}/messages`
+  (`contactSendSiteContactMessage`) and `POST /api/v1/subscriptions/public/{site_key}`
+  (`subscriptionsSubscribeToSite`) are the site-keyed forms. Both return 404 for an
+  unknown site, a suspended owner, or a form the site does not accept.
+
+- `POST /api/v1/subscriptions` (`subscriptionsSubscribe`, **deprecated**; use the site route): double opt-in sign-up
   for a list key (`signal`, `barrels`, `gms-alerts`); the reply is identical for every address state.
   `GET /subscriptions/confirm` and `/subscriptions/unsubscribe` take a signed
   `token` and 303-redirect to the list's site.
@@ -75,7 +88,7 @@ never read existing data and return a fixed acknowledgement:
   `DELETE /api/v1/push/subscriptions` (`pushSubscribe`, `pushUnsubscribe`):
   browser Web Push for the `gms-alerts` list. Endpoints must belong to a known
   push service; `enabled: false` / 503 until the `WEBPUSH_*` keys are set.
-- `POST /api/v1/contact/messages` (`contactSendContactMessage`): stores a
+- `POST /api/v1/contact/messages` (`contactSendContactMessage`, **deprecated**; use the site route): stores a
   website message and emails it to the inbox of its `site` (`mbia` by default,
   or `barrels`). `turnstile_token` is verified when `TURNSTILE_ENABLED` (400 "Verification failed").
 - `POST /api/v1/contact/data-requests` (`contactSendDataRequest`): GMS climate

@@ -5,16 +5,17 @@ Routers commit; service functions flush.
 """
 
 import uuid
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.dependencies import AccountUser, SessionDep
 from src.events import schemas as events_schemas
 from src.events import service as events_service
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
-from src.organisations.dependencies import OrgAdmin, OrgMember
+from src.organisations.dependencies import OrgContext, require_org_app
+from src.organisations.models import MembershipRole
 from src.pagination import PaginationDep
 from src.utils.datetime import utc_now
 
@@ -41,6 +42,12 @@ from .schemas import (
 )
 
 router = APIRouter(prefix="/rewards", tags=["rewards"])
+
+# Organisation routes require the "rewards" entitlement (org.organisation_app).
+RewardsOrgMember = Annotated[OrgContext, Depends(require_org_app("rewards"))]
+RewardsOrgAdmin = Annotated[
+    OrgContext, Depends(require_org_app("rewards", MembershipRole.ADMIN))
+]
 
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 
@@ -192,7 +199,7 @@ async def list_my_tickets(
     operation_id="rewardsListPrograms",
     responses={**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND},
 )
-async def list_programs(*, session: SessionDep, org: OrgMember) -> Any:
+async def list_programs(*, session: SessionDep, org: RewardsOrgMember) -> Any:
     return await service.list_programs(session, organisation_id=org.organisation_id)
 
 
@@ -209,7 +216,7 @@ async def list_programs(*, session: SessionDep, org: OrgMember) -> Any:
     responses={**WRITE_ERRORS},
 )
 async def create_program(
-    *, session: SessionDep, org: OrgAdmin, payload: ProgramCreate
+    *, session: SessionDep, org: RewardsOrgAdmin, payload: ProgramCreate
 ) -> Any:
     program = await service.create_program(
         session, organisation_id=org.organisation_id, actor=org.user, payload=payload
@@ -229,7 +236,7 @@ async def create_program(
 async def update_program(
     *,
     session: SessionDep,
-    org: OrgAdmin,
+    org: RewardsOrgAdmin,
     program_id: uuid.UUID,
     payload: ProgramUpdate,
 ) -> Any:
@@ -253,7 +260,7 @@ async def update_program(
     responses={**WRITE_ERRORS},
 )
 async def confirm_redemption(
-    *, session: SessionDep, org: OrgMember, payload: RedemptionConfirm
+    *, session: SessionDep, org: RewardsOrgMember, payload: RedemptionConfirm
 ) -> Any:
     entry, program = await service.confirm_redemption(
         session,

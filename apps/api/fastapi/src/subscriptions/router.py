@@ -1,13 +1,17 @@
-from fastapi import APIRouter, Request, status
+from typing import Annotated
+
+from fastapi import APIRouter, Path, Request, status
 from fastapi.responses import RedirectResponse
 
 from src.dependencies import SessionDep
-from src.openapi_responses import BAD_REQUEST
+from src.openapi_responses import BAD_REQUEST, NOT_FOUND
+from src.organisations import sites
+from src.organisations.exceptions import PublicSiteNotFoundError
 from src.rate_limit import limiter
 from src.turnstile import require_turnstile
 
 from . import service
-from .schemas import SubscribeAccepted, SubscribeRequest
+from .schemas import SiteSubscribeRequest, SubscribeAccepted, SubscribeRequest
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
@@ -16,8 +20,10 @@ router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
     "",
     response_model=SubscribeAccepted,
     status_code=status.HTTP_202_ACCEPTED,
+    deprecated=True,
     summary="Subscribe to a mailing list",
     description=(
+        "Deprecated: use `POST /subscriptions/public/{site_key}`. "
         "Starts a double opt-in subscription and emails a confirmation link. "
         "The reply is identical whether or not the address is already known "
         "or suppressed."
@@ -28,9 +34,44 @@ router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 async def subscribe(
     *, request: Request, session: SessionDep, body: SubscribeRequest
 ) -> SubscribeAccepted:
-    await require_turnstile(request, body.turnstile_token)
+    site = await sites.resolve_public_site(session, body.list_key)
+    await require_turnstile(
+        request, body.turnstile_token, site.turnstile if site else None
+    )
     await service.subscribe(
         session=session, list_key=body.list_key, email=str(body.email)
+    )
+    return SubscribeAccepted(message=service.ACCEPTED_MESSAGE)
+
+
+@router.post(
+    "/public/{site_key}",
+    response_model=SubscribeAccepted,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Subscribe to a site's mailing list",
+    description=(
+        "Starts a double opt-in subscription to the list of the public site "
+        "named by `site_key` and emails a confirmation link. Applies the site's "
+        "Turnstile policy. The reply is identical whether or not the address is "
+        "already known or suppressed. 404 when the site is unknown, its "
+        "organisation is suspended or it has no mailing list."
+    ),
+    responses={**BAD_REQUEST, **NOT_FOUND},
+)
+@limiter.limit("5/minute")
+async def subscribe_to_site(
+    *,
+    request: Request,
+    session: SessionDep,
+    site_key: Annotated[str, Path(max_length=40)],
+    body: SiteSubscribeRequest,
+) -> SubscribeAccepted:
+    site = await sites.require_public_site(session, site_key)
+    if not site.accepts_subscriptions:
+        raise PublicSiteNotFoundError()
+    await require_turnstile(request, body.turnstile_token, site.turnstile)
+    await service.subscribe(
+        session=session, list_key=site.key, email=str(body.email), list_name=site.name
     )
     return SubscribeAccepted(message=service.ACCEPTED_MESSAGE)
 

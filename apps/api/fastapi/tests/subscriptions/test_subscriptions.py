@@ -389,3 +389,80 @@ async def test_suppression_stores_only_the_hash_and_checks_by_hash(
     assert not await notification_service.is_suppressed(
         session=db_async, email=_address()
     )
+
+
+async def _site(db: AsyncSession, **settings: object) -> str:
+    """A fresh public site owned by a new organisation; returns its key."""
+    from src.organisations.models import PublicSite, new_public_site_id
+    from tests.organisations.support import make_org
+
+    org = await make_org(db, f"List Co {uuid.uuid4().hex[:6]}")
+    key = f"list-{uuid.uuid4().hex[:8]}"
+    defaults: dict[str, object] = {
+        "accepts_contact": False,
+        "accepts_subscriptions": True,
+        "turnstile_mode": "inherit",
+    }
+    db.add(
+        PublicSite(
+            id=new_public_site_id(),
+            organisation_id=org.id,
+            key=key,
+            name="Site List",
+            **{**defaults, **settings},
+        )
+    )
+    await db.commit()
+    return key
+
+
+async def test_site_route_subscribes_to_a_site_list_and_redirects_to_its_origin(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    key = await _site(db_async, site_url="https://list.example/")
+    address = _address()
+    resp = await async_client.post(f"{_URL}/public/{key}", json={"email": address})
+    assert resp.status_code == 202
+    assert resp.json() == {"message": service.ACCEPTED_MESSAGE}
+
+    row = await _row(db_async, address)
+    assert row is not None and row.list_key == key
+    mails = await _outbox(db_async, address)
+    assert mails[0].props["listName"] == "Site List"
+    confirm = await async_client.get(
+        "/api/v1/subscriptions/confirm",
+        params={"token": _token(mails[0].props["confirmLink"])},
+        follow_redirects=False,
+    )
+    assert confirm.headers["location"] == (
+        "https://list.example/subscribe/status?result=confirmed"
+    )
+
+
+async def test_site_route_refuses_unknown_and_contact_only_sites(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    unknown = await async_client.post(
+        f"{_URL}/public/no-such-site", json={"email": _address()}
+    )
+    assert unknown.status_code == 404
+    key = await _site(db_async, accepts_subscriptions=False)
+    refused = await async_client.post(
+        f"{_URL}/public/{key}", json={"email": _address()}
+    )
+    assert refused.status_code == 404
+
+
+async def test_site_url_from_the_site_row_beats_the_environment(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    key = await _site(db_async, site_url="https://row.example")
+    monkeypatch.setattr(
+        subscriptions_settings, "SUBSCRIPTIONS_SITE_URLS", {key: "https://env.example"}
+    )
+    assert await service.site_url_for(db_async, key) == "https://row.example"
+    bare = await _site(db_async)
+    monkeypatch.setattr(
+        subscriptions_settings, "SUBSCRIPTIONS_SITE_URLS", {bare: "https://env.example"}
+    )
+    assert await service.site_url_for(db_async, bare) == "https://env.example"
