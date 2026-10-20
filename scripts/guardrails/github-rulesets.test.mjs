@@ -4,7 +4,12 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { diff, normalize, readSnapshot } from "./github-rulesets.mjs";
+import {
+  diff,
+  normalize,
+  readSnapshot,
+  withoutHiddenBypassActors,
+} from "./github-rulesets.mjs";
 
 const MISSING_SECOND_CHECK = /^missing .*\[1\]\.context = "Type Check"/;
 const MENTIONS_CHECKS = /required_status_checks/;
@@ -102,6 +107,26 @@ test("a removed check, a changed rule or a new bypass actor is drift", () => {
   const gone = diff(expected, normalize([]));
   assert.ok(gone.length > 0);
   assert.ok(gone.every((line) => line.startsWith("missing")));
+});
+
+test("bypass actors hidden from a non-admin token are not compared, visible ones are", () => {
+  const expected = normalize([live()]);
+  const { bypass_actors: _hidden, ...withoutField } = live();
+  const hidden = normalize([withoutField]);
+  const { comparable, unchecked } = withoutHiddenBypassActors(expected, hidden);
+  assert.deepEqual(unchecked, ["Protect staging"]);
+  assert.deepEqual(diff(comparable, hidden), []);
+
+  const visible = normalize([
+    live({ bypass_actors: [{ actor_id: 5, actor_type: "RepositoryRole" }] }),
+  ]);
+  const checked = withoutHiddenBypassActors(expected, visible);
+  assert.deepEqual(checked.unchecked, []);
+  assert.ok(
+    diff(checked.comparable, visible).some((line) =>
+      ADDED_BYPASS_ACTOR.test(line)
+    )
+  );
 });
 
 test("the committed snapshot protects staging and main with a PR and CI Success", () => {

@@ -67,6 +67,27 @@ export function normalize(rulesets) {
     .sort(byKey("name"));
 }
 
+/**
+ * GitHub returns `bypass_actors` only to callers who can edit rulesets, so the
+ * workflow's default token sees the field missing. Compare it only where the
+ * live response carries it, and name the rulesets where it was not compared.
+ */
+export function withoutHiddenBypassActors(expected, actual) {
+  const visible = new Map(
+    actual.map((ruleset) => [ruleset.name, "bypass_actors" in ruleset])
+  );
+  const unchecked = [];
+  const comparable = expected.map((ruleset) => {
+    if (visible.get(ruleset.name) !== false || !("bypass_actors" in ruleset)) {
+      return ruleset;
+    }
+    unchecked.push(ruleset.name);
+    const { bypass_actors: _hidden, ...rest } = ruleset;
+    return rest;
+  });
+  return { comparable, unchecked };
+}
+
 function flatten(value, path, out) {
   // An empty container is a leaf, except at the root where it means "nothing".
   if (Array.isArray(value)) {
@@ -153,7 +174,16 @@ async function main(argv) {
     );
     return;
   }
-  const changes = diff(readSnapshot(), live);
+  const { comparable, unchecked } = withoutHiddenBypassActors(
+    readSnapshot(),
+    live
+  );
+  if (unchecked.length > 0) {
+    console.log(
+      `bypass_actors not visible to this token, not compared for: ${unchecked.join(", ")}. Run --check with an admin token to compare them.`
+    );
+  }
+  const changes = diff(comparable, live);
   if (changes.length === 0) {
     console.log(
       `Live rulesets for ${repo} match ${SNAPSHOT_PATH} (${live.length} ruleset(s)).`
