@@ -158,6 +158,60 @@ phase databases
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --wait $data_services
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db bash /docker-entrypoint-initdb.d/init-databases.sh
 
+phase backup-gate
+# Alembic rollback does not undo migrations (release runbook, "Backup gate"). Every
+# deploy that reaches `migrations` runs `alembic upgrade head`, and there is no cheap,
+# reliable way here to tell "already at head" across seven Alembic histories plus the
+# Payload CMS, so the gate checks on any deploy that has migration services.
+# Modes: DEPLOY_BACKUP_GATE=off|warn|enforce (default warn). Only enforce blocks, and
+# only on a verified-stale backup; anything it cannot verify fails open, loudly.
+# DEPLOY_BACKUP_GATE_OVERRIDE=<reason> lets an enforced deploy continue and is recorded.
+gate_note() {
+  printf '%s\n' "$1"
+  printf '%s\n' "$1" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+}
+gate_mode=${DEPLOY_BACKUP_GATE:-warn}
+gate_max_age=${DEPLOY_BACKUP_MAX_AGE_HOURS:-26}
+if [[ "$gate_mode" != off && "$gate_mode" != warn && "$gate_mode" != enforce ]]; then
+  gate_note "::warning::DEPLOY_BACKUP_GATE='$gate_mode' is not off, warn or enforce; using warn."
+  gate_mode=warn
+fi
+gate_override=$(printf '%s' "${DEPLOY_BACKUP_GATE_OVERRIDE:-}" | tr -d '\r\n' | cut -c1-200)
+if [[ "$gate_mode" == off ]]; then
+  gate_note "Backup gate: off (DEPLOY_BACKUP_GATE=off); the newest backup was not checked before migrations."
+elif [[ -z "${migration_services// /}" ]]; then
+  gate_note "Backup gate: skipped, this release has no migration services."
+else
+  gate_code=0
+  gate_out=$(DEPLOY_BACKUP_MAX_AGE_HOURS="$gate_max_age" timeout 120 python3 ../../scripts/production/backup-gate.py "$DEPLOY_ENV" 2>&1) || gate_code=$?
+  printf '%s\n' "$gate_out"
+  gate_detail=$(printf '%s' "$gate_out" | tr '\n' ';')
+  how_to="Take one: run the Database Backup workflow (backup-database.yml) and wait for it to pass, then re-run this deploy. To proceed anyway, dispatch Deploy with backup_gate_override set to a reason, or set the DEPLOY_BACKUP_GATE variable to warn."
+  case "$gate_code" in
+    0) gate_note "Backup gate ($gate_mode): $gate_detail" ;;
+    10)
+      if [[ "$gate_mode" == enforce && -z "$gate_override" ]]; then
+        {
+          echo "### Backup gate blocked this deploy (enforce)"
+          echo "Newest backup is older than ${gate_max_age}h. No migration ran; the previous release is still serving."
+          printf '%s\n' "$gate_out" | sed 's/^/- /'
+          echo "$how_to"
+        } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+        echo "::error::Backup gate (enforce) blocked the deploy before migrations: stale backup (limit ${gate_max_age}h)." >&2
+        printf '%s\n%s\n' "$gate_out" "$how_to" >&2
+        exit 1
+      elif [[ "$gate_mode" == enforce ]]; then
+        gate_note "::warning::Backup gate OVERRIDDEN by ${GITHUB_ACTOR}: '$gate_override'. Backup is stale; migrations proceed. $gate_detail"
+      else
+        gate_note "::warning::Backup gate (warn): backup is stale and migrations will run anyway. $gate_detail $how_to"
+      fi ;;
+    *) gate_note "::warning::Backup gate could NOT verify the newest backup and is passing OPEN (mode $gate_mode): $gate_detail. Migrations will run without a verified fresh backup." ;;
+  esac
+  if [[ -n "$gate_override" && "$gate_mode" != enforce ]]; then
+    gate_note "Backup gate override recorded by ${GITHUB_ACTOR}: '$gate_override' (mode is $gate_mode, so it changed nothing)."
+  fi
+fi
+
 phase migrations
 for service in $migration_services; do
   docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" run --rm --no-deps "$service"
