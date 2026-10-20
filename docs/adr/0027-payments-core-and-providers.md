@@ -24,7 +24,7 @@ The owner has now asked for the core to be built ahead of that.
   - invoice manual payments (`src/billing/invoices.py`)
   - Events outlet cash and manual refunds (`src/events/service/outlet.py`, `cancellation.py`)
   (high)
-- Events refuses paid tiers ("online payment isn't available yet", `src/events/service/ticketing.py`). Bookings has `deposit_minor` and `pending_payment`, with nothing behind them. (high)
+- At the time of writing, Events refused paid tiers and Bookings had `deposit_minor` and `pending_payment` with nothing behind them; both now run on this core in test mode (see Consumers above; `src/events/order_payments.py`, `src/bookings/deposit_payments.py`). (high)
 
 **Interpretation:**
 - One ledger across manual and online payments makes settlement and reconciliation a single report rather than one per domain. (best practice, high)

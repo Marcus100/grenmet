@@ -28,7 +28,7 @@ tooling. Start with `docs/technical-overview.md`.
 ```bash
 pnpm install  # dependencies
 pnpm start  # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
-pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 — HOST ONLY
+pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 babydoll:3014 — HOST ONLY
 pnpm verify:changed  # only the gates this diff needs (--dry-run to list; --full adds fuzz; PYTEST_WORKERS=n)
 pnpm fix:changed  # formats dirty files; in shared checkouts use `pnpm exec ultracite fix <owned-files>`
 pnpm type-check  # TypeScript across all packages

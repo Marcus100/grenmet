@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed (2026-10-06). Amends ADR-0016 decision 1 ("There is no cross-app
+Built, owner acceptance not recorded (proposed 2026-10-06; steps 1–4 per the exec plan, `src/auth/app_router.py` `/handoff` routes). Amends ADR-0016 decision 1 ("There is no cross-app
 single sign-on"). Implementation plan: `docs/exec-plans/app-sso-handoff.md`.
 
 ## Context

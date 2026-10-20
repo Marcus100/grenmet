@@ -22,7 +22,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0014](0014-barrels-platform-core-direction.md) | Evolve the FastAPI modular monolith into Barrels Core (proposed) |
 | [0015](0015-retire-hono-python-backend.md) | Retire the Hono API; backend logic is Python (CMS excepted) |
 | [0016](0016-app-scoped-accounts-and-sessions.md) | App-scoped accounts and sessions: shared accounts, per-app sign-in, cookie and access |
-| [0017](0017-single-sign-on-handoff.md) | Proposed: single sign-on handoff between app-scoped sessions |
+| [0017](0017-single-sign-on-handoff.md) | Built, owner acceptance not recorded: single sign-on handoff between app-scoped sessions |
 | [0018](0018-modular-access-and-onboarding.md) | Modular access and administrator-mediated staff onboarding |
 | [0019](0019-workspace-toolchain-baseline.md) | Workspace toolchain baseline |
 | [0020](0020-feature-flags-with-success-metrics.md) | Accepted: feature flags with success metrics (built on the API as `src/feature_flags`, PF7; admin UI pending) |
@@ -36,6 +36,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0028](0028-organisation-contacts.md) | Accepted: organisation-scoped contacts with consent, replacing per-domain customer tables (PF3) |
 | [0029](0029-organisation-api-keys-and-webhooks.md) | Built, awaiting owner acceptance: organisation API keys with permission scopes and signed outbound webhooks (PF5, PF6) |
 | [0030](0030-rewards-earn-sources-and-gamification.md) | Built (API), awaiting owner acceptance: generic rewards earn sources, Passport, achievements, check-in streaks; opt-in leaderboards, challenges and gated stamp gifting (PF8–PF11) |
+| [0031](0031-self-registering-api-domains.md) | Proposed: per-domain manifests and one ordered list replace edits to four shared API files |
 
 ## Template
 
