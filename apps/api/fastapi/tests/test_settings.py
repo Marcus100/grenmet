@@ -37,7 +37,7 @@ def test_explicit_cors_allowed_in_production() -> None:
         _env_file=None,
         **_required(),
     )
-    assert "https://app.example.test" in settings.all_cors_origins
+    assert settings.all_cors_origins[-1] == "https://app.example.test"
 
 
 def test_wildcard_cors_allowed_locally() -> None:
