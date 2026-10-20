@@ -31,7 +31,8 @@ GitHub merges once the staging ruleset's required checks pass; `CI Success` and
 `Build Web Apps` aggregate every API and web job (see
 `docs/operations/release-runbook.md`). If dev advances, review the new head and
 re-arm on it.
-On failure, diagnose and fix locally within scope, validate and push dev again.
+On failure, diagnose and fix on a task branch within scope, validate, open a PR
+into `dev` for the owner to merge, then re-arm on the new `dev` head.
 Monitor `pipeline-staging.yml` and verify its deployed SHA still equals staging
 head. Then smoke-test what the promotion changed:
 - `curl -fsS https://api.staging.barrels.gd/api/v1/utils/health-check/`

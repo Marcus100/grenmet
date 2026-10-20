@@ -3,8 +3,9 @@
 // its own: the root AGENTS.md, the workflow and roles docs, the release
 // runbook and the commit and release skills. They drifted once: roles.md
 // suspended an authorization that the commit and release skills still
-// granted. This keeps every statement on the same policy and keeps the ruleset
-// snapshot that enforces part of it present and wired into CI.
+// granted, and a skill's failure path still said to push dev. This keeps
+// every statement on the same policy and keeps the ruleset snapshot that
+// enforces part of it present and wired into CI.
 
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -29,12 +30,21 @@ const POLICY_FILES = [
 const FULL_POLICY_FILES = POLICY_FILES.filter(
   (file) => !["docs/agents/routines.md"].includes(file)
 );
-// Retired wording, each paired with what replaced it.
+// Retired wording, each paired with what replaced it. "push dev" is retired in
+// every affirmative form; a negated form ("never push dev") states the policy.
 const RETIRED = [
   [/push `dev` directly/, "agents open a PR into `dev`; the owner merges"],
   [
+    /(?<!never |not )push(?:es|ing)? (?:`dev`|dev)\b/i,
+    "agents open a PR into `dev`; the owner merges",
+  ],
+  [
     /direct (?:`dev`|dev) push/i,
     "agents open a PR into `dev`; the owner merges",
+  ],
+  [
+    /merges? (?:the task branch |completed task branches )?into local `?dev`?/i,
+    "the task branch is pushed and lands by PR into `dev`",
   ],
   [
     /Do not push feature branches/,
@@ -47,6 +57,8 @@ const RETIRED = [
   ],
 ];
 const LANDS_BY_PR = /(?:PR|pull request)s? (?:in)?to `dev`/;
+const OWNER_MERGES = /owner\s+(?:reviews\s+and\s+)?merges/i;
+const STANDING_AUTHORIZATION = /standing (?:user )?authori[sz]ation/i;
 const PROMOTES_BY_AUTO_MERGE = /auto-merge/;
 const LIMITS_PRODUCTION = /(?:explicit|separate)[^.]*authori[sz]ation/i;
 const DRIFT_WORKFLOW_RUNS_CHECK =
@@ -58,29 +70,48 @@ test("no policy file still states retired git policy", () => {
   for (const file of POLICY_FILES) {
     const text = read(file);
     for (const [pattern, replacement] of RETIRED) {
-      assert.doesNotMatch(
-        text,
-        pattern,
-        `${file} still says ${pattern}; the policy is now: ${replacement}`
+      const match = text.match(pattern);
+      assert.equal(
+        match,
+        null,
+        `${file} still says "${match?.[0]}"; the policy is now: ${replacement}`
       );
     }
   }
 });
 
-test("every full policy file states landing by PR, staging auto-merge and the production limit", () => {
+test("the retired-wording patterns catch affirmative variants and allow negated ones", () => {
+  const affirmative = [
+    "validate and push dev again.",
+    "merges the task branch into local dev, pushes dev and arms",
+    "then push `dev` directly.",
+    "after a direct dev push,",
+    "Merge completed task branches into local `dev`",
+  ];
+  const negated = [
+    "agents never push `dev` or merge into it themselves.",
+    "never push `dev` yourself.",
+    "Never push `dev`, `staging` or `main`.",
+    "no agent merges into `dev` or pushes it.",
+  ];
+  const retired = (text) => RETIRED.some(([pattern]) => pattern.test(text));
+  for (const text of affirmative) assert.ok(retired(text), text);
+  for (const text of negated) assert.equal(retired(text), false, text);
+});
+
+test("every full policy file states the complete landing and promotion policy", () => {
+  const required = [
+    [LANDS_BY_PR, "work lands by PR into dev"],
+    [OWNER_MERGES, "the owner merges into dev"],
+    [STANDING_AUTHORIZATION, "staging promotion has standing authorization"],
+    [PROMOTES_BY_AUTO_MERGE, "staging promotion is by auto-merge"],
+    [LIMITS_PRODUCTION, "main and production need explicit authorization"],
+  ];
   for (const file of FULL_POLICY_FILES) {
     const text = read(file);
-    assert.match(text, LANDS_BY_PR, `${file}: work lands by PR into dev`);
-    assert.match(
-      text,
-      PROMOTES_BY_AUTO_MERGE,
-      `${file}: staging promotion by auto-merge`
-    );
-    assert.match(
-      text,
-      LIMITS_PRODUCTION,
-      `${file}: main and production need explicit authorization`
-    );
+    for (const [pattern, meaning] of required) {
+      assert.match(text, pattern, `${file}: ${meaning}`);
+    }
   }
 });
 

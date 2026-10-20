@@ -1,6 +1,6 @@
 ---
 name: commit
-description: "Reviews, validates and commits authorized changes, merges the task branch into local dev, pushes dev and arms the staging promotion. Use when a task is ready to land, when the user says commit, ship or push it, or when a routine reaches its commit gates."
+description: "Reviews, validates and commits authorized changes, opens the task branch's PR into dev for the owner to merge, then arms the staging promotion. Use when a task is ready to land, when the user says commit, ship or push it, or when a routine reaches its commit gates."
 allowed-tools: Bash(git *), Bash(pnpm *), Bash(gh *)
 ---
 

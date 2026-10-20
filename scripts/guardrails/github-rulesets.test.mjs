@@ -1,5 +1,3 @@
-/* biome-ignore-all lint/performance/useTopLevelRegex: Diagnostic regexes run once per isolated test. */
-
 // The drift check must ignore what GitHub changes on its own (ids, timestamps,
 // ordering) and catch what a person changes (a rule, a required check, a
 // bypass actor). No network: the live shape is a fixture.
@@ -7,6 +5,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { diff, normalize, readSnapshot } from "./github-rulesets.mjs";
+
+const MISSING_SECOND_CHECK = /^missing .*\[1\]\.context = "Type Check"/;
+const MENTIONS_CHECKS = /required_status_checks/;
+const ADDED_BYPASS_ACTOR = /^added .*bypass_actors\[0\]/;
 
 const live = (overrides = {}) => ({
   id: 15_329_335,
@@ -77,13 +79,11 @@ test("a removed check, a changed rule or a new bypass actor is drift", () => {
   const fewerChecks = diff(expected, normalize([live({ rules })]));
   assert.ok(fewerChecks.length > 0);
   assert.ok(
-    fewerChecks.every((line) => /required_status_checks/.test(line)),
+    fewerChecks.every((line) => MENTIONS_CHECKS.test(line)),
     fewerChecks.join("\n")
   );
   assert.ok(
-    fewerChecks.some((line) =>
-      /^missing .*\[1\]\.context = "Type Check"/.test(line)
-    ),
+    fewerChecks.some((line) => MISSING_SECOND_CHECK.test(line)),
     fewerChecks.join("\n")
   );
 
@@ -91,7 +91,7 @@ test("a removed check, a changed rule or a new bypass actor is drift", () => {
     bypass_actors: [{ actor_id: 5, actor_type: "RepositoryRole" }],
   });
   const added = diff(expected, normalize([bypass]));
-  assert.ok(added.some((line) => /^added .*bypass_actors\[0\]/.test(line)));
+  assert.ok(added.some((line) => ADDED_BYPASS_ACTOR.test(line)));
 
   const disabled = live({ enforcement: "disabled" });
   const changed = diff(expected, normalize([disabled]));
