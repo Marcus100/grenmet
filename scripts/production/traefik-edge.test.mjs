@@ -16,6 +16,7 @@ const SECTION = /^ {4}([a-z_]+):(.*)$/;
 const VARIABLE = /\$\{([A-Z0-9_]+)(?:(:-|:\+|:\?)([^}]*))?\}/g;
 const SOCKET = "/var/run/docker.sock";
 const STAGING_ONLY = ["staging-auth", "staging-noindex"];
+const DASHBOARD_USER = /\$\{USERNAME\}/;
 const PROFILE = /^ {4}profiles: \["([a-z]+)"\]/m;
 const ROUTER_LABEL = /^traefik\.http\.routers\.([^.]+)\.(.+)$/;
 const PROVIDER_SUFFIX = /@docker$/;
@@ -385,8 +386,7 @@ test("Adminer stays staging-only behind its own credentials", () => {
   );
   assert.equal(users[1], ENVIRONMENTS.staging.ADMINER_BASIC_AUTH_USERS);
   assert.equal(adminer.body.includes("HASHED_PASSWORD"), false);
-  // biome-ignore lint/suspicious/noTemplateCurlyInString: literal Docker Compose interpolation under test.
-  assert.equal(adminer.body.includes("${USERNAME}"), false);
+  assert.doesNotMatch(adminer.body, DASHBOARD_USER);
   assert.ok(
     labels["traefik.http.routers.adminer-staging.middlewares"].includes(
       "adminer-auth-staging"
