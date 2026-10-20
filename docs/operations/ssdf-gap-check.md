@@ -33,8 +33,8 @@ States: **Meets** has repository evidence; **Partial** is present with a stated 
 
 | Practice | Evidence | State |
 | --- | --- | --- |
-| Protect source from tampering | Rulesets on `main` and `staging`: pull request and six required checks, no deletion, no force push, no bypass actors. `dev` has no ruleset and takes direct pushes by design. No `CODEOWNERS`, no required reviewers (0 approvals), no signed-commit requirement. | Partial |
-| Verify release integrity | Actions are pinned to commit SHAs and deploys reference images by digest. No image signing, build provenance or software bill of materials. | Gap |
+| Protect source from tampering | Rulesets on `main` and `staging`: pull request and six required checks, no deletion, no force push, no bypass actors. `dev` has no ruleset and takes direct pushes by design. `CODEOWNERS` routes sensitive paths to the owner but is not enforced; no required reviewers (0 approvals), no signed-commit requirement. | Partial |
+| Verify release integrity | Actions are pinned to commit SHAs and deploys reference images by digest. Published images carry unsigned BuildKit provenance and SBOM attestations; no image signing or deploy-time verification. | Partial |
 | Archive each release | Published GitHub releases and an image tag per release. Retained release manifests for rollback are listed as later work in the [release runbook](release-runbook.md). | Partial |
 | Fork pull request safety | Approval is required only for first-time contributors; the safest setting is every external contributor | Partial |
 
@@ -47,7 +47,7 @@ States: **Meets** has repository evidence; **Partial** is present with a stated 
 | Reuse well-secured software | Lockfiles; Dependabot for GitHub Actions, uv, Docker, Docker Compose and npm | Meets |
 | Follow secure coding practice | Ruff security rules (the bandit set), Biome, repository conventions, ratchets on suppressions | Meets |
 | Secure build configuration | Frozen installs and digest-pinned base images in the Dockerfiles | Meets; build reproducibility not checked |
-| Review and analyse code | Required checks and agent run records. No static analysis beyond Ruff and Biome (no CodeQL or Semgrep). No required human review. | Partial |
+| Review and analyse code | Required checks and agent run records. CodeQL (TypeScript, Python) and a gitleaks scan of new commits run but are not required checks. No required human review. | Partial |
 | Test the running software | Unit and integration tests, Schemathesis fuzzing of every read-only API operation, Playwright smoke tests | Meets; no scan of a running staging site |
 | Secure defaults | MFA for privileged accounts, a Content-Security-Policy and standard headers, a web application firewall and verified rate limiting are all listed as gaps in the security baseline. No CSP was found in the web apps' configuration. | Gap |
 

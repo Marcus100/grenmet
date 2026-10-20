@@ -75,6 +75,10 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha,scope=weather-${{ matrix.name }}
           cache-to: type=gha,scope=weather-${{ matrix.name }},mode=max,ignore-error=true
+          # Provenance and SBOM attestations ride in the pushed image index; the
+          # deploy pulls by tag and reads RepoDigests, which name the index.
+          provenance: mode=max
+          sbom: true
       - name: Record artifact
         env:
           IMAGE: ghcr.io/${{ steps.owner.outputs.name }}/barrelsgd-${{ matrix.name }}
