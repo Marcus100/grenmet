@@ -17,6 +17,17 @@ console. Lane spec: `docs/design/admin.md`. Plan: slice C1/C2 in
   validate with `src/lib/organisation-form.ts`, proxy to FastAPI and redirect with
   a fixed `?notice=` code. Disclosures are native `<details>`; no client state.
   Never fake data.
+- **Sites (C3).** The organisation detail page has a "Sites" section (streamed
+  behind `Suspense`, with loading, empty and error states) for the organisation's
+  public sites (`org.public_site`): list, create and edit via
+  `organisations/site-actions.ts` and `src/lib/site-form.ts`. The key is permanent
+  (a-z0-9 and hyphens, max 40). Edits are diffed against the stored site so
+  `PATCH /organisations/admin/sites/{id}` only receives changed fields. The
+  Turnstile secret is write-only: the form never has a value for it, an empty
+  field means "keep", "Clear secret" sends `null`, and it never enters a redirect
+  or report. A 503 means secret storage (`ORG_SECRET_ENCRYPTION_KEYS`) is not
+  configured and shows an operator message. `bookings` and `rewards` entitlements
+  arrive through `available_apps` and need no extra code.
 - **Invoicing (P1-P3).** `/invoices` (list with status, search and overdue
   filters), `/invoices/new` and `/invoices/[id]` (draft editor with eight line
   rows, issue, delete draft, record payment, void with reason, PDF download via

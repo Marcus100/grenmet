@@ -4,7 +4,11 @@ import {
   memberListPublicSchema,
   organisationAdminDetailSchema,
   organisationAdminListPublicSchema,
+  type PublicSiteCreate,
+  type PublicSiteUpdate,
   paginatedResponseAuditEntryPublicSchema,
+  publicSiteAdminSchema,
+  publicSiteListPublicSchema,
 } from "@barrelsgd/api-client";
 import { authApiFetch } from "@barrelsgd/auth/server";
 import { getAuthConfig } from "@/lib/auth-config";
@@ -138,5 +142,42 @@ export function setAppEntitlement(
     `/organisations/${encodeURIComponent(organisationId)}/apps/${encodeURIComponent(appKey)}`,
     organisationAdminDetailSchema,
     { accessToken, method: "PUT", body: { enabled } }
+  );
+}
+
+/** Superuser-only `GET /organisations/admin/sites?organisation_id=`. */
+export function listOrganisationSites(
+  accessToken: string,
+  organisationId: string
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    `/organisations/admin/sites?organisation_id=${encodeURIComponent(organisationId)}`,
+    publicSiteListPublicSchema,
+    { accessToken }
+  );
+}
+
+/** Superuser-only `POST /organisations/admin/sites`; 503 without secret storage. */
+export function createSite(accessToken: string, body: PublicSiteCreate) {
+  return authApiFetch(
+    getAuthConfig(),
+    "/organisations/admin/sites",
+    publicSiteAdminSchema,
+    { accessToken, method: "POST", body }
+  );
+}
+
+/** Superuser-only `PATCH /organisations/admin/sites/{id}`; only sent fields change. */
+export function updateSite(
+  accessToken: string,
+  siteId: string,
+  body: PublicSiteUpdate
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    `/organisations/admin/sites/${encodeURIComponent(siteId)}`,
+    publicSiteAdminSchema,
+    { accessToken, method: "PATCH", body }
   );
 }
