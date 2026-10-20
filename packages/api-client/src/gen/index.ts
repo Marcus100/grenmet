@@ -564,6 +564,16 @@ export { transportUpdateTimetableDraft } from "./clients/transportUpdateTimetabl
 export { utilsHealthCheck } from "./clients/utilsHealthCheck.js";
 export { utilsReady } from "./clients/utilsReady.js";
 export { utilsTestEmail } from "./clients/utilsTestEmail.js";
+export { webhooksOutAdminDisableEndpoint } from "./clients/webhooksOutAdminDisableEndpoint.js";
+export { webhooksOutAdminListEndpoints } from "./clients/webhooksOutAdminListEndpoints.js";
+export { webhooksOutCreateEndpoint } from "./clients/webhooksOutCreateEndpoint.js";
+export { webhooksOutDeleteEndpoint } from "./clients/webhooksOutDeleteEndpoint.js";
+export { webhooksOutListDeliveries } from "./clients/webhooksOutListDeliveries.js";
+export { webhooksOutListEndpoints } from "./clients/webhooksOutListEndpoints.js";
+export { webhooksOutListEventTypes } from "./clients/webhooksOutListEventTypes.js";
+export { webhooksOutRotateSecret } from "./clients/webhooksOutRotateSecret.js";
+export { webhooksOutTestEndpoint } from "./clients/webhooksOutTestEndpoint.js";
+export { webhooksOutUpdateEndpoint } from "./clients/webhooksOutUpdateEndpoint.js";
 export { wxproductsGetPublicProduct } from "./clients/wxproductsGetPublicProduct.js";
 export { wxproductsListPublicProducts } from "./clients/wxproductsListPublicProducts.js";
 export { wxproductsLoadAviationDrafts } from "./clients/wxproductsLoadAviationDrafts.js";
@@ -3415,6 +3425,56 @@ export {
   utilsTestEmailMutationOptions,
 } from "./hooks/useUtilsTestEmail.js";
 export {
+  useWebhooksOutAdminDisableEndpoint,
+  webhooksOutAdminDisableEndpointMutationKey,
+  webhooksOutAdminDisableEndpointMutationOptions,
+} from "./hooks/useWebhooksOutAdminDisableEndpoint.js";
+export {
+  useWebhooksOutAdminListEndpoints,
+  webhooksOutAdminListEndpointsQueryKey,
+  webhooksOutAdminListEndpointsQueryOptions,
+} from "./hooks/useWebhooksOutAdminListEndpoints.js";
+export {
+  useWebhooksOutCreateEndpoint,
+  webhooksOutCreateEndpointMutationKey,
+  webhooksOutCreateEndpointMutationOptions,
+} from "./hooks/useWebhooksOutCreateEndpoint.js";
+export {
+  useWebhooksOutDeleteEndpoint,
+  webhooksOutDeleteEndpointMutationKey,
+  webhooksOutDeleteEndpointMutationOptions,
+} from "./hooks/useWebhooksOutDeleteEndpoint.js";
+export {
+  useWebhooksOutListDeliveries,
+  webhooksOutListDeliveriesQueryKey,
+  webhooksOutListDeliveriesQueryOptions,
+} from "./hooks/useWebhooksOutListDeliveries.js";
+export {
+  useWebhooksOutListEndpoints,
+  webhooksOutListEndpointsQueryKey,
+  webhooksOutListEndpointsQueryOptions,
+} from "./hooks/useWebhooksOutListEndpoints.js";
+export {
+  useWebhooksOutListEventTypes,
+  webhooksOutListEventTypesQueryKey,
+  webhooksOutListEventTypesQueryOptions,
+} from "./hooks/useWebhooksOutListEventTypes.js";
+export {
+  useWebhooksOutRotateSecret,
+  webhooksOutRotateSecretMutationKey,
+  webhooksOutRotateSecretMutationOptions,
+} from "./hooks/useWebhooksOutRotateSecret.js";
+export {
+  useWebhooksOutTestEndpoint,
+  webhooksOutTestEndpointMutationKey,
+  webhooksOutTestEndpointMutationOptions,
+} from "./hooks/useWebhooksOutTestEndpoint.js";
+export {
+  useWebhooksOutUpdateEndpoint,
+  webhooksOutUpdateEndpointMutationKey,
+  webhooksOutUpdateEndpointMutationOptions,
+} from "./hooks/useWebhooksOutUpdateEndpoint.js";
+export {
   useWxproductsGetPublicProduct,
   wxproductsGetPublicProductQueryKey,
   wxproductsGetPublicProductQueryOptions,
@@ -5608,6 +5668,8 @@ export type { DataParameter } from "./models/DataParameter.js";
 export { dataParameter } from "./models/DataParameter.js";
 export type { DataRequestCreate } from "./models/DataRequestCreate.js";
 export type { DeliveryLine } from "./models/DeliveryLine.js";
+export type { DeliveryStatus } from "./models/DeliveryStatus.js";
+export { deliveryStatus } from "./models/DeliveryStatus.js";
 export type { DepartmentCreate } from "./models/DepartmentCreate.js";
 export type { DepartmentMemberPublic } from "./models/DepartmentMemberPublic.js";
 export type { DepartmentMembersPublic } from "./models/DepartmentMembersPublic.js";
@@ -5640,6 +5702,8 @@ export { employmentStatus } from "./models/EmploymentStatus.js";
 export type { EmploymentType } from "./models/EmploymentType.js";
 export { employmentType } from "./models/EmploymentType.js";
 export type { EmploymentUpdate } from "./models/EmploymentUpdate.js";
+export type { EndpointStatus } from "./models/EndpointStatus.js";
+export { endpointStatus } from "./models/EndpointStatus.js";
 export type { EntryKind } from "./models/EntryKind.js";
 export { entryKind } from "./models/EntryKind.js";
 export type { EntryStatus } from "./models/EntryStatus.js";
@@ -10897,6 +10961,152 @@ export type { ValidationErrorResponse } from "./models/ValidationErrorResponse.j
 export type { VapidPublicKey } from "./models/VapidPublicKey.js";
 export type { VerificationDecision } from "./models/VerificationDecision.js";
 export type { WeatherImage } from "./models/WeatherImage.js";
+export type { WebhookAdminDisable } from "./models/WebhookAdminDisable.js";
+export type { WebhookDeliveryList } from "./models/WebhookDeliveryList.js";
+export type { WebhookDeliveryPublic } from "./models/WebhookDeliveryPublic.js";
+export type { WebhookEndpointCreate } from "./models/WebhookEndpointCreate.js";
+export type { WebhookEndpointCreated } from "./models/WebhookEndpointCreated.js";
+export type { WebhookEndpointList } from "./models/WebhookEndpointList.js";
+export type { WebhookEndpointPublic } from "./models/WebhookEndpointPublic.js";
+export type { WebhookEndpointUpdate } from "./models/WebhookEndpointUpdate.js";
+export type { WebhookEventTypeList } from "./models/WebhookEventTypeList.js";
+export type { WebhookEventTypePublic } from "./models/WebhookEventTypePublic.js";
+export type {
+  WebhooksOutAdminDisableEndpointBody,
+  WebhooksOutAdminDisableEndpointOptions,
+  WebhooksOutAdminDisableEndpointPath,
+  WebhooksOutAdminDisableEndpointResponse,
+  WebhooksOutAdminDisableEndpointResponses,
+  WebhooksOutAdminDisableEndpointStatus200,
+  WebhooksOutAdminDisableEndpointStatus400,
+  WebhooksOutAdminDisableEndpointStatus401,
+  WebhooksOutAdminDisableEndpointStatus403,
+  WebhooksOutAdminDisableEndpointStatus404,
+  WebhooksOutAdminDisableEndpointStatus409,
+  WebhooksOutAdminDisableEndpointStatus422,
+} from "./models/WebhooksOutAdminDisableEndpoint.js";
+export type {
+  WebhooksOutAdminListEndpointsOptions,
+  WebhooksOutAdminListEndpointsQuery,
+  WebhooksOutAdminListEndpointsResponse,
+  WebhooksOutAdminListEndpointsResponses,
+  WebhooksOutAdminListEndpointsStatus200,
+  WebhooksOutAdminListEndpointsStatus400,
+  WebhooksOutAdminListEndpointsStatus401,
+  WebhooksOutAdminListEndpointsStatus403,
+  WebhooksOutAdminListEndpointsStatus404,
+  WebhooksOutAdminListEndpointsStatus422,
+} from "./models/WebhooksOutAdminListEndpoints.js";
+export type {
+  WebhooksOutCreateEndpointBody,
+  WebhooksOutCreateEndpointHeaders,
+  WebhooksOutCreateEndpointOptions,
+  WebhooksOutCreateEndpointResponse,
+  WebhooksOutCreateEndpointResponses,
+  WebhooksOutCreateEndpointStatus201,
+  WebhooksOutCreateEndpointStatus400,
+  WebhooksOutCreateEndpointStatus401,
+  WebhooksOutCreateEndpointStatus403,
+  WebhooksOutCreateEndpointStatus404,
+  WebhooksOutCreateEndpointStatus409,
+  WebhooksOutCreateEndpointStatus422,
+} from "./models/WebhooksOutCreateEndpoint.js";
+export type {
+  WebhooksOutDeleteEndpointHeaders,
+  WebhooksOutDeleteEndpointOptions,
+  WebhooksOutDeleteEndpointPath,
+  WebhooksOutDeleteEndpointResponse,
+  WebhooksOutDeleteEndpointResponses,
+  WebhooksOutDeleteEndpointStatus204,
+  WebhooksOutDeleteEndpointStatus400,
+  WebhooksOutDeleteEndpointStatus401,
+  WebhooksOutDeleteEndpointStatus403,
+  WebhooksOutDeleteEndpointStatus404,
+  WebhooksOutDeleteEndpointStatus422,
+} from "./models/WebhooksOutDeleteEndpoint.js";
+export type {
+  WebhooksOutListDeliveriesHeaders,
+  WebhooksOutListDeliveriesOptions,
+  WebhooksOutListDeliveriesPath,
+  WebhooksOutListDeliveriesQuery,
+  WebhooksOutListDeliveriesResponse,
+  WebhooksOutListDeliveriesResponses,
+  WebhooksOutListDeliveriesStatus200,
+  WebhooksOutListDeliveriesStatus400,
+  WebhooksOutListDeliveriesStatus401,
+  WebhooksOutListDeliveriesStatus403,
+  WebhooksOutListDeliveriesStatus404,
+  WebhooksOutListDeliveriesStatus422,
+} from "./models/WebhooksOutListDeliveries.js";
+export type {
+  WebhooksOutListEndpointsHeaders,
+  WebhooksOutListEndpointsOptions,
+  WebhooksOutListEndpointsQuery,
+  WebhooksOutListEndpointsResponse,
+  WebhooksOutListEndpointsResponses,
+  WebhooksOutListEndpointsStatus200,
+  WebhooksOutListEndpointsStatus400,
+  WebhooksOutListEndpointsStatus401,
+  WebhooksOutListEndpointsStatus403,
+  WebhooksOutListEndpointsStatus404,
+  WebhooksOutListEndpointsStatus422,
+} from "./models/WebhooksOutListEndpoints.js";
+export type {
+  WebhooksOutListEventTypesHeaders,
+  WebhooksOutListEventTypesOptions,
+  WebhooksOutListEventTypesResponse,
+  WebhooksOutListEventTypesResponses,
+  WebhooksOutListEventTypesStatus200,
+  WebhooksOutListEventTypesStatus400,
+  WebhooksOutListEventTypesStatus401,
+  WebhooksOutListEventTypesStatus403,
+  WebhooksOutListEventTypesStatus404,
+  WebhooksOutListEventTypesStatus422,
+} from "./models/WebhooksOutListEventTypes.js";
+export type {
+  WebhooksOutRotateSecretHeaders,
+  WebhooksOutRotateSecretOptions,
+  WebhooksOutRotateSecretPath,
+  WebhooksOutRotateSecretResponse,
+  WebhooksOutRotateSecretResponses,
+  WebhooksOutRotateSecretStatus200,
+  WebhooksOutRotateSecretStatus400,
+  WebhooksOutRotateSecretStatus401,
+  WebhooksOutRotateSecretStatus403,
+  WebhooksOutRotateSecretStatus404,
+  WebhooksOutRotateSecretStatus409,
+  WebhooksOutRotateSecretStatus422,
+} from "./models/WebhooksOutRotateSecret.js";
+export type {
+  WebhooksOutTestEndpointHeaders,
+  WebhooksOutTestEndpointOptions,
+  WebhooksOutTestEndpointPath,
+  WebhooksOutTestEndpointResponse,
+  WebhooksOutTestEndpointResponses,
+  WebhooksOutTestEndpointStatus200,
+  WebhooksOutTestEndpointStatus400,
+  WebhooksOutTestEndpointStatus401,
+  WebhooksOutTestEndpointStatus403,
+  WebhooksOutTestEndpointStatus404,
+  WebhooksOutTestEndpointStatus409,
+  WebhooksOutTestEndpointStatus422,
+} from "./models/WebhooksOutTestEndpoint.js";
+export type {
+  WebhooksOutUpdateEndpointBody,
+  WebhooksOutUpdateEndpointHeaders,
+  WebhooksOutUpdateEndpointOptions,
+  WebhooksOutUpdateEndpointPath,
+  WebhooksOutUpdateEndpointResponse,
+  WebhooksOutUpdateEndpointResponses,
+  WebhooksOutUpdateEndpointStatus200,
+  WebhooksOutUpdateEndpointStatus400,
+  WebhooksOutUpdateEndpointStatus401,
+  WebhooksOutUpdateEndpointStatus403,
+  WebhooksOutUpdateEndpointStatus404,
+  WebhooksOutUpdateEndpointStatus409,
+  WebhooksOutUpdateEndpointStatus422,
+} from "./models/WebhooksOutUpdateEndpoint.js";
+export type { WebhookTestResult } from "./models/WebhookTestResult.js";
 export type { WorkflowAction } from "./models/WorkflowAction.js";
 export { workflowAction } from "./models/WorkflowAction.js";
 export type { WorkflowActionRequest } from "./models/WorkflowActionRequest.js";
@@ -13146,6 +13356,7 @@ export { dataFormatSchema } from "./zod/dataFormatSchema.js";
 export { dataParameterSchema } from "./zod/dataParameterSchema.js";
 export { dataRequestCreateSchema } from "./zod/dataRequestCreateSchema.js";
 export { deliveryLineSchema } from "./zod/deliveryLineSchema.js";
+export { deliveryStatusSchema } from "./zod/deliveryStatusSchema.js";
 export { departmentCreateSchema } from "./zod/departmentCreateSchema.js";
 export { departmentMemberPublicSchema } from "./zod/departmentMemberPublicSchema.js";
 export { departmentMembersPublicSchema } from "./zod/departmentMembersPublicSchema.js";
@@ -13174,6 +13385,7 @@ export { employmentRecordPublicSchema } from "./zod/employmentRecordPublicSchema
 export { employmentStatusSchema } from "./zod/employmentStatusSchema.js";
 export { employmentTypeSchema } from "./zod/employmentTypeSchema.js";
 export { employmentUpdateSchema } from "./zod/employmentUpdateSchema.js";
+export { endpointStatusSchema } from "./zod/endpointStatusSchema.js";
 export { entryKindSchema } from "./zod/entryKindSchema.js";
 export { entryStatusSchema } from "./zod/entryStatusSchema.js";
 export {
@@ -18039,6 +18251,146 @@ export { validationErrorResponseSchema } from "./zod/validationErrorResponseSche
 export { vapidPublicKeySchema } from "./zod/vapidPublicKeySchema.js";
 export { verificationDecisionSchema } from "./zod/verificationDecisionSchema.js";
 export { weatherImageSchema } from "./zod/weatherImageSchema.js";
+export { webhookAdminDisableSchema } from "./zod/webhookAdminDisableSchema.js";
+export { webhookDeliveryListSchema } from "./zod/webhookDeliveryListSchema.js";
+export { webhookDeliveryPublicSchema } from "./zod/webhookDeliveryPublicSchema.js";
+export { webhookEndpointCreatedSchema } from "./zod/webhookEndpointCreatedSchema.js";
+export { webhookEndpointCreateSchema } from "./zod/webhookEndpointCreateSchema.js";
+export { webhookEndpointListSchema } from "./zod/webhookEndpointListSchema.js";
+export { webhookEndpointPublicSchema } from "./zod/webhookEndpointPublicSchema.js";
+export { webhookEndpointUpdateSchema } from "./zod/webhookEndpointUpdateSchema.js";
+export { webhookEventTypeListSchema } from "./zod/webhookEventTypeListSchema.js";
+export { webhookEventTypePublicSchema } from "./zod/webhookEventTypePublicSchema.js";
+export {
+  webhooksOutAdminDisableEndpointBodySchema,
+  webhooksOutAdminDisableEndpointErrorSchema,
+  webhooksOutAdminDisableEndpointPathEndpointIdSchema,
+  webhooksOutAdminDisableEndpointResponseSchema,
+  webhooksOutAdminDisableEndpointStatus200Schema,
+  webhooksOutAdminDisableEndpointStatus400Schema,
+  webhooksOutAdminDisableEndpointStatus401Schema,
+  webhooksOutAdminDisableEndpointStatus403Schema,
+  webhooksOutAdminDisableEndpointStatus404Schema,
+  webhooksOutAdminDisableEndpointStatus409Schema,
+  webhooksOutAdminDisableEndpointStatus422Schema,
+} from "./zod/webhooksOutAdminDisableEndpointSchema.js";
+export {
+  webhooksOutAdminListEndpointsErrorSchema,
+  webhooksOutAdminListEndpointsQueryOrganisationIdSchema,
+  webhooksOutAdminListEndpointsQueryPageSchema,
+  webhooksOutAdminListEndpointsQuerySizeSchema,
+  webhooksOutAdminListEndpointsResponseSchema,
+  webhooksOutAdminListEndpointsStatus200Schema,
+  webhooksOutAdminListEndpointsStatus400Schema,
+  webhooksOutAdminListEndpointsStatus401Schema,
+  webhooksOutAdminListEndpointsStatus403Schema,
+  webhooksOutAdminListEndpointsStatus404Schema,
+  webhooksOutAdminListEndpointsStatus422Schema,
+} from "./zod/webhooksOutAdminListEndpointsSchema.js";
+export {
+  webhooksOutCreateEndpointBodySchema,
+  webhooksOutCreateEndpointErrorSchema,
+  webhooksOutCreateEndpointHeaderXBarrelsOrganisationSchema,
+  webhooksOutCreateEndpointResponseSchema,
+  webhooksOutCreateEndpointStatus201Schema,
+  webhooksOutCreateEndpointStatus400Schema,
+  webhooksOutCreateEndpointStatus401Schema,
+  webhooksOutCreateEndpointStatus403Schema,
+  webhooksOutCreateEndpointStatus404Schema,
+  webhooksOutCreateEndpointStatus409Schema,
+  webhooksOutCreateEndpointStatus422Schema,
+} from "./zod/webhooksOutCreateEndpointSchema.js";
+export {
+  webhooksOutDeleteEndpointErrorSchema,
+  webhooksOutDeleteEndpointHeaderXBarrelsOrganisationSchema,
+  webhooksOutDeleteEndpointPathEndpointIdSchema,
+  webhooksOutDeleteEndpointResponseSchema,
+  webhooksOutDeleteEndpointStatus204Schema,
+  webhooksOutDeleteEndpointStatus400Schema,
+  webhooksOutDeleteEndpointStatus401Schema,
+  webhooksOutDeleteEndpointStatus403Schema,
+  webhooksOutDeleteEndpointStatus404Schema,
+  webhooksOutDeleteEndpointStatus422Schema,
+} from "./zod/webhooksOutDeleteEndpointSchema.js";
+export {
+  webhooksOutListDeliveriesErrorSchema,
+  webhooksOutListDeliveriesHeaderXBarrelsOrganisationSchema,
+  webhooksOutListDeliveriesPathEndpointIdSchema,
+  webhooksOutListDeliveriesQueryPageSchema,
+  webhooksOutListDeliveriesQuerySizeSchema,
+  webhooksOutListDeliveriesResponseSchema,
+  webhooksOutListDeliveriesStatus200Schema,
+  webhooksOutListDeliveriesStatus400Schema,
+  webhooksOutListDeliveriesStatus401Schema,
+  webhooksOutListDeliveriesStatus403Schema,
+  webhooksOutListDeliveriesStatus404Schema,
+  webhooksOutListDeliveriesStatus422Schema,
+} from "./zod/webhooksOutListDeliveriesSchema.js";
+export {
+  webhooksOutListEndpointsErrorSchema,
+  webhooksOutListEndpointsHeaderXBarrelsOrganisationSchema,
+  webhooksOutListEndpointsQueryPageSchema,
+  webhooksOutListEndpointsQuerySizeSchema,
+  webhooksOutListEndpointsResponseSchema,
+  webhooksOutListEndpointsStatus200Schema,
+  webhooksOutListEndpointsStatus400Schema,
+  webhooksOutListEndpointsStatus401Schema,
+  webhooksOutListEndpointsStatus403Schema,
+  webhooksOutListEndpointsStatus404Schema,
+  webhooksOutListEndpointsStatus422Schema,
+} from "./zod/webhooksOutListEndpointsSchema.js";
+export {
+  webhooksOutListEventTypesErrorSchema,
+  webhooksOutListEventTypesHeaderXBarrelsOrganisationSchema,
+  webhooksOutListEventTypesResponseSchema,
+  webhooksOutListEventTypesStatus200Schema,
+  webhooksOutListEventTypesStatus400Schema,
+  webhooksOutListEventTypesStatus401Schema,
+  webhooksOutListEventTypesStatus403Schema,
+  webhooksOutListEventTypesStatus404Schema,
+  webhooksOutListEventTypesStatus422Schema,
+} from "./zod/webhooksOutListEventTypesSchema.js";
+export {
+  webhooksOutRotateSecretErrorSchema,
+  webhooksOutRotateSecretHeaderXBarrelsOrganisationSchema,
+  webhooksOutRotateSecretPathEndpointIdSchema,
+  webhooksOutRotateSecretResponseSchema,
+  webhooksOutRotateSecretStatus200Schema,
+  webhooksOutRotateSecretStatus400Schema,
+  webhooksOutRotateSecretStatus401Schema,
+  webhooksOutRotateSecretStatus403Schema,
+  webhooksOutRotateSecretStatus404Schema,
+  webhooksOutRotateSecretStatus409Schema,
+  webhooksOutRotateSecretStatus422Schema,
+} from "./zod/webhooksOutRotateSecretSchema.js";
+export {
+  webhooksOutTestEndpointErrorSchema,
+  webhooksOutTestEndpointHeaderXBarrelsOrganisationSchema,
+  webhooksOutTestEndpointPathEndpointIdSchema,
+  webhooksOutTestEndpointResponseSchema,
+  webhooksOutTestEndpointStatus200Schema,
+  webhooksOutTestEndpointStatus400Schema,
+  webhooksOutTestEndpointStatus401Schema,
+  webhooksOutTestEndpointStatus403Schema,
+  webhooksOutTestEndpointStatus404Schema,
+  webhooksOutTestEndpointStatus409Schema,
+  webhooksOutTestEndpointStatus422Schema,
+} from "./zod/webhooksOutTestEndpointSchema.js";
+export {
+  webhooksOutUpdateEndpointBodySchema,
+  webhooksOutUpdateEndpointErrorSchema,
+  webhooksOutUpdateEndpointHeaderXBarrelsOrganisationSchema,
+  webhooksOutUpdateEndpointPathEndpointIdSchema,
+  webhooksOutUpdateEndpointResponseSchema,
+  webhooksOutUpdateEndpointStatus200Schema,
+  webhooksOutUpdateEndpointStatus400Schema,
+  webhooksOutUpdateEndpointStatus401Schema,
+  webhooksOutUpdateEndpointStatus403Schema,
+  webhooksOutUpdateEndpointStatus404Schema,
+  webhooksOutUpdateEndpointStatus409Schema,
+  webhooksOutUpdateEndpointStatus422Schema,
+} from "./zod/webhooksOutUpdateEndpointSchema.js";
+export { webhookTestResultSchema } from "./zod/webhookTestResultSchema.js";
 export { workflowActionRequestSchema } from "./zod/workflowActionRequestSchema.js";
 export { workflowActionSchema } from "./zod/workflowActionSchema.js";
 export { workflowConfigurationInputSchema } from "./zod/workflowConfigurationInputSchema.js";

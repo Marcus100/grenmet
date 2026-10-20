@@ -561,6 +561,16 @@ export { transportUpdateTimetableDraft } from "./transportUpdateTimetableDraft.j
 export { utilsHealthCheck } from "./utilsHealthCheck.js";
 export { utilsReady } from "./utilsReady.js";
 export { utilsTestEmail } from "./utilsTestEmail.js";
+export { webhooksOutAdminDisableEndpoint } from "./webhooksOutAdminDisableEndpoint.js";
+export { webhooksOutAdminListEndpoints } from "./webhooksOutAdminListEndpoints.js";
+export { webhooksOutCreateEndpoint } from "./webhooksOutCreateEndpoint.js";
+export { webhooksOutDeleteEndpoint } from "./webhooksOutDeleteEndpoint.js";
+export { webhooksOutListDeliveries } from "./webhooksOutListDeliveries.js";
+export { webhooksOutListEndpoints } from "./webhooksOutListEndpoints.js";
+export { webhooksOutListEventTypes } from "./webhooksOutListEventTypes.js";
+export { webhooksOutRotateSecret } from "./webhooksOutRotateSecret.js";
+export { webhooksOutTestEndpoint } from "./webhooksOutTestEndpoint.js";
+export { webhooksOutUpdateEndpoint } from "./webhooksOutUpdateEndpoint.js";
 export { wxproductsGetPublicProduct } from "./wxproductsGetPublicProduct.js";
 export { wxproductsListPublicProducts } from "./wxproductsListPublicProducts.js";
 export { wxproductsLoadAviationDrafts } from "./wxproductsLoadAviationDrafts.js";

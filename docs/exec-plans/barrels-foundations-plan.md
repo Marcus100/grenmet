@@ -313,7 +313,7 @@ Each primitive ships with one pilot consumer. Other domains move onto it one per
 | PF3 | **Org contacts.** `org.contact` with hashed email, consent and source; lookup, upsert and audited merge ([ADR-0028](../adr/0028-organisation-contacts.md)) | `bookings.customer`, then `billing.customer` | PF1 | Planned |
 | PF4 | **Payments core.** Intents, attempts, append-only ledger, refunds; `PaymentProvider` with `manual` and Stripe test-mode adapters; reconciliation report ([ADR-0027](../adr/0027-payments-core-and-providers.md)) | Events paid tier or Bookings deposit (sandbox) | PF2, PF3 | Planned; the live rail is gated |
 | PF5 | **Org API keys** (N4) | Bookings read | PF1 | Planned |
-| PF6 | **Outbound webhooks:** registry, HMAC signing generalised from CAP, delivery on the PF2 runner | `booking.created`, `payment.succeeded` | PF2, PF5 | Planned |
+| PF6 | **Outbound webhooks:** registry, HMAC signing generalised from CAP, delivery on the PF2 runner | `booking.created`, `payment.succeeded` | PF2, PF5 | Built (emit calls in bookings/payments/contacts pending) |
 | PF7 | **Feature flags** (accept ADR-0020) | Babydoll `/book` switch (B4) | PF1 | Planned |
 | PF8 | **Rewards earn sources:** `rewards.qualifying_action` on the outbox replaces `sync_event_rewards` ([ADR-0030](../adr/0030-rewards-earn-sources-and-gamification.md)) | Events admission, then bookings | PF2 | Planned |
 | PF9 | **Gamification core:** Passport and trails (U5), achievements, check-in streaks (signed venue QR) | Events, venue check-in | PF8 | Planned |

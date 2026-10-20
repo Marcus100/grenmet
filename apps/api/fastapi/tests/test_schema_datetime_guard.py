@@ -113,6 +113,7 @@ MAP_TYPE_EXEMPTIONS = {
     "src.eregister.schemas.RegisterObservationCreate.body": "WMO observation body is format-specific opaque data",
     "src.eregister.schemas.RegisterObservationRead.body": "WMO observation body is format-specific opaque data",
     "src.eregister.schemas.RegisterObservationWrite.body": "WMO observation body is format-specific opaque data",
+    "src.webhooks_out.schemas.WebhookEventTypePublic.data_schema": "a JSON Schema document describing an event's data",
     "src.wxproducts.observations.ObservationRecord.payload": "observation payload preserves source-specific representations",
     "src.wxproducts.schemas.ForecastPeriod.details": "legacy forecast presentation map",
     "src.wxproducts.schemas.LegacyProductPdfSource.values": "frozen legacy product payload",

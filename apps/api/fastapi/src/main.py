@@ -102,6 +102,7 @@ from src.transport import database as transport_database
 from src.transport.router import router as transport_router
 from src.utils.router import router as utils_router
 from src.webhooks.router import router as webhooks_router
+from src.webhooks_out.router import router as webhooks_out_router
 from src.wxproducts import database as wxproducts_database
 from src.wxproducts.router import router as wxproducts_router
 from src.wxwatch import database as wxwatch_database
@@ -274,6 +275,10 @@ OPENAPI_TAGS = [
     {
         "name": "organisations",
         "description": "Platform organisations and the caller's memberships.",
+    },
+    {
+        "name": "webhooks-out",
+        "description": "Signed outbound webhooks for organisations.",
     },
     {"name": "permissions", "description": "Permission administration operations."},
     {
@@ -477,6 +482,7 @@ app.include_router(utils_router, prefix=settings.API_V1_STR)
 app.include_router(weather_images_router, prefix=settings.API_V1_STR)
 app.include_router(uploads_router, prefix=settings.API_V1_STR)
 app.include_router(webhooks_router, prefix=settings.API_V1_STR)
+app.include_router(webhooks_out_router, prefix=settings.API_V1_STR)
 app.include_router(subscriptions_router, prefix=settings.API_V1_STR)
 app.include_router(push_router, prefix=settings.API_V1_STR)
 app.include_router(contact_router, prefix=settings.API_V1_STR)

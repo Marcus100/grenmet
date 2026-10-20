@@ -2050,3 +2050,18 @@ Events stores the resulting file ids: `ListingUpsert.image_file_id`,
 `PUT /events/manage/organiser/logo` (`{file_id}`, null clears), returned as
 `ListingCard.image_file_id` and `OrganiserPublic.logo_file_id`. A new id must be a
 completed upload of that organiser's organisation and purpose, else 409.
+
+## Outbound webhooks (PF6, ADR-0029)
+
+`/webhooks-out/org/*` (owner or admin of an organisation entitled to `webhooks`):
+`POST`/`GET /endpoints`, `PATCH`/`DELETE /endpoints/{endpoint_id}`,
+`POST .../rotate-secret`, `POST .../test`, `GET .../deliveries` and
+`GET /event-types`; superusers also get `GET /webhooks-out/admin/endpoints` and
+`POST .../{endpoint_id}/disable`. The signing secret (`whsec_...`) appears only in
+the create and rotate responses. Receivers get `POST` JSON
+`{id, type, created_at, organisation_id, data}` with `Barrels-Signature:
+t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`, `Barrels-Event-Id` and
+`Barrels-Event-Type`; answer 2xx within 10 seconds. Redirects are not followed, 410
+disables the endpoint, other failures retry (1 minute doubling to 1 hour, 5 attempts)
+and 15 failed attempts in a row disable it. Verify the timestamp (reject beyond five
+minutes) to stop replays. Adding an event type or a data field is additive.

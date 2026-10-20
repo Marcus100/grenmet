@@ -16,6 +16,7 @@ PRODUCTS: dict[str, str] = {
     "rewards": "Barrels Rewards",
     "contacts": "Barrels Contacts",
     "payments": "Barrels Payments",
+    "webhooks": "Barrels Webhooks",
 }
 
 
