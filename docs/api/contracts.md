@@ -648,8 +648,19 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | `GET /api/v1/bookings/public/{slug}` | None (60/minute) | Storefront: active services and providers; unknown or disabled 404 |
 | `GET /api/v1/bookings/public/{slug}/availability?service_id&first_day&last_day[&provider_id]` | None (60/minute) | Open slots (UTC) with free provider ids; at most 14 local days |
 
+| `GET /api/v1/bookings/org/agenda?from_date&to_date[&provider_id&status&limit&offset]` | Member or API key `bookings.read` | Bookings grouped by local day; at most 62 days (422), paged with `limit` and `offset` |
+| `GET /api/v1/bookings/org/bookings/{id}` | Same | Studio view with customer contact details, history and deposit state; another organisation's id 404 |
+| `POST /api/v1/bookings/org/bookings/{id}/confirm`, `/decline`, `/cancel`, `/no-show`, `/complete` | Admin member or API key `bookings.write` | Studio actions through the status machine; decline and cancel need a `reason`, email the customer and emit `booking.cancelled`; an illegal move 409 |
+
 Overlapping active bookings for one provider are refused by the database
 (`booking_no_overlap`).
+
+Deposits: when a service has a deposit and the organisation holds the `payments`
+entitlement, `POST /bookings/public/{slug}/bookings` answers a booking in
+`pending_payment` with `payment_required: true` and a `checkout_url` (Stripe test
+mode; null when the business records payment itself). Unpaid bookings are cancelled
+and their slot released after `BOOKINGS_DEPOSIT_HOLD_MINUTES` (30). Both receipt
+fields are additive.
 
 ## Billing
 

@@ -19,6 +19,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import outbox
 from src.auth.models import User
 from src.organisations.models import PlatformOrganisation
 from src.utils.datetime import utc_now
@@ -46,6 +47,11 @@ from .providers import registry
 from .providers.base import EventKind, ProviderEvent
 
 logger = logging.getLogger(__name__)
+
+#: Outbox topic enqueued, in the transaction that records the charge, for a
+#: source type whose owning domain must react to a captured payment. Payments
+#: imports no consumer: the consumer registers a handler for the topic.
+PAID_TOPICS = {"bookings.deposit": "bookings.deposit_paid"}
 
 #: Refunds that still count against what can be handed back.
 _LIVE_REFUND = (RefundStatus.PENDING.value, RefundStatus.SUCCEEDED.value)
@@ -223,13 +229,15 @@ async def create_intent(
     session: AsyncSession,
     *,
     organisation_id: str,
-    actor: User,
+    actor: User | None,
     payload: schemas.PaymentIntentCreate,
 ) -> schemas.PaymentCheckoutPublic:
     """Create an intent (idempotent per organisation and ``idempotency_key``).
 
     A repeat with the same key and the same request returns the first intent; the
-    same key with a different request is a 409.
+    same key with a different request is a 409. ``actor`` is the signed-in member,
+    or ``None`` when the system acts for an anonymous customer (a public booking
+    deposit): ``created_by_user_id`` is then NULL.
     """
     # Resolve the provider first so an unavailable rail fails before any row exists.
     provider = registry.get_provider(payload.provider.value)
@@ -252,7 +260,7 @@ async def create_intent(
         else None,
         metadata_=dict(payload.metadata),
         idempotency_key=payload.idempotency_key,
-        created_by_user_id=actor.id,
+        created_by_user_id=actor.id if actor else None,
     )
     try:
         async with session.begin_nested():
@@ -325,6 +333,71 @@ async def _replay(
         intent=await _public_by_id(session, existing.id),
         checkout_url=existing.checkout_url,
     )
+
+
+# --- lookups for consuming domains ----------------------------------------------------
+
+
+async def find_by_source(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    source_type: str,
+    source_id: str,
+) -> schemas.PaymentIntentPublic | None:
+    """The newest intent sold for ``(source_type, source_id)``, or None."""
+    row = (
+        await session.execute(
+            _intent_select()
+            .where(
+                Intent.organisation_id == organisation_id,
+                Intent.source_type == source_type,
+                Intent.source_id == source_id,
+            )
+            .order_by(Intent.created_at.desc(), Intent.id)
+            .limit(1)
+        )
+    ).first()
+    return _public(row) if row else None
+
+
+async def cancel_open_intent(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    source_type: str,
+    source_id: str,
+) -> bool:
+    """Stop collecting for a sale that no longer exists.
+
+    Locks the intent, then cancels it while it is unpaid. Returns False when the
+    payment already succeeded (the caller must not drop the sale); True when
+    there is no intent, it was already finished unpaid, or it is now cancelled."""
+    intent = (
+        await session.execute(
+            select(Intent)
+            .where(
+                Intent.organisation_id == organisation_id,
+                Intent.source_type == source_type,
+                Intent.source_id == source_id,
+            )
+            .order_by(Intent.created_at.desc(), Intent.id)
+            .limit(1)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+    ).scalar_one_or_none()
+    if intent is None:
+        return True
+    if intent.status == IntentStatus.SUCCEEDED.value:
+        return False
+    if intent.status in (
+        IntentStatus.REQUIRES_PAYMENT.value,
+        IntentStatus.PROCESSING.value,
+    ):
+        intent.status = IntentStatus.CANCELLED.value
+        await session.flush()
+    return True
 
 
 # --- ledger helpers -------------------------------------------------------------------
@@ -423,6 +496,16 @@ async def _capture(
     )
     await session.flush()
     await _emit_payment_event(session, intent, "payment.succeeded")
+    topic = PAID_TOPICS.get(intent.source_type)
+    if topic is not None and intent.source_id:
+        # Same transaction as the charge: the consumer sees the payment or neither.
+        await outbox.enqueue(
+            session,
+            topic=topic,
+            payload={"intent_id": str(intent.id), "source_id": intent.source_id},
+            dedupe_key=str(intent.id),
+            organisation_id=intent.organisation_id,
+        )
 
 
 async def _emit_payment_event(
@@ -496,10 +579,13 @@ async def refund_intent(
     *,
     organisation_id: str,
     intent_id: uuid.UUID,
-    actor: User,
+    actor: User | None,
     payload: schemas.PaymentRefundCreate,
 ) -> schemas.PaymentRefundPublic:
-    """Hand money back. The total refunded can never exceed what was captured."""
+    """Hand money back. The total refunded can never exceed what was captured.
+
+    ``actor`` is ``None`` when the system refunds (for example a booking
+    deposit); the refund and ledger rows then record no user."""
     intent = await _get_owned(session, organisation_id, intent_id, lock=True)
     captured, refunded = await _totals(session, intent.id)
     if captured <= 0:
@@ -516,7 +602,7 @@ async def refund_intent(
         intent_id=intent.id,
         amount_minor=amount,
         reason=payload.reason,
-        created_by_user_id=actor.id,
+        created_by_user_id=actor.id if actor else None,
     )
     session.add(refund)
     await session.flush()

@@ -1057,6 +1057,8 @@ export type {
 } from "./BillingVoidInvoice.js";
 export type { BodyAuthLoginAccessToken } from "./BodyAuthLoginAccessToken.js";
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";
+export type { BookingAgenda } from "./BookingAgenda.js";
+export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
 export type { BookingAvailability } from "./BookingAvailability.js";
 export type { BookingExceptionCreate } from "./BookingExceptionCreate.js";
@@ -1084,6 +1086,11 @@ export { bookingSource } from "./BookingSource.js";
 export type { BookingStatus } from "./BookingStatus.js";
 export { bookingStatus } from "./BookingStatus.js";
 export type { BookingStorefront } from "./BookingStorefront.js";
+export type { BookingStudioCancel } from "./BookingStudioCancel.js";
+export type { BookingStudioCustomer } from "./BookingStudioCustomer.js";
+export type { BookingStudioDecline } from "./BookingStudioDecline.js";
+export type { BookingStudioDetail } from "./BookingStudioDetail.js";
+export type { BookingStudioEvent } from "./BookingStudioEvent.js";
 export type {
   BookingsCancelPublicBookingBody,
   BookingsCancelPublicBookingOptions,
@@ -1095,6 +1102,49 @@ export type {
   BookingsCancelPublicBookingStatus409,
   BookingsCancelPublicBookingStatus422,
 } from "./BookingsCancelPublicBooking.js";
+export type {
+  BookingsCancelStudioBookingBody,
+  BookingsCancelStudioBookingHeaders,
+  BookingsCancelStudioBookingOptions,
+  BookingsCancelStudioBookingPath,
+  BookingsCancelStudioBookingResponse,
+  BookingsCancelStudioBookingResponses,
+  BookingsCancelStudioBookingStatus200,
+  BookingsCancelStudioBookingStatus400,
+  BookingsCancelStudioBookingStatus401,
+  BookingsCancelStudioBookingStatus403,
+  BookingsCancelStudioBookingStatus404,
+  BookingsCancelStudioBookingStatus409,
+  BookingsCancelStudioBookingStatus422,
+} from "./BookingsCancelStudioBooking.js";
+export type {
+  BookingsCompleteStudioBookingHeaders,
+  BookingsCompleteStudioBookingOptions,
+  BookingsCompleteStudioBookingPath,
+  BookingsCompleteStudioBookingResponse,
+  BookingsCompleteStudioBookingResponses,
+  BookingsCompleteStudioBookingStatus200,
+  BookingsCompleteStudioBookingStatus400,
+  BookingsCompleteStudioBookingStatus401,
+  BookingsCompleteStudioBookingStatus403,
+  BookingsCompleteStudioBookingStatus404,
+  BookingsCompleteStudioBookingStatus409,
+  BookingsCompleteStudioBookingStatus422,
+} from "./BookingsCompleteStudioBooking.js";
+export type {
+  BookingsConfirmStudioBookingHeaders,
+  BookingsConfirmStudioBookingOptions,
+  BookingsConfirmStudioBookingPath,
+  BookingsConfirmStudioBookingResponse,
+  BookingsConfirmStudioBookingResponses,
+  BookingsConfirmStudioBookingStatus200,
+  BookingsConfirmStudioBookingStatus400,
+  BookingsConfirmStudioBookingStatus401,
+  BookingsConfirmStudioBookingStatus403,
+  BookingsConfirmStudioBookingStatus404,
+  BookingsConfirmStudioBookingStatus409,
+  BookingsConfirmStudioBookingStatus422,
+} from "./BookingsConfirmStudioBooking.js";
 export type {
   BookingsCreateExceptionBody,
   BookingsCreateExceptionHeaders,
@@ -1152,6 +1202,21 @@ export type {
   BookingsCreateServiceStatus422,
 } from "./BookingsCreateService.js";
 export type {
+  BookingsDeclineStudioBookingBody,
+  BookingsDeclineStudioBookingHeaders,
+  BookingsDeclineStudioBookingOptions,
+  BookingsDeclineStudioBookingPath,
+  BookingsDeclineStudioBookingResponse,
+  BookingsDeclineStudioBookingResponses,
+  BookingsDeclineStudioBookingStatus200,
+  BookingsDeclineStudioBookingStatus400,
+  BookingsDeclineStudioBookingStatus401,
+  BookingsDeclineStudioBookingStatus403,
+  BookingsDeclineStudioBookingStatus404,
+  BookingsDeclineStudioBookingStatus409,
+  BookingsDeclineStudioBookingStatus422,
+} from "./BookingsDeclineStudioBooking.js";
+export type {
   BookingsDeleteExceptionHeaders,
   BookingsDeleteExceptionOptions,
   BookingsDeleteExceptionPath,
@@ -1165,6 +1230,19 @@ export type {
   BookingsDeleteExceptionStatus409,
   BookingsDeleteExceptionStatus422,
 } from "./BookingsDeleteException.js";
+export type {
+  BookingsGetAgendaHeaders,
+  BookingsGetAgendaOptions,
+  BookingsGetAgendaQuery,
+  BookingsGetAgendaResponse,
+  BookingsGetAgendaResponses,
+  BookingsGetAgendaStatus200,
+  BookingsGetAgendaStatus400,
+  BookingsGetAgendaStatus401,
+  BookingsGetAgendaStatus403,
+  BookingsGetAgendaStatus404,
+  BookingsGetAgendaStatus422,
+} from "./BookingsGetAgenda.js";
 export type {
   BookingsGetAvailabilityOptions,
   BookingsGetAvailabilityPath,
@@ -1215,6 +1293,19 @@ export type {
   BookingsGetStorefrontStatus404,
   BookingsGetStorefrontStatus422,
 } from "./BookingsGetStorefront.js";
+export type {
+  BookingsGetStudioBookingHeaders,
+  BookingsGetStudioBookingOptions,
+  BookingsGetStudioBookingPath,
+  BookingsGetStudioBookingResponse,
+  BookingsGetStudioBookingResponses,
+  BookingsGetStudioBookingStatus200,
+  BookingsGetStudioBookingStatus400,
+  BookingsGetStudioBookingStatus401,
+  BookingsGetStudioBookingStatus403,
+  BookingsGetStudioBookingStatus404,
+  BookingsGetStudioBookingStatus422,
+} from "./BookingsGetStudioBooking.js";
 export type {
   BookingsGetWorkingHoursHeaders,
   BookingsGetWorkingHoursOptions,
@@ -1279,6 +1370,20 @@ export type {
   BookingsListStudioBookingsStatus404,
   BookingsListStudioBookingsStatus422,
 } from "./BookingsListStudioBookings.js";
+export type {
+  BookingsNoShowStudioBookingHeaders,
+  BookingsNoShowStudioBookingOptions,
+  BookingsNoShowStudioBookingPath,
+  BookingsNoShowStudioBookingResponse,
+  BookingsNoShowStudioBookingResponses,
+  BookingsNoShowStudioBookingStatus200,
+  BookingsNoShowStudioBookingStatus400,
+  BookingsNoShowStudioBookingStatus401,
+  BookingsNoShowStudioBookingStatus403,
+  BookingsNoShowStudioBookingStatus404,
+  BookingsNoShowStudioBookingStatus409,
+  BookingsNoShowStudioBookingStatus422,
+} from "./BookingsNoShowStudioBooking.js";
 export type {
   BookingsReplaceWorkingHoursBody,
   BookingsReplaceWorkingHoursHeaders,

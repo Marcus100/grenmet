@@ -20,8 +20,10 @@ from src.organisations.models import MembershipRole
 from src.rate_limit import limiter
 from src.turnstile import require_turnstile
 
-from . import public, service
+from . import public, service, studio
+from .models import BookingStatus
 from .schemas import (
+    BookingAgenda,
     BookingAgendaItem,
     BookingAvailability,
     BookingExceptionCreate,
@@ -41,6 +43,9 @@ from .schemas import (
     BookingServiceUpdate,
     BookingSlot,
     BookingStorefront,
+    BookingStudioCancel,
+    BookingStudioDecline,
+    BookingStudioDetail,
     BookingWorkingHoursUpdate,
     BookingWorkingPeriodPublic,
 )
@@ -55,6 +60,13 @@ BookingsOrgAdmin = Annotated[
 # Organisation reads also accept an API key with `bookings.read` (PF5, ADR-0029),
 # e.g. a kiosk or partner site; the user path behaves as BookingsOrgMember.
 BookingsOrgRead = Annotated[OrgAccess, Depends(org_or_key("bookings", "bookings.read"))]
+
+# Studio actions also accept an API key with `bookings.write` (PF5); the member
+# path needs the admin role. `actor_id` is None for a key.
+BookingsOrgWrite = Annotated[
+    OrgAccess,
+    Depends(org_or_key("bookings", "bookings.write", MembershipRole.ADMIN)),
+]
 
 READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
@@ -339,6 +351,184 @@ async def list_bookings(
         starts_from=starts_from,
         ends_before=ends_before,
     )
+
+
+# --- organisation: studio actions (B5) -------------------------------------------------
+
+BookingId = Annotated[uuid.UUID, Path(description="The booking's id.")]
+
+
+@router.get(
+    "/org/agenda",
+    response_model=BookingAgenda,
+    summary="Get the agenda grouped by day",
+    description=(
+        "Bookings starting on the local days `from_date` to `to_date` (inclusive, "
+        "at most 62 days), grouped by day in the profile's timezone, optionally "
+        "for one provider or some statuses. Page with `limit` and `offset`."
+    ),
+    operation_id="bookingsGetAgenda",
+    responses=READ_ERRORS,
+)
+async def get_agenda(
+    *,
+    session: SessionDep,
+    org: BookingsOrgRead,
+    from_date: date,
+    to_date: date,
+    provider_id: uuid.UUID | None = Query(default=None),
+    status_filter: Annotated[list[BookingStatus] | None, Query(alias="status")] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 200,
+    offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
+) -> Any:
+    return await studio.agenda(
+        session,
+        org.organisation_id,
+        from_date=from_date,
+        to_date=to_date,
+        provider_id=provider_id,
+        statuses=status_filter,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get(
+    "/org/bookings/{booking_id}",
+    response_model=BookingStudioDetail,
+    summary="Get a booking",
+    description=(
+        "The full studio view: customer name, phone and email, the deposit "
+        "state and the booking's history."
+    ),
+    operation_id="bookingsGetStudioBooking",
+    responses=READ_ERRORS,
+)
+async def get_studio_booking(
+    *, session: SessionDep, org: BookingsOrgRead, booking_id: BookingId
+) -> Any:
+    return await studio.get_detail(session, org.organisation_id, booking_id)
+
+
+@router.post(
+    "/org/bookings/{booking_id}/confirm",
+    response_model=BookingStudioDetail,
+    summary="Confirm a booking request",
+    description=(
+        "Moves a `pending` booking to `confirmed` and emails the customer. 409 "
+        "for any other status, including one still waiting for its deposit."
+    ),
+    operation_id="bookingsConfirmStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def confirm_studio_booking(
+    *, session: SessionDep, org: BookingsOrgWrite, booking_id: BookingId
+) -> Any:
+    result = await studio.confirm(
+        session, org.organisation_id, booking_id, actor_user_id=org.actor_id
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/org/bookings/{booking_id}/decline",
+    response_model=BookingStudioDetail,
+    summary="Decline a booking request",
+    description=(
+        "Cancels a `pending` request with a reason, releases the slot, refunds "
+        "any captured deposit and emails the customer. 409 for any other status."
+    ),
+    operation_id="bookingsDeclineStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def decline_studio_booking(
+    *,
+    session: SessionDep,
+    org: BookingsOrgWrite,
+    booking_id: BookingId,
+    payload: BookingStudioDecline,
+) -> Any:
+    result = await studio.decline(
+        session,
+        org.organisation_id,
+        booking_id,
+        actor_user_id=org.actor_id,
+        reason=payload.reason,
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/org/bookings/{booking_id}/cancel",
+    response_model=BookingStudioDetail,
+    summary="Cancel a booking as the business",
+    description=(
+        "Cancels an active booking with a reason, releases the slot and emails "
+        "the customer. A captured deposit is refunded unless the booking starts "
+        "inside `cancel_cutoff_hours`; `refund_deposit` overrides that. 409 when "
+        "the booking is already finished."
+    ),
+    operation_id="bookingsCancelStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def cancel_studio_booking(
+    *,
+    session: SessionDep,
+    org: BookingsOrgWrite,
+    booking_id: BookingId,
+    payload: BookingStudioCancel,
+) -> Any:
+    result = await studio.cancel(
+        session,
+        org.organisation_id,
+        booking_id,
+        actor_user_id=org.actor_id,
+        reason=payload.reason,
+        refund_deposit=payload.refund_deposit,
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/org/bookings/{booking_id}/no-show",
+    response_model=BookingStudioDetail,
+    summary="Mark a booking as a no-show",
+    description="Moves a `confirmed` booking to `no_show`. 409 for any other status.",
+    operation_id="bookingsNoShowStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def no_show_studio_booking(
+    *, session: SessionDep, org: BookingsOrgWrite, booking_id: BookingId
+) -> Any:
+    result = await studio.no_show(
+        session, org.organisation_id, booking_id, actor_user_id=org.actor_id
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/org/bookings/{booking_id}/complete",
+    response_model=BookingStudioDetail,
+    summary="Mark a booking as completed",
+    description=(
+        "Moves a `confirmed` booking to `completed` and queues the customer's "
+        "reward when they have a linked account. 409 for any other status."
+    ),
+    operation_id="bookingsCompleteStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def complete_studio_booking(
+    *, session: SessionDep, org: BookingsOrgWrite, booking_id: BookingId
+) -> Any:
+    result = await studio.complete(
+        session, org.organisation_id, booking_id, actor_user_id=org.actor_id
+    )
+    await session.commit()
+    return result
 
 
 # --- public ----------------------------------------------------------------------------

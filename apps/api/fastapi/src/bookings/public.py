@@ -30,7 +30,7 @@ from src.utils.email_hash import hash_email
 from src.utils.timezones import utc_to_local, zone
 from src.webhooks_out import service as webhook_service
 
-from . import emails, ics, service, transitions
+from . import deposit_payments, emails, ics, service, transitions
 from .exceptions import BookingConflictError, BookingNotFoundError
 from .models import (
     ACTIVE_STATUSES,
@@ -117,7 +117,7 @@ async def transition(
         await _emit_completed_reward(session, booking)
 
 
-async def _emit_webhook(
+async def emit_webhook(
     session: AsyncSession,
     booking: Booking,
     event_type: str,
@@ -282,7 +282,7 @@ def decoy_receipt(
     )
 
 
-def _mail(managed: Managed, token: str | None = None) -> emails.BookingEmail:
+def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmail:
     profile = managed.profile
     return emails.BookingEmail(
         business=profile.display_name,
@@ -298,7 +298,7 @@ def _mail(managed: Managed, token: str | None = None) -> emails.BookingEmail:
     )
 
 
-async def _queue_customer_email(
+async def queue_customer_email(
     session: AsyncSession,
     managed: Managed,
     message: tuple[str, str],
@@ -318,7 +318,7 @@ async def _queue_customer_email(
     )
 
 
-async def _queue_studio_email(
+async def queue_studio_email(
     session: AsyncSession,
     managed: Managed,
     message: tuple[str, str],
@@ -473,11 +473,17 @@ async def create_booking(
     customer = await _upsert_customer(session, profile, payload, moment)
     token, token_hash = new_manage_token()
     ends_at = starts_at + timedelta(minutes=svc.duration_min)
-    initial = (
-        BookingStatus.PENDING
-        if profile.requires_confirmation
-        else BookingStatus.CONFIRMED
+    deposit = await deposit_payments.effective_deposit(
+        session, profile.organisation_id, svc
     )
+    if deposit > 0:
+        # The exclusion constraint already holds the slot while the deposit is
+        # paid; the expiry sweeper releases it if it is not.
+        initial = BookingStatus.PENDING_PAYMENT
+    elif profile.requires_confirmation:
+        initial = BookingStatus.PENDING
+    else:
+        initial = BookingStatus.CONFIRMED
     booking: Booking | None = None
     for provider_id in candidates:
         attempt = Booking(
@@ -492,7 +498,7 @@ async def create_booking(
             status=initial.value,
             source=BookingSource.ONLINE.value,
             price_minor=svc.price_minor,
-            deposit_minor=svc.deposit_minor,
+            deposit_minor=deposit,
             currency=profile.currency,
             notes=payload.notes.strip() if payload.notes else None,
             manage_token_hash=token_hash,
@@ -513,31 +519,41 @@ async def create_booking(
         raise BookingConflictError(SLOT_TAKEN)
 
     record_event(session, booking, None, initial, note="Booked online")
-    await _emit_webhook(
+    await emit_webhook(
         session, booking, "booking.created", event_id=f"booking.created:{booking.id}"
     )
     provider = await session.get(Provider, booking.provider_id)
     assert provider is not None
     managed = Managed(booking, profile, svc, provider, customer)
-    mail = _mail(managed, token)
-    confirmed = initial is BookingStatus.CONFIRMED
-    await _queue_customer_email(
-        session,
-        managed,
-        emails.customer_received(mail, confirmed=confirmed),
-        f"booking-confirmation:{booking.id}",
-    )
-    await _queue_studio_email(
-        session,
-        managed,
-        emails.studio_notice(mail, event="created" if confirmed else "requested"),
-        f"booking-studio-created:{booking.id}",
-    )
+    checkout_url: str | None = None
+    if initial is BookingStatus.PENDING_PAYMENT:
+        # No emails yet: they are queued when the deposit is paid
+        # (deposits.confirm_paid), so an abandoned checkout mails nobody.
+        checkout_url = await deposit_payments.start_deposit(
+            session, booking, customer.email
+        )
+    else:
+        mail = build_mail(managed, token)
+        confirmed = initial is BookingStatus.CONFIRMED
+        await queue_customer_email(
+            session,
+            managed,
+            emails.customer_received(mail, confirmed=confirmed),
+            f"booking-confirmation:{booking.id}",
+        )
+        await queue_studio_email(
+            session,
+            managed,
+            emails.studio_notice(mail, event="created" if confirmed else "requested"),
+            f"booking-studio-created:{booking.id}",
+        )
     await session.flush()
     receipt = BookingPublicReceipt(
         booking=detail(managed, moment),
         manage_token=token,
         manage_url=manage_url(profile, token),
+        payment_required=initial is BookingStatus.PENDING_PAYMENT,
+        checkout_url=checkout_url,
     )
     return 201, receipt.model_dump(mode="json")
 
@@ -565,6 +581,32 @@ async def load_by_token(
         raise BookingNotFoundError("Booking")
     booking, profile, svc, provider, customer = row
     await service.require_bookings_entitlement(session, profile, what="Booking")
+    return Managed(booking, profile, svc, provider, customer)
+
+
+async def load_by_id(
+    session: AsyncSession,
+    booking_id: uuid.UUID,
+    organisation_id: str,
+    *,
+    lock: bool = False,
+) -> Managed:
+    """One of the organisation's bookings by id; another organisation's id and
+    an unknown id both answer 404. No entitlement check: callers did that."""
+    query = (
+        select(Booking, BookingProfile, Service, Provider, Customer)
+        .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
+        .join(Service, Service.id == Booking.service_id)
+        .join(Provider, Provider.id == Booking.provider_id)
+        .join(Customer, Customer.id == Booking.customer_id)
+        .where(Booking.id == booking_id, Booking.organisation_id == organisation_id)
+    )
+    if lock:
+        query = query.with_for_update(of=Booking)
+    row = (await session.execute(query)).first()
+    if row is None:
+        raise BookingNotFoundError("Booking")
+    booking, profile, svc, provider, customer = row
     return Managed(booking, profile, svc, provider, customer)
 
 
@@ -601,6 +643,7 @@ async def cancel_booking(
     _require_active(booking)
     _require_before_cutoff(managed, moment, "cancelled")
     booking.cancel_reason = reason.strip()[:300] if reason and reason.strip() else None
+    previous = BookingStatus(booking.status)
     await transition(
         session,
         booking,
@@ -608,20 +651,36 @@ async def cancel_booking(
         note="Cancelled by customer",
         now=moment,
     )
-    await _emit_webhook(
+    money = await deposit_payments.settle_cancellation(
+        session,
+        booking,
+        managed.profile,
+        previous=previous,
+        refund=None,
+        now=moment,
+    )
+    if money:
+        record_event(
+            session,
+            booking,
+            BookingStatus.CANCELLED,
+            BookingStatus.CANCELLED,
+            note=money,
+        )
+    await emit_webhook(
         session,
         booking,
         "booking.cancelled",
         event_id=f"booking.cancelled:{booking.id}",
     )
-    mail = _mail(managed)
-    await _queue_customer_email(
+    mail = build_mail(managed)
+    await queue_customer_email(
         session,
         managed,
         emails.customer_cancelled(mail),
         f"booking-cancelled:{booking.id}",
     )
-    await _queue_studio_email(
+    await queue_studio_email(
         session,
         managed,
         emails.studio_notice(mail, event="cancelled"),
@@ -682,7 +741,7 @@ async def reschedule_booking(
         note=f"Rescheduled from {previous:%Y-%m-%dT%H:%MZ} by customer",
     )
     stamp = f"{starts_at:%Y%m%dT%H%M}"
-    await _emit_webhook(
+    await emit_webhook(
         session,
         booking,
         "booking.rescheduled",
@@ -690,14 +749,14 @@ async def reschedule_booking(
         previous_ends_at=previous_ends,
         event_id=f"booking.rescheduled:{booking.id}:{stamp}",
     )
-    mail = _mail(managed)
-    await _queue_customer_email(
+    mail = build_mail(managed)
+    await queue_customer_email(
         session,
         managed,
         emails.customer_rescheduled(mail),
         f"booking-rescheduled:{booking.id}:{stamp}",
     )
-    await _queue_studio_email(
+    await queue_studio_email(
         session,
         managed,
         emails.studio_notice(mail, event="rescheduled"),

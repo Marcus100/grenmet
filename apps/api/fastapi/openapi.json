@@ -8456,6 +8456,697 @@
         }
       }
     },
+    "/api/v1/bookings/org/agenda": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Get the agenda grouped by day",
+        "description": "Bookings starting on the local days `from_date` to `to_date` (inclusive, at most 62 days), grouped by day in the profile's timezone, optionally for one provider or some statuses. Page with `limit` and `offset`.",
+        "operationId": "bookingsGetAgenda",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "From Date"
+            }
+          },
+          {
+            "name": "to_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "To Date"
+            }
+          },
+          {
+            "name": "provider_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provider Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingStatus"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingAgenda"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/bookings/{booking_id}": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Get a booking",
+        "description": "The full studio view: customer name, phone and email, the deposit state and the booking's history.",
+        "operationId": "bookingsGetStudioBooking",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The booking's id.",
+              "title": "Booking Id"
+            },
+            "description": "The booking's id."
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/bookings/{booking_id}/confirm": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Confirm a booking request",
+        "description": "Moves a `pending` booking to `confirmed` and emails the customer. 409 for any other status, including one still waiting for its deposit.",
+        "operationId": "bookingsConfirmStudioBooking",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The booking's id.",
+              "title": "Booking Id"
+            },
+            "description": "The booking's id."
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/bookings/{booking_id}/decline": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Decline a booking request",
+        "description": "Cancels a `pending` request with a reason, releases the slot, refunds any captured deposit and emails the customer. 409 for any other status.",
+        "operationId": "bookingsDeclineStudioBooking",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The booking's id.",
+              "title": "Booking Id"
+            },
+            "description": "The booking's id."
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingStudioDecline"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/bookings/{booking_id}/cancel": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Cancel a booking as the business",
+        "description": "Cancels an active booking with a reason, releases the slot and emails the customer. A captured deposit is refunded unless the booking starts inside `cancel_cutoff_hours`; `refund_deposit` overrides that. 409 when the booking is already finished.",
+        "operationId": "bookingsCancelStudioBooking",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The booking's id.",
+              "title": "Booking Id"
+            },
+            "description": "The booking's id."
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingStudioCancel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/bookings/{booking_id}/no-show": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Mark a booking as a no-show",
+        "description": "Moves a `confirmed` booking to `no_show`. 409 for any other status.",
+        "operationId": "bookingsNoShowStudioBooking",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The booking's id.",
+              "title": "Booking Id"
+            },
+            "description": "The booking's id."
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/bookings/{booking_id}/complete": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Mark a booking as completed",
+        "description": "Moves a `confirmed` booking to `completed` and queues the customer's reward when they have a linked account. 409 for any other status.",
+        "operationId": "bookingsCompleteStudioBooking",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The booking's id.",
+              "title": "Booking Id"
+            },
+            "description": "The booking's id."
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
     "/api/v1/bookings/public/{slug}": {
       "get": {
         "tags": [
@@ -44925,6 +45616,78 @@
         ],
         "title": "Body_hrUploadDocument"
       },
+      "BookingAgenda": {
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "from_date": {
+            "type": "string",
+            "format": "date",
+            "title": "From Date"
+          },
+          "to_date": {
+            "type": "string",
+            "format": "date",
+            "title": "To Date"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/BookingAgendaDay"
+            },
+            "type": "array",
+            "title": "Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timezone",
+          "from_date",
+          "to_date",
+          "total",
+          "limit",
+          "offset",
+          "days"
+        ],
+        "title": "BookingAgenda",
+        "description": "Bookings grouped by local day. `total` counts every match so a client\ncan page with `limit` and `offset`; days arrive in order and only days with\nbookings are listed."
+      },
+      "BookingAgendaDay": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day",
+            "description": "Local date in the profile's timezone."
+          },
+          "bookings": {
+            "items": {
+              "$ref": "#/components/schemas/BookingAgendaItem"
+            },
+            "type": "array",
+            "title": "Bookings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "bookings"
+        ],
+        "title": "BookingAgendaDay"
+      },
       "BookingAgendaItem": {
         "properties": {
           "id": {
@@ -45753,6 +46516,24 @@
             ],
             "title": "Manage Url",
             "description": "The business's own manage page, when it configured one."
+          },
+          "payment_required": {
+            "type": "boolean",
+            "title": "Payment Required",
+            "description": "True when the booking holds the slot but waits for a deposit (`status` is `pending_payment`). It is cancelled and the slot released if the deposit is not paid in time.",
+            "default": false
+          },
+          "checkout_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkout Url",
+            "description": "Hosted page where the customer pays the deposit. Null when no online payment is available and the business records the payment itself."
           }
         },
         "type": "object",
@@ -46231,6 +47012,304 @@
         ],
         "title": "BookingStorefront",
         "description": "What a client site needs to render its booking page."
+      },
+      "BookingStudioCancel": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Reason",
+            "description": "Why the booking is cancelled. Shown to the customer in the email."
+          },
+          "refund_deposit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Deposit",
+            "description": "Whether to refund a captured deposit. Left out, the business policy applies: refunded when the booking starts at least `cancel_cutoff_hours` from now, kept inside the cutoff."
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "BookingStudioCancel"
+      },
+      "BookingStudioCustomer": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "email",
+          "phone"
+        ],
+        "title": "BookingStudioCustomer"
+      },
+      "BookingStudioDecline": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Reason",
+            "description": "Why the request is declined. Shown to the customer in the email."
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "BookingStudioDecline"
+      },
+      "BookingStudioDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BookingStatus"
+          },
+          "source": {
+            "$ref": "#/components/schemas/BookingSource"
+          },
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "service_name": {
+            "type": "string",
+            "title": "Service Name"
+          },
+          "provider_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Provider Id"
+          },
+          "provider_name": {
+            "type": "string",
+            "title": "Provider Name"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/BookingStudioCustomer"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor"
+          },
+          "deposit_minor": {
+            "type": "integer",
+            "title": "Deposit Minor"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "cancel_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancel Reason"
+          },
+          "cancelled_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "deposit_intent_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Intent Id",
+            "description": "The payments intent for the deposit, to record a manual payment."
+          },
+          "deposit_captured_minor": {
+            "type": "integer",
+            "title": "Deposit Captured Minor"
+          },
+          "deposit_refunded_minor": {
+            "type": "integer",
+            "title": "Deposit Refunded Minor"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/BookingStudioEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "source",
+          "service_id",
+          "service_name",
+          "provider_id",
+          "provider_name",
+          "customer",
+          "starts_at",
+          "ends_at",
+          "timezone",
+          "price_minor",
+          "deposit_minor",
+          "currency",
+          "notes",
+          "cancel_reason",
+          "cancelled_at",
+          "created_at",
+          "deposit_intent_id",
+          "deposit_captured_minor",
+          "deposit_refunded_minor",
+          "events"
+        ],
+        "title": "BookingStudioDetail",
+        "description": "A booking as the business sees it, with the customer's contact details."
+      },
+      "BookingStudioEvent": {
+        "properties": {
+          "from_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "to_status": {
+            "$ref": "#/components/schemas/BookingStatus"
+          },
+          "actor_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor User Id",
+            "description": "The member who acted; null for the customer, an API key or the system."
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "from_status",
+          "to_status",
+          "actor_user_id",
+          "note",
+          "created_at"
+        ],
+        "title": "BookingStudioEvent"
       },
       "BookingWorkingHoursUpdate": {
         "properties": {

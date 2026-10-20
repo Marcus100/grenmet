@@ -1,5 +1,5 @@
 import uuid
-from datetime import time
+from datetime import date, time
 from typing import Annotated, Self
 
 from pydantic import EmailStr, Field, field_validator, model_validator
@@ -225,6 +225,98 @@ class BookingAgendaItem(BaseModel):
     currency: str
 
 
+class BookingAgendaDay(BaseModel):
+    day: date = Field(description="Local date in the profile's timezone.")
+    bookings: list[BookingAgendaItem]
+
+
+class BookingAgenda(BaseModel):
+    """Bookings grouped by local day. `total` counts every match so a client
+    can page with `limit` and `offset`; days arrive in order and only days with
+    bookings are listed."""
+
+    timezone: str
+    from_date: date
+    to_date: date
+    total: int
+    limit: int
+    offset: int
+    days: list[BookingAgendaDay]
+
+
+# --- studio actions (B5) -------------------------------------------------------------
+
+
+class BookingStudioDecline(BaseModel):
+    reason: str = Field(
+        min_length=1,
+        max_length=300,
+        description="Why the request is declined. Shown to the customer in the email.",
+    )
+
+
+class BookingStudioCancel(BaseModel):
+    reason: str = Field(
+        min_length=1,
+        max_length=300,
+        description="Why the booking is cancelled. Shown to the customer in the email.",
+    )
+    refund_deposit: bool | None = Field(
+        default=None,
+        description=(
+            "Whether to refund a captured deposit. Left out, the business policy "
+            "applies: refunded when the booking starts at least "
+            "`cancel_cutoff_hours` from now, kept inside the cutoff."
+        ),
+    )
+
+
+class BookingStudioCustomer(BaseModel):
+    id: uuid.UUID
+    name: str
+    email: str | None
+    phone: str | None
+
+
+class BookingStudioEvent(BaseModel):
+    from_status: BookingStatus | None
+    to_status: BookingStatus
+    actor_user_id: uuid.UUID | None = Field(
+        description="The member who acted; null for the customer, an API key or the system."
+    )
+    note: str | None
+    created_at: UtcDateTime
+
+
+class BookingStudioDetail(BaseModel):
+    """A booking as the business sees it, with the customer's contact details."""
+
+    id: uuid.UUID
+    status: BookingStatus
+    source: BookingSource
+    service_id: uuid.UUID
+    service_name: str
+    provider_id: uuid.UUID
+    provider_name: str
+    customer: BookingStudioCustomer
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+    timezone: str
+    price_minor: int
+    deposit_minor: int
+    currency: str
+    notes: str | None
+    cancel_reason: str | None
+    cancelled_at: UtcDateTime | None
+    created_at: UtcDateTime
+    deposit_intent_id: uuid.UUID | None = Field(
+        description="The payments intent for the deposit, to record a manual payment."
+    )
+    deposit_captured_minor: int
+    deposit_refunded_minor: int
+    events: list[BookingStudioEvent]
+
+
 # --- public ------------------------------------------------------------------------
 
 
@@ -332,4 +424,19 @@ class BookingPublicReceipt(BaseModel):
     )
     manage_url: str | None = Field(
         description="The business's own manage page, when it configured one."
+    )
+    payment_required: bool = Field(
+        default=False,
+        description=(
+            "True when the booking holds the slot but waits for a deposit "
+            "(`status` is `pending_payment`). It is cancelled and the slot "
+            "released if the deposit is not paid in time."
+        ),
+    )
+    checkout_url: str | None = Field(
+        default=None,
+        description=(
+            "Hosted page where the customer pays the deposit. Null when no online "
+            "payment is available and the business records the payment itself."
+        ),
     )
