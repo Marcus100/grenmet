@@ -160,8 +160,9 @@ async def test_sent_once_then_content_and_payload_are_cleared(
     assert (mail.props, mail.html) == ({}, None)
 
 
+@pytest.mark.usefixtures("configured")
 async def test_failures_back_off_then_dead_letter_the_email(
-    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch, configured: list[Any]
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     calls: list[int] = []
     _fail_sends(monkeypatch, calls)
@@ -195,8 +196,9 @@ async def test_failures_back_off_then_dead_letter_the_email(
     assert (mail.props, mail.html) == ({}, None)
 
 
+@pytest.mark.usefixtures("configured")
 async def test_a_transient_failure_then_success_sends_exactly_once(
-    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch, configured: list[Any]
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     row = await _queue(db_async)
     topic = await _private_topic(db_async, monkeypatch, row)
@@ -390,8 +392,9 @@ async def test_email_send_topic_logs_once_and_clears_the_outbox_payload(
     assert [m["email_to"] for m in configured] == [address]
 
 
+@pytest.mark.usefixtures("configured")
 async def test_email_send_topic_failure_retries_then_logs_a_failed_row(
-    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch, configured: list[Any]
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     calls: list[int] = []
     _fail_sends(monkeypatch, calls)
@@ -426,8 +429,9 @@ async def test_email_send_topic_failure_retries_then_logs_a_failed_row(
     ]
 
 
+@pytest.mark.usefixtures("configured")
 async def test_retention_purges_finished_email_outbox_rows(
-    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch, configured: list[Any]
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     row = await _queue(db_async)
     topic = await _private_topic(db_async, monkeypatch, row)
