@@ -1,6 +1,6 @@
 /**
- * Content-Security-Policy builder for the Next.js apps (slice 1: Report-Only
- * on `docs` and `signal`).
+ * Content-Security-Policy builder for the Next.js apps (Report-Only on `docs`,
+ * `signal` and `bookings`).
  *
  * Traefik already sends HSTS, nosniff, X-Frame-Options and Referrer-Policy on
  * every host, so this module only produces the CSP header (and the
@@ -14,7 +14,7 @@
  * `'unsafe-eval'` and websockets for HMR, and dev reports would only add noise.
  */
 
-export type CspApp = "docs" | "signal";
+export type CspApp = "docs" | "signal" | "bookings";
 
 const GA_SCRIPT = ["https://www.googletagmanager.com"] as const;
 const GA_CONNECT = [
@@ -54,6 +54,14 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
     connect: [...GA_CONNECT, TURNSTILE],
     img: GA_IMG,
     frame: [TURNSTILE],
+  },
+  // No analytics (publicAnalytics false in the catalogue). Turnstile is added
+  // here with the public booking form, not before.
+  bookings: {
+    script: [],
+    connect: [],
+    img: [],
+    frame: [],
   },
 };
 

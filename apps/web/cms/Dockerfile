@@ -19,6 +19,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY apps/web/admin/package.json apps/web/admin/
 COPY apps/web/auth/package.json apps/web/auth/
 COPY apps/web/babydoll/package.json apps/web/babydoll/
+COPY apps/web/bookings/package.json apps/web/bookings/
 COPY apps/web/cap/package.json apps/web/cap/
 COPY apps/web/cms/package.json apps/web/cms/
 COPY apps/web/docs/package.json apps/web/docs/

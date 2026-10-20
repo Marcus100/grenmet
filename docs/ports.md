@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-18
+**Last updated:** 2026-10-20
 
 Canonical port map for the monorepo. **This file is the single source of truth** —
 when a port changes, update it here first, then propagate to the locations listed
@@ -37,6 +37,7 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | admin | `@barrelsgd/web-admin` | 3012 |
 | gmsdash | `@barrelsgd/web-gmsdash` | 3013 |
 | babydoll | `@barrelsgd/web-babydoll` | 3014 |
+| bookings | `@barrelsgd/web-bookings` | 3015 |
 
 ### Reserved and planned
 
@@ -82,6 +83,7 @@ entry there or its image build fails.
 | events | `localhost:3009` | 3009 | `events.staging.barrels.gd` | `events.barrels.gd` | `/` |
 | cap (public CAP alert hub) | `localhost:3010` | 3010 | `cap.staging.barrels.gd` | `cap.barrels.gd` | `/api/health` |
 | gmsdash (GMS Dashboard) | `localhost:3013` | 3013 | `gmsdash.staging.barrels.gd` | `gmsdash.barrels.gd` | `/api/health` |
+| bookings (Barrels Bookings) | `localhost:3015` | 3015 | `bookings.staging.barrels.gd` | `bookings.barrels.gd` | `/api/health` |
 | FastAPI | `localhost:8000` | 8000 | `api.staging.barrels.gd` | `api.barrels.gd` | `/api/v1/utils/health-check/` |
 | Adminer (password) | `localhost:8080` | 8080 | `adminer.staging.barrels.gd` | `adminer.barrels.gd` | — |
 | Traefik dashboard (password) | `localhost:8090` | built in (`api@internal`) | `traefik.staging.barrels.gd` | `traefik.barrels.gd` | — |

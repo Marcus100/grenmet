@@ -2,6 +2,7 @@ node_modules
 apps/web/admin/node_modules
 apps/web/auth/node_modules
 apps/web/babydoll/node_modules
+apps/web/bookings/node_modules
 apps/web/cap/node_modules
 apps/web/cms/node_modules
 apps/web/docs/node_modules
@@ -25,6 +26,7 @@ packages/ui/node_modules
 apps/web/admin/.next
 apps/web/auth/.next
 apps/web/babydoll/.next
+apps/web/bookings/.next
 apps/web/cap/.next
 apps/web/cms/.next
 apps/web/docs/.next

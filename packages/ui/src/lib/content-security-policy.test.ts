@@ -127,3 +127,48 @@ describe("contentSecurityPolicyHeaders", () => {
     ]);
   });
 });
+
+describe("bookings policy", () => {
+  // No analytics and no third-party sources yet: self plus Sentry reporting only.
+  function expectedBookings(sentry: boolean): string {
+    return [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob:",
+      "font-src 'self'",
+      `connect-src 'self'${sentry ? " https://o1.ingest.sentry.io" : ""}`,
+      "frame-src 'none'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "frame-ancestors 'self'",
+      "worker-src 'self'",
+      ...(sentry ? [`report-uri ${REPORT}`, "report-to csp-endpoint"] : []),
+    ].join("; ");
+  }
+
+  it("serialises the policy with and without reporting", () => {
+    expect(
+      buildContentSecurityPolicy({
+        app: "bookings",
+        dsn: DSN,
+        environment: "production",
+      })
+    ).toBe(expectedBookings(true));
+    expect(buildContentSecurityPolicy({ app: "bookings" })).toBe(
+      expectedBookings(false)
+    );
+  });
+
+  it("is Report-Only in production and absent in development", () => {
+    expect(
+      contentSecurityPolicyHeaders({
+        app: "bookings",
+        isProduction: true,
+      }).map((h) => h.key)
+    ).toEqual(["Content-Security-Policy-Report-Only"]);
+    expect(
+      contentSecurityPolicyHeaders({ app: "bookings", isProduction: false })
+    ).toEqual([]);
+  });
+});

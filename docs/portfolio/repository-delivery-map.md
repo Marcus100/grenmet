@@ -38,6 +38,7 @@ acceptance.
 | `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |
 | `apps/web/docs` | GMS public documentation and preparedness content | Active content application; renamed at transition boundary 8 | `apps/web/docs` on the dedicated GMS documentation host |
 | `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
+| `apps/web/bookings` | Barrels Bookings: appointment booking for Grenada businesses (ADR-0024) | Skeleton | Public booking pages at `bookings.barrels.gd/{business}` and `/studio` on Barrels sign-in; booking widgets come from the shared package when extracted |
 | `apps/web/elections` | Barrels Elections Grenada product (Grenada election coverage and history) | Prototype; 2026 coverage first | Election coverage and results history from static checked data; a FastAPI domain for results night later |
 | `apps/web/signal` | Barrels Signal media product | Active | Editorial reader redesign and discovery preview; dedicated Signal CMS deferred until frontend review |
 | `apps/web/mbia` | GAA/MBIA passenger public service | Active | Keep distinct from GAA corporate and staff applications |
