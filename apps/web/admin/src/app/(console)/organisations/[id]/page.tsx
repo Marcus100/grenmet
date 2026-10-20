@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { ApiKeysLoading } from "@/components/api-key-panels";
+import { ApiKeysSection } from "@/components/api-keys-section";
 import {
   AppEntitlements,
   OrganisationActions,
@@ -17,6 +19,7 @@ import {
   getOrganisationHistory,
   listOrganisationMembers,
 } from "@/lib/api";
+import { apiKeyNoticeFor } from "@/lib/api-key-form";
 import { noticeFor } from "@/lib/organisation-form";
 import { siteNoticeFor } from "@/lib/site-form";
 import { requireGate } from "@/lib/staff-gate";
@@ -52,7 +55,10 @@ export default async function OrganisationPage({
     getOrganisationHistory(gate.accessToken, id),
   ]);
   const noticeCode = Array.isArray(rawNotice) ? rawNotice[0] : rawNotice;
-  const notice = noticeFor(noticeCode) ?? siteNoticeFor(noticeCode);
+  const notice =
+    noticeFor(noticeCode) ??
+    siteNoticeFor(noticeCode) ??
+    apiKeyNoticeFor(noticeCode);
 
   return (
     <>
@@ -114,6 +120,9 @@ export default async function OrganisationPage({
       <AppEntitlements organisation={organisation} />
       <Suspense fallback={<SitesLoading />}>
         <SitesSection accessToken={gate.accessToken} organisationId={id} />
+      </Suspense>
+      <Suspense fallback={<ApiKeysLoading />}>
+        <ApiKeysSection accessToken={gate.accessToken} organisationId={id} />
       </Suspense>
       <MembersPanel count={members.count} rows={members.data} />
       <HistoryPanel count={history.count} rows={history.data} />
