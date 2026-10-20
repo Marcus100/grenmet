@@ -106,9 +106,16 @@ async def test_claiming_issues_tickets_with_a_signed_qr_that_holds_no_personal_d
         detail = (await client.get(f"{BASE}/me/tickets/{mine[0]['id']}")).json()
     token = detail["qr_token"]
     assert token.startswith("BT1.")
-    for private in (user.email, user.first_name, str(user.id), "Zed"):
-        assert private.lower() not in token.lower()
     code = detail["code"].replace("-", "")
+    # The token is exactly prefix, opaque code and tag. A short name such as
+    # "Zed" can appear inside a random code by chance, so the structure is
+    # asserted instead of searching for it; email and id are long enough to
+    # search for.
+    prefix, token_code, tag = token.split(".")
+    assert (prefix, token_code.replace("-", "")) == ("BT1", code)
+    assert tag
+    for private in (user.email, str(user.id)):
+        assert private.lower() not in token.lower()
     assert tickets.code_from_scan(token) == code
     assert tickets.code_from_scan(detail["code"].lower()) == code
     forged = f"BT1.{code}.{'A' * 16}"
