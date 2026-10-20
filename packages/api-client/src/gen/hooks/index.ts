@@ -489,6 +489,11 @@ export {
   useBookingsCreateService,
 } from "./useBookingsCreateService.js";
 export {
+  bookingsCreateStudioBookingMutationKey,
+  bookingsCreateStudioBookingMutationOptions,
+  useBookingsCreateStudioBooking,
+} from "./useBookingsCreateStudioBooking.js";
+export {
   bookingsDeclineStudioBookingMutationKey,
   bookingsDeclineStudioBookingMutationOptions,
   useBookingsDeclineStudioBooking,

@@ -996,6 +996,7 @@ export { bookingSourceSchema } from "./bookingSourceSchema.js";
 export { bookingStatusSchema } from "./bookingStatusSchema.js";
 export { bookingStorefrontSchema } from "./bookingStorefrontSchema.js";
 export { bookingStudioCancelSchema } from "./bookingStudioCancelSchema.js";
+export { bookingStudioCreateSchema } from "./bookingStudioCreateSchema.js";
 export { bookingStudioCustomerSchema } from "./bookingStudioCustomerSchema.js";
 export { bookingStudioDeclineSchema } from "./bookingStudioDeclineSchema.js";
 export { bookingStudioDetailSchema } from "./bookingStudioDetailSchema.js";
@@ -1102,6 +1103,20 @@ export {
   bookingsCreateServiceStatus409Schema,
   bookingsCreateServiceStatus422Schema,
 } from "./bookingsCreateServiceSchema.js";
+export {
+  bookingsCreateStudioBookingBodySchema,
+  bookingsCreateStudioBookingErrorSchema,
+  bookingsCreateStudioBookingHeaderIdempotencyKeySchema,
+  bookingsCreateStudioBookingHeaderXBarrelsOrganisationSchema,
+  bookingsCreateStudioBookingResponseSchema,
+  bookingsCreateStudioBookingStatus201Schema,
+  bookingsCreateStudioBookingStatus400Schema,
+  bookingsCreateStudioBookingStatus401Schema,
+  bookingsCreateStudioBookingStatus403Schema,
+  bookingsCreateStudioBookingStatus404Schema,
+  bookingsCreateStudioBookingStatus409Schema,
+  bookingsCreateStudioBookingStatus422Schema,
+} from "./bookingsCreateStudioBookingSchema.js";
 export {
   bookingsDeclineStudioBookingBodySchema,
   bookingsDeclineStudioBookingErrorSchema,

@@ -96,6 +96,7 @@ export { bookingsCreateException } from "./bookingsCreateException.js";
 export { bookingsCreateProvider } from "./bookingsCreateProvider.js";
 export { bookingsCreatePublicBooking } from "./bookingsCreatePublicBooking.js";
 export { bookingsCreateService } from "./bookingsCreateService.js";
+export { bookingsCreateStudioBooking } from "./bookingsCreateStudioBooking.js";
 export { bookingsDeclineStudioBooking } from "./bookingsDeclineStudioBooking.js";
 export { bookingsDeleteException } from "./bookingsDeleteException.js";
 export { bookingsGetAgenda } from "./bookingsGetAgenda.js";

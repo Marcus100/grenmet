@@ -11,6 +11,7 @@ import hashlib
 import logging
 import secrets
 import uuid
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
@@ -406,17 +407,23 @@ async def _upsert_customer(
         customer.marketing_consent = payload.marketing_consent
         customer.last_booked_at = now
     await session.flush()
-    await _link_contact(session, customer, email=email, phone=phone, payload=payload)
+    await link_contact(
+        session,
+        customer,
+        email=email,
+        phone=phone,
+        consents={ConsentPurpose.MARKETING: payload.marketing_consent},
+    )
     return customer
 
 
-async def _link_contact(
+async def link_contact(
     session: AsyncSession,
     customer: Customer,
     *,
     email: str,
     phone: str | None,
-    payload: BookingPublicCreate,
+    consents: Mapping[ConsentPurpose, bool] | None,
 ) -> None:
     """Link the customer to the organisation's contact (PF3, ADR-0028).
 
@@ -436,7 +443,7 @@ async def _link_contact(
                 name=customer.name,
                 phone=phone,
                 source="bookings",
-                consents={ConsentPurpose.MARKETING: payload.marketing_consent},
+                consents=consents,
             )
             customer.contact_id = contact.id
             await session.flush()

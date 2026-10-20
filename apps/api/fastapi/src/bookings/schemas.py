@@ -383,6 +383,27 @@ class BookingPublicCreate(BaseModel):
     website: str | None = Field(default=None, max_length=200)
 
 
+class BookingStudioCreate(BaseModel):
+    """A booking the business enters itself: phone, walk-in or a re-entered
+    appointment. Sent with an `Idempotency-Key` header."""
+
+    service_id: uuid.UUID
+    provider_id: uuid.UUID
+    starts_at: UtcDateTime
+    customer_name: Name
+    customer_email: EmailStr | None = Field(default=None, max_length=254)
+    customer_phone: str | None = Field(default=None, max_length=40)
+    notes: str | None = Field(default=None, max_length=1000)
+    send_confirmation: bool = Field(
+        default=False,
+        description=(
+            "Email the customer a confirmation with a manage link. Needs "
+            "`customer_email`; off by default so re-entering existing "
+            "appointments does not mail anyone."
+        ),
+    )
+
+
 class BookingPublicCancel(BaseModel):
     reason: str | None = Field(default=None, max_length=300)
 

@@ -1087,6 +1087,7 @@ export type { BookingStatus } from "./BookingStatus.js";
 export { bookingStatus } from "./BookingStatus.js";
 export type { BookingStorefront } from "./BookingStorefront.js";
 export type { BookingStudioCancel } from "./BookingStudioCancel.js";
+export type { BookingStudioCreate } from "./BookingStudioCreate.js";
 export type { BookingStudioCustomer } from "./BookingStudioCustomer.js";
 export type { BookingStudioDecline } from "./BookingStudioDecline.js";
 export type { BookingStudioDetail } from "./BookingStudioDetail.js";
@@ -1201,6 +1202,20 @@ export type {
   BookingsCreateServiceStatus409,
   BookingsCreateServiceStatus422,
 } from "./BookingsCreateService.js";
+export type {
+  BookingsCreateStudioBookingBody,
+  BookingsCreateStudioBookingHeaders,
+  BookingsCreateStudioBookingOptions,
+  BookingsCreateStudioBookingResponse,
+  BookingsCreateStudioBookingResponses,
+  BookingsCreateStudioBookingStatus201,
+  BookingsCreateStudioBookingStatus400,
+  BookingsCreateStudioBookingStatus401,
+  BookingsCreateStudioBookingStatus403,
+  BookingsCreateStudioBookingStatus404,
+  BookingsCreateStudioBookingStatus409,
+  BookingsCreateStudioBookingStatus422,
+} from "./BookingsCreateStudioBooking.js";
 export type {
   BookingsDeclineStudioBookingBody,
   BookingsDeclineStudioBookingHeaders,

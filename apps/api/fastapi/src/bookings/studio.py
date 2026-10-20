@@ -11,10 +11,12 @@ from collections.abc import Callable
 from datetime import date, datetime, time, timedelta
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.payments import service as payments_service
 from src.utils.datetime import utc_now
+from src.utils.email_hash import hash_email
 from src.utils.timezones import local_to_utc, utc_to_local, zone
 
 from . import deposit_payments, emails, public, service
@@ -25,12 +27,14 @@ from .models import (
     BookingSource,
     BookingStatus,
     Customer,
+    ProviderService,
     Service,
 )
 from .schemas import (
     BookingAgenda,
     BookingAgendaDay,
     BookingAgendaItem,
+    BookingStudioCreate,
     BookingStudioCustomer,
     BookingStudioDetail,
     BookingStudioEvent,
@@ -363,3 +367,148 @@ async def _finish(
         note="Marked by the business",
     )
     return await _detail(session, managed)
+
+
+# --- create ------------------------------------------------------------------------
+
+
+async def create_booking(
+    session: AsyncSession,
+    organisation_id: str,
+    payload: BookingStudioCreate,
+    *,
+    actor_user_id: uuid.UUID | None,
+    now: datetime | None = None,
+) -> tuple[int, dict[str, object]]:
+    """The business books a slot itself. Returns ``(201, detail as JSON)`` for
+    ``run_idempotent``.
+
+    Staff may book inside the lead time, past the horizon and outside the
+    weekly hours (a walk-in, an after-hours favour, an appointment re-entered
+    from another system), so the availability engine is not consulted. What
+    still protects the diary is the ``booking_no_overlap`` constraint: a
+    provider's time (buffers included) is never double-booked. The booking is
+    ``confirmed`` with no deposit; the customer is emailed only on request."""
+    moment = now or utc_now()
+    profile = await service.get_profile(session, organisation_id)
+    svc = await service.get_service(
+        session, payload.service_id, organisation_id=organisation_id
+    )
+    provider = await service.get_provider(
+        session, payload.provider_id, organisation_id=organisation_id
+    )
+    if not svc.active or not provider.active:
+        raise BookingValidationError("That service or provider is not active")
+    offered = await session.scalar(
+        select(ProviderService).where(
+            ProviderService.provider_id == provider.id,
+            ProviderService.service_id == svc.id,
+        )
+    )
+    if offered is None:
+        raise BookingValidationError(f"{provider.name} does not offer {svc.name}")
+    if payload.send_confirmation and payload.customer_email is None:
+        raise BookingValidationError("A confirmation email needs customer_email")
+
+    customer = await _studio_customer(session, organisation_id, payload, moment)
+    token, token_hash = public.new_manage_token()
+    starts_at = service.as_naive_utc(payload.starts_at)
+    ends_at = starts_at + timedelta(minutes=svc.duration_min)
+    booking = Booking(
+        organisation_id=organisation_id,
+        provider_id=provider.id,
+        service_id=svc.id,
+        customer_id=customer.id,
+        starts_at=starts_at,
+        ends_at=ends_at,
+        blocked_from=starts_at - timedelta(minutes=svc.buffer_before_min),
+        blocked_until=ends_at + timedelta(minutes=svc.buffer_after_min),
+        status=BookingStatus.CONFIRMED.value,
+        source=BookingSource.STUDIO.value,
+        price_minor=svc.price_minor,
+        deposit_minor=0,
+        currency=profile.currency,
+        notes=payload.notes.strip() if payload.notes else None,
+        manage_token_hash=token_hash,
+    )
+    try:
+        async with session.begin_nested():
+            session.add(booking)
+            await session.flush()
+    except DBAPIError as error:
+        if not service.is_overlap_violation(error):
+            raise
+        raise BookingConflictError(public.SLOT_TAKEN) from error
+
+    public.record_event(
+        session,
+        booking,
+        None,
+        BookingStatus.CONFIRMED,
+        actor_user_id=actor_user_id,
+        note="Entered by the business",
+    )
+    await public.emit_webhook(
+        session, booking, "booking.created", event_id=f"booking.created:{booking.id}"
+    )
+    managed = public.Managed(booking, profile, svc, provider, customer)
+    if payload.send_confirmation:
+        await public.queue_customer_email(
+            session,
+            managed,
+            emails.customer_received(public.build_mail(managed, token), confirmed=True),
+            f"booking-confirmation:{booking.id}",
+        )
+    await session.flush()
+    detail = await _detail(session, managed)
+    return 201, detail.model_dump(mode="json")
+
+
+async def _studio_customer(
+    session: AsyncSession,
+    organisation_id: str,
+    payload: BookingStudioCreate,
+    now: datetime,
+) -> Customer:
+    """Reuse the customer with this email; without an email each entry is a new
+    customer (a walk-in cannot be matched safely by name). With an email the
+    customer is linked to the contact book like an online booking, but no
+    marketing consent is recorded."""
+    name = " ".join(payload.customer_name.split())
+    phone = payload.customer_phone.strip() if payload.customer_phone else None
+    email = (
+        str(payload.customer_email).strip().lower() if payload.customer_email else None
+    )
+    digest = hash_email(email) if email else None
+    customer: Customer | None = None
+    if digest:
+        customer = await session.scalar(
+            select(Customer)
+            .where(
+                Customer.organisation_id == organisation_id,
+                Customer.email_hash == digest,
+            )
+            .order_by(Customer.created_at)
+            .limit(1)
+        )
+    if customer is None:
+        customer = Customer(
+            organisation_id=organisation_id,
+            name=name,
+            email=email,
+            email_hash=digest,
+            phone=phone,
+            last_booked_at=now,
+        )
+        session.add(customer)
+    else:
+        customer.name = name
+        customer.phone = phone or customer.phone
+        customer.last_booked_at = now
+    await session.flush()
+    if email:
+        # Staff did not ask about marketing, so no consent is recorded.
+        await public.link_contact(
+            session, customer, email=email, phone=phone, consents=None
+        )
+    return customer
