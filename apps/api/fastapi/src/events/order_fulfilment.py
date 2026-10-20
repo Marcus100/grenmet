@@ -1,0 +1,273 @@
+"""What happens to a paid-tier order when money moves (N4b, ADR-0003, ADR-0027).
+
+Three reactions, each safe to run more than once:
+
+- ``fulfil_paid`` (outbox topic ``events.order_paid``): issue the tickets, move the
+  order to ``confirmed`` and queue the receipt. A payment that arrives after the
+  hold expired, or for an event that is no longer on sale, is refunded in full and
+  issues nothing.
+- ``apply_refund`` (outbox topic ``events.order_refunded``): mirror the ledger onto
+  the order and, once everything is refunded, mark the tickets ``refunded``.
+- ``expire_unpaid`` (ARQ job ``expire_unpaid_event_orders``): cancel orders still
+  unpaid past their hold and release the stock.
+
+Two databases, no distributed transaction. The handler runs on the main database
+session (the outbox row commits with it) and writes Events through its own
+session. Each function does its main-database work first without committing, then
+commits Events; the caller commits main. A crash in between replays the whole
+message: the order row lock plus its status make the Events side idempotent, and
+the main-side writes (a queued email, a refund guarded by what is left to refund)
+carry their own idempotency keys.
+"""
+
+import logging
+import uuid
+from datetime import datetime
+
+from sqlalchemy import func, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.auth.models import User
+from src.notifications.outbox_handlers import enqueue_email
+from src.utils.datetime import utc_now
+
+from . import emails, order_payments, tickets
+from .models import Listing, Order, OrderItem, Organiser, Ticket
+
+logger = logging.getLogger(__name__)
+
+PENDING = "pending_payment"
+EXPIRY_BATCH = 100
+
+
+async def _locked_order(events: AsyncSession, order_id: uuid.UUID) -> Order | None:
+    result = await events.execute(
+        select(Order)
+        .where(Order.id == order_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    return result.scalar_one_or_none()
+
+
+def _is_online_paid(order: Order) -> bool:
+    return order.channel == "online" and order.payment_method == "online"
+
+
+async def _organisation_id(events: AsyncSession, order: Order) -> str | None:
+    return await events.scalar(
+        select(Organiser.organisation_id)
+        .join(Listing, Listing.organiser_id == Organiser.id)
+        .where(Listing.id == order.listing_id)
+    )
+
+
+async def _mirror_ledger(
+    main: AsyncSession, order: Order, organisation_id: str, now: datetime
+) -> None:
+    """Copy what the ledger holds onto the order (absolute, so a replay is a no-op)."""
+    intent = await order_payments.intent_for(
+        main, organisation_id=organisation_id, order_id=order.id
+    )
+    if intent is None:
+        return
+    order.collected_minor = intent.captured_minor
+    order.refunded_minor = intent.refunded_minor
+    if intent.captured_minor > 0 and order.paid_at is None:
+        order.paid_at = now
+
+
+async def _issue_tickets(events: AsyncSession, order: Order, listing: Listing) -> int:
+    """Create the order's tickets once. Returns how many exist afterwards."""
+    existing = await events.scalar(
+        select(func.count()).select_from(Ticket).where(Ticket.order_id == order.id)
+    )
+    if existing:
+        return int(existing)
+    items = list(
+        await events.scalars(select(OrderItem).where(OrderItem.order_id == order.id))
+    )
+    issued = [
+        Ticket(
+            order_id=order.id,
+            listing_id=listing.id,
+            tier_id=item.tier_id,
+            user_id=order.user_id,
+            code=tickets.new_code(),
+        )
+        for item in items
+        for _ in range(item.quantity)
+    ]
+    events.add_all(issued)
+    await events.flush()
+    return len(issued)
+
+
+async def _queue_receipt(
+    main: AsyncSession,
+    order: Order,
+    listing: Listing,
+    organisation_id: str,
+    count: int,
+) -> None:
+    """Email the buyer through the platform outbox (deduplicated per order)."""
+    if order.user_id is None:
+        return
+    buyer = await main.get(User, order.user_id)
+    if buyer is None or not buyer.email:
+        return
+    subject, body = emails.order_confirmation(
+        buyer_name=buyer.first_name,
+        title=listing.title,
+        starts_at=listing.starts_at,
+        ticket_count=count,
+        total_minor=order.total_minor,
+        currency=order.currency,
+    )
+    await enqueue_email(
+        main,
+        to_email=buyer.email,
+        subject=subject,
+        html=body,
+        transactional=True,
+        dedupe_key=f"events-order-paid:{order.id}",
+        organisation_id=organisation_id,
+    )
+
+
+async def fulfil_paid(
+    main: AsyncSession,
+    events: AsyncSession,
+    *,
+    organisation_id: str,
+    order_id: uuid.UUID,
+    intent_id: uuid.UUID,
+) -> str:
+    """The order's payment was captured. Returns ``confirmed``, ``duplicate``,
+    ``refunded`` or ``ignored``."""
+    now = utc_now()
+    order = await _locked_order(events, order_id)
+    if order is None or not _is_online_paid(order):
+        logger.warning("event order paid for an unknown order")
+        await events.rollback()
+        return "ignored"
+    if order.payment_intent_id not in (None, intent_id):
+        logger.warning("event order paid by an intent it does not own")
+        await events.rollback()
+        return "ignored"
+    order.payment_intent_id = intent_id
+    # A shared lock on the listing orders this against an organiser cancelling.
+    listing = await events.scalar(
+        select(Listing).where(Listing.id == order.listing_id).with_for_update(read=True)
+    )
+    assert listing is not None
+    selling = listing.status == "published" and listing.ends_at > now
+
+    outcome = "duplicate"
+    if order.status == PENDING and selling:
+        order.status = "confirmed"
+        outcome = "confirmed"
+    elif order.status == "expired" or (order.status == PENDING and not selling):
+        # Expired before the money arrived, or the event is off sale: give it back.
+        await order_payments.refund_in_full(
+            main,
+            organisation_id=organisation_id,
+            order_id=order.id,
+            reason="Order was not completed before payment arrived",
+        )
+        order.status = "expired"
+        outcome = "refunded"
+
+    await _mirror_ledger(main, order, organisation_id, now)
+    if order.status == "confirmed":
+        # Tickets are created once (guarded by the order lock and a count). The
+        # receipt is queued on every replay too: it is deduplicated, and an
+        # earlier attempt may have lost it when the main transaction rolled back.
+        count = await _issue_tickets(events, order, listing)
+        await _queue_receipt(main, order, listing, organisation_id, count)
+    await events.commit()
+    return outcome
+
+
+async def apply_refund(
+    main: AsyncSession,
+    events: AsyncSession,
+    *,
+    organisation_id: str,
+    order_id: uuid.UUID,
+) -> str:
+    """A refund was recorded on the order's intent. Returns ``refunded`` (tickets
+    cancelled), ``partial``, ``duplicate`` or ``ignored``."""
+    now = utc_now()
+    order = await _locked_order(events, order_id)
+    if order is None or not _is_online_paid(order):
+        logger.warning("event order refunded for an unknown order")
+        await events.rollback()
+        return "ignored"
+    intent = await order_payments.intent_for(
+        main, organisation_id=organisation_id, order_id=order.id
+    )
+    if intent is None:
+        await events.rollback()
+        return "ignored"
+    order.collected_minor = intent.captured_minor
+    order.refunded_minor = intent.refunded_minor
+    outcome = "partial"
+    if intent.captured_minor > 0 and intent.refunded_minor >= intent.captured_minor:
+        released = await events.execute(
+            update(Ticket)
+            .where(Ticket.order_id == order.id, Ticket.status == "valid")
+            .values(status="refunded", cancelled_at=now)
+            .returning(Ticket.id)
+        )
+        outcome = "refunded" if released.all() else "duplicate"
+        if order.status == "confirmed":
+            order.status = "refunded"
+    await events.commit()
+    return outcome
+
+
+async def expire_unpaid(
+    main: AsyncSession,
+    events: AsyncSession,
+    *,
+    now: datetime | None = None,
+    limit: int = EXPIRY_BATCH,
+) -> int:
+    """Cancel orders still ``pending_payment`` past their hold, cancel the open
+    intent and release the stock. Returns how many were expired.
+
+    A payment that just succeeded is skipped (``events.order_paid`` issues the
+    tickets). The main database commits before Events: if Events then fails, the
+    next run finds the intent already cancelled and expires the order."""
+    moment = now or utc_now()
+    skipped: list[uuid.UUID] = []
+    expired = 0
+    for _ in range(limit):
+        order = await events.scalar(
+            select(Order)
+            .where(
+                Order.status == PENDING,
+                Order.payment_expires_at <= moment,
+                Order.id.not_in(skipped),
+            )
+            .order_by(Order.payment_expires_at, Order.id)
+            .limit(1)
+            .with_for_update(skip_locked=True)
+        )
+        if order is None:
+            break
+        organisation_id = await _organisation_id(events, order)
+        if organisation_id is not None:
+            unpaid = await order_payments.stop_collecting(
+                main, organisation_id=organisation_id, order_id=order.id
+            )
+            if not unpaid:
+                skipped.append(order.id)
+                await events.rollback()
+                continue
+            await main.commit()
+        order.status = "expired"
+        await events.commit()
+        expired += 1
+    return expired

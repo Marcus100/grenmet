@@ -7,6 +7,7 @@ from enum import Enum
 
 import sqlalchemy as sa
 from sqlalchemy import ForeignKey, String
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.orm import Base
@@ -154,3 +155,97 @@ class Invitation(Base):
     revoked_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class TurnstileMode(str, Enum):
+    """Bot check for one public site's forms.
+
+    ``inherit`` uses the global ``TURNSTILE_*`` settings, ``off`` skips the check
+    and ``enforce`` requires the site's own secret (503 while it is unset).
+    """
+
+    INHERIT = "inherit"
+    OFF = "off"
+    ENFORCE = "enforce"
+
+
+def new_public_site_id() -> str:
+    return f"site_{secrets.token_hex(8)}"
+
+
+class PublicSite(Base):
+    """A public website or list owned by an organisation (ADR-0025 N1/N2).
+
+    Public forms name a site by its immutable ``key``; the row holds what used to
+    be per-site environment settings. Null settings fall back to the environment
+    during the deprecation window. The Turnstile secret is stored encrypted
+    (``src/utils/secret_box.py``) and is never returned by the API.
+    """
+
+    __tablename__ = "public_site"
+    __table_args__ = (
+        sa.CheckConstraint(r"key ~ '^[a-z0-9]+(-[a-z0-9]+)*$'", name="key_format"),
+        sa.CheckConstraint(
+            f"turnstile_mode IN ({_values(TurnstileMode)})", name="turnstile_mode"
+        ),
+        sa.Index("public_site_organisation_id_idx", "organisation_id"),
+        {"schema": "org"},
+    )
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    organisation_id: Mapped[str] = mapped_column(
+        ForeignKey("org.organisation.id", ondelete="CASCADE")
+    )
+    # 40 matches contact_message.site and list_subscription.list_key.
+    key: Mapped[str] = mapped_column(String(40), unique=True)
+    name: Mapped[str] = mapped_column(String(255))
+    site_url: Mapped[str | None] = mapped_column(String(255))
+    contact_recipient: Mapped[str | None] = mapped_column(String(254))
+    accepts_contact: Mapped[bool] = mapped_column(default=False)
+    accepts_subscriptions: Mapped[bool] = mapped_column(default=False)
+    turnstile_mode: Mapped[str] = mapped_column(
+        String(20), default=TurnstileMode.INHERIT.value
+    )
+    turnstile_site_key: Mapped[str | None] = mapped_column(String(255))
+    turnstile_secret_encrypted: Mapped[str | None] = mapped_column(sa.Text)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+def new_api_key_id() -> str:
+    return f"key_{secrets.token_hex(8)}"
+
+
+class ApiKey(Base):
+    """A non-browser credential for one organisation (ADR-0029, PF5).
+
+    Only the SHA-256 of the secret is stored, so a database read never yields a
+    usable key. ``key_prefix`` is the public part shown in lists. A key works
+    until ``expires_at`` or ``revoked_at``; rotation links the new key through
+    ``rotated_from_id`` and shortens the old key's ``expires_at``.
+    """
+
+    __tablename__ = "api_key"
+    __table_args__ = (
+        sa.Index("api_key_organisation_id_idx", "organisation_id"),
+        {"schema": "org"},
+    )
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    organisation_id: Mapped[str] = mapped_column(
+        ForeignKey("org.organisation.id", ondelete="CASCADE")
+    )
+    name: Mapped[str] = mapped_column(String(120))
+    key_prefix: Mapped[str] = mapped_column(String(8))
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    scopes: Mapped[list[str]] = mapped_column(ARRAY(String(60)), default=list)
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), nullable=True
+    )
+    expires_at: Mapped[datetime | None]
+    last_used_at: Mapped[datetime | None]
+    revoked_at: Mapped[datetime | None]
+    rotated_from_id: Mapped[str | None] = mapped_column(
+        ForeignKey("org.api_key.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)

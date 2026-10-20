@@ -245,3 +245,6 @@ notebooks/metpy/sources/
 
 # Local Codex chat attachments are not repository source.
 /.codex-remote-attachments/
+
+# Redis snapshots (a local redis-server started in the repo writes this)
+dump.rdb

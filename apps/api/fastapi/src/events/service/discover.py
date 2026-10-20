@@ -32,6 +32,7 @@ from ..models import (
     Ticket,
     TicketTier,
 )
+from . import holds
 from .common import GOING_PREVIEW, _pairs, when_window
 from .people import _chips, blocked_ids, get_or_create_profile
 
@@ -265,6 +266,11 @@ async def _tiers(
             .group_by(Ticket.tier_id)
         )
     )
+    # Stock held by unpaid online orders is not for sale either.
+    for tier_id, unpaid in (
+        await holds.held_by_tier(db, [row.id for row in rows])
+    ).items():
+        sold[tier_id] = sold.get(tier_id, 0) + unpaid
     held: dict[uuid.UUID, int] = {}
     if viewer_id is not None:
         held = _pairs(

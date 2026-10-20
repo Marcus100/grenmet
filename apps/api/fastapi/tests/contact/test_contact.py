@@ -164,3 +164,75 @@ async def test_invalid_payloads_are_rejected(
 ) -> None:
     resp = await async_client.post(_URL, json=_payload(**overrides))
     assert resp.status_code == 422
+
+
+async def _site(db: AsyncSession, **settings: object) -> str:
+    """A fresh public site owned by a new organisation; returns its key."""
+    from src.organisations.models import PublicSite, new_public_site_id
+    from tests.organisations.support import make_org
+
+    org = await make_org(db, f"Contact Co {uuid.uuid4().hex[:6]}")
+    key = f"contact-{uuid.uuid4().hex[:8]}"
+    defaults: dict[str, object] = {
+        "accepts_contact": True,
+        "accepts_subscriptions": False,
+        "turnstile_mode": "inherit",
+    }
+    db.add(
+        PublicSite(
+            id=new_public_site_id(),
+            organisation_id=org.id,
+            key=key,
+            name="Contact Site",
+            **{**defaults, **settings},
+        )
+    )
+    await db.commit()
+    return key
+
+
+async def test_site_route_mails_the_site_inbox(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    key = await _site(db_async, contact_recipient="site-inbox@example.com")
+    payload = _payload()
+    del payload["site"]
+    resp = await async_client.post(
+        f"/api/v1/contact/public/{key}/messages", json=payload
+    )
+    assert resp.status_code == 202
+
+    stored = await _stored(db_async, str(payload["subject"]))
+    assert stored is not None and stored.site == key
+    mails = (
+        await db_async.scalars(
+            select(OutboundEmail).where(
+                OutboundEmail.subject == f"Website message: {payload['subject']}"
+            )
+        )
+    ).all()
+    assert [m.to_email for m in mails] == ["site-inbox@example.com"]
+
+
+async def test_site_route_refuses_unknown_and_subscription_only_sites(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    payload = _payload()
+    del payload["site"]
+    unknown = await async_client.post(
+        "/api/v1/contact/public/no-such-site/messages", json=payload
+    )
+    assert unknown.status_code == 404
+    key = await _site(db_async, accepts_contact=False)
+    refused = await async_client.post(
+        f"/api/v1/contact/public/{key}/messages", json=payload
+    )
+    assert refused.status_code == 404
+
+
+def test_environment_fallback_only_covers_the_pre_n1_sites(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(contact_settings, "MBIA_CONTACT_RECIPIENT", "mbia@example.com")
+    assert recipient_for("mbia") == "mbia@example.com"
+    assert recipient_for("some-new-site") is None

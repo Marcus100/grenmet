@@ -1,10 +1,16 @@
 import "server-only";
 
 import {
+  apiKeyListPublicSchema,
+  apiKeyPublicSchema,
   memberListPublicSchema,
   organisationAdminDetailSchema,
   organisationAdminListPublicSchema,
+  type PublicSiteCreate,
+  type PublicSiteUpdate,
   paginatedResponseAuditEntryPublicSchema,
+  publicSiteAdminSchema,
+  publicSiteListPublicSchema,
 } from "@barrelsgd/api-client";
 import { authApiFetch } from "@barrelsgd/auth/server";
 import { getAuthConfig } from "@/lib/auth-config";
@@ -138,5 +144,67 @@ export function setAppEntitlement(
     `/organisations/${encodeURIComponent(organisationId)}/apps/${encodeURIComponent(appKey)}`,
     organisationAdminDetailSchema,
     { accessToken, method: "PUT", body: { enabled } }
+  );
+}
+
+/** Superuser-only `GET /organisations/admin/sites?organisation_id=`. */
+export function listOrganisationSites(
+  accessToken: string,
+  organisationId: string
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    `/organisations/admin/sites?organisation_id=${encodeURIComponent(organisationId)}`,
+    publicSiteListPublicSchema,
+    { accessToken }
+  );
+}
+
+export const API_KEYS_PAGE_SIZE = 100;
+
+/** Superuser-only `GET /organisations/admin/api-keys?organisation_id=`; never has secrets. */
+export function listOrganisationApiKeys(
+  accessToken: string,
+  organisationId: string
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    `/organisations/admin/api-keys?organisation_id=${encodeURIComponent(organisationId)}&size=${API_KEYS_PAGE_SIZE}`,
+    apiKeyListPublicSchema,
+    { accessToken }
+  );
+}
+
+/** Superuser-only, idempotent `POST /organisations/admin/api-keys/{id}/revoke`. */
+export function revokeApiKey(accessToken: string, keyId: string) {
+  return authApiFetch(
+    getAuthConfig(),
+    `/organisations/admin/api-keys/${encodeURIComponent(keyId)}/revoke`,
+    apiKeyPublicSchema,
+    { accessToken, method: "POST" }
+  );
+}
+
+/** Superuser-only `POST /organisations/admin/sites`; 503 without secret storage. */
+export function createSite(accessToken: string, body: PublicSiteCreate) {
+  return authApiFetch(
+    getAuthConfig(),
+    "/organisations/admin/sites",
+    publicSiteAdminSchema,
+    { accessToken, method: "POST", body }
+  );
+}
+
+/** Superuser-only `PATCH /organisations/admin/sites/{id}`; only sent fields change. */
+export function updateSite(
+  accessToken: string,
+  siteId: string,
+  body: PublicSiteUpdate
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    `/organisations/admin/sites/${encodeURIComponent(siteId)}`,
+    publicSiteAdminSchema,
+    { accessToken, method: "PATCH", body }
   );
 }

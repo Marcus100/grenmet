@@ -17,6 +17,7 @@ Common development issues and how to fix them.
 - [Database](#database)
 - [Port conflicts](#port-conflicts)
 - [pnpm / dependencies](#pnpm--dependencies)
+- [Cloud sessions](#cloud-sessions)
 
 ---
 
@@ -228,3 +229,26 @@ pnpm install
 ---
 
 If your issue isn't covered here, check the [Technical Overview](./technical-overview.md) for how the system fits together, or inspect the relevant app's `AGENTS.md` for app-specific context.
+
+---
+
+## Cloud sessions
+
+Run `scripts/agents/cloud-bootstrap.sh` first (it is a `SessionStart` hook; see [tool usage](agents/tool-usage.md#cloud-sessions)). Signatures it fixes:
+
+### `error: No interpreter found for Python 3.14.7`
+
+The container's uv predates the pinned Python. The bootstrap upgrades uv and installs it.
+
+### `ERR_PNPM_UNSUPPORTED_ENGINE` or `Exec format error` from turbo
+
+Node is below `engines.node`, or pnpm re-exec'd into a placeholder tool shim. The bootstrap provides Node 24 and the pinned `@pnpm/exe`, and sets `npm_config_manage_package_manager_versions=false`.
+
+### `ModuleNotFoundError: No module named 'gms_ingest'`
+
+`uv sync` ran without `--package gms-ingest`. Sync both packages.
+
+### `pnpm-lock.yaml` modified by a gate, or a stray `dump.rdb`
+
+Both are side effects of tools run outside the bootstrap. Restore the lockfile with `git checkout -- pnpm-lock.yaml`; `dump.rdb` is now ignored, but start Redis with `--dir /tmp --save ""`.
+

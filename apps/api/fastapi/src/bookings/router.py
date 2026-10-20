@@ -7,17 +7,23 @@ read, admins and owners change. Public routes are keyed by a profile's
 
 import uuid
 from datetime import date, datetime
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Query, Request, status
+from fastapi import APIRouter, Depends, Path, Query, Request, Response, status
 
+from src import idempotency
 from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
-from src.organisations.dependencies import OrgAdmin, OrgMember
+from src.organisations.api_key_auth import OrgAccess, org_or_key
+from src.organisations.dependencies import OrgContext, require_org_app
+from src.organisations.models import MembershipRole
 from src.rate_limit import limiter
+from src.turnstile import require_turnstile
 
-from . import service
+from . import public, service, studio
+from .models import BookingStatus
 from .schemas import (
+    BookingAgenda,
     BookingAgendaItem,
     BookingAvailability,
     BookingExceptionCreate,
@@ -27,16 +33,40 @@ from .schemas import (
     BookingProviderCreate,
     BookingProviderPublic,
     BookingProviderUpdate,
+    BookingPublicCancel,
+    BookingPublicCreate,
+    BookingPublicDetail,
+    BookingPublicReceipt,
+    BookingPublicReschedule,
     BookingServiceCreate,
     BookingServicePublic,
     BookingServiceUpdate,
     BookingSlot,
     BookingStorefront,
+    BookingStudioCancel,
+    BookingStudioDecline,
+    BookingStudioDetail,
     BookingWorkingHoursUpdate,
     BookingWorkingPeriodPublic,
 )
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
+
+# Organisation routes require the "bookings" entitlement (org.organisation_app).
+BookingsOrgMember = Annotated[OrgContext, Depends(require_org_app("bookings"))]
+BookingsOrgAdmin = Annotated[
+    OrgContext, Depends(require_org_app("bookings", MembershipRole.ADMIN))
+]
+# Organisation reads also accept an API key with `bookings.read` (PF5, ADR-0029),
+# e.g. a kiosk or partner site; the user path behaves as BookingsOrgMember.
+BookingsOrgRead = Annotated[OrgAccess, Depends(org_or_key("bookings", "bookings.read"))]
+
+# Studio actions also accept an API key with `bookings.write` (PF5); the member
+# path needs the admin role. `actor_id` is None for a key.
+BookingsOrgWrite = Annotated[
+    OrgAccess,
+    Depends(org_or_key("bookings", "bookings.write", MembershipRole.ADMIN)),
+]
 
 READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
@@ -53,7 +83,7 @@ WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
     operation_id="bookingsGetProfile",
     responses=READ_ERRORS,
 )
-async def get_profile(*, session: SessionDep, org: OrgMember) -> Any:
+async def get_profile(*, session: SessionDep, org: BookingsOrgRead) -> Any:
     return await service.get_profile(session, org.organisation_id)
 
 
@@ -69,7 +99,7 @@ async def get_profile(*, session: SessionDep, org: OrgMember) -> Any:
     responses=WRITE_ERRORS,
 )
 async def upsert_profile(
-    *, session: SessionDep, org: OrgAdmin, payload: BookingProfileUpdate
+    *, session: SessionDep, org: BookingsOrgAdmin, payload: BookingProfileUpdate
 ) -> Any:
     profile = await service.upsert_profile(
         session, organisation_id=org.organisation_id, payload=payload
@@ -89,7 +119,7 @@ async def upsert_profile(
     operation_id="bookingsListServices",
     responses=READ_ERRORS,
 )
-async def list_services(*, session: SessionDep, org: OrgMember) -> Any:
+async def list_services(*, session: SessionDep, org: BookingsOrgRead) -> Any:
     return await service.list_services(session, org.organisation_id)
 
 
@@ -103,7 +133,7 @@ async def list_services(*, session: SessionDep, org: OrgMember) -> Any:
     responses=WRITE_ERRORS,
 )
 async def create_service(
-    *, session: SessionDep, org: OrgAdmin, payload: BookingServiceCreate
+    *, session: SessionDep, org: BookingsOrgAdmin, payload: BookingServiceCreate
 ) -> Any:
     row = await service.create_service(
         session, organisation_id=org.organisation_id, payload=payload
@@ -123,7 +153,7 @@ async def create_service(
 async def update_service(
     *,
     session: SessionDep,
-    org: OrgAdmin,
+    org: BookingsOrgAdmin,
     service_id: uuid.UUID,
     payload: BookingServiceUpdate,
 ) -> Any:
@@ -146,7 +176,7 @@ async def update_service(
     operation_id="bookingsListProviders",
     responses=READ_ERRORS,
 )
-async def list_providers(*, session: SessionDep, org: OrgMember) -> Any:
+async def list_providers(*, session: SessionDep, org: BookingsOrgRead) -> Any:
     return await service.list_providers(session, org.organisation_id)
 
 
@@ -160,7 +190,7 @@ async def list_providers(*, session: SessionDep, org: OrgMember) -> Any:
     responses=WRITE_ERRORS,
 )
 async def create_provider(
-    *, session: SessionDep, org: OrgAdmin, payload: BookingProviderCreate
+    *, session: SessionDep, org: BookingsOrgAdmin, payload: BookingProviderCreate
 ) -> Any:
     row = await service.create_provider(
         session, organisation_id=org.organisation_id, payload=payload
@@ -180,7 +210,7 @@ async def create_provider(
 async def update_provider(
     *,
     session: SessionDep,
-    org: OrgAdmin,
+    org: BookingsOrgAdmin,
     provider_id: uuid.UUID,
     payload: BookingProviderUpdate,
 ) -> Any:
@@ -201,7 +231,7 @@ async def update_provider(
     responses=READ_ERRORS,
 )
 async def get_working_hours(
-    *, session: SessionDep, org: OrgMember, provider_id: uuid.UUID
+    *, session: SessionDep, org: BookingsOrgRead, provider_id: uuid.UUID
 ) -> Any:
     provider = await service.get_provider(
         session, provider_id, organisation_id=org.organisation_id
@@ -223,7 +253,7 @@ async def get_working_hours(
 async def replace_working_hours(
     *,
     session: SessionDep,
-    org: OrgAdmin,
+    org: BookingsOrgAdmin,
     provider_id: uuid.UUID,
     payload: BookingWorkingHoursUpdate,
 ) -> Any:
@@ -246,7 +276,7 @@ async def replace_working_hours(
 async def list_exceptions(
     *,
     session: SessionDep,
-    org: OrgMember,
+    org: BookingsOrgRead,
     provider_id: uuid.UUID,
     starts_from: datetime | None = None,
     ends_before: datetime | None = None,
@@ -271,7 +301,7 @@ async def list_exceptions(
 async def create_exception(
     *,
     session: SessionDep,
-    org: OrgAdmin,
+    org: BookingsOrgAdmin,
     provider_id: uuid.UUID,
     payload: BookingExceptionCreate,
 ) -> Any:
@@ -292,7 +322,7 @@ async def create_exception(
     responses=WRITE_ERRORS,
 )
 async def delete_exception(
-    *, session: SessionDep, org: OrgAdmin, exception_id: uuid.UUID
+    *, session: SessionDep, org: BookingsOrgAdmin, exception_id: uuid.UUID
 ) -> None:
     await service.delete_exception(
         session, exception_id, organisation_id=org.organisation_id
@@ -311,7 +341,7 @@ async def delete_exception(
 async def list_bookings(
     *,
     session: SessionDep,
-    org: OrgMember,
+    org: BookingsOrgRead,
     starts_from: datetime,
     ends_before: datetime,
 ) -> Any:
@@ -321,6 +351,184 @@ async def list_bookings(
         starts_from=starts_from,
         ends_before=ends_before,
     )
+
+
+# --- organisation: studio actions (B5) -------------------------------------------------
+
+BookingId = Annotated[uuid.UUID, Path(description="The booking's id.")]
+
+
+@router.get(
+    "/org/agenda",
+    response_model=BookingAgenda,
+    summary="Get the agenda grouped by day",
+    description=(
+        "Bookings starting on the local days `from_date` to `to_date` (inclusive, "
+        "at most 62 days), grouped by day in the profile's timezone, optionally "
+        "for one provider or some statuses. Page with `limit` and `offset`."
+    ),
+    operation_id="bookingsGetAgenda",
+    responses=READ_ERRORS,
+)
+async def get_agenda(
+    *,
+    session: SessionDep,
+    org: BookingsOrgRead,
+    from_date: date,
+    to_date: date,
+    provider_id: uuid.UUID | None = Query(default=None),
+    status_filter: Annotated[list[BookingStatus] | None, Query(alias="status")] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 200,
+    offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
+) -> Any:
+    return await studio.agenda(
+        session,
+        org.organisation_id,
+        from_date=from_date,
+        to_date=to_date,
+        provider_id=provider_id,
+        statuses=status_filter,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get(
+    "/org/bookings/{booking_id}",
+    response_model=BookingStudioDetail,
+    summary="Get a booking",
+    description=(
+        "The full studio view: customer name, phone and email, the deposit "
+        "state and the booking's history."
+    ),
+    operation_id="bookingsGetStudioBooking",
+    responses=READ_ERRORS,
+)
+async def get_studio_booking(
+    *, session: SessionDep, org: BookingsOrgRead, booking_id: BookingId
+) -> Any:
+    return await studio.get_detail(session, org.organisation_id, booking_id)
+
+
+@router.post(
+    "/org/bookings/{booking_id}/confirm",
+    response_model=BookingStudioDetail,
+    summary="Confirm a booking request",
+    description=(
+        "Moves a `pending` booking to `confirmed` and emails the customer. 409 "
+        "for any other status, including one still waiting for its deposit."
+    ),
+    operation_id="bookingsConfirmStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def confirm_studio_booking(
+    *, session: SessionDep, org: BookingsOrgWrite, booking_id: BookingId
+) -> Any:
+    result = await studio.confirm(
+        session, org.organisation_id, booking_id, actor_user_id=org.actor_id
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/org/bookings/{booking_id}/decline",
+    response_model=BookingStudioDetail,
+    summary="Decline a booking request",
+    description=(
+        "Cancels a `pending` request with a reason, releases the slot, refunds "
+        "any captured deposit and emails the customer. 409 for any other status."
+    ),
+    operation_id="bookingsDeclineStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def decline_studio_booking(
+    *,
+    session: SessionDep,
+    org: BookingsOrgWrite,
+    booking_id: BookingId,
+    payload: BookingStudioDecline,
+) -> Any:
+    result = await studio.decline(
+        session,
+        org.organisation_id,
+        booking_id,
+        actor_user_id=org.actor_id,
+        reason=payload.reason,
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/org/bookings/{booking_id}/cancel",
+    response_model=BookingStudioDetail,
+    summary="Cancel a booking as the business",
+    description=(
+        "Cancels an active booking with a reason, releases the slot and emails "
+        "the customer. A captured deposit is refunded unless the booking starts "
+        "inside `cancel_cutoff_hours`; `refund_deposit` overrides that. 409 when "
+        "the booking is already finished."
+    ),
+    operation_id="bookingsCancelStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def cancel_studio_booking(
+    *,
+    session: SessionDep,
+    org: BookingsOrgWrite,
+    booking_id: BookingId,
+    payload: BookingStudioCancel,
+) -> Any:
+    result = await studio.cancel(
+        session,
+        org.organisation_id,
+        booking_id,
+        actor_user_id=org.actor_id,
+        reason=payload.reason,
+        refund_deposit=payload.refund_deposit,
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/org/bookings/{booking_id}/no-show",
+    response_model=BookingStudioDetail,
+    summary="Mark a booking as a no-show",
+    description="Moves a `confirmed` booking to `no_show`. 409 for any other status.",
+    operation_id="bookingsNoShowStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def no_show_studio_booking(
+    *, session: SessionDep, org: BookingsOrgWrite, booking_id: BookingId
+) -> Any:
+    result = await studio.no_show(
+        session, org.organisation_id, booking_id, actor_user_id=org.actor_id
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/org/bookings/{booking_id}/complete",
+    response_model=BookingStudioDetail,
+    summary="Mark a booking as completed",
+    description=(
+        "Moves a `confirmed` booking to `completed` and queues the customer's "
+        "reward when they have a linked account. 409 for any other status."
+    ),
+    operation_id="bookingsCompleteStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def complete_studio_booking(
+    *, session: SessionDep, org: BookingsOrgWrite, booking_id: BookingId
+) -> Any:
+    result = await studio.complete(
+        session, org.organisation_id, booking_id, actor_user_id=org.actor_id
+    )
+    await session.commit()
+    return result
 
 
 # --- public ----------------------------------------------------------------------------
@@ -388,4 +596,175 @@ async def get_availability(
             )
             for slot in slots
         ],
+    )
+
+
+# --- public bookings (B3) ---------------------------------------------------------------
+
+ManageToken = Annotated[
+    str,
+    Path(
+        min_length=16,
+        max_length=100,
+        description="The manage token returned when the booking was made.",
+    ),
+]
+
+
+@router.post(
+    "/public/{slug}/bookings",
+    response_model=BookingPublicReceipt,
+    status_code=status.HTTP_201_CREATED,
+    summary="Book a slot",
+    description=(
+        "Books an open slot without an account. Requires an `Idempotency-Key` "
+        "header: repeating the request with the same key and body replays the "
+        "first answer (header `Idempotency-Replayed: true`), the same key with a "
+        "different body is 409. Applies the organisation's Turnstile policy. "
+        "A slot that was taken answers 409. The response carries the manage "
+        "token once; only its hash is stored. Confirmation emails are queued on "
+        "the outbox. Unknown, disabled and unentitled pages answer 404."
+    ),
+    operation_id="bookingsCreatePublicBooking",
+    responses={**BAD_REQUEST, **NOT_FOUND, **CONFLICT},
+)
+@limiter.limit("10/minute")
+async def create_public_booking(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    slug: Annotated[str, Path(max_length=60)],
+    payload: BookingPublicCreate,
+    idempotency_key: idempotency.RequiredIdempotencyKey,
+) -> Any:
+    profile = await service.get_public_profile(session, slug)
+    policy = await public.turnstile_policy(session, profile)
+    if payload.website:
+        # Honeypot: look successful, store nothing.
+        public.logger.info("Booking honeypot tripped; dropped")
+        return public.decoy_receipt(profile, payload)
+
+    async def create_once() -> tuple[int, dict[str, Any]]:
+        # Turnstile tokens are single-use, so the check runs only for a key the
+        # server has not seen: a client retrying after a lost response replays
+        # its stored receipt instead of failing a second verification. A failed
+        # check is not stored and releases the key.
+        await require_turnstile(request, payload.turnstile_token, policy)
+        return await public.create_booking(session, profile, payload)
+
+    result = await idempotency.run_idempotent(
+        session,
+        scope="bookings.create",
+        organisation_id=profile.organisation_id,
+        key=idempotency_key,
+        request_body=payload.model_dump(
+            mode="json", exclude={"turnstile_token", "website"}
+        ),
+        handler=create_once,
+    )
+    await session.commit()
+    response.status_code = result.status_code
+    if result.replayed:
+        response.headers["Idempotency-Replayed"] = "true"
+    return result.body
+
+
+@router.get(
+    "/public/bookings/{token}",
+    response_model=BookingPublicDetail,
+    summary="Get a booking by its manage token",
+    description=(
+        "A customer's own booking. Unknown, expired and unentitled tokens all "
+        "answer 404."
+    ),
+    operation_id="bookingsGetPublicBooking",
+    responses={**NOT_FOUND},
+)
+@limiter.limit("60/minute")
+async def get_public_booking(
+    *, request: Request, session: SessionDep, token: ManageToken
+) -> Any:
+    _ = request
+    return await public.get_booking(session, token)
+
+
+@router.post(
+    "/public/bookings/{token}/cancel",
+    response_model=BookingPublicDetail,
+    summary="Cancel a booking",
+    description=(
+        "Cancels the booking and frees the slot. 409 inside the business's "
+        "cancellation cutoff (`cancel_cutoff_hours`) or when the booking is "
+        "already finished. Cancelling twice is harmless."
+    ),
+    operation_id="bookingsCancelPublicBooking",
+    responses={**NOT_FOUND, **CONFLICT},
+)
+@limiter.limit("20/minute")
+async def cancel_public_booking(
+    *,
+    request: Request,
+    session: SessionDep,
+    token: ManageToken,
+    payload: BookingPublicCancel | None = None,
+) -> Any:
+    _ = request
+    result = await public.cancel_booking(
+        session, token, reason=payload.reason if payload else None
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/public/bookings/{token}/reschedule",
+    response_model=BookingPublicDetail,
+    summary="Move a booking to another slot",
+    description=(
+        "Moves the booking to another open slot with the same provider and "
+        "service; the booking stays active and keeps its token. 409 when the "
+        "slot is taken or the booking is inside the cancellation cutoff."
+    ),
+    operation_id="bookingsReschedulePublicBooking",
+    responses={**NOT_FOUND, **CONFLICT},
+)
+@limiter.limit("20/minute")
+async def reschedule_public_booking(
+    *,
+    request: Request,
+    session: SessionDep,
+    token: ManageToken,
+    payload: BookingPublicReschedule,
+) -> Any:
+    _ = request
+    result = await public.reschedule_booking(session, token, payload.starts_at)
+    await session.commit()
+    return result
+
+
+@router.get(
+    "/public/bookings/{token}/ics",
+    response_class=Response,
+    summary="Download a booking as a calendar file",
+    description="The booking as an iCalendar (RFC 5545) event, UTC times.",
+    operation_id="bookingsGetPublicBookingIcs",
+    responses={
+        200: {
+            "description": "iCalendar file",
+            "content": {"text/calendar": {"schema": {"type": "string"}}},
+        },
+        **NOT_FOUND,
+    },
+)
+@limiter.limit("60/minute")
+async def get_public_booking_ics(
+    *, request: Request, session: SessionDep, token: ManageToken
+) -> Response:
+    _ = request
+    text = await public.booking_ics(session, token)
+    return Response(
+        content=text,
+        media_type="text/calendar; charset=utf-8",
+        headers={"Content-Disposition": 'inline; filename="booking.ics"'},
     )

@@ -17,6 +17,17 @@ console. Lane spec: `docs/design/admin.md`. Plan: slice C1/C2 in
   validate with `src/lib/organisation-form.ts`, proxy to FastAPI and redirect with
   a fixed `?notice=` code. Disclosures are native `<details>`; no client state.
   Never fake data.
+- **Sites (C3).** The organisation detail page has a "Sites" section (streamed
+  behind `Suspense`, with loading, empty and error states) for the organisation's
+  public sites (`org.public_site`): list, create and edit via
+  `organisations/site-actions.ts` and `src/lib/site-form.ts`. The key is permanent
+  (a-z0-9 and hyphens, max 40). Edits are diffed against the stored site so
+  `PATCH /organisations/admin/sites/{id}` only receives changed fields. The
+  Turnstile secret is write-only: the form never has a value for it, an empty
+  field means "keep", "Clear secret" sends `null`, and it never enters a redirect
+  or report. A 503 means secret storage (`ORG_SECRET_ENCRYPTION_KEYS`) is not
+  configured and shows an operator message. `bookings` and `rewards` entitlements
+  arrive through `available_apps` and need no extra code.
 - **Invoicing (P1-P3).** `/invoices` (list with status, search and overdue
   filters), `/invoices/new` and `/invoices/[id]` (draft editor with eight line
   rows, issue, delete draft, record payment, void with reason, PDF download via
@@ -26,6 +37,27 @@ console. Lane spec: `docs/design/admin.md`. Plan: slice C1/C2 in
   `src/lib/billing-api.ts` and redirect with a fixed `?notice=` code. Amounts are
   typed in dollars and converted to minor units by string parsing; this app never
   computes a total or tax figure, FastAPI does. Backend: `src/billing/AGENTS.md`.
+- **Feature flags (PF7).** `/flags` lists flags (key, enabled, exposed, audience
+  summary, owner, success metric, review/expiry, "Stale" badge from
+  `GET /feature-flags/admin/stale`), with create, edit and delete. The form is a
+  client component on `useActionState` (`flags/actions.ts`) so the API's 422
+  (success metric required to enable outside local) is shown inline without
+  going into a URL; edits send only changed fields (dates compare by day).
+  Always show the warning that other API workers pick changes up within 30
+  seconds. Needs `feature_flags.manage`; backend: `src/feature_flags/AGENTS.md`.
+- **API keys (PF5).** The organisation detail page has an "API keys" section
+  (Suspense, loading/empty/error): prefix, scopes, expiry, last used, state and a
+  confirmed revoke (`organisations/api-key-actions.ts`). There is deliberately no
+  create or rotate here: those are organisation-admin (org zone) actions because
+  the one-time secret belongs to that admin. This app never has a key secret.
+- **Payments (PF4).** `/payments`: balances per organisation, the ledger
+  (paginated, filterable), reconciliation per period and organisation with the
+  CSV through the proxy route `/payments/reconciliation.csv`, and "record
+  payout" as two steps: a GET form proposes, the page shows a confirmation, and
+  only `recordPayoutAction` (POST) writes. Amounts are typed in dollars, sent as
+  integer minor units and shown as XCD with two decimals. A banner states the
+  Stripe adapter is test mode only with no live card rail; do not remove it
+  before the ADR-0027 gate. Backend: `src/payments/AGENTS.md`.
 - Backend logic stays in FastAPI. This app validates, proxies and renders; it
   has no database access and no business rules.
 

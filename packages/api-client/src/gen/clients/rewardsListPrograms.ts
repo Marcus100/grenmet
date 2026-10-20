@@ -24,7 +24,7 @@ export function rewardsListPrograms<ThrowOnError extends boolean = true>(
     request({
       method: "GET",
       url: "/api/v1/rewards/programs",
-      security: [{ type: "oauth2" }],
+      security: [{ type: "http", scheme: "bearer" }, { type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<RewardsListProgramsResponses, ThrowOnError>>

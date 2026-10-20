@@ -1,6 +1,7 @@
 import asyncio
 import selectors
 import sys
+from importlib import import_module
 from logging.config import fileConfig
 from pathlib import Path
 from typing import Any
@@ -114,6 +115,7 @@ from src.organisations.models import (  # noqa: F401
     PlatformOrganisation,
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
+from src.payments.models import Attempt, Intent, LedgerEntry, Refund
 from src.push.models import PushSubscription
 from src.rewards.models import Entry, Program, ReviewFlag
 from src.storage.models import OrgUpload
@@ -126,6 +128,18 @@ from src.stores.models import (
     StoreLocation,
 )
 from src.subscriptions.models import ListSubscription
+
+# Modules that only need to put their tables on Base.metadata.
+for _models_module in (
+    "src.contacts.models",
+    "src.feature_flags.models",
+    "src.idempotency",
+    "src.outbox",
+    "src.rewards.models_gamification",
+    "src.rewards.models_social",
+    "src.webhooks_out.models",
+):
+    import_module(_models_module)
 
 config = context.config
 config.set_main_option("sqlalchemy.url", str(settings.SQLALCHEMY_DATABASE_URI))
@@ -148,6 +162,10 @@ _TRACKED_SCHEMAS = {
     "billing",
     "environment",
     "rewards",
+    "flags",
+    "payments",
+    "platform",
+    "webhooks",
 }
 
 

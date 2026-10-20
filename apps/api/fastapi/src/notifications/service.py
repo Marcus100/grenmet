@@ -9,6 +9,7 @@ from sqlalchemy import func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import outbox
 from src.auth import policy as auth_policy
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.exceptions import AppException, NotFoundError
@@ -48,6 +49,9 @@ from .schemas import (
 logger = logging.getLogger(__name__)
 
 MANAGE_PERMISSION = "notifications.manage"
+
+# Outbox topic that sends one ``OutboundEmail`` row (payload: its id only).
+EMAIL_DELIVER = "email.deliver"
 
 
 @dataclass(frozen=True)
@@ -742,6 +746,24 @@ async def is_suppressed(*, session: AsyncSession, email: str) -> bool:
     return found is not None
 
 
+def _queue_delivery(session: AsyncSession, email_id: uuid.UUID) -> None:
+    """Add the outbox row that sends ``email_id``; the payload holds no personal data."""
+    now = utc_now()
+    session.add(
+        outbox.Outbox(
+            id=uuid.uuid4(),
+            topic=EMAIL_DELIVER,
+            payload={"outbound_email_id": str(email_id)},
+            dedupe_key=str(email_id),
+            attempts=0,
+            next_attempt_at=now,
+            status=outbox.OutboxStatus.PENDING.value,
+            created_at=now,
+            updated_at=now,
+        )
+    )
+
+
 def enqueue_email(
     *,
     session: AsyncSession,
@@ -754,9 +776,13 @@ def enqueue_email(
 ) -> OutboundEmail:
     """Queue an email for the worker, inside the caller's transaction.
 
-    Non-transactional mail is dropped by the worker for suppressed addresses.
+    The ``OutboundEmail`` row holds the content and is the delivery log; an
+    ``email.deliver`` outbox row (same transaction) sends it and owns retry and
+    backoff. Non-transactional mail is dropped at send time for suppressed
+    addresses.
     """
     row = OutboundEmail(
+        id=uuid.uuid4(),
         to_email=normalise_email(to_email),
         subject=subject[:300],
         template=template,
@@ -765,6 +791,7 @@ def enqueue_email(
         transactional=transactional,
     )
     session.add(row)
+    _queue_delivery(session, row.id)
     return row
 
 
@@ -780,15 +807,18 @@ async def enqueue_email_once(
     """Queue a non-transactional email unless ``dedupe_key`` was already queued.
 
     Returns True when a new row was written. Suppressed addresses are skipped
-    here and again at send time. The caller commits.
+    here and again at send time. The caller commits. The unique
+    ``outbound_email.dedupe_key`` index decides, so rows queued before the outbox
+    move (still draining through ``dispatch.process_outbound_emails``) count too.
     """
     email = normalise_email(to_email)
     if await is_suppressed(session=session, email=email):
         return False
+    email_id = uuid.uuid4()
     result = await session.execute(
         pg_insert(OutboundEmail)
         .values(
-            id=uuid.uuid4(),
+            id=email_id,
             to_email=email,
             subject=subject[:300],
             template=template,
@@ -804,4 +834,7 @@ async def enqueue_email_once(
             index_where=OutboundEmail.dedupe_key.is_not(None),
         )
     )
-    return bool(getattr(result, "rowcount", 0))
+    if not getattr(result, "rowcount", 0):
+        return False
+    _queue_delivery(session, email_id)
+    return True

@@ -139,15 +139,9 @@ class AuthConfig(BaseSettings):
             raise ValueError(
                 "Privileged MFA enforcement requires AUTH_TOTP_ENCRYPTION_KEYS"
             )
-        from cryptography.fernet import Fernet
+        from src.utils.secret_box import validate_keys
 
-        for key in self.AUTH_TOTP_ENCRYPTION_KEYS:
-            try:
-                Fernet(key.encode())
-            except ValueError, TypeError:
-                raise ValueError(
-                    "AUTH_TOTP_ENCRYPTION_KEYS must contain Fernet keys"
-                ) from None
+        validate_keys(self.AUTH_TOTP_ENCRYPTION_KEYS, "AUTH_TOTP_ENCRYPTION_KEYS")
         return self
 
 

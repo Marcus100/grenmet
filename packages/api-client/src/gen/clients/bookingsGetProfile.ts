@@ -24,7 +24,7 @@ export function bookingsGetProfile<ThrowOnError extends boolean = true>(
     request({
       method: "GET",
       url: "/api/v1/bookings/org/profile",
-      security: [{ type: "oauth2" }],
+      security: [{ type: "http", scheme: "bearer" }, { type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<BookingsGetProfileResponses, ThrowOnError>>

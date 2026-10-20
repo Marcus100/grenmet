@@ -1,16 +1,25 @@
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Path, Query
+from fastapi import status as http_status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth import apps as auth_apps
 from src.auth.models import User
 from src.dependencies import AccountUser, AdminUser, SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgAdmin, OrgMember
 from src.pagination import PaginationDep
 
-from . import members, service, verification
+from . import (
+    api_key_scopes,
+    api_keys,
+    entitlements,
+    members,
+    service,
+    sites,
+    verification,
+)
+from .api_key_auth import ApiKeyCaller
 from .exceptions import OrganisationNotFoundError
 from .models import (
     Membership,
@@ -21,6 +30,13 @@ from .models import (
     PlatformOrganisation,
 )
 from .schemas import (
+    ApiKeyCreate,
+    ApiKeyCreated,
+    ApiKeyInfoPublic,
+    ApiKeyListPublic,
+    ApiKeyPublic,
+    ApiKeyRotate,
+    ApiKeyScopeCatalogue,
     AppEntitlementUpdate,
     AppOptionPublic,
     CurrentOrganisationPublic,
@@ -38,6 +54,11 @@ from .schemas import (
     OrganisationSummary,
     PlatformOrganisationCreate,
     PlatformOrganisationUpdate,
+    PublicSiteAdmin,
+    PublicSiteCreate,
+    PublicSiteListPublic,
+    PublicSitePublic,
+    PublicSiteUpdate,
     VerificationDecision,
 )
 
@@ -92,6 +113,304 @@ async def get_current(*, context: OrgMember) -> Any:
             context.organisation, from_attributes=True
         ),
         role=context.role,
+    )
+
+
+# ── Public sites (ADR-0025 N1/N2) ────────────────────────────────────────────
+
+
+@router.get(
+    "/public/sites/{site_key}",
+    response_model=PublicSitePublic,
+    summary="Read a public site",
+    description=(
+        "What a public website needs to render its forms: its name, which forms "
+        "it accepts and its Turnstile site key. 404 when the key is unknown or "
+        "its organisation is suspended. Never returns a secret."
+    ),
+    responses={**NOT_FOUND},
+)
+async def get_public_site(
+    *, session: SessionDep, site_key: Annotated[str, Path(max_length=40)]
+) -> Any:
+    site = await sites.require_public_site(session, site_key)
+    return PublicSitePublic(
+        key=site.key,
+        name=site.name,
+        accepts_contact=site.accepts_contact,
+        accepts_subscriptions=site.accepts_subscriptions,
+        turnstile_site_key=site.turnstile_site_key,
+    )
+
+
+@router.get(
+    "/org/sites",
+    response_model=PublicSiteListPublic,
+    summary="List my organisation's public sites",
+    description=(
+        "The public sites of the organisation in X-Barrels-Organisation. Admins "
+        "and owners only. Secrets are never returned."
+    ),
+    responses={**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND},
+)
+async def list_org_sites(*, session: SessionDep, context: OrgAdmin) -> Any:
+    rows = await sites.list_sites(session, organisation_id=context.organisation_id)
+    return PublicSiteListPublic(data=[sites.to_admin(r) for r in rows], count=len(rows))
+
+
+@router.get(
+    "/admin/sites",
+    response_model=PublicSiteListPublic,
+    summary="List public sites",
+    description=(
+        "Control plane, superuser only: every public site, or one "
+        "organisation's with `organisation_id`."
+    ),
+    responses={**AUTHENTICATED},
+)
+async def list_admin_sites(
+    *,
+    session: SessionDep,
+    _admin: AdminUser,
+    organisation_id: str | None = Query(default=None, max_length=100),
+) -> Any:
+    rows = await sites.list_sites(session, organisation_id=organisation_id)
+    return PublicSiteListPublic(data=[sites.to_admin(r) for r in rows], count=len(rows))
+
+
+@router.post(
+    "/admin/sites",
+    response_model=PublicSiteAdmin,
+    status_code=http_status.HTTP_201_CREATED,
+    summary="Create a public site",
+    description=(
+        "Control plane, superuser only. The key is permanent. A Turnstile "
+        "secret is stored encrypted and never returned; 503 when secret "
+        "storage is not configured. 409 when the key is taken."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND, **CONFLICT},
+)
+async def create_admin_site(
+    *, session: SessionDep, admin: AdminUser, payload: PublicSiteCreate
+) -> Any:
+    site = await sites.create_site(session, admin, payload)
+    await session.commit()
+    await session.refresh(site)
+    return sites.to_admin(site)
+
+
+@router.patch(
+    "/admin/sites/{site_id}",
+    response_model=PublicSiteAdmin,
+    summary="Update a public site",
+    description=(
+        "Control plane, superuser only. Only the fields sent change; `null` "
+        "clears a nullable setting, including the Turnstile secret."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def update_admin_site(
+    *, session: SessionDep, admin: AdminUser, site_id: str, payload: PublicSiteUpdate
+) -> Any:
+    site = await sites.update_site(session, admin, site_id, payload)
+    await session.commit()
+    await session.refresh(site)
+    return sites.to_admin(site)
+
+
+# ── API keys (PF5, ADR-0029) ─────────────────────────────────────────────────
+
+KEY_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
+
+
+@router.get(
+    "/org/api-key-scopes",
+    response_model=ApiKeyScopeCatalogue,
+    summary="List API key scopes",
+    description="Every scope an API key can hold. Admins and owners only.",
+    responses={**KEY_ERRORS},
+)
+async def list_api_key_scopes(*, _context: OrgAdmin) -> Any:
+    return ApiKeyScopeCatalogue(scopes=api_key_scopes.all_scopes())
+
+
+@router.post(
+    "/org/api-keys",
+    response_model=ApiKeyCreated,
+    status_code=http_status.HTTP_201_CREATED,
+    summary="Create an API key",
+    description=(
+        "Admins and owners only. The response holds the only copy of the "
+        "secret. 422 for an unknown scope; 403 when the organisation is not "
+        "entitled to a scope's product. Lifetime defaults to 90 days, at most "
+        "one year."
+    ),
+    responses={**KEY_ERRORS},
+)
+async def create_api_key(
+    *, session: SessionDep, context: OrgAdmin, payload: ApiKeyCreate
+) -> Any:
+    key, secret = await api_keys.create_key(
+        session, context.user, organisation_id=context.organisation_id, payload=payload
+    )
+    await session.commit()
+    return ApiKeyCreated(
+        **ApiKeyPublic.model_validate(key, from_attributes=True).model_dump(),
+        secret=secret,
+    )
+
+
+@router.get(
+    "/org/api-keys",
+    response_model=ApiKeyListPublic,
+    summary="List my organisation's API keys",
+    description=(
+        "Admins and owners only, newest first. Shows the public prefix, never "
+        "the secret."
+    ),
+    responses={**KEY_ERRORS},
+)
+async def list_org_api_keys(
+    *, session: SessionDep, context: OrgAdmin, pagination: PaginationDep
+) -> Any:
+    rows, total = await api_keys.list_keys(
+        session,
+        organisation_id=context.organisation_id,
+        skip=pagination.skip,
+        limit=pagination.limit,
+    )
+    return ApiKeyListPublic(
+        data=[ApiKeyPublic.model_validate(r, from_attributes=True) for r in rows],
+        count=total,
+        page=pagination.page,
+        size=pagination.size,
+    )
+
+
+@router.post(
+    "/org/api-keys/{key_id}/rotate",
+    response_model=ApiKeyCreated,
+    status_code=http_status.HTTP_201_CREATED,
+    summary="Rotate an API key",
+    description=(
+        "Issues a successor with the same name and scopes and returns its "
+        "secret once. The old key stops working after `overlap_hours` (default "
+        "24; 0 revokes it now). 409 when the key is already revoked or expired."
+    ),
+    responses={**KEY_ERRORS, **CONFLICT},
+)
+async def rotate_api_key(
+    *,
+    session: SessionDep,
+    context: OrgAdmin,
+    key_id: Annotated[str, Path(max_length=100)],
+    payload: ApiKeyRotate,
+) -> Any:
+    key, secret = await api_keys.rotate_key(
+        session,
+        context.user,
+        organisation_id=context.organisation_id,
+        key_id=key_id,
+        payload=payload,
+    )
+    await session.commit()
+    return ApiKeyCreated(
+        **ApiKeyPublic.model_validate(key, from_attributes=True).model_dump(),
+        secret=secret,
+    )
+
+
+@router.post(
+    "/org/api-keys/{key_id}/revoke",
+    response_model=ApiKeyPublic,
+    summary="Revoke an API key",
+    description="Admins and owners only. Takes effect immediately; idempotent.",
+    responses={**KEY_ERRORS},
+)
+async def revoke_org_api_key(
+    *,
+    session: SessionDep,
+    context: OrgAdmin,
+    key_id: Annotated[str, Path(max_length=100)],
+) -> Any:
+    key = await api_keys.revoke_key(
+        session,
+        context.user,
+        key_id=key_id,
+        organisation_id=context.organisation_id,
+    )
+    await session.commit()
+    return key
+
+
+@router.get(
+    "/admin/api-keys",
+    response_model=ApiKeyListPublic,
+    summary="List API keys across organisations",
+    description=(
+        "Control plane, superuser only. Filter with `organisation_id`. Never "
+        "returns secrets."
+    ),
+    responses={**AUTHENTICATED},
+)
+async def list_admin_api_keys(
+    *,
+    session: SessionDep,
+    _admin: AdminUser,
+    pagination: PaginationDep,
+    organisation_id: str | None = Query(default=None, max_length=100),
+) -> Any:
+    rows, total = await api_keys.list_keys(
+        session,
+        organisation_id=organisation_id,
+        skip=pagination.skip,
+        limit=pagination.limit,
+    )
+    return ApiKeyListPublic(
+        data=[ApiKeyPublic.model_validate(r, from_attributes=True) for r in rows],
+        count=total,
+        page=pagination.page,
+        size=pagination.size,
+    )
+
+
+@router.post(
+    "/admin/api-keys/{key_id}/revoke",
+    response_model=ApiKeyPublic,
+    summary="Revoke any organisation's API key",
+    description="Control plane, superuser only. Takes effect immediately; idempotent.",
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def revoke_admin_api_key(
+    *,
+    session: SessionDep,
+    admin: AdminUser,
+    key_id: Annotated[str, Path(max_length=100)],
+) -> Any:
+    key = await api_keys.revoke_key(session, admin, key_id=key_id, organisation_id=None)
+    await session.commit()
+    return key
+
+
+@router.get(
+    "/org/key-info",
+    response_model=ApiKeyInfoPublic,
+    summary="Describe the calling API key",
+    description=(
+        "Authenticated with `Authorization: Bearer bk_...` (an organisation API "
+        "key, not a user session). Any valid key may call it. 401 for an "
+        "unknown, expired or revoked key; 403 for a suspended organisation."
+    ),
+    responses={**AUTHENTICATED},
+)
+async def key_info(*, caller: ApiKeyCaller) -> Any:
+    return ApiKeyInfoPublic(
+        organisation_id=caller.organisation_id,
+        key_id=caller.key.id,
+        name=caller.key.name,
+        key_prefix=caller.key.key_prefix,
+        scopes=sorted(caller.scopes),
+        expires_at=caller.key.expires_at,
     )
 
 
@@ -175,8 +494,8 @@ async def _admin_detail(
             OrganisationAppPublic(app_key=a.app_key, enabled=a.enabled) for a in apps
         ],
         available_apps=[
-            AppOptionPublic(key=app.key, label=app.label)
-            for app in auth_apps.all_apps()
+            AppOptionPublic(key=option.key, label=option.label)
+            for option in entitlements.options()
         ],
     )
 

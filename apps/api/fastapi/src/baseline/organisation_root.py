@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from src.hr.models import Organisation
 from src.organisations import service as organisations_service
+from src.organisations import sites as organisations_sites
 
 GAA_ORGANISATION_ID = "gaa"
 GAA_ORGANISATION_NAME = "Grenada Airports Authority"
@@ -20,6 +21,7 @@ def seed_organisation(session: Session) -> None:
     organisations_service.ensure_for_hr_organisation_sync(
         session, organisation_id=GAA_ORGANISATION_ID, name=GAA_ORGANISATION_NAME
     )
+    organisations_sites.ensure_default_public_sites_sync(session)
 
 
 async def seed_organisation_async(session: AsyncSession) -> None:
@@ -34,3 +36,4 @@ async def seed_organisation_async(session: AsyncSession) -> None:
         name=GAA_ORGANISATION_NAME,
         code="GAA",
     )
+    await organisations_sites.ensure_default_public_sites(session)

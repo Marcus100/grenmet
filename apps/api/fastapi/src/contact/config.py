@@ -24,7 +24,12 @@ contact_settings = ContactConfig()
 
 
 def recipient_for(site: str) -> str | None:
-    """Inbox configured for one website. Each site has its own setting."""
+    """Environment fallback inbox for a pre-N1 site; None for any other site.
+
+    Deprecated: a public site's ``contact_recipient`` (``org.public_site``) wins.
+    Delete once every environment sets recipients on the site rows."""
     if site == "barrels":
         return contact_settings.BARRELS_CONTACT_RECIPIENT
-    return contact_settings.MBIA_CONTACT_RECIPIENT
+    if site == "mbia":
+        return contact_settings.MBIA_CONTACT_RECIPIENT
+    return None

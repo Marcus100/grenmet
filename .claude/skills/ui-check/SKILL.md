@@ -56,7 +56,10 @@ It needs the app's dev server, which runs on the host, never inside the
 devcontainer. If it exits 2, nothing is listening: ask the user to start the
 command it prints (see `docs/ports.md`), then rerun. Read every PNG it lists.
 Fix each `FLAG` line (horizontal overflow, console errors, failed requests) before
-any visual review; those are defects, not taste.
+any visual review; those are defects, not taste. Aborted `_rsc` prefetches are
+navigation noise, not defects. Dark captures force the `dark` class, so ignore
+them for light-only apps (`docs`). To check a deployed build instead, pass
+`--url https://<app>.staging.barrels.gd`.
 
 **Step 6 — Independent review**
 Do not approve your own render. Start a fresh-context subagent and give it only:

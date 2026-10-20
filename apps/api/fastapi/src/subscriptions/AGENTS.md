@@ -6,7 +6,8 @@
 `list_subscription` (unique `list_key` + lower-cased `email`; `status` pending/confirmed/unsubscribed; `requested_at`, `confirmed_at`, `unsubscribed_at` are the consent record).
 
 ## Flow
-- `POST /api/v1/subscriptions` (public, 5/min per IP) always answers 202 with the same message: new, pending, confirmed, unsubscribed and suppressed addresses are indistinguishable. A pending address is not mailed again inside `SUBSCRIPTIONS_RESEND_MINUTES`; an unsubscribed one restarts double opt-in.
+- `POST /api/v1/subscriptions/public/{site_key}` (public, 5/min per IP) subscribes to the list of an organisation's public site (`org.public_site`, PF1, `accepts_subscriptions`). The list key is the site key and the list name is the site name. 404 when the site is unknown, its organisation is suspended or it has no list. The site's Turnstile policy applies. `POST /api/v1/subscriptions` (`list_key` in the body) is **deprecated** and resolves the same site for Turnstile.
+- Both always answer 202 with the same message: new, pending, confirmed, unsubscribed and suppressed addresses are indistinguishable. A pending address is not mailed again inside `SUBSCRIPTIONS_RESEND_MINUTES`; an unsubscribed one restarts double opt-in.
 - The route verifies Turnstile first (`turnstile_token`, `src.turnstile`); enforced only when `TURNSTILE_ENABLED`, fails closed on a Cloudflare outage. The 400 is generic so it does not reveal list state.
 - Confirmation email is queued in the notifications outbox (`transactional=False`, template `subscription-confirm`; React Email in `packages/email-templates`, Jinja fallback `email-templates/build/subscription_confirm.html`).
 - `GET /subscriptions/confirm?token=` and `/unsubscribe?token=` verify a signed JWT (`purpose` claim; confirm expires, unsubscribe does not) and 303-redirect to `<site>/subscribe/status?result=...`. Links are GET by design (one click from an email); mail scanners that prefetch can confirm, which is the accepted trade-off.
@@ -14,7 +15,7 @@
 
 ## Invariants
 - Never reveal whether an address exists. Never send mail from a request. Redirect targets come only from config.
-- A new product adds its list in `constants.py` and its origin in `SUBSCRIPTIONS_SITE_URLS`; no schema change.
+- A new product creates a public site with `accepts_subscriptions` and `site_url`; no code change. Confirm and unsubscribe redirects use `service.site_url_for` (the site row first, then `SUBSCRIPTIONS_SITE_URLS`). The CAP worker still uses the synchronous environment-only `site_url` (follow-up).
 - `gms-alerts` ("GMS weather alerts") is the CAP list: confirmed addresses get one email per published, updated or cancelled alert from the worker (`src/worker/cap_email.py`). The GMS site redirects `/subscribe/status` to `/alerts/get-alerts` with the query kept, where the page shows the result.
 
 ## Tests

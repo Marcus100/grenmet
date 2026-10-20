@@ -14,11 +14,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from src.audit import service as audit_service
-from src.auth import apps as auth_apps
 from src.auth.models import User
 from src.exceptions import AppException
 from src.hr.models import Organisation as HrOrganisation
+from src.organisations import entitlements
 from src.organisations.exceptions import (
+    OrganisationAppNotEntitledError,
     OrganisationNotFoundError,
     OrganisationRoleError,
     OrganisationSuspendedError,
@@ -205,7 +206,8 @@ async def add_member(
 async def set_app_enabled(
     session: AsyncSession, *, organisation_id: str, app_key: str, enabled: bool
 ) -> OrganisationApp:
-    auth_apps.get_app(app_key)  # raises 404 for an unregistered app key
+    if not entitlements.is_known(app_key):
+        raise AppException("Unknown app", 404)
     row = await session.get(OrganisationApp, (organisation_id, app_key))
     if row is None:
         row = OrganisationApp(
@@ -265,6 +267,28 @@ async def resolve_membership(
     if organisation.status != OrganisationStatus.ACTIVE.value:
         raise OrganisationSuspendedError()
     return ResolvedMembership(organisation=organisation, membership=membership)
+
+
+async def is_app_enabled(
+    session: AsyncSession, *, organisation_id: str, app_key: str
+) -> bool:
+    """Whether the organisation holds an enabled entitlement to ``app_key``."""
+    enabled = await session.scalar(
+        select(OrganisationApp.enabled).where(
+            OrganisationApp.organisation_id == organisation_id,
+            OrganisationApp.app_key == app_key,
+        )
+    )
+    return bool(enabled)
+
+
+async def require_app_enabled(
+    session: AsyncSession, *, organisation_id: str, app_key: str
+) -> None:
+    if not await is_app_enabled(
+        session, organisation_id=organisation_id, app_key=app_key
+    ):
+        raise OrganisationAppNotEntitledError()
 
 
 def role_allows(role: str, minimum: MembershipRole) -> bool:
@@ -499,7 +523,7 @@ async def admin_set_app(
     *,
     enabled: bool,
 ) -> OrganisationApp:
-    if not auth_apps.is_registered(app_key):
+    if not entitlements.is_known(app_key):
         raise AppException("Unknown app", 422)
     await _load(session, organisation_id)
     audit_service.set_actor(session, actor.id)

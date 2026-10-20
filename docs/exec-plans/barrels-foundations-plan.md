@@ -1,8 +1,8 @@
 # Barrels Foundations Plan
 
-**Status:** Active plan — owner decisions recorded 2026-10-18 and 2026-10-19  
+**Status:** Active plan — owner decisions recorded 2026-10-18, 2026-10-19 and 2026-10-20  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-19 (Barrels Bookings, B-series)
+**Last updated:** 2026-10-20 (platform foundations, PF-series; PF1-PF10 built, PF11 API built)
 
 ## Purpose
 
@@ -207,6 +207,17 @@ Three staging failures tonight passed every local gate:
 | 33 | One source for app lists: derive the shared-Sentry app lists in `scripts/integrations/catalogue.mjs` and `scripts/production/render-env.py` from the service catalogue, and fail CI when a release-scope app has no catalogue entry | Platform | S | Open |
 | 34 | Host tooling notes: `jq` is not installed (use `gh --jq`); turn Docker Desktop's WSL integration back on after a disk compaction | Platform | S | Open |
 
+## Owner decisions (2026-10-20)
+
+| Decision | Choice |
+| --- | --- |
+| Platform foundations | Build the shared APIs every future app uses before more product features: org config and access, reliability primitives, payments core, org contacts, org API keys, outbound webhooks and feature flags (PF-series below) |
+| Payments | Build a provider-neutral payments core **plus a Stripe test-mode adapter** now, with funds on Barrels' merchant account and payouts manual ([ADR-0027](../adr/0027-payments-core-and-providers.md)). No live card rail until the owner approves |
+| API keys | Organisation-scoped; scopes come from `permissions.py` and are never wider than the creator's role; stored hashed, shown once, expiring, rotatable, audited ([ADR-0029](../adr/0029-organisation-api-keys-and-webhooks.md)). Supersedes "N4 waits for a client" |
+| Migration of existing domains | Each primitive ships with one pilot consumer; other domains move one per PR |
+| Rewards | Generic earn sources, Passport and trails, achievements, check-in streaks, organisation rewards admin. Guardrails relaxed for opt-in leaderboards, community challenges and stamp gifting, under constraints ([ADR-0030](../adr/0030-rewards-earn-sources-and-gamification.md)) |
+| Public site owners | `barrels` and `signal` belong to the `barrels` organisation; `mbia` and `gms-alerts` belong to `gaa` |
+
 ## What exists today
 
 | Capability | Evidence | Gap |
@@ -265,12 +276,12 @@ can start after F3. P1 to P3 follow C2. H1 is independent.
 | # | Slice | Size | Mode |
 | --- | --- | --- | --- |
 | N0 | ADR-0025, conventions test, shared `GRENADA`/`zone()` everywhere, one router prefix style, `HrRolePublic` rename, Bookings on `org`/`public` zones | S | U — built on branch `claude/bookings-b1-b2` |
-| N1 | Per-organisation settings tables replace per-site environment settings (`contact` recipients, `SUBSCRIPTIONS_SITE_URLS`, Barrels/MBIA branches) | M | U |
-| N2 | Public forms take an organisation-owned public slug instead of a free `site` field; Turnstile per organisation | M | U |
+| N1 | Per-organisation settings tables replace per-site environment settings (`contact` recipients, `SUBSCRIPTIONS_SITE_URLS`, Barrels/MBIA branches) | M | U — built as PF1 (`org.public_site`); environment fallback stays until every environment sets the site rows |
+| N2 | Public forms take an organisation-owned public slug instead of a free `site` field; Turnstile per organisation | M | U — built as PF1: `/contact/public/{site_key}/messages`, `/subscriptions/public/{site_key}`, Turnstile per site; old routes deprecated |
 | N3 | Migrate legacy zones with deprecated aliases: `events/manage` → `events/org`, `organisations/mine` → `organisations/me`, `hr/dashboard`; regenerate the client, move consumers, delete aliases | L | U (one domain per PR) |
-| N4 | Non-browser credential: organisation-scoped API keys or tokens for mobile, kiosk and partner clients | M | O (when the first such client is approved) |
+| N4 | Non-browser credential: organisation-scoped API keys or tokens for mobile, kiosk and partner clients | M | U — approved 2026-10-20 as PF5 ([ADR-0029](../adr/0029-organisation-api-keys-and-webhooks.md)) |
 
-Order: N0 → N1 → N2. N3 runs alongside, one domain at a time. N4 waits for a client.
+Order: N0 → N1 → N2 (both done in PF1). N3 runs alongside, one domain at a time. N4 is PF5.
 
 ### Bookings
 
@@ -291,6 +302,26 @@ Babydoll first. Main-database slices, one at a time.
 Order: B1 → B2 → B3 → B4. B5 can start after B1. B6 follows B3 once a payment
 provider has onboarded Barrels.
 
+### Platform foundations (PF-series, owner decision 2026-10-20)
+
+Each primitive ships with one pilot consumer. Other domains move onto it one per PR.
+
+| # | Slice | Pilot consumer | Depends on | Status |
+| --- | --- | --- | --- | --- |
+| PF1 | **Org config and access.** N1 `org.public_site` (recipient, origin, Turnstile per site; the secret is Fernet-encrypted via `src/utils/secret_box.py` and `ORG_SECRET_ENCRYPTION_KEYS`). N2 site-keyed public routes. Request-time entitlements (`require_org_app`; products `bookings`, `rewards` in `src/organisations/entitlements.py`) | contact, subscriptions, bookings and rewards organisation routes | — | Built on `ccr-1892d1ff-r3cjk9`; control-plane "Sites" UI is C3 |
+| PF2 | **Reliability.** Shared `Idempotency-Key` with stored-response replay; one outbox table and runner with a single retry policy ([ADR-0026](../adr/0026-platform-reliability-primitives.md)) | Bookings B3 create | PF1 | Built (`reliability20261020`): idempotency, outbox, Bookings B3. Events, notifications and CAP loops are not moved onto it yet (one domain per PR; Events needs a separate-database design check) |
+| PF3 | **Org contacts.** `org.contact` with hashed email, consent and source; lookup, upsert and audited merge ([ADR-0028](../adr/0028-organisation-contacts.md)) | `bookings.customer`, then `billing.customer` | PF1 | Built (`src/contacts`, `orgcontacts20261020`). Bookings links customers to contacts when the organisation has the `contacts` entitlement; `billing.customer` is not wired yet |
+| PF4 | **Payments core.** Intents, attempts, append-only ledger, refunds; `PaymentProvider` with `manual` and Stripe test-mode adapters; reconciliation report ([ADR-0027](../adr/0027-payments-core-and-providers.md)) | Events paid tier or Bookings deposit (sandbox) | PF2, PF3 | Built, **test mode only** (`payments20261020`; `manual` and Stripe test adapters, live keys refused, payouts idempotent). Events paid tiers and booking deposits (B6) are not wired; the live rail stays gated |
+| PF5 | **Org API keys** (N4) | Bookings read | PF1 | Built (`orgapikeys20261020`). Bookings reads and rewards programme read/redemption confirm accept keys; bookings write routes arrive with B5 |
+| PF6 | **Outbound webhooks:** registry, HMAC signing generalised from CAP, delivery on the PF2 runner | `booking.created`, `payment.succeeded` | PF2, PF5 | Built (`webhooksout20261020`). Emitters: bookings, payments, contacts |
+| PF7 | **Feature flags** (accept ADR-0020) | Babydoll `/book` switch (B4) | PF1 | Built (`featureflags20261020`); control-plane page `/flags` in `apps/web/admin` |
+| PF8 | **Rewards earn sources:** `rewards.qualifying_action` on the outbox replaces `sync_event_rewards` ([ADR-0030](../adr/0030-rewards-earn-sources-and-gamification.md)) | Events admission, then bookings | PF2 | Built: catalogue, `record_qualifying_action`, outbox handler, `bookings.completed`. Events admissions still use `sync_event_rewards` |
+| PF9 | **Gamification core:** Passport and trails (U5), achievements, check-in streaks (signed venue QR) | Events, venue check-in | PF8 | Built (`rewardsgame20261020`); account Rewards tab shows passport, achievements, streak and check-in |
+| PF10 | **Social layer**, each behind a PF7 flag: opt-in leaderboards, community challenges, stamp gifting. Gifting is off in production until an accountant and legal sign-off | Account Rewards tab | PF7, PF9 | Built (API, `rewardssocial20261020`), every mechanic off by default behind flags; gifting is hard-off in production. No UI yet |
+| PF11 | **Org rewards admin:** stamp cards, trails, challenges, redemptions | admin, Babydoll studio | PF8 | API half built (programme pause/resume, entries, redemptions, venues, trails, achievements). The organisation-facing UI is not built: it needs a decision on which app organisation admins use |
+
+Order: PF1 → PF2 → (PF3, PF5, PF7, PF8) → PF4 → (PF6, PF9) → PF10, PF11. Main-database slices land one at a time to keep a single Alembic head.
+
 ## Barrels ID and rewards
 
 One Barrels ID across every product, with rewards that follow completed
@@ -307,16 +338,23 @@ and the [loyalty reference study](../strategy/loyalty-reference-study.md).
 | U5 | Barrels Passport: non-monetary stamps and collections for real attendance (parishes, Carriacou, Petite Martinique, festival trails) | E2, U2 | U (sample trail) |
 | U6 | Universal Barrels Points | Evidence from U3 and the Events pilot | Explore only |
 
-Rewards guardrails: no cash withdrawal, person-to-person transfer, point
-purchases or cryptocurrency, and nothing that works as stored value without a
-licence. No public spending leaderboards, random prize mechanics or rewards for
-opening the app.
+Rewards guardrails (amended 2026-10-20, [ADR-0030](../adr/0030-rewards-earn-sources-and-gamification.md)):
+- Still banned: cash withdrawal, point purchases, cryptocurrency, anything that
+  works as stored value without a licence, spend-ranked leaderboards, random
+  prize mechanics, and rewards for opening the app.
+- Now allowed, behind flags:
+  - opt-in, action-ranked leaderboards;
+  - community challenges;
+  - streaks from real-world check-ins;
+  - stamp gifting, limited to non-redeemable or capped stamps and off in
+    production until an accountant and legal sign-off.
 
 ## Do not build yet
 
 AI gateway, Knowledge and Automate; workspaces; Places API and a search engine;
-SMS, push and WhatsApp; card checkout, payouts and wallets (except booking
-deposits through the B6 adapter, owner decision 2026-10-19); Shop and Salesbus
+SMS, push and WhatsApp; live card checkout, payouts and wallets (the PF4
+payments core and its Stripe test-mode adapter are approved, owner decision
+2026-10-20; a live rail needs a separate owner approval); Shop and Salesbus
 extraction; `hr.barrels.gd` as its own app; organisation scope for CAP, weather,
 janitorial or transport; a separate Barrels Business app; microservices.
 

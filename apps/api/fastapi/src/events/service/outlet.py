@@ -39,6 +39,7 @@ from ..models import (
     TicketTier,
     TillSession,
 )
+from . import holds
 from .admission import _door_listing, _names
 from .common import GRENADA, _naive_utc, _pairs
 
@@ -60,13 +61,17 @@ def money(minor: int) -> str:
 
 
 async def _stock(db: AsyncSession, tier_ids: list[uuid.UUID]) -> dict[uuid.UUID, int]:
-    return _pairs(
+    """Seats taken per tier: valid tickets plus stock held by unpaid online orders."""
+    taken: dict[uuid.UUID, int] = _pairs(
         await db.execute(
             select(Ticket.tier_id, func.count())
             .where(Ticket.tier_id.in_(tier_ids), Ticket.status == "valid")
             .group_by(Ticket.tier_id)
         )
     )
+    for tier_id, held in (await holds.held_by_tier(db, tier_ids)).items():
+        taken[tier_id] = taken.get(tier_id, 0) + held
+    return taken
 
 
 def _selling(listing: Listing) -> bool:

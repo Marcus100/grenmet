@@ -26,4 +26,7 @@ export const contactSendContactMessageErrorSchema = z.union([
   contactSendContactMessageStatus422Schema,
 ]);
 
-export const contactSendContactMessageBodySchema = contactMessageCreateSchema;
+export const contactSendContactMessageBodySchema =
+  contactMessageCreateSchema.describe(
+    "Deprecated body for ``POST /contact/messages``: the site is a body field."
+  );

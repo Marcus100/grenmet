@@ -6,11 +6,12 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.notifications import service as notification_service
+from src.organisations.sites import ResolvedSite
 from src.utils.datetime import utc_now
 
 from .config import contact_settings, recipient_for
 from .models import ContactDataRequest, ContactMessage
-from .schemas import ContactMessageCreate, DataRequestCreate
+from .schemas import ContactMessageBody, DataRequestCreate
 
 logger = logging.getLogger(__name__)
 
@@ -25,12 +26,23 @@ def _notification_html(message: ContactMessage) -> str:
     )
 
 
+def site_recipient(site_key: str, site: ResolvedSite | None) -> str | None:
+    """The site's own inbox, else the deprecated environment setting."""
+    if site is not None and site.contact_recipient:
+        return site.contact_recipient
+    return recipient_for(site_key)
+
+
 async def submit_message(
-    *, session: AsyncSession, payload: ContactMessageCreate
+    *,
+    session: AsyncSession,
+    payload: ContactMessageBody,
+    site_key: str,
+    site: ResolvedSite | None,
 ) -> ContactMessage:
-    """Store the message; queue one email to the configured recipient."""
+    """Store the message; queue one email to the site's recipient."""
     message = ContactMessage(
-        site=payload.site.value,
+        site=site_key,
         name=payload.name.strip(),
         email=str(payload.email).strip(),
         subject=payload.subject.strip(),
@@ -39,7 +51,7 @@ async def submit_message(
     session.add(message)
     await session.flush()
 
-    recipient = recipient_for(message.site)
+    recipient = site_recipient(site_key, site)
     if recipient:
         notification_service.enqueue_email(
             session=session,

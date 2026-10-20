@@ -77,3 +77,75 @@ class InvitationAcceptedError(AppException):
         super().__init__(
             "This invitation has already been accepted", status.HTTP_409_CONFLICT
         )
+
+
+class OrganisationAppNotEntitledError(AppException):
+    """Only raised after membership is proven, so it reveals nothing to outsiders."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This organisation is not entitled to this app",
+            status.HTTP_403_FORBIDDEN,
+        )
+
+
+class PublicSiteNotFoundError(AppException):
+    def __init__(self) -> None:
+        super().__init__("Site not found", status.HTTP_404_NOT_FOUND)
+
+
+class SecretStorageUnavailableError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            "Secret storage is not configured; contact the platform operator",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+
+class ApiKeyInvalidError(AppException):
+    """Unknown, malformed, expired or revoked: one message so a key reveals nothing."""
+
+    def __init__(self) -> None:
+        super().__init__("Invalid or expired API key", status.HTTP_401_UNAUTHORIZED)
+
+
+class ApiKeyRateLimitedError(AppException):
+    def __init__(self) -> None:
+        super().__init__("Too many requests", status.HTTP_429_TOO_MANY_REQUESTS)
+
+
+class ApiKeyScopeMissingError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            "This API key does not have the required scope", status.HTTP_403_FORBIDDEN
+        )
+
+
+class ApiKeyScopeInvalidError(AppException):
+    def __init__(self, scope: str) -> None:
+        super().__init__(
+            f"Unknown API key scope: {scope}", status.HTTP_422_UNPROCESSABLE_CONTENT
+        )
+
+
+class ApiKeyScopeNotAllowedError(AppException):
+    """The organisation is not entitled to the scope's product, so no key may hold it."""
+
+    def __init__(self, scope: str) -> None:
+        super().__init__(
+            f"This organisation cannot grant the scope {scope}",
+            status.HTTP_403_FORBIDDEN,
+        )
+
+
+class ApiKeyNotFoundError(AppException):
+    def __init__(self) -> None:
+        super().__init__("API key not found", status.HTTP_404_NOT_FOUND)
+
+
+class ApiKeyNotActiveError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            "This API key is revoked or expired and cannot be rotated",
+            status.HTTP_409_CONFLICT,
+        )

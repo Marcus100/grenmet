@@ -29,13 +29,19 @@ async def make_org(
     name: str,
     *,
     members: tuple[tuple[User, MembershipRole], ...] = (),
+    apps: tuple[str, ...] = (),
 ) -> PlatformOrganisation:
+    """An active organisation with members and enabled entitlements (``apps``)."""
     organisation = await service.create_organisation(
         session, name=name, kind=OrganisationKind.BUSINESS
     )
     for user, role in members:
         await service.add_member(
             session, organisation_id=organisation.id, user_id=user.id, role=role
+        )
+    for app_key in apps:
+        await service.set_app_enabled(
+            session, organisation_id=organisation.id, app_key=app_key, enabled=True
         )
     await session.commit()
     return organisation

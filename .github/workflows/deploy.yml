@@ -86,6 +86,7 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           AUTH_PRIVILEGED_MFA_MODE: ${{ vars.AUTH_PRIVILEGED_MFA_MODE }}
           AUTH_TOTP_ENCRYPTION_KEYS: ${{ secrets.AUTH_TOTP_ENCRYPTION_KEYS }}
+          ORG_SECRET_ENCRYPTION_KEYS: ${{ secrets.ORG_SECRET_ENCRYPTION_KEYS }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           FASTAPI_DB_PASSWORD: ${{ secrets.FASTAPI_DB_PASSWORD }}
@@ -155,6 +156,10 @@ jobs:
           WEBPUSH_VAPID_PUBLIC_KEY: ${{ vars.WEBPUSH_VAPID_PUBLIC_KEY }}
           WEBPUSH_CONTACT: ${{ vars.WEBPUSH_CONTACT }}
           WEBPUSH_VAPID_PRIVATE_KEY: ${{ secrets.WEBPUSH_VAPID_PRIVATE_KEY }}
+          PAYMENTS_STRIPE_SECRET_KEY: ${{ secrets.PAYMENTS_STRIPE_SECRET_KEY }}
+          PAYMENTS_STRIPE_WEBHOOK_SECRET: ${{ secrets.PAYMENTS_STRIPE_WEBHOOK_SECRET }}
+          PAYMENTS_STRIPE_SUCCESS_URL: ${{ vars.PAYMENTS_STRIPE_SUCCESS_URL }}
+          PAYMENTS_STRIPE_CANCEL_URL: ${{ vars.PAYMENTS_STRIPE_CANCEL_URL }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Install declared monitoring after application acceptance

@@ -13,4 +13,5 @@ export const programCreateSchema = z.object({
   max_redemptions_per_account: z
     .union([z.int().min(1).max(1000), z.null()])
     .optional(),
+  qualifying_source_type: z.string().optional().default("events.admission"),
 });

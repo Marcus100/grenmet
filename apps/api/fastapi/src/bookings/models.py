@@ -214,6 +214,12 @@ class Customer(Base):
     email_hash: Mapped[str | None] = mapped_column(String(64))
     phone: Mapped[str | None] = mapped_column(String(40))
     marketing_consent: Mapped[bool] = mapped_column(default=False)
+    #: The organisation's contact-book record for this person (PF3), when the
+    #: organisation has the `contacts` product. The contact is erased or merged
+    #: independently of bookings, so deleting it only clears this link.
+    contact_id: Mapped[str | None] = mapped_column(
+        String(100), ForeignKey("org.contact.id", ondelete="SET NULL"), index=True
+    )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     last_booked_at: Mapped[datetime | None]
 

@@ -7,6 +7,8 @@ Resolution order and error contract:
    same message, so an organisation's existence is never revealed to outsiders.
 3. Organisation suspended -> 403.
 4. Member whose role is too low for the route -> 403 (``OrgAdmin``, ``OrgOwner``).
+5. Organisation not entitled to the route's app or product -> 403
+   (``require_org_app``; ``org.organisation_app``, keys in ``entitlements.py``).
 
 There is deliberately no superuser bypass. A route is only organisation-isolated
 if it uses one of these aliases **and** has a cross-organisation denial test.
@@ -21,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.dependencies import AccountUser, SessionDep
-from src.organisations import service
+from src.organisations import entitlements, service
 from src.organisations.exceptions import (
     OrganisationContextRequiredError,
     OrganisationNotFoundError,
@@ -109,6 +111,30 @@ def require_org_role(
         context: Annotated[OrgContext, Depends(get_org_context)],
     ) -> OrgContext:
         context.require_role(minimum)
+        return context
+
+    return dependency
+
+
+def require_org_app(
+    app_key: str, minimum: MembershipRole = MembershipRole.MEMBER
+) -> Callable[..., Awaitable[OrgContext]]:
+    """Build a dependency that resolves ``OrgContext``, enforces a minimum role and
+    requires the organisation's entitlement to ``app_key``.
+
+    The entitlement is checked last, after membership is proven, so its 403
+    reveals nothing to outsiders."""
+    if not entitlements.is_known(app_key):
+        raise ValueError(f"Unknown entitlement key: {app_key}")
+
+    async def dependency(
+        session: SessionDep,
+        context: Annotated[OrgContext, Depends(get_org_context)],
+    ) -> OrgContext:
+        context.require_role(minimum)
+        await service.require_app_enabled(
+            session, organisation_id=context.organisation_id, app_key=app_key
+        )
         return context
 
     return dependency

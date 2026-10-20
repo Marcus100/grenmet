@@ -15,5 +15,12 @@ class SubscribeRequest(BaseModel):
     turnstile_token: str | None = Field(default=None, max_length=2048)
 
 
+class SiteSubscribeRequest(BaseModel):
+    """Subscribe to the list of the public site named in the path."""
+
+    email: EmailStr = Field(max_length=254)
+    turnstile_token: str | None = Field(default=None, max_length=2048)
+
+
 class SubscribeAccepted(BaseModel):
     message: str

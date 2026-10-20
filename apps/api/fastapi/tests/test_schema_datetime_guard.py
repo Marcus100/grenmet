@@ -113,6 +113,7 @@ MAP_TYPE_EXEMPTIONS = {
     "src.eregister.schemas.RegisterObservationCreate.body": "WMO observation body is format-specific opaque data",
     "src.eregister.schemas.RegisterObservationRead.body": "WMO observation body is format-specific opaque data",
     "src.eregister.schemas.RegisterObservationWrite.body": "WMO observation body is format-specific opaque data",
+    "src.webhooks_out.schemas.WebhookEventTypePublic.data_schema": "a JSON Schema document describing an event's data",
     "src.wxproducts.observations.ObservationRecord.payload": "observation payload preserves source-specific representations",
     "src.wxproducts.schemas.ForecastPeriod.details": "legacy forecast presentation map",
     "src.wxproducts.schemas.LegacyProductPdfSource.values": "frozen legacy product payload",
@@ -125,6 +126,8 @@ MAP_TYPE_EXEMPTIONS = {
     "src.wxproducts.schemas.PublicPublishedProduct.values": "frozen anonymous product feed contract",
     "src.wxproducts.schemas.PublishedProductBase[dict[str, str]].values": "frozen legacy product payload",
     "src.wxproducts.schemas.StoredProductBase[dict[str, str]].values": "frozen legacy product payload",
+    "src.rewards.schemas_gamification.RewardsAchievementCreate.parameters": "rule-type-specific parameters (n, days, trail_id) validated by the rewards service",
+    "src.rewards.schemas_gamification.RewardsAchievementDefinitionPublic.parameters": "rule-type-specific parameters (n, days, trail_id) validated by the rewards service",
     "src.storage.schemas.UploadTicket.headers": "presigned PUT headers are dictated by the object store signature",
     "src.wxwatch.nhc_schemas.NhcPrefill.values": "proposed legacy scalar product values; structured facts are typed separately",
 }

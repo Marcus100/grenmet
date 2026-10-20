@@ -8,10 +8,9 @@ from src.models import BaseModel
 from .models import ContactSite
 
 
-class ContactMessageCreate(BaseModel):
-    # The website the message came from; selects its inbox. Defaults to MBIA so
-    # existing MBIA callers are unchanged.
-    site: ContactSite = ContactSite.MBIA
+class ContactMessageBody(BaseModel):
+    """A contact message sent to the site named in the path."""
+
     name: str = Field(min_length=2, max_length=120)
     email: EmailStr = Field(max_length=254)
     subject: str = Field(min_length=1, max_length=200)
@@ -19,6 +18,14 @@ class ContactMessageCreate(BaseModel):
     # Cloudflare Turnstile response token. Required when TURNSTILE_ENABLED; see
     # src.turnstile.
     turnstile_token: str | None = Field(default=None, max_length=2048)
+
+
+class ContactMessageCreate(ContactMessageBody):
+    """Deprecated body for ``POST /contact/messages``: the site is a body field."""
+
+    # The website the message came from; selects its inbox. Defaults to MBIA so
+    # existing MBIA callers are unchanged.
+    site: ContactSite = ContactSite.MBIA
 
 
 class ContactMessageAccepted(BaseModel):

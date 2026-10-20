@@ -390,7 +390,9 @@ Each: **Role** · **Specs** · **Context**.
 
 ### States every surface must design
 
-Empty ("No warnings in force" is a *good* state — say so plainly), loading (skeleton
+Empty ("No warnings in force" is a *good* state — say so plainly; owner rule:
+never auto-hide an empty section, show its empty state so it can be reviewed;
+editors hide sections through the CMS), loading (skeleton
 matching final layout, no shift), error (what failed + what to do), stale ("Latest
 observation 06:00 — older than usual"), and long content (wrapping station names,
 multi-day validity).

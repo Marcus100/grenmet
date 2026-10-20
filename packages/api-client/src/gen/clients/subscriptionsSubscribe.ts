@@ -11,9 +11,10 @@ import type {
 } from "../models/SubscriptionsSubscribe.js";
 
 /**
- * @description Starts a double opt-in subscription and emails a confirmation link. The reply is identical whether or not the address is already known or suppressed.
+ * @description Deprecated: use `POST /subscriptions/public/{site_key}`. Starts a double opt-in subscription and emails a confirmation link. The reply is identical whether or not the address is already known or suppressed.
  * @summary Subscribe to a mailing list
  * {@link /api/v1/subscriptions}
+ * @deprecated
  */
 export function subscriptionsSubscribe<ThrowOnError extends boolean = true>(
   options: Options<SubscriptionsSubscribeOptions, ThrowOnError>

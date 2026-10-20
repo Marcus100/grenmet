@@ -33,7 +33,15 @@ GitHub merges once the staging ruleset's required checks pass; `CI Success` and
 re-arm on it.
 On failure, diagnose and fix locally within scope, validate and push dev again.
 Monitor `pipeline-staging.yml` and verify its deployed SHA still equals staging
-head. Report readiness for authenticated acceptance or actionable failure;
+head. Then smoke-test what the promotion changed:
+- `curl -fsS https://api.staging.barrels.gd/api/v1/utils/health-check/`
+- `pnpm ui:screenshots --url https://<app>.staging.barrels.gd --path /` for each
+  web app in the promoted diff (hosts in `docs/ports.md`); read the PNGs and
+  treat console errors as defects. Aborted `_rsc` prefetches are not.
+- Probe new public API routes with `curl`; staging has no `/docs` page.
+- Pages behind sign-in: use Claude in Chrome if connected, otherwise list the
+  exact pages for the owner (`docs/agents/tool-usage.md`).
+Report readiness for authenticated acceptance or actionable failure;
 do not claim acceptance from CI alone. Stay quiet while status is unchanged.
 
 **3. staging → main**

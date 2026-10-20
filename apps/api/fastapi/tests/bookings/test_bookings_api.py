@@ -28,6 +28,7 @@ async def _studio(db: AsyncSession) -> tuple[User, User, str]:
         db,
         f"Salon {uuid.uuid4().hex[:6]}",
         members=((owner, MembershipRole.OWNER), (member, MembershipRole.MEMBER)),
+        apps=("bookings",),
     )
     return owner, member, org.id
 

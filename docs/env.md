@@ -135,6 +135,7 @@ the API image and the local source mount contain the same migration assets.
 | `POSTGRES_PASSWORD` | FastAPI DB password (matches `APP_DB_PASSWORD` in infra file) |
 | `WXPRODUCTS_DATABASE_URL` | PostgreSQL URL for the separate existing weather-products database; required to serve the public product feed. Use a hostname reachable from FastAPI (`grenmet-postgres` in local Compose, `host.docker.internal` from the devcontainer). The API role needs read/write access to authored products, revisions and their identity sequence; the migration runner needs schema ownership. Weather migrations are owned by FastAPI. Missing configuration returns 503, not an empty feed. |
 | `EVENTS_DATABASE_URL` | PostgreSQL URL for the Barrels Events database (e.g. `postgresql://events:changethis@grenmet-postgres:5432/events` locally). Optional: unset means `/api/v1/events/*` returns 503 and prestart skips its migrations. |
+| `EVENTS_ORDER_HOLD_MINUTES` | How long an unpaid paid-tier order holds its tickets before the `expire_unpaid_event_orders` job cancels it and releases the stock (default `30`). The Stripe rail is test mode only (`PAYMENTS_STRIPE_*`). |
 | `EVENTS_APP_URL` | Public URL of the Barrels Events web app (app-scoped sign-in, ADR-0016). Default `http://localhost:3009`. |
 | `EVENTS_SSO_CLIENT_SECRET` | Secret the Events web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters (`openssl rand -base64 32`). Set the same value for the API and the Events web app (which also needs `AUTH_APP_URL`); deployment reads the GitHub environment secret of this name. Empty disables single sign-on into Events and hides "Continue with your Barrels account". |
 | `GMSDASH_APP_URL` | Public URL of the GMS Dashboard web app (app-scoped sign-in). Default `http://localhost:3013`. |
@@ -160,7 +161,7 @@ the API image and the local source mount contain the same migration assets.
 | `GMS_DATA_REQUEST_RECIPIENT` | Inbox that receives GMS climate data requests (`POST /api/v1/contact/data-requests`). Unset: requests are stored and logged only; the requester's confirmation email is still queued. Transactional mail through the worker outbox |
 | `TURNSTILE_ENABLED` | Default `false`. When `true`, contact messages, data requests, subscribe and page feedback require a valid Cloudflare Turnstile token (`turnstile_token`), verified server-side by `src/turnstile.py`: a missing or rejected token is 400 "Verification failed". A Cloudflare outage or timeout (5 s) also fails closed with 400, because every protected form sends email or stores visitor data. Enabled without `TURNSTILE_SECRET_KEY` is 503 and an error log |
 | `TURNSTILE_SECRET_KEY` | Turnstile widget secret (free Cloudflare account). Secret: environment secret store only, never a committed file |
-| `EMAIL_HASH_PEPPER` | Secret key for the HMAC-SHA256 hash of suppressed and unsubscribed email addresses (`src/utils/email_hash.py`). Generate with `openssl rand -base64 32`; never reuse `SECRET_KEY`. Unset is allowed only when `ENVIRONMENT=local` (a fixed dev key is used); elsewhere hashing raises `EmailHashPepperMissingError` and the subscribe, suppression and email-dispatch paths fail, so set it in staging and production before this release. Rotating or losing it makes every stored hash unmatchable, so keep a copy with the other backed-up secrets. |
+| `EMAIL_HASH_PEPPER` | Secret key for the HMAC-SHA256 hash of suppressed and unsubscribed email addresses (`src/utils/email_hash.py`). Generate with `openssl rand -base64 32 | tr -d '\n'` and store it without a trailing newline (`gh secret set EMAIL_HASH_PEPPER --env <env> < pepper-file`); the deploy's render-config step rejects a multi-line value. Never reuse `SECRET_KEY`. Unset is allowed only when `ENVIRONMENT=local` (a fixed dev key is used); elsewhere hashing raises `EmailHashPepperMissingError` and the subscribe, suppression and email-dispatch paths fail, so set it in staging and production before this release. Rotating or losing it makes every stored hash unmatchable, so keep a copy with the other backed-up secrets. |
 | `FLIGHTS_OPENSKY_ENABLED` | Feature flag, default `false`. When `true` the worker polls OpenSky every 30 minutes and `GET /api/v1/flights/board` serves the Redis-cached rows. Research use only: commercial use needs a written OpenSky licence (owner decision pending). Needs `REDIS_URL` |
 | `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | Optional OpenSky OAuth2 client credentials (free account). Unset: anonymous access with a very small daily quota. Set in the environment secret store, never in a committed file |
 | `COPERNICUSMARINE_SERVICE_USERNAME`, `COPERNICUSMARINE_SERVICE_PASSWORD` | Copernicus Marine free account (secrets). Both set enables the worker fetch (every 6 h) and `GET /api/v1/environment/marine`; unset: `available: false`, never sample data |
@@ -367,6 +368,19 @@ Its typed defaults allow it to run without an env file.
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry DSN |
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile site key for the contact form. Unset: no widget and no token (fine while FastAPI has `TURNSTILE_ENABLED` off) |
+
+### Babydoll web (`apps/web/babydoll`, Vercel)
+
+Read through `src/env.ts` (hand-written, no schema library). Every value has a default; the site is fully static until the switch is on.
+
+| Variable | Purpose |
+|---|---|
+| `BABYDOLL_ONLINE_BOOKING` | `on` enables `/book` (live services, slots, booking). Anything else: `/book` redirects to the Acuity link. Stands in for the PF7 flag `babydoll-online-booking` until anonymous visitors can evaluate flags |
+| `BABYDOLL_API_URL` | FastAPI origin, server only (default `http://localhost:8000`) |
+| `BABYDOLL_BOOKING_SLUG` | The studio's `bookings.profile.public_slug` (default `babydoll-beauty-bar`; created by `python -m src.bookings.seed`) |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile key for the booking form. Unset: no widget and no token. The API uses the `babydoll` public site's Turnstile policy |
+
+FastAPI: `BOOKINGS_BABYDOLL_SITE_URL` (default `https://babydoll.barrels.gd`) is read only by the on-demand Babydoll seed (`src/bookings/seed.py`) for the booking manage link and the public site row.
 
 ### Scrapy script (`scripts/scrapy-wxwatch/.env.local`)
 
@@ -726,6 +740,29 @@ convert existing secrets and verify privileged enrolment/recovery readiness whil
 still disabled before enabling the gate; follow the MFA operator guide. This code
 change does not provision secrets or enable enforcement in production.
 
+### Organisation secrets (PF1)
+
+`ORG_SECRET_ENCRYPTION_KEYS` is a JSON array of dedicated Fernet keys: the current key first, then retained decryption keys. Never reuse `AUTH_TOTP_ENCRYPTION_KEYS` or `SECRET_KEY`. It encrypts secrets that organisations store on the platform, starting with a public site's Turnstile secret (`org.public_site`, `src/utils/secret_box.py`).
+
+- **Unset (the default):** saving such a secret returns 503. Sites keep the `inherit` Turnstile mode, which uses the global `TURNSTILE_*` settings.
+- **Malformed keys:** the API refuses to start.
+- **Deployment:** a GitHub environment **secret** named `ORG_SECRET_ENCRYPTION_KEYS` (`.github/workflows/deploy.yml`), validated by `scripts/production/render-env.py` (a JSON array of 32-byte Fernet keys; empty is allowed; the error never echoes values) and passed to the API, prestart, worker and nhc-worker (never the web apps). Generate a key with `python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` and store `["<key>"]`; to rotate, put the new key first and keep the old one after it until every stored secret has been re-saved. **Losing the keys makes stored organisation secrets unreadable** (Turnstile then falls back to the global setting), so keep a copy in the password manager.
+
+`MBIA_CONTACT_RECIPIENT`, `BARRELS_CONTACT_RECIPIENT` and `SUBSCRIPTIONS_SITE_URLS` are now fallbacks for the same values on the public site rows. Remove them once every environment sets `contact_recipient` and `site_url` through `PATCH /api/v1/organisations/admin/sites/{site_id}`.
+
+### Payments (PF4, test mode only)
+
+The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter runs in **test mode only**. They are wired into the deployment (`deploy.yml` → `render-env.py` → the API and worker in `docker-compose.deploy.yml`), but leave them **unset** in staging and production until the owner approves a payment rail. `render-env.py` refuses a `PAYMENTS_STRIPE_SECRET_KEY` that does not start with `sk_test_`, so a live key cannot be deployed by accident.
+
+| Variable | Purpose |
+| --- | --- |
+| `PAYMENTS_STRIPE_SECRET_KEY` | Stripe test secret. A key that does not start with `sk_test_` is refused at use, so a live key cannot enable a live rail. Unset: the Stripe adapter is disabled (the `manual` provider still works). |
+| `PAYMENTS_STRIPE_WEBHOOK_SECRET` | Signing secret for `POST /api/v1/payments/public/webhooks/stripe` (503 when unset). |
+| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | Where Stripe Checkout returns the customer (our HTTPS pages). Checkout answers 503 until both are set. |
+| `PAYMENTS_STRIPE_API_BASE` | Defaults to `https://api.stripe.com`; override only in tests. |
+| `PAYMENTS_WEBHOOK_TOLERANCE_SECONDS` | How old a signed webhook may be (default 300). |
+| `PAYMENTS_REQUEST_TIMEOUT_SECONDS` | Provider request timeout (default 10). |
+
 ## Deploy wiring for the 2026-10-18 integrations
 
 `deploy.yml` passes these to the API and worker containers. Unset values fall
@@ -740,3 +777,5 @@ back to each setting's default.
 | `CDSAPI_URL` | GitHub environment **variable** (optional) |
 | `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY`, `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET`, `WEBPUSH_VAPID_PRIVATE_KEY` | GitHub environment **secrets** |
 | `SUBSCRIPTIONS_SITE_URLS` | Committed in `infra/docker/staging.env` and `production.env` (non-secret) |
+| `ORG_SECRET_ENCRYPTION_KEYS`, `PAYMENTS_STRIPE_SECRET_KEY`, `PAYMENTS_STRIPE_WEBHOOK_SECRET` | GitHub environment **secrets** |
+| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | GitHub environment **variables** |

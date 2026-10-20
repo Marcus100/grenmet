@@ -92,6 +92,33 @@ describe("AppEntitlements", () => {
     expect(within(cms).getByText("Not set")).toBeTruthy();
     expect(within(cms).getByRole("button", { name: "Enable" })).toBeTruthy();
   });
+
+  it("renders toggles with labels for the bookings and rewards products", () => {
+    render(
+      <AppEntitlements
+        organisation={{
+          ...base,
+          apps: [{ app_key: "bookings", enabled: true }],
+          available_apps: [
+            { key: "bookings", label: "Bookings" },
+            { key: "rewards", label: "Rewards" },
+          ],
+        }}
+      />
+    );
+    const bookings = screen.getByText("Bookings").closest("li");
+    const rewards = screen.getByText("Rewards").closest("li");
+    if (!(bookings && rewards)) throw new Error("rows missing");
+    expect(within(bookings).getByText("bookings")).toBeTruthy();
+    expect(
+      within(bookings).getByRole("button", { name: "Disable" })
+    ).toBeTruthy();
+    expect(within(rewards).getByText("rewards")).toBeTruthy();
+    expect(within(rewards).getByText("Not set")).toBeTruthy();
+    expect(
+      within(rewards).getByRole("button", { name: "Enable" })
+    ).toBeTruthy();
+  });
 });
 
 describe("panels", () => {

@@ -3,18 +3,25 @@ import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { ApiKeysLoading } from "@/components/api-key-panels";
+import { ApiKeysSection } from "@/components/api-keys-section";
 import {
   AppEntitlements,
   OrganisationActions,
 } from "@/components/organisation-actions";
 import { HistoryPanel, MembersPanel } from "@/components/organisation-panels";
+import { SitesLoading } from "@/components/site-panels";
+import { SitesSection } from "@/components/sites-section";
 import { StaffOnly } from "@/components/staff-only";
 import {
   getOrganisation,
   getOrganisationHistory,
   listOrganisationMembers,
 } from "@/lib/api";
+import { apiKeyNoticeFor } from "@/lib/api-key-form";
 import { noticeFor } from "@/lib/organisation-form";
+import { siteNoticeFor } from "@/lib/site-form";
 import { requireGate } from "@/lib/staff-gate";
 
 export const metadata: Metadata = { title: "Organisation" };
@@ -47,7 +54,11 @@ export default async function OrganisationPage({
     listOrganisationMembers(gate.accessToken, id),
     getOrganisationHistory(gate.accessToken, id),
   ]);
-  const notice = noticeFor(Array.isArray(rawNotice) ? rawNotice[0] : rawNotice);
+  const noticeCode = Array.isArray(rawNotice) ? rawNotice[0] : rawNotice;
+  const notice =
+    noticeFor(noticeCode) ??
+    siteNoticeFor(noticeCode) ??
+    apiKeyNoticeFor(noticeCode);
 
   return (
     <>
@@ -107,6 +118,12 @@ export default async function OrganisationPage({
 
       <OrganisationActions organisation={organisation} />
       <AppEntitlements organisation={organisation} />
+      <Suspense fallback={<SitesLoading />}>
+        <SitesSection accessToken={gate.accessToken} organisationId={id} />
+      </Suspense>
+      <Suspense fallback={<ApiKeysLoading />}>
+        <ApiKeysSection accessToken={gate.accessToken} organisationId={id} />
+      </Suspense>
       <MembersPanel count={members.count} rows={members.data} />
       <HistoryPanel count={history.count} rows={history.data} />
     </>

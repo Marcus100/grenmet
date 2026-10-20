@@ -28,6 +28,19 @@ REQUIRED_SECRETS = ["POSTGRES_USER", "POSTGRES_PASSWORD", "FASTAPI_DB_PASSWORD",
 REQUIRED_SECRETS += [f"{domain}_DB_PASSWORD" for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "EVENTS", "CMS"]]
 
 
+def fernet_keys(environment, name):
+    """A JSON array of Fernet keys (current key first). The error never echoes values."""
+    try:
+        keys = json.loads(environment.get(name, "") or "[]")
+        if not isinstance(keys, list) or any(not isinstance(key, str) for key in keys):
+            raise ValueError
+        if any(len(base64.b64decode(key.encode("ascii"), altchars=b"-_", validate=True)) != 32 for key in keys):
+            raise ValueError
+    except (ValueError, UnicodeError, binascii.Error):
+        raise ValueError(f"{name} must be a JSON array of Fernet keys") from None
+    return keys
+
+
 def render(config, environment):
     required = REQUIRED_SECRETS
     values = {}
@@ -37,7 +50,7 @@ def render(config, environment):
         values[key] = environment[key]
     if len(values["PAYLOAD_SECRET"]) < 32:
         raise ValueError("PAYLOAD_SECRET must contain at least 32 characters")
-    for key in ['WXWATCH_INGEST_TOKEN', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SENTRY_DSN', 'STORAGE_ENDPOINT_URL', 'STORAGE_REGION', 'STORAGE_BUCKET', 'STORAGE_ACCESS_KEY_ID', 'STORAGE_SECRET_ACCESS_KEY', 'STORAGE_PUBLIC_BASE_URL', 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'ELECTIONS_SSO_CLIENT_SECRET', 'MBIA_CONTACT_RECIPIENT', 'BARRELS_CONTACT_RECIPIENT', 'GMS_DATA_REQUEST_RECIPIENT', 'TURNSTILE_ENABLED', 'TURNSTILE_SECRET_KEY', 'EMAIL_HASH_PEPPER', 'EREGISTER_OBS_RECIPIENTS', 'EREGISTER_SEND_REQUIRE_ACCEPTED', 'WIS2BOX_S3_ENDPOINT_URL', 'WIS2BOX_S3_BUCKET', 'WIS2BOX_TOPIC_HIERARCHY', 'FLIGHTS_OPENSKY_ENABLED', 'WIS2BOX_S3_ACCESS_KEY_ID', 'WIS2BOX_S3_SECRET_ACCESS_KEY', 'OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET', 'COPERNICUSMARINE_SERVICE_USERNAME', 'COPERNICUSMARINE_SERVICE_PASSWORD', 'CDSAPI_URL', 'CDSAPI_KEY', 'WEBPUSH_VAPID_PUBLIC_KEY', 'WEBPUSH_VAPID_PRIVATE_KEY', 'WEBPUSH_CONTACT', 'GMSDASH_SSO_CLIENT_SECRET']:
+    for key in ['WXWATCH_INGEST_TOKEN', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SENTRY_DSN', 'STORAGE_ENDPOINT_URL', 'STORAGE_REGION', 'STORAGE_BUCKET', 'STORAGE_ACCESS_KEY_ID', 'STORAGE_SECRET_ACCESS_KEY', 'STORAGE_PUBLIC_BASE_URL', 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'ELECTIONS_SSO_CLIENT_SECRET', 'MBIA_CONTACT_RECIPIENT', 'BARRELS_CONTACT_RECIPIENT', 'GMS_DATA_REQUEST_RECIPIENT', 'TURNSTILE_ENABLED', 'TURNSTILE_SECRET_KEY', 'EMAIL_HASH_PEPPER', 'EREGISTER_OBS_RECIPIENTS', 'EREGISTER_SEND_REQUIRE_ACCEPTED', 'WIS2BOX_S3_ENDPOINT_URL', 'WIS2BOX_S3_BUCKET', 'WIS2BOX_TOPIC_HIERARCHY', 'FLIGHTS_OPENSKY_ENABLED', 'WIS2BOX_S3_ACCESS_KEY_ID', 'WIS2BOX_S3_SECRET_ACCESS_KEY', 'OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET', 'COPERNICUSMARINE_SERVICE_USERNAME', 'COPERNICUSMARINE_SERVICE_PASSWORD', 'CDSAPI_URL', 'CDSAPI_KEY', 'WEBPUSH_VAPID_PUBLIC_KEY', 'WEBPUSH_VAPID_PRIVATE_KEY', 'WEBPUSH_CONTACT', 'GMSDASH_SSO_CLIENT_SECRET', 'PAYMENTS_STRIPE_SECRET_KEY', 'PAYMENTS_STRIPE_WEBHOOK_SECRET', 'PAYMENTS_STRIPE_SUCCESS_URL', 'PAYMENTS_STRIPE_CANCEL_URL']:
         values[key] = environment.get(key, "")
     # Single sign-on (ADR-0017): staff apps can't sign in without theirs;
     # Events stays off until its secret is set.
@@ -47,18 +60,22 @@ def render(config, environment):
     mode = environment.get("AUTH_PRIVILEGED_MFA_MODE", "") or "disabled"
     if mode not in {"disabled", "enforce"}:
         raise ValueError("AUTH_PRIVILEGED_MFA_MODE must be disabled or enforce")
-    try:
-        keys = json.loads(environment.get("AUTH_TOTP_ENCRYPTION_KEYS", "") or "[]")
-        if not isinstance(keys, list) or any(not isinstance(key, str) for key in keys):
-            raise ValueError
-        if any(len(base64.b64decode(key.encode("ascii"), altchars=b"-_", validate=True)) != 32 for key in keys):
-            raise ValueError
-    except (ValueError, UnicodeError, binascii.Error):
-        raise ValueError("AUTH_TOTP_ENCRYPTION_KEYS must be a JSON array of Fernet keys") from None
+    keys = fernet_keys(environment, "AUTH_TOTP_ENCRYPTION_KEYS")
     if mode == "enforce" and not keys:
         raise ValueError("AUTH_TOTP_ENCRYPTION_KEYS is required for enforced privileged MFA")
     values["AUTH_PRIVILEGED_MFA_MODE"] = mode
     values["AUTH_TOTP_ENCRYPTION_KEYS"] = json.dumps(keys, separators=(",", ":"))
+    # Secrets organisations store on the platform (public-site Turnstile secrets,
+    # venue check-in secrets, webhook signing secrets). Dedicated keys, never the
+    # TOTP ones. Empty is allowed: saving such a secret then answers 503.
+    values["ORG_SECRET_ENCRYPTION_KEYS"] = json.dumps(
+        fernet_keys(environment, "ORG_SECRET_ENCRYPTION_KEYS"), separators=(",", ":")
+    )
+    # The payments core runs in Stripe TEST mode only (ADR-0027): a live key must
+    # never reach a deployment until the owner approves a live rail.
+    stripe_key = values["PAYMENTS_STRIPE_SECRET_KEY"]
+    if stripe_key and not stripe_key.startswith("sk_test_"):
+        raise ValueError("PAYMENTS_STRIPE_SECRET_KEY must be a Stripe test key (sk_test_...)")
     telemetry_enabled = environment.get("TELEMETRY_ENABLED", "")
     if telemetry_enabled not in {"", "true", "false"}:
         raise ValueError("TELEMETRY_ENABLED must be true or false")
