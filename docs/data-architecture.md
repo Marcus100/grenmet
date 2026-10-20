@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-20
+**Last updated:** 2026-10-20
 
 Barrels Grenada currently uses a modular-monolith data model: several applications share one deployed PostgreSQL server, but each domain owns its database or schema boundary.
 
@@ -98,10 +98,10 @@ The workflow uses custom-format `pg_dump`, verifies each dump by restoring into 
 ## Current Gaps
 
 - No repo-level ER diagram.
-- No formal data retention policy encoded in migrations or cleanup jobs.
+- No retention rule encoded for official records (the table below). A daily personal-data purge exists (`purge_expired_data`, `src/worker/retention.py`): contact, subscriptions, feedback comments, idempotency and outbox rows, booking manage tokens.
 - No automated restore drill workflow.
 - No cross-domain data lineage catalogue.
-- No general audit table outside the CAP domain.
+- Field-level audit (`audit_entry`, `src/audit`) covers only domains that opt in (HR, billing, organisations, contacts, rewards, stores and others); aviation, forecasts and system configuration are not registered.
 
 These are governance and operations gaps, not hidden implementation details.
 
@@ -182,7 +182,7 @@ Every dataset and product must carry the following minimum metadata:
 | HR data | Per employment law | Legal requirement |
 | System logs | 1 year | Operational need |
 
-Formal retention rules are not yet encoded in database cleanup jobs — this is a documented gap. No data within retention period should be deleted until formal retention policies are implemented and approved.
+Only the personal-data purge above is encoded in a cleanup job; the retention periods in this table are not — this is a documented gap. No data within retention period should be deleted until formal retention policies are implemented and approved.
 
 ### WMO WIS 2.0 Readiness
 
@@ -223,7 +223,7 @@ The principle is: for any official product, GMS must be able to answer — who i
 | CAP warnings | Full — create, edit, submit, approve, publish, cancel, expire | None |
 | Aviation products | Partial — schema records author; no full lifecycle audit yet | Full audit trail gap |
 | Public forecasts | Partial — timestamp and author on product records | No formal approval audit |
-| HR | Partial — workflow and timesheet records | No general audit table |
+| HR | Partial — workflow and timesheet records plus field-level history through `src/audit` | Coverage limited to registered models |
 | System configuration | None | Gap — no config change log |
 
 The CAP domain audit model should be extended to all official product domains as they are built out.

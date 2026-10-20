@@ -2,7 +2,7 @@
 
 **Status:** Draft  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-08-19
+**Last updated:** 2026-10-20
 
 | Field | Detail |
 |---|---|
@@ -68,7 +68,7 @@ The GMS digital system maintains public trust through:
 | Multi-factor authentication | Required for all staff accounts | Gap — enforce on all accounts |
 | Session management | Opaque token in httpOnly, SameSite=Lax cookie; short-lived access tokens | Implemented |
 | Rate limiting | Login and recovery endpoints rate-limited via SlowAPI | Implemented |
-| Account lockout | Not yet implemented — add after MFA | Gap |
+| Account lockout | Redis-backed login lockout (`src/auth/lockout.py`, 900 s default); fail-open when Redis is unavailable | Implemented |
 | Privileged access review | Quarterly review of role assignments | Gap — process not established |
 
 ---
@@ -190,8 +190,7 @@ Drill results are documented and reviewed. Failures result in SOP or control upd
 |---|---|---|
 | MFA not enforced on all staff accounts | High | Q3 2026 |
 | Privileged access review process not established | High | Q3 2026 |
-| Account lockout not implemented | Medium | Q3 2026 |
-| Audit trail extends only to CAP domain — not HR or other domains | Medium | H2 2026 |
+| Field-level audit (`src/audit`) covers HR and other registered domains, not every official product domain (aviation, forecasts, configuration) | Medium | H2 2026 |
 | Security incident response not formally documented in SOP | High | Q3 2026 |
 | Backup contact list not maintained in physical format | High | Q3 2026 |
 | Continuity drills not yet scheduled | High | May 2026 pre-season drill |
