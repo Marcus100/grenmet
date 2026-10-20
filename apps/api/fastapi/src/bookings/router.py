@@ -44,6 +44,7 @@ from .schemas import (
     BookingSlot,
     BookingStorefront,
     BookingStudioCancel,
+    BookingStudioCreate,
     BookingStudioDecline,
     BookingStudioDetail,
     BookingWorkingHoursUpdate,
@@ -408,6 +409,52 @@ async def get_studio_booking(
     *, session: SessionDep, org: BookingsOrgRead, booking_id: BookingId
 ) -> Any:
     return await studio.get_detail(session, org.organisation_id, booking_id)
+
+
+@router.post(
+    "/org/bookings",
+    response_model=BookingStudioDetail,
+    status_code=status.HTTP_201_CREATED,
+    summary="Enter a booking for a customer",
+    description=(
+        "The business books a slot itself: a phone call, a walk-in or an "
+        "appointment re-entered from another system. Requires an "
+        "`Idempotency-Key` header (same key and body replays the first answer "
+        "with `Idempotency-Replayed: true`, same key with another body is 409). "
+        "The booking is `confirmed` with no deposit and is never limited by "
+        "lead time, horizon or weekly hours, but a provider's time cannot be "
+        "double-booked (409). `customer_email` is optional; the customer is "
+        "emailed only when `send_confirmation` is true."
+    ),
+    operation_id="bookingsCreateStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def create_studio_booking(
+    *,
+    response: Response,
+    session: SessionDep,
+    org: BookingsOrgWrite,
+    payload: BookingStudioCreate,
+    idempotency_key: idempotency.RequiredIdempotencyKey,
+) -> Any:
+    async def create_once() -> tuple[int, dict[str, Any]]:
+        return await studio.create_booking(
+            session, org.organisation_id, payload, actor_user_id=org.actor_id
+        )
+
+    result = await idempotency.run_idempotent(
+        session,
+        scope="bookings.studio-create",
+        organisation_id=org.organisation_id,
+        key=idempotency_key,
+        request_body=payload.model_dump(mode="json"),
+        handler=create_once,
+    )
+    await session.commit()
+    response.status_code = result.status_code
+    if result.replayed:
+        response.headers["Idempotency-Replayed"] = "true"
+    return result.body
 
 
 @router.post(

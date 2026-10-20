@@ -99,6 +99,7 @@ export { bookingsCreateException } from "./clients/bookingsCreateException.js";
 export { bookingsCreateProvider } from "./clients/bookingsCreateProvider.js";
 export { bookingsCreatePublicBooking } from "./clients/bookingsCreatePublicBooking.js";
 export { bookingsCreateService } from "./clients/bookingsCreateService.js";
+export { bookingsCreateStudioBooking } from "./clients/bookingsCreateStudioBooking.js";
 export { bookingsDeclineStudioBooking } from "./clients/bookingsDeclineStudioBooking.js";
 export { bookingsDeleteException } from "./clients/bookingsDeleteException.js";
 export { bookingsGetAgenda } from "./clients/bookingsGetAgenda.js";
@@ -1107,6 +1108,11 @@ export {
   bookingsCreateServiceMutationOptions,
   useBookingsCreateService,
 } from "./hooks/useBookingsCreateService.js";
+export {
+  bookingsCreateStudioBookingMutationKey,
+  bookingsCreateStudioBookingMutationOptions,
+  useBookingsCreateStudioBooking,
+} from "./hooks/useBookingsCreateStudioBooking.js";
 export {
   bookingsDeclineStudioBookingMutationKey,
   bookingsDeclineStudioBookingMutationOptions,
@@ -4786,6 +4792,7 @@ export type { BookingStatus } from "./models/BookingStatus.js";
 export { bookingStatus } from "./models/BookingStatus.js";
 export type { BookingStorefront } from "./models/BookingStorefront.js";
 export type { BookingStudioCancel } from "./models/BookingStudioCancel.js";
+export type { BookingStudioCreate } from "./models/BookingStudioCreate.js";
 export type { BookingStudioCustomer } from "./models/BookingStudioCustomer.js";
 export type { BookingStudioDecline } from "./models/BookingStudioDecline.js";
 export type { BookingStudioDetail } from "./models/BookingStudioDetail.js";
@@ -4900,6 +4907,20 @@ export type {
   BookingsCreateServiceStatus409,
   BookingsCreateServiceStatus422,
 } from "./models/BookingsCreateService.js";
+export type {
+  BookingsCreateStudioBookingBody,
+  BookingsCreateStudioBookingHeaders,
+  BookingsCreateStudioBookingOptions,
+  BookingsCreateStudioBookingResponse,
+  BookingsCreateStudioBookingResponses,
+  BookingsCreateStudioBookingStatus201,
+  BookingsCreateStudioBookingStatus400,
+  BookingsCreateStudioBookingStatus401,
+  BookingsCreateStudioBookingStatus403,
+  BookingsCreateStudioBookingStatus404,
+  BookingsCreateStudioBookingStatus409,
+  BookingsCreateStudioBookingStatus422,
+} from "./models/BookingsCreateStudioBooking.js";
 export type {
   BookingsDeclineStudioBookingBody,
   BookingsDeclineStudioBookingHeaders,
@@ -12674,6 +12695,7 @@ export { bookingSourceSchema } from "./zod/bookingSourceSchema.js";
 export { bookingStatusSchema } from "./zod/bookingStatusSchema.js";
 export { bookingStorefrontSchema } from "./zod/bookingStorefrontSchema.js";
 export { bookingStudioCancelSchema } from "./zod/bookingStudioCancelSchema.js";
+export { bookingStudioCreateSchema } from "./zod/bookingStudioCreateSchema.js";
 export { bookingStudioCustomerSchema } from "./zod/bookingStudioCustomerSchema.js";
 export { bookingStudioDeclineSchema } from "./zod/bookingStudioDeclineSchema.js";
 export { bookingStudioDetailSchema } from "./zod/bookingStudioDetailSchema.js";
@@ -12780,6 +12802,20 @@ export {
   bookingsCreateServiceStatus409Schema,
   bookingsCreateServiceStatus422Schema,
 } from "./zod/bookingsCreateServiceSchema.js";
+export {
+  bookingsCreateStudioBookingBodySchema,
+  bookingsCreateStudioBookingErrorSchema,
+  bookingsCreateStudioBookingHeaderIdempotencyKeySchema,
+  bookingsCreateStudioBookingHeaderXBarrelsOrganisationSchema,
+  bookingsCreateStudioBookingResponseSchema,
+  bookingsCreateStudioBookingStatus201Schema,
+  bookingsCreateStudioBookingStatus400Schema,
+  bookingsCreateStudioBookingStatus401Schema,
+  bookingsCreateStudioBookingStatus403Schema,
+  bookingsCreateStudioBookingStatus404Schema,
+  bookingsCreateStudioBookingStatus409Schema,
+  bookingsCreateStudioBookingStatus422Schema,
+} from "./zod/bookingsCreateStudioBookingSchema.js";
 export {
   bookingsDeclineStudioBookingBodySchema,
   bookingsDeclineStudioBookingErrorSchema,

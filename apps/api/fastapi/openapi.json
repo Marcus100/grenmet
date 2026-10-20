@@ -8454,6 +8454,108 @@
             "description": "Resource not found"
           }
         }
+      },
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Enter a booking for a customer",
+        "description": "The business books a slot itself: a phone call, a walk-in or an appointment re-entered from another system. Requires an `Idempotency-Key` header (same key and body replays the first answer with `Idempotency-Replayed: true`, same key with another body is 409). The booking is `confirmed` with no deposit and is never limited by lead time, horizon or weekly hours, but a provider's time cannot be double-booked (409). `customer_email` is optional; the customer is emailed only when `send_confirmation` is true.",
+        "operationId": "bookingsCreateStudioBooking",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingStudioCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
       }
     },
     "/api/v1/bookings/org/agenda": {
@@ -47117,6 +47219,83 @@
           "reason"
         ],
         "title": "BookingStudioCancel"
+      },
+      "BookingStudioCreate": {
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "provider_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Provider Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "customer_name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Customer Name"
+          },
+          "customer_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254,
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Email"
+          },
+          "customer_phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Phone"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "send_confirmation": {
+            "type": "boolean",
+            "title": "Send Confirmation",
+            "description": "Email the customer a confirmation with a manage link. Needs `customer_email`; off by default so re-entering existing appointments does not mail anyone.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_id",
+          "provider_id",
+          "starts_at",
+          "customer_name"
+        ],
+        "title": "BookingStudioCreate",
+        "description": "A booking the business enters itself: phone, walk-in or a re-entered\nappointment. Sent with an `Idempotency-Key` header."
       },
       "BookingStudioCustomer": {
         "properties": {
