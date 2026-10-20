@@ -13,7 +13,8 @@
     },
     "./lib/*": {
       "types": "./src/lib/*.ts",
-      "import": "./src/lib/*.ts"
+      "import": "./src/lib/*.ts",
+      "default": "./src/lib/*.ts"
     },
     "./hooks/*": {
       "types": "./src/hooks/*.ts",
