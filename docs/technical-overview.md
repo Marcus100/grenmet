@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-05
+**Last updated:** 2026-10-20
 
 This document explains how the Barrels Grenada codebase fits together: the
 relationships among applications, shared packages, authentication, and data.
@@ -57,14 +57,18 @@ Next.js apps follow `@barrelsgd/web-<app>`.
 | App | Port | Audience and purpose | Current data and authentication |
 | --- | --- | --- | --- |
 | `auth` | 3000 | Shared staff sign-in and account interface | FastAPI identity and browser sessions |
-| `gaa-admin` | 3001 | GAA staff portal, piloted in GMS | Built-in sign-in; FastAPI contracts for operational modules; Salesbus still uses mock data |
+| `gaa-admin` | 3001 | GAA staff portal, piloted in GMS | Built-in sign-in; FastAPI contracts for operational modules, including Salesbus (the Stores module, `/api/v1/stores/*`) |
 | `docs` | 3002 | Public GMS preparedness and documentation | Local MDX; public pages |
 | `gms` | 3003 | Public GMS weather service | Public FastAPI weather products and CMS content |
 | `signal` | 3004 | Barrels news and entertainment | Local editorial MDX; public reader |
 | `mbia` | 3005 | Public airport information | Local content; public pages |
 | `cms` | 3006 | GMS editorial content management | Payload CMS, dedicated database, shared FastAPI identity |
 | `elections` | 3007 | Barrels election coverage and civic education | Checked source data, derived records, and local editorial content; public pages |
-| `events` | 3009 | Barrels event discovery, community, and organiser console | FastAPI listings/community and app-scoped email-code sign-in; sales/settlement overview remains a labelled demo |
+| `events` | 3009 | Barrels event discovery, community, and organiser console | FastAPI listings/community and app-scoped email-code sign-in; ticketing, door admission, outlet cash, settlement and paid tiers (Stripe test mode) on FastAPI |
+| `cap` | 3010 | GMS-branded public CAP alert hub | Public FastAPI CAP feeds and alerts |
+| `admin` | 3012 | Barrels control plane for superusers | FastAPI platform APIs; staff sign-in through the auth.barrels.gd handoff |
+| `gmsdash` | 3013 | GMS Dashboard: raw-model point meteograms for entitled organisations | FastAPI models-guidance API; app-scoped sign-in through the auth.barrels.gd handoff |
+| `babydoll` | 3014 | Babydoll Beauty Bar client website (Vercel) | Local content; online booking through the Bookings API behind a switch |
 | `barrels` | — | Barrels Grenada company homepage | Static HTML/CSS; separate build, no Next.js dev port |
 
 ### Consolidated staff portal
@@ -75,8 +79,8 @@ The shared admin layout authenticates these routes. The old standalone
 subdomains are retired; they are not separate apps to start locally.
 
 Weather domains retain separate databases owned by FastAPI. HR and CAP use the
-main application database. Salesbus remains a prototype using mock data; its
-presence in the portal does not make it a GAA product. See the
+main application database. Salesbus is the Stores requisition module on the FastAPI
+`stores` domain: a GAA internal module delivered by Barrels, not a Barrels product. See the
 [portal guide](../apps/web/gaa-admin/AGENTS.md) for module boundaries.
 
 ### Events implementation status
@@ -84,8 +88,8 @@ presence in the portal does not make it a GAA product. See the
 The public/community UI and `/dash/events` organiser editor read FastAPI through
 [the web data layer](../apps/web/events/src/data/events-api.ts). Server actions
 persist listings, RSVPs, saves, profiles, group membership, connections and messages.
-The `/dash` sales and settlement overview remains explicitly labelled demo data;
-ticket payments, admission and settlement are not implemented by this integration.
+Ticketing, door admission, outlet cash, settlement and paid tiers
+(test-mode Stripe or the manual rail) also run on FastAPI; no page renders demo fixtures.
 
 The [FastAPI Events domain](../apps/api/fastapi/src/events/AGENTS.md) already
 contains listings, groups, connections, messaging, and access rules, with its

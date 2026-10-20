@@ -11,6 +11,11 @@ on:
         required: false
         default: ""
         type: string
+      backup_gate_override:
+        description: "Emergency only: reason to proceed past an enforced backup gate; recorded in the run summary"
+        required: false
+        default: ""
+        type: string
   workflow_dispatch:
     inputs:
       environment:
@@ -20,6 +25,11 @@ on:
       image_tag:
         description: "sha-<full commit SHA> matching the selected branch or release tag"
         required: true
+        type: string
+      backup_gate_override:
+        description: "Emergency only: reason to proceed past an enforced backup gate (DEPLOY_BACKUP_GATE=enforce); recorded in the run summary"
+        required: false
+        default: ""
         type: string
 
 permissions:
@@ -161,6 +171,17 @@ jobs:
           PAYMENTS_STRIPE_SUCCESS_URL: ${{ vars.PAYMENTS_STRIPE_SUCCESS_URL }}
           PAYMENTS_STRIPE_CANCEL_URL: ${{ vars.PAYMENTS_STRIPE_CANCEL_URL }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Pre-migration backup gate (release runbook, "Backup gate"). Mode defaults to
+          # warn in core.sh when the variable is unset; nothing here enables enforce.
+          DEPLOY_BACKUP_GATE: ${{ vars.DEPLOY_BACKUP_GATE }}
+          DEPLOY_BACKUP_MAX_AGE_HOURS: ${{ vars.DEPLOY_BACKUP_MAX_AGE_HOURS }}
+          DEPLOY_BACKUP_GATE_OVERRIDE: ${{ inputs.backup_gate_override }}
+          # List-only access to the backup bucket: the read-only key, never the write key.
+          BACKUP_GATE_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+          BACKUP_GATE_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+          BACKUP_GATE_REGION: ${{ secrets.DO_SPACES_REGION }}
+          BACKUP_GATE_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_READ_ACCESS_KEY_ID }}
+          BACKUP_GATE_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_READ_SECRET_ACCESS_KEY }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Install declared monitoring after application acceptance
         if: vars.MONITORING_DEPLOY_ENABLED == 'true'
