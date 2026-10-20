@@ -1,7 +1,11 @@
 # Observation network inventory
 
-Status: open questions. Needed before any hydromet or new-station ingest design
-(ADR-0031, phase 5). Fill in as answers arrive; unknowns stay marked.
+**Status:** Open questions  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-10-20
+
+Needed before any hydromet or new-station ingest design (ADR-0031, phase 5).
+Fill in as answers arrive; unknowns stay marked.
 
 ## Known
 
