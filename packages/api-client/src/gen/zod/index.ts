@@ -1655,6 +1655,8 @@ export {
 export { capValidationResultSchema } from "./capValidationResultSchema.js";
 export { catalogueApplySchema } from "./catalogueApplySchema.js";
 export { cataloguePreviewSchema } from "./cataloguePreviewSchema.js";
+export { challengeMetricSchema } from "./challengeMetricSchema.js";
+export { challengeStatusSchema } from "./challengeStatusSchema.js";
 export { checkInCreateSchema } from "./checkInCreateSchema.js";
 export { checkInPublicSchema } from "./checkInPublicSchema.js";
 export { checkoutSessionPublicSchema } from "./checkoutSessionPublicSchema.js";
@@ -5534,6 +5536,8 @@ export {
   rewardsCancelRedemptionStatus409Schema,
   rewardsCancelRedemptionStatus422Schema,
 } from "./rewardsCancelRedemptionSchema.js";
+export { rewardsChallengeCreateSchema } from "./rewardsChallengeCreateSchema.js";
+export { rewardsChallengePublicSchema } from "./rewardsChallengePublicSchema.js";
 export {
   rewardsConfirmRedemptionBodySchema,
   rewardsConfirmRedemptionErrorSchema,
@@ -5561,6 +5565,18 @@ export {
   rewardsCreateCheckInStatus503Schema,
 } from "./rewardsCreateCheckInSchema.js";
 export {
+  rewardsCreateGiftBodySchema,
+  rewardsCreateGiftErrorSchema,
+  rewardsCreateGiftResponseSchema,
+  rewardsCreateGiftStatus201Schema,
+  rewardsCreateGiftStatus400Schema,
+  rewardsCreateGiftStatus401Schema,
+  rewardsCreateGiftStatus403Schema,
+  rewardsCreateGiftStatus404Schema,
+  rewardsCreateGiftStatus409Schema,
+  rewardsCreateGiftStatus422Schema,
+} from "./rewardsCreateGiftSchema.js";
+export {
   rewardsCreateProgramBodySchema,
   rewardsCreateProgramErrorSchema,
   rewardsCreateProgramHeaderXBarrelsOrganisationSchema,
@@ -5573,6 +5589,21 @@ export {
   rewardsCreateProgramStatus409Schema,
   rewardsCreateProgramStatus422Schema,
 } from "./rewardsCreateProgramSchema.js";
+export {
+  rewardsGetLeaderboardErrorSchema,
+  rewardsGetLeaderboardPathScopeIdSchema,
+  rewardsGetLeaderboardPathScopeKindSchema,
+  rewardsGetLeaderboardQueryLimitSchema,
+  rewardsGetLeaderboardQueryMetricSchema,
+  rewardsGetLeaderboardResponseSchema,
+  rewardsGetLeaderboardStatus200Schema,
+  rewardsGetLeaderboardStatus400Schema,
+  rewardsGetLeaderboardStatus401Schema,
+  rewardsGetLeaderboardStatus403Schema,
+  rewardsGetLeaderboardStatus404Schema,
+  rewardsGetLeaderboardStatus409Schema,
+  rewardsGetLeaderboardStatus422Schema,
+} from "./rewardsGetLeaderboardSchema.js";
 export {
   rewardsGetPassportErrorSchema,
   rewardsGetPassportResponseSchema,
@@ -5589,6 +5620,20 @@ export {
   rewardsGetStreakStatus403Schema,
   rewardsGetStreakStatus422Schema,
 } from "./rewardsGetStreakSchema.js";
+export { rewardsGiftCreateSchema } from "./rewardsGiftCreateSchema.js";
+export { rewardsGiftPublicSchema } from "./rewardsGiftPublicSchema.js";
+export { rewardsLeaderboardOptInCreateSchema } from "./rewardsLeaderboardOptInCreateSchema.js";
+export { rewardsLeaderboardOptInPublicSchema } from "./rewardsLeaderboardOptInPublicSchema.js";
+export { rewardsLeaderboardPublicSchema } from "./rewardsLeaderboardPublicSchema.js";
+export { rewardsLeaderboardRowSchema } from "./rewardsLeaderboardRowSchema.js";
+export {
+  rewardsListActiveChallengesErrorSchema,
+  rewardsListActiveChallengesResponseSchema,
+  rewardsListActiveChallengesStatus200Schema,
+  rewardsListActiveChallengesStatus401Schema,
+  rewardsListActiveChallengesStatus403Schema,
+  rewardsListActiveChallengesStatus422Schema,
+} from "./rewardsListActiveChallengesSchema.js";
 export {
   rewardsListMineErrorSchema,
   rewardsListMineResponseSchema,
@@ -5624,6 +5669,14 @@ export {
   rewardsListMyEntriesStatus422Schema,
 } from "./rewardsListMyEntriesSchema.js";
 export {
+  rewardsListMyLeaderboardOptInsErrorSchema,
+  rewardsListMyLeaderboardOptInsResponseSchema,
+  rewardsListMyLeaderboardOptInsStatus200Schema,
+  rewardsListMyLeaderboardOptInsStatus401Schema,
+  rewardsListMyLeaderboardOptInsStatus403Schema,
+  rewardsListMyLeaderboardOptInsStatus422Schema,
+} from "./rewardsListMyLeaderboardOptInsSchema.js";
+export {
   rewardsListMyTicketsErrorSchema,
   rewardsListMyTicketsResponseSchema,
   rewardsListMyTicketsStatus200Schema,
@@ -5642,6 +5695,36 @@ export {
   rewardsListProgramsStatus404Schema,
   rewardsListProgramsStatus422Schema,
 } from "./rewardsListProgramsSchema.js";
+export {
+  rewardsListReceivedGiftsErrorSchema,
+  rewardsListReceivedGiftsResponseSchema,
+  rewardsListReceivedGiftsStatus200Schema,
+  rewardsListReceivedGiftsStatus401Schema,
+  rewardsListReceivedGiftsStatus403Schema,
+  rewardsListReceivedGiftsStatus422Schema,
+} from "./rewardsListReceivedGiftsSchema.js";
+export {
+  rewardsListSentGiftsErrorSchema,
+  rewardsListSentGiftsResponseSchema,
+  rewardsListSentGiftsStatus200Schema,
+  rewardsListSentGiftsStatus401Schema,
+  rewardsListSentGiftsStatus403Schema,
+  rewardsListSentGiftsStatus422Schema,
+} from "./rewardsListSentGiftsSchema.js";
+export {
+  rewardsOptInToLeaderboardBodySchema,
+  rewardsOptInToLeaderboardErrorSchema,
+  rewardsOptInToLeaderboardPathScopeIdSchema,
+  rewardsOptInToLeaderboardPathScopeKindSchema,
+  rewardsOptInToLeaderboardResponseSchema,
+  rewardsOptInToLeaderboardStatus200Schema,
+  rewardsOptInToLeaderboardStatus400Schema,
+  rewardsOptInToLeaderboardStatus401Schema,
+  rewardsOptInToLeaderboardStatus403Schema,
+  rewardsOptInToLeaderboardStatus404Schema,
+  rewardsOptInToLeaderboardStatus409Schema,
+  rewardsOptInToLeaderboardStatus422Schema,
+} from "./rewardsOptInToLeaderboardSchema.js";
 export {
   rewardsOrgAddTrailStopBodySchema,
   rewardsOrgAddTrailStopErrorSchema,
@@ -5669,6 +5752,19 @@ export {
   rewardsOrgCreateAchievementStatus409Schema,
   rewardsOrgCreateAchievementStatus422Schema,
 } from "./rewardsOrgCreateAchievementSchema.js";
+export {
+  rewardsOrgCreateChallengeBodySchema,
+  rewardsOrgCreateChallengeErrorSchema,
+  rewardsOrgCreateChallengeHeaderXBarrelsOrganisationSchema,
+  rewardsOrgCreateChallengeResponseSchema,
+  rewardsOrgCreateChallengeStatus201Schema,
+  rewardsOrgCreateChallengeStatus400Schema,
+  rewardsOrgCreateChallengeStatus401Schema,
+  rewardsOrgCreateChallengeStatus403Schema,
+  rewardsOrgCreateChallengeStatus404Schema,
+  rewardsOrgCreateChallengeStatus409Schema,
+  rewardsOrgCreateChallengeStatus422Schema,
+} from "./rewardsOrgCreateChallengeSchema.js";
 export {
   rewardsOrgCreateTrailBodySchema,
   rewardsOrgCreateTrailErrorSchema,
@@ -5699,6 +5795,20 @@ export {
 export { rewardsOrgEntryListPublicSchema } from "./rewardsOrgEntryListPublicSchema.js";
 export { rewardsOrgEntryPublicSchema } from "./rewardsOrgEntryPublicSchema.js";
 export {
+  rewardsOrgGetLeaderboardErrorSchema,
+  rewardsOrgGetLeaderboardHeaderXBarrelsOrganisationSchema,
+  rewardsOrgGetLeaderboardQueryLimitSchema,
+  rewardsOrgGetLeaderboardQueryMetricSchema,
+  rewardsOrgGetLeaderboardResponseSchema,
+  rewardsOrgGetLeaderboardStatus200Schema,
+  rewardsOrgGetLeaderboardStatus400Schema,
+  rewardsOrgGetLeaderboardStatus401Schema,
+  rewardsOrgGetLeaderboardStatus403Schema,
+  rewardsOrgGetLeaderboardStatus404Schema,
+  rewardsOrgGetLeaderboardStatus409Schema,
+  rewardsOrgGetLeaderboardStatus422Schema,
+} from "./rewardsOrgGetLeaderboardSchema.js";
+export {
   rewardsOrgGetVenueQrTokenErrorSchema,
   rewardsOrgGetVenueQrTokenHeaderXBarrelsOrganisationSchema,
   rewardsOrgGetVenueQrTokenPathVenueIdSchema,
@@ -5722,6 +5832,18 @@ export {
   rewardsOrgListAchievementsStatus404Schema,
   rewardsOrgListAchievementsStatus422Schema,
 } from "./rewardsOrgListAchievementsSchema.js";
+export {
+  rewardsOrgListChallengesErrorSchema,
+  rewardsOrgListChallengesHeaderXBarrelsOrganisationSchema,
+  rewardsOrgListChallengesResponseSchema,
+  rewardsOrgListChallengesStatus200Schema,
+  rewardsOrgListChallengesStatus400Schema,
+  rewardsOrgListChallengesStatus401Schema,
+  rewardsOrgListChallengesStatus403Schema,
+  rewardsOrgListChallengesStatus404Schema,
+  rewardsOrgListChallengesStatus409Schema,
+  rewardsOrgListChallengesStatus422Schema,
+} from "./rewardsOrgListChallengesSchema.js";
 export {
   rewardsOrgListEntriesErrorSchema,
   rewardsOrgListEntriesHeaderXBarrelsOrganisationSchema,
@@ -5774,6 +5896,19 @@ export {
   rewardsOrgListVenuesStatus422Schema,
 } from "./rewardsOrgListVenuesSchema.js";
 export {
+  rewardsOrgPauseChallengeErrorSchema,
+  rewardsOrgPauseChallengeHeaderXBarrelsOrganisationSchema,
+  rewardsOrgPauseChallengePathChallengeIdSchema,
+  rewardsOrgPauseChallengeResponseSchema,
+  rewardsOrgPauseChallengeStatus200Schema,
+  rewardsOrgPauseChallengeStatus400Schema,
+  rewardsOrgPauseChallengeStatus401Schema,
+  rewardsOrgPauseChallengeStatus403Schema,
+  rewardsOrgPauseChallengeStatus404Schema,
+  rewardsOrgPauseChallengeStatus409Schema,
+  rewardsOrgPauseChallengeStatus422Schema,
+} from "./rewardsOrgPauseChallengeSchema.js";
+export {
   rewardsOrgPauseProgramErrorSchema,
   rewardsOrgPauseProgramHeaderXBarrelsOrganisationSchema,
   rewardsOrgPauseProgramPathProgramIdSchema,
@@ -5786,6 +5921,19 @@ export {
   rewardsOrgPauseProgramStatus409Schema,
   rewardsOrgPauseProgramStatus422Schema,
 } from "./rewardsOrgPauseProgramSchema.js";
+export {
+  rewardsOrgResumeChallengeErrorSchema,
+  rewardsOrgResumeChallengeHeaderXBarrelsOrganisationSchema,
+  rewardsOrgResumeChallengePathChallengeIdSchema,
+  rewardsOrgResumeChallengeResponseSchema,
+  rewardsOrgResumeChallengeStatus200Schema,
+  rewardsOrgResumeChallengeStatus400Schema,
+  rewardsOrgResumeChallengeStatus401Schema,
+  rewardsOrgResumeChallengeStatus403Schema,
+  rewardsOrgResumeChallengeStatus404Schema,
+  rewardsOrgResumeChallengeStatus409Schema,
+  rewardsOrgResumeChallengeStatus422Schema,
+} from "./rewardsOrgResumeChallengeSchema.js";
 export {
   rewardsOrgResumeProgramErrorSchema,
   rewardsOrgResumeProgramHeaderXBarrelsOrganisationSchema,
@@ -5826,6 +5974,18 @@ export {
   rewardsRequestRedemptionStatus409Schema,
   rewardsRequestRedemptionStatus422Schema,
 } from "./rewardsRequestRedemptionSchema.js";
+export {
+  rewardsReverseGiftErrorSchema,
+  rewardsReverseGiftPathGiftIdSchema,
+  rewardsReverseGiftResponseSchema,
+  rewardsReverseGiftStatus204Schema,
+  rewardsReverseGiftStatus400Schema,
+  rewardsReverseGiftStatus401Schema,
+  rewardsReverseGiftStatus403Schema,
+  rewardsReverseGiftStatus404Schema,
+  rewardsReverseGiftStatus409Schema,
+  rewardsReverseGiftStatus422Schema,
+} from "./rewardsReverseGiftSchema.js";
 export { rewardsTrailCreateSchema } from "./rewardsTrailCreateSchema.js";
 export { rewardsTrailPublicSchema } from "./rewardsTrailPublicSchema.js";
 export { rewardsTrailStopCreateSchema } from "./rewardsTrailStopCreateSchema.js";
@@ -5847,6 +6007,16 @@ export {
 } from "./rewardsUpdateProgramSchema.js";
 export { rewardsVenueCreateSchema } from "./rewardsVenueCreateSchema.js";
 export { rewardsVenuePublicSchema } from "./rewardsVenuePublicSchema.js";
+export {
+  rewardsWithdrawFromLeaderboardErrorSchema,
+  rewardsWithdrawFromLeaderboardPathScopeIdSchema,
+  rewardsWithdrawFromLeaderboardPathScopeKindSchema,
+  rewardsWithdrawFromLeaderboardResponseSchema,
+  rewardsWithdrawFromLeaderboardStatus204Schema,
+  rewardsWithdrawFromLeaderboardStatus401Schema,
+  rewardsWithdrawFromLeaderboardStatus403Schema,
+  rewardsWithdrawFromLeaderboardStatus422Schema,
+} from "./rewardsWithdrawFromLeaderboardSchema.js";
 export { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 export { roleConfigurationSchema } from "./roleConfigurationSchema.js";
 export { roleCreateSchema } from "./roleCreateSchema.js";
@@ -5886,6 +6056,7 @@ export { runFinishSchema } from "./runFinishSchema.js";
 export { runInputPropertiesSourceEnumSchema } from "./runInputPropertiesSourceEnumSchema.js";
 export { runInputSchema } from "./runInputSchema.js";
 export { runResultSchema } from "./runResultSchema.js";
+export { scopeKindSchema } from "./scopeKindSchema.js";
 export { sectionCreateSchema } from "./sectionCreateSchema.js";
 export { sectionUpdateSchema } from "./sectionUpdateSchema.js";
 export { sectionViewSchema } from "./sectionViewSchema.js";

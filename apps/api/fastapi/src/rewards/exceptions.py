@@ -38,6 +38,21 @@ class InvalidCheckInCodeError(AppException):
         )
 
 
+class LeaderboardScopeNotFoundError(AppException):
+    def __init__(self) -> None:
+        super().__init__("Leaderboard not found", status.HTTP_404_NOT_FOUND)
+
+
+class ChallengeNotFoundError(AppException):
+    def __init__(self) -> None:
+        super().__init__("Challenge not found", status.HTTP_404_NOT_FOUND)
+
+
+class GiftNotFoundError(AppException):
+    def __init__(self, message: str = "Gift not found") -> None:
+        super().__init__(message, status.HTTP_404_NOT_FOUND)
+
+
 class RewardsValidationError(AppException):
     def __init__(self, message: str) -> None:
         super().__init__(message, status.HTTP_422_UNPROCESSABLE_ENTITY)

@@ -561,6 +561,16 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   `GET /rewards/org/venues/{id}/qr-token` issues the rotating venue code. Account
   routes: `POST /rewards/me/check-ins` (one per venue per Grenada day, real-world
   only), `GET /rewards/me/passport`, `/me/achievements` and `/me/streak`.
+- **Rewards social layer** (PF10, ADR-0030): every route answers 404 until its flag
+  (`rewards-leaderboards`, `rewards-challenges`, `rewards-gifting`) is on; gifting also
+  needs `REWARDS_GIFTING_ENABLED`, refused in production. Opt-in boards:
+  `PUT|DELETE /rewards/me/leaderboard-opt-ins/{scope_kind}/{scope_id}` (withdrawal is
+  never flagged), `GET /rewards/me/leaderboards/{scope_kind}/{scope_id}` (action counts
+  only, max 50 rows, empty below 10 participants) and `GET /rewards/org/leaderboard`.
+  Challenges: `/rewards/org/challenges` (create, pause, resume) and
+  `GET /rewards/me/challenges` (collective totals, no identities). Gifting:
+  `POST /rewards/me/gifts`, `GET /rewards/me/gifts/sent|received`,
+  `POST /rewards/me/gifts/{id}/reverse` (passport souvenirs, never ledger entries).
 - **Payments core** (PF4, ADR-0027, Stripe test mode only): organisation routes under
   `/payments/org/...` (intents, manual payments, refunds, balance; `payments`
   entitlement and organisation admin); signed provider callbacks at

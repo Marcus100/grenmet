@@ -3904,6 +3904,960 @@
         ]
       }
     },
+    "/api/v1/rewards/me/leaderboard-opt-ins": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "My leaderboard opt-ins",
+        "description": "Boards I have joined or left. Always available, so I can withdraw.",
+        "operationId": "rewardsListMyLeaderboardOptIns",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RewardsLeaderboardOptInPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Rewardslistmyleaderboardoptins"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rewards/me/leaderboard-opt-ins/{scope_kind}/{scope_id}": {
+      "put": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Opt in to a leaderboard",
+        "description": "Consent to appear on the organisation or trail board. Names stay hidden unless show_name is set; otherwise the alias (default 'Anonymous explorer') is shown. Answers 404 while its feature flag is off.",
+        "operationId": "rewardsOptInToLeaderboard",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scope_kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ScopeKind"
+            }
+          },
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RewardsLeaderboardOptInCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardsLeaderboardOptInPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Withdraw from a leaderboard",
+        "description": "Removes me from the board immediately. Idempotent, and never behind a feature flag, so consent can always be withdrawn.",
+        "operationId": "rewardsWithdrawFromLeaderboard",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scope_kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ScopeKind"
+            }
+          },
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/me/leaderboards/{scope_kind}/{scope_id}": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "A leaderboard",
+        "description": "Opted-in people ranked by a count of real-world actions (venue visits, trail stops, events attended), never by money. Up to 50 rows plus my own rank. Fewer than 10 opted-in people gives an empty board with a reason. Answers 404 while its feature flag is off.",
+        "operationId": "rewardsGetLeaderboard",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scope_kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ScopeKind"
+            }
+          },
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scope Id"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ChallengeMetric",
+              "description": "Real-world action to rank",
+              "default": "venue_check_ins"
+            },
+            "description": "Real-world action to rank"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "description": "Rows to return (max 50)",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Rows to return (max 50)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardsLeaderboardPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/org/leaderboard": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "My organisation's leaderboard",
+        "description": "The same opt-in, small-cohort-guarded board for my own organisation, aliases only. Answers 404 while its feature flag is off.",
+        "operationId": "rewardsOrgGetLeaderboard",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "metric",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ChallengeMetric",
+              "description": "Real-world action to rank",
+              "default": "venue_check_ins"
+            },
+            "description": "Real-world action to rank"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "description": "Rows to return (max 50)",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Rows to return (max 50)"
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardsLeaderboardPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/org/challenges": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "List my organisation's challenges",
+        "description": "Collective progress only. Answers 404 while its feature flag is off.",
+        "operationId": "rewardsOrgListChallenges",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RewardsChallengePublic"
+                  },
+                  "title": "Response Rewardsorglistchallenges"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Create a community challenge",
+        "description": "A collective goal counted from check-ins and events attended inside the window. The reward is non-monetary text and creates no ledger value. Answers 404 while its feature flag is off.",
+        "operationId": "rewardsOrgCreateChallenge",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RewardsChallengeCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardsChallengePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/org/challenges/{challenge_id}/pause": {
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Pause a challenge",
+        "description": "Paused challenges are hidden from members. Idempotent. Answers 404 while its feature flag is off.",
+        "operationId": "rewardsOrgPauseChallenge",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "challenge_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Challenge Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardsChallengePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/org/challenges/{challenge_id}/resume": {
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Resume a challenge",
+        "description": "Idempotent. Answers 404 while its feature flag is off.",
+        "operationId": "rewardsOrgResumeChallenge",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "challenge_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Challenge Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardsChallengePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/rewards/me/challenges": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Active community challenges",
+        "description": "Challenges running now with their collective progress. Aggregate only: no individual identities. Answers 404 while its feature flag is off.",
+        "operationId": "rewardsListActiveChallenges",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RewardsChallengePublic"
+                  },
+                  "type": "array",
+                  "title": "Response Rewardslistactivechallenges"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rewards/me/gifts": {
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Gift a passport stamp",
+        "description": "Gives a souvenir copy of a stamp I earned at a venue to another account, found by email. It is a passport collectible, never a redeemable stamp, and cannot be gifted onward. Capped per sender per day (3) and per recipient for life (10); reversible by me for 24 hours. Answers 404 unless the feature flag and the REWARDS_GIFTING_ENABLED setting are on; the setting is refused in production.",
+        "operationId": "rewardsCreateGift",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RewardsGiftCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardsGiftPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rewards/me/gifts/sent": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Gifts I sent",
+        "description": "Including reversed ones, newest first. Answers 404 while its feature flag is off.",
+        "operationId": "rewardsListSentGifts",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RewardsGiftPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Rewardslistsentgifts"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rewards/me/gifts/received": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Gifts I received",
+        "description": "Reversed gifts are hidden, newest first. Answers 404 while its feature flag is off.",
+        "operationId": "rewardsListReceivedGifts",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RewardsGiftPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Rewardslistreceivedgifts"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rewards/me/gifts/{gift_id}/reverse": {
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "summary": "Reverse a gift I sent",
+        "description": "Takes the gift back from the recipient. Only the sender, only within 24 hours; 409 afterwards. Answers 404 while its feature flag is off.",
+        "operationId": "rewardsReverseGift",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "gift_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Gift Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
     "/api/v1/rewards/me": {
       "get": {
         "tags": [
@@ -47781,6 +48735,24 @@
         ],
         "title": "CataloguePreview"
       },
+      "ChallengeMetric": {
+        "type": "string",
+        "enum": [
+          "venue_check_ins",
+          "trail_stops",
+          "events_attended"
+        ],
+        "title": "ChallengeMetric",
+        "description": "Real-world action counts only. Never an amount of money."
+      },
+      "ChallengeStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "paused"
+        ],
+        "title": "ChallengeStatus"
+      },
       "CheckInCreate": {
         "properties": {
           "token": {
@@ -65589,6 +66561,394 @@
         "title": "RewardsAchievementPublic",
         "description": "An achievement as the account sees it; derived from records."
       },
+      "RewardsChallengeCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Description",
+            "default": ""
+          },
+          "metric": {
+            "$ref": "#/components/schemas/ChallengeMetric"
+          },
+          "target_total": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Target Total"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "reward_description": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Reward Description",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "metric",
+          "target_total",
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "RewardsChallengeCreate"
+      },
+      "RewardsChallengePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "organisation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organisation Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "metric": {
+            "$ref": "#/components/schemas/ChallengeMetric"
+          },
+          "target_total": {
+            "type": "integer",
+            "title": "Target Total"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "reward_description": {
+            "type": "string",
+            "title": "Reward Description"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ChallengeStatus"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "completed": {
+            "type": "boolean",
+            "title": "Completed"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organisation_id",
+          "name",
+          "description",
+          "metric",
+          "target_total",
+          "starts_at",
+          "ends_at",
+          "reward_description",
+          "status",
+          "total",
+          "completed"
+        ],
+        "title": "RewardsChallengePublic",
+        "description": "A community challenge with its collective progress. No individual identities."
+      },
+      "RewardsGiftCreate": {
+        "properties": {
+          "recipient_email": {
+            "type": "string",
+            "format": "email",
+            "title": "Recipient Email"
+          },
+          "venue_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Venue Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recipient_email",
+          "venue_id"
+        ],
+        "title": "RewardsGiftCreate",
+        "description": "Gift a souvenir copy of a stamp you earned at a venue to another account."
+      },
+      "RewardsGiftPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "venue_name": {
+            "type": "string",
+            "title": "Venue Name"
+          },
+          "counterpart_name": {
+            "type": "string",
+            "title": "Counterpart Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "reversed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reversed At"
+          },
+          "reversible_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reversible Until"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "venue_name",
+          "counterpart_name",
+          "created_at"
+        ],
+        "title": "RewardsGiftPublic"
+      },
+      "RewardsLeaderboardOptInCreate": {
+        "properties": {
+          "display_alias": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Alias"
+          },
+          "show_name": {
+            "type": "boolean",
+            "title": "Show Name",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "RewardsLeaderboardOptInCreate",
+        "description": "Consent to appear on one board. Names stay hidden unless ``show_name``."
+      },
+      "RewardsLeaderboardOptInPublic": {
+        "properties": {
+          "scope_kind": {
+            "$ref": "#/components/schemas/ScopeKind"
+          },
+          "scope_id": {
+            "type": "string",
+            "title": "Scope Id"
+          },
+          "display_alias": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Alias"
+          },
+          "show_name": {
+            "type": "boolean",
+            "title": "Show Name"
+          },
+          "opted_in_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Opted In At"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scope_kind",
+          "scope_id",
+          "display_alias",
+          "show_name",
+          "opted_in_at",
+          "active"
+        ],
+        "title": "RewardsLeaderboardOptInPublic"
+      },
+      "RewardsLeaderboardPublic": {
+        "properties": {
+          "scope_kind": {
+            "$ref": "#/components/schemas/ScopeKind"
+          },
+          "scope_id": {
+            "type": "string",
+            "title": "Scope Id"
+          },
+          "metric": {
+            "$ref": "#/components/schemas/ChallengeMetric"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "min_cohort": {
+            "type": "integer",
+            "title": "Min Cohort"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/RewardsLeaderboardRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "my_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "My Rank"
+          },
+          "my_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "My Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scope_kind",
+          "scope_id",
+          "metric",
+          "available",
+          "min_cohort",
+          "rows"
+        ],
+        "title": "RewardsLeaderboardPublic"
+      },
+      "RewardsLeaderboardRow": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "score": {
+            "type": "integer",
+            "title": "Score"
+          },
+          "is_me": {
+            "type": "boolean",
+            "title": "Is Me"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "display_name",
+          "score",
+          "is_me"
+        ],
+        "title": "RewardsLeaderboardRow"
+      },
       "RewardsOrgEntryListPublic": {
         "properties": {
           "data": {
@@ -67191,6 +68551,14 @@
           "id"
         ],
         "title": "RunResult"
+      },
+      "ScopeKind": {
+        "type": "string",
+        "enum": [
+          "organisation",
+          "trail"
+        ],
+        "title": "ScopeKind"
       },
       "SectionCreate": {
         "properties": {

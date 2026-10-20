@@ -26,6 +26,7 @@ from .dependencies import (
 )
 from .models import EntryKind, EntryStatus, ProgramStatus
 from .router_gamification import router as gamification_router
+from .router_social import router as social_router
 from .schemas import (
     AdjustmentCreate,
     BadgePublic,
@@ -49,6 +50,7 @@ from .schemas_gamification import RewardsOrgEntryListPublic, RewardsOrgEntryPubl
 router = APIRouter(prefix="/rewards", tags=["rewards"])
 
 router.include_router(gamification_router)
+router.include_router(social_router)
 
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 

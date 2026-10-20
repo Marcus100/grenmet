@@ -129,6 +129,12 @@ from src.rewards.models_gamification import (  # noqa: F401
     TrailStop,
     Venue,
 )
+from src.rewards.models_social import (  # noqa: F401
+    Challenge,
+    ChallengeProgress,
+    Gift,
+    LeaderboardOptIn,
+)
 from src.storage.models import OrgUpload
 from src.stores.models import (
     Requisition,
