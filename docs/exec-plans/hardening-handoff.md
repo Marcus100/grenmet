@@ -1,7 +1,8 @@
 # Hardening handoff
 
-Owner: Barrels Grenada engineering
-Last updated: 2026-10-20
+**Status:** Working plan  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-20
 
 This is the remaining platform-hardening work after the 2026-10-20 session.
 The owner is focusing on features, so another agent picks this up. Each item
