@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
   AccountLayout,
   SettingsRow,
   SettingsSection,
   StatusBadge,
 } from "@/components/account-layout";
+import { textLinkClass } from "@/components/form-styles";
 import { requireAccount } from "@/lib/account";
 import { listMyOrganisations } from "@/lib/account-organisations";
+import { canManageRewards } from "@/lib/org-rewards";
 import { readQueryParam } from "@/lib/return-to";
 
 export const metadata: Metadata = { title: "Organisations — Barrels account" };
@@ -29,6 +32,25 @@ interface PageProps {
 export default async function OrganisationsPage({ searchParams }: PageProps) {
   const session = await requireAccount();
   const memberships = await listMyOrganisations(session.access_token);
+  // Only owners and admins of an active organisation with Rewards get the link.
+  const rewardsLinks = new Set(
+    (
+      await Promise.all(
+        memberships.map(async (membership) => {
+          const manages =
+            membership.role !== "member" &&
+            membership.organisation.status === "active";
+          return manages &&
+            (await canManageRewards(
+              session.access_token,
+              membership.organisation.id
+            ))
+            ? membership.organisation.id
+            : null;
+        })
+      )
+    ).filter((id): id is string => id !== null)
+  );
   const notice = NOTICES[readQueryParam((await searchParams).notice) ?? ""];
 
   return (
@@ -51,6 +73,20 @@ export default async function OrganisationsPage({ searchParams }: PageProps) {
         ) : null}
         {memberships.map((membership) => (
           <SettingsRow
+            action={
+              rewardsLinks.has(membership.organisation.id) ? (
+                <Link
+                  className={textLinkClass}
+                  href={`/organisations/${membership.organisation.id}/rewards`}
+                >
+                  Manage rewards
+                  <span className="sr-only">
+                    {" "}
+                    for {membership.organisation.name}
+                  </span>
+                </Link>
+              ) : null
+            }
             description={
               membership.organisation.status === "suspended"
                 ? "This organisation is suspended."
