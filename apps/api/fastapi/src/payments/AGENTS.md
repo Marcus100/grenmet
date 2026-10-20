@@ -1,6 +1,6 @@
 # payments domain — agent context
 
-**Owner:** Barrels platform (PF4; ADR-0027; plan: `docs/exec-plans/barrels-foundations-plan.md`). Not a GAA/GMS module. Consumers (Events paid tiers, Bookings deposits, invoice payment) are wired by their own domains later; this domain imports none of them.
+**Owner:** Barrels platform (PF4; ADR-0027; plan: `docs/exec-plans/barrels-foundations-plan.md`). Not a GAA/GMS module. Consumers (Events paid tiers, Bookings deposits, invoice payment) are wired by their own domains; this domain imports none of them.
 
 ## Hard rule: no live card rail
 Stripe runs in **test mode only**. `providers/stripe.py` refuses (503) any `PAYMENTS_STRIPE_SECRET_KEY` that does not start with `sk_test_` before a request is made, refuses callbacks while `PAYMENTS_STRIPE_WEBHOOK_SECRET` is unset or not `whsec_...`, and is disabled while the key is unset. `tests/payments/test_providers.py` asserts a live key sends nothing. Going live needs the ADR-0027 gate (owner decision, accountant and legal sign-off, reconciliation exercise); do not weaken the guard without it.
@@ -34,3 +34,5 @@ No audit-log registration for payments tables yet (the ledger itself is the reco
 - **Payout idempotency:** `POST /payments/admin/payouts` requires a client-generated `request_id` (UUID). It becomes the ledger's `provider_event_id` (`payout:<request_id>`), so a double click or retry returns the original entry, and the same id with another organisation, amount or currency is a 409. The admin confirmation page renders one id per page view.
 - **Webhooks:** a captured payment emits `payment.succeeded`, a refund emits `payment.refunded` (`_emit_payment_event`): ids, amounts, currency and the source reference only; the refund reason is free text and is never sent.
 
+
+- **Service actor and consumer hooks (Bookings B6):** `create_intent` and `refund_intent` take `actor: User | None`; `None` means the system acts for an anonymous customer or a rule, and `created_by_user_id` is NULL (the org routes still pass the member). `find_by_source(organisation_id, source_type, source_id)` returns the newest intent with its captured and refunded totals; `cancel_open_intent(...)` locks it and cancels an unpaid one (returns False when it already succeeded). `_capture` enqueues an outbox topic from `PAID_TOPICS` (`bookings.deposit` -> `bookings.deposit_paid`, dedupe key = intent id) in the same transaction as the ledger charge; the consuming domain registers the handler, payments imports nothing of it. Add a source type by adding it to `PAID_TOPICS`.

@@ -22,6 +22,8 @@ function fixture(directory) {
   env.NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS = undefined;
   env.AUTH_PRIVILEGED_MFA_MODE = undefined;
   env.AUTH_TOTP_ENCRYPTION_KEYS = undefined;
+  env.ORG_SECRET_ENCRYPTION_KEYS = undefined;
+  env.PAYMENTS_STRIPE_SECRET_KEY = undefined;
   for (const key of [
     "POSTGRES_USER",
     "POSTGRES_PASSWORD",
@@ -560,4 +562,123 @@ test("privileged MFA rejects invalid mode, missing keys and malformed key arrays
       rmSync(directory, { recursive: true, force: true });
     }
   }
+});
+
+function render(change = {}) {
+  const directory = mkdtempSync(join(tmpdir(), "delivery-org-keys-"));
+  try {
+    const { env, config, destination } = fixture(directory);
+    const result = spawnSync(
+      "python3",
+      ["scripts/production/render-env.py", config, destination],
+      { env: { ...env, ...change }, encoding: "utf8" }
+    );
+    return {
+      result,
+      output: result.status === 0 ? readFileSync(destination, "utf8") : "",
+    };
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+
+const ORG_KEYS_NAME = /ORG_SECRET_ENCRYPTION_KEYS/;
+const GENERATED_LINE = (output, name) =>
+  output.split("\n").find((line) => line.startsWith(`${name}=`));
+
+test("organisation secret keys render as a JSON array and default to empty", () => {
+  const keys = [
+    `${Buffer.alloc(32, 7).toString("base64url")}=`,
+    `${Buffer.alloc(32, 8).toString("base64url")}=`,
+  ];
+  const withKeys = render({ ORG_SECRET_ENCRYPTION_KEYS: JSON.stringify(keys) });
+  assert.equal(withKeys.result.status, 0, withKeys.result.stderr);
+  assert.deepEqual(
+    JSON.parse(
+      JSON.parse(
+        GENERATED_LINE(withKeys.output, "ORG_SECRET_ENCRYPTION_KEYS").slice(
+          "ORG_SECRET_ENCRYPTION_KEYS=".length
+        )
+      )
+    ),
+    keys
+  );
+  const without = render();
+  assert.equal(without.result.status, 0, without.result.stderr);
+  assert.equal(
+    GENERATED_LINE(without.output, "ORG_SECRET_ENCRYPTION_KEYS"),
+    'ORG_SECRET_ENCRYPTION_KEYS="[]"'
+  );
+});
+
+test("malformed organisation secret keys are rejected without echoing values", () => {
+  for (const value of [
+    "DO-NOT-ECHO",
+    JSON.stringify(["DO-NOT-ECHO"]),
+    JSON.stringify([123]),
+    JSON.stringify("DO-NOT-ECHO"),
+  ]) {
+    const { result } = render({ ORG_SECRET_ENCRYPTION_KEYS: value });
+    assert.notEqual(result.status, 0, value);
+    assert.match(result.stderr, ORG_KEYS_NAME);
+    assert.equal(result.stderr.includes("DO-NOT-ECHO"), false);
+  }
+});
+
+test("the payments Stripe key must be a test key and is otherwise optional", () => {
+  const live = render({ PAYMENTS_STRIPE_SECRET_KEY: "sk_live_DO-NOT-ECHO" });
+  assert.notEqual(live.result.status, 0);
+  assert.equal(live.result.stderr.includes("DO-NOT-ECHO"), false);
+  const restricted = render({
+    PAYMENTS_STRIPE_SECRET_KEY: "rk_test_DO-NOT-ECHO",
+  });
+  assert.notEqual(restricted.result.status, 0);
+  assert.equal(restricted.result.stderr.includes("DO-NOT-ECHO"), false);
+
+  const test_ = render({
+    PAYMENTS_STRIPE_SECRET_KEY: "sk_test_fixture",
+    PAYMENTS_STRIPE_WEBHOOK_SECRET: "whsec_fixture",
+    PAYMENTS_STRIPE_SUCCESS_URL: "https://auth.example.test/?paid=1",
+    PAYMENTS_STRIPE_CANCEL_URL: "https://auth.example.test/?paid=0",
+  });
+  assert.equal(test_.result.status, 0, test_.result.stderr);
+  assert.equal(
+    GENERATED_LINE(test_.output, "PAYMENTS_STRIPE_SECRET_KEY"),
+    'PAYMENTS_STRIPE_SECRET_KEY="sk_test_fixture"'
+  );
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "PAYMENTS_STRIPE_SECRET_KEY"),
+    'PAYMENTS_STRIPE_SECRET_KEY=""'
+  );
+});
+
+test("the deploy workflow and compose file pass the new variables to the API and worker", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  for (const name of [
+    "ORG_SECRET_ENCRYPTION_KEYS",
+    "PAYMENTS_STRIPE_SECRET_KEY",
+    "PAYMENTS_STRIPE_WEBHOOK_SECRET",
+    "PAYMENTS_STRIPE_SUCCESS_URL",
+    "PAYMENTS_STRIPE_CANCEL_URL",
+  ]) {
+    assert.ok(workflow.includes(`${name}: \${{`), `${name} in deploy.yml`);
+    assert.ok(compose.includes(`${name}: \${${name}`), `${name} in compose`);
+  }
+  // Secrets come from GitHub secrets, plain settings from variables.
+  assert.ok(workflow.includes("secrets.ORG_SECRET_ENCRYPTION_KEYS"));
+  assert.ok(workflow.includes("secrets.PAYMENTS_STRIPE_SECRET_KEY"));
+  assert.ok(workflow.includes("vars.PAYMENTS_STRIPE_SUCCESS_URL"));
+  // The web apps never receive them.
+  assert.equal(
+    compose
+      .split("\n")
+      .filter((line) => line.includes("ORG_SECRET_ENCRYPTION_KEYS:")).length,
+    4
+  );
 });

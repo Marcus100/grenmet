@@ -454,6 +454,21 @@ export {
   useBookingsCancelPublicBooking,
 } from "./useBookingsCancelPublicBooking.js";
 export {
+  bookingsCancelStudioBookingMutationKey,
+  bookingsCancelStudioBookingMutationOptions,
+  useBookingsCancelStudioBooking,
+} from "./useBookingsCancelStudioBooking.js";
+export {
+  bookingsCompleteStudioBookingMutationKey,
+  bookingsCompleteStudioBookingMutationOptions,
+  useBookingsCompleteStudioBooking,
+} from "./useBookingsCompleteStudioBooking.js";
+export {
+  bookingsConfirmStudioBookingMutationKey,
+  bookingsConfirmStudioBookingMutationOptions,
+  useBookingsConfirmStudioBooking,
+} from "./useBookingsConfirmStudioBooking.js";
+export {
   bookingsCreateExceptionMutationKey,
   bookingsCreateExceptionMutationOptions,
   useBookingsCreateException,
@@ -474,10 +489,20 @@ export {
   useBookingsCreateService,
 } from "./useBookingsCreateService.js";
 export {
+  bookingsDeclineStudioBookingMutationKey,
+  bookingsDeclineStudioBookingMutationOptions,
+  useBookingsDeclineStudioBooking,
+} from "./useBookingsDeclineStudioBooking.js";
+export {
   bookingsDeleteExceptionMutationKey,
   bookingsDeleteExceptionMutationOptions,
   useBookingsDeleteException,
 } from "./useBookingsDeleteException.js";
+export {
+  bookingsGetAgendaQueryKey,
+  bookingsGetAgendaQueryOptions,
+  useBookingsGetAgenda,
+} from "./useBookingsGetAgenda.js";
 export {
   bookingsGetAvailabilityQueryKey,
   bookingsGetAvailabilityQueryOptions,
@@ -504,6 +529,11 @@ export {
   useBookingsGetStorefront,
 } from "./useBookingsGetStorefront.js";
 export {
+  bookingsGetStudioBookingQueryKey,
+  bookingsGetStudioBookingQueryOptions,
+  useBookingsGetStudioBooking,
+} from "./useBookingsGetStudioBooking.js";
+export {
   bookingsGetWorkingHoursQueryKey,
   bookingsGetWorkingHoursQueryOptions,
   useBookingsGetWorkingHours,
@@ -528,6 +558,11 @@ export {
   bookingsListStudioBookingsQueryOptions,
   useBookingsListStudioBookings,
 } from "./useBookingsListStudioBookings.js";
+export {
+  bookingsNoShowStudioBookingMutationKey,
+  bookingsNoShowStudioBookingMutationOptions,
+  useBookingsNoShowStudioBooking,
+} from "./useBookingsNoShowStudioBooking.js";
 export {
   bookingsReplaceWorkingHoursMutationKey,
   bookingsReplaceWorkingHoursMutationOptions,

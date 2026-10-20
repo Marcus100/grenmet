@@ -9,11 +9,14 @@ from datetime import datetime, timedelta
 import httpx
 import pytest
 from sqlalchemy import func, select
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email as email_module
 from src import outbox, turnstile
 from src.bookings import public, reminders
 from src.bookings.models import Booking, BookingEvent, BookingStatus, Customer
+from src.email_config import email_settings
 from src.idempotency import IdempotencyKey
 from src.notifications import outbox_handlers
 from src.notifications.models import OutboundEmail
@@ -768,8 +771,14 @@ async def test_ics_download(
 
 
 async def test_emails_are_queued_on_the_outbox_with_a_manage_link(
-    db_async: AsyncSession, async_client: httpx.AsyncClient
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", "noreply@example.com")
+    monkeypatch.setattr(email_settings, "RESEND_API_KEY", "re_test")
+    monkeypatch.setattr(email_settings, "EMAIL_RENDER_URL", None)
+    monkeypatch.setattr(email_module, "send_email", lambda **_: None)
     studio, receipt, _ = await _booked(db_async, async_client)
     rows = await _emails(db_async, studio.org_id)
     by_key = {row.dedupe_key.split(":")[0]: row for row in rows}
@@ -885,3 +894,18 @@ async def test_reserved_slug_is_refused(
         json={"public_slug": "bookings", "display_name": "X"},
     )
     assert response.status_code == 422
+
+
+class _PgError(Exception):
+    def __init__(self, message: str, sqlstate: str | None = None) -> None:
+        super().__init__(message)
+        self.sqlstate = sqlstate
+
+
+def test_overlap_and_deadlock_victims_both_count_as_a_lost_race() -> None:
+    overlap = DBAPIError("insert", {}, _PgError('violates "booking_no_overlap"'))
+    deadlock = DBAPIError("insert", {}, _PgError("deadlock detected", "40P01"))
+    other = DBAPIError("insert", {}, _PgError("connection reset", "08006"))
+    assert public.service.is_overlap_violation(overlap)
+    assert public.service.is_overlap_violation(deadlock)
+    assert not public.service.is_overlap_violation(other)

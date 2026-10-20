@@ -10,8 +10,9 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email as email_module
+from src import outbox
 from src.email_config import email_settings
-from src.notifications import dispatch
 from src.notifications import service as notification_service
 from src.notifications.models import (
     EmailSuppression,
@@ -54,6 +55,13 @@ async def _outbox(db: AsyncSession, email: str) -> list[OutboundEmail]:
                 select(OutboundEmail).where(OutboundEmail.to_email == email)
             )
         ).all()
+    )
+
+
+async def _drain_email_outbox(db: AsyncSession) -> None:
+    """Run the worker's ``drain_outbox`` for email (the outbox is the retry engine)."""
+    await outbox.drain(
+        db, limit=10_000, only_topics=[notification_service.EMAIL_DELIVER]
     )
 
 
@@ -292,13 +300,9 @@ async def test_worker_skips_suppressed_marketing_but_sends_transactional(
     await db_async.commit()
 
     sent: list[dict[str, Any]] = []
+    monkeypatch.setattr(email_module, "send_email", lambda **kw: sent.append(kw))
 
-    def fake_sender(**kwargs: Any) -> None:
-        sent.append(kwargs)
-
-    await dispatch.process_outbound_emails(
-        session=db_async, sender=fake_sender, limit=10_000
-    )
+    await _drain_email_outbox(db_async)
 
     await db_async.refresh(marketing)
     await db_async.refresh(transactional)
@@ -321,9 +325,8 @@ async def test_worker_renders_confirmation_with_jinja_fallback(
     confirm_link = mail.props["confirmLink"]
 
     sent: list[dict[str, Any]] = []
-    await dispatch.process_outbound_emails(
-        session=db_async, sender=lambda **kw: sent.append(kw), limit=10_000
-    )
+    monkeypatch.setattr(email_module, "send_email", lambda **kw: sent.append(kw))
+    await _drain_email_outbox(db_async)
 
     ours = [m for m in sent if m["email_to"] == address]
     assert len(ours) == 1

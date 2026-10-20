@@ -368,6 +368,19 @@ Its typed defaults allow it to run without an env file.
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile site key for the contact form. Unset: no widget and no token (fine while FastAPI has `TURNSTILE_ENABLED` off) |
 
+### Babydoll web (`apps/web/babydoll`, Vercel)
+
+Read through `src/env.ts` (hand-written, no schema library). Every value has a default; the site is fully static until the switch is on.
+
+| Variable | Purpose |
+|---|---|
+| `BABYDOLL_ONLINE_BOOKING` | `on` enables `/book` (live services, slots, booking). Anything else: `/book` redirects to the Acuity link. Stands in for the PF7 flag `babydoll-online-booking` until anonymous visitors can evaluate flags |
+| `BABYDOLL_API_URL` | FastAPI origin, server only (default `http://localhost:8000`) |
+| `BABYDOLL_BOOKING_SLUG` | The studio's `bookings.profile.public_slug` (default `babydoll-beauty-bar`; created by `python -m src.bookings.seed`) |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile key for the booking form. Unset: no widget and no token. The API uses the `babydoll` public site's Turnstile policy |
+
+FastAPI: `BOOKINGS_BABYDOLL_SITE_URL` (default `https://babydoll.barrels.gd`) is read only by the on-demand Babydoll seed (`src/bookings/seed.py`) for the booking manage link and the public site row.
+
 ### Scrapy script (`scripts/scrapy-wxwatch/.env.local`)
 
 | Variable | Purpose |
@@ -732,13 +745,13 @@ change does not provision secrets or enable enforcement in production.
 
 - **Unset (the default):** saving such a secret returns 503. Sites keep the `inherit` Turnstile mode, which uses the global `TURNSTILE_*` settings.
 - **Malformed keys:** the API refuses to start.
-- **Not yet wired into the deployment renderer.** Add it to the API, worker and prestart secrets before any site uses `turnstile_mode: enforce` with its own secret.
+- **Deployment:** a GitHub environment **secret** named `ORG_SECRET_ENCRYPTION_KEYS` (`.github/workflows/deploy.yml`), validated by `scripts/production/render-env.py` (a JSON array of 32-byte Fernet keys; empty is allowed; the error never echoes values) and passed to the API, prestart, worker and nhc-worker (never the web apps). Generate a key with `python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` and store `["<key>"]`; to rotate, put the new key first and keep the old one after it until every stored secret has been re-saved. **Losing the keys makes stored organisation secrets unreadable** (Turnstile then falls back to the global setting), so keep a copy in the password manager.
 
 `MBIA_CONTACT_RECIPIENT`, `BARRELS_CONTACT_RECIPIENT` and `SUBSCRIPTIONS_SITE_URLS` are now fallbacks for the same values on the public site rows. Remove them once every environment sets `contact_recipient` and `site_url` through `PATCH /api/v1/organisations/admin/sites/{site_id}`.
 
 ### Payments (PF4, test mode only)
 
-The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter runs in **test mode only**. None of these settings is wired into the deployment renderer; leave them unset in staging and production until the owner approves a payment rail.
+The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter runs in **test mode only**. They are wired into the deployment (`deploy.yml` → `render-env.py` → the API and worker in `docker-compose.deploy.yml`), but leave them **unset** in staging and production until the owner approves a payment rail. `render-env.py` refuses a `PAYMENTS_STRIPE_SECRET_KEY` that does not start with `sk_test_`, so a live key cannot be deployed by accident.
 
 | Variable | Purpose |
 | --- | --- |
@@ -763,3 +776,5 @@ back to each setting's default.
 | `CDSAPI_URL` | GitHub environment **variable** (optional) |
 | `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY`, `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET`, `WEBPUSH_VAPID_PRIVATE_KEY` | GitHub environment **secrets** |
 | `SUBSCRIPTIONS_SITE_URLS` | Committed in `infra/docker/staging.env` and `production.env` (non-secret) |
+| `ORG_SECRET_ENCRYPTION_KEYS`, `PAYMENTS_STRIPE_SECRET_KEY`, `PAYMENTS_STRIPE_WEBHOOK_SECRET` | GitHub environment **secrets** |
+| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | GitHub environment **variables** |
