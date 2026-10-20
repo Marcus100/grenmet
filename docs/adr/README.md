@@ -37,6 +37,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0029](0029-organisation-api-keys-and-webhooks.md) | Built, awaiting owner acceptance: organisation API keys with permission scopes and signed outbound webhooks (PF5, PF6) |
 | [0030](0030-rewards-earn-sources-and-gamification.md) | Built (API), awaiting owner acceptance: generic rewards earn sources, Passport, achievements, check-in streaks; opt-in leaderboards, challenges and gated stamp gifting (PF8–PF11) |
 | [0031](0031-self-registering-api-domains.md) | Proposed: per-domain manifests and one ordered list replace edits to four shared API files |
+| [0032](0032-canonical-observation-store-and-publish-gate.md) | Proposed: FastAPI observations store as canonical mirror; SURFACE owns the automated hourly WIS2 publish; per-station-hour publish gate for manual and hybrid stations |
 
 ## Template
 

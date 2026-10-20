@@ -1066,6 +1066,20 @@ wheels = [
 ]
 
 [[package]]
+name = "csv2bufr"
+version = "0.8.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "eccodes" },
+    { name = "jsonschema" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c8/64/e4841b4fb424fc9a83012cebfb715f428b7782334861c661fb761ae6ad08/csv2bufr-0.8.8.tar.gz", hash = "sha256:f4b58e28f57dc15f6a2b0a2b0569c752293070d2717290e61099a541eac866a2", size = 24066, upload-time = "2026-05-21T08:41:28.819Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c4/f4/78318a3acfcb1ab8859b7158e40dcb720eea9fa5d70579904407e6f52f15/csv2bufr-0.8.8-py2.py3-none-any.whl", hash = "sha256:f9be419fe241f638b41d0543e9f34e41321f6be61fb5178896fd31c4becd61b5", size = 26012, upload-time = "2026-05-21T08:41:27.878Z" },
+]
+
+[[package]]
 name = "cycler"
 version = "0.12.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1348,9 +1362,11 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "coverage" },
+    { name = "csv2bufr" },
     { name = "fakeredis" },
     { name = "mypy" },
     { name = "pre-commit" },
+    { name = "pymetdecoder" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
@@ -1402,9 +1418,11 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "coverage", specifier = ">=7.4.3" },
+    { name = "csv2bufr", specifier = ">=0.8.8" },
     { name = "fakeredis", specifier = ">=2.37.0" },
     { name = "mypy", specifier = ">=1.8.0" },
     { name = "pre-commit", specifier = ">=3.6.2" },
+    { name = "pymetdecoder", specifier = ">=0.2.2" },
     { name = "pytest", specifier = ">=7.4.3" },
     { name = "pytest-asyncio", specifier = ">=0.23.0" },
     { name = "pytest-cov", specifier = ">=6.0.0" },
@@ -4333,6 +4351,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/0e/5b/a16dcf152140400752c9232edaaac5d3079a58ac3ac1c2672edbfddf0e35/pykdtree-1.4.3-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:a332bd906347e0769363051ff4f67d9aa985b30a8ad4f25ff9538247cd0dda03", size = 498328, upload-time = "2025-08-06T11:11:28.47Z" },
     { url = "https://files.pythonhosted.org/packages/5d/2a/7729c6cdd3af4fa336b89eb4f4428409be8e8b97b1682dfd68efe674b977/pykdtree-1.4.3-cp314-cp314t-win_amd64.whl", hash = "sha256:bee5fa72ba2b37a731465d6b7e933701af438ce0c72de471bd6a4f9b76c68e33", size = 74061, upload-time = "2025-08-06T11:11:29.371Z" },
     { url = "https://files.pythonhosted.org/packages/a0/50/cfc0d7d0385168ba7888c28696028670e86d4d2346be52c99bf1ea643c61/pykdtree-1.4.3-cp314-cp314t-win_arm64.whl", hash = "sha256:74f042f39ac8ba599d4b767c8e9162e5e34b108f217a68e9f89f059620f62253", size = 58909, upload-time = "2025-08-06T11:11:30.238Z" },
+]
+
+[[package]]
+name = "pymetdecoder"
+version = "0.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b3/36/4e8478700311d33125a270eb16b33f8015333ea63f4ffd0ee68005176c2e/pymetdecoder-0.2.2.tar.gz", hash = "sha256:8120fffd6a852a5b7f893224df5693fccdb8e4744562d76c5a0dd5d11cc6c059", size = 50279, upload-time = "2026-07-10T07:36:15.187Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/81/f1/d694e5e9d21ae72e582541af783491f958b3ec5a86804bcc116d7c16ddb2/pymetdecoder-0.2.2-py3-none-any.whl", hash = "sha256:59e1efa24be69809ccaa52953a435352569f7ad98fd979944b141d258681244a", size = 52717, upload-time = "2026-07-10T07:36:13.763Z" },
 ]
 
 [[package]]
