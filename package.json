@@ -52,6 +52,7 @@
     "agents:score": "node scripts/agents/score-sessions.mjs",
     "agents:improve": "node scripts/agents/improve.mjs",
     "agents:routing": "node scripts/agents/routing.mjs",
+    "agents:skill-evals": "node scripts/agents/skill-evals.mjs",
     "agents:sweep": "node scripts/agents/claim-issue.mjs sweep",
     "agents:handoff": "node scripts/agents/review-handoff.mjs",
     "coverage:check": "node scripts/guardrails/check-coverage.mjs",
