@@ -47,9 +47,11 @@ change that plans the app, so the next person does not pick it.
 | --- | --- | --- |
 | 3008 | `@barrelsgd/web-shop` (`shop.barrels.gd`) | Reserved; see `docs/exec-plans/barrelsgd-migration-plan.md` |
 
-In production only Traefik's entry points are published to the host; app ports stay
+In production only Traefik's entry points are published to the host (80 and 443
+publicly; the dashboard/ping entrypoint on `127.0.0.1:8080` only); app ports stay
 on the Docker network and Traefik routes by hostname using an explicit
-`loadbalancer.server.port` label.
+`loadbalancer.server.port` label. Postgres is the exception: it is published on
+the droplet's private IP (`${CORE_PRIVATE_IP}:5432`) for the private network.
 
 The static `apps/web/barrels` homepage has no assigned Next.js port. Port
 allocation does not indicate deployment status; see the
@@ -83,11 +85,13 @@ entry there or its image build fails.
 | cap (public CAP alert hub) | `localhost:3010` | 3010 | `cap.staging.barrels.gd` | `cap.barrels.gd` | `/api/health` |
 | gmsdash (GMS Dashboard) | `localhost:3013` | 3013 | `gmsdash.staging.barrels.gd` | `gmsdash.barrels.gd` | `/api/health` |
 | FastAPI | `localhost:8000` | 8000 | `api.staging.barrels.gd` | `api.barrels.gd` | `/api/v1/utils/health-check/` |
-| Adminer (password) | `localhost:8080` | 8080 | `adminer.staging.barrels.gd` | `adminer.barrels.gd` | — |
-| Traefik dashboard (password) | `localhost:8090` | built in (`api@internal`) | `traefik.staging.barrels.gd` | `traefik.barrels.gd` | — |
+| Adminer (password) | `localhost:8080` | 8080 | `adminer.staging.barrels.gd` | none (staging profile only) | — |
+| Traefik dashboard (password) | `localhost:8090` | built in (`api@internal`) | SSH tunnel to `127.0.0.1:8080` | SSH tunnel to `127.0.0.1:8080` | — |
 
-Internal only (no hostname): Postgres 5432, Redis 6379, the ARQ `worker`, the
-`nhc-worker`, `prestart` (migrations) and `cms-migrate`.
+Internal only (no hostname): Postgres 5432 (also on the private IP, above),
+Redis 6379, the ARQ `worker`, the `nhc-worker`, `prestart` (migrations),
+`cms-migrate` and `traefik-socket-proxy` (Docker API for Traefik, port 2375 on an
+internal network).
 
 `admin.<domain>` serves the GAA/GMS staff portal until the gmsadmin cutover;
 it then moves to the Barrels control plane (`apps/web/admin`, port 3012),
