@@ -2,7 +2,11 @@ import "server-only";
 
 import {
   createClient,
+  rewardsCreateCheckIn,
+  rewardsGetPassport,
+  rewardsGetStreak,
   rewardsListMine,
+  rewardsListMyAchievements,
   rewardsListMyBadges,
   rewardsListMyTickets,
   rewardsRequestRedemption,
@@ -44,6 +48,28 @@ export function listMyBadges(accessToken: string) {
 export function startRedemption(accessToken: string, programId: string) {
   return rewardsRequestRedemption({
     body: { program_id: programId },
+    client: bearerClient(accessToken),
+  }).unwrap();
+}
+
+export function getMyPassport(accessToken: string) {
+  return rewardsGetPassport({ client: bearerClient(accessToken) }).unwrap();
+}
+
+export function listMyAchievements(accessToken: string) {
+  return rewardsListMyAchievements({
+    client: bearerClient(accessToken),
+  }).unwrap();
+}
+
+export function getMyStreak(accessToken: string) {
+  return rewardsGetStreak({ client: bearerClient(accessToken) }).unwrap();
+}
+
+/** Post a scanned or typed venue code. Real-world check-ins only. */
+export function createCheckIn(accessToken: string, token: string) {
+  return rewardsCreateCheckIn({
+    body: { token },
     client: bearerClient(accessToken),
   }).unwrap();
 }

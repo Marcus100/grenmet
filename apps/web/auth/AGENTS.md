@@ -24,7 +24,8 @@ src/app/
   organisations/page.tsx          ← account tab: my memberships (`GET /organisations/mine`)
   organisations/accept/page.tsx   ← emailed invitation link (`?token=`); a form posts the token in the body (ADR-0022)
   tickets/page.tsx                ← account tab: my Events tickets (`GET /rewards/me/tickets`, read-only)
-  rewards/page.tsx                ← account tab: stamp cards, redeem (server action), trust badges
+  rewards/page.tsx                ← account tab: venue check-in form, streak, Passport trails, achievements, stamp cards, redeem (server actions), trust badges
+                                     (check-in/passport/achievements/streak: `/rewards/me/*`; sections in `components/rewards-panels.tsx`; a section that fails shows a fallback and calls `reportError`; outcomes are fixed `?notice=` codes — 409 already checked in, 400 one generic invalid/expired message, 503 unavailable. Copy: rewards come from real check-ins, never app opens, no ranking by spend. No leaderboard/challenge/gifting UI until their API ships.)
   api/email/render/route.ts       ← internal endpoint: FastAPI calls this to render email templates
   api/health/route.ts
 ```

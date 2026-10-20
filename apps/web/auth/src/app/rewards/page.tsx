@@ -5,10 +5,24 @@ import {
   SettingsSection,
   StatusBadge,
 } from "@/components/account-layout";
+import {
+  AchievementsSection,
+  CheckInSection,
+  type Loaded,
+  PassportSection,
+  StreakSection,
+} from "@/components/rewards-panels";
 import { requireAccount } from "@/lib/account";
-import { listMyBadges, listMyRewardCards } from "@/lib/account-rewards";
+import {
+  getMyPassport,
+  getMyStreak,
+  listMyAchievements,
+  listMyBadges,
+  listMyRewardCards,
+} from "@/lib/account-rewards";
+import { reportError } from "@/lib/report-error";
 import { readQueryParam } from "@/lib/return-to";
-import { redeemCard } from "./actions";
+import { checkIn, redeemCard } from "./actions";
 
 export const metadata: Metadata = { title: "Rewards — Barrels account" };
 export const dynamic = "force-dynamic";
@@ -29,22 +43,41 @@ function badgeStatus(badge: { earned: boolean; available: boolean }): string {
   return badge.available ? "Not yet" : "Unavailable right now";
 }
 
+/** A failed section shows a fallback instead of taking the whole tab down. */
+async function load<T>(
+  area: string,
+  run: () => Promise<T>
+): Promise<Loaded<T>> {
+  try {
+    return { data: await run(), ok: true };
+  } catch (error) {
+    reportError(error, area);
+    return { ok: false };
+  }
+}
+
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export default async function RewardsPage({ searchParams }: PageProps) {
   const session = await requireAccount();
-  const [cards, badges] = await Promise.all([
+  const [cards, badges, passport, achievements, streak] = await Promise.all([
     listMyRewardCards(session.access_token),
     listMyBadges(session.access_token),
+    load("rewards-passport", () => getMyPassport(session.access_token)),
+    load("rewards-achievements", () =>
+      listMyAchievements(session.access_token)
+    ),
+    load("rewards-streak", () => getMyStreak(session.access_token)),
   ]);
-  const notice = NOTICES[readQueryParam((await searchParams).notice) ?? ""];
+  const noticeCode = readQueryParam((await searchParams).notice) ?? "";
+  const notice = NOTICES[noticeCode];
 
   return (
     <AccountLayout
       current="/rewards"
-      description="Stamps you earn by going to real events and shops. They have no cash value and can't be transferred."
+      description="Stamps you earn by going to real events, shops and venues. They have no cash value and can't be transferred."
       title="Rewards"
     >
       {notice ? (
@@ -52,6 +85,10 @@ export default async function RewardsPage({ searchParams }: PageProps) {
           {notice}
         </p>
       ) : null}
+      <CheckInSection action={checkIn} notice={noticeCode} />
+      <StreakSection streak={streak} />
+      <PassportSection trails={passport} />
+      <AchievementsSection achievements={achievements} />
       <SettingsSection title="Your cards">
         {cards.length === 0 ? (
           <p className="py-5 text-muted-foreground text-sm">
