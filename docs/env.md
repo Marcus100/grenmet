@@ -200,6 +200,10 @@ the API image and the local source mount contain the same migration assets.
 | `CAP_JOB_BATCH_SIZE` | CAP worker batch size (default: `20`) |
 | `CAP_JOB_MAX_ATTEMPTS` | Maximum CAP job attempts (default: `5`) |
 | `CAP_JOB_POLL_SECONDS` | CAP worker polling cadence; must divide 60 (default: `10`) |
+| `OUTBOX_STALE_MINUTES` | Worker `check_outbox_backlog`: pending outbox rows overdue this long count as stale (default: `30`) |
+| `OUTBOX_DEAD_WINDOW_HOURS` | Worker `check_outbox_backlog`: dead rows counted from this window (default: `24`) |
+| `OUTBOX_ALERT_THRESHOLD` | Worker logs `Outbox backlog above threshold` when dead or stale rows exceed this (default: `0`) |
+| `SENTRY_CRONS_ENABLED` | Worker: send Sentry Cron check-ins for key jobs (default: `false`; each monitor may be billable) |
 | `CAP_SIGNING_CERT` | Optional CAP XML signing certificate, as PEM content or a path |
 | `CAP_SIGNING_KEY` | Optional CAP XML signing key, as PEM content or a path |
 | `CAP_SIGNING_KEY_REF` | Human-readable key reference stored with signed snapshots |
@@ -214,7 +218,7 @@ FastAPI settings but are not application settings themselves.
 | Variable | Purpose |
 |---|---|
 | `AUTH_APP_URL` | Public URL of the auth app (e.g. `http://localhost:3000`); used for OAuth callback redirects |
-| `AUTH_API_URL` | FastAPI base URL (e.g. `http://localhost:8000`) |
+| `AUTH_API_URL` | FastAPI base URL (e.g. `http://localhost:8000`). Server-side only; deployment sets the internal `http://api:8000` for every web service (see below) |
 | `AUTH_API_V1_STR` | API version prefix (e.g. `/api/v1`) |
 | `AUTH_SESSION_COOKIE_NAME` | Host-only account session cookie (default `auth_session`). Every app keeps its own cookie (ADR-0017); none sets a `Domain` |
 | `AUTH_ALLOWED_RETURN_HOSTS` | See section below |
@@ -276,6 +280,13 @@ site's secret is set; the same value must be set for the API.
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
 | elections (Vercel) | `elections` | `ELECTIONS_SSO_CLIENT_SECRET` | `elections_session` |
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
+
+In `infra/docker/docker-compose.deploy.yml` every web service (and the CMS) sets
+`AUTH_API_URL: http://api:8000`, never the public `https://api.<domain>`.
+Calling the public hostname hairpins through Traefik, which replaces the
+forwarded browser address with the web container's, so FastAPI rate limits and
+audit logs would key every user on one address.
+`scripts/production/internal-api-url.test.mjs` enforces this.
 
 Each also needs `AUTH_API_URL`, `AUTH_API_V1_STR` and `AUTH_APP_URL`. The API
 needs `<SITE>_APP_URL` (defaults to the local port) and the matching secret.
@@ -520,8 +531,7 @@ GitHub environments, but no PostHog, Stripe, Google OAuth, CAP signing, Resend
 webhook or email-render credentials. Production also lacked the new CMS and
 FastAPI runtime database credentials and core infrastructure variables. Supply
 these through GitHub environment settings before claiming those integrations
-are connected. Datadog logging hooks alone do not establish an APM connection;
-a collector/agent is not configured by this release.
+are connected. There is no APM agent: ddtrace was removed on 2026-10-20.
 
 GMS reads forecasts, observations and published products from FastAPI via
 `AUTH_API_URL`; it never calls gaa-admin. Publication authorization is configured through the
@@ -585,15 +595,9 @@ PostHog remains disabled without its project key. Its shared provider disables
 session recording, autocapture and person profiles and sends only allowlisted
 page-section counts; preserve these controls when activating it.
 
-The API image ships with `DD_TRACE_ENABLED=false`,
-`DD_INSTRUMENTATION_TELEMETRY_ENABLED=false` and
-`DD_REMOTE_CONFIGURATION_ENABLED=false`. There is no Datadog Agent in the core
-Compose stack. Do not enable exports until an agent is provisioned with a
-container-reachable `DD_TRACE_AGENT_URL`, separate environment configuration,
-and `DD_SERVICE`, `DD_ENV`, `DD_VERSION` tags. A Datadog cloud API key belongs on
-the agent, not in browser configuration. The current deployment renderer does
-not forward Datadog enablement settings; wiring the agent and these settings is
-a separate deployment change, not an existing activated integration.
+The API image runs plain `uvicorn`; ddtrace and its `DD_*` defaults were removed
+on 2026-10-20 because no Datadog Agent was ever provisioned. Adding APM later is a
+new dependency and deployment decision.
 
 Sentry preserves exception types and stack locations while redacting payloads,
 local variables and log contents. Log-only events retain a generic safe title.
@@ -641,7 +645,6 @@ but they are not all deployment prerequisites:
   `EMAIL_RENDER_SECRET`, `EMAIL_RENDER_URL`.
 - CAP XML signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY`,
   `CAP_SIGNING_KEY_REF`.
-- Datadog: `DD_*` values, only after an agent or collector is provisioned.
 - CAP MQTT, outbound webhooks, WIS2Box, static maps, and social-image
   publication consumers; these are currently dormant and have no required
   runtime credentials.

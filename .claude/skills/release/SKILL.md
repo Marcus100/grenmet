@@ -6,16 +6,16 @@ allowed-tools: Bash(pnpm *), Bash(turbo run *), Bash(gh *), Bash(git *), Bash(cu
 
 ## Release Promotion
 
-Follow `docs/operations/release-runbook.md`. Local dev integration, direct dev
-push, staging PR creation/update and merging after all applicable checks pass
-have standing user authorization. Monitor the resulting staging deployment.
-Main merges and production publication/deployment need separate authorization.
-Never bypass protection, hooks, or failing checks.
+Follow `docs/operations/release-runbook.md`. Work reaches `dev` by PR into `dev`
+that the owner merges (`/commit` step 4). Staging PR creation/update and
+auto-merge after all applicable checks pass have standing user authorization.
+Monitor the resulting staging deployment. Main merges and production
+publication/deployment need separate authorization. Never bypass protection,
+hooks, or failing checks.
 
 **1. Pre-flight**
-Integrate completed task branches into local `dev` and validate the combined
-result before pushing `dev` directly. Do not push feature branches or open
-feature-to-dev PRs unless requested. See `AGENTS.md` → Git and GitHub Workflow.
+Start from the `dev` the owner has merged; never push `dev` yourself. See
+`AGENTS.md` → Git and GitHub Workflow.
 
 Confirm the latest `dev` CI run is green (`gh run list --branch dev --limit 3`);
 if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the
@@ -31,7 +31,8 @@ GitHub merges once the staging ruleset's required checks pass; `CI Success` and
 `Build Web Apps` aggregate every API and web job (see
 `docs/operations/release-runbook.md`). If dev advances, review the new head and
 re-arm on it.
-On failure, diagnose and fix locally within scope, validate and push dev again.
+On failure, diagnose and fix on a task branch within scope, validate, open a PR
+into `dev` for the owner to merge, then re-arm on the new `dev` head.
 Monitor `pipeline-staging.yml` and verify its deployed SHA still equals staging
 head. Then smoke-test what the promotion changed:
 - `curl -fsS https://api.staging.barrels.gd/api/v1/utils/health-check/`

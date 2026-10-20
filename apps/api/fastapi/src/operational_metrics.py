@@ -2,6 +2,7 @@
 
 import asyncio
 import hashlib
+import logging
 from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlsplit
@@ -21,6 +22,7 @@ class MetricsSettings(BaseSettings):
 
 
 settings = MetricsSettings()
+logger = logging.getLogger(__name__)
 _client: Redis | None = None
 TTL = 14 * 86400
 
@@ -37,24 +39,16 @@ def duration_bucket(seconds: float) -> str:
 
 async def record_request(route: str, status: int, duration: float) -> None:
     """Route must be a registered template, never request.url or a submitted value."""
-    if not settings.ENABLED or settings.ENVIRONMENT not in {
-        "development",
-        "staging",
-        "production",
-    }:
+    if not _enabled():
         return
-    global _client
     try:
-        if _client is None:
-            _client = Redis.from_url(
-                settings.REDIS_URL, socket_connect_timeout=0.05, socket_timeout=0.05
-            )
+        client = _shared_client()
         async with asyncio.timeout(0.05):
             key = f"telemetry:v1:{settings.ENVIRONMENT}:requests:{datetime.now(UTC):%Y-%m-%d}"
             field = (
                 f"{route}|{min(max(status // 100, 1), 5)}xx|{duration_bucket(duration)}"
             )
-            async with _client.pipeline(transaction=True) as pipe:
+            async with client.pipeline(transaction=True) as pipe:
                 pipe.hincrby(key, field, 1)
                 pipe.expire(key, TTL)
                 await pipe.execute()
@@ -105,6 +99,88 @@ async def record_job(redis: Any, name: str, operation_id: str, success: bool) ->
                 field,
                 TTL,
             )
+    except RedisError, TimeoutError, OSError:
+        return
+
+
+OUTBOXES = frozenset({"platform", "events"})
+# Topics and kinds are code constants; cap the length so a bug cannot store a value.
+_TOPIC_MAX = 80
+
+
+def _enabled() -> bool:
+    return settings.ENABLED and settings.ENVIRONMENT in {
+        "development",
+        "staging",
+        "production",
+    }
+
+
+def _shared_client() -> Redis:
+    global _client
+    if _client is None:
+        _client = Redis.from_url(
+            settings.REDIS_URL, socket_connect_timeout=0.05, socket_timeout=0.05
+        )
+    return _client
+
+
+async def record_outbox_dead(outbox: str, topic: str) -> None:
+    """Count one dead-lettered message per outbox and topic (no payload or IDs)."""
+    if not _enabled() or outbox not in OUTBOXES:
+        return
+    try:
+        client = _shared_client()
+        async with asyncio.timeout(0.05):
+            key = f"telemetry:v1:{settings.ENVIRONMENT}:outbox:{datetime.now(UTC):%Y-%m-%d}"
+            async with client.pipeline(transaction=True) as pipe:
+                pipe.hincrby(key, f"{outbox}|{topic[:_TOPIC_MAX]}|dead", 1)
+                pipe.expire(key, TTL)
+                await pipe.execute()
+    except RedisError, TimeoutError, OSError:
+        return
+
+
+DEAD_LETTER_MESSAGE = "Outbox message dead-lettered"
+
+
+async def outbox_dead_lettered(
+    outbox: str, topic: str, *, outbox_id: object, attempts: int
+) -> None:
+    """The one countable dead-letter signal for every outbox.
+
+    Logs at error with a stable message (alert on it) and bumps the daily counter.
+    Never pass the payload or ``last_error``: both can quote personal data."""
+    logger.error(
+        DEAD_LETTER_MESSAGE,
+        extra={
+            "outbox": outbox,
+            "topic": topic[:_TOPIC_MAX],
+            "outbox_id": str(outbox_id),
+            "attempts": attempts,
+        },
+    )
+    await record_outbox_dead(outbox, topic)
+
+
+async def record_outbox_backlog(
+    redis: Any, outbox: str, *, dead: int, stale_pending: int
+) -> None:
+    """Latest backlog gauges per outbox; overwritten by each health check run."""
+    if redis is None or not _enabled() or outbox not in OUTBOXES:
+        return
+    key = f"telemetry:v1:{settings.ENVIRONMENT}:outbox-backlog"
+    try:
+        async with asyncio.timeout(0.05):
+            await redis.hset(
+                key,
+                mapping={
+                    f"{outbox}|dead": dead,
+                    f"{outbox}|stale_pending": stale_pending,
+                    f"{outbox}|checked_at": datetime.now(UTC).isoformat(),
+                },
+            )
+            await redis.expire(key, TTL)
     except RedisError, TimeoutError, OSError:
         return
 

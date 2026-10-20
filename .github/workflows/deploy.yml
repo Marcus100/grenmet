@@ -11,6 +11,11 @@ on:
         required: false
         default: ""
         type: string
+      backup_gate_override:
+        description: "Emergency only: reason to proceed past an enforced backup gate; recorded in the run summary"
+        required: false
+        default: ""
+        type: string
   workflow_dispatch:
     inputs:
       environment:
@@ -20,6 +25,11 @@ on:
       image_tag:
         description: "sha-<full commit SHA> matching the selected branch or release tag"
         required: true
+        type: string
+      backup_gate_override:
+        description: "Emergency only: reason to proceed past an enforced backup gate (DEPLOY_BACKUP_GATE=enforce); recorded in the run summary"
+        required: false
+        default: ""
         type: string
 
 permissions:
@@ -161,6 +171,17 @@ jobs:
           PAYMENTS_STRIPE_SUCCESS_URL: ${{ vars.PAYMENTS_STRIPE_SUCCESS_URL }}
           PAYMENTS_STRIPE_CANCEL_URL: ${{ vars.PAYMENTS_STRIPE_CANCEL_URL }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Pre-migration backup gate (release runbook, "Backup gate"). Mode defaults to
+          # warn in core.sh when the variable is unset; nothing here enables enforce.
+          DEPLOY_BACKUP_GATE: ${{ vars.DEPLOY_BACKUP_GATE }}
+          DEPLOY_BACKUP_MAX_AGE_HOURS: ${{ vars.DEPLOY_BACKUP_MAX_AGE_HOURS }}
+          DEPLOY_BACKUP_GATE_OVERRIDE: ${{ inputs.backup_gate_override }}
+          # List-only access to the backup bucket: the read-only key, never the write key.
+          BACKUP_GATE_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+          BACKUP_GATE_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+          BACKUP_GATE_REGION: ${{ secrets.DO_SPACES_REGION }}
+          BACKUP_GATE_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_READ_ACCESS_KEY_ID }}
+          BACKUP_GATE_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_READ_SECRET_ACCESS_KEY }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Install declared monitoring after application acceptance
         if: vars.MONITORING_DEPLOY_ENABLED == 'true'
@@ -172,6 +193,35 @@ jobs:
         run: |
           set -euo pipefail
           sudo --preserve-env=DEPLOY_ENV,GITHUB_SHA,PROBE_HEARTBEAT_URL,BETTERSTACK_API_TOKEN,PROBE_INCIDENTS_ENABLED,PROBE_MAINTENANCE bash ../../scripts/monitoring/install.sh
+      # Marks the release deployed in Sentry so issues show "first seen in" and
+      # regressions per deploy. Release = commit SHA, matching SENTRY_RELEASE
+      # (render-env.py) and NEXT_PUBLIC_RELEASE (build-web-images.yml). Optional:
+      # skipped without the token, and a Sentry failure never fails the deploy.
+      - name: Mark Sentry release deployed
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG || 'grenmet' }}
+          SENTRY_PROJECT: grenmet-${{ inputs.environment }}
+          RELEASE: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$SENTRY_AUTH_TOKEN" ]]; then
+            echo "SENTRY_AUTH_TOKEN not set; skipping Sentry deploy marker." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          base="https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases"
+          sentry() {
+            # The token goes through stdin, never the process list or the log.
+            printf 'header = "Authorization: Bearer %s"\n' "$SENTRY_AUTH_TOKEN" |
+              curl --config - --fail-with-body --silent --show-error --max-time 20 \
+                -H 'Content-Type: application/json' -o /dev/null -w '%{http_code}\n' \
+                -X POST "$1" --data "$2"
+          }
+          # Creating an existing release is idempotent (200/208).
+          sentry "$base/" "{\"version\":\"$RELEASE\",\"projects\":[\"$SENTRY_PROJECT\"]}"
+          sentry "$base/$RELEASE/deploys/" "{\"environment\":\"$DEPLOY_ENV\",\"name\":\"$DEPLOY_IMAGE_TAG\"}"
+          echo "Sentry release $RELEASE marked deployed to $DEPLOY_ENV ($SENTRY_PROJECT)." >> "$GITHUB_STEP_SUMMARY"
       - name: Service state on failure
         if: failure()
         run: docker ps -a --filter "label=com.docker.compose.project=$COMPOSE_PROJECT" --format 'table {{.Names}}\t{{.Status}}'

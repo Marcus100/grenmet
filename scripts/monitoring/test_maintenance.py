@@ -50,7 +50,14 @@ class MaintenanceTests(unittest.TestCase):
             "events_staging", [row["database"] for row in manifest["databases"]]
         )
         for field, value in [
-            ("databases", [row for row in manifest["databases"] if row["database"] != "events_staging"]),
+            (
+                "databases",
+                [
+                    row
+                    for row in manifest["databases"]
+                    if row["database"] != "events_staging"
+                ],
+            ),
             (
                 "databases",
                 [
@@ -284,6 +291,77 @@ class ProviderTests(unittest.TestCase):
                     "monitors": [],
                 },
             )
+
+    def test_deferred_resources_are_declared_but_never_created(self):
+        config = self.config()
+        config["resources"].append(
+            {
+                "environment": "staging",
+                "kind": "monitors",
+                "deferred": True,
+                "settings": {"pronounceable_name": "Staging · later", "paused": True},
+            }
+        )
+        live = {
+            "heartbeats": [
+                {
+                    "id": "1",
+                    "attributes": {
+                        "name": "Staging · test",
+                        "period": 300,
+                        "paused_at": None,
+                    },
+                }
+            ],
+            "monitors": [],
+        }
+        self.assertEqual(betterstack.plan(config, "staging", live), [])
+        self.assertEqual(
+            betterstack.deferred_names(config, "staging"), ["Staging · later"]
+        )
+        config["resources"][1]["settings"]["paused"] = False
+        with self.assertRaises(ValueError):
+            betterstack.plan(config, "staging", live)
+
+    def test_declared_production_resources_start_paused_within_free_limits(self):
+        config = json.loads(
+            (Path(betterstack.__file__).with_name("betterstack.json")).read_text()
+        )
+        production = [
+            r for r in config["resources"] if r["environment"] == "production"
+        ]
+        self.assertTrue(production)
+        for resource in production:
+            # New production resources carry no adopted ID and must start paused.
+            self.assertNotIn("id", resource)
+            self.assertIs(resource["settings"]["paused"], True)
+            # Heartbeat URLs are credentials; they never live in the repository.
+            if resource["kind"] == "heartbeats":
+                self.assertNotIn("url", resource["settings"])
+            else:
+                self.assertTrue(resource["settings"]["url"].startswith("https://"))
+                self.assertIs(resource["settings"]["verify_ssl"], True)
+                self.assertGreater(resource["settings"]["ssl_expiration"], 0)
+        for kind in ("monitors", "heartbeats"):
+            active = [
+                r for r in production if r["kind"] == kind and not r.get("deferred")
+            ]
+            self.assertLessEqual(len(active), config["limits"][kind])
+        # The real declaration plans cleanly once limits are verified and quota is free.
+        config["limitsVerified"] = True
+        changes = betterstack.plan(
+            config, "production", {"monitors": [], "heartbeats": []}
+        )
+        self.assertTrue(all(change["method"] == "POST" for change in changes))
+        self.assertTrue(all(change["settings"]["paused"] for change in changes))
+        self.assertEqual(
+            len(changes),
+            sum(1 for r in production if not r.get("deferred")),
+        )
+        # Until the owner verifies limits, production creation is refused.
+        config["limitsVerified"] = False
+        with self.assertRaises(ValueError):
+            betterstack.plan(config, "production", {"monitors": [], "heartbeats": []})
 
 
 if __name__ == "__main__":

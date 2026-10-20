@@ -143,7 +143,7 @@ def _alert(msg_type: CapMessageType = CapMessageType.ALERT) -> CapAlertPublic:
     return CapAlertPublic(
         id=uuid4(),
         identifier="test-alert",
-        sender="cap@weather.gd",
+        sender="cap@example.com",
         sent=now,
         status=CapStatus.ACTUAL,
         msg_type=msg_type,

@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { contentSecurityPolicyHeaders } from "@barrelsgd/ui/lib/content-security-policy";
 import { withContentCollections } from "@content-collections/next";
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
@@ -17,6 +18,20 @@ const nextConfig: NextConfig = {
     },
   }),
   pageExtensions: ["js", "jsx", "ts", "tsx"],
+  // CSP is Report-Only until a clean 7-day report window (docs/security.md).
+  headers() {
+    return Promise.resolve([
+      {
+        source: "/:path*",
+        headers: contentSecurityPolicyHeaders({
+          app: "signal",
+          dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+          environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+          isProduction: process.env.NODE_ENV === "production",
+        }),
+      },
+    ]);
+  },
 };
 
 export default withContentCollections(nextConfig).then((config) =>

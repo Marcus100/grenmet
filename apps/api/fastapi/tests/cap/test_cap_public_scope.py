@@ -112,7 +112,7 @@ async def test_private_alert_hidden_from_public_feeds(
         superuser_token_headers_async,
         second_superuser_headers_async,
         scope="Private",
-        addresses=["ops@weather.gd"],
+        addresses=["ops@example.com"],
     )
 
     list_response = await async_client.get("/api/cap/alerts")
@@ -148,7 +148,7 @@ def _alert_payload(
 ) -> dict[str, Any]:
     now = datetime.now(UTC)
     return {
-        "sender": "cap@weather.gd",
+        "sender": "cap@example.com",
         "sent": now.isoformat(),
         "status": "Actual",
         "msg_type": "Alert",

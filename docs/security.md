@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-18
+**Last updated:** 2026-10-20
 
 This guide records the current Barrels Grenada security posture and the rules that keep docs and code aligned. It is not a full organizational security policy; it is the repo-level baseline for engineers.
 
@@ -79,7 +79,7 @@ Security-sensitive deployment facts:
 
 The following are not globally implemented yet:
 
-- Content Security Policy and standard browser security headers for all Next.js apps.
+- Content Security Policy for all Next.js apps. Traefik already sends HSTS, nosniff, X-Frame-Options and Referrer-Policy on every host. CSP is Report-Only on `docs` and `signal` (`packages/ui/src/lib/content-security-policy.ts`, reports go to Sentry); enforcement follows a clean 7-day report window per app. Remaining: admin, auth, cap, cms, elections, events, gaa-admin, gms, gmsdash and mbia. `barrels` already enforces its own policy in `vercel.json`.
 - Complete audit coverage across all domains. Shared HR audit and account-activation history exist; coverage is opt-in.
 - Mandatory MFA for privileged accounts and encryption of stored TOTP secrets. TOTP, recovery codes and app-scoped SSO already exist.
 - Verification of deployed Redis-backed rate limiting configuration; the implementation already supports Redis.
@@ -91,7 +91,28 @@ Do not document these as complete controls until code or infrastructure exists.
 
 The [secure development gap check](operations/ssdf-gap-check.md) compares the repository with the NIST SSDF and ranks further gaps, including disabled secret scanning and Dependabot alerts.
 
+## Supply-chain checks
 
+| Check | What it does | Where results appear |
+| --- | --- | --- |
+| Action pinning | Every `uses:` names a 40-character commit SHA with the tag in a comment; Dependabot bumps them weekly. | Pull request diff; `pre-merge` skill |
+| Dependabot | Version updates for GitHub Actions, uv, npm (pnpm), Docker and Docker Compose, all targeting `dev`. | Pull requests |
+| CodeQL (`codeql.yml`) | Static analysis of first-party TypeScript and Python (no build step) on pull requests, `dev` pushes and weekly. Skips docs-only changes, vendored `surface/` and `wis2box/`, and the generated API client. | Security tab → Code scanning |
+| Secret scan (`secret-scan.yml`) | gitleaks over only the commits a pull request or `dev` push adds; fails the run on a finding. The binary is a release download checked against a pinned SHA-256. `.gitleaks.toml` allowlists reviewed placeholders. | Workflow log (redacted) |
+| Image scan | Trivy before publishing; see [Image vulnerability policy](#image-vulnerability-policy). | Security tab → Code scanning (`trivy-*`) and run artifacts |
+| Provenance and SBOM | Published API, web and weather images carry BuildKit provenance and SPDX SBOM attestations in their image index. Web and weather use max-mode provenance, which records build arguments; never pass a secret as a build argument. | `docker buildx imagetools inspect <image> --format '{{json .SBOM}}'` (or `.Provenance`) |
+| `CODEOWNERS` | Requests the owner's review on `.github/`, `infra/`, `scripts/production/`, auth, payments, Alembic and `packages/auth`. | Pull request reviewers |
+
+Attestations are unsigned (no cosign) and nothing verifies them at deploy time
+yet. Deploys still pin the image index digest and check revision and
+environment labels.
+
+Owner decisions, not set by the repository (GitHub secret scanning with push
+protection is already on, per the gap check): confirm code scanning alerts are
+visible to the owner, and choose whether
+CodeQL, the secret scan and code owner review become required on the `staging`
+and `main` rulesets. CodeQL skips docs-only changes, so a docs-only promotion
+pull request would wait forever on it if it were required.
 
 ## Image vulnerability policy
 
