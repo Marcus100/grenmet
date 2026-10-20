@@ -3,10 +3,12 @@ import { render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const listMyOrganisations = vi.hoisted(() => vi.fn());
+const canManageRewards = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/account", () => ({
   requireAccount: vi.fn().mockResolvedValue({ access_token: "access" }),
 }));
 vi.mock("@/lib/account-organisations", () => ({ listMyOrganisations }));
+vi.mock("@/lib/org-rewards", () => ({ canManageRewards }));
 vi.mock("@/components/account-layout", () => ({
   AccountLayout: ({ children }: { children: React.ReactNode }) => (
     <main>{children}</main>
@@ -15,10 +17,12 @@ vi.mock("@/components/account-layout", () => ({
     <section>{children}</section>
   ),
   SettingsRow: ({
+    action,
     children,
     description,
     title,
   }: {
+    action?: React.ReactNode;
     children?: React.ReactNode;
     description?: React.ReactNode;
     title: string;
@@ -26,6 +30,7 @@ vi.mock("@/components/account-layout", () => ({
     <div data-testid={title}>
       <h3>{title}</h3>
       <p>{description}</p>
+      {action}
       {children}
     </div>
   ),
@@ -59,6 +64,12 @@ function membership(overrides: Record<string, unknown> = {}) {
 }
 
 afterEach(() => vi.clearAllMocks());
+
+function rewardsLink(name: string) {
+  return within(screen.getByTestId(name)).queryByRole("link", {
+    name: (text) => text.startsWith("Manage rewards"),
+  });
+}
 
 describe("/organisations", () => {
   it("lists my memberships with the role in each", async () => {
@@ -126,5 +137,66 @@ describe("/organisations", () => {
     listMyOrganisations.mockResolvedValue([]);
     await show({ notice: "<script>" });
     expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  describe("rewards admin link", () => {
+    it("is offered to an owner or admin of an organisation with rewards", async () => {
+      canManageRewards.mockResolvedValue(true);
+      listMyOrganisations.mockResolvedValue([
+        membership(),
+        membership({
+          membership_id: "mem_2",
+          organisation: {
+            id: "org_2",
+            kind: "business",
+            name: "Admin Co",
+            slug: "admin-co",
+            status: "active",
+            verified_at: null,
+          },
+          role: "admin",
+        }),
+      ]);
+      await show();
+      expect(canManageRewards).toHaveBeenCalledWith("access", "org_1");
+      expect(rewardsLink("Spice Isle Tours")?.getAttribute("href")).toBe(
+        "/organisations/org_1/rewards"
+      );
+      expect(rewardsLink("Admin Co")?.getAttribute("href")).toBe(
+        "/organisations/org_2/rewards"
+      );
+    });
+
+    it("is hidden for a plain member, without probing the API", async () => {
+      listMyOrganisations.mockResolvedValue([membership({ role: "member" })]);
+      await show();
+      expect(rewardsLink("Spice Isle Tours")).toBeNull();
+      expect(canManageRewards).not.toHaveBeenCalled();
+    });
+
+    it("is hidden when the organisation has no rewards entitlement", async () => {
+      canManageRewards.mockResolvedValue(false);
+      listMyOrganisations.mockResolvedValue([membership()]);
+      await show();
+      expect(rewardsLink("Spice Isle Tours")).toBeNull();
+    });
+
+    it("is hidden for a suspended organisation", async () => {
+      listMyOrganisations.mockResolvedValue([
+        membership({
+          organisation: {
+            id: "org_3",
+            kind: "business",
+            name: "Frozen Ltd",
+            slug: "frozen",
+            status: "suspended",
+            verified_at: null,
+          },
+        }),
+      ]);
+      await show();
+      expect(rewardsLink("Frozen Ltd")).toBeNull();
+      expect(canManageRewards).not.toHaveBeenCalled();
+    });
   });
 });

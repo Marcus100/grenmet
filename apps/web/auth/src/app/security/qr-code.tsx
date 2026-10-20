@@ -3,8 +3,14 @@ import Image from "next/image";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 
-/** Renders an otpauth:// URI as a scannable image; generated in the browser. */
-export function QrCode({ value }: { value: string }) {
+/** Renders a value (an otpauth:// URI, a venue code) as a scannable image; generated in the browser. */
+export function QrCode({
+  label = "QR code for your authenticator app",
+  value,
+}: {
+  readonly label?: string;
+  readonly value: string;
+}) {
   const [src, setSrc] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,7 +38,7 @@ export function QrCode({ value }: { value: string }) {
   return (
     // Scanners need a light field in both themes, hence the page-surface token.
     <Image
-      alt="QR code for your authenticator app"
+      alt={label}
       className="size-48 rounded-lg border border-border bg-gm-surface-page p-2"
       height={192}
       src={src}
