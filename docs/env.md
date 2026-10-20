@@ -368,6 +368,19 @@ Its typed defaults allow it to run without an env file.
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile site key for the contact form. Unset: no widget and no token (fine while FastAPI has `TURNSTILE_ENABLED` off) |
 
+### Babydoll web (`apps/web/babydoll`, Vercel)
+
+Read through `src/env.ts` (hand-written, no schema library). Every value has a default; the site is fully static until the switch is on.
+
+| Variable | Purpose |
+|---|---|
+| `BABYDOLL_ONLINE_BOOKING` | `on` enables `/book` (live services, slots, booking). Anything else: `/book` redirects to the Acuity link. Stands in for the PF7 flag `babydoll-online-booking` until anonymous visitors can evaluate flags |
+| `BABYDOLL_API_URL` | FastAPI origin, server only (default `http://localhost:8000`) |
+| `BABYDOLL_BOOKING_SLUG` | The studio's `bookings.profile.public_slug` (default `babydoll-beauty-bar`; created by `python -m src.bookings.seed`) |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile key for the booking form. Unset: no widget and no token. The API uses the `babydoll` public site's Turnstile policy |
+
+FastAPI: `BABYDOLL_SITE_URL` (default `https://babydoll.barrels.gd`) is read only by the on-demand Babydoll seed (`src/bookings/seed.py`) for the booking manage link and the public site row.
+
 ### Scrapy script (`scripts/scrapy-wxwatch/.env.local`)
 
 | Variable | Purpose |
