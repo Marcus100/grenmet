@@ -58,6 +58,8 @@ export const appServices = [
   ...webImages
     .filter((image) => image.app !== "cms-migrate")
     .map((image) => `web-${image.app}`),
+  // Read-only Docker API for Traefik; started before the proxy that uses it.
+  "traefik-socket-proxy",
   "proxy",
 ];
 export const coreServices = [
