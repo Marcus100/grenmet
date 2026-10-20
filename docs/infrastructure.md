@@ -127,6 +127,13 @@ Review these access points at least quarterly and after staff changes:
 - FastAPI superusers, roles, permissions, and role assignments.
 - Resend, Sentry, PostHog, GHCR, and DigitalOcean access.
 
+Owner hardening runbooks (step-by-step, with verify and undo for each step):
+
+- [Host hardening](operations/host-hardening.md): updates, SSH, fail2ban, DigitalOcean Cloud Firewall, runner least privilege.
+- [Domain security](operations/domain-security.md): registrar lock, DNSSEC, wildcards, CAA, Microsoft 365 mail, DMARC.
+- [Account 2FA checklist](operations/account-2fa-checklist.md): provider 2FA and read-only audit tokens.
+- [Sentry hardening](operations/sentry-hardening.md): organization privacy and scrubbing settings.
+
 ## Current Operational Gaps
 
 These are not implemented as repo-level controls yet:
