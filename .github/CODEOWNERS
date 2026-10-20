@@ -1,0 +1,10 @@
+# Review routing for security-sensitive paths. GitHub requests the owner's
+# review on matching pull requests; it blocks merging only when a branch ruleset
+# requires code owner review (an owner setting). Last matching pattern wins.
+/.github/                        @Marcus100
+/infra/                          @Marcus100
+/scripts/production/             @Marcus100
+/apps/api/fastapi/src/auth/      @Marcus100
+/apps/api/fastapi/src/payments/  @Marcus100
+/apps/api/fastapi/alembic/       @Marcus100
+/packages/auth/                  @Marcus100
