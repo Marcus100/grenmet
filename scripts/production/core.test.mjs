@@ -15,6 +15,7 @@ import {
   appServices,
   dataServices,
   migrationServices,
+  routedServices,
 } from "../ci/release-scope.mjs";
 
 const ENOUGH_FREE_KB = 40 * 1024 * 1024;
@@ -80,6 +81,26 @@ esac
       join(root, "bin/docker"),
       `#!/bin/bash
 printf 'docker %s\\n' "$*" >> "$TEST_LOG"
+state=$(dirname "$TEST_LOG")
+args="$*"
+# Rolling starts: each routed service runs old-<service> until a scaled start adds new-<service>.
+case "$*" in
+  *" ps -aq --status "*)
+    service=\${args##* }
+    [[ "$service" != "$TEST_STALE_SERVICE" ]] || echo "stale-$service"
+    exit 0 ;;
+  *" ps -q "*)
+    service=\${args##* }
+    [[ -n "$TEST_NO_OLD" ]] || echo "old-$service"
+    [[ ! -e "$state/scaled-$service" ]] || echo "new-$service"
+    exit 0 ;;
+  *"--no-recreate --scale "*)
+    touch "$state/scaled-\${args##* }"
+    exit 0 ;;
+  "inspect --format {{if .State.Health}}"*" new-"*)
+    if [[ "\${args##*new-}" == "$TEST_UNHEALTHY_SERVICE" ]]; then echo unhealthy; else echo healthy; fi
+    exit 0 ;;
+esac
 case "$*" in
   *"login"*"--password-stdin"*) cat > /dev/null ;;
   "info --format"*) echo /var/lib/docker ;;
@@ -125,6 +146,9 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
 `,
       { mode: 0o700 }
     );
+    // Exist even when core.sh exits before calling any tool.
+    writeFileSync(join(root, "calls"), "");
+    writeFileSync(join(root, "summary"), "");
     const result = spawnSync(
       "bash",
       [join(root, "scripts/production/core.sh"), "deploy"],
@@ -149,6 +173,11 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           SECRET_KEY: SECRET_MARKER,
           DIAGNOSTIC_TIMEOUT: "2",
           TEST_LOG: join(root, "calls"),
+          TEST_NO_OLD: "",
+          TEST_STALE_SERVICE: "",
+          TEST_UNHEALTHY_SERVICE: "",
+          ROLLOUT_SETTLE_SECONDS: "0",
+          ROLLOUT_POLL_SECONDS: "0",
           ...extraEnv,
         },
         encoding: "utf8",
@@ -456,4 +485,84 @@ test("backup gate: calls the gate for production and never prints secrets", () =
     `${result.stdout}${result.stderr}`.includes(SECRET_MARKER),
     false
   );
+});
+
+const ROLLING_DEPLOY_INVALID = /ROLLING_DEPLOY must be/;
+const ROLLOUT_FAILED =
+  /New web-auth container did not become healthy; the previous one is still serving/;
+
+test("rolling start replaces each routed service before retiring the old container", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "1" },
+  });
+  assert.equal(result.status, 0, `${result.stderr}\n${calls}`);
+  for (const service of routedServices) {
+    const scaled = calls.indexOf(
+      `up -d --no-deps --no-recreate --scale ${service}=2 ${service}\n`
+    );
+    const stopped = calls.indexOf(`docker stop --time 30 old-${service}\n`);
+    assert.ok(scaled >= 0, `expected a rolling start of ${service}`);
+    assert.ok(
+      stopped > scaled,
+      `old ${service} must stop after the new one starts`
+    );
+    assert.equal(calls.includes(`docker rm -f new-${service}`), false);
+  }
+  const rest = appServices.filter(
+    (service) => !routedServices.includes(service)
+  );
+  assert.ok(
+    calls.includes(
+      `up -d --no-deps --remove-orphans --wait --wait-timeout 300 ${rest.join(" ")}\n`
+    ),
+    calls
+  );
+  assert.ok(calls.includes("smoke"));
+});
+
+test("rolling start keeps the old container when the new one is unhealthy", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "1", TEST_UNHEALTHY_SERVICE: "web-auth" },
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, ROLLOUT_FAILED);
+  assert.ok(calls.includes("docker rm -f new-web-auth"));
+  assert.equal(calls.includes("docker stop --time 30 old-web-auth"), false);
+  // Services after the failure are not touched, and smoke never runs.
+  assert.equal(calls.includes("--scale web-admin=2"), false);
+  assert.equal(calls.includes("smoke"), false);
+});
+
+test("rolling start removes stopped leftovers before scaling", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "true", TEST_STALE_SERVICE: "web-docs" },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const removed = calls.indexOf("docker rm stale-web-docs\n");
+  const scaled = calls.indexOf("--scale web-docs=2 web-docs\n");
+  assert.ok(removed >= 0, "stale container must be removed");
+  assert.ok(scaled > removed, "removal must come before the scaled start");
+});
+
+test("rolling start uses an ordinary start when nothing is running yet", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "1", TEST_NO_OLD: "1" },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(calls.includes("--no-recreate --scale"), false);
+  assert.ok(calls.includes("up -d --no-deps --wait --wait-timeout 300 api\n"));
+});
+
+test("an unrecognised ROLLING_DEPLOY value stops before any change", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "yes" },
+  });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, ROLLING_DEPLOY_INVALID);
+  assert.equal(calls.includes("docker"), false);
 });

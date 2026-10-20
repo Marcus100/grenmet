@@ -182,6 +182,8 @@ jobs:
           BACKUP_GATE_REGION: ${{ secrets.DO_SPACES_REGION }}
           BACKUP_GATE_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_READ_ACCESS_KEY_ID }}
           BACKUP_GATE_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_READ_SECRET_ACCESS_KEY }}
+          # Set to 1 on a GitHub environment to replace routed services without a gap.
+          ROLLING_DEPLOY: ${{ vars.ROLLING_DEPLOY }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Install declared monitoring after application acceptance
         if: vars.MONITORING_DEPLOY_ENABLED == 'true'
