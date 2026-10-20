@@ -26,12 +26,12 @@ import { readCatalogue, validateCatalogue } from "./catalogue.mjs";
 test("all services have isolated dev/staging/production coverage", () => {
   const data = readCatalogue();
   assert.deepEqual(validateCatalogue(data), []);
-  assert.equal(data.services.length, 18);
+  assert.equal(data.services.length, 19);
   assert.equal(
     data.services.filter(
       (s) => s.environments.production.availability.kind === "direct"
     ).length,
-    12
+    13
   );
 });
 test("rejects cross-owner and cross-environment analytics destinations", () => {

@@ -321,6 +321,27 @@
       "kind": "monitors",
       "deferred": true,
       "settings": {
+        "pronounceable_name": "Production · Bookings health",
+        "url": "https://bookings.barrels.gd/api/health",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "deferred": true,
+      "settings": {
         "pronounceable_name": "Production · Barrels homepage",
         "url": "https://barrels.gd/",
         "monitor_type": "status",

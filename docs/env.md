@@ -280,6 +280,7 @@ site's secret is set; the same value must be set for the API.
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
 | elections (Vercel) | `elections` | `ELECTIONS_SSO_CLIENT_SECRET` | `elections_session` |
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
+| bookings | `bookings` (not yet registered in the API; sign-in fails until it is) | `BOOKINGS_SSO_CLIENT_SECRET` | `bookings_session` |
 
 In `infra/docker/docker-compose.deploy.yml` every web service (and the CMS) sets
 `AUTH_API_URL: http://api:8000`, never the public `https://api.<domain>`.
@@ -354,6 +355,17 @@ GMS Dashboard (model meteograms for entitled organisations). No database; it cal
 | `AUTH_API_URL` / `AUTH_API_V1_STR` / `AUTH_APP_URL` | FastAPI base URL (`http://api:8000` in deployment), API prefix and the Barrels sign-in app |
 | `GMSDASH_SESSION_COOKIE_NAME` | Host-only session cookie (default `gmsdash_session`) |
 | `GMSDASH_SSO_CLIENT_SECRET` | Same value as the API's; without it `/auth/callback` returns 503 and nobody can sign in |
+| `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
+
+### bookings (`apps/web/bookings/.env.local`)
+
+Barrels Bookings (skeleton). Only `/studio` needs sign-in; public pages need no env. No database; the Bookings API is called from the server only.
+
+| Variable | Purpose |
+|---|---|
+| `AUTH_API_URL` / `AUTH_API_V1_STR` / `AUTH_APP_URL` | FastAPI base URL (`http://api:8000` in deployment), API prefix and the Barrels sign-in app |
+| `BOOKINGS_SESSION_COOKIE_NAME` | Host-only session cookie (default `bookings_session`) |
+| `BOOKINGS_SSO_CLIENT_SECRET` | Same value as the API's registration for `bookings`; without it `/auth/callback` returns 503 and nobody can sign in. Optional in deployment (empty keeps sign-in off) |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
 
 ### signal (`apps/web/signal/.env.local`)

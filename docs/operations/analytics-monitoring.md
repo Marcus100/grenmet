@@ -186,7 +186,7 @@ nothing is created or alerts until the owner applies and unpauses them.
 | --- | --- | --- | --- |
 | Monitor | GAA API readiness | `https://api.barrels.gd/api/v1/utils/ready/` | keyword `"status":"ready"` |
 | Monitor | Barrels ID (auth), GAA staff portal, GMS weather, CAP alert hub, GMS dashboard, GMS docs, MBIA, Signal, Elections health | `https://{auth,admin,weather,cap,gmsdash,docs,mbia,signal,elections}.barrels.gd/api/health` | HTTP 2xx |
-| Monitor (deferred) | CMS readiness, Events health, Barrels homepage | `cms…/api/ready`, `events…/api/health`, `https://barrels.gd/` | covered by the probe runner until quota allows |
+| Monitor (deferred) | CMS readiness, Events health, Bookings health, Barrels homepage | `cms…/api/ready`, `events…/api/health`, `bookings…/api/health`, `https://barrels.gd/` | covered by the probe runner until quota allows |
 | Heartbeat | probe runner | `PROBE_HEARTBEAT_URL` | 5 min + 10 min grace |
 | Heartbeat | verified core backup | `BACKUP_HEARTBEAT_URL` | 24 h + 2 h grace |
 | Heartbeat | worker poll completion | `WORKER_HEARTBEAT_URL` (rendered as `TELEMETRY_WORKER_HEARTBEAT_URL`) | 1 min + 2 min grace |

@@ -105,7 +105,7 @@ fall through to DigitalOcean.
 3. **Verify every name** before deleting anything:
 
    ```bash
-   for h in api auth admin docs gms signal mbia events cap gmsdash cms traefik adminer; do
+   for h in api auth admin docs gms signal mbia events cap gmsdash bookings cms traefik adminer; do
      printf '%-10s ' "$h"; dig +short "$h.barrels.gd" @1.1.1.1
    done
    ```

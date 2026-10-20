@@ -79,7 +79,7 @@ Security-sensitive deployment facts:
 
 The following are not globally implemented yet:
 
-- Content Security Policy for all Next.js apps. Traefik already sends HSTS, nosniff, X-Frame-Options and Referrer-Policy on every host. CSP is Report-Only on `docs` and `signal` (`packages/ui/src/lib/content-security-policy.ts`, reports go to Sentry); enforcement follows a clean 7-day report window per app. Remaining: admin, auth, cap, cms, elections, events, gaa-admin, gms, gmsdash and mbia. `barrels` already enforces its own policy in `vercel.json`.
+- Content Security Policy for all Next.js apps. Traefik already sends HSTS, nosniff, X-Frame-Options and Referrer-Policy on every host. CSP is Report-Only on `docs`, `signal` and `bookings` (`packages/ui/src/lib/content-security-policy.ts`, reports go to Sentry); enforcement follows a clean 7-day report window per app. Remaining: admin, auth, cap, cms, elections, events, gaa-admin, gms, gmsdash and mbia. `barrels` already enforces its own policy in `vercel.json`.
 - Complete audit coverage across all domains. Shared HR audit and account-activation history exist; coverage is opt-in.
 - Mandatory MFA for privileged accounts and encryption of stored TOTP secrets. TOTP, recovery codes and app-scoped SSO already exist.
 - Verification of deployed Redis-backed rate limiting configuration; the implementation already supports Redis.

@@ -32,6 +32,12 @@ export const webImages = [
     path: "apps/web/gmsdash",
     port: 3013,
   },
+  {
+    app: "bookings",
+    image: "web-bookings",
+    path: "apps/web/bookings",
+    port: 3015,
+  },
 ];
 export const weatherImages = [];
 export const releaseScope = {

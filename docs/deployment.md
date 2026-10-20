@@ -105,6 +105,7 @@ Go into each environment and add the following secrets. Staging and production u
 | `GAA_ADMIN_SSO_CLIENT_SECRET` | GAA Admin single sign-on secret    | `openssl rand -base64 32` (different per environment)          |
 | `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment)          |
 | `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment) |
+| `BOOKINGS_SSO_CLIENT_SECRET` | Bookings single sign-on secret (optional; empty keeps sign-in off; the API must register `bookings` first) | `openssl rand -base64 32` (different per environment) |
 | `EVENTS_SSO_CLIENT_SECRET` | Events single sign-on secret (optional) | `openssl rand -base64 32` (different per environment)        |
 | `RESEND_API_KEY`           | Email sending via Resend              | From your resend.com dashboard                                 |
 | `EMAIL`                    | Let's Encrypt registration email      | Your real email address                                        |
@@ -529,6 +530,7 @@ hurricane/spice hosts; no legacy redirects are installed.
 | Events | 3009 | https://events.barrels.gd | https://events.staging.barrels.gd |
 | CAP alert hub | 3010 | https://cap.barrels.gd | https://cap.staging.barrels.gd |
 | GMS Dashboard | 3013 | https://gmsdash.barrels.gd | https://gmsdash.staging.barrels.gd |
+| Bookings | 3015 | https://bookings.barrels.gd | https://bookings.staging.barrels.gd |
 | Elections | 3007 | https://elections.barrels.gd (Vercel) | Vercel preview deployments |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
