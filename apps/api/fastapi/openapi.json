@@ -9604,6 +9604,256 @@
         }
       }
     },
+    "/api/v1/bookings/org/settings": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Get my booking settings",
+        "description": "The profile, services, providers (with the services they offer and weekly hours) and whether deposits can be collected, in one call.",
+        "operationId": "bookingsGetSettings",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingSettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/services/order": {
+      "put": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Reorder services",
+        "description": "Set the menu order: each service's `sort_order` becomes its position.",
+        "operationId": "bookingsReorderServices",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingServicePublic"
+                  },
+                  "title": "Response Bookingsreorderservices"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/providers/order": {
+      "put": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Reorder providers",
+        "description": "Set the provider order: each `sort_order` becomes its position.",
+        "operationId": "bookingsReorderProviders",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingProviderPublic"
+                  },
+                  "title": "Response Bookingsreorderproviders"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
     "/api/v1/hr/organisations": {
       "get": {
         "tags": [
@@ -45961,6 +46211,26 @@
         ],
         "title": "BookingExceptionPublic"
       },
+      "BookingOrder": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "BookingOrder",
+        "description": "Ids of one kind in the order the business wants them listed."
+      },
       "BookingProfilePublic": {
         "properties": {
           "public_slug": {
@@ -46275,6 +46545,65 @@
           "service_ids"
         ],
         "title": "BookingProviderPublic"
+      },
+      "BookingProviderSettings": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order"
+          },
+          "service_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Service Ids"
+          },
+          "working_hours": {
+            "items": {
+              "$ref": "#/components/schemas/BookingWorkingPeriodPublic"
+            },
+            "type": "array",
+            "title": "Working Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "user_id",
+          "active",
+          "sort_order",
+          "service_ids",
+          "working_hours"
+        ],
+        "title": "BookingProviderSettings"
       },
       "BookingProviderUpdate": {
         "properties": {
@@ -46990,6 +47319,49 @@
         },
         "type": "object",
         "title": "BookingServiceUpdate"
+      },
+      "BookingSettings": {
+        "properties": {
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingProfilePublic"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null until the business creates its booking profile."
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/BookingServicePublic"
+            },
+            "type": "array",
+            "title": "Services"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/BookingProviderSettings"
+            },
+            "type": "array",
+            "title": "Providers"
+          },
+          "deposits_available": {
+            "type": "boolean",
+            "title": "Deposits Available",
+            "description": "False when the organisation lacks the `payments` entitlement: a service deposit is stored but not collected."
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile",
+          "services",
+          "providers",
+          "deposits_available"
+        ],
+        "title": "BookingSettings",
+        "description": "Everything the settings screen renders, in one call."
       },
       "BookingSlot": {
         "properties": {

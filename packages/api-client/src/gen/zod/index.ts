@@ -976,10 +976,12 @@ export { bookingAvailabilitySchema } from "./bookingAvailabilitySchema.js";
 export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
+export { bookingOrderSchema } from "./bookingOrderSchema.js";
 export { bookingProfilePublicSchema } from "./bookingProfilePublicSchema.js";
 export { bookingProfileUpdateSchema } from "./bookingProfileUpdateSchema.js";
 export { bookingProviderCreateSchema } from "./bookingProviderCreateSchema.js";
 export { bookingProviderPublicSchema } from "./bookingProviderPublicSchema.js";
+export { bookingProviderSettingsSchema } from "./bookingProviderSettingsSchema.js";
 export { bookingProviderUpdateSchema } from "./bookingProviderUpdateSchema.js";
 export { bookingPublicCancelSchema } from "./bookingPublicCancelSchema.js";
 export { bookingPublicCreateSchema } from "./bookingPublicCreateSchema.js";
@@ -991,6 +993,7 @@ export { bookingPublicServiceSchema } from "./bookingPublicServiceSchema.js";
 export { bookingServiceCreateSchema } from "./bookingServiceCreateSchema.js";
 export { bookingServicePublicSchema } from "./bookingServicePublicSchema.js";
 export { bookingServiceUpdateSchema } from "./bookingServiceUpdateSchema.js";
+export { bookingSettingsSchema } from "./bookingSettingsSchema.js";
 export { bookingSlotSchema } from "./bookingSlotSchema.js";
 export { bookingSourceSchema } from "./bookingSourceSchema.js";
 export { bookingStatusSchema } from "./bookingStatusSchema.js";
@@ -1187,6 +1190,17 @@ export {
   bookingsGetPublicBookingStatus422Schema,
 } from "./bookingsGetPublicBookingSchema.js";
 export {
+  bookingsGetSettingsErrorSchema,
+  bookingsGetSettingsHeaderXBarrelsOrganisationSchema,
+  bookingsGetSettingsResponseSchema,
+  bookingsGetSettingsStatus200Schema,
+  bookingsGetSettingsStatus400Schema,
+  bookingsGetSettingsStatus401Schema,
+  bookingsGetSettingsStatus403Schema,
+  bookingsGetSettingsStatus404Schema,
+  bookingsGetSettingsStatus422Schema,
+} from "./bookingsGetSettingsSchema.js";
+export {
   bookingsGetStorefrontErrorSchema,
   bookingsGetStorefrontPathSlugSchema,
   bookingsGetStorefrontResponseSchema,
@@ -1280,6 +1294,32 @@ export {
   bookingsNoShowStudioBookingStatus409Schema,
   bookingsNoShowStudioBookingStatus422Schema,
 } from "./bookingsNoShowStudioBookingSchema.js";
+export {
+  bookingsReorderProvidersBodySchema,
+  bookingsReorderProvidersErrorSchema,
+  bookingsReorderProvidersHeaderXBarrelsOrganisationSchema,
+  bookingsReorderProvidersResponseSchema,
+  bookingsReorderProvidersStatus200Schema,
+  bookingsReorderProvidersStatus400Schema,
+  bookingsReorderProvidersStatus401Schema,
+  bookingsReorderProvidersStatus403Schema,
+  bookingsReorderProvidersStatus404Schema,
+  bookingsReorderProvidersStatus409Schema,
+  bookingsReorderProvidersStatus422Schema,
+} from "./bookingsReorderProvidersSchema.js";
+export {
+  bookingsReorderServicesBodySchema,
+  bookingsReorderServicesErrorSchema,
+  bookingsReorderServicesHeaderXBarrelsOrganisationSchema,
+  bookingsReorderServicesResponseSchema,
+  bookingsReorderServicesStatus200Schema,
+  bookingsReorderServicesStatus400Schema,
+  bookingsReorderServicesStatus401Schema,
+  bookingsReorderServicesStatus403Schema,
+  bookingsReorderServicesStatus404Schema,
+  bookingsReorderServicesStatus409Schema,
+  bookingsReorderServicesStatus422Schema,
+} from "./bookingsReorderServicesSchema.js";
 export {
   bookingsReplaceWorkingHoursBodySchema,
   bookingsReplaceWorkingHoursErrorSchema,
