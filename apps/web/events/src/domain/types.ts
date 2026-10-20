@@ -282,6 +282,28 @@ export interface EventDetail extends PublicEvent {
   }[];
 }
 
+/** Where a ticket order stands. `pending_payment` holds stock until the hold ends. */
+export type MyOrderStatus =
+  | "confirmed"
+  | "pending_payment"
+  | "expired"
+  | "refunded";
+
+/** An order the signed-in member placed (free, or paid online). */
+export interface MyOrder {
+  /** Where to pay; null when the organiser records the payment by hand. */
+  readonly checkoutUrl: string | null;
+  readonly id: string;
+  readonly listingSlug: string;
+  /** When an unpaid hold ends and the stock goes back on sale. */
+  readonly paymentExpiresAt: string | null;
+  readonly paymentRequired: boolean;
+  readonly status: MyOrderStatus;
+  /** Tickets issued so far; empty until a paid order is confirmed. */
+  readonly ticketIds: readonly string[];
+  readonly total: Money;
+}
+
 /** A ticket the signed-in member holds. */
 export interface MyTicket {
   readonly admittedAt: string | null;

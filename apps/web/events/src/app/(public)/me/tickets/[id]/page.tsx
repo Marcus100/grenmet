@@ -2,13 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { QrCode } from "@/components/tickets/qr-code";
-import {
-  CancelTicketButton,
-  PrintButton,
-} from "@/components/tickets/ticket-actions";
-import { getMyTicket } from "@/data/events-api";
+import { PrintButton } from "@/components/tickets/ticket-actions";
+import { TicketCancellation } from "@/components/tickets/ticket-cancellation";
+import { getEventBySlug, getMyTicket } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
 import { formatEventDate } from "@/lib/datetime";
+import { isPaidTier } from "@/lib/orders";
 
 type Params = Promise<{ id: string }>;
 
@@ -25,6 +24,8 @@ export default async function TicketPage({ params }: { params: Params }) {
     notFound();
   }
   const cancelled = ticket.status !== "valid";
+  const event = await getEventBySlug(ticket.listingSlug);
+  const paidOnline = isPaidTier(event?.tiers ?? null, ticket.tierName);
 
   return (
     <div className="mx-auto max-w-md space-y-6">
@@ -71,12 +72,12 @@ export default async function TicketPage({ params }: { params: Params }) {
       {cancelled ? null : (
         <div className="flex flex-wrap gap-2 print:hidden">
           <PrintButton />
-          {ticket.canCancel ? (
-            <CancelTicketButton
-              ticketId={ticket.id}
-              title={ticket.listingTitle}
-            />
-          ) : null}
+          <TicketCancellation
+            canCancel={ticket.canCancel}
+            paidOnline={paidOnline}
+            ticketId={ticket.id}
+            title={ticket.listingTitle}
+          />
         </div>
       )}
     </div>
