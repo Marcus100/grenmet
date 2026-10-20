@@ -116,6 +116,7 @@ from src.organisations.models import (  # noqa: F401
     PlatformOrganisation,
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
+from src.payments.models import Attempt, Intent, LedgerEntry, Refund
 from src.push.models import PushSubscription
 from src.rewards.models import Entry, Program, ReviewFlag
 from src.rewards.models_gamification import (  # noqa: F401
@@ -159,6 +160,7 @@ _TRACKED_SCHEMAS = {
     "environment",
     "rewards",
     "flags",
+    "payments",
 }
 
 

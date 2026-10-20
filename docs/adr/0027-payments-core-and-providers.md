@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed. On 2026-10-20 the owner approved the provider-neutral layer plus a **Stripe test-mode** adapter now (foundations slice PF4), with funds held on Barrels' merchant account. No live card rail ships until the owner approves it separately.
+Accepted for the test-mode core; implemented in `apps/api/fastapi/src/payments` (PF4, migration `payments20261020`), live rail still gated. On 2026-10-20 the owner approved the provider-neutral layer plus a **Stripe test-mode** adapter now (foundations slice PF4), with funds held on Barrels' merchant account. No live card rail ships until the owner approves it separately.
 
 ## Context
 

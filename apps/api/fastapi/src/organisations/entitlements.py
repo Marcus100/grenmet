@@ -15,6 +15,7 @@ PRODUCTS: dict[str, str] = {
     "bookings": "Barrels Bookings",
     "rewards": "Barrels Rewards",
     "contacts": "Barrels Contacts",
+    "payments": "Barrels Payments",
 }
 
 

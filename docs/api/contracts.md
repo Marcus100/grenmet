@@ -561,6 +561,12 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   `GET /rewards/org/venues/{id}/qr-token` issues the rotating venue code. Account
   routes: `POST /rewards/me/check-ins` (one per venue per Grenada day, real-world
   only), `GET /rewards/me/passport`, `/me/achievements` and `/me/streak`.
+- **Payments core** (PF4, ADR-0027, Stripe test mode only): organisation routes under
+  `/payments/org/...` (intents, manual payments, refunds, balance; `payments`
+  entitlement and organisation admin); signed provider callbacks at
+  `POST /payments/public/webhooks/{provider}` (idempotent through the ledger, hidden
+  from OpenAPI); superuser reconciliation, ledger, balances and payouts under
+  `/payments/admin/...`, including `reconciliation.csv`. The ledger is append-only.
 - **Organisation contacts** (PF3, ADR-0028): `/contacts/org/contacts` (upsert, list,
   get, patch, consents, merge, erase) and superuser `/contacts/admin/contacts`. There
   are no public contact routes.

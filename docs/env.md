@@ -736,6 +736,19 @@ change does not provision secrets or enable enforcement in production.
 
 `MBIA_CONTACT_RECIPIENT`, `BARRELS_CONTACT_RECIPIENT` and `SUBSCRIPTIONS_SITE_URLS` are now fallbacks for the same values on the public site rows. Remove them once every environment sets `contact_recipient` and `site_url` through `PATCH /api/v1/organisations/admin/sites/{site_id}`.
 
+### Payments (PF4, test mode only)
+
+The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter runs in **test mode only**. None of these settings is wired into the deployment renderer; leave them unset in staging and production until the owner approves a payment rail.
+
+| Variable | Purpose |
+| --- | --- |
+| `PAYMENTS_STRIPE_SECRET_KEY` | Stripe test secret. A key that does not start with `sk_test_` is refused at use, so a live key cannot enable a live rail. Unset: the Stripe adapter is disabled (the `manual` provider still works). |
+| `PAYMENTS_STRIPE_WEBHOOK_SECRET` | Signing secret for `POST /api/v1/payments/public/webhooks/stripe` (503 when unset). |
+| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | Where Stripe Checkout returns the customer (our HTTPS pages). Checkout answers 503 until both are set. |
+| `PAYMENTS_STRIPE_API_BASE` | Defaults to `https://api.stripe.com`; override only in tests. |
+| `PAYMENTS_WEBHOOK_TOLERANCE_SECONDS` | How old a signed webhook may be (default 300). |
+| `PAYMENTS_REQUEST_TIMEOUT_SECONDS` | Provider request timeout (default 10). |
+
 ## Deploy wiring for the 2026-10-18 integrations
 
 `deploy.yml` passes these to the API and worker containers. Unset values fall

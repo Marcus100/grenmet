@@ -5247,6 +5247,1046 @@
         }
       }
     },
+    "/api/v1/payments/org/intents": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Create a payment",
+        "description": "Ask to collect money for something the organisation sells. Idempotent per `idempotency_key`. Online rails return a hosted checkout URL; the manual rail is completed by staff recording the payment.",
+        "operationId": "paymentsCreateIntent",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentIntentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentCheckoutPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          },
+          "503": {
+            "description": "The payment provider is not available"
+          },
+          "502": {
+            "description": "The payment provider failed the request"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "List the organisation's payments",
+        "description": "Newest first, with optional status and source filters.",
+        "operationId": "paymentsListIntents",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/IntentStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "source_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Type"
+            }
+          },
+          {
+            "name": "source_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Id"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentIntentListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/org/balance": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "What Barrels holds for the organisation",
+        "description": "The ledger balance per currency: charges less refunds, fees and payouts.",
+        "operationId": "paymentsGetBalance",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentBalanceListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/org/intents/{intent_id}": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Get a payment",
+        "description": "One payment with its attempts and refunds.",
+        "operationId": "paymentsGetIntent",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "intent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Intent Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentIntentDetailPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/org/intents/{intent_id}/manual-payments": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Record a cash, bank or cheque payment",
+        "description": "Staff confirm money received outside the card rail; the payment succeeds now.",
+        "operationId": "paymentsRecordManualPayment",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "intent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Intent Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualPaymentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentIntentPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/org/intents/{intent_id}/refunds": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Refund a payment",
+        "description": "Hand money back. The total refunded cannot exceed what was collected (422 when it would).",
+        "operationId": "paymentsCreateRefund",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "intent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Intent Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentRefundCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentRefundPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          },
+          "503": {
+            "description": "The payment provider is not available"
+          },
+          "502": {
+            "description": "The payment provider failed the request"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/admin/intents": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "List every payment",
+        "description": "Superusers see all organisations' payments, optionally for one.",
+        "operationId": "paymentsAdminListIntents",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/IntentStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentIntentListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/admin/ledger": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "List ledger entries",
+        "description": "The append-only ledger, newest first.",
+        "operationId": "paymentsAdminListLedger",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/LedgerKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentLedgerListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/admin/balances": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "What Barrels holds for each organisation",
+        "description": "Ledger balances per organisation and currency.",
+        "operationId": "paymentsAdminListBalances",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentBalanceListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/payments/admin/payouts": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Record a payout to an organisation",
+        "description": "Appends a payout entry after Barrels has paid the organisation. It cannot exceed what the organisation is owed.",
+        "operationId": "paymentsAdminCreatePayout",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentPayoutCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentLedgerEntryPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/payments/admin/reconciliation": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Reconcile the ledger for a period",
+        "description": "Per organisation and currency: opening balance, charges, refunds, fees, adjustments, payouts and closing balance for Grenada days start to end inclusive.",
+        "operationId": "paymentsAdminGetReconciliation",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Start Date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "End Date"
+            }
+          },
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentReconciliationPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/admin/reconciliation.csv": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Export the reconciliation as CSV",
+        "description": "The reconciliation report as a spreadsheet-ready CSV download.",
+        "operationId": "paymentsAdminGetReconciliationCsv",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Start Date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "End Date"
+            }
+          },
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
     "/api/v1/bookings/org/profile": {
       "get": {
         "tags": [
@@ -40260,6 +41300,15 @@
         ],
         "title": "AreaView"
       },
+      "AttemptStatus": {
+        "type": "string",
+        "enum": [
+          "started",
+          "succeeded",
+          "failed"
+        ],
+        "title": "AttemptStatus"
+      },
       "AttendanceCorrectionCreate": {
         "properties": {
           "roster_assignment_id": {
@@ -51168,6 +52217,17 @@
         ],
         "title": "IntendedUse"
       },
+      "IntentStatus": {
+        "type": "string",
+        "enum": [
+          "requires_payment",
+          "processing",
+          "succeeded",
+          "failed",
+          "cancelled"
+        ],
+        "title": "IntentStatus"
+      },
       "InvitationAccept": {
         "properties": {
           "token": {
@@ -53216,6 +54276,17 @@
         ],
         "title": "LeaveType"
       },
+      "LedgerKind": {
+        "type": "string",
+        "enum": [
+          "charge",
+          "refund",
+          "fee",
+          "adjustment",
+          "payout"
+        ],
+        "title": "LedgerKind"
+      },
       "LegacyProductPreview": {
         "properties": {
           "guidance": {
@@ -54396,6 +55467,40 @@
           "tier_name"
         ],
         "title": "ManifestRow"
+      },
+      "ManualMethod": {
+        "type": "string",
+        "enum": [
+          "cash",
+          "bank_transfer",
+          "cheque"
+        ],
+        "title": "ManualMethod"
+      },
+      "ManualPaymentCreate": {
+        "properties": {
+          "method": {
+            "$ref": "#/components/schemas/ManualMethod"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference",
+            "description": "Receipt, cheque or transfer number."
+          }
+        },
+        "type": "object",
+        "required": [
+          "method"
+        ],
+        "title": "ManualPaymentCreate"
       },
       "MarineResponse": {
         "properties": {
@@ -58585,6 +59690,112 @@
         ],
         "title": "PassportTrailPublic"
       },
+      "PaymentAttemptPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/ProviderKey"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AttemptStatus"
+          },
+          "failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Code"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "provider",
+          "status",
+          "failure_code",
+          "created_at"
+        ],
+        "title": "PaymentAttemptPublic"
+      },
+      "PaymentBalanceListPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentBalancePublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "PaymentBalanceListPublic"
+      },
+      "PaymentBalancePublic": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "owed_minor": {
+            "type": "integer",
+            "title": "Owed Minor",
+            "description": "What Barrels holds for the organisation."
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "currency",
+          "owed_minor"
+        ],
+        "title": "PaymentBalancePublic"
+      },
+      "PaymentCheckoutPublic": {
+        "properties": {
+          "intent": {
+            "$ref": "#/components/schemas/PaymentIntentPublic"
+          },
+          "checkout_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkout Url",
+            "description": "Hosted checkout for the payer; null for staff-recorded rails."
+          }
+        },
+        "type": "object",
+        "required": [
+          "intent",
+          "checkout_url"
+        ],
+        "title": "PaymentCheckoutPublic",
+        "description": "A new intent and, for an online rail, where to send the payer."
+      },
       "PaymentCreate": {
         "properties": {
           "method": {
@@ -58622,6 +59833,362 @@
         ],
         "title": "PaymentCreate"
       },
+      "PaymentIntentCreate": {
+        "properties": {
+          "amount_minor": {
+            "type": "integer",
+            "maximum": 1000000000.0,
+            "minimum": 1.0,
+            "title": "Amount Minor"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "default": "XCD",
+            "examples": [
+              "XCD"
+            ]
+          },
+          "provider": {
+            "$ref": "#/components/schemas/ProviderKey",
+            "default": "manual"
+          },
+          "source_type": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 3,
+            "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+            "title": "Source Type",
+            "examples": [
+              "bookings.deposit"
+            ]
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "customer_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Email",
+            "description": "Hashed on receipt and never stored or sent to the provider."
+          },
+          "metadata": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Metadata",
+            "description": "Small labels about the sale. Must not contain personal data."
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 8,
+            "title": "Idempotency Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount_minor",
+          "source_type",
+          "idempotency_key"
+        ],
+        "title": "PaymentIntentCreate"
+      },
+      "PaymentIntentDetailPublic": {
+        "properties": {
+          "intent": {
+            "$ref": "#/components/schemas/PaymentIntentPublic"
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentAttemptPublic"
+            },
+            "type": "array",
+            "title": "Attempts"
+          },
+          "refunds": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentRefundPublic"
+            },
+            "type": "array",
+            "title": "Refunds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "intent",
+          "attempts",
+          "refunds"
+        ],
+        "title": "PaymentIntentDetailPublic"
+      },
+      "PaymentIntentListPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentIntentPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count",
+          "page",
+          "size"
+        ],
+        "title": "PaymentIntentListPublic"
+      },
+      "PaymentIntentPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "title": "Amount Minor"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IntentStatus"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/ProviderKey"
+          },
+          "source_type": {
+            "type": "string",
+            "title": "Source Type"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "metadata": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Metadata"
+          },
+          "captured_minor": {
+            "type": "integer",
+            "title": "Captured Minor",
+            "description": "Money collected so far."
+          },
+          "refunded_minor": {
+            "type": "integer",
+            "title": "Refunded Minor",
+            "description": "Money handed back or being handed back."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organisation_id",
+          "amount_minor",
+          "currency",
+          "status",
+          "provider",
+          "source_type",
+          "source_id",
+          "metadata",
+          "captured_minor",
+          "refunded_minor",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PaymentIntentPublic"
+      },
+      "PaymentLedgerEntryPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "intent_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/LedgerKind"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "title": "Amount Minor"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/ProviderKey"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organisation_id",
+          "intent_id",
+          "kind",
+          "amount_minor",
+          "currency",
+          "provider",
+          "reference",
+          "note",
+          "created_at"
+        ],
+        "title": "PaymentLedgerEntryPublic"
+      },
+      "PaymentLedgerListPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentLedgerEntryPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count",
+          "page",
+          "size"
+        ],
+        "title": "PaymentLedgerListPublic"
+      },
       "PaymentMethod": {
         "type": "string",
         "enum": [
@@ -58630,6 +60197,56 @@
           "cheque"
         ],
         "title": "PaymentMethod"
+      },
+      "PaymentPayoutCreate": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "maximum": 1000000000.0,
+            "minimum": 1.0,
+            "title": "Amount Minor"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "default": "XCD",
+            "examples": [
+              "XCD"
+            ]
+          },
+          "reference": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Reference"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "amount_minor",
+          "reference"
+        ],
+        "title": "PaymentPayoutCreate"
       },
       "PaymentPublic": {
         "properties": {
@@ -58677,6 +60294,173 @@
           "created_at"
         ],
         "title": "PaymentPublic"
+      },
+      "PaymentReconciliationPublic": {
+        "properties": {
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentReconciliationRowPublic"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start_date",
+          "end_date",
+          "generated_at",
+          "rows"
+        ],
+        "title": "PaymentReconciliationPublic"
+      },
+      "PaymentReconciliationRowPublic": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "opening_minor": {
+            "type": "integer",
+            "title": "Opening Minor"
+          },
+          "charges_minor": {
+            "type": "integer",
+            "title": "Charges Minor"
+          },
+          "refunds_minor": {
+            "type": "integer",
+            "title": "Refunds Minor"
+          },
+          "fees_minor": {
+            "type": "integer",
+            "title": "Fees Minor"
+          },
+          "adjustments_minor": {
+            "type": "integer",
+            "title": "Adjustments Minor"
+          },
+          "payouts_minor": {
+            "type": "integer",
+            "title": "Payouts Minor"
+          },
+          "closing_minor": {
+            "type": "integer",
+            "title": "Closing Minor"
+          },
+          "intents_succeeded": {
+            "type": "integer",
+            "title": "Intents Succeeded"
+          },
+          "unmatched_intents": {
+            "type": "integer",
+            "title": "Unmatched Intents",
+            "description": "Succeeded intents in the period with no charge in the ledger."
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "currency",
+          "opening_minor",
+          "charges_minor",
+          "refunds_minor",
+          "fees_minor",
+          "adjustments_minor",
+          "payouts_minor",
+          "closing_minor",
+          "intents_succeeded",
+          "unmatched_intents"
+        ],
+        "title": "PaymentReconciliationRowPublic"
+      },
+      "PaymentRefundCreate": {
+        "properties": {
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor",
+            "description": "Defaults to everything still refundable."
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "PaymentRefundCreate"
+      },
+      "PaymentRefundPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "intent_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Intent Id"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "title": "Amount Minor"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RefundStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "intent_id",
+          "amount_minor",
+          "reason",
+          "status",
+          "created_at"
+        ],
+        "title": "PaymentRefundPublic"
       },
       "PermissionCreate": {
         "properties": {
@@ -60111,6 +61895,14 @@
         ],
         "title": "Provenance",
         "description": "Where a value came from. Always external: these are not GMS products."
+      },
+      "ProviderKey": {
+        "type": "string",
+        "enum": [
+          "manual",
+          "stripe"
+        ],
+        "title": "ProviderKey"
       },
       "ProvisionalHolidaysRequest": {
         "properties": {
@@ -61844,6 +63636,15 @@
           "refunded_at"
         ],
         "title": "RefundPublic"
+      },
+      "RefundStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "succeeded",
+          "failed"
+        ],
+        "title": "RefundStatus"
       },
       "RegisterObservationCreate": {
         "properties": {
@@ -75674,6 +77475,10 @@
     {
       "name": "rewards",
       "description": "Barrels ID rewards: stamp cards, trust badges, redemption."
+    },
+    {
+      "name": "payments",
+      "description": "Barrels Payments: intents, callbacks, refunds and the ledger."
     },
     {
       "name": "browser-auth",
