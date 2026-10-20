@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.contacts import service as contacts_service
@@ -509,7 +509,7 @@ async def create_booking(
             async with session.begin_nested():
                 session.add(attempt)
                 await session.flush()
-        except IntegrityError as error:
+        except DBAPIError as error:
             if not service.is_overlap_violation(error):
                 raise
             continue
@@ -728,7 +728,7 @@ async def reschedule_booking(
             booking.blocked_from = starts_at - timedelta(minutes=svc.buffer_before_min)
             booking.blocked_until = ends_at + timedelta(minutes=svc.buffer_after_min)
             await session.flush()
-    except IntegrityError as error:
+    except DBAPIError as error:
         if not service.is_overlap_violation(error):
             raise
         raise BookingConflictError(SLOT_TAKEN) from error

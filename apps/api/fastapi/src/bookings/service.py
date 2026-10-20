@@ -10,7 +10,7 @@ from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 from sqlalchemy import delete, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.organisations import service as organisation_service
@@ -532,6 +532,17 @@ async def available_slots(
     )
 
 
-def is_overlap_violation(error: IntegrityError) -> bool:
-    """True when the booking exclusion constraint refused an overlapping booking."""
-    return "booking_no_overlap" in str(error.orig)
+_DEADLOCK_SQLSTATE = "40P01"
+
+
+def is_overlap_violation(error: DBAPIError) -> bool:
+    """True when the booking exclusion constraint refused an overlapping booking.
+
+    Two inserts racing for the same provider and range can also be resolved by
+    Postgres as a deadlock (each waits on the other's index entry); the victim
+    lost the race just the same, and the savepoint it ran in is still usable.
+    """
+    if "booking_no_overlap" in str(error.orig):
+        return True
+    code = getattr(error.orig, "sqlstate", None) or getattr(error.orig, "pgcode", None)
+    return code == _DEADLOCK_SQLSTATE or "deadlock detected" in str(error.orig)
