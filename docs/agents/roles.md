@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-19
+**Last updated:** 2026-10-20
 
 Specialist roles are defined once, as Markdown briefs in `.claude/agents/`. Each
 has the tools its job needs and nothing more, and reads the nested `AGENTS.md`
@@ -48,6 +48,26 @@ acceptance criteria and what is out of scope.
 Mixing tools is encouraged: a diff written in Codex gets its fresh-context
 review in Claude Code, and the reverse. The automatic AI review below adds a
 third, tool-independent pass.
+
+### Working with Codex on GitHub
+
+The two tools never talk to each other. They coordinate through the repository:
+`AGENTS.md`, branches, pull requests and `SESSION_LOG.md`.
+
+1. One tool owns a branch at a time. The other does not push to it.
+2. The author pushes the branch first. A reviewer cannot see a branch that exists
+   only in the author's container or checkout.
+3. Hand the reviewer the branch name or PR URL, the `dev` SHA it was based on, and
+   the test results. A reviewer reads the diff against `dev`; it does not rerun the
+   author's reasoning.
+4. The reviewer is read-only and reports findings ranked by severity with
+   `file:line`. The author fixes them, so ownership of the branch stays clear.
+5. Both tools follow the same Never tier (`AGENTS.md`): no force-push, no merge to
+   `main`, no production deploys without the owner.
+
+If the reviewer reports the branch is not visible, check `git ls-remote origin
+<branch>` first. Fix access (the Codex GitHub app on `Marcus100/grenmet`) only after
+confirming the branch is pushed.
 
 ## Gates that do not depend on the author
 
