@@ -31,11 +31,11 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0023](0023-cap-approval-before-publish.md) | Accepted: CAP needs approval by a different person before publish; audited emergency publish for the duty supervisor (supersedes ADR-0013 decisions 1-2) |
 | [0024](0024-bookings-domain.md) | Accepted: Barrels Bookings, a shared organisation-scoped appointments domain (clean-room port of Easy!Appointments' model; deposits via the payment adapter) |
 | [0025](0025-api-conventions.md) | Accepted: API conventions — frontend-agnostic, audience zones (`public`/`me`/`org`/`admin`), unique schema names, shared helpers; enforced by `test_api_conventions.py` |
-| [0026](0026-platform-reliability-primitives.md) | Proposed: shared `Idempotency-Key` helper and one outbox runner for every domain (PF2) |
-| [0027](0027-payments-core-and-providers.md) | Proposed: payments core (intents, append-only ledger, refunds) with `manual` and Stripe test-mode adapters; funds on Barrels' merchant account; live rail gated (PF4) |
-| [0028](0028-organisation-contacts.md) | Proposed: organisation-scoped contacts with consent, replacing per-domain customer tables (PF3) |
-| [0029](0029-organisation-api-keys-and-webhooks.md) | Proposed: organisation API keys with permission scopes and signed outbound webhooks (PF5, PF6) |
-| [0030](0030-rewards-earn-sources-and-gamification.md) | Proposed: generic rewards earn sources, Passport, achievements, check-in streaks; opt-in leaderboards, challenges and gated stamp gifting (PF8–PF11) |
+| [0026](0026-platform-reliability-primitives.md) | Built, awaiting owner acceptance: shared `Idempotency-Key` helper and one outbox runner for every domain (PF2) |
+| [0027](0027-payments-core-and-providers.md) | Accepted for the test-mode core: payments core (intents, append-only ledger, refunds) with `manual` and Stripe test-mode adapters; funds on Barrels' merchant account; live rail gated (PF4) |
+| [0028](0028-organisation-contacts.md) | Accepted: organisation-scoped contacts with consent, replacing per-domain customer tables (PF3) |
+| [0029](0029-organisation-api-keys-and-webhooks.md) | Built, awaiting owner acceptance: organisation API keys with permission scopes and signed outbound webhooks (PF5, PF6) |
+| [0030](0030-rewards-earn-sources-and-gamification.md) | Built (API), awaiting owner acceptance: generic rewards earn sources, Passport, achievements, check-in streaks; opt-in leaderboards, challenges and gated stamp gifting (PF8–PF11) |
 
 ## Template
 

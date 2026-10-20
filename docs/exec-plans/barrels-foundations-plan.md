@@ -2,7 +2,7 @@
 
 **Status:** Active plan — owner decisions recorded 2026-10-18, 2026-10-19 and 2026-10-20  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-20 (platform foundations, PF-series; PF1 built)
+**Last updated:** 2026-10-20 (platform foundations, PF-series; PF1-PF10 built, PF11 API built)
 
 ## Purpose
 
@@ -309,16 +309,16 @@ Each primitive ships with one pilot consumer. Other domains move onto it one per
 | # | Slice | Pilot consumer | Depends on | Status |
 | --- | --- | --- | --- | --- |
 | PF1 | **Org config and access.** N1 `org.public_site` (recipient, origin, Turnstile per site; the secret is Fernet-encrypted via `src/utils/secret_box.py` and `ORG_SECRET_ENCRYPTION_KEYS`). N2 site-keyed public routes. Request-time entitlements (`require_org_app`; products `bookings`, `rewards` in `src/organisations/entitlements.py`) | contact, subscriptions, bookings and rewards organisation routes | — | Built on `ccr-1892d1ff-r3cjk9`; control-plane "Sites" UI is C3 |
-| PF2 | **Reliability.** Shared `Idempotency-Key` with stored-response replay; one outbox table and runner with a single retry policy ([ADR-0026](../adr/0026-platform-reliability-primitives.md)) | Bookings B3 create | PF1 | Planned |
-| PF3 | **Org contacts.** `org.contact` with hashed email, consent and source; lookup, upsert and audited merge ([ADR-0028](../adr/0028-organisation-contacts.md)) | `bookings.customer`, then `billing.customer` | PF1 | Planned |
-| PF4 | **Payments core.** Intents, attempts, append-only ledger, refunds; `PaymentProvider` with `manual` and Stripe test-mode adapters; reconciliation report ([ADR-0027](../adr/0027-payments-core-and-providers.md)) | Events paid tier or Bookings deposit (sandbox) | PF2, PF3 | Planned; the live rail is gated |
-| PF5 | **Org API keys** (N4) | Bookings read | PF1 | Planned |
-| PF6 | **Outbound webhooks:** registry, HMAC signing generalised from CAP, delivery on the PF2 runner | `booking.created`, `payment.succeeded` | PF2, PF5 | Built (emit calls in bookings/payments/contacts pending) |
-| PF7 | **Feature flags** (accept ADR-0020) | Babydoll `/book` switch (B4) | PF1 | Planned |
-| PF8 | **Rewards earn sources:** `rewards.qualifying_action` on the outbox replaces `sync_event_rewards` ([ADR-0030](../adr/0030-rewards-earn-sources-and-gamification.md)) | Events admission, then bookings | PF2 | Planned |
-| PF9 | **Gamification core:** Passport and trails (U5), achievements, check-in streaks (signed venue QR) | Events, venue check-in | PF8 | Planned |
-| PF10 | **Social layer**, each behind a PF7 flag: opt-in leaderboards, community challenges, stamp gifting. Gifting is off in production until an accountant and legal sign-off | Account Rewards tab | PF7, PF9 | Planned |
-| PF11 | **Org rewards admin:** stamp cards, trails, challenges, redemptions | admin, Babydoll studio | PF8 | Planned |
+| PF2 | **Reliability.** Shared `Idempotency-Key` with stored-response replay; one outbox table and runner with a single retry policy ([ADR-0026](../adr/0026-platform-reliability-primitives.md)) | Bookings B3 create | PF1 | Built (`reliability20261020`): idempotency, outbox, Bookings B3. Events, notifications and CAP loops are not moved onto it yet (one domain per PR; Events needs a separate-database design check) |
+| PF3 | **Org contacts.** `org.contact` with hashed email, consent and source; lookup, upsert and audited merge ([ADR-0028](../adr/0028-organisation-contacts.md)) | `bookings.customer`, then `billing.customer` | PF1 | Built (`src/contacts`, `orgcontacts20261020`). Bookings links customers to contacts when the organisation has the `contacts` entitlement; `billing.customer` is not wired yet |
+| PF4 | **Payments core.** Intents, attempts, append-only ledger, refunds; `PaymentProvider` with `manual` and Stripe test-mode adapters; reconciliation report ([ADR-0027](../adr/0027-payments-core-and-providers.md)) | Events paid tier or Bookings deposit (sandbox) | PF2, PF3 | Built, **test mode only** (`payments20261020`; `manual` and Stripe test adapters, live keys refused, payouts idempotent). Events paid tiers and booking deposits (B6) are not wired; the live rail stays gated |
+| PF5 | **Org API keys** (N4) | Bookings read | PF1 | Built (`orgapikeys20261020`). Bookings reads and rewards programme read/redemption confirm accept keys; bookings write routes arrive with B5 |
+| PF6 | **Outbound webhooks:** registry, HMAC signing generalised from CAP, delivery on the PF2 runner | `booking.created`, `payment.succeeded` | PF2, PF5 | Built (`webhooksout20261020`). Emitters: bookings, payments, contacts |
+| PF7 | **Feature flags** (accept ADR-0020) | Babydoll `/book` switch (B4) | PF1 | Built (`featureflags20261020`); control-plane page `/flags` in `apps/web/admin` |
+| PF8 | **Rewards earn sources:** `rewards.qualifying_action` on the outbox replaces `sync_event_rewards` ([ADR-0030](../adr/0030-rewards-earn-sources-and-gamification.md)) | Events admission, then bookings | PF2 | Built: catalogue, `record_qualifying_action`, outbox handler, `bookings.completed`. Events admissions still use `sync_event_rewards` |
+| PF9 | **Gamification core:** Passport and trails (U5), achievements, check-in streaks (signed venue QR) | Events, venue check-in | PF8 | Built (`rewardsgame20261020`); account Rewards tab shows passport, achievements, streak and check-in |
+| PF10 | **Social layer**, each behind a PF7 flag: opt-in leaderboards, community challenges, stamp gifting. Gifting is off in production until an accountant and legal sign-off | Account Rewards tab | PF7, PF9 | Built (API, `rewardssocial20261020`), every mechanic off by default behind flags; gifting is hard-off in production. No UI yet |
+| PF11 | **Org rewards admin:** stamp cards, trails, challenges, redemptions | admin, Babydoll studio | PF8 | API half built (programme pause/resume, entries, redemptions, venues, trails, achievements). The organisation-facing UI is not built: it needs a decision on which app organisation admins use |
 
 Order: PF1 → PF2 → (PF3, PF5, PF7, PF8) → PF4 → (PF6, PF9) → PF10, PF11. Main-database slices land one at a time to keep a single Alembic head.
 
