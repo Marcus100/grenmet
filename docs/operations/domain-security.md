@@ -25,9 +25,10 @@ in for real values.
 `weather.gd` is a GMS public domain served by the production stack (see
 [weather.gd go-live](../weather-gd-golive.md)). Confirm who holds its registrar
 account and whether GMS staff receive mail on it **before** changing its mail
-records. The repository also uses `weather.gd` addresses as test and seed email
-data; a separate change will move those fixtures to reserved names such as
-`example.com` or `.test`, so tests never imply mail to a real domain.
+records. Test, seed, example and CI email data use reserved names
+(`example.com` addresses, `.invalid`/`.test` hosts), so tests never imply mail to
+a real domain. `weather.gd` addresses that remain in the repository are real
+production values (baseline seed, CAP sender, forecast contact).
 
 ## Before you start: back up each zone
 
