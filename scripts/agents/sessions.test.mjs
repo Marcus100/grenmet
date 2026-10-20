@@ -11,6 +11,7 @@ import { join } from "node:path";
 import test from "node:test";
 import {
   belongsToRepo,
+  claudeBinary,
   claudeSlug,
   codexSessionDirs,
   digest,
@@ -280,4 +281,8 @@ test("codexSessionDirs keeps only homes that have sessions", () => {
   } finally {
     rmSync(home, { force: true, recursive: true });
   }
+});
+
+test("claudeBinary prefers CLAUDE_BIN", () => {
+  assert.equal(claudeBinary({ CLAUDE_BIN: "/opt/claude" }), "/opt/claude");
 });

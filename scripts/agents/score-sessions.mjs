@@ -28,7 +28,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { scrubbedEnv } from "./benchmark.mjs";
 import { isoWeek } from "./flow.mjs";
-import { digest, findSessions } from "./sessions.mjs";
+import { claudeBinary, digest, findSessions } from "./sessions.mjs";
 
 const FRONTMATTER_PAIR_RE = /^(\w+):\s*(.*)$/;
 
@@ -154,22 +154,6 @@ export function parseVerdict(text) {
     }
   }
   throw new Error(`no verdict in judge reply: ${String(text).slice(0, 200)}`);
-}
-
-// The Claude CLI: $CLAUDE_BIN, `claude` on PATH, or the newest copy the Claude
-// desktop app installs for WSL.
-export function claudeBinary(env = process.env, home = homedir()) {
-  if (env.CLAUDE_BIN) return env.CLAUDE_BIN;
-  const onPath = spawnSync("sh", ["-c", "command -v claude"], {
-    encoding: "utf8",
-  });
-  if (onPath.status === 0 && onPath.stdout.trim()) return onPath.stdout.trim();
-  const desktop = join(home, ".claude", "remote", "ccd-cli");
-  if (existsSync(desktop)) {
-    const newest = readdirSync(desktop).sort().at(-1);
-    if (newest) return join(desktop, newest);
-  }
-  return "claude";
 }
 
 export function judgeCommand({ judge, judgeCmd, model, outFile }) {

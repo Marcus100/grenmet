@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-14
+**Last updated:** 2026-10-20
 
 Versioned prompts for unattended agent runs. They work the same in either tool:
 run them as a Claude Code `/schedule` routine or a Codex cloud task. Only **one**
@@ -82,9 +82,13 @@ without one, and never takes a human-only area.
 | `area:infra` | Dockerfiles, compose, deploy and host config | **human only** | Touches staging and production |
 | `area:security` | Auth, permissions, migrations, dependencies, secrets | **human only** | Ask First in `AGENTS.md` |
 
-Agent configuration (hooks, `AGENTS.md`, skills, the quality baselines) is also
-human only; a routine that must lower a baseline for its own fix says so in the PR
-and the PR is high risk.
+Agent configuration (hooks, settings, `.codex/`, `AGENTS.md`, skills, scorers, the
+quality baselines) is human-merged. Hooks, settings and `.codex/` are also
+human-written. Skills, `AGENTS.md` rules and scorers may be *proposed* by an agent,
+but only through the `factory-improve` skill, as a `factory/<slug>` branch labelled
+`risk:high` and `factory` that a human reviews ([factory.md](factory.md) → the
+weekly loop). A routine that must lower a baseline for its own fix says so in the
+PR and the PR is high risk.
 
 The source of truth is [routing.json](routing.json), written by
 `pnpm agents:routing write` from the benchmark results. Routines pick the runner with
@@ -109,28 +113,49 @@ graded tasks has tests in one area, so this is not evidence for `web`, `api` or
 Only one runner may be active per routine, so a second runner needs its own
 routine and its own `area:` labels.
 
-## Nightly friction fixer
+## Nightly intake
 
-Schedule: daily 02:00 America/Grenada. Cap: **2 issues per run**.
+Schedule: daily 02:00 America/Grenada. Cap: **2 issues per run**. This is the
+factory's automatic trigger: any issue a human marks `ready-for-agent` with an
+allowed `area:` label is picked up the next night, friction issues first.
 
 ```text
-You are the nightly friction fixer for Marcus100/grenmet. Read AGENTS.md and
+You are the nightly intake agent for Marcus100/grenmet. Read AGENTS.md and
 docs/agents/routines.md, and follow "Shared rules for every routine".
 
-1. List open issues with both labels friction and ready-for-agent and an
-   `area:web`, `area:api` or `area:docs` label, without agent-claimed and without
-   an open PR from an `agent/<n>-*` branch, oldest first. Skip any issue with no
-   `area:` label or with `area:ci`, `area:infra` or `area:security`:
-   gh issue list --label friction --label ready-for-agent --state open \
-     --json number,title,labels --jq '[.[] | select(all(.labels[]; .name != "agent-claimed"))]'
-2. Take at most 2. For each: claim it, read nested AGENTS.md files for the paths
+1. List open issues labelled ready-for-agent with an `area:web`, `area:api` or
+   `area:docs` label, without agent-claimed and without an open PR from an
+   `agent/<n>-*` branch. Order: issues also labelled friction first, then the
+   rest, oldest first in each group. Skip any issue with no `area:` label or with
+   `area:ci`, `area:infra` or `area:security`:
+   gh issue list --label ready-for-agent --state open \
+     --json number,title,labels,createdAt --jq '[.[] | select(all(.labels[]; .name != "agent-claimed"))]'
+2. Check the route: `pnpm agents:routing route <the issue's labels>`. If it says
+   `human: true`, relabel the issue ready-for-human with the reason and skip it.
+   If it names a different agent than you, skip it only when that agent has its own
+   active routine (see the routing table; until a Codex task exists, the Claude
+   routine also takes `area:api`).
+3. Take at most 2. For each: claim it, read nested AGENTS.md files for the paths
    involved, make the smallest fix, add or adjust a test or guardrail that would
    have caught the friction, run the gates, open the PR to dev, comment the outcome.
-3. If the fix is unclear, needs an Ask First decision, or the gates fail for
+4. If the fix is unclear, needs an Ask First decision, or the gates fail for
    reasons you cannot fix in scope: do not open a PR. Comment what you found,
    swap ready-for-agent for ready-for-human, and move on.
-4. Finish with a summary listing each issue, its outcome and its PR.
+5. Finish with a summary listing each issue, its outcome and its PR.
 ```
+
+## Weekly factory review (local)
+
+Schedule: Fridays, in an attended session on the machine that holds the
+transcripts (scoring reads `~/.claude` and `~/.codex`, which cloud routines cannot
+see). Cap: **1 factory change per week**.
+
+Run the `factory-improve` skill. It runs `pnpm agents:flow`, `pnpm agents:score`
+and `pnpm agents:improve`, picks the most repeated problem, and proposes one change
+to a skill, `AGENTS.md` rule, scorer or check for the owner to review. Rerun
+`pnpm agents:skill-evals --agent claude --model claude-haiku-5-5` after any skill
+description changes, and the benchmark plus `pnpm agents:routing write` after a
+model or `AGENTS.md` change.
 
 ## Weekly signal sweep
 

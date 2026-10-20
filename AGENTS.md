@@ -138,6 +138,7 @@ Design: read the lane spec `docs/design/<lane>.md` before building UI; style onl
 | HR forms, roster, attendance and timesheet alignment | `docs/hr/end-to-end-alignment.md` |
 | Agent workflow, git, blast radius, hooks | `docs/agents/workflow.md` |
 | Agent helpers, principles, routines, run records, benchmarks | `docs/agents/README.md` |
+| Agent factory: flow metrics, session scoring, self-improvement loop | `docs/agents/factory.md` |
 | Writing or changing a skill (spec limits, testing, Codex parity) | `docs/agents/skill-standard.md` |
 | Agent configuration (how this layout works) | `docs/agent-configuration-guide.md` |
 | Vendored ops apps (SURFACE, wis2box) | `VENDORED.md` |

@@ -9,6 +9,7 @@
 //          [--branch <name>] [--latest]   (--latest: newest session for this cwd)
 // Other scripts import findSessions(), parseClaude(), parseCodex() and digest().
 
+import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
@@ -388,6 +389,22 @@ export function digest(session, maxChars = DIGEST_CHARS) {
 // Newest session whose working directory is `cwd` (for run records).
 export function latestSession(cwd = process.cwd(), options = {}) {
   return findSessions({ days: 2, ...options }).find((s) => s.cwd === cwd);
+}
+
+// The Claude CLI: $CLAUDE_BIN, `claude` on PATH, or the newest copy the Claude
+// desktop app installs for WSL.
+export function claudeBinary(env = process.env, home = homedir()) {
+  if (env.CLAUDE_BIN) return env.CLAUDE_BIN;
+  const onPath = spawnSync("sh", ["-c", "command -v claude"], {
+    encoding: "utf8",
+  });
+  if (onPath.status === 0 && onPath.stdout.trim()) return onPath.stdout.trim();
+  const desktop = join(home, ".claude", "remote", "ccd-cli");
+  if (existsSync(desktop)) {
+    const newest = readdirSync(desktop).sort().at(-1);
+    if (newest) return join(desktop, newest);
+  }
+  return "claude";
 }
 
 const fmtTokens = (n) =>

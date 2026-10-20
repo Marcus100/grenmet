@@ -42,6 +42,7 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { scrubbedEnv } from "./benchmark.mjs";
+import { claudeBinary } from "./sessions.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const JSON_CASES_FILE = join(
@@ -289,7 +290,7 @@ export function agentCommand({ agent, agentCmd, dir, model, prompt }) {
         "project,local",
         ...(model ? ["--model", model] : []),
       ],
-      command: process.env.CLAUDE_BIN ?? "claude",
+      command: claudeBinary(),
     };
   if (agent === "codex")
     return {

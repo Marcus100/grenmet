@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-13
+**Last updated:** 2026-10-20
 
 The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker.
 
@@ -28,5 +28,6 @@ When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the 
 | `breaking-change`                        | PR intentionally breaks the API contract; lets `api-breaking-changes` pass |
 
 A `friction` issue starts as `needs-triage`. `/triage` promotes it to
-`ready-for-agent` when the fix is small and clear, which makes it eligible for
-the nightly friction fixer in [routines.md](routines.md).
+`ready-for-agent` when the fix is small and clear. Any `ready-for-agent` issue
+with an allowed `area:` label is picked up by the nightly intake routine in
+[routines.md](routines.md), friction issues first.
