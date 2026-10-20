@@ -30,6 +30,9 @@ Logic is in `public.py` (service.py keeps studio config and availability); route
 - **Contacts:** `bookings.customer.contact_id` (nullable, `ON DELETE SET NULL`, migration `wiring20261020`). Public create calls `contacts.service.upsert_contact(source="bookings", consents={marketing: marketing_consent})` only when the organisation has the `contacts` entitlement, inside a savepoint; any database error is logged and the booking proceeds unlinked. Erasure keeps the contact row (erased) and a merge clears the link; neither breaks a booking. Existing customers link on their next booking (no backfill).
 - **Rewards:** `public.transition` to `completed` calls `rewards.service.emit_qualifying_action` (`bookings.completed`, source id = booking id) when the customer's contact is live and has a `user_id`; otherwise nothing is queued. Tests: `tests/bookings/test_wiring.py`, `test_wiring_migration.py`.
 
+## B4: Babydoll tenant seed
+`seed.py::seed_babydoll(session)` creates (create-only, advisory-locked, safe to repeat, never overwrites studio edits) the `babydoll` client organisation, `bookings` + `contacts` entitlements, the profile `babydoll-beauty-bar` (enabled, `America/Grenada`, 24 h lead, 60-day horizon, `requires_confirmation`, manage link `<BABYDOLL_SITE_URL>/booking/{token}`), the 14 bookable services from `apps/web/babydoll/src/data/site.ts` (prices x100 minor XCD; durations are assumptions the site does not publish), provider "Jeriann" with the published hours (Mon-Fri 09:30-17:30, Sat 09:00-17:30) and public site `babydoll` (no contact, no subscriptions, Turnstile inherit). It never runs at startup. Run on demand from `apps/api/fastapi`: `python -m src.bookings.seed [--dry-run]` (`--dry-run` rolls back). `BABYDOLL_SITE_URL` lives in `config.py`. Tests: `tests/bookings/test_seed_babydoll.py`.
+
 ## Next slices
 B5: studio actions (use `public.transition`). B6: deposits via the provider-neutral payment adapter (Stripe, Republic Bank ePay).
 
