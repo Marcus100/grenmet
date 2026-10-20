@@ -114,6 +114,7 @@ from src.organisations.models import (  # noqa: F401
     PlatformOrganisation,
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
+from src.payments.models import Attempt, Intent, LedgerEntry, Refund
 from src.push.models import PushSubscription
 from src.rewards.models import Entry, Program, ReviewFlag
 from src.storage.models import OrgUpload
@@ -148,6 +149,7 @@ _TRACKED_SCHEMAS = {
     "billing",
     "environment",
     "rewards",
+    "payments",
 }
 
 

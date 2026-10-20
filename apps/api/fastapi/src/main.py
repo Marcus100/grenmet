@@ -79,6 +79,7 @@ from src.models_guidance.router import router as models_guidance_router
 from src.notifications.router import router as notifications_router
 from src.organisations.dependencies import ORGANISATION_HEADER
 from src.organisations.router import router as organisations_router
+from src.payments.router import router as payments_router
 from src.push.router import router as push_router
 from src.rate_limit import limiter
 from src.request_context import (
@@ -178,6 +179,10 @@ OPENAPI_TAGS = [
     {
         "name": "rewards",
         "description": "Barrels ID rewards: stamp cards, trust badges, redemption.",
+    },
+    {
+        "name": "payments",
+        "description": "Barrels Payments: intents, callbacks, refunds and the ledger.",
     },
     {
         "name": "browser-auth",
@@ -431,6 +436,7 @@ app.include_router(role_assignments_router, prefix=settings.API_V1_STR)
 app.include_router(billing_router, prefix=settings.API_V1_STR)
 app.include_router(billing_invoice_router, prefix=settings.API_V1_STR)
 app.include_router(rewards_router, prefix=settings.API_V1_STR)
+app.include_router(payments_router, prefix=settings.API_V1_STR)
 app.include_router(bookings_router, prefix=settings.API_V1_STR)
 app.include_router(hr_profile_router, prefix=settings.API_V1_STR)
 app.include_router(hr_workflow_router, prefix=settings.API_V1_STR)
