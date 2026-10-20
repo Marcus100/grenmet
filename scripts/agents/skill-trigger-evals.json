@@ -138,5 +138,10 @@
     "prompt": "What does the wxwatch router return for /metadata?",
     "should_use": [],
     "should_not_use": ["teach", "diagnosing-bugs"]
+  },
+  {
+    "prompt": "Run the weekly factory review and fix whatever keeps failing.",
+    "should_use": ["factory-improve"],
+    "should_not_use": ["file-friction"]
   }
 ]
