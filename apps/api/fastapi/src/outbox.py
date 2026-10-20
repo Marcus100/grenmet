@@ -89,17 +89,27 @@ class OutboxMessage:
 
 
 Handler = Callable[[AsyncSession, OutboxMessage], Awaitable[None]]
+DeadHandler = Callable[[AsyncSession, OutboxMessage, Exception], Awaitable[None]]
 
 _HANDLERS: dict[str, Handler] = {}
+_DEAD_HANDLERS: dict[str, DeadHandler] = {}
 
 
-def handler(topic: str) -> Callable[[Handler], Handler]:
-    """Register the function that performs ``topic``'s side effect."""
+def handler(
+    topic: str, *, on_dead: DeadHandler | None = None
+) -> Callable[[Handler], Handler]:
+    """Register the function that performs ``topic``'s side effect.
+
+    ``on_dead`` runs in the transaction that marks a row ``dead`` (a read model
+    can record the give-up there); if it raises, its writes are discarded and the
+    row is still marked dead."""
 
     def register(function: Handler) -> Handler:
         if topic in _HANDLERS and _HANDLERS[topic] is not function:
             raise ValueError(f"Outbox topic already has a handler: {topic}")
         _HANDLERS[topic] = function
+        if on_dead is not None:
+            _DEAD_HANDLERS[topic] = on_dead
         return function
 
     return register
@@ -212,6 +222,23 @@ async def drain(
     return finished
 
 
+async def _run_dead_handler(
+    session: AsyncSession, message: OutboxMessage, error: Exception
+) -> None:
+    hook = _DEAD_HANDLERS.get(message.topic)
+    if hook is None:
+        return
+    try:
+        async with session.begin_nested():
+            await hook(session, message, error)
+    except Exception as exc:
+        logger.error(
+            "Outbox dead handler failed",
+            extra={"outbox_id": str(message.id), "topic": message.topic},
+            exc_info=exc,
+        )
+
+
 async def _record_failure(
     session: AsyncSession, message: OutboxMessage, error: Exception, moment: datetime
 ) -> None:
@@ -233,6 +260,7 @@ async def _record_failure(
             "Outbox message is dead",
             extra={"outbox_id": str(row.id), "topic": row.topic},
         )
+        await _run_dead_handler(session, message, error)
     else:
         row.next_attempt_at = moment + timedelta(
             seconds=retry_delay_seconds(row.attempts)

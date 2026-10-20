@@ -162,7 +162,7 @@ async def test_rows_without_a_registered_handler_are_left_pending(
     assert (row.status, row.attempts) == (OutboxStatus.PENDING.value, 0)
 
 
-async def test_email_send_handler_queues_one_outbound_email(
+async def test_email_send_handler_logs_one_outbound_email(
     db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     address = f"{uuid.uuid4().hex[:8]}@example.com"
@@ -199,11 +199,13 @@ async def test_email_send_handler_queues_one_outbound_email(
         )
     )
     assert len(emails) == 1
+    # A delivery-log row: the body is gone once the mail is final.
     assert (emails[0].subject, emails[0].html, emails[0].transactional) == (
         "Hello",
-        "<p>Hi</p>",
+        None,
         True,
     )
+    assert emails[0].status in {"sent", "skipped"}
     done = await db_async.scalar(
         select(Outbox).where(Outbox.topic == topic, Outbox.dedupe_key == key)
     )
