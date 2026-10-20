@@ -1,14 +1,125 @@
-# Hardening handoff
+# Product and hardening handoff
 
 **Status:** Working plan  
 **Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-10-20
 
-This is the remaining platform-hardening work after the 2026-10-20 session.
-The owner is focusing on features, so another agent picks this up. Each item
-says what to build, where, how to prove it, and whether the owner must act
-first. Work top to bottom inside each section; sections are roughly in
-priority order.
+This is the product roadmap the owner agreed on 2026-10-20, followed by the
+remaining platform-hardening work. Another agent picks it up. Each item says
+what to build, where, how to prove it, and whether the owner must act first.
+**Part A (products) comes first**; Part B (hardening) runs alongside when a
+product item is blocked.
+
+## Part A: Products
+
+## Owner decisions (2026-10-20 quiz)
+
+| # | Question | Decision |
+| --- | --- | --- |
+| 1 | Next real pilot | **Babydoll Bookings go-live** |
+| 2 | How Babydoll clients pay | Online deposits, eventually; **launch without them** (pay in salon) |
+| 3–4 | Deposit provider | Owner has a **Stripe New Zealand** account; Stripe likely does not support Grenada businesses, and taking another business's money on it may break Stripe's terms. Owner will ask Stripe and contact **Republic Bank (ePay)**. Build provider-neutral; no live rail until one is approved in writing |
+| 5 | Launch order | **Launch booking now**, deposits later per service |
+| 6–7 | Where screens live | New app **`bookings.barrels.gd`**: `/{business}` public booking page for any tenant, `/studio` staff area on Barrels sign-in. Babydoll keeps `babydoll.barrels.gd/book`. One Bookings API behind every frontend |
+| 8 | Who maintains services, prices, hours | **The business**, in `/studio` settings |
+| 9–10 | Notifications | Email at launch (built). Then a **channel-neutral engagement platform**: WhatsApp first, then newsletter, CMS for business sites, social posting |
+| 11 | Acuity data | **Fresh start**: no import; staff re-enter upcoming appointments |
+| 12 | Next product after Babydoll + WhatsApp | **Events pilot** |
+| 13 | Events pilot shape | **One or two small events first**, Spicemas 2027 later |
+
+Not yet confirmed (recommended order after Events): Rewards organisation
+admin UI (pairs with Bookings: a stamp per visit), Pay/Invoice online
+collection (reuses the deposit provider), Barrels HR product, corporate hub
+and control plane.
+
+## A1. Babydoll Bookings go-live (Now)
+
+API, deposits, public flow and `babydoll.barrels.gd/book` already exist
+(`apps/api/fastapi/src/bookings/`, `apps/web/babydoll`, `BABYDOLL_ONLINE_BOOKING`
+switch). Missing:
+
+1. **Staff "create booking" endpoint**: org-zone `POST
+   /bookings/org/bookings` (phone, walk-in and re-entered Acuity
+   appointments), using the same overlap protection as public create; optional
+   customer contact; audited; idempotent. Tests for overlap, permissions and
+   key callers. Regenerate `openapi.json` and the client (`api-change` skill).
+2. **New app `apps/web/bookings`** (`bookings.barrels.gd`; allocate a port in
+   `docs/ports.md`; add to the deploy compose, release scope, CSP table,
+   service catalogue and monitors; read `docs/playbooks/full-stack-feature.md`
+   and the design lane spec first):
+   - `/{slug}`: public booking flow (storefront → availability → details →
+     confirm → manage link), Turnstile, honeypot and `Idempotency-Key`,
+     the same as Babydoll's flow.
+   - `/studio`: Barrels sign-in (`@barrelsgd/auth`), organisation selector,
+     agenda (day and week), booking detail with confirm, decline, cancel,
+     no-show and complete, and a "New booking" form (item 1).
+   - `/studio/settings`: services (name, duration, price, deposit, buffer),
+     providers, weekly hours, time off. The API exists (B1/B2 org routes);
+     add any missing endpoints.
+   - Extract the booking widgets into a shared package or `packages/ui`
+     so `apps/web/babydoll` and `apps/web/bookings` render the same flow.
+     A new workspace package needs owner OK (tsconfig/turbo).
+3. **Production prerequisites**:
+   - `ORG_SECRET_ENCRYPTION_KEYS` is set (needed for per-site Turnstile secrets).
+   - Resend sends from a verified domain.
+   - The 24-hour reminder cron runs on staging.
+   - Babydoll's real services and durations replace the seeded guesses. The
+     owner confirms them with the salon; the salon then maintains them in
+     `/studio/settings`.
+4. **Cutover runbook**: enable `BABYDOLL_ONLINE_BOOKING`, salon re-enters
+   upcoming appointments in `/studio`, retire the Acuity link the same day,
+   watch the first week's bookings and emails.
+5. **Deposits later**: keep `deposit_minor = 0` on every service until a
+   provider is approved, then switch on per service.
+
+## A2. Payment provider for Grenada (owner-led, then build)
+
+- Owner: written answer from Stripe on whether the NZ account may take
+  deposits for a Grenada business (likely only via Connect, which may not
+  support Grenada); merchant agreement, API docs and sandbox credentials from
+  Republic Bank ePay; accountant/legal sign-off on who is merchant of record.
+- Agent, once docs and sandbox exist: a `republic_epay` provider in
+  `src/payments/` implementing the existing `PaymentProvider` protocol
+  (create, verify callback, refund, status) with signed-callback
+  verification, tests against recorded sandbox responses, and per-organisation
+  credentials via `src/utils/secret_box.py`. Same provider serves Events and
+  Pay/Invoice later.
+
+## A3. Engagement platform (after A1)
+
+One channel-neutral "send this message to this person" service on the
+platform outbox (`src/outbox.py`) with per-contact channel preference and
+consent (`src/contacts`). Email is the first adapter (wrap the existing
+notifications path). Then, in order:
+
+1. **WhatsApp**: Meta Cloud API or Twilio. Business number, Meta business
+   verification, approved templates (owner); booking confirmations and
+   reminders first, then event tickets and alerts. Webhook for delivery status
+   and opt-out; per-message cost tracking.
+2. **Newsletter and campaigns**: organisation-scoped audiences from contacts
+   with consent, compose and send via Resend, unsubscribe, basic open and
+   click stats. Builds on `src/subscriptions`.
+3. **CMS for business websites**: organisation-scoped Payload content so a
+   business (Babydoll first) edits services, promos and gallery itself.
+4. **Social posting**: schedule and post to Instagram and Facebook (Meta app
+   review). Last; furthest from current code.
+
+## A4. Events pilot (after A1 and A3.1)
+
+Built: free, registration and paid tiers (test mode), checkout UI, admission,
+settlement (`src/events`, `apps/web/events`). Pilot plan: one or two small
+events with a trusted organiser, then Spicemas 2027.
+
+1. Organiser onboarding and event setup reviewed end to end with the real
+   organiser; fix gaps found.
+2. Public event discovery page (listings by date and category).
+3. Payments via the A2 provider; until then registration-only or the manual
+   rail.
+4. WhatsApp ticket delivery (A3.1) alongside email.
+5. Door admission rehearsal on real phones, offline; settlement reconciled
+   with the ledger after the event; write up evidence.
+
+## Part B: Hardening
 
 ## Rules for whoever picks this up
 
