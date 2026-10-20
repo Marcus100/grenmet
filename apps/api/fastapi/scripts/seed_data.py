@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 CUSTOM_USERS = [
     {
         # Super admin — full control of users, roles, positions at runtime.
-        "email": "ewhint@weather.gd",
+        "email": "ewhint@example.com",
         "username": "ewhint",
         "password": "changethis",
         "first_name": "Eugine",
@@ -51,7 +51,7 @@ CUSTOM_USERS = [
         "is_superuser": True,
     },
     {
-        "email": "acharles@weather.gd",
+        "email": "acharles@example.com",
         "username": "acharles",
         "password": "changethis",
         "first_name": "Andre",
@@ -61,7 +61,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "ffrank@weather.gd",
+        "email": "ffrank@example.com",
         "username": "ffrank",
         "password": "changethis",
         "first_name": "Fimber",
@@ -71,7 +71,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "kjohnson@weather.gd",
+        "email": "kjohnson@example.com",
         "username": "kjohnson",
         "password": "changethis",
         "first_name": "Kassia",
@@ -81,7 +81,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "tmiller@weather.gd",
+        "email": "tmiller@example.com",
         "username": "tmiller",
         "password": "changethis",
         "first_name": "Trisha",
@@ -91,7 +91,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "jpryce@weather.gd",
+        "email": "jpryce@example.com",
         "username": "jpryce",
         "password": "changethis",
         "first_name": "Johnathan",
@@ -101,7 +101,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "vcyrus@weather.gd",
+        "email": "vcyrus@example.com",
         "username": "vcyrus",
         "password": "changethis",
         "first_name": "Vondi",
@@ -111,7 +111,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "tmitchell@weather.gd",
+        "email": "tmitchell@example.com",
         "username": "tmitchell",
         "password": "changethis",
         "first_name": "Tevaugn",
@@ -121,7 +121,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "dbedeau@weather.gd",
+        "email": "dbedeau@example.com",
         "username": "dbedeau",
         "password": "changethis",
         "first_name": "Dieonne",
@@ -131,7 +131,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "kclarke@weather.gd",
+        "email": "kclarke@example.com",
         "username": "kclarke",
         "password": "changethis",
         "first_name": "Kendra",
@@ -141,7 +141,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "njones@weather.gd",
+        "email": "njones@example.com",
         "username": "njones",
         "password": "changethis",
         "first_name": "Nicole",
@@ -151,7 +151,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "scummings@weather.gd",
+        "email": "scummings@example.com",
         "username": "scummings",
         "password": "changethis",
         "first_name": "Swayne",
@@ -161,7 +161,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "jfleming@weather.gd",
+        "email": "jfleming@example.com",
         "username": "jfleming",
         "password": "changethis",
         "first_name": "Jeriann",
@@ -171,7 +171,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "spaterson@weather.gd",
+        "email": "spaterson@example.com",
         "username": "spaterson",
         "password": "changethis",
         "first_name": "Shaunte",
@@ -181,7 +181,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "zbarry@weather.gd",
+        "email": "zbarry@example.com",
         "username": "zbarry",
         "password": "changethis",
         "first_name": "Zadie",
@@ -191,7 +191,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "gcharles@weather.gd",
+        "email": "gcharles@example.com",
         "username": "gcharles",
         "password": "changethis",
         "first_name": "Gennel",
@@ -201,7 +201,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "tteka@weather.gd",
+        "email": "tteka@example.com",
         "username": "tteka",
         "password": "changethis",
         "first_name": "Theron",
@@ -211,7 +211,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "jmcleod@weather.gd",
+        "email": "jmcleod@example.com",
         "username": "jmcleod",
         "password": "changethis",
         "first_name": "Jordan",
@@ -221,7 +221,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "gtamar@weather.gd",
+        "email": "gtamar@example.com",
         "username": "gtamar",
         "password": "changethis",
         "first_name": "Gerard",
@@ -231,7 +231,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "tclovey@weather.gd",
+        "email": "tclovey@example.com",
         "username": "tclovey",
         "password": "changethis",
         "first_name": "Tafon",
@@ -241,7 +241,7 @@ CUSTOM_USERS = [
         "is_superuser": False,
     },
     {
-        "email": "dwilliams@weather.gd",
+        "email": "dwilliams@example.com",
         "username": "dwilliams",
         "password": "changethis",
         "first_name": "Dieonne",
@@ -262,7 +262,7 @@ def clear_seed_data(session: Session) -> int:
     test_users = [
         u
         for u in all_users
-        if u.email.startswith("testuser") and u.email.endswith("@weather.gd")
+        if u.email.startswith("testuser") and u.email.endswith("@example.com")
     ]
 
     user_count = len(test_users)

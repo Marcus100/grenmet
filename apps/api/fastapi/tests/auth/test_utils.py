@@ -46,7 +46,7 @@ def test_dummy_password_hash_is_bcrypt() -> None:
 def test_access_token_creation() -> None:
     """Test access token creation."""
     token = create_access_token(
-        subject="test@weather.gd", expires_delta=timedelta(minutes=30)
+        subject="test@example.com", expires_delta=timedelta(minutes=30)
     )
 
     assert isinstance(token, str)

@@ -139,7 +139,7 @@ async def test_linked_google_identity_cannot_verify_changed_email(
     from src.auth.utils import get_password_hash
 
     user = User(
-        email="new@weather.gd",
+        email="new@example.com",
         username="changed",
         first_name="Test",
         last_name="User",
@@ -161,8 +161,8 @@ async def test_linked_google_identity_cannot_verify_changed_email(
     async def claims(*_args):
         return {
             "sub": "google-subject",
-            "email": "old@weather.gd",
-            "hd": "weather.gd",
+            "email": "old@example.com",
+            "hd": "example.com",
             "email_verified": True,
             "nonce": "nonce",
         }
@@ -183,7 +183,7 @@ async def test_google_mfa_failure_consumes_login_challenge(async_client, db_asyn
     from src.auth.utils import get_password_hash
 
     user = User(
-        email="mfa@weather.gd",
+        email="mfa@example.com",
         username="mfa",
         first_name="Test",
         last_name="MFA",

@@ -42,7 +42,7 @@ def main():
         with Session(engine) as session:
             # Find all test users
             test_users = session.scalars(
-                select(User).where(User.email.like("testuser%@weather.gd"))
+                select(User).where(User.email.like("testuser%@example.com"))
             ).all()
 
             if not test_users:

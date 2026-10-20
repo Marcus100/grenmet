@@ -23,7 +23,7 @@ async def test_test_email(
     """Test email testing endpoint."""
     mock_send_email.return_value = None
 
-    email_to = "test@weather.gd"
+    email_to = "test@example.com"
     response = await async_client.post(
         f"{settings.API_V1_STR}/utils/test-email/?email_to={email_to}",
         headers=superuser_token_headers_async,
