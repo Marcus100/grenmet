@@ -21,6 +21,7 @@ from src.config import settings
 from src.email_config import email_settings
 from src.exceptions import AppValidationError
 from src.notifications import service as notification_service
+from src.organisations import sites
 from src.utils.datetime import utc_now
 from src.utils.email_hash import hash_email
 
@@ -30,6 +31,7 @@ from .constants import (
     CONFIRMATION_TEMPLATE,
     MAILING_LISTS,
     UNSUBSCRIBE_PURPOSE,
+    MailingList,
 )
 from .models import ListSubscription, SubscriptionStatus
 
@@ -102,16 +104,38 @@ def unsubscribe_link(subscription_id: uuid.UUID) -> str:
     )
 
 
-def _status_url(list_key: str | None, result: str) -> str:
-    return f"{_site_url(list_key)}/subscribe/status?{urlencode({'result': result})}"
+async def site_url_for(session: AsyncSession, list_key: str | None) -> str:
+    """Public origin of a list: its public site's ``site_url`` (ADR-0025 N1), else
+    the deprecated ``SUBSCRIPTIONS_SITE_URLS`` setting. Only configured origins."""
+    if list_key:
+        site = await sites.resolve_public_site(session, list_key)
+        if site is not None and site.site_url:
+            return site.site_url.rstrip("/")
+    return _site_url(list_key)
+
+
+async def _status_url(session: AsyncSession, list_key: str | None, result: str) -> str:
+    base = await site_url_for(session, list_key)
+    return f"{base}/subscribe/status?{urlencode({'result': result})}"
 
 
 # ── Subscribe ────────────────────────────────────────────────────────────────
 
 
-async def subscribe(*, session: AsyncSession, list_key: str, email: str) -> None:
-    """Record a pending subscription and queue the confirmation email."""
+async def subscribe(
+    *,
+    session: AsyncSession,
+    list_key: str,
+    email: str,
+    list_name: str | None = None,
+) -> None:
+    """Record a pending subscription and queue the confirmation email.
+
+    ``list_name`` comes from a public site (``org.public_site``); without it the
+    list must be one of ``MAILING_LISTS``."""
     mailing_list = MAILING_LISTS.get(list_key)
+    if list_name is not None:
+        mailing_list = MailingList(key=list_key, name=list_name)
     if mailing_list is None:
         raise AppValidationError("Unknown mailing list")
     email = notification_service.normalise_email(email)
@@ -214,14 +238,14 @@ async def confirm(*, session: AsyncSession, token: str) -> str:
         else None
     )
     if row is None or row.status == SubscriptionStatus.UNSUBSCRIBED.value:
-        return _status_url(row.list_key if row else None, "invalid")
+        return await _status_url(session, row.list_key if row else None, "invalid")
     if row.status == SubscriptionStatus.PENDING.value:
         now = utc_now()
         row.status = SubscriptionStatus.CONFIRMED.value
         row.confirmed_at = now
         row.updated_at = now
         await session.commit()
-    return _status_url(row.list_key, "confirmed")
+    return await _status_url(session, row.list_key, "confirmed")
 
 
 def _mark_unsubscribed(row: ListSubscription, now: datetime) -> None:
@@ -243,12 +267,12 @@ async def unsubscribe(*, session: AsyncSession, token: str) -> str:
         else None
     )
     if row is None:
-        return _status_url(None, "invalid")
+        return await _status_url(session, None, "invalid")
     if row.status != SubscriptionStatus.UNSUBSCRIBED.value:
         now = utc_now()
         _mark_unsubscribed(row, now)
         await session.commit()
-    return _status_url(row.list_key, "unsubscribed")
+    return await _status_url(session, row.list_key, "unsubscribed")
 
 
 async def unsubscribe_address(*, session: AsyncSession, email: str) -> int:

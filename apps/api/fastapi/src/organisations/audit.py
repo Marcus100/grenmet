@@ -13,12 +13,14 @@ from src.audit import registry
 from src.auth.models import User
 
 from .models import (
+    ApiKey,
     Invitation,
     Membership,
     MembershipRole,
     MembershipStatus,
     OrganisationApp,
     PlatformOrganisation,
+    PublicSite,
 )
 
 _MANAGER_ROLES = (MembershipRole.OWNER.value, MembershipRole.ADMIN.value)
@@ -66,4 +68,20 @@ def register() -> None:
         entity_type="platform_organisation",
         entity_id_attr="organisation_id",
         label="App access",
+    )
+    registry.track(
+        PublicSite,
+        record_type="organisation_public_site",
+        entity_type="platform_organisation",
+        entity_id_attr="organisation_id",
+        exclude=("turnstile_secret_encrypted",),
+        label="Public site",
+    )
+    registry.track(
+        ApiKey,
+        record_type="organisation_api_key",
+        entity_type="platform_organisation",
+        entity_id_attr="organisation_id",
+        exclude=("key_hash", "last_used_at"),
+        label="API key",
     )

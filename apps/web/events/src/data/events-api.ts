@@ -7,6 +7,7 @@ import {
   eventsGetManagedOrganiser,
   eventsGetManifest,
   eventsGetMyNetwork,
+  eventsGetMyOrder,
   eventsGetMyPlans,
   eventsGetMyTicket,
   eventsGetOrganiser,
@@ -30,6 +31,7 @@ import type {
   Group,
   GroupDetail,
   ManagedEvent,
+  MyOrder,
   MyTicket,
   MyTicketDetail,
   Network,
@@ -54,6 +56,7 @@ import {
   toGroup,
   toGroupDetail,
   toManagedEvent,
+  toMyOrder,
   toMyTicket,
   toMyTicketDetail,
   toNetwork,
@@ -263,6 +266,17 @@ export async function getListingActivity(
 }
 
 /** The signed-in member's tickets, soonest event first. */
+/** One of the member's orders; null when it is not theirs (the API answers 404). */
+export async function getMyOrder(orderId: string): Promise<MyOrder | null> {
+  const order = await orNull(
+    eventsGetMyOrder({
+      ...(await options()),
+      path: { order_id: orderId },
+    }).unwrap()
+  );
+  return order ? toMyOrder(order) : null;
+}
+
 export async function getMyTickets(): Promise<MyTicket[]> {
   const tickets = await eventsListMyTickets({
     ...(await options()),

@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { listingCardPropertiesCurrencyEnumSchema } from "./listingCardPropertiesCurrencyEnumSchema.js";
+import { orderPublicPropertiesStatusEnumSchema } from "./orderPublicPropertiesStatusEnumSchema.js";
 import { ticketSummarySchema } from "./ticketSummarySchema.js";
 
 export const orderPublicSchema = z.object({
@@ -14,4 +15,8 @@ export const orderPublicSchema = z.object({
   currency: listingCardPropertiesCurrencyEnumSchema,
   created_at: z.iso.datetime(),
   tickets: z.array(ticketSummarySchema),
+  status: orderPublicPropertiesStatusEnumSchema.optional().default("confirmed"),
+  payment_required: z.boolean().optional().default(false),
+  checkout_url: z.union([z.string(), z.null()]).optional(),
+  payment_expires_at: z.union([z.iso.datetime(), z.null()]).optional(),
 });

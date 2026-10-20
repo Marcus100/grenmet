@@ -115,6 +115,11 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-handoff.mjs\"",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "[ \"${CLAUDE_CODE_REMOTE:-}\" = \"true\" ] && bash \"$CLAUDE_PROJECT_DIR/scripts/agents/cloud-bootstrap.sh\" || true",
+            "timeout": 600
           }
         ]
       }

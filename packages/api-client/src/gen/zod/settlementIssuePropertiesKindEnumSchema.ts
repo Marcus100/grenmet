@@ -10,4 +10,5 @@ export const settlementIssuePropertiesKindEnumSchema = z.enum([
   "till_over",
   "till_open",
   "refund_without_till",
+  "online_ledger_mismatch",
 ]);

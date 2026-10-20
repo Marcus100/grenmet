@@ -2,11 +2,12 @@ import uuid
 from enum import Enum
 from typing import Annotated
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from src.models import BaseModel, UtcDateTime
 
 from .models import EntryKind, EntryStatus, FlagReason, ProgramKind, ProgramStatus
+from .sources import EVENTS_ADMISSION, is_qualifying_source
 
 Name = Annotated[str, Field(min_length=1, max_length=120)]
 Description = Annotated[str, Field(min_length=1, max_length=500)]
@@ -19,6 +20,15 @@ class ProgramCreate(BaseModel):
     reward_description: Description
     stamps_per_source: Annotated[int, Field(ge=1, le=10)] = 1
     max_redemptions_per_account: Annotated[int, Field(ge=1, le=1000)] | None = None
+    #: What earns a stamp; one of the catalogue in ``sources.py``.
+    qualifying_source_type: str = EVENTS_ADMISSION
+
+    @field_validator("qualifying_source_type")
+    @classmethod
+    def _known_source(cls, value: str) -> str:
+        if not is_qualifying_source(value):
+            raise ValueError("Unknown qualifying source type")
+        return value
 
 
 class ProgramUpdate(BaseModel):

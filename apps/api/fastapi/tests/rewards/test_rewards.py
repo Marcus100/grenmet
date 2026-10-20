@@ -35,13 +35,18 @@ from tests.organisations.support import headers_for, make_org
 API = "/api/v1/rewards"
 
 
+async def _rewards_org(*args, **kwargs):
+    """An organisation entitled to rewards (its organisation routes require it)."""
+    return await make_org(*args, apps=("rewards",), **kwargs)
+
+
 async def _setup(
     db: AsyncSession, stamps: int = 2, **extra: int
 ) -> tuple[User, User, str, Program]:
     """A customer, an organisation admin and the organisation's stamp card."""
     customer = await make_user(db)
     owner = await make_user(db)
-    org = await make_org(
+    org = await _rewards_org(
         db, f"Cafe {uuid.uuid4().hex[:6]}", members=((owner, MembershipRole.OWNER),)
     )
     program = await service.create_program(
@@ -235,7 +240,7 @@ async def test_redeem_flow_with_staff_code_and_cross_organisation_denial(
 ) -> None:
     customer, owner, org_id, program = await _setup(db_async, stamps=2)
     other_owner = await make_user(db_async)
-    other_org = await make_org(
+    other_org = await _rewards_org(
         db_async, "Other cafe", members=((other_owner, MembershipRole.OWNER),)
     )
     body = {"program_id": str(program.id)}
@@ -344,7 +349,7 @@ async def test_programme_roles_and_isolation(
     _customer, owner, org_id, program = await _setup(db_async)
     member = await make_user(db_async)
     other_owner = await make_user(db_async)
-    org2 = await make_org(
+    org2 = await _rewards_org(
         db_async, "Rival", members=((other_owner, MembershipRole.OWNER),)
     )
     body = {
@@ -630,11 +635,42 @@ async def test_sync_credits_admissions_once_and_reverses_refunds(
 
 
 @pytest.mark.asyncio
+async def test_sync_ignores_admissions_on_unpaid_orders(
+    db_async: AsyncSession, events_session: SessionFactory
+) -> None:
+    """Only a ``confirmed`` order earns: a paid-tier order that is still waiting
+    for money, or that expired, never credits stamps (N4b)."""
+    customer, _owner, org_id, _program = await _setup(db_async, stamps=5)
+    _admission, _ticket, order_id = await _admit(
+        events_session, user=customer, organisation_id=org_id
+    )
+    for status in ("pending_payment", "expired"):
+        async with events_session() as events:
+            await events.execute(
+                text("UPDATE orders SET status = :s WHERE id = :i"),
+                {"s": status, "i": order_id},
+            )
+            await events.commit()
+            result = await events_link.sync_admissions(db_async, events)
+        await db_async.commit()
+        assert (result.credited, result.reversed) == (0, 0), status
+    async with events_session() as events:
+        await events.execute(
+            text("UPDATE orders SET status = 'confirmed' WHERE id = :i"),
+            {"i": order_id},
+        )
+        await events.commit()
+        result = await events_link.sync_admissions(db_async, events)
+    await db_async.commit()
+    assert result.credited == 1
+
+
+@pytest.mark.asyncio
 async def test_sync_ignores_organisers_without_a_programme(
     db_async: AsyncSession, events_session: SessionFactory
 ) -> None:
     customer = await make_user(db_async)
-    org = await make_org(db_async, "No card")
+    org = await _rewards_org(db_async, "No card")
     await _admit(events_session, user=customer, organisation_id=org.id)
     async with events_session() as events:
         result = await events_link.sync_admissions(db_async, events)
@@ -649,7 +685,7 @@ async def test_badges_are_derived_from_records(
     superuser_token_headers_async: dict[str, str],
 ) -> None:
     person = await make_user(db_async)
-    org = await make_org(
+    org = await _rewards_org(
         db_async, "Verified Ltd", members=((person, MembershipRole.MEMBER),)
     )
     h = headers_for(person)
@@ -715,7 +751,7 @@ async def test_my_tickets_lists_only_my_tickets(
 ) -> None:
     mine = await make_user(db_async)
     theirs = await make_user(db_async)
-    org = await make_org(db_async, "Tickets Ltd")
+    org = await _rewards_org(db_async, "Tickets Ltd")
     await _admit(events_session, user=mine, organisation_id=org.id)
     await _admit(events_session, user=theirs, organisation_id=org.id)
     resp = await async_client.get(f"{API}/me/tickets", headers=headers_for(mine))

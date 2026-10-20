@@ -4,7 +4,7 @@ Nothing here writes to Events or edits Events code. Rewards learns about real
 attendance by reading admissions, then credits its own ledger idempotently:
 
 * ``sync_admissions`` credits one stamp card entry per admission whose organiser
-  funds an active programme (``earn_for_source`` is unique per programme and
+  funds an active programme (``record_qualifying_action`` is unique per programme and
   admission, so running it repeatedly, or alongside a direct call, is safe).
 * ``reverse_refunded_admissions`` reverses entries whose ticket or order is no
   longer valid/confirmed (cancelled, refunded), using ``reverse_for_source``.
@@ -24,7 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.events.models import Admission, Listing, Order, Organiser, Ticket
 from src.utils.datetime import utc_now
 
-from . import service
+from . import service, sources
 from .config import rewards_settings
 from .models import Entry, EntryKind, EntryStatus, Program, ProgramStatus
 
@@ -43,7 +43,7 @@ async def sync_admissions(main: AsyncSession, events: AsyncSession) -> SyncResul
             select(Program.organisation_id)
             .where(
                 Program.status == ProgramStatus.ACTIVE.value,
-                Program.qualifying_source_type == service.EVENTS_ADMISSION,
+                Program.qualifying_source_type == sources.EVENTS_ADMISSION,
             )
             .distinct()
         )
@@ -60,6 +60,8 @@ async def sync_admissions(main: AsyncSession, events: AsyncSession) -> SyncResul
                 .where(
                     Admission.admitted_at >= since,
                     Ticket.status == "valid",
+                    # Paid-tier orders are pending_payment (or expired) until the
+                    # money is captured; only a confirmed order earns (N4b).
                     Order.status == "confirmed",
                     Organiser.organisation_id.in_(funded),
                 )
@@ -68,12 +70,12 @@ async def sync_admissions(main: AsyncSession, events: AsyncSession) -> SyncResul
             )
         ).all()
         for admission_id, user_id, organisation_id in rows:
-            created = await service.earn_for_source(
+            created = await service.record_qualifying_action(
                 main,
-                account_id=user_id,
-                organisation_id=organisation_id,
-                source_type=service.EVENTS_ADMISSION,
+                source_type=sources.EVENTS_ADMISSION,
                 source_id=str(admission_id),
+                organisation_id=organisation_id,
+                user_id=user_id,
             )
             result.credited += len(created)
     result.reversed = await reverse_refunded_admissions(main, events)

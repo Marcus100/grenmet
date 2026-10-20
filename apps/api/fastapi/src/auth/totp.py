@@ -5,13 +5,14 @@ from __future__ import annotations
 from binascii import Error as Base32Error
 
 import pyotp
-from cryptography.fernet import Fernet, InvalidToken, MultiFernet
+from cryptography.fernet import Fernet, MultiFernet
 
 from src.auth.config import auth_settings
 from src.exceptions import AppException
+from src.utils import secret_box
 
 ISSUER = "Barrels account"
-ENCRYPTED_PREFIX = "fernet:v1:"
+ENCRYPTED_PREFIX = secret_box.ENCRYPTED_PREFIX
 
 
 def generate_secret() -> str:
@@ -33,11 +34,12 @@ def cipher() -> MultiFernet:
 
 
 def encrypt_secret(secret: str) -> str:
-    return ENCRYPTED_PREFIX + cipher().encrypt(secret.encode()).decode()
+    cipher()  # 503 when no keys are configured
+    return secret_box.encrypt(secret, auth_settings.AUTH_TOTP_ENCRYPTION_KEYS)
 
 
 def is_encrypted(secret: str | None) -> bool:
-    return bool(secret and secret.startswith(ENCRYPTED_PREFIX))
+    return secret_box.is_encrypted(secret)
 
 
 def decrypt_secret(secret: str) -> str:
@@ -48,9 +50,10 @@ def decrypt_secret(secret: str) -> str:
                 "Authenticator storage must be upgraded by the platform operator", 503
             )
         return secret
+    cipher()  # 503 when no keys are configured
     try:
-        return cipher().decrypt(secret.removeprefix(ENCRYPTED_PREFIX).encode()).decode()
-    except InvalidToken, UnicodeError:
+        return secret_box.decrypt(secret, auth_settings.AUTH_TOTP_ENCRYPTION_KEYS)
+    except secret_box.SecretBoxError:
         raise AppException(
             "Authenticator storage is unavailable; contact the platform operator", 503
         ) from None

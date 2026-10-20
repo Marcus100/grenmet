@@ -16,6 +16,7 @@ import type {
   MessagePublic,
   MyProfile,
   NetworkPublic,
+  OrderPublic,
   OrganiserPublic,
   OutletOverview,
   PlansPublic,
@@ -34,6 +35,7 @@ import type {
   GroupDetail,
   ManagedEvent,
   Message,
+  MyOrder,
   MyTicket,
   MyTicketDetail,
   Network,
@@ -262,6 +264,19 @@ export function toThread(thread: ApiThreadDetail): ThreadDetail {
     canSend: thread.can_send,
     participants: thread.participants.map(toPersonChip),
     messages: thread.messages.map(toMessage),
+  };
+}
+
+export function toMyOrder(order: OrderPublic): MyOrder {
+  return {
+    id: order.id,
+    listingSlug: order.listing_slug,
+    status: order.status ?? "confirmed",
+    paymentRequired: order.payment_required ?? false,
+    checkoutUrl: order.checkout_url ?? null,
+    paymentExpiresAt: order.payment_expires_at ?? null,
+    ticketIds: order.tickets.map((ticket) => ticket.id),
+    total: money(order.total_minor, order.currency),
   };
 }
 

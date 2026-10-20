@@ -38,6 +38,13 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.eregister.publisher",
         "src.billing.reminders",
         "src.worker.retention",
+        "src.outbox",
+        "src.notifications.outbox_handlers",
+        "src.bookings.reminders",
+        "src.bookings.outbox_handlers",
+        "src.events.payment_handlers",
+        "src.rewards.outbox_handlers",
+        "src.webhooks_out.delivery",
     ):
         import_module(module)
     from src.config import settings
@@ -164,6 +171,109 @@ async def drain_events_outbox(ctx: dict[str, Any]) -> int:
             ctx.get("redis"), "drain_events_outbox", str(ctx.get("job_id", "")), True
         )
         return result
+
+
+async def drain_outbox(ctx: dict[str, Any]) -> int:
+    """Run due platform outbox rows (email.send, ...); see ADR-0026."""
+    from src import outbox
+    from src.database import async_session_factory
+
+    # Importing these modules registers their outbox handlers (email.send,
+    # rewards.qualifying_action, bookings.deposit_paid, events.order_paid,
+    # events.order_refunded, webhook.deliver).
+    for module in (
+        "src.notifications.outbox_handlers",
+        "src.bookings.outbox_handlers",
+        "src.events.payment_handlers",
+        "src.rewards.outbox_handlers",
+        "src.webhooks_out.delivery",
+    ):
+        import_module(module)
+
+    async with async_session_factory() as session:
+        try:
+            result = await outbox.drain(session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"), "drain_outbox", str(ctx.get("job_id", "")), False
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "drain_outbox", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
+async def enqueue_booking_reminders(ctx: dict[str, Any]) -> int:
+    """Queue one reminder per booking starting within 24 hours (idempotent)."""
+    from src.bookings import reminders
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await reminders.enqueue_due_reminders(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "enqueue_booking_reminders",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "enqueue_booking_reminders", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
+async def expire_unpaid_bookings(ctx: dict[str, Any]) -> int:
+    """Cancel deposit bookings left unpaid past the hold; frees the slot (idempotent)."""
+    from src.bookings import deposits
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await deposits.expire_unpaid(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "expire_unpaid_bookings",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "expire_unpaid_bookings", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
+async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
+    """Cancel paid-tier orders left unpaid past the hold; releases stock (idempotent)."""
+    from src.database import async_session_factory
+    from src.events import database as events_database
+    from src.events import order_fulfilment
+
+    events = events_database.create_session()
+    if events is None:
+        return 0
+    async with events, async_session_factory() as session:
+        try:
+            result = await order_fulfilment.expire_unpaid(session, events)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "expire_unpaid_event_orders",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "expire_unpaid_event_orders", str(ctx.get("job_id", "")), True
+    )
+    return result
 
 
 async def sync_event_rewards(ctx: dict[str, Any]) -> int:
@@ -399,6 +509,10 @@ class WorkerSettings:
         send_notification_emails,
         send_outbound_emails,
         drain_events_outbox,
+        drain_outbox,
+        enqueue_booking_reminders,
+        expire_unpaid_bookings,
+        expire_unpaid_event_orders,
         sync_event_rewards,
         send_wis2_publications,
         run_notification_sweeps,
@@ -435,6 +549,25 @@ class WorkerSettings:
         cron(send_outbound_emails, second={15, 45}, run_at_startup=True),
         # Events changes (publish, cancel, approve) become notifications.
         cron(drain_events_outbox, second={5, 35}, run_at_startup=False),
+        # Platform outbox (ADR-0026): emails and other side effects, offset so the
+        # email worker (seconds 15 and 45) sends what this run queues.
+        cron(drain_outbox, second={10, 40}, run_at_startup=False),
+        # Booking reminders (24 hours ahead), hourly; one per booking.
+        cron(enqueue_booking_reminders, minute={7}, run_at_startup=False),
+        # Unpaid deposit holds (BOOKINGS_DEPOSIT_HOLD_MINUTES, default 30) are
+        # cancelled and their slots released, every 5 minutes.
+        cron(
+            expire_unpaid_bookings,
+            minute=set(range(2, 60, 5)),
+            run_at_startup=False,
+        ),
+        # Unpaid paid-tier orders (EVENTS_ORDER_HOLD_MINUTES, default 30) are
+        # cancelled and their stock released, every 5 minutes.
+        cron(
+            expire_unpaid_event_orders,
+            minute=set(range(3, 60, 5)),
+            run_at_startup=False,
+        ),
         # Admissions become reward stamps; refunded ones are reversed.
         cron(
             sync_event_rewards,

@@ -262,6 +262,9 @@ async def test_create_leave_request(
   `page` overflow fixed in `src/pagination.py`; bound every numeric query
   parameter (`le=`) so input never reaches PostgreSQL out of range.
 - The sync `client` and `db` fixtures are legacy — don't add new tests that use them.
+- Claude Code cloud session? `scripts/agents/cloud-bootstrap.sh` (a SessionStart hook) has already started Postgres and Redis on `localhost`, synced `fast-back` and `gms-ingest`, and exported `POSTGRES_SERVER`, `REDIS_URL` and `WXPRODUCTS_DATABASE_URL`, so `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest …` works as is. Run it by hand if a session started without it. Sync both packages (`--package fast-back --package gms-ingest`) or the NHC tests fail with `No module named 'gms_ingest'`.
+- Format only the files you own (`ruff format <files>`, `pnpm exec ultracite fix <files>`); a bare `ruff format src alembic` rewrites unrelated migrations.
+- Anything the default seed creates (`init_db_async`, for example the public sites `barrels` and `signal`) exists only after the `db_async` fixture runs. A test that posts to the API without `db_async` sees an empty database; add `@pytest.mark.usefixtures("db_async")`.
 - Running from the agent dev container? There's no docker CLI and Compose service
   names such as `db` and `grenmet-postgres` are not resolvable there. Run
   `uv sync --frozen --package fast-back` once, then override every database/Redis

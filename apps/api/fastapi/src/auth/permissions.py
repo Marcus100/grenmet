@@ -116,6 +116,11 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "rewards.manage",
         "Manage Barrels rewards: view all programmes, audited stamp adjustments, review flags",
     ),
+    # Platform — feature flags (ADR-0020)
+    PermissionDef(
+        "feature_flags.manage",
+        "Create, change and delete feature flags and their audience rules",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),

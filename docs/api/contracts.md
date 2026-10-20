@@ -64,10 +64,23 @@ suppressed addresses; transactional mail does not.
 
 ## Public forms
 
-Three anonymous, rate-limited (per IP) endpoints back public site forms. They
-never read existing data and return a fixed acknowledgement:
+Anonymous, rate-limited (per IP) endpoints back public site forms. They
+never read existing data and return a fixed acknowledgement. Since PF1
+(ADR-0025 N1/N2), forms name an organisation-owned **public site** in the path.
+The site row (`org.public_site`) holds the inbox, the origin and the Turnstile
+policy (`inherit`, `off`, or `enforce` with the site's own encrypted secret).
+`GET /api/v1/organisations/public/sites/{site_key}` (`organisationsGetPublicSite`)
+returns what a site needs to render its forms (name, accepted forms, Turnstile
+site key), never a secret. Superusers manage sites through
+`/api/v1/organisations/admin/sites`; organisation admins read theirs through
+`GET /api/v1/organisations/org/sites`.
 
-- `POST /api/v1/subscriptions` (`subscriptionsSubscribe`): double opt-in sign-up
+- `POST /api/v1/contact/public/{site_key}/messages`
+  (`contactSendSiteContactMessage`) and `POST /api/v1/subscriptions/public/{site_key}`
+  (`subscriptionsSubscribeToSite`) are the site-keyed forms. Both return 404 for an
+  unknown site, a suspended owner, or a form the site does not accept.
+
+- `POST /api/v1/subscriptions` (`subscriptionsSubscribe`, **deprecated**; use the site route): double opt-in sign-up
   for a list key (`signal`, `barrels`, `gms-alerts`); the reply is identical for every address state.
   `GET /subscriptions/confirm` and `/subscriptions/unsubscribe` take a signed
   `token` and 303-redirect to the list's site.
@@ -75,7 +88,7 @@ never read existing data and return a fixed acknowledgement:
   `DELETE /api/v1/push/subscriptions` (`pushSubscribe`, `pushUnsubscribe`):
   browser Web Push for the `gms-alerts` list. Endpoints must belong to a known
   push service; `enabled: false` / 503 until the `WEBPUSH_*` keys are set.
-- `POST /api/v1/contact/messages` (`contactSendContactMessage`): stores a
+- `POST /api/v1/contact/messages` (`contactSendContactMessage`, **deprecated**; use the site route): stores a
   website message and emails it to the inbox of its `site` (`mbia` by default,
   or `barrels`). `turnstile_token` is verified when `TURNSTILE_ENABLED` (400 "Verification failed").
 - `POST /api/v1/contact/data-requests` (`contactSendDataRequest`): GMS climate
@@ -467,7 +480,8 @@ newest first, for its organiser only.
 registration tickets: `{items: [{tier_id, quantity}]}`, 201 with the order and its
 tickets. 409 when a tier is sold out, the claim exceeds the tier's `per_account_limit`
 (set by the organiser on the tier, default 4, counted over the account's valid
-tickets), the tier is paid (online payment is not built yet) or the event ended.
+tickets and unpaid holds), a paid tier cannot be collected online (the organiser has
+no platform organisation or no `payments` entitlement) or the event ended.
 `TierPublic` carries `remaining` and the viewer's `held` count. `GET /events/me/tickets`
 lists the member's tickets; `GET /events/me/tickets/{id}` adds `qr_token`, a signed
 token (`BT1.<code>.<tag>`, no personal data) to render as the QR code;
@@ -475,6 +489,25 @@ token (`BT1.<code>.<tag>`, no personal data) to render as the QR code;
 starts and puts the seat back on sale. `TierInput.id` updates an existing tier in
 place; tiers with tickets issued cannot be removed or shrunk below their valid tickets.
 Issuing tickets writes a `ticket.issued` outbox row for the buyer's notification.
+
+### Events paid tiers (N4b, ADR-0027)
+
+A paid tier makes the same call return an order with `status: "pending_payment"`,
+`payment_required: true`, `tickets: []`, `payment_expires_at` and `checkout_url`
+(Stripe test-mode Checkout; null when the organiser's staff record the payment by
+hand through `POST /payments/org/intents/{id}/manual-payments`). The stock is held
+until the hold (`EVENTS_ORDER_HOLD_MINUTES`, default 30) ends. All five fields are
+additive and default to the free-order values (`confirmed`, false, null).
+An optional `Idempotency-Key` header makes a retry return the same order (same key,
+different items: 409). `GET /events/me/orders/{order_id}` (the owner only, else 404)
+returns the order for polling after checkout: `confirmed` with its tickets once the
+payment is captured, `expired` when the hold ran out, `refunded` after a full refund.
+A payment that arrives after expiry is refunded in full and issues nothing. Paid
+tickets cannot be self-cancelled (409); a refund through the payments core
+(`POST /payments/org/intents/{id}/refunds`) cancels them. The settlement report gains
+`online_payments` (orders paid, pending, collected and refunded, next to the payments
+ledger's own totals and a `reconciled` flag), an `online_ledger_mismatch` discrepancy
+and `online_collected_minor` on the overview rows.
 
 ### Events door admission (E2)
 
@@ -523,6 +556,66 @@ cash ticket: 409 for online tickets (free), free tickets, amounts above the pric
 without a reference, a ticket already refunded or cancelled by its holder, or a used ticket unless
 the event was cancelled. Ticket `status` can now be `refunded`; refunded tickets are not
 admitted. The settlement report lists `refunds` and per-channel `refunded`/`refunded_minor`.
+
+## Platform foundations (PF-series, 2026-10-20)
+
+Shared APIs for every Barrels app. Zones follow ADR-0025.
+
+- **Public sites** (PF1): see [Public forms](#public-forms). Organisation routes of
+  products require the organisation's entitlement (`org.organisation_app`, keys in
+  `src/organisations/entitlements.py`: `bookings`, `rewards`, `contacts`); a missing
+  entitlement answers 403 after membership is proven.
+- **Organisation API keys** (PF5, ADR-0029): `/organisations/org/api-keys` (list,
+  create, `{key_id}/rotate`, `{key_id}/revoke`), `/organisations/org/api-key-scopes`,
+  `/organisations/org/key-info` and superuser `/organisations/admin/api-keys`. The
+  secret `bk_<prefix>_<random>` is returned once; only its SHA-256 is stored. Keys
+  authenticate with `Authorization: Bearer bk_…`, never as a user, and carry scopes
+  `<product>.<read|write>`. Selected organisation routes accept either a signed-in
+  member or a key (`organisations.api_key_auth.org_or_key`; a `bk_` bearer takes the
+  key path, other errors keep their order for members): the bookings reads under
+  `/bookings/org/` (`bookings.read`), `GET /rewards/programs` (`rewards.read`) and
+  `POST /rewards/redemptions/confirm` (`rewards.write`). A key acts on its own
+  organisation only (the organisation header is ignored), needs the scope and the
+  organisation's entitlement (403), and a revoked or expired key is 401.
+- **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
+  `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
+  which return only flags marked exposed.
+- **Rewards earn sources, Passport and achievements** (PF8/PF9, ADR-0030): programmes take
+  a `qualifying_source_type` from the catalogue in `src/rewards/sources.py`.
+  Organisation routes under `/rewards/org/...` manage venues, trails, stops,
+  achievements, programme pause and resume, entries and redemptions;
+  `GET /rewards/org/venues/{id}/qr-token` issues the rotating venue code. Account
+  routes: `POST /rewards/me/check-ins` (one per venue per Grenada day, real-world
+  only), `GET /rewards/me/passport`, `/me/achievements` and `/me/streak`.
+- **Rewards social layer** (PF10, ADR-0030): every route answers 404 until its flag
+  (`rewards-leaderboards`, `rewards-challenges`, `rewards-gifting`) is on; gifting also
+  needs `REWARDS_GIFTING_ENABLED`, refused in production. Opt-in boards:
+  `PUT|DELETE /rewards/me/leaderboard-opt-ins/{scope_kind}/{scope_id}` (withdrawal is
+  never flagged), `GET /rewards/me/leaderboards/{scope_kind}/{scope_id}` (action counts
+  only, max 50 rows, empty below 10 participants) and `GET /rewards/org/leaderboard`.
+  Challenges: `/rewards/org/challenges` (create, pause, resume) and
+  `GET /rewards/me/challenges` (collective totals, no identities). Gifting:
+  `POST /rewards/me/gifts`, `GET /rewards/me/gifts/sent|received`,
+  `POST /rewards/me/gifts/{id}/reverse` (passport souvenirs, never ledger entries).
+- **Payments core** (PF4, ADR-0027, Stripe test mode only): organisation routes under
+  `/payments/org/...` (intents, manual payments, refunds, balance; `payments`
+  entitlement and organisation admin); signed provider callbacks at
+  `POST /payments/public/webhooks/{provider}` (idempotent through the ledger, hidden
+  from OpenAPI); superuser reconciliation, ledger, balances and payouts under
+  `/payments/admin/...`, including `reconciliation.csv`. The ledger is append-only. A payout
+  needs a client-generated `request_id`: repeating it returns the first entry (no double
+  payout), and reusing it for different details is 409.
+- **Reliability and public booking** (PF2, ADR-0026): writes that create things accept
+  `Idempotency-Key`; repeating a request with the same key and body replays the first
+  answer (`Idempotency-Replayed: true`), the same key with a different body is 409.
+  Public booking (`/bookings/public/{slug}/bookings` and
+  `/bookings/public/bookings/{token}` with `/cancel`, `/reschedule`, `/ics`) uses it; the
+  manage token is returned once and only its hash is stored. Side effects (emails,
+  reminders) run through the transactional outbox (`platform.outbox`, drained by the
+  worker every 30 seconds), which gives at-least-once delivery.
+- **Organisation contacts** (PF3, ADR-0028): `/contacts/org/contacts` (upsert, list,
+  get, patch, consents, merge, erase) and superuser `/contacts/admin/contacts`. There
+  are no public contact routes.
 
 ## Pagination
 
@@ -575,8 +668,19 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | `GET /api/v1/bookings/public/{slug}` | None (60/minute) | Storefront: active services and providers; unknown or disabled 404 |
 | `GET /api/v1/bookings/public/{slug}/availability?service_id&first_day&last_day[&provider_id]` | None (60/minute) | Open slots (UTC) with free provider ids; at most 14 local days |
 
+| `GET /api/v1/bookings/org/agenda?from_date&to_date[&provider_id&status&limit&offset]` | Member or API key `bookings.read` | Bookings grouped by local day; at most 62 days (422), paged with `limit` and `offset` |
+| `GET /api/v1/bookings/org/bookings/{id}` | Same | Studio view with customer contact details, history and deposit state; another organisation's id 404 |
+| `POST /api/v1/bookings/org/bookings/{id}/confirm`, `/decline`, `/cancel`, `/no-show`, `/complete` | Admin member or API key `bookings.write` | Studio actions through the status machine; decline and cancel need a `reason`, email the customer and emit `booking.cancelled`; an illegal move 409 |
+
 Overlapping active bookings for one provider are refused by the database
 (`booking_no_overlap`).
+
+Deposits: when a service has a deposit and the organisation holds the `payments`
+entitlement, `POST /bookings/public/{slug}/bookings` answers a booking in
+`pending_payment` with `payment_required: true` and a `checkout_url` (Stripe test
+mode; null when the business records payment itself). Unpaid bookings are cancelled
+and their slot released after `BOOKINGS_DEPOSIT_HOLD_MINUTES` (30). Both receipt
+fields are additive.
 
 ## Billing
 
@@ -1979,3 +2083,18 @@ Events stores the resulting file ids: `ListingUpsert.image_file_id`,
 `PUT /events/manage/organiser/logo` (`{file_id}`, null clears), returned as
 `ListingCard.image_file_id` and `OrganiserPublic.logo_file_id`. A new id must be a
 completed upload of that organiser's organisation and purpose, else 409.
+
+## Outbound webhooks (PF6, ADR-0029)
+
+`/webhooks-out/org/*` (owner or admin of an organisation entitled to `webhooks`):
+`POST`/`GET /endpoints`, `PATCH`/`DELETE /endpoints/{endpoint_id}`,
+`POST .../rotate-secret`, `POST .../test`, `GET .../deliveries` and
+`GET /event-types`; superusers also get `GET /webhooks-out/admin/endpoints` and
+`POST .../{endpoint_id}/disable`. The signing secret (`whsec_...`) appears only in
+the create and rotate responses. Receivers get `POST` JSON
+`{id, type, created_at, organisation_id, data}` with `Barrels-Signature:
+t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`, `Barrels-Event-Id` and
+`Barrels-Event-Type`; answer 2xx within 10 seconds. Redirects are not followed, 410
+disables the endpoint, other failures retry (1 minute doubling to 1 hour, 5 attempts)
+and 15 failed attempts in a row disable it. Verify the timestamp (reject beyond five
+minutes) to stop replays. Adding an event type or a data field is additive.

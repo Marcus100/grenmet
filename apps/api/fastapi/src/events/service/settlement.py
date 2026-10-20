@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.utils.datetime import utc_now
 
-from .. import schemas
+from .. import order_payments, schemas
 from ..models import (
     Admission,
     Listing,
@@ -85,7 +85,69 @@ class _Group:
         }
 
 
-async def _build(db: AsyncSession, listing: Listing) -> schemas.Settlement:
+async def _online_payments(
+    db: AsyncSession, main: AsyncSession | None, listing: Listing
+) -> schemas.SettlementOnlinePayments:
+    """Online orders as the Events database sees them, against the payments ledger.
+
+    They are separate databases, so each side is summed on its own and compared;
+    the ledger side is skipped (None) when the caller has no main session."""
+    totals = (
+        await db.execute(
+            select(
+                func.count().filter(Order.paid_at.is_not(None)),
+                func.count().filter(Order.status == "pending_payment"),
+                func.coalesce(
+                    func.sum(Order.total_minor).filter(
+                        Order.status == "pending_payment"
+                    ),
+                    0,
+                ),
+                func.coalesce(func.sum(Order.collected_minor), 0),
+                func.coalesce(func.sum(Order.refunded_minor), 0),
+            ).where(
+                Order.listing_id == listing.id,
+                Order.channel == "online",
+                Order.payment_method == "online",
+            )
+        )
+    ).one()
+    paid, pending, pending_minor, collected, refunded = (int(v) for v in totals)
+    ledger_collected: int | None = None
+    ledger_refunded: int | None = None
+    organisation_id = (
+        await db.scalar(
+            select(Organiser.organisation_id).where(
+                Organiser.id == listing.organiser_id
+            )
+        )
+        if main is not None
+        else None
+    )
+    if main is not None and organisation_id is not None:
+        ledger_collected, ledger_refunded = await order_payments.ledger_totals(
+            main, organisation_id=organisation_id, listing_id=listing.id
+        )
+    reconciled = (
+        None
+        if ledger_collected is None
+        else ledger_collected == collected and ledger_refunded == refunded
+    )
+    return schemas.SettlementOnlinePayments(
+        orders_paid=paid,
+        orders_pending=pending,
+        pending_minor=pending_minor,
+        collected_minor=collected,
+        refunded_minor=refunded,
+        ledger_collected_minor=ledger_collected,
+        ledger_refunded_minor=ledger_refunded,
+        reconciled=reconciled,
+    )
+
+
+async def _build(
+    db: AsyncSession, listing: Listing, main: AsyncSession | None = None
+) -> schemas.Settlement:
     admitted = Admission.id.is_not(None)
     rows = (
         await db.execute(
@@ -215,6 +277,23 @@ async def _build(db: AsyncSession, listing: Listing) -> schemas.Settlement:
             )
         )
 
+    online = await _online_payments(db, main, listing)
+    if online.reconciled is False:
+        issues.append(
+            schemas.SettlementIssue(
+                kind="online_ledger_mismatch",
+                message=(
+                    "Online payments do not match the payments ledger: orders show"
+                    f" {money(online.collected_minor)} collected and"
+                    f" {money(online.refunded_minor)} refunded, the ledger shows"
+                    f" {money(online.ledger_collected_minor or 0)} and"
+                    f" {money(online.ledger_refunded_minor or 0)}."
+                ),
+                amount_minor=online.collected_minor
+                - (online.ledger_collected_minor or 0),
+            )
+        )
+
     tiers = list(
         (
             await db.scalars(
@@ -230,7 +309,9 @@ async def _build(db: AsyncSession, listing: Listing) -> schemas.Settlement:
             channel=name,
             collected_minor=collected.get(key, 0),
             refunded_minor=(
-                sum(row.amount_minor for row in refunds) if key == "outlet" else 0
+                sum(row.amount_minor for row in refunds)
+                if key == "outlet"
+                else online.refunded_minor
             ),
             **by_channel[key].counts(),
         )
@@ -268,6 +349,7 @@ async def _build(db: AsyncSession, listing: Listing) -> schemas.Settlement:
         cash=cash,
         discrepancies=issues,
         refunds=refunds,
+        online_payments=online,
     )
 
 
@@ -277,13 +359,18 @@ async def settlement(
     listing_id: uuid.UUID,
     org_ids: list[str],
     slug: str | None = None,
+    main: AsyncSession | None = None,
 ) -> schemas.Settlement:
     listing = await _door_listing(db, user, listing_id, org_ids, slug)
-    return await _build(db, listing)
+    return await _build(db, listing, main)
 
 
 async def organiser_settlement(
-    db: AsyncSession, user: User, org_ids: list[str], slug: str | None = None
+    db: AsyncSession,
+    user: User,
+    org_ids: list[str],
+    slug: str | None = None,
+    main: AsyncSession | None = None,
 ) -> schemas.SettlementOverview:
     organiser: Organiser = await _my_organiser(db, user, org_ids, slug)
     listings = list(
@@ -302,7 +389,7 @@ async def organiser_settlement(
     )
     summaries: list[schemas.SettlementSummary] = []
     for listing in listings:
-        report = await _build(db, listing)
+        report = await _build(db, listing, main)
         summaries.append(
             schemas.SettlementSummary(
                 listing_id=listing.id,
@@ -316,6 +403,11 @@ async def organiser_settlement(
                 cash_collected_minor=report.cash.collected_minor,
                 cash_expected_minor=report.cash.expected_minor,
                 cash_counted_minor=report.cash.counted_minor,
+                online_collected_minor=(
+                    report.online_payments.collected_minor
+                    if report.online_payments
+                    else 0
+                ),
                 issues=len(report.discrepancies),
             )
         )
@@ -450,6 +542,37 @@ def to_csv(report: schemas.Settlement) -> str:
             for refund in report.refunds
         ],
     )
+    online = report.online_payments
+    if online is not None:
+        block(
+            "Online payments",
+            [
+                "orders paid",
+                "orders pending",
+                "pending",
+                "collected",
+                "refunded",
+                "ledger collected",
+                "ledger refunded",
+                "reconciled",
+            ],
+            [
+                [
+                    online.orders_paid,
+                    online.orders_pending,
+                    _dollars(online.pending_minor),
+                    _dollars(online.collected_minor),
+                    _dollars(online.refunded_minor),
+                    ""
+                    if online.ledger_collected_minor is None
+                    else _dollars(online.ledger_collected_minor),
+                    ""
+                    if online.ledger_refunded_minor is None
+                    else _dollars(online.ledger_refunded_minor),
+                    "" if online.reconciled is None else str(online.reconciled).lower(),
+                ]
+            ],
+        )
     block(
         "Discrepancies",
         ["kind", "amount", "message"],
@@ -471,5 +594,6 @@ async def settlement_csv(
     listing_id: uuid.UUID,
     org_ids: list[str],
     slug: str | None = None,
+    main: AsyncSession | None = None,
 ) -> str:
-    return to_csv(await settlement(db, user, listing_id, org_ids, slug))
+    return to_csv(await settlement(db, user, listing_id, org_ids, slug, main))

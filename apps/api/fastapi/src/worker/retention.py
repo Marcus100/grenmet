@@ -9,6 +9,10 @@ Periods (docs/security.md, Data retention):
   (never confirmed): deleted.
 * ``page_feedback`` comments older than 24 months: the free text is nulled. The
   row stays so helpful / not helpful counts per page do not change.
+* ``platform.idempotency_key`` rows past ``expires_at`` (24 hours): deleted.
+* ``platform.outbox`` rows ``done`` or ``dead`` for 30 days: deleted.
+* ``bookings.booking.manage_token_hash`` for bookings that ended over 90 days
+  ago: cleared, so the old manage link stops working.
 
 Idempotent (a second run finds nothing past the cutoff), batched so no single
 statement holds a long lock, and logs counts only, never personal data.
@@ -21,9 +25,12 @@ from datetime import datetime, timedelta
 from sqlalchemy import ColumnElement, delete, inspect, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bookings.models import Booking
 from src.contact.models import ContactDataRequest, ContactMessage
 from src.feedback.models import PageFeedback
+from src.idempotency import IdempotencyKey
 from src.orm import Base
+from src.outbox import Outbox, OutboxStatus
 from src.subscriptions.models import ListSubscription, SubscriptionStatus
 from src.utils.datetime import utc_now
 
@@ -32,6 +39,8 @@ logger = logging.getLogger(__name__)
 CONTACT_RETENTION_MONTHS = 24
 FEEDBACK_COMMENT_RETENTION_MONTHS = 24
 PENDING_SUBSCRIPTION_DAYS = 30
+OUTBOX_RETENTION_DAYS = 30
+BOOKING_TOKEN_RETENTION_DAYS = 90
 BATCH_SIZE = 500
 
 
@@ -41,6 +50,9 @@ class PurgeResult:
     data_requests: int = 0
     pending_subscriptions: int = 0
     feedback_comments: int = 0
+    idempotency_keys: int = 0
+    outbox_rows: int = 0
+    booking_tokens: int = 0
 
     @property
     def total(self) -> int:
@@ -49,6 +61,9 @@ class PurgeResult:
             + self.data_requests
             + self.pending_subscriptions
             + self.feedback_comments
+            + self.idempotency_keys
+            + self.outbox_rows
+            + self.booking_tokens
         )
 
 
@@ -98,6 +113,24 @@ async def _null_comments_batched(session: AsyncSession, cutoff: datetime) -> int
             return total
 
 
+async def _clear_booking_tokens_batched(session: AsyncSession, cutoff: datetime) -> int:
+    total = 0
+    while True:
+        ids = (
+            select(Booking.id)
+            .where(Booking.manage_token_hash.is_not(None), Booking.ends_at < cutoff)
+            .limit(BATCH_SIZE)
+        )
+        result = await session.execute(
+            update(Booking).where(Booking.id.in_(ids)).values(manage_token_hash=None)
+        )
+        await session.commit()
+        count = int(getattr(result, "rowcount", 0) or 0)
+        total += count
+        if count < BATCH_SIZE:
+            return total
+
+
 async def purge_expired(
     *, session: AsyncSession, now: datetime | None = None
 ) -> PurgeResult:
@@ -106,6 +139,8 @@ async def purge_expired(
     contact_cutoff = months_before(now, CONTACT_RETENTION_MONTHS)
     feedback_cutoff = months_before(now, FEEDBACK_COMMENT_RETENTION_MONTHS)
     pending_cutoff = now - timedelta(days=PENDING_SUBSCRIPTION_DAYS)
+    outbox_cutoff = now - timedelta(days=OUTBOX_RETENTION_DAYS)
+    token_cutoff = now - timedelta(days=BOOKING_TOKEN_RETENTION_DAYS)
 
     result = PurgeResult(
         contact_messages=await _delete_batched(
@@ -121,6 +156,16 @@ async def purge_expired(
             ListSubscription.requested_at < pending_cutoff,
         ),
         feedback_comments=await _null_comments_batched(session, feedback_cutoff),
+        idempotency_keys=await _delete_batched(
+            session, IdempotencyKey, IdempotencyKey.expires_at < now
+        ),
+        outbox_rows=await _delete_batched(
+            session,
+            Outbox,
+            Outbox.status.in_([OutboxStatus.DONE.value, OutboxStatus.DEAD.value]),
+            Outbox.updated_at < outbox_cutoff,
+        ),
+        booking_tokens=await _clear_booking_tokens_batched(session, token_cutoff),
     )
     logger.info(
         "Retention purge finished",
@@ -129,6 +174,9 @@ async def purge_expired(
             "data_requests": result.data_requests,
             "pending_subscriptions": result.pending_subscriptions,
             "feedback_comments": result.feedback_comments,
+            "idempotency_keys": result.idempotency_keys,
+            "outbox_rows": result.outbox_rows,
+            "booking_tokens": result.booking_tokens,
         },
     )
     return result

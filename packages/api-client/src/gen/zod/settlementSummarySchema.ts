@@ -18,5 +18,6 @@ export const settlementSummarySchema = z.object({
   cash_collected_minor: z.int(),
   cash_expected_minor: z.int(),
   cash_counted_minor: z.int(),
+  online_collected_minor: z.int().optional().default(0),
   issues: z.int(),
 });

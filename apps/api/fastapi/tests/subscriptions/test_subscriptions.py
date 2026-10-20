@@ -10,8 +10,9 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email as email_module
+from src import outbox
 from src.email_config import email_settings
-from src.notifications import dispatch
 from src.notifications import service as notification_service
 from src.notifications.models import (
     EmailSuppression,
@@ -54,6 +55,13 @@ async def _outbox(db: AsyncSession, email: str) -> list[OutboundEmail]:
                 select(OutboundEmail).where(OutboundEmail.to_email == email)
             )
         ).all()
+    )
+
+
+async def _drain_email_outbox(db: AsyncSession) -> None:
+    """Run the worker's ``drain_outbox`` for email (the outbox is the retry engine)."""
+    await outbox.drain(
+        db, limit=10_000, only_topics=[notification_service.EMAIL_DELIVER]
     )
 
 
@@ -292,13 +300,9 @@ async def test_worker_skips_suppressed_marketing_but_sends_transactional(
     await db_async.commit()
 
     sent: list[dict[str, Any]] = []
+    monkeypatch.setattr(email_module, "send_email", lambda **kw: sent.append(kw))
 
-    def fake_sender(**kwargs: Any) -> None:
-        sent.append(kwargs)
-
-    await dispatch.process_outbound_emails(
-        session=db_async, sender=fake_sender, limit=10_000
-    )
+    await _drain_email_outbox(db_async)
 
     await db_async.refresh(marketing)
     await db_async.refresh(transactional)
@@ -321,9 +325,8 @@ async def test_worker_renders_confirmation_with_jinja_fallback(
     confirm_link = mail.props["confirmLink"]
 
     sent: list[dict[str, Any]] = []
-    await dispatch.process_outbound_emails(
-        session=db_async, sender=lambda **kw: sent.append(kw), limit=10_000
-    )
+    monkeypatch.setattr(email_module, "send_email", lambda **kw: sent.append(kw))
+    await _drain_email_outbox(db_async)
 
     ours = [m for m in sent if m["email_to"] == address]
     assert len(ours) == 1
@@ -389,3 +392,80 @@ async def test_suppression_stores_only_the_hash_and_checks_by_hash(
     assert not await notification_service.is_suppressed(
         session=db_async, email=_address()
     )
+
+
+async def _site(db: AsyncSession, **settings: object) -> str:
+    """A fresh public site owned by a new organisation; returns its key."""
+    from src.organisations.models import PublicSite, new_public_site_id
+    from tests.organisations.support import make_org
+
+    org = await make_org(db, f"List Co {uuid.uuid4().hex[:6]}")
+    key = f"list-{uuid.uuid4().hex[:8]}"
+    defaults: dict[str, object] = {
+        "accepts_contact": False,
+        "accepts_subscriptions": True,
+        "turnstile_mode": "inherit",
+    }
+    db.add(
+        PublicSite(
+            id=new_public_site_id(),
+            organisation_id=org.id,
+            key=key,
+            name="Site List",
+            **{**defaults, **settings},
+        )
+    )
+    await db.commit()
+    return key
+
+
+async def test_site_route_subscribes_to_a_site_list_and_redirects_to_its_origin(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    key = await _site(db_async, site_url="https://list.example/")
+    address = _address()
+    resp = await async_client.post(f"{_URL}/public/{key}", json={"email": address})
+    assert resp.status_code == 202
+    assert resp.json() == {"message": service.ACCEPTED_MESSAGE}
+
+    row = await _row(db_async, address)
+    assert row is not None and row.list_key == key
+    mails = await _outbox(db_async, address)
+    assert mails[0].props["listName"] == "Site List"
+    confirm = await async_client.get(
+        "/api/v1/subscriptions/confirm",
+        params={"token": _token(mails[0].props["confirmLink"])},
+        follow_redirects=False,
+    )
+    assert confirm.headers["location"] == (
+        "https://list.example/subscribe/status?result=confirmed"
+    )
+
+
+async def test_site_route_refuses_unknown_and_contact_only_sites(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    unknown = await async_client.post(
+        f"{_URL}/public/no-such-site", json={"email": _address()}
+    )
+    assert unknown.status_code == 404
+    key = await _site(db_async, accepts_subscriptions=False)
+    refused = await async_client.post(
+        f"{_URL}/public/{key}", json={"email": _address()}
+    )
+    assert refused.status_code == 404
+
+
+async def test_site_url_from_the_site_row_beats_the_environment(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    key = await _site(db_async, site_url="https://row.example")
+    monkeypatch.setattr(
+        subscriptions_settings, "SUBSCRIPTIONS_SITE_URLS", {key: "https://env.example"}
+    )
+    assert await service.site_url_for(db_async, key) == "https://row.example"
+    bare = await _site(db_async)
+    monkeypatch.setattr(
+        subscriptions_settings, "SUBSCRIPTIONS_SITE_URLS", {bare: "https://env.example"}
+    )
+    assert await service.site_url_for(db_async, bare) == "https://env.example"

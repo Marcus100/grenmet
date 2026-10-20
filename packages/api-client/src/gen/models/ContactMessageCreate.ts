@@ -5,12 +5,11 @@
 
 import type { ContactSite } from "./ContactSite.js";
 
+/**
+ * @description Deprecated body for ``POST /contact/messages``: the site is a body field.
+ * @type object
+ */
 export type ContactMessageCreate = {
-  /**
-   * @default 'mbia'
-   * @type string | undefined
-   */
-  site?: ContactSite;
   /**
    * @minLength 2
    * @maxLength 120
@@ -37,4 +36,9 @@ export type ContactMessageCreate = {
    */
   message: string;
   turnstile_token?: string | null;
+  /**
+   * @default 'mbia'
+   * @type string | undefined
+   */
+  site?: ContactSite;
 };

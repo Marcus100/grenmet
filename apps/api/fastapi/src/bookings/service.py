@@ -10,9 +10,11 @@ from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 from sqlalchemy import delete, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.organisations import service as organisation_service
+from src.organisations.exceptions import OrganisationAppNotEntitledError
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
@@ -378,7 +380,21 @@ async def get_public_profile(session: AsyncSession, slug: str) -> BookingProfile
     )
     if profile is None:
         raise BookingNotFoundError("Booking page")
+    await require_bookings_entitlement(session, profile)
     return profile
+
+
+async def require_bookings_entitlement(
+    session: AsyncSession, profile: BookingProfile, *, what: str = "Booking page"
+) -> None:
+    """Public routes answer 404, not 403, for an organisation without the
+    ``bookings`` entitlement, exactly like an unknown page."""
+    try:
+        await organisation_service.require_app_enabled(
+            session, organisation_id=profile.organisation_id, app_key="bookings"
+        )
+    except OrganisationAppNotEntitledError as error:
+        raise BookingNotFoundError(what) from error
 
 
 async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str, Any]:
@@ -413,7 +429,10 @@ async def available_slots(
     first_day: date,
     last_day: date,
     now: datetime | None = None,
+    exclude_booking_id: uuid.UUID | None = None,
 ) -> list[availability.Slot]:
+    """Open slots. ``exclude_booking_id`` ignores one booking's own blocked range
+    (used when that booking is being rescheduled)."""
     if last_day < first_day:
         raise BookingValidationError("last_day must not be before first_day")
     if (last_day - first_day).days >= MAX_AVAILABILITY_DAYS:
@@ -473,14 +492,17 @@ async def available_slots(
         )
 
     busy: dict[uuid.UUID, list[availability.Interval]] = defaultdict(list)
-    for blocked in await session.execute(
-        select(Booking.provider_id, Booking.blocked_from, Booking.blocked_until).where(
-            Booking.provider_id.in_(ids),
-            Booking.status.in_([s.value for s in ACTIVE_STATUSES]),
-            Booking.blocked_from < window_end,
-            Booking.blocked_until > window_start,
-        )
-    ):
+    busy_query = select(
+        Booking.provider_id, Booking.blocked_from, Booking.blocked_until
+    ).where(
+        Booking.provider_id.in_(ids),
+        Booking.status.in_([s.value for s in ACTIVE_STATUSES]),
+        Booking.blocked_from < window_end,
+        Booking.blocked_until > window_start,
+    )
+    if exclude_booking_id is not None:
+        busy_query = busy_query.where(Booking.id != exclude_booking_id)
+    for blocked in await session.execute(busy_query):
         busy[blocked.provider_id].append((blocked.blocked_from, blocked.blocked_until))
 
     rules = availability.SlotRules(
@@ -510,6 +532,17 @@ async def available_slots(
     )
 
 
-def is_overlap_violation(error: IntegrityError) -> bool:
-    """True when the booking exclusion constraint refused an overlapping booking."""
-    return "booking_no_overlap" in str(error.orig)
+_DEADLOCK_SQLSTATE = "40P01"
+
+
+def is_overlap_violation(error: DBAPIError) -> bool:
+    """True when the booking exclusion constraint refused an overlapping booking.
+
+    Two inserts racing for the same provider and range can also be resolved by
+    Postgres as a deadlock (each waits on the other's index entry); the victim
+    lost the race just the same, and the savepoint it ran in is still usable.
+    """
+    if "booking_no_overlap" in str(error.orig):
+        return True
+    code = getattr(error.orig, "sqlstate", None) or getattr(error.orig, "pgcode", None)
+    return code == _DEADLOCK_SQLSTATE or "deadlock detected" in str(error.orig)

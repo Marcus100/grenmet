@@ -19,6 +19,10 @@ export type SubscriptionsSubscribeStatus422 = ValidationErrorResponse;
 
 export type SubscriptionsSubscribeBody = SubscribeRequest;
 
+/**
+ * @deprecated
+ * @type object
+ */
 export type SubscriptionsSubscribeOptions = {
   body: SubscriptionsSubscribeBody;
   path?: never;

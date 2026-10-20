@@ -42,6 +42,7 @@ from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
 from src.contact.router import router as contact_router
+from src.contacts.router import router as contacts_router
 from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
 from src.eregister.router import router as eregister_router
@@ -53,6 +54,7 @@ from src.exceptions import (
     integrity_error_handler,
     validation_exception_handler,
 )
+from src.feature_flags.router import router as feature_flags_router
 from src.feedback.router import router as feedback_router
 from src.flights.router import router as flights_router
 from src.hr.absentee.router import router as hr_absentee_router
@@ -79,6 +81,7 @@ from src.models_guidance.router import router as models_guidance_router
 from src.notifications.router import router as notifications_router
 from src.organisations.dependencies import ORGANISATION_HEADER
 from src.organisations.router import router as organisations_router
+from src.payments.router import router as payments_router
 from src.push.router import router as push_router
 from src.rate_limit import limiter
 from src.request_context import (
@@ -99,6 +102,7 @@ from src.transport import database as transport_database
 from src.transport.router import router as transport_router
 from src.utils.router import router as utils_router
 from src.webhooks.router import router as webhooks_router
+from src.webhooks_out.router import router as webhooks_out_router
 from src.wxproducts import database as wxproducts_database
 from src.wxproducts.router import router as wxproducts_router
 from src.wxwatch import database as wxwatch_database
@@ -169,6 +173,10 @@ SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 OPENAPI_TAGS = [
     {"name": "audit", "description": "Record change history."},
+    {
+        "name": "feature-flags",
+        "description": "Feature flags with success metrics and audience rules.",
+    },
     {"name": "auth", "description": "Authentication, identity, and account security."},
     {"name": "billing", "description": "Billing and subscription operations."},
     {
@@ -178,6 +186,10 @@ OPENAPI_TAGS = [
     {
         "name": "rewards",
         "description": "Barrels ID rewards: stamp cards, trust badges, redemption.",
+    },
+    {
+        "name": "payments",
+        "description": "Barrels Payments: intents, callbacks, refunds and the ledger.",
     },
     {
         "name": "browser-auth",
@@ -257,8 +269,16 @@ OPENAPI_TAGS = [
         "description": "In-app notifications, email preferences and settings.",
     },
     {
+        "name": "contacts",
+        "description": "An organisation's contact book: people, consent and erasure.",
+    },
+    {
         "name": "organisations",
         "description": "Platform organisations and the caller's memberships.",
+    },
+    {
+        "name": "webhooks-out",
+        "description": "Signed outbound webhooks for organisations.",
     },
     {"name": "permissions", "description": "Permission administration operations."},
     {
@@ -431,6 +451,7 @@ app.include_router(role_assignments_router, prefix=settings.API_V1_STR)
 app.include_router(billing_router, prefix=settings.API_V1_STR)
 app.include_router(billing_invoice_router, prefix=settings.API_V1_STR)
 app.include_router(rewards_router, prefix=settings.API_V1_STR)
+app.include_router(payments_router, prefix=settings.API_V1_STR)
 app.include_router(bookings_router, prefix=settings.API_V1_STR)
 app.include_router(hr_profile_router, prefix=settings.API_V1_STR)
 app.include_router(hr_workflow_router, prefix=settings.API_V1_STR)
@@ -451,6 +472,8 @@ app.include_router(audit_router, prefix=settings.API_V1_STR)
 app.include_router(stores_router, prefix=settings.API_V1_STR)
 app.include_router(notifications_router, prefix=settings.API_V1_STR)
 app.include_router(organisations_router, prefix=settings.API_V1_STR)
+app.include_router(feature_flags_router, prefix=settings.API_V1_STR)
+app.include_router(contacts_router, prefix=settings.API_V1_STR)
 app.include_router(cap_router, prefix=settings.API_V1_STR)
 app.include_router(cap_public_router)
 
@@ -459,6 +482,7 @@ app.include_router(utils_router, prefix=settings.API_V1_STR)
 app.include_router(weather_images_router, prefix=settings.API_V1_STR)
 app.include_router(uploads_router, prefix=settings.API_V1_STR)
 app.include_router(webhooks_router, prefix=settings.API_V1_STR)
+app.include_router(webhooks_out_router, prefix=settings.API_V1_STR)
 app.include_router(subscriptions_router, prefix=settings.API_V1_STR)
 app.include_router(push_router, prefix=settings.API_V1_STR)
 app.include_router(contact_router, prefix=settings.API_V1_STR)

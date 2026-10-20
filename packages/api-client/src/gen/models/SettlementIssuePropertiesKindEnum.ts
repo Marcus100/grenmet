@@ -8,6 +8,7 @@ export const settlementIssuePropertiesKindEnum = {
   till_over: "till_over",
   till_open: "till_open",
   refund_without_till: "refund_without_till",
+  online_ledger_mismatch: "online_ledger_mismatch",
 } as const;
 
 export type SettlementIssuePropertiesKindEnum =

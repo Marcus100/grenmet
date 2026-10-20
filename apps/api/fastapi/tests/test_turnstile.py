@@ -115,6 +115,8 @@ async def test_enabled_requires_a_token(monkeypatch: pytest.MonkeyPatch) -> None
 
 
 def _forms() -> list[Form]:
+    """Every public form. Tests that post them take ``db_async``, which seeds the
+    default public sites (``barrels``, ``signal``) the site routes need."""
     unique = uuid.uuid4().hex[:10]
     return [
         (
@@ -148,14 +150,29 @@ def _forms() -> list[Form]:
             {"list_key": "signal", "email": f"reader-{unique}@example.com"},
         ),
         (
+            "/api/v1/contact/public/barrels/messages",
+            {
+                "name": "Jane Reader",
+                "email": f"jane-site-{unique}@example.com",
+                "subject": f"Site turnstile {unique}",
+                "message": "Please check the site bot gate works.",
+            },
+        ),
+        (
+            "/api/v1/subscriptions/public/signal",
+            {"email": f"reader-site-{unique}@example.com"},
+        ),
+        (
             "/api/v1/feedback",
             {"site": "docs", "page_path": f"/turnstile/{unique}", "helpful": True},
         ),
     ]
 
 
+@pytest.mark.usefixtures("db_async")
 async def test_every_form_enforces_when_enabled(
-    async_client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _enable(monkeypatch)
     _use(monkeypatch, _rejected)
@@ -170,8 +187,10 @@ async def test_every_form_enforces_when_enabled(
         assert "error-codes" not in json.dumps(rejected.json()), url
 
 
+@pytest.mark.usefixtures("db_async")
 async def test_every_form_accepts_a_verified_token(
-    async_client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _enable(monkeypatch)
     _use(monkeypatch, _ok)
@@ -180,8 +199,10 @@ async def test_every_form_accepts_a_verified_token(
         assert resp.status_code == 202, (url, resp.text)
 
 
+@pytest.mark.usefixtures("db_async")
 async def test_forms_open_when_disabled(
-    async_client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(turnstile.turnstile_settings, "TURNSTILE_ENABLED", False)
     for url, payload in _forms():
@@ -189,8 +210,10 @@ async def test_forms_open_when_disabled(
         assert resp.status_code == 202, (url, resp.text)
 
 
+@pytest.mark.usefixtures("db_async")
 async def test_cloudflare_outage_blocks_forms(
-    async_client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("down", request=request)
@@ -200,3 +223,54 @@ async def test_cloudflare_outage_blocks_forms(
     for url, payload in _forms():
         resp = await async_client.post(url, json={**payload, "turnstile_token": "ok"})
         assert resp.status_code == 400, url
+
+
+class _Policy:
+    def __init__(self, mode: str, secret: str | None = None) -> None:
+        self.mode = mode
+        self.secret = secret
+
+
+async def test_site_policy_off_skips_even_when_globally_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _enable(monkeypatch)
+    _use(monkeypatch, _rejected)
+    await turnstile.require_turnstile(_request(), None, _Policy("off"))
+
+
+async def test_site_policy_enforce_uses_the_site_secret(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(turnstile.turnstile_settings, "TURNSTILE_ENABLED", False)
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return _ok(request)
+
+    _use(monkeypatch, handler)
+    await turnstile.require_turnstile(_request(), "tok", _Policy("enforce", "site-s"))
+    assert parse_qs(seen[0].content.decode())["secret"] == ["site-s"]
+    with pytest.raises(turnstile.VerificationFailedError):
+        await turnstile.require_turnstile(
+            _request(), None, _Policy("enforce", "site-s")
+        )
+
+
+async def test_site_policy_enforce_without_secret_is_503(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _enable(monkeypatch)
+    with pytest.raises(turnstile.VerificationUnavailableError):
+        await turnstile.require_turnstile(_request(), "tok", _Policy("enforce"))
+
+
+async def test_site_policy_inherit_follows_global_settings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(turnstile.turnstile_settings, "TURNSTILE_ENABLED", False)
+    await turnstile.require_turnstile(_request(), None, _Policy("inherit"))
+    _enable(monkeypatch)
+    with pytest.raises(turnstile.VerificationFailedError):
+        await turnstile.require_turnstile(_request(), None, _Policy("inherit"))

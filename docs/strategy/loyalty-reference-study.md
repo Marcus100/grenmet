@@ -7,6 +7,13 @@
 **Last updated:** 2026-09-10
 [portfolio implementation plan](../portfolio/barrels-portfolio-implementation-plan.md)
 
+> **Update 2026-10-20:** Rewards is now a Barrels product. U1–U4 are built, and
+> the owner approved generic earn sources, Passport, achievements, check-in
+> streaks, opt-in leaderboards, community challenges and gated stamp gifting in
+> [ADR-0030](../adr/0030-rewards-earn-sources-and-gamification.md), amending the
+> earlier exclusions. The small-N warning below still applies to leaderboards:
+> scope them to friends, organisations or communities.
+
 This document records reference products worth studying before Barrels designs
 any loyalty or reward mechanic, and the small-market constraints that decide
 which of them can transfer. It is a research asset under the

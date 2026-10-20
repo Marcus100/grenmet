@@ -9,6 +9,7 @@ from src.organisations.models import (
     MembershipStatus,
     OrganisationKind,
     OrganisationStatus,
+    TurnstileMode,
 )
 
 
@@ -138,3 +139,151 @@ class VerificationDecision(BaseModel):
 
 class AppEntitlementUpdate(BaseModel):
     enabled: bool
+
+
+SITE_KEY_PATTERN = r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
+SiteName = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)
+]
+SiteUrl = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True, max_length=255, pattern=r"^https?://[^/\s?#]+$"
+    ),
+]
+
+
+class PublicSitePublic(BaseModel):
+    """What a public website needs to render its forms. Never holds a secret."""
+
+    key: str
+    name: str
+    accepts_contact: bool
+    accepts_subscriptions: bool
+    turnstile_site_key: str | None = None
+
+
+class PublicSiteAdmin(BaseModel):
+    """A public site's settings for organisation admins and the control plane.
+
+    The Turnstile secret is write-only: only whether it is set is returned.
+    """
+
+    id: str
+    organisation_id: str
+    key: str
+    name: str
+    site_url: str | None = None
+    contact_recipient: str | None = None
+    accepts_contact: bool
+    accepts_subscriptions: bool
+    turnstile_mode: TurnstileMode
+    turnstile_site_key: str | None = None
+    turnstile_secret_set: bool
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
+
+
+class PublicSiteCreate(BaseModel):
+    organisation_id: str = Field(min_length=1, max_length=100)
+    key: str = Field(min_length=1, max_length=40, pattern=SITE_KEY_PATTERN)
+    name: SiteName
+    site_url: SiteUrl | None = Field(
+        default=None, description="Origin only, e.g. https://barrels.gd"
+    )
+    contact_recipient: EmailStr | None = None
+    accepts_contact: bool = False
+    accepts_subscriptions: bool = False
+    turnstile_mode: TurnstileMode = TurnstileMode.INHERIT
+    turnstile_site_key: str | None = Field(default=None, max_length=255)
+    turnstile_secret: str | None = Field(default=None, min_length=1, max_length=255)
+
+
+class PublicSiteUpdate(BaseModel):
+    """Only the fields sent change. Send ``null`` to clear a nullable setting,
+    including ``turnstile_secret``. The key and owner never change."""
+
+    name: SiteName | None = None
+    site_url: SiteUrl | None = None
+    contact_recipient: EmailStr | None = None
+    accepts_contact: bool | None = None
+    accepts_subscriptions: bool | None = None
+    turnstile_mode: TurnstileMode | None = None
+    turnstile_site_key: str | None = Field(default=None, max_length=255)
+    turnstile_secret: str | None = Field(default=None, min_length=1, max_length=255)
+
+
+class PublicSiteListPublic(BaseModel):
+    data: list[PublicSiteAdmin]
+    count: int
+
+
+# ── API keys (PF5, ADR-0029) ─────────────────────────────────────────────────
+
+ApiKeyName = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)
+]
+
+
+class ApiKeyCreate(BaseModel):
+    name: ApiKeyName
+    scopes: list[str] = Field(
+        min_length=1,
+        max_length=20,
+        description="Scopes such as `bookings.read`; see the scope catalogue.",
+    )
+    expires_in_days: int = Field(
+        default=90, ge=1, le=365, description="Lifetime in days (at most one year)."
+    )
+
+
+class ApiKeyRotate(BaseModel):
+    overlap_hours: int = Field(
+        default=24,
+        ge=0,
+        le=720,
+        description="How long the old key keeps working. 0 revokes it immediately.",
+    )
+    expires_in_days: int = Field(
+        default=90, ge=1, le=365, description="Lifetime of the new key in days."
+    )
+
+
+class ApiKeyPublic(BaseModel):
+    id: str
+    organisation_id: str
+    name: str
+    key_prefix: str
+    scopes: list[str]
+    created_by_user_id: uuid.UUID | None = None
+    expires_at: UtcDateTime | None = None
+    last_used_at: UtcDateTime | None = None
+    revoked_at: UtcDateTime | None = None
+    rotated_from_id: str | None = None
+    created_at: UtcDateTime
+
+
+class ApiKeyCreated(ApiKeyPublic):
+    secret: str = Field(
+        description="The full key. Shown once; only its hash is stored."
+    )
+
+
+class ApiKeyListPublic(BaseModel):
+    data: list[ApiKeyPublic]
+    count: int
+    page: int
+    size: int
+
+
+class ApiKeyScopeCatalogue(BaseModel):
+    scopes: list[str]
+
+
+class ApiKeyInfoPublic(BaseModel):
+    organisation_id: str
+    key_id: str
+    name: str
+    key_prefix: str
+    scopes: list[str]
+    expires_at: UtcDateTime | None = None

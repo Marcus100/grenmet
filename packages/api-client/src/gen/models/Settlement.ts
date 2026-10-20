@@ -10,6 +10,7 @@ import type { SettlementCash } from "./SettlementCash.js";
 import type { SettlementChannel } from "./SettlementChannel.js";
 import type { SettlementCounts } from "./SettlementCounts.js";
 import type { SettlementIssue } from "./SettlementIssue.js";
+import type { SettlementOnlinePayments } from "./SettlementOnlinePayments.js";
 import type { SettlementTier } from "./SettlementTier.js";
 import type { TillPublic } from "./TillPublic.js";
 
@@ -60,4 +61,5 @@ export type Settlement = {
   cash: SettlementCash;
   discrepancies: SettlementIssue[];
   refunds: RefundPublic[];
+  online_payments?: SettlementOnlinePayments | null;
 };

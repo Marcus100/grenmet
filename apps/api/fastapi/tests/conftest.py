@@ -246,10 +246,17 @@ async def _clear_database_async(session: AsyncSession) -> None:
     await session.execute(
         text(f"ALTER TABLE {ledger} DISABLE TRIGGER entry_append_only")
     )
+    payments_ledger = "payments.ledger_entry"
+    await session.execute(
+        text(f"ALTER TABLE {payments_ledger} DISABLE TRIGGER ledger_entry_append_only")
+    )
     for table in reversed(Base.metadata.sorted_tables):
         await session.execute(table.delete())
     await session.execute(
         text(f"ALTER TABLE {ledger} ENABLE TRIGGER entry_append_only")
+    )
+    await session.execute(
+        text(f"ALTER TABLE {payments_ledger} ENABLE TRIGGER ledger_entry_append_only")
     )
     await session.commit()
 
