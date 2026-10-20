@@ -89,7 +89,27 @@ export async function checkDeployment(domain, fetcher = fetch) {
   await checkCmsSignIn(domain, fetcher);
 }
 
+// Staging web hosts sit behind Traefik basic auth. With `user:password` set, it is
+// sent to web hosts of this domain only: never to the API (which has no gate) or
+// any other origin.
+export function withEdgeCredentials(fetcher, domain, credentials) {
+  if (!credentials) return fetcher;
+  const authorization = `Basic ${Buffer.from(credentials).toString("base64")}`;
+  return (url, init = {}) => {
+    const { hostname } = new URL(url);
+    if (!hostname.endsWith(`.${domain}`) || hostname === `api.${domain}`)
+      return fetcher(url, init);
+    const headers = new Headers(init.headers);
+    headers.set("authorization", authorization);
+    return fetcher(url, { ...init, headers });
+  };
+}
+
 if (import.meta.main) {
-  await checkDeployment(process.argv[2]);
+  const domain = process.argv[2];
+  await checkDeployment(
+    domain,
+    withEdgeCredentials(fetch, domain, process.env.STAGING_PROBE_CREDENTIALS)
+  );
   console.log("External functional smoke passed");
 }
