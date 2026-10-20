@@ -7620,6 +7620,321 @@
         }
       }
     },
+    "/api/v1/bookings/public/{slug}/bookings": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Book a slot",
+        "description": "Books an open slot without an account. Requires an `Idempotency-Key` header: repeating the request with the same key and body replays the first answer (header `Idempotency-Replayed: true`), the same key with a different body is 409. Applies the organisation's Turnstile policy. A slot that was taken answers 409. The response carries the manage token once; only its hash is stored. Confirmation emails are queued on the outbox. Unknown, disabled and unentitled pages answer 404.",
+        "operationId": "bookingsCreatePublicBooking",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 60,
+              "title": "Slug"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingPublicCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingPublicReceipt"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/public/bookings/{token}": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Get a booking by its manage token",
+        "description": "A customer's own booking. Unknown, expired and unentitled tokens all answer 404.",
+        "operationId": "bookingsGetPublicBooking",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 100,
+              "description": "The manage token returned when the booking was made.",
+              "title": "Token"
+            },
+            "description": "The manage token returned when the booking was made."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingPublicDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/public/bookings/{token}/cancel": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Cancel a booking",
+        "description": "Cancels the booking and frees the slot. 409 inside the business's cancellation cutoff (`cancel_cutoff_hours`) or when the booking is already finished. Cancelling twice is harmless.",
+        "operationId": "bookingsCancelPublicBooking",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 100,
+              "description": "The manage token returned when the booking was made.",
+              "title": "Token"
+            },
+            "description": "The manage token returned when the booking was made."
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/BookingPublicCancel"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingPublicDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/public/bookings/{token}/reschedule": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Move a booking to another slot",
+        "description": "Moves the booking to another open slot with the same provider and service; the booking stays active and keeps its token. 409 when the slot is taken or the booking is inside the cancellation cutoff.",
+        "operationId": "bookingsReschedulePublicBooking",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 100,
+              "description": "The manage token returned when the booking was made.",
+              "title": "Token"
+            },
+            "description": "The manage token returned when the booking was made."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingPublicReschedule"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingPublicDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/public/bookings/{token}/ics": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Download a booking as a calendar file",
+        "description": "The booking as an iCalendar (RFC 5545) event, UTC times.",
+        "operationId": "bookingsGetPublicBookingIcs",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 100,
+              "description": "The manage token returned when the booking was made.",
+              "title": "Token"
+            },
+            "description": "The manage token returned when the booking was made."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "iCalendar file",
+            "content": {
+              "text/calendar": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
     "/api/v1/hr/organisations": {
       "get": {
         "tags": [
@@ -43394,6 +43709,215 @@
         "type": "object",
         "title": "BookingProviderUpdate"
       },
+      "BookingPublicCancel": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "title": "BookingPublicCancel"
+      },
+      "BookingPublicCreate": {
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "provider_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Id",
+            "description": "Omit to let the business pick any free provider."
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At",
+            "description": "A start time from the availability list."
+          },
+          "customer_name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Customer Name"
+          },
+          "customer_email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Customer Email"
+          },
+          "customer_phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Phone"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "marketing_consent": {
+            "type": "boolean",
+            "title": "Marketing Consent",
+            "default": false
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
+          },
+          "website": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Website"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_id",
+          "starts_at",
+          "customer_name",
+          "customer_email"
+        ],
+        "title": "BookingPublicCreate",
+        "description": "A customer's booking request. Sent with an `Idempotency-Key` header."
+      },
+      "BookingPublicDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BookingStatus"
+          },
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "service_name": {
+            "type": "string",
+            "title": "Service Name"
+          },
+          "provider_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Provider Id"
+          },
+          "provider_name": {
+            "type": "string",
+            "title": "Provider Name"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "customer_name": {
+            "type": "string",
+            "title": "Customer Name"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor"
+          },
+          "deposit_minor": {
+            "type": "integer",
+            "title": "Deposit Minor"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "cancel_cutoff_hours": {
+            "type": "integer",
+            "title": "Cancel Cutoff Hours"
+          },
+          "can_cancel": {
+            "type": "boolean",
+            "title": "Can Cancel",
+            "description": "True while the booking is active and before the cancellation cutoff."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "service_id",
+          "service_name",
+          "provider_id",
+          "provider_name",
+          "starts_at",
+          "ends_at",
+          "timezone",
+          "customer_name",
+          "price_minor",
+          "deposit_minor",
+          "currency",
+          "cancel_cutoff_hours",
+          "can_cancel"
+        ],
+        "title": "BookingPublicDetail",
+        "description": "A booking as its customer sees it."
+      },
       "BookingPublicProvider": {
         "properties": {
           "id": {
@@ -43421,6 +43945,53 @@
           "service_ids"
         ],
         "title": "BookingPublicProvider"
+      },
+      "BookingPublicReceipt": {
+        "properties": {
+          "booking": {
+            "$ref": "#/components/schemas/BookingPublicDetail"
+          },
+          "manage_token": {
+            "type": "string",
+            "title": "Manage Token",
+            "description": "Secret for the manage, cancel, reschedule and ICS endpoints."
+          },
+          "manage_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manage Url",
+            "description": "The business's own manage page, when it configured one."
+          }
+        },
+        "type": "object",
+        "required": [
+          "booking",
+          "manage_token",
+          "manage_url"
+        ],
+        "title": "BookingPublicReceipt",
+        "description": "The answer to a new booking. Only the token's hash is stored with the booking."
+      },
+      "BookingPublicReschedule": {
+        "properties": {
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At",
+            "description": "A new start time from the availability list."
+          }
+        },
+        "type": "object",
+        "required": [
+          "starts_at"
+        ],
+        "title": "BookingPublicReschedule"
       },
       "BookingPublicService": {
         "properties": {

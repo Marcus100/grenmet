@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed. The owner approved building it on 2026-10-20 (foundations slice PF2). It becomes Accepted when PF2 merges with Bookings B3 as its first consumer.
+Proposed. Built on branch (PF2: `src/idempotency.py`, `src/outbox.py`, Bookings B3). The owner approved building it on 2026-10-20 (foundations slice PF2). It becomes Accepted when PF2 merges with Bookings B3 as its first consumer.
 
 ## Context
 

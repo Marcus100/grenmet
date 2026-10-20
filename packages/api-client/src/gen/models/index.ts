@@ -1068,7 +1068,12 @@ export type { BookingProfileUpdate } from "./BookingProfileUpdate.js";
 export type { BookingProviderCreate } from "./BookingProviderCreate.js";
 export type { BookingProviderPublic } from "./BookingProviderPublic.js";
 export type { BookingProviderUpdate } from "./BookingProviderUpdate.js";
+export type { BookingPublicCancel } from "./BookingPublicCancel.js";
+export type { BookingPublicCreate } from "./BookingPublicCreate.js";
+export type { BookingPublicDetail } from "./BookingPublicDetail.js";
 export type { BookingPublicProvider } from "./BookingPublicProvider.js";
+export type { BookingPublicReceipt } from "./BookingPublicReceipt.js";
+export type { BookingPublicReschedule } from "./BookingPublicReschedule.js";
 export type { BookingPublicService } from "./BookingPublicService.js";
 export type { BookingServiceCreate } from "./BookingServiceCreate.js";
 export type { BookingServicePublic } from "./BookingServicePublic.js";
@@ -1079,6 +1084,17 @@ export { bookingSource } from "./BookingSource.js";
 export type { BookingStatus } from "./BookingStatus.js";
 export { bookingStatus } from "./BookingStatus.js";
 export type { BookingStorefront } from "./BookingStorefront.js";
+export type {
+  BookingsCancelPublicBookingBody,
+  BookingsCancelPublicBookingOptions,
+  BookingsCancelPublicBookingPath,
+  BookingsCancelPublicBookingResponse,
+  BookingsCancelPublicBookingResponses,
+  BookingsCancelPublicBookingStatus200,
+  BookingsCancelPublicBookingStatus404,
+  BookingsCancelPublicBookingStatus409,
+  BookingsCancelPublicBookingStatus422,
+} from "./BookingsCancelPublicBooking.js";
 export type {
   BookingsCreateExceptionBody,
   BookingsCreateExceptionHeaders,
@@ -1108,6 +1124,19 @@ export type {
   BookingsCreateProviderStatus409,
   BookingsCreateProviderStatus422,
 } from "./BookingsCreateProvider.js";
+export type {
+  BookingsCreatePublicBookingBody,
+  BookingsCreatePublicBookingHeaders,
+  BookingsCreatePublicBookingOptions,
+  BookingsCreatePublicBookingPath,
+  BookingsCreatePublicBookingResponse,
+  BookingsCreatePublicBookingResponses,
+  BookingsCreatePublicBookingStatus201,
+  BookingsCreatePublicBookingStatus400,
+  BookingsCreatePublicBookingStatus404,
+  BookingsCreatePublicBookingStatus409,
+  BookingsCreatePublicBookingStatus422,
+} from "./BookingsCreatePublicBooking.js";
 export type {
   BookingsCreateServiceBody,
   BookingsCreateServiceHeaders,
@@ -1159,6 +1188,24 @@ export type {
   BookingsGetProfileStatus404,
   BookingsGetProfileStatus422,
 } from "./BookingsGetProfile.js";
+export type {
+  BookingsGetPublicBookingOptions,
+  BookingsGetPublicBookingPath,
+  BookingsGetPublicBookingResponse,
+  BookingsGetPublicBookingResponses,
+  BookingsGetPublicBookingStatus200,
+  BookingsGetPublicBookingStatus404,
+  BookingsGetPublicBookingStatus422,
+} from "./BookingsGetPublicBooking.js";
+export type {
+  BookingsGetPublicBookingIcsOptions,
+  BookingsGetPublicBookingIcsPath,
+  BookingsGetPublicBookingIcsResponse,
+  BookingsGetPublicBookingIcsResponses,
+  BookingsGetPublicBookingIcsStatus200,
+  BookingsGetPublicBookingIcsStatus404,
+  BookingsGetPublicBookingIcsStatus422,
+} from "./BookingsGetPublicBookingIcs.js";
 export type {
   BookingsGetStorefrontOptions,
   BookingsGetStorefrontPath,
@@ -1247,6 +1294,17 @@ export type {
   BookingsReplaceWorkingHoursStatus409,
   BookingsReplaceWorkingHoursStatus422,
 } from "./BookingsReplaceWorkingHours.js";
+export type {
+  BookingsReschedulePublicBookingBody,
+  BookingsReschedulePublicBookingOptions,
+  BookingsReschedulePublicBookingPath,
+  BookingsReschedulePublicBookingResponse,
+  BookingsReschedulePublicBookingResponses,
+  BookingsReschedulePublicBookingStatus200,
+  BookingsReschedulePublicBookingStatus404,
+  BookingsReschedulePublicBookingStatus409,
+  BookingsReschedulePublicBookingStatus422,
+} from "./BookingsReschedulePublicBooking.js";
 export type {
   BookingsUpdateProviderBody,
   BookingsUpdateProviderHeaders,

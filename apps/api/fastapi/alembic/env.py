@@ -96,6 +96,7 @@ from src.hr.workflow.models import (
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
+from src.idempotency import IdempotencyKey  # noqa: F401
 from src.models_guidance.models import (
     GuidanceAccessRequest,
     ModelGuidanceRun,
@@ -116,6 +117,7 @@ from src.organisations.models import (  # noqa: F401
     PlatformOrganisation,
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
+from src.outbox import Outbox  # noqa: F401
 from src.payments.models import Attempt, Intent, LedgerEntry, Refund
 from src.push.models import PushSubscription
 from src.rewards.models import Entry, Program, ReviewFlag
@@ -161,6 +163,7 @@ _TRACKED_SCHEMAS = {
     "rewards",
     "flags",
     "payments",
+    "platform",
 }
 
 

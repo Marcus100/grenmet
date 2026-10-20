@@ -153,6 +153,8 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "get_settlement_csv",
         # Payments reconciliation export is a CSV download.
         "admin_get_reconciliation_csv",
+        # A booking's iCalendar file (text/calendar).
+        "get_public_booking_ics",
     }
     offenders = [
         route.name

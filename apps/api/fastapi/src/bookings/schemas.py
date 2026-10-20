@@ -14,6 +14,8 @@ Slug = Annotated[str, Field(pattern=r"^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$")]
 Minutes = Annotated[int, Field(ge=0, le=1440)]
 Minor = Annotated[int, Field(ge=0, le=100_000_000)]
 Currency = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
+#: Path words under /bookings/public that a slug must not shadow.
+RESERVED_SLUGS = frozenset({"bookings"})
 
 
 # --- profile ---------------------------------------------------------------------
@@ -47,6 +49,13 @@ class BookingProfileUpdate(BaseModel):
         ]
         | None
     ) = None
+
+    @field_validator("public_slug")
+    @classmethod
+    def _not_reserved(cls, value: str) -> str:
+        if value in RESERVED_SLUGS:
+            raise ValueError("That booking address is reserved")
+        return value
 
     @field_validator("timezone")
     @classmethod
@@ -257,3 +266,70 @@ class BookingAvailability(BaseModel):
     timezone: str
     service_id: uuid.UUID
     slots: list[BookingSlot]
+
+
+# --- public bookings (B3) ---------------------------------------------------------------
+
+
+class BookingPublicCreate(BaseModel):
+    """A customer's booking request. Sent with an `Idempotency-Key` header."""
+
+    service_id: uuid.UUID
+    provider_id: uuid.UUID | None = Field(
+        default=None, description="Omit to let the business pick any free provider."
+    )
+    starts_at: UtcDateTime = Field(
+        description="A start time from the availability list."
+    )
+    customer_name: Name
+    customer_email: EmailStr = Field(max_length=254)
+    customer_phone: str | None = Field(default=None, max_length=40)
+    notes: str | None = Field(default=None, max_length=1000)
+    marketing_consent: bool = False
+    turnstile_token: str | None = Field(default=None, max_length=2048)
+    # Honeypot. Hidden from people; a bot that fills it is silently dropped.
+    website: str | None = Field(default=None, max_length=200)
+
+
+class BookingPublicCancel(BaseModel):
+    reason: str | None = Field(default=None, max_length=300)
+
+
+class BookingPublicReschedule(BaseModel):
+    starts_at: UtcDateTime = Field(
+        description="A new start time from the availability list."
+    )
+
+
+class BookingPublicDetail(BaseModel):
+    """A booking as its customer sees it."""
+
+    id: uuid.UUID
+    status: BookingStatus
+    service_id: uuid.UUID
+    service_name: str
+    provider_id: uuid.UUID
+    provider_name: str
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+    timezone: str
+    customer_name: str
+    price_minor: int
+    deposit_minor: int
+    currency: str
+    cancel_cutoff_hours: int
+    can_cancel: bool = Field(
+        description="True while the booking is active and before the cancellation cutoff."
+    )
+
+
+class BookingPublicReceipt(BaseModel):
+    """The answer to a new booking. Only the token's hash is stored with the booking."""
+
+    booking: BookingPublicDetail
+    manage_token: str = Field(
+        description="Secret for the manage, cancel, reschedule and ICS endpoints."
+    )
+    manage_url: str | None = Field(
+        description="The business's own manage page, when it configured one."
+    )

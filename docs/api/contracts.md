@@ -567,6 +567,14 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   `POST /payments/public/webhooks/{provider}` (idempotent through the ledger, hidden
   from OpenAPI); superuser reconciliation, ledger, balances and payouts under
   `/payments/admin/...`, including `reconciliation.csv`. The ledger is append-only.
+- **Reliability and public booking** (PF2, ADR-0026): writes that create things accept
+  `Idempotency-Key`; repeating a request with the same key and body replays the first
+  answer (`Idempotency-Replayed: true`), the same key with a different body is 409.
+  Public booking (`/bookings/public/{slug}/bookings` and
+  `/bookings/public/bookings/{token}` with `/cancel`, `/reschedule`, `/ics`) uses it; the
+  manage token is returned once and only its hash is stored. Side effects (emails,
+  reminders) run through the transactional outbox (`platform.outbox`, drained by the
+  worker every 30 seconds), which gives at-least-once delivery.
 - **Organisation contacts** (PF3, ADR-0028): `/contacts/org/contacts` (upsert, list,
   get, patch, consents, merge, erase) and superuser `/contacts/admin/contacts`. There
   are no public contact routes.
