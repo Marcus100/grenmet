@@ -160,7 +160,8 @@ async def refund_ticket(
     assert order is not None
     if order.payment_method != "cash_outlet":
         raise EventsConflict(
-            "Only outlet cash tickets can be refunded; online tickets are free"
+            "Only outlet cash tickets can be refunded here; refund an online"
+            " payment from the payments page"
         )
     if ticket.status == "refunded":
         raise EventsConflict("This ticket was already refunded")

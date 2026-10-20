@@ -15,6 +15,13 @@ export type EventsClaimTicketsPath = {
   slug: string;
 };
 
+export type EventsClaimTicketsHeaders = {
+  /**
+   * @description Client-chosen key that makes a retried request safe.
+   */
+  "Idempotency-Key"?: string | null;
+};
+
 export type EventsClaimTicketsStatus201 = OrderPublic;
 
 export type EventsClaimTicketsStatus401 = unknown;
@@ -37,7 +44,7 @@ export type EventsClaimTicketsOptions = {
   body: EventsClaimTicketsBody;
   path: EventsClaimTicketsPath;
   query?: never;
-  headers?: never;
+  headers?: EventsClaimTicketsHeaders;
 };
 
 export type EventsClaimTicketsResponses = {

@@ -2383,6 +2383,7 @@ export type {
 } from "./EventsCancelMyTicket.js";
 export type {
   EventsClaimTicketsBody,
+  EventsClaimTicketsHeaders,
   EventsClaimTicketsOptions,
   EventsClaimTicketsPath,
   EventsClaimTicketsResponse,
@@ -2523,6 +2524,17 @@ export type {
   EventsGetMyNetworkStatus422,
   EventsGetMyNetworkStatus429,
 } from "./EventsGetMyNetwork.js";
+export type {
+  EventsGetMyOrderOptions,
+  EventsGetMyOrderPath,
+  EventsGetMyOrderResponse,
+  EventsGetMyOrderResponses,
+  EventsGetMyOrderStatus200,
+  EventsGetMyOrderStatus401,
+  EventsGetMyOrderStatus404,
+  EventsGetMyOrderStatus422,
+  EventsGetMyOrderStatus429,
+} from "./EventsGetMyOrder.js";
 export type {
   EventsGetMyPlansOptions,
   EventsGetMyPlansResponse,
@@ -5328,6 +5340,8 @@ export type { OnboardingStatus } from "./OnboardingStatus.js";
 export type { OrderCreate } from "./OrderCreate.js";
 export type { OrderItemInput } from "./OrderItemInput.js";
 export type { OrderPublic } from "./OrderPublic.js";
+export type { OrderPublicPropertiesStatusEnum } from "./OrderPublicPropertiesStatusEnum.js";
+export { orderPublicPropertiesStatusEnum } from "./OrderPublicPropertiesStatusEnum.js";
 export type { OrganisationAdminDetail } from "./OrganisationAdminDetail.js";
 export type { OrganisationAdminListPublic } from "./OrganisationAdminListPublic.js";
 export type { OrganisationAdminPublic } from "./OrganisationAdminPublic.js";
@@ -6699,6 +6713,7 @@ export type { SettlementCounts } from "./SettlementCounts.js";
 export type { SettlementIssue } from "./SettlementIssue.js";
 export type { SettlementIssuePropertiesKindEnum } from "./SettlementIssuePropertiesKindEnum.js";
 export { settlementIssuePropertiesKindEnum } from "./SettlementIssuePropertiesKindEnum.js";
+export type { SettlementOnlinePayments } from "./SettlementOnlinePayments.js";
 export type { SettlementOverview } from "./SettlementOverview.js";
 export type { SettlementSummary } from "./SettlementSummary.js";
 export type { SettlementTier } from "./SettlementTier.js";

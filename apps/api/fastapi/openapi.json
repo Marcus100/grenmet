@@ -37419,8 +37419,8 @@
         "tags": [
           "events"
         ],
-        "summary": "Claim tickets",
-        "description": "Claim free or registration tickets as the signed-in member. Each tier has an allocation and a per-account limit; paid tiers are refused until online payment exists.",
+        "summary": "Claim or order tickets",
+        "description": "Claim tickets as the signed-in member. Free tiers issue tickets at once. A paid tier creates the order as `pending_payment`, holds the stock until `payment_expires_at` and returns `checkout_url` (null when the organiser records the payment by hand); the tickets appear once the payment is captured. Each tier has an allocation and a per-account limit. An optional `Idempotency-Key` header makes a retry return the same order (a different request with the same key is 409).",
         "operationId": "eventsClaimTickets",
         "security": [
           {
@@ -37437,6 +37437,25 @@
               "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
               "title": "Slug"
             }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client-chosen key that makes a retried request safe.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Client-chosen key that makes a retried request safe."
           }
         ],
         "requestBody": {
@@ -37480,7 +37499,65 @@
             "description": "Rate limit exceeded"
           },
           "409": {
-            "description": "Sold out, over the per-account limit, paid tier or ended"
+            "description": "Sold out, over the per-account limit, not payable or ended"
+          }
+        }
+      }
+    },
+    "/api/v1/events/me/orders/{order_id}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get one of my orders",
+        "description": "The member's own order: its status, the tickets once issued and, while a paid order waits for money, the checkout link. Poll this after returning from checkout.",
+        "operationId": "eventsGetMyOrder",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
           }
         }
       }
@@ -60982,6 +61059,37 @@
             },
             "type": "array",
             "title": "Tickets"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderPublicPropertiesStatusEnum"
+          },
+          "payment_required": {
+            "type": "boolean",
+            "title": "Payment Required",
+            "default": false
+          },
+          "checkout_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkout Url"
+          },
+          "payment_expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Expires At"
           }
         },
         "type": "object",
@@ -71093,6 +71201,16 @@
             },
             "type": "array",
             "title": "Refunds"
+          },
+          "online_payments": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SettlementOnlinePayments"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -71304,6 +71422,73 @@
         ],
         "title": "SettlementIssue"
       },
+      "SettlementOnlinePayments": {
+        "properties": {
+          "orders_paid": {
+            "type": "integer",
+            "title": "Orders Paid"
+          },
+          "orders_pending": {
+            "type": "integer",
+            "title": "Orders Pending"
+          },
+          "pending_minor": {
+            "type": "integer",
+            "title": "Pending Minor"
+          },
+          "collected_minor": {
+            "type": "integer",
+            "title": "Collected Minor"
+          },
+          "refunded_minor": {
+            "type": "integer",
+            "title": "Refunded Minor"
+          },
+          "ledger_collected_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ledger Collected Minor"
+          },
+          "ledger_refunded_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ledger Refunded Minor"
+          },
+          "reconciled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reconciled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "orders_paid",
+          "orders_pending",
+          "pending_minor",
+          "collected_minor",
+          "refunded_minor"
+        ],
+        "title": "SettlementOnlinePayments",
+        "description": "Online (paid tier) orders against the payments ledger (N4b).\n\nThe Events side comes from the orders; the ledger side is the sum of the\n``events.order`` intents for this event in the payments ledger (charges and\nrefunds). They are separate databases, so the two are compared, not joined."
+      },
       "SettlementOverview": {
         "properties": {
           "organiser_name": {
@@ -71371,6 +71556,11 @@
           "cash_counted_minor": {
             "type": "integer",
             "title": "Cash Counted Minor"
+          },
+          "online_collected_minor": {
+            "type": "integer",
+            "title": "Online Collected Minor",
+            "default": 0
           },
           "issues": {
             "type": "integer",
@@ -81558,6 +81748,16 @@
           "failed"
         ]
       },
+      "OrderPublicPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "confirmed",
+          "pending_payment",
+          "expired",
+          "refunded"
+        ],
+        "default": "confirmed"
+      },
       "OutletTicketPropertiesStatusEnum": {
         "type": "string",
         "enum": [
@@ -81679,7 +81879,8 @@
           "till_short",
           "till_over",
           "till_open",
-          "refund_without_till"
+          "refund_without_till",
+          "online_ledger_mismatch"
         ]
       },
       "StoredFilePropertiesStatusEnum": {

@@ -20,11 +20,13 @@ from ..exceptions import EventsConflict, EventsForbidden, EventsNotFound
 from ..models import (
     Group,
     Listing,
+    OrderItem,
     Organiser,
     OrganiserMember,
     Ticket,
     TicketTier,
 )
+from . import holds
 from .common import _naive_utc, _pairs
 from .discover import (
     _cards,
@@ -242,6 +244,13 @@ async def _sync_tiers(
             .group_by(Ticket.tier_id)
         )
     )
+    unpaid = await holds.held_by_tier(db, list(existing))
+    # Unpaid and expired online orders reference a tier without having tickets.
+    ordered = set(
+        await db.scalars(
+            select(OrderItem.tier_id).where(OrderItem.tier_id.in_(list(existing)))
+        )
+    )
     keep: set[uuid.UUID] = set()
     for index, tier in enumerate(wanted):
         row = None
@@ -253,9 +262,10 @@ async def _sync_tiers(
         if row is None:
             db.add(TicketTier(listing_id=listing.id, sort_order=index, **values))
             continue
-        if tier.allocation < valid.get(row.id, 0):
+        taken = valid.get(row.id, 0) + unpaid.get(row.id, 0)
+        if tier.allocation < taken:
             raise EventsConflict(
-                f"{row.name} already has {valid[row.id]} tickets; "
+                f"{row.name} already has {taken} tickets; "
                 "allocation can't go below that"
             )
         keep.add(row.id)
@@ -265,7 +275,7 @@ async def _sync_tiers(
     for tier_id, row in existing.items():
         if tier_id in keep:
             continue
-        if issued.get(tier_id, 0):
+        if issued.get(tier_id, 0) or tier_id in ordered:
             raise EventsConflict(f"{row.name} has tickets issued and can't be removed")
         await db.delete(row)
     await db.flush()

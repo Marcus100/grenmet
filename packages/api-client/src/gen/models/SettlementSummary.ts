@@ -31,5 +31,10 @@ export type SettlementSummary = {
   cash_collected_minor: number;
   cash_expected_minor: number;
   cash_counted_minor: number;
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
+  online_collected_minor?: number;
   issues: number;
 };
