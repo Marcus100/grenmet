@@ -4,9 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { BOOKING_URL, BUSINESS, NAV } from "@/data/site";
+import { BUSINESS, NAV } from "@/data/site";
+import type { CtaLink } from "@/lib/book-link";
 
-export function SiteHeader() {
+export function SiteHeader({ booking }: { booking: CtaLink }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const isCurrent = (href: string) =>
@@ -48,12 +49,7 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <a
-          className="btn btn-solid head-book"
-          href={BOOKING_URL}
-          rel="noopener"
-          target="_blank"
-        >
+        <a className="btn btn-solid head-book" {...booking}>
           Book now
         </a>
       </div>

@@ -2,15 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { ReviewsSection, VisitSection } from "@/components/sections";
 import {
-  BOOKING_URL,
   BUSINESS,
   CONSULTATION_PRICE,
   formatPrice,
   PACKAGES,
   RATING,
 } from "@/data/site";
+import { siteBookingLink } from "@/lib/book-link";
 
 export default function HomePage() {
+  const booking = siteBookingLink();
   return (
     <>
       <section className="hero">
@@ -25,12 +26,7 @@ export default function HomePage() {
               client at a time by a certified esthetician.
             </p>
             <div className="ctas">
-              <a
-                className="btn btn-solid"
-                href={BOOKING_URL}
-                rel="noopener"
-                target="_blank"
-              >
+              <a className="btn btn-solid" {...booking}>
                 Make an appointment
               </a>
               <Link className="btn btn-ghost" href="/portfolio">
@@ -106,9 +102,9 @@ export default function HomePage() {
                   <a
                     aria-label={`Book ${pkg.name}`}
                     className={featured ? "btn" : "btn btn-ghost"}
-                    href={BOOKING_URL}
-                    rel="noopener"
-                    target="_blank"
+                    href={booking.href}
+                    rel={booking.rel}
+                    target={booking.target}
                   >
                     Book
                   </a>
