@@ -51,23 +51,36 @@ third, tool-independent pass.
 
 ### Working with Codex on GitHub
 
-The two tools never talk to each other. They coordinate through the repository:
-`AGENTS.md`, branches, pull requests and `SESSION_LOG.md`.
+Claude Code and Codex do not talk to each other. The owner relays every handoff
+between them, so each handoff must stand alone.
 
-1. One tool owns a branch at a time. The other does not push to it.
-2. The author pushes the branch first. A reviewer cannot see a branch that exists
-   only in the author's container or checkout.
-3. Hand the reviewer the branch name or PR URL, the `dev` SHA it was based on, and
-   the test results. A reviewer reads the diff against `dev`; it does not rerun the
-   author's reasoning.
-4. The reviewer is read-only and reports findings ranked by severity with
-   `file:line`. The author fixes them, so ownership of the branch stays clear.
-5. Both tools follow the same Never tier (`AGENTS.md`): no force-push, no merge to
-   `main`, no production deploys without the owner.
+1. **Roles.** Claude owns feature implementation and fixes on its assigned
+   branches. Codex reviews read-only and reports findings. It does not edit,
+   commit, push, merge or deploy unless the owner explicitly changes its role.
+2. **Integration.** Follow `AGENTS.md` and [workflow.md](workflow.md). Push a
+   feature branch for cross-agent review only when the owner explicitly requests
+   that workflow; otherwise completed work merges into local `dev` as usual.
+3. **Review handoff.** Every request includes:
+   - the task and its acceptance criteria;
+   - the branch or PR URL;
+   - the exact head SHA and base SHA;
+   - the changed files;
+   - the test commands, their results and known limitations.
+4. **Review.** Codex reviews those exact commits and reports actionable findings
+   ranked by severity with `file:line` citations. Claude fixes them and supplies
+   the new head SHA. A review applies only to the SHA it reviewed; any new commit
+   needs a new review.
+5. **Session log.** `SESSION_LOG.md` is local and gitignored. It helps sessions
+   that share a filesystem and does not reach another cloud environment. Across
+   separate environments the owner relays the handoff, or explicitly authorizes a
+   GitHub comment. Never commit the local log to synchronize agents.
+6. **Staging and production.** A review of a deployed environment identifies the
+   deployed version where available, and states plainly when it cannot be
+   verified. Fixes follow the normal integration and promotion workflow.
+   Production changes require the owner's explicit authorization.
 
-If the reviewer reports the branch is not visible, check `git ls-remote origin
-<branch>` first. Fix access (the Codex GitHub app on `Marcus100/grenmet`) only after
-confirming the branch is pushed.
+If a reviewer cannot see a branch, run `git ls-remote origin <branch>` before
+changing access settings: the branch may not have been pushed.
 
 ## Gates that do not depend on the author
 
