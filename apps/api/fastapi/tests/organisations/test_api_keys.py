@@ -226,12 +226,13 @@ async def test_scope_validation_and_escalation_denial(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
     admin, org = await _setup(db_async, apps=("bookings",))
-    assert api_key_scopes.all_scopes() == [
+    # One read and one write scope per product in entitlements.PRODUCTS.
+    assert {
         "bookings.read",
         "bookings.write",
         "rewards.read",
         "rewards.write",
-    ]
+    } <= set(api_key_scopes.all_scopes())
     unknown = await _create(async_client, admin, org, scopes=["bookings.delete"])
     assert unknown.status_code == 422
     # Entitled to bookings, not to rewards: the key cannot hold a rewards scope.

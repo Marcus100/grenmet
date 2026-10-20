@@ -292,6 +292,7 @@ counts only, never addresses or message text.
 | `list_subscription` still `pending` | Deleted 30 days after `requested_at` (never confirmed). |
 | `list_subscription` unsubscribed | Plaintext address nulled at unsubscribe; the row keeps `email_hash` as consent proof. Not purged. |
 | `email_suppression` | Stores only `email_hash`; kept so a bounced or complaining address is never mailed again. |
+| `org.contact` | Plaintext address, name and phone kept while the organisation serves the person. Erasure (`contacts` service, organisation admin) blanks them, revokes consent and keeps `email_hash` plus `erased_at` as a tombstone. No automatic purge yet; the organisation decides. |
 | `page_feedback` comments | Comment nulled after 24 months; the row stays so helpful / not helpful counts do not change. |
 
 Address hash: `hash_email` = HMAC-SHA256 keyed by the `EMAIL_HASH_PEPPER`

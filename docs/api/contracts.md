@@ -537,6 +537,27 @@ without a reference, a ticket already refunded or cancelled by its holder, or a 
 the event was cancelled. Ticket `status` can now be `refunded`; refunded tickets are not
 admitted. The settlement report lists `refunds` and per-channel `refunded`/`refunded_minor`.
 
+## Platform foundations (PF-series, 2026-10-20)
+
+Shared APIs for every Barrels app. Zones follow ADR-0025.
+
+- **Public sites** (PF1): see [Public forms](#public-forms). Organisation routes of
+  products require the organisation's entitlement (`org.organisation_app`, keys in
+  `src/organisations/entitlements.py`: `bookings`, `rewards`, `contacts`); a missing
+  entitlement answers 403 after membership is proven.
+- **Organisation API keys** (PF5, ADR-0029): `/organisations/org/api-keys` (list,
+  create, `{key_id}/rotate`, `{key_id}/revoke`), `/organisations/org/api-key-scopes`,
+  `/organisations/org/key-info` and superuser `/organisations/admin/api-keys`. The
+  secret `bk_<prefix>_<random>` is returned once; only its SHA-256 is stored. Keys
+  authenticate with `Authorization: Bearer bk_…`, never as a user, and carry scopes
+  `<product>.<read|write>`.
+- **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
+  `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
+  which return only flags marked exposed.
+- **Organisation contacts** (PF3, ADR-0028): `/contacts/org/contacts` (upsert, list,
+  get, patch, consents, merge, erase) and superuser `/contacts/admin/contacts`. There
+  are no public contact routes.
+
 ## Pagination
 
 The standard helper is `src.pagination`:

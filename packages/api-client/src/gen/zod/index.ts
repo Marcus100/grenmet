@@ -28,6 +28,13 @@ export { airResponseSchema } from "./airResponseSchema.js";
 export { airRowSchema } from "./airRowSchema.js";
 export { announcementPublicSchema } from "./announcementPublicSchema.js";
 export { apiErrorSchema } from "./apiErrorSchema.js";
+export { apiKeyCreatedSchema } from "./apiKeyCreatedSchema.js";
+export { apiKeyCreateSchema } from "./apiKeyCreateSchema.js";
+export { apiKeyInfoPublicSchema } from "./apiKeyInfoPublicSchema.js";
+export { apiKeyListPublicSchema } from "./apiKeyListPublicSchema.js";
+export { apiKeyPublicSchema } from "./apiKeyPublicSchema.js";
+export { apiKeyRotateSchema } from "./apiKeyRotateSchema.js";
+export { apiKeyScopeCatalogueSchema } from "./apiKeyScopeCatalogueSchema.js";
 export { appAccessStatusSchema } from "./appAccessStatusSchema.js";
 export { appEmailCodeStartSchema } from "./appEmailCodeStartSchema.js";
 export { appEmailCodeVerifySchema } from "./appEmailCodeVerifySchema.js";
@@ -1605,9 +1612,18 @@ export { clockSitesPublicSchema } from "./clockSitesPublicSchema.js";
 export { connectionCreateSchema } from "./connectionCreateSchema.js";
 export { connectionPublicPropertiesStateEnumSchema } from "./connectionPublicPropertiesStateEnumSchema.js";
 export { connectionPublicSchema } from "./connectionPublicSchema.js";
+export { consentPurposeSchema } from "./consentPurposeSchema.js";
+export { contactConsentHistoryPublicSchema } from "./contactConsentHistoryPublicSchema.js";
+export { contactConsentPublicSchema } from "./contactConsentPublicSchema.js";
+export { contactConsentSetSchema } from "./contactConsentSetSchema.js";
+export { contactCreateSchema } from "./contactCreateSchema.js";
+export { contactDetailPublicSchema } from "./contactDetailPublicSchema.js";
+export { contactListPublicSchema } from "./contactListPublicSchema.js";
+export { contactMergeSchema } from "./contactMergeSchema.js";
 export { contactMessageAcceptedSchema } from "./contactMessageAcceptedSchema.js";
 export { contactMessageBodySchema } from "./contactMessageBodySchema.js";
 export { contactMessageCreateSchema } from "./contactMessageCreateSchema.js";
+export { contactPublicSchema } from "./contactPublicSchema.js";
 export {
   contactSendContactMessageBodySchema,
   contactSendContactMessageErrorSchema,
@@ -1635,6 +1651,128 @@ export {
   contactSendSiteContactMessageStatus422Schema,
 } from "./contactSendSiteContactMessageSchema.js";
 export { contactSiteSchema } from "./contactSiteSchema.js";
+export {
+  contactsEraseOrgContactErrorSchema,
+  contactsEraseOrgContactHeaderXBarrelsOrganisationSchema,
+  contactsEraseOrgContactPathContactIdSchema,
+  contactsEraseOrgContactResponseSchema,
+  contactsEraseOrgContactStatus200Schema,
+  contactsEraseOrgContactStatus400Schema,
+  contactsEraseOrgContactStatus401Schema,
+  contactsEraseOrgContactStatus403Schema,
+  contactsEraseOrgContactStatus404Schema,
+  contactsEraseOrgContactStatus409Schema,
+  contactsEraseOrgContactStatus422Schema,
+} from "./contactsEraseOrgContactSchema.js";
+export {
+  contactsGetOrgContactConsentsErrorSchema,
+  contactsGetOrgContactConsentsHeaderXBarrelsOrganisationSchema,
+  contactsGetOrgContactConsentsPathContactIdSchema,
+  contactsGetOrgContactConsentsResponseSchema,
+  contactsGetOrgContactConsentsStatus200Schema,
+  contactsGetOrgContactConsentsStatus400Schema,
+  contactsGetOrgContactConsentsStatus401Schema,
+  contactsGetOrgContactConsentsStatus403Schema,
+  contactsGetOrgContactConsentsStatus404Schema,
+  contactsGetOrgContactConsentsStatus422Schema,
+} from "./contactsGetOrgContactConsentsSchema.js";
+export {
+  contactsGetOrgContactErrorSchema,
+  contactsGetOrgContactHeaderXBarrelsOrganisationSchema,
+  contactsGetOrgContactPathContactIdSchema,
+  contactsGetOrgContactResponseSchema,
+  contactsGetOrgContactStatus200Schema,
+  contactsGetOrgContactStatus400Schema,
+  contactsGetOrgContactStatus401Schema,
+  contactsGetOrgContactStatus403Schema,
+  contactsGetOrgContactStatus404Schema,
+  contactsGetOrgContactStatus422Schema,
+} from "./contactsGetOrgContactSchema.js";
+export {
+  contactsListAdminContactsErrorSchema,
+  contactsListAdminContactsQueryIncludeErasedSchema,
+  contactsListAdminContactsQueryOrganisationIdSchema,
+  contactsListAdminContactsQueryPageSchema,
+  contactsListAdminContactsQueryQSchema,
+  contactsListAdminContactsQuerySizeSchema,
+  contactsListAdminContactsResponseSchema,
+  contactsListAdminContactsStatus200Schema,
+  contactsListAdminContactsStatus400Schema,
+  contactsListAdminContactsStatus401Schema,
+  contactsListAdminContactsStatus403Schema,
+  contactsListAdminContactsStatus422Schema,
+} from "./contactsListAdminContactsSchema.js";
+export {
+  contactsListOrgContactsErrorSchema,
+  contactsListOrgContactsHeaderXBarrelsOrganisationSchema,
+  contactsListOrgContactsQueryIncludeErasedSchema,
+  contactsListOrgContactsQueryPageSchema,
+  contactsListOrgContactsQueryQSchema,
+  contactsListOrgContactsQuerySizeSchema,
+  contactsListOrgContactsResponseSchema,
+  contactsListOrgContactsStatus200Schema,
+  contactsListOrgContactsStatus400Schema,
+  contactsListOrgContactsStatus401Schema,
+  contactsListOrgContactsStatus403Schema,
+  contactsListOrgContactsStatus404Schema,
+  contactsListOrgContactsStatus422Schema,
+} from "./contactsListOrgContactsSchema.js";
+export {
+  contactsMergeOrgContactBodySchema,
+  contactsMergeOrgContactErrorSchema,
+  contactsMergeOrgContactHeaderXBarrelsOrganisationSchema,
+  contactsMergeOrgContactPathContactIdSchema,
+  contactsMergeOrgContactResponseSchema,
+  contactsMergeOrgContactStatus200Schema,
+  contactsMergeOrgContactStatus400Schema,
+  contactsMergeOrgContactStatus401Schema,
+  contactsMergeOrgContactStatus403Schema,
+  contactsMergeOrgContactStatus404Schema,
+  contactsMergeOrgContactStatus409Schema,
+  contactsMergeOrgContactStatus422Schema,
+} from "./contactsMergeOrgContactSchema.js";
+export {
+  contactsSetOrgContactConsentBodySchema,
+  contactsSetOrgContactConsentErrorSchema,
+  contactsSetOrgContactConsentHeaderXBarrelsOrganisationSchema,
+  contactsSetOrgContactConsentPathContactIdSchema,
+  contactsSetOrgContactConsentResponseSchema,
+  contactsSetOrgContactConsentStatus201Schema,
+  contactsSetOrgContactConsentStatus400Schema,
+  contactsSetOrgContactConsentStatus401Schema,
+  contactsSetOrgContactConsentStatus403Schema,
+  contactsSetOrgContactConsentStatus404Schema,
+  contactsSetOrgContactConsentStatus409Schema,
+  contactsSetOrgContactConsentStatus422Schema,
+} from "./contactsSetOrgContactConsentSchema.js";
+export {
+  contactsUpdateOrgContactBodySchema,
+  contactsUpdateOrgContactErrorSchema,
+  contactsUpdateOrgContactHeaderXBarrelsOrganisationSchema,
+  contactsUpdateOrgContactPathContactIdSchema,
+  contactsUpdateOrgContactResponseSchema,
+  contactsUpdateOrgContactStatus200Schema,
+  contactsUpdateOrgContactStatus400Schema,
+  contactsUpdateOrgContactStatus401Schema,
+  contactsUpdateOrgContactStatus403Schema,
+  contactsUpdateOrgContactStatus404Schema,
+  contactsUpdateOrgContactStatus409Schema,
+  contactsUpdateOrgContactStatus422Schema,
+} from "./contactsUpdateOrgContactSchema.js";
+export {
+  contactsUpsertOrgContactBodySchema,
+  contactsUpsertOrgContactErrorSchema,
+  contactsUpsertOrgContactHeaderXBarrelsOrganisationSchema,
+  contactsUpsertOrgContactResponseSchema,
+  contactsUpsertOrgContactStatus200Schema,
+  contactsUpsertOrgContactStatus400Schema,
+  contactsUpsertOrgContactStatus401Schema,
+  contactsUpsertOrgContactStatus403Schema,
+  contactsUpsertOrgContactStatus404Schema,
+  contactsUpsertOrgContactStatus409Schema,
+  contactsUpsertOrgContactStatus422Schema,
+} from "./contactsUpsertOrgContactSchema.js";
+export { contactUpdateSchema } from "./contactUpdateSchema.js";
 export { contractorCreateSchema } from "./contractorCreateSchema.js";
 export { contractorUpdateSchema } from "./contractorUpdateSchema.js";
 export { currentOrganisationPublicSchema } from "./currentOrganisationPublicSchema.js";
@@ -1694,6 +1832,7 @@ export {
   environmentGetMarineStatus200Schema,
   environmentGetMarineStatus422Schema,
 } from "./environmentGetMarineSchema.js";
+export { environmentSchema } from "./environmentSchema.js";
 export {
   eregisterAcceptRegisterObservationBodySchema,
   eregisterAcceptRegisterObservationErrorSchema,
@@ -2459,6 +2598,90 @@ export {
   eventsUpdateSuggestionStatus422Schema,
   eventsUpdateSuggestionStatus429Schema,
 } from "./eventsUpdateSuggestionSchema.js";
+export {
+  featureCreateFlagBodySchema,
+  featureCreateFlagErrorSchema,
+  featureCreateFlagResponseSchema,
+  featureCreateFlagStatus201Schema,
+  featureCreateFlagStatus401Schema,
+  featureCreateFlagStatus403Schema,
+  featureCreateFlagStatus409Schema,
+  featureCreateFlagStatus422Schema,
+} from "./featureCreateFlagSchema.js";
+export {
+  featureDeleteFlagErrorSchema,
+  featureDeleteFlagPathFlagIdSchema,
+  featureDeleteFlagResponseSchema,
+  featureDeleteFlagStatus204Schema,
+  featureDeleteFlagStatus401Schema,
+  featureDeleteFlagStatus403Schema,
+  featureDeleteFlagStatus404Schema,
+  featureDeleteFlagStatus422Schema,
+} from "./featureDeleteFlagSchema.js";
+export {
+  featureEvaluateForMeErrorSchema,
+  featureEvaluateForMeResponseSchema,
+  featureEvaluateForMeStatus200Schema,
+  featureEvaluateForMeStatus401Schema,
+  featureEvaluateForMeStatus403Schema,
+  featureEvaluateForMeStatus422Schema,
+} from "./featureEvaluateForMeSchema.js";
+export {
+  featureEvaluateForOrganisationErrorSchema,
+  featureEvaluateForOrganisationHeaderXBarrelsOrganisationSchema,
+  featureEvaluateForOrganisationResponseSchema,
+  featureEvaluateForOrganisationStatus200Schema,
+  featureEvaluateForOrganisationStatus400Schema,
+  featureEvaluateForOrganisationStatus401Schema,
+  featureEvaluateForOrganisationStatus403Schema,
+  featureEvaluateForOrganisationStatus404Schema,
+  featureEvaluateForOrganisationStatus422Schema,
+} from "./featureEvaluateForOrganisationSchema.js";
+export { featureFlagAdminListSchema } from "./featureFlagAdminListSchema.js";
+export { featureFlagAdminSchema } from "./featureFlagAdminSchema.js";
+export { featureFlagAudienceSchema } from "./featureFlagAudienceSchema.js";
+export { featureFlagCreateSchema } from "./featureFlagCreateSchema.js";
+export { featureFlagEvaluationSchema } from "./featureFlagEvaluationSchema.js";
+export { featureFlagUpdateSchema } from "./featureFlagUpdateSchema.js";
+export {
+  featureGetFlagErrorSchema,
+  featureGetFlagPathFlagIdSchema,
+  featureGetFlagResponseSchema,
+  featureGetFlagStatus200Schema,
+  featureGetFlagStatus401Schema,
+  featureGetFlagStatus403Schema,
+  featureGetFlagStatus404Schema,
+  featureGetFlagStatus422Schema,
+} from "./featureGetFlagSchema.js";
+export {
+  featureListFlagsErrorSchema,
+  featureListFlagsQueryPageSchema,
+  featureListFlagsQuerySizeSchema,
+  featureListFlagsResponseSchema,
+  featureListFlagsStatus200Schema,
+  featureListFlagsStatus401Schema,
+  featureListFlagsStatus403Schema,
+  featureListFlagsStatus422Schema,
+} from "./featureListFlagsSchema.js";
+export {
+  featureListStaleFlagsErrorSchema,
+  featureListStaleFlagsResponseSchema,
+  featureListStaleFlagsStatus200Schema,
+  featureListStaleFlagsStatus401Schema,
+  featureListStaleFlagsStatus403Schema,
+  featureListStaleFlagsStatus422Schema,
+} from "./featureListStaleFlagsSchema.js";
+export {
+  featureUpdateFlagBodySchema,
+  featureUpdateFlagErrorSchema,
+  featureUpdateFlagPathFlagIdSchema,
+  featureUpdateFlagResponseSchema,
+  featureUpdateFlagStatus200Schema,
+  featureUpdateFlagStatus401Schema,
+  featureUpdateFlagStatus403Schema,
+  featureUpdateFlagStatus404Schema,
+  featureUpdateFlagStatus422Schema,
+} from "./featureUpdateFlagSchema.js";
 export {
   feedbackSendPageFeedbackBodySchema,
   feedbackSendPageFeedbackErrorSchema,
@@ -4537,6 +4760,18 @@ export {
   organisationsCreateAdminSiteStatus422Schema,
 } from "./organisationsCreateAdminSiteSchema.js";
 export {
+  organisationsCreateApiKeyBodySchema,
+  organisationsCreateApiKeyErrorSchema,
+  organisationsCreateApiKeyHeaderXBarrelsOrganisationSchema,
+  organisationsCreateApiKeyResponseSchema,
+  organisationsCreateApiKeyStatus201Schema,
+  organisationsCreateApiKeyStatus400Schema,
+  organisationsCreateApiKeyStatus401Schema,
+  organisationsCreateApiKeyStatus403Schema,
+  organisationsCreateApiKeyStatus404Schema,
+  organisationsCreateApiKeyStatus422Schema,
+} from "./organisationsCreateApiKeySchema.js";
+export {
   organisationsCreateInvitationBodySchema,
   organisationsCreateInvitationErrorSchema,
   organisationsCreateInvitationHeaderXBarrelsOrganisationSchema,
@@ -4604,6 +4839,25 @@ export {
   organisationsGetPublicSiteStatus422Schema,
 } from "./organisationsGetPublicSiteSchema.js";
 export {
+  organisationsKeyInfoErrorSchema,
+  organisationsKeyInfoResponseSchema,
+  organisationsKeyInfoStatus200Schema,
+  organisationsKeyInfoStatus401Schema,
+  organisationsKeyInfoStatus403Schema,
+  organisationsKeyInfoStatus422Schema,
+} from "./organisationsKeyInfoSchema.js";
+export {
+  organisationsListAdminApiKeysErrorSchema,
+  organisationsListAdminApiKeysQueryOrganisationIdSchema,
+  organisationsListAdminApiKeysQueryPageSchema,
+  organisationsListAdminApiKeysQuerySizeSchema,
+  organisationsListAdminApiKeysResponseSchema,
+  organisationsListAdminApiKeysStatus200Schema,
+  organisationsListAdminApiKeysStatus401Schema,
+  organisationsListAdminApiKeysStatus403Schema,
+  organisationsListAdminApiKeysStatus422Schema,
+} from "./organisationsListAdminApiKeysSchema.js";
+export {
   organisationsListAdminSitesErrorSchema,
   organisationsListAdminSitesQueryOrganisationIdSchema,
   organisationsListAdminSitesResponseSchema,
@@ -4625,6 +4879,17 @@ export {
   organisationsListAllStatus403Schema,
   organisationsListAllStatus422Schema,
 } from "./organisationsListAllSchema.js";
+export {
+  organisationsListApiKeyScopesErrorSchema,
+  organisationsListApiKeyScopesHeaderXBarrelsOrganisationSchema,
+  organisationsListApiKeyScopesResponseSchema,
+  organisationsListApiKeyScopesStatus200Schema,
+  organisationsListApiKeyScopesStatus400Schema,
+  organisationsListApiKeyScopesStatus401Schema,
+  organisationsListApiKeyScopesStatus403Schema,
+  organisationsListApiKeyScopesStatus404Schema,
+  organisationsListApiKeyScopesStatus422Schema,
+} from "./organisationsListApiKeyScopesSchema.js";
 export {
   organisationsListInvitationsErrorSchema,
   organisationsListInvitationsHeaderXBarrelsOrganisationSchema,
@@ -4674,6 +4939,19 @@ export {
   organisationsListMineStatus422Schema,
 } from "./organisationsListMineSchema.js";
 export {
+  organisationsListOrgApiKeysErrorSchema,
+  organisationsListOrgApiKeysHeaderXBarrelsOrganisationSchema,
+  organisationsListOrgApiKeysQueryPageSchema,
+  organisationsListOrgApiKeysQuerySizeSchema,
+  organisationsListOrgApiKeysResponseSchema,
+  organisationsListOrgApiKeysStatus200Schema,
+  organisationsListOrgApiKeysStatus400Schema,
+  organisationsListOrgApiKeysStatus401Schema,
+  organisationsListOrgApiKeysStatus403Schema,
+  organisationsListOrgApiKeysStatus404Schema,
+  organisationsListOrgApiKeysStatus422Schema,
+} from "./organisationsListOrgApiKeysSchema.js";
+export {
   organisationsListOrgSitesErrorSchema,
   organisationsListOrgSitesHeaderXBarrelsOrganisationSchema,
   organisationsListOrgSitesResponseSchema,
@@ -4684,6 +4962,16 @@ export {
   organisationsListOrgSitesStatus404Schema,
   organisationsListOrgSitesStatus422Schema,
 } from "./organisationsListOrgSitesSchema.js";
+export {
+  organisationsRevokeAdminApiKeyErrorSchema,
+  organisationsRevokeAdminApiKeyPathKeyIdSchema,
+  organisationsRevokeAdminApiKeyResponseSchema,
+  organisationsRevokeAdminApiKeyStatus200Schema,
+  organisationsRevokeAdminApiKeyStatus401Schema,
+  organisationsRevokeAdminApiKeyStatus403Schema,
+  organisationsRevokeAdminApiKeyStatus404Schema,
+  organisationsRevokeAdminApiKeyStatus422Schema,
+} from "./organisationsRevokeAdminApiKeySchema.js";
 export {
   organisationsRevokeInvitationErrorSchema,
   organisationsRevokeInvitationHeaderXBarrelsOrganisationSchema,
@@ -4698,6 +4986,32 @@ export {
   organisationsRevokeInvitationStatus409Schema,
   organisationsRevokeInvitationStatus422Schema,
 } from "./organisationsRevokeInvitationSchema.js";
+export {
+  organisationsRevokeOrgApiKeyErrorSchema,
+  organisationsRevokeOrgApiKeyHeaderXBarrelsOrganisationSchema,
+  organisationsRevokeOrgApiKeyPathKeyIdSchema,
+  organisationsRevokeOrgApiKeyResponseSchema,
+  organisationsRevokeOrgApiKeyStatus200Schema,
+  organisationsRevokeOrgApiKeyStatus400Schema,
+  organisationsRevokeOrgApiKeyStatus401Schema,
+  organisationsRevokeOrgApiKeyStatus403Schema,
+  organisationsRevokeOrgApiKeyStatus404Schema,
+  organisationsRevokeOrgApiKeyStatus422Schema,
+} from "./organisationsRevokeOrgApiKeySchema.js";
+export {
+  organisationsRotateApiKeyBodySchema,
+  organisationsRotateApiKeyErrorSchema,
+  organisationsRotateApiKeyHeaderXBarrelsOrganisationSchema,
+  organisationsRotateApiKeyPathKeyIdSchema,
+  organisationsRotateApiKeyResponseSchema,
+  organisationsRotateApiKeyStatus201Schema,
+  organisationsRotateApiKeyStatus400Schema,
+  organisationsRotateApiKeyStatus401Schema,
+  organisationsRotateApiKeyStatus403Schema,
+  organisationsRotateApiKeyStatus404Schema,
+  organisationsRotateApiKeyStatus409Schema,
+  organisationsRotateApiKeyStatus422Schema,
+} from "./organisationsRotateApiKeySchema.js";
 export {
   organisationsSetAppBodySchema,
   organisationsSetAppErrorSchema,

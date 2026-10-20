@@ -36,6 +36,7 @@ from src.cap.models import (
     CapWebhook,
 )
 from src.config import settings
+from src.contacts import audit as _contacts_audit
 from src.eregister import audit as _eregister_audit
 from src.events import notifications as _events_notifications
 from src.feature_flags import audit as _feature_flags_audit
@@ -116,6 +117,7 @@ _billing_audit.register()
 _rewards_audit.register()
 _eregister_audit.register()
 _feature_flags_audit.register()
+_contacts_audit.register()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 

@@ -44,6 +44,7 @@ from src.cap.models import (
 )
 from src.config import settings
 from src.contact.models import ContactDataRequest, ContactMessage
+from src.contacts.models import Contact, ContactConsent  # noqa: F401
 from src.eregister.models import ERegisterSend  # noqa: F401
 from src.feature_flags.models import FeatureFlag  # noqa: F401
 from src.feedback.models import PageFeedback

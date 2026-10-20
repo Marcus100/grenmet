@@ -148,6 +148,15 @@ export { capValidateAlert } from "./clients/capValidateAlert.js";
 export { contactSendContactMessage } from "./clients/contactSendContactMessage.js";
 export { contactSendDataRequest } from "./clients/contactSendDataRequest.js";
 export { contactSendSiteContactMessage } from "./clients/contactSendSiteContactMessage.js";
+export { contactsEraseOrgContact } from "./clients/contactsEraseOrgContact.js";
+export { contactsGetOrgContact } from "./clients/contactsGetOrgContact.js";
+export { contactsGetOrgContactConsents } from "./clients/contactsGetOrgContactConsents.js";
+export { contactsListAdminContacts } from "./clients/contactsListAdminContacts.js";
+export { contactsListOrgContacts } from "./clients/contactsListOrgContacts.js";
+export { contactsMergeOrgContact } from "./clients/contactsMergeOrgContact.js";
+export { contactsSetOrgContactConsent } from "./clients/contactsSetOrgContactConsent.js";
+export { contactsUpdateOrgContact } from "./clients/contactsUpdateOrgContact.js";
+export { contactsUpsertOrgContact } from "./clients/contactsUpsertOrgContact.js";
 export { environmentGetAir } from "./clients/environmentGetAir.js";
 export { environmentGetMarine } from "./clients/environmentGetMarine.js";
 export { eregisterAcceptRegisterObservation } from "./clients/eregisterAcceptRegisterObservation.js";
@@ -219,6 +228,14 @@ export { eventsUpdateManagedListing } from "./clients/eventsUpdateManagedListing
 export { eventsUpdateMyProfile } from "./clients/eventsUpdateMyProfile.js";
 export { eventsUpdateReport } from "./clients/eventsUpdateReport.js";
 export { eventsUpdateSuggestion } from "./clients/eventsUpdateSuggestion.js";
+export { featureCreateFlag } from "./clients/featureCreateFlag.js";
+export { featureDeleteFlag } from "./clients/featureDeleteFlag.js";
+export { featureEvaluateForMe } from "./clients/featureEvaluateForMe.js";
+export { featureEvaluateForOrganisation } from "./clients/featureEvaluateForOrganisation.js";
+export { featureGetFlag } from "./clients/featureGetFlag.js";
+export { featureListFlags } from "./clients/featureListFlags.js";
+export { featureListStaleFlags } from "./clients/featureListStaleFlags.js";
+export { featureUpdateFlag } from "./clients/featureUpdateFlag.js";
 export { feedbackSendPageFeedback } from "./clients/feedbackSendPageFeedback.js";
 export { flightsGetFlightBoard } from "./clients/flightsGetFlightBoard.js";
 export { hrActionLeaveRequest } from "./clients/hrActionLeaveRequest.js";
@@ -407,20 +424,28 @@ export { notificationsUpdateNotificationPreferences } from "./clients/notificati
 export { notificationsUpdateNotificationSetting } from "./clients/notificationsUpdateNotificationSetting.js";
 export { organisationsAcceptInvitation } from "./clients/organisationsAcceptInvitation.js";
 export { organisationsCreateAdminSite } from "./clients/organisationsCreateAdminSite.js";
+export { organisationsCreateApiKey } from "./clients/organisationsCreateApiKey.js";
 export { organisationsCreateInvitation } from "./clients/organisationsCreateInvitation.js";
 export { organisationsCreateOne } from "./clients/organisationsCreateOne.js";
 export { organisationsDeleteMember } from "./clients/organisationsDeleteMember.js";
 export { organisationsGetCurrent } from "./clients/organisationsGetCurrent.js";
 export { organisationsGetOne } from "./clients/organisationsGetOne.js";
 export { organisationsGetPublicSite } from "./clients/organisationsGetPublicSite.js";
+export { organisationsKeyInfo } from "./clients/organisationsKeyInfo.js";
+export { organisationsListAdminApiKeys } from "./clients/organisationsListAdminApiKeys.js";
 export { organisationsListAdminSites } from "./clients/organisationsListAdminSites.js";
 export { organisationsListAll } from "./clients/organisationsListAll.js";
+export { organisationsListApiKeyScopes } from "./clients/organisationsListApiKeyScopes.js";
 export { organisationsListInvitations } from "./clients/organisationsListInvitations.js";
 export { organisationsListMembers } from "./clients/organisationsListMembers.js";
 export { organisationsListMembersAdmin } from "./clients/organisationsListMembersAdmin.js";
 export { organisationsListMine } from "./clients/organisationsListMine.js";
+export { organisationsListOrgApiKeys } from "./clients/organisationsListOrgApiKeys.js";
 export { organisationsListOrgSites } from "./clients/organisationsListOrgSites.js";
+export { organisationsRevokeAdminApiKey } from "./clients/organisationsRevokeAdminApiKey.js";
 export { organisationsRevokeInvitation } from "./clients/organisationsRevokeInvitation.js";
+export { organisationsRevokeOrgApiKey } from "./clients/organisationsRevokeOrgApiKey.js";
+export { organisationsRotateApiKey } from "./clients/organisationsRotateApiKey.js";
 export { organisationsSetApp } from "./clients/organisationsSetApp.js";
 export { organisationsUnverifyOne } from "./clients/organisationsUnverifyOne.js";
 export { organisationsUpdateAdminSite } from "./clients/organisationsUpdateAdminSite.js";
@@ -1262,6 +1287,51 @@ export {
   useContactSendSiteContactMessage,
 } from "./hooks/useContactSendSiteContactMessage.js";
 export {
+  contactsEraseOrgContactMutationKey,
+  contactsEraseOrgContactMutationOptions,
+  useContactsEraseOrgContact,
+} from "./hooks/useContactsEraseOrgContact.js";
+export {
+  contactsGetOrgContactQueryKey,
+  contactsGetOrgContactQueryOptions,
+  useContactsGetOrgContact,
+} from "./hooks/useContactsGetOrgContact.js";
+export {
+  contactsGetOrgContactConsentsQueryKey,
+  contactsGetOrgContactConsentsQueryOptions,
+  useContactsGetOrgContactConsents,
+} from "./hooks/useContactsGetOrgContactConsents.js";
+export {
+  contactsListAdminContactsQueryKey,
+  contactsListAdminContactsQueryOptions,
+  useContactsListAdminContacts,
+} from "./hooks/useContactsListAdminContacts.js";
+export {
+  contactsListOrgContactsQueryKey,
+  contactsListOrgContactsQueryOptions,
+  useContactsListOrgContacts,
+} from "./hooks/useContactsListOrgContacts.js";
+export {
+  contactsMergeOrgContactMutationKey,
+  contactsMergeOrgContactMutationOptions,
+  useContactsMergeOrgContact,
+} from "./hooks/useContactsMergeOrgContact.js";
+export {
+  contactsSetOrgContactConsentMutationKey,
+  contactsSetOrgContactConsentMutationOptions,
+  useContactsSetOrgContactConsent,
+} from "./hooks/useContactsSetOrgContactConsent.js";
+export {
+  contactsUpdateOrgContactMutationKey,
+  contactsUpdateOrgContactMutationOptions,
+  useContactsUpdateOrgContact,
+} from "./hooks/useContactsUpdateOrgContact.js";
+export {
+  contactsUpsertOrgContactMutationKey,
+  contactsUpsertOrgContactMutationOptions,
+  useContactsUpsertOrgContact,
+} from "./hooks/useContactsUpsertOrgContact.js";
+export {
   environmentGetAirQueryKey,
   environmentGetAirQueryOptions,
   useEnvironmentGetAir,
@@ -1616,6 +1686,46 @@ export {
   eventsUpdateSuggestionMutationOptions,
   useEventsUpdateSuggestion,
 } from "./hooks/useEventsUpdateSuggestion.js";
+export {
+  featureCreateFlagMutationKey,
+  featureCreateFlagMutationOptions,
+  useFeatureCreateFlag,
+} from "./hooks/useFeatureCreateFlag.js";
+export {
+  featureDeleteFlagMutationKey,
+  featureDeleteFlagMutationOptions,
+  useFeatureDeleteFlag,
+} from "./hooks/useFeatureDeleteFlag.js";
+export {
+  featureEvaluateForMeQueryKey,
+  featureEvaluateForMeQueryOptions,
+  useFeatureEvaluateForMe,
+} from "./hooks/useFeatureEvaluateForMe.js";
+export {
+  featureEvaluateForOrganisationQueryKey,
+  featureEvaluateForOrganisationQueryOptions,
+  useFeatureEvaluateForOrganisation,
+} from "./hooks/useFeatureEvaluateForOrganisation.js";
+export {
+  featureGetFlagQueryKey,
+  featureGetFlagQueryOptions,
+  useFeatureGetFlag,
+} from "./hooks/useFeatureGetFlag.js";
+export {
+  featureListFlagsQueryKey,
+  featureListFlagsQueryOptions,
+  useFeatureListFlags,
+} from "./hooks/useFeatureListFlags.js";
+export {
+  featureListStaleFlagsQueryKey,
+  featureListStaleFlagsQueryOptions,
+  useFeatureListStaleFlags,
+} from "./hooks/useFeatureListStaleFlags.js";
+export {
+  featureUpdateFlagMutationKey,
+  featureUpdateFlagMutationOptions,
+  useFeatureUpdateFlag,
+} from "./hooks/useFeatureUpdateFlag.js";
 export {
   feedbackSendPageFeedbackMutationKey,
   feedbackSendPageFeedbackMutationOptions,
@@ -2557,6 +2667,11 @@ export {
   useOrganisationsCreateAdminSite,
 } from "./hooks/useOrganisationsCreateAdminSite.js";
 export {
+  organisationsCreateApiKeyMutationKey,
+  organisationsCreateApiKeyMutationOptions,
+  useOrganisationsCreateApiKey,
+} from "./hooks/useOrganisationsCreateApiKey.js";
+export {
   organisationsCreateInvitationMutationKey,
   organisationsCreateInvitationMutationOptions,
   useOrganisationsCreateInvitation,
@@ -2587,6 +2702,16 @@ export {
   useOrganisationsGetPublicSite,
 } from "./hooks/useOrganisationsGetPublicSite.js";
 export {
+  organisationsKeyInfoQueryKey,
+  organisationsKeyInfoQueryOptions,
+  useOrganisationsKeyInfo,
+} from "./hooks/useOrganisationsKeyInfo.js";
+export {
+  organisationsListAdminApiKeysQueryKey,
+  organisationsListAdminApiKeysQueryOptions,
+  useOrganisationsListAdminApiKeys,
+} from "./hooks/useOrganisationsListAdminApiKeys.js";
+export {
   organisationsListAdminSitesQueryKey,
   organisationsListAdminSitesQueryOptions,
   useOrganisationsListAdminSites,
@@ -2596,6 +2721,11 @@ export {
   organisationsListAllQueryOptions,
   useOrganisationsListAll,
 } from "./hooks/useOrganisationsListAll.js";
+export {
+  organisationsListApiKeyScopesQueryKey,
+  organisationsListApiKeyScopesQueryOptions,
+  useOrganisationsListApiKeyScopes,
+} from "./hooks/useOrganisationsListApiKeyScopes.js";
 export {
   organisationsListInvitationsQueryKey,
   organisationsListInvitationsQueryOptions,
@@ -2617,15 +2747,35 @@ export {
   useOrganisationsListMine,
 } from "./hooks/useOrganisationsListMine.js";
 export {
+  organisationsListOrgApiKeysQueryKey,
+  organisationsListOrgApiKeysQueryOptions,
+  useOrganisationsListOrgApiKeys,
+} from "./hooks/useOrganisationsListOrgApiKeys.js";
+export {
   organisationsListOrgSitesQueryKey,
   organisationsListOrgSitesQueryOptions,
   useOrganisationsListOrgSites,
 } from "./hooks/useOrganisationsListOrgSites.js";
 export {
+  organisationsRevokeAdminApiKeyMutationKey,
+  organisationsRevokeAdminApiKeyMutationOptions,
+  useOrganisationsRevokeAdminApiKey,
+} from "./hooks/useOrganisationsRevokeAdminApiKey.js";
+export {
   organisationsRevokeInvitationMutationKey,
   organisationsRevokeInvitationMutationOptions,
   useOrganisationsRevokeInvitation,
 } from "./hooks/useOrganisationsRevokeInvitation.js";
+export {
+  organisationsRevokeOrgApiKeyMutationKey,
+  organisationsRevokeOrgApiKeyMutationOptions,
+  useOrganisationsRevokeOrgApiKey,
+} from "./hooks/useOrganisationsRevokeOrgApiKey.js";
+export {
+  organisationsRotateApiKeyMutationKey,
+  organisationsRotateApiKeyMutationOptions,
+  useOrganisationsRotateApiKey,
+} from "./hooks/useOrganisationsRotateApiKey.js";
 export {
   organisationsSetAppMutationKey,
   organisationsSetAppMutationOptions,
@@ -3184,6 +3334,13 @@ export type { AirResponse } from "./models/AirResponse.js";
 export type { AirRow } from "./models/AirRow.js";
 export type { AnnouncementPublic } from "./models/AnnouncementPublic.js";
 export type { ApiError } from "./models/ApiError.js";
+export type { ApiKeyCreate } from "./models/ApiKeyCreate.js";
+export type { ApiKeyCreated } from "./models/ApiKeyCreated.js";
+export type { ApiKeyInfoPublic } from "./models/ApiKeyInfoPublic.js";
+export type { ApiKeyListPublic } from "./models/ApiKeyListPublic.js";
+export type { ApiKeyPublic } from "./models/ApiKeyPublic.js";
+export type { ApiKeyRotate } from "./models/ApiKeyRotate.js";
+export type { ApiKeyScopeCatalogue } from "./models/ApiKeyScopeCatalogue.js";
 export type { AppAccessStatus } from "./models/AppAccessStatus.js";
 export type { AppEmailCodeStart } from "./models/AppEmailCodeStart.js";
 export type { AppEmailCodeVerify } from "./models/AppEmailCodeVerify.js";
@@ -4911,9 +5068,19 @@ export type { ConnectionCreate } from "./models/ConnectionCreate.js";
 export type { ConnectionPublic } from "./models/ConnectionPublic.js";
 export type { ConnectionPublicPropertiesStateEnum } from "./models/ConnectionPublicPropertiesStateEnum.js";
 export { connectionPublicPropertiesStateEnum } from "./models/ConnectionPublicPropertiesStateEnum.js";
+export type { ConsentPurpose } from "./models/ConsentPurpose.js";
+export { consentPurpose } from "./models/ConsentPurpose.js";
+export type { ContactConsentHistoryPublic } from "./models/ContactConsentHistoryPublic.js";
+export type { ContactConsentPublic } from "./models/ContactConsentPublic.js";
+export type { ContactConsentSet } from "./models/ContactConsentSet.js";
+export type { ContactCreate } from "./models/ContactCreate.js";
+export type { ContactDetailPublic } from "./models/ContactDetailPublic.js";
+export type { ContactListPublic } from "./models/ContactListPublic.js";
+export type { ContactMerge } from "./models/ContactMerge.js";
 export type { ContactMessageAccepted } from "./models/ContactMessageAccepted.js";
 export type { ContactMessageBody } from "./models/ContactMessageBody.js";
 export type { ContactMessageCreate } from "./models/ContactMessageCreate.js";
+export type { ContactPublic } from "./models/ContactPublic.js";
 export type {
   ContactSendContactMessageBody,
   ContactSendContactMessageOptions,
@@ -4945,6 +5112,130 @@ export type {
 } from "./models/ContactSendSiteContactMessage.js";
 export type { ContactSite } from "./models/ContactSite.js";
 export { contactSite } from "./models/ContactSite.js";
+export type {
+  ContactsEraseOrgContactHeaders,
+  ContactsEraseOrgContactOptions,
+  ContactsEraseOrgContactPath,
+  ContactsEraseOrgContactResponse,
+  ContactsEraseOrgContactResponses,
+  ContactsEraseOrgContactStatus200,
+  ContactsEraseOrgContactStatus400,
+  ContactsEraseOrgContactStatus401,
+  ContactsEraseOrgContactStatus403,
+  ContactsEraseOrgContactStatus404,
+  ContactsEraseOrgContactStatus409,
+  ContactsEraseOrgContactStatus422,
+} from "./models/ContactsEraseOrgContact.js";
+export type {
+  ContactsGetOrgContactHeaders,
+  ContactsGetOrgContactOptions,
+  ContactsGetOrgContactPath,
+  ContactsGetOrgContactResponse,
+  ContactsGetOrgContactResponses,
+  ContactsGetOrgContactStatus200,
+  ContactsGetOrgContactStatus400,
+  ContactsGetOrgContactStatus401,
+  ContactsGetOrgContactStatus403,
+  ContactsGetOrgContactStatus404,
+  ContactsGetOrgContactStatus422,
+} from "./models/ContactsGetOrgContact.js";
+export type {
+  ContactsGetOrgContactConsentsHeaders,
+  ContactsGetOrgContactConsentsOptions,
+  ContactsGetOrgContactConsentsPath,
+  ContactsGetOrgContactConsentsResponse,
+  ContactsGetOrgContactConsentsResponses,
+  ContactsGetOrgContactConsentsStatus200,
+  ContactsGetOrgContactConsentsStatus400,
+  ContactsGetOrgContactConsentsStatus401,
+  ContactsGetOrgContactConsentsStatus403,
+  ContactsGetOrgContactConsentsStatus404,
+  ContactsGetOrgContactConsentsStatus422,
+} from "./models/ContactsGetOrgContactConsents.js";
+export type {
+  ContactsListAdminContactsOptions,
+  ContactsListAdminContactsQuery,
+  ContactsListAdminContactsResponse,
+  ContactsListAdminContactsResponses,
+  ContactsListAdminContactsStatus200,
+  ContactsListAdminContactsStatus400,
+  ContactsListAdminContactsStatus401,
+  ContactsListAdminContactsStatus403,
+  ContactsListAdminContactsStatus422,
+} from "./models/ContactsListAdminContacts.js";
+export type {
+  ContactsListOrgContactsHeaders,
+  ContactsListOrgContactsOptions,
+  ContactsListOrgContactsQuery,
+  ContactsListOrgContactsResponse,
+  ContactsListOrgContactsResponses,
+  ContactsListOrgContactsStatus200,
+  ContactsListOrgContactsStatus400,
+  ContactsListOrgContactsStatus401,
+  ContactsListOrgContactsStatus403,
+  ContactsListOrgContactsStatus404,
+  ContactsListOrgContactsStatus422,
+} from "./models/ContactsListOrgContacts.js";
+export type {
+  ContactsMergeOrgContactBody,
+  ContactsMergeOrgContactHeaders,
+  ContactsMergeOrgContactOptions,
+  ContactsMergeOrgContactPath,
+  ContactsMergeOrgContactResponse,
+  ContactsMergeOrgContactResponses,
+  ContactsMergeOrgContactStatus200,
+  ContactsMergeOrgContactStatus400,
+  ContactsMergeOrgContactStatus401,
+  ContactsMergeOrgContactStatus403,
+  ContactsMergeOrgContactStatus404,
+  ContactsMergeOrgContactStatus409,
+  ContactsMergeOrgContactStatus422,
+} from "./models/ContactsMergeOrgContact.js";
+export type {
+  ContactsSetOrgContactConsentBody,
+  ContactsSetOrgContactConsentHeaders,
+  ContactsSetOrgContactConsentOptions,
+  ContactsSetOrgContactConsentPath,
+  ContactsSetOrgContactConsentResponse,
+  ContactsSetOrgContactConsentResponses,
+  ContactsSetOrgContactConsentStatus201,
+  ContactsSetOrgContactConsentStatus400,
+  ContactsSetOrgContactConsentStatus401,
+  ContactsSetOrgContactConsentStatus403,
+  ContactsSetOrgContactConsentStatus404,
+  ContactsSetOrgContactConsentStatus409,
+  ContactsSetOrgContactConsentStatus422,
+} from "./models/ContactsSetOrgContactConsent.js";
+export type {
+  ContactsUpdateOrgContactBody,
+  ContactsUpdateOrgContactHeaders,
+  ContactsUpdateOrgContactOptions,
+  ContactsUpdateOrgContactPath,
+  ContactsUpdateOrgContactResponse,
+  ContactsUpdateOrgContactResponses,
+  ContactsUpdateOrgContactStatus200,
+  ContactsUpdateOrgContactStatus400,
+  ContactsUpdateOrgContactStatus401,
+  ContactsUpdateOrgContactStatus403,
+  ContactsUpdateOrgContactStatus404,
+  ContactsUpdateOrgContactStatus409,
+  ContactsUpdateOrgContactStatus422,
+} from "./models/ContactsUpdateOrgContact.js";
+export type {
+  ContactsUpsertOrgContactBody,
+  ContactsUpsertOrgContactHeaders,
+  ContactsUpsertOrgContactOptions,
+  ContactsUpsertOrgContactResponse,
+  ContactsUpsertOrgContactResponses,
+  ContactsUpsertOrgContactStatus200,
+  ContactsUpsertOrgContactStatus400,
+  ContactsUpsertOrgContactStatus401,
+  ContactsUpsertOrgContactStatus403,
+  ContactsUpsertOrgContactStatus404,
+  ContactsUpsertOrgContactStatus409,
+  ContactsUpsertOrgContactStatus422,
+} from "./models/ContactsUpsertOrgContact.js";
+export type { ContactUpdate } from "./models/ContactUpdate.js";
 export type { ContractorCreate } from "./models/ContractorCreate.js";
 export type { ContractorUpdate } from "./models/ContractorUpdate.js";
 export type { CurrentOrganisationPublic } from "./models/CurrentOrganisationPublic.js";
@@ -4997,6 +5288,8 @@ export type { EntryKind } from "./models/EntryKind.js";
 export { entryKind } from "./models/EntryKind.js";
 export type { EntryStatus } from "./models/EntryStatus.js";
 export { entryStatus } from "./models/EntryStatus.js";
+export type { Environment } from "./models/Environment.js";
+export { environment } from "./models/Environment.js";
 export type {
   EnvironmentGetAirOptions,
   EnvironmentGetAirQuery,
@@ -5836,6 +6129,97 @@ export type {
   EventsUpdateSuggestionStatus422,
   EventsUpdateSuggestionStatus429,
 } from "./models/EventsUpdateSuggestion.js";
+export type {
+  FeatureCreateFlagBody,
+  FeatureCreateFlagOptions,
+  FeatureCreateFlagResponse,
+  FeatureCreateFlagResponses,
+  FeatureCreateFlagStatus201,
+  FeatureCreateFlagStatus401,
+  FeatureCreateFlagStatus403,
+  FeatureCreateFlagStatus409,
+  FeatureCreateFlagStatus422,
+} from "./models/FeatureCreateFlag.js";
+export type {
+  FeatureDeleteFlagOptions,
+  FeatureDeleteFlagPath,
+  FeatureDeleteFlagResponse,
+  FeatureDeleteFlagResponses,
+  FeatureDeleteFlagStatus204,
+  FeatureDeleteFlagStatus401,
+  FeatureDeleteFlagStatus403,
+  FeatureDeleteFlagStatus404,
+  FeatureDeleteFlagStatus422,
+} from "./models/FeatureDeleteFlag.js";
+export type {
+  FeatureEvaluateForMeOptions,
+  FeatureEvaluateForMeResponse,
+  FeatureEvaluateForMeResponses,
+  FeatureEvaluateForMeStatus200,
+  FeatureEvaluateForMeStatus401,
+  FeatureEvaluateForMeStatus403,
+  FeatureEvaluateForMeStatus422,
+} from "./models/FeatureEvaluateForMe.js";
+export type {
+  FeatureEvaluateForOrganisationHeaders,
+  FeatureEvaluateForOrganisationOptions,
+  FeatureEvaluateForOrganisationResponse,
+  FeatureEvaluateForOrganisationResponses,
+  FeatureEvaluateForOrganisationStatus200,
+  FeatureEvaluateForOrganisationStatus400,
+  FeatureEvaluateForOrganisationStatus401,
+  FeatureEvaluateForOrganisationStatus403,
+  FeatureEvaluateForOrganisationStatus404,
+  FeatureEvaluateForOrganisationStatus422,
+} from "./models/FeatureEvaluateForOrganisation.js";
+export type { FeatureFlagAdmin } from "./models/FeatureFlagAdmin.js";
+export type { FeatureFlagAdminList } from "./models/FeatureFlagAdminList.js";
+export type { FeatureFlagAudience } from "./models/FeatureFlagAudience.js";
+export type { FeatureFlagCreate } from "./models/FeatureFlagCreate.js";
+export type { FeatureFlagEvaluation } from "./models/FeatureFlagEvaluation.js";
+export type { FeatureFlagUpdate } from "./models/FeatureFlagUpdate.js";
+export type {
+  FeatureGetFlagOptions,
+  FeatureGetFlagPath,
+  FeatureGetFlagResponse,
+  FeatureGetFlagResponses,
+  FeatureGetFlagStatus200,
+  FeatureGetFlagStatus401,
+  FeatureGetFlagStatus403,
+  FeatureGetFlagStatus404,
+  FeatureGetFlagStatus422,
+} from "./models/FeatureGetFlag.js";
+export type {
+  FeatureListFlagsOptions,
+  FeatureListFlagsQuery,
+  FeatureListFlagsResponse,
+  FeatureListFlagsResponses,
+  FeatureListFlagsStatus200,
+  FeatureListFlagsStatus401,
+  FeatureListFlagsStatus403,
+  FeatureListFlagsStatus422,
+} from "./models/FeatureListFlags.js";
+export type {
+  FeatureListStaleFlagsOptions,
+  FeatureListStaleFlagsResponse,
+  FeatureListStaleFlagsResponses,
+  FeatureListStaleFlagsStatus200,
+  FeatureListStaleFlagsStatus401,
+  FeatureListStaleFlagsStatus403,
+  FeatureListStaleFlagsStatus422,
+} from "./models/FeatureListStaleFlags.js";
+export type {
+  FeatureUpdateFlagBody,
+  FeatureUpdateFlagOptions,
+  FeatureUpdateFlagPath,
+  FeatureUpdateFlagResponse,
+  FeatureUpdateFlagResponses,
+  FeatureUpdateFlagStatus200,
+  FeatureUpdateFlagStatus401,
+  FeatureUpdateFlagStatus403,
+  FeatureUpdateFlagStatus404,
+  FeatureUpdateFlagStatus422,
+} from "./models/FeatureUpdateFlag.js";
 export type {
   FeedbackSendPageFeedbackBody,
   FeedbackSendPageFeedbackOptions,
@@ -8100,6 +8484,19 @@ export type {
   OrganisationsCreateAdminSiteStatus422,
 } from "./models/OrganisationsCreateAdminSite.js";
 export type {
+  OrganisationsCreateApiKeyBody,
+  OrganisationsCreateApiKeyHeaders,
+  OrganisationsCreateApiKeyOptions,
+  OrganisationsCreateApiKeyResponse,
+  OrganisationsCreateApiKeyResponses,
+  OrganisationsCreateApiKeyStatus201,
+  OrganisationsCreateApiKeyStatus400,
+  OrganisationsCreateApiKeyStatus401,
+  OrganisationsCreateApiKeyStatus403,
+  OrganisationsCreateApiKeyStatus404,
+  OrganisationsCreateApiKeyStatus422,
+} from "./models/OrganisationsCreateApiKey.js";
+export type {
   OrganisationsCreateInvitationBody,
   OrganisationsCreateInvitationHeaders,
   OrganisationsCreateInvitationOptions,
@@ -8172,6 +8569,25 @@ export type {
   OrganisationsGetPublicSiteStatus422,
 } from "./models/OrganisationsGetPublicSite.js";
 export type {
+  OrganisationsKeyInfoOptions,
+  OrganisationsKeyInfoResponse,
+  OrganisationsKeyInfoResponses,
+  OrganisationsKeyInfoStatus200,
+  OrganisationsKeyInfoStatus401,
+  OrganisationsKeyInfoStatus403,
+  OrganisationsKeyInfoStatus422,
+} from "./models/OrganisationsKeyInfo.js";
+export type {
+  OrganisationsListAdminApiKeysOptions,
+  OrganisationsListAdminApiKeysQuery,
+  OrganisationsListAdminApiKeysResponse,
+  OrganisationsListAdminApiKeysResponses,
+  OrganisationsListAdminApiKeysStatus200,
+  OrganisationsListAdminApiKeysStatus401,
+  OrganisationsListAdminApiKeysStatus403,
+  OrganisationsListAdminApiKeysStatus422,
+} from "./models/OrganisationsListAdminApiKeys.js";
+export type {
   OrganisationsListAdminSitesOptions,
   OrganisationsListAdminSitesQuery,
   OrganisationsListAdminSitesResponse,
@@ -8191,6 +8607,18 @@ export type {
   OrganisationsListAllStatus403,
   OrganisationsListAllStatus422,
 } from "./models/OrganisationsListAll.js";
+export type {
+  OrganisationsListApiKeyScopesHeaders,
+  OrganisationsListApiKeyScopesOptions,
+  OrganisationsListApiKeyScopesResponse,
+  OrganisationsListApiKeyScopesResponses,
+  OrganisationsListApiKeyScopesStatus200,
+  OrganisationsListApiKeyScopesStatus400,
+  OrganisationsListApiKeyScopesStatus401,
+  OrganisationsListApiKeyScopesStatus403,
+  OrganisationsListApiKeyScopesStatus404,
+  OrganisationsListApiKeyScopesStatus422,
+} from "./models/OrganisationsListApiKeyScopes.js";
 export type {
   OrganisationsListInvitationsHeaders,
   OrganisationsListInvitationsOptions,
@@ -8242,6 +8670,19 @@ export type {
   OrganisationsListMineStatus422,
 } from "./models/OrganisationsListMine.js";
 export type {
+  OrganisationsListOrgApiKeysHeaders,
+  OrganisationsListOrgApiKeysOptions,
+  OrganisationsListOrgApiKeysQuery,
+  OrganisationsListOrgApiKeysResponse,
+  OrganisationsListOrgApiKeysResponses,
+  OrganisationsListOrgApiKeysStatus200,
+  OrganisationsListOrgApiKeysStatus400,
+  OrganisationsListOrgApiKeysStatus401,
+  OrganisationsListOrgApiKeysStatus403,
+  OrganisationsListOrgApiKeysStatus404,
+  OrganisationsListOrgApiKeysStatus422,
+} from "./models/OrganisationsListOrgApiKeys.js";
+export type {
   OrganisationsListOrgSitesHeaders,
   OrganisationsListOrgSitesOptions,
   OrganisationsListOrgSitesResponse,
@@ -8253,6 +8694,17 @@ export type {
   OrganisationsListOrgSitesStatus404,
   OrganisationsListOrgSitesStatus422,
 } from "./models/OrganisationsListOrgSites.js";
+export type {
+  OrganisationsRevokeAdminApiKeyOptions,
+  OrganisationsRevokeAdminApiKeyPath,
+  OrganisationsRevokeAdminApiKeyResponse,
+  OrganisationsRevokeAdminApiKeyResponses,
+  OrganisationsRevokeAdminApiKeyStatus200,
+  OrganisationsRevokeAdminApiKeyStatus401,
+  OrganisationsRevokeAdminApiKeyStatus403,
+  OrganisationsRevokeAdminApiKeyStatus404,
+  OrganisationsRevokeAdminApiKeyStatus422,
+} from "./models/OrganisationsRevokeAdminApiKey.js";
 export type {
   OrganisationsRevokeInvitationHeaders,
   OrganisationsRevokeInvitationOptions,
@@ -8267,6 +8719,34 @@ export type {
   OrganisationsRevokeInvitationStatus409,
   OrganisationsRevokeInvitationStatus422,
 } from "./models/OrganisationsRevokeInvitation.js";
+export type {
+  OrganisationsRevokeOrgApiKeyHeaders,
+  OrganisationsRevokeOrgApiKeyOptions,
+  OrganisationsRevokeOrgApiKeyPath,
+  OrganisationsRevokeOrgApiKeyResponse,
+  OrganisationsRevokeOrgApiKeyResponses,
+  OrganisationsRevokeOrgApiKeyStatus200,
+  OrganisationsRevokeOrgApiKeyStatus400,
+  OrganisationsRevokeOrgApiKeyStatus401,
+  OrganisationsRevokeOrgApiKeyStatus403,
+  OrganisationsRevokeOrgApiKeyStatus404,
+  OrganisationsRevokeOrgApiKeyStatus422,
+} from "./models/OrganisationsRevokeOrgApiKey.js";
+export type {
+  OrganisationsRotateApiKeyBody,
+  OrganisationsRotateApiKeyHeaders,
+  OrganisationsRotateApiKeyOptions,
+  OrganisationsRotateApiKeyPath,
+  OrganisationsRotateApiKeyResponse,
+  OrganisationsRotateApiKeyResponses,
+  OrganisationsRotateApiKeyStatus201,
+  OrganisationsRotateApiKeyStatus400,
+  OrganisationsRotateApiKeyStatus401,
+  OrganisationsRotateApiKeyStatus403,
+  OrganisationsRotateApiKeyStatus404,
+  OrganisationsRotateApiKeyStatus409,
+  OrganisationsRotateApiKeyStatus422,
+} from "./models/OrganisationsRotateApiKey.js";
 export type {
   OrganisationsSetAppBody,
   OrganisationsSetAppOptions,
@@ -9905,6 +10385,13 @@ export { airResponseSchema } from "./zod/airResponseSchema.js";
 export { airRowSchema } from "./zod/airRowSchema.js";
 export { announcementPublicSchema } from "./zod/announcementPublicSchema.js";
 export { apiErrorSchema } from "./zod/apiErrorSchema.js";
+export { apiKeyCreatedSchema } from "./zod/apiKeyCreatedSchema.js";
+export { apiKeyCreateSchema } from "./zod/apiKeyCreateSchema.js";
+export { apiKeyInfoPublicSchema } from "./zod/apiKeyInfoPublicSchema.js";
+export { apiKeyListPublicSchema } from "./zod/apiKeyListPublicSchema.js";
+export { apiKeyPublicSchema } from "./zod/apiKeyPublicSchema.js";
+export { apiKeyRotateSchema } from "./zod/apiKeyRotateSchema.js";
+export { apiKeyScopeCatalogueSchema } from "./zod/apiKeyScopeCatalogueSchema.js";
 export { appAccessStatusSchema } from "./zod/appAccessStatusSchema.js";
 export { appEmailCodeStartSchema } from "./zod/appEmailCodeStartSchema.js";
 export { appEmailCodeVerifySchema } from "./zod/appEmailCodeVerifySchema.js";
@@ -11482,9 +11969,18 @@ export { clockSitesPublicSchema } from "./zod/clockSitesPublicSchema.js";
 export { connectionCreateSchema } from "./zod/connectionCreateSchema.js";
 export { connectionPublicPropertiesStateEnumSchema } from "./zod/connectionPublicPropertiesStateEnumSchema.js";
 export { connectionPublicSchema } from "./zod/connectionPublicSchema.js";
+export { consentPurposeSchema } from "./zod/consentPurposeSchema.js";
+export { contactConsentHistoryPublicSchema } from "./zod/contactConsentHistoryPublicSchema.js";
+export { contactConsentPublicSchema } from "./zod/contactConsentPublicSchema.js";
+export { contactConsentSetSchema } from "./zod/contactConsentSetSchema.js";
+export { contactCreateSchema } from "./zod/contactCreateSchema.js";
+export { contactDetailPublicSchema } from "./zod/contactDetailPublicSchema.js";
+export { contactListPublicSchema } from "./zod/contactListPublicSchema.js";
+export { contactMergeSchema } from "./zod/contactMergeSchema.js";
 export { contactMessageAcceptedSchema } from "./zod/contactMessageAcceptedSchema.js";
 export { contactMessageBodySchema } from "./zod/contactMessageBodySchema.js";
 export { contactMessageCreateSchema } from "./zod/contactMessageCreateSchema.js";
+export { contactPublicSchema } from "./zod/contactPublicSchema.js";
 export {
   contactSendContactMessageBodySchema,
   contactSendContactMessageErrorSchema,
@@ -11512,6 +12008,128 @@ export {
   contactSendSiteContactMessageStatus422Schema,
 } from "./zod/contactSendSiteContactMessageSchema.js";
 export { contactSiteSchema } from "./zod/contactSiteSchema.js";
+export {
+  contactsEraseOrgContactErrorSchema,
+  contactsEraseOrgContactHeaderXBarrelsOrganisationSchema,
+  contactsEraseOrgContactPathContactIdSchema,
+  contactsEraseOrgContactResponseSchema,
+  contactsEraseOrgContactStatus200Schema,
+  contactsEraseOrgContactStatus400Schema,
+  contactsEraseOrgContactStatus401Schema,
+  contactsEraseOrgContactStatus403Schema,
+  contactsEraseOrgContactStatus404Schema,
+  contactsEraseOrgContactStatus409Schema,
+  contactsEraseOrgContactStatus422Schema,
+} from "./zod/contactsEraseOrgContactSchema.js";
+export {
+  contactsGetOrgContactConsentsErrorSchema,
+  contactsGetOrgContactConsentsHeaderXBarrelsOrganisationSchema,
+  contactsGetOrgContactConsentsPathContactIdSchema,
+  contactsGetOrgContactConsentsResponseSchema,
+  contactsGetOrgContactConsentsStatus200Schema,
+  contactsGetOrgContactConsentsStatus400Schema,
+  contactsGetOrgContactConsentsStatus401Schema,
+  contactsGetOrgContactConsentsStatus403Schema,
+  contactsGetOrgContactConsentsStatus404Schema,
+  contactsGetOrgContactConsentsStatus422Schema,
+} from "./zod/contactsGetOrgContactConsentsSchema.js";
+export {
+  contactsGetOrgContactErrorSchema,
+  contactsGetOrgContactHeaderXBarrelsOrganisationSchema,
+  contactsGetOrgContactPathContactIdSchema,
+  contactsGetOrgContactResponseSchema,
+  contactsGetOrgContactStatus200Schema,
+  contactsGetOrgContactStatus400Schema,
+  contactsGetOrgContactStatus401Schema,
+  contactsGetOrgContactStatus403Schema,
+  contactsGetOrgContactStatus404Schema,
+  contactsGetOrgContactStatus422Schema,
+} from "./zod/contactsGetOrgContactSchema.js";
+export {
+  contactsListAdminContactsErrorSchema,
+  contactsListAdminContactsQueryIncludeErasedSchema,
+  contactsListAdminContactsQueryOrganisationIdSchema,
+  contactsListAdminContactsQueryPageSchema,
+  contactsListAdminContactsQueryQSchema,
+  contactsListAdminContactsQuerySizeSchema,
+  contactsListAdminContactsResponseSchema,
+  contactsListAdminContactsStatus200Schema,
+  contactsListAdminContactsStatus400Schema,
+  contactsListAdminContactsStatus401Schema,
+  contactsListAdminContactsStatus403Schema,
+  contactsListAdminContactsStatus422Schema,
+} from "./zod/contactsListAdminContactsSchema.js";
+export {
+  contactsListOrgContactsErrorSchema,
+  contactsListOrgContactsHeaderXBarrelsOrganisationSchema,
+  contactsListOrgContactsQueryIncludeErasedSchema,
+  contactsListOrgContactsQueryPageSchema,
+  contactsListOrgContactsQueryQSchema,
+  contactsListOrgContactsQuerySizeSchema,
+  contactsListOrgContactsResponseSchema,
+  contactsListOrgContactsStatus200Schema,
+  contactsListOrgContactsStatus400Schema,
+  contactsListOrgContactsStatus401Schema,
+  contactsListOrgContactsStatus403Schema,
+  contactsListOrgContactsStatus404Schema,
+  contactsListOrgContactsStatus422Schema,
+} from "./zod/contactsListOrgContactsSchema.js";
+export {
+  contactsMergeOrgContactBodySchema,
+  contactsMergeOrgContactErrorSchema,
+  contactsMergeOrgContactHeaderXBarrelsOrganisationSchema,
+  contactsMergeOrgContactPathContactIdSchema,
+  contactsMergeOrgContactResponseSchema,
+  contactsMergeOrgContactStatus200Schema,
+  contactsMergeOrgContactStatus400Schema,
+  contactsMergeOrgContactStatus401Schema,
+  contactsMergeOrgContactStatus403Schema,
+  contactsMergeOrgContactStatus404Schema,
+  contactsMergeOrgContactStatus409Schema,
+  contactsMergeOrgContactStatus422Schema,
+} from "./zod/contactsMergeOrgContactSchema.js";
+export {
+  contactsSetOrgContactConsentBodySchema,
+  contactsSetOrgContactConsentErrorSchema,
+  contactsSetOrgContactConsentHeaderXBarrelsOrganisationSchema,
+  contactsSetOrgContactConsentPathContactIdSchema,
+  contactsSetOrgContactConsentResponseSchema,
+  contactsSetOrgContactConsentStatus201Schema,
+  contactsSetOrgContactConsentStatus400Schema,
+  contactsSetOrgContactConsentStatus401Schema,
+  contactsSetOrgContactConsentStatus403Schema,
+  contactsSetOrgContactConsentStatus404Schema,
+  contactsSetOrgContactConsentStatus409Schema,
+  contactsSetOrgContactConsentStatus422Schema,
+} from "./zod/contactsSetOrgContactConsentSchema.js";
+export {
+  contactsUpdateOrgContactBodySchema,
+  contactsUpdateOrgContactErrorSchema,
+  contactsUpdateOrgContactHeaderXBarrelsOrganisationSchema,
+  contactsUpdateOrgContactPathContactIdSchema,
+  contactsUpdateOrgContactResponseSchema,
+  contactsUpdateOrgContactStatus200Schema,
+  contactsUpdateOrgContactStatus400Schema,
+  contactsUpdateOrgContactStatus401Schema,
+  contactsUpdateOrgContactStatus403Schema,
+  contactsUpdateOrgContactStatus404Schema,
+  contactsUpdateOrgContactStatus409Schema,
+  contactsUpdateOrgContactStatus422Schema,
+} from "./zod/contactsUpdateOrgContactSchema.js";
+export {
+  contactsUpsertOrgContactBodySchema,
+  contactsUpsertOrgContactErrorSchema,
+  contactsUpsertOrgContactHeaderXBarrelsOrganisationSchema,
+  contactsUpsertOrgContactResponseSchema,
+  contactsUpsertOrgContactStatus200Schema,
+  contactsUpsertOrgContactStatus400Schema,
+  contactsUpsertOrgContactStatus401Schema,
+  contactsUpsertOrgContactStatus403Schema,
+  contactsUpsertOrgContactStatus404Schema,
+  contactsUpsertOrgContactStatus409Schema,
+  contactsUpsertOrgContactStatus422Schema,
+} from "./zod/contactsUpsertOrgContactSchema.js";
+export { contactUpdateSchema } from "./zod/contactUpdateSchema.js";
 export { contractorCreateSchema } from "./zod/contractorCreateSchema.js";
 export { contractorUpdateSchema } from "./zod/contractorUpdateSchema.js";
 export { currentOrganisationPublicSchema } from "./zod/currentOrganisationPublicSchema.js";
@@ -11571,6 +12189,7 @@ export {
   environmentGetMarineStatus200Schema,
   environmentGetMarineStatus422Schema,
 } from "./zod/environmentGetMarineSchema.js";
+export { environmentSchema } from "./zod/environmentSchema.js";
 export {
   eregisterAcceptRegisterObservationBodySchema,
   eregisterAcceptRegisterObservationErrorSchema,
@@ -12336,6 +12955,90 @@ export {
   eventsUpdateSuggestionStatus422Schema,
   eventsUpdateSuggestionStatus429Schema,
 } from "./zod/eventsUpdateSuggestionSchema.js";
+export {
+  featureCreateFlagBodySchema,
+  featureCreateFlagErrorSchema,
+  featureCreateFlagResponseSchema,
+  featureCreateFlagStatus201Schema,
+  featureCreateFlagStatus401Schema,
+  featureCreateFlagStatus403Schema,
+  featureCreateFlagStatus409Schema,
+  featureCreateFlagStatus422Schema,
+} from "./zod/featureCreateFlagSchema.js";
+export {
+  featureDeleteFlagErrorSchema,
+  featureDeleteFlagPathFlagIdSchema,
+  featureDeleteFlagResponseSchema,
+  featureDeleteFlagStatus204Schema,
+  featureDeleteFlagStatus401Schema,
+  featureDeleteFlagStatus403Schema,
+  featureDeleteFlagStatus404Schema,
+  featureDeleteFlagStatus422Schema,
+} from "./zod/featureDeleteFlagSchema.js";
+export {
+  featureEvaluateForMeErrorSchema,
+  featureEvaluateForMeResponseSchema,
+  featureEvaluateForMeStatus200Schema,
+  featureEvaluateForMeStatus401Schema,
+  featureEvaluateForMeStatus403Schema,
+  featureEvaluateForMeStatus422Schema,
+} from "./zod/featureEvaluateForMeSchema.js";
+export {
+  featureEvaluateForOrganisationErrorSchema,
+  featureEvaluateForOrganisationHeaderXBarrelsOrganisationSchema,
+  featureEvaluateForOrganisationResponseSchema,
+  featureEvaluateForOrganisationStatus200Schema,
+  featureEvaluateForOrganisationStatus400Schema,
+  featureEvaluateForOrganisationStatus401Schema,
+  featureEvaluateForOrganisationStatus403Schema,
+  featureEvaluateForOrganisationStatus404Schema,
+  featureEvaluateForOrganisationStatus422Schema,
+} from "./zod/featureEvaluateForOrganisationSchema.js";
+export { featureFlagAdminListSchema } from "./zod/featureFlagAdminListSchema.js";
+export { featureFlagAdminSchema } from "./zod/featureFlagAdminSchema.js";
+export { featureFlagAudienceSchema } from "./zod/featureFlagAudienceSchema.js";
+export { featureFlagCreateSchema } from "./zod/featureFlagCreateSchema.js";
+export { featureFlagEvaluationSchema } from "./zod/featureFlagEvaluationSchema.js";
+export { featureFlagUpdateSchema } from "./zod/featureFlagUpdateSchema.js";
+export {
+  featureGetFlagErrorSchema,
+  featureGetFlagPathFlagIdSchema,
+  featureGetFlagResponseSchema,
+  featureGetFlagStatus200Schema,
+  featureGetFlagStatus401Schema,
+  featureGetFlagStatus403Schema,
+  featureGetFlagStatus404Schema,
+  featureGetFlagStatus422Schema,
+} from "./zod/featureGetFlagSchema.js";
+export {
+  featureListFlagsErrorSchema,
+  featureListFlagsQueryPageSchema,
+  featureListFlagsQuerySizeSchema,
+  featureListFlagsResponseSchema,
+  featureListFlagsStatus200Schema,
+  featureListFlagsStatus401Schema,
+  featureListFlagsStatus403Schema,
+  featureListFlagsStatus422Schema,
+} from "./zod/featureListFlagsSchema.js";
+export {
+  featureListStaleFlagsErrorSchema,
+  featureListStaleFlagsResponseSchema,
+  featureListStaleFlagsStatus200Schema,
+  featureListStaleFlagsStatus401Schema,
+  featureListStaleFlagsStatus403Schema,
+  featureListStaleFlagsStatus422Schema,
+} from "./zod/featureListStaleFlagsSchema.js";
+export {
+  featureUpdateFlagBodySchema,
+  featureUpdateFlagErrorSchema,
+  featureUpdateFlagPathFlagIdSchema,
+  featureUpdateFlagResponseSchema,
+  featureUpdateFlagStatus200Schema,
+  featureUpdateFlagStatus401Schema,
+  featureUpdateFlagStatus403Schema,
+  featureUpdateFlagStatus404Schema,
+  featureUpdateFlagStatus422Schema,
+} from "./zod/featureUpdateFlagSchema.js";
 export {
   feedbackSendPageFeedbackBodySchema,
   feedbackSendPageFeedbackErrorSchema,
@@ -14414,6 +15117,18 @@ export {
   organisationsCreateAdminSiteStatus422Schema,
 } from "./zod/organisationsCreateAdminSiteSchema.js";
 export {
+  organisationsCreateApiKeyBodySchema,
+  organisationsCreateApiKeyErrorSchema,
+  organisationsCreateApiKeyHeaderXBarrelsOrganisationSchema,
+  organisationsCreateApiKeyResponseSchema,
+  organisationsCreateApiKeyStatus201Schema,
+  organisationsCreateApiKeyStatus400Schema,
+  organisationsCreateApiKeyStatus401Schema,
+  organisationsCreateApiKeyStatus403Schema,
+  organisationsCreateApiKeyStatus404Schema,
+  organisationsCreateApiKeyStatus422Schema,
+} from "./zod/organisationsCreateApiKeySchema.js";
+export {
   organisationsCreateInvitationBodySchema,
   organisationsCreateInvitationErrorSchema,
   organisationsCreateInvitationHeaderXBarrelsOrganisationSchema,
@@ -14481,6 +15196,25 @@ export {
   organisationsGetPublicSiteStatus422Schema,
 } from "./zod/organisationsGetPublicSiteSchema.js";
 export {
+  organisationsKeyInfoErrorSchema,
+  organisationsKeyInfoResponseSchema,
+  organisationsKeyInfoStatus200Schema,
+  organisationsKeyInfoStatus401Schema,
+  organisationsKeyInfoStatus403Schema,
+  organisationsKeyInfoStatus422Schema,
+} from "./zod/organisationsKeyInfoSchema.js";
+export {
+  organisationsListAdminApiKeysErrorSchema,
+  organisationsListAdminApiKeysQueryOrganisationIdSchema,
+  organisationsListAdminApiKeysQueryPageSchema,
+  organisationsListAdminApiKeysQuerySizeSchema,
+  organisationsListAdminApiKeysResponseSchema,
+  organisationsListAdminApiKeysStatus200Schema,
+  organisationsListAdminApiKeysStatus401Schema,
+  organisationsListAdminApiKeysStatus403Schema,
+  organisationsListAdminApiKeysStatus422Schema,
+} from "./zod/organisationsListAdminApiKeysSchema.js";
+export {
   organisationsListAdminSitesErrorSchema,
   organisationsListAdminSitesQueryOrganisationIdSchema,
   organisationsListAdminSitesResponseSchema,
@@ -14502,6 +15236,17 @@ export {
   organisationsListAllStatus403Schema,
   organisationsListAllStatus422Schema,
 } from "./zod/organisationsListAllSchema.js";
+export {
+  organisationsListApiKeyScopesErrorSchema,
+  organisationsListApiKeyScopesHeaderXBarrelsOrganisationSchema,
+  organisationsListApiKeyScopesResponseSchema,
+  organisationsListApiKeyScopesStatus200Schema,
+  organisationsListApiKeyScopesStatus400Schema,
+  organisationsListApiKeyScopesStatus401Schema,
+  organisationsListApiKeyScopesStatus403Schema,
+  organisationsListApiKeyScopesStatus404Schema,
+  organisationsListApiKeyScopesStatus422Schema,
+} from "./zod/organisationsListApiKeyScopesSchema.js";
 export {
   organisationsListInvitationsErrorSchema,
   organisationsListInvitationsHeaderXBarrelsOrganisationSchema,
@@ -14551,6 +15296,19 @@ export {
   organisationsListMineStatus422Schema,
 } from "./zod/organisationsListMineSchema.js";
 export {
+  organisationsListOrgApiKeysErrorSchema,
+  organisationsListOrgApiKeysHeaderXBarrelsOrganisationSchema,
+  organisationsListOrgApiKeysQueryPageSchema,
+  organisationsListOrgApiKeysQuerySizeSchema,
+  organisationsListOrgApiKeysResponseSchema,
+  organisationsListOrgApiKeysStatus200Schema,
+  organisationsListOrgApiKeysStatus400Schema,
+  organisationsListOrgApiKeysStatus401Schema,
+  organisationsListOrgApiKeysStatus403Schema,
+  organisationsListOrgApiKeysStatus404Schema,
+  organisationsListOrgApiKeysStatus422Schema,
+} from "./zod/organisationsListOrgApiKeysSchema.js";
+export {
   organisationsListOrgSitesErrorSchema,
   organisationsListOrgSitesHeaderXBarrelsOrganisationSchema,
   organisationsListOrgSitesResponseSchema,
@@ -14561,6 +15319,16 @@ export {
   organisationsListOrgSitesStatus404Schema,
   organisationsListOrgSitesStatus422Schema,
 } from "./zod/organisationsListOrgSitesSchema.js";
+export {
+  organisationsRevokeAdminApiKeyErrorSchema,
+  organisationsRevokeAdminApiKeyPathKeyIdSchema,
+  organisationsRevokeAdminApiKeyResponseSchema,
+  organisationsRevokeAdminApiKeyStatus200Schema,
+  organisationsRevokeAdminApiKeyStatus401Schema,
+  organisationsRevokeAdminApiKeyStatus403Schema,
+  organisationsRevokeAdminApiKeyStatus404Schema,
+  organisationsRevokeAdminApiKeyStatus422Schema,
+} from "./zod/organisationsRevokeAdminApiKeySchema.js";
 export {
   organisationsRevokeInvitationErrorSchema,
   organisationsRevokeInvitationHeaderXBarrelsOrganisationSchema,
@@ -14575,6 +15343,32 @@ export {
   organisationsRevokeInvitationStatus409Schema,
   organisationsRevokeInvitationStatus422Schema,
 } from "./zod/organisationsRevokeInvitationSchema.js";
+export {
+  organisationsRevokeOrgApiKeyErrorSchema,
+  organisationsRevokeOrgApiKeyHeaderXBarrelsOrganisationSchema,
+  organisationsRevokeOrgApiKeyPathKeyIdSchema,
+  organisationsRevokeOrgApiKeyResponseSchema,
+  organisationsRevokeOrgApiKeyStatus200Schema,
+  organisationsRevokeOrgApiKeyStatus400Schema,
+  organisationsRevokeOrgApiKeyStatus401Schema,
+  organisationsRevokeOrgApiKeyStatus403Schema,
+  organisationsRevokeOrgApiKeyStatus404Schema,
+  organisationsRevokeOrgApiKeyStatus422Schema,
+} from "./zod/organisationsRevokeOrgApiKeySchema.js";
+export {
+  organisationsRotateApiKeyBodySchema,
+  organisationsRotateApiKeyErrorSchema,
+  organisationsRotateApiKeyHeaderXBarrelsOrganisationSchema,
+  organisationsRotateApiKeyPathKeyIdSchema,
+  organisationsRotateApiKeyResponseSchema,
+  organisationsRotateApiKeyStatus201Schema,
+  organisationsRotateApiKeyStatus400Schema,
+  organisationsRotateApiKeyStatus401Schema,
+  organisationsRotateApiKeyStatus403Schema,
+  organisationsRotateApiKeyStatus404Schema,
+  organisationsRotateApiKeyStatus409Schema,
+  organisationsRotateApiKeyStatus422Schema,
+} from "./zod/organisationsRotateApiKeySchema.js";
 export {
   organisationsSetAppBodySchema,
   organisationsSetAppErrorSchema,

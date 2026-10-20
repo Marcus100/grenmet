@@ -42,6 +42,7 @@ from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
 from src.contact.router import router as contact_router
+from src.contacts.router import router as contacts_router
 from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
 from src.eregister.router import router as eregister_router
@@ -262,6 +263,10 @@ OPENAPI_TAGS = [
         "description": "In-app notifications, email preferences and settings.",
     },
     {
+        "name": "contacts",
+        "description": "An organisation's contact book: people, consent and erasure.",
+    },
+    {
         "name": "organisations",
         "description": "Platform organisations and the caller's memberships.",
     },
@@ -457,6 +462,7 @@ app.include_router(stores_router, prefix=settings.API_V1_STR)
 app.include_router(notifications_router, prefix=settings.API_V1_STR)
 app.include_router(organisations_router, prefix=settings.API_V1_STR)
 app.include_router(feature_flags_router, prefix=settings.API_V1_STR)
+app.include_router(contacts_router, prefix=settings.API_V1_STR)
 app.include_router(cap_router, prefix=settings.API_V1_STR)
 app.include_router(cap_public_router)
 

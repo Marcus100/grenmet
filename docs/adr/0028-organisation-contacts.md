@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed. The owner approved building it on 2026-10-20 (foundations slice PF3).
+Accepted. The owner approved building it on 2026-10-20; implemented in foundations slice PF3 (`src/contacts`). Consumers (`bookings.customer`, then `billing.customer`) are not wired yet.
 
 ## Context
 
