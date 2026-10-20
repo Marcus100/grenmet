@@ -33,12 +33,49 @@ same restore with the same safe flags (fatal on error, no owners or privileges) 
 container it creates and removes, and adds the migration, row-floor and timing checks.
 Use the manual script for a real recovery and the drill to prove the process works.
 
-## Not covered yet
+## Optional API check
 
-Starting the API against the restored databases and running authenticated reads
-(ADR-0021 step 4). Until that exists, a pass does not prove recovery of the running
-application, and the recovery time stays unverified. Nothing yet opens an issue when
-the drill fails repeatedly.
+ADR-0021 step 4, built but **off by default and not yet run on real data**. Without it a
+pass proves restoration, migration match and row floors only, not recovery of the
+running application, and the recovery time stays unverified. **Do the first human-timed
+run without it**, so the proven path is measured on its own, then try it as a second run.
+
+Enable it with the `api_check` input (production backup set only), or locally with
+`--api-check --api-image <image>`. After the restore and the migration and row checks
+pass, the drill:
+
+1. Pulls the release's API image (`ghcr.io/<repo>:production-sha-<commit>`, the tag
+   `build-api-image.yml` publishes), refuses one whose revision or environment label
+   does not match, and starts it on an `--internal` Docker network shared only with the
+   throwaway PostgreSQL. The network has no route out, so nothing can reach production
+   services or the internet. No volume is mounted and no port is published.
+2. Points it at the restored databases with the variable names the deploy stack uses
+   (`POSTGRES_*` for `app_prod`, and `EVENTS_`, `WXPRODUCTS_`, `WXWATCH_`, `EREGISTER_`,
+   `JANITORIAL_` and `TRANSPORT_DATABASE_URL`). `SECRET_KEY` and the other secrets are
+   random values made for the run. Redis is left unset (the API then uses in-memory rate
+   limiting), and email, Stripe, Turnstile, storage and SSO settings are not passed.
+3. Waits up to 5 minutes (`--api-timeout`) for `/api/v1/utils/health-check/` to return
+   true.
+4. Reads one active superuser id from the restored main database, mints a 15-minute
+   access token inside the container with the app's own `create_access_token` and the
+   drill key, and requires HTTP 200 from four read-only GET endpoints in
+   `openapi.json`: `/api/v1/auth/users/me` (main database) and one-row lists from events,
+   eRegister and wxwatch (each a separate database). No superuser is a **failure**,
+   because authenticated recovery could not be proven.
+5. Records `api_start`, `health` and `authenticated_reads` timings, which count toward
+   the 2-hour total, and a pass or fail line per check in the summary and result file.
+6. Always removes the API container and the network, including after a failure. Only
+   paths, status codes and timings are logged; the token and secrets are passed by
+   environment variable and never printed.
+
+What it needs: the production API image for the release must exist in GHCR (the job gets
+`packages: read` for the pull), the runner needs Docker and about 1 GB of extra disk
+for the image, and the databases must be restored as `app_prod`, `events`, `eregister`
+and `wxwatch` (a database that is not restored is simply not configured). It connects
+as the throwaway `postgres` user, so the production runtime role and its grants are not
+exercised.
+
+Still not built: nothing opens an issue when the drill fails repeatedly.
 
 ## One-time setup
 
