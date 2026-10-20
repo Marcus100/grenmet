@@ -36,3 +36,4 @@
 - The row records `qc_by`, `qc_at`, `qc_notes` (register DB, migration `eregister_0002`). Each transition also writes an `audit` entry (`entity_type` `eregister_observation`, readable by `eregister.qc` or `eregister.send`) in the application DB, in a second commit: the two databases cannot share a transaction.
 - Public endpoints already treat anything but `accepted` as provisional (`public.py`).
 - Tests: `tests/test_eregister_send.py` (QC section).
+- Cross-check: `tests/test_eregister_crosscheck.py` decodes the emitted TAC with `pymetdecoder` (dev dependency, test only; it cannot read NIL reports) and compares SI values with `rules.validate_synop`. `csv2bufr` is also a dev dependency, reserved for checking the wis2box CSV against the vendored template.
