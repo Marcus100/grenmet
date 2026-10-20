@@ -54,9 +54,7 @@ BookingsOrgAdmin = Annotated[
 ]
 # Organisation reads also accept an API key with `bookings.read` (PF5, ADR-0029),
 # e.g. a kiosk or partner site; the user path behaves as BookingsOrgMember.
-BookingsOrgRead = Annotated[
-    OrgAccess, Depends(org_or_key("bookings", "bookings.read"))
-]
+BookingsOrgRead = Annotated[OrgAccess, Depends(org_or_key("bookings", "bookings.read"))]
 
 READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}

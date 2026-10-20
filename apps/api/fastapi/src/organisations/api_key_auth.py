@@ -31,20 +31,20 @@ from limits import parse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import User
 from src.auth.config import auth_settings
+from src.auth.models import User
 from src.dependencies import SessionDep, get_account_user
 from src.rate_limit import limiter
 from src.request_context import bind_organisation_id, reset_organisation_id
 
 from . import api_key_scopes, api_keys, service
+from .dependencies import ORGANISATION_HEADER, resolve_org_context
 from .exceptions import (
     ApiKeyInvalidError,
     ApiKeyRateLimitedError,
     ApiKeyScopeMissingError,
     OrganisationSuspendedError,
 )
-from .dependencies import ORGANISATION_HEADER, resolve_org_context
 from .models import ApiKey, MembershipRole, OrganisationStatus, PlatformOrganisation
 
 _bearer = HTTPBearer(
