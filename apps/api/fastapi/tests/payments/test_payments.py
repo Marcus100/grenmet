@@ -669,7 +669,12 @@ async def test_admin_routes_are_superuser_only(
     payout = await async_client.post(
         f"{API}/admin/payouts",
         headers=headers_for(admin, org.id),
-        json={"organisation_id": org.id, "amount_minor": 1, "reference": "x"},
+        json={
+            "request_id": str(uuid.uuid4()),
+            "organisation_id": org.id,
+            "amount_minor": 1,
+            "reference": "x",
+        },
     )
     assert payout.status_code == 403
 
@@ -686,19 +691,30 @@ async def test_payout_cannot_exceed_the_balance_and_reduces_it(
     too_much = await async_client.post(
         url,
         headers=superuser_token_headers_async,
-        json={"organisation_id": org.id, "amount_minor": 5001, "reference": "BT-1"},
+        json={
+            "request_id": str(uuid.uuid4()),
+            "organisation_id": org.id,
+            "amount_minor": 5001,
+            "reference": "BT-1",
+        },
     )
     assert too_much.status_code == 409
     unknown = await async_client.post(
         url,
         headers=superuser_token_headers_async,
-        json={"organisation_id": "nope", "amount_minor": 1, "reference": "BT-1"},
+        json={
+            "request_id": str(uuid.uuid4()),
+            "organisation_id": "nope",
+            "amount_minor": 1,
+            "reference": "BT-1",
+        },
     )
     assert unknown.status_code == 422
     other_currency = await async_client.post(
         url,
         headers=superuser_token_headers_async,
         json={
+            "request_id": str(uuid.uuid4()),
             "organisation_id": org.id,
             "amount_minor": 1,
             "currency": "USD",
@@ -707,12 +723,28 @@ async def test_payout_cannot_exceed_the_balance_and_reduces_it(
     )
     assert other_currency.status_code == 409
 
-    ok = await async_client.post(
+    request_id = str(uuid.uuid4())
+    body = {
+        "request_id": request_id,
+        "organisation_id": org.id,
+        "amount_minor": 3000,
+        "reference": "BT-2",
+    }
+    ok = await async_client.post(url, headers=superuser_token_headers_async, json=body)
+    assert ok.status_code == 201
+    # A double click or retry with the same request id returns the same entry.
+    again = await async_client.post(
+        url, headers=superuser_token_headers_async, json=body
+    )
+    assert again.status_code == 201
+    assert again.json()["id"] == ok.json()["id"]
+    # The same id for a different payout is refused.
+    mismatch = await async_client.post(
         url,
         headers=superuser_token_headers_async,
-        json={"organisation_id": org.id, "amount_minor": 3000, "reference": "BT-2"},
+        json={**body, "amount_minor": 1000},
     )
-    assert ok.status_code == 201
+    assert mismatch.status_code == 409
     assert ok.json()["kind"] == "payout"
     assert ok.json()["amount_minor"] == -3000
 
@@ -745,7 +777,12 @@ async def test_reconciliation_totals_and_csv(
     await async_client.post(
         f"{API}/admin/payouts",
         headers=superuser_token_headers_async,
-        json={"organisation_id": org.id, "amount_minor": 4000, "reference": "BT-9"},
+        json={
+            "request_id": str(uuid.uuid4()),
+            "organisation_id": org.id,
+            "amount_minor": 4000,
+            "reference": "BT-9",
+        },
     )
     # A succeeded intent with no charge (as if the ledger write were lost).
     orphan = await _create(async_client, other, other_admin)

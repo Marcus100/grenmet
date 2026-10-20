@@ -16,4 +16,9 @@ export const paymentPayoutCreateSchema = z.object({
     .meta({ examples: ["XCD"] }),
   reference: z.string().min(1).max(200),
   note: z.union([z.string().max(500), z.null()]).optional(),
+  request_id: z
+    .uuid()
+    .describe(
+      "Client-generated id for this payout. Sending the same id again returns the original entry instead of recording a second payout; the same id with different details is a 409."
+    ),
 });

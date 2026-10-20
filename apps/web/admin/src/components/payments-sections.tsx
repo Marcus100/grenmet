@@ -159,5 +159,11 @@ export async function PayoutSection({
     // The confirmation still works; the API enforces the limit regardless.
     reportError(error, "admin-payments");
   }
-  return <PayoutConfirm owedMinor={owedMinor} payout={proposal} />;
+  return (
+    <PayoutConfirm
+      owedMinor={owedMinor}
+      payout={proposal}
+      requestId={crypto.randomUUID()}
+    />
+  );
 }

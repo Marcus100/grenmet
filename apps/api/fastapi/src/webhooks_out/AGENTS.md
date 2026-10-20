@@ -16,3 +16,6 @@
 
 ## Related
 ADR-0029, ADR-0026, `src/outbox.py`, `src/organisations/AGENTS.md`, `src/worker/AGENTS.md`.
+
+- **Producers** call `service.emit_event_safely` (savepoint, never fails the caller; a bad payload or database error is logged and the delivery skipped). Wired today: `bookings/public.py` (`booking.created`, `booking.cancelled`, `booking.rescheduled`), `payments/service.py` (`payment.succeeded`, `payment.refunded`), `contacts/service.py` (`contact.erased`). Producer event ids longer than 60 characters are replaced by a stable hash (`stable_event_id`) because `webhooks.delivery.event_id` is `String(60)`; a repeat of the same event still dedupes. Tests: `tests/webhooks_out/test_emission.py`.
+

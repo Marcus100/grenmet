@@ -62631,13 +62631,20 @@
               }
             ],
             "title": "Note"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Request Id",
+            "description": "Client-generated id for this payout. Sending the same id again returns the original entry instead of recording a second payout; the same id with different details is a 409."
           }
         },
         "type": "object",
         "required": [
           "organisation_id",
           "amount_minor",
-          "reference"
+          "reference",
+          "request_id"
         ],
         "title": "PaymentPayoutCreate"
       },

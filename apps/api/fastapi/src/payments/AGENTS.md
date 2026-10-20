@@ -30,3 +30,7 @@ No audit-log registration for payments tables yet (the ledger itself is the reco
 
 ## Tests
 `tests/payments/`: `test_payments.py` (manual flow, idempotent create, refund limits, cross-organisation denial, ledger trigger and signs, webhook replay/signature/mismatch/failure/refund, admin, payouts, reconciliation and CSV), `test_providers.py` (live-key refusal, signature valid/invalid/stale, Stripe client over a mock transport, manual provider), `test_payments_migration.py`.
+
+- **Payout idempotency:** `POST /payments/admin/payouts` requires a client-generated `request_id` (UUID). It becomes the ledger's `provider_event_id` (`payout:<request_id>`), so a double click or retry returns the original entry, and the same id with another organisation, amount or currency is a 409. The admin confirmation page renders one id per page view.
+- **Webhooks:** a captured payment emits `payment.succeeded`, a refund emits `payment.refunded` (`_emit_payment_event`): ids, amounts, currency and the source reference only; the refund reason is free text and is never sent.
+

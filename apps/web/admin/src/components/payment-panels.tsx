@@ -407,9 +407,12 @@ export function PayoutForm() {
 export function PayoutConfirm({
   owedMinor,
   payout,
+  requestId,
 }: {
   owedMinor: number | undefined;
   payout: PayoutInput;
+  /** One id per rendered confirmation: the same click sent twice is one payout. */
+  requestId: string;
 }) {
   const over = owedMinor !== undefined && payout.amountMinor > owedMinor;
   return (
@@ -456,6 +459,7 @@ export function PayoutConfirm({
           />
           <input name="reference" type="hidden" value={payout.reference} />
           <input name="note" type="hidden" value={payout.note ?? ""} />
+          <input name="request_id" type="hidden" value={requestId} />
           <button className={BUTTON} type="submit">
             Confirm and record payout
           </button>

@@ -168,6 +168,13 @@ class PaymentPayoutCreate(BaseModel):
     currency: Currency = DEFAULT_CURRENCY
     reference: Annotated[str, Field(min_length=1, max_length=200)]
     note: Annotated[str, Field(max_length=500)] | None = None
+    request_id: uuid.UUID = Field(
+        description=(
+            "Client-generated id for this payout. Sending the same id again "
+            "returns the original entry instead of recording a second payout; "
+            "the same id with different details is a 409."
+        )
+    )
 
 
 class PaymentReconciliationRowPublic(BaseModel):

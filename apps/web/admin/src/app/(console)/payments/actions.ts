@@ -18,6 +18,8 @@ import { requireGate } from "@/lib/staff-gate";
 // a fixed notice code.
 
 const SERVER_ERROR = 500;
+const REQUEST_ID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function recordPayoutAction(formData: FormData): Promise<never> {
   const gate = await requireGate("/payments");
@@ -29,6 +31,12 @@ export async function recordPayoutAction(formData: FormData): Promise<never> {
     note: String(formData.get("note") ?? ""),
   });
   if (!parsed.ok) redirect("/payments?notice=payout-invalid#payout-heading");
+  // One id per confirmation page, so a double click or a retry cannot record
+  // the payout twice: FastAPI returns the first entry for a repeated id.
+  const requestId = String(formData.get("request_id") ?? "");
+  if (!REQUEST_ID.test(requestId)) {
+    redirect("/payments?notice=payout-invalid#payout-heading");
+  }
 
   let notice: PaymentNoticeCode = "payout-recorded";
   try {
@@ -38,6 +46,7 @@ export async function recordPayoutAction(formData: FormData): Promise<never> {
       currency: "XCD",
       reference: parsed.value.reference,
       note: parsed.value.note,
+      request_id: requestId,
     });
   } catch (error) {
     if (!isAuthApiError(error)) throw error;

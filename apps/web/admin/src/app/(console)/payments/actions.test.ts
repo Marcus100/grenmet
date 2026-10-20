@@ -24,6 +24,7 @@ const GOOD = {
   amount: "12.50",
   reference: "TT-1",
   note: "",
+  request_id: "5b1d0f6c-0c0a-4c53-9a51-6a2ee2b3c001",
 };
 
 function form(values: Record<string, string>): FormData {
@@ -56,8 +57,19 @@ describe("recordPayoutAction", () => {
       currency: "XCD",
       reference: "TT-1",
       note: null,
+      request_id: "5b1d0f6c-0c0a-4c53-9a51-6a2ee2b3c001",
     });
     expect(url).toContain("notice=payout-recorded");
+  });
+
+  it("refuses a payout without a valid request id", async () => {
+    for (const request_id of ["", "not-a-uuid"]) {
+      const url = await redirected(
+        recordPayoutAction(form({ ...GOOD, request_id }))
+      );
+      expect(url).toContain("notice=payout-invalid");
+    }
+    expect(api.createPayout).not.toHaveBeenCalled();
   });
 
   it("does not call the API for an invalid payout", async () => {

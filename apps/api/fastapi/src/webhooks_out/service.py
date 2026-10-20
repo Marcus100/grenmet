@@ -4,12 +4,14 @@ Functions flush but never commit; the caller owns the transaction. ``emit_event`
 is the one call other domains make.
 """
 
+import hashlib
 import html
 import logging
 import secrets
 from typing import Any
 
 from sqlalchemy import func, or_, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
@@ -303,6 +305,17 @@ async def disable_endpoint(
 # --- fan-out -------------------------------------------------------------------------------
 
 
+EVENT_ID_MAX = 60  # webhooks.delivery.event_id
+
+
+def stable_event_id(event_id: str) -> str:
+    """A producer's id as stored: unchanged when it fits, otherwise a stable hash
+    of it, so a repeat of the same event still dedupes."""
+    if len(event_id) <= EVENT_ID_MAX:
+        return event_id
+    return "evt_" + hashlib.sha256(event_id.encode()).hexdigest()[:32]
+
+
 async def emit_event(
     session: AsyncSession,
     organisation_id: str,
@@ -342,7 +355,7 @@ async def emit_event(
     )
     if not endpoints:
         return 0
-    resolved_id = event_id or new_event_id()
+    resolved_id = stable_event_id(event_id) if event_id else new_event_id()
     created_at = utc_now()
     queued = 0
     for endpoint in endpoints:
@@ -377,3 +390,27 @@ async def emit_event(
         queued += 1
     await session.flush()
     return queued
+
+
+async def emit_event_safely(
+    session: AsyncSession,
+    organisation_id: str,
+    event_type: str,
+    data: dict[str, Any],
+    *,
+    event_id: str | None = None,
+) -> int:
+    """``emit_event`` for producers: a webhook problem must never undo or fail the
+    action that caused the event. Runs in a savepoint; any error is logged (type
+    only, never the payload) and the delivery is skipped."""
+    try:
+        async with session.begin_nested():
+            return await emit_event(
+                session, organisation_id, event_type, data, event_id=event_id
+            )
+    except SQLAlchemyError, ValueError:
+        logger.exception(
+            "Webhook event not queued",
+            extra={"organisation_id": organisation_id, "event_type": event_type},
+        )
+        return 0

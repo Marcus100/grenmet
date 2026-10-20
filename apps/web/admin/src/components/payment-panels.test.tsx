@@ -169,6 +169,7 @@ describe("payout steps", () => {
           reference: "TT-1",
           note: null,
         }}
+        requestId="5b1d0f6c-0c0a-4c53-9a51-6a2ee2b3c001"
       />
     );
     expect(screen.getByText("XCD 12.50")).toBeTruthy();
@@ -193,6 +194,7 @@ describe("payout steps", () => {
           reference: "TT-1",
           note: "x",
         }}
+        requestId="5b1d0f6c-0c0a-4c53-9a51-6a2ee2b3c001"
       />
     );
     expect(screen.getByRole("alert").textContent).toMatch(TOO_MUCH);

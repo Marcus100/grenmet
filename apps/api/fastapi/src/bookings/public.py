@@ -28,6 +28,7 @@ from src.rewards import service as rewards_service
 from src.utils.datetime import utc_now
 from src.utils.email_hash import hash_email
 from src.utils.timezones import utc_to_local, zone
+from src.webhooks_out import service as webhook_service
 
 from . import emails, ics, service, transitions
 from .exceptions import BookingConflictError, BookingNotFoundError
@@ -114,6 +115,33 @@ async def transition(
     await session.flush()
     if target is BookingStatus.COMPLETED:
         await _emit_completed_reward(session, booking)
+
+
+async def _emit_webhook(
+    session: AsyncSession,
+    booking: Booking,
+    event_type: str,
+    *,
+    previous_starts_at: datetime | None = None,
+    previous_ends_at: datetime | None = None,
+    event_id: str,
+) -> None:
+    """Tell the organisation's webhook endpoints. Identifiers and times only: no
+    customer name, email or phone ever leaves in an event."""
+    data: dict[str, object] = {
+        "booking_id": str(booking.id),
+        "status": booking.status,
+        "service_id": str(booking.service_id),
+        "provider_id": str(booking.provider_id),
+        "starts_at": booking.starts_at.isoformat(),
+        "ends_at": booking.ends_at.isoformat(),
+    }
+    if previous_starts_at is not None and previous_ends_at is not None:
+        data["previous_starts_at"] = previous_starts_at.isoformat()
+        data["previous_ends_at"] = previous_ends_at.isoformat()
+    await webhook_service.emit_event_safely(
+        session, booking.organisation_id, event_type, data, event_id=event_id
+    )
 
 
 async def _emit_completed_reward(session: AsyncSession, booking: Booking) -> None:
@@ -485,6 +513,9 @@ async def create_booking(
         raise BookingConflictError(SLOT_TAKEN)
 
     record_event(session, booking, None, initial, note="Booked online")
+    await _emit_webhook(
+        session, booking, "booking.created", event_id=f"booking.created:{booking.id}"
+    )
     provider = await session.get(Provider, booking.provider_id)
     assert provider is not None
     managed = Managed(booking, profile, svc, provider, customer)
@@ -577,6 +608,12 @@ async def cancel_booking(
         note="Cancelled by customer",
         now=moment,
     )
+    await _emit_webhook(
+        session,
+        booking,
+        "booking.cancelled",
+        event_id=f"booking.cancelled:{booking.id}",
+    )
     mail = _mail(managed)
     await _queue_customer_email(
         session,
@@ -623,6 +660,7 @@ async def reschedule_booking(
         raise BookingConflictError(SLOT_TAKEN)
 
     previous = booking.starts_at
+    previous_ends = booking.ends_at
     ends_at = starts_at + timedelta(minutes=svc.duration_min)
     try:
         async with session.begin_nested():
@@ -643,8 +681,16 @@ async def reschedule_booking(
         current,
         note=f"Rescheduled from {previous:%Y-%m-%dT%H:%MZ} by customer",
     )
-    mail = _mail(managed)
     stamp = f"{starts_at:%Y%m%dT%H%M}"
+    await _emit_webhook(
+        session,
+        booking,
+        "booking.rescheduled",
+        previous_starts_at=previous,
+        previous_ends_at=previous_ends,
+        event_id=f"booking.rescheduled:{booking.id}:{stamp}",
+    )
+    mail = _mail(managed)
     await _queue_customer_email(
         session,
         managed,

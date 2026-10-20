@@ -582,7 +582,9 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   entitlement and organisation admin); signed provider callbacks at
   `POST /payments/public/webhooks/{provider}` (idempotent through the ledger, hidden
   from OpenAPI); superuser reconciliation, ledger, balances and payouts under
-  `/payments/admin/...`, including `reconciliation.csv`. The ledger is append-only.
+  `/payments/admin/...`, including `reconciliation.csv`. The ledger is append-only. A payout
+  needs a client-generated `request_id`: repeating it returns the first entry (no double
+  payout), and reusing it for different details is 409.
 - **Reliability and public booking** (PF2, ADR-0026): writes that create things accept
   `Idempotency-Key`; repeating a request with the same key and body replays the first
   answer (`Idempotency-Replayed: true`), the same key with a different body is 409.

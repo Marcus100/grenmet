@@ -18,6 +18,7 @@ from src.auth.models import User
 from src.pagination import PaginationParams
 from src.utils.datetime import utc_now
 from src.utils.email_hash import hash_email
+from src.webhooks_out import service as webhook_service
 
 from .audit import SUBJECT
 from .exceptions import ContactErasedError, ContactMergeError, ContactNotFoundError
@@ -269,6 +270,13 @@ async def erase_contact(
         organisation_id=contact.organisation_id,
     )
     await session.flush()
+    await webhook_service.emit_event_safely(
+        session,
+        contact.organisation_id,
+        "contact.erased",
+        {"contact_id": str(contact.id), "erased_at": contact.erased_at.isoformat()},
+        event_id=f"contact.erased:{contact.id}",
+    )
     logger.info("Contact erased", extra={"organisation_id": contact.organisation_id})
     return contact
 

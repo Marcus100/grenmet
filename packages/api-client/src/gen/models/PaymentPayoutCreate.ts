@@ -30,4 +30,11 @@ export type PaymentPayoutCreate = {
    */
   reference: string;
   note?: string | null;
+  /**
+   * @description Client-generated id for this payout. Sending the same id again returns the original entry instead of recording a second payout; the same id with different details is a 409.
+   *
+   * Format: `uuid`
+   * @type string
+   */
+  request_id: string;
 };

@@ -18,7 +18,9 @@ def _naive_utc(value: datetime | None) -> datetime | None:
     return value
 
 
-InputDateTime = Annotated[datetime | None, AfterValidator(_naive_utc)]
+# UtcDateTime only changes how a value is serialised; on input the validator
+# below still stores naive UTC.
+InputDateTime = Annotated[UtcDateTime | None, AfterValidator(_naive_utc)]
 
 
 class FeatureFlagAudience(BaseModel):

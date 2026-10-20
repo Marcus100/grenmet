@@ -23,6 +23,7 @@ from src.auth.models import User
 from src.organisations.models import PlatformOrganisation
 from src.utils.datetime import utc_now
 from src.utils.timezones import GRENADA, local_to_utc
+from src.webhooks_out import service as webhook_service
 
 from . import schemas
 from .exceptions import (
@@ -421,6 +422,35 @@ async def _capture(
         )
     )
     await session.flush()
+    await _emit_payment_event(session, intent, "payment.succeeded")
+
+
+async def _emit_payment_event(
+    session: AsyncSession,
+    intent: Intent,
+    event_type: str,
+    *,
+    refund_id: uuid.UUID | None = None,
+    refunded_minor: int | None = None,
+) -> None:
+    """Webhook for the organisation: ids, amounts and the source reference only."""
+    data: dict[str, object] = {
+        "payment_id": str(intent.id),
+        "amount_minor": intent.amount_minor,
+        "currency": intent.currency,
+        "source_type": intent.source_type,
+        "source_id": intent.source_id,
+    }
+    if refund_id is not None and refunded_minor is not None:
+        data["refund_id"] = str(refund_id)
+        data["refunded_amount_minor"] = refunded_minor
+    await webhook_service.emit_event_safely(
+        session,
+        intent.organisation_id,
+        event_type,
+        data,
+        event_id=f"{event_type}:{refund_id or intent.id}",
+    )
 
 
 # --- manual payments ------------------------------------------------------------------
@@ -511,6 +541,13 @@ async def refund_intent(
         )
     )
     await session.flush()
+    await _emit_payment_event(
+        session,
+        intent,
+        "payment.refunded",
+        refund_id=refund.id,
+        refunded_minor=amount,
+    )
     logger.info(
         "payment refunded",
         extra={"intent_id": str(intent.id), "refund_id": str(refund.id)},
@@ -659,6 +696,13 @@ async def _apply_refunded(
         )
     )
     await session.flush()
+    await _emit_payment_event(
+        session,
+        intent,
+        "payment.refunded",
+        refund_id=refund.id,
+        refunded_minor=missing,
+    )
     return "processed"
 
 
@@ -706,6 +750,25 @@ async def create_payout(
             )
         )
     )
+    event_id = f"payout:{payload.request_id}"
+    existing = await session.scalar(
+        select(LedgerEntry).where(
+            LedgerEntry.provider == ProviderKey.MANUAL.value,
+            LedgerEntry.provider_event_id == event_id,
+        )
+    )
+    if existing is not None:
+        # A repeat of the same request (a double click, a retry): return the
+        # original entry. The same id with other details is a mistake.
+        if (
+            existing.organisation_id != payload.organisation_id
+            or -existing.amount_minor != payload.amount_minor
+            or existing.currency != payload.currency
+        ):
+            raise PaymentsConflictError("This request id was used for another payout")
+        return schemas.PaymentLedgerEntryPublic.model_validate(
+            existing, from_attributes=True
+        )
     owed = (
         await session.execute(
             select(func.coalesce(func.sum(LedgerEntry.amount_minor), 0)).where(
@@ -724,7 +787,7 @@ async def create_payout(
         amount_minor=-payload.amount_minor,
         currency=payload.currency,
         provider=ProviderKey.MANUAL.value,
-        provider_event_id=f"payout:{uuid.uuid4()}",
+        provider_event_id=event_id,
         reference=payload.reference,
         note=payload.note,
         created_by_user_id=actor.id,
