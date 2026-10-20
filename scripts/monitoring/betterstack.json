@@ -1,7 +1,10 @@
 {
   "teamId": 476349,
   "limitsVerified": false,
-  "limits": { "monitors": 10, "heartbeats": 10 },
+  "limits": {
+    "monitors": 10,
+    "heartbeats": 10
+  },
   "resources": [
     {
       "environment": "staging",
@@ -60,6 +63,313 @@
       "id": "501601",
       "settings": {
         "name": "Staging · worker poll completion",
+        "period": 60,
+        "grace": 120,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "settings": {
+        "pronounceable_name": "Production · GAA API readiness",
+        "url": "https://api.barrels.gd/api/v1/utils/ready/",
+        "monitor_type": "keyword",
+        "required_keyword": "\"status\":\"ready\"",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "settings": {
+        "pronounceable_name": "Production · Barrels ID (auth) health",
+        "url": "https://auth.barrels.gd/api/health",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "settings": {
+        "pronounceable_name": "Production · GAA staff portal health",
+        "url": "https://admin.barrels.gd/api/health",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "settings": {
+        "pronounceable_name": "Production · GMS weather health",
+        "url": "https://weather.barrels.gd/api/health",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "settings": {
+        "pronounceable_name": "Production · CAP alert hub health",
+        "url": "https://cap.barrels.gd/api/health",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "settings": {
+        "pronounceable_name": "Production · GMS dashboard health",
+        "url": "https://gmsdash.barrels.gd/api/health",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "settings": {
+        "pronounceable_name": "Production · GMS docs health",
+        "url": "https://docs.barrels.gd/api/health",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "settings": {
+        "pronounceable_name": "Production · MBIA health",
+        "url": "https://mbia.barrels.gd/api/health",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "settings": {
+        "pronounceable_name": "Production · Signal health",
+        "url": "https://signal.barrels.gd/api/health",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "settings": {
+        "pronounceable_name": "Production · Elections health",
+        "url": "https://elections.barrels.gd/api/health",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "deferred": true,
+      "settings": {
+        "pronounceable_name": "Production · CMS readiness",
+        "url": "https://cms.barrels.gd/api/ready",
+        "monitor_type": "keyword",
+        "required_keyword": "\"status\":\"ready\"",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "deferred": true,
+      "settings": {
+        "pronounceable_name": "Production · Events health",
+        "url": "https://events.barrels.gd/api/health",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "monitors",
+      "deferred": true,
+      "settings": {
+        "pronounceable_name": "Production · Barrels homepage",
+        "url": "https://barrels.gd/",
+        "monitor_type": "status",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "ssl_expiration": 14,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "heartbeats",
+      "settings": {
+        "name": "Production · probe runner",
+        "period": 300,
+        "grace": 600,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "heartbeats",
+      "settings": {
+        "name": "Production · verified core backup",
+        "period": 86400,
+        "grace": 7200,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "production",
+      "kind": "heartbeats",
+      "settings": {
+        "name": "Production · worker poll completion",
         "period": 60,
         "grace": 120,
         "email": true,

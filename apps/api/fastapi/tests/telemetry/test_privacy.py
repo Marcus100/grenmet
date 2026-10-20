@@ -39,13 +39,13 @@ class PrivacyTests(unittest.TestCase):
 
     def test_log_only_events_keep_a_safe_title(self):
         event = {
-            "logger": "ddtrace.internal.writer.writer",
+            "logger": "httpx",
             "logentry": {"formatted": "secret payload"},
         }
         result = scrub_sentry_event(event, {})
         self.assertEqual(result["message"], "Log event (details redacted)")
         self.assertNotIn("secret payload", json.dumps(result))
-        self.assertEqual(result["logger"], "ddtrace.internal.writer.writer")
+        self.assertEqual(result["logger"], "httpx")
 
     def test_keeps_only_safe_tags(self):
         result = scrub_sentry_event(
