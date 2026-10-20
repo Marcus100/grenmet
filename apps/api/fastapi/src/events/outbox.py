@@ -8,7 +8,6 @@ the platform commit and the Events commit) tells nobody twice. Failures back off
 exponentially and give up after ``MAX_ATTEMPTS`` (``failed_at``).
 """
 
-import logging
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -18,6 +17,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import operational_metrics
 from src.notifications import service as notification_service
 from src.organisations.models import Membership, MembershipRole, MembershipStatus
 from src.utils.datetime import utc_now
@@ -34,8 +34,6 @@ from .models import (
     Ticket,
 )
 from .service.common import GRENADA
-
-logger = logging.getLogger(__name__)
 
 PUBLISHED = "listing.published"
 CANCELLED = "listing.cancelled"
@@ -243,6 +241,7 @@ async def drain(
         if row is None:
             break
         row_id = row.id
+        dead: tuple[uuid.UUID, str, int] | None = None
         try:
             await _deliver(events, platform, row)
             await platform.commit()
@@ -257,9 +256,7 @@ async def drain(
             row.last_error = f"{type(exc).__name__}: {exc}"[:300]
             if row.attempts >= max_attempts:
                 row.failed_at = now
-                logger.error(
-                    "Events outbox row gave up", extra={"outbox_id": str(row.id)}
-                )
+                dead = (row.id, row.kind, row.attempts)
             else:
                 row.available_at = now + timedelta(
                     seconds=retry_delay_seconds(row.attempts)
@@ -269,4 +266,8 @@ async def drain(
             row.last_error = None
             done += 1
         await events.commit()
+        if dead is not None:
+            await operational_metrics.outbox_dead_lettered(
+                "events", dead[1], outbox_id=dead[0], attempts=dead[2]
+            )
     return done

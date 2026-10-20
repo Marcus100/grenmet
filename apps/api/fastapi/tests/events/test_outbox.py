@@ -8,6 +8,7 @@ from sqlalchemy import Row, func, select
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import operational_metrics
 from src.events import outbox
 from src.events.models import Follow, Listing, Organiser, Outbox, Rsvp, SavedListing
 from src.notifications import service as notification_service
@@ -213,6 +214,12 @@ async def test_rows_give_up_after_max_attempts(
         raise OperationalError("insert", {}, Exception("down"))
 
     monkeypatch.setattr(notification_service, "notify", broken)
+    dead: list[tuple[str, str, object, int]] = []
+
+    async def signal(name: str, kind: str, *, outbox_id: object, attempts: int) -> None:
+        dead.append((name, kind, outbox_id, attempts))
+
+    monkeypatch.setattr(operational_metrics, "outbox_dead_lettered", signal)
     for _ in range(3):
         async with events_db() as db:
             await db.execute(Outbox.__table__.update().values(available_at=utc_now()))
@@ -221,6 +228,44 @@ async def test_rows_give_up_after_max_attempts(
     (row,) = await _outbox_rows(events_db)
     assert (row.attempts, row.failed_at is not None) == (3, True)
     assert await _drain(events_db, db_async, max_attempts=3) == 0
+    # Exactly one countable dead-letter signal, carrying the kind and no payload.
+    assert dead == [("events", row.kind, row.id, 3)]
+
+
+@pytest.mark.asyncio
+async def test_events_backlog_counts_recent_failures_and_overdue_rows(
+    events_db: SessionFactory,
+) -> None:
+    from src.worker import outbox_health
+
+    now = utc_now()
+    async with events_db() as events:
+        for key, available, processed, failed in [
+            ("failed-recent", now, None, now - timedelta(hours=2)),
+            ("failed-old", now, None, now - timedelta(days=2)),
+            ("overdue", now - timedelta(hours=1), None, None),
+            ("fresh", now - timedelta(minutes=1), None, None),
+            ("processed", now - timedelta(hours=1), now, None),
+        ]:
+            events.add(
+                Outbox(
+                    kind="listing.published",
+                    entity_type="listing",
+                    entity_id=key,
+                    dedupe_key=key,
+                    available_at=available,
+                    processed_at=processed,
+                    failed_at=failed,
+                )
+            )
+        await events.commit()
+        backlog = await outbox_health.events_backlog(
+            events,
+            stale_after=timedelta(minutes=30),
+            dead_window=timedelta(hours=24),
+            now=now,
+        )
+    assert backlog == outbox_health.Backlog("events", dead=1, stale_pending=1)
 
 
 def test_retry_delay_doubles_and_caps():
