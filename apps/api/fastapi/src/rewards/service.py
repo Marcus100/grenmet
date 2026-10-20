@@ -646,9 +646,10 @@ async def cancel_redemption(
 
 
 async def confirm_redemption(
-    session: AsyncSession, *, organisation_id: str, code: str, staff: User
+    session: AsyncSession, *, organisation_id: str, code: str, staff: User | None
 ) -> tuple[Entry, Program]:
-    """Staff of the funding organisation confirm a customer's code. One use only."""
+    """Staff of the funding organisation (``None``: an API key) confirm a
+    customer's code. One use only."""
     entry = await session.scalar(
         select(Entry)
         .where(
@@ -662,10 +663,11 @@ async def confirm_redemption(
         raise RedemptionNotFoundError()
     if entry.status != EntryStatus.PENDING.value:
         raise RewardsConflictError("This code has already been used or cancelled")
-    audit_service.set_actor(session, staff.id)
+    staff_id = staff.id if staff else None
+    audit_service.set_actor(session, staff_id)
     entry.status = EntryStatus.CONFIRMED.value
     entry.settled_at = utc_now()
-    entry.settled_by_user_id = staff.id
+    entry.settled_by_user_id = staff_id
     await session.flush()
     program = await get_program(session, entry.program_id)
     return entry, program

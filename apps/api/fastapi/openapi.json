@@ -4254,6 +4254,9 @@
         "operationId": "rewardsListPrograms",
         "security": [
           {
+            "OrganisationApiKey": []
+          },
+          {
             "OAuth2PasswordBearer": []
           }
         ],
@@ -4271,10 +4274,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -4499,6 +4502,9 @@
         "operationId": "rewardsConfirmRedemption",
         "security": [
           {
+            "OrganisationApiKey": []
+          },
+          {
             "OAuth2PasswordBearer": []
           }
         ],
@@ -4516,10 +4522,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
           }
         ],
         "requestBody": {
@@ -6297,6 +6303,9 @@
         "operationId": "bookingsGetProfile",
         "security": [
           {
+            "OrganisationApiKey": []
+          },
+          {
             "OAuth2PasswordBearer": []
           }
         ],
@@ -6314,10 +6323,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -6446,6 +6455,9 @@
         "operationId": "bookingsListServices",
         "security": [
           {
+            "OrganisationApiKey": []
+          },
+          {
             "OAuth2PasswordBearer": []
           }
         ],
@@ -6463,10 +6475,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -6691,6 +6703,9 @@
         "operationId": "bookingsListProviders",
         "security": [
           {
+            "OrganisationApiKey": []
+          },
+          {
             "OAuth2PasswordBearer": []
           }
         ],
@@ -6708,10 +6723,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -6936,6 +6951,9 @@
         "operationId": "bookingsGetWorkingHours",
         "security": [
           {
+            "OrganisationApiKey": []
+          },
+          {
             "OAuth2PasswordBearer": []
           }
         ],
@@ -6963,10 +6981,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -7113,6 +7131,9 @@
         "operationId": "bookingsListExceptions",
         "security": [
           {
+            "OrganisationApiKey": []
+          },
+          {
             "OAuth2PasswordBearer": []
           }
         ],
@@ -7174,10 +7195,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -7395,6 +7416,9 @@
         "operationId": "bookingsListStudioBookings",
         "security": [
           {
+            "OrganisationApiKey": []
+          },
+          {
             "OAuth2PasswordBearer": []
           }
         ],
@@ -7432,10 +7456,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
           }
         ],
         "responses": {

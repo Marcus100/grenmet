@@ -24,7 +24,7 @@ export function rewardsConfirmRedemption<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/rewards/redemptions/confirm",
-      security: [{ type: "oauth2" }],
+      security: [{ type: "http", scheme: "bearer" }, { type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<
