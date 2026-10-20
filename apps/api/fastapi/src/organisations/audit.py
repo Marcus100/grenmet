@@ -13,6 +13,7 @@ from src.audit import registry
 from src.auth.models import User
 
 from .models import (
+    ApiKey,
     Invitation,
     Membership,
     MembershipRole,
@@ -75,4 +76,12 @@ def register() -> None:
         entity_id_attr="organisation_id",
         exclude=("turnstile_secret_encrypted",),
         label="Public site",
+    )
+    registry.track(
+        ApiKey,
+        record_type="organisation_api_key",
+        entity_type="platform_organisation",
+        entity_id_attr="organisation_id",
+        exclude=("key_hash", "last_used_at"),
+        label="API key",
     )

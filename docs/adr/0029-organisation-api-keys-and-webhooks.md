@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed. On 2026-10-20 the owner approved building both before the first client needs them (foundations slices PF5 and PF6). This reverses the earlier rule that N4 waits for a client (ADR-0025).
+Proposed. On 2026-10-20 the owner approved building both before the first client needs them (foundations slices PF5 and PF6). This reverses the earlier rule that N4 waits for a client (ADR-0025). PF5 (API keys) is implemented: scopes are product-level `<product>.<read|write>` in `src/organisations/api_key_scopes.py` rather than `permissions.py` keys, and are bounded by the creator being an organisation admin or owner and by the organisation's entitlement. PF6 (webhooks) is pending.
 
 ## Context
 
