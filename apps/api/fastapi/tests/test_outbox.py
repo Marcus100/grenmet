@@ -7,7 +7,9 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email as email_module
 from src import outbox
+from src.email_config import email_settings
 from src.notifications import outbox_handlers
 from src.notifications.models import OutboundEmail
 from src.outbox import Outbox, OutboxMessage, OutboxStatus
@@ -165,6 +167,10 @@ async def test_rows_without_a_registered_handler_are_left_pending(
 async def test_email_send_handler_logs_one_outbound_email(
     db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", "noreply@example.com")
+    monkeypatch.setattr(email_settings, "RESEND_API_KEY", "re_test")
+    monkeypatch.setattr(email_settings, "EMAIL_RENDER_URL", None)
+    monkeypatch.setattr(email_module, "send_email", lambda **_: None)
     address = f"{uuid.uuid4().hex[:8]}@example.com"
     key = f"t:{uuid.uuid4().hex}"
     args = {
@@ -205,7 +211,7 @@ async def test_email_send_handler_logs_one_outbound_email(
         None,
         True,
     )
-    assert emails[0].status in {"sent", "skipped"}
+    assert emails[0].status == "sent"
     done = await db_async.scalar(
         select(Outbox).where(Outbox.topic == topic, Outbox.dedupe_key == key)
     )
