@@ -1,10 +1,9 @@
 """
-Logging configuration for Datadog + Sentry.
+Logging configuration: structured JSON to stdout, plus Sentry.
 
-- JSON output parsed by the Datadog log forwarder
-- ddtrace injects dd.trace_id / dd.span_id when DD_LOGS_INJECTION=true
-- Sentry captures exceptions independently via sentry_sdk.init
-- Run the app with `ddtrace-run uvicorn ...` in production for full APM tracing
+- JSON lines on stdout, read from the container logs (no APM agent is used)
+- `request_id` / `organisation_id` link a line to its request and Sentry event
+- Sentry captures exceptions and error logs independently via sentry_sdk.init
 """
 
 import logging
@@ -15,8 +14,8 @@ from pythonjsonlogger.json import JsonFormatter
 from src.request_context import RequestIdFilter
 
 
-class _DatadogFormatter(JsonFormatter):
-    """JSON formatter that includes ddtrace context fields when present."""
+class _ContextJsonFormatter(JsonFormatter):
+    """JSON formatter that adds request context fields when present."""
 
     def add_fields(
         self,
@@ -31,21 +30,10 @@ class _DatadogFormatter(JsonFormatter):
         organisation_id = record.__dict__.get("organisation_id")
         if organisation_id and organisation_id != "-":
             log_record["organisation_id"] = organisation_id
-        # ddtrace injects these onto the LogRecord when DD_LOGS_INJECTION=true
-        for field in (
-            "dd.trace_id",
-            "dd.span_id",
-            "dd.service",
-            "dd.env",
-            "dd.version",
-        ):
-            value = record.__dict__.get(field)
-            if value:
-                log_record[field] = value
 
 
 def configure_logging(level: str = "INFO") -> None:
-    """Configure root logger with JSON output suitable for Datadog.
+    """Configure the root logger with structured JSON output.
 
     Call once at application startup. In local development, set
     LOG_FORMAT=text to get human-readable output instead.
@@ -65,7 +53,7 @@ def configure_logging(level: str = "INFO") -> None:
         )
     else:
         handler.setFormatter(
-            _DatadogFormatter(
+            _ContextJsonFormatter(
                 fmt="%(asctime)s %(levelname)s %(name)s %(message)s",
                 datefmt="%Y-%m-%dT%H:%M:%S",
             )

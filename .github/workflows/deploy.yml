@@ -193,6 +193,35 @@ jobs:
         run: |
           set -euo pipefail
           sudo --preserve-env=DEPLOY_ENV,GITHUB_SHA,PROBE_HEARTBEAT_URL,BETTERSTACK_API_TOKEN,PROBE_INCIDENTS_ENABLED,PROBE_MAINTENANCE bash ../../scripts/monitoring/install.sh
+      # Marks the release deployed in Sentry so issues show "first seen in" and
+      # regressions per deploy. Release = commit SHA, matching SENTRY_RELEASE
+      # (render-env.py) and NEXT_PUBLIC_RELEASE (build-web-images.yml). Optional:
+      # skipped without the token, and a Sentry failure never fails the deploy.
+      - name: Mark Sentry release deployed
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG || 'grenmet' }}
+          SENTRY_PROJECT: grenmet-${{ inputs.environment }}
+          RELEASE: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$SENTRY_AUTH_TOKEN" ]]; then
+            echo "SENTRY_AUTH_TOKEN not set; skipping Sentry deploy marker." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          base="https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases"
+          sentry() {
+            # The token goes through stdin, never the process list or the log.
+            printf 'header = "Authorization: Bearer %s"\n' "$SENTRY_AUTH_TOKEN" |
+              curl --config - --fail-with-body --silent --show-error --max-time 20 \
+                -H 'Content-Type: application/json' -o /dev/null -w '%{http_code}\n' \
+                -X POST "$1" --data "$2"
+          }
+          # Creating an existing release is idempotent (200/208).
+          sentry "$base/" "{\"version\":\"$RELEASE\",\"projects\":[\"$SENTRY_PROJECT\"]}"
+          sentry "$base/$RELEASE/deploys/" "{\"environment\":\"$DEPLOY_ENV\",\"name\":\"$DEPLOY_IMAGE_TAG\"}"
+          echo "Sentry release $RELEASE marked deployed to $DEPLOY_ENV ($SENTRY_PROJECT)." >> "$GITHUB_STEP_SUMMARY"
       - name: Service state on failure
         if: failure()
         run: docker ps -a --filter "label=com.docker.compose.project=$COMPOSE_PROJECT" --format 'table {{.Names}}\t{{.Status}}'

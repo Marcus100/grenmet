@@ -21,6 +21,7 @@ from src.logging_config import configure_logging
 from src.models_guidance.config import guidance_settings
 from src.telemetry import sentry_options
 from src.worker.config import worker_settings
+from src.worker.cron_monitor import monitored
 
 configure_logging()
 
@@ -38,6 +39,7 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.eregister.publisher",
         "src.billing.reminders",
         "src.worker.retention",
+        "src.worker.outbox_health",
         "src.outbox",
         "src.notifications.outbox_handlers",
         "src.bookings.reminders",
@@ -59,6 +61,9 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         )
 
 
+@monitored(
+    schedule="* * * * *", checkin_margin=2, max_runtime=5, min_interval_seconds=60
+)
 async def process_cap_jobs(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.worker import dispatch
@@ -82,6 +87,7 @@ async def process_cap_jobs(ctx: dict[str, Any]) -> int:
         return result
 
 
+@monitored(schedule="*/5 * * * *", checkin_margin=5, max_runtime=5)
 async def ingest_cap_feeds(ctx: dict[str, Any]) -> int:
     from src.cap import service as cap_service
     from src.database import async_session_factory
@@ -147,6 +153,9 @@ async def send_outbound_emails(ctx: dict[str, Any]) -> int:
         return result
 
 
+@monitored(
+    schedule="* * * * *", checkin_margin=2, max_runtime=5, min_interval_seconds=60
+)
 async def drain_events_outbox(ctx: dict[str, Any]) -> int:
     """Turn Events outbox rows (published, cancelled, approved...) into notifications."""
     from src.database import async_session_factory
@@ -173,6 +182,9 @@ async def drain_events_outbox(ctx: dict[str, Any]) -> int:
         return result
 
 
+@monitored(
+    schedule="* * * * *", checkin_margin=2, max_runtime=5, min_interval_seconds=60
+)
 async def drain_outbox(ctx: dict[str, Any]) -> int:
     """Run due platform outbox rows (email.send, ...); see ADR-0026."""
     from src import outbox
@@ -415,6 +427,41 @@ async def check_alert_outbox(ctx: dict[str, Any]) -> int:
     return 0
 
 
+async def check_outbox_backlog(ctx: dict[str, Any]) -> int:
+    """Gauge dead and overdue rows in both outboxes; warn above the threshold."""
+    from datetime import timedelta
+
+    from src.database import async_session_factory
+    from src.events import database as events_database
+    from src.worker import outbox_health
+
+    stale_after = timedelta(minutes=worker_settings.OUTBOX_STALE_MINUTES)
+    dead_window = timedelta(hours=worker_settings.OUTBOX_DEAD_WINDOW_HOURS)
+    async with async_session_factory() as session:
+        backlogs = [
+            await outbox_health.platform_backlog(
+                session, stale_after=stale_after, dead_window=dead_window
+            )
+        ]
+    events = events_database.create_session()
+    if events is not None:
+        async with events:
+            backlogs.append(
+                await outbox_health.events_backlog(
+                    events, stale_after=stale_after, dead_window=dead_window
+                )
+            )
+    unhealthy = 0
+    for backlog in backlogs:
+        healthy = await outbox_health.report(
+            ctx.get("redis"),
+            backlog,
+            threshold=worker_settings.OUTBOX_ALERT_THRESHOLD,
+        )
+        unhealthy += not healthy
+    return unhealthy
+
+
 async def poll_flights(ctx: dict[str, Any]) -> int:
     """Refresh cached OpenSky movements. Does nothing unless the flag is on."""
     from src.flights import service as flights_service
@@ -431,6 +478,7 @@ async def poll_flights(ctx: dict[str, Any]) -> int:
     return sum(result.values())
 
 
+@monitored(schedule="30 3 * * *", checkin_margin=30, max_runtime=60)
 async def purge_expired_data(ctx: dict[str, Any]) -> int:
     """Daily retention purge (contact, data requests, pending subscriptions, comments)."""
     from src.database import async_session_factory
@@ -520,6 +568,7 @@ class WorkerSettings:
         purge_expired_data,
         check_nhc_failures,
         check_alert_outbox,
+        check_outbox_backlog,
         poll_flights,
         fetch_marine_environment,
         fetch_air_environment,
@@ -587,6 +636,8 @@ class WorkerSettings:
         cron(check_nhc_failures, minute=set(range(0, 60, 5)), run_at_startup=False),
         # Is the email outbox draining? Every 15 minutes.
         cron(check_alert_outbox, minute={0, 15, 30, 45}, run_at_startup=False),
+        # Dead and overdue rows in the platform and Events outboxes, every 15 minutes.
+        cron(check_outbox_backlog, minute={2, 17, 32, 47}, run_at_startup=False),
         # OpenSky flight movements every 30 minutes; no-op unless the flag is on.
         cron(poll_flights, minute={5, 35}, run_at_startup=False),
         # Copernicus Marine analysis/forecast, every 6 hours; no-op without credentials.

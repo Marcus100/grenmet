@@ -195,6 +195,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:${{ matrix.image }}
+          # Build provenance and an SPDX SBOM are attached as attestation manifests
+          # in the pushed image index. Build args are recorded in max-mode provenance;
+          # they are NEXT_PUBLIC_* values already shipped to browsers, and real
+          # secrets go through `secrets:`, which provenance never records.
+          provenance: mode=max
+          sbom: true
           platforms: linux/amd64
 
 

@@ -2,7 +2,7 @@
 
 **Status:** Dev implementation; staging availability pilot active; production rollout pending
 **Owner:** Barrels Grenada engineering
-**Last updated:** 2026-10-05
+**Last updated:** 2026-10-20
 
 Roll out **development → staging → production**. A successful `dev` push is not
 production delivery. The owner confirmed on 2026-10-03 that all providers use free
@@ -149,8 +149,8 @@ ARQ records four scheduled job completion/failure totals after the operation,
 with atomic Redis deduplication by a hash of the execution ID. A worker heartbeat
 means a successful CAP polling run, not startup and not proof that every queued
 business operation succeeded. Individual delivery failures remain in their
-existing durable outboxes/Sentry. Retry counts and queue-age reporting still need
-an explicit operational export.
+existing durable outboxes/Sentry. Outbox dead letters and backlog are now
+counted (see "Outbox dead letters and backlog" below).
 
 Internal commands (no public telemetry endpoint or database migration):
 
@@ -175,6 +175,81 @@ observed zero remains zero. Stale probe data cannot imply current health.
 The CLI evidence export uses read-only GitHub/Sentry access, excludes issue text
 and identities, and keeps legacy mixed-project Sentry counts unattributed.
 It does not pretend that an empty production error query proves working delivery.
+
+## Production monitoring as code (2026-10-20)
+
+All resources live in [`scripts/monitoring/betterstack.json`](../../scripts/monitoring/betterstack.json).
+Production entries have no provider ID yet and are declared `paused: true`, so
+nothing is created or alerts until the owner applies and unpauses them.
+
+| Kind | Name (`Production · …`) | Target | Check |
+| --- | --- | --- | --- |
+| Monitor | GAA API readiness | `https://api.barrels.gd/api/v1/utils/ready/` | keyword `"status":"ready"` |
+| Monitor | Barrels ID (auth), GAA staff portal, GMS weather, CAP alert hub, GMS dashboard, GMS docs, MBIA, Signal, Elections health | `https://{auth,admin,weather,cap,gmsdash,docs,mbia,signal,elections}.barrels.gd/api/health` | HTTP 2xx |
+| Monitor (deferred) | CMS readiness, Events health, Barrels homepage | `cms…/api/ready`, `events…/api/health`, `https://barrels.gd/` | covered by the probe runner until quota allows |
+| Heartbeat | probe runner | `PROBE_HEARTBEAT_URL` | 5 min + 10 min grace |
+| Heartbeat | verified core backup | `BACKUP_HEARTBEAT_URL` | 24 h + 2 h grace |
+| Heartbeat | worker poll completion | `WORKER_HEARTBEAT_URL` (rendered as `TELEMETRY_WORKER_HEARTBEAT_URL`) | 1 min + 2 min grace |
+
+Every monitor checks every 3 minutes, verifies TLS and alerts 14 days before
+certificate expiry (`ssl_expiration`); email only. Ten active monitors fill the
+free allowance, so the staging pilot monitor 5014248 and the old Google test must
+be retired first (the provider refuses to exceed `limits`). `deferred: true`
+resources are validated but never created; remove the flag when a slot frees up.
+`apps/web/admin` (Barrels control plane) is built but not deployed, so it has no
+monitor: `admin.barrels.gd` still serves the GAA staff portal. Babydoll
+(`babydoll.barrels.gd`, Vercel client site, no Sentry) is in the service
+catalogue and covered by the probe runner only.
+
+**Apply:** after checking the Better Stack plan, set `"limitsVerified": true`,
+then dispatch **Monitoring provider configuration** from a production release tag
+with `environment=production`, `operation=preview`; review the planned `POST`s,
+then rerun with `operation=apply`. Record each returned ID in `betterstack.json`
+(adopting it, like staging) and the catalogue `availability.monitorId`, then
+unpause in Better Stack and set `"paused": false` in the file.
+
+**Secrets (production GitHub environment):** `BETTERSTACK_API_TOKEN`,
+`PROBE_HEARTBEAT_URL`, `BACKUP_HEARTBEAT_URL`, `WORKER_HEARTBEAT_URL` (copy the
+heartbeat URLs from Better Stack after apply; they are credentials and never live
+in the repository), and `SENTRY_AUTH_TOKEN` (needs `project:releases`) for the
+deploy marker. Variables: `SENTRY_ORG` (defaults to `grenmet`),
+`TELEMETRY_ENABLED=true` for Redis counters, `MONITORING_DEPLOY_ENABLED=true` for
+the probe runner install.
+
+### Sentry releases, crons and alert rules
+
+`deploy.yml` marks each successful core deploy in Sentry (release = commit SHA in
+`grenmet-<environment>`, matching `SENTRY_RELEASE` and `NEXT_PUBLIC_RELEASE`). It
+is skipped without `SENTRY_AUTH_TOKEN` and never fails a deploy.
+
+The worker sends Sentry Cron check-ins for `process_cap_jobs`, `ingest_cap_feeds`,
+`drain_outbox`, `drain_events_outbox` and `purge_expired_data` (slugs
+`<environment>-worker-<job>`, e.g. `production-worker-drain-outbox`) only when
+`SENTRY_CRONS_ENABLED=true` reaches the worker; check the plan's included cron
+monitors first. Sentry creates the monitors from the first check-ins.
+
+Create these alert rules in each Sentry project (`grenmet-staging`,
+`grenmet-production`), email to the owner:
+
+1. Issue alert: **a new issue is created** (filter `environment` to the project's).
+2. Issue alert: **an issue changes state from resolved to unresolved** (regression).
+3. Metric alert: **number of errors** above the normal hourly baseline (start at
+   20 per hour; tune after a week), per project.
+4. Cron monitors: **missed check-in or failure** for every `*-worker-*` monitor
+   (set on each monitor's alert settings; issue threshold 2, recovery 1).
+5. Optional issue alert on the message `Outbox message dead-lettered` (see below).
+
+### Outbox dead letters and backlog
+
+When a platform (`platform.outbox`) or Events outbox row gives up, the worker logs
+one error `Outbox message dead-lettered` with `outbox`, `topic`, `outbox_id` and
+`attempts` only (never payload or error text; Sentry records it as an issue) and
+increments `telemetry:v1:<env>:outbox:<date>` field `<outbox>|<topic>|dead`.
+`check_outbox_backlog` (every 15 minutes) writes gauges to
+`telemetry:v1:<env>:outbox-backlog` (`<outbox>|dead`, `<outbox>|stale_pending`)
+and logs warning `Outbox backlog above threshold` when dead rows in the last
+`OUTBOX_DEAD_WINDOW_HOURS` (24) or rows overdue by `OUTBOX_STALE_MINUTES` (30)
+exceed `OUTBOX_ALERT_THRESHOLD` (0). Counters need `TELEMETRY_ENABLED=true`.
 
 ## Live evidence on 2026-10-02
 
