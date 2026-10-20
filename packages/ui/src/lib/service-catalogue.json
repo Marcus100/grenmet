@@ -1261,6 +1261,186 @@
       "expectedBody": null
     },
     {
+      "id": "admin",
+      "owner": "barrels",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": false,
+      "healthPath": "/api/health",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3012",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": null,
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false,
+            "reason": "Owner requested production-only browser analytics on 2026-10-05. All staging subdomains are excluded."
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "The app has the Sentry SDK but no shared-project routing yet; add it to the shared Sentry app list in catalogue.mjs and render-env.py when it is deployed."
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": [],
+            "reason": "Built but not deployed: admin.<domain> serves the GAA/GMS staff portal (gaa-admin) until the gmsadmin cutover (docs/ports.md)."
+          }
+        },
+        "production": {
+          "origin": null,
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "The app has the Sentry SDK but no shared-project routing yet; add it to the shared Sentry app list in catalogue.mjs and render-env.py when it is deployed."
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": [],
+            "reason": "Built but not deployed: admin.<domain> serves the GAA/GMS staff portal (gaa-admin) until the gmsadmin cutover (docs/ports.md)."
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "babydoll",
+      "owner": "babydoll",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "vercel",
+      "publicAnalytics": false,
+      "healthPath": "/",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3014",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Client marketing site on Vercel with no error SDK; uptime is external only."
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": null,
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false,
+            "reason": "Production-only Vercel site; no staging deployment."
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Client marketing site on Vercel with no error SDK; uptime is external only."
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://babydoll.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false,
+            "reason": "Client site makes no analytics calls (apps/web/babydoll/AGENTS.md)."
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Client marketing site on Vercel with no error SDK; uptime is external only."
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
       "id": "nisa",
       "owner": "unconfirmed",
       "operationalOwner": "unconfirmed",
@@ -1454,6 +1634,23 @@
       "worker": {
         "status": "unconfigured",
         "heartbeatId": 501601,
+        "paused": true
+      }
+    },
+    "production": {
+      "probeRunner": {
+        "status": "unconfigured",
+        "heartbeatId": null,
+        "paused": true
+      },
+      "backup": {
+        "status": "unconfigured",
+        "heartbeatId": null,
+        "paused": true
+      },
+      "worker": {
+        "status": "unconfigured",
+        "heartbeatId": null,
         "paused": true
       }
     }
