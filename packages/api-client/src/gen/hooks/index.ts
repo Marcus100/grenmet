@@ -2299,15 +2299,35 @@ export {
   useRewardsConfirmRedemption,
 } from "./useRewardsConfirmRedemption.js";
 export {
+  rewardsCreateCheckInMutationKey,
+  rewardsCreateCheckInMutationOptions,
+  useRewardsCreateCheckIn,
+} from "./useRewardsCreateCheckIn.js";
+export {
   rewardsCreateProgramMutationKey,
   rewardsCreateProgramMutationOptions,
   useRewardsCreateProgram,
 } from "./useRewardsCreateProgram.js";
 export {
+  rewardsGetPassportQueryKey,
+  rewardsGetPassportQueryOptions,
+  useRewardsGetPassport,
+} from "./useRewardsGetPassport.js";
+export {
+  rewardsGetStreakQueryKey,
+  rewardsGetStreakQueryOptions,
+  useRewardsGetStreak,
+} from "./useRewardsGetStreak.js";
+export {
   rewardsListMineQueryKey,
   rewardsListMineQueryOptions,
   useRewardsListMine,
 } from "./useRewardsListMine.js";
+export {
+  rewardsListMyAchievementsQueryKey,
+  rewardsListMyAchievementsQueryOptions,
+  useRewardsListMyAchievements,
+} from "./useRewardsListMyAchievements.js";
 export {
   rewardsListMyBadgesQueryKey,
   rewardsListMyBadgesQueryOptions,
@@ -2328,6 +2348,71 @@ export {
   rewardsListProgramsQueryOptions,
   useRewardsListPrograms,
 } from "./useRewardsListPrograms.js";
+export {
+  rewardsOrgAddTrailStopMutationKey,
+  rewardsOrgAddTrailStopMutationOptions,
+  useRewardsOrgAddTrailStop,
+} from "./useRewardsOrgAddTrailStop.js";
+export {
+  rewardsOrgCreateAchievementMutationKey,
+  rewardsOrgCreateAchievementMutationOptions,
+  useRewardsOrgCreateAchievement,
+} from "./useRewardsOrgCreateAchievement.js";
+export {
+  rewardsOrgCreateTrailMutationKey,
+  rewardsOrgCreateTrailMutationOptions,
+  useRewardsOrgCreateTrail,
+} from "./useRewardsOrgCreateTrail.js";
+export {
+  rewardsOrgCreateVenueMutationKey,
+  rewardsOrgCreateVenueMutationOptions,
+  useRewardsOrgCreateVenue,
+} from "./useRewardsOrgCreateVenue.js";
+export {
+  rewardsOrgGetVenueQrTokenQueryKey,
+  rewardsOrgGetVenueQrTokenQueryOptions,
+  useRewardsOrgGetVenueQrToken,
+} from "./useRewardsOrgGetVenueQrToken.js";
+export {
+  rewardsOrgListAchievementsQueryKey,
+  rewardsOrgListAchievementsQueryOptions,
+  useRewardsOrgListAchievements,
+} from "./useRewardsOrgListAchievements.js";
+export {
+  rewardsOrgListEntriesQueryKey,
+  rewardsOrgListEntriesQueryOptions,
+  useRewardsOrgListEntries,
+} from "./useRewardsOrgListEntries.js";
+export {
+  rewardsOrgListRedemptionsQueryKey,
+  rewardsOrgListRedemptionsQueryOptions,
+  useRewardsOrgListRedemptions,
+} from "./useRewardsOrgListRedemptions.js";
+export {
+  rewardsOrgListTrailsQueryKey,
+  rewardsOrgListTrailsQueryOptions,
+  useRewardsOrgListTrails,
+} from "./useRewardsOrgListTrails.js";
+export {
+  rewardsOrgListVenuesQueryKey,
+  rewardsOrgListVenuesQueryOptions,
+  useRewardsOrgListVenues,
+} from "./useRewardsOrgListVenues.js";
+export {
+  rewardsOrgPauseProgramMutationKey,
+  rewardsOrgPauseProgramMutationOptions,
+  useRewardsOrgPauseProgram,
+} from "./useRewardsOrgPauseProgram.js";
+export {
+  rewardsOrgResumeProgramMutationKey,
+  rewardsOrgResumeProgramMutationOptions,
+  useRewardsOrgResumeProgram,
+} from "./useRewardsOrgResumeProgram.js";
+export {
+  rewardsOrgUpdateTrailMutationKey,
+  rewardsOrgUpdateTrailMutationOptions,
+  useRewardsOrgUpdateTrail,
+} from "./useRewardsOrgUpdateTrail.js";
 export {
   rewardsRequestRedemptionMutationKey,
   rewardsRequestRedemptionMutationOptions,

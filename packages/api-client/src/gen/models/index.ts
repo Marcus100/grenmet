@@ -14,6 +14,8 @@ export type { AccessStatusPublic } from "./AccessStatusPublic.js";
 export type { AccountAppPublic } from "./AccountAppPublic.js";
 export type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
 export type { AccountSessionRequest } from "./AccountSessionRequest.js";
+export type { AchievementRule } from "./AchievementRule.js";
+export { achievementRule } from "./AchievementRule.js";
 export type { ActivationAccountCreate } from "./ActivationAccountCreate.js";
 export type { ActivationConfirm } from "./ActivationConfirm.js";
 export type { ActivationIssue } from "./ActivationIssue.js";
@@ -1751,6 +1753,8 @@ export type {
 export type { CapValidationResult } from "./CapValidationResult.js";
 export type { CatalogueApply } from "./CatalogueApply.js";
 export type { CataloguePreview } from "./CataloguePreview.js";
+export type { CheckInCreate } from "./CheckInCreate.js";
+export type { CheckInPublic } from "./CheckInPublic.js";
 export type { CheckoutSessionPublic } from "./CheckoutSessionPublic.js";
 export type { ClockRequest } from "./ClockRequest.js";
 export type { ClockResult } from "./ClockResult.js";
@@ -5557,6 +5561,8 @@ export type { ParkingPermitIssue } from "./ParkingPermitIssue.js";
 export type { ParkingPermitListPublic } from "./ParkingPermitListPublic.js";
 export type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
 export type { ParkingPermitSubmit } from "./ParkingPermitSubmit.js";
+export type { PassportStopPublic } from "./PassportStopPublic.js";
+export type { PassportTrailPublic } from "./PassportTrailPublic.js";
 export type { PaymentCreate } from "./PaymentCreate.js";
 export type { PaymentMethod } from "./PaymentMethod.js";
 export { paymentMethod } from "./PaymentMethod.js";
@@ -5708,6 +5714,9 @@ export type { ReviewPublic } from "./ReviewPublic.js";
 export type { RewardCardPublic } from "./RewardCardPublic.js";
 export type { RewardEntryListPublic } from "./RewardEntryListPublic.js";
 export type { RewardEntryPublic } from "./RewardEntryPublic.js";
+export type { RewardsAchievementCreate } from "./RewardsAchievementCreate.js";
+export type { RewardsAchievementDefinitionPublic } from "./RewardsAchievementDefinitionPublic.js";
+export type { RewardsAchievementPublic } from "./RewardsAchievementPublic.js";
 export type {
   RewardsAdminAdjustBody,
   RewardsAdminAdjustOptions,
@@ -5783,6 +5792,20 @@ export type {
   RewardsConfirmRedemptionStatus422,
 } from "./RewardsConfirmRedemption.js";
 export type {
+  RewardsCreateCheckInBody,
+  RewardsCreateCheckInOptions,
+  RewardsCreateCheckInResponse,
+  RewardsCreateCheckInResponses,
+  RewardsCreateCheckInStatus201,
+  RewardsCreateCheckInStatus400,
+  RewardsCreateCheckInStatus401,
+  RewardsCreateCheckInStatus403,
+  RewardsCreateCheckInStatus404,
+  RewardsCreateCheckInStatus409,
+  RewardsCreateCheckInStatus422,
+  RewardsCreateCheckInStatus503,
+} from "./RewardsCreateCheckIn.js";
+export type {
   RewardsCreateProgramBody,
   RewardsCreateProgramHeaders,
   RewardsCreateProgramOptions,
@@ -5797,6 +5820,24 @@ export type {
   RewardsCreateProgramStatus422,
 } from "./RewardsCreateProgram.js";
 export type {
+  RewardsGetPassportOptions,
+  RewardsGetPassportResponse,
+  RewardsGetPassportResponses,
+  RewardsGetPassportStatus200,
+  RewardsGetPassportStatus401,
+  RewardsGetPassportStatus403,
+  RewardsGetPassportStatus422,
+} from "./RewardsGetPassport.js";
+export type {
+  RewardsGetStreakOptions,
+  RewardsGetStreakResponse,
+  RewardsGetStreakResponses,
+  RewardsGetStreakStatus200,
+  RewardsGetStreakStatus401,
+  RewardsGetStreakStatus403,
+  RewardsGetStreakStatus422,
+} from "./RewardsGetStreak.js";
+export type {
   RewardsListMineOptions,
   RewardsListMineResponse,
   RewardsListMineResponses,
@@ -5805,6 +5846,15 @@ export type {
   RewardsListMineStatus403,
   RewardsListMineStatus422,
 } from "./RewardsListMine.js";
+export type {
+  RewardsListMyAchievementsOptions,
+  RewardsListMyAchievementsResponse,
+  RewardsListMyAchievementsResponses,
+  RewardsListMyAchievementsStatus200,
+  RewardsListMyAchievementsStatus401,
+  RewardsListMyAchievementsStatus403,
+  RewardsListMyAchievementsStatus422,
+} from "./RewardsListMyAchievements.js";
 export type {
   RewardsListMyBadgesOptions,
   RewardsListMyBadgesResponse,
@@ -5846,6 +5896,186 @@ export type {
   RewardsListProgramsStatus422,
 } from "./RewardsListPrograms.js";
 export type {
+  RewardsOrgAddTrailStopBody,
+  RewardsOrgAddTrailStopHeaders,
+  RewardsOrgAddTrailStopOptions,
+  RewardsOrgAddTrailStopPath,
+  RewardsOrgAddTrailStopResponse,
+  RewardsOrgAddTrailStopResponses,
+  RewardsOrgAddTrailStopStatus201,
+  RewardsOrgAddTrailStopStatus400,
+  RewardsOrgAddTrailStopStatus401,
+  RewardsOrgAddTrailStopStatus403,
+  RewardsOrgAddTrailStopStatus404,
+  RewardsOrgAddTrailStopStatus409,
+  RewardsOrgAddTrailStopStatus422,
+} from "./RewardsOrgAddTrailStop.js";
+export type {
+  RewardsOrgCreateAchievementBody,
+  RewardsOrgCreateAchievementHeaders,
+  RewardsOrgCreateAchievementOptions,
+  RewardsOrgCreateAchievementResponse,
+  RewardsOrgCreateAchievementResponses,
+  RewardsOrgCreateAchievementStatus201,
+  RewardsOrgCreateAchievementStatus400,
+  RewardsOrgCreateAchievementStatus401,
+  RewardsOrgCreateAchievementStatus403,
+  RewardsOrgCreateAchievementStatus404,
+  RewardsOrgCreateAchievementStatus409,
+  RewardsOrgCreateAchievementStatus422,
+} from "./RewardsOrgCreateAchievement.js";
+export type {
+  RewardsOrgCreateTrailBody,
+  RewardsOrgCreateTrailHeaders,
+  RewardsOrgCreateTrailOptions,
+  RewardsOrgCreateTrailResponse,
+  RewardsOrgCreateTrailResponses,
+  RewardsOrgCreateTrailStatus201,
+  RewardsOrgCreateTrailStatus400,
+  RewardsOrgCreateTrailStatus401,
+  RewardsOrgCreateTrailStatus403,
+  RewardsOrgCreateTrailStatus404,
+  RewardsOrgCreateTrailStatus409,
+  RewardsOrgCreateTrailStatus422,
+} from "./RewardsOrgCreateTrail.js";
+export type {
+  RewardsOrgCreateVenueBody,
+  RewardsOrgCreateVenueHeaders,
+  RewardsOrgCreateVenueOptions,
+  RewardsOrgCreateVenueResponse,
+  RewardsOrgCreateVenueResponses,
+  RewardsOrgCreateVenueStatus201,
+  RewardsOrgCreateVenueStatus400,
+  RewardsOrgCreateVenueStatus401,
+  RewardsOrgCreateVenueStatus403,
+  RewardsOrgCreateVenueStatus404,
+  RewardsOrgCreateVenueStatus409,
+  RewardsOrgCreateVenueStatus422,
+  RewardsOrgCreateVenueStatus503,
+} from "./RewardsOrgCreateVenue.js";
+export type { RewardsOrgEntryListPublic } from "./RewardsOrgEntryListPublic.js";
+export type { RewardsOrgEntryPublic } from "./RewardsOrgEntryPublic.js";
+export type {
+  RewardsOrgGetVenueQrTokenHeaders,
+  RewardsOrgGetVenueQrTokenOptions,
+  RewardsOrgGetVenueQrTokenPath,
+  RewardsOrgGetVenueQrTokenResponse,
+  RewardsOrgGetVenueQrTokenResponses,
+  RewardsOrgGetVenueQrTokenStatus200,
+  RewardsOrgGetVenueQrTokenStatus400,
+  RewardsOrgGetVenueQrTokenStatus401,
+  RewardsOrgGetVenueQrTokenStatus403,
+  RewardsOrgGetVenueQrTokenStatus404,
+  RewardsOrgGetVenueQrTokenStatus422,
+  RewardsOrgGetVenueQrTokenStatus503,
+} from "./RewardsOrgGetVenueQrToken.js";
+export type {
+  RewardsOrgListAchievementsHeaders,
+  RewardsOrgListAchievementsOptions,
+  RewardsOrgListAchievementsResponse,
+  RewardsOrgListAchievementsResponses,
+  RewardsOrgListAchievementsStatus200,
+  RewardsOrgListAchievementsStatus400,
+  RewardsOrgListAchievementsStatus401,
+  RewardsOrgListAchievementsStatus403,
+  RewardsOrgListAchievementsStatus404,
+  RewardsOrgListAchievementsStatus422,
+} from "./RewardsOrgListAchievements.js";
+export type {
+  RewardsOrgListEntriesHeaders,
+  RewardsOrgListEntriesOptions,
+  RewardsOrgListEntriesQuery,
+  RewardsOrgListEntriesResponse,
+  RewardsOrgListEntriesResponses,
+  RewardsOrgListEntriesStatus200,
+  RewardsOrgListEntriesStatus400,
+  RewardsOrgListEntriesStatus401,
+  RewardsOrgListEntriesStatus403,
+  RewardsOrgListEntriesStatus404,
+  RewardsOrgListEntriesStatus422,
+} from "./RewardsOrgListEntries.js";
+export type {
+  RewardsOrgListRedemptionsHeaders,
+  RewardsOrgListRedemptionsOptions,
+  RewardsOrgListRedemptionsQuery,
+  RewardsOrgListRedemptionsResponse,
+  RewardsOrgListRedemptionsResponses,
+  RewardsOrgListRedemptionsStatus200,
+  RewardsOrgListRedemptionsStatus400,
+  RewardsOrgListRedemptionsStatus401,
+  RewardsOrgListRedemptionsStatus403,
+  RewardsOrgListRedemptionsStatus404,
+  RewardsOrgListRedemptionsStatus422,
+} from "./RewardsOrgListRedemptions.js";
+export type {
+  RewardsOrgListTrailsHeaders,
+  RewardsOrgListTrailsOptions,
+  RewardsOrgListTrailsResponse,
+  RewardsOrgListTrailsResponses,
+  RewardsOrgListTrailsStatus200,
+  RewardsOrgListTrailsStatus400,
+  RewardsOrgListTrailsStatus401,
+  RewardsOrgListTrailsStatus403,
+  RewardsOrgListTrailsStatus404,
+  RewardsOrgListTrailsStatus422,
+} from "./RewardsOrgListTrails.js";
+export type {
+  RewardsOrgListVenuesHeaders,
+  RewardsOrgListVenuesOptions,
+  RewardsOrgListVenuesResponse,
+  RewardsOrgListVenuesResponses,
+  RewardsOrgListVenuesStatus200,
+  RewardsOrgListVenuesStatus400,
+  RewardsOrgListVenuesStatus401,
+  RewardsOrgListVenuesStatus403,
+  RewardsOrgListVenuesStatus404,
+  RewardsOrgListVenuesStatus422,
+} from "./RewardsOrgListVenues.js";
+export type {
+  RewardsOrgPauseProgramHeaders,
+  RewardsOrgPauseProgramOptions,
+  RewardsOrgPauseProgramPath,
+  RewardsOrgPauseProgramResponse,
+  RewardsOrgPauseProgramResponses,
+  RewardsOrgPauseProgramStatus200,
+  RewardsOrgPauseProgramStatus400,
+  RewardsOrgPauseProgramStatus401,
+  RewardsOrgPauseProgramStatus403,
+  RewardsOrgPauseProgramStatus404,
+  RewardsOrgPauseProgramStatus409,
+  RewardsOrgPauseProgramStatus422,
+} from "./RewardsOrgPauseProgram.js";
+export type {
+  RewardsOrgResumeProgramHeaders,
+  RewardsOrgResumeProgramOptions,
+  RewardsOrgResumeProgramPath,
+  RewardsOrgResumeProgramResponse,
+  RewardsOrgResumeProgramResponses,
+  RewardsOrgResumeProgramStatus200,
+  RewardsOrgResumeProgramStatus400,
+  RewardsOrgResumeProgramStatus401,
+  RewardsOrgResumeProgramStatus403,
+  RewardsOrgResumeProgramStatus404,
+  RewardsOrgResumeProgramStatus409,
+  RewardsOrgResumeProgramStatus422,
+} from "./RewardsOrgResumeProgram.js";
+export type {
+  RewardsOrgUpdateTrailBody,
+  RewardsOrgUpdateTrailHeaders,
+  RewardsOrgUpdateTrailOptions,
+  RewardsOrgUpdateTrailPath,
+  RewardsOrgUpdateTrailResponse,
+  RewardsOrgUpdateTrailResponses,
+  RewardsOrgUpdateTrailStatus200,
+  RewardsOrgUpdateTrailStatus400,
+  RewardsOrgUpdateTrailStatus401,
+  RewardsOrgUpdateTrailStatus403,
+  RewardsOrgUpdateTrailStatus404,
+  RewardsOrgUpdateTrailStatus409,
+  RewardsOrgUpdateTrailStatus422,
+} from "./RewardsOrgUpdateTrail.js";
+export type { RewardsQrTokenPublic } from "./RewardsQrTokenPublic.js";
+export type {
   RewardsRequestRedemptionBody,
   RewardsRequestRedemptionOptions,
   RewardsRequestRedemptionResponse,
@@ -5858,6 +6088,11 @@ export type {
   RewardsRequestRedemptionStatus409,
   RewardsRequestRedemptionStatus422,
 } from "./RewardsRequestRedemption.js";
+export type { RewardsTrailCreate } from "./RewardsTrailCreate.js";
+export type { RewardsTrailPublic } from "./RewardsTrailPublic.js";
+export type { RewardsTrailStopCreate } from "./RewardsTrailStopCreate.js";
+export type { RewardsTrailStopPublic } from "./RewardsTrailStopPublic.js";
+export type { RewardsTrailUpdate } from "./RewardsTrailUpdate.js";
 export type {
   RewardsUpdateProgramBody,
   RewardsUpdateProgramHeaders,
@@ -5873,6 +6108,8 @@ export type {
   RewardsUpdateProgramStatus409,
   RewardsUpdateProgramStatus422,
 } from "./RewardsUpdateProgram.js";
+export type { RewardsVenueCreate } from "./RewardsVenueCreate.js";
+export type { RewardsVenuePublic } from "./RewardsVenuePublic.js";
 export type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 export { roleAssignmentScope } from "./RoleAssignmentScope.js";
 export type { RoleConfiguration } from "./RoleConfiguration.js";
@@ -6275,6 +6512,7 @@ export type {
   StoresUpdateRequisitionStatus409,
   StoresUpdateRequisitionStatus422,
 } from "./StoresUpdateRequisition.js";
+export type { StreakPublic } from "./StreakPublic.js";
 export type { SubmissionMode } from "./SubmissionMode.js";
 export { submissionMode } from "./SubmissionMode.js";
 export type { SubscribeAccepted } from "./SubscribeAccepted.js";
@@ -6381,6 +6619,10 @@ export type { TimetableVersionUpdate } from "./TimetableVersionUpdate.js";
 export type { Title } from "./Title.js";
 export { title } from "./Title.js";
 export type { Token } from "./Token.js";
+export type { TrailKind } from "./TrailKind.js";
+export { trailKind } from "./TrailKind.js";
+export type { TrailStatus } from "./TrailStatus.js";
+export { trailStatus } from "./TrailStatus.js";
 export type { TrainingArchiveInput } from "./TrainingArchiveInput.js";
 export type { TrainingEmployeeList } from "./TrainingEmployeeList.js";
 export type { TrainingEmployeePublic } from "./TrainingEmployeePublic.js";

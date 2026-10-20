@@ -12,6 +12,7 @@ export { accessStatusPublicSchema } from "./accessStatusPublicSchema.js";
 export { accountAppPublicSchema } from "./accountAppPublicSchema.js";
 export { accountSecurityPublicSchema } from "./accountSecurityPublicSchema.js";
 export { accountSessionRequestSchema } from "./accountSessionRequestSchema.js";
+export { achievementRuleSchema } from "./achievementRuleSchema.js";
 export { activationAccountCreateSchema } from "./activationAccountCreateSchema.js";
 export { activationConfirmSchema } from "./activationConfirmSchema.js";
 export { activationIssueSchema } from "./activationIssueSchema.js";
@@ -1600,6 +1601,8 @@ export {
 export { capValidationResultSchema } from "./capValidationResultSchema.js";
 export { catalogueApplySchema } from "./catalogueApplySchema.js";
 export { cataloguePreviewSchema } from "./cataloguePreviewSchema.js";
+export { checkInCreateSchema } from "./checkInCreateSchema.js";
+export { checkInPublicSchema } from "./checkInPublicSchema.js";
 export { checkoutSessionPublicSchema } from "./checkoutSessionPublicSchema.js";
 export { clockRequestSchema } from "./clockRequestSchema.js";
 export { clockResultPropertiesActionEnumSchema } from "./clockResultPropertiesActionEnumSchema.js";
@@ -5118,6 +5121,8 @@ export { parkingPermitIssueSchema } from "./parkingPermitIssueSchema.js";
 export { parkingPermitListPublicSchema } from "./parkingPermitListPublicSchema.js";
 export { parkingPermitPublicSchema } from "./parkingPermitPublicSchema.js";
 export { parkingPermitSubmitSchema } from "./parkingPermitSubmitSchema.js";
+export { passportStopPublicSchema } from "./passportStopPublicSchema.js";
+export { passportTrailPublicSchema } from "./passportTrailPublicSchema.js";
 export { paymentCreateSchema } from "./paymentCreateSchema.js";
 export { paymentMethodSchema } from "./paymentMethodSchema.js";
 export { paymentPublicSchema } from "./paymentPublicSchema.js";
@@ -5249,6 +5254,9 @@ export { reviewPublicSchema } from "./reviewPublicSchema.js";
 export { rewardCardPublicSchema } from "./rewardCardPublicSchema.js";
 export { rewardEntryListPublicSchema } from "./rewardEntryListPublicSchema.js";
 export { rewardEntryPublicSchema } from "./rewardEntryPublicSchema.js";
+export { rewardsAchievementCreateSchema } from "./rewardsAchievementCreateSchema.js";
+export { rewardsAchievementDefinitionPublicSchema } from "./rewardsAchievementDefinitionPublicSchema.js";
+export { rewardsAchievementPublicSchema } from "./rewardsAchievementPublicSchema.js";
 export {
   rewardsAdminAdjustBodySchema,
   rewardsAdminAdjustErrorSchema,
@@ -5319,6 +5327,19 @@ export {
   rewardsConfirmRedemptionStatus422Schema,
 } from "./rewardsConfirmRedemptionSchema.js";
 export {
+  rewardsCreateCheckInBodySchema,
+  rewardsCreateCheckInErrorSchema,
+  rewardsCreateCheckInResponseSchema,
+  rewardsCreateCheckInStatus201Schema,
+  rewardsCreateCheckInStatus400Schema,
+  rewardsCreateCheckInStatus401Schema,
+  rewardsCreateCheckInStatus403Schema,
+  rewardsCreateCheckInStatus404Schema,
+  rewardsCreateCheckInStatus409Schema,
+  rewardsCreateCheckInStatus422Schema,
+  rewardsCreateCheckInStatus503Schema,
+} from "./rewardsCreateCheckInSchema.js";
+export {
   rewardsCreateProgramBodySchema,
   rewardsCreateProgramErrorSchema,
   rewardsCreateProgramHeaderXBarrelsOrganisationSchema,
@@ -5332,6 +5353,22 @@ export {
   rewardsCreateProgramStatus422Schema,
 } from "./rewardsCreateProgramSchema.js";
 export {
+  rewardsGetPassportErrorSchema,
+  rewardsGetPassportResponseSchema,
+  rewardsGetPassportStatus200Schema,
+  rewardsGetPassportStatus401Schema,
+  rewardsGetPassportStatus403Schema,
+  rewardsGetPassportStatus422Schema,
+} from "./rewardsGetPassportSchema.js";
+export {
+  rewardsGetStreakErrorSchema,
+  rewardsGetStreakResponseSchema,
+  rewardsGetStreakStatus200Schema,
+  rewardsGetStreakStatus401Schema,
+  rewardsGetStreakStatus403Schema,
+  rewardsGetStreakStatus422Schema,
+} from "./rewardsGetStreakSchema.js";
+export {
   rewardsListMineErrorSchema,
   rewardsListMineResponseSchema,
   rewardsListMineStatus200Schema,
@@ -5339,6 +5376,14 @@ export {
   rewardsListMineStatus403Schema,
   rewardsListMineStatus422Schema,
 } from "./rewardsListMineSchema.js";
+export {
+  rewardsListMyAchievementsErrorSchema,
+  rewardsListMyAchievementsResponseSchema,
+  rewardsListMyAchievementsStatus200Schema,
+  rewardsListMyAchievementsStatus401Schema,
+  rewardsListMyAchievementsStatus403Schema,
+  rewardsListMyAchievementsStatus422Schema,
+} from "./rewardsListMyAchievementsSchema.js";
 export {
   rewardsListMyBadgesErrorSchema,
   rewardsListMyBadgesResponseSchema,
@@ -5377,6 +5422,178 @@ export {
   rewardsListProgramsStatus422Schema,
 } from "./rewardsListProgramsSchema.js";
 export {
+  rewardsOrgAddTrailStopBodySchema,
+  rewardsOrgAddTrailStopErrorSchema,
+  rewardsOrgAddTrailStopHeaderXBarrelsOrganisationSchema,
+  rewardsOrgAddTrailStopPathTrailIdSchema,
+  rewardsOrgAddTrailStopResponseSchema,
+  rewardsOrgAddTrailStopStatus201Schema,
+  rewardsOrgAddTrailStopStatus400Schema,
+  rewardsOrgAddTrailStopStatus401Schema,
+  rewardsOrgAddTrailStopStatus403Schema,
+  rewardsOrgAddTrailStopStatus404Schema,
+  rewardsOrgAddTrailStopStatus409Schema,
+  rewardsOrgAddTrailStopStatus422Schema,
+} from "./rewardsOrgAddTrailStopSchema.js";
+export {
+  rewardsOrgCreateAchievementBodySchema,
+  rewardsOrgCreateAchievementErrorSchema,
+  rewardsOrgCreateAchievementHeaderXBarrelsOrganisationSchema,
+  rewardsOrgCreateAchievementResponseSchema,
+  rewardsOrgCreateAchievementStatus201Schema,
+  rewardsOrgCreateAchievementStatus400Schema,
+  rewardsOrgCreateAchievementStatus401Schema,
+  rewardsOrgCreateAchievementStatus403Schema,
+  rewardsOrgCreateAchievementStatus404Schema,
+  rewardsOrgCreateAchievementStatus409Schema,
+  rewardsOrgCreateAchievementStatus422Schema,
+} from "./rewardsOrgCreateAchievementSchema.js";
+export {
+  rewardsOrgCreateTrailBodySchema,
+  rewardsOrgCreateTrailErrorSchema,
+  rewardsOrgCreateTrailHeaderXBarrelsOrganisationSchema,
+  rewardsOrgCreateTrailResponseSchema,
+  rewardsOrgCreateTrailStatus201Schema,
+  rewardsOrgCreateTrailStatus400Schema,
+  rewardsOrgCreateTrailStatus401Schema,
+  rewardsOrgCreateTrailStatus403Schema,
+  rewardsOrgCreateTrailStatus404Schema,
+  rewardsOrgCreateTrailStatus409Schema,
+  rewardsOrgCreateTrailStatus422Schema,
+} from "./rewardsOrgCreateTrailSchema.js";
+export {
+  rewardsOrgCreateVenueBodySchema,
+  rewardsOrgCreateVenueErrorSchema,
+  rewardsOrgCreateVenueHeaderXBarrelsOrganisationSchema,
+  rewardsOrgCreateVenueResponseSchema,
+  rewardsOrgCreateVenueStatus201Schema,
+  rewardsOrgCreateVenueStatus400Schema,
+  rewardsOrgCreateVenueStatus401Schema,
+  rewardsOrgCreateVenueStatus403Schema,
+  rewardsOrgCreateVenueStatus404Schema,
+  rewardsOrgCreateVenueStatus409Schema,
+  rewardsOrgCreateVenueStatus422Schema,
+  rewardsOrgCreateVenueStatus503Schema,
+} from "./rewardsOrgCreateVenueSchema.js";
+export { rewardsOrgEntryListPublicSchema } from "./rewardsOrgEntryListPublicSchema.js";
+export { rewardsOrgEntryPublicSchema } from "./rewardsOrgEntryPublicSchema.js";
+export {
+  rewardsOrgGetVenueQrTokenErrorSchema,
+  rewardsOrgGetVenueQrTokenHeaderXBarrelsOrganisationSchema,
+  rewardsOrgGetVenueQrTokenPathVenueIdSchema,
+  rewardsOrgGetVenueQrTokenResponseSchema,
+  rewardsOrgGetVenueQrTokenStatus200Schema,
+  rewardsOrgGetVenueQrTokenStatus400Schema,
+  rewardsOrgGetVenueQrTokenStatus401Schema,
+  rewardsOrgGetVenueQrTokenStatus403Schema,
+  rewardsOrgGetVenueQrTokenStatus404Schema,
+  rewardsOrgGetVenueQrTokenStatus422Schema,
+  rewardsOrgGetVenueQrTokenStatus503Schema,
+} from "./rewardsOrgGetVenueQrTokenSchema.js";
+export {
+  rewardsOrgListAchievementsErrorSchema,
+  rewardsOrgListAchievementsHeaderXBarrelsOrganisationSchema,
+  rewardsOrgListAchievementsResponseSchema,
+  rewardsOrgListAchievementsStatus200Schema,
+  rewardsOrgListAchievementsStatus400Schema,
+  rewardsOrgListAchievementsStatus401Schema,
+  rewardsOrgListAchievementsStatus403Schema,
+  rewardsOrgListAchievementsStatus404Schema,
+  rewardsOrgListAchievementsStatus422Schema,
+} from "./rewardsOrgListAchievementsSchema.js";
+export {
+  rewardsOrgListEntriesErrorSchema,
+  rewardsOrgListEntriesHeaderXBarrelsOrganisationSchema,
+  rewardsOrgListEntriesQueryKindSchema,
+  rewardsOrgListEntriesQueryPageSchema,
+  rewardsOrgListEntriesQueryProgramIdSchema,
+  rewardsOrgListEntriesQuerySizeSchema,
+  rewardsOrgListEntriesResponseSchema,
+  rewardsOrgListEntriesStatus200Schema,
+  rewardsOrgListEntriesStatus400Schema,
+  rewardsOrgListEntriesStatus401Schema,
+  rewardsOrgListEntriesStatus403Schema,
+  rewardsOrgListEntriesStatus404Schema,
+  rewardsOrgListEntriesStatus422Schema,
+} from "./rewardsOrgListEntriesSchema.js";
+export {
+  rewardsOrgListRedemptionsErrorSchema,
+  rewardsOrgListRedemptionsHeaderXBarrelsOrganisationSchema,
+  rewardsOrgListRedemptionsQueryPageSchema,
+  rewardsOrgListRedemptionsQueryProgramIdSchema,
+  rewardsOrgListRedemptionsQuerySizeSchema,
+  rewardsOrgListRedemptionsResponseSchema,
+  rewardsOrgListRedemptionsStatus200Schema,
+  rewardsOrgListRedemptionsStatus400Schema,
+  rewardsOrgListRedemptionsStatus401Schema,
+  rewardsOrgListRedemptionsStatus403Schema,
+  rewardsOrgListRedemptionsStatus404Schema,
+  rewardsOrgListRedemptionsStatus422Schema,
+} from "./rewardsOrgListRedemptionsSchema.js";
+export {
+  rewardsOrgListTrailsErrorSchema,
+  rewardsOrgListTrailsHeaderXBarrelsOrganisationSchema,
+  rewardsOrgListTrailsResponseSchema,
+  rewardsOrgListTrailsStatus200Schema,
+  rewardsOrgListTrailsStatus400Schema,
+  rewardsOrgListTrailsStatus401Schema,
+  rewardsOrgListTrailsStatus403Schema,
+  rewardsOrgListTrailsStatus404Schema,
+  rewardsOrgListTrailsStatus422Schema,
+} from "./rewardsOrgListTrailsSchema.js";
+export {
+  rewardsOrgListVenuesErrorSchema,
+  rewardsOrgListVenuesHeaderXBarrelsOrganisationSchema,
+  rewardsOrgListVenuesResponseSchema,
+  rewardsOrgListVenuesStatus200Schema,
+  rewardsOrgListVenuesStatus400Schema,
+  rewardsOrgListVenuesStatus401Schema,
+  rewardsOrgListVenuesStatus403Schema,
+  rewardsOrgListVenuesStatus404Schema,
+  rewardsOrgListVenuesStatus422Schema,
+} from "./rewardsOrgListVenuesSchema.js";
+export {
+  rewardsOrgPauseProgramErrorSchema,
+  rewardsOrgPauseProgramHeaderXBarrelsOrganisationSchema,
+  rewardsOrgPauseProgramPathProgramIdSchema,
+  rewardsOrgPauseProgramResponseSchema,
+  rewardsOrgPauseProgramStatus200Schema,
+  rewardsOrgPauseProgramStatus400Schema,
+  rewardsOrgPauseProgramStatus401Schema,
+  rewardsOrgPauseProgramStatus403Schema,
+  rewardsOrgPauseProgramStatus404Schema,
+  rewardsOrgPauseProgramStatus409Schema,
+  rewardsOrgPauseProgramStatus422Schema,
+} from "./rewardsOrgPauseProgramSchema.js";
+export {
+  rewardsOrgResumeProgramErrorSchema,
+  rewardsOrgResumeProgramHeaderXBarrelsOrganisationSchema,
+  rewardsOrgResumeProgramPathProgramIdSchema,
+  rewardsOrgResumeProgramResponseSchema,
+  rewardsOrgResumeProgramStatus200Schema,
+  rewardsOrgResumeProgramStatus400Schema,
+  rewardsOrgResumeProgramStatus401Schema,
+  rewardsOrgResumeProgramStatus403Schema,
+  rewardsOrgResumeProgramStatus404Schema,
+  rewardsOrgResumeProgramStatus409Schema,
+  rewardsOrgResumeProgramStatus422Schema,
+} from "./rewardsOrgResumeProgramSchema.js";
+export {
+  rewardsOrgUpdateTrailBodySchema,
+  rewardsOrgUpdateTrailErrorSchema,
+  rewardsOrgUpdateTrailHeaderXBarrelsOrganisationSchema,
+  rewardsOrgUpdateTrailPathTrailIdSchema,
+  rewardsOrgUpdateTrailResponseSchema,
+  rewardsOrgUpdateTrailStatus200Schema,
+  rewardsOrgUpdateTrailStatus400Schema,
+  rewardsOrgUpdateTrailStatus401Schema,
+  rewardsOrgUpdateTrailStatus403Schema,
+  rewardsOrgUpdateTrailStatus404Schema,
+  rewardsOrgUpdateTrailStatus409Schema,
+  rewardsOrgUpdateTrailStatus422Schema,
+} from "./rewardsOrgUpdateTrailSchema.js";
+export { rewardsQrTokenPublicSchema } from "./rewardsQrTokenPublicSchema.js";
+export {
   rewardsRequestRedemptionBodySchema,
   rewardsRequestRedemptionErrorSchema,
   rewardsRequestRedemptionResponseSchema,
@@ -5388,6 +5605,11 @@ export {
   rewardsRequestRedemptionStatus409Schema,
   rewardsRequestRedemptionStatus422Schema,
 } from "./rewardsRequestRedemptionSchema.js";
+export { rewardsTrailCreateSchema } from "./rewardsTrailCreateSchema.js";
+export { rewardsTrailPublicSchema } from "./rewardsTrailPublicSchema.js";
+export { rewardsTrailStopCreateSchema } from "./rewardsTrailStopCreateSchema.js";
+export { rewardsTrailStopPublicSchema } from "./rewardsTrailStopPublicSchema.js";
+export { rewardsTrailUpdateSchema } from "./rewardsTrailUpdateSchema.js";
 export {
   rewardsUpdateProgramBodySchema,
   rewardsUpdateProgramErrorSchema,
@@ -5402,6 +5624,8 @@ export {
   rewardsUpdateProgramStatus409Schema,
   rewardsUpdateProgramStatus422Schema,
 } from "./rewardsUpdateProgramSchema.js";
+export { rewardsVenueCreateSchema } from "./rewardsVenueCreateSchema.js";
+export { rewardsVenuePublicSchema } from "./rewardsVenuePublicSchema.js";
 export { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 export { roleConfigurationSchema } from "./roleConfigurationSchema.js";
 export { roleCreateSchema } from "./roleCreateSchema.js";
@@ -5784,6 +6008,7 @@ export {
   storesUpdateRequisitionStatus409Schema,
   storesUpdateRequisitionStatus422Schema,
 } from "./storesUpdateRequisitionSchema.js";
+export { streakPublicSchema } from "./streakPublicSchema.js";
 export { submissionModeSchema } from "./submissionModeSchema.js";
 export { subscribeAcceptedSchema } from "./subscribeAcceptedSchema.js";
 export { subscribeRequestSchema } from "./subscribeRequestSchema.js";
@@ -5875,6 +6100,8 @@ export { timetableVersionSummarySchema } from "./timetableVersionSummarySchema.j
 export { timetableVersionUpdateSchema } from "./timetableVersionUpdateSchema.js";
 export { titleSchema } from "./titleSchema.js";
 export { tokenSchema } from "./tokenSchema.js";
+export { trailKindSchema } from "./trailKindSchema.js";
+export { trailStatusSchema } from "./trailStatusSchema.js";
 export { trainingArchiveInputSchema } from "./trainingArchiveInputSchema.js";
 export { trainingEmployeeListSchema } from "./trainingEmployeeListSchema.js";
 export { trainingEmployeePublicSchema } from "./trainingEmployeePublicSchema.js";

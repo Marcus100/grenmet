@@ -554,6 +554,13 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
   which return only flags marked exposed.
+- **Rewards earn sources, Passport and achievements** (PF8/PF9, ADR-0030): programmes take
+  a `qualifying_source_type` from the catalogue in `src/rewards/sources.py`.
+  Organisation routes under `/rewards/org/...` manage venues, trails, stops,
+  achievements, programme pause and resume, entries and redemptions;
+  `GET /rewards/org/venues/{id}/qr-token` issues the rotating venue code. Account
+  routes: `POST /rewards/me/check-ins` (one per venue per Grenada day, real-world
+  only), `GET /rewards/me/passport`, `/me/achievements` and `/me/streak`.
 - **Organisation contacts** (PF3, ADR-0028): `/contacts/org/contacts` (upsert, list,
   get, patch, consents, merge, erase) and superuser `/contacts/admin/contacts`. There
   are no public contact routes.

@@ -30,4 +30,9 @@ export type ProgramCreate = {
    */
   stamps_per_source?: number;
   max_redemptions_per_account?: number | null;
+  /**
+   * @default 'events.admission'
+   * @type string | undefined
+   */
+  qualifying_source_type?: string;
 };
