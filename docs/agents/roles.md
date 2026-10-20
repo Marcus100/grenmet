@@ -52,32 +52,58 @@ third, tool-independent pass.
 ### Working with Codex on GitHub
 
 Claude Code and Codex do not talk to each other. The owner relays every handoff
-between them, so each handoff must stand alone.
+between them, so each handoff must stand alone. If the two disagree, the
+disagreement first names its evidence and the applicable rule; anything still
+unresolved goes to the owner.
 
-1. **Roles.** Claude owns feature implementation and fixes on its assigned
-   branches. Codex reviews read-only and reports findings. It does not edit,
-   commit, push, merge or deploy unless the owner explicitly changes its role.
+1. **Roles.** The tools alternate as author and reviewer per task. The author
+   owns implementation and fixes on its assigned branches. The reviewer is
+   read-only: it reports findings and does not edit, commit, push, merge or
+   deploy, and writes no files, including `SESSION_LOG.md`. Codex is the reviewer
+   unless the owner explicitly changes its role.
 2. **Integration.** Follow `AGENTS.md` and [workflow.md](workflow.md). Push a
    feature branch for cross-agent review only when the owner explicitly requests
-   that workflow; otherwise completed work merges into local `dev` as usual.
-3. **Review handoff.** Every request includes:
+   that workflow, and only to the branch assigned for it; otherwise completed
+   work merges into local `dev` as usual.
+3. **Merge authority.** For this collaboration, no agent merges into `dev`,
+   `staging`, `main` or production, or pushes `dev`, without the owner's explicit
+   authorization for that action. This overrides the attended-session standing
+   authorization in `AGENTS.md` and [workflow.md](workflow.md) (merge into local
+   `dev`, push `dev`, create the `dev → staging` PR and arm auto-merge) wherever
+   Claude and Codex work together on a task. It narrows that authorization and
+   does not widen anything. Outside this collaboration the standing authorization
+   is unchanged.
+4. **Review handoff.** Every request includes:
    - the task and its acceptance criteria;
    - the branch or PR URL;
    - the exact head SHA and base SHA;
    - the changed files;
    - the test commands, their results and known limitations.
-4. **Review.** Codex reviews those exact commits and reports actionable findings
-   ranked by severity with `file:line` citations. Claude fixes them and supplies
-   the new head SHA. A review applies only to the SHA it reviewed; any new commit
-   needs a new review.
-5. **Session log.** `SESSION_LOG.md` is local and gitignored. It helps sessions
-   that share a filesystem and does not reach another cloud environment. Across
-   separate environments the owner relays the handoff, or explicitly authorizes a
-   GitHub comment. Never commit the local log to synchronize agents.
-6. **Staging and production.** A review of a deployed environment identifies the
+5. **Review.** The reviewer examines exactly that head and base and reports
+   actionable findings ranked by severity with `file:line` citations. A review
+   applies only to the SHAs it examined. After fixes, the author sends the new
+   head SHA, the base SHA and the new test results for re-review.
+6. **Session log.** `SESSION_LOG.md` is local and gitignored, so it does not
+   synchronize separate cloud environments or machines. The owner relays
+   handoffs, or explicitly authorizes a GitHub comment. The reviewer does not
+   write to it; the author records the review outcome in its own local log. Never
+   commit the log to synchronize agents.
+7. **Staging and production.** A review of a deployed environment identifies the
    deployed version where available, and states plainly when it cannot be
-   verified. Fixes follow the normal integration and promotion workflow.
-   Production changes require the owner's explicit authorization.
+   verified. Fixes follow the normal integration and promotion workflow, subject
+   to item 3. Production changes require the owner's explicit authorization.
+
+**Configured is not verified.** The hooks in `.claude/settings.json` and
+`.codex/config.toml` share scripts in `.claude/hooks/`. That shows they are
+configured, not that each client loaded and executed them. Confirm enforcement
+per client by triggering a blocked action in a safe context. Likewise, a workflow
+file in `.github/workflows/` is not a required merge check until branch
+protection or the ruleset lists it; check the ruleset, not the file.
+
+**Automatic Codex PR review is separate.** This manual loop does not depend on
+it. Whether the Codex GitHub integration reviews pull requests automatically on
+this repository has not been verified; treat it as unavailable until confirmed in
+the GitHub and Codex settings.
 
 If a reviewer cannot see a branch, run `git ls-remote origin <branch>` before
 changing access settings: the branch may not have been pushed.
