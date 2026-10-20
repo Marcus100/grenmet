@@ -4,18 +4,18 @@
 **Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-10-15
 
-How a change ships from `dev` to production. Agents (Claude Code / Codex) may run
-local verification, direct dev pushes, and automatic staging PR creation and
-merge under standing authorization. Main merges and production publication or
-deployment require separate explicit authorization (see `AGENTS.md`).
+How a change ships from `dev` to production. Agents (Claude Code / Codex) run
+local verification, push their task branch and open a PR into `dev`, which the
+owner merges. Staging PR creation and auto-merge have standing authorization.
+Main merges and production publication or deployment require separate explicit
+authorization (see `AGENTS.md`).
 
-Branch flow: `dev → (PR) → staging → (PR) → main → (release vN.M) → prod`.
-Merge completed task branches into local `dev`, check the combined result locally,
-then push `dev` directly. Do not push feature branches or open feature-to-dev PRs
-unless explicitly requested. Fetch and integrate current `origin/dev` before
-validation; if it advances, integrate and revalidate before retrying. Never
-force-push or bypass hooks. Promotion is always via PR; reuse an open promotion PR. Rulesets enforce the
-required checks on `staging` and `main` PRs.
+Branch flow: `task → (PR) → dev → (PR) → staging → (PR) → main → (release vN.M) → prod`.
+Integrate current `origin/dev` into the task branch and validate before opening
+the PR; if `dev` advances, integrate and revalidate. Never force-push or bypass
+hooks. Promotion is always via PR; reuse an open promotion PR. Rulesets enforce
+the required checks on `staging` and `main` PRs; `infra/github/rulesets.json`
+is their committed copy and `pnpm guardrails:rulesets` checks it.
 
 ## 1. Pre-flight on dev
 
@@ -34,8 +34,8 @@ required checks on `staging` and `main` PRs.
 
 ## 2. Promote dev → staging
 
-- After completing and locally validating an authorized batch, push dev and
-  automatically create or update its staging promotion PR. Reuse an open PR.
+- Once the owner has merged the authorized batch into `dev`, automatically
+  create or update its staging promotion PR. Reuse an open PR.
 - Review the entire promotion diff; exclude unrelated or unfinished work.
 - Arm auto-merge on the reviewed head without another confirmation:
   `gh pr merge <num> --auto --merge --match-head-commit <sha>`. The staging

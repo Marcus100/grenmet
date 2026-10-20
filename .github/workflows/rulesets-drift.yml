@@ -1,0 +1,38 @@
+name: Rulesets drift
+
+# infra/github/rulesets.json is the committed copy of the branch rulesets that
+# make "PR required" and "required checks" true; agents and docs rely on it.
+# This compares the live rulesets with that file on every PR into a long-lived
+# branch and weekly, so a settings change nobody wrote down fails here instead
+# of surprising a promotion. Advisory until the owner makes it required. The
+# repository is public, so the default token can read rulesets.
+on:
+  pull_request:
+    branches: [main, staging, dev]
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: rulesets-drift-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Rulesets match snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          sparse-checkout: |
+            scripts/guardrails/github-rulesets.mjs
+            infra/github/rulesets.json
+      - name: Compare live rulesets with infra/github/rulesets.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/guardrails/github-rulesets.mjs --check
