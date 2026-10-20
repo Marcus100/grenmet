@@ -420,7 +420,7 @@ services:
       EMAILS_FROM_NAME: ${EMAILS_FROM_NAME:-GMS Content}
       CMS_MEDIA_DIR: /app/media
       CMS_URL: https://cms.${BASE_DOMAIN}
-      AUTH_API_URL: https://api.${BASE_DOMAIN}
+      AUTH_API_URL: http://api:8000
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       CMS_SSO_CLIENT_SECRET: ${CMS_SSO_CLIENT_SECRET:?CMS_SSO_CLIENT_SECRET required}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_CMS:-}
@@ -472,7 +472,7 @@ services:
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
-      AUTH_API_URL: https://api.${BASE_DOMAIN}
+      AUTH_API_URL: http://api:8000
       ADMIN_APP_URL: https://admin.${BASE_DOMAIN}
       DOCS_APP_URL: https://docs.${BASE_DOMAIN}
       GMS_APP_URL: https://weather.${BASE_DOMAIN}
@@ -548,7 +548,7 @@ services:
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       DOCS_SSO_CLIENT_SECRET: ${DOCS_SSO_CLIENT_SECRET:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
-      AUTH_API_URL: https://api.${BASE_DOMAIN}
+      AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
@@ -577,7 +577,7 @@ services:
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       CMS_API_URL: http://web-cms:3006
       CAP_API_URL: http://api:8000
-      AUTH_API_URL: https://api.${BASE_DOMAIN}
+      AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:

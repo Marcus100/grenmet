@@ -214,7 +214,7 @@ FastAPI settings but are not application settings themselves.
 | Variable | Purpose |
 |---|---|
 | `AUTH_APP_URL` | Public URL of the auth app (e.g. `http://localhost:3000`); used for OAuth callback redirects |
-| `AUTH_API_URL` | FastAPI base URL (e.g. `http://localhost:8000`) |
+| `AUTH_API_URL` | FastAPI base URL (e.g. `http://localhost:8000`). Server-side only; deployment sets the internal `http://api:8000` for every web service (see below) |
 | `AUTH_API_V1_STR` | API version prefix (e.g. `/api/v1`) |
 | `AUTH_SESSION_COOKIE_NAME` | Host-only account session cookie (default `auth_session`). Every app keeps its own cookie (ADR-0017); none sets a `Domain` |
 | `AUTH_ALLOWED_RETURN_HOSTS` | See section below |
@@ -276,6 +276,13 @@ site's secret is set; the same value must be set for the API.
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
 | elections (Vercel) | `elections` | `ELECTIONS_SSO_CLIENT_SECRET` | `elections_session` |
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
+
+In `infra/docker/docker-compose.deploy.yml` every web service (and the CMS) sets
+`AUTH_API_URL: http://api:8000`, never the public `https://api.<domain>`.
+Calling the public hostname hairpins through Traefik, which replaces the
+forwarded browser address with the web container's, so FastAPI rate limits and
+audit logs would key every user on one address.
+`scripts/production/internal-api-url.test.mjs` enforces this.
 
 Each also needs `AUTH_API_URL`, `AUTH_API_V1_STR` and `AUTH_APP_URL`. The API
 needs `<SITE>_APP_URL` (defaults to the local port) and the matching secret.
