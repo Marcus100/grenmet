@@ -145,7 +145,7 @@ backup. GMS real data sources are ready; the work is integration.
 | 14 | Climate importer for GMS spreadsheets with QC flags; normals, monthly, records, rainfall pages | GMS | L | Spreadsheets in `/private/` | Open (request form only) |
 | 15 | ECMWF open data / AIFS / GFS point meteograms in the worker; `apps/web/gmsdash` (3013) scaffold with org access requests | GMS | L | — | Done, on staging (sign-in needs `GMSDASH_SSO_CLIENT_SECRET`) |
 | 16 | `JURY_DUTY` leave type; holiday table in timesheets; extra-day-for-holiday-in-vacation suggestion | HR | M | GAA HR rule confirmation | Done, on staging |
-| 17 | DPA purge job and email hashing migration (after verified backup) | Platform | M | — | Held for `EMAIL_HASH_PEPPER` |
+| 17 | DPA purge job and email hashing migration (after verified backup) | Platform | M | — | Purge built (`purge_expired_data`, daily 03:30 UTC) and email hashing on write built (`emailhash20261018`). Held: step 2, the destructive legacy backfill and plaintext null/drop, until a verified backup and the production `EMAIL_HASH_PEPPER` |
 | 18 | E3 outlet cash, E4 settlement report, E5 organiser cancel/refund | Barrels | L | — | Done, on staging |
 | 19 | C1 deploy wiring for `apps/web/admin` once `admin.*` is freed by the gmsadmin cutover | Barrels | M | — | Open (app built, not deployed) |
 | 20 | Test speed: auto workers (CPUs − 2), pre-push runs changed-package tests, CI shards for API and gaa-admin, fuzz in CI only | Platform | M | — | Done, on staging |
