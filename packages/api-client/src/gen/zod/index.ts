@@ -969,7 +969,9 @@ export {
 } from "./billingVoidInvoiceSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";
+export { bookingAgendaDaySchema } from "./bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
+export { bookingAgendaSchema } from "./bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./bookingAvailabilitySchema.js";
 export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
@@ -993,6 +995,11 @@ export { bookingSlotSchema } from "./bookingSlotSchema.js";
 export { bookingSourceSchema } from "./bookingSourceSchema.js";
 export { bookingStatusSchema } from "./bookingStatusSchema.js";
 export { bookingStorefrontSchema } from "./bookingStorefrontSchema.js";
+export { bookingStudioCancelSchema } from "./bookingStudioCancelSchema.js";
+export { bookingStudioCustomerSchema } from "./bookingStudioCustomerSchema.js";
+export { bookingStudioDeclineSchema } from "./bookingStudioDeclineSchema.js";
+export { bookingStudioDetailSchema } from "./bookingStudioDetailSchema.js";
+export { bookingStudioEventSchema } from "./bookingStudioEventSchema.js";
 export {
   bookingsCancelPublicBookingBodySchema,
   bookingsCancelPublicBookingErrorSchema,
@@ -1003,6 +1010,46 @@ export {
   bookingsCancelPublicBookingStatus409Schema,
   bookingsCancelPublicBookingStatus422Schema,
 } from "./bookingsCancelPublicBookingSchema.js";
+export {
+  bookingsCancelStudioBookingBodySchema,
+  bookingsCancelStudioBookingErrorSchema,
+  bookingsCancelStudioBookingHeaderXBarrelsOrganisationSchema,
+  bookingsCancelStudioBookingPathBookingIdSchema,
+  bookingsCancelStudioBookingResponseSchema,
+  bookingsCancelStudioBookingStatus200Schema,
+  bookingsCancelStudioBookingStatus400Schema,
+  bookingsCancelStudioBookingStatus401Schema,
+  bookingsCancelStudioBookingStatus403Schema,
+  bookingsCancelStudioBookingStatus404Schema,
+  bookingsCancelStudioBookingStatus409Schema,
+  bookingsCancelStudioBookingStatus422Schema,
+} from "./bookingsCancelStudioBookingSchema.js";
+export {
+  bookingsCompleteStudioBookingErrorSchema,
+  bookingsCompleteStudioBookingHeaderXBarrelsOrganisationSchema,
+  bookingsCompleteStudioBookingPathBookingIdSchema,
+  bookingsCompleteStudioBookingResponseSchema,
+  bookingsCompleteStudioBookingStatus200Schema,
+  bookingsCompleteStudioBookingStatus400Schema,
+  bookingsCompleteStudioBookingStatus401Schema,
+  bookingsCompleteStudioBookingStatus403Schema,
+  bookingsCompleteStudioBookingStatus404Schema,
+  bookingsCompleteStudioBookingStatus409Schema,
+  bookingsCompleteStudioBookingStatus422Schema,
+} from "./bookingsCompleteStudioBookingSchema.js";
+export {
+  bookingsConfirmStudioBookingErrorSchema,
+  bookingsConfirmStudioBookingHeaderXBarrelsOrganisationSchema,
+  bookingsConfirmStudioBookingPathBookingIdSchema,
+  bookingsConfirmStudioBookingResponseSchema,
+  bookingsConfirmStudioBookingStatus200Schema,
+  bookingsConfirmStudioBookingStatus400Schema,
+  bookingsConfirmStudioBookingStatus401Schema,
+  bookingsConfirmStudioBookingStatus403Schema,
+  bookingsConfirmStudioBookingStatus404Schema,
+  bookingsConfirmStudioBookingStatus409Schema,
+  bookingsConfirmStudioBookingStatus422Schema,
+} from "./bookingsConfirmStudioBookingSchema.js";
 export {
   bookingsCreateExceptionBodySchema,
   bookingsCreateExceptionErrorSchema,
@@ -1056,6 +1103,20 @@ export {
   bookingsCreateServiceStatus422Schema,
 } from "./bookingsCreateServiceSchema.js";
 export {
+  bookingsDeclineStudioBookingBodySchema,
+  bookingsDeclineStudioBookingErrorSchema,
+  bookingsDeclineStudioBookingHeaderXBarrelsOrganisationSchema,
+  bookingsDeclineStudioBookingPathBookingIdSchema,
+  bookingsDeclineStudioBookingResponseSchema,
+  bookingsDeclineStudioBookingStatus200Schema,
+  bookingsDeclineStudioBookingStatus400Schema,
+  bookingsDeclineStudioBookingStatus401Schema,
+  bookingsDeclineStudioBookingStatus403Schema,
+  bookingsDeclineStudioBookingStatus404Schema,
+  bookingsDeclineStudioBookingStatus409Schema,
+  bookingsDeclineStudioBookingStatus422Schema,
+} from "./bookingsDeclineStudioBookingSchema.js";
+export {
   bookingsDeleteExceptionErrorSchema,
   bookingsDeleteExceptionHeaderXBarrelsOrganisationSchema,
   bookingsDeleteExceptionPathExceptionIdSchema,
@@ -1068,6 +1129,23 @@ export {
   bookingsDeleteExceptionStatus409Schema,
   bookingsDeleteExceptionStatus422Schema,
 } from "./bookingsDeleteExceptionSchema.js";
+export {
+  bookingsGetAgendaErrorSchema,
+  bookingsGetAgendaHeaderXBarrelsOrganisationSchema,
+  bookingsGetAgendaQueryFromDateSchema,
+  bookingsGetAgendaQueryLimitSchema,
+  bookingsGetAgendaQueryOffsetSchema,
+  bookingsGetAgendaQueryProviderIdSchema,
+  bookingsGetAgendaQueryStatusSchema,
+  bookingsGetAgendaQueryToDateSchema,
+  bookingsGetAgendaResponseSchema,
+  bookingsGetAgendaStatus200Schema,
+  bookingsGetAgendaStatus400Schema,
+  bookingsGetAgendaStatus401Schema,
+  bookingsGetAgendaStatus403Schema,
+  bookingsGetAgendaStatus404Schema,
+  bookingsGetAgendaStatus422Schema,
+} from "./bookingsGetAgendaSchema.js";
 export {
   bookingsGetAvailabilityErrorSchema,
   bookingsGetAvailabilityPathSlugSchema,
@@ -1116,6 +1194,18 @@ export {
   bookingsGetStorefrontStatus404Schema,
   bookingsGetStorefrontStatus422Schema,
 } from "./bookingsGetStorefrontSchema.js";
+export {
+  bookingsGetStudioBookingErrorSchema,
+  bookingsGetStudioBookingHeaderXBarrelsOrganisationSchema,
+  bookingsGetStudioBookingPathBookingIdSchema,
+  bookingsGetStudioBookingResponseSchema,
+  bookingsGetStudioBookingStatus200Schema,
+  bookingsGetStudioBookingStatus400Schema,
+  bookingsGetStudioBookingStatus401Schema,
+  bookingsGetStudioBookingStatus403Schema,
+  bookingsGetStudioBookingStatus404Schema,
+  bookingsGetStudioBookingStatus422Schema,
+} from "./bookingsGetStudioBookingSchema.js";
 export {
   bookingsGetWorkingHoursErrorSchema,
   bookingsGetWorkingHoursHeaderXBarrelsOrganisationSchema,
@@ -1177,6 +1267,19 @@ export {
   bookingsListStudioBookingsStatus404Schema,
   bookingsListStudioBookingsStatus422Schema,
 } from "./bookingsListStudioBookingsSchema.js";
+export {
+  bookingsNoShowStudioBookingErrorSchema,
+  bookingsNoShowStudioBookingHeaderXBarrelsOrganisationSchema,
+  bookingsNoShowStudioBookingPathBookingIdSchema,
+  bookingsNoShowStudioBookingResponseSchema,
+  bookingsNoShowStudioBookingStatus200Schema,
+  bookingsNoShowStudioBookingStatus400Schema,
+  bookingsNoShowStudioBookingStatus401Schema,
+  bookingsNoShowStudioBookingStatus403Schema,
+  bookingsNoShowStudioBookingStatus404Schema,
+  bookingsNoShowStudioBookingStatus409Schema,
+  bookingsNoShowStudioBookingStatus422Schema,
+} from "./bookingsNoShowStudioBookingSchema.js";
 export {
   bookingsReplaceWorkingHoursBodySchema,
   bookingsReplaceWorkingHoursErrorSchema,

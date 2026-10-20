@@ -71,6 +71,41 @@ def customer_cancelled(mail: BookingEmail) -> tuple[str, str]:
     )
 
 
+def _reason(reason: str | None) -> str:
+    return f"<p>Reason: {_e(reason)}</p>" if reason else ""
+
+
+def customer_confirmed(mail: BookingEmail) -> tuple[str, str]:
+    """The business accepted a booking request."""
+    return (
+        f"Your booking at {mail.business} is confirmed",
+        f"<p>Hello {_e(mail.customer_name)},</p>"
+        f"<p>Your booking is confirmed.</p>{_details(mail)}{_manage(mail)}",
+    )
+
+
+def customer_declined(mail: BookingEmail, reason: str | None) -> tuple[str, str]:
+    """The business could not accept a booking request."""
+    return (
+        f"Your booking request at {mail.business} could not be accepted",
+        f"<p>Hello {_e(mail.customer_name)},</p>"
+        f"<p>Sorry, we could not accept your booking request.</p>"
+        f"{_details(mail)}{_reason(reason)}",
+    )
+
+
+def customer_cancelled_by_studio(
+    mail: BookingEmail, reason: str | None
+) -> tuple[str, str]:
+    """The business cancelled a booking."""
+    return (
+        f"Your booking at {mail.business} was cancelled",
+        f"<p>Hello {_e(mail.customer_name)},</p>"
+        f"<p>{_e(mail.business)} had to cancel your booking.</p>"
+        f"{_details(mail)}{_reason(reason)}",
+    )
+
+
 def customer_rescheduled(mail: BookingEmail) -> tuple[str, str]:
     return (
         f"Your booking at {mail.business} has a new time",

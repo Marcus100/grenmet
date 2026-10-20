@@ -41,6 +41,7 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.outbox",
         "src.notifications.outbox_handlers",
         "src.bookings.reminders",
+        "src.bookings.outbox_handlers",
         "src.rewards.outbox_handlers",
         "src.webhooks_out.delivery",
     ):
@@ -177,9 +178,10 @@ async def drain_outbox(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
 
     # Importing these modules registers their outbox handlers (email.send,
-    # rewards.qualifying_action, webhook.deliver).
+    # rewards.qualifying_action, bookings.deposit_paid, webhook.deliver).
     for module in (
         "src.notifications.outbox_handlers",
+        "src.bookings.outbox_handlers",
         "src.rewards.outbox_handlers",
         "src.webhooks_out.delivery",
     ):
@@ -218,6 +220,29 @@ async def enqueue_booking_reminders(ctx: dict[str, Any]) -> int:
             raise
     await operational_metrics.record_job(
         ctx.get("redis"), "enqueue_booking_reminders", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
+async def expire_unpaid_bookings(ctx: dict[str, Any]) -> int:
+    """Cancel deposit bookings left unpaid past the hold; frees the slot (idempotent)."""
+    from src.bookings import deposits
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await deposits.expire_unpaid(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "expire_unpaid_bookings",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "expire_unpaid_bookings", str(ctx.get("job_id", "")), True
     )
     return result
 
@@ -457,6 +482,7 @@ class WorkerSettings:
         drain_events_outbox,
         drain_outbox,
         enqueue_booking_reminders,
+        expire_unpaid_bookings,
         sync_event_rewards,
         send_wis2_publications,
         run_notification_sweeps,
@@ -498,6 +524,13 @@ class WorkerSettings:
         cron(drain_outbox, second={10, 40}, run_at_startup=False),
         # Booking reminders (24 hours ahead), hourly; one per booking.
         cron(enqueue_booking_reminders, minute={7}, run_at_startup=False),
+        # Unpaid deposit holds (BOOKINGS_DEPOSIT_HOLD_MINUTES, default 30) are
+        # cancelled and their slots released, every 5 minutes.
+        cron(
+            expire_unpaid_bookings,
+            minute=set(range(2, 60, 5)),
+            run_at_startup=False,
+        ),
         # Admissions become reward stamps; refunded ones are reversed.
         cron(
             sync_event_rewards,
