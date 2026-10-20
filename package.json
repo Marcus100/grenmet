@@ -51,6 +51,7 @@
     "agents:flow": "node scripts/agents/flow.mjs",
     "agents:score": "node scripts/agents/score-sessions.mjs",
     "agents:improve": "node scripts/agents/improve.mjs",
+    "agents:routing": "node scripts/agents/routing.mjs",
     "agents:sweep": "node scripts/agents/claim-issue.mjs sweep",
     "agents:handoff": "node scripts/agents/review-handoff.mjs",
     "coverage:check": "node scripts/guardrails/check-coverage.mjs",

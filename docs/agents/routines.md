@@ -86,10 +86,26 @@ Agent configuration (hooks, `AGENTS.md`, skills, the quality baselines) is also
 human only; a routine that must lower a baseline for its own fix says so in the PR
 and the PR is high risk.
 
-The split is a preference, not a measured result. Benchmark evidence so far (one run
-per cell, cheap tier): both models passed every capability task; Luna was faster and
-used fewer output tokens; Haiku held 5 of 5 rules where Luna held 4 of 5 (it relaxed a
-`tsconfig` when asked). Rerun the benchmark before treating the split as settled.
+The source of truth is [routing.json](routing.json), written by
+`pnpm agents:routing write` from the benchmark results. Routines pick the runner with
+`pnpm agents:routing route area:web risk:low`, which prints `{agent, model, measured}`
+for an issue they may take, or `{human: true}` with a reason. Until an area has at
+least three runs of a runner, its route is the owner's preference above and the file
+says `measured: false`.
+
+The data does not measure any area yet. `pnpm agents:routing report` on the 33 runs
+in `~/.cache/grenmet-bench/results.json` gives:
+
+```text
+all  claude  claude-haiku-5-5  17 runs  pass 82%  first-pass 76%  out 14k  total 1.2M  $0.64  3.7 min
+all  codex   gpt-6-luna        16 runs  pass 75%  first-pass 69%  out 2k   total 464k  -      1.3 min
+web, api, docs: not measured (0 runs each); owner preference kept
+```
+
+Both runners sit on the Pareto frontier of the mixed-area data: Haiku passes more
+often, Luna uses about 40% of the tokens. Every run is area `all` because none of the
+graded tasks has tests in one area, so this is not evidence for `web`, `api` or
+`docs`. Rerun the benchmark with area-specific tasks before changing a preference.
 Only one runner may be active per routine, so a second runner needs its own
 routine and its own `area:` labels.
 

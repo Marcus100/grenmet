@@ -66,6 +66,22 @@ a real disk, not `/tmp`, which may be in memory.
 Tasks without automated grading need exact function names that their prompts do
 not state, so they stay manual until a prompt and its tests agree on an interface.
 
+## Routing
+
+`scripts/agents/routing.mjs` turns the results into the runner for each issue area
+and writes [routing.json](../routing.json), which the routines read:
+
+```bash
+pnpm agents:routing report                 # runs per agent, model and area; * marks the Pareto frontier
+pnpm agents:routing write                  # regenerate docs/agents/routing.json
+pnpm agents:routing route area:web risk:low  # the runner for an issue's labels
+```
+
+An area is measured once a runner has three runs on it. A task's area comes from
+its hidden test files when they all sit in one area (`web`, `api` or `docs`); mixed
+or untested tasks count as `all`, which routes nothing. Until then the owner's
+preference stands and the file says so.
+
 ## Instruction-following tasks
 
 The `rules` tasks start from a commit with the current `AGENTS.md` and get one
