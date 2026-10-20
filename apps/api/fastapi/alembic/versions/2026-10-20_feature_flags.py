@@ -13,7 +13,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 revision = "featureflags20261020"
-down_revision = "orgsites20261020"
+down_revision = "orgapikeys20261020"
 branch_labels = None
 depends_on = None
 
