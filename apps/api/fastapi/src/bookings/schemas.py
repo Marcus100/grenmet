@@ -461,3 +461,39 @@ class BookingPublicReceipt(BaseModel):
             "payment is available and the business records the payment itself."
         ),
     )
+
+
+# --- settings screen (A1.2) -------------------------------------------------------------
+
+
+class BookingOrder(BaseModel):
+    """Ids of one kind in the order the business wants them listed."""
+
+    ids: Annotated[list[uuid.UUID], Field(min_length=1, max_length=500)]
+
+    @field_validator("ids")
+    @classmethod
+    def _unique(cls, value: list[uuid.UUID]) -> list[uuid.UUID]:
+        if len(set(value)) != len(value):
+            raise ValueError("Each id may appear only once")
+        return value
+
+
+class BookingProviderSettings(BookingProviderPublic):
+    working_hours: list[BookingWorkingPeriodPublic]
+
+
+class BookingSettings(BaseModel):
+    """Everything the settings screen renders, in one call."""
+
+    profile: BookingProfilePublic | None = Field(
+        description="Null until the business creates its booking profile."
+    )
+    services: list[BookingServicePublic]
+    providers: list[BookingProviderSettings]
+    deposits_available: bool = Field(
+        description=(
+            "False when the organisation lacks the `payments` entitlement: a "
+            "service deposit is stored but not collected."
+        )
+    )

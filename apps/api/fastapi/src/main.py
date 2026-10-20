@@ -38,6 +38,7 @@ from src.baseline.router import router as staff_setup_router
 from src.billing.invoice_router import router as billing_invoice_router
 from src.billing.router import router as billing_router
 from src.bookings.router import router as bookings_router
+from src.bookings.settings import router as bookings_settings_router
 from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
@@ -453,6 +454,7 @@ app.include_router(billing_invoice_router, prefix=settings.API_V1_STR)
 app.include_router(rewards_router, prefix=settings.API_V1_STR)
 app.include_router(payments_router, prefix=settings.API_V1_STR)
 app.include_router(bookings_router, prefix=settings.API_V1_STR)
+app.include_router(bookings_settings_router, prefix=settings.API_V1_STR)
 app.include_router(hr_profile_router, prefix=settings.API_V1_STR)
 app.include_router(hr_workflow_router, prefix=settings.API_V1_STR)
 app.include_router(hr_roster_router, prefix=settings.API_V1_STR)
