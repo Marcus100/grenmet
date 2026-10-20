@@ -14,6 +14,7 @@ from src.auth import apps as auth_apps
 PRODUCTS: dict[str, str] = {
     "bookings": "Barrels Bookings",
     "rewards": "Barrels Rewards",
+    "contacts": "Barrels Contacts",
 }
 
 
