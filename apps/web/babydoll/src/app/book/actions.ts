@@ -1,10 +1,18 @@
 "use server";
 
-import type { BookingPublicDetail } from "@barrelsgd/api-client";
 import { bookingPublicCreateSchema } from "@barrelsgd/api-client";
+import type {
+  Failure,
+  Outcome,
+} from "@barrelsgd/bookings-web/lib/booking-errors";
+import type {
+  Booked,
+  BookingInput,
+  SlotList,
+} from "@barrelsgd/bookings-web/lib/booking-types";
 import { env } from "@/env";
 import { createBooking, getAvailability } from "@/lib/booking-api";
-import { type Failure, failureFrom, type Outcome } from "@/lib/booking-errors";
+import { failureFrom } from "@/lib/booking-errors";
 
 // Server Actions are the only door from the browser to the API: the API
 // address never leaves the server, and the generated client does the calling.
@@ -12,34 +20,6 @@ import { type Failure, failureFrom, type Outcome } from "@/lib/booking-errors";
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const KEY = /^[A-Za-z0-9-]{16,100}$/;
-
-export interface SlotChoice {
-  ends_at: string;
-  starts_at: string;
-}
-
-export interface SlotList {
-  slots: SlotChoice[];
-  timezone: string;
-}
-
-export interface BookingInput {
-  email: string;
-  idempotencyKey: string;
-  marketingConsent: boolean;
-  name: string;
-  notes: string;
-  phone: string;
-  serviceId: string;
-  startsAt: string;
-  turnstileToken: string;
-  website: string;
-}
-
-export interface Booked {
-  booking: BookingPublicDetail;
-  manageToken: string;
-}
 
 const invalid: Failure = {
   ok: false,

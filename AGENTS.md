@@ -20,7 +20,8 @@ tooling. Start with `docs/technical-overview.md`.
 | `apps/web/<app>/AGENTS.md` | admin, auth, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `apps/web/babydoll/AGENTS.md` | Babydoll Beauty Bar client website (Next.js, Vercel) |
-| `packages/<pkg>/AGENTS.md` | api-client, auth, email-templates, gms, theme, ui |
+| `packages/bookings-web/AGENTS.md` | Public booking flow (slot picker, booking form, manage-booking, Turnstile) shared by babydoll and a future bookings app; host owns server calls |
+| `packages/<pkg>/AGENTS.md` | api-client, auth, bookings-web, email-templates, gms, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
 
 ## Commands

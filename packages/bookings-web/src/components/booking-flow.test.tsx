@@ -1,14 +1,16 @@
 import type { BookingStorefront } from "@barrelsgd/api-client";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { loadSlots, submitBooking } from "@/app/book/actions";
+import type { BookingFlowActions } from "../lib/booking-types";
 import { BookingFlow } from "./booking-flow";
 
-vi.mock("@/app/book/actions", () => ({
-  loadSlots: vi.fn(),
-  submitBooking: vi.fn(),
-}));
+const loadSlots = vi.fn<BookingFlowActions["loadSlots"]>();
+const submitBooking = vi.fn<BookingFlowActions["submitBooking"]>();
+const actions: BookingFlowActions = { loadSlots, submitBooking };
+const STUDIO = "Test Studio";
+const CONTACT = { href: "https://example.test/dm", label: "Instagram" };
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 const NO_TIMES = /No times are open/;
@@ -23,8 +25,8 @@ const TUE = "2027-01-05T13:30:00Z";
 const SLOT_TAKEN = "That time has just been taken. Please choose another.";
 
 const storefront: BookingStorefront = {
-  slug: "babydoll-beauty-bar",
-  display_name: "Babydoll Beauty Bar",
+  slug: "test-studio",
+  display_name: "Test Studio",
   timezone: "America/Grenada",
   currency: "XCD",
   cancel_cutoff_hours: 24,
@@ -74,7 +76,14 @@ const booking = {
 
 function renderFlow(siteKey = "") {
   return render(
-    <BookingFlow storefront={storefront} turnstileSiteKey={siteKey} />
+    <BookingFlow
+      actions={actions}
+      contact={CONTACT}
+      managePath="/booking"
+      storefront={storefront}
+      studioName={STUDIO}
+      turnstileSiteKey={siteKey}
+    />
   );
 }
 
@@ -290,6 +299,50 @@ describe("BookingFlow form", () => {
     expect(
       screen.getByRole("link", { name: "Manage my booking" })
     ).toHaveAttribute("href", "/booking/secret-token-value-123");
+  });
+
+  it("renders the manage link through the host's link component", async () => {
+    const user = userEvent.setup();
+    vi.mocked(submitBooking).mockResolvedValue({
+      ok: true,
+      data: { booking, manageToken: "tok-42" },
+    });
+    const HostLink = ({
+      children,
+      className,
+      href,
+    }: {
+      children: ReactNode;
+      className?: string;
+      href: string;
+    }) => (
+      <a className={className} data-host="yes" href={href}>
+        {children}
+      </a>
+    );
+    render(
+      <BookingFlow
+        actions={actions}
+        contact={CONTACT}
+        ManageLink={HostLink}
+        managePath="/manage"
+        storefront={storefront}
+        studioName={STUDIO}
+        turnstileSiteKey=""
+      />
+    );
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+
+    expect(
+      await screen.findByRole("link", { name: "Manage my booking" })
+    ).toHaveAttribute("data-host", "yes");
+    expect(
+      screen.getByRole("link", { name: "Manage my booking" })
+    ).toHaveAttribute("href", "/manage/tok-42");
   });
 
   it("loads no Turnstile script without a site key", () => {

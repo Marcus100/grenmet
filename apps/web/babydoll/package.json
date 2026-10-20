@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@barrelsgd/api-client": "workspace:*",
+    "@barrelsgd/bookings-web": "workspace:*",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"

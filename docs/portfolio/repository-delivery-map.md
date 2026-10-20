@@ -62,6 +62,7 @@ transition:
 | `packages/auth` | Barrels platform | Active | May serve products and clients; grants no application access by default |
 | `packages/ui` | Barrels platform, brand-neutral primitives | Active; separation complete at boundaries 3-5 | Carries no brand prefix; must not depend on a brand package or select GMS branding by default |
 | `packages/theme` | Barrels platform display infrastructure | Active | Brand-neutral; product packages supply mappings |
+| `packages/bookings-web` | Barrels Bookings public booking flow (Barrels platform) | Active | Brand-neutral and framework-light: hosts pass server actions, links and class names in as props; never imports the API client at runtime or reads env |
 | `packages/gms` | GMS client presentation package | Active; extracted at boundaries 4-5b | Owns the GMS logo, palette and components; may depend on shared UI/theme, never the reverse |
 | `packages/api-client` | Barrels platform generated client | Generated | Regenerate from FastAPI OpenAPI; never edit generated output manually |
 | `packages/email-templates` | Barrels platform messaging | Active | Product/client branding supplied by caller |

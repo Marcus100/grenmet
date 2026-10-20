@@ -1,7 +1,8 @@
 import { ResponseError } from "@barrelsgd/api-client";
+import type { BookingInput } from "@barrelsgd/bookings-web/lib/booking-types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createBooking, getAvailability } from "@/lib/booking-api";
-import { type BookingInput, loadSlots, submitBooking } from "./actions";
+import { loadSlots, submitBooking } from "./actions";
 
 const mocks = vi.hoisted(() => ({
   env: { BABYDOLL_ONLINE_BOOKING: "on" as "on" | "off" },

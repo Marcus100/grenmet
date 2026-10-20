@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import type { SlotList } from "@/app/book/actions";
-import type { Outcome } from "@/lib/booking-errors";
+import type { Outcome } from "../lib/booking-errors";
 import {
   addDays,
   formatDay,
@@ -10,7 +9,8 @@ import {
   groupByDay,
   localDay,
   WINDOW_DAYS,
-} from "@/lib/booking-format";
+} from "../lib/booking-format";
+import type { SlotList } from "../lib/booking-types";
 
 type Loaded =
   | { state: "loading" }

@@ -39,6 +39,7 @@ Counts are Vitest and Playwright files, counted 2026-10-16.
 | `@barrelsgd/ui` | None; every app depends on it | — | A | B |
 | `@barrelsgd/gms` | None | — | A | C |
 | `@barrelsgd/theme` | None | — | — | — |
+| `@barrelsgd/bookings-web` | 5 files (`src/lib`, `src/components`) | Not measured | A | B |
 | `@barrelsgd/email-templates` | None | — | — | — |
 | `@barrelsgd/tsconfig` | — (config only) | — | — | B |
 | `@barrelsgd/cms-migrations` | — (migrations only) | — | — | — |

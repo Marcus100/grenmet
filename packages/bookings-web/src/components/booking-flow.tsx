@@ -4,25 +4,63 @@ import type {
   BookingPublicService,
   BookingStorefront,
 } from "@barrelsgd/api-client";
-import Link from "next/link";
-import { type RefObject, useEffect, useRef, useState } from "react";
-import { type Booked, loadSlots, submitBooking } from "@/app/book/actions";
+import {
+  type ComponentType,
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   type FieldErrors,
   type FieldKey,
   fingerprint,
   validateBooking,
-} from "@/lib/booking-form";
+} from "../lib/booking-form";
 import {
   formatDateTime,
   formatDuration,
   formatMoney,
-} from "@/lib/booking-format";
+} from "../lib/booking-format";
+import type {
+  Booked,
+  BookingFlowActions,
+  ContactChannel,
+} from "../lib/booking-types";
 import { SlotPicker } from "./slot-picker";
 import { Turnstile } from "./turnstile";
 
-interface BookingFlowProps {
+/** A link component the host can supply (e.g. a router-aware link). */
+export interface BookingLinkProps {
+  children: ReactNode;
+  className?: string;
+  href: string;
+}
+
+export type BookingLink = ComponentType<BookingLinkProps>;
+
+/** Default link: a plain anchor. Hosts with client-side routing pass their own. */
+function PlainLink({ children, className, href }: BookingLinkProps) {
+  return (
+    <a className={className} href={href}>
+      {children}
+    </a>
+  );
+}
+
+export interface BookingFlowProps {
+  /** Server calls for slots and submission, passed in by the host app. */
+  actions: BookingFlowActions;
+  /** How people reach the studio by hand when no slot is open online. */
+  contact: ContactChannel;
+  /** Link used for the manage link on the confirmation. Defaults to an anchor. */
+  ManageLink?: BookingLink;
+  /** Path the manage link goes to; the token is appended as `/<token>`. */
+  managePath: string;
   storefront: BookingStorefront;
+  /** The studio's name, used in the marketing opt-in wording. */
+  studioName: string;
   /** Cloudflare Turnstile public key; empty means no widget. */
   turnstileSiteKey: string;
 }
@@ -65,7 +103,15 @@ function useFocusWhen(ref: RefObject<HTMLElement | null>, when: boolean): void {
 }
 
 /** The confirmation: focus lands on its heading so screen readers announce it. */
-function BookingDone({ booked }: { booked: Booked }) {
+function BookingDone({
+  booked,
+  ManageLink,
+  managePath,
+}: {
+  booked: Booked;
+  ManageLink: BookingLink;
+  managePath: string;
+}) {
   const { booking, manageToken } = booked;
   const headingRef = useRef<HTMLHeadingElement>(null);
   useFocusWhen(headingRef, true);
@@ -94,9 +140,12 @@ function BookingDone({ booked }: { booked: Booked }) {
         booking, and it is shown only once. We also send it to your email.
       </p>
       <p>
-        <Link className="btn btn-solid" href={`/booking/${manageToken}`}>
+        <ManageLink
+          className="btn btn-solid"
+          href={`${managePath}/${manageToken}`}
+        >
           Manage my booking
-        </Link>
+        </ManageLink>
       </p>
     </section>
   );
@@ -164,6 +213,11 @@ function TextField({
 }
 
 export function BookingFlow({
+  actions,
+  contact,
+  managePath,
+  ManageLink = PlainLink,
+  studioName,
   storefront,
   turnstileSiteKey,
 }: BookingFlowProps) {
@@ -232,7 +286,7 @@ export function BookingFlow({
     }
     setSubmitting(true);
     try {
-      const outcome = await submitBooking({
+      const outcome = await actions.submitBooking({
         idempotencyKey: attempt.current.key,
         serviceId,
         startsAt,
@@ -265,7 +319,13 @@ export function BookingFlow({
   };
 
   if (booked) {
-    return <BookingDone booked={booked} />;
+    return (
+      <BookingDone
+        booked={booked}
+        ManageLink={ManageLink}
+        managePath={managePath}
+      />
+    );
   }
 
   return (
@@ -336,7 +396,7 @@ export function BookingFlow({
         {storefront.services.length === 0 && (
           <p className="muted">
             No services are open for online booking yet. Please message us on
-            Instagram.
+            {contact.label}.
           </p>
         )}
       </fieldset>
@@ -350,7 +410,7 @@ export function BookingFlow({
         {service ? (
           <SlotPicker
             key={service.id}
-            load={(firstDay) => loadSlots(service.id, firstDay)}
+            load={(firstDay) => actions.loadSlots(service.id, firstDay)}
             onChange={setStartsAt}
             reloadKey={reloadKey}
             timeZone={storefront.timezone}
@@ -422,8 +482,8 @@ export function BookingFlow({
             type="checkbox"
           />
           <span>
-            Send me news and offers from Babydoll Beauty Bar. (Optional. We will
-            always email you about this booking.)
+            Send me news and offers from {studioName}. (Optional. We will always
+            email you about this booking.)
           </span>
         </label>
 

@@ -17,8 +17,8 @@ import {
   createClient,
   ResponseError,
 } from "@barrelsgd/api-client";
+import { windowFrom } from "@barrelsgd/bookings-web/lib/booking-format";
 import { env } from "@/env";
-import { windowFrom } from "./booking-format";
 
 function options() {
   return { client: createClient({ baseURL: env.BABYDOLL_API_URL }) };

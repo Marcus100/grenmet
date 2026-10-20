@@ -89,6 +89,8 @@
     "source=grenmet-${devcontainerId}-packages-api-client-node_modules,target=${localWorkspaceFolder}/packages/api-client/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-auth-node_modules,target=/workspace/packages/auth/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-auth-node_modules,target=${localWorkspaceFolder}/packages/auth/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-bookings-web-node_modules,target=/workspace/packages/bookings-web/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-bookings-web-node_modules,target=${localWorkspaceFolder}/packages/bookings-web/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-email-templates-node_modules,target=/workspace/packages/email-templates/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-email-templates-node_modules,target=${localWorkspaceFolder}/packages/email-templates/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-gms-node_modules,target=/workspace/packages/gms/node_modules,type=volume,volume-nocopy",
