@@ -118,6 +118,14 @@ from src.organisations.models import (  # noqa: F401
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
 from src.push.models import PushSubscription
 from src.rewards.models import Entry, Program, ReviewFlag
+from src.rewards.models_gamification import (  # noqa: F401
+    AchievementAward,
+    AchievementDefinition,
+    CheckIn,
+    Trail,
+    TrailStop,
+    Venue,
+)
 from src.storage.models import OrgUpload
 from src.stores.models import (
     Requisition,

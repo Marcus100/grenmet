@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed. The owner approved the scope on 2026-10-20 (foundations slices PF8–PF11). This amends the rewards guardrails in the [foundations plan](../exec-plans/barrels-foundations-plan.md#barrels-id-and-rewards) and `src/rewards/AGENTS.md`.
+Proposed. The owner approved the scope on 2026-10-20 (foundations slices PF8–PF11). API implemented for PF8 (earn-source catalogue and `record_qualifying_action`, no outbox handler yet), PF9 (venues, signed QR, check-ins, trails, achievements, streaks; social layer PF10 not built) and the API half of PF11 on branch of 2026-10-20. This amends the rewards guardrails in the [foundations plan](../exec-plans/barrels-foundations-plan.md#barrels-id-and-rewards) and `src/rewards/AGENTS.md`.
 
 ## Context
 
