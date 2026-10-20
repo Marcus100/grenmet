@@ -6,16 +6,16 @@ allowed-tools: Bash(pnpm *), Bash(turbo run *), Bash(gh *), Bash(git *), Bash(cu
 
 ## Release Promotion
 
-Follow `docs/operations/release-runbook.md`. Local dev integration, direct dev
-push, staging PR creation/update and merging after all applicable checks pass
-have standing user authorization. Monitor the resulting staging deployment.
-Main merges and production publication/deployment need separate authorization.
-Never bypass protection, hooks, or failing checks.
+Follow `docs/operations/release-runbook.md`. Work reaches `dev` by PR into `dev`
+that the owner merges (`/commit` step 4). Staging PR creation/update and
+auto-merge after all applicable checks pass have standing user authorization.
+Monitor the resulting staging deployment. Main merges and production
+publication/deployment need separate authorization. Never bypass protection,
+hooks, or failing checks.
 
 **1. Pre-flight**
-Integrate completed task branches into local `dev` and validate the combined
-result before pushing `dev` directly. Do not push feature branches or open
-feature-to-dev PRs unless requested. See `AGENTS.md` → Git and GitHub Workflow.
+Start from the `dev` the owner has merged; never push `dev` yourself. See
+`AGENTS.md` → Git and GitHub Workflow.
 
 Confirm the latest `dev` CI run is green (`gh run list --branch dev --limit 3`);
 if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the

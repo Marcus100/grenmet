@@ -63,20 +63,20 @@ unresolved goes to the owner.
    findings, does not edit, commit, push, merge or deploy, and writes no files,
    including `SESSION_LOG.md`. The tools may swap author and reviewer per task when
    the owner says so.
-2. **Integration.** Follow `AGENTS.md` and [workflow.md](workflow.md). For
-   cross-agent work the author may push its own assigned branch and open a pull
-   request into `dev`; the owner reviews and merges it. Agents do not push
-   branches or open pull requests otherwise unless the owner asks.
-3. **Merge authority.** For this collaboration, no agent merges a pull request,
-   arms auto-merge, pushes `dev`, `staging` or `main`, or deploys without the
-   owner's explicit authorization for that action. This overrides the
-   attended-session standing authorization in `AGENTS.md` and
-   [workflow.md](workflow.md) (merge into local `dev`, push `dev`, create the
-   `dev → staging` PR and arm auto-merge) wherever Claude and Codex work together
-   on a task. It narrows that authorization and does not widen anything. Opening a
-   pull request into `dev` stays allowed under item 2. Outside this collaboration
-   the standing authorization is unchanged.
-4. **Review handoff.** Every request includes:
+2. **Integration.** Both tools land work the same way: finish on the assigned
+   branch, verify, push that branch and open a PR into `dev`. The owner reviews
+   and merges PRs into `dev`; no agent merges into `dev` or pushes it. This is
+   the attended-session rule in `AGENTS.md` and [workflow.md](workflow.md), not
+   an exception to it. `dev` has no ruleset yet, so the rule is enforced only by
+   these documents until the owner adds one (see Rulesets in
+   [workflow.md](workflow.md)).
+3. **Promotion.** `dev → staging` keeps its standing authorization: an agent
+   creates the promotion PR and arms auto-merge on the reviewed head, and GitHub
+   merges once the staging ruleset's required checks pass. `staging → main`,
+   releases and production deploys need the owner's explicit authorization each
+   time. The agent hook allows `gh pr merge` only when the base is `staging`.
+4. **Review handoff.** Every request includes the block `pnpm agents:handoff`
+   prints (`scripts/agents/review-handoff.mjs`), completed by the author:
    - the task and its acceptance criteria;
    - the branch or PR URL;
    - the exact head SHA and base SHA;
@@ -119,20 +119,24 @@ changing access settings: the branch may not have been pushed.
 | --- | --- | --- |
 | AI review | `.github/workflows/ai-review.yml`, `scripts/ci/ai-review.mjs` | Posts one updated comment on PRs into `dev`. Advisory, never fails the PR. Skips drafts, forks and Dependabot. |
 | API breaking changes | `.github/workflows/api-breaking-changes.yml`, `scripts/api/check-api-breaking.mjs` | Fails a PR into `dev` that removes a route or method, adds required input, or removes or retypes output. The `breaking-change` label accepts an intended break. |
+| Rulesets drift | `.github/workflows/rulesets-drift.yml`, `scripts/guardrails/github-rulesets.mjs` | Fails when GitHub's branch rulesets differ from `infra/github/rulesets.json`. Runs on PRs into `dev`, `staging` and `main`, and weekly. |
+| CodeQL | `.github/workflows/codeql.yml` | Static analysis of TypeScript and Python on PRs and `dev` pushes; results go to the Security tab. |
+| Secret scan | `.github/workflows/secret-scan.yml` | gitleaks over only the commits a PR or `dev` push adds. |
 
 **AI review setup.** Add the repository secret `ANTHROPIC_API_KEY`. Without it the
 job logs a skip and passes. Set the repository variable `AI_REVIEW_MODEL` to
 change the model (default `claude-sonnet-5-5`). The workflow uses
 `pull_request_target`, which GitHub runs from the default branch (`main`), so it
-never executes PR code; keep it that way. It only starts reviewing PRs once it
-has reached `main` through the normal promotion.
+never executes PR code; keep it that way. It runs from the copy on `main`, so a
+change to it takes effect only after promotion.
 
 **Limits.** The reviewer sees the diff and the `AGENTS.md` rules, not the running
 system, and it can be wrong; treat findings as claims to check. The breaking
 check reads the OpenAPI spec only: it covers removed or changed routes, inputs and
 outputs, not behaviour changes behind the same schema, and it is not the full
-oasdiff rule set. Neither gate is a required check yet; make them required in
-branch protection once you trust their signal.
+oasdiff rule set. `infra/github/rulesets.json` lists the checks GitHub
+requires; none of these gates is among them yet. Make a gate required in the
+ruleset once you trust its signal, then refresh the snapshot.
 
 ## Changing a role
 

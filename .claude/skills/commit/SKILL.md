@@ -33,17 +33,18 @@ Claude Code fills these in; in Codex, run the commands.
 3. Stage only authorized changes, preserving unrelated staged and unstaged work.
    Commit with the reviewed message. Do not bypass hooks or force-push.
 
-4. Merge completed task branches into local `dev` in a clean integration checkout,
-   incorporating current `origin/dev` first. Validate the combined result with the
-   checks above, then push `dev` directly. Do not push feature branches or create
-   feature-to-dev PRs unless explicitly requested. If remote dev advances,
-   integrate and revalidate locally before retrying; never force-push.
-   Unattended scheduled runs (`docs/agents/routines.md`) instead push their task
-   branch and open a feature-to-dev PR; they never push `dev`.
+4. Integrate current `origin/dev` into the task branch, validate the combined
+   result with the checks above, then push the task branch and open a PR into
+   `dev` (`gh pr create --base dev`) with the step 7 recap as its body. The
+   owner merges PRs into `dev`; never push `dev` or merge into it yourself. If
+   remote dev advances, integrate and revalidate before updating the PR; never
+   force-push. Unattended scheduled runs (`docs/agents/routines.md`) do the same
+   from their `agent/<n>-<slug>` branch. For a cross-tool review first, hand the
+   owner the block from `pnpm agents:handoff`.
 
 5. Use PRs for `dev → staging → main` promotion, reusing an existing promotion PR.
-   After a verified dev push, automatically create/update the staging PR and arm
-   auto-merge on its reviewed head, following `/release`.
+   Once the owner has merged into `dev`, automatically create/update the staging
+   PR and arm auto-merge on its reviewed head, following `/release`.
    This has standing authorization. Main merges and production publication or
    deployment still require separate authorization.
 
