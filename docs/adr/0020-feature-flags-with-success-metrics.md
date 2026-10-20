@@ -2,8 +2,11 @@
 
 ## Status
 
-Proposed — 2026-10-13. Needs owner approval before any implementation (new
-shared infrastructure and a cross-app contract).
+Accepted — 2026-10-20. Built in `apps/api/fastapi/src/feature_flags` (PF7):
+audience rules cover organisations, users, stable percentage rollout and an
+environment allowlist; the admin screen in gaa-admin is still to do. Percentage
+rollouts, originally out of scope below, were added with the organisation and
+user rules because the social-layer flags (PF10) need them.
 
 ## Context
 

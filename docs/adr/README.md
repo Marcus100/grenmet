@@ -25,7 +25,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0017](0017-single-sign-on-handoff.md) | Proposed: single sign-on handoff between app-scoped sessions |
 | [0018](0018-modular-access-and-onboarding.md) | Modular access and administrator-mediated staff onboarding |
 | [0019](0019-workspace-toolchain-baseline.md) | Workspace toolchain baseline |
-| [0020](0020-feature-flags-with-success-metrics.md) | Proposed: feature flags with success metrics |
+| [0020](0020-feature-flags-with-success-metrics.md) | Accepted: feature flags with success metrics (built on the API as `src/feature_flags`, PF7; admin UI pending) |
 | [0021](0021-timed-recovery-drill.md) | Accepted: monthly timed recovery drill (built, not yet run; API start phase pending) |
 | [0022](0022-platform-organisations-and-memberships.md) | Accepted: platform organisations and memberships (bridge A, workspaces deferred) |
 | [0023](0023-cap-approval-before-publish.md) | Accepted: CAP needs approval by a different person before publish; audited emergency publish for the duty supervisor (supersedes ADR-0013 decisions 1-2) |

@@ -45,6 +45,7 @@ from src.cap.models import (
 from src.config import settings
 from src.contact.models import ContactDataRequest, ContactMessage
 from src.eregister.models import ERegisterSend  # noqa: F401
+from src.feature_flags.models import FeatureFlag  # noqa: F401
 from src.feedback.models import PageFeedback
 from src.hr.absentee.models import AbsenteeReport
 from src.hr.attendance.models import (
@@ -148,6 +149,7 @@ _TRACKED_SCHEMAS = {
     "billing",
     "environment",
     "rewards",
+    "flags",
 }
 
 

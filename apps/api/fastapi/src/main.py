@@ -53,6 +53,7 @@ from src.exceptions import (
     integrity_error_handler,
     validation_exception_handler,
 )
+from src.feature_flags.router import router as feature_flags_router
 from src.feedback.router import router as feedback_router
 from src.flights.router import router as flights_router
 from src.hr.absentee.router import router as hr_absentee_router
@@ -169,6 +170,10 @@ SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 OPENAPI_TAGS = [
     {"name": "audit", "description": "Record change history."},
+    {
+        "name": "feature-flags",
+        "description": "Feature flags with success metrics and audience rules.",
+    },
     {"name": "auth", "description": "Authentication, identity, and account security."},
     {"name": "billing", "description": "Billing and subscription operations."},
     {
@@ -451,6 +456,7 @@ app.include_router(audit_router, prefix=settings.API_V1_STR)
 app.include_router(stores_router, prefix=settings.API_V1_STR)
 app.include_router(notifications_router, prefix=settings.API_V1_STR)
 app.include_router(organisations_router, prefix=settings.API_V1_STR)
+app.include_router(feature_flags_router, prefix=settings.API_V1_STR)
 app.include_router(cap_router, prefix=settings.API_V1_STR)
 app.include_router(cap_public_router)
 
