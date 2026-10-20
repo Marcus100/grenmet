@@ -40,14 +40,13 @@ agent instructions. Nothing here relaxes a root rule.
 
 **Attended sessions** (a person is directing the agent):
 
-- Merge completed task branches into local `dev`, validate the combined result,
-  then push `dev` directly. Do not push feature branches or open feature-to-dev
-  PRs unless the user asks.
-- Fetch first and integrate current `origin/dev`; run `pnpm fix:changed`,
-  `pnpm type-check`, affected tests, staged guardrails and the blast-radius review
-  before pushing. If remote `dev` advances, integrate it locally and revalidate
-  before retrying.
-- Standing authorization: after local validation and a direct `dev` push,
+- Finish the task on its branch and integrate current `origin/dev`; run
+  `pnpm fix:changed`, `pnpm type-check`, affected tests, staged guardrails and
+  the blast-radius review. Then push the task branch and open a PR into `dev`
+  (`gh pr create --base dev`) with the `/commit` step 7 recap as its body. The
+  owner reviews and merges PRs into `dev`; agents never push `dev` or merge into
+  it themselves. If `origin/dev` advances, integrate it and revalidate.
+- Standing authorization: once the owner has merged into `dev`,
   create or update the `dev → staging` PR, review the promotion diff, verify `dev`
   has not advanced, and arm auto-merge with
   `gh pr merge <num> --auto --merge --match-head-commit <sha>`. GitHub merges only
@@ -58,9 +57,20 @@ agent instructions. Nothing here relaxes a root rule.
   and deploys need separate explicit authorization. Do not promote unrelated or
   unfinished work.
 
-**Unattended routines** follow [routines.md](routines.md) instead: they push only
+**Unattended routines** follow [routines.md](routines.md): they push only
 their own `agent/<n>-<slug>` branch, open a PR to `dev`, and never push `dev`,
 `staging` or `main` or merge anything.
+
+**Rulesets.** `infra/github/rulesets.json` is the committed copy of the branch
+rulesets, which are what make "PR required" and "required checks" true.
+`pnpm guardrails:rulesets` compares it with GitHub, and
+`.github/workflows/rulesets-drift.yml` does the same on every PR into a
+long-lived branch and weekly. Today `main` and `staging` each require a PR and
+six checks with no bypass actors; `dev` has no ruleset, so the PR-into-`dev`
+rule above is enforced only by these documents until the owner adds one
+(suggested: the same `pull_request`, `non_fast_forward` and `deletion` rules).
+After changing a ruleset, run `node scripts/guardrails/github-rulesets.mjs
+--snapshot` and commit the result.
 
 ## Blast-radius gate
 
@@ -83,12 +93,16 @@ file limits or authorize unrelated work.
 
 ## Session handoff
 
-Claude Code and Codex share one working tree. A `SessionStart` hook tails
-`SESSION_LOG.md` (main checkout root, gitignored, shared by every worktree) into
-context; read it before assuming a task is untouched. After a meaningful chunk of
-work, append one entry: timestamp, tool, summary, files, friction issues, next
-step, newest at the bottom. If you worked around anything, run the
-`file-friction` skill. For tool switches, follow [tool-usage.md](tool-usage.md).
+Claude Code and Codex share one working tree on a host or devcontainer; separate
+cloud environments do not, so there the owner relays handoffs
+(`pnpm agents:handoff` prints the block; see [roles.md](roles.md)). A
+`SessionStart` hook tails `SESSION_LOG.md` (main checkout root, gitignored,
+shared by every worktree) into context; read it before assuming a task is
+untouched. After a meaningful chunk of work, append one entry: timestamp, tool,
+summary, files, friction issues, next step, newest at the bottom. A read-only
+reviewer appends nothing; the author records the review outcome (`AGENTS.md`).
+If you worked around anything, run the `file-friction` skill. For tool switches,
+follow [tool-usage.md](tool-usage.md).
 
 ## Editing agent instructions
 
