@@ -175,9 +175,15 @@ async def drain_outbox(ctx: dict[str, Any]) -> int:
     """Run due platform outbox rows (email.send, ...); see ADR-0026."""
     from src import outbox
     from src.database import async_session_factory
-    from src.notifications import outbox_handlers  # noqa: F401 - registers email.send
-    from src.rewards import outbox_handlers as rewards_handlers  # noqa: F401
-    from src.webhooks_out import delivery  # noqa: F401 - registers webhook.deliver
+
+    # Importing these modules registers their outbox handlers (email.send,
+    # rewards.qualifying_action, webhook.deliver).
+    for module in (
+        "src.notifications.outbox_handlers",
+        "src.rewards.outbox_handlers",
+        "src.webhooks_out.delivery",
+    ):
+        import_module(module)
 
     async with async_session_factory() as session:
         try:

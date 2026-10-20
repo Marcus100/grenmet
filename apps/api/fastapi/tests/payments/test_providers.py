@@ -21,7 +21,7 @@ from src.payments.providers.base import EventKind
 from src.payments.providers.manual import ManualProvider
 from src.payments.providers.stripe import StripeProvider, verify_signature
 from tests.payments.conftest import (
-    WEBHOOK_SECRET,
+    WEBHOOK_SIGNING_KEY,
     StripeStub,
     checkout_completed,
     signed,
@@ -97,7 +97,7 @@ def test_unknown_provider_is_a_404() -> None:
 # --- signatures ----------------------------------------------------------------------------
 
 
-def _header(body: bytes, stamp: int, secret: str = WEBHOOK_SECRET) -> str:
+def _header(body: bytes, stamp: int, secret: str = WEBHOOK_SIGNING_KEY) -> str:
     return f"t={stamp},v1={stripe_module.sign_payload(secret, stamp, body)}"
 
 
@@ -106,10 +106,10 @@ def test_signature_valid_invalid_and_stale() -> None:
     now = 1_800_000_000.0
     kwargs = {"tolerance_seconds": 300, "now": now}
 
-    verify_signature(_header(body, int(now)), body, WEBHOOK_SECRET, **kwargs)
+    verify_signature(_header(body, int(now)), body, WEBHOOK_SIGNING_KEY, **kwargs)
     # Still inside the window on both sides.
-    verify_signature(_header(body, int(now) - 299), body, WEBHOOK_SECRET, **kwargs)
-    verify_signature(_header(body, int(now) + 299), body, WEBHOOK_SECRET, **kwargs)
+    verify_signature(_header(body, int(now) - 299), body, WEBHOOK_SIGNING_KEY, **kwargs)
+    verify_signature(_header(body, int(now) + 299), body, WEBHOOK_SIGNING_KEY, **kwargs)
 
     bad_headers = [
         _header(body, int(now), secret="whsec_wrong"),
@@ -124,16 +124,16 @@ def test_signature_valid_invalid_and_stale() -> None:
     ]
     for header in bad_headers:
         with pytest.raises(InvalidCallbackError):
-            verify_signature(header, body, WEBHOOK_SECRET, **kwargs)
+            verify_signature(header, body, WEBHOOK_SIGNING_KEY, **kwargs)
 
 
 def test_signature_accepts_any_matching_v1_for_a_rotated_secret() -> None:
     body = b"{}"
     now = 1_800_000_000
-    good = stripe_module.sign_payload(WEBHOOK_SECRET, now, body)
+    good = stripe_module.sign_payload(WEBHOOK_SIGNING_KEY, now, body)
     header = f"t={now},v1={'1' * 64},v1={good}"
     verify_signature(
-        header, body, WEBHOOK_SECRET, tolerance_seconds=300, now=float(now)
+        header, body, WEBHOOK_SIGNING_KEY, tolerance_seconds=300, now=float(now)
     )
 
 

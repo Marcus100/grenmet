@@ -48,19 +48,25 @@ class FlagDefinition:
     expires_at: datetime | None
 
 
-_snapshot: tuple[float, dict[str, FlagDefinition]] | None = None
+@dataclass
+class _Snapshot:
+    """The flag definitions loaded at ``loaded_at`` (monotonic seconds)."""
+
+    loaded_at: float = 0.0
+    definitions: dict[str, FlagDefinition] | None = None
+
+
+_cache = _Snapshot()
 
 
 def clear_cache() -> None:
-    global _snapshot  # noqa: PLW0603
-    _snapshot = None
+    _cache.definitions = None
 
 
 async def _definitions(session: AsyncSession) -> dict[str, FlagDefinition]:
-    global _snapshot  # noqa: PLW0603
     now = time.monotonic()
-    if _snapshot is not None and now - _snapshot[0] < CACHE_TTL_SECONDS:
-        return _snapshot[1]
+    if _cache.definitions is not None and now - _cache.loaded_at < CACHE_TTL_SECONDS:
+        return _cache.definitions
     rows = (await session.execute(select(FeatureFlag))).scalars().all()
     loaded = {
         row.key: FlagDefinition(
@@ -72,7 +78,8 @@ async def _definitions(session: AsyncSession) -> dict[str, FlagDefinition]:
         )
         for row in rows
     }
-    _snapshot = (now, loaded)
+    _cache.loaded_at = now
+    _cache.definitions = loaded
     return loaded
 
 

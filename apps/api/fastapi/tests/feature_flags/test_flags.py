@@ -451,7 +451,7 @@ async def test_require_flag_gates_routes_with_404(db_async: AsyncSession) -> Non
     await db_async.commit()
 
     probe = FastAPI()
-    probe.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
+    probe.exception_handler(AppException)(app_exception_handler)
 
     @probe.get("/_probe/on", dependencies=[Depends(require_flag(gated))])
     async def probe_on() -> dict[str, bool]:

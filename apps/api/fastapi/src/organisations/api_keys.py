@@ -256,4 +256,4 @@ async def touch_last_used(session: AsyncSession, key_id: str) -> bool:
         )
         .values(last_used_at=now)
     )
-    return bool(result.rowcount)  # type: ignore[attr-defined]
+    return bool(getattr(result, "rowcount", 0))

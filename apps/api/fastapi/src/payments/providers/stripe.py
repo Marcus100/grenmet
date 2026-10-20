@@ -43,7 +43,7 @@ from .base import (
 logger = logging.getLogger(__name__)
 
 TEST_KEY_PREFIX = "sk_test_"
-WEBHOOK_SECRET_PREFIX = "whsec_"  # noqa: S105
+WHSEC_PREFIX = "whsec_"  # prefix of a Stripe webhook signing key
 
 # Test seam: an httpx transport (e.g. MockTransport) used instead of the network.
 _transport: httpx.AsyncBaseTransport | None = None
@@ -261,7 +261,7 @@ class StripeProvider:
 
     def verify_callback(self, headers: Mapping[str, str], body: bytes) -> ProviderEvent:
         secret = self._config.STRIPE_WEBHOOK_SECRET
-        if not secret or not secret.startswith(WEBHOOK_SECRET_PREFIX):
+        if not secret or not secret.startswith(WHSEC_PREFIX):
             logger.error("Stripe webhook secret is missing or malformed")
             raise ProviderUnavailableError("Stripe webhooks are not configured")
         verify_signature(

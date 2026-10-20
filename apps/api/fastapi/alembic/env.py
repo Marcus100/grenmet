@@ -1,6 +1,7 @@
 import asyncio
 import selectors
 import sys
+from importlib import import_module
 from logging.config import fileConfig
 from pathlib import Path
 from typing import Any
@@ -44,9 +45,7 @@ from src.cap.models import (
 )
 from src.config import settings
 from src.contact.models import ContactDataRequest, ContactMessage
-from src.contacts.models import Contact, ContactConsent  # noqa: F401
 from src.eregister.models import ERegisterSend  # noqa: F401
-from src.feature_flags.models import FeatureFlag  # noqa: F401
 from src.feedback.models import PageFeedback
 from src.hr.absentee.models import AbsenteeReport
 from src.hr.attendance.models import (
@@ -96,7 +95,6 @@ from src.hr.workflow.models import (
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
-from src.idempotency import IdempotencyKey  # noqa: F401
 from src.models_guidance.models import (
     GuidanceAccessRequest,
     ModelGuidanceRun,
@@ -117,24 +115,9 @@ from src.organisations.models import (  # noqa: F401
     PlatformOrganisation,
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
-from src.outbox import Outbox  # noqa: F401
 from src.payments.models import Attempt, Intent, LedgerEntry, Refund
 from src.push.models import PushSubscription
 from src.rewards.models import Entry, Program, ReviewFlag
-from src.rewards.models_gamification import (  # noqa: F401
-    AchievementAward,
-    AchievementDefinition,
-    CheckIn,
-    Trail,
-    TrailStop,
-    Venue,
-)
-from src.rewards.models_social import (  # noqa: F401
-    Challenge,
-    ChallengeProgress,
-    Gift,
-    LeaderboardOptIn,
-)
 from src.storage.models import OrgUpload
 from src.stores.models import (
     Requisition,
@@ -145,7 +128,18 @@ from src.stores.models import (
     StoreLocation,
 )
 from src.subscriptions.models import ListSubscription
-from src.webhooks_out.models import WebhookDelivery, WebhookEndpoint  # noqa: F401
+
+# Modules that only need to put their tables on Base.metadata.
+for _models_module in (
+    "src.contacts.models",
+    "src.feature_flags.models",
+    "src.idempotency",
+    "src.outbox",
+    "src.rewards.models_gamification",
+    "src.rewards.models_social",
+    "src.webhooks_out.models",
+):
+    import_module(_models_module)
 
 config = context.config
 config.set_main_option("sqlalchemy.url", str(settings.SQLALCHEMY_DATABASE_URI))

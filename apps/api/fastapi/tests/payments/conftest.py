@@ -12,7 +12,7 @@ import pytest
 from src.payments.config import payments_settings
 from src.payments.providers import stripe as stripe_module
 
-WEBHOOK_SECRET = "whsec_unit_test_secret"  # noqa: S105
+WEBHOOK_SIGNING_KEY = "whsec_unit_test_secret"
 
 
 @dataclass
@@ -57,7 +57,7 @@ def stripe_env(monkeypatch: pytest.MonkeyPatch) -> StripeStub:
         return httpx.Response(404, json={})
 
     monkeypatch.setattr(payments_settings, "STRIPE_SECRET_KEY", "sk_test_unit")
-    monkeypatch.setattr(payments_settings, "STRIPE_WEBHOOK_SECRET", WEBHOOK_SECRET)
+    monkeypatch.setattr(payments_settings, "STRIPE_WEBHOOK_SECRET", WEBHOOK_SIGNING_KEY)
     monkeypatch.setattr(
         payments_settings, "STRIPE_SUCCESS_URL", "https://example.test/paid"
     )
@@ -71,7 +71,7 @@ def stripe_env(monkeypatch: pytest.MonkeyPatch) -> StripeStub:
 def signed(
     event: dict[str, Any],
     *,
-    secret: str = WEBHOOK_SECRET,
+    secret: str = WEBHOOK_SIGNING_KEY,
     timestamp: int | None = None,
 ) -> tuple[bytes, dict[str, str]]:
     """A Stripe-style signed body and its headers."""

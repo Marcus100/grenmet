@@ -40,7 +40,6 @@ from src.contacts import audit as _contacts_audit
 from src.eregister import audit as _eregister_audit
 from src.events import notifications as _events_notifications
 from src.feature_flags import audit as _feature_flags_audit
-from src.feature_flags.models import FeatureFlag  # noqa: F401
 from src.hr import audit as _hr_audit
 from src.hr import notifications as _hr_notifications
 from src.hr.absentee.models import AbsenteeReport

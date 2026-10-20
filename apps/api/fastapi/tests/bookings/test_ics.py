@@ -1,6 +1,7 @@
 """iCalendar output and the status table: pure functions, no database."""
 
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 
@@ -13,7 +14,7 @@ ENDS = datetime(2027, 1, 4, 15, 30)
 
 
 def _build(**overrides: object) -> str:
-    values: dict[str, object] = {
+    values: dict[str, Any] = {
         "uid": "booking-1@barrels.gd",
         "starts_at": STARTS,
         "ends_at": ENDS,
@@ -21,7 +22,7 @@ def _build(**overrides: object) -> str:
         "stamp": STAMP,
     }
     values.update(overrides)
-    return ics.build_booking_ics(**values)  # type: ignore[arg-type]
+    return ics.build_booking_ics(**values)
 
 
 def test_document_shape_uses_crlf_utc_and_required_properties() -> None:

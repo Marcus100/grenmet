@@ -7,6 +7,7 @@ from typing import Annotated, Any
 import httpx
 import pytest
 from fastapi import Depends, FastAPI
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -499,9 +500,7 @@ async def test_require_api_key_scope_checks_scope_and_entitlement(
     app = FastAPI()
 
     @app.exception_handler(AppException)
-    async def _handle(_request: Any, exc: AppException):  # noqa: ANN202
-        from fastapi.responses import JSONResponse
-
+    async def _handle(_request: Any, exc: AppException) -> JSONResponse:
         return JSONResponse({"detail": exc.message}, status_code=exc.status_code)
 
     async def _db() -> AsyncGenerator[AsyncSession]:

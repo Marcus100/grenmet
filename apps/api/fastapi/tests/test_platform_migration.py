@@ -69,8 +69,8 @@ def test_upgrade_creates_both_tables_and_downgrade_removes_them(before_migration
     assert _tables(connection) == set()
 
 
-def test_migration_continues_the_organisation_sites_revision():
+def test_migration_continues_the_payments_revision():
     scripts = ScriptDirectory.from_config(Config("alembic.ini"))
     revision = scripts.get_revision(REVISION)
     assert revision is not None
-    assert revision.down_revision == "orgsites20261020"
+    assert revision.down_revision == "payments20261020"

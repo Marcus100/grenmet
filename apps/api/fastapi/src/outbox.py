@@ -192,7 +192,13 @@ async def drain(
         )
         try:
             await _HANDLERS[row.topic](session, message)
-        except Exception as exc:  # noqa: BLE001 - handlers are arbitrary; any failure retries
+        except Exception as exc:
+            # Handlers are arbitrary: any failure rolls back and retries.
+            logger.error(
+                "Outbox handler failed",
+                extra={"topic": row.topic, "attempts": row.attempts},
+                exc_info=exc,
+            )
             await session.rollback()
             await _record_failure(session, message, exc, moment)
         else:
