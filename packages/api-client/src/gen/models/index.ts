@@ -1755,6 +1755,10 @@ export type {
 export type { CapValidationResult } from "./CapValidationResult.js";
 export type { CatalogueApply } from "./CatalogueApply.js";
 export type { CataloguePreview } from "./CataloguePreview.js";
+export type { ChallengeMetric } from "./ChallengeMetric.js";
+export { challengeMetric } from "./ChallengeMetric.js";
+export type { ChallengeStatus } from "./ChallengeStatus.js";
+export { challengeStatus } from "./ChallengeStatus.js";
 export type { CheckInCreate } from "./CheckInCreate.js";
 export type { CheckInPublic } from "./CheckInPublic.js";
 export type { CheckoutSessionPublic } from "./CheckoutSessionPublic.js";
@@ -5949,6 +5953,8 @@ export type {
   RewardsCancelRedemptionStatus409,
   RewardsCancelRedemptionStatus422,
 } from "./RewardsCancelRedemption.js";
+export type { RewardsChallengeCreate } from "./RewardsChallengeCreate.js";
+export type { RewardsChallengePublic } from "./RewardsChallengePublic.js";
 export type {
   RewardsConfirmRedemptionBody,
   RewardsConfirmRedemptionHeaders,
@@ -5978,6 +5984,19 @@ export type {
   RewardsCreateCheckInStatus503,
 } from "./RewardsCreateCheckIn.js";
 export type {
+  RewardsCreateGiftBody,
+  RewardsCreateGiftOptions,
+  RewardsCreateGiftResponse,
+  RewardsCreateGiftResponses,
+  RewardsCreateGiftStatus201,
+  RewardsCreateGiftStatus400,
+  RewardsCreateGiftStatus401,
+  RewardsCreateGiftStatus403,
+  RewardsCreateGiftStatus404,
+  RewardsCreateGiftStatus409,
+  RewardsCreateGiftStatus422,
+} from "./RewardsCreateGift.js";
+export type {
   RewardsCreateProgramBody,
   RewardsCreateProgramHeaders,
   RewardsCreateProgramOptions,
@@ -5991,6 +6010,20 @@ export type {
   RewardsCreateProgramStatus409,
   RewardsCreateProgramStatus422,
 } from "./RewardsCreateProgram.js";
+export type {
+  RewardsGetLeaderboardOptions,
+  RewardsGetLeaderboardPath,
+  RewardsGetLeaderboardQuery,
+  RewardsGetLeaderboardResponse,
+  RewardsGetLeaderboardResponses,
+  RewardsGetLeaderboardStatus200,
+  RewardsGetLeaderboardStatus400,
+  RewardsGetLeaderboardStatus401,
+  RewardsGetLeaderboardStatus403,
+  RewardsGetLeaderboardStatus404,
+  RewardsGetLeaderboardStatus409,
+  RewardsGetLeaderboardStatus422,
+} from "./RewardsGetLeaderboard.js";
 export type {
   RewardsGetPassportOptions,
   RewardsGetPassportResponse,
@@ -6009,6 +6042,21 @@ export type {
   RewardsGetStreakStatus403,
   RewardsGetStreakStatus422,
 } from "./RewardsGetStreak.js";
+export type { RewardsGiftCreate } from "./RewardsGiftCreate.js";
+export type { RewardsGiftPublic } from "./RewardsGiftPublic.js";
+export type { RewardsLeaderboardOptInCreate } from "./RewardsLeaderboardOptInCreate.js";
+export type { RewardsLeaderboardOptInPublic } from "./RewardsLeaderboardOptInPublic.js";
+export type { RewardsLeaderboardPublic } from "./RewardsLeaderboardPublic.js";
+export type { RewardsLeaderboardRow } from "./RewardsLeaderboardRow.js";
+export type {
+  RewardsListActiveChallengesOptions,
+  RewardsListActiveChallengesResponse,
+  RewardsListActiveChallengesResponses,
+  RewardsListActiveChallengesStatus200,
+  RewardsListActiveChallengesStatus401,
+  RewardsListActiveChallengesStatus403,
+  RewardsListActiveChallengesStatus422,
+} from "./RewardsListActiveChallenges.js";
 export type {
   RewardsListMineOptions,
   RewardsListMineResponse,
@@ -6047,6 +6095,15 @@ export type {
   RewardsListMyEntriesStatus422,
 } from "./RewardsListMyEntries.js";
 export type {
+  RewardsListMyLeaderboardOptInsOptions,
+  RewardsListMyLeaderboardOptInsResponse,
+  RewardsListMyLeaderboardOptInsResponses,
+  RewardsListMyLeaderboardOptInsStatus200,
+  RewardsListMyLeaderboardOptInsStatus401,
+  RewardsListMyLeaderboardOptInsStatus403,
+  RewardsListMyLeaderboardOptInsStatus422,
+} from "./RewardsListMyLeaderboardOptIns.js";
+export type {
   RewardsListMyTicketsOptions,
   RewardsListMyTicketsResponse,
   RewardsListMyTicketsResponses,
@@ -6067,6 +6124,38 @@ export type {
   RewardsListProgramsStatus404,
   RewardsListProgramsStatus422,
 } from "./RewardsListPrograms.js";
+export type {
+  RewardsListReceivedGiftsOptions,
+  RewardsListReceivedGiftsResponse,
+  RewardsListReceivedGiftsResponses,
+  RewardsListReceivedGiftsStatus200,
+  RewardsListReceivedGiftsStatus401,
+  RewardsListReceivedGiftsStatus403,
+  RewardsListReceivedGiftsStatus422,
+} from "./RewardsListReceivedGifts.js";
+export type {
+  RewardsListSentGiftsOptions,
+  RewardsListSentGiftsResponse,
+  RewardsListSentGiftsResponses,
+  RewardsListSentGiftsStatus200,
+  RewardsListSentGiftsStatus401,
+  RewardsListSentGiftsStatus403,
+  RewardsListSentGiftsStatus422,
+} from "./RewardsListSentGifts.js";
+export type {
+  RewardsOptInToLeaderboardBody,
+  RewardsOptInToLeaderboardOptions,
+  RewardsOptInToLeaderboardPath,
+  RewardsOptInToLeaderboardResponse,
+  RewardsOptInToLeaderboardResponses,
+  RewardsOptInToLeaderboardStatus200,
+  RewardsOptInToLeaderboardStatus400,
+  RewardsOptInToLeaderboardStatus401,
+  RewardsOptInToLeaderboardStatus403,
+  RewardsOptInToLeaderboardStatus404,
+  RewardsOptInToLeaderboardStatus409,
+  RewardsOptInToLeaderboardStatus422,
+} from "./RewardsOptInToLeaderboard.js";
 export type {
   RewardsOrgAddTrailStopBody,
   RewardsOrgAddTrailStopHeaders,
@@ -6096,6 +6185,20 @@ export type {
   RewardsOrgCreateAchievementStatus409,
   RewardsOrgCreateAchievementStatus422,
 } from "./RewardsOrgCreateAchievement.js";
+export type {
+  RewardsOrgCreateChallengeBody,
+  RewardsOrgCreateChallengeHeaders,
+  RewardsOrgCreateChallengeOptions,
+  RewardsOrgCreateChallengeResponse,
+  RewardsOrgCreateChallengeResponses,
+  RewardsOrgCreateChallengeStatus201,
+  RewardsOrgCreateChallengeStatus400,
+  RewardsOrgCreateChallengeStatus401,
+  RewardsOrgCreateChallengeStatus403,
+  RewardsOrgCreateChallengeStatus404,
+  RewardsOrgCreateChallengeStatus409,
+  RewardsOrgCreateChallengeStatus422,
+} from "./RewardsOrgCreateChallenge.js";
 export type {
   RewardsOrgCreateTrailBody,
   RewardsOrgCreateTrailHeaders,
@@ -6128,6 +6231,20 @@ export type {
 export type { RewardsOrgEntryListPublic } from "./RewardsOrgEntryListPublic.js";
 export type { RewardsOrgEntryPublic } from "./RewardsOrgEntryPublic.js";
 export type {
+  RewardsOrgGetLeaderboardHeaders,
+  RewardsOrgGetLeaderboardOptions,
+  RewardsOrgGetLeaderboardQuery,
+  RewardsOrgGetLeaderboardResponse,
+  RewardsOrgGetLeaderboardResponses,
+  RewardsOrgGetLeaderboardStatus200,
+  RewardsOrgGetLeaderboardStatus400,
+  RewardsOrgGetLeaderboardStatus401,
+  RewardsOrgGetLeaderboardStatus403,
+  RewardsOrgGetLeaderboardStatus404,
+  RewardsOrgGetLeaderboardStatus409,
+  RewardsOrgGetLeaderboardStatus422,
+} from "./RewardsOrgGetLeaderboard.js";
+export type {
   RewardsOrgGetVenueQrTokenHeaders,
   RewardsOrgGetVenueQrTokenOptions,
   RewardsOrgGetVenueQrTokenPath,
@@ -6153,6 +6270,19 @@ export type {
   RewardsOrgListAchievementsStatus404,
   RewardsOrgListAchievementsStatus422,
 } from "./RewardsOrgListAchievements.js";
+export type {
+  RewardsOrgListChallengesHeaders,
+  RewardsOrgListChallengesOptions,
+  RewardsOrgListChallengesResponse,
+  RewardsOrgListChallengesResponses,
+  RewardsOrgListChallengesStatus200,
+  RewardsOrgListChallengesStatus400,
+  RewardsOrgListChallengesStatus401,
+  RewardsOrgListChallengesStatus403,
+  RewardsOrgListChallengesStatus404,
+  RewardsOrgListChallengesStatus409,
+  RewardsOrgListChallengesStatus422,
+} from "./RewardsOrgListChallenges.js";
 export type {
   RewardsOrgListEntriesHeaders,
   RewardsOrgListEntriesOptions,
@@ -6204,6 +6334,20 @@ export type {
   RewardsOrgListVenuesStatus422,
 } from "./RewardsOrgListVenues.js";
 export type {
+  RewardsOrgPauseChallengeHeaders,
+  RewardsOrgPauseChallengeOptions,
+  RewardsOrgPauseChallengePath,
+  RewardsOrgPauseChallengeResponse,
+  RewardsOrgPauseChallengeResponses,
+  RewardsOrgPauseChallengeStatus200,
+  RewardsOrgPauseChallengeStatus400,
+  RewardsOrgPauseChallengeStatus401,
+  RewardsOrgPauseChallengeStatus403,
+  RewardsOrgPauseChallengeStatus404,
+  RewardsOrgPauseChallengeStatus409,
+  RewardsOrgPauseChallengeStatus422,
+} from "./RewardsOrgPauseChallenge.js";
+export type {
   RewardsOrgPauseProgramHeaders,
   RewardsOrgPauseProgramOptions,
   RewardsOrgPauseProgramPath,
@@ -6217,6 +6361,20 @@ export type {
   RewardsOrgPauseProgramStatus409,
   RewardsOrgPauseProgramStatus422,
 } from "./RewardsOrgPauseProgram.js";
+export type {
+  RewardsOrgResumeChallengeHeaders,
+  RewardsOrgResumeChallengeOptions,
+  RewardsOrgResumeChallengePath,
+  RewardsOrgResumeChallengeResponse,
+  RewardsOrgResumeChallengeResponses,
+  RewardsOrgResumeChallengeStatus200,
+  RewardsOrgResumeChallengeStatus400,
+  RewardsOrgResumeChallengeStatus401,
+  RewardsOrgResumeChallengeStatus403,
+  RewardsOrgResumeChallengeStatus404,
+  RewardsOrgResumeChallengeStatus409,
+  RewardsOrgResumeChallengeStatus422,
+} from "./RewardsOrgResumeChallenge.js";
 export type {
   RewardsOrgResumeProgramHeaders,
   RewardsOrgResumeProgramOptions,
@@ -6260,6 +6418,19 @@ export type {
   RewardsRequestRedemptionStatus409,
   RewardsRequestRedemptionStatus422,
 } from "./RewardsRequestRedemption.js";
+export type {
+  RewardsReverseGiftOptions,
+  RewardsReverseGiftPath,
+  RewardsReverseGiftResponse,
+  RewardsReverseGiftResponses,
+  RewardsReverseGiftStatus204,
+  RewardsReverseGiftStatus400,
+  RewardsReverseGiftStatus401,
+  RewardsReverseGiftStatus403,
+  RewardsReverseGiftStatus404,
+  RewardsReverseGiftStatus409,
+  RewardsReverseGiftStatus422,
+} from "./RewardsReverseGift.js";
 export type { RewardsTrailCreate } from "./RewardsTrailCreate.js";
 export type { RewardsTrailPublic } from "./RewardsTrailPublic.js";
 export type { RewardsTrailStopCreate } from "./RewardsTrailStopCreate.js";
@@ -6282,6 +6453,16 @@ export type {
 } from "./RewardsUpdateProgram.js";
 export type { RewardsVenueCreate } from "./RewardsVenueCreate.js";
 export type { RewardsVenuePublic } from "./RewardsVenuePublic.js";
+export type {
+  RewardsWithdrawFromLeaderboardOptions,
+  RewardsWithdrawFromLeaderboardPath,
+  RewardsWithdrawFromLeaderboardResponse,
+  RewardsWithdrawFromLeaderboardResponses,
+  RewardsWithdrawFromLeaderboardStatus204,
+  RewardsWithdrawFromLeaderboardStatus401,
+  RewardsWithdrawFromLeaderboardStatus403,
+  RewardsWithdrawFromLeaderboardStatus422,
+} from "./RewardsWithdrawFromLeaderboard.js";
 export type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 export { roleAssignmentScope } from "./RoleAssignmentScope.js";
 export type { RoleConfiguration } from "./RoleConfiguration.js";
@@ -6327,6 +6508,8 @@ export type { RunInput } from "./RunInput.js";
 export type { RunInputPropertiesSourceEnum } from "./RunInputPropertiesSourceEnum.js";
 export { runInputPropertiesSourceEnum } from "./RunInputPropertiesSourceEnum.js";
 export type { RunResult } from "./RunResult.js";
+export type { ScopeKind } from "./ScopeKind.js";
+export { scopeKind } from "./ScopeKind.js";
 export type { SectionCreate } from "./SectionCreate.js";
 export type { SectionUpdate } from "./SectionUpdate.js";
 export type { SectionView } from "./SectionView.js";

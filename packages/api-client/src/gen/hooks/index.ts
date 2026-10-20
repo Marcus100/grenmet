@@ -2364,10 +2364,20 @@ export {
   useRewardsCreateCheckIn,
 } from "./useRewardsCreateCheckIn.js";
 export {
+  rewardsCreateGiftMutationKey,
+  rewardsCreateGiftMutationOptions,
+  useRewardsCreateGift,
+} from "./useRewardsCreateGift.js";
+export {
   rewardsCreateProgramMutationKey,
   rewardsCreateProgramMutationOptions,
   useRewardsCreateProgram,
 } from "./useRewardsCreateProgram.js";
+export {
+  rewardsGetLeaderboardQueryKey,
+  rewardsGetLeaderboardQueryOptions,
+  useRewardsGetLeaderboard,
+} from "./useRewardsGetLeaderboard.js";
 export {
   rewardsGetPassportQueryKey,
   rewardsGetPassportQueryOptions,
@@ -2378,6 +2388,11 @@ export {
   rewardsGetStreakQueryOptions,
   useRewardsGetStreak,
 } from "./useRewardsGetStreak.js";
+export {
+  rewardsListActiveChallengesQueryKey,
+  rewardsListActiveChallengesQueryOptions,
+  useRewardsListActiveChallenges,
+} from "./useRewardsListActiveChallenges.js";
 export {
   rewardsListMineQueryKey,
   rewardsListMineQueryOptions,
@@ -2399,6 +2414,11 @@ export {
   useRewardsListMyEntries,
 } from "./useRewardsListMyEntries.js";
 export {
+  rewardsListMyLeaderboardOptInsQueryKey,
+  rewardsListMyLeaderboardOptInsQueryOptions,
+  useRewardsListMyLeaderboardOptIns,
+} from "./useRewardsListMyLeaderboardOptIns.js";
+export {
   rewardsListMyTicketsQueryKey,
   rewardsListMyTicketsQueryOptions,
   useRewardsListMyTickets,
@@ -2408,6 +2428,21 @@ export {
   rewardsListProgramsQueryOptions,
   useRewardsListPrograms,
 } from "./useRewardsListPrograms.js";
+export {
+  rewardsListReceivedGiftsQueryKey,
+  rewardsListReceivedGiftsQueryOptions,
+  useRewardsListReceivedGifts,
+} from "./useRewardsListReceivedGifts.js";
+export {
+  rewardsListSentGiftsQueryKey,
+  rewardsListSentGiftsQueryOptions,
+  useRewardsListSentGifts,
+} from "./useRewardsListSentGifts.js";
+export {
+  rewardsOptInToLeaderboardMutationKey,
+  rewardsOptInToLeaderboardMutationOptions,
+  useRewardsOptInToLeaderboard,
+} from "./useRewardsOptInToLeaderboard.js";
 export {
   rewardsOrgAddTrailStopMutationKey,
   rewardsOrgAddTrailStopMutationOptions,
@@ -2419,6 +2454,11 @@ export {
   useRewardsOrgCreateAchievement,
 } from "./useRewardsOrgCreateAchievement.js";
 export {
+  rewardsOrgCreateChallengeMutationKey,
+  rewardsOrgCreateChallengeMutationOptions,
+  useRewardsOrgCreateChallenge,
+} from "./useRewardsOrgCreateChallenge.js";
+export {
   rewardsOrgCreateTrailMutationKey,
   rewardsOrgCreateTrailMutationOptions,
   useRewardsOrgCreateTrail,
@@ -2429,6 +2469,11 @@ export {
   useRewardsOrgCreateVenue,
 } from "./useRewardsOrgCreateVenue.js";
 export {
+  rewardsOrgGetLeaderboardQueryKey,
+  rewardsOrgGetLeaderboardQueryOptions,
+  useRewardsOrgGetLeaderboard,
+} from "./useRewardsOrgGetLeaderboard.js";
+export {
   rewardsOrgGetVenueQrTokenQueryKey,
   rewardsOrgGetVenueQrTokenQueryOptions,
   useRewardsOrgGetVenueQrToken,
@@ -2438,6 +2483,11 @@ export {
   rewardsOrgListAchievementsQueryOptions,
   useRewardsOrgListAchievements,
 } from "./useRewardsOrgListAchievements.js";
+export {
+  rewardsOrgListChallengesQueryKey,
+  rewardsOrgListChallengesQueryOptions,
+  useRewardsOrgListChallenges,
+} from "./useRewardsOrgListChallenges.js";
 export {
   rewardsOrgListEntriesQueryKey,
   rewardsOrgListEntriesQueryOptions,
@@ -2459,10 +2509,20 @@ export {
   useRewardsOrgListVenues,
 } from "./useRewardsOrgListVenues.js";
 export {
+  rewardsOrgPauseChallengeMutationKey,
+  rewardsOrgPauseChallengeMutationOptions,
+  useRewardsOrgPauseChallenge,
+} from "./useRewardsOrgPauseChallenge.js";
+export {
   rewardsOrgPauseProgramMutationKey,
   rewardsOrgPauseProgramMutationOptions,
   useRewardsOrgPauseProgram,
 } from "./useRewardsOrgPauseProgram.js";
+export {
+  rewardsOrgResumeChallengeMutationKey,
+  rewardsOrgResumeChallengeMutationOptions,
+  useRewardsOrgResumeChallenge,
+} from "./useRewardsOrgResumeChallenge.js";
 export {
   rewardsOrgResumeProgramMutationKey,
   rewardsOrgResumeProgramMutationOptions,
@@ -2479,10 +2539,20 @@ export {
   useRewardsRequestRedemption,
 } from "./useRewardsRequestRedemption.js";
 export {
+  rewardsReverseGiftMutationKey,
+  rewardsReverseGiftMutationOptions,
+  useRewardsReverseGift,
+} from "./useRewardsReverseGift.js";
+export {
   rewardsUpdateProgramMutationKey,
   rewardsUpdateProgramMutationOptions,
   useRewardsUpdateProgram,
 } from "./useRewardsUpdateProgram.js";
+export {
+  rewardsWithdrawFromLeaderboardMutationKey,
+  rewardsWithdrawFromLeaderboardMutationOptions,
+  useRewardsWithdrawFromLeaderboard,
+} from "./useRewardsWithdrawFromLeaderboard.js";
 export {
   storageCompleteUploadMutationKey,
   storageCompleteUploadMutationOptions,
