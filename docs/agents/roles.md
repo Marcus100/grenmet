@@ -56,23 +56,26 @@ between them, so each handoff must stand alone. If the two disagree, the
 disagreement first names its evidence and the applicable rule; anything still
 unresolved goes to the owner.
 
-1. **Roles.** The tools alternate as author and reviewer per task. The author
-   owns implementation and fixes on its assigned branches. The reviewer is
-   read-only: it reports findings and does not edit, commit, push, merge or
-   deploy, and writes no files, including `SESSION_LOG.md`. Codex is the reviewer
-   unless the owner explicitly changes its role.
-2. **Integration.** Follow `AGENTS.md` and [workflow.md](workflow.md). Push a
-   feature branch for cross-agent review only when the owner explicitly requests
-   that workflow, and only to the branch assigned for it; otherwise completed
-   work merges into local `dev` as usual.
-3. **Merge authority.** For this collaboration, no agent merges into `dev`,
-   `staging`, `main` or production, or pushes `dev`, without the owner's explicit
-   authorization for that action. This overrides the attended-session standing
-   authorization in `AGENTS.md` and [workflow.md](workflow.md) (merge into local
-   `dev`, push `dev`, create the `dev → staging` PR and arm auto-merge) wherever
-   Claude and Codex work together on a task. It narrows that authorization and
-   does not widen anything. Outside this collaboration the standing authorization
-   is unchanged.
+1. **Roles.** Claude is the owner's primary interactive agent: it owns feature
+   implementation and fixes on its assigned branches. Codex is used for
+   automation: unattended routines under [routines.md](routines.md), and review
+   when the owner assigns it. In the review role a tool is read-only: it reports
+   findings, does not edit, commit, push, merge or deploy, and writes no files,
+   including `SESSION_LOG.md`. The tools may swap author and reviewer per task when
+   the owner says so.
+2. **Integration.** Follow `AGENTS.md` and [workflow.md](workflow.md). For
+   cross-agent work the author may push its own assigned branch and open a pull
+   request into `dev`; the owner reviews and merges it. Agents do not push
+   branches or open pull requests otherwise unless the owner asks.
+3. **Merge authority.** For this collaboration, no agent merges a pull request,
+   arms auto-merge, pushes `dev`, `staging` or `main`, or deploys without the
+   owner's explicit authorization for that action. This overrides the
+   attended-session standing authorization in `AGENTS.md` and
+   [workflow.md](workflow.md) (merge into local `dev`, push `dev`, create the
+   `dev → staging` PR and arm auto-merge) wherever Claude and Codex work together
+   on a task. It narrows that authorization and does not widen anything. Opening a
+   pull request into `dev` stays allowed under item 2. Outside this collaboration
+   the standing authorization is unchanged.
 4. **Review handoff.** Every request includes:
    - the task and its acceptance criteria;
    - the branch or PR URL;
