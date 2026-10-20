@@ -66,9 +66,13 @@ switch). Missing:
    - Babydoll's real services and durations replace the seeded guesses. The
      owner confirms them with the salon; the salon then maintains them in
      `/studio/settings`.
+   - Checklist, verification commands and owner or agent split (A1.3):
+     [babydoll-bookings-cutover.md](../operations/babydoll-bookings-cutover.md).
 4. **Cutover runbook**: enable `BABYDOLL_ONLINE_BOOKING`, salon re-enters
    upcoming appointments in `/studio`, retire the Acuity link the same day,
    watch the first week's bookings and emails.
+   - Runbook, week-one watch list and rollback (A1.4):
+     [babydoll-bookings-cutover.md](../operations/babydoll-bookings-cutover.md#3-cutover-runbook).
 5. **Deposits later**: keep `deposit_minor = 0` on every service until a
    provider is approved, then switch on per service.
 
