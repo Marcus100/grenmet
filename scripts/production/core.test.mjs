@@ -65,6 +65,12 @@ case "$1" in
   *backup-core.py)
     [[ "$TEST_FAILURE" != backup ]] || exit 1
     if [[ -n "$GITHUB_OUTPUT" ]]; then echo cms_missing=false > "$GITHUB_OUTPUT"; fi ;;
+  *backup-gate.py)
+    case "$TEST_GATE" in
+      stale) echo "app_prod: newest backup 40.0h old (limit 26h)"; exit 10 ;;
+      unreadable) echo "backup store credentials not available to the deploy runner (missing: bucket name)"; exit 11 ;;
+      *) echo "app_prod: newest backup 3.0h old" ;;
+    esac ;;
   -c) echo staging.example.test ;;
 esac
 `,
@@ -114,6 +120,7 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
       join(root, "bin/node"),
       `#!/bin/bash
 [[ "$*" != *smoke.mjs* ]] || echo smoke >> "$TEST_LOG"
+[[ -z "$TEST_NO_MIGRATIONS" || "$*" != *"--print migration"* ]] || exit 0
 [[ "$*" != *--print* ]] || exec "${process.execPath}" "$@"
 `,
       { mode: 0o700 }
@@ -135,6 +142,7 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           GITHUB_STEP_SUMMARY: join(root, "summary"),
           GITHUB_OUTPUT: "",
           TEST_FAILURE: failure,
+          TEST_GATE: "fresh",
           TEST_FREE_KB: String(freeKb),
           TEST_RUNNER_FREE_KB: String(ENOUGH_FREE_KB),
           RUNNER_TEMP: join(root, "runner-temp"),
@@ -243,7 +251,7 @@ for (const environment of ["staging", "production"]) {
 const PHASE_GROUP = /::group::\[\d{2}:\d{2}:\d{2}Z\] render-config/;
 const FAILED_START = /failed in phase 'start' \(last completed: grants\)/;
 const FAILED_MIGRATIONS =
-  /failed in phase 'migrations' \(last completed: databases\)/;
+  /failed in phase 'migrations' \(last completed: backup-gate\)/;
 const PARTIAL_RELEASE = /a partial release may be running/;
 const UNHEALTHY_STATE = /test-nhc-worker-1 status=running health=unhealthy/;
 const HEALTH_PROBE = /exit=1 heartbeat missing/;
@@ -339,5 +347,113 @@ test("delivery starts exactly the services in the release registry", () => {
     assert.ok(calls.includes(`run --rm --no-deps ${service}\n`));
   assert.ok(
     calls.includes(`--wait --wait-timeout 300 ${appServices.join(" ")}\n`)
+  );
+});
+
+const GATE_STALE = /newest backup 40\.0h old/;
+const GATE_BLOCKED =
+  /Backup gate \(enforce\) blocked the deploy before migrations/;
+const GATE_HOW_TO = /backup-database\.yml.*backup_gate_override/s;
+const GATE_WARNING = /::warning::Backup gate \(warn\): backup is stale/;
+const GATE_OPEN = /could NOT verify the newest backup and is passing OPEN/;
+const GATE_OVERRIDDEN = /Backup gate OVERRIDDEN by test: 'hotfix INC-42'/;
+const GATE_SKIPPED =
+  /Backup gate: skipped, this release has no migration services/;
+const GATE_OFF = /Backup gate: off/;
+const GATE_BAD_MODE = /not off, warn or enforce; using warn/;
+const GATE_SUMMARY_BLOCKED = /blocked this deploy/;
+const GATE_MISSING = /missing: bucket name/;
+const MIGRATED = "run --rm --no-deps prestart";
+
+function gate(gateMode, testGate, extraEnv = {}) {
+  return runDeploy({
+    environment: "production",
+    extraEnv: {
+      TEST_GATE: testGate,
+      ...(gateMode ? { DEPLOY_BACKUP_GATE: gateMode } : {}),
+      ...extraEnv,
+    },
+  });
+}
+
+test("backup gate: off skips the check and still migrates", () => {
+  const { result, calls, summary } = gate("off", "stale");
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(calls.includes("backup-gate.py"), false);
+  assert.ok(calls.includes(MIGRATED));
+  assert.match(summary, GATE_OFF);
+});
+
+test("backup gate: warn is the default, warns on a stale backup and continues", () => {
+  for (const mode of [undefined, "warn"]) {
+    const { result, calls, summary } = gate(mode, "stale");
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, GATE_WARNING);
+    assert.match(summary, GATE_WARNING);
+    assert.match(summary, GATE_STALE);
+    assert.ok(calls.includes(MIGRATED));
+  }
+});
+
+test("backup gate: unknown mode falls back to warn and says so", () => {
+  const { result, calls } = gate("strict", "stale");
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, GATE_BAD_MODE);
+  assert.ok(calls.includes(MIGRATED));
+});
+
+test("backup gate: enforce blocks a stale backup before migrations", () => {
+  const { result, calls, summary } = gate("enforce", "stale");
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, GATE_BLOCKED);
+  assert.match(result.stderr, GATE_STALE);
+  assert.match(result.stderr, GATE_HOW_TO);
+  assert.match(summary, GATE_SUMMARY_BLOCKED);
+  for (const forbidden of [MIGRATED, "cms-migrate", "up -d --no-deps"])
+    assert.equal(calls.includes(forbidden), false, forbidden);
+  assert.ok(calls.includes("logout"));
+});
+
+test("backup gate: enforce passes a fresh backup", () => {
+  const { result, calls } = gate("enforce", "fresh");
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(calls.includes(MIGRATED));
+});
+
+test("backup gate: skipped when the release has no migration services", () => {
+  const { result, calls, summary } = gate("enforce", "stale", {
+    TEST_NO_MIGRATIONS: "1",
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(calls.includes("backup-gate.py"), false);
+  assert.match(summary, GATE_SKIPPED);
+});
+
+test("backup gate: an unreadable backup store fails open loudly, even in enforce", () => {
+  const { result, calls, summary } = gate("enforce", "unreadable");
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(summary, GATE_OPEN);
+  assert.match(summary, GATE_MISSING);
+  assert.ok(calls.includes(MIGRATED));
+});
+
+test("backup gate: an override lets enforce continue and is recorded", () => {
+  const { result, calls, summary } = gate("enforce", "stale", {
+    DEPLOY_BACKUP_GATE_OVERRIDE: "hotfix INC-42",
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(summary, GATE_OVERRIDDEN);
+  assert.ok(calls.includes(MIGRATED));
+});
+
+test("backup gate: calls the gate for production and never prints secrets", () => {
+  const { result, calls } = gate("warn", "stale", {
+    DEPLOY_BACKUP_MAX_AGE_HOURS: "12",
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(calls.includes("backup-gate.py production"));
+  assert.equal(
+    `${result.stdout}${result.stderr}`.includes(SECRET_MARKER),
+    false
   );
 });

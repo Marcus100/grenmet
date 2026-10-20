@@ -89,11 +89,13 @@ The draft's generated notes only list pull request titles. Before publishing, ad
 
 ## Irreversible data migrations need a verified backup first
 
-`scripts/production/core.sh deploy` has no backup phase before `migrations`
-(phases: render-config, auth, disk, pull-verify, databases, migrations, grants,
-start, smoke), so a deploy is **not** a backup gate. Scheduled backups run
-separately (`monitoring-maintenance.yml`, `backup-database.yml`, `core.sh
-backup`). Before any migration that deletes, nulls or hashes existing data:
+`scripts/production/core.sh deploy` runs a `backup-gate` phase before
+`migrations` (phases: render-config, auth, disk, pull-verify, databases,
+backup-gate, migrations, grants, start, smoke). It warns by default and blocks
+only when you turn on `enforce`, so a deploy is not yet a guaranteed backup
+point (see "Backup gate" below). Scheduled backups run separately
+(`monitoring-maintenance.yml`, `backup-database.yml`, `core.sh backup`).
+Before any migration that deletes, nulls or hashes existing data:
 
 1. Run the backup for the target environment and confirm it succeeded
    (`backup-freshness.yml`, restore drill if practical).
@@ -104,6 +106,53 @@ Email-hash change: revision `emailhash20261018` is additive and safe to deploy
 on its own (set the `EMAIL_HASH_PEPPER` secret first). The destructive "step 2"
 (backfill hashes, null plaintext of suppressed and unsubscribed rows, drop the
 plaintext suppression column) is not written yet and waits for this gate.
+
+### Backup gate
+
+The `backup-gate` phase checks that the newest nightly dump of each production
+database (`app_prod`, `wxwatch`, `wxproducts`, `janitorial`, `transport`,
+`eregister`, `events`) in the Spaces bucket is newer than a limit. It lists the
+`production/YYYY/MM/DD/<database>_<timestamp>.dump` objects written by
+`backup-database.yml` and reuses the discovery logic of `restore-drill.py`; it
+does not use the unused `latest-success.json` markers.
+
+| Setting | Where | Default |
+| --- | --- | --- |
+| `DEPLOY_BACKUP_GATE` = `off`, `warn` or `enforce` | repository variable | `warn` |
+| `DEPLOY_BACKUP_MAX_AGE_HOURS` | repository variable | `26` |
+| `backup_gate_override` | **Deploy** workflow_dispatch input (free-text reason) | empty |
+
+- `off`: no check; the summary says so.
+- `warn` (default): a stale backup prints a warning and writes it to the step
+  summary; the deploy continues.
+- `enforce`: a verified stale or missing dump stops the deploy before any
+  migration, naming each database and its age. Nothing in the repository sets
+  `enforce`; the owner enables it by setting the variable.
+- Override: dispatch **Deploy** with `backup_gate_override` set to a reason
+  (for a hotfix with a stale backup). The deploy continues and the summary
+  records the actor and reason. Setting `DEPLOY_BACKUP_GATE=warn` also unblocks
+  a release-triggered deploy. Taking a backup first remains the better option.
+- Staging: reported as "not checked", because the scheduled backup covers
+  production only.
+
+Migrations are not detected as pending: `prestart` runs `alembic upgrade head`
+for seven histories plus the Payload CMS, with no cheap reliable comparison in
+`core.sh`. The gate therefore checks on every deploy that has migration
+services, not only ones that change the schema.
+
+It fails open, loudly: if the runner lacks the read credentials, the `aws` CLI,
+or cannot list the bucket, the summary says exactly what could not be checked and
+the deploy continues, in every mode. The gate reads
+`DO_SPACES_READ_ACCESS_KEY_ID` / `DO_SPACES_READ_SECRET_ACCESS_KEY`,
+`DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT` and `DO_SPACES_REGION`; the read keys
+live in the `production-backup` environment, so confirm the `production`
+deploy environment can resolve them before relying on `enforce`.
+
+What it does not prove: that a dump restores (the restore drill does), that the
+backup contains the data about to be migrated, that the CMS database or object
+files are covered, or that the dump timestamp is UTC (the nightly job names files
+with the runner's clock). A passing gate is not a replacement for step 1 above
+before a destructive migration.
 
 ## Rollback / redeploy
 
