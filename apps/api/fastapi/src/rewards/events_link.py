@@ -60,6 +60,8 @@ async def sync_admissions(main: AsyncSession, events: AsyncSession) -> SyncResul
                 .where(
                     Admission.admitted_at >= since,
                     Ticket.status == "valid",
+                    # Paid-tier orders are pending_payment (or expired) until the
+                    # money is captured; only a confirmed order earns (N4b).
                     Order.status == "confirmed",
                     Organiser.organisation_id.in_(funded),
                 )

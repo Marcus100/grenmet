@@ -72,7 +72,7 @@ from .people import (
     update_profile,
 )
 from .settlement import organiser_settlement, settlement, settlement_csv
-from .ticketing import cancel_ticket, claim_tickets, my_ticket, my_tickets
+from .ticketing import cancel_ticket, claim_tickets, my_order, my_ticket, my_tickets
 
 __all__ = [
     "FRIDAY",
@@ -98,6 +98,7 @@ __all__ = [
     "can_message",
     "cancel_ticket",
     "claim_tickets",
+    "my_order",
     "my_ticket",
     "my_tickets",
     "connection_state",

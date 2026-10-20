@@ -197,6 +197,7 @@ export { eventsGetListingActivity } from "./eventsGetListingActivity.js";
 export { eventsGetManagedOrganiser } from "./eventsGetManagedOrganiser.js";
 export { eventsGetManifest } from "./eventsGetManifest.js";
 export { eventsGetMyNetwork } from "./eventsGetMyNetwork.js";
+export { eventsGetMyOrder } from "./eventsGetMyOrder.js";
 export { eventsGetMyPlans } from "./eventsGetMyPlans.js";
 export { eventsGetMyProfile } from "./eventsGetMyProfile.js";
 export { eventsGetMyTicket } from "./eventsGetMyTicket.js";

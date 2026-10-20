@@ -12,6 +12,11 @@ export const eventsClaimTicketsPathSlugSchema = z
   .string()
   .regex(/^[a-z0-9][a-z0-9-]{1,79}$/);
 
+export const eventsClaimTicketsHeaderIdempotencyKeySchema = z
+  .union([z.string().max(255), z.null()])
+  .optional()
+  .describe("Client-chosen key that makes a retried request safe.");
+
 export const eventsClaimTicketsStatus201Schema = orderPublicSchema;
 
 export const eventsClaimTicketsStatus401Schema = z.unknown();
