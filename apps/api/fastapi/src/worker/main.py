@@ -41,6 +41,7 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.outbox",
         "src.notifications.outbox_handlers",
         "src.bookings.reminders",
+        "src.rewards.outbox_handlers",
     ):
         import_module(module)
     from src.config import settings
@@ -174,6 +175,7 @@ async def drain_outbox(ctx: dict[str, Any]) -> int:
     from src import outbox
     from src.database import async_session_factory
     from src.notifications import outbox_handlers  # noqa: F401 - registers email.send
+    from src.rewards import outbox_handlers as rewards_handlers  # noqa: F401
 
     async with async_session_factory() as session:
         try:

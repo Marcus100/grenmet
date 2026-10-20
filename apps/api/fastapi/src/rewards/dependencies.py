@@ -47,6 +47,4 @@ RewardsOrgAdmin = Annotated[
 # Programme reads and redemption confirmation also accept an API key (PF5,
 # ADR-0029) with `rewards.read` / `rewards.write`, e.g. a till or kiosk.
 RewardsOrgRead = Annotated[OrgAccess, Depends(org_or_key("rewards", "rewards.read"))]
-RewardsOrgStaff = Annotated[
-    OrgAccess, Depends(org_or_key("rewards", "rewards.write"))
-]
+RewardsOrgStaff = Annotated[OrgAccess, Depends(org_or_key("rewards", "rewards.write"))]

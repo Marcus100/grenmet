@@ -20,6 +20,7 @@ from sqlalchemy import and_, func, or_, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import outbox
 from src.audit import service as audit_service
 from src.auth.models import User
 from src.exceptions import NotFoundError
@@ -432,6 +433,39 @@ async def record_qualifying_action(
         organisation_id=organisation_id,
         source_type=source_type,
         source_id=source_id,
+    )
+
+
+QUALIFYING_ACTION_TOPIC = "rewards.qualifying_action"
+
+
+async def emit_qualifying_action(
+    session: AsyncSession,
+    *,
+    source_type: str,
+    source_id: str,
+    organisation_id: str,
+    user_id: uuid.UUID,
+) -> bool:
+    """Queue ``record_qualifying_action`` on the outbox, in the caller's transaction.
+
+    The row commits or rolls back with the change that caused it, and the worker
+    credits the stamps later (``outbox_handlers``). Deduplicated per source and
+    person (``<source_type>:<source_id>:<user_id>``), so a repeat adds nothing.
+    No commit; returns False for a repeat."""
+    if not sources.is_qualifying_source(source_type):
+        raise RewardsValidationError("Unknown qualifying source type")
+    return await outbox.enqueue(
+        session,
+        topic=QUALIFYING_ACTION_TOPIC,
+        dedupe_key=f"{source_type}:{source_id}:{user_id}",
+        organisation_id=organisation_id,
+        payload={
+            "source_type": source_type,
+            "source_id": source_id,
+            "organisation_id": organisation_id,
+            "user_id": str(user_id),
+        },
     )
 
 
