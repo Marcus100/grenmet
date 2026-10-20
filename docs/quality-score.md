@@ -41,6 +41,7 @@ Counts are Vitest and Playwright files, counted 2026-10-16.
 | `@barrelsgd/theme` | None | — | — | — |
 | `@barrelsgd/email-templates` | None | — | — | — |
 | `@barrelsgd/tsconfig` | — (config only) | — | — | B |
+| `@barrelsgd/cms-migrations` | — (migrations only) | — | — | — |
 
 ## FastAPI domains
 
@@ -62,11 +63,10 @@ Whole API (all domains, `src/`): 89.6% lines and 74.5% branches from the CI `Run
 | Exec plans | Active plan tracked | B |
 | CI enforcement of docs | Local file and heading links enforced | B |
 | Design-system CI enforcement | Generated blocks and warning contrast enforced | A |
-| Dependency direction lints | Not yet implemented | D |
+| Dependency direction lints | `check-boundaries.mjs`: app/package direction, Sentry, brand-neutral UI, DB clients in route handlers | B |
 
 ## Priority gaps
 
 1. Shared UI has no tests. `@barrelsgd/ui` feeds every app, so a regression there spreads furthest. `gms`, `theme` and `email-templates` have none either.
 2. Coverage floors are enforced in CI for the whole API and for web apps auth, gms, mbia and signal (`web-coverage` job in `ci-web.yml`). gaa-admin's floor is checked only locally: a full run takes about 41 minutes, so it is not in CI yet. Events, cms, elections, docs and the shared packages have no floor.
-3. Dependency-direction lints: package and app import boundaries are enforced only by convention.
-4. Design system: brand-neutral UI and GMS package separation is in progress.
+3. Design system: brand-neutral UI and GMS package separation is in progress.

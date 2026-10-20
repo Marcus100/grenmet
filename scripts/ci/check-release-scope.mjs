@@ -4,6 +4,7 @@ import {
   dataServices,
   migrationServices,
   releaseScope,
+  routedServices,
   validateComposeScope,
   validateReleaseConfiguration,
 } from "./release-scope.mjs";
@@ -15,10 +16,13 @@ if (printIndex !== -1) {
     app: appServices,
     data: dataServices,
     migration: migrationServices,
+    routed: routedServices,
   };
   const services = roles[process.argv[printIndex + 1]];
   if (!services) {
-    console.error("Usage: check-release-scope.mjs --print app|data|migration");
+    console.error(
+      "Usage: check-release-scope.mjs --print app|data|migration|routed"
+    );
     process.exit(2);
   }
   console.log(services.join(" "));
