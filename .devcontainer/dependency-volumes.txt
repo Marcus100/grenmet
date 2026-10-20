@@ -15,6 +15,7 @@ apps/web/signal/node_modules
 packages/cms-migrations/node_modules
 packages/api-client/node_modules
 packages/auth/node_modules
+packages/bookings-web/node_modules
 packages/email-templates/node_modules
 packages/gms/node_modules
 packages/theme/node_modules

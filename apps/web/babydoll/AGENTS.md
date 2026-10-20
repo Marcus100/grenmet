@@ -31,7 +31,8 @@ Hosted on Vercel at `babydoll.barrels.gd` (production only, no staging), like El
 ## UI rules
 
 - Server Components by default. Client components only for the mobile menu,
-  service tabs, portfolio filter and the booking forms (`components/booking/`). Every service panel stays in the HTML
+  service tabs, portfolio filter and the booking forms (the booking flow lives in
+  `@barrelsgd/bookings-web`; this app wires it up in `app/book` and `app/booking`). Every service panel stays in the HTML
   (inactive panels are `hidden`), so prices are indexable.
 - Phone first: the fixed `BookBar` shows under 820px; keep the page's bottom
   padding (`--bar-h`) when changing it.
@@ -51,13 +52,19 @@ Acuity.
   needs a signed-in member, and there is no public evaluate endpoint yet.
   `/booking/[token]` works whatever the switch says, so existing manage links
   never break.
+- **Package:** the flow (form, slot picker, manage page, Turnstile) is
+  `@barrelsgd/bookings-web` (`packages/bookings-web`). It takes the server
+  actions as props; this app passes `app/book/actions.ts` and
+  `app/booking/[token]/actions.ts` in, and gives it `BookingLink` (Next `Link`),
+  `/booking` as the manage path, and the calendar href and Instagram contact link.
 - **Calls:** server-side only, through the generated client
   (`src/lib/booking-api.ts`, `createClient({ baseURL })`; the API address never
   reaches the browser). The browser reaches it through Server Actions
   (`app/book/actions.ts`, `app/booking/[token]/actions.ts`); the calendar file is
   proxied by `app/booking/[token]/ics/route.ts`. No business logic here.
 - **Errors:** API 4xx/409 become `Failure` results with customer wording
-  (`src/lib/booking-errors.ts`); a slot-taken 409 is told apart from the
+  (wording in `@barrelsgd/bookings-web/lib/booking-errors`; the app's
+  `src/lib/booking-errors.ts` maps the generated client's `ResponseError`); a slot-taken 409 is told apart from the
   cancellation-cutoff 409 by the API's message text (the schema types the 409
   body as unknown). Network faults and 5xx are not swallowed by the actions:
   the form catches them to offer a safe retry. There is no Sentry in this app,

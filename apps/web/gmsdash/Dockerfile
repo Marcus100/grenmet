@@ -32,6 +32,7 @@ COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
 COPY packages/api-client/package.json packages/api-client/
 COPY packages/auth/package.json packages/auth/
+COPY packages/bookings-web/package.json packages/bookings-web/
 COPY packages/cms-migrations/package.json packages/cms-migrations/
 COPY packages/email-templates/package.json packages/email-templates/
 COPY packages/gms/package.json packages/gms/

@@ -159,6 +159,7 @@ access tokens out of browser code.
 | `@barrelsgd/ui` | Brand-neutral primitives built on Base UI with shadcn-style patterns |
 | `@barrelsgd/gms` | GMS logo, foundation styles, product metadata, and service-specific presentation |
 | `@barrelsgd/theme` | Shared display preferences and theme utilities |
+| `@barrelsgd/bookings-web` | Public booking flow (slot picker, booking form, manage-booking, Turnstile); hosts pass server actions in as props |
 | `@barrelsgd/email-templates` | Shared React Email templates |
 | `@barrelsgd/cms-migrations` | Runtime dependencies for CMS migrations |
 | `@barrelsgd/tsconfig` | Shared TypeScript and Next.js configuration presets |

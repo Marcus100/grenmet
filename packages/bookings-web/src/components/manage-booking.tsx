@@ -2,19 +2,23 @@
 
 import type { BookingPublicDetail } from "@barrelsgd/api-client";
 import { useState } from "react";
-import type { SlotList } from "@/app/book/actions";
-import {
-  cancelMyBooking,
-  loadRescheduleSlots,
-  rescheduleMyBooking,
-} from "@/app/booking/[token]/actions";
-import { INSTAGRAM_DM_URL } from "@/data/site";
-import type { Outcome } from "@/lib/booking-errors";
-import { formatDateTime, formatMoney } from "@/lib/booking-format";
+import type { Outcome } from "../lib/booking-errors";
+import { formatDateTime, formatMoney } from "../lib/booking-format";
+import type {
+  ContactChannel,
+  ManageBookingActions,
+  SlotList,
+} from "../lib/booking-types";
 import { SlotPicker } from "./slot-picker";
 
-interface ManageBookingProps {
+export interface ManageBookingProps {
+  /** Server calls for cancel, reschedule and slots, passed in by the host app. */
+  actions: ManageBookingActions;
   booking: BookingPublicDetail;
+  /** Where the "Add to calendar" link goes (the host serves the .ics file). */
+  calendarHref: string;
+  /** How to reach the studio by hand when changes are closed online. */
+  contact: ContactChannel;
   token: string;
 }
 
@@ -34,7 +38,13 @@ const ACTIVE = new Set(["pending", "pending_payment", "confirmed"]);
 
 type Mode = "view" | "reschedule" | "confirm-cancel";
 
-export function ManageBooking({ booking: initial, token }: ManageBookingProps) {
+export function ManageBooking({
+  actions,
+  booking: initial,
+  calendarHref,
+  contact,
+  token,
+}: ManageBookingProps) {
   const [booking, setBooking] = useState(initial);
   const [mode, setMode] = useState<Mode>("view");
   const [pick, setPick] = useState<string | null>(null);
@@ -79,7 +89,7 @@ export function ManageBooking({ booking: initial, token }: ManageBookingProps) {
   };
 
   const load = (firstDay: string): Promise<Outcome<SlotList>> =>
-    loadRescheduleSlots(token, firstDay);
+    actions.loadSlots(token, firstDay);
 
   return (
     <article className="manage">
@@ -123,8 +133,8 @@ export function ManageBooking({ booking: initial, token }: ManageBookingProps) {
         <p className="notice">
           Changes close {booking.cancel_cutoff_hours} hours before your
           appointment. To change or cancel now, please{" "}
-          <a href={INSTAGRAM_DM_URL} rel="noopener" target="_blank">
-            message us on Instagram
+          <a href={contact.href} rel="noopener" target="_blank">
+            message us on {contact.label}
           </a>
           .
         </p>
@@ -132,7 +142,7 @@ export function ManageBooking({ booking: initial, token }: ManageBookingProps) {
 
       {active && (
         <p>
-          <a className="btn btn-ghost" download href={`/booking/${token}/ics`}>
+          <a className="btn btn-ghost" download href={calendarHref}>
             Add to calendar
           </a>
         </p>
@@ -174,7 +184,7 @@ export function ManageBooking({ booking: initial, token }: ManageBookingProps) {
               className="btn btn-solid"
               disabled={busy}
               onClick={() =>
-                run(() => cancelMyBooking(token), "Your booking is cancelled.")
+                run(() => actions.cancel(token), "Your booking is cancelled.")
               }
               type="button"
             >
@@ -209,7 +219,7 @@ export function ManageBooking({ booking: initial, token }: ManageBookingProps) {
               onClick={() => {
                 if (pick) {
                   run(
-                    () => rescheduleMyBooking(token, pick),
+                    () => actions.reschedule(token, pick),
                     "Your booking has moved."
                   );
                 }
