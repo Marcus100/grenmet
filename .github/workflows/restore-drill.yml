@@ -5,7 +5,7 @@ name: Restore Drill
 # schedule after one human-timed run passes. It reads backups with a read-only
 # credential, restores into a tmpfs-backed throwaway PostgreSQL container, and never
 # connects to a live database. Recovery time is not proven end to end until the API
-# start phase (ADR-0021 step 4) exists.
+# check (ADR-0021 step 4, opt-in via api_check) has also passed on real backups.
 on:
   workflow_dispatch:
     inputs:
@@ -23,6 +23,11 @@ on:
         description: "PostgreSQL image for the throwaway container (use the reviewed core image)"
         required: false
         default: "postgres:17"
+      api_check:
+        description: "Also start the release's API image against the restored databases and require health plus authenticated reads (production only; leave off for the first human-timed run)"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -81,6 +86,11 @@ jobs:
     timeout-minutes: 150
     environment:
       name: production-backup
+    # packages: read lets the optional API check pull the release image from GHCR,
+    # the same grant deploy.yml uses. The backup credential is unchanged.
+    permissions:
+      contents: read
+      packages: read
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_READ_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_READ_SECRET_ACCESS_KEY }}
@@ -104,18 +114,49 @@ jobs:
         with:
           name: restore-drill-heads
 
+      # Opt-in. Pulls the exact image built for the release under test (tag
+      # production-sha-<commit>, as build-api-image.yml names it) and refuses one whose
+      # labels do not match that commit. The registry login lives in a temporary Docker
+      # config that is deleted afterwards, so the drill itself runs with the runner's
+      # normal Docker settings.
+      - name: Pull the release API image
+        if: ${{ inputs.api_check }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRILL_ENVIRONMENT: ${{ inputs.environment }}
+          DOCKER_CONFIG: ${{ runner.temp }}/restore-drill-ghcr
+        run: |
+          set -euo pipefail
+          [[ "$DRILL_ENVIRONMENT" == production ]] || { echo "api_check needs the production backup set and release image"; exit 1; }
+          trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+          mkdir -p "$DOCKER_CONFIG"
+          sha="$(git rev-parse HEAD)"
+          image="ghcr.io/${GITHUB_REPOSITORY,,}:production-sha-${sha}"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker pull --quiet "$image" > /dev/null
+          [[ "$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")" == "$sha" ]] || { echo "Image revision does not match the release commit"; exit 1; }
+          [[ "$(docker image inspect --format '{{index .Config.Labels "gd.barrels.environment"}}' "$image")" == production ]] || { echo "Image is not a production image"; exit 1; }
+          echo "DRILL_API_IMAGE=$image" >> "$GITHUB_ENV"
+          echo "API image under test: $image"
+
       - name: Restore drill
         env:
           DRILL_ENVIRONMENT: ${{ inputs.environment }}
           DRILL_IMAGE: ${{ inputs.postgres_image }}
+          DRILL_API_CHECK: ${{ inputs.api_check }}
           TMPDIR: ${{ runner.temp }}
         run: |
           set -euo pipefail
+          api_flags=()
+          if [[ "$DRILL_API_CHECK" == true ]]; then
+            api_flags=(--api-check --api-image "$DRILL_API_IMAGE")
+          fi
           python3 scripts/production/restore-drill.py "$DRILL_ENVIRONMENT" \
             --heads heads.json \
             --floors docs/operations/restore-drill-floors.json \
             --image "$DRILL_IMAGE" \
-            --result-file restore-drill-result.json
+            --result-file restore-drill-result.json \
+            "${api_flags[@]}"
 
       # Counts and timings only; the result never contains row contents.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

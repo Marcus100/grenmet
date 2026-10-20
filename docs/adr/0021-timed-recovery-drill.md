@@ -13,9 +13,11 @@ Differences from the plan below, found while building it:
   `production/YYYY/MM/DD/<database>_<timestamp>.dump` and no marker file, so the
   drill reads that layout and uses the `latest-success.json` marker only if one exists.
 - Step 4 (start the API against the restored databases and run authenticated
-  reads) is **not built**. Until it is, the drill proves restoration, migration
-  match and row floors, not recovery of the running application, and the recovery
-  time stays unverified.
+  reads) is **built but opt-in** (`api_check` input, `--api-check` flag, off by
+  default) and has **not been run on real data**. The first human-timed run should
+  be without it. Until a run with it has passed, the drill proves restoration,
+  migration match and row floors, not recovery of the running application, and the
+  recovery time stays unverified.
 - The row-count floors file does not exist yet; the first run reports counts and a
   human records the floors afterwards.
 - Persistent-failure issue creation is not built.
