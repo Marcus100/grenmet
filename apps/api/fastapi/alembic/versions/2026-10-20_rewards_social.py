@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "rewardssocial20261020"
-down_revision = "payments20261020"
+down_revision = "reliability20261020"
 branch_labels = None
 depends_on = None
 
