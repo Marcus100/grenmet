@@ -216,3 +216,74 @@ class PublicSiteUpdate(BaseModel):
 class PublicSiteListPublic(BaseModel):
     data: list[PublicSiteAdmin]
     count: int
+
+
+# ── API keys (PF5, ADR-0029) ─────────────────────────────────────────────────
+
+ApiKeyName = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)
+]
+
+
+class ApiKeyCreate(BaseModel):
+    name: ApiKeyName
+    scopes: list[str] = Field(
+        min_length=1,
+        max_length=20,
+        description="Scopes such as `bookings.read`; see the scope catalogue.",
+    )
+    expires_in_days: int = Field(
+        default=90, ge=1, le=365, description="Lifetime in days (at most one year)."
+    )
+
+
+class ApiKeyRotate(BaseModel):
+    overlap_hours: int = Field(
+        default=24,
+        ge=0,
+        le=720,
+        description="How long the old key keeps working. 0 revokes it immediately.",
+    )
+    expires_in_days: int = Field(
+        default=90, ge=1, le=365, description="Lifetime of the new key in days."
+    )
+
+
+class ApiKeyPublic(BaseModel):
+    id: str
+    organisation_id: str
+    name: str
+    key_prefix: str
+    scopes: list[str]
+    created_by_user_id: uuid.UUID | None = None
+    expires_at: UtcDateTime | None = None
+    last_used_at: UtcDateTime | None = None
+    revoked_at: UtcDateTime | None = None
+    rotated_from_id: str | None = None
+    created_at: UtcDateTime
+
+
+class ApiKeyCreated(ApiKeyPublic):
+    secret: str = Field(
+        description="The full key. Shown once; only its hash is stored."
+    )
+
+
+class ApiKeyListPublic(BaseModel):
+    data: list[ApiKeyPublic]
+    count: int
+    page: int
+    size: int
+
+
+class ApiKeyScopeCatalogue(BaseModel):
+    scopes: list[str]
+
+
+class ApiKeyInfoPublic(BaseModel):
+    organisation_id: str
+    key_id: str
+    name: str
+    key_prefix: str
+    scopes: list[str]
+    expires_at: UtcDateTime | None = None
