@@ -4,6 +4,8 @@
 
 Accepted for the test-mode core; implemented in `apps/api/fastapi/src/payments` (PF4, migration `payments20261020`), live rail still gated. On 2026-10-20 the owner approved the provider-neutral layer plus a **Stripe test-mode** adapter now (foundations slice PF4), with funds held on Barrels' merchant account. No live card rail ships until the owner approves it separately.
 
+**Consumers (2026-10-20):** Bookings deposits (B6) and Events paid ticket tiers (N4b, `events_0010`, source type `events.order`) run on this core in test mode only: pending order, held stock, intent keyed by the order, ticket issue on `events.order_paid`, hold expiry sweeper, full refund of a late payment, and `events.order_refunded` cancelling the tickets. The live-rail gate above is unchanged.
+
 ## Context
 
 Events paid tiers, Bookings deposits (ADR-0024, B6) and online invoice payment all need the same things: payment intents, provider callbacks, refunds and reconciliation.

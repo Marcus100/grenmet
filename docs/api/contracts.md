@@ -480,7 +480,8 @@ newest first, for its organiser only.
 registration tickets: `{items: [{tier_id, quantity}]}`, 201 with the order and its
 tickets. 409 when a tier is sold out, the claim exceeds the tier's `per_account_limit`
 (set by the organiser on the tier, default 4, counted over the account's valid
-tickets), the tier is paid (online payment is not built yet) or the event ended.
+tickets and unpaid holds), a paid tier cannot be collected online (the organiser has
+no platform organisation or no `payments` entitlement) or the event ended.
 `TierPublic` carries `remaining` and the viewer's `held` count. `GET /events/me/tickets`
 lists the member's tickets; `GET /events/me/tickets/{id}` adds `qr_token`, a signed
 token (`BT1.<code>.<tag>`, no personal data) to render as the QR code;
@@ -488,6 +489,25 @@ token (`BT1.<code>.<tag>`, no personal data) to render as the QR code;
 starts and puts the seat back on sale. `TierInput.id` updates an existing tier in
 place; tiers with tickets issued cannot be removed or shrunk below their valid tickets.
 Issuing tickets writes a `ticket.issued` outbox row for the buyer's notification.
+
+### Events paid tiers (N4b, ADR-0027)
+
+A paid tier makes the same call return an order with `status: "pending_payment"`,
+`payment_required: true`, `tickets: []`, `payment_expires_at` and `checkout_url`
+(Stripe test-mode Checkout; null when the organiser's staff record the payment by
+hand through `POST /payments/org/intents/{id}/manual-payments`). The stock is held
+until the hold (`EVENTS_ORDER_HOLD_MINUTES`, default 30) ends. All five fields are
+additive and default to the free-order values (`confirmed`, false, null).
+An optional `Idempotency-Key` header makes a retry return the same order (same key,
+different items: 409). `GET /events/me/orders/{order_id}` (the owner only, else 404)
+returns the order for polling after checkout: `confirmed` with its tickets once the
+payment is captured, `expired` when the hold ran out, `refunded` after a full refund.
+A payment that arrives after expiry is refunded in full and issues nothing. Paid
+tickets cannot be self-cancelled (409); a refund through the payments core
+(`POST /payments/org/intents/{id}/refunds`) cancels them. The settlement report gains
+`online_payments` (orders paid, pending, collected and refunded, next to the payments
+ledger's own totals and a `reconciled` flag), an `online_ledger_mismatch` discrepancy
+and `online_collected_minor` on the overview rows.
 
 ### Events door admission (E2)
 

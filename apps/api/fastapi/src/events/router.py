@@ -10,6 +10,7 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Path, Query, Request, Response, status
 
+from src import idempotency
 from src.dependencies import SessionDep
 from src.models import Message
 from src.openapi_responses import UNAUTHENTICATED
@@ -719,11 +720,12 @@ async def get_manifest(
 async def get_organiser_settlement(
     *,
     session: EventsSession,
+    main: SessionDep,
     user: EventsOrganiser,
     scope: OrganiserScope,
     organiser: _ManagedSlug = None,
 ) -> schemas.SettlementOverview:
-    return await service.organiser_settlement(session, user, scope, organiser)
+    return await service.organiser_settlement(session, user, scope, organiser, main)
 
 
 @router.get(
@@ -737,12 +739,13 @@ async def get_organiser_settlement(
 async def get_settlement(
     *,
     session: EventsSession,
+    main: SessionDep,
     user: EventsOrganiser,
     scope: OrganiserScope,
     listing_id: uuid.UUID,
     organiser: _ManagedSlug = None,
 ) -> schemas.Settlement:
-    return await service.settlement(session, user, listing_id, scope, organiser)
+    return await service.settlement(session, user, listing_id, scope, organiser, main)
 
 
 @router.get(
@@ -759,12 +762,15 @@ async def get_settlement(
 async def get_settlement_csv(
     *,
     session: EventsSession,
+    main: SessionDep,
     user: EventsOrganiser,
     scope: OrganiserScope,
     listing_id: uuid.UUID,
     organiser: _ManagedSlug = None,
 ) -> Response:
-    body = await service.settlement_csv(session, user, listing_id, scope, organiser)
+    body = await service.settlement_csv(
+        session, user, listing_id, scope, organiser, main
+    )
     return Response(
         content=body,
         media_type="text/csv",
@@ -974,7 +980,7 @@ async def update_managed_listing(
 
 _CLAIM: dict[int | str, dict[str, Any]] = {
     **_MEMBER,
-    409: {"description": "Sold out, over the per-account limit, paid tier or ended"},
+    409: {"description": "Sold out, over the per-account limit, not payable or ended"},
 }
 
 
@@ -982,8 +988,8 @@ _CLAIM: dict[int | str, dict[str, Any]] = {
     "/listings/{slug}/orders",
     response_model=schemas.OrderPublic,
     status_code=status.HTTP_201_CREATED,
-    summary="Claim tickets",
-    description="Claim free or registration tickets as the signed-in member. Each tier has an allocation and a per-account limit; paid tiers are refused until online payment exists.",
+    summary="Claim or order tickets",
+    description="Claim tickets as the signed-in member. Free tiers issue tickets at once. A paid tier creates the order as `pending_payment`, holds the stock until `payment_expires_at` and returns `checkout_url` (null when the organiser records the payment by hand); the tickets appear once the payment is captured. Each tier has an allocation and a per-account limit. An optional `Idempotency-Key` header makes a retry return the same order (a different request with the same key is 409).",
     responses=_CLAIM,
 )
 @limiter.limit("20/minute")
@@ -991,12 +997,34 @@ async def claim_tickets(
     *,
     request: Request,
     session: EventsSession,
+    main: SessionDep,
     user: EventsMember,
     slug: Slug,
     body: schemas.OrderCreate,
+    idempotency_key: idempotency.OptionalIdempotencyKey,
 ) -> schemas.OrderPublic:
     _ = request
-    return await service.claim_tickets(session, user, slug, body)
+    return await service.claim_tickets(
+        session, user, slug, body, main=main, idempotency_key=idempotency_key
+    )
+
+
+@router.get(
+    "/me/orders/{order_id}",
+    response_model=schemas.OrderPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Get one of my orders",
+    description="The member's own order: its status, the tickets once issued and, while a paid order waits for money, the checkout link. Poll this after returning from checkout.",
+    responses=_MEMBER,
+)
+async def get_my_order(
+    *,
+    session: EventsSession,
+    main: SessionDep,
+    user: EventsMember,
+    order_id: uuid.UUID,
+) -> schemas.OrderPublic:
+    return await service.my_order(session, main, user, order_id)
 
 
 @router.get(

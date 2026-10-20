@@ -10,6 +10,9 @@ class EventsConfig(BaseSettings):
     )
 
     DATABASE_URL: str | None = None
+    #: How long an unpaid paid-tier order holds its tickets before the sweeper
+    #: cancels it and releases the stock (N4b).
+    ORDER_HOLD_MINUTES: int = 30
 
 
 events_settings = EventsConfig()

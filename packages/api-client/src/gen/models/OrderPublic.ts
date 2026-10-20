@@ -4,6 +4,7 @@
  */
 
 import type { ListingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurrencyEnum.js";
+import type { OrderPublicPropertiesStatusEnum } from "./OrderPublicPropertiesStatusEnum.js";
 import type { TicketSummary } from "./TicketSummary.js";
 
 export type OrderPublic = {
@@ -23,4 +24,16 @@ export type OrderPublic = {
    */
   created_at: string;
   tickets: TicketSummary[];
+  /**
+   * @default 'confirmed'
+   * @type string | undefined
+   */
+  status?: OrderPublicPropertiesStatusEnum;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  payment_required?: boolean;
+  checkout_url?: string | null;
+  payment_expires_at?: string | null;
 };

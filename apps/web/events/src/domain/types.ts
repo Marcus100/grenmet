@@ -621,7 +621,8 @@ export interface SettlementIssue {
     | "till_short"
     | "till_over"
     | "till_open"
-    | "refund_without_till";
+    | "refund_without_till"
+    | "online_ledger_mismatch";
   readonly message: string;
   readonly tillId: string | null;
 }

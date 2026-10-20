@@ -397,7 +397,17 @@ class OrderPublic(BaseModel):
     total_minor: int
     currency: Literal["XCD", "USD"]
     created_at: UtcDateTime
+    #: Empty while a paid order is ``pending_payment``; issued once it is paid.
     tickets: list[TicketSummary]
+    #: ``pending_payment`` holds the tickets until ``payment_expires_at``;
+    #: ``expired`` released them; ``refunded`` was paid and handed back.
+    status: Literal["confirmed", "pending_payment", "expired", "refunded"] = "confirmed"
+    #: True while the order waits for money.
+    payment_required: bool = False
+    #: Hosted checkout for the buyer. Null when staff record the payment (the
+    #: manual rail) or when nothing is owed.
+    checkout_url: str | None = None
+    payment_expires_at: UtcDateTime | None = None
 
 
 class AdmissionCreate(BaseModel):
@@ -597,7 +607,7 @@ class SettlementCounts(BaseModel):
 
 class SettlementChannel(SettlementCounts):
     channel: Literal["online", "outlet_cash"]
-    #: Cash taken at the outlet (always 0 online: payment isn't available yet).
+    #: Money taken: cash at the outlet, or the online payments captured.
     collected_minor: int
     #: Refunds recorded against this channel's tickets.
     refunded_minor: int
@@ -634,10 +644,32 @@ class SettlementIssue(BaseModel):
         "till_over",
         "till_open",
         "refund_without_till",
+        "online_ledger_mismatch",
     ]
     message: str
     till_id: uuid.UUID | None = None
     amount_minor: int | None = None
+
+
+class SettlementOnlinePayments(BaseModel):
+    """Online (paid tier) orders against the payments ledger (N4b).
+
+    The Events side comes from the orders; the ledger side is the sum of the
+    ``events.order`` intents for this event in the payments ledger (charges and
+    refunds). They are separate databases, so the two are compared, not joined.
+    """
+
+    orders_paid: int
+    #: Orders waiting for money; their stock is held but nothing is collected.
+    orders_pending: int
+    pending_minor: int
+    collected_minor: int
+    refunded_minor: int
+    #: From the payments ledger; null when the ledger could not be read.
+    ledger_collected_minor: int | None = None
+    ledger_refunded_minor: int | None = None
+    #: True when both sides agree; null when the ledger could not be read.
+    reconciled: bool | None = None
 
 
 class Settlement(BaseModel):
@@ -655,6 +687,7 @@ class Settlement(BaseModel):
     cash: SettlementCash
     discrepancies: list[SettlementIssue]
     refunds: list[RefundPublic]
+    online_payments: SettlementOnlinePayments | None = None
 
 
 class SettlementSummary(BaseModel):
@@ -669,6 +702,8 @@ class SettlementSummary(BaseModel):
     cash_collected_minor: int
     cash_expected_minor: int
     cash_counted_minor: int
+    #: Online payments captured for the event (paid tiers).
+    online_collected_minor: int = 0
     issues: int
 
 

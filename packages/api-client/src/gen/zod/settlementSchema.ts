@@ -11,6 +11,7 @@ import { settlementCashSchema } from "./settlementCashSchema.js";
 import { settlementChannelSchema } from "./settlementChannelSchema.js";
 import { settlementCountsSchema } from "./settlementCountsSchema.js";
 import { settlementIssueSchema } from "./settlementIssueSchema.js";
+import { settlementOnlinePaymentsSchema } from "./settlementOnlinePaymentsSchema.js";
 import { settlementTierSchema } from "./settlementTierSchema.js";
 import { tillPublicSchema } from "./tillPublicSchema.js";
 
@@ -33,4 +34,7 @@ export const settlementSchema = z.object({
   ),
   discrepancies: z.array(settlementIssueSchema),
   refunds: z.array(refundPublicSchema),
+  online_payments: z
+    .union([settlementOnlinePaymentsSchema, z.null()])
+    .optional(),
 });

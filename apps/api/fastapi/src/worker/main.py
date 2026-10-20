@@ -42,6 +42,7 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.notifications.outbox_handlers",
         "src.bookings.reminders",
         "src.bookings.outbox_handlers",
+        "src.events.payment_handlers",
         "src.rewards.outbox_handlers",
         "src.webhooks_out.delivery",
     ):
@@ -178,10 +179,12 @@ async def drain_outbox(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
 
     # Importing these modules registers their outbox handlers (email.send,
-    # rewards.qualifying_action, bookings.deposit_paid, webhook.deliver).
+    # rewards.qualifying_action, bookings.deposit_paid, events.order_paid,
+    # events.order_refunded, webhook.deliver).
     for module in (
         "src.notifications.outbox_handlers",
         "src.bookings.outbox_handlers",
+        "src.events.payment_handlers",
         "src.rewards.outbox_handlers",
         "src.webhooks_out.delivery",
     ):
@@ -243,6 +246,32 @@ async def expire_unpaid_bookings(ctx: dict[str, Any]) -> int:
             raise
     await operational_metrics.record_job(
         ctx.get("redis"), "expire_unpaid_bookings", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
+async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
+    """Cancel paid-tier orders left unpaid past the hold; releases stock (idempotent)."""
+    from src.database import async_session_factory
+    from src.events import database as events_database
+    from src.events import order_fulfilment
+
+    events = events_database.create_session()
+    if events is None:
+        return 0
+    async with events, async_session_factory() as session:
+        try:
+            result = await order_fulfilment.expire_unpaid(session, events)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "expire_unpaid_event_orders",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "expire_unpaid_event_orders", str(ctx.get("job_id", "")), True
     )
     return result
 
@@ -483,6 +512,7 @@ class WorkerSettings:
         drain_outbox,
         enqueue_booking_reminders,
         expire_unpaid_bookings,
+        expire_unpaid_event_orders,
         sync_event_rewards,
         send_wis2_publications,
         run_notification_sweeps,
@@ -529,6 +559,13 @@ class WorkerSettings:
         cron(
             expire_unpaid_bookings,
             minute=set(range(2, 60, 5)),
+            run_at_startup=False,
+        ),
+        # Unpaid paid-tier orders (EVENTS_ORDER_HOLD_MINUTES, default 30) are
+        # cancelled and their stock released, every 5 minutes.
+        cron(
+            expire_unpaid_event_orders,
+            minute=set(range(3, 60, 5)),
             run_at_startup=False,
         ),
         # Admissions become reward stamps; refunded ones are reversed.

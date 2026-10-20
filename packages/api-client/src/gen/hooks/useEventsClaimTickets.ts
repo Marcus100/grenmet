@@ -43,11 +43,12 @@ export function eventsClaimTicketsMutationOptions<TContext = unknown>(
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ path, body }) => {
+    mutationFn: async ({ path, body, headers }) => {
       return eventsClaimTickets({
         ...config,
         path,
         body,
+        headers,
         throwOnError: true,
       }).unwrap();
     },
@@ -55,8 +56,8 @@ export function eventsClaimTicketsMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Claim free or registration tickets as the signed-in member. Each tier has an allocation and a per-account limit; paid tiers are refused until online payment exists.
- * @summary Claim tickets
+ * @description Claim tickets as the signed-in member. Free tiers issue tickets at once. A paid tier creates the order as `pending_payment`, holds the stock until `payment_expires_at` and returns `checkout_url` (null when the organiser records the payment by hand); the tickets appear once the payment is captured. Each tier has an allocation and a per-account limit. An optional `Idempotency-Key` header makes a retry return the same order (a different request with the same key is 409).
+ * @summary Claim or order tickets
  * {@link /api/v1/events/listings/:slug/orders}
  */
 export function useEventsClaimTickets<TContext>(

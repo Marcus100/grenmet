@@ -51,7 +51,14 @@ logger = logging.getLogger(__name__)
 #: Outbox topic enqueued, in the transaction that records the charge, for a
 #: source type whose owning domain must react to a captured payment. Payments
 #: imports no consumer: the consumer registers a handler for the topic.
-PAID_TOPICS = {"bookings.deposit": "bookings.deposit_paid"}
+PAID_TOPICS = {
+    "bookings.deposit": "bookings.deposit_paid",
+    "events.order": "events.order_paid",
+}
+
+#: Same idea for a recorded refund (dedupe key = refund id). A source type with
+#: no entry is not told: Bookings starts its own refunds and needs no callback.
+REFUND_TOPICS = {"events.order": "events.order_refunded"}
 
 #: Refunds that still count against what can be handed back.
 _LIVE_REFUND = (RefundStatus.PENDING.value, RefundStatus.SUCCEEDED.value)
@@ -508,6 +515,26 @@ async def _capture(
         )
 
 
+async def _enqueue_refund_topic(
+    session: AsyncSession, intent: Intent, refund_id: uuid.UUID
+) -> None:
+    """Tell the owning domain about a refund, in the transaction that records it."""
+    topic = REFUND_TOPICS.get(intent.source_type)
+    if topic is None or not intent.source_id:
+        return
+    await outbox.enqueue(
+        session,
+        topic=topic,
+        payload={
+            "intent_id": str(intent.id),
+            "source_id": intent.source_id,
+            "refund_id": str(refund_id),
+        },
+        dedupe_key=str(refund_id),
+        organisation_id=intent.organisation_id,
+    )
+
+
 async def _emit_payment_event(
     session: AsyncSession,
     intent: Intent,
@@ -634,6 +661,7 @@ async def refund_intent(
         refund_id=refund.id,
         refunded_minor=amount,
     )
+    await _enqueue_refund_topic(session, intent, refund.id)
     logger.info(
         "payment refunded",
         extra={"intent_id": str(intent.id), "refund_id": str(refund.id)},
@@ -789,6 +817,7 @@ async def _apply_refunded(
         refund_id=refund.id,
         refunded_minor=missing,
     )
+    await _enqueue_refund_topic(session, intent, refund.id)
     return "processed"
 
 

@@ -284,12 +284,14 @@ class Order(EventsModel):
     listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
     #: The claiming account; null for outlet sales (the buyer has no account).
     user_id: Mapped[uuid.UUID | None]
+    #: confirmed | pending_payment | expired | refunded (N4b).
     status: Mapped[str] = mapped_column(Text, default="confirmed")
     total_minor: Mapped[int] = mapped_column(Integer, default=0)
     currency: Mapped[str] = mapped_column(Text, default="XCD")
     #: "online" (member claim) or "outlet" (sold by the organiser's staff).
     channel: Mapped[str] = mapped_column(Text, default="online")
-    #: "none" for free claims, "cash_outlet" for outlet cash sales.
+    #: "none" for free claims, "cash_outlet" for outlet cash sales, "online" for
+    #: paid tiers collected through the payments core.
     payment_method: Mapped[str] = mapped_column(Text, default="none")
     collected_minor: Mapped[int] = mapped_column(Integer, default=0)
     buyer_name: Mapped[str | None] = mapped_column(Text)
@@ -299,6 +301,13 @@ class Order(EventsModel):
         ForeignKey("till_sessions.id")
     )
     idempotency_key: Mapped[str | None] = mapped_column(Text)
+    #: ``payments.intent.id`` in the main database (ADR-0003: no cross-database FK).
+    payment_intent_id: Mapped[uuid.UUID | None]
+    #: A ``pending_payment`` order holds its stock until then (N4b).
+    payment_expires_at: Mapped[datetime | None] = mapped_column(DateTime)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime)
+    #: Mirrors the payments ledger (``collected_minor`` holds the charge).
+    refunded_minor: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 

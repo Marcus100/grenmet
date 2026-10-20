@@ -635,6 +635,37 @@ async def test_sync_credits_admissions_once_and_reverses_refunds(
 
 
 @pytest.mark.asyncio
+async def test_sync_ignores_admissions_on_unpaid_orders(
+    db_async: AsyncSession, events_session: SessionFactory
+) -> None:
+    """Only a ``confirmed`` order earns: a paid-tier order that is still waiting
+    for money, or that expired, never credits stamps (N4b)."""
+    customer, _owner, org_id, _program = await _setup(db_async, stamps=5)
+    _admission, _ticket, order_id = await _admit(
+        events_session, user=customer, organisation_id=org_id
+    )
+    for status in ("pending_payment", "expired"):
+        async with events_session() as events:
+            await events.execute(
+                text("UPDATE orders SET status = :s WHERE id = :i"),
+                {"s": status, "i": order_id},
+            )
+            await events.commit()
+            result = await events_link.sync_admissions(db_async, events)
+        await db_async.commit()
+        assert (result.credited, result.reversed) == (0, 0), status
+    async with events_session() as events:
+        await events.execute(
+            text("UPDATE orders SET status = 'confirmed' WHERE id = :i"),
+            {"i": order_id},
+        )
+        await events.commit()
+        result = await events_link.sync_admissions(db_async, events)
+    await db_async.commit()
+    assert result.credited == 1
+
+
+@pytest.mark.asyncio
 async def test_sync_ignores_organisers_without_a_programme(
     db_async: AsyncSession, events_session: SessionFactory
 ) -> None:
