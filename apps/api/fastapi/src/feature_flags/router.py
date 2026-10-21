@@ -1,8 +1,8 @@
 """Feature flags (ADR-0020, ADR-0025 zones). Admin management is superuser-only."""
 
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Path
+from fastapi import APIRouter, Path, Query, Request, Response
 from fastapi import status as http_status
 
 from src.auth.policy import require_permission
@@ -10,9 +10,11 @@ from src.dependencies import AccountUser, AdminUser, SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgMember
 from src.pagination import PaginationDep
+from src.rate_limit import limiter
 
 from . import service
 from .schemas import (
+    PUBLIC_KEYS_PATTERN,
     FeatureFlagAdmin,
     FeatureFlagAdminList,
     FeatureFlagCreate,
@@ -23,6 +25,40 @@ from .schemas import (
 router = APIRouter(prefix="/feature-flags", tags=["feature-flags"])
 
 FlagId = Path(min_length=1, max_length=100)
+
+
+@router.get(
+    "/public/evaluate",
+    response_model=FeatureFlagEvaluation,
+    summary="Evaluate client-visible flags for an anonymous visitor",
+    description=(
+        "No authentication. Flag key to on/off for the requested keys (comma "
+        "separated, at most 20). The visitor is anonymous, so only environment "
+        "rules and the everyone audience can be on. Unknown and non-exposed keys "
+        "are absent. Cacheable for 30 seconds; callers should cache about 60 "
+        "seconds and treat 429 or any error as flag off."
+    ),
+    responses={429: {"description": "Rate limit exceeded"}},
+)
+@limiter.limit("600/minute")
+async def evaluate_public(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    keys: Annotated[
+        str,
+        Query(
+            pattern=PUBLIC_KEYS_PATTERN,
+            max_length=1700,
+            description="Comma-separated kebab-case flag keys, at most 20.",
+        ),
+    ],
+) -> Any:
+    del request  # slowapi reads it from the signature to key the limit
+    flags = await service.evaluate_public(session, keys.split(","))
+    response.headers["Cache-Control"] = "public, max-age=30"
+    return FeatureFlagEvaluation(flags=flags)
 
 
 @router.get(

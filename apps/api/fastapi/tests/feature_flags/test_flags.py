@@ -483,3 +483,65 @@ async def test_require_flag_gates_routes_with_404(db_async: AsyncSession) -> Non
         assert (
             await client.get("/_probe/org", headers=headers_for(other, other_org.id))
         ).status_code == 404
+
+
+async def test_public_evaluate_is_anonymous_exposed_only_and_cacheable(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    admin = await _admin(db_async)
+
+    async def make(**extra: object) -> str:
+        resp = await _create(async_client, admin, **extra)
+        assert resp.status_code == 201, resp.text
+        return resp.json()["key"]
+
+    on = await make(enabled=True, exposed=True, audience={"everyone": True})
+    off = await make(enabled=False, exposed=True, audience={"everyone": True})
+    internal = await make(enabled=True, audience={"everyone": True})
+    org_rule = await make(
+        enabled=True, exposed=True, audience={"organisation_ids": ["some-org"]}
+    )
+    user_rule = await make(
+        enabled=True, exposed=True, audience={"user_ids": [str(uuid.uuid4())]}
+    )
+    percent = await make(enabled=True, exposed=True, audience={"percentage": 100})
+    wrong_env = await make(
+        enabled=True,
+        exposed=True,
+        audience={"everyone": True, "environments": ["production"]},
+    )
+    expect_wrong_env = settings.ENVIRONMENT == "production"
+
+    keys = [on, off, internal, org_rule, user_rule, percent, wrong_env, "no-such-flag"]
+    resp = await async_client.get(
+        f"{URL}/public/evaluate", params={"keys": ",".join(keys)}
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.headers["cache-control"] == "public, max-age=30"
+    assert resp.json()["flags"] == {
+        on: True,
+        off: False,
+        org_rule: False,
+        user_rule: False,
+        percent: False,
+        wrong_env: expect_wrong_env,
+    }, "internal and unknown keys are absent"
+
+    only_internal = await async_client.get(
+        f"{URL}/public/evaluate", params={"keys": internal}
+    )
+    assert only_internal.json() == {"flags": {}}
+
+
+async def test_public_evaluate_validates_keys(
+    async_client: httpx.AsyncClient,
+) -> None:
+    ok = ",".join(f"flag-{i}" for i in range(20))
+    assert (
+        await async_client.get(f"{URL}/public/evaluate", params={"keys": ok})
+    ).status_code == 200
+    too_many = ",".join(f"flag-{i}" for i in range(21))
+    for bad in (too_many, "", "Bad_Key", "a,,b", "a, b", "-a"):
+        resp = await async_client.get(f"{URL}/public/evaluate", params={"keys": bad})
+        assert resp.status_code == 422, bad
+    assert (await async_client.get(f"{URL}/public/evaluate")).status_code == 422

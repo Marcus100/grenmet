@@ -61,13 +61,13 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
     img: GA_IMG,
     frame: [TURNSTILE],
   },
-  // No analytics (publicAnalytics false in the catalogue). Turnstile is added
-  // here with the public booking form, not before.
+  // No analytics (publicAnalytics false in the catalogue). Turnstile guards the
+  // public booking form.
   bookings: {
-    script: [],
-    connect: [],
+    script: [TURNSTILE],
+    connect: [TURNSTILE],
     img: [],
-    frame: [],
+    frame: [TURNSTILE],
   },
   // GA4 in production (service-catalogue `mbia`); no PostHog project. The
   // contact form's Turnstile widget is the only third party besides GA.
