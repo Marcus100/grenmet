@@ -55,6 +55,13 @@ const SAFE_TAGS = new Set([
   "user_id",
 ]);
 
+const OPAQUE_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+/** UUID or short token; rejects emails, names and anything with spaces or "@". */
+function isOpaqueId(value: unknown): value is string {
+  return typeof value === "string" && OPAQUE_ID.test(value);
+}
+
 /**
  * ADR-0037: the internal user ID (an opaque database ID) may be sent; every
  * other user field (email, username, ip_address, name, ...) is dropped.
@@ -62,14 +69,17 @@ const SAFE_TAGS = new Set([
 function keepUserId(user: unknown): { id: string } | undefined {
   if (!user || typeof user !== "object") return undefined;
   const id = (user as { id?: unknown }).id;
-  return typeof id === "string" && id.length > 0 ? { id } : undefined;
+  return isOpaqueId(id) ? { id } : undefined;
 }
 
 function keepSafeTags(tags: unknown): Record<string, string> | undefined {
   if (!tags || typeof tags !== "object") return undefined;
   const kept = Object.fromEntries(
     Object.entries(tags).filter(
-      ([key, value]) => SAFE_TAGS.has(key) && typeof value === "string"
+      ([key, value]) =>
+        SAFE_TAGS.has(key) &&
+        typeof value === "string" &&
+        (key !== "user_id" || isOpaqueId(value))
     )
   );
   return Object.keys(kept).length > 0 ? kept : undefined;

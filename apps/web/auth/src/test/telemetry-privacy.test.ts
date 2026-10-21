@@ -73,6 +73,21 @@ it("keeps the internal user ID and org_id tag but no personal user fields", () =
   ).toBeUndefined();
 });
 
+it("drops unknown user keys and rejects an ID that looks like an email or name", () => {
+  const withExtras = scrubSentryEvent({
+    user: { id: "user_abc-123", geo: { city: "private" }, segment: "private" },
+  });
+  expect(withExtras.user).toEqual({ id: "user_abc-123" });
+  for (const bad of [
+    "private@example.test",
+    "Private Person",
+    "x".repeat(65),
+  ]) {
+    expect(scrubSentryEvent({ user: { id: bad } }).user).toBeUndefined();
+    expect(scrubSentryEvent({ tags: { user_id: bad } }).tags).toBeUndefined();
+  }
+});
+
 it("drops performance events until their sanitation and quota are verified", () => {
   expect(
     scrubSentryTransaction({
