@@ -83,7 +83,7 @@ Claimed, not built (no Compose service, Traefik route, image or DNS record).
 | 3041 | `@barrelsgd/web-homegrown` (`homegrown.barrels.gd`) | Reserved (sector product, not built) |
 | 3060 | `@barrelsgd/web-gaa` (GAA corporate site) | Reserved (client) |
 | 3061 | `@barrelsgd/web-janitor` (janitor PWA) | Reserved (client) |
-| 3062 | `@barrelsgd/web-bus` (bus PWA) | Reserved (client) |
+| 3062 | `@barrelsgd/web-gaa-bus` (bus PWA) | Reserved (client) |
 | 3063 | `@barrelsgd/web-gms-pwa` (GMS PWA) | Reserved (client) |
 | 3090 | `ui-gallery` (UI gallery, dev only) | Reserved (dev tool) |
 | 3091 | `email-preview` (email preview, dev only) | Reserved (dev tool) |
@@ -161,7 +161,7 @@ file records the target, not the live state.
 | Hostname | For | Port | Status |
 | --- | --- | --- | --- |
 | `admin.barrels.gd` | Barrels staff and superuser console (`apps/web/admin`) | 3012 | Planned: cutover in progress. Today `admin.*` still routes to gaa-admin |
-| `gms.barrels.gd` | Met office staff portal (today's gaa-admin) | 3001 | Planned: cutover in progress. Today the portal is `gmsadmin.*` |
+| `gms.barrels.gd` | Met office staff portal (today's gaa-admin) | 3001 | Planned: cutover in progress. Today the portal is `gmsadmin.*`. Old `gms.*` links meant the retired public weather site (now `weather.*`); the name is reassigned to the staff portal |
 | `hr.barrels.gd` | Barrels HR: separate multi-organisation app, organisation in the path (`hr.barrels.gd/<orgSlug>/...`) | 3016 | Planned, not built (stays in gaa-admin until then) |
 | `shop.barrels.gd` | Shopkeeping: the merchant-facing shop and stores app | 3008 | Reserved |
 | `education.barrels.gd` | Sector product (Education cluster) | 3035 | Reserved; building is gated on validated demand |
@@ -192,8 +192,9 @@ file records the target, not the live state.
 - **Product hosts:** `bookings`, `events`, `hr`, `shop`, `signal`, `elections`,
   `gmsdash`, `cap`, `weather`, `docs`, `cms`, `mbia`.
 - **Platform:** `api` (a single host); `status` and `developers` reserved.
-- **Ops:** `traefik`, `adminer`. Basic auth plus an IP allowlist on staging;
-  Cloudflare Access only on production.
+- **Ops:** `traefik`, `adminer`. **Target:** basic auth plus an IP allowlist
+  on staging; Cloudflare Access only on production. **Today: basic auth only**
+  (Traefik `basicauth` middlewares in `docker-compose.deploy.yml`).
 - **Single-level hostnames only** (no `docs.weather.*`). Staging uses the
   `.staging.` infix.
 - **Tenants are paths** on product hosts, keyed by the organisation slug
@@ -247,7 +248,7 @@ or retired) must appear here; `scripts/ci/check-ports.mjs` checks it.
 - **Ops:** ops, status, health, metrics, monitor, grafana, traefik, adminer, db, redis.
 - **Mail:** mail, smtp, imap, mx, autodiscover, autoconfig, send, bounce, email, notify, news.
 - **Files and static:** cdn, static, assets, media, files, uploads, images, storage, s3.
-- **Help and legal:** docs, help, support, legal, privacy, terms, security, abuse, postmaster, hostmaster, webmaster.
+- **Help and legal:** help, support, legal, privacy, terms, security, abuse, postmaster, hostmaster, webmaster.
 - **Money:** billing, pay, payments, checkout, invoices.
 - **Machine endpoints:** webhooks, hooks, callback, ws, mcp, ai, api, developers.
 - **Product and client hosts:** bookings, events, hr, shop, signal, elections, gmsdash, cap, weather, docs, cms, mbia, babydoll, gms.

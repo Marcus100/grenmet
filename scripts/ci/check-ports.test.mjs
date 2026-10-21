@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
@@ -10,6 +16,7 @@ import {
   parseRanges,
   parseReserved,
   parseReservedNames,
+  parseReservedRows,
   parseRetired,
   parseRetiredHosts,
   parseServedHosts,
@@ -398,6 +405,90 @@ test("hosts: staging infix, single-level and reserved names are enforced", async
   assert.ok(has(unreserved, 'host beta is not in "Reserved names"'));
 });
 
-test("the real repo's ports agree", async () => {
+test("reserved rows: duplicate ports and packages are flagged", async () => {
+  const dupPort = await problems((root) =>
+    write(
+      root,
+      "docs/ports.md",
+      PORTS_MD.replace(
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |",
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |\n| 3008 | `@barrelsgd/web-other` | Reserved |"
+      )
+    )
+  );
+  assert.ok(has(dupPort, "port 3008 is reserved twice"));
+
+  const dupPkg = await problems((root) =>
+    write(
+      root,
+      "docs/ports.md",
+      PORTS_MD.replace(
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |",
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |\n| 3009 | `@barrelsgd/web-shop` (again) | Reserved |"
+      )
+    )
+  );
+  assert.ok(has(dupPkg, "package @barrelsgd/web-shop is reserved on both"));
+
+  const appClash = await problems((root) =>
+    write(
+      root,
+      "docs/ports.md",
+      PORTS_MD.replace(
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |",
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |\n| 3009 | `@barrelsgd/web-alpha` | Reserved |"
+      )
+    )
+  );
+  assert.ok(has(appClash, "package @barrelsgd/web-alpha (alpha) is on 3000"));
+});
+
+test("required sections: real-repo mode fails when a section is missing", async () => {
+  const root = fixture();
+  try {
+    assert.deepEqual(await checkPorts(root), []);
+    const errors = await checkPorts(root, { requireSections: true });
+    for (const heading of [
+      "## Port ranges",
+      "### Retired ports",
+      "### Served by the DigitalOcean stack",
+      "### Retired hostnames",
+      "## Reserved names",
+    ]) {
+      assert.ok(has(errors, `section "${heading}" is missing`), heading);
+    }
+  } finally {
+    rmSync(root, { force: true, recursive: true });
+  }
+});
+
+test("compose hosts: three-level hosts are flagged and comments ignored", async () => {
+  const hostLine = (l) => `Host(\`${l}.${DOMAIN_VAR}\`)`;
+  assert.deepEqual(
+    [
+      ...composeHostLabels(
+        `# - "x.rule=${hostLine("ghost")}"\n - "y=${hostLine("real")}"`
+      ),
+    ],
+    ["real"]
+  );
+  const errors = await problems((root) => {
+    write(root, "docs/ports.md", HOSTS_MD);
+    withCompose(["alpha", "beta", "docs.weather"])(root);
+  });
+  assert.ok(has(errors, "multi-level host docs.weather"));
+});
+
+test("the real repo's ports agree and every section parses", async () => {
+  const markdown = readFileSync(
+    new URL("../../docs/ports.md", import.meta.url),
+    "utf8"
+  );
+  assert.ok(parseRanges(markdown).length > 0);
+  assert.ok(parseRetired(markdown).length > 0);
+  assert.ok(parseServedHosts(markdown).production.length > 0);
+  assert.ok(parseRetiredHosts(markdown).length > 0);
+  assert.ok(parseReservedNames(markdown).size > 0);
+  assert.ok(parseReservedRows(markdown).length > 0);
   assert.deepEqual(await checkPorts(), []);
 });

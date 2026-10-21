@@ -6,6 +6,11 @@
 **Owner:** Repository maintainers  
 **Last updated:** 2026-10-13
 
+> **Ports and hosts throughout this document are superseded (2026-10-21)** by
+> [ADR-0043](../adr/0043-hostnames-tenancy-and-port-allocation.md) and
+> [docs/ports.md](../ports.md). Treat any port, hostname or DNS record below as
+> historical plan, not current allocation.
+
 This document describes the destination architecture. The execution order,
 baseline freeze, commit boundaries, and rollout sequencing live in
 [Barrels Grenada Migration Plan](barrelsgd-migration-plan.md).
@@ -526,6 +531,8 @@ legacy-infrastructure retirement step must not reach this host.
   observability.
 
 ## DNS map and rollout
+
+> **Superseded (2026-10-21)** by [ADR-0043](../adr/0043-hostnames-tenancy-and-port-allocation.md) and [docs/ports.md](../ports.md). The records below (including three-level names such as `docs.weather.barrels.gd`) are the 2026 plan, not the current host map.
 
 Initial production records are:
 

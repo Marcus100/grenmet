@@ -103,8 +103,10 @@ and AGENTS.md files and are not worth renumbering (ports are an internal detail)
      `delivery`, `bus`, `park`, `taxi`, `homegrown`, one port each in 3035-3041,
      plus the existing salesbus POS port 3030.
    - Platform: `api` (one API host); `status` and `developers` reserved.
-   - Ops: `traefik`, `adminer`. Basic auth plus an IP allowlist on staging;
-     Cloudflare Access only on production.
+   - Ops: `traefik`, `adminer`. **Target:** basic auth plus an IP allowlist
+     on staging; Cloudflare Access only on production. **Today:** basic auth
+     only (Traefik `basicauth` middlewares in `docker-compose.deploy.yml`);
+     the allowlist and Access are not in place.
 3. **Tenants are paths on product hosts, keyed by the organisation slug
    everywhere** (`hr.barrels.gd/<orgSlug>/...`, `bookings.barrels.gd/<orgSlug>`).
    Bookings' existing `public_slug` stays as an alias that resolves to the
@@ -146,8 +148,8 @@ and AGENTS.md files and are not worth renumbering (ports are an internal detail)
    3060-3089 client-dedicated apps; 3090-3099 dev tools; 4000-4099 retired
    Hono, never reuse; 8000-8019 Barrels Python services; 8020-8079 free;
    8080-8099 ops tools. Infrastructure and vendored ports stay as listed;
-   wis2box 8001 (and SURFACE 8081) are recorded as vendored exceptions inside
-   Barrels ranges. Ports are never renumbered or reused; retired ports stay in
+   wis2box 8001, SURFACE 8081 and wis2box minio sftp 8022 are recorded as
+   vendored exceptions inside Barrels ranges (table in `docs/ports.md`). Ports are never renumbered or reused; retired ports stay in
    the table as retired. The exact assignments live in `docs/ports.md`.
 11. **Enforcement.** `scripts/ci/check-ports.mjs` parses the ranges and retired
     rows, checks overlap with the vendored and infrastructure tables, and
