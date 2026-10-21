@@ -38,7 +38,7 @@ from src.rate_limit import limiter
 from src.request_context import bind_organisation_id, reset_organisation_id
 
 from . import api_key_scopes, api_keys, service
-from .dependencies import ORGANISATION_HEADER, resolve_org_context
+from .dependencies import ORGANISATION_HEADER, resolve_org_caller, resolve_org_context
 from .exceptions import (
     ApiKeyInvalidError,
     ApiKeyRateLimitedError,
@@ -190,7 +190,11 @@ class OrgAccess:
 
 
 def org_or_key(
-    app_key: str, scope: str, minimum_role: MembershipRole = MembershipRole.MEMBER
+    app_key: str,
+    scope: str,
+    minimum_role: MembershipRole = MembershipRole.MEMBER,
+    *,
+    session_app: str | None = None,
 ) -> Callable[..., AsyncGenerator[OrgAccess]]:
     """Build a dependency for an ``org`` route that a signed-in member or an API
     key may call (ADR-0025 zones stay; ADR-0029).
@@ -199,7 +203,11 @@ def org_or_key(
     and entitled to ``app_key`` and the key must hold ``scope`` (401, 403, 429 as
     in ``require_api_key_scope``); the organisation header is ignored. Any other
     credential takes the unchanged member path: sign-in (401), organisation
-    header (400), membership (404), ``minimum_role`` (403), entitlement (403)."""
+    header (400), membership (404), ``minimum_role`` (403), entitlement (403).
+
+    ``session_app`` opts the route in to the app-scoped session of that app: a JWT
+    whose ``app`` claim equals it takes the member path (active account with
+    ``app.<key>.access``). Any other app's token stays 401."""
     if not api_key_scopes.is_valid(scope):
         raise ValueError(f"Unknown API key scope: {scope}")
     if api_key_scopes.product_of(scope) != app_key:
@@ -237,7 +245,10 @@ def org_or_key(
                     detail="Not authenticated",
                     headers={"WWW-Authenticate": "Bearer"},
                 )
-            user = await get_account_user(session, secret)
+            if session_app is None:
+                user = await get_account_user(session, secret)
+            else:
+                user, _ = await resolve_org_caller(session, credentials, session_app)
             member = await resolve_org_context(session, user, organisation)
             member.require_role(minimum_role)
             await service.require_app_enabled(

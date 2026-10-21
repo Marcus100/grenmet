@@ -31,10 +31,19 @@ from .schemas import (
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
-_Read = Annotated[OrgAccess, Depends(org_or_key("bookings", "bookings.read"))]
+_Read = Annotated[
+    OrgAccess, Depends(org_or_key("bookings", "bookings.read", session_app="bookings"))
+]
 _Write = Annotated[
     OrgAccess,
-    Depends(org_or_key("bookings", "bookings.write", MembershipRole.ADMIN)),
+    Depends(
+        org_or_key(
+            "bookings",
+            "bookings.write",
+            MembershipRole.ADMIN,
+            session_app="bookings",
+        )
+    ),
 ]
 _READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
 _WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}

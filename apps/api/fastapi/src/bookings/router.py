@@ -54,19 +54,31 @@ from .schemas import (
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
 # Organisation routes require the "bookings" entitlement (org.organisation_app).
-BookingsOrgMember = Annotated[OrgContext, Depends(require_org_app("bookings"))]
+BookingsOrgMember = Annotated[
+    OrgContext, Depends(require_org_app("bookings", session_app="bookings"))
+]
 BookingsOrgAdmin = Annotated[
-    OrgContext, Depends(require_org_app("bookings", MembershipRole.ADMIN))
+    OrgContext,
+    Depends(require_org_app("bookings", MembershipRole.ADMIN, session_app="bookings")),
 ]
 # Organisation reads also accept an API key with `bookings.read` (PF5, ADR-0029),
 # e.g. a kiosk or partner site; the user path behaves as BookingsOrgMember.
-BookingsOrgRead = Annotated[OrgAccess, Depends(org_or_key("bookings", "bookings.read"))]
+BookingsOrgRead = Annotated[
+    OrgAccess, Depends(org_or_key("bookings", "bookings.read", session_app="bookings"))
+]
 
 # Studio actions also accept an API key with `bookings.write` (PF5); the member
 # path needs the admin role. `actor_id` is None for a key.
 BookingsOrgWrite = Annotated[
     OrgAccess,
-    Depends(org_or_key("bookings", "bookings.write", MembershipRole.ADMIN)),
+    Depends(
+        org_or_key(
+            "bookings",
+            "bookings.write",
+            MembershipRole.ADMIN,
+            session_app="bookings",
+        )
+    ),
 ]
 
 READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}

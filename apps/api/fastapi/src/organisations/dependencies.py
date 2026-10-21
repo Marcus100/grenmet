@@ -14,15 +14,29 @@ There is deliberately no superuser bypass. A route is only organisation-isolated
 if it uses one of these aliases **and** has a cross-organisation denial test.
 """
 
+import uuid
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from dataclasses import dataclass
 from typing import Annotated
 
+import jwt
 from fastapi import Depends, Header
+from fastapi.security import HTTPAuthorizationCredentials
+from jwt.exceptions import InvalidTokenError
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.app_dependencies import unauthorized, user_for_app
+from src.auth.config import auth_settings
 from src.auth.models import User
-from src.dependencies import AccountUser, SessionDep
+from src.auth.utils import ALGORITHM
+from src.dependencies import (
+    AccountUser,
+    SessionDep,
+    TokenDep,
+    get_authenticated_user,
+)
+from src.models import TokenPayload
 from src.organisations import entitlements, service
 from src.organisations.exceptions import (
     OrganisationContextRequiredError,
@@ -76,6 +90,43 @@ async def resolve_org_context(
     )
 
 
+async def resolve_org_caller(
+    session: AsyncSession,
+    credentials: HTTPAuthorizationCredentials | None,
+    allowed_app: str | None = None,
+) -> tuple[User, str | None]:
+    """The signed-in user behind a bearer token, and the token's app (or ``None``).
+
+    An account token (no ``app`` claim) resolves like ``AccountUser``. A token whose
+    ``app`` claim equals ``allowed_app`` resolves through ``user_for_app`` (active
+    account holding ``app.<key>.access``). Any other app's token, and every token
+    when ``allowed_app`` is ``None``, is refused with 401. Membership, role and
+    entitlement checks stay with the caller (``resolve_org_context`` and friends)."""
+    if credentials is None:
+        raise unauthorized("Not authenticated")
+    try:
+        payload = TokenPayload(
+            **jwt.decode(
+                credentials.credentials,
+                auth_settings.SECRET_KEY,
+                algorithms=[ALGORITHM],
+            )
+        )
+        user_id = uuid.UUID(payload.sub or "")
+    except InvalidTokenError, ValidationError, ValueError:
+        raise unauthorized() from None
+    if payload.app is None:
+        user = await get_authenticated_user(session, user_id, allow_unapproved=True)
+        return user, None
+    if allowed_app is None or payload.app != allowed_app:
+        raise unauthorized("This sign-in is limited to another app")
+    return await user_for_app(session, credentials, payload.app), payload.app
+
+
+def bearer_from_token(token: str) -> HTTPAuthorizationCredentials:
+    return HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+
+
 async def get_org_context(
     session: SessionDep,
     current_user: AccountUser,
@@ -117,15 +168,56 @@ def require_org_role(
 
 
 def require_org_app(
-    app_key: str, minimum: MembershipRole = MembershipRole.MEMBER
-) -> Callable[..., Awaitable[OrgContext]]:
+    app_key: str,
+    minimum: MembershipRole = MembershipRole.MEMBER,
+    *,
+    session_app: str | None = None,
+) -> Callable[..., Awaitable[OrgContext] | AsyncGenerator[OrgContext]]:
     """Build a dependency that resolves ``OrgContext``, enforces a minimum role and
     requires the organisation's entitlement to ``app_key``.
 
     The entitlement is checked last, after membership is proven, so its 403
-    reveals nothing to outsiders."""
+    reveals nothing to outsiders.
+
+    ``session_app`` opts the route family in to the app-scoped session of that app
+    (a JWT whose ``app`` claim equals it); every other app's token stays 401."""
     if not entitlements.is_known(app_key):
         raise ValueError(f"Unknown entitlement key: {app_key}")
+
+    if session_app is not None:
+
+        async def app_dependency(
+            session: SessionDep,
+            token: TokenDep,
+            organisation: Annotated[
+                str | None,
+                Header(
+                    alias=ORGANISATION_HEADER,
+                    description=(
+                        "Id of the organisation the request acts for. The caller "
+                        "must be an active member."
+                    ),
+                ),
+            ] = None,
+        ) -> AsyncGenerator[OrgContext]:
+            user, _ = await resolve_org_caller(
+                session, bearer_from_token(token), session_app
+            )
+            context = await resolve_org_context(session, user, organisation)
+            context.require_role(minimum)
+            await service.require_app_enabled(
+                session, organisation_id=context.organisation_id, app_key=app_key
+            )
+            bound = bind_organisation_id(context.organisation.id)
+            try:
+                yield context
+            finally:
+                try:
+                    reset_organisation_id(bound)
+                except ValueError:
+                    pass
+
+        return app_dependency
 
     async def dependency(
         session: SessionDep,
