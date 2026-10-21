@@ -77,7 +77,7 @@ const PIPED_TO_SHELL = /\|\s*(?:sudo\s+)?(?:(?:ba|z|da)?sh|eval|source)\b/;
 const COMMAND_SUBSTITUTION = /\$\([^)]*\)|`[^`]*`/g;
 
 const GH_PR_MERGE = new RegExp(`\\bgh\\s+pr\\s+merge\\b(${SAME_COMMAND})`, "g");
-const ALLOWED_MERGE_BASE = "staging";
+const ALLOWED_MERGE_BASES = new Set(["dev", "staging"]);
 // Merge flags that take a separate value, so the value is not the PR.
 const MERGE_FLAGS_WITH_VALUE = new Set([
   "-A",
@@ -194,8 +194,9 @@ export function lookupMergeBase(args) {
 }
 
 /**
- * `gh pr merge` is allowed only into staging (AGENTS.md standing
- * authorization) and never with `--admin`, which bypasses branch protection.
+ * `gh pr merge` is allowed only into dev and staging (AGENTS.md: agents merge
+ * their own green, reviewed PRs into dev) and never with `--admin`, which
+ * bypasses branch protection.
  * Fails closed: an unknown base blocks.
  */
 function findBlockedMerge(segment, lookupBase) {
@@ -205,8 +206,8 @@ function findBlockedMerge(segment, lookupBase) {
       return "gh pr merge --admin (bypasses branch protection)";
     }
     const base = lookupBase(args);
-    if (base !== ALLOWED_MERGE_BASE) {
-      return `gh pr merge into '${base ?? "unknown base"}' (only ${ALLOWED_MERGE_BASE} merges are authorized)`;
+    if (!ALLOWED_MERGE_BASES.has(base)) {
+      return `gh pr merge into '${base ?? "unknown base"}' (only dev and staging merges are authorized)`;
     }
   }
   return undefined;

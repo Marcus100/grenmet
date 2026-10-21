@@ -7,14 +7,16 @@ allowed-tools: Bash(pnpm *), Bash(turbo run *), Bash(gh *), Bash(git *), Bash(cu
 ## Release Promotion
 
 Follow `docs/operations/release-runbook.md`. Work reaches `dev` by PR into `dev`
-that the owner merges (`/commit` step 4). Staging PR creation/update and
-auto-merge after all applicable checks pass have standing user authorization.
+that the agent merges once CI is green and the review is clean (`/commit` step
+4). Staging PR creation/update has standing user authorization; the owner
+reviews and merges into `staging`, and auto-merge is armed only when the owner
+asks.
 Monitor the resulting staging deployment. Main merges and production
 publication/deployment need separate authorization. Never bypass protection,
 hooks, or failing checks.
 
 **1. Pre-flight**
-Start from the `dev` the owner has merged; never push `dev` yourself. See
+Start from the current `origin/dev`; never push `dev` yourself. See
 `AGENTS.md` → Git and GitHub Workflow.
 
 Confirm the latest `dev` CI run is green (`gh run list --branch dev --limit 3`);

@@ -172,13 +172,18 @@ test("block-dangerous-git: allows the safe neighbours of blocked commands", () =
   }
 });
 
-test("block-dangerous-git: allows gh pr merge only into staging, failing closed", () => {
+test("block-dangerous-git: allows gh pr merge only into dev and staging, failing closed", () => {
   const command = "gh pr merge 42 --merge --match-head-commit abc123";
   assert.equal(findBlockedPattern(command, baseIs("staging")), undefined);
+  assert.equal(findBlockedPattern(command, baseIs("dev")), undefined);
   assert.match(String(findBlockedPattern(command, baseIs("main"))), MAIN_BASE);
   assert.match(String(findBlockedPattern(command, baseIs(null))), UNKNOWN_BASE);
   assert.match(
     String(findBlockedPattern("gh pr merge 42 --admin", baseIs("staging"))),
+    ADMIN_FLAG
+  );
+  assert.match(
+    String(findBlockedPattern("gh pr merge 42 --admin", baseIs("dev"))),
     ADMIN_FLAG
   );
 });

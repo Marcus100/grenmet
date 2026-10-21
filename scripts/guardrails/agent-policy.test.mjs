@@ -33,14 +33,17 @@ const FULL_POLICY_FILES = POLICY_FILES.filter(
 // Retired wording, each paired with what replaced it. "push dev" is retired in
 // every affirmative form; a negated form ("never push dev") states the policy.
 const RETIRED = [
-  [/push `dev` directly/, "agents open a PR into `dev`; the owner merges"],
+  [
+    /push `dev` directly/,
+    "agents open a PR into `dev` and merge it once CI is green and the review is clean",
+  ],
   [
     /(?<!never |not )push(?:es|ing)? (?:`dev`|dev)\b/i,
-    "agents open a PR into `dev`; the owner merges",
+    "agents open a PR into `dev` and merge it once CI is green and the review is clean",
   ],
   [
     /direct (?:`dev`|dev) push/i,
-    "agents open a PR into `dev`; the owner merges",
+    "agents open a PR into `dev` and merge it once CI is green and the review is clean",
   ],
   [
     /merges? (?:the task branch |completed task branches )?into local `?dev`?/i,
@@ -57,7 +60,7 @@ const RETIRED = [
   ],
 ];
 const LANDS_BY_PR = /(?:PR|pull request)s? (?:in)?to `dev`/;
-const OWNER_MERGES = /owner\s+(?:reviews\s+and\s+)?merges/i;
+const AGENTS_MERGE_WHEN_GREEN = /CI\s+is\s+green[^.]*review/i;
 const STANDING_AUTHORIZATION = /standing (?:user )?authori[sz]ation/i;
 const PROMOTES_BY_AUTO_MERGE = /auto-merge/;
 const LIMITS_PRODUCTION = /(?:explicit|separate)[^.]*authori[sz]ation/i;
@@ -102,7 +105,10 @@ test("the retired-wording patterns catch affirmative variants and allow negated 
 test("every full policy file states the complete landing and promotion policy", () => {
   const required = [
     [LANDS_BY_PR, "work lands by PR into dev"],
-    [OWNER_MERGES, "the owner merges into dev"],
+    [
+      AGENTS_MERGE_WHEN_GREEN,
+      "agents merge into dev once CI is green and the review is clean",
+    ],
     [STANDING_AUTHORIZATION, "staging promotion has standing authorization"],
     [PROMOTES_BY_AUTO_MERGE, "staging promotion is by auto-merge"],
     [LIMITS_PRODUCTION, "main and production need explicit authorization"],
