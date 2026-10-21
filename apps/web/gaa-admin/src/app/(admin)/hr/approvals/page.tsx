@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ApprovalsInbox } from "@/components/hr/approvals-inbox";
+import { PunchApprovals } from "@/components/hr/clock/punch-approvals";
 
 export const metadata: Metadata = {
   title: "Approvals",
@@ -17,6 +18,7 @@ export default function ApprovalsPage() {
         </p>
       </div>
       <ApprovalsInbox />
+      <PunchApprovals />
     </div>
   );
 }

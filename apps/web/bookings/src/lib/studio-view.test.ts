@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   agendaDepositView,
+  availableActions,
+  canManageBookings,
   daysIn,
   depositState,
   eventLabel,
@@ -70,6 +72,32 @@ describe("deposit state", () => {
     expect(
       agendaDepositView({ deposit_minor: 2500, status: "confirmed" }).label
     ).toBe("Deposit $25");
+  });
+});
+
+describe("booking actions", () => {
+  it("lets owners and admins act, not members", () => {
+    expect(canManageBookings("owner")).toBe(true);
+    expect(canManageBookings("admin")).toBe(true);
+    expect(canManageBookings("member")).toBe(false);
+  });
+
+  it("follows the API's transitions and the start time", () => {
+    expect(availableActions("pending_payment", true)).toEqual(["cancel"]);
+    expect(availableActions("pending", false)).toEqual([
+      "confirm",
+      "decline",
+      "cancel",
+    ]);
+    expect(availableActions("confirmed", false)).toEqual(["cancel"]);
+    expect(availableActions("confirmed", true)).toEqual([
+      "complete",
+      "no_show",
+      "cancel",
+    ]);
+    for (const status of ["cancelled", "no_show", "completed"] as const) {
+      expect(availableActions(status, true)).toEqual([]);
+    }
   });
 });
 
