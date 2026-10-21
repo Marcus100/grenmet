@@ -340,6 +340,8 @@ test("block-dangerous-git: a merge is found wherever the shell would run it", ()
     "gh api -X PUT repos/Marcus100/grenmet/pulls/$N/merge",
     "gh api graphql -F query=@merge.graphql",
     "gh api graphql --input query.json",
+    'gh api graphql -f query="$(cat q.graphql)" -f id=PR_x',
+    'gh api graphql -f query="$Q" -f id=PR_x',
   ]) {
     assert.match(String(findBlockedPattern(command, dev)), API_MERGE, command);
   }

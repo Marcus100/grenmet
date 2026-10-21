@@ -96,7 +96,9 @@ const OWNER_ONLY_PATHS = [
 // Merge routes other than `gh pr merge`: GraphQL mutations, branch merges and
 // the REST merge endpoint. Tested on text with the quotes removed.
 const API_MERGE_KEYWORDS = /merge/i;
-const API_OPAQUE_QUERY = /mutation|=@/i;
+// A GraphQL query the hook cannot read: a mutation, a file (`=@`), or text built
+// at run time (`$(cat q)`, `$Q`, a backtick).
+const API_OPAQUE_QUERY = /mutation|=@|[$`]/i;
 const RETARGETS_PR = /\bgh pr edit\b[^;&|]*\s(?:--base|-B)\b/;
 // Variables that point gh or git at another repository, host or identity.
 const REPO_ENV =
@@ -261,13 +263,25 @@ export function lookupMergeBase(args) {
   return result.status === 0 ? result.stdout.trim() : null;
 }
 
-/** Files a PR changes; null when GitHub can't say. */
+/**
+ * Every path a PR touches, including the old name of a renamed file (moving a
+ * workflow or AGENTS.md out of an owner-only path must not hide it); null when
+ * GitHub can't say.
+ */
 export function lookupMergeFiles(args) {
   const { prRef, repo } = parseMergeTarget(args);
-  const repoArgs = repo === undefined ? [] : ["--repo", repo];
+  const number = /(\d+)\/?$/.exec(prRef ?? "")?.[1];
+  if (number === undefined) return null;
+  const slug = repo ?? PR_URL.exec(prRef ?? "")?.[1] ?? "{owner}/{repo}";
   const result = spawnSync(
     "gh",
-    ["pr", "diff", ...(prRef ? [prRef] : []), ...repoArgs, "--name-only"],
+    [
+      "api",
+      `repos/${slug}/pulls/${number}/files`,
+      "--paginate",
+      "--jq",
+      ".[] | .filename, (.previous_filename // empty)",
+    ],
     { encoding: "utf8", timeout: GH_LOOKUP_TIMEOUT_MS }
   );
   return result.status === 0
