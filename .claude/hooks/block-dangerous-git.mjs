@@ -466,7 +466,8 @@ function findBlockedGh(segment, lookups) {
       if (
         API_MERGE_KEYWORDS.test(request) ||
         (gh.includes("graphql") &&
-          (API_OPAQUE_QUERY.test(request) || gh.includes("--input")))
+          (API_OPAQUE_QUERY.test(decodeEscapes(whole.join(" "))) ||
+            gh.includes("--input")))
       ) {
         return "gh api merge (GraphQL mutation, branch merge or REST merge skips the dev-only rule)";
       }
