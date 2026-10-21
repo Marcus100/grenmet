@@ -50,6 +50,8 @@ class AuthConfig(BaseSettings):
     ELECTIONS_SSO_CLIENT_SECRET: str = ""
     GMSDASH_APP_URL: str = "http://localhost:3013"
     GMSDASH_SSO_CLIENT_SECRET: str = ""
+    BOOKINGS_APP_URL: str = "http://localhost:3015"
+    BOOKINGS_SSO_CLIENT_SECRET: str = ""
     # One-time codes by SMS/WhatsApp. "disabled" until a provider is chosen
     # (every message costs money); "console" logs codes for local development.
     PHONE_OTP_PROVIDER: Literal["disabled", "console"] = "disabled"

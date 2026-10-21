@@ -57,6 +57,12 @@ function serviceBlock(name) {
 
 const block = serviceBlock("web-bookings");
 
+test("the API service is told the bookings URL and the optional SSO secret", () => {
+  const api = serviceBlock("api");
+  assert.match(api, /BOOKINGS_APP_URL: https:\/\/bookings\.\$\{BASE_DOMAIN\}/);
+  assert.match(api, SSO_SECRET);
+});
+
 test("web-bookings runs the bookings image on port 3015", () => {
   assert.match(block, IMAGE);
   assert.match(block, RESTART);
