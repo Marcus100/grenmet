@@ -14,6 +14,7 @@ from typing import cast
 import sqlalchemy as sa
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import ExcludeConstraint
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.contacts import references as contact_references
@@ -202,7 +203,12 @@ class Customer(Base):
     """A business's customer: the booking-side role of one contact (ADR-0028)."""
 
     __tablename__ = "customer"
-    __table_args__ = (SCHEMA,)
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "organisation_id", "contact_id", name="customer_org_contact_key"
+        ),
+        SCHEMA,
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     organisation_id: Mapped[str] = mapped_column(
@@ -216,9 +222,6 @@ class Customer(Base):
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     last_booked_at: Mapped[datetime | None]
-
-
-contact_references.register(cast(sa.Table, Customer.__table__))
 
 
 class Booking(Base):
@@ -287,3 +290,38 @@ class BookingEvent(Base):
     actor_user_id: Mapped[uuid.UUID | None]
     note: Mapped[str | None] = mapped_column(String(300))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+async def _merge_customers(session: AsyncSession, from_id: str, to_id: str) -> None:
+    """A contact merge: keep one customer per contact. If both contacts have a
+    customer, the dropped one's bookings move to the kept one and its row goes."""
+    dropped = list(
+        await session.scalars(
+            sa.select(Customer.id).where(Customer.contact_id == from_id)
+        )
+    )
+    if not dropped:
+        return
+    kept = await session.scalar(
+        sa.select(Customer.id)
+        .where(Customer.contact_id == to_id)
+        .order_by(Customer.created_at)
+        .limit(1)
+    )
+    if kept is None:
+        first, *extra = dropped
+        await session.execute(
+            sa.update(Customer).where(Customer.id == first).values(contact_id=to_id)
+        )
+        dropped = extra
+        kept = first
+    if dropped:
+        await session.execute(
+            sa.update(Booking)
+            .where(Booking.customer_id.in_(dropped))
+            .values(customer_id=kept)
+        )
+        await session.execute(sa.delete(Customer).where(Customer.id.in_(dropped)))
+
+
+contact_references.register(cast(sa.Table, Customer.__table__), merge=_merge_customers)

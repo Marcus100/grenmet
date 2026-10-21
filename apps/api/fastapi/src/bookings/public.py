@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -373,23 +374,32 @@ async def _candidate_providers(
 async def customer_for_contact(
     session: AsyncSession, organisation_id: str, contact: Contact, now: datetime
 ) -> Customer:
-    """The organisation's booking-side role for this contact, created on first use."""
-    customer = await session.scalar(
-        select(Customer)
-        .where(
-            Customer.organisation_id == organisation_id,
-            Customer.contact_id == contact.id,
+    """The organisation's booking-side role for this contact, created on first use.
+
+    One customer per contact and organisation (unique key): the insert ignores a
+    row a concurrent first booking just created, then both read the same one."""
+    await session.execute(
+        pg_insert(Customer)
+        .values(
+            id=uuid.uuid4(),
+            organisation_id=organisation_id,
+            contact_id=contact.id,
+            created_at=now,
+            last_booked_at=now,
         )
-        .order_by(Customer.created_at)
-        .limit(1)
+        .on_conflict_do_nothing(constraint="customer_org_contact_key")
     )
-    if customer is None:
-        customer = Customer(
-            organisation_id=organisation_id, contact_id=contact.id, last_booked_at=now
+    customer = (
+        await session.execute(
+            select(Customer)
+            .where(
+                Customer.organisation_id == organisation_id,
+                Customer.contact_id == contact.id,
+            )
+            .execution_options(populate_existing=True)
         )
-        session.add(customer)
-    else:
-        customer.last_booked_at = now
+    ).scalar_one()
+    customer.last_booked_at = now
     await session.flush()
     return customer
 

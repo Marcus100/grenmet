@@ -6,6 +6,11 @@ idempotent (rewards keeps one entry per programme and admission) and a no-op whe
 the organiser has no platform organisation or no active programme. A ticket that
 later stops being valid (event cancelled, refund) reverses its admission's stamps
 through ``reverse_for_tickets``, also in the caller's transaction. Neither commits.
+
+Why inline and not ``rewards.service.emit_qualifying_action`` on the outbox: the
+stamp must exist exactly when the admission does (ADR-0003), and the reversal is
+inline too, so credit and reversal cannot cross in a queue. The price is that this
+path does the outbox handler's checks itself (the account must still exist).
 """
 
 import uuid
@@ -14,6 +19,7 @@ from collections.abc import Collection
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.models import User
 from src.rewards import service as rewards_service
 from src.rewards import sources
 
@@ -24,7 +30,7 @@ async def credit_admission(
     db: AsyncSession, *, admission: Admission, ticket: Ticket, listing: Listing
 ) -> int:
     """Credit the ticket holder for this admission. Returns entries created."""
-    if ticket.user_id is None:
+    if ticket.user_id is None or await db.get(User, ticket.user_id) is None:
         return 0
     organisation_id = await db.scalar(
         select(Organiser.organisation_id).where(Organiser.id == listing.organiser_id)

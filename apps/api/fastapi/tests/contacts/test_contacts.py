@@ -189,6 +189,29 @@ async def test_merge_moves_consents_and_audits(db_async: AsyncSession) -> None:
 
 
 @pytest.mark.asyncio
+async def test_merge_gives_an_addressless_contact_the_other_address(
+    db_async: AsyncSession,
+) -> None:
+    owner, _, org_id = await _org(db_async)
+    walk_in = await service.create_without_email(
+        db_async, org_id, name="Walk In", source="bookings"
+    )
+    email = _email()
+    emailed = await service.upsert_contact(
+        db_async, org_id, email=email, source="billing"
+    )
+    walk_in_id, emailed_id = walk_in.id, emailed.id
+    merged = await service.merge_contacts(
+        db_async, owner, walk_in_id, emailed_id, organisation_id=org_id
+    )
+    assert merged.id == walk_in_id
+    assert merged.email == email.strip()
+    assert merged.name == "Walk In"
+    found = await service.find_by_email(db_async, org_id, email)
+    assert found is not None and found.id == walk_in_id
+
+
+@pytest.mark.asyncio
 async def test_merge_across_organisations_is_refused(db_async: AsyncSession) -> None:
     owner, _, org_a = await _org(db_async)
     _, _, org_b = await _org(db_async)

@@ -1,6 +1,8 @@
 """Rehearse the bookings party/role migration inside a rolled-back transaction."""
 
 import os
+import uuid
+from datetime import datetime, timedelta
 
 import pytest
 from alembic.config import Config
@@ -8,9 +10,12 @@ from alembic.migration import MigrationContext
 from alembic.operations import Operations
 from alembic.script import ScriptDirectory
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
+from src.bookings.models import Booking, Provider, Service
 from src.config import settings
 from src.database import engine
+from src.organisations.models import PlatformOrganisation
 from tests.database_target import require_owned_database
 
 REVISION = "bookingspartyrole20261021"
@@ -88,3 +93,53 @@ def test_upgrade_drops_personal_columns_and_requires_the_contact(before_migratio
 
     migration.downgrade()
     assert set(_columns(connection)) == set(before)
+
+
+def test_upgrade_deletes_unlinked_customers_and_their_bookings(before_migration):
+    connection, migration = before_migration
+    org = "org_partyrole00001"
+    customer_id = uuid.uuid4()
+    with Session(bind=connection) as session:
+        session.add(
+            PlatformOrganisation(id=org, slug=org, name="Party Role", kind="business")
+        )
+        session.flush()
+        service = Service(organisation_id=org, name="S", duration_min=60)
+        provider = Provider(organisation_id=org, name="P")
+        session.add_all([service, provider])
+        session.flush()
+        # The old shape: the customer still holds its own name (no contact).
+        connection.execute(
+            text(
+                "INSERT INTO bookings.customer (id, organisation_id, name, created_at) "
+                "VALUES (:id, :o, 'Unlinked', now())"
+            ),
+            {"id": customer_id, "o": org},
+        )
+        start = datetime(2027, 1, 4, 14, 0)
+        session.add(
+            Booking(
+                organisation_id=org,
+                provider_id=provider.id,
+                service_id=service.id,
+                customer_id=customer_id,
+                starts_at=start,
+                ends_at=start + timedelta(hours=1),
+                blocked_from=start,
+                blocked_until=start + timedelta(hours=1),
+                status="completed",
+                currency="XCD",
+            )
+        )
+        session.flush()
+
+    migration.upgrade()
+    customers = connection.execute(
+        text("SELECT count(*) FROM bookings.customer WHERE organisation_id = :o"),
+        {"o": org},
+    ).scalar_one()
+    bookings = connection.execute(
+        text("SELECT count(*) FROM bookings.booking WHERE organisation_id = :o"),
+        {"o": org},
+    ).scalar_one()
+    assert (customers, bookings) == (0, 0)

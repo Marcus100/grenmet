@@ -8,6 +8,11 @@ to a contact cannot be migrated (the email hash needs the application secret), s
 they and their bookings are deleted first. ``org.contact.email_hash`` becomes
 nullable so a walk-in with no email address can still be a contact.
 
+ONE-WAY: restore from backup to go back. The downgrade only rebuilds the schema
+shape (the migration rehearsal tests step through it); it cannot bring back
+customer names, emails or phones (they moved to the contacts), and it deletes
+every contact without an email address (walk-ins). Never use it on real data.
+
 Revision ID: bookingspartyrole20261021
 Revises: eventsschema20261021
 """
@@ -54,6 +59,28 @@ def upgrade() -> None:
         source_schema="bookings",
         referent_schema="org",
     )
+    # One customer per contact and organisation: fold duplicates first.
+    op.execute(
+        "UPDATE bookings.booking b SET customer_id = keep.id "
+        "FROM bookings.customer c "
+        "JOIN (SELECT DISTINCT ON (organisation_id, contact_id) id, organisation_id, "
+        "contact_id FROM bookings.customer ORDER BY organisation_id, contact_id, "
+        "created_at, id) keep "
+        "ON keep.organisation_id = c.organisation_id AND keep.contact_id = c.contact_id "
+        "WHERE b.customer_id = c.id AND c.id <> keep.id"
+    )
+    op.execute(
+        "DELETE FROM bookings.customer c USING bookings.customer keep "
+        "WHERE keep.organisation_id = c.organisation_id "
+        "AND keep.contact_id = c.contact_id AND "
+        "(keep.created_at, keep.id) < (c.created_at, c.id)"
+    )
+    op.create_unique_constraint(
+        "customer_org_contact_key",
+        "customer",
+        ["organisation_id", "contact_id"],
+        schema="bookings",
+    )
     op.drop_index(
         "ix_customer_org_email_hash", table_name="customer", schema="bookings"
     )
@@ -62,6 +89,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.drop_constraint(
+        "customer_org_contact_key", "customer", schema="bookings", type_="unique"
+    )
     op.add_column(
         "customer",
         sa.Column("name", sa.String(120), nullable=False, server_default=""),

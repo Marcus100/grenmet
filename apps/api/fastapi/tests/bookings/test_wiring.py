@@ -1,9 +1,10 @@
 """Bookings wired to contacts (PF3) and the rewards outbox (PF8)."""
 
+import asyncio
 import uuid
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
@@ -11,11 +12,13 @@ from src.bookings import public
 from src.bookings.models import Booking, BookingStatus, Customer
 from src.contacts import service as contacts_service
 from src.contacts.models import ConsentPurpose, Contact
+from src.database import async_session_factory
 from src.outbox import Outbox
 from src.rewards import outbox_handlers as rewards_handlers
 from src.rewards import service as rewards_service
 from src.rewards.models import Entry
 from src.rewards.schemas import ProgramCreate
+from src.utils.datetime import utc_now
 from tests.bookings.test_public_bookings import API, Studio, _book, _slots, _studio
 from tests.factories import make_user
 
@@ -267,3 +270,72 @@ async def test_completion_with_an_erased_contact_earns_nothing(
         )
     ).all()
     assert rows == []
+
+
+async def test_merging_two_contacts_with_customers_keeps_one_customer(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client, apps=FULL)
+    first = await _book_one(
+        async_client, studio, customer_email=f"a-{uuid.uuid4().hex[:6]}@example.com"
+    )
+    second = await _book_one(
+        async_client,
+        studio,
+        slot=2,
+        customer_email=f"b-{uuid.uuid4().hex[:6]}@example.com",
+    )
+    keep = await _customer(db_async, first)
+    keep_customer_id, keep_contact_id = keep.id, keep.contact_id
+    drop = await _customer(db_async, second)
+    drop_customer_id, drop_contact_id = drop.id, drop.contact_id
+    assert keep_contact_id != drop_contact_id
+    admin = await make_user(db_async)
+    await contacts_service.merge_contacts(
+        db_async, admin, keep_contact_id, drop_contact_id, organisation_id=studio.org_id
+    )
+    await db_async.commit()
+    db_async.expire_all()
+    customers = (
+        await db_async.scalars(
+            select(Customer).where(Customer.organisation_id == studio.org_id)
+        )
+    ).all()
+    assert [c.id for c in customers] == [keep_customer_id]
+    assert await db_async.get(Customer, drop_customer_id) is None
+    moved = await db_async.get(Booking, uuid.UUID(second["booking"]["id"]))
+    assert moved is not None and moved.customer_id == keep_customer_id
+
+
+async def test_concurrent_first_bookings_share_one_customer(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client, apps=FULL)
+    contact = await contacts_service.upsert_contact(
+        db_async,
+        studio.org_id,
+        email=f"race-{uuid.uuid4().hex[:6]}@example.com",
+        source="bookings",
+    )
+    contact_id = contact.id
+    await db_async.commit()
+
+    async def attempt() -> uuid.UUID:
+        async with async_session_factory() as session:
+            found = await session.get(Contact, contact_id)
+            assert found is not None
+            customer = await public.customer_for_contact(
+                session, studio.org_id, found, utc_now()
+            )
+            customer_id = customer.id
+            await session.commit()
+            return customer_id
+
+    ids = await asyncio.gather(*(attempt() for _ in range(4)))
+    assert len(set(ids)) == 1
+    count = await db_async.scalar(
+        select(func.count())
+        .select_from(Customer)
+        .where(Customer.contact_id == contact_id)
+    )
+    assert count == 1

@@ -8,6 +8,10 @@ recreated: Events uses the platform outbox (``platform.outbox``).
 
 Users, organisations and payment intents are referenced by plain ids, as before.
 
+ONE-WAY: restore from backup to go back. The downgrade drops the whole ``events``
+schema with ``CASCADE`` and every Events row in it. It exists only so the
+migration rehearsal tests can step through it. Never use it on real data.
+
 Revision ID: eventsschema20261021
 Revises: webhooksout20261020
 """

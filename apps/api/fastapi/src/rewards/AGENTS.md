@@ -13,7 +13,7 @@
 - **Velocity flag:** more than `REWARDS_VELOCITY_MAX_EARNS` (10) earns in `REWARDS_VELOCITY_WINDOW_MINUTES` (60) opens one `review_flag` per account (entries are kept). Reviewed through `/rewards/admin/flags`.
 - **Adjustments:** `POST /rewards/admin/adjustments` needs `rewards.manage` (superusers pass); reason required; cannot take a card below zero. Every ledger/programme/flag write is audited by the flush listener (`audit.py`): ledger and flags under the `rewards_account` subject (readable with `rewards.manage`), programmes under `rewards_program` (also that organisation's admins/owners).
 - **Badges (U4, `badges.py`):** `GET /rewards/me/badges` derives verified organiser (active membership in an organisation with `verified_at`), verified attendee (an admission on one of the person's tickets) and verified purchaser (a confirmed order with `total_minor > 0`) on every read. No table, no write path; when Events has no database the Events badges report `available=false`. The public organiser badge is the existing `verified` on Events organisers.
-- **Account page (U1):** `GET /rewards/me/tickets` returns the account's Events tickets (read-only reuse of `events.service.my_tickets`; empty without an Events database), because the account token cannot call the app-scoped `/events/me/tickets`. Web: `apps/web/auth` Tickets and Rewards tabs.
+- **Account page (U1):** `GET /rewards/me/tickets` returns the account's Events tickets (read-only reuse of `events.service.my_tickets`), because the account token cannot call the app-scoped `/events/me/tickets`. Web: `apps/web/auth` Tickets and Rewards tabs.
 
 ## Earn sources, gamification and organisation views (PF8, PF9, PF11 API)
 

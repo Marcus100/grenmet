@@ -1,7 +1,7 @@
 """Cached lookup of an organisation's verification, for other domains.
 
-Events reads this per organiser from its own database session, so the check
-opens a short main-database session instead of a cross-database join. Verify
+Events reads this per organiser; the check opens a short session of its own so
+it stays cached and independent of the caller's transaction. Verify
 and unverify clear the entry on this worker; other workers catch up within the
 TTL. Kept apart from ``service`` because it needs the session factory.
 """

@@ -2,8 +2,8 @@
 
 There is no table of badges and no write path: a badge cannot be bought, given
 or transferred, only earned by the underlying record existing. Each badge says
-whether its source could be read, so a missing Events database shows as
-"unavailable", not as a lost badge.
+whether its source is available; Events shares the main database, so the
+attendee and purchaser badges are always readable.
 """
 
 import uuid

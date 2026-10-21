@@ -183,7 +183,7 @@ not require every page to fetch on the client.
 | Boundary | Owner and schema workflow |
 | --- | --- |
 | Main application database: identity, HR, CAP, and platform records | FastAPI SQLAlchemy models and main Alembic history |
-| WxWatch, WxProducts, eRegister, Janitorial, Transport, and Events databases | FastAPI domain sessions and each domain's own Alembic history |
+| WxWatch, WxProducts, eRegister, Janitorial, and Transport databases (Events is the `events` schema of the main database) | FastAPI domain sessions and each domain's own Alembic history |
 | Editorial CMS database | Payload collections and CMS migrations |
 
 GAA Admin has no operational database access. FastAPI owns operational schema

@@ -254,7 +254,13 @@ async def merge_contacts(
     keep.name = keep.name or drop.name
     keep.phone = keep.phone or drop.phone
     keep.user_id = keep.user_id or drop.user_id
+    # An address-less contact (a walk-in) takes the other record's address. The
+    # unique (organisation, email_hash) means the dropped row must go first.
+    inherit = (drop.email, drop.email_hash) if keep.email_hash is None else None
     await session.delete(drop)
+    if inherit is not None:
+        await session.flush()
+        keep.email, keep.email_hash = inherit
     await audit_service.record_change(
         session,
         entity_type=SUBJECT,
