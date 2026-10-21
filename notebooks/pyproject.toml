@@ -15,7 +15,7 @@ dependencies = [
     "eccodes>=2.49.0",
     # gdal + pygrib: no pre-built wheels for Windows on PyPI; both require C system libraries.
     # Install via conda-forge: conda install -c conda-forge gdal pygrib
-    "ecmwf-opendata>=0.3.26",
+    "ecmwf-opendata>=0.3.35",
     "fsspec>=2026.6.0",
     "geopandas>=1.1.4",
     "herbie-data>=2026.3.0",
