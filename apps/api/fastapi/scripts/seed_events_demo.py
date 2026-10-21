@@ -176,15 +176,11 @@ async def seed(owner_email: str) -> None:
 
     from src.auth.models import User
     from src.database import async_session_factory
-    from src.events import database as events_database
     from src.events import service
     from src.events.models import Group, Listing, Organiser, TicketTier
 
-    events = events_database.create_session()
-    if events is None:
-        raise SystemExit("EVENTS_DATABASE_URL is required")
-    async with events, async_session_factory() as platform:
-        owner = await platform.scalar(select(User).where(User.email == owner_email))
+    async with async_session_factory() as events:
+        owner = await events.scalar(select(User).where(User.email == owner_email))
         if owner is None:
             print(f"events demo: no account {owner_email}; skipping")
             return
@@ -194,7 +190,7 @@ async def seed(owner_email: str) -> None:
         organisers: dict[str, Organiser] = {}
         for slug, name, bio, verified in ORGANISERS:
             organiser = await service.create_organiser(
-                events, platform, owner, name=name, slug=slug, bio=bio
+                events, owner, name=name, slug=slug, bio=bio
             )
             organiser.verified = verified
             organisers[slug] = organiser
@@ -275,8 +271,6 @@ def main() -> None:
     args = parser.parse_args()
     if os.environ.get("ENVIRONMENT", "local") != "local":
         raise SystemExit("Refusing to seed Barrels Events demo data outside local")
-    if not os.environ.get("EVENTS_DATABASE_URL"):
-        raise SystemExit("EVENTS_DATABASE_URL is required")
     if not args.apply:
         print(f"events demo preview: {len(LISTINGS)} listings (pass --apply to write)")
         return

@@ -987,7 +987,7 @@ carries two time bases.
 
 ## Barrels Events
 
-`/api/v1/events/*` (ADR-0016, separate `events` database; 503 while `EVENTS_DATABASE_URL` is unset).
+`/api/v1/events/*` (ADR-0016; `events` schema in the main database, ADR-0003).
 
 | Access | Endpoints |
 | --- | --- |

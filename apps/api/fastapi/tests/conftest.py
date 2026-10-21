@@ -250,6 +250,10 @@ async def _clear_database_async(session: AsyncSession) -> None:
     await session.execute(
         text(f"ALTER TABLE {payments_ledger} DISABLE TRIGGER ledger_entry_append_only")
     )
+    events_activity = "events.activity"
+    await session.execute(
+        text(f"ALTER TABLE {events_activity} DISABLE TRIGGER activity_append_only")
+    )
     for table in reversed(Base.metadata.sorted_tables):
         await session.execute(table.delete())
     await session.execute(
@@ -257,6 +261,9 @@ async def _clear_database_async(session: AsyncSession) -> None:
     )
     await session.execute(
         text(f"ALTER TABLE {payments_ledger} ENABLE TRIGGER ledger_entry_append_only")
+    )
+    await session.execute(
+        text(f"ALTER TABLE {events_activity} ENABLE TRIGGER activity_append_only")
     )
     await session.commit()
 

@@ -1,7 +1,7 @@
 """Where Events talks to the shared payments core (N4b, ADR-0027).
 
-Everything here runs on the main database session (``payments.*`` lives there);
-the Events database is a separate session and is never joined (ADR-0003).
+Everything here runs on the request or outbox session (``payments.*`` shares the
+main database); only payments functions touch ``payments.*`` (ADR-0003).
 
 Rules:
 - One intent per order: ``source_type="events.order"``, ``source_id`` the order id,

@@ -40,7 +40,6 @@ if [[ "$1" == scripts/seed_auth_catalogue.py && "$FAIL_SEED" == 1 ]]; then exit 
               EREGISTER_DATABASE_URL: "configured",
               JANITORIAL_DATABASE_URL: "configured",
               TRANSPORT_DATABASE_URL: "configured",
-              EVENTS_DATABASE_URL: "configured",
               CALLS: join(root, "calls"),
               FAIL_SEED: fails ? "1" : "0",
             },

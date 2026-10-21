@@ -11,7 +11,6 @@ from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Path, Query, Request, Response, status
 
 from src import idempotency
-from src.dependencies import SessionDep
 from src.models import Message
 from src.openapi_responses import UNAUTHENTICATED
 from src.organisations import verification
@@ -594,12 +593,11 @@ async def request_organiser(
     *,
     request: Request,
     session: EventsSession,
-    platform: SessionDep,
     user: EventsMember,
     body: schemas.OrganiserCreate,
 ) -> schemas.OrganiserPublic:
     _ = request
-    return await service.request_organiser(session, platform, user, body)
+    return await service.request_organiser(session, user, body)
 
 
 @router.put(
@@ -720,12 +718,11 @@ async def get_manifest(
 async def get_organiser_settlement(
     *,
     session: EventsSession,
-    main: SessionDep,
     user: EventsOrganiser,
     scope: OrganiserScope,
     organiser: _ManagedSlug = None,
 ) -> schemas.SettlementOverview:
-    return await service.organiser_settlement(session, user, scope, organiser, main)
+    return await service.organiser_settlement(session, user, scope, organiser)
 
 
 @router.get(
@@ -739,13 +736,12 @@ async def get_organiser_settlement(
 async def get_settlement(
     *,
     session: EventsSession,
-    main: SessionDep,
     user: EventsOrganiser,
     scope: OrganiserScope,
     listing_id: uuid.UUID,
     organiser: _ManagedSlug = None,
 ) -> schemas.Settlement:
-    return await service.settlement(session, user, listing_id, scope, organiser, main)
+    return await service.settlement(session, user, listing_id, scope, organiser)
 
 
 @router.get(
@@ -762,15 +758,12 @@ async def get_settlement(
 async def get_settlement_csv(
     *,
     session: EventsSession,
-    main: SessionDep,
     user: EventsOrganiser,
     scope: OrganiserScope,
     listing_id: uuid.UUID,
     organiser: _ManagedSlug = None,
 ) -> Response:
-    body = await service.settlement_csv(
-        session, user, listing_id, scope, organiser, main
-    )
+    body = await service.settlement_csv(session, user, listing_id, scope, organiser)
     return Response(
         content=body,
         media_type="text/csv",
@@ -997,7 +990,6 @@ async def claim_tickets(
     *,
     request: Request,
     session: EventsSession,
-    main: SessionDep,
     user: EventsMember,
     slug: Slug,
     body: schemas.OrderCreate,
@@ -1005,7 +997,7 @@ async def claim_tickets(
 ) -> schemas.OrderPublic:
     _ = request
     return await service.claim_tickets(
-        session, user, slug, body, main=main, idempotency_key=idempotency_key
+        session, user, slug, body, idempotency_key=idempotency_key
     )
 
 
@@ -1020,11 +1012,10 @@ async def claim_tickets(
 async def get_my_order(
     *,
     session: EventsSession,
-    main: SessionDep,
     user: EventsMember,
     order_id: uuid.UUID,
 ) -> schemas.OrderPublic:
-    return await service.my_order(session, main, user, order_id)
+    return await service.my_order(session, user, order_id)
 
 
 @router.get(
@@ -1175,7 +1166,6 @@ async def list_pending_organisers(
 async def review_organiser(
     *,
     session: EventsSession,
-    platform: SessionDep,
     user: EventsModerator,
     organiser_id: uuid.UUID,
     body: schemas.OrganiserReview,
@@ -1184,7 +1174,7 @@ async def review_organiser(
     if row.organisation_id is not None:
         # Linked organisers read verification from the platform organisation.
         await verification.moderator_set_verified(
-            platform,
+            session,
             row.organisation_id,
             verified=body.verified,
             actor_id=user.id,
