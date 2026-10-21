@@ -246,6 +246,7 @@ export { featureCreateFlag } from "./featureCreateFlag.js";
 export { featureDeleteFlag } from "./featureDeleteFlag.js";
 export { featureEvaluateForMe } from "./featureEvaluateForMe.js";
 export { featureEvaluateForOrganisation } from "./featureEvaluateForOrganisation.js";
+export { featureEvaluatePublic } from "./featureEvaluatePublic.js";
 export { featureGetFlag } from "./featureGetFlag.js";
 export { featureListFlags } from "./featureListFlags.js";
 export { featureListStaleFlags } from "./featureListStaleFlags.js";

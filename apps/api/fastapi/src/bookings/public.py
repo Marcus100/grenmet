@@ -20,6 +20,8 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.email_verification import require_verified_email
+from src.auth.models import User
 from src.contacts import service as contacts_service
 from src.contacts.models import ConsentPurpose, Contact
 from src.notifications import outbox_handlers
@@ -438,9 +440,11 @@ async def create_booking(
     profile: BookingProfile,
     payload: BookingPublicCreate,
     *,
+    payer: User | None = None,
     now: datetime | None = None,
 ) -> tuple[int, dict[str, Any]]:
-    """Book a slot. Returns ``(201, receipt as JSON)`` for ``run_idempotent``."""
+    """Book a slot. A signed-in ``payer`` needs a verified email when a deposit
+    is due (ADR-0018); a guest has no account to check. Returns ``(201, receipt as JSON)`` for ``run_idempotent``."""
     moment = now or utc_now()
     starts_at = service.as_naive_utc(payload.starts_at)
     svc = await service.get_service(
@@ -466,6 +470,8 @@ async def create_booking(
         session, profile.organisation_id, svc
     )
     if deposit > 0:
+        if payer is not None:
+            require_verified_email(payer, "pay a deposit")
         # The exclusion constraint already holds the slot while the deposit is
         # paid; the expiry sweeper releases it if it is not.
         initial = BookingStatus.PENDING_PAYMENT

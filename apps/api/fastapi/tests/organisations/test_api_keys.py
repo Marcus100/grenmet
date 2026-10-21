@@ -535,3 +535,31 @@ async def test_require_api_key_scope_checks_scope_and_entitlement(
         assert (
             await client.post("/write", headers=headers_for(admin))
         ).status_code == 401
+
+
+def test_every_scope_is_a_registered_permission_key() -> None:
+    from src.auth.permissions import ALL_PERMISSION_KEYS
+    from src.organisations import entitlements
+
+    scopes = api_key_scopes.all_scopes()
+    assert set(scopes) <= ALL_PERMISSION_KEYS
+    # Every product exposes both levels: a missing catalogue key would silently
+    # drop a scope, so fail loudly instead.
+    expected = {
+        f"{product}.{level}"
+        for product in entitlements.PRODUCTS
+        for level in api_key_scopes.ACCESS_LEVELS
+    }
+    assert set(scopes) == expected, (
+        f"Add the missing keys to src/auth/permissions.py: {sorted(expected - set(scopes))}"
+    )
+
+
+def test_scope_without_a_permission_key_is_not_valid(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        api_key_scopes, "ALL_PERMISSION_KEYS", frozenset({"bookings.read"})
+    )
+    assert api_key_scopes.all_scopes() == ["bookings.read"]
+    assert not api_key_scopes.is_valid("rewards.write")

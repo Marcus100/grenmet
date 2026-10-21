@@ -153,3 +153,24 @@ async def test_new_organiser_creates_organisation_and_owner(
         response = await client.get(MANAGE)
         assert response.status_code == 200
         assert response.json()["organisation_id"] == organiser.organisation_id
+
+
+@pytest.mark.asyncio
+async def test_self_service_request_needs_a_verified_email(
+    events_db: SessionFactory, db_async: AsyncSession
+):
+    from src.auth.email_verification import EmailNotVerifiedError
+    from src.events import schemas
+    from src.events.service import request_organiser
+
+    requester = await user_with_role(db_async, None)
+    requester.email_verified_at = None
+    await db_async.commit()
+    async with events_db() as db:
+        with pytest.raises(EmailNotVerifiedError):
+            await request_organiser(
+                db, requester, schemas.OrganiserCreate(name="Nope Crew")
+            )
+        # the administrator-created path works for the same unverified account
+        organiser = await create_organiser(db, requester, name="Admin Crew")
+    assert organiser.organisation_id is not None

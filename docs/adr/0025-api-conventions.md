@@ -92,5 +92,6 @@ owner wants one API that is DRY, frontend-agnostic and predictable to call.
 - Bookings uses `/bookings/public/*` and `/bookings/org/*` from the start.
 - Follow-up slices (N1–N4) move per-site configuration into organisation tables,
   migrate the legacy zones, give public forms an organisation-owned public key,
-  and add a non-browser credential (organisation API keys or tokens) when the
-  first mobile or partner client needs it.
+  and add a non-browser credential (organisation API keys or tokens). N4 no
+  longer waits for the first client: ADR-0029 reversed that on 2026-10-20 and
+  built API keys and webhooks ahead of need.

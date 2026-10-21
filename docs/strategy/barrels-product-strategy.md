@@ -4,7 +4,7 @@
 **Recorded:** 2026-07-19  
 **Horizon:** Five years  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-17
+**Last updated:** 2026-10-21
 
 ## Purpose
 
@@ -266,14 +266,22 @@ are easier to explain, fund, account for, and test.
 
 ### Barrels Passport
 
-Non-monetary challenges can encourage useful discovery without creating a
-social network. Examples include attending cultural events, visiting multiple
+Gamification, rewards and points are a core Barrels product pillar (owner
+decision 2026-10-20, ADR-0030). Challenges encourage useful discovery. Examples include attending cultural events, visiting multiple
 parishes, exploring Carriacou or Petite Martinique, supporting new local
 businesses, or completing a festival trail.
 
-Users may receive stamps, badges, collections, and occasional sponsored
-benefits. Avoid public spending leaderboards, randomized prize mechanics,
-manipulative streaks, and rewards for repeatedly opening the app.
+Users may receive stamps, badges, collections, points, streaks, opt-in
+leaderboards and occasional sponsored benefits. Three consumer-protection
+lines stay:
+
+- No hidden expiry. Points expire after 12 months with no activity, with a
+  reminder 30 days before.
+- Point values are clear.
+- A lapsed streak never removes points already earned.
+
+Still avoided: public spending leaderboards, randomized prize mechanics, and
+rewards for repeatedly opening the app (streaks count real-world check-ins).
 
 ### Trust signals
 

@@ -1239,6 +1239,11 @@ export {
   useFeatureEvaluateForOrganisation,
 } from "./useFeatureEvaluateForOrganisation.js";
 export {
+  featureEvaluatePublicQueryKey,
+  featureEvaluatePublicQueryOptions,
+  useFeatureEvaluatePublic,
+} from "./useFeatureEvaluatePublic.js";
+export {
   featureGetFlagQueryKey,
   featureGetFlagQueryOptions,
   useFeatureGetFlag,
