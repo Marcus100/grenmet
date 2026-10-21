@@ -24,7 +24,7 @@ from collections.abc import AsyncGenerator
 from typing import Annotated, Any, cast
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
@@ -207,3 +207,21 @@ async def get_current_user_manager(current_user: CurrentUser) -> User:
 
 
 AdminUser = Annotated[User, Depends(get_current_active_superuser)]
+
+
+async def optional_account(request: Request, session: AsyncSession) -> User | None:
+    """The signed-in account behind a bearer header, or None.
+
+    For public routes that stay anonymous but apply a rule to a signed-in
+    caller (for example the verified-email deposit gate, ADR-0018). It reads the
+    header itself so the route's OpenAPI security stays public, and a missing or
+    bad credential never fails the request: browsing needs no sign-in."""
+    scheme, _, token = request.headers.get("Authorization", "").partition(" ")
+    if scheme.lower() != "bearer" or not token.strip():
+        return None
+    try:
+        return await get_authenticated_user(
+            session, _token_user_id(token.strip()), allow_unapproved=True
+        )
+    except HTTPException:
+        return None

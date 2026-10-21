@@ -1089,6 +1089,7 @@ export {
   bookingsCreatePublicBookingResponseSchema,
   bookingsCreatePublicBookingStatus201Schema,
   bookingsCreatePublicBookingStatus400Schema,
+  bookingsCreatePublicBookingStatus403Schema,
   bookingsCreatePublicBookingStatus404Schema,
   bookingsCreatePublicBookingStatus409Schema,
   bookingsCreatePublicBookingStatus422Schema,

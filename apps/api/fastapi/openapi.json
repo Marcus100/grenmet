@@ -9469,6 +9469,9 @@
           },
           "409": {
             "description": "Request conflicts with current state"
+          },
+          "403": {
+            "description": "A deposit is due and the signed-in account has not verified its email (`email_verification_required`)"
           }
         }
       }

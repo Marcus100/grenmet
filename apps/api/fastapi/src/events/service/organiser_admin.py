@@ -9,6 +9,7 @@ from pydantic import TypeAdapter
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.email_verification import require_verified_email
 from src.auth.models import User
 from src.organisations import service as organisations
 from src.organisations.models import MembershipRole, OrganisationKind
@@ -468,6 +469,8 @@ async def create_organiser(
         organisation_id=organisation.id,
         user_id=user.id,
         role=MembershipRole.OWNER,
+        # administrator-created / seed / backfill: ADR-0018 exempts administrator-mediated grants
+        skip_email_check=True,
     )
     await platform.commit()
     organiser = Organiser(
@@ -524,6 +527,9 @@ async def request_organiser(
 ) -> schemas.OrganiserPublic:
     """Self-service organiser account: created unverified (pending) with the member
     as owner. One pending request per member; a moderator verifies it."""
+    require_verified_email(
+        user, "request an organiser account"
+    )  # self-service stays gated
     owned = await organisations.list_managed_organisation_ids(platform, user.id)
     if owned and await events.scalar(
         select(Organiser.id).where(
