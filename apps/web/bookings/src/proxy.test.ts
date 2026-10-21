@@ -31,6 +31,20 @@ describe("proxy", () => {
     );
   });
 
+  it("sends signed-out visitors from the studio screens to sign-in", () => {
+    for (const path of [
+      "/studio",
+      "/studio/sea-salt/agenda?view=week",
+      "/studio/sea-salt/bookings/abc",
+    ]) {
+      const response = proxy(request(path));
+      expect(response.status).toBe(307);
+      expect(new URL(response.headers.get("location") ?? "").pathname).toBe(
+        "/signin"
+      );
+    }
+  });
+
   it("does not treat a business slug that starts with studio as staff", () => {
     expect(proxy(request("/studiobarber")).status).toBe(200);
   });
