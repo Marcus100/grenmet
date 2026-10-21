@@ -4,7 +4,6 @@ import pytest
 
 from src.auth import app_service, apps
 from src.auth.config import auth_settings
-from src.auth.models import Permission, Role
 from tests.auth.test_app_handoff import (
     _account_session,
     _redeem,
@@ -59,16 +58,6 @@ async def test_bookings_handoff_round_trip(
 ):
     _ = seeded
     monkeypatch.setattr(auth_settings, "BOOKINGS_SSO_CLIENT_SECRET", SECRET)
-    # permissions.py (owner-only) does not seed bookings-member yet, so stand in
-    # for it here; drop this once the owner adds app.bookings.access.
-    role = Role(name="bookings-member")
-    role.permissions = [
-        Permission(
-            key="app.bookings.access", action="access", entity="bookings", access="app"
-        )
-    ]
-    db_async.add(role)
-    await db_async.commit()
     secret = await _account_session(db_async)
     state = _state()
     joined = await _start(async_client, secret, state, join=True, base=BASE)
