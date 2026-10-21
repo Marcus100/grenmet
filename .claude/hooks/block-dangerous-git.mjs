@@ -77,7 +77,25 @@ const PIPED_TO_SHELL = /\|\s*(?:sudo\s+)?(?:(?:ba|z|da)?sh|eval|source)\b/;
 const COMMAND_SUBSTITUTION = /\$\([^)]*\)|`[^`]*`/g;
 
 const GH_PR_MERGE = new RegExp(`\\bgh\\s+pr\\s+merge\\b(${SAME_COMMAND})`, "g");
-const ALLOWED_MERGE_BASES = new Set(["dev", "staging"]);
+const ALLOWED_MERGE_BASES = new Set(["dev"]);
+const ALLOWED_REPO = "marcus100/grenmet";
+// A PR that changes the files which limit the agents, or the CI and ruleset
+// files that gate merges, is merged by the owner and never by an agent.
+const OWNER_ONLY_PATHS = [
+  /^\.claude\/(?:hooks|settings|skills|agents)/,
+  /^\.codex\//,
+  /^\.agents\//,
+  /(?:^|\/)AGENTS\.md$/,
+  /^scripts\/guardrails\//,
+  /^\.github\/(?:workflows\/|CODEOWNERS$)/,
+  /^infra\/github\//,
+];
+// Merge routes other than `gh pr merge`: GraphQL mutations and branch merges.
+const API_MERGE_KEYWORDS =
+  /mergePullRequest|enablePullRequestAutoMerge|\/merges\b/;
+const GH_API = /\bgh\s+api\b/;
+const RETARGETS_PR = /\bgh\s+pr\s+edit\b[^;&|\n]*\s(?:--base|-B)\b/;
+const REPO_ENV = /\bGH_REPO=/;
 // Merge flags that take a separate value, so the value is not the PR.
 const MERGE_FLAGS_WITH_VALUE = new Set([
   "-A",
@@ -165,6 +183,8 @@ export function parseMergeTarget(args) {
       index++;
     } else if (arg.startsWith("--repo=")) {
       repo = arg.slice("--repo=".length);
+    } else if (arg.startsWith("-R") && arg.length > 2) {
+      repo = arg.slice(2).replace(/^=/, "");
     } else if (!(arg.startsWith("-") || prRef)) {
       prRef = arg;
     }
@@ -193,21 +213,63 @@ export function lookupMergeBase(args) {
   return result.status === 0 ? result.stdout.trim() : null;
 }
 
+/** Files a PR changes; null when GitHub can't say. */
+export function lookupMergeFiles(args) {
+  const { prRef, repo } = parseMergeTarget(args);
+  const repoArgs = repo === undefined ? [] : ["--repo", repo];
+  const result = spawnSync(
+    "gh",
+    ["pr", "diff", ...(prRef ? [prRef] : []), ...repoArgs, "--name-only"],
+    { encoding: "utf8", timeout: GH_LOOKUP_TIMEOUT_MS }
+  );
+  return result.status === 0
+    ? result.stdout.split("\n").filter((file) => file.trim() !== "")
+    : null;
+}
+
+/** The repo a merge names (`owner/name`, or one inside a GitHub URL), if any. */
+function namedRepo({ prRef, repo }) {
+  if (repo !== undefined) return repo;
+  const url = /github\.com\/([^/\s]+\/[^/\s]+)/i.exec(prRef ?? "");
+  return url ? url[1] : undefined;
+}
+
 /**
- * `gh pr merge` is allowed only into dev and staging (AGENTS.md: agents merge
- * their own green, reviewed PRs into dev) and never with `--admin`, which
- * bypasses branch protection.
- * Fails closed: an unknown base blocks.
+ * `gh pr merge` is allowed only into dev (AGENTS.md: agents merge their own
+ * green, reviewed PRs into dev; the owner merges staging and main), only in
+ * this repository, never with `--admin`, which bypasses branch protection, and
+ * never for a PR that changes the files in OWNER_ONLY_PATHS.
+ * Fails closed: an unknown base or file list blocks.
  */
-function findBlockedMerge(segment, lookupBase) {
+function findBlockedMerge(segment, { lookupBase, lookupFiles }) {
   for (const match of segment.matchAll(GH_PR_MERGE)) {
     const args = match[1].trim().split(/\s+/).filter(Boolean);
     if (args.includes("--admin")) {
       return "gh pr merge --admin (bypasses branch protection)";
     }
+    if (REPO_ENV.test(segment)) {
+      return "gh pr merge with GH_REPO set (the merge could hit another repository)";
+    }
+    if (RETARGETS_PR.test(segment)) {
+      return "gh pr edit --base chained with gh pr merge (retargets the PR before the merge)";
+    }
+    const repo = namedRepo(parseMergeTarget(args));
+    if (repo !== undefined && repo.toLowerCase() !== ALLOWED_REPO) {
+      return `gh pr merge in '${repo}' (only ${ALLOWED_REPO} merges are authorized)`;
+    }
     const base = lookupBase(args);
     if (!ALLOWED_MERGE_BASES.has(base)) {
-      return `gh pr merge into '${base ?? "unknown base"}' (only dev and staging merges are authorized)`;
+      return `gh pr merge into '${base ?? "unknown base"}' (only dev merges are authorized; the owner merges staging and main)`;
+    }
+    const files = lookupFiles(args);
+    if (files === null) {
+      return "gh pr merge with an unknown file list (the owner-only paths could not be checked)";
+    }
+    const ownerOnly = files.find((file) =>
+      OWNER_ONLY_PATHS.some((pattern) => pattern.test(file))
+    );
+    if (ownerOnly) {
+      return `gh pr merge of a PR that changes '${ownerOnly}' (the owner merges changes to agent limits, CI and rulesets)`;
     }
   }
   return undefined;
@@ -223,13 +285,19 @@ function findDiscardingRestore(segment) {
 
 export function findBlockedPattern(
   command,
-  { lookupBase = lookupMergeBase } = {}
+  { lookupBase = lookupMergeBase, lookupFiles = lookupMergeFiles } = {}
 ) {
   for (const segment of executedSegments(command)) {
+    // Quoted text is stripped from segments, but a GraphQL mutation lives in a
+    // quoted argument: look for the keyword in the raw command when a real
+    // `gh api` call is present.
+    if (GH_API.test(segment) && API_MERGE_KEYWORDS.test(command)) {
+      return "gh api merge (GraphQL mutation or branch merge skips the dev-only rule)";
+    }
     const hit =
       DANGEROUS_PATTERNS.find((pattern) => pattern.test(segment)) ??
       findDiscardingRestore(segment) ??
-      findBlockedMerge(segment, lookupBase);
+      findBlockedMerge(segment, { lookupBase, lookupFiles });
     if (hit) return hit;
   }
   return undefined;

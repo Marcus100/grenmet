@@ -110,7 +110,10 @@ test("every full policy file states the complete landing and promotion policy", 
       "agents merge into dev once CI is green and the review is clean",
     ],
     [STANDING_AUTHORIZATION, "staging promotion has standing authorization"],
-    [PROMOTES_BY_AUTO_MERGE, "staging promotion is by auto-merge"],
+    [
+      PROMOTES_BY_AUTO_MERGE,
+      "staging promotion mentions auto-merge (the owner merges; agents do not arm it)",
+    ],
     [LIMITS_PRODUCTION, "main and production need explicit authorization"],
   ];
   for (const file of FULL_POLICY_FILES) {

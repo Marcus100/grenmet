@@ -47,16 +47,20 @@ agent instructions. Nothing here relaxes a root rule.
   agent merges its own PR into `dev` once CI is green on the PR head and a
   fresh-context review has no open blocking finding
   (`gh pr merge <num> --merge --match-head-commit <sha>`); agents never push
-  `dev`. Unattended routines do the same from their own branch; a `risk:high` PR
-  also gets a `security-reviewer` pass with no open finding first. If
-  `origin/dev` advances, integrate it and revalidate.
+  `dev`. Before merging, run `gh pr checks <num> --watch --fail-fast` until it
+  exits 0 on that head, and leave the fresh-context review as a PR comment that
+  names the reviewer. A `risk:high` PR also gets a `security-reviewer` pass with
+  no open finding first. Unattended routines do the same from their own branch.
+  A PR that changes hooks, settings, `.codex`, `.agents`, skills, any
+  `AGENTS.md`, guardrail scripts, workflows or rulesets is merged by the owner:
+  the hook refuses the agent's merge. If `origin/dev` advances, integrate it and
+  revalidate.
 - Standing authorization: once PRs are merged into `dev`,
   create or update the `dev → staging` PR with a recap, review the promotion diff
-  and verify `dev` has not advanced. The owner reviews and merges into `staging`.
-  Arm auto-merge only when the owner asks, with
-  `gh pr merge <num> --auto --merge --match-head-commit <sha>`; GitHub then merges
-  only after the staging ruleset's required checks pass; `CI Success` and
-  `Build Web Apps` aggregate every API and web job. Re-arm if `dev` advances.
+  and verify `dev` has not advanced. The owner reviews and merges into `staging`;
+  agents do not arm auto-merge. GitHub merges only after the staging ruleset's
+  required checks pass; `CI Success` and `Build Web Apps` aggregate every API and
+  web job. If `dev` advances, update the recap and tell the owner.
 - Monitor the staging deployment and report actionable failures or readiness for
   acceptance. Reuse an open promotion PR. Production (`staging → main`), releases
   and deploys need separate explicit authorization. Do not promote unrelated or
@@ -133,8 +137,12 @@ Hook scripts live in `.claude/hooks/` and are wired in `.claude/settings.json`
 `git restore .` (unstaging with `--staged` is allowed), `git stash clear`, forced
 switches and worktree removals, and merges through `gh api`. It also scans
 commands inside `bash -c`, `sh -c` and `eval`. `gh pr merge` is allowed only
-when the PR's base is `dev` or `staging` and `--admin` is absent; an unknown base
-blocks, and `main` always blocks.
+when the PR's base is `dev`, it is in `Marcus100/grenmet` (`-R`, `--repo`, a PR
+URL and `GH_REPO` are checked), `--admin` is absent, no `gh pr edit --base` is
+chained with it, and the PR changes none of the owner-only paths
+(`OWNER_ONLY_PATHS` in the hook); an unknown base or file list blocks, and
+`staging` and `main` always block. GraphQL merge mutations and
+`gh api …/merges` block too.
 `protect-files.mjs` blocks `.env*` writes and edits to the generated API client.
 Claude Code also enforces `permissions.deny` in `.claude/settings.json`, which a
 hook cannot override. In Codex these hooks sit alongside its own sandbox and

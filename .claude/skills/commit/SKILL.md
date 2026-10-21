@@ -37,9 +37,14 @@ Claude Code fills these in; in Codex, run the commands.
    result with the checks above, then push the task branch and open a PR into
    `dev` (`gh pr create --base dev`) with the step 7 recap as its body. Once CI is
    green on the PR head and the review has no open blocking finding, merge the
-   PR into `dev` yourself with `gh pr merge <num> --merge --match-head-commit <sha>` so
-   `origin/dev` always has the latest; never push `dev`. A `risk:high` PR also needs a
-   `security-reviewer` pass with no open finding first. If
+   PR into `dev` yourself so `origin/dev` always has the latest; never push `dev`.
+   First run `gh pr checks <num> --watch --fail-fast` until it exits 0 on that
+   head and post the fresh-context review as a PR comment naming the reviewer;
+   then `gh pr merge <num> --merge --match-head-commit <sha>`. A `risk:high` PR
+   also needs a `security-reviewer` pass with no open finding first. A PR that
+   changes hooks, settings, `.codex`, `.agents`, skills, any `AGENTS.md`, guardrail
+   scripts, workflows or rulesets is left for the owner to merge: the hook
+   refuses it. If
    remote dev advances, integrate and revalidate before updating the PR; never
    force-push. Unattended scheduled runs (`docs/agents/routines.md`) do the same
    from their `agent/<n>-<slug>` branch. For a cross-tool review first, hand the
@@ -47,8 +52,8 @@ Claude Code fills these in; in Codex, run the commands.
 
 5. Use PRs for `dev → staging → main` promotion, reusing an existing promotion PR.
    Once the PR is merged into `dev`, create or update the staging PR following
-   `/release`; the owner reviews and merges into `staging` (arm auto-merge only
-   when asked). Creating the PR has standing authorization. Main merges and production publication or
+   `/release`; the owner reviews and merges into `staging` (agents do not arm
+   auto-merge). Creating the PR has standing authorization. Main merges and production publication or
    deployment still require separate authorization.
 
 6. Run the `file-friction` skill for anything you worked around during this task.

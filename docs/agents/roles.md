@@ -74,11 +74,13 @@ unresolved goes to the owner.
    enforced by these documents until the owner adds one (see Rulesets in
    [workflow.md](workflow.md)).
 3. **Promotion.** Under standing authorization, an agent creates or updates the
-   `dev → staging` PR, with a recap of what changed. The owner reviews and merges into `staging`; an agent arms
-   auto-merge on the reviewed head only when asked, and GitHub then merges once
-   the staging ruleset's required checks pass. `staging → main`, releases and
+   `dev → staging` PR, with a recap of what changed. The owner reviews and merges
+   into `staging`; agents do not arm auto-merge, and GitHub merges only once the
+   staging ruleset's required checks pass. `staging → main`, releases and
    production deploys need the owner's explicit authorization each time. The
-   agent hook allows `gh pr merge` only when the base is `dev` or `staging`.
+   agent hook allows `gh pr merge` only when the base is `dev`, only in this
+   repository, and never for a PR that changes the files listed in `AGENTS.md`
+   (hooks, settings, skills, guardrails, workflows, rulesets): the owner merges those.
 4. **Review handoff.** Every request includes the block `pnpm agents:handoff`
    prints (`scripts/agents/review-handoff.mjs`), completed by the author:
    - the task and its acceptance criteria;

@@ -53,7 +53,17 @@ import {
 } from "../../scripts/verification/receipt.mjs";
 
 const BLOCKED_MESSAGE = /BLOCKED/;
-const baseIs = (base) => ({ lookupBase: () => base });
+const baseIs = (base, files = ["apps/web/docs/page.tsx"]) => ({
+  lookupBase: () => base,
+  lookupFiles: () => files,
+});
+const OWNER_MERGES_STAGING = /owner merges staging/;
+const OTHER_REPO = /only marcus100\/grenmet/;
+const GH_REPO_SET = /GH_REPO/;
+const RETARGETS = /retargets/;
+const API_MERGE = /gh api merge/;
+const OWNER_ONLY_FILE = /owner merges changes to agent limits/;
+const UNKNOWN_FILES = /unknown file list/;
 const MAIN_BASE = /main/;
 const UNKNOWN_BASE = /unknown base/;
 const ADMIN_FLAG = /--admin/;
@@ -172,19 +182,115 @@ test("block-dangerous-git: allows the safe neighbours of blocked commands", () =
   }
 });
 
-test("block-dangerous-git: allows gh pr merge only into dev and staging, failing closed", () => {
+test("block-dangerous-git: allows gh pr merge only into dev, failing closed", () => {
   const command = "gh pr merge 42 --merge --match-head-commit abc123";
-  assert.equal(findBlockedPattern(command, baseIs("staging")), undefined);
   assert.equal(findBlockedPattern(command, baseIs("dev")), undefined);
+  assert.match(
+    String(findBlockedPattern(command, baseIs("staging"))),
+    OWNER_MERGES_STAGING
+  );
   assert.match(String(findBlockedPattern(command, baseIs("main"))), MAIN_BASE);
   assert.match(String(findBlockedPattern(command, baseIs(null))), UNKNOWN_BASE);
   assert.match(
-    String(findBlockedPattern("gh pr merge 42 --admin", baseIs("staging"))),
-    ADMIN_FLAG
-  );
-  assert.match(
     String(findBlockedPattern("gh pr merge 42 --admin", baseIs("dev"))),
     ADMIN_FLAG
+  );
+});
+
+test("block-dangerous-git: a merge stays in this repository", () => {
+  const dev = baseIs("dev");
+  const merge = "gh pr merge 42 --merge";
+  assert.equal(
+    findBlockedPattern(`${merge} -R Marcus100/grenmet`, dev),
+    undefined
+  );
+  for (const command of [
+    `${merge} -Rother/repo`,
+    `${merge} -R=other/repo`,
+    `${merge} --repo other/repo`,
+    `${merge} --repo=other/repo`,
+    "gh pr merge https://github.com/other/repo/pull/42 --merge",
+  ]) {
+    assert.match(String(findBlockedPattern(command, dev)), OTHER_REPO, command);
+  }
+  assert.match(
+    String(findBlockedPattern(`GH_REPO=other/repo ${merge}`, dev)),
+    GH_REPO_SET
+  );
+  assert.equal(
+    findBlockedPattern(
+      "gh pr merge https://github.com/Marcus100/grenmet/pull/42 --merge",
+      dev
+    ),
+    undefined
+  );
+});
+
+test("block-dangerous-git: no retargeting the base, no other merge routes", () => {
+  const dev = baseIs("dev");
+  assert.match(
+    String(
+      findBlockedPattern(
+        "gh pr edit 42 --base main && gh pr merge 42 --merge",
+        dev
+      )
+    ),
+    RETARGETS
+  );
+  assert.equal(findBlockedPattern("gh pr edit 42 --title x", dev), undefined);
+  for (const command of [
+    `gh api graphql -f query='mutation { mergePullRequest(input: {pullRequestId: "X"}) { clientMutationId } }'`,
+    "gh api repos/Marcus100/grenmet/merges -f base=main -f head=dev",
+    `gh api graphql -f query='mutation { enablePullRequestAutoMerge(input: {pullRequestId: "X"}) { clientMutationId } }'`,
+  ]) {
+    assert.match(String(findBlockedPattern(command, dev)), API_MERGE, command);
+  }
+  assert.equal(
+    findBlockedPattern('echo "gh api mergePullRequest"', dev),
+    undefined
+  );
+  assert.equal(
+    findBlockedPattern("gh api repos/Marcus100/grenmet/pulls", dev),
+    undefined
+  );
+});
+
+test("block-dangerous-git: the owner merges changes to the files that limit the agents", () => {
+  const merge = "gh pr merge 42 --merge";
+  for (const file of [
+    ".claude/hooks/block-dangerous-git.mjs",
+    ".claude/settings.json",
+    ".claude/skills/commit/SKILL.md",
+    ".codex/config.toml",
+    ".agents/rules/project.md",
+    "AGENTS.md",
+    "apps/api/fastapi/AGENTS.md",
+    "scripts/guardrails/agent-policy.test.mjs",
+    ".github/workflows/deploy.yml",
+    ".github/CODEOWNERS",
+    "infra/github/rulesets.json",
+  ]) {
+    assert.match(
+      String(findBlockedPattern(merge, baseIs("dev", ["README.md", file]))),
+      OWNER_ONLY_FILE,
+      file
+    );
+  }
+  assert.equal(
+    findBlockedPattern(
+      merge,
+      baseIs("dev", ["apps/api/fastapi/src/events/service.py", "docs/env.md"])
+    ),
+    undefined
+  );
+  assert.match(
+    String(
+      findBlockedPattern(merge, {
+        lookupBase: () => "dev",
+        lookupFiles: () => null,
+      })
+    ),
+    UNKNOWN_FILES
   );
 });
 
@@ -193,8 +299,9 @@ test("block-dangerous-git: looks up the merge base for the PR and repo named", (
   findBlockedPattern("gh pr merge 42 --repo Marcus100/grenmet --auto", {
     lookupBase: (args) => {
       seen.push(args);
-      return "staging";
+      return "dev";
     },
+    lookupFiles: () => [],
   });
   assert.deepEqual(seen, [["42", "--repo", "Marcus100/grenmet", "--auto"]]);
 });
