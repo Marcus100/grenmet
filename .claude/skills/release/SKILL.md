@@ -1,20 +1,21 @@
 ---
 name: release
-description: "Drives the release pipeline dev → staging → main → tagged release with CI gating, arming staging auto-merge automatically and stopping for the owner before main and production. Use when promoting dev to staging, or when the user asks to release, promote or ship to production."
+description: "Drives the release pipeline dev → staging → main → tagged release with CI gating, preparing the staging PR and stopping for the owner before staging, main and production. Use when promoting dev to staging, or when the user asks to release, promote or ship to production."
 allowed-tools: Bash(pnpm *), Bash(turbo run *), Bash(gh *), Bash(git *), Bash(curl *)
 ---
 
 ## Release Promotion
 
 Follow `docs/operations/release-runbook.md`. Work reaches `dev` by PR into `dev`
-that the owner merges (`/commit` step 4). Staging PR creation/update and
-auto-merge after all applicable checks pass have standing user authorization.
-Monitor the resulting staging deployment. Main merges and production
+that the agent merges once CI is green and the review is clean (`/commit` step
+4). Staging PR creation/update has standing user authorization; the owner
+reviews and merges into `staging`, and agents do not arm auto-merge.
+Once the owner has merged, monitor the resulting staging deployment. Main merges and production
 publication/deployment need separate authorization. Never bypass protection,
 hooks, or failing checks.
 
 **1. Pre-flight**
-Start from the `dev` the owner has merged; never push `dev` yourself. See
+Start from the current `origin/dev`; never push `dev` yourself. See
 `AGENTS.md` → Git and GitHub Workflow.
 
 Confirm the latest `dev` CI run is green (`gh run list --branch dev --limit 3`);
@@ -25,16 +26,16 @@ if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the
 Create or reuse the promotion PR (`gh pr create --base staging --head dev`).
 Review its complete diff for authorized, finished work. Keep the PR body's
 recap current: changed, gates, outcome and friction per `/commit` step 7. Verify
-`dev` still matches the reviewed head, then arm auto-merge without another
-confirmation: `gh pr merge <num> --auto --merge --match-head-commit <sha>`.
-GitHub merges once the staging ruleset's required checks pass; `CI Success` and
+`dev` still matches the reviewed head, then stop and tell the owner the PR is
+ready to merge into `staging`; do not merge it or arm auto-merge. GitHub merges
+only once the staging ruleset's required checks pass; `CI Success` and
 `Build Web Apps` aggregate every API and web job (see
 `docs/operations/release-runbook.md`). If dev advances, review the new head and
-re-arm on it.
+update the recap.
 On failure, diagnose and fix on a task branch within scope, validate, open a PR
-into `dev` for the owner to merge, then re-arm on the new `dev` head.
-Monitor `pipeline-staging.yml` and verify its deployed SHA still equals staging
-head. Then smoke-test what the promotion changed:
+into `dev` and merge it per `/commit` step 4, then update the staging PR.
+After the owner merges, monitor `pipeline-staging.yml` and verify its deployed
+SHA equals staging head. Then smoke-test what the promotion changed:
 - `curl -fsS https://api.staging.barrels.gd/api/v1/utils/health-check/`
 - `pnpm ui:screenshots --url https://<app>.staging.barrels.gd --path /` for each
   web app in the promoted diff (hosts in `docs/ports.md`); read the PNGs and

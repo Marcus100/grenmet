@@ -189,7 +189,7 @@ failure line into this section.
   while `deposit_minor = 0` everywhere (section 4 keeps it at zero).
 
 **Gap.** Neither job appears in Redis telemetry (`JOBS`) or Sentry cron
-monitors. Adding both is a small follow-up PR (Agent can do; owner merges).
+monitors. Adding both is a small follow-up PR (Agent can do and merge into `dev`; the owner promotes).
 
 ### 1d. `BABYDOLL_ONLINE_BOOKING` switch
 
@@ -349,7 +349,7 @@ Run in order. Stop at the first failed gate and do not continue.
 
 ### 3.3 Repoint the Acuity links to `/book` (code)
 
-- [ ] BookBar, service menu, header and any other `BOOKING_URL` links point at `/book`, with tests updated (`apps/web/babydoll`, `pnpm vitest run`). **Agent can do** (PR into `dev`; owner merges and promotes).
+- [ ] BookBar, service menu, header and any other `BOOKING_URL` links point at `/book`, with tests updated (`apps/web/babydoll`, `pnpm vitest run`). **Agent can do** (PR into `dev`, merged by the agent; the owner promotes).
 - [ ] Keep `BOOKING_URL` as the fallback for `/book` when the switch is off. Do not delete it.
 
 ### 3.4 Enable the switch

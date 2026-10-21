@@ -44,14 +44,23 @@ agent instructions. Nothing here relaxes a root rule.
   `pnpm fix:changed`, `pnpm type-check`, affected tests, staged guardrails and
   the blast-radius review. Then push the task branch and open a PR into `dev`
   (`gh pr create --base dev`) with the `/commit` step 7 recap as its body. The
-  owner reviews and merges PRs into `dev`; agents never push `dev` or merge into
-  it themselves. If `origin/dev` advances, integrate it and revalidate.
-- Standing authorization: once the owner has merged into `dev`,
-  create or update the `dev → staging` PR, review the promotion diff, verify `dev`
-  has not advanced, and arm auto-merge with
-  `gh pr merge <num> --auto --merge --match-head-commit <sha>`. GitHub merges only
-  after the staging ruleset's required checks pass; `CI Success` and
-  `Build Web Apps` aggregate every API and web job. Re-arm if `dev` advances.
+  agent merges its own PR into `dev` once CI is green on the PR head and a
+  fresh-context review has no open blocking finding
+  (`gh pr merge <num> --merge --match-head-commit <sha>`); agents never push
+  `dev`. Before merging, run `gh pr checks <num> --watch --fail-fast` until it
+  exits 0 on that head, and leave the fresh-context review as a PR comment that
+  names the reviewer. A `risk:high` PR also gets a `security-reviewer` pass with
+  no open finding first. Unattended routines do the same from their own branch.
+  A PR that changes hooks, settings, `.codex`, `.agents`, skills, any
+  `AGENTS.md`, guardrail scripts, workflows or rulesets is merged by the owner:
+  the hook refuses the agent's merge. If `origin/dev` advances, integrate it and
+  revalidate.
+- Standing authorization: once PRs are merged into `dev`,
+  create or update the `dev → staging` PR with a recap, review the promotion diff
+  and verify `dev` has not advanced. The owner reviews and merges into `staging`;
+  agents do not arm auto-merge. GitHub merges only after the staging ruleset's
+  required checks pass; `CI Success` and `Build Web Apps` aggregate every API and
+  web job. If `dev` advances, update the recap and tell the owner.
 - Monitor the staging deployment and report actionable failures or readiness for
   acceptance. Reuse an open promotion PR. Production (`staging → main`), releases
   and deploys need separate explicit authorization. Do not promote unrelated or
@@ -127,8 +136,20 @@ Hook scripts live in `.claude/hooks/` and are wired in `.claude/settings.json`
 `git reset --hard`, `git clean -f`, forced branch deletes, `git checkout .`,
 `git restore .` (unstaging with `--staged` is allowed), `git stash clear`, forced
 switches and worktree removals, and merges through `gh api`. It also scans
-commands inside `bash -c`, `sh -c` and `eval`. `gh pr merge` is allowed only
-when the PR's base is `staging` and `--admin` is absent; an unknown base blocks.
+commands inside `bash -c`, `sh -c` and `eval`. `gh pr merge` is allowed only in
+one exact shape, read the way the shell reads it (quotes and line continuations
+removed, so `gh pr "merge"` is still a merge; wrappers such as `xargs`, `env`,
+`sudo`, `timeout` and `nice`, `if`, `!`, subshells and `-R` before `merge` are
+looked through): `gh pr merge <number|url> [--repo Marcus100/grenmet] [--merge]
+[--delete-branch] --match-head-commit <sha>`. Anything else blocks: `--admin`,
+`--auto`, `--squash`, `--body`, another repository (`-R`, `--repo`, a PR URL,
+`GH_REPO`), a chained `gh pr edit --base`, a `cd`, a PR not named in the
+command, or no pinned head. The PR's base must be `dev`, and it must change none
+of the owner-only paths (`OWNER_ONLY_PATHS` in the hook); an unknown base or
+file list blocks, and `staging` and `main` always block. `gh alias`, GraphQL
+merge mutations, `gh api …/merges` and the REST merge endpoint block too. This
+is a best-effort filter, not a sandbox: the real controls are the rulesets, the
+owner's merge into `staging`, and the permission rule in the user's settings.
 `protect-files.mjs` blocks `.env*` writes and edits to the generated API client.
 Claude Code also enforces `permissions.deny` in `.claude/settings.json`, which a
 hook cannot override. In Codex these hooks sit alongside its own sandbox and

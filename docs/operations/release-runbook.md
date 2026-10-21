@@ -5,8 +5,10 @@
 **Last updated:** 2026-10-15
 
 How a change ships from `dev` to production. Agents (Claude Code / Codex) run
-local verification, push their task branch and open a PR into `dev`, which the
-owner merges. Staging PR creation and auto-merge have standing authorization.
+local verification, push their task branch, open a PR into `dev` and merge it
+once CI is green and the review is clean. Staging PR creation has
+standing authorization; the owner merges into `staging` (agents do not arm
+auto-merge).
 Main merges and production publication or deployment require separate explicit
 authorization (see `AGENTS.md`).
 
@@ -34,17 +36,18 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
 
 ## 2. Promote dev → staging
 
-- Once the owner has merged the authorized batch into `dev`, automatically
-  create or update its staging promotion PR. Reuse an open PR.
+- Once the authorized batch has been merged into `dev`, automatically
+  create or update its staging promotion PR with a recap. Reuse an open PR.
 - Review the entire promotion diff; exclude unrelated or unfinished work.
-- Arm auto-merge on the reviewed head without another confirmation:
-  `gh pr merge <num> --auto --merge --match-head-commit <sha>`. The staging
+- The owner merges the PR into `staging`. Agents do not merge it or arm
+  auto-merge (the owner may arm it:
+  `gh pr merge <num> --auto --merge --match-head-commit <sha>`). The staging
   ruleset requires `CI Success` and `Build Web Apps`, which aggregate every API
   and web CI job, plus `api-client`, `Biome Check`, `Type Check` and
   `Peer Dependencies`; GitHub merges only when all pass. If a job is added
   outside those aggregates, add it to an aggregate before relying on
   auto-merge. Never use an admin bypass; the agent hook blocks `--admin` and
-  any merge whose base is not `staging`.
+  any agent merge whose base is not `dev`.
 - If dev advances, review and verify the new head. Fix failures locally and
   revalidate before pushing; do not blindly retry CI.
 - The push to `staging` triggers `pipeline-staging.yml`,
