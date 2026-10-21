@@ -12,6 +12,7 @@ import uuid
 from datetime import UTC, date, datetime, timedelta
 
 from sqlalchemy import exists, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
@@ -310,7 +311,22 @@ async def clock(
     )
     audit_service.set_actor(session, current_user.id)
     session.add(punch)
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError:
+        # A concurrent scan won the race for this shift: return its punch.
+        await session.rollback()
+        existing = await session.scalar(
+            select(ClockPunch).where(
+                ClockPunch.roster_assignment_id == assignment.id,
+                ClockPunch.kind == kind.value,
+                ClockPunch.status != ClockPunchStatus.REJECTED.value,
+            )
+        )
+        if existing is None:
+            raise AppException("Clock punch conflict; try again", 409) from None
+        repeat = "DEPARTED" if kind == ClockPunchKind.DEPART else "ARRIVED"
+        return repeat, existing, site, 0, 0, 0, arrived_at
     await session.refresh(punch)
     action = "DEPARTED" if kind == ClockPunchKind.DEPART else "ARRIVED"
     return action, punch, site, late, early, overtime, arrived_at

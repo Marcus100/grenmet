@@ -63,6 +63,16 @@ def upgrade() -> None:
         ["status", "department_id"],
         schema="hr",
     )
+    # One live (pending or approved) arrival and departure per shift: a duplicate
+    # or concurrent scan cannot create a second punch.
+    op.create_index(
+        "uq_hr_clock_punch_live_kind",
+        "clock_punch",
+        ["roster_assignment_id", "kind"],
+        unique=True,
+        postgresql_where=sa.text("status <> 'REJECTED'"),
+        schema="hr",
+    )
 
 
 def downgrade() -> None:

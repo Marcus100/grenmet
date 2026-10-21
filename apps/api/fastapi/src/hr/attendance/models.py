@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Index, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.orm import Base
@@ -100,6 +100,13 @@ class ClockPunch(Base):
     __tablename__ = "clock_punch"
     __table_args__ = (
         Index("ix_hr_clock_punch_status_department", "status", "department_id"),
+        Index(
+            "uq_hr_clock_punch_live_kind",
+            "roster_assignment_id",
+            "kind",
+            unique=True,
+            postgresql_where=text("status <> 'REJECTED'"),
+        ),
         {"schema": "hr"},
     )
 

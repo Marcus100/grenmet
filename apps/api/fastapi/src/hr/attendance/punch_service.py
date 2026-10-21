@@ -14,11 +14,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.audit import service as audit_service
-from src.auth.models import Role, User
+from src.auth.models import Role, RoleAssignmentScope, User
 from src.auth.policy import can_act_on_user, require_permission
 from src.exceptions import AppException
 from src.hr import organisations
-from src.hr.models import EmploymentRecord
+from src.hr.models import Department, EmploymentRecord
 from src.hr.roster.models import RosterAssignment
 from src.utils.datetime import utc_now
 
@@ -137,6 +137,16 @@ async def approve_punch(
                 raise AppException(
                     "Approve the matching arrival before this departure", 409
                 )
+            if (
+                record.departed_at is not None
+                and record.departed_at != punched_at
+                and not (record.notes and record.notes.strip())
+            ):
+                raise AppException(
+                    "Attendance already has a recorded departure; the employee "
+                    "must propose a correction instead of overwriting it",
+                    409,
+                )
             await save_attendance(
                 session=session,
                 current_user=owner,
@@ -198,12 +208,33 @@ async def reject_punch(
 
 
 async def _reviewable_departments(session: AsyncSession, actor: User) -> set[str]:
-    assignments = await organisations.active_assignments(session, actor.id)
+    """Departments whose punches the actor may decide: DEPARTMENT and ALL scopes
+    only, matching ``can_act_on_user`` (a SELF scope covers one's own records,
+    which are never reviewable)."""
+    role_ids = {
+        role.id
+        for role in actor.roles
+        if any(p.key.lower() == REVIEW_PERMISSION for p in role.permissions)
+    }
     departments: set[str] = set()
-    for organisation_id in {a.organisation_id for a in assignments}:
-        departments |= await organisations.permitted_departments(
-            session, actor, organisation_id, REVIEW_PERMISSION
-        )
+    for assignment in await organisations.active_assignments(session, actor.id):
+        if assignment.role_id not in role_ids:
+            continue
+        if assignment.scope == RoleAssignmentScope.ALL:
+            departments |= set(
+                (
+                    await session.scalars(
+                        select(Department.id).where(
+                            Department.organisation_id == assignment.organisation_id
+                        )
+                    )
+                ).all()
+            )
+        elif (
+            assignment.scope == RoleAssignmentScope.DEPARTMENT
+            and assignment.department_id
+        ):
+            departments.add(assignment.department_id)
     return departments
 
 

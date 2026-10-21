@@ -1,20 +1,22 @@
 """Phone punches are pending until a supervisor approves them (ADR-0040)."""
 
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import RoleAssignmentScope, User
+from src.auth.utils import create_access_token
 from src.exceptions import AppException, AuthorizationError
 from src.hr.attendance import clock_service, punch_service
 from src.hr.attendance import service as attendance_service
 from src.hr.attendance.models import AttendanceRecord, ClockPunch
 from src.hr.attendance.schemas import AttendanceSave
-from src.hr.models import Department
-from src.hr.roster.models import ShiftCatalog, ShiftCategory
+from src.hr.models import Department, Organisation
+from src.hr.roster.models import RosterAssignment, ShiftCatalog, ShiftCategory
 from src.hr.roster.schemas import (
     RosterAssignmentBulkCreate,
     RosterAssignmentInput,
@@ -423,3 +425,161 @@ async def test_review_endpoints_over_http(
     assert blank.status_code == 422
     [record] = await _records(db_async)
     assert record.departed_at is None
+
+
+async def test_self_scoped_approver_sees_an_empty_queue(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    await _punch(db_async, employee, token, 9, 30)
+    peer = await make_user(db_async)
+    await make_employee(db_async, user=peer, department_id=DEPT)
+    role, _ = await make_role_with_permission(db_async, "timesheet.approve")
+    await assign_role(db_async, user=peer, role=role, scope=RoleAssignmentScope.SELF)
+    _, total = await punch_service.list_pending(
+        session=db_async, current_user=peer, limit=50, offset=0
+    )
+    assert total == 0
+
+
+async def test_departure_does_not_overwrite_an_existing_departure(
+    db_async: AsyncSession,
+) -> None:
+    employee, manager, token = await _world(db_async)
+    supervisor = await _supervisor(db_async, department=DEPT)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    depart = await _punch(db_async, employee, token, 18, 0)
+    await punch_service.approve_punch(
+        session=db_async, current_user=supervisor, punch_id=arrive.id
+    )
+    [record] = await _records(db_async)
+    await attendance_service.save_attendance(
+        session=db_async,
+        current_user=manager,
+        payload=AttendanceSave(
+            roster_assignment_id=record.roster_assignment_id,
+            expected_revision=record.revision,
+            arrived_at=utc(9, 30).replace(tzinfo=UTC),
+            departed_at=utc(17, 0).replace(tzinfo=UTC),
+        ),
+    )
+    with pytest.raises(AppException) as raised:
+        await punch_service.approve_punch(
+            session=db_async, current_user=supervisor, punch_id=depart.id
+        )
+    assert raised.value.status_code == 409
+    await db_async.refresh(depart)
+    assert depart.status == "PENDING"
+
+
+async def test_unique_index_refuses_a_second_live_punch_of_one_kind(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    first = await _punch(db_async, employee, token, 9, 30)
+    second = await _punch(db_async, employee, token, 10, 30)
+    assert (first.kind, second.kind) == ("ARRIVE", "DEPART")
+    db_async.add(
+        ClockPunch(
+            user_id=employee.id,
+            department_id=DEPT,
+            clock_site_id=first.clock_site_id,
+            roster_assignment_id=first.roster_assignment_id,
+            kind="ARRIVE",
+            punched_at=utc(9, 45),
+            status="PENDING",
+        )
+    )
+    with pytest.raises(IntegrityError):
+        await db_async.commit()
+    await db_async.rollback()
+
+
+async def _none(*_args: object, **_kwargs: object) -> None:
+    return None
+
+
+async def test_clock_returns_the_existing_punch_when_a_racing_scan_wins(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    employee, _, token = await _world(db_async)
+    winner = await _punch(db_async, employee, token, 9, 30)
+    # Blind the pre-checks so this scan tries to insert a duplicate arrival.
+    monkeypatch.setattr(clock_service, "_latest_live_punch", _none)
+    monkeypatch.setattr(clock_service, "_open_arrival", _none)
+    monkeypatch.setattr(
+        clock_service,
+        "_current_assignment",
+        _current_for(winner.roster_assignment_id),
+    )
+    action, punch, *_ = await clock_service.clock(
+        session=db_async, current_user=employee, token=token, now=utc(9, 45)
+    )
+    assert punch.id == winner.id
+    assert action == "ARRIVED"
+
+
+def _current_for(assignment_id: object):  # noqa: ANN202
+    async def found(session: AsyncSession, _user_id: object, _now: object):  # noqa: ANN202
+        row = (
+            await session.execute(
+                select(RosterAssignment, ShiftCatalog)
+                .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
+                .where(RosterAssignment.id == assignment_id)
+            )
+        ).one()
+        return row[0], row[1]
+
+    return found
+
+
+async def test_http_authority_for_approve_and_reject(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    normal_user_token_headers_async: dict[str, str],
+) -> None:
+    employee, _, token = await _world(db_async)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    for action, body in (("approve", None), ("reject", {"reason": "no"})):
+        resp = await async_client.post(
+            f"{API}/clock-punches/{arrive.id}/{action}",
+            headers=normal_user_token_headers_async,
+            json=body,
+        )
+        assert resp.status_code in {403, 404}
+
+    elsewhere = await _supervisor(db_async, department=OTHER)
+    headers = {
+        "Authorization": "Bearer "
+        + create_access_token(elsewhere.id, expires_delta=timedelta(minutes=5))
+    }
+    resp = await async_client.post(
+        f"{API}/clock-punches/{arrive.id}/reject",
+        headers=headers,
+        json={"reason": "nope"},
+    )
+    assert resp.status_code == 403
+
+
+async def test_all_scope_in_another_organisation_is_refused(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    if not await db_async.get(Organisation, "other_org"):
+        db_async.add(Organisation(id="other_org", code="other_org", name="Other"))
+        await db_async.commit()
+    outsider = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, "timesheet.approve")
+    await assign_role(
+        db_async,
+        user=outsider,
+        role=role,
+        scope=RoleAssignmentScope.ALL,
+        organisation_id="other_org",
+    )
+    with pytest.raises(AppException) as raised:
+        await punch_service.approve_punch(
+            session=db_async, current_user=outsider, punch_id=arrive.id
+        )
+    assert raised.value.status_code == 403
