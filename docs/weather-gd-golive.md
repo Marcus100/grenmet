@@ -34,8 +34,8 @@ registrable domains); weather.gd stays public/no-auth.
 
 ## Current blockers
 
-- We do NOT control weather.gd DNS. It points at an AWS address (recorded
-  in step 1 of the go-live steps) and
+- We do NOT control weather.gd DNS. It pointed at `34.206.237.50` (AWS, last seen
+  2026-07-11; third party's public record, re-check in step 1) and
   serves the existing GMS WordPress site (checked 2026-07-11). Go-live requires
   access to the weather.gd registration/DNS, coordinated with whoever runs it.
 - Flipping DNS takes the old WordPress site offline at that name — the DNS
@@ -74,7 +74,7 @@ registrable domains); weather.gd stays public/no-auth.
    Also check `https://api.weather.gd/api/v1/utils/health-check/` → `true`.
 8. Watch `docker compose logs proxy` for ACME errors on launch day.
 
-Rollback: restore the old A records (recorded in step 1); the old site
+Rollback: restore the old A records (recorded in step 1; last seen 2026-07-11: `34.206.237.50`); the old site
 returns as TTL expires. Optionally re-comment the rule vars at next release.
 
 ## Deferred / later
