@@ -111,6 +111,8 @@ async def backfill(
                 organisation_id=organisation_id,
                 user_id=user_id,
                 role=MembershipRole.ADMIN if has_owner else MembershipRole.OWNER,
+                # administrator-created / seed / backfill: ADR-0018 exempts administrator-mediated grants
+                skip_email_check=True,
             )
             has_owner = True
             result.memberships_created += 1
