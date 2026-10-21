@@ -5,6 +5,7 @@ from typing import Annotated, Self
 from pydantic import EmailStr, Field, field_validator, model_validator
 
 from src.models import BaseModel, UtcDateTime
+from src.organisations.models import MembershipRole
 from src.utils.timezones import is_valid_timezone
 
 from .models import BookingExceptionKind, BookingSource, BookingStatus
@@ -16,6 +17,18 @@ Minor = Annotated[int, Field(ge=0, le=100_000_000)]
 Currency = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
 #: Path words under /bookings/public that a slug must not shadow.
 RESERVED_SLUGS = frozenset({"bookings"})
+
+
+# --- caller's organisations -------------------------------------------------------
+
+
+class BookingMyOrganisation(BaseModel):
+    """An organisation the caller can open in the studio, with their role in it."""
+
+    id: str
+    name: str
+    slug: str
+    role: MembershipRole
 
 
 # --- profile ---------------------------------------------------------------------

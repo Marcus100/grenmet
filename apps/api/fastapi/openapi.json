@@ -7247,6 +7247,53 @@
         }
       }
     },
+    "/api/v1/bookings/me/organisations": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "The caller's organisations that use Barrels Bookings",
+        "description": "Active memberships in active organisations entitled to bookings, with the caller's role; feeds the studio's organisation picker. Accepts an account or the bookings app session.",
+        "operationId": "bookingsListMyOrganisations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BookingMyOrganisation"
+                  },
+                  "type": "array",
+                  "title": "Response Bookingslistmyorganisations"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/bookings/org/profile": {
       "get": {
         "tags": [
@@ -46365,6 +46412,34 @@
           "reason"
         ],
         "title": "BookingExceptionPublic"
+      },
+      "BookingMyOrganisation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "role": {
+            "$ref": "#/components/schemas/MembershipRole"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "role"
+        ],
+        "title": "BookingMyOrganisation",
+        "description": "An organisation the caller can open in the studio, with their role in it."
       },
       "BookingOrder": {
         "properties": {
