@@ -1,5 +1,6 @@
 """Phone punches are pending until a supervisor approves them (ADR-0040)."""
 
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, timedelta
 
 import httpx
@@ -519,8 +520,12 @@ async def test_clock_returns_the_existing_punch_when_a_racing_scan_wins(
     assert action == "ARRIVED"
 
 
-def _current_for(assignment_id: object):  # noqa: ANN202
-    async def found(session: AsyncSession, _user_id: object, _now: object):  # noqa: ANN202
+def _current_for(
+    assignment_id: object,
+) -> Callable[..., Awaitable[tuple[RosterAssignment, ShiftCatalog]]]:
+    async def found(
+        session: AsyncSession, _user_id: object, _now: object
+    ) -> tuple[RosterAssignment, ShiftCatalog]:
         row = (
             await session.execute(
                 select(RosterAssignment, ShiftCatalog)

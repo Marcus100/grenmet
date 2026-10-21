@@ -310,6 +310,7 @@ async def clock(
         status=ClockPunchStatus.PENDING.value,
     )
     audit_service.set_actor(session, current_user.id)
+    assignment_id_value = assignment.id
     session.add(punch)
     try:
         await session.commit()
@@ -318,13 +319,14 @@ async def clock(
         await session.rollback()
         existing = await session.scalar(
             select(ClockPunch).where(
-                ClockPunch.roster_assignment_id == assignment.id,
+                ClockPunch.roster_assignment_id == assignment_id_value,
                 ClockPunch.kind == kind.value,
                 ClockPunch.status != ClockPunchStatus.REJECTED.value,
             )
         )
         if existing is None:
             raise AppException("Clock punch conflict; try again", 409) from None
+        await session.refresh(site)
         repeat = "DEPARTED" if kind == ClockPunchKind.DEPART else "ARRIVED"
         return repeat, existing, site, 0, 0, 0, arrived_at
     await session.refresh(punch)
