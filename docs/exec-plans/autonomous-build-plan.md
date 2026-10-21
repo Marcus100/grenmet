@@ -12,9 +12,12 @@ the Barrels platform is live yet, so schema changes are cheap
 
 ## Rules for every lane
 
-- One lane is one worktree, one branch and one PR into `dev`. The owner merges.
-  Agents never push `dev`, `staging` or `main` and never merge
-  ([ADR-0041](../adr/0041-agent-autonomy.md)).
+- One lane is one worktree, one branch and one PR into `dev`. Once CI is green and
+  a fresh-context review is clean, the agent merges its own PR into `dev`; the
+  owner merges anything that touches the agent limits, CI or rulesets, and every
+  merge into `staging` and `main`. Agents never push `dev`, `staging` or `main`
+  ([ADR-0042](../adr/0042-agents-merge-into-dev.md), amending
+  [ADR-0041](../adr/0041-agent-autonomy.md)).
 - Read the nested `AGENTS.md` for every path touched, and the lane's ADR, before
   editing. API contract changes use the `api-change` skill; `apps/web/gaa-admin`
   uses `gaa-admin-change`.

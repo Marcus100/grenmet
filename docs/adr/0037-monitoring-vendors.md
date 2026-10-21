@@ -18,7 +18,7 @@ Sentry receives errors from FastAPI and the Next.js apps. Better Stack is the up
 ## Consequences
 
 - The scrubber currently drops `event.user` entirely. Sending IDs needs a small change that passes only an allowlisted ID, plus tests. That change is not part of this ADR.
-- The `AGENTS.md` wording changes in a separate commit, with ADR-0033's edit.
+- The `AGENTS.md` wording changes with the lane that implements this decision (the monitoring-IDs PR, plan lane 1.5), not with this ADR.
 - Any new monitoring vendor needs an ADR amendment before it receives data. Prefer self-hosted open-source options (free/open-source preference).
 - GlitchTip speaks the Sentry protocol, so a move is mainly a DSN change. Uptime Kuma needs its own check list to replace `betterstack.json`.
 - Hosting them on the droplets adds load and an upkeep task, and they must themselves be monitored.

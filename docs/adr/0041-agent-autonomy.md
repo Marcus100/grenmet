@@ -1,8 +1,10 @@
-# ADR-0041: What unattended agents may do
+# ADR-0041: What unattended AI agents may and may not do
 
 ## Status
 
-Accepted (owner decision, 2026-10-20). Records the rules as practised; the enforcement named below exists today.
+Accepted (owner decision, 2026-10-20). Records the rules as practised; the enforcement named below existed when it was written.
+
+Amended by [ADR-0042](0042-agents-merge-into-dev.md) (2026-10-20): decisions 1 and 2, and the first enforcement bullet, no longer apply to merging into `dev`. Agents now merge their own PRs into `dev` under conditions the hook enforces. Everything else here stands.
 
 ## Context
 

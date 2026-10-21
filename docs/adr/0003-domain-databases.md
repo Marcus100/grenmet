@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (rewritten 2026-10-21).
+Accepted (rewritten 2026-10-20).
 
 ## Context
 
@@ -12,7 +12,7 @@ Some data must change together. A ticket, its payment and the points it earns mu
 
 ## Decision
 
-**One main database (APP)** holds everything that must transact together or that belongs to the Barrels product platform. It uses one Postgres schema per module (for example `bookings`, `events`, `payments`, `rewards`, `contacts`, `organisations`). A module never queries another module's tables directly. It goes through that module's service or an explicit job.
+**One main database (APP)** holds everything that must transact together or that belongs to the Barrels product platform. One Postgres schema per module is the target layout. Schemas that exist today: `billing`, `bookings`, `cap`, `environment`, `flags`, `hr`, `org`, `payments`, `rewards`, `stores` and `webhooks`. The `org` schema currently holds organisations and contacts (`src/organisations/models.py`, `src/contacts/models.py`); bookings has its own `bookings` schema (`src/bookings/models.py`). Events has no schema in the main database yet. A module never queries another module's tables directly. It goes through that module's service or an explicit job.
 
 **A domain gets its own database only when** its data has a different owner or legal duty, a different retention period, a different risk profile, or runs its own engine.
 

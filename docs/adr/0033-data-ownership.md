@@ -23,7 +23,7 @@ Accepted (owner decision, 2026-10-20).
 
 ## Consequences
 
-- Barrels is the legally responsible controller for that data. That means privacy duties, access requests, erasure and breach notice are Barrels' to handle.
+- The intention is that Barrels is the legally responsible controller for that data, subject to the GAA contract. If so, privacy duties, access requests, erasure and breach notice are Barrels' to handle. The GAA contract should say this in writing.
 - Existing data-request handling and the security baseline (`docs/security.md`) now serve Barrels' own duties, not only the client's.
 - Until the contract says so in writing, this is an owner decision, not a signed term. Treat the written contract as the open item.
 - Documents marked `Owner: GAA/GMS` are unaffected unless they describe data; review them when the `AGENTS.md` line changes.

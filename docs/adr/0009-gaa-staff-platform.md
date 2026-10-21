@@ -2,7 +2,7 @@
 
 ## Status
 
-Superseded by [ADR-0039](0039-gaa-staff-platform.md) (staff platform) and [ADR-0040](0040-staff-attendance.md) (attendance) on 2026-10-21. Kept for history; its "app-only clock-in" and "one central login" parts no longer apply.
+Superseded by [ADR-0039](0039-gaa-staff-platform.md) (staff platform) and [ADR-0040](0040-staff-attendance.md) (attendance) on 2026-10-20. Kept for history; its "app-only clock-in" and "one central login" parts no longer apply.
 
 Previously: Proposed.
 

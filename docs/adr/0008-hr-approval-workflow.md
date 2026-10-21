@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (built). Updated 2026-10-21: named approvers are built (`required_user_id` in `apps/api/fastapi/src/hr/workflow/models.py`) and the `management` role is seeded. The final step is the `hr-recorder` role (`apps/api/fastapi/src/baseline/seed.py`), not `hr-admin` as first written; the decision text below now says `hr-recorder`.
+Accepted (built). Updated 2026-10-20: named approvers are built (`required_user_id` in `apps/api/fastapi/src/hr/workflow/models.py`) and the `management` role is seeded. The final step is the `hr-recorder` role (`apps/api/fastapi/src/baseline/seed.py`), not `hr-admin` as first written; the decision text below now says `hr-recorder`.
 
 ## Context
 

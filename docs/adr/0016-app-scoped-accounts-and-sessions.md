@@ -5,7 +5,7 @@
 Accepted (2026-10-03). Applies to Barrels Events now; other apps migrate later,
 one at a time, each with its own review.
 
-Amended by ADR-0017 (single sign-on handoff) on decision 1 ("no cross-app SSO"). Updated 2026-10-21: `src/auth/apps.py` now registers `events`, `gaa-admin`, `cms` and `barrels-admin`.
+Amended by ADR-0017 (single sign-on handoff) on decision 1 ("no cross-app SSO"). Updated 2026-10-20: `src/auth/apps.py` now registers `events`, `gaa-admin`, `cms` and `barrels-admin`.
 
 ## Context
 

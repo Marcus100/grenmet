@@ -8,7 +8,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | --- | --- | --- |
 | [0001](0001-monorepo.md) | Use a pnpm/Turborepo monorepo | Accepted |
 | [0002](0002-shared-auth-session.md) | Use shared auth with opaque browser sessions | Partly superseded (0016, 0017) |
-| [0003](0003-domain-databases.md) | One main database with a schema per module; separate databases only where owner, retention or risk differ | Accepted (rewritten 2026-10-21) |
+| [0003](0003-domain-databases.md) | One main database with a schema per module; separate databases only where owner, retention or risk differ | Accepted (rewritten 2026-10-20) |
 | [0004](0004-generated-api-client.md) | Generate the TypeScript API client from FastAPI OpenAPI | Accepted |
 | [0005](0005-compose-traefik-deployment.md) | Deploy with Docker Compose and Traefik on dedicated droplets | Accepted |
 | [0006](0006-design-system-governance.md) | Govern shared UI through Barrels design-system tokens and packages | Superseded by 0011 |
@@ -46,7 +46,8 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0038](0038-background-jobs.md) | ARQ on Redis is the only background-job runner | Accepted |
 | [0039](0039-gaa-staff-platform.md) | GAA staff platform (replaces 0009) | Accepted |
 | [0040](0040-staff-attendance.md) | Staff attendance: terminal punches and supervisor-approved phone punches | Accepted; partly built |
-| [0041](0041-agent-autonomy.md) | What unattended AI agents may and may not do | Accepted |
+| [0041](0041-agent-autonomy.md) | What unattended AI agents may and may not do | Accepted, amended by 0042 |
+| [0042](0042-agents-merge-into-dev.md) | Agents merge their own green, reviewed PRs into dev; the owner keeps staging, main and the files that limit agents | Accepted |
 
 ## Template
 
