@@ -2,7 +2,7 @@
 
 Port **3015**, host `bookings.${BASE_DOMAIN}` (`bookings.barrels.gd` in production). Design lane: `docs/design/bookings.md` (read before UI work). Product decision: `docs/exec-plans/product-and-hardening-handoff.md` (A1). Backend and domain: `apps/api/fastapi/src/bookings/AGENTS.md` and ADR-0024.
 
-## Status: public booking flow live, studio still a stub
+## Status: public booking flow live, studio still a stub (sign-in works)
 
 `/[slug]` is the public booking flow for any business: storefront (name, services with duration, price and deposit label, providers), then the shared `@barrelsgd/bookings-web` flow (service, time, details, confirm), then `/[slug]/booking/[token]` to view, reschedule or cancel (plus `/ics` for the calendar file). The studio (`/studio`) is still a sign-in-guarded stub.
 
@@ -18,8 +18,10 @@ Host wiring mirrors `apps/web/babydoll`: `src/lib/booking-api.ts` (server-only, 
 
 ## Auth (ADR-0016/0017)
 
-- Registry key `bookings`, not registered yet. `src/lib/auth-config.ts` (`APP_NAME`) names it. Until `apps/api/fastapi/src/auth/apps.py` registers it (with `BOOKINGS_APP_URL` and `BOOKINGS_SSO_CLIENT_SECRET` on the API), sign-in cannot complete. That API change belongs to `api-engineer`.
-- Flow: `/signin` -> `/auth/start` -> auth.barrels.gd -> `/auth/callback` (redeems the code with `BOOKINGS_SSO_CLIENT_SECRET`; without it the callback returns 503). Session cookie `bookings_session`, host-only. `src/proxy.ts` checks only that the cookie exists for `/studio`; `src/lib/session.ts` (`requireSession`) exchanges it on the server.
+- Registry key `bookings`, registered in `apps/api/fastapi/src/auth/apps.py` (API config `BOOKINGS_APP_URL`, `BOOKINGS_SSO_CLIENT_SECRET`). `src/lib/auth-config.ts` (`APP_NAME`) names it. Sign-in only completes where the API has both set.
+- Flow: `/signin` -> `/auth/start` -> auth.barrels.gd -> `/auth/callback` (redeems the code with `BOOKINGS_SSO_CLIENT_SECRET`; without it the callback returns 503). Session cookie `bookings_session`, host-only. `src/proxy.ts` checks only that the cookie exists for `/studio`; `src/lib/session.ts` (`requireSession`) exchanges it on the server for an app-scoped access token (`app = "bookings"`).
+- Studio calls to FastAPI: send that token as the bearer plus `X-Barrels-Organisation: <organisation id>`. The API accepts the bookings session on every `/bookings/org/*` route and on `GET /bookings/me/organisations`, which lists the caller's bookings organisations for the picker (ADR-0016 amendment; `apps/api/fastapi/src/bookings/AGENTS.md`). Membership, role and entitlement are decided by FastAPI each call; this app never decides access. On dev `/studio` is still the signed-in placeholder: the organisation picker and the read-only agenda are being built in a separate change, so do not assume them.
+- Reserved paths: `studio`, `signin`, `auth` and `api` are app routes and win over `/[slug]`, so a business with one of those slugs would be unreachable. Avoid them when creating a profile. The API currently rejects only `bookings` (`RESERVED_SLUGS` in `src/bookings/schemas.py`); extending it is pending.
 - Never read `process.env` outside `src/env.ts` (plus the Sentry and `next.config` exceptions).
 
 ## Env, errors and tests
