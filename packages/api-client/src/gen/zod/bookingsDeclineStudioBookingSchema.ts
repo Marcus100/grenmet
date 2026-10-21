@@ -16,7 +16,7 @@ export const bookingsDeclineStudioBookingHeaderXBarrelsOrganisationSchema = z
   .union([z.string(), z.null()])
   .optional()
   .describe(
-    "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+    "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
   );
 
 export const bookingsDeclineStudioBookingStatus200Schema =

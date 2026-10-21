@@ -195,7 +195,8 @@ def require_org_app(
                     alias=ORGANISATION_HEADER,
                     description=(
                         "Id of the organisation the request acts for. The caller "
-                        "must be an active member."
+                        "must be an active member, signed in with an account or "
+                        f"the {session_app} app."
                     ),
                 ),
             ] = None,

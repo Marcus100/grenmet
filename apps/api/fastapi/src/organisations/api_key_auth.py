@@ -224,7 +224,9 @@ def org_or_key(
                 alias=ORGANISATION_HEADER,
                 description=(
                     "Id of the organisation the request acts for. Required for a "
-                    "signed-in member; ignored with an organisation API key."
+                    "signed-in member (account"
+                    + (f" or {session_app} app session" if session_app else "")
+                    + "); ignored with an organisation API key."
                 ),
             ),
         ] = None,
