@@ -10,12 +10,18 @@ from datetime import date, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Path, Query, Request, Response, status
+from fastapi.security import HTTPAuthorizationCredentials
 
 from src import idempotency
-from src.dependencies import SessionDep, optional_account
+from src.auth.models import User
+from src.dependencies import SessionDep, TokenDep, optional_account
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.api_key_auth import OrgAccess, org_or_key
-from src.organisations.dependencies import OrgContext, require_org_app
+from src.organisations.dependencies import (
+    OrgContext,
+    require_org_app,
+    resolve_org_caller,
+)
 from src.organisations.models import MembershipRole
 from src.rate_limit import limiter
 from src.turnstile import require_turnstile
@@ -28,6 +34,7 @@ from .schemas import (
     BookingAvailability,
     BookingExceptionCreate,
     BookingExceptionPublic,
+    BookingMyOrganisation,
     BookingProfilePublic,
     BookingProfileUpdate,
     BookingProviderCreate,
@@ -52,6 +59,37 @@ from .schemas import (
 )
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
+
+
+async def _studio_caller(session: SessionDep, token: TokenDep) -> User:
+    """The signed-in user: an account token or the bookings app's own token."""
+    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+    user, _ = await resolve_org_caller(session, credentials, "bookings")
+    return user
+
+
+StudioCaller = Annotated[User, Depends(_studio_caller)]
+
+
+@router.get(
+    "/me/organisations",
+    response_model=list[BookingMyOrganisation],
+    summary="The caller's organisations that use Barrels Bookings",
+    description=(
+        "Active memberships in active organisations entitled to bookings, with the "
+        "caller's role; feeds the studio's organisation picker. Accepts an account "
+        "or the bookings app session."
+    ),
+    operation_id="bookingsListMyOrganisations",
+    responses=AUTHENTICATED,
+)
+async def list_my_organisations(*, session: SessionDep, user: StudioCaller) -> Any:
+    rows = await service.list_my_organisations(session, user.id)
+    return [
+        BookingMyOrganisation(id=o.id, name=o.name, slug=o.slug, role=role)
+        for o, role in rows
+    ]
+
 
 # Organisation routes require the "bookings" entitlement (org.organisation_app).
 BookingsOrgMember = Annotated[

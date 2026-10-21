@@ -18,6 +18,18 @@ Currency = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
 RESERVED_SLUGS = frozenset({"bookings"})
 
 
+# --- caller's organisations -------------------------------------------------------
+
+
+class BookingMyOrganisation(BaseModel):
+    """An organisation the caller can open in the studio, with their role in it."""
+
+    id: str
+    name: str
+    slug: str
+    role: str
+
+
 # --- profile ---------------------------------------------------------------------
 
 
