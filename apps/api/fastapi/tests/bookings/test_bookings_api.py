@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.bookings import service
 from src.bookings.models import Booking, BookingStatus, Customer
+from src.contacts import service as contacts_service
 from src.organisations.models import MembershipRole
 from tests.factories import make_user
 from tests.organisations.support import headers_for, make_org
@@ -238,7 +239,10 @@ async def _booking(
     minutes: int = 120,
     status: BookingStatus = BookingStatus.CONFIRMED,
 ) -> Booking:
-    customer = Customer(organisation_id=org_id, name="Test client")
+    contact = await contacts_service.create_without_email(
+        db, org_id, name="Test client", source="test"
+    )
+    customer = Customer(organisation_id=org_id, contact_id=contact.id)
     db.add(customer)
     await db.flush()
     ends_at = starts_at + timedelta(minutes=minutes)

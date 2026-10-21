@@ -73,19 +73,20 @@ async def test_customer_is_linked_to_a_contact_with_consent(
     assert consents[ConsentPurpose.MARKETING].granted is False
 
 
-async def test_no_contacts_entitlement_skips_the_link_silently(
+async def test_every_customer_has_a_contact_even_without_the_contacts_product(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client, apps=("bookings",))
     receipt = await _book_one(async_client, studio, marketing_consent=True)
     customer = await _customer(db_async, receipt)
-    assert customer.contact_id is None
     contacts = (
         await db_async.scalars(
             select(Contact).where(Contact.organisation_id == studio.org_id)
         )
     ).all()
-    assert contacts == []
+    assert [c.id for c in contacts] == [customer.contact_id]
+    consents = await contacts_service.current_consents(db_async, contacts[0].id)
+    assert consents[ConsentPurpose.MARKETING].granted is True
 
 
 async def test_erasing_or_merging_a_contact_does_not_break_bookings(
@@ -119,7 +120,7 @@ async def test_erasing_or_merging_a_contact_does_not_break_bookings(
     revived = await _customer(db_async, again)
     assert revived.contact_id == contact_id
 
-    # A merge deletes the dropped contact: the link is cleared, not an error.
+    # A merge deletes the dropped contact: the customer moves to the kept one.
     admin = await make_user(db_async)
     keep = await contacts_service.upsert_contact(
         db_async,
@@ -127,13 +128,14 @@ async def test_erasing_or_merging_a_contact_does_not_break_bookings(
         email=f"keep-{uuid.uuid4().hex[:6]}@example.com",
         source="manual",
     )
+    keep_id = keep.id
     await contacts_service.merge_contacts(
-        db_async, admin, keep.id, contact_id, organisation_id=studio.org_id
+        db_async, admin, keep_id, contact_id, organisation_id=studio.org_id
     )
     await db_async.commit()
     db_async.expire_all()
     cleared = await db_async.get(Customer, customer_id)
-    assert cleared is not None and cleared.contact_id is None
+    assert cleared is not None and cleared.contact_id == keep_id
 
 
 async def _rewards_setup(

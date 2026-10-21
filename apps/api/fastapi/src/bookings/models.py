@@ -9,12 +9,14 @@ Postgres exclusion constraint forbids double-booking a provider.
 import uuid
 from datetime import datetime, time
 from enum import Enum
+from typing import cast
 
 import sqlalchemy as sa
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import ExcludeConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from src.contacts import references as contact_references
 from src.orm import Base
 from src.utils.datetime import utc_now
 from src.utils.timezones import DEFAULT_TIMEZONE
@@ -197,31 +199,26 @@ class AvailabilityException(Base):
 
 
 class Customer(Base):
-    """A business's customer. Personal data scoped to one organisation."""
+    """A business's customer: the booking-side role of one contact (ADR-0028)."""
 
     __tablename__ = "customer"
-    __table_args__ = (
-        sa.Index("ix_customer_org_email_hash", "organisation_id", "email_hash"),
-        SCHEMA,
-    )
+    __table_args__ = (SCHEMA,)
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     organisation_id: Mapped[str] = mapped_column(
         String(100), ForeignKey("org.organisation.id"), index=True
     )
-    name: Mapped[str] = mapped_column(String(120))
-    email: Mapped[str | None] = mapped_column(String(320))
-    email_hash: Mapped[str | None] = mapped_column(String(64))
-    phone: Mapped[str | None] = mapped_column(String(40))
-    marketing_consent: Mapped[bool] = mapped_column(default=False)
-    #: The organisation's contact-book record for this person (PF3), when the
-    #: organisation has the `contacts` product. The contact is erased or merged
-    #: independently of bookings, so deleting it only clears this link.
-    contact_id: Mapped[str | None] = mapped_column(
-        String(100), ForeignKey("org.contact.id", ondelete="SET NULL"), index=True
+    #: The person, in the organisation's contact book (ADR-0028). Name, email,
+    #: phone and consent live only there; this row keeps booking facts. A merge
+    #: re-points it (``contacts.references``); erasure blanks the contact in place.
+    contact_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.contact.id"), index=True
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     last_booked_at: Mapped[datetime | None]
+
+
+contact_references.register(cast(sa.Table, Customer.__table__))
 
 
 class Booking(Base):
