@@ -76,7 +76,7 @@ async def test_customer_is_linked_to_a_contact_with_consent(
     assert consents[ConsentPurpose.MARKETING].granted is False
 
 
-async def test_every_customer_has_a_contact_even_without_the_contacts_product(
+async def test_every_customer_has_a_contact_in_a_bookings_only_organisation(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client, apps=("bookings",))

@@ -289,7 +289,7 @@ async def test_an_email_links_the_contact_without_recording_consent(
     assert walk_in_contact.id != emailed_contact_id
 
 
-async def test_the_contact_is_kept_even_without_the_contacts_product(
+async def test_the_contact_is_kept_in_a_bookings_only_organisation(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client)
