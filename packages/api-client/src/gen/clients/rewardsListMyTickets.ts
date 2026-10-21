@@ -11,7 +11,7 @@ import type {
 } from "../models/RewardsListMyTickets.js";
 
 /**
- * @description The account's Events tickets for the Barrels ID page, read-only. Empty when Events has no database. Manage tickets in Barrels Events.
+ * @description The account's Events tickets for the Barrels ID page, read-only. Manage tickets in Barrels Events.
  * @summary My tickets (account page)
  * {@link /api/v1/rewards/me/tickets}
  */

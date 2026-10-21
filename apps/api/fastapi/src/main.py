@@ -47,7 +47,6 @@ from src.contacts.router import router as contacts_router
 from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
 from src.eregister.router import router as eregister_router
-from src.events import database as events_database
 from src.events.router import router as events_router
 from src.exceptions import (
     AppException,
@@ -323,7 +322,6 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
         await wxwatch_database.close_engine()
         await janitorial_database.close_engine()
         await transport_database.close_engine()
-        await events_database.close_engine()
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":

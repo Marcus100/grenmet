@@ -49,8 +49,9 @@ class Contact(Base):
         String(100), ForeignKey("org.organisation.id", ondelete="CASCADE"), index=True
     )
     #: HMAC of the normalised address (``src.utils.email_hash``); kept as the
-    #: tombstone after erasure.
-    email_hash: Mapped[str] = mapped_column(String(64))
+    #: tombstone after erasure. NULL for a person known without an address (a
+    #: walk-in), who can never be matched by email.
+    email_hash: Mapped[str | None] = mapped_column(String(64))
     #: Kept only while the address is needed to send; blanked on erasure.
     email: Mapped[str | None] = mapped_column(String(320))
     name: Mapped[str | None] = mapped_column(String(255))

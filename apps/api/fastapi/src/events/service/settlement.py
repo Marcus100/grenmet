@@ -86,12 +86,12 @@ class _Group:
 
 
 async def _online_payments(
-    db: AsyncSession, main: AsyncSession | None, listing: Listing
+    db: AsyncSession, listing: Listing
 ) -> schemas.SettlementOnlinePayments:
-    """Online orders as the Events database sees them, against the payments ledger.
+    """Online orders as Events recorded them, against the payments ledger.
 
-    They are separate databases, so each side is summed on its own and compared;
-    the ledger side is skipped (None) when the caller has no main session."""
+    Each side is summed on its own and compared; the ledger side is skipped (None)
+    when the organiser has no platform organisation."""
     totals = (
         await db.execute(
             select(
@@ -115,18 +115,12 @@ async def _online_payments(
     paid, pending, pending_minor, collected, refunded = (int(v) for v in totals)
     ledger_collected: int | None = None
     ledger_refunded: int | None = None
-    organisation_id = (
-        await db.scalar(
-            select(Organiser.organisation_id).where(
-                Organiser.id == listing.organiser_id
-            )
-        )
-        if main is not None
-        else None
+    organisation_id = await db.scalar(
+        select(Organiser.organisation_id).where(Organiser.id == listing.organiser_id)
     )
-    if main is not None and organisation_id is not None:
+    if organisation_id is not None:
         ledger_collected, ledger_refunded = await order_payments.ledger_totals(
-            main, organisation_id=organisation_id, listing_id=listing.id
+            db, organisation_id=organisation_id, listing_id=listing.id
         )
     reconciled = (
         None
@@ -145,9 +139,7 @@ async def _online_payments(
     )
 
 
-async def _build(
-    db: AsyncSession, listing: Listing, main: AsyncSession | None = None
-) -> schemas.Settlement:
+async def _build(db: AsyncSession, listing: Listing) -> schemas.Settlement:
     admitted = Admission.id.is_not(None)
     rows = (
         await db.execute(
@@ -277,7 +269,7 @@ async def _build(
             )
         )
 
-    online = await _online_payments(db, main, listing)
+    online = await _online_payments(db, listing)
     if online.reconciled is False:
         issues.append(
             schemas.SettlementIssue(
@@ -359,10 +351,9 @@ async def settlement(
     listing_id: uuid.UUID,
     org_ids: list[str],
     slug: str | None = None,
-    main: AsyncSession | None = None,
 ) -> schemas.Settlement:
     listing = await _door_listing(db, user, listing_id, org_ids, slug)
-    return await _build(db, listing, main)
+    return await _build(db, listing)
 
 
 async def organiser_settlement(
@@ -370,7 +361,6 @@ async def organiser_settlement(
     user: User,
     org_ids: list[str],
     slug: str | None = None,
-    main: AsyncSession | None = None,
 ) -> schemas.SettlementOverview:
     organiser: Organiser = await _my_organiser(db, user, org_ids, slug)
     listings = list(
@@ -389,7 +379,7 @@ async def organiser_settlement(
     )
     summaries: list[schemas.SettlementSummary] = []
     for listing in listings:
-        report = await _build(db, listing, main)
+        report = await _build(db, listing)
         summaries.append(
             schemas.SettlementSummary(
                 listing_id=listing.id,
@@ -594,6 +584,5 @@ async def settlement_csv(
     listing_id: uuid.UUID,
     org_ids: list[str],
     slug: str | None = None,
-    main: AsyncSession | None = None,
 ) -> str:
-    return to_csv(await settlement(db, user, listing_id, org_ids, slug, main))
+    return to_csv(await settlement(db, user, listing_id, org_ids, slug))

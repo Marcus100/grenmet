@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.events import outbox, tickets
 from src.events.exceptions import EventsConflict
-from src.events.models import Listing, Order, Organiser, Outbox, Ticket, TicketTier
+from src.events.models import Listing, Order, Organiser, Ticket, TicketTier
 from src.notifications.models import Notification
 from src.utils.datetime import utc_now
 from tests.events.roles import user_with_role
@@ -20,7 +20,9 @@ from tests.events.support import (
     SessionFactory,
     client_as,
     client_with_real_roles,
+    drain_notifications,
     make_user,
+    queued,
 )
 from tests.events.test_organiser_admin import MANAGE, _organiser, _payload
 
@@ -314,16 +316,15 @@ async def test_ticket_issued_notification_goes_through_the_outbox(
     event = await _event(events_db)
     user = await user_with_role(db_async, None)
     assert (await _claim(user, event, 2)).status_code == 201
+    rows = await queued(events_db)
     async with events_db() as db:
-        rows = list((await db.scalars(select(Outbox))).all())
         order = await db.scalar(select(Order))
-    assert [row.kind for row in rows] == [outbox.TICKET_ISSUED]
+    assert [row.payload["kind"] for row in rows] == [outbox.TICKET_ISSUED]
     assert order is not None
-    assert rows[0].entity_id == str(order.id)
+    assert rows[0].payload["entity_id"] == str(order.id)
     assert "@" not in str(rows[0].payload)
-    async with events_db() as events:
-        assert await outbox.drain(events, db_async) == 1
-        assert await outbox.drain(events, db_async) == 0
+    assert await drain_notifications(events_db) == 1
+    assert await drain_notifications(events_db) == 0
     sent = (
         await db_async.execute(
             select(Notification.recipient_user_id, Notification.title).where(

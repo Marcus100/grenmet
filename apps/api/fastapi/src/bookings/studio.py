@@ -14,9 +14,10 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.contacts import service as contacts_service
+from src.contacts.models import Contact
 from src.payments import service as payments_service
 from src.utils.datetime import utc_now
-from src.utils.email_hash import hash_email
 from src.utils.timezones import local_to_utc, utc_to_local, zone
 
 from . import deposit_payments, emails, public, service
@@ -56,7 +57,7 @@ async def get_detail(
 async def _detail(
     session: AsyncSession, managed: public.Managed
 ) -> BookingStudioDetail:
-    booking, customer = managed.booking, managed.customer
+    booking, customer, contact = managed.booking, managed.customer, managed.contact
     events = (
         await session.scalars(
             select(BookingEvent)
@@ -80,9 +81,9 @@ async def _detail(
         provider_name=managed.provider.name,
         customer=BookingStudioCustomer(
             id=customer.id,
-            name=customer.name,
-            email=customer.email,
-            phone=customer.phone,
+            name=public.display_name(contact),
+            email=contact.email,
+            phone=contact.phone,
         ),
         starts_at=booking.starts_at,
         ends_at=booking.ends_at,
@@ -149,9 +150,10 @@ async def agenda(
         or 0
     )
     rows = await session.execute(
-        select(Booking, Service.name, Customer.name)
+        select(Booking, Service.name, func.coalesce(Contact.name, ""))
         .join(Service, Service.id == Booking.service_id)
         .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
         .where(*conditions)
         .order_by(Booking.starts_at, Booking.id)
         .limit(limit)
@@ -410,7 +412,9 @@ async def create_booking(
     if payload.send_confirmation and payload.customer_email is None:
         raise BookingValidationError("A confirmation email needs customer_email")
 
-    customer = await _studio_customer(session, organisation_id, payload, moment)
+    customer, contact = await _studio_customer(
+        session, organisation_id, payload, moment
+    )
     token, token_hash = public.new_manage_token()
     starts_at = service.as_naive_utc(payload.starts_at)
     ends_at = starts_at + timedelta(minutes=svc.duration_min)
@@ -451,7 +455,7 @@ async def create_booking(
     await public.emit_webhook(
         session, booking, "booking.created", event_id=f"booking.created:{booking.id}"
     )
-    managed = public.Managed(booking, profile, svc, provider, customer)
+    managed = public.Managed(booking, profile, svc, provider, customer, contact)
     if payload.send_confirmation:
         await public.queue_customer_email(
             session,
@@ -469,46 +473,24 @@ async def _studio_customer(
     organisation_id: str,
     payload: BookingStudioCreate,
     now: datetime,
-) -> Customer:
-    """Reuse the customer with this email; without an email each entry is a new
-    customer (a walk-in cannot be matched safely by name). With an email the
-    customer is linked to the contact book like an online booking, but no
-    marketing consent is recorded."""
+) -> tuple[Customer, Contact]:
+    """Reuse the contact with this email; without an email each entry is a new
+    contact (a walk-in cannot be matched safely by name). No marketing consent is
+    recorded: staff did not ask."""
     name = " ".join(payload.customer_name.split())
     phone = payload.customer_phone.strip() if payload.customer_phone else None
-    email = (
-        str(payload.customer_email).strip().lower() if payload.customer_email else None
-    )
-    digest = hash_email(email) if email else None
-    customer: Customer | None = None
-    if digest:
-        customer = await session.scalar(
-            select(Customer)
-            .where(
-                Customer.organisation_id == organisation_id,
-                Customer.email_hash == digest,
-            )
-            .order_by(Customer.created_at)
-            .limit(1)
-        )
-    if customer is None:
-        customer = Customer(
-            organisation_id=organisation_id,
+    if payload.customer_email:
+        contact = await contacts_service.upsert_contact(
+            session,
+            organisation_id,
+            email=str(payload.customer_email).strip().lower(),
             name=name,
-            email=email,
-            email_hash=digest,
             phone=phone,
-            last_booked_at=now,
+            source="bookings",
         )
-        session.add(customer)
     else:
-        customer.name = name
-        customer.phone = phone or customer.phone
-        customer.last_booked_at = now
-    await session.flush()
-    if email:
-        # Staff did not ask about marketing, so no consent is recorded.
-        await public.link_contact(
-            session, customer, email=email, phone=phone, consents=None
+        contact = await contacts_service.create_without_email(
+            session, organisation_id, name=name, phone=phone, source="bookings"
         )
-    return customer
+    customer = await public.customer_for_contact(session, organisation_id, contact, now)
+    return customer, contact

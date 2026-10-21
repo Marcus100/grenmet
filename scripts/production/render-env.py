@@ -25,7 +25,7 @@ def read_config(path):
 
 # Secrets the deployment cannot start without; the CI preflight reads this list.
 REQUIRED_SECRETS = ["POSTGRES_USER", "POSTGRES_PASSWORD", "FASTAPI_DB_PASSWORD", "SECRET_KEY", "FIRST_SUPERUSER", "FIRST_SUPERUSER_PASSWORD", "RESEND_API_KEY", "EMAIL", "USERNAME", "HASHED_PASSWORD", "PAYLOAD_SECRET", "GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET"]
-REQUIRED_SECRETS += [f"{domain}_DB_PASSWORD" for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "EVENTS", "CMS"]]
+REQUIRED_SECRETS += [f"{domain}_DB_PASSWORD" for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "CMS"]]
 
 
 def fernet_keys(environment, name):
@@ -107,7 +107,7 @@ def render(config, environment):
         if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "cap", "gmsdash", "signal", "mbia", "events", "bookings", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
             raise ValueError("Invalid shared Sentry routing")
         values[f"SENTRY_DSN_{app}"] = environment.get(secret_ref, "") if secret_ref else sentry.get("dsn") or ""
-    for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "EVENTS", "CMS"]:
+    for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "CMS"]:
         user = quote(config[f"{domain}_DB_USER"], safe="")
         password = quote(values[f"{domain}_DB_PASSWORD"], safe="")
         name = quote(config[f"{domain}_DB_NAME"], safe="")

@@ -17,5 +17,5 @@ export const settlementOnlinePaymentsSchema = z
     reconciled: z.union([z.boolean(), z.null()]).optional(),
   })
   .describe(
-    "Online (paid tier) orders against the payments ledger (N4b).\n\nThe Events side comes from the orders; the ledger side is the sum of the\n``events.order`` intents for this event in the payments ledger (charges and\nrefunds). They are separate databases, so the two are compared, not joined."
+    "Online (paid tier) orders against the payments ledger (N4b).\n\nThe Events side comes from the orders; the ledger side is the sum of the\n``events.order`` intents for this event in the payments ledger (charges and\nrefunds). Orders and the payments ledger are compared, not joined."
   );

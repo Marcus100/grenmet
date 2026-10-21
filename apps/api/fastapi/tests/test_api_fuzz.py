@@ -2,7 +2,7 @@
 
 Every read-only (GET) operation is called with generated parameters as the
 superuser and must never crash (5xx). 503 is allowed: domains with their own
-database (wxwatch, wxproducts, eregister, janitorial, transport, events) answer
+database (wxwatch, wxproducts, eregister, janitorial, transport) answer
 503 by design when that database is not configured. Hypothesis runs
 derandomized with a small example budget so the suite stays deterministic.
 """
@@ -21,7 +21,6 @@ from src.auth.utils import create_access_token
 from src.config import settings as app_settings
 from src.database import async_session_factory, init_db_async
 from src.eregister.config import eregister_settings
-from src.events.config import events_settings
 from src.janitorial.config import janitorial_settings
 from src.main import app
 from src.transport.config import transport_settings
@@ -44,7 +43,6 @@ read_only = schema.include(method="GET")
 # design. The main database stays on the suite's POSTGRES_* settings.
 DOMAIN_DATABASE_SETTINGS = (
     eregister_settings,
-    events_settings,
     janitorial_settings,
     transport_settings,
     wxproducts_settings,

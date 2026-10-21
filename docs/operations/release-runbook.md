@@ -25,14 +25,11 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
 - Run the `/pre-merge` check (types, lint, Docker names, env drift, API-client
   sync, Actions pinning). Fix findings before promoting.
 - `git status` clean, `dev` pushed.
-- For the API-backed Events release, provision `EVENTS_DB_PASSWORD` separately in
-  the staging and production GitHub environments before promotion (separate secrets were created and presence verified on 2026-10-05). Delivery
-  validates it before touching the running stack, provisions the dedicated
-  `events_staging` / `events` database, and runs its existing migrations. Verify
-  an Events sign-in and persisted save/RSVP on staging. Core backup and restore
-  acceptance now require eight databases including Events; retain a fresh complete
-  backup after provisioning. The production nightly backup will report a missing
-  Events database until this release has been deployed.
+- Events lives in the main database as the `events` schema (ADR-0003), so it needs
+  no separate secret or database. Verify an Events sign-in and persisted save/RSVP
+  on staging. Core backup and restore acceptance require seven databases (the
+  separate Events database is gone). Owner follow-up after the first deploy of this
+  change: drop the old `events_staging` database on staging.
 
 ## 2. Promote dev → staging
 

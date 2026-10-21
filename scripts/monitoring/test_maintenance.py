@@ -41,13 +41,10 @@ class MaintenanceTests(unittest.TestCase):
                     manifest, "staging", datetime.now(timezone.utc)
                 )
             ),
-            8,
+            7,
         )
         self.assertIn(
             "eregister_staging", [row["database"] for row in manifest["databases"]]
-        )
-        self.assertIn(
-            "events_staging", [row["database"] for row in manifest["databases"]]
         )
         for field, value in [
             (
@@ -55,7 +52,7 @@ class MaintenanceTests(unittest.TestCase):
                 [
                     row
                     for row in manifest["databases"]
-                    if row["database"] != "events_staging"
+                    if row["database"] != "transport_staging"
                 ],
             ),
             (

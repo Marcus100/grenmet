@@ -9,10 +9,11 @@ from collections import defaultdict
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.contacts.models import Contact
 from src.organisations import service as organisation_service
 from src.organisations.exceptions import OrganisationAppNotEntitledError
 from src.utils.datetime import utc_now
@@ -338,9 +339,10 @@ async def list_bookings(
     ends_before: datetime,
 ) -> list[dict[str, Any]]:
     rows = await session.execute(
-        select(Booking, Service.name, Customer.name)
+        select(Booking, Service.name, func.coalesce(Contact.name, ""))
         .join(Service, Service.id == Booking.service_id)
         .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
         .where(
             Booking.organisation_id == organisation_id,
             Booking.starts_at < as_naive_utc(ends_before),

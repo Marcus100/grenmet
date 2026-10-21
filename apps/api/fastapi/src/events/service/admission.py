@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.utils.datetime import utc_now
 
-from .. import activity, schemas, tickets
+from .. import activity, rewards_hook, schemas, tickets
 from ..exceptions import EventsConflict, EventsNotFound
 from ..models import Admission, Listing, MemberProfile, Order, Ticket, TicketTier
 from .common import GRENADA
@@ -140,6 +140,10 @@ async def admit_ticket(
         raise EventsConflict(
             "This ticket was just admitted on another device"
         ) from None
+    # The stamp saves with the admission: both commit or neither does.
+    await rewards_hook.credit_admission(
+        db, admission=admission, ticket=ticket, listing=listing
+    )
     activity.record(
         db,
         actor_id=user.id,

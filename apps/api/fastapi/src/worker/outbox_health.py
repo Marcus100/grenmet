@@ -17,7 +17,6 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import operational_metrics
-from src.events.models import Outbox as EventsOutbox
 from src.outbox import Outbox, OutboxStatus
 from src.utils.datetime import utc_now
 
@@ -63,31 +62,6 @@ async def platform_backlog(
         )
     )
     return Backlog("platform", int(dead or 0), int(stale or 0))
-
-
-async def events_backlog(
-    session: AsyncSession,
-    *,
-    stale_after: timedelta,
-    dead_window: timedelta,
-    now: datetime | None = None,
-) -> Backlog:
-    moment = now or utc_now()
-    dead = await session.scalar(
-        select(func.count())
-        .select_from(EventsOutbox)
-        .where(EventsOutbox.failed_at >= moment - dead_window)
-    )
-    stale = await session.scalar(
-        select(func.count())
-        .select_from(EventsOutbox)
-        .where(
-            EventsOutbox.processed_at.is_(None),
-            EventsOutbox.failed_at.is_(None),
-            EventsOutbox.available_at <= moment - stale_after,
-        )
-    )
-    return Backlog("events", int(dead or 0), int(stale or 0))
 
 
 async def report(redis: object, backlog: Backlog, *, threshold: int) -> bool:

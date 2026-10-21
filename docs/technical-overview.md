@@ -95,9 +95,8 @@ Ticketing, door admission, outlet cash, settlement and paid tiers
 The [FastAPI Events domain](../apps/api/fastapi/src/events/AGENTS.md) already
 contains listings, groups, connections, messaging, and access rules, with its
 own database and Alembic history. The web UI uses app-scoped email-code sign-in
-and a host-only session cookie. Events database configuration remains optional
-for the wider stack, but is required for the Events website's data-backed pages;
-those routes are unavailable while `EVENTS_DATABASE_URL` is unset. This inventory describes
+and a host-only session cookie. Events data lives in the `events` schema of the main
+database (ADR-0003). This inventory describes
 source implementation, not deployment or operational acceptance.
 
 ## Auth architecture
@@ -184,7 +183,7 @@ not require every page to fetch on the client.
 | Boundary | Owner and schema workflow |
 | --- | --- |
 | Main application database: identity, HR, CAP, and platform records | FastAPI SQLAlchemy models and main Alembic history |
-| WxWatch, WxProducts, eRegister, Janitorial, Transport, and Events databases | FastAPI domain sessions and each domain's own Alembic history |
+| WxWatch, WxProducts, eRegister, Janitorial, and Transport databases (Events is the `events` schema of the main database) | FastAPI domain sessions and each domain's own Alembic history |
 | Editorial CMS database | Payload collections and CMS migrations |
 
 GAA Admin has no operational database access. FastAPI owns operational schema
