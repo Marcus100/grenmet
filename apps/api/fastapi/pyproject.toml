@@ -170,6 +170,9 @@ filterwarnings = [
 ]
 
 [tool.coverage.report]
+# netcdf4 >= 1.7.5 ships Cython line-trace data for _netCDF4.pyx, which has no
+# source on disk, so `coverage report` fails with "No source for code".
+omit = ["*/netCDF4/*"]
 show_missing = true
 sort = "-Cover"
 
