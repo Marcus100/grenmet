@@ -119,28 +119,28 @@ function refresh(orgSlug: string, bookingId: string) {
   revalidatePath(`/studio/${orgSlug}/bookings/${bookingId}`);
 }
 
-export function confirmBookingAction(
+export async function confirmBookingAction(
   orgSlug: string,
   bookingId: string
 ): Promise<ActionState> {
-  return run(orgSlug, bookingId, "Booking confirmed.", confirmBooking);
+  return await run(orgSlug, bookingId, "Booking confirmed.", confirmBooking);
 }
 
-export function noShowBookingAction(
+export async function noShowBookingAction(
   orgSlug: string,
   bookingId: string
 ): Promise<ActionState> {
-  return run(orgSlug, bookingId, "Marked as a no-show.", markNoShow);
+  return await run(orgSlug, bookingId, "Marked as a no-show.", markNoShow);
 }
 
-export function completeBookingAction(
+export async function completeBookingAction(
   orgSlug: string,
   bookingId: string
 ): Promise<ActionState> {
-  return run(orgSlug, bookingId, "Marked as completed.", markCompleted);
+  return await run(orgSlug, bookingId, "Marked as completed.", markCompleted);
 }
 
-export function declineBookingAction(
+export async function declineBookingAction(
   orgSlug: string,
   bookingId: string,
   _previous: ActionState,
@@ -148,17 +148,15 @@ export function declineBookingAction(
 ): Promise<ActionState> {
   const parsed = reasonSchema.safeParse({ reason: formData.get("reason") });
   if (!parsed.success) {
-    return Promise.resolve(
-      invalid(parsed.error.issues[0]?.message ?? "Give a reason.")
-    );
+    return invalid(parsed.error.issues[0]?.message ?? "Give a reason.");
   }
   const { reason } = parsed.data;
-  return run(orgSlug, bookingId, "Request declined.", (token, org, id) =>
+  return await run(orgSlug, bookingId, "Request declined.", (token, org, id) =>
     declineBooking(token, org, id, reason)
   );
 }
 
-export function cancelBookingAction(
+export async function cancelBookingAction(
   orgSlug: string,
   bookingId: string,
   _previous: ActionState,
@@ -170,14 +168,12 @@ export function cancelBookingAction(
     refundDeposit: formData.get("refundDeposit") ?? undefined,
   });
   if (!parsed.success) {
-    return Promise.resolve(
-      invalid(parsed.error.issues[0]?.message ?? "Give a reason.")
-    );
+    return invalid(parsed.error.issues[0]?.message ?? "Give a reason.");
   }
   const { reason, refundChoice, refundDeposit } = parsed.data;
   // No choice offered: leave it out so the business's cutoff policy applies.
   const refund = refundChoice ? refundDeposit === "on" : undefined;
-  return run(orgSlug, bookingId, "Booking cancelled.", (token, org, id) =>
+  return await run(orgSlug, bookingId, "Booking cancelled.", (token, org, id) =>
     cancelBooking(token, org, id, {
       reason,
       ...(refund === undefined ? {} : { refundDeposit: refund }),
