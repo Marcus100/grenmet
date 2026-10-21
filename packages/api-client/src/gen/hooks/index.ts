@@ -554,6 +554,11 @@ export {
   useBookingsListExceptions,
 } from "./useBookingsListExceptions.js";
 export {
+  bookingsListMyOrganisationsQueryKey,
+  bookingsListMyOrganisationsQueryOptions,
+  useBookingsListMyOrganisations,
+} from "./useBookingsListMyOrganisations.js";
+export {
   bookingsListProvidersQueryKey,
   bookingsListProvidersQueryOptions,
   useBookingsListProviders,

@@ -109,6 +109,7 @@ export { bookingsGetStorefront } from "./bookingsGetStorefront.js";
 export { bookingsGetStudioBooking } from "./bookingsGetStudioBooking.js";
 export { bookingsGetWorkingHours } from "./bookingsGetWorkingHours.js";
 export { bookingsListExceptions } from "./bookingsListExceptions.js";
+export { bookingsListMyOrganisations } from "./bookingsListMyOrganisations.js";
 export { bookingsListProviders } from "./bookingsListProviders.js";
 export { bookingsListServices } from "./bookingsListServices.js";
 export { bookingsListStudioBookings } from "./bookingsListStudioBookings.js";

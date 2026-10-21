@@ -976,6 +976,7 @@ export { bookingAvailabilitySchema } from "./bookingAvailabilitySchema.js";
 export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
+export { bookingMyOrganisationSchema } from "./bookingMyOrganisationSchema.js";
 export { bookingOrderSchema } from "./bookingOrderSchema.js";
 export { bookingProfilePublicSchema } from "./bookingProfilePublicSchema.js";
 export { bookingProfileUpdateSchema } from "./bookingProfileUpdateSchema.js";
@@ -1262,6 +1263,14 @@ export {
   bookingsListExceptionsStatus404Schema,
   bookingsListExceptionsStatus422Schema,
 } from "./bookingsListExceptionsSchema.js";
+export {
+  bookingsListMyOrganisationsErrorSchema,
+  bookingsListMyOrganisationsResponseSchema,
+  bookingsListMyOrganisationsStatus200Schema,
+  bookingsListMyOrganisationsStatus401Schema,
+  bookingsListMyOrganisationsStatus403Schema,
+  bookingsListMyOrganisationsStatus422Schema,
+} from "./bookingsListMyOrganisationsSchema.js";
 export {
   bookingsListProvidersErrorSchema,
   bookingsListProvidersHeaderXBarrelsOrganisationSchema,
