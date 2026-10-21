@@ -588,3 +588,57 @@ async def test_all_scope_in_another_organisation_is_refused(
             session=db_async, current_user=outsider, punch_id=arrive.id
         )
     assert raised.value.status_code == 403
+
+
+async def test_unrelated_notes_do_not_justify_overwriting_a_departure(
+    db_async: AsyncSession,
+) -> None:
+    employee, manager, token = await _world(db_async)
+    supervisor = await _supervisor(db_async, department=DEPT)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    depart = await _punch(db_async, employee, token, 18, 0)
+    await punch_service.approve_punch(
+        session=db_async, current_user=supervisor, punch_id=arrive.id
+    )
+    [record] = await _records(db_async)
+    await attendance_service.save_attendance(
+        session=db_async,
+        current_user=manager,
+        payload=AttendanceSave(
+            roster_assignment_id=record.roster_assignment_id,
+            expected_revision=record.revision,
+            arrived_at=utc(9, 30).replace(tzinfo=UTC),
+            departed_at=utc(17, 0).replace(tzinfo=UTC),
+            notes="Covered the gate",
+        ),
+    )
+    with pytest.raises(AppException) as raised:
+        await punch_service.approve_punch(
+            session=db_async, current_user=supervisor, punch_id=depart.id
+        )
+    assert raised.value.status_code == 409
+    [after] = await _records(db_async)
+    assert after.departed_at == utc(17, 0)
+
+
+async def test_all_scope_approver_from_another_organisation_sees_nothing(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    await _punch(db_async, employee, token, 9, 30)
+    if not await db_async.get(Organisation, "other_org"):
+        db_async.add(Organisation(id="other_org", code="other_org", name="Other"))
+        await db_async.commit()
+    outsider = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, "timesheet.approve")
+    await assign_role(
+        db_async,
+        user=outsider,
+        role=role,
+        scope=RoleAssignmentScope.ALL,
+        organisation_id="other_org",
+    )
+    _, total = await punch_service.list_pending(
+        session=db_async, current_user=outsider, limit=50, offset=0
+    )
+    assert total == 0

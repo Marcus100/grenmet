@@ -137,11 +137,7 @@ async def approve_punch(
                 raise AppException(
                     "Approve the matching arrival before this departure", 409
                 )
-            if (
-                record.departed_at is not None
-                and record.departed_at != punched_at
-                and not (record.notes and record.notes.strip())
-            ):
+            if record.departed_at is not None and record.departed_at != punched_at:
                 raise AppException(
                     "Attendance already has a recorded departure; the employee "
                     "must propose a correction instead of overwriting it",
