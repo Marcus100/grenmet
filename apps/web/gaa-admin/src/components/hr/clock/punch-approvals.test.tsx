@@ -23,6 +23,7 @@ const LIST_URL = `${BASE}/api/v1/hr/attendance/clock-punches/pending`;
 const APPROVE_URL = `${LIST_URL.replace("/pending", "")}/:id/approve`;
 const REJECT_URL = `${LIST_URL.replace("/pending", "")}/:id/reject`;
 
+const ACCESS_URL = `${BASE}/api/v1/auth/access/me`;
 const PUNCH = {
   id: "p1",
   user_id: "u1",
@@ -39,10 +40,17 @@ const PUNCH = {
 
 let pending = [PUNCH];
 let rejectBody: unknown;
+let access = {
+  is_superuser: false,
+  permission_keys: ["timesheet.approve"],
+};
+let listRequests = 0;
 const server = setupServer(
-  http.get(LIST_URL, () =>
-    HttpResponse.json({ data: pending, count: pending.length })
-  ),
+  http.get(ACCESS_URL, () => HttpResponse.json(access)),
+  http.get(LIST_URL, () => {
+    listRequests += 1;
+    return HttpResponse.json({ data: pending, count: pending.length });
+  }),
   http.post(APPROVE_URL, () => {
     pending = [];
     return HttpResponse.json({ ...PUNCH, status: "APPROVED" });
@@ -60,6 +68,8 @@ beforeAll(() => {
 });
 beforeEach(() => {
   pending = [PUNCH];
+  access = { is_superuser: false, permission_keys: ["timesheet.approve"] };
+  listRequests = 0;
   rejectBody = undefined;
 });
 afterEach(() => server.resetHandlers());
@@ -151,7 +161,25 @@ describe("PunchApprovals", () => {
     );
   });
 
-  it("says when the caller lacks permission", async () => {
+  it("does not request the list without the permission", async () => {
+    access = { is_superuser: false, permission_keys: [] };
+    renderQueue();
+    expect(
+      await screen.findByText("You do not review phone punches", {
+        exact: false,
+      })
+    ).toBeVisible();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(listRequests).toBe(0);
+  });
+
+  it("lets a superuser load the list", async () => {
+    access = { is_superuser: true, permission_keys: [] };
+    renderQueue();
+    expect(await screen.findByText("Gerad Tamar")).toBeVisible();
+  });
+
+  it("still explains a 403 from the list", async () => {
     server.use(
       http.get(LIST_URL, () => new HttpResponse(null, { status: 403 }))
     );
@@ -159,5 +187,77 @@ describe("PunchApprovals", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "cannot review phone punches"
     );
+  });
+
+  it("explains a 404 on approve", async () => {
+    const { toast } = await import("sonner");
+    server.use(
+      http.post(APPROVE_URL, () =>
+        HttpResponse.json({ detail: "Clock punch not found" }, { status: 404 })
+      )
+    );
+    renderQueue();
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Approve Gerad Tamar arrival" })
+    );
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        expect.stringContaining("no longer exists")
+      )
+    );
+  });
+
+  it("keeps the reject dialog and reason open on a server error", async () => {
+    server.use(
+      http.post(REJECT_URL, () => new HttpResponse(null, { status: 500 }))
+    );
+    renderQueue();
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Reject Gerad Tamar arrival" })
+    );
+    const reasonBox = await screen.findByLabelText("Reason");
+    expect(reasonBox).toHaveFocus();
+    fireEvent.change(reasonBox, { target: { value: "Not on site" } });
+    fireEvent.click(screen.getByRole("button", { name: "Reject punch" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Reject punch" })).toBeEnabled()
+    );
+    expect(screen.getByLabelText("Reason")).toHaveValue("Not on site");
+  });
+
+  it("steps back a page when the last row of a later page is decided", async () => {
+    const many = Array.from({ length: 50 }, (_, index) => ({
+      ...PUNCH,
+      id: `m${index}`,
+      employee_name: `Staff ${index}`,
+    }));
+    let secondPageDone = false;
+    server.use(
+      http.get(LIST_URL, ({ request }) => {
+        const offset = Number(new URL(request.url).searchParams.get("offset"));
+        if (offset === 0)
+          return HttpResponse.json({
+            data: many,
+            count: secondPageDone ? 50 : 51,
+          });
+        return HttpResponse.json({
+          data: secondPageDone ? [] : [{ ...PUNCH, employee_name: "Last One" }],
+          count: secondPageDone ? 50 : 51,
+        });
+      }),
+      http.post(APPROVE_URL, () => {
+        secondPageDone = true;
+        return HttpResponse.json({ ...PUNCH, status: "APPROVED" });
+      })
+    );
+    renderQueue();
+    fireEvent.click(await screen.findByRole("button", { name: "Next" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Approve Last One arrival" })
+    );
+    expect(await screen.findByText("Staff 0")).toBeVisible();
+    expect(
+      screen.queryByText("No phone punches waiting")
+    ).not.toBeInTheDocument();
   });
 });

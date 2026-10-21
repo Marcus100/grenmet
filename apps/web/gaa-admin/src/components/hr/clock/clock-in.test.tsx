@@ -127,6 +127,40 @@ describe("ClockIn", () => {
     expect(result).toHaveTextContent("Reason: Wrong site");
   });
 
+  it("falls back to a neutral headline without a punch", async () => {
+    server.use(
+      http.post(CLOCK_URL, () =>
+        HttpResponse.json({
+          action: "ARRIVED",
+          site_name: "Main gate",
+          attendance: ATTENDANCE,
+        })
+      )
+    );
+    renderClock("scanned-code-123");
+    fireEvent.click(screen.getByRole("button", BUTTON));
+    const result = await screen.findByRole("region", { name: "Clock result" });
+    expect(result).toHaveTextContent("Arrival received");
+    expect(result).not.toHaveTextContent("undefined");
+  });
+
+  it("falls back to a neutral headline for an unknown status", async () => {
+    server.use(
+      http.post(CLOCK_URL, () =>
+        HttpResponse.json({
+          action: "DEPARTED",
+          site_name: "Main gate",
+          attendance: ATTENDANCE,
+          punch: { ...PUNCH, status: "ON_HOLD" },
+        })
+      )
+    );
+    renderClock("scanned-code-123");
+    fireEvent.click(screen.getByRole("button", BUTTON));
+    const result = await screen.findByRole("region", { name: "Clock result" });
+    expect(result).toHaveTextContent("Departure received");
+  });
+
   it("asks for a typed code when none was scanned and blocks short codes", () => {
     renderClock();
     const button = screen.getByRole("button", BUTTON);
