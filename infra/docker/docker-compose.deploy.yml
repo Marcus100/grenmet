@@ -836,6 +836,13 @@ networks:
   # after the first deploy and can be pruned.)
   grenmet:
     driver: bridge
+    # Pinned so uvicorn (--forwarded-allow-ips in apps/api/fastapi/Dockerfile.prod)
+    # can trust X-Forwarded-* from this subnet only. Keep the two in sync;
+    # scripts/production/forwarded-allow-ips.test.mjs enforces it. The last
+    # /16 of Docker's default 172.x pool range is the least likely to collide.
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
 
 volumes:
   nhc-archive:
