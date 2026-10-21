@@ -46,7 +46,12 @@ async def is_admin_activated(session: AsyncSession, user: User) -> bool:
     issued the activation link vouches for the account (owner decision 2026-10-21).
     The marker is the ``account_activation`` / ``activated`` audit entry that only
     ``confirm_activation`` writes, and it only does so for a link issued by an
-    active superuser. Self-registered accounts never have one."""
+    active superuser. Self-registered accounts never have one. The exemption lapses
+    when the email address changes: ``confirm_activation`` clears
+    ``email_verification_required`` and both email-change paths in
+    ``auth.service`` set it again."""
+    if user.email_verification_required:
+        return False
     found = await session.scalar(
         select(AuditEntry.id)
         .where(

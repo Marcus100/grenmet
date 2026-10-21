@@ -333,3 +333,98 @@ async def test_self_registered_unverified_account_is_still_refused(
             role=MembershipRole.OWNER,
         )
     assert raised.value.message.startswith(ERROR_CODE)
+
+
+async def test_activated_account_passes_invitation_accept_and_change_role(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    owner = await make_user(db_async)
+    org = await make_org(db_async, "Act Org", members=((owner, MembershipRole.OWNER),))
+    invitee = await make_user(db_async, verified=False)
+    await _admin_activate(db_async, invitee)
+    assert (
+        await _invite(async_client, owner, org, invitee.email, "admin")
+    ).status_code == 201
+    token = await _token_for(db_async, invitee.email)
+    assert (await _accept(async_client, invitee, token)).status_code == 200
+    member = await make_user(db_async, verified=False)
+    await _admin_activate(db_async, member)
+    assert (
+        await _invite(async_client, owner, org, member.email, "member")
+    ).status_code == 201
+    accepted = await _accept(
+        async_client, member, await _token_for(db_async, member.email)
+    )
+    assert accepted.status_code == 200, accepted.text
+    row = await _membership(db_async, org.id, member.id)
+    assert row is not None
+    promote = await async_client.patch(
+        f"{ORGS}/{org.id}/members/{row.id}",
+        json={"role": "admin"},
+        headers=headers_for(owner, org.id),
+    )
+    assert promote.status_code == 200, promote.text
+
+
+async def test_activation_link_issued_but_not_confirmed_is_refused(
+    db_async: AsyncSession,
+) -> None:
+    from src.auth import onboarding
+
+    person = await make_user(db_async, verified=False)
+    admin = await make_user(db_async, superuser=True)
+    await onboarding.issue_activation(db_async, admin, person.id, True)
+    role = Role(name="gate_unconfirmed_role", description="test")
+    db_async.add(role)
+    await db_async.commit()
+    with pytest.raises(AppException) as raised:
+        await create_user_role_assignment(
+            session=db_async,
+            assignment_in=UserRoleAssignmentCreate(user_id=person.id, role_id=role.id),
+        )
+    assert raised.value.message.startswith(ERROR_CODE)
+
+
+async def test_activated_account_that_changes_its_email_is_refused_again(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    from src.auth.schemas import UserUpdateMe
+    from src.auth.service import update_user_me
+
+    owner = await make_user(db_async)
+    org = await make_org(db_async, "Swap Org", members=((owner, MembershipRole.OWNER),))
+    victim_email = "victim-invitee@example.com"
+    assert (
+        await _invite(async_client, owner, org, victim_email, "admin")
+    ).status_code == 201
+    token = await _token_for(db_async, victim_email)
+
+    person = await make_user(db_async, verified=False)
+    await _admin_activate(db_async, person)
+    await update_user_me(
+        session=db_async,
+        current_user=person,
+        user_in=UserUpdateMe(email=victim_email),
+    )
+    assert person.email_verification_required is True
+
+    refused = await _accept(async_client, person, token)
+    assert refused.status_code == 403, refused.text
+    assert refused.json()["detail"].startswith(f"{ERROR_CODE}:")
+    role = Role(name="gate_swapped_role", description="test")
+    db_async.add(role)
+    await db_async.commit()
+    with pytest.raises(AppException) as raised:
+        await create_user_role_assignment(
+            session=db_async,
+            assignment_in=UserRoleAssignmentCreate(user_id=person.id, role_id=role.id),
+        )
+    assert raised.value.message.startswith(ERROR_CODE)
+    with pytest.raises(AppException) as raised:
+        await org_service.add_member(
+            db_async,
+            organisation_id=org.id,
+            user_id=person.id,
+            role=MembershipRole.OWNER,
+        )
+    assert raised.value.message.startswith(ERROR_CODE)
