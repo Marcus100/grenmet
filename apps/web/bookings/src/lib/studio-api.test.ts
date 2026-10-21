@@ -1,5 +1,6 @@
 import { ResponseError } from "@barrelsgd/api-client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { apiError } from "@/test/studio";
 import { studioFailure } from "./studio-errors";
 
 vi.mock("@/env", () => ({
@@ -112,15 +113,6 @@ describe("studio API reads", () => {
 });
 
 describe("studioFailure", () => {
-  function error(status: number) {
-    return new ResponseError({
-      status,
-      statusText: "",
-      data: {},
-      headers: new Headers(),
-    } as never);
-  }
-
   it.each([
     [401, "signed_out"],
     [403, "forbidden"],
@@ -128,7 +120,7 @@ describe("studioFailure", () => {
     [422, "invalid"],
     [500, "unavailable"],
   ] as const)("maps %s to %s with a next step", (status, kind) => {
-    const failure = studioFailure(error(status));
+    const failure = studioFailure(apiError(status));
     expect(failure.kind).toBe(kind);
     expect(failure.nextStep.length).toBeGreaterThan(0);
   });

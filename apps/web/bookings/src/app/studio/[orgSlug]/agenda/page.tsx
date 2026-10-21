@@ -6,6 +6,7 @@ import {
 } from "@barrelsgd/bookings-web/lib/booking-format";
 import {
   Empty,
+  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyTitle,
@@ -45,6 +46,11 @@ function first(value: string | string[] | undefined): string | undefined {
   return item?.trim() || undefined;
 }
 
+interface Href {
+  pathname: string;
+  query: Record<string, string>;
+}
+
 const CONTROL =
   "inline-flex min-h-11 items-center justify-center rounded-md border border-border px-4 font-medium";
 
@@ -72,6 +78,9 @@ export default async function AgendaPage({
   );
   const providerParam = first(query.provider);
   const providerId = isUuid(providerParam) ? providerParam : undefined;
+  const offsetParam = Number(first(query.offset));
+  const offset =
+    Number.isInteger(offsetParam) && offsetParam > 0 ? offsetParam : 0;
 
   const org = await loadOrganisation(session, orgSlug, base);
   if (!org.ok) {
@@ -86,6 +95,7 @@ export default async function AgendaPage({
           fromDate: range.from,
           toDate: range.to,
           providerId,
+          ...(offset > 0 ? { offset } : {}),
         }),
       base
     ),
@@ -98,6 +108,7 @@ export default async function AgendaPage({
 
   const link = (overrides: {
     date?: string;
+    offset?: number;
     provider?: string | null;
     view?: string;
   }) => {
@@ -110,10 +121,16 @@ export default async function AgendaPage({
     if (provider) {
       next.provider = provider;
     }
+    if (overrides.offset) {
+      next.offset = String(overrides.offset);
+    }
     return { pathname: base, query: next };
   };
 
+  // Names come from every provider so old bookings keep theirs; only active
+  // providers are offered as filters.
   const providerNames = new Map(providers.map((item) => [item.id, item.name]));
+  const activeProviders = providers.filter((item) => item.active);
   const today = todayIn();
 
   return (
@@ -159,7 +176,7 @@ export default async function AgendaPage({
         </nav>
       </div>
 
-      {providers.length > 1 ? (
+      {activeProviders.length > 1 ? (
         <nav aria-label="Filter by provider" className="flex flex-wrap gap-2">
           <Link
             aria-current={providerId ? undefined : "true"}
@@ -168,7 +185,7 @@ export default async function AgendaPage({
           >
             All providers
           </Link>
-          {providers.map((provider) => (
+          {activeProviders.map((provider) => (
             <Link
               aria-current={providerId === provider.id ? "true" : undefined}
               className={pill(providerId === provider.id)}
@@ -186,11 +203,22 @@ export default async function AgendaPage({
       {agenda.ok ? (
         <AgendaDays
           days={agenda.value.days}
+          nextHref={
+            offset + agenda.value.limit < agenda.value.total
+              ? link({ offset: offset + agenda.value.limit })
+              : null
+          }
           orgSlug={orgSlug}
+          previousHref={
+            offset > 0
+              ? link({ offset: Math.max(0, offset - agenda.value.limit) })
+              : null
+          }
           providerNames={providerNames}
           range={range}
           timezone={agenda.value.timezone || DEFAULT_TIMEZONE}
           today={today}
+          total={agenda.value.total}
         />
       ) : (
         <StudioAlert
@@ -205,14 +233,20 @@ export default async function AgendaPage({
 
 function AgendaDays({
   days,
+  nextHref,
   orgSlug,
+  previousHref,
+  total: allMatching,
   providerNames,
   range,
   timezone,
   today,
 }: {
   days: { bookings: BookingAgendaItem[]; day: string }[];
+  nextHref: Href | null;
   orgSlug: string;
+  previousHref: Href | null;
+  total: number;
   providerNames: Map<string, string>;
   range: AgendaRange;
   timezone: string;
@@ -221,8 +255,8 @@ function AgendaDays({
   const byDay = new Map(days.map((entry) => [entry.day, entry.bookings]));
   const total = days.reduce((sum, entry) => sum + entry.bookings.length, 0);
 
-  if (total === 0) {
-    return (
+  const emptyNote =
+    total === 0 ? (
       <Empty className="border">
         <EmptyHeader>
           <EmptyTitle>
@@ -236,13 +270,43 @@ function AgendaDays({
             providers if a filter is on.
           </EmptyDescription>
         </EmptyHeader>
+        <EmptyContent>
+          <Link
+            className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4"
+            href="/"
+          >
+            See how online booking works
+          </Link>
+        </EmptyContent>
       </Empty>
-    );
+    ) : null;
+
+  if (emptyNote && range.view === "day") {
+    return emptyNote;
   }
 
   const shown = range.view === "week" ? daysIn(range) : [range.day];
+  const paging =
+    allMatching > total || previousHref ? (
+      <p className="flex flex-wrap items-center gap-3" role="status">
+        <span>{`Showing ${total} of ${allMatching} bookings`}</span>
+        {previousHref ? (
+          <Link className={pill(false)} href={previousHref}>
+            Previous bookings
+          </Link>
+        ) : null}
+        {nextHref ? (
+          <Link className={pill(false)} href={nextHref}>
+            More bookings
+          </Link>
+        ) : null}
+      </p>
+    ) : null;
+
   return (
     <div className="space-y-6">
+      {emptyNote}
+      {paging}
       {shown.map((day) => {
         const bookings = byDay.get(day) ?? [];
         return (

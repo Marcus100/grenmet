@@ -49,6 +49,9 @@ describe("studio organisation picker", () => {
       screen.getByText("You are not part of a business yet")
     ).toBeInTheDocument();
     expect(screen.getByText(EMAIL)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "See how Barrels Bookings works" })
+    ).toHaveAttribute("href", "/");
   });
 
   it("lists each business with its role when there are several", async () => {

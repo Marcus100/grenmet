@@ -1,5 +1,6 @@
 import {
   Empty,
+  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyTitle,
@@ -53,6 +54,14 @@ export default async function StudioPage() {
             organisation, then refresh this page.
           </EmptyDescription>
         </EmptyHeader>
+        <EmptyContent>
+          <Link
+            className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4"
+            href="/"
+          >
+            See how Barrels Bookings works
+          </Link>
+        </EmptyContent>
       </Empty>
     );
   }

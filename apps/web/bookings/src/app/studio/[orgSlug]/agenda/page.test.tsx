@@ -1,4 +1,8 @@
-import type { BookingAgenda, BookingAgendaItem } from "@barrelsgd/api-client";
+import type {
+  BookingAgenda,
+  BookingAgendaItem,
+  BookingProviderPublic,
+} from "@barrelsgd/api-client";
 import { formatDay } from "@barrelsgd/bookings-web/lib/booking-format";
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -30,6 +34,7 @@ const params = Promise.resolve({ orgSlug: "sea-salt" });
 const search = (query: Record<string, string> = {}) => Promise.resolve(query);
 const ADA = /Ada Lovelace/;
 const GRACE = /Grace Hopper/;
+const RETIRED = /with Retired Rae/;
 const BOOKING = "22222222-2222-4222-8222-222222222222";
 
 function item(overrides: Partial<BookingAgendaItem> = {}): BookingAgendaItem {
@@ -63,6 +68,14 @@ function agenda(days: BookingAgenda["days"]): BookingAgenda {
   };
 }
 
+function provider(
+  id: string,
+  name: string,
+  active = true
+): BookingProviderPublic {
+  return { id, name, active, user_id: null, sort_order: 0, service_ids: [] };
+}
+
 beforeEach(() => {
   reportError.mockReset();
   vi.mocked(findOrganisation).mockResolvedValue({
@@ -73,13 +86,10 @@ beforeEach(() => {
   });
   vi.mocked(getAgenda).mockReset();
   vi.mocked(listProviders).mockResolvedValue([
-    { id: PROVIDER_ID, name: "Maya", service_ids: [] },
-    {
-      id: "66666666-6666-4666-8666-666666666666",
-      name: "Kofi",
-      service_ids: [],
-    },
-  ] as never);
+    provider(PROVIDER_ID, "Maya"),
+    provider("66666666-6666-4666-8666-666666666666", "Kofi"),
+    provider("88888888-8888-4888-8888-888888888888", "Retired Rae", false),
+  ]);
 });
 
 describe("studio agenda", () => {
@@ -209,5 +219,100 @@ describe("studio agenda", () => {
     await expect(
       AgendaPage({ params, searchParams: search() })
     ).rejects.toHaveProperty("message", "NEXT_NOT_FOUND");
+  });
+
+  it("always renders all seven days for an empty week, with the set-up link", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ view: "week", date: "2026-10-21" }),
+      })
+    );
+    expect(screen.getByText("No bookings this week")).toBeInTheDocument();
+    expect(screen.getAllByText("No bookings.")).toHaveLength(7);
+    expect(
+      screen.getByRole("link", { name: "See how online booking works" })
+    ).toHaveAttribute("href", "/");
+  });
+
+  it("links to how online booking works from an empty day", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(
+      screen.getByRole("link", { name: "See how online booking works" })
+    ).toBeInTheDocument();
+  });
+
+  it("says when a busy range is cut off and links to the next page", async () => {
+    vi.mocked(getAgenda).mockResolvedValue({
+      ...agenda([{ day: "2026-10-21", bookings: [item()] }]),
+      limit: 1,
+      total: 3,
+    });
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21" }),
+      })
+    );
+    expect(screen.getByText("Showing 1 of 3 bookings")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "More bookings" })).toHaveAttribute(
+      "href",
+      "/studio/sea-salt/agenda?view=day&date=2026-10-21&offset=1"
+    );
+  });
+
+  it("passes the offset to the API and offers the previous page", async () => {
+    vi.mocked(getAgenda).mockResolvedValue({
+      ...agenda([{ day: "2026-10-21", bookings: [item()] }]),
+      limit: 1,
+      offset: 1,
+      total: 3,
+    });
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21", offset: "1" }),
+      })
+    );
+    expect(vi.mocked(getAgenda).mock.calls[0]?.[2].offset).toBe(1);
+    expect(
+      screen.getByRole("link", { name: "Previous bookings" })
+    ).toBeInTheDocument();
+  });
+
+  it("offers only active providers as filters", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(screen.getByRole("link", { name: "Kofi" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Retired Rae" })).toBeNull();
+  });
+
+  it("keeps a retired provider's name on old bookings", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(
+      agenda([
+        {
+          day: "2026-10-21",
+          bookings: [
+            item({ provider_id: "88888888-8888-4888-8888-888888888888" }),
+          ],
+        },
+      ])
+    );
+    render(
+      await AgendaPage({
+        params,
+        searchParams: search({ date: "2026-10-21" }),
+      })
+    );
+    expect(screen.getByText(RETIRED)).toBeInTheDocument();
+  });
+
+  it("does not report a bad date range to Sentry", async () => {
+    vi.mocked(getAgenda).mockRejectedValue(apiError(422));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Choose another day");
+    expect(reportError).not.toHaveBeenCalled();
   });
 });

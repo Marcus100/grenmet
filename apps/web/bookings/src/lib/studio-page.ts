@@ -23,7 +23,10 @@ export async function guarded<T>(
     if (failure.kind === "signed_out") {
       redirect(`/signin?${new URLSearchParams({ returnTo })}`);
     }
-    reportError(error, "studio");
+    // A bad date or filter is the visitor's typo, not a fault to alert on.
+    if (failure.kind !== "invalid") {
+      reportError(error, "studio");
+    }
     return { ok: false, failure };
   }
 }
