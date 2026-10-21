@@ -1,6 +1,7 @@
 """Per-visitor rate limiting behind a trusted web host (issue #468)."""
 
 import random
+from typing import Any, cast
 
 import httpx
 import pytest
@@ -82,7 +83,7 @@ def _tiny_app() -> FastAPI:
     app.state.limiter = local
     app.add_exception_handler(
         RateLimitExceeded,
-        _rate_limit_exceeded_handler,  # type: ignore[arg-type]
+        cast(Any, _rate_limit_exceeded_handler),
     )
 
     @app.get("/ping")
