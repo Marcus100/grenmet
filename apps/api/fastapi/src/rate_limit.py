@@ -30,9 +30,8 @@ def warn_if_secret_too_short() -> bool:
     short = 0 < len(settings.TRUSTED_WEB_SECRET) < MIN_TRUSTED_SECRET_LENGTH
     if short:
         logger.warning(
-            "TRUSTED_WEB_SECRET is shorter than %d characters and is ignored; "
-            "rate limits key on the connecting address",
-            MIN_TRUSTED_SECRET_LENGTH,
+            "TRUSTED_WEB_SECRET is shorter than 32 characters and is ignored; "
+            "rate limits key on the connecting address"
         )
     return short
 
