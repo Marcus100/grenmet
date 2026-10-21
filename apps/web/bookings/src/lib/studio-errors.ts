@@ -85,7 +85,8 @@ export function actionFailure(error: unknown): StudioFailure {
     case 409:
       return {
         kind: "conflict",
-        message: "This booking cannot be changed that way.",
+        message:
+          "This booking has already changed (it may already be cancelled or finished).",
         nextStep:
           "It was updated by someone else, or the time is no longer free. The page has refreshed; check its status and try again.",
       };

@@ -3,8 +3,10 @@
 // Booking actions on the detail screen for owners and admins. Which buttons
 // show follows the API's legal transitions (`availableActions`); the API
 // still decides. Destructive or final steps ask first in an alert dialog, and
-// every result is announced (role="status" for success, role="alert" for
-// a refusal). Targets are 44 px or more so the phone is as usable as the desk.
+// every result is announced (role="status" for success, role="alert" for a
+// refusal or a warning) and takes focus, because the button that was pressed
+// is usually gone afterwards. Targets are 44 px or more so the phone is as
+// usable as the desk.
 
 import type { BookingStatus } from "@barrelsgd/api-client";
 import {
@@ -18,14 +20,15 @@ import {
   AlertDialogTrigger,
 } from "@barrelsgd/ui/components/ui/alert-dialog";
 import { Button } from "@barrelsgd/ui/components/ui/button";
-import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
 import { Label } from "@barrelsgd/ui/components/ui/label";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import {
   type ReactNode,
+  type Ref,
   useActionState,
   useEffect,
   useId,
+  useRef,
   useState,
 } from "react";
 import {
@@ -38,11 +41,18 @@ import {
 import { type ActionState, IDLE } from "@/lib/studio-action-state";
 import { availableActions } from "@/lib/studio-view";
 
+// The design spec's minimum touch target; the touch size alone is 48 px.
+const TARGET = "min-h-11";
+
 export interface BookingActionsProps {
   bookingId: string;
-  /** A deposit was captured: offer the refund choice when cancelling. */
-  depositCaptured: boolean;
   orgSlug: string;
+  /**
+   * A captured deposit is still held: offer the refund choice on cancel and
+   * mention the full refund on decline. False while a deposit is awaited
+   * (the API decides) and once nothing is left to refund.
+   */
+  refundable: boolean;
   /** The booking's start has passed (server clock at render). */
   started: boolean;
   status: BookingStatus;
@@ -50,13 +60,21 @@ export interface BookingActionsProps {
 
 export function BookingActions({
   bookingId,
-  depositCaptured,
   orgSlug,
+  refundable,
   started,
   status,
 }: BookingActionsProps) {
   const [notice, setNotice] = useState<ActionState>(IDLE);
+  const noticeRef = useRef<HTMLParagraphElement>(null);
   const keys = availableActions(status, started);
+
+  // The pressed button is often gone after a final action: land on the result.
+  useEffect(() => {
+    if (notice.status === "done") {
+      noticeRef.current?.focus();
+    }
+  }, [notice]);
 
   return (
     <section aria-labelledby="actions-title" className="space-y-3">
@@ -98,7 +116,9 @@ export function BookingActions({
           {keys.includes("decline") ? (
             <ReasonDialog
               action={declineBookingAction.bind(null, orgSlug, bookingId)}
-              description="The customer is emailed your reason and the time is released."
+              description={`The customer is emailed your reason and the time is released.${
+                refundable ? " Any deposit is refunded in full." : ""
+              }`}
               onResult={setNotice}
               submitLabel="Decline request"
               title="Decline this request?"
@@ -108,9 +128,9 @@ export function BookingActions({
           {keys.includes("cancel") ? (
             <ReasonDialog
               action={cancelBookingAction.bind(null, orgSlug, bookingId)}
-              depositCaptured={depositCaptured}
               description="The customer is emailed your reason and the time is released."
               onResult={setNotice}
+              refundChoice={refundable}
               submitLabel="Cancel booking"
               title="Cancel this booking?"
               triggerLabel="Cancel booking"
@@ -118,17 +138,30 @@ export function BookingActions({
           ) : null}
         </div>
       )}
-      <Notice state={notice} />
+      <Notice noticeRef={noticeRef} state={notice} />
     </section>
   );
 }
 
-function Notice({ state }: { state: ActionState }) {
+function Notice({
+  noticeRef,
+  state,
+}: {
+  noticeRef: Ref<HTMLParagraphElement>;
+  state: ActionState;
+}) {
   if (state.status === "done") {
+    // A warning (the refund failed) must interrupt; plain success is polite.
     return (
       <p
-        className="rounded-lg border border-border bg-muted p-3 font-medium"
-        role="status"
+        className={
+          state.warning
+            ? "rounded-lg border border-destructive/40 bg-destructive/10 p-3 font-medium"
+            : "rounded-lg border border-border bg-muted p-3 font-medium"
+        }
+        ref={noticeRef}
+        role={state.warning ? "alert" : "status"}
+        tabIndex={-1}
       >
         {state.message}
       </p>
@@ -179,7 +212,7 @@ function ConfirmButton({
   }, [state, onResult]);
   return (
     <form action={formAction}>
-      <Button disabled={pending} size="touch" type="submit">
+      <Button className={TARGET} disabled={pending} size="touch" type="submit">
         {pending ? "Confirming..." : "Confirm booking"}
       </Button>
     </form>
@@ -215,32 +248,37 @@ function FinalDialog({
   );
 }
 
-/** Decline or cancel: a required reason, and the deposit choice when one was taken. */
+const REFUND_CHOICES = [
+  { value: "policy", label: "Follow the business policy" },
+  { value: "refund", label: "Refund the deposit" },
+  { value: "keep", label: "Keep the deposit" },
+] as const;
+
+/** Decline or cancel: a required reason, and the deposit choice when one is held. */
 function ReasonDialog({
   action,
-  depositCaptured = false,
   description,
   onResult,
+  refundChoice = false,
   submitLabel,
   title,
   triggerLabel,
 }: {
   action: (previous: ActionState, formData: FormData) => Promise<ActionState>;
-  depositCaptured?: boolean;
   description: string;
   onResult: (state: ActionState) => void;
+  refundChoice?: boolean;
   submitLabel: string;
   title: string;
   triggerLabel: string;
 }) {
   const reasonId = useId();
   const hintId = useId();
-  const errorId = useId();
+  const policyHintId = useId();
   return (
     <DialogShell
       action={action}
       description={description}
-      errorId={errorId}
       onResult={onResult}
       submitLabel={submitLabel}
       title={title}
@@ -254,7 +292,7 @@ function ReasonDialog({
               Reason (the customer sees this)
             </Label>
             <Textarea
-              aria-describedby={error ? `${hintId} ${errorId}` : hintId}
+              aria-describedby={hintId}
               aria-invalid={error ? true : undefined}
               id={reasonId}
               maxLength={300}
@@ -266,14 +304,32 @@ function ReasonDialog({
               Up to 300 characters.
             </p>
           </div>
-          {depositCaptured ? (
-            <>
-              <input name="refundChoice" type="hidden" value="1" />
-              <Label className="min-h-11 items-center gap-3">
-                <Checkbox defaultChecked name="refundDeposit" />
-                Refund the deposit
-              </Label>
-            </>
+          {refundChoice ? (
+            <fieldset
+              aria-describedby={policyHintId}
+              className="space-y-1 border-0 p-0"
+            >
+              <legend className="font-medium text-sm">Deposit</legend>
+              {REFUND_CHOICES.map((choice) => (
+                <Label
+                  className={`${TARGET} items-center gap-3`}
+                  key={choice.value}
+                >
+                  <input
+                    className="size-5 accent-primary"
+                    defaultChecked={choice.value === "policy"}
+                    name="refundChoice"
+                    type="radio"
+                    value={choice.value}
+                  />
+                  {choice.label}
+                </Label>
+              ))}
+              <p className="text-muted-foreground text-sm" id={policyHintId}>
+                The business policy refunds if the booking is more than the
+                cancellation cutoff away.
+              </p>
+            </fieldset>
           ) : null}
         </div>
       )}
@@ -281,11 +337,14 @@ function ReasonDialog({
   );
 }
 
+/**
+ * The trigger and the dialog. Each opening mounts a fresh form (keyed on a
+ * counter), so a refusal from last time never greets the next attempt.
+ */
 function DialogShell({
   action,
   children,
   description,
-  errorId,
   onResult,
   submitLabel,
   title,
@@ -295,7 +354,6 @@ function DialogShell({
   action: (previous: ActionState, formData: FormData) => Promise<ActionState>;
   children?: (error: boolean) => ReactNode;
   description: string;
-  errorId?: string;
   onResult: (state: ActionState) => void;
   submitLabel: string;
   title: string;
@@ -303,20 +361,21 @@ function DialogShell({
   triggerLabel: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [state, formAction, pending] = useActionState(action, IDLE);
+  const [opened, setOpened] = useState(0);
 
-  useEffect(() => {
-    if (state.status === "done") {
-      setOpen(false);
-      onResult(state);
+  function change(next: boolean) {
+    if (next) {
+      setOpened((count) => count + 1);
     }
-  }, [state, onResult]);
+    setOpen(next);
+  }
 
   return (
-    <AlertDialog onOpenChange={setOpen} open={open}>
+    <AlertDialog onOpenChange={change} open={open}>
       <AlertDialogTrigger
         render={
           <Button
+            className={TARGET}
             size="touch"
             variant={tone === "destructive" ? "destructive" : "outline"}
           />
@@ -325,30 +384,72 @@ function DialogShell({
         {triggerLabel}
       </AlertDialogTrigger>
       <AlertDialogContent>
-        <form action={formAction} className="grid gap-4">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{title}</AlertDialogTitle>
-            <AlertDialogDescription>{description}</AlertDialogDescription>
-          </AlertDialogHeader>
-          {children?.(state.status === "error")}
-          {state.status === "error" ? (
-            <ErrorBox id={errorId} state={state} />
-          ) : null}
-          <AlertDialogFooter>
-            <AlertDialogCancel className="min-h-11" size="touch">
-              Go back
-            </AlertDialogCancel>
-            <Button
-              disabled={pending}
-              size="touch"
-              type="submit"
-              variant={tone === "destructive" ? "destructive" : "default"}
-            >
-              {pending ? "Saving..." : submitLabel}
-            </Button>
-          </AlertDialogFooter>
-        </form>
+        <DialogForm
+          action={action}
+          description={description}
+          key={opened}
+          onDone={(state) => {
+            setOpen(false);
+            onResult(state);
+          }}
+          submitLabel={submitLabel}
+          title={title}
+          tone={tone}
+        >
+          {children}
+        </DialogForm>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+function DialogForm({
+  action,
+  children,
+  description,
+  onDone,
+  submitLabel,
+  title,
+  tone,
+}: {
+  action: (previous: ActionState, formData: FormData) => Promise<ActionState>;
+  children?: (error: boolean) => ReactNode;
+  description: string;
+  onDone: (state: ActionState) => void;
+  submitLabel: string;
+  title: string;
+  tone: "default" | "destructive";
+}) {
+  const [state, formAction, pending] = useActionState(action, IDLE);
+
+  useEffect(() => {
+    if (state.status === "done") {
+      onDone(state);
+    }
+  }, [state, onDone]);
+
+  return (
+    <form action={formAction} className="grid gap-4">
+      <AlertDialogHeader>
+        <AlertDialogTitle>{title}</AlertDialogTitle>
+        <AlertDialogDescription>{description}</AlertDialogDescription>
+      </AlertDialogHeader>
+      {children?.(state.status === "error")}
+      {state.status === "error" ? <ErrorBox state={state} /> : null}
+      <AlertDialogFooter>
+        <AlertDialogCancel className={TARGET} size="touch">
+          Go back
+        </AlertDialogCancel>
+        <Button
+          className={TARGET}
+          disabled={pending}
+          size="touch"
+          type="submit"
+          variant={tone === "destructive" ? "destructive" : "default"}
+        >
+          {pending ? "Saving..." : submitLabel}
+        </Button>
+      </AlertDialogFooter>
+    </form>
   );
 }

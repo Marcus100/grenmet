@@ -16,13 +16,13 @@ import { BookingActions } from "./booking-actions";
 
 function show(
   status: BookingStatus,
-  extra: { started?: boolean; depositCaptured?: boolean } = {}
+  extra: { started?: boolean; refundable?: boolean } = {}
 ) {
   return render(
     <BookingActions
       bookingId={BOOKING_ID}
-      depositCaptured={extra.depositCaptured ?? false}
       orgSlug="sea-salt"
+      refundable={extra.refundable ?? false}
       started={extra.started ?? false}
       status={status}
     />
@@ -31,6 +31,8 @@ function show(
 
 const NOTHING_MORE = /nothing more to do/;
 const REASON = /Reason/;
+const BY_HAND = /refund it by hand/;
+const POLICY_HINT = /more than the\s+cancellation cutoff away/;
 
 const buttons = () =>
   screen.queryAllByRole("button").map((button) => button.textContent);
@@ -101,17 +103,123 @@ describe("dialogs", () => {
     expect(actions.cancelBookingAction).not.toHaveBeenCalled();
   });
 
-  it("offers the deposit refund only when a deposit was captured", async () => {
-    const { unmount } = show("pending", { depositCaptured: false });
+  it("offers the deposit choice only when a deposit is held", async () => {
+    const { unmount } = show("pending", { refundable: false });
     fireEvent.click(screen.getByRole("button", { name: "Cancel booking" }));
     await screen.findByRole("alertdialog");
-    expect(screen.queryByText("Refund the deposit")).not.toBeInTheDocument();
+    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
     unmount();
 
-    show("pending", { depositCaptured: true });
+    show("pending", { refundable: true });
     fireEvent.click(screen.getByRole("button", { name: "Cancel booking" }));
     await screen.findByRole("alertdialog");
-    expect(screen.getByText("Refund the deposit")).toBeInTheDocument();
+    expect(screen.getAllByRole("radio")).toHaveLength(3);
+    expect(screen.getByLabelText("Follow the business policy")).toBeChecked();
+    expect(screen.getByText(POLICY_HINT)).toBeInTheDocument();
+  });
+
+  it.each([
+    ["Follow the business policy", "policy"],
+    ["Refund the deposit", "refund"],
+    ["Keep the deposit", "keep"],
+  ])("submits the %s choice", async (label, value) => {
+    actions.cancelBookingAction.mockResolvedValue({
+      status: "done",
+      message: "Booking cancelled.",
+    });
+    show("pending", { refundable: true });
+    fireEvent.click(screen.getByRole("button", { name: "Cancel booking" }));
+    fireEvent.change(await screen.findByLabelText(REASON), {
+      target: { value: "Ill" },
+    });
+    fireEvent.click(screen.getByLabelText(label));
+    fireEvent.click(
+      screen
+        .getAllByRole("button", { name: "Cancel booking" })
+        .at(-1) as HTMLElement
+    );
+    await waitFor(() => expect(actions.cancelBookingAction).toHaveBeenCalled());
+    const formData = actions.cancelBookingAction.mock.calls[0]?.[3] as FormData;
+    expect(formData.get("refundChoice")).toBe(value);
+    expect(formData.get("reason")).toBe("Ill");
+  });
+
+  it("says a decline refunds any deposit in full, only when one is held", async () => {
+    const { unmount } = show("pending", { refundable: true });
+    fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+    expect(await screen.findByRole("alertdialog")).toHaveTextContent(
+      "Any deposit is refunded in full."
+    );
+    unmount();
+    show("pending", { refundable: false });
+    fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+    expect(await screen.findByRole("alertdialog")).not.toHaveTextContent(
+      "refunded in full"
+    );
+  });
+
+  it("shows a failed refund as an alert and moves focus to it", async () => {
+    actions.cancelBookingAction.mockResolvedValue({
+      status: "done",
+      warning: true,
+      message:
+        "Booking cancelled. The deposit refund failed; refund it by hand.",
+    });
+    show("pending", { refundable: true });
+    fireEvent.click(screen.getByRole("button", { name: "Cancel booking" }));
+    fireEvent.change(await screen.findByLabelText(REASON), {
+      target: { value: "Ill" },
+    });
+    fireEvent.click(
+      screen
+        .getAllByRole("button", { name: "Cancel booking" })
+        .at(-1) as HTMLElement
+    );
+    const alert = await screen.findByText(BY_HAND);
+    expect(alert).toHaveAttribute("role", "alert");
+    await waitFor(() => expect(alert).toHaveFocus());
+  });
+
+  it("moves focus to the result after a final action", async () => {
+    actions.completeBookingAction.mockResolvedValue({
+      status: "done",
+      message: "Marked as completed.",
+    });
+    show("confirmed", { started: true });
+    fireEvent.click(screen.getByRole("button", { name: "Mark completed" }));
+    await screen.findByRole("alertdialog");
+    fireEvent.click(
+      screen
+        .getAllByRole("button", { name: "Mark completed" })
+        .at(-1) as HTMLElement
+    );
+    const notice = await screen.findByText("Marked as completed.");
+    await waitFor(() => expect(notice).toHaveFocus());
+  });
+
+  it("does not show last time's refusal when the dialog is reopened", async () => {
+    actions.declineBookingAction.mockResolvedValue({
+      status: "error",
+      kind: "conflict",
+      message: "This booking has already changed.",
+      nextStep: "Check its status.",
+    });
+    show("pending");
+    fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+    fireEvent.change(await screen.findByLabelText(REASON), {
+      target: { value: "Full" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Decline request" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "already changed"
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Go back" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+    await screen.findByRole("alertdialog");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("submits the reason, closes and announces on success", async () => {

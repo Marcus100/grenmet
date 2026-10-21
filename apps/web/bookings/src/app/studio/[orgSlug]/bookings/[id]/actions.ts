@@ -5,7 +5,7 @@
 // browser supplies only the reason and the refund choice. FastAPI still
 // enforces role and legal transitions and answers 403 / 409.
 
-import { ResponseError } from "@barrelsgd/api-client";
+import { type BookingStudioDetail, ResponseError } from "@barrelsgd/api-client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -38,9 +38,9 @@ const reasonSchema = z.object({
 });
 
 const cancelSchema = reasonSchema.extend({
-  // Present only when the form offered the refund choice (a deposit was taken).
-  refundChoice: z.literal("1").optional(),
-  refundDeposit: z.literal("on").optional(),
+  // Offered only when there is a deposit left to refund. Absent or "policy":
+  // leave refund_deposit out so the business's cancellation cutoff decides.
+  refundChoice: z.enum(["policy", "refund", "keep"]).optional(),
 });
 
 function fail(failure: StudioFailure): ActionState {
@@ -59,7 +59,7 @@ type Call = (
   accessToken: string,
   organisationId: string,
   bookingId: string
-) => Promise<unknown>;
+) => Promise<BookingStudioDetail>;
 
 /**
  * Session, organisation and role checks, then one API call. Anything the API
@@ -69,7 +69,8 @@ async function run(
   orgSlug: string,
   bookingId: string,
   done: string,
-  call: Call
+  call: Call,
+  options: { warnOnFailedRefund?: boolean } = {}
 ): Promise<ActionState> {
   const returnTo = `/studio/${orgSlug}/bookings/${bookingId}`;
   if (!(SLUG.test(orgSlug) && isUuid(bookingId))) {
@@ -83,6 +84,7 @@ async function run(
   if (!session) {
     redirect(`/signin?${new URLSearchParams({ returnTo })}`);
   }
+  let detail: BookingStudioDetail;
   try {
     const org = await findOrganisation(session.accessToken, orgSlug);
     if (!org) {
@@ -95,7 +97,7 @@ async function run(
     if (!canManageBookings(org.role)) {
       return fail(ADMIN_REQUIRED);
     }
-    await call(session.accessToken, org.id, bookingId);
+    detail = await call(session.accessToken, org.id, bookingId);
   } catch (error) {
     const failure = actionFailure(error);
     if (failure.kind === "signed_out") {
@@ -111,7 +113,21 @@ async function run(
     return fail(failure);
   }
   refresh(orgSlug, bookingId);
+  if (options.warnOnFailedRefund && refundFailed(detail)) {
+    return {
+      status: "done",
+      warning: true,
+      message: `${done} The deposit refund failed; refund it by hand.`,
+    };
+  }
   return { status: "done", message: done };
+}
+
+/** The API records a failed refund as a timeline note on the cancelled booking. */
+function refundFailed(detail: BookingStudioDetail): boolean {
+  return detail.events.some((event) =>
+    event.note?.toLowerCase().includes("refund failed")
+  );
 }
 
 function refresh(orgSlug: string, bookingId: string) {
@@ -146,13 +162,19 @@ export async function declineBookingAction(
   _previous: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const parsed = reasonSchema.safeParse({ reason: formData.get("reason") });
+  const parsed = reasonSchema.safeParse({
+    reason: formData.get("reason") ?? "",
+  });
   if (!parsed.success) {
     return invalid(parsed.error.issues[0]?.message ?? "Give a reason.");
   }
   const { reason } = parsed.data;
-  return await run(orgSlug, bookingId, "Request declined.", (token, org, id) =>
-    declineBooking(token, org, id, reason)
+  return await run(
+    orgSlug,
+    bookingId,
+    "Request declined.",
+    (token, org, id) => declineBooking(token, org, id, reason),
+    { warnOnFailedRefund: true }
   );
 }
 
@@ -163,20 +185,30 @@ export async function cancelBookingAction(
   formData: FormData
 ): Promise<ActionState> {
   const parsed = cancelSchema.safeParse({
-    reason: formData.get("reason"),
+    reason: formData.get("reason") ?? "",
     refundChoice: formData.get("refundChoice") ?? undefined,
-    refundDeposit: formData.get("refundDeposit") ?? undefined,
   });
   if (!parsed.success) {
     return invalid(parsed.error.issues[0]?.message ?? "Give a reason.");
   }
-  const { reason, refundChoice, refundDeposit } = parsed.data;
-  // No choice offered: leave it out so the business's cutoff policy applies.
-  const refund = refundChoice ? refundDeposit === "on" : undefined;
-  return await run(orgSlug, bookingId, "Booking cancelled.", (token, org, id) =>
-    cancelBooking(token, org, id, {
-      reason,
-      ...(refund === undefined ? {} : { refundDeposit: refund }),
-    })
+  const { reason, refundChoice } = parsed.data;
+  // Policy (the default) or no choice offered: leave it out so the business's
+  // cutoff decides. Only an explicit choice overrides it.
+  let refund: boolean | undefined;
+  if (refundChoice === "refund") {
+    refund = true;
+  } else if (refundChoice === "keep") {
+    refund = false;
+  }
+  return await run(
+    orgSlug,
+    bookingId,
+    "Booking cancelled.",
+    (token, org, id) =>
+      cancelBooking(token, org, id, {
+        reason,
+        ...(refund === undefined ? {} : { refundDeposit: refund }),
+      }),
+    { warnOnFailedRefund: true }
   );
 }

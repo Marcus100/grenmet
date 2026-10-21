@@ -94,8 +94,11 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
       {canManageBookings(org.value.role) ? (
         <BookingActions
           bookingId={booking.id}
-          depositCaptured={booking.deposit_captured_minor > 0}
           orgSlug={orgSlug}
+          refundable={
+            booking.status !== "pending_payment" &&
+            booking.deposit_captured_minor - booking.deposit_refunded_minor > 0
+          }
           started={Date.parse(booking.starts_at) <= Date.now()}
           status={booking.status}
         />

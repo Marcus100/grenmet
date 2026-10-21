@@ -5,7 +5,7 @@ import type { StudioFailureKind } from "@/lib/studio-errors";
 
 export type ActionState =
   | { status: "idle" }
-  | { status: "done"; message: string }
+  | { status: "done"; message: string; warning?: boolean }
   | {
       status: "error";
       kind: StudioFailureKind;
