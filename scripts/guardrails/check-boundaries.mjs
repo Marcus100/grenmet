@@ -123,33 +123,52 @@ function* sourceFiles(root, directory) {
   }
 }
 
+/** Every source file under apps/web and packages, in scan order. */
+function* scannedFiles(root) {
+  for (const base of [join(root, "apps", "web"), join(root, "packages")])
+    yield* sourceFiles(root, base);
+}
+
+/**
+ * Each import specifier in one file: its 1-based line and, for relative
+ * specifiers, the workspace it resolves into.
+ */
+function* importsIn(root, path) {
+  const code = stripComments(readFileSync(path, "utf8"));
+  for (const match of code.matchAll(SPECIFIER)) {
+    const specifier = match[1];
+    yield {
+      specifier,
+      line: code.slice(0, match.index).split("\n").length,
+      target: specifier.startsWith(".")
+        ? workspaceOf(root, resolve(dirname(path), specifier))
+        : null,
+    };
+  }
+}
+
+/** Rules that one import breaks, as reportable violation records. */
+function violationsForImport(context) {
+  return rules
+    .filter((rule) => rule.test(context))
+    .map((rule) => ({
+      file: context.file,
+      line: context.line,
+      specifier: context.specifier,
+      rule: rule.id,
+      why: rule.why,
+    }));
+}
+
 /** Returns violations as { file, line, specifier, rule, why }. */
 export function findViolations(root) {
   const violations = [];
-  for (const base of [join(root, "apps", "web"), join(root, "packages")]) {
-    for (const path of sourceFiles(root, base)) {
-      const from = workspaceOf(root, path);
-      if (!from) continue;
-      const file = posix(root, path);
-      const code = stripComments(readFileSync(path, "utf8"));
-      for (const match of code.matchAll(SPECIFIER)) {
-        const specifier = match[1];
-        const line = code.slice(0, match.index).split("\n").length;
-        const target = specifier.startsWith(".")
-          ? workspaceOf(root, resolve(dirname(path), specifier))
-          : null;
-        for (const rule of rules) {
-          if (rule.test({ from, file, specifier, target }))
-            violations.push({
-              file,
-              line,
-              specifier,
-              rule: rule.id,
-              why: rule.why,
-            });
-        }
-      }
-    }
+  for (const path of scannedFiles(root)) {
+    const from = workspaceOf(root, path);
+    if (!from) continue;
+    const file = posix(root, path);
+    for (const imported of importsIn(root, path))
+      violations.push(...violationsForImport({ from, file, ...imported }));
   }
   return violations;
 }

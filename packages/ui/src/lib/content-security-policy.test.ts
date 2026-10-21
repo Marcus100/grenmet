@@ -79,7 +79,7 @@ describe("buildContentSecurityPolicy", () => {
     }
   });
 
-  it.each(["docs", "signal"] as const)(
+  it.each(["docs", "signal", "mbia", "elections", "babydoll"] as const)(
     "%s has no duplicate directives and no unsafe-eval",
     (app) => {
       const policy = buildContentSecurityPolicy({ app, dsn: DSN });
@@ -171,4 +171,146 @@ describe("bookings policy", () => {
       contentSecurityPolicyHeaders({ app: "bookings", isProduction: false })
     ).toEqual([]);
   });
+});
+
+const TURNSTILE = "https://challenges.cloudflare.com";
+const GA_SCRIPT = "https://www.googletagmanager.com";
+const GA_IMG =
+  "https://www.google-analytics.com https://www.googletagmanager.com";
+const SENTRY_CONNECT = "https://o1.ingest.sentry.io";
+const SENTRY_REPORTING = [`report-uri ${REPORT}`, "report-to csp-endpoint"];
+
+describe("mbia policy (GA4 plus the contact form's Turnstile)", () => {
+  it("serialises the exact policy with reporting", () => {
+    expect(
+      buildContentSecurityPolicy({
+        app: "mbia",
+        dsn: DSN,
+        environment: "production",
+      })
+    ).toBe(
+      [
+        "default-src 'self'",
+        `script-src 'self' 'unsafe-inline' ${GA_SCRIPT} ${TURNSTILE}`,
+        "style-src 'self' 'unsafe-inline'",
+        `img-src 'self' data: blob: ${GA_IMG}`,
+        "font-src 'self'",
+        `connect-src 'self' ${GA_CONNECT} ${TURNSTILE} ${SENTRY_CONNECT}`,
+        `frame-src ${TURNSTILE}`,
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'self'",
+        "worker-src 'self'",
+        ...SENTRY_REPORTING,
+      ].join("; ")
+    );
+  });
+
+  it("serialises the exact policy without reporting", () => {
+    expect(buildContentSecurityPolicy({ app: "mbia" })).toBe(
+      [
+        "default-src 'self'",
+        `script-src 'self' 'unsafe-inline' ${GA_SCRIPT} ${TURNSTILE}`,
+        "style-src 'self' 'unsafe-inline'",
+        `img-src 'self' data: blob: ${GA_IMG}`,
+        "font-src 'self'",
+        `connect-src 'self' ${GA_CONNECT} ${TURNSTILE}`,
+        `frame-src ${TURNSTILE}`,
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'self'",
+        "worker-src 'self'",
+      ].join("; ")
+    );
+  });
+});
+
+describe("elections policy (GA4 only, no forms)", () => {
+  it("serialises the exact policy with reporting", () => {
+    expect(
+      buildContentSecurityPolicy({
+        app: "elections",
+        dsn: DSN,
+        environment: "production",
+      })
+    ).toBe(
+      [
+        "default-src 'self'",
+        `script-src 'self' 'unsafe-inline' ${GA_SCRIPT}`,
+        "style-src 'self' 'unsafe-inline'",
+        `img-src 'self' data: blob: ${GA_IMG}`,
+        "font-src 'self'",
+        `connect-src 'self' ${GA_CONNECT} ${SENTRY_CONNECT}`,
+        "frame-src 'none'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'self'",
+        "worker-src 'self'",
+        ...SENTRY_REPORTING,
+      ].join("; ")
+    );
+  });
+
+  it("serialises the exact policy without reporting", () => {
+    expect(buildContentSecurityPolicy({ app: "elections" })).toBe(
+      [
+        "default-src 'self'",
+        `script-src 'self' 'unsafe-inline' ${GA_SCRIPT}`,
+        "style-src 'self' 'unsafe-inline'",
+        `img-src 'self' data: blob: ${GA_IMG}`,
+        "font-src 'self'",
+        `connect-src 'self' ${GA_CONNECT}`,
+        "frame-src 'none'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'self'",
+        "worker-src 'self'",
+      ].join("; ")
+    );
+  });
+});
+
+describe("babydoll policy (no analytics, Turnstile on /book)", () => {
+  // Babydoll has no Sentry, so there is no reporting endpoint.
+  const BABYDOLL_POLICY = [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-inline' ${TURNSTILE}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self'",
+    `connect-src 'self' ${TURNSTILE}`,
+    `frame-src ${TURNSTILE}`,
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'self'",
+    "worker-src 'self'",
+  ].join("; ");
+
+  it("serialises the exact policy", () => {
+    expect(buildContentSecurityPolicy({ app: "babydoll" })).toBe(
+      BABYDOLL_POLICY
+    );
+  });
+});
+
+describe("Report-Only headers for the static apps", () => {
+  it.each(["mbia", "elections", "babydoll"] as const)(
+    "%s sends only Report-Only in production",
+    (app) => {
+      expect(
+        contentSecurityPolicyHeaders({ app, isProduction: true }).map(
+          (h) => h.key
+        )
+      ).toEqual(["Content-Security-Policy-Report-Only"]);
+    }
+  );
+
+  it.each(["mbia", "elections"] as const)(
+    "%s emits no header outside production",
+    (app) => {
+      expect(
+        contentSecurityPolicyHeaders({ app, dsn: DSN, isProduction: false })
+      ).toEqual([]);
+    }
+  );
 });

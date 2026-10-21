@@ -1,6 +1,6 @@
 /**
  * Content-Security-Policy builder for the Next.js apps (Report-Only on `docs`,
- * `signal` and `bookings`).
+ * `signal`, `bookings`, `mbia`, `elections` and `babydoll`).
  *
  * Traefik already sends HSTS, nosniff, X-Frame-Options and Referrer-Policy on
  * every host, so this module only produces the CSP header (and the
@@ -14,7 +14,13 @@
  * `'unsafe-eval'` and websockets for HMR, and dev reports would only add noise.
  */
 
-export type CspApp = "docs" | "signal" | "bookings";
+export type CspApp =
+  | "docs"
+  | "signal"
+  | "bookings"
+  | "mbia"
+  | "elections"
+  | "babydoll";
 
 const GA_SCRIPT = ["https://www.googletagmanager.com"] as const;
 const GA_CONNECT = [
@@ -62,6 +68,31 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
     connect: [],
     img: [],
     frame: [],
+  },
+  // GA4 in production (service-catalogue `mbia`); no PostHog project. The
+  // contact form's Turnstile widget is the only third party besides GA.
+  mbia: {
+    script: [...GA_SCRIPT, TURNSTILE],
+    connect: [...GA_CONNECT, TURNSTILE],
+    img: GA_IMG,
+    frame: [TURNSTILE],
+  },
+  // GA4 in production (service-catalogue `elections`); no PostHog project and
+  // no forms, so no Turnstile. Search, atlas and forecast data are same-origin.
+  elections: {
+    script: [...GA_SCRIPT],
+    connect: [...GA_CONNECT],
+    img: GA_IMG,
+    frame: [],
+  },
+  // No analytics (publicAnalytics false). The booking flow on /book and
+  // /booking/[token] renders Turnstile when a site key is set. Booking calls
+  // run server-side, so the API origin is not a browser source.
+  babydoll: {
+    script: [TURNSTILE],
+    connect: [TURNSTILE],
+    img: [],
+    frame: [TURNSTILE],
   },
 };
 

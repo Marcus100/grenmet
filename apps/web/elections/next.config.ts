@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { contentSecurityPolicyHeaders } from "@barrelsgd/ui/lib/content-security-policy";
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 
@@ -14,6 +15,18 @@ const nextConfig: NextConfig = {
     return [
       { source: "/since-2022", destination: "/updates", permanent: true },
     ];
+  },
+  // CSP is Report-Only until a clean 7-day report window (docs/security.md).
+  headers() {
+    const headers = contentSecurityPolicyHeaders({
+      app: "elections",
+      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+      environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+      isProduction: process.env.NODE_ENV === "production",
+    });
+    return Promise.resolve(
+      headers.length > 0 ? [{ source: "/:path*", headers }] : []
+    );
   },
 };
 
