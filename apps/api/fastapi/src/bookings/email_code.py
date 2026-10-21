@@ -10,8 +10,9 @@ proof) -> ``require_proof`` at booking create. Rules:
 - The code is random, 6 digits, valid ``CODE_TTL`` seconds, stored only as an
   HMAC (keyed by a secret derived from ``SECRET_KEY``) in Redis, compared in
   constant time and deleted when used (single use).
-- After ``MAX_ATTEMPTS`` wrong answers for one (organisation, email) the pair
-  is locked for ``LOCK_TTL`` seconds. A resend does not reset the count, so
+- Guesses are counted atomically before the compare, and only while a live
+  code exists (junk confirms cannot lock anyone out). The ``MAX_ATTEMPTS``-th
+  attempt for one (organisation, email) locks the pair for ``LOCK_TTL`` seconds. A resend does not reset the count, so
   asking for fresh codes cannot extend the guessing budget.
 - At most ``SEND_LIMIT`` codes per (organisation, email) per hour, on top of
   the per-visitor route limits.
@@ -38,7 +39,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Protocol
+from typing import Protocol, cast
 
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
@@ -95,6 +96,15 @@ class CodeStore(Protocol):
     async def exists(self, key: str) -> bool: ...
 
 
+_INCR_WITH_TTL = """
+local count = redis.call('INCR', KEYS[1])
+if count == 1 or redis.call('TTL', KEYS[1]) < 0 then
+  redis.call('EXPIRE', KEYS[1], ARGV[1])
+end
+return count
+"""
+
+
 class RedisCodeStore:
     def __init__(self, url: str | None) -> None:
         self._url = url
@@ -131,11 +141,11 @@ class RedisCodeStore:
         return bool(await self._run(lambda r: r.set(key, value, ex=ttl, nx=True)))
 
     async def incr(self, key: str, ttl: int) -> int:
+        # One server-side step: a counter can never exist without a TTL (a key
+        # found without one gets it too).
         async def run(r: Redis) -> int:
-            count = int(await r.incr(key))
-            if count == 1:
-                await r.expire(key, ttl)
-            return count
+            pending = cast("Awaitable[int]", r.eval(_INCR_WITH_TTL, 1, key, str(ttl)))
+            return int(await pending)
 
         return await self._run(run)
 
@@ -289,26 +299,38 @@ async def request_code(
 
 
 async def confirm_code(binding: Binding, code: str) -> tuple[str, int]:
-    """Check ``code``; on success return ``(proof, lifetime seconds)``."""
+    """Check ``code``; on success return ``(proof, lifetime seconds)``.
+
+    Order matters for the guess limit: with no live code nothing is counted (so
+    junk requests cannot lock an address out), otherwise the attempt is counted
+    atomically BEFORE the compare, so a parallel burst cannot evaluate more than
+    ``MAX_ATTEMPTS`` guesses."""
     store = _Current.store
     lock = f"{_PREFIX}lock:{binding.who}"
     if await store.exists(lock):
         raise CodeRateLimitedError
     key = f"{_PREFIX}code:{binding.slot}"
     stored = await store.get(key)
+    if stored is None:
+        raise CodeRejectedError
+    attempt = await store.incr(f"{_PREFIX}fail:{binding.who}", LOCK_TTL)
+    if attempt > MAX_ATTEMPTS:
+        await _lock_out(store, lock, key)
+        raise CodeRateLimitedError
     expected = _mac("code", binding.slot, code)
-    # Compare against a dummy when nothing is stored so timing does not differ.
-    matches = hmac.compare_digest(stored or _mac("none"), expected) and bool(stored)
-    # Single use: only the caller whose delete removed the key succeeds.
-    if matches and await store.take(key):
+    # Single use: only the caller whose delete removes the key succeeds.
+    if hmac.compare_digest(stored, expected) and await store.take(key):
         await store.take(f"{_PREFIX}fail:{binding.who}")
         return sign_proof(binding), PROOF_TTL
-    failures = await store.incr(f"{_PREFIX}fail:{binding.who}", LOCK_TTL)
-    if failures >= MAX_ATTEMPTS:
-        await store.put(lock, "1", LOCK_TTL)
-        await store.take(key)
+    if attempt >= MAX_ATTEMPTS:
+        await _lock_out(store, lock, key)
         raise CodeRateLimitedError
     raise CodeRejectedError
+
+
+async def _lock_out(store: CodeStore, lock: str, code_key: str) -> None:
+    await store.put(lock, "1", LOCK_TTL)
+    await store.take(code_key)
 
 
 # --- use at booking create ------------------------------------------------------------

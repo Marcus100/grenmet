@@ -1,5 +1,6 @@
 """Emailed-code verification before a booking deposit (#471, ADR-0018)."""
 
+import asyncio
 import time
 import uuid
 from datetime import timedelta
@@ -27,6 +28,7 @@ from tests.bookings.test_public_bookings import (
     _slots,
     _studio,
 )
+from tests.events.roles import user_with_role
 from tests.factories import make_user
 from tests.organisations.support import headers_for
 
@@ -172,7 +174,9 @@ async def test_unverified_bookings_app_session_gets_the_step(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio, slot = await _setup(db_async, async_client)
-    user = await make_user(db_async, verified=False)
+    user = await user_with_role(db_async, "bookings-member")
+    user.email_verified_at = None
+    await db_async.commit()
     address = user.email
     token = create_access_token(
         user.id,
@@ -191,7 +195,7 @@ async def test_unverified_bookings_app_session_gets_the_step(
     assert ok.status_code == 201
 
     # A verified bookings session is recognised too: no step.
-    verified = await make_user(db_async, verified=True)
+    verified = await user_with_role(db_async, "bookings-member")
     verified_address = verified.email
     vtoken = create_access_token(
         verified.id,
@@ -458,3 +462,110 @@ async def test_a_failed_booking_does_not_burn_the_proof(
     # The proof is still good for a later booking of that very slot.
     again = await _create(async_client, studio, slot, proof)
     assert again.status_code == 409
+
+
+# --- hardening (security review of #496) ---------------------------------------------------
+
+
+async def test_parallel_guesses_cannot_exceed_the_attempt_limit(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, slot = await _setup(db_async, async_client)
+    await _request(async_client, studio, slot)
+    code = await latest_code(db_async, studio.org_id)
+    wrong = "123456" if code != "123456" else "654321"
+    burst = [_confirm(async_client, studio, slot, wrong) for _ in range(12)]
+    burst.append(_confirm(async_client, studio, slot, code))
+    statuses = [r.status_code for r in await asyncio.gather(*burst)]
+    # At most MAX_ATTEMPTS guesses were ever evaluated; the rest hit the lock.
+    assert statuses.count(429) >= len(statuses) - email_code.MAX_ATTEMPTS
+    assert statuses.count(400) + statuses.count(200) <= email_code.MAX_ATTEMPTS
+    # Once locked, the right code is refused too.
+    assert (await _confirm(async_client, studio, slot, code)).status_code == 429
+
+
+async def test_junk_confirms_without_a_live_code_never_lock_the_pair(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, slot = await _setup(db_async, async_client)
+    for _ in range(email_code.MAX_ATTEMPTS + 5):
+        assert (await _confirm(async_client, studio, slot, "111111")).status_code == 400
+    # The real owner can still ask for and use a code.
+    assert (await _request(async_client, studio, slot)).status_code == 200
+    code = await latest_code(db_async, studio.org_id)
+    assert (await _confirm(async_client, studio, slot, code)).status_code == 200
+
+
+async def test_an_ineligible_bookings_token_is_treated_as_a_guest(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, slot = await _setup(db_async, async_client)
+    # Verified, but holds no bookings access: the session must not exempt it.
+    user = await make_user(db_async, verified=True)
+    address = user.email
+    token = create_access_token(
+        user.id,
+        expires_delta=timedelta(minutes=auth_settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+        app="bookings",
+    )
+    refused = await _create(
+        async_client,
+        studio,
+        slot,
+        None,
+        email=address,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert refused.status_code == 403
+
+
+async def test_an_inactive_bookings_account_is_treated_as_a_guest(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, slot = await _setup(db_async, async_client)
+    user = await user_with_role(db_async, "bookings-member")
+    address = user.email
+    token = create_access_token(
+        user.id,
+        expires_delta=timedelta(minutes=auth_settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+        app="bookings",
+    )
+    user.is_active = False
+    await db_async.commit()
+    refused = await _create(
+        async_client,
+        studio,
+        slot,
+        None,
+        email=address,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert refused.status_code == 403
+
+
+async def test_redis_counter_always_has_a_ttl() -> None:
+    from redis.asyncio import Redis
+
+    from src.worker.config import worker_settings
+
+    url = worker_settings.REDIS_URL
+    if not url:
+        pytest.skip("no Redis configured")
+    client = Redis.from_url(url, decode_responses=True)
+    try:
+        await client.ping()
+    except Exception:
+        pytest.skip("Redis not reachable")
+    key = f"bk:ec:test:{uuid.uuid4().hex}"
+    store = email_code.RedisCodeStore(url)
+    try:
+        assert await store.incr(key, 60) == 1
+        assert 0 < await client.ttl(key) <= 60
+        # A counter that somehow lost its TTL is repaired on the next increment.
+        await client.persist(key)
+        assert await client.ttl(key) == -1
+        assert await store.incr(key, 60) == 2
+        assert 0 < await client.ttl(key) <= 60
+    finally:
+        await client.delete(key)
+        await client.aclose()

@@ -95,6 +95,15 @@ def _token_user_id(token: str, *, app: str | None = None) -> uuid.UUID:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
 
 
+def _token_app(token: str) -> str | None:
+    """The ``app`` claim of a token already validated by ``_token_user_id``."""
+    try:
+        payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
+        return TokenPayload(**payload).app
+    except InvalidTokenError, ValidationError:
+        return None
+
+
 async def get_current_user(session: SessionDep, token: TokenDep) -> User:
     """
     Get current authenticated user dependency.
@@ -229,10 +238,18 @@ async def optional_account(
     if scheme.lower() != "bearer" or not token.strip():
         return None
     try:
-        return await get_authenticated_user(
+        user = await get_authenticated_user(
             session,
             _token_user_id(token.strip(), app=app),
             allow_unapproved=True,
         )
+        if app is not None and _token_app(token.strip()) == app:
+            # An app session counts only while the account still holds that
+            # app's access (the check user_for_app makes).
+            from src.auth.eligibility import is_eligible_for_app
+
+            if not await is_eligible_for_app(session=session, user=user, app_key=app):
+                return None
+        return user
     except HTTPException:
         return None
