@@ -4,18 +4,32 @@ Role, membership and entitlement checks are unchanged; only the credential set
 widens, and only to the route family's own app."""
 
 import uuid
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 import httpx
+import jwt
 import pytest
 from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit.models import AuditEntry
 from src.auth.config import auth_settings
 from src.auth.models import User
 from src.auth.utils import create_access_token
 from src.dependencies import get_current_user
-from src.organisations.models import MembershipRole, PlatformOrganisation
+from src.organisations import service as org_service
+from src.organisations.models import (
+    Membership,
+    MembershipRole,
+    MembershipStatus,
+    OrganisationStatus,
+    PlatformOrganisation,
+)
+from tests.bookings.test_public_bookings import Studio, _slots
+from tests.bookings.test_public_bookings import _studio as _public_studio
+from tests.bookings.test_studio import _events
+from tests.bookings.test_studio_create import _create
 from tests.events.roles import user_with_role
 from tests.organisations.support import make_org
 
@@ -198,3 +212,195 @@ async def test_get_current_user_still_refuses_bookings_token(
     with pytest.raises(HTTPException) as caught:
         await get_current_user(db_async, _token(user, "bookings"))
     assert caught.value.status_code == 401
+
+
+# --- org_or_key write paths, audit attribution and credential edge cases ----------------
+
+
+async def _staffed_studio(
+    db: AsyncSession,
+    client: httpx.AsyncClient,
+    role: MembershipRole,
+    apps: tuple[str, ...] = ("bookings",),
+) -> tuple[Studio, User]:
+    studio = await _public_studio(db, client, apps=apps)
+    user = await user_with_role(db, "bookings-member")
+    await org_service.add_member(
+        db, organisation_id=studio.org_id, user_id=user.id, role=role
+    )
+    await db.commit()
+    return studio, user
+
+
+async def test_admin_token_creates_a_booking_attributed_to_the_user(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    studio, user = await _staffed_studio(
+        db_async, async_client, MembershipRole.ADMIN, ("bookings", "contacts")
+    )
+    slot = (await _slots(async_client, studio))[0]
+    before = set(
+        await db_async.scalars(
+            select(AuditEntry.id).where(AuditEntry.organisation_id == studio.org_id)
+        )
+    )
+    created = await _create(
+        async_client,
+        studio,
+        slot,
+        headers=_headers(user, studio.org_id),
+        customer_email="audited@example.com",
+    )
+    assert created.status_code == 201, created.text
+    events = await _events(db_async, created.json()["id"])
+    assert events[0].actor_user_id == user.id
+    entries = (
+        await db_async.scalars(
+            select(AuditEntry)
+            .where(AuditEntry.organisation_id == studio.org_id)
+            .execution_options(populate_existing=True)
+        )
+    ).all()
+    new = [e for e in entries if e.id not in before]
+    assert new
+    assert {e.actor_user_id for e in new} == {user.id}
+
+
+async def test_member_token_cannot_create_or_reorder(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    studio, user = await _staffed_studio(db_async, async_client, MembershipRole.MEMBER)
+    headers = _headers(user, studio.org_id)
+    slot = (await _slots(async_client, studio))[0]
+    created = await _create(async_client, studio, slot, headers=headers)
+    assert created.status_code == 403, created.text
+    reorder = await async_client.put(
+        f"{SERVICES}/order", headers=headers, json={"ids": [studio.service_id]}
+    )
+    assert reorder.status_code == 403, reorder.text
+
+
+async def test_admin_token_reorders_services(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    studio, user = await _staffed_studio(db_async, async_client, MembershipRole.ADMIN)
+    reorder = await async_client.put(
+        f"{SERVICES}/order",
+        headers=_headers(user, studio.org_id),
+        json={"ids": [studio.service_id]},
+    )
+    assert reorder.status_code == 200, reorder.text
+
+
+@pytest.mark.parametrize("other_app", ["events", "gmsdash"])
+async def test_other_apps_tokens_cannot_create_or_reorder(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, other_app: str
+) -> None:
+    studio, user = await _staffed_studio(db_async, async_client, MembershipRole.ADMIN)
+    headers = _headers(user, studio.org_id, app=other_app)
+    slot = (await _slots(async_client, studio))[0]
+    created = await _create(async_client, studio, slot, headers=headers)
+    assert created.status_code == 401, created.text
+    reorder = await async_client.put(
+        f"{SERVICES}/order", headers=headers, json={"ids": [studio.service_id]}
+    )
+    assert reorder.status_code == 401, reorder.text
+
+
+async def test_bookings_token_is_refused_on_unopted_org_or_key_route(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    user, org = await _studio(db_async, MembershipRole.ADMIN, ("bookings", "rewards"))
+    resp = await async_client.get(
+        "/api/v1/rewards/programs", headers=_headers(user, org.id)
+    )
+    assert resp.status_code == 401, resp.text
+
+
+@pytest.mark.parametrize("path", [SERVICES, PROFILE])
+async def test_non_member_of_an_unentitled_organisation_is_404(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, path: str
+) -> None:
+    _user, org = await _studio(db_async, MembershipRole.ADMIN, apps=())
+    outsider = await user_with_role(db_async, "bookings-member")
+    resp = await async_client.get(path, headers=_headers(outsider, org.id))
+    assert resp.status_code == 404, resp.text
+
+
+async def test_inactive_user_with_a_bookings_token_is_401(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    user, org = await _studio(db_async, MembershipRole.ADMIN)
+    user.is_active = False
+    await db_async.commit()
+    for path in (SERVICES, PROFILE):
+        resp = await async_client.get(path, headers=_headers(user, org.id))
+        assert resp.status_code == 401, resp.text
+
+
+async def test_removed_membership_is_404_and_suspended_organisation_is_403(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    user, org = await _studio(db_async, MembershipRole.ADMIN)
+    headers = _headers(user, org.id)
+    org.status = OrganisationStatus.SUSPENDED.value
+    await db_async.commit()
+    assert (await async_client.get(SERVICES, headers=headers)).status_code == 403
+    org.status = OrganisationStatus.ACTIVE.value
+    membership = await db_async.scalar(
+        select(Membership).where(Membership.organisation_id == org.id)
+    )
+    assert membership is not None
+    membership.status = MembershipStatus.REMOVED.value
+    await db_async.commit()
+    assert (await async_client.get(SERVICES, headers=headers)).status_code == 404
+
+
+def _forged(user: User, **kwargs: object) -> dict[str, object]:
+    claims = {
+        "sub": str(user.id),
+        "exp": datetime.now(UTC) + timedelta(minutes=5),
+        "app": "bookings",
+    }
+    claims.update(kwargs)
+    return claims
+
+
+@pytest.mark.parametrize("kind", ["wrong-key", "alg-swap", "alg-none", "bad-app"])
+async def test_forged_tokens_are_401(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, kind: str
+) -> None:
+    user, org = await _studio(db_async, MembershipRole.ADMIN)
+    key = auth_settings.SECRET_KEY
+    claims = _forged(user)
+    if kind == "wrong-key":
+        token = jwt.encode(claims, "not-the-secret-key-not-the-secret-key", "HS256")
+    elif kind == "alg-swap":
+        token = jwt.encode(claims, key, "HS384")
+    elif kind == "alg-none":
+        token = jwt.encode(claims, "", "none")
+    else:
+        token = jwt.encode(_forged(user, app="bookings-evil"), key, "HS256")
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "X-Barrels-Organisation": org.id,
+    }
+    for path in (SERVICES, PROFILE):
+        resp = await async_client.get(path, headers=headers)
+        assert resp.status_code == 401, resp.text
+
+
+async def test_api_key_still_works_on_a_session_app_route(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    studio = await _public_studio(db_async, async_client)
+    made = await async_client.post(
+        "/api/v1/organisations/org/api-keys",
+        headers=studio.headers,
+        json={"name": "Kiosk", "scopes": ["bookings.read"]},
+    )
+    assert made.status_code == 201, made.text
+    resp = await async_client.get(
+        SERVICES, headers={"Authorization": f"Bearer {made.json()['secret']}"}
+    )
+    assert resp.status_code == 200, resp.text
