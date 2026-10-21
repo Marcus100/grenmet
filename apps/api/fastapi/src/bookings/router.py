@@ -12,7 +12,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, Path, Query, Request, Response, status
 
 from src import idempotency
-from src.dependencies import SessionDep
+from src.dependencies import SessionDep, optional_account
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.api_key_auth import OrgAccess, org_or_key
 from src.organisations.dependencies import OrgContext, require_org_app
@@ -673,7 +673,17 @@ ManageToken = Annotated[
         "the outbox. Unknown, disabled and unentitled pages answer 404."
     ),
     operation_id="bookingsCreatePublicBooking",
-    responses={**BAD_REQUEST, **NOT_FOUND, **CONFLICT},
+    responses={
+        **BAD_REQUEST,
+        **NOT_FOUND,
+        **CONFLICT,
+        403: {
+            "description": (
+                "A deposit is due and the signed-in account has not verified "
+                "its email (`email_verification_required`)"
+            )
+        },
+    },
 )
 @limiter.limit("10/minute")
 async def create_public_booking(
@@ -698,7 +708,8 @@ async def create_public_booking(
         # its stored receipt instead of failing a second verification. A failed
         # check is not stored and releases the key.
         await require_turnstile(request, payload.turnstile_token, policy)
-        return await public.create_booking(session, profile, payload)
+        payer = await optional_account(request, session)
+        return await public.create_booking(session, profile, payload, payer=payer)
 
     result = await idempotency.run_idempotent(
         session,

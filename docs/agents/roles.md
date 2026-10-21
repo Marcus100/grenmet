@@ -37,7 +37,8 @@ request → planner (spec, slices)
         → qa-engineer (failing tests from the acceptance criteria)
         → api-engineer / web-engineer (make them pass, API first)
         → code-reviewer (+ security-reviewer for auth, access, CI, dependencies)
-        → /commit (gates) → PR → AI review comment + CI → human merge
+        → /commit (gates) → PR → AI review comment + CI + fresh-context review
+        → agent merges into dev → dev → staging PR → owner merges into staging
 ```
 
 Use it for work that spans roles. A small fix needs one role or none. Name the
@@ -64,17 +65,22 @@ unresolved goes to the owner.
    including `SESSION_LOG.md`. The tools may swap author and reviewer per task when
    the owner says so.
 2. **Integration.** Both tools land work the same way: finish on the assigned
-   branch, verify, push that branch and open a PR into `dev`. The owner reviews
-   and merges PRs into `dev`; no agent merges into `dev` or pushes it. This is
-   the attended-session rule in `AGENTS.md` and [workflow.md](workflow.md), not
-   an exception to it. `dev` has no ruleset yet, so the rule is enforced only by
-   these documents until the owner adds one (see Rulesets in
+   branch, verify, push that branch and open a PR into `dev`. The agent merges
+   its own PR into `dev` once CI is green on the PR head and a fresh-context
+   review (the other tool, or a `code-reviewer` subagent) has no open blocking
+   finding; no agent pushes `dev`. The author never counts its own review as the
+   fresh-context one. This is the attended-session rule in `AGENTS.md` and
+   [workflow.md](workflow.md). `dev` has no ruleset yet, so CI-before-merge is
+   enforced by these documents until the owner adds one (see Rulesets in
    [workflow.md](workflow.md)).
-3. **Promotion.** `dev → staging` keeps its standing authorization: an agent
-   creates the promotion PR and arms auto-merge on the reviewed head, and GitHub
-   merges once the staging ruleset's required checks pass. `staging → main`,
-   releases and production deploys need the owner's explicit authorization each
-   time. The agent hook allows `gh pr merge` only when the base is `staging`.
+3. **Promotion.** Under standing authorization, an agent creates or updates the
+   `dev → staging` PR, with a recap of what changed. The owner reviews and merges
+   into `staging`; agents do not arm auto-merge, and GitHub merges only once the
+   staging ruleset's required checks pass. `staging → main`, releases and
+   production deploys need the owner's explicit authorization each time. The
+   agent hook allows `gh pr merge` only when the base is `dev`, only in this
+   repository, and never for a PR that changes the files listed in `AGENTS.md`
+   (hooks, settings, skills, guardrails, workflows, rulesets): the owner merges those.
 4. **Review handoff.** Every request includes the block `pnpm agents:handoff`
    prints (`scripts/agents/review-handoff.mjs`), completed by the author:
    - the task and its acceptance criteria;

@@ -315,10 +315,13 @@ const tail = (text) =>
 
 // An error the agent reported in its own log (for example an expired login).
 // Such a run says nothing about triggering, so it is an environment failure.
+// A turn limit is not one: the log still shows whether the skill fired first.
 export function agentError(log) {
   for (const event of parseLines(log)) {
-    if (event.type === "result" && event.is_error === true)
+    if (event.type === "result" && event.is_error === true) {
+      if (event.subtype === "error_max_turns") continue;
       return String(event.result ?? "agent reported an error");
+    }
     if (event.type === "error" || event.type === "turn.failed")
       return String(event.message ?? event.error?.message ?? event.type);
   }

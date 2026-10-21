@@ -1187,6 +1187,7 @@ export type {
   BookingsCreatePublicBookingResponses,
   BookingsCreatePublicBookingStatus201,
   BookingsCreatePublicBookingStatus400,
+  BookingsCreatePublicBookingStatus403,
   BookingsCreatePublicBookingStatus404,
   BookingsCreatePublicBookingStatus409,
   BookingsCreatePublicBookingStatus422,

@@ -2,7 +2,9 @@
 
 ## Status
 
-Proposed (2026-10-20). Builds on ADR-0010; does not supersede it.
+Accepted by the owner 2026-10-20. Builds on ADR-0010; does not supersede it.
+
+eRegister must not publish to WIS2 again until the per-station-hour gate exists.
 
 ## Context
 
@@ -45,7 +47,7 @@ Problems this ADR addresses:
   SURFACE owns the automated hour. The FastAPI store is a mirror and
   comparison layer, not a second publisher.
 - **Uncertainty:** how hydromet stations reach us (DADS, NOAA LRGS, cellular or
-  other data link). Would change the Phase 5 adapters, not this decision.
+  other data link). Would change the hydromet adapters, not this decision.
 
 ## Options considered
 
@@ -60,6 +62,9 @@ Problems this ADR addresses:
 1. **Option B.** FastAPI gets an `observations` domain: station registry,
    element mapping, and observations keyed by
    `(station, element, valid_time_utc, source)`, upserted idempotently.
+   The store lives in the EREGISTER database (the meteorological observations
+   database, ADR-0003), in its own schema, next to eRegister's paper-register
+   tables. It does not go in APP.
 2. **SURFACE owns the automated hourly WIS2 publish** (ADR-0010 stands).
    eRegister publishes only manual observations.
 3. **Station-hour publish gate.** For each `(station, valid hour)` exactly one
@@ -87,5 +92,7 @@ Problems this ADR addresses:
   hour the schedule gives to `automatic`.
 - Revisit triggers: SURFACE cannot accept the sync; the hydromet link needs a
   receiver that SURFACE already provides; WDQMS quality feedback (ADR-0010).
-- Follow-up work: phases 1 to 6 in the integration plan; hydromet adapters
-  wait for the inventory.
+- Follow-up work: the build is not yet broken into phases. Collector ingest
+  depends on organisation API keys (ADR-0029). Hydromet adapters wait for the
+  inventory. Context is in the
+  [WIS2 roadmap](../internal/wis2-implementation-roadmap-2026.md).
