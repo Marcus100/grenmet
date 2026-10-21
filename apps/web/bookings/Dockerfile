@@ -57,6 +57,7 @@ COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/
 COPY packages/api-client/ packages/api-client/
 COPY packages/auth/ packages/auth/
+COPY packages/bookings-web/ packages/bookings-web/
 COPY apps/web/bookings/ apps/web/bookings/
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN pnpm exec turbo run build --filter=@barrelsgd/web-bookings
 RUN mkdir -p apps/web/bookings/public
