@@ -36,8 +36,8 @@ rule requiring it to "land in Figma".
 
 Treat design intent as an input to the repository, not a linked system of record.
 
-- **`packages/ui/src/styles/globals.css` is the sole source of the token
-  contract.** Approved `--gm-*` changes land there and propagate via
+- **`--gm-*` tokens live in `@barrelsgd/gms`
+  (`packages/gms/src/styles/foundation.css`, ADR-0011).** Approved changes land there and propagate via
   `pnpm design-system:sync`; no external design tool has to be reconciled first.
 - **Design intent arrives as a Claude Design canvas, a user-supplied screenshot,
   or a written brief.** The `/design` skill produces a canvas when none exists.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted (built). Updated 2026-10-21: named approvers are built (`required_user_id` in `apps/api/fastapi/src/hr/workflow/models.py`) and the `management` role is seeded. The final step is the `hr-recorder` role (`apps/api/fastapi/src/baseline/seed.py`), not `hr-admin` as first written; the decision text below now says `hr-recorder`.
 
 ## Context
 
@@ -51,7 +51,7 @@ preparer = `staff` (also the pool the named co-approvers are drawn from),
 department approval = `hr-supervisor`, second-tier approval = `management`
 (**new** — seeded in `auth/permissions.py`'s `DEFAULT_ROLES` with the
 `workflow.instance.action` / `.view` and HR `*.action` permissions), final
-recipient = `hr-admin`.
+recipient = `hr-recorder`.
 
 **Engine extension (named parallel co-approval).**
 
@@ -73,7 +73,7 @@ transitions the same record `DRAFT → PENDING` and attaches co-approvers. Draft
 are server-side, resumable, and listable per user — not browser-local.
 
 **Delivery.** On transition to `APPROVED`, FastAPI sends a formatted summary email
-to `hr-admin` via `src/email.py` (`BackgroundTasks`). A PDF attachment is
+to `hr-recorder` via `src/email.py` (`BackgroundTasks`). A PDF attachment is
 **deferred** — it requires runtime chromium (the "PDF sidecar" on the v1 roadmap)
 and is out of scope for this ADR.
 
@@ -92,7 +92,7 @@ four:
    `pnpm generate:api-client` → `pnpm check:drift` → `docs/api/contracts.md`.
 3. Shared `<FormActionBar>`, people-picker, status panel across the five editors.
 4. Approvals inbox (peers + supervisors).
-5. Auto email to `hr-admin` on `APPROVED`.
+5. Auto email to `hr-recorder` on `APPROVED`.
 
 ## Consequences
 
