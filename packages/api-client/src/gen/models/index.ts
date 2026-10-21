@@ -1994,6 +1994,15 @@ export { challengeStatus } from "./ChallengeStatus.js";
 export type { CheckInCreate } from "./CheckInCreate.js";
 export type { CheckInPublic } from "./CheckInPublic.js";
 export type { CheckoutSessionPublic } from "./CheckoutSessionPublic.js";
+export type { ClockPunchApprove } from "./ClockPunchApprove.js";
+export type { ClockPunchesPublic } from "./ClockPunchesPublic.js";
+export type { ClockPunchKind } from "./ClockPunchKind.js";
+export { clockPunchKind } from "./ClockPunchKind.js";
+export type { ClockPunchPendingPublic } from "./ClockPunchPendingPublic.js";
+export type { ClockPunchPublic } from "./ClockPunchPublic.js";
+export type { ClockPunchReject } from "./ClockPunchReject.js";
+export type { ClockPunchStatus } from "./ClockPunchStatus.js";
+export { clockPunchStatus } from "./ClockPunchStatus.js";
 export type { ClockRequest } from "./ClockRequest.js";
 export type { ClockResult } from "./ClockResult.js";
 export type { ClockResultPropertiesActionEnum } from "./ClockResultPropertiesActionEnum.js";
@@ -3286,6 +3295,18 @@ export type {
   HrActionShiftSwapStatus422,
 } from "./HrActionShiftSwap.js";
 export type {
+  HrApproveClockPunchBody,
+  HrApproveClockPunchOptions,
+  HrApproveClockPunchPath,
+  HrApproveClockPunchResponse,
+  HrApproveClockPunchResponses,
+  HrApproveClockPunchStatus200,
+  HrApproveClockPunchStatus403,
+  HrApproveClockPunchStatus404,
+  HrApproveClockPunchStatus409,
+  HrApproveClockPunchStatus422,
+} from "./HrApproveClockPunch.js";
+export type {
   HrApproveStaffRegistrationOptions,
   HrApproveStaffRegistrationPath,
   HrApproveStaffRegistrationResponse,
@@ -4192,6 +4213,15 @@ export type {
   HrListMyShiftSwapsStatus422,
 } from "./HrListMyShiftSwaps.js";
 export type {
+  HrListPendingClockPunchesOptions,
+  HrListPendingClockPunchesQuery,
+  HrListPendingClockPunchesResponse,
+  HrListPendingClockPunchesResponses,
+  HrListPendingClockPunchesStatus200,
+  HrListPendingClockPunchesStatus403,
+  HrListPendingClockPunchesStatus422,
+} from "./HrListPendingClockPunches.js";
+export type {
   HrListPeriodsOptions,
   HrListPeriodsQuery,
   HrListPeriodsResponse,
@@ -4352,6 +4382,18 @@ export type {
   HrPutDepartmentRulesStatus403,
   HrPutDepartmentRulesStatus422,
 } from "./HrPutDepartmentRules.js";
+export type {
+  HrRejectClockPunchBody,
+  HrRejectClockPunchOptions,
+  HrRejectClockPunchPath,
+  HrRejectClockPunchResponse,
+  HrRejectClockPunchResponses,
+  HrRejectClockPunchStatus200,
+  HrRejectClockPunchStatus403,
+  HrRejectClockPunchStatus404,
+  HrRejectClockPunchStatus409,
+  HrRejectClockPunchStatus422,
+} from "./HrRejectClockPunch.js";
 export type {
   HrRemoveHolidayOptions,
   HrRemoveHolidayPath,

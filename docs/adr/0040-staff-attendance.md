@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (owner decision, 2026-10-20). Phone clock-in and manual attendance are built; terminal import and the phone-punch approval step are not started.
+Accepted (owner decision, 2026-10-20). Phone clock-in, manual attendance and the phone-punch approval API are built; the supervisor approval-queue UI and terminal import are not started.
 
 ## Context
 

@@ -1828,6 +1828,13 @@ export { challengeStatusSchema } from "./challengeStatusSchema.js";
 export { checkInCreateSchema } from "./checkInCreateSchema.js";
 export { checkInPublicSchema } from "./checkInPublicSchema.js";
 export { checkoutSessionPublicSchema } from "./checkoutSessionPublicSchema.js";
+export { clockPunchApproveSchema } from "./clockPunchApproveSchema.js";
+export { clockPunchesPublicSchema } from "./clockPunchesPublicSchema.js";
+export { clockPunchKindSchema } from "./clockPunchKindSchema.js";
+export { clockPunchPendingPublicSchema } from "./clockPunchPendingPublicSchema.js";
+export { clockPunchPublicSchema } from "./clockPunchPublicSchema.js";
+export { clockPunchRejectSchema } from "./clockPunchRejectSchema.js";
+export { clockPunchStatusSchema } from "./clockPunchStatusSchema.js";
 export { clockRequestSchema } from "./clockRequestSchema.js";
 export { clockResultPropertiesActionEnumSchema } from "./clockResultPropertiesActionEnumSchema.js";
 export { clockResultSchema } from "./clockResultSchema.js";
@@ -3014,6 +3021,17 @@ export {
   hrActionShiftSwapStatus422Schema,
 } from "./hrActionShiftSwapSchema.js";
 export {
+  hrApproveClockPunchBodySchema,
+  hrApproveClockPunchErrorSchema,
+  hrApproveClockPunchPathPunchIdSchema,
+  hrApproveClockPunchResponseSchema,
+  hrApproveClockPunchStatus200Schema,
+  hrApproveClockPunchStatus403Schema,
+  hrApproveClockPunchStatus404Schema,
+  hrApproveClockPunchStatus409Schema,
+  hrApproveClockPunchStatus422Schema,
+} from "./hrApproveClockPunchSchema.js";
+export {
   hrApproveStaffRegistrationErrorSchema,
   hrApproveStaffRegistrationPathUserIdSchema,
   hrApproveStaffRegistrationResponseSchema,
@@ -3874,6 +3892,15 @@ export {
   hrListMyShiftSwapsStatus422Schema,
 } from "./hrListMyShiftSwapsSchema.js";
 export {
+  hrListPendingClockPunchesErrorSchema,
+  hrListPendingClockPunchesQueryLimitSchema,
+  hrListPendingClockPunchesQueryOffsetSchema,
+  hrListPendingClockPunchesResponseSchema,
+  hrListPendingClockPunchesStatus200Schema,
+  hrListPendingClockPunchesStatus403Schema,
+  hrListPendingClockPunchesStatus422Schema,
+} from "./hrListPendingClockPunchesSchema.js";
+export {
   hrListPeriodsErrorSchema,
   hrListPeriodsQueryDepartmentIdSchema,
   hrListPeriodsQueryPeriodStatusSchema,
@@ -4020,6 +4047,17 @@ export {
   hrPutDepartmentRulesStatus403Schema,
   hrPutDepartmentRulesStatus422Schema,
 } from "./hrPutDepartmentRulesSchema.js";
+export {
+  hrRejectClockPunchBodySchema,
+  hrRejectClockPunchErrorSchema,
+  hrRejectClockPunchPathPunchIdSchema,
+  hrRejectClockPunchResponseSchema,
+  hrRejectClockPunchStatus200Schema,
+  hrRejectClockPunchStatus403Schema,
+  hrRejectClockPunchStatus404Schema,
+  hrRejectClockPunchStatus409Schema,
+  hrRejectClockPunchStatus422Schema,
+} from "./hrRejectClockPunchSchema.js";
 export {
   hrRemoveHolidayErrorSchema,
   hrRemoveHolidayPathHolidayIdSchema,

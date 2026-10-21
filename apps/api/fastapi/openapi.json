@@ -13117,7 +13117,7 @@
           "hr-attendance"
         ],
         "summary": "Clock in or out at a clock point",
-        "description": "Records arrival against the caller's rostered work shift, or departure when a shift is already open. The token proves presence at a department clock point. It feeds the same attendance record and supervisor review as manual attendance. Late, early-departure and overtime minutes are informational only.",
+        "description": "Records a PENDING punch for the caller's rostered work shift (arrival, or departure when a shift is already open). The token proves presence at a department clock point. A phone punch is not attendance, hours or timesheet input until a supervisor approves it (ADR-0040). Late, early-departure and overtime minutes are informational only.",
         "operationId": "hrClock",
         "requestBody": {
           "content": {
@@ -13391,6 +13391,215 @@
           },
           "404": {
             "description": "Clock site not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-punches/pending": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "List phone clock punches awaiting approval",
+        "description": "Pending phone punches of employees the caller supervises or reviews (named supervisor, or timesheet.approve in the department scope). Never includes the caller's own punches.",
+        "operationId": "hrListPendingClockPunches",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockPunchesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Requires timesheet.approve"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-punches/{punch_id}/approve": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Approve a phone clock punch",
+        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Only the employee's named supervisor or a timesheet.approve holder in scope; never the punching employee. Idempotent.",
+        "operationId": "hrApproveClockPunch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "punch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Punch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ClockPunchApprove"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockPunchPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+          },
+          "404": {
+            "description": "Clock punch not found"
+          },
+          "409": {
+            "description": "Punch already decided, or its arrival is not approved"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-punches/{punch_id}/reject": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Reject a phone clock punch",
+        "description": "A rejected punch never becomes attendance. Rejecting an arrival also rejects its pending departure. A reason is required. Same authority as approval.",
+        "operationId": "hrRejectClockPunch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "punch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Punch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClockPunchReject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockPunchPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+          },
+          "404": {
+            "description": "Clock punch not found"
+          },
+          "409": {
+            "description": "Punch already decided, or its arrival is not approved"
           }
         }
       }
@@ -51494,6 +51703,258 @@
         ],
         "title": "CheckoutSessionPublic"
       },
+      "ClockPunchApprove": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "title": "ClockPunchApprove"
+      },
+      "ClockPunchKind": {
+        "type": "string",
+        "enum": [
+          "ARRIVE",
+          "DEPART"
+        ],
+        "title": "ClockPunchKind"
+      },
+      "ClockPunchPendingPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ClockPunchKind"
+          },
+          "punched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Punched At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ClockPunchStatus"
+          },
+          "reviewed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By User Id"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "site_name": {
+            "type": "string",
+            "title": "Site Name"
+          },
+          "shift_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Shift Date"
+          },
+          "shift_code": {
+            "type": "string",
+            "title": "Shift Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "department_id",
+          "roster_assignment_id",
+          "kind",
+          "punched_at",
+          "status",
+          "employee_name",
+          "site_name",
+          "shift_date",
+          "shift_code"
+        ],
+        "title": "ClockPunchPendingPublic"
+      },
+      "ClockPunchPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ClockPunchKind"
+          },
+          "punched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Punched At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ClockPunchStatus"
+          },
+          "reviewed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By User Id"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "department_id",
+          "roster_assignment_id",
+          "kind",
+          "punched_at",
+          "status"
+        ],
+        "title": "ClockPunchPublic"
+      },
+      "ClockPunchReject": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ClockPunchReject"
+      },
+      "ClockPunchStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "APPROVED",
+          "REJECTED"
+        ],
+        "title": "ClockPunchStatus"
+      },
+      "ClockPunchesPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ClockPunchPendingPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "ClockPunchesPublic"
+      },
       "ClockRequest": {
         "properties": {
           "token": {
@@ -51521,6 +51982,9 @@
           "attendance": {
             "$ref": "#/components/schemas/AttendanceShiftPublic"
           },
+          "punch": {
+            "$ref": "#/components/schemas/ClockPunchPublic"
+          },
           "late_minutes": {
             "type": "integer",
             "title": "Late Minutes",
@@ -51541,7 +52005,8 @@
         "required": [
           "action",
           "site_name",
-          "attendance"
+          "attendance",
+          "punch"
         ],
         "title": "ClockResult"
       },

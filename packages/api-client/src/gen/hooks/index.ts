@@ -1289,6 +1289,11 @@ export {
   useHrActionShiftSwap,
 } from "./useHrActionShiftSwap.js";
 export {
+  hrApproveClockPunchMutationKey,
+  hrApproveClockPunchMutationOptions,
+  useHrApproveClockPunch,
+} from "./useHrApproveClockPunch.js";
+export {
   hrApproveStaffRegistrationMutationKey,
   hrApproveStaffRegistrationMutationOptions,
   useHrApproveStaffRegistration,
@@ -1729,6 +1734,11 @@ export {
   useHrListMyShiftSwaps,
 } from "./useHrListMyShiftSwaps.js";
 export {
+  hrListPendingClockPunchesQueryKey,
+  hrListPendingClockPunchesQueryOptions,
+  useHrListPendingClockPunches,
+} from "./useHrListPendingClockPunches.js";
+export {
   hrListPeriodsQueryKey,
   hrListPeriodsQueryOptions,
   useHrListPeriods,
@@ -1803,6 +1813,11 @@ export {
   hrPutDepartmentRulesMutationOptions,
   useHrPutDepartmentRules,
 } from "./useHrPutDepartmentRules.js";
+export {
+  hrRejectClockPunchMutationKey,
+  hrRejectClockPunchMutationOptions,
+  useHrRejectClockPunch,
+} from "./useHrRejectClockPunch.js";
 export {
   hrRemoveHolidayMutationKey,
   hrRemoveHolidayMutationOptions,
