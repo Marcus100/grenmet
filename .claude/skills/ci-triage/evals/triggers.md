@@ -7,6 +7,7 @@ Checked by hand in fresh Claude Code and Codex sessions; see docs/agents/skill-s
 - CI is red on the dev → staging PR, can you find out why?
 - The Type Check job failed on my last push.
 - Why did pipeline-staging.yml fail last night?
+- Some checks are failing on the open PR, what broke?
 
 ## Should not trigger
 
