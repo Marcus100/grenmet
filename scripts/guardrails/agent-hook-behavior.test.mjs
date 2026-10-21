@@ -199,7 +199,7 @@ test("block-dangerous-git: allows gh pr merge only into dev, failing closed", ()
 
 test("block-dangerous-git: a merge stays in this repository", () => {
   const dev = baseIs("dev");
-  const merge = "gh pr merge 42 --merge";
+  const merge = "gh pr merge 42 --merge --match-head-commit abc1234";
   assert.equal(
     findBlockedPattern(`${merge} -R Marcus100/grenmet`, dev),
     undefined
@@ -209,7 +209,7 @@ test("block-dangerous-git: a merge stays in this repository", () => {
     `${merge} -R=other/repo`,
     `${merge} --repo other/repo`,
     `${merge} --repo=other/repo`,
-    "gh pr merge https://github.com/other/repo/pull/42 --merge",
+    "gh pr merge https://github.com/other/repo/pull/42 --merge --match-head-commit abc1234",
   ]) {
     assert.match(String(findBlockedPattern(command, dev)), OTHER_REPO, command);
   }
@@ -219,9 +219,63 @@ test("block-dangerous-git: a merge stays in this repository", () => {
   );
   assert.equal(
     findBlockedPattern(
-      "gh pr merge https://github.com/Marcus100/grenmet/pull/42 --merge",
+      "gh pr merge https://github.com/Marcus100/grenmet/pull/42 --merge --match-head-commit abc1234",
       dev
     ),
+    undefined
+  );
+});
+
+test("block-dangerous-git: a quoted or indirect merge is checked like a plain one", () => {
+  const main = baseIs("main");
+  const dev = baseIs("dev", [".claude/hooks/block-dangerous-git.mjs"]);
+  const sha = "--merge --match-head-commit abc1234";
+  // Quoting any word must not hide the command or the PR it names.
+  for (const command of [
+    `gh pr "merge" 123 ${sha}`,
+    `gh pr mer''ge 123 ${sha}`,
+    `gh "pr" merge "123" ${sha}`,
+    `gh pr \\\nmerge 123 ${sha}`,
+    `env "GH_REPO=other/repo" gh pr merge 123 ${sha}`,
+    `echo 123 | xargs gh pr merge ${sha}`,
+    `xargs -I{} gh pr merge {} ${sha}`,
+    `cd ../other && gh pr merge 123 ${sha}`,
+    `gh alias set m "pr merge" && gh m 5`,
+  ]) {
+    assert.ok(findBlockedPattern(command, main), command);
+  }
+  // The PR named after a flag must be read as the PR, not as that flag's value.
+  assert.ok(findBlockedPattern(`gh pr merge --body "x" 5 ${sha}`, main));
+  assert.ok(findBlockedPattern(`gh pr merge -b"x" 5 ${sha}`, main));
+  // The owner-only file check still applies to a quoted command.
+  assert.match(
+    String(findBlockedPattern(`gh pr "merge" 123 ${sha}`, dev)),
+    OWNER_ONLY_FILE
+  );
+  // Only the exact shape is accepted: merge method, auto-merge, no pinned head.
+  for (const command of [
+    "gh pr merge 5 --merge",
+    "gh pr merge 5 --squash --match-head-commit abc1234",
+    `gh pr merge 5 --auto ${sha}`,
+    "gh pr merge --merge --match-head-commit abc1234",
+    `gh pr merge 5 ${sha} --admin`,
+  ]) {
+    assert.ok(findBlockedPattern(command, baseIs("dev")), command);
+  }
+  // A quoted REST merge path is a merge route too.
+  for (const command of [
+    `gh api -X PUT "repos/Marcus100/grenmet/pulls/5/merge"`,
+    `gh api --method PUT 'repos/Marcus100/grenmet/pulls/5/merge'`,
+  ]) {
+    assert.match(String(findBlockedPattern(command, main)), API_MERGE, command);
+  }
+  // Mentioning the command in text is not running it.
+  assert.equal(
+    findBlockedPattern('git commit -m "docs: gh pr merge into dev"', main),
+    undefined
+  );
+  assert.equal(
+    findBlockedPattern('echo "gh pr merge 5 --auto"', main),
     undefined
   );
 });
@@ -231,7 +285,7 @@ test("block-dangerous-git: no retargeting the base, no other merge routes", () =
   assert.match(
     String(
       findBlockedPattern(
-        "gh pr edit 42 --base main && gh pr merge 42 --merge",
+        "gh pr edit 42 --base main && gh pr merge 42 --merge --match-head-commit abc1234",
         dev
       )
     ),
@@ -256,17 +310,25 @@ test("block-dangerous-git: no retargeting the base, no other merge routes", () =
 });
 
 test("block-dangerous-git: the owner merges changes to the files that limit the agents", () => {
-  const merge = "gh pr merge 42 --merge";
+  const merge = "gh pr merge 42 --merge --match-head-commit abc1234";
   for (const file of [
     ".claude/hooks/block-dangerous-git.mjs",
     ".claude/settings.json",
     ".claude/skills/commit/SKILL.md",
+    ".claude/commands/new.md",
     ".codex/config.toml",
     ".agents/rules/project.md",
+    ".husky/pre-push",
     "AGENTS.md",
     "apps/api/fastapi/AGENTS.md",
     "scripts/guardrails/agent-policy.test.mjs",
+    "scripts/verification/changed.mjs",
+    "package.json",
+    "docs/agents/routines.md",
+    "apps/api/fastapi/src/auth/permissions.py",
     ".github/workflows/deploy.yml",
+    ".github/actions/setup/action.yml",
+    ".github/dependabot.yml",
     ".github/CODEOWNERS",
     "infra/github/rulesets.json",
   ]) {
@@ -296,14 +358,17 @@ test("block-dangerous-git: the owner merges changes to the files that limit the 
 
 test("block-dangerous-git: looks up the merge base for the PR and repo named", () => {
   const seen = [];
-  findBlockedPattern("gh pr merge 42 --repo Marcus100/grenmet --auto", {
-    lookupBase: (args) => {
-      seen.push(args);
-      return "dev";
-    },
-    lookupFiles: () => [],
-  });
-  assert.deepEqual(seen, [["42", "--repo", "Marcus100/grenmet", "--auto"]]);
+  findBlockedPattern(
+    "gh pr merge 42 --repo Marcus100/grenmet --merge --match-head-commit abc1234",
+    {
+      lookupBase: (args) => {
+        seen.push(args);
+        return "dev";
+      },
+      lookupFiles: () => [],
+    }
+  );
+  assert.deepEqual(seen, [["42", "--repo", "Marcus100/grenmet"]]);
 });
 
 test("block-dangerous-git: still blocks command substitution (not just literal quotes)", () => {

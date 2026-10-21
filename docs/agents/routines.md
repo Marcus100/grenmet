@@ -37,8 +37,10 @@ Edit the prompt here first, then update the live routine to match.
   has no open blocking finding; a `risk:high` PR also needs a `security-reviewer`
   pass with no open finding, named in the PR body. Never merge into `staging` or
   `main`, and leave a PR for the owner when it changes hooks, settings, `.codex`,
-  `.agents`, skills, any `AGENTS.md`, guardrail scripts, workflows or rulesets, or
-  carries the `factory` label: the hook refuses those merges anyway.
+  `.agents`, skills, any `AGENTS.md`, guardrail scripts, workflows, rulesets, the
+  root `package.json` or this file: the hook refuses those merges. Also leave a PR
+  that carries the `factory` label for the owner; that part is a rule for you, not
+  something the hook checks.
 - Failure budget: if the same check fails twice on the same error, stop. Do not
   push a third attempt. Record the raw error in the run record, set the outcome to
   `blocked`, label the issue `needs-info` and release the claim.

@@ -136,13 +136,19 @@ Hook scripts live in `.claude/hooks/` and are wired in `.claude/settings.json`
 `git reset --hard`, `git clean -f`, forced branch deletes, `git checkout .`,
 `git restore .` (unstaging with `--staged` is allowed), `git stash clear`, forced
 switches and worktree removals, and merges through `gh api`. It also scans
-commands inside `bash -c`, `sh -c` and `eval`. `gh pr merge` is allowed only
-when the PR's base is `dev`, it is in `Marcus100/grenmet` (`-R`, `--repo`, a PR
-URL and `GH_REPO` are checked), `--admin` is absent, no `gh pr edit --base` is
-chained with it, and the PR changes none of the owner-only paths
-(`OWNER_ONLY_PATHS` in the hook); an unknown base or file list blocks, and
-`staging` and `main` always block. GraphQL merge mutations and
-`gh api …/merges` block too.
+commands inside `bash -c`, `sh -c` and `eval`. `gh pr merge` is allowed only in
+one exact shape, read the way the shell reads it (quotes and line continuations
+removed, so `gh pr "merge"` is still a merge, and `xargs`, `env` and `sudo` are
+looked through): `gh pr merge <number|url> [--repo Marcus100/grenmet] [--merge]
+[--delete-branch] --match-head-commit <sha>`. Anything else blocks: `--admin`,
+`--auto`, `--squash`, `--body`, another repository (`-R`, `--repo`, a PR URL,
+`GH_REPO`), a chained `gh pr edit --base`, a `cd`, a PR not named in the
+command, or no pinned head. The PR's base must be `dev`, and it must change none
+of the owner-only paths (`OWNER_ONLY_PATHS` in the hook); an unknown base or
+file list blocks, and `staging` and `main` always block. `gh alias`, GraphQL
+merge mutations, `gh api …/merges` and the REST merge endpoint block too. This
+is a best-effort filter, not a sandbox: the real controls are the rulesets, the
+owner's merge into `staging`, and the permission rule in the user's settings.
 `protect-files.mjs` blocks `.env*` writes and edits to the generated API client.
 Claude Code also enforces `permissions.deny` in `.claude/settings.json`, which a
 hook cannot override. In Codex these hooks sit alongside its own sandbox and

@@ -76,26 +76,47 @@ const SHELL_CONSUMER =
 const PIPED_TO_SHELL = /\|\s*(?:sudo\s+)?(?:(?:ba|z|da)?sh|eval|source)\b/;
 const COMMAND_SUBSTITUTION = /\$\([^)]*\)|`[^`]*`/g;
 
-const GH_PR_MERGE = new RegExp(`\\bgh\\s+pr\\s+merge\\b(${SAME_COMMAND})`, "g");
 const ALLOWED_MERGE_BASES = new Set(["dev"]);
 const ALLOWED_REPO = "marcus100/grenmet";
 // A PR that changes the files which limit the agents, or the CI and ruleset
 // files that gate merges, is merged by the owner and never by an agent.
 const OWNER_ONLY_PATHS = [
-  /^\.claude\/(?:hooks|settings|skills|agents)/,
+  /^\.claude\//,
   /^\.codex\//,
   /^\.agents\//,
-  /(?:^|\/)AGENTS\.md$/,
-  /^scripts\/guardrails\//,
-  /^\.github\/(?:workflows\/|CODEOWNERS$)/,
+  /^\.husky\//,
+  /^\.github\//,
   /^infra\/github\//,
+  /^scripts\/(?:guardrails|verification)\//,
+  /^package\.json$/,
+  /^docs\/agents\/routines\.md$/,
+  /^apps\/api\/fastapi\/src\/auth\/permissions\.py$/,
+  /(?:^|\/)AGENTS\.md$/,
 ];
-// Merge routes other than `gh pr merge`: GraphQL mutations and branch merges.
+// Merge routes other than `gh pr merge`: GraphQL mutations, branch merges and
+// the REST merge endpoint. Tested on text with the quotes removed.
 const API_MERGE_KEYWORDS =
-  /mergePullRequest|enablePullRequestAutoMerge|\/merges\b/;
-const GH_API = /\bgh\s+api\b/;
-const RETARGETS_PR = /\bgh\s+pr\s+edit\b[^;&|\n]*\s(?:--base|-B)\b/;
+  /mergePullRequest|enablePullRequestAutoMerge|\/merges\b|\/pulls\/\d+\/merge\b/;
+const RETARGETS_PR = /\bgh pr edit\b[^;&|]*\s(?:--base|-B)\b/;
 const REPO_ENV = /\bGH_REPO=/;
+const CHANGES_DIRECTORY = /(?:^|\s)(?:cd|pushd)\s/;
+// Commands are split at these, the way the shell separates simple commands.
+const SUBCOMMAND_SPLIT = /&&|\|\||[;|\n]/;
+// Programs that run the next word as a command (`xargs gh pr merge`).
+const COMMAND_WRAPPERS = new Set([
+  "builtin",
+  "command",
+  "env",
+  "exec",
+  "nohup",
+  "sudo",
+  "time",
+  "xargs",
+]);
+const ENV_ASSIGNMENT = /^\w+=/;
+const PR_NUMBER = /^\d+$/;
+const PR_URL = /^https:\/\/github\.com\/([^/\s]+\/[^/\s]+)\/pull\/\d+\/?$/i;
+const COMMIT_SHA = /^[0-9a-f]{6,40}$/i;
 // Merge flags that take a separate value, so the value is not the PR.
 const MERGE_FLAGS_WITH_VALUE = new Set([
   "-A",
@@ -158,16 +179,20 @@ function separateHeredocs(command) {
   return { outer, executed };
 }
 
-/** The command plus every command nested in a shell wrapper, quotes stripped. */
-function executedSegments(command, depth = 0) {
+/**
+ * The command plus every command nested in a shell wrapper. Quoted text is
+ * stripped by default; the gh checks ask for the raw text (`strip` false)
+ * because a quoted word such as `gh pr "merge"` is still the command.
+ */
+function executedSegments(command, depth = 0, strip = true) {
   const { outer, executed } = separateHeredocs(command);
-  const segments = [stripQuotedLiterals(outer)];
+  const segments = [strip ? stripQuotedLiterals(outer) : outer];
   if (depth >= MAX_WRAPPER_DEPTH) return segments;
   for (const body of executed) {
-    segments.push(...executedSegments(body, depth + 1));
+    segments.push(...executedSegments(body, depth + 1, strip));
   }
   for (const match of outer.matchAll(SHELL_WRAPPER)) {
-    segments.push(...executedSegments(unquote(match[1]), depth + 1));
+    segments.push(...executedSegments(unquote(match[1]), depth + 1, strip));
   }
   return segments;
 }
@@ -227,49 +252,138 @@ export function lookupMergeFiles(args) {
     : null;
 }
 
-/** The repo a merge names (`owner/name`, or one inside a GitHub URL), if any. */
-function namedRepo({ prRef, repo }) {
-  if (repo !== undefined) return repo;
-  const url = /github\.com\/([^/\s]+\/[^/\s]+)/i.exec(prRef ?? "");
-  return url ? url[1] : undefined;
+/** A subcommand's words as the shell sees them: quotes and line breaks removed. */
+function shellWords(subcommand) {
+  return subcommand
+    .replace(/\\\n/g, "")
+    .replace(/["'\\]/g, "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+/** The words after `gh` when this command runs it (also through env, xargs, sudo…). */
+function ghArguments(words) {
+  let index = 0;
+  let wrapped = false;
+  while (index < words.length) {
+    const word = words[index];
+    if (ENV_ASSIGNMENT.test(word) || COMMAND_WRAPPERS.has(word)) {
+      wrapped = true;
+    } else if (!(wrapped && word.startsWith("-"))) {
+      break;
+    }
+    index++;
+  }
+  return words[index] === "gh" ? words.slice(index + 1) : undefined;
 }
 
 /**
- * `gh pr merge` is allowed only into dev (AGENTS.md: agents merge their own
- * green, reviewed PRs into dev; the owner merges staging and main), only in
- * this repository, never with `--admin`, which bypasses branch protection, and
- * never for a PR that changes the files in OWNER_ONLY_PATHS.
- * Fails closed: an unknown base or file list blocks.
+ * The only accepted shape of `gh pr merge`:
+ *   gh pr merge <number|url> [--repo Marcus100/grenmet] [--merge]
+ *     [--delete-branch] --match-head-commit <sha>
+ * Anything else (--admin, --auto, --squash, --body, an extra word) is returned
+ * as `problem`.
  */
-function findBlockedMerge(segment, { lookupBase, lookupFiles }) {
-  for (const match of segment.matchAll(GH_PR_MERGE)) {
-    const args = match[1].trim().split(/\s+/).filter(Boolean);
-    if (args.includes("--admin")) {
-      return "gh pr merge --admin (bypasses branch protection)";
+function parsePrMerge(words) {
+  let ref;
+  let repo;
+  let sha;
+  for (let index = 0; index < words.length; index++) {
+    const word = words[index];
+    if (["--merge", "-m", "--delete-branch", "-d"].includes(word)) continue;
+    if (word === "--match-head-commit") {
+      sha = words[++index];
+    } else if (word.startsWith("--match-head-commit=")) {
+      sha = word.slice("--match-head-commit=".length);
+    } else if (word === "-R" || word === "--repo") {
+      repo = words[++index] ?? "";
+    } else if (word.startsWith("--repo=")) {
+      repo = word.slice("--repo=".length);
+    } else if (word.startsWith("-R") && word.length > 2) {
+      repo = word.slice(2).replace(/^=/, "");
+    } else if (!word.startsWith("-") && ref === undefined) {
+      ref = word;
+    } else {
+      return { problem: word };
     }
-    if (REPO_ENV.test(segment)) {
-      return "gh pr merge with GH_REPO set (the merge could hit another repository)";
+  }
+  return { ref, repo, sha };
+}
+
+/**
+ * `gh pr merge` is allowed only as the exact shape in parsePrMerge, into dev
+ * (AGENTS.md: agents merge their own green, reviewed PRs into dev; the owner
+ * merges staging and main), only in this repository, and never for a PR that
+ * changes the files in OWNER_ONLY_PATHS. Fails closed: an unknown base or file
+ * list blocks.
+ */
+function findBlockedPrMerge(words, whole, { lookupBase, lookupFiles }) {
+  const text = whole.join(" ");
+  if (REPO_ENV.test(text)) {
+    return "gh pr merge with GH_REPO set (the merge could hit another repository)";
+  }
+  if (RETARGETS_PR.test(text)) {
+    return "gh pr edit --base chained with gh pr merge (retargets the PR before the merge)";
+  }
+  if (CHANGES_DIRECTORY.test(text)) {
+    return "gh pr merge after cd or pushd (it would run in another directory)";
+  }
+  const { problem, ref, repo, sha } = parsePrMerge(words);
+  if (problem !== undefined) {
+    return `gh pr merge with '${problem}' (agents may only run: gh pr merge <number> --merge --match-head-commit <sha>)`;
+  }
+  const named = repo ?? PR_URL.exec(ref ?? "")?.[1];
+  if (named !== undefined && named.toLowerCase() !== ALLOWED_REPO) {
+    return `gh pr merge in '${named}' (only ${ALLOWED_REPO} merges are authorized)`;
+  }
+  if (!(ref && (PR_NUMBER.test(ref) || PR_URL.test(ref)))) {
+    return "gh pr merge without a PR number or URL (the PR must be named in the command)";
+  }
+  if (!(sha && COMMIT_SHA.test(sha))) {
+    return "gh pr merge without --match-head-commit <sha> (the merge must be pinned to the reviewed head)";
+  }
+  const lookupArgs = [ref, ...(repo === undefined ? [] : ["--repo", repo])];
+  const base = lookupBase(lookupArgs);
+  if (!ALLOWED_MERGE_BASES.has(base)) {
+    return `gh pr merge into '${base ?? "unknown base"}' (only dev merges are authorized; the owner merges staging and main)`;
+  }
+  const files = lookupFiles(lookupArgs);
+  if (files === null) {
+    return "gh pr merge with an unknown file list (the owner-only paths could not be checked)";
+  }
+  const ownerOnly = files.find((file) =>
+    OWNER_ONLY_PATHS.some((pattern) => pattern.test(file))
+  );
+  if (ownerOnly) {
+    return `gh pr merge of a PR that changes '${ownerOnly}' (the owner merges changes to agent limits, CI and rulesets)`;
+  }
+  return undefined;
+}
+
+/**
+ * Looks at the raw text of each simple command (quotes removed the way the
+ * shell would): `gh pr merge`, `gh api` merge routes and `gh alias`, which
+ * could rename a blocked command.
+ */
+function findBlockedGh(segment, lookups) {
+  // The shell deletes a backslash-newline before it splits words, so
+  // `gh pr \<newline>merge` is one command.
+  const rawSegment = segment.replace(/\\\n/g, "");
+  const whole = shellWords(rawSegment);
+  for (const subcommand of rawSegment.split(SUBCOMMAND_SPLIT)) {
+    const gh = ghArguments(shellWords(subcommand));
+    if (!gh) continue;
+    const [area, action] = gh;
+    if (area === "alias") {
+      return "gh alias (it could rename a blocked command)";
     }
-    if (RETARGETS_PR.test(segment)) {
-      return "gh pr edit --base chained with gh pr merge (retargets the PR before the merge)";
+    if (area === "api" && API_MERGE_KEYWORDS.test(gh.join(" "))) {
+      return "gh api merge (GraphQL mutation, branch merge or REST merge skips the dev-only rule)";
     }
-    const repo = namedRepo(parseMergeTarget(args));
-    if (repo !== undefined && repo.toLowerCase() !== ALLOWED_REPO) {
-      return `gh pr merge in '${repo}' (only ${ALLOWED_REPO} merges are authorized)`;
-    }
-    const base = lookupBase(args);
-    if (!ALLOWED_MERGE_BASES.has(base)) {
-      return `gh pr merge into '${base ?? "unknown base"}' (only dev merges are authorized; the owner merges staging and main)`;
-    }
-    const files = lookupFiles(args);
-    if (files === null) {
-      return "gh pr merge with an unknown file list (the owner-only paths could not be checked)";
-    }
-    const ownerOnly = files.find((file) =>
-      OWNER_ONLY_PATHS.some((pattern) => pattern.test(file))
-    );
-    if (ownerOnly) {
-      return `gh pr merge of a PR that changes '${ownerOnly}' (the owner merges changes to agent limits, CI and rulesets)`;
+    if (area === "pr" && action === "merge") {
+      const hit = findBlockedPrMerge(gh.slice(2), whole, lookups);
+      if (hit) return hit;
     }
   }
   return undefined;
@@ -287,17 +401,14 @@ export function findBlockedPattern(
   command,
   { lookupBase = lookupMergeBase, lookupFiles = lookupMergeFiles } = {}
 ) {
+  for (const raw of executedSegments(command, 0, false)) {
+    const hit = findBlockedGh(raw, { lookupBase, lookupFiles });
+    if (hit) return hit;
+  }
   for (const segment of executedSegments(command)) {
-    // Quoted text is stripped from segments, but a GraphQL mutation lives in a
-    // quoted argument: look for the keyword in the raw command when a real
-    // `gh api` call is present.
-    if (GH_API.test(segment) && API_MERGE_KEYWORDS.test(command)) {
-      return "gh api merge (GraphQL mutation or branch merge skips the dev-only rule)";
-    }
     const hit =
       DANGEROUS_PATTERNS.find((pattern) => pattern.test(segment)) ??
-      findDiscardingRestore(segment) ??
-      findBlockedMerge(segment, { lookupBase, lookupFiles });
+      findDiscardingRestore(segment);
     if (hit) return hit;
   }
   return undefined;
