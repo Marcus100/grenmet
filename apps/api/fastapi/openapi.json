@@ -25303,7 +25303,14 @@
             }
           },
           "503": {
-            "description": "Database unreachable"
+            "description": "Database unreachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessUnavailable"
+                }
+              }
+            }
           }
         }
       }
@@ -68021,6 +68028,20 @@
         },
         "type": "object",
         "title": "QcDecisionRequest"
+      },
+      "ReadinessUnavailable": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ReadinessUnavailable",
+        "description": "Body of the 503 readiness response (same shape as the old HTTPException)."
       },
       "ReceivableRowPublic": {
         "properties": {

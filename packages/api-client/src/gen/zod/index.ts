@@ -5666,6 +5666,7 @@ export {
   pushVapidPublicKeyStatus422Schema,
 } from "./pushVapidPublicKeySchema.js";
 export { qcDecisionRequestSchema } from "./qcDecisionRequestSchema.js";
+export { readinessUnavailableSchema } from "./readinessUnavailableSchema.js";
 export { receivableRowPublicSchema } from "./receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./receivablesPublicSchema.js";
 export { recoveryCodesPublicSchema } from "./recoveryCodesPublicSchema.js";

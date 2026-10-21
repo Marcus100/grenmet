@@ -9896,6 +9896,7 @@ export type {
   PushVapidPublicKeyStatus422,
 } from "./models/PushVapidPublicKey.js";
 export type { QcDecisionRequest } from "./models/QcDecisionRequest.js";
+export type { ReadinessUnavailable } from "./models/ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./models/ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./models/ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./models/RecoveryCodesPublic.js";
@@ -17518,6 +17519,7 @@ export {
   pushVapidPublicKeyStatus422Schema,
 } from "./zod/pushVapidPublicKeySchema.js";
 export { qcDecisionRequestSchema } from "./zod/qcDecisionRequestSchema.js";
+export { readinessUnavailableSchema } from "./zod/readinessUnavailableSchema.js";
 export { receivableRowPublicSchema } from "./zod/receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./zod/receivablesPublicSchema.js";
 export { recoveryCodesPublicSchema } from "./zod/recoveryCodesPublicSchema.js";

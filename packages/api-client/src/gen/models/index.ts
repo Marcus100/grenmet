@@ -6143,6 +6143,7 @@ export type {
   PushVapidPublicKeyStatus422,
 } from "./PushVapidPublicKey.js";
 export type { QcDecisionRequest } from "./QcDecisionRequest.js";
+export type { ReadinessUnavailable } from "./ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";

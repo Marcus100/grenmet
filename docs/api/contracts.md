@@ -642,7 +642,9 @@ Some older auth endpoints still use `skip` and `limit`. New list endpoints shoul
 | Endpoint | Meaning | Expected response |
 | --- | --- | --- |
 | `GET /api/v1/utils/health-check/` | Liveness | JSON `true` |
-| `GET /api/v1/utils/ready/` | Database readiness | `{"status":"ready"}` or 503 |
+| `GET /api/v1/utils/ready/` | Database readiness | `{"status":"ready"}` or 503 `{"detail":"Database unreachable"}` |
+
+Readiness returns the 503 as a response, not a raised exception, so expected not-ready probes are not reported to Sentry. Only database, I/O, timeout and schema-revision failures map to 503; any other exception stays a reported 500.
 
 Deployment smoke checks currently use liveness. Operational diagnosis should use readiness when database access matters.
 

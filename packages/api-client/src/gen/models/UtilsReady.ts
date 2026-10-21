@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ReadinessUnavailable } from "./ReadinessUnavailable.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type UtilsReadyStatus200 = {
@@ -15,7 +16,11 @@ export type UtilsReadyStatus200 = {
  */
 export type UtilsReadyStatus422 = ValidationErrorResponse;
 
-export type UtilsReadyStatus503 = unknown;
+/**
+ * @description Body of the 503 readiness response (same shape as the old HTTPException).
+ * @type object
+ */
+export type UtilsReadyStatus503 = ReadinessUnavailable;
 
 export type UtilsReadyOptions = {
   body?: never;

@@ -5,6 +5,7 @@ from pathlib import Path
 from alembic.script import ScriptDirectory
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.concurrency import run_in_threadpool
+from pydantic import BaseModel
 from pydantic.networks import EmailStr
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -26,6 +27,12 @@ def _migration_heads() -> frozenset[str]:
 
 
 logger = logging.getLogger(__name__)
+
+
+class ReadinessUnavailable(BaseModel):
+    """Body of the 503 readiness response (same shape as the old HTTPException)."""
+
+    detail: str
 
 
 class SchemaMismatchError(RuntimeError):
@@ -74,7 +81,7 @@ async def health_check() -> bool:
     description="Readiness probe; returns 200 if the app can reach the database, 503 otherwise.",
     responses={
         200: {"description": "Database reachable"},
-        503: {"description": "Database unreachable"},
+        503: {"description": "Database unreachable", "model": ReadinessUnavailable},
     },
 )
 async def ready(session: SessionDep, response: Response) -> dict[str, str]:
