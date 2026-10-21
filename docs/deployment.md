@@ -534,8 +534,8 @@ hurricane/spice hosts; no legacy redirects are installed.
 | Elections | 3007 | https://elections.barrels.gd (Vercel) | Vercel preview deployments |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
-Cloudflare wildcard A records point `*.barrels.gd` to `134.122.119.220` and
-`*.staging.barrels.gd` to `167.71.24.42`. The DNS configuration supplied on 2026-09-06 uses DNS-only mode;
+Cloudflare wildcard A records point `*.barrels.gd` to the production droplet and
+`*.staging.barrels.gd` to the staging droplet (IPs: see the DigitalOcean dashboard). The DNS configuration supplied on 2026-09-06 uses DNS-only mode;
 Traefik obtains host certificates through the existing ACME challenge.
 
 Roll out staging first and verify every app health endpoint, login return URLs,
