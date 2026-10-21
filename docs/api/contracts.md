@@ -2118,4 +2118,4 @@ publish gate before queueing. It returns 409 when the station schedule gives
 the hour to the automatic source (SURFACE), when the station is not in the
 registry, or when another observation already holds the hour. A WIS2 file is
 never queued twice, so `resend` no longer repeats a queued or sent publish. The
-request and response shapes are unchanged.
+request and response shapes are unchanged; the optional request body is accepted and ignored.

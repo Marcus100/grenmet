@@ -238,8 +238,9 @@ async def queue_wis2(
     item: SendableObservation,
     observation_id: UUID,
     user: User,
-    resend: bool,  # noqa: ARG001 - WIS2 files are never repeated
+    resend: bool,
 ) -> ObservationSend:
+    del resend  # WIS2 files are never repeated (ADR-0032)
     reason = wis2_unavailable_reason(item)
     if reason:
         raise HTTPException(409, reason)

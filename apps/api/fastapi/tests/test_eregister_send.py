@@ -832,7 +832,7 @@ def publish_url(observation: str) -> str:
 async def test_gate_refuses_an_hour_the_schedule_gives_to_automatic(
     send_client: tuple[httpx.AsyncClient, User],
     db_async: AsyncSession,
-    incoming: Path,  # noqa: ARG001
+    incoming: Path,
 ) -> None:
     client, _ = send_client
     await register_exec("UPDATE observations.stations SET schedule = 'automatic'")
@@ -891,7 +891,7 @@ async def test_unregistered_station_is_refused(
 async def test_a_station_hour_publishes_once_even_for_a_second_observation(
     send_client: tuple[httpx.AsyncClient, User],
     db_async: AsyncSession,
-    incoming: Path,  # noqa: ARG001
+    incoming: Path,
 ) -> None:
     client, _ = send_client
     first = await save(client, accepted=True)
@@ -920,7 +920,7 @@ async def test_a_station_hour_publishes_once_even_for_a_second_observation(
 async def test_concurrent_publishes_of_one_station_hour_queue_exactly_one(
     send_client: tuple[httpx.AsyncClient, User],
     db_async: AsyncSession,
-    incoming: Path,  # noqa: ARG001
+    incoming: Path,
 ) -> None:
     client, _ = send_client
     observations = [await save(client, accepted=True) for _ in range(4)]
@@ -942,10 +942,10 @@ async def test_concurrent_publishes_of_one_station_hour_queue_exactly_one(
     assert len(found(incoming, "wmo_data_*.csv")) == 1
 
 
+@pytest.mark.usefixtures("incoming")
 async def test_concurrent_publishes_of_the_same_observation_queue_one(
     send_client: tuple[httpx.AsyncClient, User],
     db_async: AsyncSession,
-    incoming: Path,  # noqa: ARG001
 ) -> None:
     client, _ = send_client
     observation = await save(client, accepted=True)
@@ -995,7 +995,7 @@ async def test_upsert_is_idempotent_and_flags_non_hourly_rows() -> None:
                 value,
                 station_id="78958",
                 element="x",
-                valid_time_utc=datetime(2026, 1, 1),  # noqa: DTZ001
+                valid_time_utc=OBSERVED.replace(tzinfo=None),
                 source="s",
                 value=1,
             )
