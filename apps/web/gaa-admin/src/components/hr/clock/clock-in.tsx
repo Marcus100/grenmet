@@ -36,6 +36,13 @@ function errorMessage(error: unknown): string {
 
 function Outcome({ result }: { result: ClockResult }) {
   const arrived = result.action === "ARRIVED";
+  const status = result.punch.status;
+  const what = arrived ? "Arrival" : "Departure";
+  const headline = {
+    PENDING: `${what} sent for approval`,
+    APPROVED: `${what} recorded`,
+    REJECTED: `${what} rejected`,
+  }[status];
   const attendance = result.attendance;
   const late = result.late_minutes ?? 0;
   const early = result.early_departure_minutes ?? 0;
@@ -50,9 +57,18 @@ function Outcome({ result }: { result: ClockResult }) {
       className="space-y-1 rounded-xl border px-4 py-3 text-sm"
     >
       <p className="font-medium">
-        {arrived ? "Arrival recorded" : "Departure recorded"} at{" "}
-        {timeLabel(arrived ? attendance.arrived_at : attendance.departed_at)}
+        {headline} at {timeLabel(result.punch.punched_at)}
       </p>
+      {status === "PENDING" ? (
+        <p className="text-muted-foreground">
+          Your supervisor needs to approve this before it counts as attendance.
+        </p>
+      ) : null}
+      {status === "REJECTED" && result.punch.review_note ? (
+        <p className="text-muted-foreground">
+          Reason: {result.punch.review_note}
+        </p>
+      ) : null}
       <p className="text-muted-foreground">
         {result.site_name} · shift {attendance.shift_code} (
         {timeLabel(attendance.scheduled_start)}–
@@ -61,7 +77,7 @@ function Outcome({ result }: { result: ClockResult }) {
       {notes.length > 0 ? (
         <p className="text-muted-foreground">{notes.join(" · ")}</p>
       ) : null}
-      {arrived ? null : (
+      {arrived || status !== "APPROVED" ? null : (
         <p className="text-muted-foreground">
           Submit this shift for supervisor review from the Time Sheet page.
         </p>
