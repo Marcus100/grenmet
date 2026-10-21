@@ -4,6 +4,8 @@ export * from "./.kubb/standardSchema.js";
 export { auditGetHistory } from "./clients/auditGetHistory.js";
 export { authAccountEmailCodeStart } from "./clients/authAccountEmailCodeStart.js";
 export { authAccountEmailCodeVerify } from "./clients/authAccountEmailCodeVerify.js";
+export { authAdminActivateAccount } from "./clients/authAdminActivateAccount.js";
+export { authAdminResendVerification } from "./clients/authAdminResendVerification.js";
 export { authAppEmailCodeStart } from "./clients/authAppEmailCodeStart.js";
 export { authAppEmailCodeVerify } from "./clients/authAppEmailCodeVerify.js";
 export { authAppGoogleComplete } from "./clients/authAppGoogleComplete.js";
@@ -445,11 +447,13 @@ export { notificationsMarkNotificationRead } from "./clients/notificationsMarkNo
 export { notificationsUpdateNotificationPreferences } from "./clients/notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./clients/notificationsUpdateNotificationSetting.js";
 export { organisationsAcceptInvitation } from "./clients/organisationsAcceptInvitation.js";
+export { organisationsAddMemberAdmin } from "./clients/organisationsAddMemberAdmin.js";
 export { organisationsCreateAdminSite } from "./clients/organisationsCreateAdminSite.js";
 export { organisationsCreateApiKey } from "./clients/organisationsCreateApiKey.js";
 export { organisationsCreateInvitation } from "./clients/organisationsCreateInvitation.js";
 export { organisationsCreateOne } from "./clients/organisationsCreateOne.js";
 export { organisationsDeleteMember } from "./clients/organisationsDeleteMember.js";
+export { organisationsDeleteMemberAdmin } from "./clients/organisationsDeleteMemberAdmin.js";
 export { organisationsGetCurrent } from "./clients/organisationsGetCurrent.js";
 export { organisationsGetOne } from "./clients/organisationsGetOne.js";
 export { organisationsGetPublicSite } from "./clients/organisationsGetPublicSite.js";
@@ -472,6 +476,7 @@ export { organisationsSetApp } from "./clients/organisationsSetApp.js";
 export { organisationsUnverifyOne } from "./clients/organisationsUnverifyOne.js";
 export { organisationsUpdateAdminSite } from "./clients/organisationsUpdateAdminSite.js";
 export { organisationsUpdateMember } from "./clients/organisationsUpdateMember.js";
+export { organisationsUpdateMemberAdmin } from "./clients/organisationsUpdateMemberAdmin.js";
 export { organisationsUpdateOne } from "./clients/organisationsUpdateOne.js";
 export { organisationsVerifyOne } from "./clients/organisationsVerifyOne.js";
 export { paymentsAdminCreatePayout } from "./clients/paymentsAdminCreatePayout.js";
@@ -641,6 +646,16 @@ export {
   authAccountEmailCodeVerifyMutationOptions,
   useAuthAccountEmailCodeVerify,
 } from "./hooks/useAuthAccountEmailCodeVerify.js";
+export {
+  authAdminActivateAccountMutationKey,
+  authAdminActivateAccountMutationOptions,
+  useAuthAdminActivateAccount,
+} from "./hooks/useAuthAdminActivateAccount.js";
+export {
+  authAdminResendVerificationMutationKey,
+  authAdminResendVerificationMutationOptions,
+  useAuthAdminResendVerification,
+} from "./hooks/useAuthAdminResendVerification.js";
 export {
   authAppEmailCodeStartMutationKey,
   authAppEmailCodeStartMutationOptions,
@@ -2847,6 +2862,11 @@ export {
   useOrganisationsAcceptInvitation,
 } from "./hooks/useOrganisationsAcceptInvitation.js";
 export {
+  organisationsAddMemberAdminMutationKey,
+  organisationsAddMemberAdminMutationOptions,
+  useOrganisationsAddMemberAdmin,
+} from "./hooks/useOrganisationsAddMemberAdmin.js";
+export {
   organisationsCreateAdminSiteMutationKey,
   organisationsCreateAdminSiteMutationOptions,
   useOrganisationsCreateAdminSite,
@@ -2871,6 +2891,11 @@ export {
   organisationsDeleteMemberMutationOptions,
   useOrganisationsDeleteMember,
 } from "./hooks/useOrganisationsDeleteMember.js";
+export {
+  organisationsDeleteMemberAdminMutationKey,
+  organisationsDeleteMemberAdminMutationOptions,
+  useOrganisationsDeleteMemberAdmin,
+} from "./hooks/useOrganisationsDeleteMemberAdmin.js";
 export {
   organisationsGetCurrentQueryKey,
   organisationsGetCurrentQueryOptions,
@@ -2981,6 +3006,11 @@ export {
   organisationsUpdateMemberMutationOptions,
   useOrganisationsUpdateMember,
 } from "./hooks/useOrganisationsUpdateMember.js";
+export {
+  organisationsUpdateMemberAdminMutationKey,
+  organisationsUpdateMemberAdminMutationOptions,
+  useOrganisationsUpdateMemberAdmin,
+} from "./hooks/useOrganisationsUpdateMemberAdmin.js";
 export {
   organisationsUpdateOneMutationKey,
   organisationsUpdateOneMutationOptions,
@@ -3866,6 +3896,30 @@ export type {
   AuthAccountEmailCodeVerifyStatus422,
   AuthAccountEmailCodeVerifyStatus429,
 } from "./models/AuthAccountEmailCodeVerify.js";
+export type {
+  AuthAdminActivateAccountBody,
+  AuthAdminActivateAccountOptions,
+  AuthAdminActivateAccountPath,
+  AuthAdminActivateAccountResponse,
+  AuthAdminActivateAccountResponses,
+  AuthAdminActivateAccountStatus200,
+  AuthAdminActivateAccountStatus403,
+  AuthAdminActivateAccountStatus404,
+  AuthAdminActivateAccountStatus409,
+  AuthAdminActivateAccountStatus422,
+} from "./models/AuthAdminActivateAccount.js";
+export type {
+  AuthAdminResendVerificationBody,
+  AuthAdminResendVerificationOptions,
+  AuthAdminResendVerificationPath,
+  AuthAdminResendVerificationResponse,
+  AuthAdminResendVerificationResponses,
+  AuthAdminResendVerificationStatus200,
+  AuthAdminResendVerificationStatus403,
+  AuthAdminResendVerificationStatus404,
+  AuthAdminResendVerificationStatus409,
+  AuthAdminResendVerificationStatus422,
+} from "./models/AuthAdminResendVerification.js";
 export type {
   AuthAppEmailCodeStartBody,
   AuthAppEmailCodeStartOptions,
@@ -9240,6 +9294,19 @@ export type {
   OrganisationsAcceptInvitationStatus422,
 } from "./models/OrganisationsAcceptInvitation.js";
 export type {
+  OrganisationsAddMemberAdminBody,
+  OrganisationsAddMemberAdminOptions,
+  OrganisationsAddMemberAdminPath,
+  OrganisationsAddMemberAdminResponse,
+  OrganisationsAddMemberAdminResponses,
+  OrganisationsAddMemberAdminStatus201,
+  OrganisationsAddMemberAdminStatus401,
+  OrganisationsAddMemberAdminStatus403,
+  OrganisationsAddMemberAdminStatus404,
+  OrganisationsAddMemberAdminStatus409,
+  OrganisationsAddMemberAdminStatus422,
+} from "./models/OrganisationsAddMemberAdmin.js";
+export type {
   OrganisationsCreateAdminSiteBody,
   OrganisationsCreateAdminSiteOptions,
   OrganisationsCreateAdminSiteResponse,
@@ -9304,6 +9371,19 @@ export type {
   OrganisationsDeleteMemberStatus409,
   OrganisationsDeleteMemberStatus422,
 } from "./models/OrganisationsDeleteMember.js";
+export type {
+  OrganisationsDeleteMemberAdminBody,
+  OrganisationsDeleteMemberAdminOptions,
+  OrganisationsDeleteMemberAdminPath,
+  OrganisationsDeleteMemberAdminResponse,
+  OrganisationsDeleteMemberAdminResponses,
+  OrganisationsDeleteMemberAdminStatus204,
+  OrganisationsDeleteMemberAdminStatus401,
+  OrganisationsDeleteMemberAdminStatus403,
+  OrganisationsDeleteMemberAdminStatus404,
+  OrganisationsDeleteMemberAdminStatus409,
+  OrganisationsDeleteMemberAdminStatus422,
+} from "./models/OrganisationsDeleteMemberAdmin.js";
 export type {
   OrganisationsGetCurrentHeaders,
   OrganisationsGetCurrentOptions,
@@ -9568,6 +9648,19 @@ export type {
   OrganisationsUpdateMemberStatus422,
 } from "./models/OrganisationsUpdateMember.js";
 export type {
+  OrganisationsUpdateMemberAdminBody,
+  OrganisationsUpdateMemberAdminOptions,
+  OrganisationsUpdateMemberAdminPath,
+  OrganisationsUpdateMemberAdminResponse,
+  OrganisationsUpdateMemberAdminResponses,
+  OrganisationsUpdateMemberAdminStatus200,
+  OrganisationsUpdateMemberAdminStatus401,
+  OrganisationsUpdateMemberAdminStatus403,
+  OrganisationsUpdateMemberAdminStatus404,
+  OrganisationsUpdateMemberAdminStatus409,
+  OrganisationsUpdateMemberAdminStatus422,
+} from "./models/OrganisationsUpdateMemberAdmin.js";
+export type {
   OrganisationsUpdateOneBody,
   OrganisationsUpdateOneOptions,
   OrganisationsUpdateOnePath,
@@ -9800,6 +9893,9 @@ export type { PersonnelStatus } from "./models/PersonnelStatus.js";
 export { personnelStatus } from "./models/PersonnelStatus.js";
 export type { PersonSuggestion } from "./models/PersonSuggestion.js";
 export type { PlansPublic } from "./models/PlansPublic.js";
+export type { PlatformMemberAdd } from "./models/PlatformMemberAdd.js";
+export type { PlatformMemberRemove } from "./models/PlatformMemberRemove.js";
+export type { PlatformMemberRoleUpdate } from "./models/PlatformMemberRoleUpdate.js";
 export type { PlatformOrganisationCreate } from "./models/PlatformOrganisationCreate.js";
 export type { PlatformOrganisationUpdate } from "./models/PlatformOrganisationUpdate.js";
 export type { PolicyInput } from "./models/PolicyInput.js";
@@ -10970,6 +11066,7 @@ export { suggestionPublicPropertiesStatusEnum } from "./models/SuggestionPublicP
 export type { SuggestionUpdate } from "./models/SuggestionUpdate.js";
 export type { SuggestionUpdatePropertiesStatusEnum } from "./models/SuggestionUpdatePropertiesStatusEnum.js";
 export { suggestionUpdatePropertiesStatusEnum } from "./models/SuggestionUpdatePropertiesStatusEnum.js";
+export type { SuperuserActionReason } from "./models/SuperuserActionReason.js";
 export type { SwapType } from "./models/SwapType.js";
 export { swapType } from "./models/SwapType.js";
 export type { SynopDecoded } from "./models/SynopDecoded.js";
@@ -11302,6 +11399,7 @@ export type { ValidationErrorItem } from "./models/ValidationErrorItem.js";
 export type { ValidationErrorResponse } from "./models/ValidationErrorResponse.js";
 export type { VapidPublicKey } from "./models/VapidPublicKey.js";
 export type { VerificationDecision } from "./models/VerificationDecision.js";
+export type { VerificationResend } from "./models/VerificationResend.js";
 export type { WeatherImage } from "./models/WeatherImage.js";
 export type { WebhookAdminDisable } from "./models/WebhookAdminDisable.js";
 export type { WebhookDeliveryList } from "./models/WebhookDeliveryList.js";
@@ -11957,6 +12055,28 @@ export {
   authAccountEmailCodeVerifyStatus422Schema,
   authAccountEmailCodeVerifyStatus429Schema,
 } from "./zod/authAccountEmailCodeVerifySchema.js";
+export {
+  authAdminActivateAccountBodySchema,
+  authAdminActivateAccountErrorSchema,
+  authAdminActivateAccountPathUserIdSchema,
+  authAdminActivateAccountResponseSchema,
+  authAdminActivateAccountStatus200Schema,
+  authAdminActivateAccountStatus403Schema,
+  authAdminActivateAccountStatus404Schema,
+  authAdminActivateAccountStatus409Schema,
+  authAdminActivateAccountStatus422Schema,
+} from "./zod/authAdminActivateAccountSchema.js";
+export {
+  authAdminResendVerificationBodySchema,
+  authAdminResendVerificationErrorSchema,
+  authAdminResendVerificationPathUserIdSchema,
+  authAdminResendVerificationResponseSchema,
+  authAdminResendVerificationStatus200Schema,
+  authAdminResendVerificationStatus403Schema,
+  authAdminResendVerificationStatus404Schema,
+  authAdminResendVerificationStatus409Schema,
+  authAdminResendVerificationStatus422Schema,
+} from "./zod/authAdminResendVerificationSchema.js";
 export {
   authAppEmailCodeStartBodySchema,
   authAppEmailCodeStartErrorSchema,
@@ -16892,6 +17012,18 @@ export {
   organisationsAcceptInvitationStatus422Schema,
 } from "./zod/organisationsAcceptInvitationSchema.js";
 export {
+  organisationsAddMemberAdminBodySchema,
+  organisationsAddMemberAdminErrorSchema,
+  organisationsAddMemberAdminPathOrganisationIdSchema,
+  organisationsAddMemberAdminResponseSchema,
+  organisationsAddMemberAdminStatus201Schema,
+  organisationsAddMemberAdminStatus401Schema,
+  organisationsAddMemberAdminStatus403Schema,
+  organisationsAddMemberAdminStatus404Schema,
+  organisationsAddMemberAdminStatus409Schema,
+  organisationsAddMemberAdminStatus422Schema,
+} from "./zod/organisationsAddMemberAdminSchema.js";
+export {
   organisationsCreateAdminSiteBodySchema,
   organisationsCreateAdminSiteErrorSchema,
   organisationsCreateAdminSiteResponseSchema,
@@ -16938,6 +17070,19 @@ export {
   organisationsCreateOneStatus409Schema,
   organisationsCreateOneStatus422Schema,
 } from "./zod/organisationsCreateOneSchema.js";
+export {
+  organisationsDeleteMemberAdminBodySchema,
+  organisationsDeleteMemberAdminErrorSchema,
+  organisationsDeleteMemberAdminPathMembershipIdSchema,
+  organisationsDeleteMemberAdminPathOrganisationIdSchema,
+  organisationsDeleteMemberAdminResponseSchema,
+  organisationsDeleteMemberAdminStatus204Schema,
+  organisationsDeleteMemberAdminStatus401Schema,
+  organisationsDeleteMemberAdminStatus403Schema,
+  organisationsDeleteMemberAdminStatus404Schema,
+  organisationsDeleteMemberAdminStatus409Schema,
+  organisationsDeleteMemberAdminStatus422Schema,
+} from "./zod/organisationsDeleteMemberAdminSchema.js";
 export {
   organisationsDeleteMemberErrorSchema,
   organisationsDeleteMemberHeaderXBarrelsOrganisationSchema,
@@ -17191,6 +17336,19 @@ export {
   organisationsUpdateAdminSiteStatus422Schema,
 } from "./zod/organisationsUpdateAdminSiteSchema.js";
 export {
+  organisationsUpdateMemberAdminBodySchema,
+  organisationsUpdateMemberAdminErrorSchema,
+  organisationsUpdateMemberAdminPathMembershipIdSchema,
+  organisationsUpdateMemberAdminPathOrganisationIdSchema,
+  organisationsUpdateMemberAdminResponseSchema,
+  organisationsUpdateMemberAdminStatus200Schema,
+  organisationsUpdateMemberAdminStatus401Schema,
+  organisationsUpdateMemberAdminStatus403Schema,
+  organisationsUpdateMemberAdminStatus404Schema,
+  organisationsUpdateMemberAdminStatus409Schema,
+  organisationsUpdateMemberAdminStatus422Schema,
+} from "./zod/organisationsUpdateMemberAdminSchema.js";
+export {
   organisationsUpdateMemberBodySchema,
   organisationsUpdateMemberErrorSchema,
   organisationsUpdateMemberHeaderXBarrelsOrganisationSchema,
@@ -17433,6 +17591,9 @@ export { personChipSchema } from "./zod/personChipSchema.js";
 export { personnelStatusSchema } from "./zod/personnelStatusSchema.js";
 export { personSuggestionSchema } from "./zod/personSuggestionSchema.js";
 export { plansPublicSchema } from "./zod/plansPublicSchema.js";
+export { platformMemberAddSchema } from "./zod/platformMemberAddSchema.js";
+export { platformMemberRemoveSchema } from "./zod/platformMemberRemoveSchema.js";
+export { platformMemberRoleUpdateSchema } from "./zod/platformMemberRoleUpdateSchema.js";
 export { platformOrganisationCreateSchema } from "./zod/platformOrganisationCreateSchema.js";
 export { platformOrganisationUpdateSchema } from "./zod/platformOrganisationUpdateSchema.js";
 export { policyInputSchema } from "./zod/policyInputSchema.js";
@@ -18522,6 +18683,7 @@ export { suggestionPublicPropertiesStatusEnumSchema } from "./zod/suggestionPubl
 export { suggestionPublicSchema } from "./zod/suggestionPublicSchema.js";
 export { suggestionUpdatePropertiesStatusEnumSchema } from "./zod/suggestionUpdatePropertiesStatusEnumSchema.js";
 export { suggestionUpdateSchema } from "./zod/suggestionUpdateSchema.js";
+export { superuserActionReasonSchema } from "./zod/superuserActionReasonSchema.js";
 export { swapTypeSchema } from "./zod/swapTypeSchema.js";
 export { synopDecodedSchema } from "./zod/synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./zod/synopticImageGroupSchema.js";
@@ -18819,6 +18981,7 @@ export { validationErrorItemSchema } from "./zod/validationErrorItemSchema.js";
 export { validationErrorResponseSchema } from "./zod/validationErrorResponseSchema.js";
 export { vapidPublicKeySchema } from "./zod/vapidPublicKeySchema.js";
 export { verificationDecisionSchema } from "./zod/verificationDecisionSchema.js";
+export { verificationResendSchema } from "./zod/verificationResendSchema.js";
 export { weatherImageSchema } from "./zod/weatherImageSchema.js";
 export { webhookAdminDisableSchema } from "./zod/webhookAdminDisableSchema.js";
 export { webhookDeliveryListSchema } from "./zod/webhookDeliveryListSchema.js";

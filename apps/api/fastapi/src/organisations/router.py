@@ -5,12 +5,13 @@ from fastapi import status as http_status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
-from src.dependencies import AccountUser, AdminUser, SessionDep
+from src.dependencies import AccountUser, AdminUser, MfaAdminUser, SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgAdmin, OrgMember
 from src.pagination import PaginationDep
 
 from . import (
+    admin_members,
     api_key_scopes,
     api_keys,
     entitlements,
@@ -52,6 +53,9 @@ from .schemas import (
     OrganisationAdminPublic,
     OrganisationAppPublic,
     OrganisationSummary,
+    PlatformMemberAdd,
+    PlatformMemberRemove,
+    PlatformMemberRoleUpdate,
     PlatformOrganisationCreate,
     PlatformOrganisationUpdate,
     PublicSiteAdmin,
@@ -660,6 +664,111 @@ async def list_members_admin(
         page=pagination.page,
         size=pagination.size,
     )
+
+
+MFA_ERRORS = {
+    **AUTHENTICATED,
+    **NOT_FOUND,
+    **CONFLICT,
+    403: {
+        "description": "Superuser with an enrolled authenticator required "
+        "(superuser_mfa_required), or the target lacks a verified or "
+        "administrator-activated email for an owner/admin role"
+    },
+}
+
+
+@router.post(
+    "/{organisation_id}/admin/members",
+    response_model=MemberPublic,
+    status_code=201,
+    summary="Add a member to any organisation (audited)",
+    description=(
+        "Superuser with an enrolled authenticator adds an account (by user id or "
+        "email) as member, admin or owner. This is how a superuser enters a "
+        "business's data: there is no organisation bypass, so adding yourself "
+        "works the same way. A reason is required and recorded with the actor "
+        "and target. Owner and admin roles need a verified or "
+        "administrator-activated target. 409 when already a member."
+    ),
+    responses=MFA_ERRORS,
+)
+async def add_member_admin(
+    *,
+    session: SessionDep,
+    admin: MfaAdminUser,
+    organisation_id: str,
+    payload: PlatformMemberAdd,
+) -> Any:
+    membership, user = await admin_members.add(
+        session,
+        admin,
+        organisation_id,
+        user_id=payload.user_id,
+        email=payload.email,
+        role=payload.role,
+        reason=payload.reason,
+    )
+    result = _member(membership, user)
+    await session.commit()
+    return result
+
+
+@router.patch(
+    "/{organisation_id}/admin/members/{membership_id}",
+    response_model=MemberPublic,
+    summary="Change any member's role (audited)",
+    description=(
+        "Superuser with an enrolled authenticator changes a member's role. "
+        "A reason is required. 409 when it would leave the organisation "
+        "without an owner."
+    ),
+    responses=MFA_ERRORS,
+)
+async def update_member_admin(
+    *,
+    session: SessionDep,
+    admin: MfaAdminUser,
+    organisation_id: str,
+    membership_id: str,
+    payload: PlatformMemberRoleUpdate,
+) -> Any:
+    membership, user = await admin_members.change(
+        session,
+        admin,
+        organisation_id,
+        membership_id,
+        payload.role,
+        reason=payload.reason,
+    )
+    result = _member(membership, user)
+    await session.commit()
+    return result
+
+
+@router.delete(
+    "/{organisation_id}/admin/members/{membership_id}",
+    status_code=204,
+    summary="Remove any member (audited)",
+    description=(
+        "Superuser with an enrolled authenticator ends a membership. A reason "
+        "is required in the body. 409 when it would leave the organisation "
+        "without an owner."
+    ),
+    responses=MFA_ERRORS,
+)
+async def delete_member_admin(
+    *,
+    session: SessionDep,
+    admin: MfaAdminUser,
+    organisation_id: str,
+    membership_id: str,
+    payload: PlatformMemberRemove,
+) -> None:
+    await admin_members.remove(
+        session, admin, organisation_id, membership_id, reason=payload.reason
+    )
+    await session.commit()
 
 
 # ── Membership management (F4) ───────────────────────────────────────────────

@@ -33,6 +33,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.auth import superuser_mfa
 from src.auth.config import auth_settings
 from src.auth.constants import (
     ERROR_INACTIVE_USER,
@@ -210,6 +211,15 @@ async def get_current_user_manager(current_user: CurrentUser) -> User:
 
 
 AdminUser = Annotated[User, Depends(get_current_active_superuser)]
+
+
+async def get_current_mfa_superuser(admin: AdminUser) -> User:
+    """Superuser with an enrolled authenticator, in every environment."""
+    superuser_mfa.require_superuser_mfa(admin)
+    return admin
+
+
+MfaAdminUser = Annotated[User, Depends(get_current_mfa_superuser)]
 
 
 async def optional_account(request: Request, session: AsyncSession) -> User | None:
