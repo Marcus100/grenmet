@@ -25,3 +25,6 @@
 
 ## Related
 ADR-0022, ADR-0014, ADR-0018, `docs/exec-plans/barrels-foundations-plan.md`, `docs/api/contracts.md`.
+
+## API-key scopes are permission keys (ADR-0029)
+`api_key_scopes.all_scopes()` returns only `<product>.<read|write>` pairs registered in `src/auth/permissions.py`; add the key there when adding a product to `entitlements.PRODUCTS` (a test fails otherwise). Wire format unchanged.
