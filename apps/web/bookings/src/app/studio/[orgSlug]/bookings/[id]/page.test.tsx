@@ -1,0 +1,154 @@
+import type { BookingStudioDetail } from "@barrelsgd/api-client";
+import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { BOOKING_ID, ORG_ID, session } from "@/test/studio";
+
+const reportError = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/report-error", () => ({ reportError }));
+vi.mock("@/lib/session", () => ({
+  requireSession: vi.fn(() => Promise.resolve(session)),
+}));
+vi.mock("@/lib/studio-api", () => ({
+  findOrganisation: vi.fn(),
+  getBooking: vi.fn(),
+}));
+vi.mock("next/navigation", () => ({
+  notFound: vi.fn(() => {
+    throw new Error("NEXT_NOT_FOUND");
+  }),
+  redirect: vi.fn((to: string) => {
+    throw new Error(`NEXT_REDIRECT ${to}`);
+  }),
+}));
+
+import { findOrganisation, getBooking } from "@/lib/studio-api";
+import StudioBookingPage from "./page";
+
+const props = (id = BOOKING_ID) => ({
+  params: Promise.resolve({ id, orgSlug: "sea-salt" }),
+});
+
+function detail(
+  overrides: Partial<BookingStudioDetail> = {}
+): BookingStudioDetail {
+  return {
+    id: BOOKING_ID,
+    status: "confirmed",
+    source: "online",
+    service_id: "44444444-4444-4444-8444-444444444444",
+    service_name: "Deep tissue massage",
+    provider_id: "33333333-3333-4333-8333-333333333333",
+    provider_name: "Maya",
+    customer: {
+      id: "55555555-5555-4555-8555-555555555555",
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      phone: null,
+    },
+    starts_at: "2026-10-21T14:00:00Z",
+    ends_at: "2026-10-21T15:30:00Z",
+    timezone: "America/Grenada",
+    price_minor: 15_000,
+    deposit_minor: 2500,
+    currency: "XCD",
+    notes: "Allergic to lavender",
+    cancel_reason: null,
+    cancelled_at: null,
+    created_at: "2026-10-18T12:00:00Z",
+    deposit_intent_id: null,
+    deposit_captured_minor: 0,
+    deposit_refunded_minor: 0,
+    events: [
+      {
+        from_status: null,
+        to_status: "pending_payment",
+        actor_user_id: null,
+        note: null,
+        created_at: "2026-10-18T12:00:00Z",
+      },
+      {
+        from_status: "pending_payment",
+        to_status: "confirmed",
+        actor_user_id: null,
+        note: "Deposit received",
+        created_at: "2026-10-18T12:05:00Z",
+      },
+    ],
+    ...overrides,
+  };
+}
+
+beforeEach(() => {
+  reportError.mockReset();
+  vi.mocked(getBooking).mockReset();
+  vi.mocked(findOrganisation).mockResolvedValue({
+    id: ORG_ID,
+    name: "Sea Salt Spa",
+    slug: "sea-salt",
+    role: "member",
+  });
+});
+
+describe("studio booking detail", () => {
+  it("shows the customer, notes and timeline, and no action buttons", async () => {
+    vi.mocked(getBooking).mockResolvedValue(detail());
+    render(await StudioBookingPage(props()));
+    expect(
+      screen.getByRole("heading", { name: "Deep tissue massage" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "ada@example.com" })
+    ).toHaveAttribute("href", "mailto:ada@example.com");
+    expect(screen.getByText("Phone").nextSibling).toHaveTextContent(
+      "Not given"
+    );
+    expect(screen.getByText("Allergic to lavender")).toBeInTheDocument();
+    expect(screen.getByText("Created as Awaiting deposit")).toBeInTheDocument();
+    expect(
+      screen.getByText("Awaiting deposit to Confirmed")
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it.each([
+    [
+      "due",
+      { deposit_captured_minor: 0, deposit_refunded_minor: 0 },
+      "Deposit due",
+    ],
+    [
+      "paid",
+      { deposit_captured_minor: 2500, deposit_refunded_minor: 0 },
+      "Deposit paid",
+    ],
+    [
+      "refunded",
+      { deposit_captured_minor: 2500, deposit_refunded_minor: 2500 },
+      "Deposit refunded",
+    ],
+    ["none", { deposit_minor: 0 }, "No deposit"],
+  ])("shows the %s deposit badge", async (_name, fields, label) => {
+    vi.mocked(getBooking).mockResolvedValue(detail(fields));
+    render(await StudioBookingPage(props()));
+    expect(
+      screen.getByText(label, { selector: "[data-slot=badge]" })
+    ).toBeInTheDocument();
+  });
+
+  it("is a 404 for an unknown booking", async () => {
+    vi.mocked(getBooking).mockResolvedValue(null);
+    await expect(StudioBookingPage(props())).rejects.toHaveProperty(
+      "message",
+      "NEXT_NOT_FOUND"
+    );
+  });
+
+  it("is a 404 for an id that is not a UUID, without calling the API", async () => {
+    await expect(StudioBookingPage(props("nope"))).rejects.toHaveProperty(
+      "message",
+      "NEXT_NOT_FOUND"
+    );
+    expect(getBooking).not.toHaveBeenCalled();
+  });
+});
