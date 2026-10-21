@@ -5228,10 +5228,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -5476,10 +5476,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key."
           }
         ],
         "requestBody": {
@@ -7277,10 +7277,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -7344,10 +7344,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7429,10 +7429,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -7500,10 +7500,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7592,10 +7592,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7677,10 +7677,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -7748,10 +7748,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7840,10 +7840,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7935,10 +7935,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8016,10 +8016,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -8149,10 +8149,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8230,10 +8230,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -8322,10 +8322,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "responses": {
@@ -8410,10 +8410,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8484,10 +8484,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           },
           {
             "name": "Idempotency-Key",
@@ -8668,10 +8668,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8752,10 +8752,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8836,10 +8836,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8923,10 +8923,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "requestBody": {
@@ -9020,10 +9020,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "requestBody": {
@@ -9117,10 +9117,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -9204,10 +9204,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -9739,10 +9739,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -9811,10 +9811,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "requestBody": {
@@ -9900,10 +9900,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "requestBody": {

@@ -427,7 +427,11 @@ the header cross-origin (it is in the CORS allow list).
 | Member whose role is too low for the route (`owner` > `admin` > `member`) | 403 |
 
 There is no superuser bypass. The caller needs any active Barrels account (the
-same as the account routes), not staff approval. The resolved organisation id is
+same as the account routes), not staff approval. A route family may opt in to the session of its own app
+(`session_app=` on `require_org_app` / `org_or_key`; `/bookings/org/*` accepts the
+bookings app session, issue #472): that JWT then needs an active account with
+`app.<key>.access`, and the membership, role and entitlement rules above are
+unchanged. Every other app's token stays 401. The resolved organisation id is
 written to every log line for the request as `organisation_id`. A route is only
 described as organisation-isolated if it uses `OrgContext` and has a
 cross-organisation denial test.
