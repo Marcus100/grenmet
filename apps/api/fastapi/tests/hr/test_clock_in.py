@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -8,6 +9,7 @@ from src.auth.schemas import UserCreate
 from src.auth.service import create_user
 from src.exceptions import AppException, AuthorizationError
 from src.hr.attendance import clock_service
+from src.hr.attendance.models import AttendanceRecord
 from src.hr.models import Department
 from src.hr.roster.models import ShiftCatalog, ShiftCategory
 from src.hr.roster.schemas import (
@@ -101,25 +103,28 @@ async def _site_token(db: AsyncSession, employee: User) -> str:
     return token
 
 
-async def test_arrive_then_depart_records_one_attendance(
+async def test_arrive_then_depart_makes_two_pending_punches_and_no_attendance(
     db_async: AsyncSession,
 ) -> None:
     employee = await _setup(db_async)
     token = await _site_token(db_async, employee)
 
-    action, record, site, late, early, overtime = await clock_service.clock(
+    action, punch, site, late, early, overtime, _ = await clock_service.clock(
         session=db_async, current_user=employee, token=token, now=utc(9, 40)
     )
     assert (action, late, early, overtime) == ("ARRIVED", 10, 0, 0)
     assert site.name == "Main gate"
-    assert record.departed_at is None
+    assert (punch.kind, punch.status) == ("ARRIVE", "PENDING")
 
-    action, closed, _, late, early, overtime = await clock_service.clock(
+    action, closing, _, late, early, overtime, arrived = await clock_service.clock(
         session=db_async, current_user=employee, token=token, now=utc(18, 30)
     )
     assert (action, late, early, overtime) == ("DEPARTED", 10, 0, 30)
-    assert closed.id == record.id
-    assert closed.departed_at == utc(18, 30)
+    assert (closing.kind, closing.status) == ("DEPART", "PENDING")
+    assert closing.roster_assignment_id == punch.roster_assignment_id
+    assert arrived == utc(9, 40)
+    # A pending phone punch is not attendance (ADR-0040).
+    assert (await db_async.scalars(select(AttendanceRecord))).first() is None
 
 
 async def test_early_departure_is_reported(db_async: AsyncSession) -> None:
@@ -128,7 +133,7 @@ async def test_early_departure_is_reported(db_async: AsyncSession) -> None:
     await clock_service.clock(
         session=db_async, current_user=employee, token=token, now=utc(9, 30)
     )
-    _, _, _, late, early, overtime = await clock_service.clock(
+    _, _, _, late, early, overtime, _ = await clock_service.clock(
         session=db_async, current_user=employee, token=token, now=utc(17, 0)
     )
     assert (late, early, overtime) == (0, 60, 0)
@@ -150,7 +155,6 @@ async def test_repeat_scan_within_a_minute_changes_nothing(
     )
     assert action == "ARRIVED"
     assert again.id == first.id
-    assert again.departed_at is None
 
 
 async def test_no_rostered_shift_is_refused_not_invented(

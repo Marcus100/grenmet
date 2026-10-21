@@ -2,6 +2,7 @@ node_modules
 apps/web/admin/node_modules
 apps/web/auth/node_modules
 apps/web/babydoll/node_modules
+apps/web/bookings/node_modules
 apps/web/cap/node_modules
 apps/web/cms/node_modules
 apps/web/docs/node_modules
@@ -15,6 +16,7 @@ apps/web/signal/node_modules
 packages/cms-migrations/node_modules
 packages/api-client/node_modules
 packages/auth/node_modules
+packages/bookings-web/node_modules
 packages/email-templates/node_modules
 packages/gms/node_modules
 packages/theme/node_modules
@@ -24,6 +26,7 @@ packages/ui/node_modules
 apps/web/admin/.next
 apps/web/auth/.next
 apps/web/babydoll/.next
+apps/web/bookings/.next
 apps/web/cap/.next
 apps/web/cms/.next
 apps/web/docs/.next

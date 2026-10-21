@@ -186,7 +186,7 @@ nothing is created or alerts until the owner applies and unpauses them.
 | --- | --- | --- | --- |
 | Monitor | GAA API readiness | `https://api.barrels.gd/api/v1/utils/ready/` | keyword `"status":"ready"` |
 | Monitor | Barrels ID (auth), GAA staff portal, GMS weather, CAP alert hub, GMS dashboard, GMS docs, MBIA, Signal, Elections health | `https://{auth,admin,weather,cap,gmsdash,docs,mbia,signal,elections}.barrels.gd/api/health` | HTTP 2xx |
-| Monitor (deferred) | CMS readiness, Events health, Barrels homepage | `cms…/api/ready`, `events…/api/health`, `https://barrels.gd/` | covered by the probe runner until quota allows |
+| Monitor (deferred) | CMS readiness, Events health, Bookings health, Barrels homepage | `cms…/api/ready`, `events…/api/health`, `bookings…/api/health`, `https://barrels.gd/` | covered by the probe runner until quota allows |
 | Heartbeat | probe runner | `PROBE_HEARTBEAT_URL` | 5 min + 10 min grace |
 | Heartbeat | verified core backup | `BACKUP_HEARTBEAT_URL` | 24 h + 2 h grace |
 | Heartbeat | worker poll completion | `WORKER_HEARTBEAT_URL` (rendered as `TELEMETRY_WORKER_HEARTBEAT_URL`) | 1 min + 2 min grace |
@@ -223,7 +223,7 @@ the probe runner install.
 is skipped without `SENTRY_AUTH_TOKEN` and never fails a deploy.
 
 The worker sends Sentry Cron check-ins for `process_cap_jobs`, `ingest_cap_feeds`,
-`drain_outbox`, `drain_events_outbox` and `purge_expired_data` (slugs
+`drain_outbox` and `purge_expired_data` (slugs
 `<environment>-worker-<job>`, e.g. `production-worker-drain-outbox`) only when
 `SENTRY_CRONS_ENABLED=true` reaches the worker; check the plan's included cron
 monitors first. Sentry creates the monitors from the first check-ins.
@@ -372,8 +372,8 @@ require at least 24 hours of staging evidence before production promotion.
   application host; increasing this bound requires a capacity review. It requires 2 GiB available host RAM
   and free disk of at least max(5 GiB, ten times compressed dump bytes). Capacity
   shortfalls fail the drill; never resize infrastructure automatically.
-- Core backups and restore manifests require all eight databases: main, WxWatch,
-  WxProducts, janitorial, transport, eRegister, Events and CMS. Older manifests
+- Core backups and restore manifests require all seven databases: main (which holds
+  Events), WxWatch, WxProducts, janitorial, transport, eRegister and CMS. Older manifests
   fail restore acceptance; run a fresh complete backup before the drill. Only the
   existing first-provisioning CMS exception is allowed, and it never sends success.
   The legacy production workflow also includes eRegister; its CMS opt-in remains

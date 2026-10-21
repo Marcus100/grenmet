@@ -55,6 +55,9 @@ dev = [
     "fakeredis>=2.37.0",
     "types-defusedxml>=0.7.0.20260504",
     "schemathesis>=4",
+    # Independent decoders used only to cross-check eregister.encode (SYNOP TAC, BUFR CSV).
+    "pymetdecoder>=0.2.2",
+    "csv2bufr>=0.8.8",
 ]
 
 [build-system]
@@ -83,6 +86,8 @@ module = [
     "feedparser",
     "gms_ingest.*",
     "lxml.*",
+    "pymetdecoder.*",
+    "csv2bufr.*",
     "py_vapid.*",
     "pywebpush.*",
     "shapely.*",

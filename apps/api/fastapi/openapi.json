@@ -5157,7 +5157,7 @@
           "rewards"
         ],
         "summary": "My tickets (account page)",
-        "description": "The account's Events tickets for the Barrels ID page, read-only. Empty when Events has no database. Manage tickets in Barrels Events.",
+        "description": "The account's Events tickets for the Barrels ID page, read-only. Manage tickets in Barrels Events.",
         "operationId": "rewardsListMyTickets",
         "responses": {
           "200": {
@@ -5228,10 +5228,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -5476,10 +5476,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key."
           }
         ],
         "requestBody": {
@@ -7247,6 +7247,53 @@
         }
       }
     },
+    "/api/v1/bookings/me/organisations": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "The caller's organisations that use Barrels Bookings",
+        "description": "Active memberships in active organisations entitled to bookings, with the caller's role; feeds the studio's organisation picker. Accepts an account or the bookings app session.",
+        "operationId": "bookingsListMyOrganisations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BookingMyOrganisation"
+                  },
+                  "type": "array",
+                  "title": "Response Bookingslistmyorganisations"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/bookings/org/profile": {
       "get": {
         "tags": [
@@ -7277,10 +7324,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -7344,10 +7391,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7429,10 +7476,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -7500,10 +7547,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7592,10 +7639,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7677,10 +7724,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -7748,10 +7795,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7840,10 +7887,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7935,10 +7982,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8016,10 +8063,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -8149,10 +8196,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8230,10 +8277,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -8322,10 +8369,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "responses": {
@@ -8410,10 +8457,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8452,6 +8499,108 @@
           },
           "404": {
             "description": "Resource not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Enter a booking for a customer",
+        "description": "The business books a slot itself: a phone call, a walk-in or an appointment re-entered from another system. Requires an `Idempotency-Key` header (same key and body replays the first answer with `Idempotency-Replayed: true`, same key with another body is 409). The booking is `confirmed` with no deposit and is never limited by lead time, horizon or weekly hours, but a provider's time cannot be double-booked (409). `customer_email` is optional; the customer is emailed only when `send_confirmation` is true.",
+        "operationId": "bookingsCreateStudioBooking",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingStudioCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
           }
         }
       }
@@ -8566,10 +8715,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8650,10 +8799,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8734,10 +8883,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8821,10 +8970,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "requestBody": {
@@ -8918,10 +9067,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "requestBody": {
@@ -9015,10 +9164,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -9102,10 +9251,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -9367,6 +9516,9 @@
           },
           "409": {
             "description": "Request conflicts with current state"
+          },
+          "403": {
+            "description": "A deposit is due and the signed-in account has not verified its email (`email_verification_required`)"
           }
         }
       }
@@ -9600,6 +9752,256 @@
           },
           "404": {
             "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/settings": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Get my booking settings",
+        "description": "The profile, services, providers (with the services they offer and weekly hours) and whether deposits can be collected, in one call.",
+        "operationId": "bookingsGetSettings",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingSettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/services/order": {
+      "put": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Reorder services",
+        "description": "Set the menu order: each service's `sort_order` becomes its position.",
+        "operationId": "bookingsReorderServices",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingServicePublic"
+                  },
+                  "title": "Response Bookingsreorderservices"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/providers/order": {
+      "put": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Reorder providers",
+        "description": "Set the provider order: each `sort_order` becomes its position.",
+        "operationId": "bookingsReorderProviders",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingProviderPublic"
+                  },
+                  "title": "Response Bookingsreorderproviders"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
           }
         }
       }
@@ -12715,7 +13117,7 @@
           "hr-attendance"
         ],
         "summary": "Clock in or out at a clock point",
-        "description": "Records arrival against the caller's rostered work shift, or departure when a shift is already open. The token proves presence at a department clock point. It feeds the same attendance record and supervisor review as manual attendance. Late, early-departure and overtime minutes are informational only.",
+        "description": "Records a PENDING punch for the caller's rostered work shift (arrival, or departure when a shift is already open). The token proves presence at a department clock point. A phone punch is not attendance, hours or timesheet input until a supervisor approves it (ADR-0040). Late, early-departure and overtime minutes are informational only.",
         "operationId": "hrClock",
         "requestBody": {
           "content": {
@@ -12989,6 +13391,215 @@
           },
           "404": {
             "description": "Clock site not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-punches/pending": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "List phone clock punches awaiting approval",
+        "description": "Pending phone punches of employees the caller supervises or reviews (named supervisor, or timesheet.approve in the department scope). Never includes the caller's own punches.",
+        "operationId": "hrListPendingClockPunches",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockPunchesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Requires timesheet.approve"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-punches/{punch_id}/approve": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Approve a phone clock punch",
+        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Only the employee's named supervisor or a timesheet.approve holder in scope; never the punching employee. Idempotent.",
+        "operationId": "hrApproveClockPunch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "punch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Punch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ClockPunchApprove"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockPunchPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+          },
+          "404": {
+            "description": "Clock punch not found"
+          },
+          "409": {
+            "description": "Punch already decided, or its arrival is not approved"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-punches/{punch_id}/reject": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Reject a phone clock punch",
+        "description": "A rejected punch never becomes attendance. Rejecting an arrival also rejects its pending departure. A reason is required. Same authority as approval.",
+        "operationId": "hrRejectClockPunch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "punch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Punch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClockPunchReject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockPunchPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+          },
+          "404": {
+            "description": "Clock punch not found"
+          },
+          "409": {
+            "description": "Punch already decided, or its arrival is not approved"
           }
         }
       }
@@ -21198,6 +21809,56 @@
         ]
       }
     },
+    "/api/v1/feature-flags/public/evaluate": {
+      "get": {
+        "tags": [
+          "feature-flags"
+        ],
+        "summary": "Evaluate client-visible flags for an anonymous visitor",
+        "description": "No authentication. Flag key to on/off for the requested keys (comma separated, at most 20). The visitor is anonymous, so only environment rules and the everyone audience can be on. Unknown and non-exposed keys are absent. Cacheable for 30 seconds; callers should cache about 60 seconds and treat 429 or any error as flag off.",
+        "operationId": "featureEvaluatePublic",
+        "parameters": [
+          {
+            "name": "keys",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 1700,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(,[a-z0-9]+(?:-[a-z0-9]+)*){0,19}$",
+              "description": "Comma-separated kebab-case flag keys, at most 20.",
+              "title": "Keys"
+            },
+            "description": "Comma-separated kebab-case flag keys, at most 20."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureFlagEvaluation"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
     "/api/v1/feature-flags/org/evaluate": {
       "get": {
         "tags": [
@@ -28525,7 +29186,7 @@
           "eregister"
         ],
         "summary": "Queue a register observation for WIS2",
-        "description": "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. Only QC-accepted observations are published: 409 otherwise, unless WIS2BOX_* is configured, or when the observation was already queued (send `resend: true` to repeat).",
+        "description": "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. Only QC-accepted observations are published: 409 otherwise, unless WIS2BOX_* is configured. The station-hour publish gate (ADR-0032) must give the hour to the manual source: 409 when the schedule gives it to the automatic source, when another observation holds the hour, or when this one is already queued (WIS2 is never repeated; `resend` is ignored).",
         "operationId": "eregisterPublishRegisterObservation",
         "security": [
           {
@@ -45961,6 +46622,54 @@
         ],
         "title": "BookingExceptionPublic"
       },
+      "BookingMyOrganisation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "role": {
+            "$ref": "#/components/schemas/MembershipRole"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "role"
+        ],
+        "title": "BookingMyOrganisation",
+        "description": "An organisation the caller can open in the studio, with their role in it."
+      },
+      "BookingOrder": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "BookingOrder",
+        "description": "Ids of one kind in the order the business wants them listed."
+      },
       "BookingProfilePublic": {
         "properties": {
           "public_slug": {
@@ -46275,6 +46984,65 @@
           "service_ids"
         ],
         "title": "BookingProviderPublic"
+      },
+      "BookingProviderSettings": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order"
+          },
+          "service_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Service Ids"
+          },
+          "working_hours": {
+            "items": {
+              "$ref": "#/components/schemas/BookingWorkingPeriodPublic"
+            },
+            "type": "array",
+            "title": "Working Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "user_id",
+          "active",
+          "sort_order",
+          "service_ids",
+          "working_hours"
+        ],
+        "title": "BookingProviderSettings"
       },
       "BookingProviderUpdate": {
         "properties": {
@@ -46991,6 +47759,49 @@
         "type": "object",
         "title": "BookingServiceUpdate"
       },
+      "BookingSettings": {
+        "properties": {
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingProfilePublic"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null until the business creates its booking profile."
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/BookingServicePublic"
+            },
+            "type": "array",
+            "title": "Services"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/BookingProviderSettings"
+            },
+            "type": "array",
+            "title": "Providers"
+          },
+          "deposits_available": {
+            "type": "boolean",
+            "title": "Deposits Available",
+            "description": "False when the organisation lacks the `payments` entitlement: a service deposit is stored but not collected."
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile",
+          "services",
+          "providers",
+          "deposits_available"
+        ],
+        "title": "BookingSettings",
+        "description": "Everything the settings screen renders, in one call."
+      },
       "BookingSlot": {
         "properties": {
           "starts_at": {
@@ -47117,6 +47928,83 @@
           "reason"
         ],
         "title": "BookingStudioCancel"
+      },
+      "BookingStudioCreate": {
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "provider_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Provider Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "customer_name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Customer Name"
+          },
+          "customer_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254,
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Email"
+          },
+          "customer_phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Phone"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "send_confirmation": {
+            "type": "boolean",
+            "title": "Send Confirmation",
+            "description": "Email the customer a confirmation with a manage link. Needs `customer_email`; off by default so re-entering existing appointments does not mail anyone.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_id",
+          "provider_id",
+          "starts_at",
+          "customer_name"
+        ],
+        "title": "BookingStudioCreate",
+        "description": "A booking the business enters itself: phone, walk-in or a re-entered\nappointment. Sent with an `Idempotency-Key` header."
       },
       "BookingStudioCustomer": {
         "properties": {
@@ -50815,6 +51703,258 @@
         ],
         "title": "CheckoutSessionPublic"
       },
+      "ClockPunchApprove": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "title": "ClockPunchApprove"
+      },
+      "ClockPunchKind": {
+        "type": "string",
+        "enum": [
+          "ARRIVE",
+          "DEPART"
+        ],
+        "title": "ClockPunchKind"
+      },
+      "ClockPunchPendingPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ClockPunchKind"
+          },
+          "punched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Punched At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ClockPunchStatus"
+          },
+          "reviewed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By User Id"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "site_name": {
+            "type": "string",
+            "title": "Site Name"
+          },
+          "shift_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Shift Date"
+          },
+          "shift_code": {
+            "type": "string",
+            "title": "Shift Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "department_id",
+          "roster_assignment_id",
+          "kind",
+          "punched_at",
+          "status",
+          "employee_name",
+          "site_name",
+          "shift_date",
+          "shift_code"
+        ],
+        "title": "ClockPunchPendingPublic"
+      },
+      "ClockPunchPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ClockPunchKind"
+          },
+          "punched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Punched At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ClockPunchStatus"
+          },
+          "reviewed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By User Id"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "department_id",
+          "roster_assignment_id",
+          "kind",
+          "punched_at",
+          "status"
+        ],
+        "title": "ClockPunchPublic"
+      },
+      "ClockPunchReject": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ClockPunchReject"
+      },
+      "ClockPunchStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "APPROVED",
+          "REJECTED"
+        ],
+        "title": "ClockPunchStatus"
+      },
+      "ClockPunchesPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ClockPunchPendingPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "ClockPunchesPublic"
+      },
       "ClockRequest": {
         "properties": {
           "token": {
@@ -50842,6 +51982,9 @@
           "attendance": {
             "$ref": "#/components/schemas/AttendanceShiftPublic"
           },
+          "punch": {
+            "$ref": "#/components/schemas/ClockPunchPublic"
+          },
           "late_minutes": {
             "type": "integer",
             "title": "Late Minutes",
@@ -50862,7 +52005,8 @@
         "required": [
           "action",
           "site_name",
-          "attendance"
+          "attendance",
+          "punch"
         ],
         "title": "ClockResult"
       },
@@ -71487,7 +72631,7 @@
           "refunded_minor"
         ],
         "title": "SettlementOnlinePayments",
-        "description": "Online (paid tier) orders against the payments ledger (N4b).\n\nThe Events side comes from the orders; the ledger side is the sum of the\n``events.order`` intents for this event in the payments ledger (charges and\nrefunds). They are separate databases, so the two are compared, not joined."
+        "description": "Online (paid tier) orders against the payments ledger (N4b).\n\nThe Events side comes from the orders; the ledger side is the sum of the\n``events.order`` intents for this event in the payments ledger (charges and\nrefunds). Orders and the payments ledger are compared, not joined."
       },
       "SettlementOverview": {
         "properties": {

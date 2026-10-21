@@ -10,17 +10,19 @@ import {
   dataServices,
   migrationServices,
   releaseScope,
+  routedServices,
   validateComposeScope,
   validateReleaseConfiguration,
   webImages,
 } from "../ci/release-scope.mjs";
 
+const ROLLING_REPLACEMENT = /rolling replacement/;
 const CHECK_SCRIPT = fileURLToPath(
   new URL("../ci/check-release-scope.mjs", import.meta.url)
 );
 
-test("release includes eleven core images and rejects contradictory weather configuration", () => {
-  assert.equal(releaseScope.web.length, 11);
+test("release includes twelve core images and rejects contradictory weather configuration", () => {
+  assert.equal(releaseScope.web.length, 12);
   assert.equal(releaseScope.api, true);
   assert.deepEqual(releaseScope.weather, []);
   validateReleaseConfiguration({});
@@ -180,4 +182,30 @@ test("each web image is built with the public address in docs/deployment.md", ()
     }
   }
   assert.ok(checked >= 10, `only ${checked} addresses checked`);
+});
+
+test("routed services can run twice during a rolling start", () => {
+  assert.ok(routedServices.includes("api"));
+  assert.equal(routedServices.includes("proxy"), false);
+  assert.equal(routedServices.includes("worker"), false);
+  for (const service of routedServices)
+    assert.ok(appServices.includes(service));
+  const services = Object.fromEntries(
+    coreServices.map((service) => [service, {}])
+  );
+  for (const blocker of [
+    { ports: ["3000:3000"] },
+    { container_name: "pinned" },
+  ])
+    assert.throws(
+      () =>
+        validateComposeScope({
+          services: { ...services, "web-auth": blocker },
+        }),
+      ROLLING_REPLACEMENT
+    );
+  // The proxy publishes 80/443 and is not rolled, so its ports are allowed.
+  validateComposeScope({
+    services: { ...services, proxy: { ports: ["443:443"] } },
+  });
 });

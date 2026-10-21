@@ -7,7 +7,6 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
-from src.events import database as events_database
 from src.events.models import Listing, Organiser
 from src.organisations.models import Membership
 from tests.events.support import ROOT, SessionFactory
@@ -17,7 +16,6 @@ from tests.events.support import ROOT, SessionFactory
 async def test_seed_links_organisers_to_platform_organisations(
     events_db: SessionFactory,
     db_async: AsyncSession,
-    monkeypatch: pytest.MonkeyPatch,
 ):
     spec = importlib.util.spec_from_file_location(
         "seed_events_demo", ROOT / "scripts/seed_events_demo.py"
@@ -26,7 +24,6 @@ async def test_seed_links_organisers_to_platform_organisations(
     assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    monkeypatch.setattr(events_database, "create_session", events_db)
 
     await module.seed(str(settings.FIRST_SUPERUSER))
     await module.seed(str(settings.FIRST_SUPERUSER))  # create-once

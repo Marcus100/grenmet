@@ -56,9 +56,6 @@ services:
       TRANSPORT_DB_NAME: ${TRANSPORT_DB_NAME}
       TRANSPORT_DB_USER: ${TRANSPORT_DB_USER}
       TRANSPORT_DB_PASSWORD: ${TRANSPORT_DB_PASSWORD}
-      EVENTS_DB_NAME: ${EVENTS_DB_NAME:?EVENTS_DB_NAME required}
-      EVENTS_DB_USER: ${EVENTS_DB_USER:?EVENTS_DB_USER required}
-      EVENTS_DB_PASSWORD: ${EVENTS_DB_PASSWORD:?EVENTS_DB_PASSWORD required}
       CMS_DB_NAME: ${CMS_DB_NAME:?CMS_DB_NAME required}
       CMS_DB_USER: ${CMS_DB_USER:?CMS_DB_USER required}
       CMS_DB_PASSWORD: ${CMS_DB_PASSWORD:?CMS_DB_PASSWORD required}
@@ -90,7 +87,6 @@ services:
       EREGISTER_DATABASE_URL: ${EREGISTER_DATABASE_URL:?EREGISTER_DATABASE_URL required}
       JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL:?JANITORIAL_DB_URL required}
       TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL:?TRANSPORT_DB_URL required}
-      EVENTS_DATABASE_URL: ${EVENTS_DB_URL:?EVENTS_DB_URL required}
       EREGISTER_DB_NAME: ${EREGISTER_DB_NAME:-eregister}
       WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME:-wxproducts}
       POSTGRES_SERVER: db
@@ -136,7 +132,6 @@ services:
       EREGISTER_DATABASE_URL: ${EREGISTER_DATABASE_URL:?EREGISTER_DATABASE_URL required}
       JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL:?JANITORIAL_DB_URL required}
       TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL:?TRANSPORT_DB_URL required}
-      EVENTS_DATABASE_URL: ${EVENTS_DB_URL:?EVENTS_DB_URL required}
       EREGISTER_DB_NAME: ${EREGISTER_DB_NAME:-eregister}
       WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME:-wxproducts}
       POSTGRES_SERVER: db
@@ -176,6 +171,8 @@ services:
       EVENTS_SSO_CLIENT_SECRET: ${EVENTS_SSO_CLIENT_SECRET:-}
       GMSDASH_APP_URL: https://gmsdash.${BASE_DOMAIN}
       GMSDASH_SSO_CLIENT_SECRET: ${GMSDASH_SSO_CLIENT_SECRET:-}
+      BOOKINGS_APP_URL: https://bookings.${BASE_DOMAIN}
+      BOOKINGS_SSO_CLIENT_SECRET: ${BOOKINGS_SSO_CLIENT_SECRET:-}
       GAA_ADMIN_APP_URL: https://admin.${BASE_DOMAIN}
       GAA_ADMIN_SSO_CLIENT_SECRET: ${GAA_ADMIN_SSO_CLIENT_SECRET:?GAA_ADMIN_SSO_CLIENT_SECRET required}
       CMS_APP_URL: https://cms.${BASE_DOMAIN}
@@ -721,6 +718,35 @@ services:
       - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.entrypoints=websecure"
       - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-gmsdash${ROUTER_SUFFIX}.loadbalancer.server.port=3013"
+    networks:
+      - grenmet
+
+  web-bookings:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-bookings:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3015/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      AUTH_API_URL: http://api:8000
+      AUTH_API_V1_STR: /api/v1
+      AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      # Optional: empty keeps sign-in off (single sign-on, ADR-0017).
+      BOOKINGS_SSO_CLIENT_SECRET: ${BOOKINGS_SSO_CLIENT_SECRET:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_BOOKINGS:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
+    labels:
+      - "traefik.enable=true"
+      # Its own router (and so its own certificate): a missing bookings.* DNS
+      # record cannot affect any other host.
+      - "traefik.http.routers.web-bookings${ROUTER_SUFFIX}.rule=Host(`bookings.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-bookings${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-bookings${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-bookings${ROUTER_SUFFIX}.loadbalancer.server.port=3015"
     networks:
       - grenmet
 

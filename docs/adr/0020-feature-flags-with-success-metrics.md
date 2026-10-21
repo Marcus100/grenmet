@@ -4,9 +4,11 @@
 
 Accepted — 2026-10-20. Built in `apps/api/fastapi/src/feature_flags` (PF7):
 audience rules cover organisations, users, stable percentage rollout and an
-environment allowlist; the admin screen in gaa-admin is still to do. Percentage
+environment allowlist; the admin screen is built at `apps/web/admin/src/app/(console)/flags/page.tsx`. Percentage
 rollouts, originally out of scope below, were added with the organisation and
 user rules because the social-layer flags (PF10) need them.
+
+Owner decision 2026-10-20: Babydoll's online-booking switch moves from the `BABYDOLL_ONLINE_BOOKING` environment variable to a flag before cutover.
 
 ## Context
 
@@ -59,6 +61,6 @@ environment-variable flags, because flipping one needs a redeploy.
 - Every flag is a branch in the code, so stale flags are a new kind of debt. The
   weekly cleanup routine lists flags older than their removal date.
 - Needs: one Alembic revision, a permission key, an OpenAPI change with client
-  regeneration, an admin screen in gaa-admin, and tests for audience rules.
+  regeneration, an admin screen (built in the admin app), and tests for audience rules.
 - Out of scope here: percentage rollouts and experimentation. Add them only if a
   concrete need appears.

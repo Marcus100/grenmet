@@ -9,6 +9,7 @@ from pydantic import TypeAdapter
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.email_verification import require_verified_email
 from src.auth.models import User
 from src.organisations import service as organisations
 from src.organisations.models import MembershipRole, OrganisationKind
@@ -443,8 +444,7 @@ async def listing_activity(
 
 
 async def create_organiser(
-    events: AsyncSession,
-    platform: AsyncSession,
+    db: AsyncSession,
     user: User,
     *,
     name: str,
@@ -452,24 +452,24 @@ async def create_organiser(
     bio: str = "",
 ) -> Organiser:
     """Create an organiser backed by a new platform organisation, with the creator
-    as its owner. The platform side commits first; if the Events insert then fails
-    the orphan organisation is harmless and can be removed from the platform."""
+    as its owner, in one transaction."""
     clean = name.strip()
     wanted = _SLUG_STRIP.sub("-", (slug or clean).lower()).strip("-")[:60]
     if not clean or not wanted:
         raise EventsConflict("An organiser needs a name")
-    if await events.scalar(select(Organiser.id).where(Organiser.slug == wanted)):
+    if await db.scalar(select(Organiser.id).where(Organiser.slug == wanted)):
         raise EventsConflict("That organiser address is taken")
     organisation = await organisations.create_organisation(
-        platform, name=clean, kind=OrganisationKind.BUSINESS, slug=wanted
+        db, name=clean, kind=OrganisationKind.BUSINESS, slug=wanted
     )
     await organisations.add_member(
-        platform,
+        db,
         organisation_id=organisation.id,
         user_id=user.id,
         role=MembershipRole.OWNER,
+        # administrator-created / seed / backfill: ADR-0018 exempts administrator-mediated grants
+        skip_email_check=True,
     )
-    await platform.commit()
     organiser = Organiser(
         id=uuid.uuid4(),
         slug=wanted,
@@ -477,9 +477,9 @@ async def create_organiser(
         bio=bio,
         organisation_id=organisation.id,
     )
-    events.add(organiser)
+    db.add(organiser)
     activity.record(
-        events,
+        db,
         actor_id=user.id,
         action="organiser.created",
         entity_type="organiser",
@@ -487,7 +487,7 @@ async def create_organiser(
         organiser_id=organiser.id,
         summary={"slug": wanted},
     )
-    await events.commit()
+    await db.commit()
     return organiser
 
 
@@ -517,24 +517,26 @@ async def set_organiser_logo(
 
 
 async def request_organiser(
-    events: AsyncSession,
-    platform: AsyncSession,
+    db: AsyncSession,
     user: User,
     body: schemas.OrganiserCreate,
 ) -> schemas.OrganiserPublic:
     """Self-service organiser account: created unverified (pending) with the member
     as owner. One pending request per member; a moderator verifies it."""
-    owned = await organisations.list_managed_organisation_ids(platform, user.id)
-    if owned and await events.scalar(
+    require_verified_email(
+        user, "request an organiser account"
+    )  # self-service stays gated
+    owned = await organisations.list_managed_organisation_ids(db, user.id)
+    if owned and await db.scalar(
         select(Organiser.id).where(
             Organiser.organisation_id.in_(owned), Organiser.verified.is_(False)
         )
     ):
         raise EventsConflict("Your organiser request is awaiting review")
     organiser = await create_organiser(
-        events, platform, user, name=body.name, slug=body.slug, bio=body.bio
+        db, user, name=body.name, slug=body.slug, bio=body.bio
     )
-    return await _organiser_public(events, organiser, user.id)
+    return await _organiser_public(db, organiser, user.id)
 
 
 async def organiser_public(

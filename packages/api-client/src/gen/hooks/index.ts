@@ -489,6 +489,11 @@ export {
   useBookingsCreateService,
 } from "./useBookingsCreateService.js";
 export {
+  bookingsCreateStudioBookingMutationKey,
+  bookingsCreateStudioBookingMutationOptions,
+  useBookingsCreateStudioBooking,
+} from "./useBookingsCreateStudioBooking.js";
+export {
   bookingsDeclineStudioBookingMutationKey,
   bookingsDeclineStudioBookingMutationOptions,
   useBookingsDeclineStudioBooking,
@@ -524,6 +529,11 @@ export {
   useBookingsGetPublicBookingIcs,
 } from "./useBookingsGetPublicBookingIcs.js";
 export {
+  bookingsGetSettingsQueryKey,
+  bookingsGetSettingsQueryOptions,
+  useBookingsGetSettings,
+} from "./useBookingsGetSettings.js";
+export {
   bookingsGetStorefrontQueryKey,
   bookingsGetStorefrontQueryOptions,
   useBookingsGetStorefront,
@@ -544,6 +554,11 @@ export {
   useBookingsListExceptions,
 } from "./useBookingsListExceptions.js";
 export {
+  bookingsListMyOrganisationsQueryKey,
+  bookingsListMyOrganisationsQueryOptions,
+  useBookingsListMyOrganisations,
+} from "./useBookingsListMyOrganisations.js";
+export {
   bookingsListProvidersQueryKey,
   bookingsListProvidersQueryOptions,
   useBookingsListProviders,
@@ -563,6 +578,16 @@ export {
   bookingsNoShowStudioBookingMutationOptions,
   useBookingsNoShowStudioBooking,
 } from "./useBookingsNoShowStudioBooking.js";
+export {
+  bookingsReorderProvidersMutationKey,
+  bookingsReorderProvidersMutationOptions,
+  useBookingsReorderProviders,
+} from "./useBookingsReorderProviders.js";
+export {
+  bookingsReorderServicesMutationKey,
+  bookingsReorderServicesMutationOptions,
+  useBookingsReorderServices,
+} from "./useBookingsReorderServices.js";
 export {
   bookingsReplaceWorkingHoursMutationKey,
   bookingsReplaceWorkingHoursMutationOptions,
@@ -1219,6 +1244,11 @@ export {
   useFeatureEvaluateForOrganisation,
 } from "./useFeatureEvaluateForOrganisation.js";
 export {
+  featureEvaluatePublicQueryKey,
+  featureEvaluatePublicQueryOptions,
+  useFeatureEvaluatePublic,
+} from "./useFeatureEvaluatePublic.js";
+export {
   featureGetFlagQueryKey,
   featureGetFlagQueryOptions,
   useFeatureGetFlag,
@@ -1258,6 +1288,11 @@ export {
   hrActionShiftSwapMutationOptions,
   useHrActionShiftSwap,
 } from "./useHrActionShiftSwap.js";
+export {
+  hrApproveClockPunchMutationKey,
+  hrApproveClockPunchMutationOptions,
+  useHrApproveClockPunch,
+} from "./useHrApproveClockPunch.js";
 export {
   hrApproveStaffRegistrationMutationKey,
   hrApproveStaffRegistrationMutationOptions,
@@ -1699,6 +1734,11 @@ export {
   useHrListMyShiftSwaps,
 } from "./useHrListMyShiftSwaps.js";
 export {
+  hrListPendingClockPunchesQueryKey,
+  hrListPendingClockPunchesQueryOptions,
+  useHrListPendingClockPunches,
+} from "./useHrListPendingClockPunches.js";
+export {
   hrListPeriodsQueryKey,
   hrListPeriodsQueryOptions,
   useHrListPeriods,
@@ -1773,6 +1813,11 @@ export {
   hrPutDepartmentRulesMutationOptions,
   useHrPutDepartmentRules,
 } from "./useHrPutDepartmentRules.js";
+export {
+  hrRejectClockPunchMutationKey,
+  hrRejectClockPunchMutationOptions,
+  useHrRejectClockPunch,
+} from "./useHrRejectClockPunch.js";
 export {
   hrRemoveHolidayMutationKey,
   hrRemoveHolidayMutationOptions,

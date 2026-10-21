@@ -14,4 +14,4 @@ Checked by hand in fresh Claude Code and Codex sessions; see docs/agents/skill-s
 
 ## Expected behaviour
 
-Pre-flights dev, creates or reuses the staging PR, arms auto-merge on the reviewed head, monitors the staging pipeline, and stops for the owner before the main merge and the production release.
+Pre-flights dev, creates or reuses the staging PR with a current recap, stops for the owner to merge it (no auto-merge), then monitors the staging pipeline and stops for the owner before the main merge and the production release.

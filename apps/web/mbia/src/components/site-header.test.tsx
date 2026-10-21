@@ -6,9 +6,17 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { SiteHeader } from "@/components/site-header";
 import { NAV_GROUPS } from "@/lib/nav";
+
+// The mobile sheet is code-split (next/dynamic). Warm its chunk once so a tap
+// does not wait on a cold import, which outlasted findByRole's 1 s window
+// under a loaded parallel run (#455). Lazy loading itself is still asserted
+// below: nothing renders the sheet until the menu is opened.
+beforeAll(async () => {
+  await import("@/components/mobile-nav-sheet");
+});
 
 // First desktop group and its first link, as defined in `lib/nav.ts`.
 const TRAVEL_LABEL = "Travel Guide";

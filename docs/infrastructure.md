@@ -21,7 +21,7 @@ Each stack includes:
 - `api`: FastAPI backend on internal port `8000`.
 - `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
 - `redis` + `worker`: Redis and the arq background worker (CAP publish jobs, notification and email outboxes, retention purge; see `src/worker/AGENTS.md`).
-- `web-auth`, `web-admin`, `web-docs`, `web-gms`, `web-signal`, `web-mbia`, `web-events`, `web-cap`, and `web-gmsdash`: nine configured web services. The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-admin`.
+- `web-cms`, `web-auth`, `web-admin`, `web-docs`, `web-gms`, `web-signal`, `web-mbia`, `web-events`, `web-cap`, `web-gmsdash`, and `web-bookings`: eleven configured web services (recounted from `docker-compose.deploy.yml`). The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-admin`.
 - `proxy`: Traefik v3, terminating HTTPS and routing by host.
 - `adminer`: present in staging only in the current compose files.
 
@@ -79,7 +79,7 @@ Useful commands on a server (confirm names with `docker ps -a`):
 
 ```bash
 docker ps -a --filter label=com.docker.compose.project=grenmet
-docker logs grenmet-api-1 --tail 100
+docker compose -p grenmet logs api --tail 100
 docker logs grenmet-prestart-1 --tail 100
 docker logs grenmet-proxy-1 --tail 100
 docker logs grenmet-db-1 --tail 100

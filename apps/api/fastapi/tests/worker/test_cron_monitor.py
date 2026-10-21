@@ -111,7 +111,6 @@ def test_key_jobs_are_monitored_and_keep_their_names() -> None:
         main.process_cap_jobs,
         main.ingest_cap_feeds,
         main.drain_outbox,
-        main.drain_events_outbox,
         main.purge_expired_data,
     ):
         assert hasattr(job, "__wrapped__")

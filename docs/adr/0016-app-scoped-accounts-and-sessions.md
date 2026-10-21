@@ -5,6 +5,8 @@
 Accepted (2026-10-03). Applies to Barrels Events now; other apps migrate later,
 one at a time, each with its own review.
 
+Amended 2026-10-21 for app tokens on organisation routes (last section). Amended by ADR-0017 (single sign-on handoff) on decision 1 ("no cross-app SSO"). Updated 2026-10-20: `src/auth/apps.py` now registers `events`, `gaa-admin`, `cms` and `barrels-admin`.
+
 ## Context
 
 All web apps share one sign-in (`auth.barrels.gd`) and one session cookie on
@@ -56,3 +58,38 @@ on every endpoint that only required "signed in".
 - Passkeys are the recommended next method; they need a new dependency.
 - Migrating a staff app means adding it to the registry, its access permission
   and default role, and switching its pages to app-scoped sign-in.
+
+## App tokens on organisation routes (amended 2026-10-21)
+
+Decision 4 kept app tokens out of every staff route. Barrels Bookings needs its
+own sign-in (decision 1) to reach organisation-zone routes, because a studio's
+staff are organisation members. The rule:
+
+- An app token may reach an organisation route only where that route opts in
+  for the same app through `session_app` on `require_org_app` or `org_or_key`
+  (`src/organisations/dependencies.py`, `api_key_auth.py`). Without
+  `session_app` every app token is a 401, and so is a token whose `app` claim
+  names a different app than the one the route opted in for.
+- The opt-in path is `resolve_org_caller`: `decode_bearer` validates the JWT,
+  then `user_for_app` requires an active account holding `app.<key>.access`,
+  then the unchanged organisation checks run: membership (404 for outsiders),
+  role, suspension and the organisation's entitlement. The app token adds no
+  organisation access of its own.
+- `get_current_user` and `AccountUser` still refuse app tokens, so nothing
+  outside an opted-in route changes.
+- The audit actor is set to the resolved user on this path, as it is for an
+  account token.
+- Bookings opts in (`session_app="bookings"`) on its six organisation aliases:
+  four in `bookings/router.py` and two in `bookings/settings.py`. Its
+  `GET /bookings/me/organisations` (zone `me`) accepts the same session through
+  `resolve_org_caller`. Storage and models_guidance are the older precedents
+  (they accept an app token with their own resolution); moving them onto the
+  shared helper is pending.
+- Considered and rejected: (B) exchanging the app token for an account token at
+  the organisation boundary, which would hand a self-service session a general
+  account credential; and (E) hosting the studio inside the auth app, which
+  would drop the per-app cookie and sign-in this ADR set out to give each app.
+- Adding another app: register it in `src/auth/apps.py`, then pass
+  `session_app="<key>"` only on the route families it needs. Do not widen
+  `get_org_context`. Each such route needs a denial test for another app's
+  token and for a non-member.

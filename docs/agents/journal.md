@@ -124,3 +124,16 @@ of work the nightly routine does, so it was the check before moving the routine 
 - The routine now runs on Haiku with tonight's Python issue (#373), so the first
   unattended Haiku PR is a real test of this result.
 
+**Measuring and improving the factory (2026-10-20).** The factory now reads its own
+work. `pnpm agents:sessions` parses the Claude Code and Codex transcripts already on
+this machine; `pnpm agents:flow` joins them with `origin/dev` history. First reading,
+14 days: 320 changes merged (26 via PR), 3 reverts (0.9%), 3.13B agent tokens and 676
+human prompts, so about 9.8M tokens and 2.1 human prompts per merged change, with
+tokens per change falling from 11.1M (W41) to 6.8M (W43). Opus carried 62% of tokens.
+Per-branch attribution is still thin: most merges came from sessions whose branch
+names differ from the merged branch, or from cloud sessions whose transcripts are not
+local. Five LLM-judge scorers, a self-improvement brief and the `factory-improve`
+skill close the loop. Live judging waits on the WSL `claude` CLI login, which had
+expired. Routing now reads `docs/agents/routing.json`; on the 33 benchmark runs Haiku
+passed more often (82% vs 75%) and Luna used about 40% of the tokens, but no run was
+area-specific, so the web/api split is still the owner's preference.

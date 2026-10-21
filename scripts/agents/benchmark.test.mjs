@@ -35,6 +35,7 @@ import {
   toRunRecord,
 } from "./benchmark.mjs";
 import { validateRecord } from "./run-record.mjs";
+import { claudeBinary } from "./sessions.mjs";
 
 const UNKNOWN_ARGUMENT = /Unknown argument/;
 const NEEDS_MODEL = /--model <name> or --tier/;
@@ -243,7 +244,7 @@ test("the agent command is built per agent and never leaks secrets into the prom
     model: "m",
     prompt: "do it",
   });
-  assert.equal(claude.command, "claude");
+  assert.equal(claude.command, claudeBinary());
   assert.ok(claude.args.includes("--permission-mode"));
   assert.ok(claude.args.join(" ").includes("WebFetch"));
   const joined = claude.args.join(" ");

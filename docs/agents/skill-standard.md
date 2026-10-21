@@ -100,6 +100,27 @@ Build the evaluation before the instructions.
 When an agent makes the same mistake twice, update the skill (or
 `AGENTS.md`) and add the case to `evals/triggers.md`.
 
+### Automated trigger evals
+
+Step 4 is scripted. `pnpm agents:skill-evals` sends every `evals/triggers.md`
+prompt, plus `scripts/agents/skill-trigger-evals.json`, to a fresh read-only
+session in a clone of `HEAD`, and prints a trigger table per skill:
+
+```bash
+pnpm agents:skill-evals --agent claude --model claude-haiku-5-5
+pnpm agents:skill-evals --agent codex --model <model> --skill ci-triage
+pnpm agents:skill-evals --agent claude --dry-run    # list cases, no model calls
+```
+
+Flags: `--skill <name>` (repeatable), `--limit <n>`, `--json`, `--keep` (keep the
+clone under `~/.cache/grenmet-skill-evals/`). Each case is appended to
+`~/.cache/grenmet-skill-evals/results.jsonl`. Exit 1 when a case fails. The
+script reads the committed skill text, so commit edits before evaluating them.
+It spends model tokens, so it is not part of `pnpm test:guardrails`; its unit
+tests use recorded logs and a fake agent (`node --test
+scripts/agents/skill-evals.test.mjs`). The `claude` and `codex` binaries come
+from `CLAUDE_BIN` and `CODEX_BIN` when set.
+
 ## Vendored skills
 
 Skills listed in `skills-lock.json` come from upstream repositories. Do not

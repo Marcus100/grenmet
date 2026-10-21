@@ -2,10 +2,12 @@
 
 ## Status
 
-Superseded by [ADR-0013](0013-cap-alert-self-publish-and-bulletin-linkage.md),
-which drops the mandatory Submitted/Approved gate in favour of the same
-self-publish shape every other product uses. The CAP-XML snapshot, audit
-trail, and public-feed decisions below stand.
+Approval gate: [ADR-0013](0013-cap-alert-self-publish-and-bulletin-linkage.md)
+dropped the mandatory Submitted/Approved gate, and
+[ADR-0023](0023-cap-approval-before-publish.md) restored it on 2026-10-18: a
+different person must approve a CAP alert before it is published. ADR-0023 is
+the current rule. The CAP-XML snapshot, audit trail, and public-feed decisions
+below stand.
 
 ## Context
 

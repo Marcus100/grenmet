@@ -24,7 +24,7 @@ class EmailConfig(BaseSettings):
     EMAILS_FROM_NAME: EmailStr | None = None
     RESEND_API_KEY: str | None = None
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
-    EMAIL_TEST_USER: EmailStr = "test@weather.gd"
+    EMAIL_TEST_USER: EmailStr = "test@example.com"
 
     # React Email render endpoint (web-auth Next.js app).
     # When set, FastAPI calls this URL to render HTML instead of using Jinja2.

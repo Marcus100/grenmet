@@ -18,7 +18,12 @@ from src.exceptions import AppException
 from src.orm import Base
 
 from .absentee.models import AbsenteeReport
-from .attendance.models import AttendanceCorrection, AttendanceRecord, ClockSite
+from .attendance.models import (
+    AttendanceCorrection,
+    AttendanceRecord,
+    ClockPunch,
+    ClockSite,
+)
 from .calendar.models import CalendarEvent
 from .dailystatus.models import StatusReport, StatusReportEntry
 from .documents.models import EmployeeDocument
@@ -391,4 +396,20 @@ def register() -> None:
         record_type="clock_site",
         label="Clock point",
         exclude=("token_hash",),
+    )
+
+    # Phone punches: who punched, who approved or rejected, and when.
+    registry.register_entity(
+        "clock_punch",
+        _owned(
+            ClockPunch,
+            ("user_id",),
+            ("timesheet.read.department", "timesheet.approve"),
+        ),
+    )
+    registry.track(
+        ClockPunch,
+        record_type="clock_punch",
+        label="Phone clock punch",
+        sensitive=("review_note",),
     )

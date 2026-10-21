@@ -129,18 +129,15 @@ def test_backlog_job_is_registered_and_scheduled() -> None:
     assert main.check_outbox_backlog in scheduled
 
 
-async def test_backlog_job_checks_platform_without_an_events_database(
+async def test_backlog_job_checks_the_platform_outbox(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from src.events import database
-
     reported: list[str] = []
 
     async def report(_redis: object, backlog: Any, *, threshold: int) -> bool:
         reported.append(backlog.outbox)
         return threshold >= 0
 
-    monkeypatch.setattr(database, "create_session", lambda: None)
     monkeypatch.setattr(outbox_health, "report", report)
     assert await main.check_outbox_backlog({}) == 0
     assert reported == ["platform"]

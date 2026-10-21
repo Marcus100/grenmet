@@ -52,6 +52,7 @@ async def people(session):
         first_name="Staff",
         last_name="Member",
         hashed_password="unused",
+        email_verified_at=utc_now(),
     )
     session.add_all(
         [

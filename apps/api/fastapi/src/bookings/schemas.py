@@ -5,6 +5,7 @@ from typing import Annotated, Self
 from pydantic import EmailStr, Field, field_validator, model_validator
 
 from src.models import BaseModel, UtcDateTime
+from src.organisations.models import MembershipRole
 from src.utils.timezones import is_valid_timezone
 
 from .models import BookingExceptionKind, BookingSource, BookingStatus
@@ -16,6 +17,18 @@ Minor = Annotated[int, Field(ge=0, le=100_000_000)]
 Currency = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
 #: Path words under /bookings/public that a slug must not shadow.
 RESERVED_SLUGS = frozenset({"bookings"})
+
+
+# --- caller's organisations -------------------------------------------------------
+
+
+class BookingMyOrganisation(BaseModel):
+    """An organisation the caller can open in the studio, with their role in it."""
+
+    id: str
+    name: str
+    slug: str
+    role: MembershipRole
 
 
 # --- profile ---------------------------------------------------------------------
@@ -383,6 +396,27 @@ class BookingPublicCreate(BaseModel):
     website: str | None = Field(default=None, max_length=200)
 
 
+class BookingStudioCreate(BaseModel):
+    """A booking the business enters itself: phone, walk-in or a re-entered
+    appointment. Sent with an `Idempotency-Key` header."""
+
+    service_id: uuid.UUID
+    provider_id: uuid.UUID
+    starts_at: UtcDateTime
+    customer_name: Name
+    customer_email: EmailStr | None = Field(default=None, max_length=254)
+    customer_phone: str | None = Field(default=None, max_length=40)
+    notes: str | None = Field(default=None, max_length=1000)
+    send_confirmation: bool = Field(
+        default=False,
+        description=(
+            "Email the customer a confirmation with a manage link. Needs "
+            "`customer_email`; off by default so re-entering existing "
+            "appointments does not mail anyone."
+        ),
+    )
+
+
 class BookingPublicCancel(BaseModel):
     reason: str | None = Field(default=None, max_length=300)
 
@@ -439,4 +473,40 @@ class BookingPublicReceipt(BaseModel):
             "Hosted page where the customer pays the deposit. Null when no online "
             "payment is available and the business records the payment itself."
         ),
+    )
+
+
+# --- settings screen (A1.2) -------------------------------------------------------------
+
+
+class BookingOrder(BaseModel):
+    """Ids of one kind in the order the business wants them listed."""
+
+    ids: Annotated[list[uuid.UUID], Field(min_length=1, max_length=500)]
+
+    @field_validator("ids")
+    @classmethod
+    def _unique(cls, value: list[uuid.UUID]) -> list[uuid.UUID]:
+        if len(set(value)) != len(value):
+            raise ValueError("Each id may appear only once")
+        return value
+
+
+class BookingProviderSettings(BookingProviderPublic):
+    working_hours: list[BookingWorkingPeriodPublic]
+
+
+class BookingSettings(BaseModel):
+    """Everything the settings screen renders, in one call."""
+
+    profile: BookingProfilePublic | None = Field(
+        description="Null until the business creates its booking profile."
+    )
+    services: list[BookingServicePublic]
+    providers: list[BookingProviderSettings]
+    deposits_available: bool = Field(
+        description=(
+            "False when the organisation lacks the `payments` entitlement: a "
+            "service deposit is stored but not collected."
+        )
     )

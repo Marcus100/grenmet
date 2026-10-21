@@ -656,7 +656,7 @@ class SettlementOnlinePayments(BaseModel):
 
     The Events side comes from the orders; the ledger side is the sum of the
     ``events.order`` intents for this event in the payments ledger (charges and
-    refunds). They are separate databases, so the two are compared, not joined.
+    refunds). Orders and the payments ledger are compared, not joined.
     """
 
     orders_paid: int

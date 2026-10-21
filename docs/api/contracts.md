@@ -427,7 +427,11 @@ the header cross-origin (it is in the CORS allow list).
 | Member whose role is too low for the route (`owner` > `admin` > `member`) | 403 |
 
 There is no superuser bypass. The caller needs any active Barrels account (the
-same as the account routes), not staff approval. The resolved organisation id is
+same as the account routes), not staff approval. A route family may opt in to the session of its own app
+(`session_app=` on `require_org_app` / `org_or_key`; `/bookings/org/*` accepts the
+bookings app session, issue #472): that JWT then needs an active account with
+`app.<key>.access`, and the membership, role and entitlement rules above are
+unchanged. Every other app's token stays 401. The resolved organisation id is
 written to every log line for the request as `organisation_id`. A route is only
 described as organisation-isolated if it uses `OrgContext` and has a
 cross-organisation denial test.
@@ -579,7 +583,12 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   organisation's entitlement (403), and a revoked or expired key is 401.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
-  which return only flags marked exposed.
+  which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`
+  is the unauthenticated variant for static sites (at most 20 keys, rate limited,
+  `Cache-Control: public, max-age=30`; 600/minute per IP): callers must cache it (Next
+  `revalidate` ~60 s) rather than call per visitor, and treat 429 or any error as flag
+  off (fail closed). Anonymous subject, so only environment and
+  `everyone` rules can be on; unknown and non-exposed keys are absent.
 - **Rewards earn sources, Passport and achievements** (PF8/PF9, ADR-0030): programmes take
   a `qualifying_source_type` from the catalogue in `src/rewards/sources.py`.
   Organisation routes under `/rewards/org/...` manage venues, trails, stops,
@@ -659,10 +668,13 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 
 | Endpoint | Authentication | Contract |
 | --- | --- | --- |
+| `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
 | `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
 | `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
 | `GET/PUT /api/v1/bookings/org/providers/{id}/hours` | Same | Replace the weekly plan; overlapping periods on one day 422 |
+| `GET /api/v1/bookings/org/settings` | Member or API key `bookings.read` | Settings screen in one call: profile (null before it exists), services, providers with `service_ids` and `working_hours`, and `deposits_available` (false without the `payments` entitlement, where deposits are stored but not collected) |
+| `PUT /api/v1/bookings/org/services/order`, `PUT /providers/order` | Admin member or API key `bookings.write` | Body `{ids}`: each `sort_order` becomes its position; a foreign or unknown id 404, duplicates or an empty list 422 |
 | `GET/POST /api/v1/bookings/org/providers/{id}/exceptions`, `DELETE /studio/exceptions/{id}` | Same | Dated `time_off` and `extra_hours` |
 | `GET /api/v1/bookings/org/bookings?starts_from&ends_before` | `X-Barrels-Organisation`, any member | Agenda of bookings overlapping the range |
 | `GET /api/v1/bookings/public/{slug}` | None (60/minute) | Storefront: active services and providers; unknown or disabled 404 |
@@ -670,6 +682,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 
 | `GET /api/v1/bookings/org/agenda?from_date&to_date[&provider_id&status&limit&offset]` | Member or API key `bookings.read` | Bookings grouped by local day; at most 62 days (422), paged with `limit` and `offset` |
 | `GET /api/v1/bookings/org/bookings/{id}` | Same | Studio view with customer contact details, history and deposit state; another organisation's id 404 |
+| `POST /api/v1/bookings/org/bookings` | Admin member or API key `bookings.write`; `Idempotency-Key` required | Staff entry (phone, walk-in, re-entered appointment): `confirmed`, source `studio`, no deposit; ignores lead time, horizon and weekly hours, but an overlap is 409; provider must offer the service (422); optional customer email, emailed only with `send_confirmation` |
 | `POST /api/v1/bookings/org/bookings/{id}/confirm`, `/decline`, `/cancel`, `/no-show`, `/complete` | Admin member or API key `bookings.write` | Studio actions through the status machine; decline and cancel need a `reason`, email the customer and emit `booking.cancelled`; an illegal move 409 |
 
 Overlapping active bookings for one provider are refused by the database
@@ -891,20 +904,34 @@ separate as-of column yet.
 
 | Endpoint | Permission | Purpose |
 | --- | --- | --- |
-| `POST /api/v1/hr/attendance/clock` | `timesheet.submit.self` | Record arrival, or departure when a shift is open |
+| `POST /api/v1/hr/attendance/clock` | `timesheet.submit.self` | Record a PENDING arrival, or departure when a shift is open |
+| `GET /api/v1/hr/attendance/clock-punches/pending` | `timesheet.approve` (named supervisor, or department scope) | Pending phone punches the caller may review; never their own |
+| `POST /api/v1/hr/attendance/clock-punches/{punch_id}/approve` | `timesheet.approve` (named supervisor, or department scope) | Approve a punch; it then counts as attendance |
+| `POST /api/v1/hr/attendance/clock-punches/{punch_id}/reject` | `timesheet.approve` (named supervisor, or department scope) | Reject a punch with a reason; it never counts |
 | `GET /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | List a department's clock points (no tokens) |
 | `POST /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | Create a clock point; the token is returned once |
 | `POST /api/v1/hr/attendance/clock-sites/{site_id}/rotate` | `roster.manage` in the department scope | Replace the token; the old one stops working |
 | `PUT /api/v1/hr/attendance/clock-sites/{site_id}/active` | `roster.manage` in the department scope | Activate or deactivate a clock point |
 
 A clock point proves presence with a static token on an NFC tag or QR poster; only
-its SHA-256 hash is stored. A scan feeds the existing attendance record through
-`save_attendance`, so roster, permission and revision rules and the supervisor
-workflow are those of manual attendance. Arrival needs a published work shift that
+its SHA-256 hash is stored. A phone punch is **pending** until a supervisor approves
+it (ADR-0040): the scan stores a `hr.clock_punch` row and writes no attendance, so
+hours and timesheets ignore pending and rejected punches. Approval calls
+`save_attendance` as the employee (an arrival creates the record, a departure closes
+it), so roster, revision and the supervisor workflow are those of manual attendance.
+A departure can be approved only after its arrival; rejecting an arrival also
+rejects its pending departure, and the employee may then punch again. Only the
+employee's named supervisor (`supervisor_id`) or a `timesheet.approve` holder whose
+assignment covers the employee's department may decide, and nobody may decide their
+own punch (superusers included). Approve and reject are idempotent for the same
+outcome and return 409 for the opposite one. Arrival needs a published work shift that
 started at most two hours ago or ends within the next hour; with none, the call
 returns 409 and no shift is invented. A second scan within 60 seconds changes
 nothing. The clock point must belong to the caller's own department. `late_minutes`,
 `early_departure_minutes` and `overtime_minutes` are informational and not stored.
+`ClockResult` gains `punch` (with `status`); `attendance` stays but is a provisional,
+unsaved view (`attendance_id` null) until the punch is approved. Terminal punches
+(import not built yet) will count immediately and do not use this table.
 
 ### Roster rule limits and check
 
@@ -984,7 +1011,7 @@ carries two time bases.
 
 ## Barrels Events
 
-`/api/v1/events/*` (ADR-0016, separate `events` database; 503 while `EVENTS_DATABASE_URL` is unset).
+`/api/v1/events/*` (ADR-0016; `events` schema in the main database, ADR-0003). Settlement `online_payments` description now says orders and the ledger are compared, not joined (wording only, no shape change).
 
 | Access | Endpoints |
 | --- | --- |
@@ -2098,3 +2125,16 @@ t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`, `Barrels-Event-Id` and
 disables the endpoint, other failures retry (1 minute doubling to 1 hour, 5 attempts)
 and 15 failed attempts in a row disable it. Verify the timestamp (reject beyond five
 minutes) to stop replays. Adding an event type or a data field is additive.
+
+- **Verified email for money and power** (ADR-0018): `POST /bookings/public/{slug}/bookings` stays anonymous, but a caller who sends a valid sign-in bearer and books a service with a deposit gets 403 `email_verification_required: ...` until the account has verified its email (guests and no-deposit bookings are not gated; a bad token is treated as a guest). The same 403 code answers accepting or being promoted to an organisation admin or owner role, and assigning a staff role. Sign-in and browsing never need verification.
+
+- The deposit gate above is advisory until a host forwards the session: a missing, invalid, app-scoped or activation-pending token is treated as a guest, and the public booking site sends no bearer today. `organisations.service.add_member` also refuses OWNER and ADMIN for an unverified account (403, same code).
+
+## eRegister WIS2 publish gate (ADR-0032)
+
+`POST /api/v1/eregister/observations/{id}/publish` now passes the station-hour
+publish gate before queueing. It returns 409 when the station schedule gives
+the hour to the automatic source (SURFACE), when the station is not in the
+registry, or when another observation already holds the hour. A WIS2 file is
+never queued twice, so `resend` no longer repeats a queued or sent publish. The
+request and response shapes are unchanged; the optional request body is accepted and ignored.

@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from src.audit import service as audit_service
+from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import User
 from src.exceptions import AppException
 from src.hr.models import Organisation as HrOrganisation
@@ -189,7 +190,18 @@ async def add_member(
     role: MembershipRole,
     status: MembershipStatus = MembershipStatus.ACTIVE,
     invited_by_user_id: uuid.UUID | None = None,
+    skip_email_check: bool = False,
 ) -> Membership:
+    # ADR-0018: owning or administering an organisation needs a verified email.
+    # Callers that must stay exempt pass skip_email_check=True with a comment
+    # and are listed in src/auth/AGENTS.md.
+    if not skip_email_check and role in (MembershipRole.OWNER, MembershipRole.ADMIN):
+        user = await session.get(User, user_id)
+        if user is None:
+            raise AppException("User not found", 404)
+        await require_verified_or_admin_activated(
+            session, user, f"become an organisation {role.value}"
+        )
     membership = Membership(
         id=new_membership_id(),
         organisation_id=organisation_id,
@@ -217,7 +229,26 @@ async def set_app_enabled(
     else:
         row.enabled = enabled
     await session.flush()
+    if enabled:
+        for bundled in entitlements.BUNDLED_WITH.get(app_key, ()):
+            await _ensure_enabled(session, organisation_id, bundled)
     return row
+
+
+async def _ensure_enabled(
+    session: AsyncSession, organisation_id: str, app_key: str
+) -> None:
+    """Switch an entitlement on if it is missing or off (never touches others)."""
+    row = await session.get(OrganisationApp, (organisation_id, app_key))
+    if row is None:
+        session.add(
+            OrganisationApp(
+                organisation_id=organisation_id, app_key=app_key, enabled=True
+            )
+        )
+    elif not row.enabled:
+        row.enabled = True
+    await session.flush()
 
 
 async def list_my_memberships(

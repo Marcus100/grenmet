@@ -8,7 +8,6 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Query, status
-from sqlalchemy.exc import SQLAlchemyError
 
 from src.dependencies import AccountUser, SessionDep
 from src.events import schemas as events_schemas
@@ -19,7 +18,6 @@ from src.utils.datetime import utc_now
 
 from . import badges, service
 from .dependencies import (
-    OptionalEventsSession,
     RewardsManager,
     RewardsOrgAdmin,
     RewardsOrgMember,
@@ -162,13 +160,8 @@ async def cancel_redemption(
     operation_id="rewardsListMyBadges",
     responses={**AUTHENTICATED},
 )
-async def list_my_badges(
-    *, session: SessionDep, current_user: AccountUser, events: OptionalEventsSession
-) -> Any:
-    try:
-        return await badges.badges_for(session, events, current_user.id)
-    except SQLAlchemyError, OSError:
-        return await badges.badges_for(session, None, current_user.id)
+async def list_my_badges(*, session: SessionDep, current_user: AccountUser) -> Any:
+    return await badges.badges_for(session, current_user.id)
 
 
 @router.get(
@@ -177,20 +170,13 @@ async def list_my_badges(
     summary="My tickets (account page)",
     description=(
         "The account's Events tickets for the Barrels ID page, read-only. "
-        "Empty when Events has no database. Manage tickets in Barrels Events."
+        "Manage tickets in Barrels Events."
     ),
     operation_id="rewardsListMyTickets",
     responses={**AUTHENTICATED},
 )
-async def list_my_tickets(
-    *, current_user: AccountUser, events: OptionalEventsSession
-) -> Any:
-    if events is None:
-        return []
-    try:
-        return await events_service.my_tickets(events, current_user)
-    except SQLAlchemyError, OSError:
-        return []
+async def list_my_tickets(*, session: SessionDep, current_user: AccountUser) -> Any:
+    return await events_service.my_tickets(session, current_user)
 
 
 # --- organisation programmes and staff redemption ------------------------------

@@ -38,6 +38,7 @@ acceptance.
 | `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |
 | `apps/web/docs` | GMS public documentation and preparedness content | Active content application; renamed at transition boundary 8 | `apps/web/docs` on the dedicated GMS documentation host |
 | `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
+| `apps/web/bookings` | Barrels Bookings: appointment booking for Grenada businesses (ADR-0024) | Skeleton | Public booking pages at `bookings.barrels.gd/{business}` and `/studio` on Barrels sign-in; booking widgets come from the shared package when extracted |
 | `apps/web/elections` | Barrels Elections Grenada product (Grenada election coverage and history) | Prototype; 2026 coverage first | Election coverage and results history from static checked data; a FastAPI domain for results night later |
 | `apps/web/signal` | Barrels Signal media product | Active | Editorial reader redesign and discovery preview; dedicated Signal CMS deferred until frontend review |
 | `apps/web/mbia` | GAA/MBIA passenger public service | Active | Keep distinct from GAA corporate and staff applications |
@@ -62,6 +63,7 @@ transition:
 | `packages/auth` | Barrels platform | Active | May serve products and clients; grants no application access by default |
 | `packages/ui` | Barrels platform, brand-neutral primitives | Active; separation complete at boundaries 3-5 | Carries no brand prefix; must not depend on a brand package or select GMS branding by default |
 | `packages/theme` | Barrels platform display infrastructure | Active | Brand-neutral; product packages supply mappings |
+| `packages/bookings-web` | Barrels Bookings public booking flow (Barrels platform) | Active | Brand-neutral and framework-light: hosts pass server actions, links and class names in as props; never imports the API client at runtime or reads env |
 | `packages/gms` | GMS client presentation package | Active; extracted at boundaries 4-5b | Owns the GMS logo, palette and components; may depend on shared UI/theme, never the reverse |
 | `packages/api-client` | Barrels platform generated client | Generated | Regenerate from FastAPI OpenAPI; never edit generated output manually |
 | `packages/email-templates` | Barrels platform messaging | Active | Product/client branding supplied by caller |

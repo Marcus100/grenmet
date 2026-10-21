@@ -1,15 +1,11 @@
 "use client";
 
 import { type KeyboardEvent, useState } from "react";
-import {
-  BOOKING_URL,
-  formatPrice,
-  SERVICE_MENU,
-  type ServiceCategory,
-} from "@/data/site";
+import { formatPrice, SERVICE_MENU, type ServiceCategory } from "@/data/site";
+import type { CtaLink } from "@/lib/book-link";
 
 /** Tabbed price list. Every panel is in the HTML; inactive ones are hidden. */
-export function ServiceMenu() {
+export function ServiceMenu({ booking }: { booking: CtaLink }) {
   const [active, setActive] = useState<ServiceCategory["id"]>("lashes");
   const ids = SERVICE_MENU.map((category) => category.id);
 
@@ -66,9 +62,9 @@ export function ServiceMenu() {
                     <a
                       aria-label={`Book ${service.name}`}
                       className="book-link"
-                      href={BOOKING_URL}
-                      rel="noopener"
-                      target="_blank"
+                      href={booking.href}
+                      rel={booking.rel}
+                      target={booking.target}
                     >
                       Book <span aria-hidden="true">→</span>
                     </a>

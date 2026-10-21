@@ -15,7 +15,7 @@ workflow is `.github/workflows/restore-drill.yml`; the logic is
    It reads the scheduled backup's `production/YYYY/MM/DD/<database>_<timestamp>.dump`
    objects, or `production/core/latest-success.json` if that marker exists. Every
    required database (`app_prod`, `wxwatch`, `wxproducts`, `janitorial`, `transport`,
-   `eregister`, `events`) needs a dump under 24 hours old; extra ones such as the CMS
+   `eregister`) needs a dump under 24 hours old; extra ones such as the CMS
    are restored too.
 2. Restores each into a throwaway PostgreSQL container whose data lives in tmpfs, so
    nothing is written to disk. It never connects to a live database.

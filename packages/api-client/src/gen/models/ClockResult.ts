@@ -4,12 +4,14 @@
  */
 
 import type { AttendanceShiftPublic } from "./AttendanceShiftPublic.js";
+import type { ClockPunchPublic } from "./ClockPunchPublic.js";
 import type { ClockResultPropertiesActionEnum } from "./ClockResultPropertiesActionEnum.js";
 
 export type ClockResult = {
   action: ClockResultPropertiesActionEnum;
   site_name: string;
   attendance: AttendanceShiftPublic;
+  punch: ClockPunchPublic;
   /**
    * @default 0
    * @type integer | undefined

@@ -105,6 +105,7 @@ Go into each environment and add the following secrets. Staging and production u
 | `GAA_ADMIN_SSO_CLIENT_SECRET` | GAA Admin single sign-on secret    | `openssl rand -base64 32` (different per environment)          |
 | `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment)          |
 | `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment) |
+| `BOOKINGS_SSO_CLIENT_SECRET` | Bookings single sign-on secret (optional; empty keeps sign-in off; the API must register `bookings` first) | `openssl rand -base64 32` (different per environment) |
 | `EVENTS_SSO_CLIENT_SECRET` | Events single sign-on secret (optional) | `openssl rand -base64 32` (different per environment)        |
 | `RESEND_API_KEY`           | Email sending via Resend              | From your resend.com dashboard                                 |
 | `EMAIL`                    | Let's Encrypt registration email      | Your real email address                                        |
@@ -319,6 +320,49 @@ A new required secret goes in `REQUIRED_SECRETS` in
 `scripts/production/render-env.py` and in the `deploy.yml` env block; the same
 test fails if either is missing.
 
+### Rolling starts (no gap while containers are replaced)
+
+By default the `start` phase recreates every app service, which stops each
+service's only container before its replacement is healthy. Traefik then has no
+backend, so every route returns 404 for up to the start period (seen on staging
+run 37131928180).
+
+Set the GitHub environment variable `ROLLING_DEPLOY` to `1` (or `true`) to start routed
+services (`api` and every `web-*`, the `routed` role in
+`scripts/ci/release-scope.mjs`) one at a time instead:
+
+1. Start a second container from the new image beside the old one.
+2. Wait until it is healthy. Traefik only routes to healthy containers.
+3. Stop and remove the old container.
+
+If the new container never becomes healthy, it is removed, the old one keeps
+serving, and the deploy fails in the `start` phase. Workers and the proxy are
+not rolled: they still start the ordinary way after the routed services.
+
+Stopped leftover containers of a routed service are removed before each
+rolling start. If a deploy fails or is cancelled mid-rollout, the unfinished new
+container is removed. Any other value of `ROLLING_DEPLOY` stops the deploy
+before anything changes.
+
+Constraints and known gaps:
+
+- A routed service cannot publish host ports or set `container_name`, because
+  two copies must run at once. The release-scope check rejects either.
+- During the overlap, old and new code serve requests together against the
+  already-migrated schema, so migrations must stay backward compatible
+  (additive).
+- Traefik drops a router whose containers disagree on its `traefik.*` labels.
+  A release that changes a routed service's labels (router rule, extra hosts,
+  port or healthcheck path) can still return 404 briefly while both containers
+  run.
+- The old container keeps receiving requests until it stops (up to 30
+  seconds), so a few in-flight requests can fail with 502.
+- Container numbers keep increasing (`api-2`, `api-3`, …). Read logs by service:
+  `docker compose -p <project> logs api`.
+
+Turn it on for `staging` first and confirm that the smoke checks and logs are
+clean before you set it for `production`.
+
 ## Troubleshooting
 
 ### Runner is offline
@@ -394,13 +438,13 @@ Check the prestart (migrations) container first — it runs before the API:
 
 ```bash
 docker logs grenmet-staging-prestart-1 --tail 50
-docker logs grenmet-staging-api-1 --tail 50
+docker compose -p grenmet-staging logs api --tail 50
 ```
 
 ### A web app container keeps restarting
 
 ```bash
-docker logs grenmet-staging-web-auth-1 --tail 50
+docker compose -p grenmet-staging logs web-auth --tail 50
 # Replace web-auth with the failing service name
 ```
 
@@ -486,11 +530,12 @@ hurricane/spice hosts; no legacy redirects are installed.
 | Events | 3009 | https://events.barrels.gd | https://events.staging.barrels.gd |
 | CAP alert hub | 3010 | https://cap.barrels.gd | https://cap.staging.barrels.gd |
 | GMS Dashboard | 3013 | https://gmsdash.barrels.gd | https://gmsdash.staging.barrels.gd |
+| Bookings | 3015 | https://bookings.barrels.gd | https://bookings.staging.barrels.gd |
 | Elections | 3007 | https://elections.barrels.gd (Vercel) | Vercel preview deployments |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
-Cloudflare wildcard A records point `*.barrels.gd` to `134.122.119.220` and
-`*.staging.barrels.gd` to `167.71.24.42`. The DNS configuration supplied on 2026-09-06 uses DNS-only mode;
+Cloudflare wildcard A records point `*.barrels.gd` to the production droplet and
+`*.staging.barrels.gd` to the staging droplet (IPs: see the DigitalOcean dashboard). The DNS configuration supplied on 2026-09-06 uses DNS-only mode;
 Traefik obtains host certificates through the existing ACME challenge.
 
 Roll out staging first and verify every app health endpoint, login return URLs,

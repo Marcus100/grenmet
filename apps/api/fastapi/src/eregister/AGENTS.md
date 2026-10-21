@@ -36,3 +36,10 @@
 - The row records `qc_by`, `qc_at`, `qc_notes` (register DB, migration `eregister_0002`). Each transition also writes an `audit` entry (`entity_type` `eregister_observation`, readable by `eregister.qc` or `eregister.send`) in the application DB, in a second commit: the two databases cannot share a transaction.
 - Public endpoints already treat anything but `accepted` as provisional (`public.py`).
 - Tests: `tests/test_eregister_send.py` (QC section).
+- Cross-check: `tests/test_eregister_crosscheck.py` decodes the emitted TAC with `pymetdecoder` (dev dependency, test only; it cannot read NIL reports) and compares SI values with `rules.validate_synop`. `csv2bufr` is also a dev dependency, reserved for checking the wis2box CSV against the vendored template.
+
+## Observation store and publish gate (ADR-0032)
+
+- Schema `observations` in the register DB (migration `eregister_0003`, same eRegister Alembic chain, never the main chain): `stations` (registry and schedule `automatic`/`manual`/`hybrid` with `manual_hours_utc`), `observations` (natural key station, element, `valid_time_utc`, source; `store.upsert_observation` is idempotent, non-top-of-hour rows get `is_hourly` false), `publish_gate` (primary key station + UTC hour) and `publish_gate_decisions` (audit of every claim, reuse and refusal).
+- `gate.claim_manual_hour` runs before `sends.queue_wis2` queues anything: unregistered station or an hour the schedule gives to `automatic` is 409 (`PublishGateError`); the insert on the primary key makes one claim win under concurrency; another observation for the same hour is 409. WIS2 is never queued twice (`resend` is ignored for WIS2); a failed send may be queued again by the same observation.
+- 78958 is seeded `automatic` (SURFACE publishes it, ADR-0010), so eRegister WIS2 is refused until the owner updates `observations.stations` for the agreed hours. There is no registry endpoint yet. Not built: ingest endpoint (needs ADR-0029 keys), element mapping table, SURFACE sync.

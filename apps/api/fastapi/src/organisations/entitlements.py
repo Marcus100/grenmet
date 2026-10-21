@@ -35,3 +35,10 @@ def options() -> list[EntitlementOption]:
 
 def is_known(key: str) -> bool:
     return key in PRODUCTS or auth_apps.is_registered(key)
+
+
+#: Entitlements granted together with another (ADR-0028): an organisation that takes
+#: bookings holds the people it books, so it gets the contact book (view, merge,
+#: erase). Switching `bookings` off later leaves `contacts` alone; `contacts` is
+#: still sold on its own.
+BUNDLED_WITH: dict[str, tuple[str, ...]] = {"bookings": ("contacts",)}

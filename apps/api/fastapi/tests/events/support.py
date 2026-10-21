@@ -7,10 +7,13 @@ from uuid import UUID, uuid4
 
 import httpx
 from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import outbox as platform_outbox
 from src.auth.models import User
 from src.events import dependencies as deps
+from src.events import outbox as events_outbox
 from src.events import service
 from src.events.exceptions import EventsForbidden
 from src.events.models import (
@@ -185,3 +188,36 @@ async def connect(a: User, b_handle: str, b: User) -> None:
         )
         accepted = await client.post(f"{BASE}/connections/{request['id']}/accept")
         assert accepted.status_code == 204
+
+
+async def queued(factory: SessionFactory, kind: str | None = None):
+    """Pending ``events.notify`` rows on the platform outbox, oldest first,
+    optionally only one ``kind``."""
+    async with factory() as db:
+        rows = list(
+            (
+                await db.scalars(
+                    select(platform_outbox.Outbox)
+                    .where(platform_outbox.Outbox.topic == events_outbox.TOPIC)
+                    .order_by(platform_outbox.Outbox.created_at)
+                )
+            ).all()
+        )
+    return [row for row in rows if kind is None or row.payload.get("kind") == kind]
+
+
+def as_row(row) -> events_outbox.Row:
+    return events_outbox.Row(
+        kind=row.payload["kind"],
+        entity_id=row.payload["entity_id"],
+        payload=row.payload,
+        dedupe_key=row.dedupe_key,
+    )
+
+
+async def drain_notifications(factory: SessionFactory, **kwargs) -> int:
+    """Run due Events notification rows (the worker's ``drain_outbox`` does this)."""
+    async with factory() as db:
+        return await platform_outbox.drain(
+            db, only_topics={events_outbox.TOPIC}, **kwargs
+        )

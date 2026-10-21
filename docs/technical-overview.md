@@ -69,6 +69,7 @@ Next.js apps follow `@barrelsgd/web-<app>`.
 | `admin` | 3012 | Barrels control plane for superusers | FastAPI platform APIs; staff sign-in through the auth.barrels.gd handoff |
 | `gmsdash` | 3013 | GMS Dashboard: raw-model point meteograms for entitled organisations | FastAPI models-guidance API; app-scoped sign-in through the auth.barrels.gd handoff |
 | `babydoll` | 3014 | Babydoll Beauty Bar client website (Vercel) | Local content; online booking through the Bookings API behind a switch |
+| `bookings` | 3015 | Barrels Bookings: public booking pages and the `/studio` staff area (skeleton) | Bookings API (public and org routes); app-scoped Barrels sign-in pending API registration |
 | `barrels` | — | Barrels Grenada company homepage | Static HTML/CSS; separate build, no Next.js dev port |
 
 ### Consolidated staff portal
@@ -94,9 +95,8 @@ Ticketing, door admission, outlet cash, settlement and paid tiers
 The [FastAPI Events domain](../apps/api/fastapi/src/events/AGENTS.md) already
 contains listings, groups, connections, messaging, and access rules, with its
 own database and Alembic history. The web UI uses app-scoped email-code sign-in
-and a host-only session cookie. Events database configuration remains optional
-for the wider stack, but is required for the Events website's data-backed pages;
-those routes are unavailable while `EVENTS_DATABASE_URL` is unset. This inventory describes
+and a host-only session cookie. Events data lives in the `events` schema of the main
+database (ADR-0003). This inventory describes
 source implementation, not deployment or operational acceptance.
 
 ## Auth architecture
@@ -159,6 +159,7 @@ access tokens out of browser code.
 | `@barrelsgd/ui` | Brand-neutral primitives built on Base UI with shadcn-style patterns |
 | `@barrelsgd/gms` | GMS logo, foundation styles, product metadata, and service-specific presentation |
 | `@barrelsgd/theme` | Shared display preferences and theme utilities |
+| `@barrelsgd/bookings-web` | Public booking flow (slot picker, booking form, manage-booking, Turnstile); hosts pass server actions in as props |
 | `@barrelsgd/email-templates` | Shared React Email templates |
 | `@barrelsgd/cms-migrations` | Runtime dependencies for CMS migrations |
 | `@barrelsgd/tsconfig` | Shared TypeScript and Next.js configuration presets |
@@ -182,7 +183,7 @@ not require every page to fetch on the client.
 | Boundary | Owner and schema workflow |
 | --- | --- |
 | Main application database: identity, HR, CAP, and platform records | FastAPI SQLAlchemy models and main Alembic history |
-| WxWatch, WxProducts, eRegister, Janitorial, Transport, and Events databases | FastAPI domain sessions and each domain's own Alembic history |
+| WxWatch, WxProducts, eRegister, Janitorial, and Transport databases (Events is the `events` schema of the main database) | FastAPI domain sessions and each domain's own Alembic history |
 | Editorial CMS database | Payload collections and CMS migrations |
 
 GAA Admin has no operational database access. FastAPI owns operational schema

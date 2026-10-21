@@ -17,10 +17,11 @@ tooling. Start with `docs/technical-overview.md`.
 | --- | --- |
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
 | `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, push, rewards, bookings, webhooks_out, contacts, payments, feature_flags) |
-| `apps/web/<app>/AGENTS.md` | admin, auth, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
+| `apps/web/<app>/AGENTS.md` | admin, auth, bookings, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `apps/web/babydoll/AGENTS.md` | Babydoll Beauty Bar client website (Next.js, Vercel) |
-| `packages/<pkg>/AGENTS.md` | api-client, auth, email-templates, gms, theme, ui |
+| `packages/bookings-web/AGENTS.md` | Public booking flow (slot picker, booking form, manage-booking, Turnstile) shared by babydoll and a future bookings app; host owns server calls |
+| `packages/<pkg>/AGENTS.md` | api-client, auth, bookings-web, email-templates, gms, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
 
 ## Commands
@@ -28,7 +29,7 @@ tooling. Start with `docs/technical-overview.md`.
 ```bash
 pnpm install  # dependencies
 pnpm start  # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
-pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 babydoll:3014 — HOST ONLY
+pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 babydoll:3014 bookings:3015 — HOST ONLY
 pnpm verify:changed  # only the gates this diff needs (--dry-run to list; --full adds fuzz; PYTEST_WORKERS=n)
 pnpm fix:changed  # formats dirty files; in shared checkouts use `pnpm exec ultracite fix <owned-files>`
 pnpm type-check  # TypeScript across all packages
@@ -61,7 +62,7 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 - Before building, state the task contract: deliverable, constraints, non-goals and acceptance check. Skip it only for one-line fixes.
 - Every new feature or significant logic change ships with tests in the same task; if there is no clear test target, say what you verified and its limits.
 - Follow existing patterns. Before introducing a new pattern, library or abstraction, state the problem, why the existing approach falls short, and the tradeoffs.
-- Treat GAA as the client and GMS as its meteorological department. Software is Barrels IP; client data, marks and `Owner: GAA/GMS` docs are GAA's. The repo is public: keep confidential client material in gitignored `/private/`.
+- Treat GAA as the client and GMS as its meteorological department. Barrels Grenada owns the software and the data on its platforms (ADR-0033); GAA's marks and `Owner: GAA/GMS` docs stay GAA's. The repo is public: keep confidential client material and personal data in gitignored `/private/`.
 - Before acting on a setup or diagnosis theory, confirm the environment with a cheap check (host vs devcontainer, which Docker daemon, which port or config file). Run `pnpm start` and `pnpm dev:web:*` on the host only.
 - Lead with the answer or next step in plain language; keep responses short, and teach one concept at a time with a hands-on command. Apply user corrections immediately and record lasting rules in the relevant doc or `AGENTS.md`.
 
@@ -83,7 +84,7 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 
 ## Git, parallel agents and handoff
 
-- **Attended sessions:** work in a worktree per task, validate, push the task branch and open a PR into `dev`; the owner merges into `dev`. Standing authorization covers creating the `dev → staging` PR and arming auto-merge on its reviewed head (`--auto --match-head-commit`); the hook allows merges into `staging` only. **Unattended routines** do the same from their own `agent/<n>-<slug>` branch (`docs/agents/routines.md`). Cross-tool review handoffs (`pnpm agents:handoff`) and Codex's role: `docs/agents/roles.md`. Rulesets snapshot and drift check: `pnpm guardrails:rulesets`. Full rules: `docs/agents/workflow.md`.
+- **Attended sessions:** work in a worktree per task, validate, push the task branch and open a PR into `dev`. Agents merge their own PR into `dev` once CI is green on its head and a fresh-context review has no open blocking finding (`gh pr merge <num> --merge --match-head-commit <sha>`), so `origin/dev` always carries the latest. Never push `dev`. A `risk:high` PR also gets a `security-reviewer` pass with no open finding first, named in its body. The hook enforces the rest: `gh pr merge` works only into `dev`, only in this repository, and never for a PR that changes hooks, settings, `.codex`, `.agents`, skills, any `AGENTS.md`, guardrail scripts, workflows or rulesets (the owner merges those). Standing authorization covers creating the `dev → staging` PR with a recap; the owner reviews and merges into `staging` and does the same for `main` (agents do not arm auto-merge). **Unattended routines** do the same from their own `agent/<n>-<slug>` branch (`docs/agents/routines.md`). Cross-tool review handoffs (`pnpm agents:handoff`) and Codex's role: `docs/agents/roles.md`. Rulesets snapshot and drift check: `pnpm guardrails:rulesets`. Full rules: `docs/agents/workflow.md`.
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`; regenerate both.
 - Read `SESSION_LOG.md` (main checkout root) before assuming a task is untouched; append one entry after meaningful work. Read-only reviewers write nothing, including session logs; this exception overrides the logging requirement here and in `docs/agents/workflow.md`. The author records the review outcome. Run the `file-friction` skill if you worked around anything. Tool switches, browsers, MCP servers and plugins: `docs/agents/tool-usage.md`.
 - Use the `api-change` skill for FastAPI contract changes and `gaa-admin-change` before touching `apps/web/gaa-admin`. Check `.claude/skills/` (also `.agents/skills`) before improvising CI triage, pre-merge, release or diagnosis. Write and change skills to `docs/agents/skill-standard.md`; `pnpm test:guardrails` lints them.
@@ -98,7 +99,7 @@ Frontend (full style rules in `.agents/rules/ultracite.mdc`):
 - Server Components by default; React Query only for client-side mutations and polling.
 - `catalog:` for shared deps; `@/` path alias; UI primitives from `@barrelsgd/ui/components/ui/<name>`, `cn` from `@barrelsgd/ui/lib/utils`.
 - Types, fetch clients, hooks and Zod schemas come from `@barrelsgd/api-client`; never hand-write a FastAPI response type.
-- Let unexpected errors throw to `error.tsx`/`global-error.tsx`. If you catch and show a fallback, call `reportError(error, "<area>")` from the app's `src/lib/report-error.ts`. Never import `@sentry/nextjs` in a shared package; never put user data in Sentry.
+- Let unexpected errors throw to `error.tsx`/`global-error.tsx`. If you catch and show a fallback, call `reportError(error, "<area>")` from the app's `src/lib/report-error.ts`. Never import `@sentry/nextjs` in a shared package; never put personal data in Sentry; internal user and organisation IDs are allowed (ADR-0037).
 
 Backend (details in `apps/api/fastapi/AGENTS.md`):
 - SQLAlchemy models in `models.py`, `src.models.BaseModel` schemas in `schemas.py`; never expose ORM models.
@@ -138,6 +139,7 @@ Design: read the lane spec `docs/design/<lane>.md` before building UI; style onl
 | HR forms, roster, attendance and timesheet alignment | `docs/hr/end-to-end-alignment.md` |
 | Agent workflow, git, blast radius, hooks | `docs/agents/workflow.md` |
 | Agent helpers, principles, routines, run records, benchmarks | `docs/agents/README.md` |
+| Agent factory: flow metrics, session scoring, self-improvement loop | `docs/agents/factory.md` |
 | Writing or changing a skill (spec limits, testing, Codex parity) | `docs/agents/skill-standard.md` |
 | Agent configuration (how this layout works) | `docs/agent-configuration-guide.md` |
 | Vendored ops apps (SURFACE, wis2box) | `VENDORED.md` |

@@ -116,6 +116,18 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "rewards.manage",
         "Manage Barrels rewards: view all programmes, audited stamp adjustments, review flags",
     ),
+    # Platform products — organisation API-key scopes (ADR-0029). One list: a
+    # key's scope is a permission key here; the wire format is unchanged.
+    PermissionDef("bookings.read", "API key: read Barrels Bookings data"),
+    PermissionDef("bookings.write", "API key: change Barrels Bookings data"),
+    PermissionDef("rewards.read", "API key: read Barrels Rewards data"),
+    PermissionDef("rewards.write", "API key: change Barrels Rewards data"),
+    PermissionDef("contacts.read", "API key: read Barrels Contacts data"),
+    PermissionDef("contacts.write", "API key: change Barrels Contacts data"),
+    PermissionDef("payments.read", "API key: read Barrels Payments data"),
+    PermissionDef("payments.write", "API key: change Barrels Payments data"),
+    PermissionDef("webhooks.read", "API key: read Barrels Webhooks data"),
+    PermissionDef("webhooks.write", "API key: change Barrels Webhooks data"),
     # Platform — feature flags (ADR-0020)
     PermissionDef(
         "feature_flags.manage",
@@ -190,6 +202,7 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("app.docs.access", "Sign in to GMS Documentation"),
     PermissionDef("app.elections.access", "Sign in to Elections Grenada"),
     PermissionDef("app.gmsdash.access", "Sign in to the GMS Dashboard"),
+    PermissionDef("app.bookings.access", "Sign in to Barrels Bookings"),
     PermissionDef(
         "gmsdash.guidance.view",
         "Read raw model guidance meteograms without an organisation entitlement",
@@ -459,6 +472,10 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "gmsdash-member": (
         "GMS Dashboard member: granted on first sign-in",
         ("app.gmsdash.access",),
+    ),
+    "bookings-member": (
+        "Barrels Bookings member: granted on first sign-in",
+        ("app.bookings.access",),
     ),
     "gmsdash-operator": (
         "GMS Dashboard operator: reads model guidance and decides organisation access requests",

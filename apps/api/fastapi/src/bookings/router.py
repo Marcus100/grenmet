@@ -10,12 +10,18 @@ from datetime import date, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Path, Query, Request, Response, status
+from fastapi.security import HTTPAuthorizationCredentials
 
 from src import idempotency
-from src.dependencies import SessionDep
+from src.auth.models import User
+from src.dependencies import SessionDep, TokenDep, optional_account
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.api_key_auth import OrgAccess, org_or_key
-from src.organisations.dependencies import OrgContext, require_org_app
+from src.organisations.dependencies import (
+    OrgContext,
+    require_org_app,
+    resolve_org_caller,
+)
 from src.organisations.models import MembershipRole
 from src.rate_limit import limiter
 from src.turnstile import require_turnstile
@@ -28,6 +34,7 @@ from .schemas import (
     BookingAvailability,
     BookingExceptionCreate,
     BookingExceptionPublic,
+    BookingMyOrganisation,
     BookingProfilePublic,
     BookingProfileUpdate,
     BookingProviderCreate,
@@ -44,6 +51,7 @@ from .schemas import (
     BookingSlot,
     BookingStorefront,
     BookingStudioCancel,
+    BookingStudioCreate,
     BookingStudioDecline,
     BookingStudioDetail,
     BookingWorkingHoursUpdate,
@@ -52,20 +60,65 @@ from .schemas import (
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
+
+async def _studio_caller(session: SessionDep, token: TokenDep) -> User:
+    """The signed-in user: an account token or the bookings app's own token."""
+    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+    user, _ = await resolve_org_caller(session, credentials, "bookings")
+    return user
+
+
+StudioCaller = Annotated[User, Depends(_studio_caller)]
+
+
+@router.get(
+    "/me/organisations",
+    response_model=list[BookingMyOrganisation],
+    summary="The caller's organisations that use Barrels Bookings",
+    description=(
+        "Active memberships in active organisations entitled to bookings, with the "
+        "caller's role; feeds the studio's organisation picker. Accepts an account "
+        "or the bookings app session."
+    ),
+    operation_id="bookingsListMyOrganisations",
+    responses=AUTHENTICATED,
+)
+async def list_my_organisations(*, session: SessionDep, user: StudioCaller) -> Any:
+    rows = await service.list_my_organisations(session, user.id)
+    return [
+        BookingMyOrganisation(
+            id=o.id, name=o.name, slug=o.slug, role=MembershipRole(role)
+        )
+        for o, role in rows
+    ]
+
+
 # Organisation routes require the "bookings" entitlement (org.organisation_app).
-BookingsOrgMember = Annotated[OrgContext, Depends(require_org_app("bookings"))]
+BookingsOrgMember = Annotated[
+    OrgContext, Depends(require_org_app("bookings", session_app="bookings"))
+]
 BookingsOrgAdmin = Annotated[
-    OrgContext, Depends(require_org_app("bookings", MembershipRole.ADMIN))
+    OrgContext,
+    Depends(require_org_app("bookings", MembershipRole.ADMIN, session_app="bookings")),
 ]
 # Organisation reads also accept an API key with `bookings.read` (PF5, ADR-0029),
 # e.g. a kiosk or partner site; the user path behaves as BookingsOrgMember.
-BookingsOrgRead = Annotated[OrgAccess, Depends(org_or_key("bookings", "bookings.read"))]
+BookingsOrgRead = Annotated[
+    OrgAccess, Depends(org_or_key("bookings", "bookings.read", session_app="bookings"))
+]
 
 # Studio actions also accept an API key with `bookings.write` (PF5); the member
 # path needs the admin role. `actor_id` is None for a key.
 BookingsOrgWrite = Annotated[
     OrgAccess,
-    Depends(org_or_key("bookings", "bookings.write", MembershipRole.ADMIN)),
+    Depends(
+        org_or_key(
+            "bookings",
+            "bookings.write",
+            MembershipRole.ADMIN,
+            session_app="bookings",
+        )
+    ),
 ]
 
 READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
@@ -411,6 +464,52 @@ async def get_studio_booking(
 
 
 @router.post(
+    "/org/bookings",
+    response_model=BookingStudioDetail,
+    status_code=status.HTTP_201_CREATED,
+    summary="Enter a booking for a customer",
+    description=(
+        "The business books a slot itself: a phone call, a walk-in or an "
+        "appointment re-entered from another system. Requires an "
+        "`Idempotency-Key` header (same key and body replays the first answer "
+        "with `Idempotency-Replayed: true`, same key with another body is 409). "
+        "The booking is `confirmed` with no deposit and is never limited by "
+        "lead time, horizon or weekly hours, but a provider's time cannot be "
+        "double-booked (409). `customer_email` is optional; the customer is "
+        "emailed only when `send_confirmation` is true."
+    ),
+    operation_id="bookingsCreateStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def create_studio_booking(
+    *,
+    response: Response,
+    session: SessionDep,
+    org: BookingsOrgWrite,
+    payload: BookingStudioCreate,
+    idempotency_key: idempotency.RequiredIdempotencyKey,
+) -> Any:
+    async def create_once() -> tuple[int, dict[str, Any]]:
+        return await studio.create_booking(
+            session, org.organisation_id, payload, actor_user_id=org.actor_id
+        )
+
+    result = await idempotency.run_idempotent(
+        session,
+        scope="bookings.studio-create",
+        organisation_id=org.organisation_id,
+        key=idempotency_key,
+        request_body=payload.model_dump(mode="json"),
+        handler=create_once,
+    )
+    await session.commit()
+    response.status_code = result.status_code
+    if result.replayed:
+        response.headers["Idempotency-Replayed"] = "true"
+    return result.body
+
+
+@router.post(
     "/org/bookings/{booking_id}/confirm",
     response_model=BookingStudioDetail,
     summary="Confirm a booking request",
@@ -626,7 +725,17 @@ ManageToken = Annotated[
         "the outbox. Unknown, disabled and unentitled pages answer 404."
     ),
     operation_id="bookingsCreatePublicBooking",
-    responses={**BAD_REQUEST, **NOT_FOUND, **CONFLICT},
+    responses={
+        **BAD_REQUEST,
+        **NOT_FOUND,
+        **CONFLICT,
+        403: {
+            "description": (
+                "A deposit is due and the signed-in account has not verified "
+                "its email (`email_verification_required`)"
+            )
+        },
+    },
 )
 @limiter.limit("10/minute")
 async def create_public_booking(
@@ -651,7 +760,8 @@ async def create_public_booking(
         # its stored receipt instead of failing a second verification. A failed
         # check is not stored and releases the key.
         await require_turnstile(request, payload.turnstile_token, policy)
-        return await public.create_booking(session, profile, payload)
+        payer = await optional_account(request, session)
+        return await public.create_booking(session, profile, payload, payer=payer)
 
     result = await idempotency.run_idempotent(
         session,

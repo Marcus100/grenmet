@@ -37,7 +37,7 @@ deployments were October 3; the release integration changes await promotion.
 | Integration | Staging | Production | Acceptance still needed |
 | --- | --- | --- | --- |
 | Core database/API/CMS secrets and infrastructure variables | Present | Present | Deployed migrations, authenticated workflows |
-| Events database credentials and release wiring | Prepared | Prepared | Deploy; listings, organiser edits, saves and RSVPs |
+| Events (`events` schema in the main database) release wiring | Prepared | Prepared | Deploy; listings, organiser edits, saves and RSVPs |
 | Google OAuth | Credentials present | Missing | Correct callbacks and real sign-in |
 | Application Spaces storage | Credentials present | Missing | Upload, retrieve, private access denial |
 | Resend sending | Key present | Key present | Sender DNS and actual delivery |

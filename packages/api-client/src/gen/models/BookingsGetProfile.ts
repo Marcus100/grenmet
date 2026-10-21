@@ -8,7 +8,7 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsGetProfileHeaders = {
   /**
-   * @description Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.
+   * @description Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.
    */
   "X-Barrels-Organisation"?: string | null;
 };

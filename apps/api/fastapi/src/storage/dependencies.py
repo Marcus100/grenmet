@@ -11,20 +11,15 @@ from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from typing import Annotated
 
-import jwt
 from fastapi import Depends, Header
-from jwt.exceptions import InvalidTokenError
-from pydantic import ValidationError
 
 from src.auth.app_dependencies import OptionalBearer, unauthorized, user_for_app
-from src.auth.config import auth_settings
 from src.auth.models import User
-from src.auth.utils import ALGORITHM
 from src.dependencies import SessionDep, get_authenticated_user
-from src.models import TokenPayload
 from src.organisations.dependencies import (
     ORGANISATION_HEADER,
     OrgContext,
+    decode_bearer,
     resolve_org_context,
 )
 from src.request_context import bind_organisation_id, reset_organisation_id
@@ -46,17 +41,8 @@ async def resolve_caller(
 ) -> tuple[User, str | None]:
     if credentials is None:
         raise unauthorized("Not authenticated")
-    try:
-        payload = TokenPayload(
-            **jwt.decode(
-                credentials.credentials,
-                auth_settings.SECRET_KEY,
-                algorithms=[ALGORITHM],
-            )
-        )
-        user_id = uuid.UUID(payload.sub or "")
-    except InvalidTokenError, ValidationError, ValueError:
-        raise unauthorized() from None
+    payload = decode_bearer(credentials)
+    user_id = uuid.UUID(payload.sub or "")
     if payload.app is None:
         user = await get_authenticated_user(session, user_id, allow_unapproved=True)
         return user, None
