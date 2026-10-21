@@ -7,6 +7,11 @@ from pydantic import AfterValidator, Field
 from src.models import BaseModel, UtcDateTime
 
 KEY_PATTERN = r"^[a-z0-9]+(-[a-z0-9]+)*$"
+_KEY = r"[a-z0-9]+(?:-[a-z0-9]+)*"
+MAX_PUBLIC_KEYS = 20
+# Comma-separated flag keys, at most MAX_PUBLIC_KEYS (enforced by the regex, so
+# FastAPI answers 422 without extra code).
+PUBLIC_KEYS_PATTERN = rf"^{_KEY}(,{_KEY}){{0,{MAX_PUBLIC_KEYS - 1}}}$"
 
 type Environment = Literal["local", "staging", "production"]
 

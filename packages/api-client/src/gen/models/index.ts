@@ -3116,6 +3116,15 @@ export type {
   FeatureEvaluateForOrganisationStatus404,
   FeatureEvaluateForOrganisationStatus422,
 } from "./FeatureEvaluateForOrganisation.js";
+export type {
+  FeatureEvaluatePublicOptions,
+  FeatureEvaluatePublicQuery,
+  FeatureEvaluatePublicResponse,
+  FeatureEvaluatePublicResponses,
+  FeatureEvaluatePublicStatus200,
+  FeatureEvaluatePublicStatus422,
+  FeatureEvaluatePublicStatus429,
+} from "./FeatureEvaluatePublic.js";
 export type { FeatureFlagAdmin } from "./FeatureFlagAdmin.js";
 export type { FeatureFlagAdminList } from "./FeatureFlagAdminList.js";
 export type { FeatureFlagAudience } from "./FeatureFlagAudience.js";
