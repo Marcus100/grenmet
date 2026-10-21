@@ -1,8 +1,9 @@
 """Token-based clock-in that feeds the existing attendance journey.
 
-A punch is not a second timesheet: it calls ``save_attendance`` so permissions,
-roster checks, revisions and the supervisor workflow are exactly those of manual
-attendance. The site token only proves presence at a department's clock point.
+A phone punch is not attendance until a supervisor approves it (ADR-0040): a scan
+stores a pending ``ClockPunch`` and ``punch_service`` writes the attendance record
+on approval, through ``save_attendance``. The site token only proves presence at
+a department's clock point.
 """
 
 import hashlib
@@ -10,7 +11,7 @@ import secrets
 import uuid
 from datetime import UTC, date, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
@@ -29,9 +30,14 @@ from src.hr.roster.service import require_roster_manage_scope
 from src.utils.datetime import utc_now
 from src.utils.timezones import GRENADA
 
-from .models import AttendanceRecord, ClockSite
-from .schemas import AttendanceSave
-from .service import save_attendance, scheduled_bounds
+from .models import (
+    AttendanceRecord,
+    ClockPunch,
+    ClockPunchKind,
+    ClockPunchStatus,
+    ClockSite,
+)
+from .service import scheduled_bounds
 
 EARLY_WINDOW = timedelta(hours=2)
 LATE_WINDOW = timedelta(hours=1)
@@ -161,6 +167,11 @@ async def _current_assignment(
                 RosterPeriod.status == RosterPeriodStatus.PUBLISHED,
                 ShiftCatalog.category == ShiftCategory.WORK,
                 AttendanceRecord.id.is_(None),
+                ~exists().where(
+                    ClockPunch.roster_assignment_id == RosterAssignment.id,
+                    ClockPunch.kind == ClockPunchKind.ARRIVE.value,
+                    ClockPunch.status != ClockPunchStatus.REJECTED.value,
+                ),
             )
         )
     ).all()
@@ -178,17 +189,74 @@ def _minutes(delta: timedelta) -> int:
     return max(0, int(delta.total_seconds() // 60))
 
 
+async def _latest_live_punch(
+    session: AsyncSession, user_id: uuid.UUID, now: datetime
+) -> ClockPunch | None:
+    return (
+        (
+            await session.execute(
+                select(ClockPunch)
+                .where(
+                    ClockPunch.user_id == user_id,
+                    ClockPunch.status != ClockPunchStatus.REJECTED.value,
+                    ClockPunch.punched_at >= now - timedelta(hours=24),
+                )
+                .order_by(ClockPunch.punched_at.desc())
+                .limit(1)
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+
+async def _assignment_and_shift(
+    session: AsyncSession, assignment_id: uuid.UUID
+) -> tuple[RosterAssignment, ShiftCatalog]:
+    row = (
+        await session.execute(
+            select(RosterAssignment, ShiftCatalog)
+            .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
+            .where(RosterAssignment.id == assignment_id)
+        )
+    ).one()
+    return row[0], row[1]
+
+
+async def _open_arrival(
+    session: AsyncSession, user_id: uuid.UUID, now: datetime
+) -> tuple[uuid.UUID, datetime] | None:
+    """The shift this scan departs from: an arrival punch not yet closed, or a
+    manually recorded open attendance with no departure punch against it."""
+    last = await _latest_live_punch(session, user_id, now)
+    if last is not None and last.kind == ClockPunchKind.ARRIVE.value:
+        return last.roster_assignment_id, last.punched_at
+    record = await _open_record(session, user_id, now)
+    if record is None:
+        return None
+    closing = await session.scalar(
+        select(ClockPunch.id).where(
+            ClockPunch.roster_assignment_id == record.roster_assignment_id,
+            ClockPunch.kind == ClockPunchKind.DEPART.value,
+            ClockPunch.status != ClockPunchStatus.REJECTED.value,
+        )
+    )
+    return None if closing else (record.roster_assignment_id, record.arrived_at)
+
+
 async def clock(
     *,
     session: AsyncSession,
     current_user: User,
     token: str,
     now: datetime | None = None,
-) -> tuple[str, AttendanceRecord, ClockSite, int, int, int]:
-    """Record an arrival, or a departure when a shift is already open.
+) -> tuple[str, ClockPunch, ClockSite, int, int, int, datetime | None]:
+    """Record a pending arrival, or a pending departure when a shift is open.
 
-    Returns (action, record, site, late, early_departure, overtime). ``now`` is
-    injectable for tests; production uses the server clock.
+    Returns (action, punch, site, late, early_departure, overtime, arrived_at).
+    ``arrived_at`` is the arrival a departure closes (None for an arrival). ``now``
+    is injectable for tests; production uses the server clock. Nothing here
+    writes attendance: a supervisor's approval does.
     """
     require_permission(
         current_user=current_user, permission_key="timesheet.submit.self"
@@ -205,58 +273,61 @@ async def clock(
         raise AppException("This clock point belongs to another department", 403)
     now = now or utc_now()
 
-    open_record = await _open_record(session, current_user.id, now)
-    if open_record is not None:
-        if now - open_record.arrived_at < DOUBLE_SCAN:
-            return "ARRIVED", open_record, site, 0, 0, 0  # repeat scan, no change
-        record = await save_attendance(
-            session=session,
-            current_user=current_user,
-            payload=AttendanceSave(
-                roster_assignment_id=open_record.roster_assignment_id,
-                expected_revision=open_record.revision,
-                arrived_at=_aware(open_record.arrived_at),
-                departed_at=_aware(now),
-                break_minutes=open_record.break_minutes,
-                notes=open_record.notes,
-            ),
-        )
-        assignment, shift = await _assignment_and_shift(session, record)
+    last = await _latest_live_punch(session, current_user.id, now)
+    if last is not None and now - last.punched_at < DOUBLE_SCAN:
+        repeat = "DEPARTED" if last.kind == ClockPunchKind.DEPART.value else "ARRIVED"
+        return repeat, last, site, 0, 0, 0, None  # repeat scan, no change
+
+    open_arrival = await _open_arrival(session, current_user.id, now)
+    if open_arrival is not None:
+        assignment_id, arrived_at = open_arrival
+        assignment, shift = await _assignment_and_shift(session, assignment_id)
         start, end = scheduled_bounds(assignment, shift)
-        return (
-            "DEPARTED",
-            record,
-            site,
-            _minutes(record.arrived_at - start),
+        kind = ClockPunchKind.DEPART
+        late, early, overtime = (
+            _minutes(arrived_at - start),
             _minutes(end - now),
             _minutes(now - end),
         )
+    else:
+        found = await _current_assignment(session, current_user.id, now)
+        if found is None:
+            raise AppException("No rostered shift to clock in to at this time", 409)
+        assignment, shift = found
+        start, _ = scheduled_bounds(assignment, shift)
+        kind = ClockPunchKind.ARRIVE
+        arrived_at = None
+        late, early, overtime = _minutes(now - start), 0, 0
 
-    found = await _current_assignment(session, current_user.id, now)
-    if found is None:
-        raise AppException("No rostered shift to clock in to at this time", 409)
-    assignment, shift = found
-    record = await save_attendance(
-        session=session,
-        current_user=current_user,
-        payload=AttendanceSave(
-            roster_assignment_id=assignment.id,
-            expected_revision=0,
-            arrived_at=_aware(now),
-        ),
+    punch = ClockPunch(
+        user_id=current_user.id,
+        department_id=site.department_id,
+        clock_site_id=site.id,
+        roster_assignment_id=assignment.id,
+        kind=kind.value,
+        punched_at=now,
+        status=ClockPunchStatus.PENDING.value,
     )
-    start, _ = scheduled_bounds(assignment, shift)
-    return "ARRIVED", record, site, _minutes(now - start), 0, 0
+    audit_service.set_actor(session, current_user.id)
+    session.add(punch)
+    await session.commit()
+    await session.refresh(punch)
+    action = "DEPARTED" if kind == ClockPunchKind.DEPART else "ARRIVED"
+    return action, punch, site, late, early, overtime, arrived_at
 
 
-async def _assignment_and_shift(
-    session: AsyncSession, record: AttendanceRecord
-) -> tuple[RosterAssignment, ShiftCatalog]:
-    row = (
-        await session.execute(
-            select(RosterAssignment, ShiftCatalog)
-            .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
-            .where(RosterAssignment.id == record.roster_assignment_id)
-        )
-    ).one()
-    return row[0], row[1]
+def provisional_attendance(
+    punch: ClockPunch, arrived_at: datetime | None
+) -> AttendanceRecord:
+    """A transient, never-persisted view of what the punch would record."""
+    departing = punch.kind == ClockPunchKind.DEPART.value
+    return AttendanceRecord(
+        roster_assignment_id=punch.roster_assignment_id,
+        user_id=punch.user_id,
+        department_id=punch.department_id,
+        arrived_at=arrived_at if departing and arrived_at else punch.punched_at,
+        departed_at=punch.punched_at if departing else None,
+        break_minutes=0,
+        revision=0,
+        workflow_instance_id=None,
+    )
