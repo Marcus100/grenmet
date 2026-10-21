@@ -47,9 +47,11 @@ ARG NEXT_PUBLIC_RELEASE=""
 ENV NEXT_PUBLIC_RELEASE=$NEXT_PUBLIC_RELEASE
 ARG NEXT_PUBLIC_SENTRY_DSN=""
 ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT="production"
+ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
 ENV SENTRY_PROJECT=$SENTRY_PROJECT
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_SENTRY_ENVIRONMENT=$NEXT_PUBLIC_SENTRY_ENVIRONMENT
+ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Explicit application sources and workspace dependency closure.
@@ -57,6 +59,7 @@ COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/
 COPY packages/api-client/ packages/api-client/
 COPY packages/auth/ packages/auth/
+COPY packages/bookings-web/ packages/bookings-web/
 COPY apps/web/bookings/ apps/web/bookings/
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN pnpm exec turbo run build --filter=@barrelsgd/web-bookings
 RUN mkdir -p apps/web/bookings/public

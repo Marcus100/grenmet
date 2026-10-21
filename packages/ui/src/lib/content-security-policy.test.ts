@@ -129,16 +129,16 @@ describe("contentSecurityPolicyHeaders", () => {
 });
 
 describe("bookings policy", () => {
-  // No analytics and no third-party sources yet: self plus Sentry reporting only.
+  // No analytics; Turnstile guards the public booking form.
   function expectedBookings(sentry: boolean): string {
     return [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self'",
-      `connect-src 'self'${sentry ? " https://o1.ingest.sentry.io" : ""}`,
-      "frame-src 'none'",
+      `connect-src 'self' https://challenges.cloudflare.com${sentry ? " https://o1.ingest.sentry.io" : ""}`,
+      "frame-src https://challenges.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",
       "frame-ancestors 'self'",
