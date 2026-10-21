@@ -4,7 +4,7 @@
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
 **Last updated:** 2026-10-20
 
-Needed before any hydromet or new-station ingest design (ADR-0032, phase 5).
+Needed before any hydromet or new-station ingest design (ADR-0032).
 Fill in as answers arrive; unknowns stay marked.
 
 ## Known

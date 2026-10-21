@@ -4,6 +4,8 @@
 
 Accepted (2026-07-08)
 
+Amended by ADR-0032: the canonical observation store and per-station-hour publish gate now live in the monorepo (eregister database); decision 1's "integration is configuration, not code" no longer holds.
+
 ## Context
 
 Observations were entered into SURFACE (national archive) and wis2box (WMO WIS2

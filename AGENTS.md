@@ -62,7 +62,7 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 - Before building, state the task contract: deliverable, constraints, non-goals and acceptance check. Skip it only for one-line fixes.
 - Every new feature or significant logic change ships with tests in the same task; if there is no clear test target, say what you verified and its limits.
 - Follow existing patterns. Before introducing a new pattern, library or abstraction, state the problem, why the existing approach falls short, and the tradeoffs.
-- Treat GAA as the client and GMS as its meteorological department. Software is Barrels IP; client data, marks and `Owner: GAA/GMS` docs are GAA's. The repo is public: keep confidential client material in gitignored `/private/`.
+- Treat GAA as the client and GMS as its meteorological department. Barrels Grenada owns the software and the data on its platforms (ADR-0033); GAA's marks and `Owner: GAA/GMS` docs stay GAA's. The repo is public: keep confidential client material and personal data in gitignored `/private/`.
 - Before acting on a setup or diagnosis theory, confirm the environment with a cheap check (host vs devcontainer, which Docker daemon, which port or config file). Run `pnpm start` and `pnpm dev:web:*` on the host only.
 - Lead with the answer or next step in plain language; keep responses short, and teach one concept at a time with a hands-on command. Apply user corrections immediately and record lasting rules in the relevant doc or `AGENTS.md`.
 
