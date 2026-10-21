@@ -53,7 +53,7 @@ async def _book_as(client, studio, user=None):
 async def test_unverified_user_is_refused_with_a_stable_code(
     db_async: AsyncSession,
 ) -> None:
-    user = await make_user(db_async)
+    user = await make_user(db_async, verified=False)
     with pytest.raises(EmailNotVerifiedError) as raised:
         require_verified_email(user, "do a thing")
     assert raised.value.status_code == 403
@@ -68,7 +68,7 @@ async def test_unverified_user_is_refused_with_a_stable_code(
 async def test_sign_in_and_browsing_work_unverified(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
-    user = await make_user(db_async, password="password123")
+    user = await make_user(db_async, password="password123", verified=False)
     assert user.email_verified_at is None
     signed_in = await async_client.post(
         "/api/v1/auth/sessions", json={"email": user.email, "password": "password123"}
@@ -95,7 +95,7 @@ async def test_unverified_account_cannot_book_with_a_deposit(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _deposit_studio(db_async, async_client)
-    payer = await make_user(db_async)
+    payer = await make_user(db_async, verified=False)
     response = await _book_as(async_client, studio, payer)
     assert response.status_code == 403, response.text
     assert response.json()["detail"].startswith(f"{ERROR_CODE}:")
@@ -115,7 +115,7 @@ async def test_guest_and_no_deposit_bookings_are_not_gated(
     deposit_studio = await _deposit_studio(db_async, async_client)
     assert (await _book_as(async_client, deposit_studio)).status_code == 201
     free_studio = await _studio(db_async, async_client)
-    unverified = await make_user(db_async)
+    unverified = await make_user(db_async, verified=False)
     assert (await _book_as(async_client, free_studio, unverified)).status_code == 201
 
 
@@ -136,7 +136,7 @@ async def test_a_bad_token_on_the_public_route_is_treated_as_a_guest(
 
 
 async def test_staff_role_needs_a_verified_email(db_async: AsyncSession) -> None:
-    target = await make_user(db_async)
+    target = await make_user(db_async, verified=False)
     role = Role(name="gate_staff_role", description="test")
     db_async.add(role)
     await db_async.commit()
@@ -161,9 +161,9 @@ async def test_staff_role_needs_a_verified_email(db_async: AsyncSession) -> None
 async def test_admin_membership_needs_a_verified_email(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
-    owner = await make_user(db_async)
+    owner = await make_user(db_async, verified=False)
     org = await make_org(db_async, "Gate Org", members=((owner, MembershipRole.OWNER),))
-    invitee = await make_user(db_async)
+    invitee = await make_user(db_async, verified=False)
 
     # Invited as admin: acceptance is refused until the email is verified.
     created = await _invite(async_client, owner, org, invitee.email, "admin")
@@ -176,7 +176,7 @@ async def test_admin_membership_needs_a_verified_email(
     assert (await _accept(async_client, invitee, token)).status_code == 200
 
     # Promoting an unverified ordinary member to admin is refused too.
-    member = await make_user(db_async)
+    member = await make_user(db_async, verified=False)
     invited = await _invite(async_client, owner, org, member.email, "member")
     assert invited.status_code == 201, invited.text
     accepted = await _accept(
@@ -205,9 +205,9 @@ async def test_admin_membership_needs_a_verified_email(
 async def test_ordinary_membership_never_needs_verification(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
-    owner = await make_user(db_async)
+    owner = await make_user(db_async, verified=False)
     org = await make_org(db_async, "Open Org", members=((owner, MembershipRole.OWNER),))
-    guest = await make_user(db_async)
+    guest = await make_user(db_async, verified=False)
     assert (
         await _invite(async_client, owner, org, guest.email, "member")
     ).status_code == 201
