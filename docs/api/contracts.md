@@ -2110,3 +2110,12 @@ minutes) to stop replays. Adding an event type or a data field is additive.
 - **Verified email for money and power** (ADR-0018): `POST /bookings/public/{slug}/bookings` stays anonymous, but a caller who sends a valid sign-in bearer and books a service with a deposit gets 403 `email_verification_required: ...` until the account has verified its email (guests and no-deposit bookings are not gated; a bad token is treated as a guest). The same 403 code answers accepting or being promoted to an organisation admin or owner role, and assigning a staff role. Sign-in and browsing never need verification.
 
 - The deposit gate above is advisory until a host forwards the session: a missing, invalid, app-scoped or activation-pending token is treated as a guest, and the public booking site sends no bearer today. `organisations.service.add_member` also refuses OWNER and ADMIN for an unverified account (403, same code).
+
+## eRegister WIS2 publish gate (ADR-0032)
+
+`POST /api/v1/eregister/observations/{id}/publish` now passes the station-hour
+publish gate before queueing. It returns 409 when the station schedule gives
+the hour to the automatic source (SURFACE), when the station is not in the
+registry, or when another observation already holds the hour. A WIS2 file is
+never queued twice, so `resend` no longer repeats a queued or sent publish. The
+request and response shapes are unchanged.

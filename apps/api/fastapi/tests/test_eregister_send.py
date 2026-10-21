@@ -1,8 +1,10 @@
 """eRegister send actions: TAC and CSV encoders, email and WIS2 queueing, job."""
 
+import asyncio
 import csv
 import io
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -20,7 +22,7 @@ from alembic import command
 from src.audit.models import AuditEntry
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
-from src.eregister import encode, publisher, rules, sends
+from src.eregister import encode, gate, publisher, rules, sends, store
 from src.eregister.config import Wis2boxConfig
 from src.eregister.dependencies import get_session
 from src.eregister.models import ERegisterSend
@@ -210,6 +212,9 @@ async def send_client(
     with fresh_weather_engine.begin() as connection:
         config.attributes["connection"] = connection
         command.upgrade(config, "head")
+        # 78958 is seeded `automatic` (SURFACE publishes it); these tests act
+        # as if the owner has given eRegister the hours.
+        connection.execute(text("UPDATE observations.stations SET schedule = 'manual'"))
     engine = create_async_engine(
         fresh_weather_engine.url.set(drivername="postgresql+asyncpg"),
         poolclass=NullPool,
@@ -791,3 +796,215 @@ async def test_reopen_is_refused_once_queued_for_wis2(
     )
     assert response.status_code == 409
     assert "WIS2" in response.json()["detail"]
+
+
+# --- ADR-0032 observation store and publish gate -------------------------------
+
+
+def test_official_source_follows_the_schedule_in_utc() -> None:
+    noon = datetime(2026, 3, 30, 12, 30, tzinfo=UTC)
+    night = datetime(2026, 3, 30, 2, 0, tzinfo=UTC)
+    assert gate.official_source("automatic", [], noon) == "automatic"
+    assert gate.official_source("manual", [], night) == "manual"
+    hours = list(range(10, 22))
+    assert gate.official_source("hybrid", hours, noon) == "manual"
+    assert gate.official_source("hybrid", hours, night) == "automatic"
+    assert gate.valid_hour(noon) == datetime(2026, 3, 30, 12, 0, tzinfo=UTC)
+
+
+async def register_rows(sql: str, **params: Any) -> list[dict[str, Any]]:
+    """Query the register DB through the test's session override."""
+    async with asynccontextmanager(app.dependency_overrides[get_session])() as value:
+        result = await value.execute(text(sql), params)
+        return [dict(row) for row in result.mappings()]
+
+
+async def register_exec(sql: str, **params: Any) -> None:
+    async with asynccontextmanager(app.dependency_overrides[get_session])() as value:
+        await value.execute(text(sql), params)
+        await value.commit()
+
+
+def publish_url(observation: str) -> str:
+    return f"/api/v1/eregister/observations/{observation}/publish"
+
+
+async def test_gate_refuses_an_hour_the_schedule_gives_to_automatic(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,  # noqa: ARG001
+) -> None:
+    client, _ = send_client
+    await register_exec("UPDATE observations.stations SET schedule = 'automatic'")
+    observation = await save(client, accepted=True)
+    refused = await client.post(publish_url(observation))
+    assert refused.status_code == 409
+    assert "automatic source" in refused.json()["detail"]
+    assert (
+        await publisher.process_due_publications(
+            session=db_async, config=sends.wis2box_settings
+        )
+        == 0
+    )
+    assert not found(incoming, "*.csv")
+    decisions = await register_rows(
+        "SELECT outcome, official_source FROM observations.publish_gate_decisions"
+    )
+    assert decisions == [{"outcome": "refused", "official_source": "automatic"}]
+    assert await register_rows("SELECT * FROM observations.publish_gate") == []
+
+
+@pytest.mark.usefixtures("incoming")
+async def test_hybrid_station_publishes_only_its_manual_hours(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    # OBSERVED is 12 UTC: manual by day, automatic overnight.
+    await register_exec(
+        "UPDATE observations.stations SET schedule = 'hybrid',"
+        " manual_hours_utc = ARRAY[12, 13]::smallint[]"
+    )
+    day = await save(client, accepted=True)
+    assert (await client.post(publish_url(day))).status_code == 202
+    await register_exec("UPDATE observations.stations SET manual_hours_utc = '{}'")
+    night = await save(
+        client,
+        accepted=True,
+        observed_at=(OBSERVED + timedelta(hours=1)).isoformat(),
+        body={**FULL_ROW, "time_utc": "13"},
+    )
+    assert (await client.post(publish_url(night))).status_code == 409
+
+
+@pytest.mark.usefixtures("incoming")
+async def test_unregistered_station_is_refused(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    await register_exec("DELETE FROM observations.stations")
+    observation = await save(client, accepted=True)
+    refused = await client.post(publish_url(observation))
+    assert refused.status_code == 409
+    assert "registry" in refused.json()["detail"]
+
+
+async def test_a_station_hour_publishes_once_even_for_a_second_observation(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,  # noqa: ARG001
+) -> None:
+    client, _ = send_client
+    first = await save(client, accepted=True)
+    second = await save(client, accepted=True)
+    assert (await client.post(publish_url(first))).status_code == 202
+    other = await client.post(publish_url(second))
+    assert other.status_code == 409
+    assert "already claimed" in other.json()["detail"]
+    # resend cannot bypass the gate or queue the same file twice
+    assert (
+        await client.post(publish_url(first), json={"resend": True})
+    ).status_code == 409
+    await publisher.process_due_publications(
+        session=db_async, config=sends.wis2box_settings
+    )
+    assert len(found(incoming, "wmo_data_*.csv")) == 1
+    outcomes = [
+        row["outcome"]
+        for row in await register_rows(
+            "SELECT outcome FROM observations.publish_gate_decisions ORDER BY decided_at"
+        )
+    ]
+    assert outcomes == ["claimed", "refused", "reused"]
+
+
+async def test_concurrent_publishes_of_one_station_hour_queue_exactly_one(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,  # noqa: ARG001
+) -> None:
+    client, _ = send_client
+    observations = [await save(client, accepted=True) for _ in range(4)]
+    results = await asyncio.gather(
+        *(client.post(publish_url(obs)) for obs in observations)
+    )
+    assert sorted(r.status_code for r in results) == [202, 409, 409, 409]
+    claims = await register_rows("SELECT observation_id FROM observations.publish_gate")
+    assert len(claims) == 1
+    queued = (
+        await db_async.scalars(
+            select(ERegisterSend).where(ERegisterSend.target == "wis2")
+        )
+    ).all()
+    assert len(queued) == 1
+    await publisher.process_due_publications(
+        session=db_async, config=sends.wis2box_settings
+    )
+    assert len(found(incoming, "wmo_data_*.csv")) == 1
+
+
+async def test_concurrent_publishes_of_the_same_observation_queue_one(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,  # noqa: ARG001
+) -> None:
+    client, _ = send_client
+    observation = await save(client, accepted=True)
+    results = await asyncio.gather(
+        *(client.post(publish_url(observation)) for _ in range(3))
+    )
+    assert sorted(r.status_code for r in results) == [202, 409, 409]
+    queued = (
+        await db_async.scalars(
+            select(ERegisterSend).where(ERegisterSend.target == "wis2")
+        )
+    ).all()
+    assert len(queued) == 1
+
+
+@pytest.mark.usefixtures("send_client")
+async def test_upsert_is_idempotent_and_flags_non_hourly_rows() -> None:
+    async with asynccontextmanager(app.dependency_overrides[get_session])() as value:
+        for reading in (21.0, 22.5):
+            await store.upsert_observation(
+                value,
+                station_id="78958",
+                element="air_temperature",
+                valid_time_utc=OBSERVED,
+                source="sutron",
+                value=reading,
+                unit="degC",
+            )
+        await store.upsert_observation(
+            value,
+            station_id="78958",
+            element="air_temperature",
+            valid_time_utc=OBSERVED + timedelta(minutes=7),
+            source="sutron",
+            value=23.0,
+        )
+        await store.upsert_observation(
+            value,
+            station_id="78958",
+            element="air_temperature",
+            valid_time_utc=OBSERVED,
+            source="eregister",
+            value=22.0,
+        )
+        with pytest.raises(ValueError, match="timezone-aware"):
+            await store.upsert_observation(
+                value,
+                station_id="78958",
+                element="x",
+                valid_time_utc=datetime(2026, 1, 1),  # noqa: DTZ001
+                source="s",
+                value=1,
+            )
+    rows = await register_rows(
+        "SELECT source, value, is_hourly FROM observations.observations"
+        " ORDER BY source, valid_time_utc"
+    )
+    assert rows == [
+        {"source": "eregister", "value": 22.0, "is_hourly": True},
+        {"source": "sutron", "value": 22.5, "is_hourly": True},
+        {"source": "sutron", "value": 23.0, "is_hourly": False},
+    ]
