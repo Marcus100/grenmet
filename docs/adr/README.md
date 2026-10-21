@@ -21,7 +21,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0013](0013-cap-alert-self-publish-and-bulletin-linkage.md) | Self-publish CAP alerts and link them to their source bulletin (supersedes 0007) | Accepted; decisions 1–2 superseded by 0023 |
 | [0014](0014-barrels-platform-core-direction.md) | Evolve the FastAPI modular monolith into Barrels Core | Proposed (tenancy accepted in 0022) |
 | [0015](0015-retire-hono-python-backend.md) | Retire the Hono API; backend logic is Python (CMS excepted) | Accepted |
-| [0016](0016-app-scoped-accounts-and-sessions.md) | App-scoped accounts and sessions: shared accounts, per-app sign-in, cookie and access | Accepted, amended by 0017 |
+| [0016](0016-app-scoped-accounts-and-sessions.md) | App-scoped accounts and sessions: shared accounts, per-app sign-in, cookie and access | Accepted, amended by 0017 and 2026-10-21 (app tokens on organisation routes) |
 | [0017](0017-single-sign-on-handoff.md) | Single sign-on handoff between app-scoped sessions | Built, awaiting owner check |
 | [0018](0018-modular-access-and-onboarding.md) | Modular access and administrator-mediated staff onboarding | Accepted direction |
 | [0019](0019-workspace-toolchain-baseline.md) | Workspace toolchain baseline | Accepted |
