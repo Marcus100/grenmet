@@ -249,6 +249,7 @@ export { featureCreateFlag } from "./clients/featureCreateFlag.js";
 export { featureDeleteFlag } from "./clients/featureDeleteFlag.js";
 export { featureEvaluateForMe } from "./clients/featureEvaluateForMe.js";
 export { featureEvaluateForOrganisation } from "./clients/featureEvaluateForOrganisation.js";
+export { featureEvaluatePublic } from "./clients/featureEvaluatePublic.js";
 export { featureGetFlag } from "./clients/featureGetFlag.js";
 export { featureListFlags } from "./clients/featureListFlags.js";
 export { featureListStaleFlags } from "./clients/featureListStaleFlags.js";
@@ -1861,6 +1862,11 @@ export {
   featureEvaluateForOrganisationQueryOptions,
   useFeatureEvaluateForOrganisation,
 } from "./hooks/useFeatureEvaluateForOrganisation.js";
+export {
+  featureEvaluatePublicQueryKey,
+  featureEvaluatePublicQueryOptions,
+  useFeatureEvaluatePublic,
+} from "./hooks/useFeatureEvaluatePublic.js";
 export {
   featureGetFlagQueryKey,
   featureGetFlagQueryOptions,
@@ -6840,6 +6846,15 @@ export type {
   FeatureEvaluateForOrganisationStatus404,
   FeatureEvaluateForOrganisationStatus422,
 } from "./models/FeatureEvaluateForOrganisation.js";
+export type {
+  FeatureEvaluatePublicOptions,
+  FeatureEvaluatePublicQuery,
+  FeatureEvaluatePublicResponse,
+  FeatureEvaluatePublicResponses,
+  FeatureEvaluatePublicStatus200,
+  FeatureEvaluatePublicStatus422,
+  FeatureEvaluatePublicStatus429,
+} from "./models/FeatureEvaluatePublic.js";
 export type { FeatureFlagAdmin } from "./models/FeatureFlagAdmin.js";
 export type { FeatureFlagAdminList } from "./models/FeatureFlagAdminList.js";
 export type { FeatureFlagAudience } from "./models/FeatureFlagAudience.js";
@@ -14629,6 +14644,14 @@ export {
   featureEvaluateForOrganisationStatus404Schema,
   featureEvaluateForOrganisationStatus422Schema,
 } from "./zod/featureEvaluateForOrganisationSchema.js";
+export {
+  featureEvaluatePublicErrorSchema,
+  featureEvaluatePublicQueryKeysSchema,
+  featureEvaluatePublicResponseSchema,
+  featureEvaluatePublicStatus200Schema,
+  featureEvaluatePublicStatus422Schema,
+  featureEvaluatePublicStatus429Schema,
+} from "./zod/featureEvaluatePublicSchema.js";
 export { featureFlagAdminListSchema } from "./zod/featureFlagAdminListSchema.js";
 export { featureFlagAdminSchema } from "./zod/featureFlagAdminSchema.js";
 export { featureFlagAudienceSchema } from "./zod/featureFlagAudienceSchema.js";

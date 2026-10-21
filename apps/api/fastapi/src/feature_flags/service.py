@@ -130,6 +130,21 @@ async def evaluate_exposed(
     }
 
 
+async def evaluate_public(session: AsyncSession, keys: list[str]) -> dict[str, bool]:
+    """Requested flags for an anonymous visitor (no organisation, no user).
+
+    Reuses the cached snapshot and ``_on``: only environment rules and the
+    ``everyone`` audience can be true. Unknown and non-exposed keys are absent,
+    so the response never reveals that an internal flag exists.
+    """
+    definitions = await _definitions(session)
+    return {
+        key: _on(definitions[key], organisation_id=None, user_id=None)
+        for key in dict.fromkeys(keys)
+        if key in definitions and definitions[key].exposed
+    }
+
+
 # ── Management ────────────────────────────────────────────────────────────────
 
 

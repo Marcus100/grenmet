@@ -579,7 +579,12 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   organisation's entitlement (403), and a revoked or expired key is 401.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
-  which return only flags marked exposed.
+  which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`
+  is the unauthenticated variant for static sites (at most 20 keys, rate limited,
+  `Cache-Control: public, max-age=30`; 600/minute per IP): callers must cache it (Next
+  `revalidate` ~60 s) rather than call per visitor, and treat 429 or any error as flag
+  off (fail closed). Anonymous subject, so only environment and
+  `everyone` rules can be on; unknown and non-exposed keys are absent.
 - **Rewards earn sources, Passport and achievements** (PF8/PF9, ADR-0030): programmes take
   a `qualifying_source_type` from the catalogue in `src/rewards/sources.py`.
   Organisation routes under `/rewards/org/...` manage venues, trails, stops,
