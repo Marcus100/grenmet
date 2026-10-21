@@ -41,6 +41,7 @@ from datetime import datetime
 from typing import Protocol
 
 from redis.asyncio import Redis
+from redis.exceptions import RedisError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.config import auth_settings
@@ -111,7 +112,7 @@ class RedisCodeStore:
             return await call(self._redis())
         except AppException:
             raise
-        except Exception:  # noqa: BLE001 - fail closed, never leak details
+        except RedisError, OSError:  # fail closed, never leak details
             logger.warning("booking email-code store failed", exc_info=True)
             raise VerificationUnavailableError from None
 
@@ -142,13 +143,13 @@ class RedisCodeStore:
         return bool(await self._run(lambda r: r.exists(key)))
 
 
-_store: CodeStore = RedisCodeStore(worker_settings.REDIS_URL)
+class _Current:
+    store: CodeStore = RedisCodeStore(worker_settings.REDIS_URL)
 
 
 def set_store(store: CodeStore) -> CodeStore:
     """Test seam: swap the store, returning the previous one."""
-    global _store  # noqa: PLW0603
-    previous, _store = _store, store
+    previous, _Current.store = _Current.store, store
     return previous
 
 
@@ -262,7 +263,7 @@ async def request_code(
     business: str,
 ) -> int:
     """Issue a code and queue its email. Returns the code lifetime in seconds."""
-    store = _store
+    store = _Current.store
     if await store.exists(f"{_PREFIX}lock:{binding.who}"):
         raise CodeRateLimitedError
     sent = await store.incr(f"{_PREFIX}sent:{binding.who}", SEND_WINDOW)
@@ -289,7 +290,7 @@ async def request_code(
 
 async def confirm_code(binding: Binding, code: str) -> tuple[str, int]:
     """Check ``code``; on success return ``(proof, lifetime seconds)``."""
-    store = _store
+    store = _Current.store
     lock = f"{_PREFIX}lock:{binding.who}"
     if await store.exists(lock):
         raise CodeRateLimitedError
@@ -322,7 +323,7 @@ class ProofUse:
     async def release(self) -> None:
         if self.nonce is not None:
             try:
-                await _store.take(f"{_PREFIX}used:{self.nonce}")
+                await _Current.store.take(f"{_PREFIX}used:{self.nonce}")
             except AppException:
                 logger.warning("booking email proof could not be released")
 
@@ -348,6 +349,8 @@ async def require_proof(
     nonce = _read_proof(proof, binding, moment)
     if nonce is None:
         raise EmailNotVerifiedError("pay a deposit")
-    if not await _store.put_if_absent(f"{_PREFIX}used:{nonce}", "1", PROOF_TTL + 60):
+    if not await _Current.store.put_if_absent(
+        f"{_PREFIX}used:{nonce}", "1", PROOF_TTL + 60
+    ):
         raise EmailNotVerifiedError("pay a deposit")
     return ProofUse(nonce)
