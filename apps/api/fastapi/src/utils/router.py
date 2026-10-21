@@ -1,11 +1,13 @@
+import logging
 from functools import lru_cache
 from pathlib import Path
 
 from alembic.script import ScriptDirectory
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Response, status
 from fastapi.concurrency import run_in_threadpool
 from pydantic.networks import EmailStr
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.auth.dependencies import get_current_active_superuser
 from src.dependencies import SessionDep
@@ -22,6 +24,18 @@ def _migration_heads() -> frozenset[str]:
         ).get_heads()
     )
 
+
+logger = logging.getLogger(__name__)
+
+
+class SchemaMismatchError(RuntimeError):
+    """Database schema revision differs from the deployed migration heads."""
+
+
+# Dependency-not-ready failures are an expected probe result, not an application
+# error: answer 503 without raising so Sentry does not report every probe.
+# Anything else (a bug in this handler) still propagates as a reported 500.
+_NOT_READY_ERRORS = (SQLAlchemyError, OSError, TimeoutError, SchemaMismatchError)
 
 router = APIRouter(prefix="/utils", tags=["utils"])
 
@@ -63,16 +77,18 @@ async def health_check() -> bool:
         503: {"description": "Database unreachable"},
     },
 )
-async def ready(session: SessionDep) -> dict[str, str]:
+async def ready(session: SessionDep, response: Response) -> dict[str, str]:
     try:
         versions = await session.execute(
             text("SELECT version_num FROM alembic_version")
         )
         if frozenset(versions.scalars()) != _migration_heads():
-            raise RuntimeError("Schema revision mismatch")
+            raise SchemaMismatchError("Schema revision mismatch")
         # Empty datasets are valid; these reads verify required schema and permissions.
         await session.execute(text('SELECT id FROM "user" LIMIT 0'))
         await session.execute(text("SELECT id FROM hr.department LIMIT 0"))
         return {"status": "ready"}
-    except Exception:
-        raise HTTPException(status_code=503, detail="Database unreachable")
+    except _NOT_READY_ERRORS as exc:
+        logger.warning("Readiness check failed: %s", type(exc).__name__)
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return {"detail": "Database unreachable"}
