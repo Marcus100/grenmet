@@ -2,7 +2,7 @@
 // from Server Components: every call carries the signed-in person's bearer
 // token, and organisation calls name the organisation in
 // `X-Barrels-Organisation`. FastAPI re-checks membership and role on each call.
-// Read-only in this slice: no writes live here.
+// Reads, plus the booking actions (confirm, decline, cancel, no-show, complete).
 
 import "server-only";
 
@@ -12,10 +12,15 @@ import {
   type BookingProviderPublic,
   type BookingStatus,
   type BookingStudioDetail,
+  bookingsCancelStudioBooking,
+  bookingsCompleteStudioBooking,
+  bookingsConfirmStudioBooking,
+  bookingsDeclineStudioBooking,
   bookingsGetAgenda,
   bookingsGetStudioBooking,
   bookingsListMyOrganisations,
   bookingsListProviders,
+  bookingsNoShowStudioBooking,
   createClient,
   ResponseError,
 } from "@barrelsgd/api-client";
@@ -128,4 +133,88 @@ export async function getBooking(
     }
     throw error;
   }
+}
+
+// --- actions -----------------------------------------------------------------
+// Each returns the updated booking. FastAPI decides role and legal transitions
+// and answers 403 / 409; callers turn those into messages (studio-errors.ts).
+
+function actionTarget(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string
+) {
+  return {
+    client: studioClient(accessToken, organisationId),
+    path: { booking_id: bookingId },
+  };
+}
+
+export function confirmBooking(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string
+): Promise<BookingStudioDetail> {
+  return bookingsConfirmStudioBooking(
+    actionTarget(accessToken, organisationId, bookingId)
+  )
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function declineBooking(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string,
+  reason: string
+): Promise<BookingStudioDetail> {
+  return bookingsDeclineStudioBooking({
+    ...actionTarget(accessToken, organisationId, bookingId),
+    body: { reason },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function cancelBooking(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string,
+  input: { reason: string; refundDeposit?: boolean }
+): Promise<BookingStudioDetail> {
+  return bookingsCancelStudioBooking({
+    ...actionTarget(accessToken, organisationId, bookingId),
+    body: {
+      reason: input.reason,
+      ...(input.refundDeposit === undefined
+        ? {}
+        : { refund_deposit: input.refundDeposit }),
+    },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function markNoShow(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string
+): Promise<BookingStudioDetail> {
+  return bookingsNoShowStudioBooking(
+    actionTarget(accessToken, organisationId, bookingId)
+  )
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function markCompleted(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string
+): Promise<BookingStudioDetail> {
+  return bookingsCompleteStudioBooking(
+    actionTarget(accessToken, organisationId, bookingId)
+  )
+    .unwrap()
+    .catch(redactRequest);
 }

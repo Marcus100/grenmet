@@ -21,6 +21,12 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
+vi.mock("@/components/studio/booking-actions", () => ({
+  BookingActions: ({ status }: { status: string }) => (
+    <button type="button">Actions for {status}</button>
+  ),
+}));
+
 import { findOrganisation, getBooking } from "@/lib/studio-api";
 import StudioBookingPage from "./page";
 
@@ -109,6 +115,27 @@ describe("studio booking detail", () => {
       screen.getByText("Awaiting deposit to Confirmed")
     ).toBeInTheDocument();
     expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("shows the action buttons to an admin and an owner, not a member", async () => {
+    vi.mocked(getBooking).mockResolvedValue(detail());
+    for (const [role, shown] of [
+      ["admin", true],
+      ["owner", true],
+      ["member", false],
+    ] as const) {
+      vi.mocked(findOrganisation).mockResolvedValue({
+        id: ORG_ID,
+        name: "Sea Salt Spa",
+        slug: "sea-salt",
+        role,
+      });
+      const { unmount } = render(await StudioBookingPage(props()));
+      expect(
+        screen.queryByRole("button", { name: "Actions for confirmed" }) !== null
+      ).toBe(shown);
+      unmount();
+    }
   });
 
   it.each([
