@@ -1,9 +1,27 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
-import { checkPorts, parseReserved, parseWebApps } from "./check-ports.mjs";
+import {
+  checkPorts,
+  composeHostLabels,
+  parseFixedPorts,
+  parseRanges,
+  parseReserved,
+  parseReservedNames,
+  parseReservedRows,
+  parseRetired,
+  parseRetiredHosts,
+  parseServedHosts,
+  parseWebApps,
+} from "./check-ports.mjs";
 
 const PORTS_MD = `# Port allocation
 
@@ -23,6 +41,7 @@ const PORTS_MD = `# Port allocation
 ## APIs
 `;
 
+const DOMAIN_VAR = ["$", "{BASE_DOMAIN}"].join("");
 const has = (errors, text) => errors.some((e) => e.includes(text));
 
 function write(root, path, content) {
@@ -187,6 +206,289 @@ test("flags an app that serves on a port but is undocumented", async () => {
   assert.ok(has(errors, "gamma is not in docs/ports.md"));
 });
 
-test("the real repo's ports agree", async () => {
+const RANGES_MD = `${PORTS_MD}
+## Port ranges
+
+| Range | Category | Notes |
+| --- | --- | --- |
+| \`3000–3019\` | Legacy | frozen |
+| \`3020–3029\` | Platform | x |
+| \`4000–4099\` | Retired | never reuse |
+| \`8000–8019\` | Python | x |
+
+### Retired ports
+
+| Port | What it was | Status |
+| --- | --- | --- |
+| \`3011\` | Never used | Never assign |
+| \`4000–4099\` | Hono | Retired |
+
+## Infrastructure & dev tools
+
+| Service | Port |
+|---|---|
+| Postgres | 5432 |
+
+## Vendored ops apps
+
+| Service | Port(s) | Source |
+|---|---|---|
+| wis2box metrics | 8001 | x |
+| grafana | 3100 | x |
+
+### Vendored exceptions inside Barrels ranges
+
+| Port | Service | Inside range |
+| --- | --- | --- |
+| 8001 | wis2box metrics | \`8000–8019\` |
+`;
+
+const HOSTS_MD = `${PORTS_MD}
+### Served by the DigitalOcean stack (Traefik)
+
+| Service | Local dev | Container port | Staging | Production | Health check |
+| --- | --- | --- | --- | --- | --- |
+| alpha | x | 3000 | \`alpha.staging.barrels.gd\` | \`alpha.barrels.gd\` | / |
+| beta | x | 3001 | \`beta.staging.barrels.gd\` | \`beta.barrels.gd\` | / |
+
+### Retired hostnames
+
+| Hostname | Replaced by | Status |
+| --- | --- | --- |
+| \`old.*\`, \`older.*\` | beta | Retired |
+| \`later.*\` | beta | Retiring: after the cutover |
+
+## Reserved names
+
+- **Hosts:** alpha, beta, old, older, later.
+- **Misc:** www, api.
+`;
+
+const withCompose = (labels) => (root) =>
+  write(
+    root,
+    "infra/docker/docker-compose.deploy.yml",
+    composeFor([
+      { app: "alpha", port: 3000 },
+      { app: "beta", port: 3001 },
+    ]) +
+      labels
+        .map((l) => `      - "x.rule=Host(\`${l}.\${BASE_DOMAIN}\`)"\n`)
+        .join("")
+  );
+
+test("parses ranges, retired rows, fixed ports and exceptions", () => {
+  assert.deepEqual(
+    parseRanges(RANGES_MD).map((r) => [r.lo, r.hi]),
+    [
+      [3000, 3019],
+      [3020, 3029],
+      [4000, 4099],
+      [8000, 8019],
+    ]
+  );
+  assert.deepEqual(parseRetired(RANGES_MD), [
+    { lo: 3011, hi: 3011 },
+    { lo: 4000, hi: 4099 },
+  ]);
+  assert.deepEqual(
+    parseFixedPorts(RANGES_MD).map((f) => f.port),
+    [5432, 8001, 3100]
+  );
+});
+
+test("parses hosts, retired hosts and reserved names", () => {
+  assert.deepEqual(parseServedHosts(HOSTS_MD), {
+    production: ["alpha", "beta"],
+    staging: ["alpha", "beta"],
+    badStaging: [],
+  });
+  assert.deepEqual(
+    parseRetiredHosts(HOSTS_MD).map((h) => h.label),
+    ["old", "older", "later"]
+  );
+  assert.ok(parseReservedNames(HOSTS_MD).has("later"));
+  assert.deepEqual(
+    [...composeHostLabels(`Host(\`a.${DOMAIN_VAR}\`) Host(\`b.example.com\`)`)],
+    ["a"]
+  );
+});
+
+test("ranges: consistent doc passes, overlaps and bad ports fail", async () => {
+  const pass = (md) => (root) => write(root, "docs/ports.md", md);
+  assert.deepEqual(await problems(pass(RANGES_MD)), []);
+
+  const overlap = await problems(
+    pass(RANGES_MD.replace("3020–3029", "3015–3029"))
+  );
+  assert.ok(has(overlap, "overlaps"));
+
+  const retiredUse = await problems(
+    pass(
+      RANGES_MD.replace(
+        "| beta | `@barrelsgd/web-beta` | 3001 |",
+        "| beta | `@barrelsgd/web-beta` | 3011 |"
+      )
+    )
+  );
+  assert.ok(has(retiredUse, "uses retired port 3011"));
+
+  const outside = await problems(
+    pass(RANGES_MD.replace("| 3008 |", "| 3500 |"))
+  );
+  assert.ok(has(outside, "port 3500 is in no listed range"));
+});
+
+test("ranges: a vendored port inside a Barrels range needs an exception", async () => {
+  const errors = await problems((root) =>
+    write(
+      root,
+      "docs/ports.md",
+      RANGES_MD.replace("| 8001 | wis2box metrics | `8000–8019` |\n", "")
+    )
+  );
+  assert.ok(has(errors, "vendored port 8001"));
+});
+
+test("ranges: a fixed port colliding with an app is flagged", async () => {
+  const errors = await problems((root) =>
+    write(
+      root,
+      "docs/ports.md",
+      RANGES_MD.replace("| Postgres | 5432 |", "| Postgres | 3001 |")
+    )
+  );
+  assert.ok(has(errors, "infrastructure port 3001 (Postgres) collides"));
+});
+
+test("hosts: compose and the domain table agree", async () => {
+  const set = (md, labels) => (root) => {
+    write(root, "docs/ports.md", md);
+    withCompose(labels)(root);
+  };
+  assert.deepEqual(await problems(set(HOSTS_MD, ["alpha", "beta"])), []);
+
+  const missingInDocs = await problems(
+    set(HOSTS_MD, ["alpha", "beta", "zeta"])
+  );
+  assert.ok(has(missingInDocs, "routes Host(zeta.*)"));
+
+  const missingInCompose = await problems(set(HOSTS_MD, ["alpha"]));
+  assert.ok(has(missingInCompose, "lists beta.barrels.gd"));
+
+  const retiredRouted = await problems(set(HOSTS_MD, ["alpha", "beta", "old"]));
+  assert.ok(has(retiredRouted, "routes retired host old"));
+
+  const retiringOk = await problems(set(HOSTS_MD, ["alpha", "beta", "later"]));
+  assert.ok(!has(retiringOk, "retired host later"));
+});
+
+test("hosts: staging infix, single-level and reserved names are enforced", async () => {
+  const set = (md) => (root) => {
+    write(root, "docs/ports.md", md);
+    withCompose(["alpha", "beta"])(root);
+  };
+  const threeLevel = await problems(
+    set(
+      HOSTS_MD.replace(
+        "`beta.staging.barrels.gd`",
+        "`beta.x.staging.barrels.gd`"
+      )
+    )
+  );
+  assert.ok(has(threeLevel, "must be <label>.staging.barrels.gd"));
+  assert.ok(has(threeLevel, "beta has a production host but no beta.staging"));
+
+  const unreserved = await problems(
+    set(HOSTS_MD.replace("- **Hosts:** alpha, beta,", "- **Hosts:** alpha,"))
+  );
+  assert.ok(has(unreserved, 'host beta is not in "Reserved names"'));
+});
+
+test("reserved rows: duplicate ports and packages are flagged", async () => {
+  const dupPort = await problems((root) =>
+    write(
+      root,
+      "docs/ports.md",
+      PORTS_MD.replace(
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |",
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |\n| 3008 | `@barrelsgd/web-other` | Reserved |"
+      )
+    )
+  );
+  assert.ok(has(dupPort, "port 3008 is reserved twice"));
+
+  const dupPkg = await problems((root) =>
+    write(
+      root,
+      "docs/ports.md",
+      PORTS_MD.replace(
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |",
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |\n| 3009 | `@barrelsgd/web-shop` (again) | Reserved |"
+      )
+    )
+  );
+  assert.ok(has(dupPkg, "package @barrelsgd/web-shop is reserved on both"));
+
+  const appClash = await problems((root) =>
+    write(
+      root,
+      "docs/ports.md",
+      PORTS_MD.replace(
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |",
+        "| 3008 | `@barrelsgd/web-shop` (shop) | Reserved |\n| 3009 | `@barrelsgd/web-alpha` | Reserved |"
+      )
+    )
+  );
+  assert.ok(has(appClash, "package @barrelsgd/web-alpha (alpha) is on 3000"));
+});
+
+test("required sections: real-repo mode fails when a section is missing", async () => {
+  const root = fixture();
+  try {
+    assert.deepEqual(await checkPorts(root), []);
+    const errors = await checkPorts(root, { requireSections: true });
+    for (const heading of [
+      "## Port ranges",
+      "### Retired ports",
+      "### Served by the DigitalOcean stack",
+      "### Retired hostnames",
+      "## Reserved names",
+    ]) {
+      assert.ok(has(errors, `section "${heading}" is missing`), heading);
+    }
+  } finally {
+    rmSync(root, { force: true, recursive: true });
+  }
+});
+
+test("compose hosts: three-level hosts are flagged and comments ignored", async () => {
+  const hostLine = (l) => `Host(\`${l}.${DOMAIN_VAR}\`)`;
+  assert.deepEqual(
+    [
+      ...composeHostLabels(
+        `# - "x.rule=${hostLine("ghost")}"\n - "y=${hostLine("real")}"`
+      ),
+    ],
+    ["real"]
+  );
+  const errors = await problems((root) => {
+    write(root, "docs/ports.md", HOSTS_MD);
+    withCompose(["alpha", "beta", "docs.weather"])(root);
+  });
+  assert.ok(has(errors, "multi-level host docs.weather"));
+});
+
+test("the real repo's ports agree and every section parses", async () => {
+  const markdown = readFileSync(
+    new URL("../../docs/ports.md", import.meta.url),
+    "utf8"
+  );
+  assert.ok(parseRanges(markdown).length > 0);
+  assert.ok(parseRetired(markdown).length > 0);
+  assert.ok(parseServedHosts(markdown).production.length > 0);
+  assert.ok(parseRetiredHosts(markdown).length > 0);
+  assert.ok(parseReservedNames(markdown).size > 0);
+  assert.ok(parseReservedRows(markdown).length > 0);
   assert.deepEqual(await checkPorts(), []);
 });
