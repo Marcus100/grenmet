@@ -5,7 +5,7 @@ import uuid
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.email_verification import require_verified_email
+from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import (
     Role,
     RoleAssignmentScope,
@@ -134,7 +134,7 @@ async def create_user_role_assignment(
         set_actor(session, current_user.id)
     # After the caller's authority checks, so an unauthorised caller learns
     # nothing about whether the target's email is verified.
-    require_verified_email(target, "receive a staff role")
+    await require_verified_or_admin_activated(session, target, "receive a staff role")
     session.add(db_assignment)
     await audit_assignment(session, db_assignment, "CREATE")
     await session.commit()

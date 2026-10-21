@@ -19,7 +19,7 @@ from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
-from src.auth.email_verification import require_verified_email
+from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import User
 from src.config import settings
 from src.email_config import email_settings
@@ -159,7 +159,9 @@ async def change_role(
     user = await session.get(User, membership.user_id)
     assert user is not None
     if role.value in _POWER_ROLES and role.value != membership.role:
-        require_verified_email(user, "receive an administrator role")
+        await require_verified_or_admin_activated(
+            session, user, "receive an administrator role"
+        )
     if role.value != membership.role:
         if _is_owner(membership.role):
             await _ensure_not_last_owner(session, context.organisation_id, membership)
@@ -308,7 +310,9 @@ async def accept_invitation(
     if notification_service.normalise_email(user.email) != invitation.email:
         raise InvitationEmailMismatchError()
     if invitation.role in _POWER_ROLES:
-        require_verified_email(user, "accept an administrator role")
+        await require_verified_or_admin_activated(
+            session, user, "accept an administrator role"
+        )
     organisation = await session.get(PlatformOrganisation, invitation.organisation_id)
     if organisation is None:  # pragma: no cover - the foreign key guarantees it
         raise InvitationInvalidError()

@@ -272,3 +272,64 @@ async def test_add_member_allows_ordinary_roles_and_explicit_exemption(
         skip_email_check=True,
     )
     assert owner.role == MembershipRole.OWNER.value
+
+
+# --- administrator-activated accounts are exempt (owner decision 2026-10-21) -----------
+
+
+async def _admin_activate(db: AsyncSession, user) -> None:
+    from src.auth import onboarding
+    from src.auth.onboarding_schemas import ActivationConfirm
+
+    admin = await make_user(db, superuser=True)
+    link = await onboarding.issue_activation(db, admin, user.id, True)
+    token = link.activation_url.split("token=", 1)[1]
+    await onboarding.confirm_activation(
+        db, ActivationConfirm(token=token, new_password="New-password-123!")
+    )
+    await db.refresh(user)
+    assert user.email_verified_at is None  # activation leaves the mailbox unverified
+
+
+async def test_admin_activated_account_can_receive_roles_and_memberships(
+    db_async: AsyncSession,
+) -> None:
+    staff = await make_user(db_async, verified=False)
+    await _admin_activate(db_async, staff)
+    role = Role(name="gate_activated_role", description="test")
+    db_async.add(role)
+    await db_async.commit()
+    created = await create_user_role_assignment(
+        session=db_async,
+        assignment_in=UserRoleAssignmentCreate(user_id=staff.id, role_id=role.id),
+    )
+    assert created.user_id == staff.id
+    org = await make_org(db_async, name="Activated org")
+    membership = await org_service.add_member(
+        db_async, organisation_id=org.id, user_id=staff.id, role=MembershipRole.ADMIN
+    )
+    assert membership.role == MembershipRole.ADMIN.value
+
+
+async def test_self_registered_unverified_account_is_still_refused(
+    db_async: AsyncSession,
+) -> None:
+    person = await make_user(db_async, verified=False)
+    role = Role(name="gate_selfreg_role", description="test")
+    db_async.add(role)
+    await db_async.commit()
+    with pytest.raises(AppException) as raised:
+        await create_user_role_assignment(
+            session=db_async,
+            assignment_in=UserRoleAssignmentCreate(user_id=person.id, role_id=role.id),
+        )
+    assert raised.value.message.startswith(ERROR_CODE)
+    org = await make_org(db_async, name="Selfreg org")
+    with pytest.raises(AppException) as raised:
+        await org_service.add_member(
+            db_async,
+            organisation_id=org.id,
+            user_id=person.id,
+            role=MembershipRole.OWNER,
+        )
+    assert raised.value.message.startswith(ERROR_CODE)

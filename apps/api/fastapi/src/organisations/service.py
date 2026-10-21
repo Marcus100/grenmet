@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from src.audit import service as audit_service
-from src.auth.email_verification import require_verified_email
+from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import User
 from src.exceptions import AppException
 from src.hr.models import Organisation as HrOrganisation
@@ -199,7 +199,9 @@ async def add_member(
         user = await session.get(User, user_id)
         if user is None:
             raise AppException("User not found", 404)
-        require_verified_email(user, f"become an organisation {role.value}")
+        await require_verified_or_admin_activated(
+            session, user, f"become an organisation {role.value}"
+        )
     membership = Membership(
         id=new_membership_id(),
         organisation_id=organisation_id,
