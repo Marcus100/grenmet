@@ -1,3 +1,4 @@
+import { inspect } from "node:util";
 import { ResponseError } from "@barrelsgd/api-client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apiError } from "@/test/studio";
@@ -127,5 +128,18 @@ describe("studioFailure", () => {
 
   it("rethrows anything that is not an API response", () => {
     expect(() => studioFailure(new TypeError("network"))).toThrow(TypeError);
+  });
+});
+
+describe("studio errors", () => {
+  it("never carry the bearer token when inspected", async () => {
+    stubFetch(500, { detail: "boom" });
+    const error = await listMyOrganisations("bearer-token-xyz-secret").then(
+      () => null,
+      (caught: unknown) => caught
+    );
+    vi.unstubAllGlobals();
+    expect(ResponseError.is(error)).toBe(true);
+    expect(inspect(error, { depth: 6 })).not.toContain("bearer-token-xyz");
   });
 });

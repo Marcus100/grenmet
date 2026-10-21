@@ -21,6 +21,7 @@ import {
 } from "@barrelsgd/api-client";
 import { cache } from "react";
 import { getAuthConfig } from "@/lib/auth-config";
+import { redactRequest } from "@/lib/redact-request";
 
 const API_PREFIX = /\/api\/v1(?=\/|$)/;
 const TIMEOUT_MS = 10_000;
@@ -47,7 +48,9 @@ function studioClient(accessToken: string, organisationId?: string) {
 /** Organisations the person belongs to with a role that can use bookings. */
 export const listMyOrganisations = cache(
   (accessToken: string): Promise<BookingMyOrganisation[]> =>
-    bookingsListMyOrganisations({ client: studioClient(accessToken) }).unwrap()
+    bookingsListMyOrganisations({ client: studioClient(accessToken) })
+      .unwrap()
+      .catch(redactRequest)
 );
 
 /**
@@ -86,7 +89,9 @@ export function getAgenda(
       ...(query.providerId ? { provider_id: query.providerId } : {}),
       ...(query.statuses?.length ? { status: query.statuses } : {}),
     },
-  }).unwrap();
+  })
+    .unwrap()
+    .catch(redactRequest);
 }
 
 /** The business's providers, for the agenda filter and names. */
@@ -96,7 +101,9 @@ export function listProviders(
 ): Promise<BookingProviderPublic[]> {
   return bookingsListProviders({
     client: studioClient(accessToken, organisationId),
-  }).unwrap();
+  })
+    .unwrap()
+    .catch(redactRequest);
 }
 
 /** One booking with customer and timeline; null for an unknown id. */
@@ -109,7 +116,9 @@ export async function getBooking(
     return await bookingsGetStudioBooking({
       client: studioClient(accessToken, organisationId),
       path: { booking_id: bookingId },
-    }).unwrap();
+    })
+      .unwrap()
+      .catch(redactRequest);
   } catch (error) {
     if (
       ResponseError.is(error) &&
