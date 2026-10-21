@@ -138,7 +138,8 @@ Hook scripts live in `.claude/hooks/` and are wired in `.claude/settings.json`
 switches and worktree removals, and merges through `gh api`. It also scans
 commands inside `bash -c`, `sh -c` and `eval`. `gh pr merge` is allowed only in
 one exact shape, read the way the shell reads it (quotes and line continuations
-removed, so `gh pr "merge"` is still a merge, and `xargs`, `env` and `sudo` are
+removed, so `gh pr "merge"` is still a merge; wrappers such as `xargs`, `env`,
+`sudo`, `timeout` and `nice`, `if`, `!`, subshells and `-R` before `merge` are
 looked through): `gh pr merge <number|url> [--repo Marcus100/grenmet] [--merge]
 [--delete-branch] --match-head-commit <sha>`. Anything else blocks: `--admin`,
 `--auto`, `--squash`, `--body`, another repository (`-R`, `--repo`, a PR URL,

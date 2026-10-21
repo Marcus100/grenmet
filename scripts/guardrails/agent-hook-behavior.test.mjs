@@ -280,6 +280,83 @@ test("block-dangerous-git: a quoted or indirect merge is checked like a plain on
   );
 });
 
+test("block-dangerous-git: a merge is found wherever the shell would run it", () => {
+  const main = baseIs("main");
+  const sha = "--merge --match-head-commit abc1234";
+  for (const command of [
+    `timeout 60 gh pr merge 5 ${sha}`,
+    `nice -n 10 gh pr merge 5 ${sha}`,
+    `stdbuf -o0 gh pr merge 5 ${sha}`,
+    `/usr/bin/gh pr merge 5 ${sha}`,
+    `./gh pr merge 5 ${sha}`,
+    `(gh pr merge 5 ${sha})`,
+    `{ gh pr merge 5 ${sha}; }`,
+    `! gh pr merge 5 ${sha}`,
+    `if true; then gh pr merge 5 ${sha}; fi`,
+    `echo $(gh pr merge 5 ${sha})`,
+    `true & gh pr merge 5 ${sha}`,
+    `true |& gh pr merge 5 ${sha}`,
+    `gh pr -R Marcus100/grenmet merge 5 ${sha}`,
+    `gh pr --repo=Marcus100/grenmet merge 5 ${sha}`,
+  ]) {
+    assert.match(String(findBlockedPattern(command, main)), MAIN_BASE, command);
+  }
+  // The same shapes are accepted when the PR is fine.
+  const dev = baseIs("dev");
+  for (const command of [
+    `timeout 60 gh pr merge 5 ${sha}`,
+    `gh pr -R Marcus100/grenmet merge 5 ${sha}`,
+    `gh pr merge 5 ${sha} >/dev/null 2>&1`,
+    `gh pr merge 5 ${sha} > merge.log`,
+  ]) {
+    assert.equal(findBlockedPattern(command, dev), undefined, command);
+  }
+  // A URL for another repository is rejected even when --repo names ours.
+  assert.match(
+    String(
+      findBlockedPattern(
+        `gh pr merge https://github.com/other/repo/pull/5 --repo Marcus100/grenmet ${sha}`,
+        dev
+      )
+    ),
+    OTHER_REPO
+  );
+  // Variables that point gh or git at another place.
+  for (const name of [
+    "GIT_DIR=../other/.git",
+    "GH_HOST=example.com",
+    "GH_TOKEN=x",
+  ]) {
+    assert.match(
+      String(findBlockedPattern(`${name} gh pr merge 5 ${sha}`, dev)),
+      GH_REPO_SET,
+      name
+    );
+  }
+  // REST and GraphQL spellings the first check missed.
+  for (const command of [
+    "gh api -X PUT repos/Marcus100/grenmet/pulls/5//merge",
+    "gh api -X PUT repos/Marcus100/grenmet/pulls/5/%6Derge",
+    "gh api -X PUT repos/Marcus100/grenmet/pulls/$N/merge",
+    "gh api graphql -F query=@merge.graphql",
+    "gh api graphql --input query.json",
+  ]) {
+    assert.match(String(findBlockedPattern(command, dev)), API_MERGE, command);
+  }
+  // Ordinary reading and commenting still work.
+  for (const command of [
+    "gh pr view 5 --json state",
+    "gh pr checks 5 --watch --fail-fast",
+    'gh pr create --base dev --title "fix: merge conflict in docs"',
+    "gh pr edit 5 --title x",
+    "gh pr comment 5 --body ok",
+    "gh api repos/Marcus100/grenmet/pulls/5/comments",
+    "gh run list --branch dev",
+  ]) {
+    assert.equal(findBlockedPattern(command, dev), undefined, command);
+  }
+});
+
 test("block-dangerous-git: no retargeting the base, no other merge routes", () => {
   const dev = baseIs("dev");
   assert.match(

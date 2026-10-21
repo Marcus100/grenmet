@@ -95,24 +95,47 @@ const OWNER_ONLY_PATHS = [
 ];
 // Merge routes other than `gh pr merge`: GraphQL mutations, branch merges and
 // the REST merge endpoint. Tested on text with the quotes removed.
-const API_MERGE_KEYWORDS =
-  /mergePullRequest|enablePullRequestAutoMerge|\/merges\b|\/pulls\/\d+\/merge\b/;
+const API_MERGE_KEYWORDS = /merge/i;
+const API_OPAQUE_QUERY = /mutation|=@/i;
 const RETARGETS_PR = /\bgh pr edit\b[^;&|]*\s(?:--base|-B)\b/;
-const REPO_ENV = /\bGH_REPO=/;
+// Variables that point gh or git at another repository, host or identity.
+const REPO_ENV =
+  /\b(?:GH_REPO|GH_HOST|GH_TOKEN|GITHUB_TOKEN|GIT_DIR|GIT_WORK_TREE|GH_CONFIG_DIR)=/;
 const CHANGES_DIRECTORY = /(?:^|\s)(?:cd|pushd)\s/;
 // Commands are split at these, the way the shell separates simple commands.
-const SUBCOMMAND_SPLIT = /&&|\|\||[;|\n]/;
-// Programs that run the next word as a command (`xargs gh pr merge`).
+const SUBCOMMAND_SPLIT = /&&|\|\||\|&|\$\(|[;|&\n(){}`]/;
+// Words that run or prefix the next command (`xargs gh pr merge`,
+// `timeout 60 gh pr merge`, `if true; then gh pr merge`, `! gh pr merge`).
 const COMMAND_WRAPPERS = new Set([
+  "!",
   "builtin",
+  "chrt",
   "command",
+  "do",
+  "else",
+  "elif",
   "env",
   "exec",
+  "if",
+  "ionice",
+  "nice",
   "nohup",
+  "setsid",
+  "stdbuf",
   "sudo",
+  "taskset",
+  "then",
   "time",
+  "timeout",
+  "unbuffer",
+  "until",
+  "while",
   "xargs",
 ]);
+const WRAPPER_NUMBER = /^\d+(?:\.\d+)?[smhd]?$/;
+const GH_COMMAND = /^(?:.*\/)?gh$/;
+const REDIRECT = /^\d*>>?(?:&\d+|\S*)$/;
+const REDIRECT_WITHOUT_TARGET = /^\d*>>?$/;
 const ENV_ASSIGNMENT = /^\w+=/;
 const PR_NUMBER = /^\d+$/;
 const PR_URL = /^https:\/\/github\.com\/([^/\s]+\/[^/\s]+)\/pull\/\d+\/?$/i;
@@ -270,12 +293,39 @@ function ghArguments(words) {
     const word = words[index];
     if (ENV_ASSIGNMENT.test(word) || COMMAND_WRAPPERS.has(word)) {
       wrapped = true;
-    } else if (!(wrapped && word.startsWith("-"))) {
+    } else if (
+      !(wrapped && (word.startsWith("-") || WRAPPER_NUMBER.test(word)))
+    ) {
       break;
     }
     index++;
   }
-  return words[index] === "gh" ? words.slice(index + 1) : undefined;
+  return GH_COMMAND.test(words[index] ?? "")
+    ? words.slice(index + 1)
+    : undefined;
+}
+
+/**
+ * The arguments of `gh pr merge` when this `gh` command is one, with a `-R`
+ * flag given before `merge` moved in front of the rest; otherwise undefined.
+ */
+function prMergeArguments(gh) {
+  if (gh[0] !== "pr") return undefined;
+  const flags = [];
+  let index = 1;
+  while (index < gh.length) {
+    const word = gh[index];
+    if (word === "-R" || word === "--repo") {
+      flags.push(word, gh[index + 1] ?? "");
+      index += 2;
+    } else if (word.startsWith("--repo=") || word.startsWith("-R")) {
+      flags.push(word);
+      index += 1;
+    } else {
+      break;
+    }
+  }
+  return gh[index] === "merge" ? [...flags, ...gh.slice(index + 1)] : undefined;
 }
 
 /**
@@ -291,6 +341,11 @@ function parsePrMerge(words) {
   let sha;
   for (let index = 0; index < words.length; index++) {
     const word = words[index];
+    if (REDIRECT.test(word)) {
+      // `>/dev/null`, `2>&1` and `> file` redirect output; they merge nothing.
+      if (REDIRECT_WITHOUT_TARGET.test(word)) index++;
+      continue;
+    }
     if (["--merge", "-m", "--delete-branch", "-d"].includes(word)) continue;
     if (word === "--match-head-commit") {
       sha = words[++index];
@@ -333,9 +388,11 @@ function findBlockedPrMerge(words, whole, { lookupBase, lookupFiles }) {
   if (problem !== undefined) {
     return `gh pr merge with '${problem}' (agents may only run: gh pr merge <number> --merge --match-head-commit <sha>)`;
   }
-  const named = repo ?? PR_URL.exec(ref ?? "")?.[1];
-  if (named !== undefined && named.toLowerCase() !== ALLOWED_REPO) {
-    return `gh pr merge in '${named}' (only ${ALLOWED_REPO} merges are authorized)`;
+  // Both the --repo flag and the repository inside a PR URL must be ours.
+  for (const named of [repo, PR_URL.exec(ref ?? "")?.[1]]) {
+    if (named !== undefined && named.toLowerCase() !== ALLOWED_REPO) {
+      return `gh pr merge in '${named}' (only ${ALLOWED_REPO} merges are authorized)`;
+    }
   }
   if (!(ref && (PR_NUMBER.test(ref) || PR_URL.test(ref)))) {
     return "gh pr merge without a PR number or URL (the PR must be named in the command)";
@@ -361,6 +418,15 @@ function findBlockedPrMerge(words, whole, { lookupBase, lookupFiles }) {
   return undefined;
 }
 
+/** Text with %xx escapes decoded, as GitHub's API path handling reads them. */
+function decodeEscapes(text) {
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return text;
+  }
+}
+
 /**
  * Looks at the raw text of each simple command (quotes removed the way the
  * shell would): `gh pr merge`, `gh api` merge routes and `gh alias`, which
@@ -374,15 +440,26 @@ function findBlockedGh(segment, lookups) {
   for (const subcommand of rawSegment.split(SUBCOMMAND_SPLIT)) {
     const gh = ghArguments(shellWords(subcommand));
     if (!gh) continue;
-    const [area, action] = gh;
+    const [area] = gh;
     if (area === "alias") {
       return "gh alias (it could rename a blocked command)";
     }
-    if (area === "api" && API_MERGE_KEYWORDS.test(gh.join(" "))) {
-      return "gh api merge (GraphQL mutation, branch merge or REST merge skips the dev-only rule)";
+    if (area === "api") {
+      // Any mention of "merge" in a request, with percent-escapes decoded, or
+      // a GraphQL query the hook cannot read (a mutation, or one read from a
+      // file), could be a merge that skips the dev-only rule.
+      const request = decodeEscapes(gh.join(" "));
+      if (
+        API_MERGE_KEYWORDS.test(request) ||
+        (gh.includes("graphql") &&
+          (API_OPAQUE_QUERY.test(request) || gh.includes("--input")))
+      ) {
+        return "gh api merge (GraphQL mutation, branch merge or REST merge skips the dev-only rule)";
+      }
     }
-    if (area === "pr" && action === "merge") {
-      const hit = findBlockedPrMerge(gh.slice(2), whole, lookups);
+    const mergeArguments = prMergeArguments(gh);
+    if (mergeArguments) {
+      const hit = findBlockedPrMerge(mergeArguments, whole, lookups);
       if (hit) return hit;
     }
   }
