@@ -59,7 +59,7 @@ export function featureEvaluatePublicQueryOptions(
 }
 
 /**
- * @description No authentication. Flag key to on/off for the requested keys (comma separated, at most 20). The visitor is anonymous, so only environment rules and the everyone audience can be on. Unknown and non-exposed keys are absent. Cacheable for 30 seconds.
+ * @description No authentication. Flag key to on/off for the requested keys (comma separated, at most 20). The visitor is anonymous, so only environment rules and the everyone audience can be on. Unknown and non-exposed keys are absent. Cacheable for 30 seconds; callers should cache about 60 seconds and treat 429 or any error as flag off.
  * @summary Evaluate client-visible flags for an anonymous visitor
  * {@link /api/v1/feature-flags/public/evaluate}
  */

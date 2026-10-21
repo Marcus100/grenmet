@@ -35,11 +35,12 @@ FlagId = Path(min_length=1, max_length=100)
         "No authentication. Flag key to on/off for the requested keys (comma "
         "separated, at most 20). The visitor is anonymous, so only environment "
         "rules and the everyone audience can be on. Unknown and non-exposed keys "
-        "are absent. Cacheable for 30 seconds."
+        "are absent. Cacheable for 30 seconds; callers should cache about 60 "
+        "seconds and treat 429 or any error as flag off."
     ),
     responses={429: {"description": "Rate limit exceeded"}},
 )
-@limiter.limit("60/minute")
+@limiter.limit("600/minute")
 async def evaluate_public(
     *,
     request: Request,
