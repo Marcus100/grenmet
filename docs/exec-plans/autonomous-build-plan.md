@@ -94,6 +94,13 @@ From handoff §2, §4 and §6; one PR each.
 3. Add 3+ area-specific benchmark tasks each for `web` and `api` so
    `agents:routing` can measure the owner's Haiku/Luna preference.
 
+## Decided 2026-10-21
+
+1. Guests paying a deposit get an email-code verification step (follow-up PR, not built).
+2. Administrator-activated accounts are exempt from the verified-email rule for later roles.
+3. The `org_id` slug in Sentry is accepted as is (ADR-0037).
+4. Organisations with bookings automatically get the contacts product.
+
 ## Owner-blocked (prepare docs and config only; never flip)
 
 | Item | Needs |
