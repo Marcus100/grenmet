@@ -100,7 +100,7 @@ Acuity.
   to take effect on those pages. `/book` and `/booking/[token]` are dynamic.
 - **Per-service links:** every Book link goes to `/book` without a service
   id. `/book` cannot preselect a service yet: `BookingFlow`
-  (`components/booking/`) has no initial-service prop and `/book` reads no
+  (`@barrelsgd/bookings-web`) has no initial-service prop and `/book` reads no
   search params. Adding `?service=<id>` is a follow-up that needs that prop.
 - **Left on Acuity on purpose:** `/book`'s own redirects (`app/book/page.tsx`)
   and `app/book/error.tsx`'s "Book on our other page" fallback, so a failed
