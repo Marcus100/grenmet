@@ -53,3 +53,23 @@ class PrivacyTests(unittest.TestCase):
         )
         self.assertEqual(result["tags"], {"area": "cap", "digest": "d1"})
         self.assertNotIn("tags", scrub_sentry_event({"tags": {"email": "x"}}, {}))
+
+    def test_keeps_internal_user_and_org_ids_but_drops_personal_fields(self):
+        result = scrub_sentry_event(
+            {
+                "user": {"id": "u1", "email": "private", "username": "private"},
+                "tags": {"user_id": "u1", "org_id": "o1", "email": "private"},
+            },
+            {},
+        )
+        self.assertEqual(result["tags"], {"user_id": "u1", "org_id": "o1"})
+        self.assertNotIn("user", result)
+        self.assertNotIn("private", json.dumps(result))
+
+    def test_rejects_non_opaque_user_id_tag(self):
+        for bad in ("a@example.test", "Private Person", "x" * 65, ""):
+            result = scrub_sentry_event({"tags": {"user_id": bad, "org_id": "o1"}}, {})
+            self.assertEqual(result["tags"], {"org_id": "o1"})
+        uuid_like = "11111111-2222-3333-4444-555555555555"
+        result = scrub_sentry_event({"tags": {"user_id": uuid_like}}, {})
+        self.assertEqual(result["tags"], {"user_id": uuid_like})

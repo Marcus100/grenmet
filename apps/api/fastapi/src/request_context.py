@@ -11,6 +11,8 @@ import re
 import uuid
 from contextvars import ContextVar, Token
 
+import sentry_sdk
+
 REQUEST_ID_HEADER = "X-Request-ID"
 _VALID_INCOMING = re.compile(r"[A-Za-z0-9._-]{8,64}")
 _request_id: ContextVar[str | None] = ContextVar("request_id", default=None)
@@ -38,6 +40,7 @@ def current_request_id() -> str | None:
 
 def bind_organisation_id(organisation_id: str) -> Token[str | None]:
     """Bind the active organisation (set by ``OrgContext``) to this request's logs."""
+    sentry_sdk.set_tag("org_id", organisation_id)
     return _organisation_id.set(organisation_id)
 
 
