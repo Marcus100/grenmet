@@ -19,6 +19,7 @@ from src.auth.models import Role
 from src.auth.schemas import UserRoleAssignmentCreate
 from src.bookings.models import Booking
 from src.exceptions import AppException
+from src.organisations import service as org_service
 from src.organisations.models import MembershipRole
 from src.utils.datetime import utc_now
 from tests.bookings.test_deposits import _deposit_studio
@@ -122,7 +123,7 @@ async def test_guest_and_no_deposit_bookings_are_not_gated(
 async def test_a_bad_token_on_the_public_route_is_treated_as_a_guest(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
-    studio = await _studio(db_async, async_client)
+    studio = await _deposit_studio(db_async, async_client)
     slots = await _slots(async_client, studio)
     response = await async_client.post(
         f"{BOOKINGS}/public/{studio.slug}/bookings",
@@ -145,23 +146,39 @@ async def test_staff_role_needs_a_verified_email(db_async: AsyncSession) -> None
         await create_user_role_assignment(session=db_async, assignment_in=payload)
     assert raised.value.status_code == 403
     assert raised.value.message.startswith(ERROR_CODE)
-    # Only the verification check is under test: a verified target gets past it
-    # (and meets the unrelated ownership rules instead of the 403).
+    # A verified target gets past the gate and the assignment is stored (or fails
+    # for an unrelated ownership rule, never the verification code).
     await _verify(db_async, target)
     try:
-        await create_user_role_assignment(session=db_async, assignment_in=payload)
+        created = await create_user_role_assignment(
+            session=db_async, assignment_in=payload
+        )
     except AppException as error:
         assert not error.message.startswith(ERROR_CODE)
-    assert (
-        await db_async.scalar(select(Role.id).where(Role.name == "gate_staff_role"))
-        is not None
-    )
+        raise
+    assert created.user_id == target.id
+
+
+async def test_unauthorised_caller_cannot_probe_email_verification(
+    db_async: AsyncSession,
+) -> None:
+    caller = await make_user(db_async)  # verified, but no assignment-management rights
+    target = await make_user(db_async, verified=False)
+    role = Role(name="gate_probe_role", description="test")
+    db_async.add(role)
+    await db_async.commit()
+    payload = UserRoleAssignmentCreate(user_id=target.id, role_id=role.id)
+    with pytest.raises(AppException) as raised:
+        await create_user_role_assignment(
+            session=db_async, assignment_in=payload, current_user=caller
+        )
+    assert not raised.value.message.startswith(ERROR_CODE)
 
 
 async def test_admin_membership_needs_a_verified_email(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
-    owner = await make_user(db_async, verified=False)
+    owner = await make_user(db_async)
     org = await make_org(db_async, "Gate Org", members=((owner, MembershipRole.OWNER),))
     invitee = await make_user(db_async, verified=False)
 
@@ -205,7 +222,7 @@ async def test_admin_membership_needs_a_verified_email(
 async def test_ordinary_membership_never_needs_verification(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
-    owner = await make_user(db_async, verified=False)
+    owner = await make_user(db_async)
     org = await make_org(db_async, "Open Org", members=((owner, MembershipRole.OWNER),))
     guest = await make_user(db_async, verified=False)
     assert (
@@ -213,3 +230,45 @@ async def test_ordinary_membership_never_needs_verification(
     ).status_code == 201
     token = await _token_for(db_async, guest.email)
     assert (await _accept(async_client, guest, token)).status_code == 200
+
+
+# --- organisation owner/admin through add_member (ADR-0018) ----------------------------
+
+
+@pytest.mark.parametrize("role", [MembershipRole.OWNER, MembershipRole.ADMIN])
+async def test_add_member_needs_a_verified_email_for_owner_and_admin(
+    db_async: AsyncSession, role: MembershipRole
+) -> None:
+    org = await make_org(db_async, name="Gate org")
+    unverified = await make_user(db_async, verified=False)
+    with pytest.raises(AppException) as raised:
+        await org_service.add_member(
+            db_async, organisation_id=org.id, user_id=unverified.id, role=role
+        )
+    assert raised.value.status_code == 403
+    assert raised.value.message.startswith(ERROR_CODE)
+    verified = await make_user(db_async)
+    membership = await org_service.add_member(
+        db_async, organisation_id=org.id, user_id=verified.id, role=role
+    )
+    assert membership.role == role.value
+
+
+async def test_add_member_allows_ordinary_roles_and_explicit_exemption(
+    db_async: AsyncSession,
+) -> None:
+    org = await make_org(db_async, name="Gate org 2")
+    user = await make_user(db_async, verified=False)
+    member = await org_service.add_member(
+        db_async, organisation_id=org.id, user_id=user.id, role=MembershipRole.MEMBER
+    )
+    assert member.role == MembershipRole.MEMBER.value
+    other = await make_user(db_async, verified=False)
+    owner = await org_service.add_member(
+        db_async,
+        organisation_id=org.id,
+        user_id=other.id,
+        role=MembershipRole.OWNER,
+        skip_email_check=True,
+    )
+    assert owner.role == MembershipRole.OWNER.value

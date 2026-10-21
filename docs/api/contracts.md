@@ -2103,3 +2103,5 @@ and 15 failed attempts in a row disable it. Verify the timestamp (reject beyond 
 minutes) to stop replays. Adding an event type or a data field is additive.
 
 - **Verified email for money and power** (ADR-0018): `POST /bookings/public/{slug}/bookings` stays anonymous, but a caller who sends a valid sign-in bearer and books a service with a deposit gets 403 `email_verification_required: ...` until the account has verified its email (guests and no-deposit bookings are not gated; a bad token is treated as a guest). The same 403 code answers accepting or being promoted to an organisation admin or owner role, and assigning a staff role. Sign-in and browsing never need verification.
+
+- The deposit gate above is advisory until a host forwards the session: a missing, invalid, app-scoped or activation-pending token is treated as a guest, and the public booking site sends no bearer today. `organisations.service.add_member` also refuses OWNER and ADMIN for an unverified account (403, same code).

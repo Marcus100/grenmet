@@ -96,7 +96,6 @@ async def create_user_role_assignment(
     target = await session.get(User, assignment_in.user_id)
     if role is None or target is None:
         raise AppException("Role or user not found", 404)
-    require_verified_email(target, "receive a staff role")
     from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
 
     if (
@@ -133,6 +132,9 @@ async def create_user_role_assignment(
         from src.audit.service import set_actor
 
         set_actor(session, current_user.id)
+    # After the caller's authority checks, so an unauthorised caller learns
+    # nothing about whether the target's email is verified.
+    require_verified_email(target, "receive a staff role")
     session.add(db_assignment)
     await audit_assignment(session, db_assignment, "CREATE")
     await session.commit()
