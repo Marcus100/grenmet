@@ -383,6 +383,27 @@ test("agentError reports a Claude login failure and stays quiet otherwise", () =
   );
 });
 
+test("agentError ignores a Claude turn limit and skillsFired still sees the skill", () => {
+  const maxTurns = [
+    JSON.stringify({
+      type: "assistant",
+      message: {
+        content: [
+          { type: "tool_use", name: "Skill", input: { skill: "ci-triage" } },
+        ],
+      },
+    }),
+    JSON.stringify({
+      type: "result",
+      is_error: true,
+      subtype: "error_max_turns",
+      result: null,
+    }),
+  ].join("\n");
+  assert.equal(agentError(maxTurns), undefined);
+  assert.deepEqual(skillsFired(maxTurns, "claude"), ["ci-triage"]);
+});
+
 test("evaluate runs cases through a fake agent in a clone and removes it", () => {
   const work = mkdtempSync(join(tmpdir(), "skill-evals-run-"));
   try {
