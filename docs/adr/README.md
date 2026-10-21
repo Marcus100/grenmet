@@ -48,6 +48,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0040](0040-staff-attendance.md) | Staff attendance: terminal punches and supervisor-approved phone punches | Accepted; partly built |
 | [0041](0041-agent-autonomy.md) | What unattended AI agents may and may not do | Accepted, amended by 0042 |
 | [0042](0042-agents-merge-into-dev.md) | Agents merge their own green, reviewed PRs into dev; the owner keeps staging, main and the files that limit agents | Accepted |
+| [0043](0043-hostnames-tenancy-and-port-allocation.md) | Hostnames, tenancy and port allocation: one brand domain, single-level hosts, tenants as organisation-slug paths, port ranges by category | Proposed |
 
 ## Template
 
