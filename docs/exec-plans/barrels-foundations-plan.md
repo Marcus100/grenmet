@@ -261,7 +261,7 @@ Alembic head.
 | P2 | Issue and email invoice PDF (stored through F8) | M | U — built, pending merge (PDF stored when object storage is configured, else rendered on demand; the email carries a 7-day link, not an attachment) |
 | P3 | Manual payments, receivables and ageing in the control plane | M | U — built, pending merge |
 | H1 | `barrels.gd` services page with contact and newsletter forms posting to FastAPI; drafted copy | S–M | U — built, pending merge; production CORS origins and copy review open |
-| E6 | Provider-neutral online payment adapter | L | Planned via B6: Stripe or Republic Bank ePay, whichever onboards first (owner approaching Republic Bank) |
+| E6 | Provider-neutral online payment adapter | L | Partly built on dev (checked 2026-10-21: provider registry in `src/payments/providers` with `manual` and `stripe` only; Events ticket payments use it through `src/events/order_payments.py`; Bookings deposits follow via B6). No Republic Bank ePay adapter yet: whichever of Stripe or ePay onboards first (owner approaching Republic Bank) |
 | R1 | Phase 2 HR foreign key, then HR reads through `OrgContext` | L | O |
 
 Order: F1 → F2 → F3 → (F4, F5, F8) → A1, F6, F7 → E1 → E2 → E3 → E4 → E5. C1 → C2
