@@ -4,13 +4,14 @@
  */
 
 import * as z from "zod";
+import { membershipRoleSchema } from "./membershipRoleSchema.js";
 
 export const bookingMyOrganisationSchema = z
   .object({
     id: z.string(),
     name: z.string(),
     slug: z.string(),
-    role: z.string(),
+    role: membershipRoleSchema,
   })
   .describe(
     "An organisation the caller can open in the studio, with their role in it."

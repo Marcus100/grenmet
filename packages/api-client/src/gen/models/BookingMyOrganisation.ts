@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { MembershipRole } from "./MembershipRole.js";
+
 /**
  * @description An organisation the caller can open in the studio, with their role in it.
  * @type object
@@ -11,5 +13,5 @@ export type BookingMyOrganisation = {
   id: string;
   name: string;
   slug: string;
-  role: string;
+  role: MembershipRole;
 };

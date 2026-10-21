@@ -86,7 +86,9 @@ StudioCaller = Annotated[User, Depends(_studio_caller)]
 async def list_my_organisations(*, session: SessionDep, user: StudioCaller) -> Any:
     rows = await service.list_my_organisations(session, user.id)
     return [
-        BookingMyOrganisation(id=o.id, name=o.name, slug=o.slug, role=role)
+        BookingMyOrganisation(
+            id=o.id, name=o.name, slug=o.slug, role=MembershipRole(role)
+        )
         for o, role in rows
     ]
 

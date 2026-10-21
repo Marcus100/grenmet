@@ -46428,8 +46428,7 @@
             "title": "Slug"
           },
           "role": {
-            "type": "string",
-            "title": "Role"
+            "$ref": "#/components/schemas/MembershipRole"
           }
         },
         "type": "object",

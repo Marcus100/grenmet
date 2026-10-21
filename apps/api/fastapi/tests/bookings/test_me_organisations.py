@@ -118,3 +118,34 @@ async def test_other_apps_tokens_are_401(
 
 async def test_unauthenticated_is_401(async_client: httpx.AsyncClient) -> None:
     assert (await async_client.get(URL)).status_code == 401
+
+
+async def test_each_organisation_appears_once_in_name_order(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    user = await _user(db_async)
+    colleague = await _user(db_async)
+    stranger = await _user(db_async)
+    tag = uuid.uuid4().hex[:6]
+    second = await make_org(
+        db_async,
+        f"B {tag}",
+        members=((user, MembershipRole.OWNER), (colleague, MembershipRole.ADMIN)),
+        apps=("bookings",),
+    )
+    first = await make_org(
+        db_async,
+        f"A {tag}",
+        members=((user, MembershipRole.MEMBER),),
+        apps=("bookings",),
+    )
+    await make_org(
+        db_async,
+        f"C {tag}",
+        members=((stranger, MembershipRole.OWNER),),
+        apps=("bookings",),
+    )
+    resp = await async_client.get(URL, headers=_headers(user, None))
+    rows = resp.json()
+    assert [r["id"] for r in rows] == [first.id, second.id]
+    assert [r["role"] for r in rows] == ["member", "owner"]

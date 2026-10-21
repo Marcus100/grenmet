@@ -5,6 +5,7 @@ from typing import Annotated, Self
 from pydantic import EmailStr, Field, field_validator, model_validator
 
 from src.models import BaseModel, UtcDateTime
+from src.organisations.models import MembershipRole
 from src.utils.timezones import is_valid_timezone
 
 from .models import BookingExceptionKind, BookingSource, BookingStatus
@@ -27,7 +28,7 @@ class BookingMyOrganisation(BaseModel):
     id: str
     name: str
     slug: str
-    role: str
+    role: MembershipRole
 
 
 # --- profile ---------------------------------------------------------------------
