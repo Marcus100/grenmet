@@ -19,6 +19,8 @@ export const env = createEnv({
     ),
   },
   client: {
+    // Cloudflare Turnstile public site key for the booking form. Empty: no widget.
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional().default(""),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: z
       .string()
@@ -32,6 +34,7 @@ export const env = createEnv({
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     BOOKINGS_SESSION_COOKIE_NAME: process.env.BOOKINGS_SESSION_COOKIE_NAME,
     BOOKINGS_SSO_CLIENT_SECRET: process.env.BOOKINGS_SSO_CLIENT_SECRET,
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
     NEXT_PUBLIC_RELEASE: process.env.NEXT_PUBLIC_RELEASE,
