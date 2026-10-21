@@ -21,10 +21,17 @@ import {
   ResponseError,
 } from "@barrelsgd/api-client";
 import { windowFrom } from "@barrelsgd/bookings-web/lib/booking-format";
+import { headers } from "next/headers";
 import { env } from "@/env";
+import { visitorHeaders } from "@/lib/visitor-headers";
 
-function options() {
-  return { client: createClient({ baseURL: env.AUTH_API_URL }) };
+// Next calls the API from one address, so the visitor's own address travels in
+// headers the API trusts only with the shared secret (src/rate_limit.py).
+async function options() {
+  const visitor = visitorHeaders(await headers(), env.TRUSTED_WEB_SECRET);
+  return {
+    client: createClient({ baseURL: env.AUTH_API_URL, headers: visitor }),
+  };
 }
 
 // An unknown token answers 404; a malformed one (too short) answers 422. Both
@@ -45,7 +52,7 @@ export async function getStorefront(
 ): Promise<BookingStorefront | null> {
   try {
     return await bookingsGetStorefront({
-      ...options(),
+      ...(await options()),
       path: { slug },
     }).unwrap();
   } catch (error) {
@@ -54,7 +61,7 @@ export async function getStorefront(
 }
 
 /** Open slots for a service over the 14 days from `firstDay` (YYYY-MM-DD). */
-export function getAvailability(
+export async function getAvailability(
   slug: string,
   serviceId: string,
   firstDay: string,
@@ -62,7 +69,7 @@ export function getAvailability(
 ): Promise<BookingAvailability> {
   const { lastDay } = windowFrom(firstDay);
   return bookingsGetAvailability({
-    ...options(),
+    ...(await options()),
     path: { slug },
     query: {
       service_id: serviceId,
@@ -85,13 +92,13 @@ export interface NewBooking {
   website?: string;
 }
 
-export function createBooking(
+export async function createBooking(
   slug: string,
   body: NewBooking,
   idempotencyKey: string
 ): Promise<BookingPublicReceipt> {
   return bookingsCreatePublicBooking({
-    ...options(),
+    ...(await options()),
     path: { slug },
     headers: { "Idempotency-Key": idempotencyKey },
     body,
@@ -104,7 +111,7 @@ export async function getBooking(
 ): Promise<BookingPublicDetail | null> {
   try {
     return await bookingsGetPublicBooking({
-      ...options(),
+      ...(await options()),
       path: { token },
     }).unwrap();
   } catch (error) {
@@ -112,20 +119,22 @@ export async function getBooking(
   }
 }
 
-export function cancelBooking(token: string): Promise<BookingPublicDetail> {
+export async function cancelBooking(
+  token: string
+): Promise<BookingPublicDetail> {
   return bookingsCancelPublicBooking({
-    ...options(),
+    ...(await options()),
     path: { token },
     body: {},
   }).unwrap();
 }
 
-export function rescheduleBooking(
+export async function rescheduleBooking(
   token: string,
   startsAt: string
 ): Promise<BookingPublicDetail> {
   return bookingsReschedulePublicBooking({
-    ...options(),
+    ...(await options()),
     path: { token },
     body: { starts_at: startsAt },
   }).unwrap();
@@ -135,7 +144,7 @@ export function rescheduleBooking(
 export async function getBookingIcs(token: string): Promise<string | null> {
   try {
     return await bookingsGetPublicBookingIcs({
-      ...options(),
+      ...(await options()),
       path: { token },
     }).unwrap();
   } catch (error) {

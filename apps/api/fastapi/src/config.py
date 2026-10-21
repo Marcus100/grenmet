@@ -72,6 +72,11 @@ class Settings(BaseSettings):
     # (src/utils/email_hash.py). Required outside local; never reuse SECRET_KEY.
     EMAIL_HASH_PEPPER: str = ""
 
+    # Shared secret the Next.js web hosts present with ``X-Visitor-IP`` so rate
+    # limits key on the real visitor (src/rate_limit.py). Empty (the default)
+    # ignores the header and keys on the connecting address.
+    TRUSTED_WEB_SECRET: str = ""
+
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
