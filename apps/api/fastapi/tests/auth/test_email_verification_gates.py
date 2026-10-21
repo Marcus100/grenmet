@@ -4,6 +4,8 @@ Sign-in and browsing never need a verified email. A deposit, an administrator
 role or membership, and payout details do.
 """
 
+import uuid
+
 import httpx
 import pytest
 from sqlalchemy import select
@@ -22,6 +24,7 @@ from src.exceptions import AppException
 from src.organisations import service as org_service
 from src.organisations.models import MembershipRole
 from src.utils.datetime import utc_now
+from tests.bookings.email_code_helpers import get_proof
 from tests.bookings.test_deposits import _deposit_studio
 from tests.bookings.test_public_bookings import API as BOOKINGS
 from tests.bookings.test_public_bookings import _body, _slots, _studio
@@ -36,15 +39,16 @@ async def _verify(db: AsyncSession, user) -> None:
     await db.commit()
 
 
-async def _book_as(client, studio, user=None):
+async def _book_as(client, studio, user=None, *, email=None, proof=None):
     slots = await _slots(client, studio)
-    headers = {"Idempotency-Key": __import__("uuid").uuid4().hex}
+    headers = {"Idempotency-Key": uuid.uuid4().hex}
     if user is not None:
         headers.update(headers_for(user))
+    body = _body(studio, slots[0], **({"customer_email": email} if email else {}))
+    if proof:
+        body["email_proof"] = proof
     return await client.post(
-        f"{BOOKINGS}/public/{studio.slug}/bookings",
-        headers=headers,
-        json=_body(studio, slots[0]),
+        f"{BOOKINGS}/public/{studio.slug}/bookings", headers=headers, json=body
     )
 
 
@@ -92,32 +96,49 @@ async def test_sign_in_and_browsing_work_unverified(
 # --- (a) deposit ----------------------------------------------------------------------
 
 
-async def test_unverified_account_cannot_book_with_a_deposit(
+async def test_unverified_account_needs_a_code_for_a_deposit(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _deposit_studio(db_async, async_client)
     payer = await make_user(db_async, verified=False)
-    response = await _book_as(async_client, studio, payer)
+    address = payer.email
+    auth = headers_for(payer)
+    response = await _book_as(async_client, studio, payer, email=address)
     assert response.status_code == 403, response.text
     assert response.json()["detail"].startswith(f"{ERROR_CODE}:")
     # Nothing was stored: no booking holds the slot.
     db_async.expire_all()
     assert not (await db_async.scalars(select(Booking))).all()
-    # Once verified, the same account can pay.
-    await _verify(db_async, payer)
-    ok = await _book_as(async_client, studio, payer)
+    # With the emailed code the same account can pay.
+    slot = (await _slots(async_client, studio))[0]
+    proof = await get_proof(db_async, async_client, studio, slot, address, auth)
+    await db_async.refresh(payer)
+    ok = await _book_as(async_client, studio, payer, email=address, proof=proof)
     assert ok.status_code == 201, ok.text
     assert ok.json()["payment_required"] is True
 
 
-async def test_guest_and_no_deposit_bookings_are_not_gated(
+async def test_verified_account_booking_its_own_email_has_no_step(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _deposit_studio(db_async, async_client)
+    payer = await make_user(db_async, verified=True)
+    ok = await _book_as(async_client, studio, payer, email=payer.email)
+    assert ok.status_code == 201, ok.text
+    # Another address than the account's still needs proof.
+    other = await _book_as(async_client, studio, payer, email="friend@example.com")
+    assert other.status_code == 403
+
+
+async def test_guest_deposit_is_gated_and_no_deposit_bookings_are_not(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     deposit_studio = await _deposit_studio(db_async, async_client)
-    assert (await _book_as(async_client, deposit_studio)).status_code == 201
+    assert (await _book_as(async_client, deposit_studio)).status_code == 403
     free_studio = await _studio(db_async, async_client)
     unverified = await make_user(db_async, verified=False)
     assert (await _book_as(async_client, free_studio, unverified)).status_code == 201
+    assert (await _book_as(async_client, free_studio)).status_code == 201
 
 
 async def test_a_bad_token_on_the_public_route_is_treated_as_a_guest(
@@ -130,7 +151,7 @@ async def test_a_bad_token_on_the_public_route_is_treated_as_a_guest(
         headers={"Idempotency-Key": "k" * 16, "Authorization": "Bearer nonsense"},
         json=_body(studio, slots[0]),
     )
-    assert response.status_code == 201, response.text
+    assert response.status_code == 403, response.text
 
 
 # --- (b) staff or administrator role ---------------------------------------------------

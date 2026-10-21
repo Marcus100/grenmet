@@ -20,6 +20,12 @@ export const bookingPublicCreateSchema = z
     customer_phone: z.union([z.string().max(40), z.null()]).optional(),
     notes: z.union([z.string().max(1000), z.null()]).optional(),
     marketing_consent: z.boolean().optional().default(false),
+    email_proof: z
+      .union([z.string().max(1024), z.null()])
+      .optional()
+      .describe(
+        "Proof from `confirm-email-code`. Needed only when a deposit is due and the caller is not a signed-in account that already vouches for `customer_email`. Bound to this email, service and start time; single use."
+      ),
     turnstile_token: z.union([z.string().max(2048), z.null()]).optional(),
     website: z.union([z.string().max(200), z.null()]).optional(),
   })
