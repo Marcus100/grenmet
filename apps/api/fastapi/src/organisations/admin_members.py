@@ -17,6 +17,7 @@ Functions flush; the router commits.
 import uuid
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
@@ -28,11 +29,13 @@ from src.notifications import service as notification_service
 from src.organisations import members, service
 from src.organisations.exceptions import AlreadyMemberError, OrganisationNotFoundError
 from src.organisations.models import (
+    Invitation,
     Membership,
     MembershipRole,
     MembershipStatus,
     PlatformOrganisation,
 )
+from src.utils.datetime import utc_now
 
 RECORD_TYPE = "platform_organisation_member"
 _POWER_ROLES = frozenset({MembershipRole.ADMIN, MembershipRole.OWNER})
@@ -70,6 +73,7 @@ async def _record(
     reason: str,
     old_role: str | None,
     new_role: str | None,
+    old_status: str | None = None,
 ) -> None:
     audit_service.set_actor(session, actor.id)
     await audit_service.record_change(
@@ -84,9 +88,31 @@ async def _record(
             "target_user_id": (None, str(membership.user_id)),
             "role": (old_role, new_role),
             "self_service": (None, membership.user_id == actor.id),
+            **(
+                {"status": (old_status, MembershipStatus.ACTIVE.value)}
+                if old_status is not None
+                else {}
+            ),
         },
         organisation_id=organisation_id,
     )
+
+
+async def _cancel_pending_invitations(
+    session: AsyncSession, organisation_id: str, user: User
+) -> None:
+    """The person is a member now; an open invitation must not linger."""
+    stale = await session.scalars(
+        select(Invitation).where(
+            Invitation.organisation_id == organisation_id,
+            Invitation.email == notification_service.normalise_email(user.email),
+            Invitation.accepted_at.is_(None),
+            Invitation.revoked_at.is_(None),
+        )
+    )
+    now = utc_now()
+    for invitation in stale.all():
+        invitation.revoked_at = now
 
 
 async def add(
@@ -113,25 +139,32 @@ async def add(
     )
     if existing is not None and existing.status == MembershipStatus.ACTIVE.value:
         raise AlreadyMemberError()
+    old_role = old_status = None
     if existing is None:
-        membership = await service.add_member(
-            session,
-            organisation_id=organisation_id,
-            user_id=user.id,
-            role=role,
-            invited_by_user_id=actor.id,
-            skip_email_check=False,
-        )
+        try:
+            async with session.begin_nested():
+                membership = await service.add_member(
+                    session,
+                    organisation_id=organisation_id,
+                    user_id=user.id,
+                    role=role,
+                    invited_by_user_id=actor.id,
+                    skip_email_check=False,
+                )
+        except IntegrityError:  # a concurrent first-time add won the unique key
+            raise AlreadyMemberError() from None
     else:  # a removed or invited row is reactivated (one row per organisation and user)
         if role in _POWER_ROLES:
             await require_verified_or_admin_activated(
                 session, user, f"become an organisation {role.value}"
             )
+        old_role, old_status = existing.role, existing.status
         existing.status = MembershipStatus.ACTIVE.value
         existing.role = role.value
         existing.invited_by_user_id = actor.id
         membership = existing
         await session.flush()
+    await _cancel_pending_invitations(session, organisation_id, user)
     await _record(
         session,
         actor,
@@ -139,8 +172,9 @@ async def add(
         membership,
         action="add",
         reason=reason,
-        old_role=None,
+        old_role=old_role,
         new_role=role.value,
+        old_status=old_status,
     )
     await session.flush()
     return membership, user

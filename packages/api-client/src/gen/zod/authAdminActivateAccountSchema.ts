@@ -4,8 +4,8 @@
  */
 
 import * as z from "zod";
+import { adminActivationSchema } from "./adminActivationSchema.js";
 import { onboardingStatusSchema } from "./onboardingStatusSchema.js";
-import { superuserActionReasonSchema } from "./superuserActionReasonSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authAdminActivateAccountPathUserIdSchema = z.uuid();
@@ -34,6 +34,6 @@ export const authAdminActivateAccountErrorSchema = z.union([
 ]);
 
 export const authAdminActivateAccountBodySchema =
-  superuserActionReasonSchema.describe(
-    "Why a superuser is using an admin power; stored in the audit trail."
+  adminActivationSchema.describe(
+    "The operator vouches for the exact address they saw on the account."
   );

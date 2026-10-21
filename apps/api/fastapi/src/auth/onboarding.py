@@ -165,7 +165,11 @@ def _can_admin_activate(user: User) -> bool:
 
 
 async def admin_activate(
-    session: AsyncSession, actor: User, user_id: uuid.UUID, reason: str
+    session: AsyncSession,
+    actor: User,
+    user_id: uuid.UUID,
+    reason: str,
+    expected_email: str,
 ) -> OnboardingStatus:
     """Vouch for an existing account so it may receive roles and memberships.
 
@@ -180,13 +184,29 @@ async def admin_activate(
         raise AppException(
             "Inactive and superuser accounts cannot be activated here", 409
         )
-    if not (
+    if user.email.strip().lower() != expected_email.strip().lower():
+        raise AppException(
+            "The account's email address is not the one you confirmed", 409
+        )
+    audit.set_actor(session, actor.id)
+    if (
         user.email_verified_at is not None
         or await email_verification.is_admin_activated(session, user)
     ):
+        # Nothing to change, but every use of the power is on the record.
+        await audit.record_change(
+            session,
+            entity_type="account",
+            entity_id=str(user.id),
+            record_type="account_activation",
+            record_id=str(user.id),
+            action="admin_activate_noop",
+            changes={"reason": (None, reason), "email": (None, user.email)},
+        )
+        await session.commit()
+    else:
         user.email_verification_required = False
         session.add(user)
-        audit.set_actor(session, actor.id)
         await audit.record_change(
             session,
             entity_type="account",
@@ -198,6 +218,7 @@ async def admin_activate(
                 "activation": (None, "activated"),
                 "admin_override": (False, True),
                 "reason": (None, reason),
+                "email": (None, user.email),
             },
         )
         await session.commit()

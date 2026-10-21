@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
+import type { AdminActivation } from "./AdminActivation.js";
 import type { OnboardingStatus } from "./OnboardingStatus.js";
-import type { SuperuserActionReason } from "./SuperuserActionReason.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthAdminActivateAccountPath = {
@@ -31,10 +31,10 @@ export type AuthAdminActivateAccountStatus409 = unknown;
 export type AuthAdminActivateAccountStatus422 = ValidationErrorResponse;
 
 /**
- * @description Why a superuser is using an admin power; stored in the audit trail.
+ * @description The operator vouches for the exact address they saw on the account.
  * @type object
  */
-export type AuthAdminActivateAccountBody = SuperuserActionReason;
+export type AuthAdminActivateAccountBody = AdminActivation;
 
 export type AuthAdminActivateAccountOptions = {
   body: AuthAdminActivateAccountBody;

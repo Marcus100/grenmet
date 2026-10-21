@@ -40,13 +40,15 @@ def require_verified_email(user: User, action: str) -> None:
 
 
 async def is_admin_activated(session: AsyncSession, user: User) -> bool:
-    """True when an administrator activated this account (onboarding.confirm_activation).
+    """True when an administrator activated this account (onboarding.confirm_activation
+    or the superuser-with-MFA ``onboarding.admin_activate``).
 
     That flow leaves ``email_verified_at`` empty on purpose; the administrator who
     issued the activation link vouches for the account (owner decision 2026-10-21).
-    The marker is the ``account_activation`` / ``activated`` audit entry that only
-    ``confirm_activation`` writes, and it only does so for a link issued by an
-    active superuser. Self-registered accounts never have one. The exemption lapses
+    The marker is the ``account_activation`` / ``activated`` audit entry. Two writers
+    exist: ``confirm_activation`` (only for a link issued by an active superuser) and
+    ``admin_activate`` (an active superuser with an enrolled authenticator; its entry
+    also carries ``admin_override`` and the reason). Self-registered accounts never have one. The exemption lapses
     when the email address changes: ``confirm_activation`` clears
     ``email_verification_required`` and both email-change paths in
     ``auth.service`` set it again."""

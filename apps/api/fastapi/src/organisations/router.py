@@ -1,14 +1,16 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Path, Query
+from fastapi import APIRouter, Path, Query, Response
 from fastapi import status as http_status
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.auth.models import User
 from src.dependencies import AccountUser, AdminUser, MfaAdminUser, SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgAdmin, OrgMember
 from src.pagination import PaginationDep
+from src.rate_limit import limiter
 
 from . import (
     admin_members,
@@ -693,13 +695,17 @@ MFA_ERRORS = {
     ),
     responses=MFA_ERRORS,
 )
+@limiter.limit("30/minute")
 async def add_member_admin(
     *,
+    request: Request,
+    response: Response,
     session: SessionDep,
     admin: MfaAdminUser,
     organisation_id: str,
     payload: PlatformMemberAdd,
 ) -> Any:
+    _ = request, response
     membership, user = await admin_members.add(
         session,
         admin,
@@ -725,14 +731,18 @@ async def add_member_admin(
     ),
     responses=MFA_ERRORS,
 )
+@limiter.limit("30/minute")
 async def update_member_admin(
     *,
+    request: Request,
+    response: Response,
     session: SessionDep,
     admin: MfaAdminUser,
     organisation_id: str,
     membership_id: str,
     payload: PlatformMemberRoleUpdate,
 ) -> Any:
+    _ = request, response
     membership, user = await admin_members.change(
         session,
         admin,
@@ -757,14 +767,18 @@ async def update_member_admin(
     ),
     responses=MFA_ERRORS,
 )
+@limiter.limit("30/minute")
 async def delete_member_admin(
     *,
+    request: Request,
+    response: Response,
     session: SessionDep,
     admin: MfaAdminUser,
     organisation_id: str,
     membership_id: str,
     payload: PlatformMemberRemove,
 ) -> None:
+    _ = request, response
     await admin_members.remove(
         session, admin, organisation_id, membership_id, reason=payload.reason
     )

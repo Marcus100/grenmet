@@ -68,6 +68,12 @@ class SuperuserActionReason(BaseModel):
     reason: AdminReasonText
 
 
+class AdminActivation(SuperuserActionReason):
+    """The operator vouches for the exact address they saw on the account."""
+
+    expected_email: EmailStr
+
+
 class VerificationResend(BaseModel):
     delivered: bool
     message: str

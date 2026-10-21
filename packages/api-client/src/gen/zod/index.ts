@@ -21,6 +21,7 @@ export { activityEntrySchema } from "./activityEntrySchema.js";
 export { addressPublicSchema } from "./addressPublicSchema.js";
 export { addressUpdateSchema } from "./addressUpdateSchema.js";
 export { adjustmentCreateSchema } from "./adjustmentCreateSchema.js";
+export { adminActivationSchema } from "./adminActivationSchema.js";
 export { admissionCreateSchema } from "./admissionCreateSchema.js";
 export { admissionPublicSchema } from "./admissionPublicSchema.js";
 export { ageingBucketPublicSchema } from "./ageingBucketPublicSchema.js";

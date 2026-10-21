@@ -53,7 +53,7 @@ export function authAdminActivateAccountMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Superuser with an enrolled authenticator vouches for an existing account whose email cannot be verified. Unlocks staff roles and owner/admin memberships (`require_verified_or_admin_activated`); does not set `email_verified_at` and does not clear the strict deposit and organiser-request gate. A reason is required and audited. Idempotent. Inactive and superuser accounts are refused (409).
+ * @description Superuser with an enrolled authenticator vouches for an existing account whose email cannot be verified. Unlocks staff roles and owner/admin memberships (`require_verified_or_admin_activated`); does not set `email_verified_at` and does not clear the strict deposit and organiser-request gate. A reason is required and audited. Idempotent. Body also carries `expected_email`, which must match the account's address (409 otherwise) and is stored in the audit entry. Inactive and superuser accounts are refused (409).
  * @summary Vouch for an account (roles and memberships only)
  * {@link /api/v1/auth/onboarding/:user_id/admin-activate}
  */

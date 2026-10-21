@@ -9,6 +9,7 @@ from src.auth.onboarding_schemas import (
     ActivationConfirm,
     ActivationIssue,
     ActivationLink,
+    AdminActivation,
     OnboardingStatus,
     SuperuserActionReason,
     VerificationResend,
@@ -118,7 +119,7 @@ async def revoke(
         "memberships (`require_verified_or_admin_activated`); does not set "
         "`email_verified_at` and does not clear the strict deposit and "
         "organiser-request gate. A reason is required and audited. Idempotent. "
-        "Inactive and superuser accounts are refused (409)."
+        "Body also carries `expected_email`, which must match the account's address (409 otherwise) and is stored in the audit entry. Inactive and superuser accounts are refused (409)."
     ),
     responses={
         403: {
@@ -136,11 +137,13 @@ async def admin_activate(
     session: SessionDep,
     admin: MfaAdminUser,
     user_id: uuid.UUID,
-    body: SuperuserActionReason,
+    body: AdminActivation,
 ) -> OnboardingStatus:
     _ = request
     response.headers["Cache-Control"] = "no-store"
-    return await onboarding.admin_activate(session, admin, user_id, body.reason)
+    return await onboarding.admin_activate(
+        session, admin, user_id, body.reason, body.expected_email
+    )
 
 
 @router.post(

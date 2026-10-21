@@ -39212,7 +39212,7 @@
           "onboarding"
         ],
         "summary": "Vouch for an account (roles and memberships only)",
-        "description": "Superuser with an enrolled authenticator vouches for an existing account whose email cannot be verified. Unlocks staff roles and owner/admin memberships (`require_verified_or_admin_activated`); does not set `email_verified_at` and does not clear the strict deposit and organiser-request gate. A reason is required and audited. Idempotent. Inactive and superuser accounts are refused (409).",
+        "description": "Superuser with an enrolled authenticator vouches for an existing account whose email cannot be verified. Unlocks staff roles and owner/admin memberships (`require_verified_or_admin_activated`); does not set `email_verified_at` and does not clear the strict deposit and organiser-request gate. A reason is required and audited. Idempotent. Body also carries `expected_email`, which must match the account's address (409 otherwise) and is stored in the audit entry. Inactive and superuser accounts are refused (409).",
         "operationId": "authAdminActivateAccount",
         "security": [
           {
@@ -39236,7 +39236,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SuperuserActionReason"
+                "$ref": "#/components/schemas/AdminActivation"
               }
             }
           }
@@ -43582,6 +43582,28 @@
           "reason"
         ],
         "title": "AdjustmentCreate"
+      },
+      "AdminActivation": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          },
+          "expected_email": {
+            "type": "string",
+            "format": "email",
+            "title": "Expected Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason",
+          "expected_email"
+        ],
+        "title": "AdminActivation",
+        "description": "The operator vouches for the exact address they saw on the account."
       },
       "AdmissionCreate": {
         "properties": {

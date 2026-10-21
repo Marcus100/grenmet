@@ -213,9 +213,16 @@ async def get_current_user_manager(current_user: CurrentUser) -> User:
 AdminUser = Annotated[User, Depends(get_current_active_superuser)]
 
 
-async def get_current_mfa_superuser(admin: AdminUser) -> User:
-    """Superuser with an enrolled authenticator, in every environment."""
+async def get_current_mfa_superuser(
+    admin: AdminUser, session: SessionDep, token: TokenDep
+) -> User:
+    """Superuser with an enrolled authenticator and a session that passed MFA.
+
+    Applies in every environment, whatever ``AUTH_PRIVILEGED_MFA_MODE`` says."""
+    from src.auth import privileged_mfa
+
     superuser_mfa.require_superuser_mfa(admin)
+    await privileged_mfa.require_mfa_session(session, admin, token=token)
     return admin
 
 
