@@ -99,7 +99,7 @@ Frontend (full style rules in `.agents/rules/ultracite.mdc`):
 - Server Components by default; React Query only for client-side mutations and polling.
 - `catalog:` for shared deps; `@/` path alias; UI primitives from `@barrelsgd/ui/components/ui/<name>`, `cn` from `@barrelsgd/ui/lib/utils`.
 - Types, fetch clients, hooks and Zod schemas come from `@barrelsgd/api-client`; never hand-write a FastAPI response type.
-- Let unexpected errors throw to `error.tsx`/`global-error.tsx`. If you catch and show a fallback, call `reportError(error, "<area>")` from the app's `src/lib/report-error.ts`. Never import `@sentry/nextjs` in a shared package; never put user data in Sentry.
+- Let unexpected errors throw to `error.tsx`/`global-error.tsx`. If you catch and show a fallback, call `reportError(error, "<area>")` from the app's `src/lib/report-error.ts`. Never import `@sentry/nextjs` in a shared package; never put personal data in Sentry; internal user and organisation IDs are allowed (ADR-0037).
 
 Backend (details in `apps/api/fastapi/AGENTS.md`):
 - SQLAlchemy models in `models.py`, `src.models.BaseModel` schemas in `schemas.py`; never expose ORM models.

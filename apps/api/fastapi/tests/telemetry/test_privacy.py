@@ -53,3 +53,15 @@ class PrivacyTests(unittest.TestCase):
         )
         self.assertEqual(result["tags"], {"area": "cap", "digest": "d1"})
         self.assertNotIn("tags", scrub_sentry_event({"tags": {"email": "x"}}, {}))
+
+    def test_keeps_internal_user_and_org_ids_but_drops_personal_fields(self):
+        result = scrub_sentry_event(
+            {
+                "user": {"id": "u1", "email": "private", "username": "private"},
+                "tags": {"user_id": "u1", "org_id": "o1", "email": "private"},
+            },
+            {},
+        )
+        self.assertEqual(result["tags"], {"user_id": "u1", "org_id": "o1"})
+        self.assertNotIn("user", result)
+        self.assertNotIn("private", json.dumps(result))

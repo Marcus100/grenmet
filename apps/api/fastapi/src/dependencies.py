@@ -24,6 +24,7 @@ from collections.abc import AsyncGenerator
 from typing import Annotated, Any, cast
 
 import jwt
+import sentry_sdk
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
@@ -109,6 +110,8 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
     from src.auth.privileged_mfa import require_privileged_mfa
 
     await require_privileged_mfa(session, user, token=token)
+    # ADR-0037: the opaque database ID only, never name or email.
+    sentry_sdk.set_tag("user_id", str(user.id))
     return user
 
 

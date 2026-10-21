@@ -44,10 +44,26 @@ interface ErrorEvent {
  * Tags that carry no customer content or identity and are kept on events:
  * `digest` links a Server Component error to its server log line, `area`
  * names the product surface that reported a caught error, and `request_id` is
- * the random per-request token the API returns in `X-Request-ID` (it carries no
- * user data). Keep in step with `SAFE_TAGS` in `apps/api/fastapi/src/telemetry.py`.
+ * the random per-request token the API returns in `X-Request-ID`, and `user_id`
+ * and `org_id` are opaque internal database IDs (ADR-0037). Keep in step with `SAFE_TAGS` in `apps/api/fastapi/src/telemetry.py`.
  */
-const SAFE_TAGS = new Set(["area", "digest", "request_id"]);
+const SAFE_TAGS = new Set([
+  "area",
+  "digest",
+  "org_id",
+  "request_id",
+  "user_id",
+]);
+
+/**
+ * ADR-0037: the internal user ID (an opaque database ID) may be sent; every
+ * other user field (email, username, ip_address, name, ...) is dropped.
+ */
+function keepUserId(user: unknown): { id: string } | undefined {
+  if (!user || typeof user !== "object") return undefined;
+  const id = (user as { id?: unknown }).id;
+  return typeof id === "string" && id.length > 0 ? { id } : undefined;
+}
 
 function keepSafeTags(tags: unknown): Record<string, string> | undefined {
   if (!tags || typeof tags !== "object") return undefined;
@@ -61,7 +77,7 @@ function keepSafeTags(tags: unknown): Record<string, string> | undefined {
 
 /** Keep error types and stack locations, excluding customer content and identity. */
 export function scrubSentryEvent<T extends ErrorEvent>(event: T): T {
-  event.user = undefined;
+  event.user = keepUserId(event.user);
   event.request = undefined;
   event.extra = undefined;
   event.breadcrumbs = undefined;

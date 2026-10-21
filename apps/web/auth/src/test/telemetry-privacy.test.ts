@@ -46,6 +46,33 @@ it("keeps only the digest, area and request_id tags, dropping anything else", ()
   expect(scrubSentryEvent({ tags: { email: "private" } }).tags).toBeUndefined();
 });
 
+it("keeps the internal user ID and org_id tag but no personal user fields", () => {
+  const result = scrubSentryEvent({
+    user: {
+      id: "11111111-2222-3333-4444-555555555555",
+      email: "private@example.test",
+      username: "private-name",
+      ip_address: "203.0.113.9",
+      name: "Private Person",
+    },
+    tags: {
+      org_id: "org-uuid-1",
+      user_id: "11111111-2222-3333-4444-555555555555",
+      phone: "private",
+    },
+  });
+  expect(result.user).toEqual({ id: "11111111-2222-3333-4444-555555555555" });
+  expect(result.tags).toEqual({
+    org_id: "org-uuid-1",
+    user_id: "11111111-2222-3333-4444-555555555555",
+  });
+  expect(JSON.stringify(result)).not.toContain("private");
+  expect(JSON.stringify(result)).not.toContain("203.0.113.9");
+  expect(
+    scrubSentryEvent({ user: { email: "private@example.test" } }).user
+  ).toBeUndefined();
+});
+
 it("drops performance events until their sanitation and quota are verified", () => {
   expect(
     scrubSentryTransaction({

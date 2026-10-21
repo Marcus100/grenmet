@@ -6,7 +6,9 @@ from typing import Any
 # Tags without customer content or identity; must match the web scrubber in
 # packages/ui/src/lib/sentry-privacy.ts. `request_id` is a random per-request
 # token (src/request_context.py) that links an event to its log lines.
-SAFE_TAGS = frozenset({"area", "digest", "request_id"})
+# `user_id` and `org_id` are opaque internal database IDs, allowed by ADR-0037;
+# never names, emails or phone numbers.
+SAFE_TAGS = frozenset({"area", "digest", "org_id", "request_id", "user_id"})
 
 
 def scrub_sentry_event(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str, Any]:
