@@ -1,27 +1,80 @@
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@barrelsgd/ui/components/ui/empty";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { StudioAlert } from "@/components/studio/studio-alert";
 import { requireSession } from "@/lib/session";
+import { listMyOrganisations } from "@/lib/studio-api";
+import { guarded } from "@/lib/studio-page";
 
 export const metadata: Metadata = {
-  title: "Studio",
+  title: "Your businesses",
+};
+
+const ROLE_LABEL: Record<string, string> = {
+  owner: "Owner",
+  admin: "Admin",
+  member: "Member",
 };
 
 /**
- * Placeholder. The proxy sends signed-out visitors to sign-in; this page then
- * asks FastAPI-backed session state again before rendering anything.
+ * Organisation picker. One business goes straight to its agenda; none explains
+ * how to get access. The id comes from the person's own list, never the URL.
  */
 export default async function StudioPage() {
   const session = await requireSession("/studio");
+  const result = await guarded(
+    () => listMyOrganisations(session.accessToken),
+    "/studio"
+  );
+
+  if (!result.ok) {
+    return <StudioAlert failure={result.failure} />;
+  }
+  const organisations = result.value;
+
+  if (organisations.length === 1 && organisations[0]) {
+    redirect(`/studio/${organisations[0].slug}/agenda`);
+  }
+
+  if (organisations.length === 0) {
+    return (
+      <Empty className="border">
+        <EmptyHeader>
+          <EmptyTitle>You are not part of a business yet</EmptyTitle>
+          <EmptyDescription>
+            {session.name} is signed in, but no business has added this account.
+            Ask the business owner to invite {session.email} to their Barrels
+            organisation, then refresh this page.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
 
   return (
-    <main
-      className="mx-auto flex min-h-screen max-w-2xl flex-col gap-4 p-6"
-      id="main-content"
-    >
-      <h1 className="font-semibold text-2xl">Studio</h1>
-      <p className="text-muted-foreground">
-        Signed in as {session.name}. Agenda, services and hours arrive in a
-        later release.
-      </p>
-    </main>
+    <section className="space-y-4">
+      <h1 className="font-semibold text-2xl">Choose a business</h1>
+      <ul className="grid gap-3 sm:grid-cols-2">
+        {organisations.map((organisation) => (
+          <li key={organisation.id}>
+            <Link
+              className="flex min-h-11 flex-col gap-1 rounded-lg border border-border p-4 hover:bg-muted"
+              href={{ pathname: `/studio/${organisation.slug}/agenda` }}
+            >
+              <span className="font-semibold">{organisation.name}</span>
+              <span className="text-muted-foreground text-sm">
+                {ROLE_LABEL[organisation.role] ?? organisation.role}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
