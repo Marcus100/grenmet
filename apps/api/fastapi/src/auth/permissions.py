@@ -202,6 +202,7 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("app.docs.access", "Sign in to GMS Documentation"),
     PermissionDef("app.elections.access", "Sign in to Elections Grenada"),
     PermissionDef("app.gmsdash.access", "Sign in to the GMS Dashboard"),
+    PermissionDef("app.bookings.access", "Sign in to Barrels Bookings"),
     PermissionDef(
         "gmsdash.guidance.view",
         "Read raw model guidance meteograms without an organisation entitlement",
@@ -471,6 +472,10 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "gmsdash-member": (
         "GMS Dashboard member: granted on first sign-in",
         ("app.gmsdash.access",),
+    ),
+    "bookings-member": (
+        "Barrels Bookings member: granted on first sign-in",
+        ("app.bookings.access",),
     ),
     "gmsdash-operator": (
         "GMS Dashboard operator: reads model guidance and decides organisation access requests",

@@ -37,6 +37,8 @@ const BOOKINGS_HOST = /Host\(`bookings\./g;
 const SSO_SECRET =
   /BOOKINGS_SSO_CLIENT_SECRET: \$\{BOOKINGS_SSO_CLIENT_SECRET:-\}/;
 const SENTRY_DSN = /NEXT_PUBLIC_SENTRY_DSN: \$\{SENTRY_DSN_BOOKINGS:-\}/;
+const API_BOOKINGS_URL =
+  /BOOKINGS_APP_URL: https:\/\/bookings\.\$\{BASE_DOMAIN\}/;
 const AUTH_URL = /AUTH_API_URL: http:\/\/api:8000/;
 const SERVICE_START = /^ {2}\S/;
 
@@ -56,6 +58,12 @@ function serviceBlock(name) {
 }
 
 const block = serviceBlock("web-bookings");
+
+test("the API service is told the bookings URL and the optional SSO secret", () => {
+  const api = serviceBlock("api");
+  assert.match(api, API_BOOKINGS_URL);
+  assert.match(api, SSO_SECRET);
+});
 
 test("web-bookings runs the bookings image on port 3015", () => {
   assert.match(block, IMAGE);
