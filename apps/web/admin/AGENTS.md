@@ -101,12 +101,12 @@ with `SKIP_ENV_VALIDATION` and fixed values from `vitest.config.ts`.
 
 ## Deployment
 
-Not deployed. There is deliberately no Traefik router or compose service: the
-`admin.*` host still serves the GAA staff portal until the move to
-`gmsadmin.*` finishes (plan, "Host move"). The Dockerfile builds the image for
-when that happens. To deploy: add the service and `admin.${BASE_DOMAIN}` router
-to `infra/docker/docker-compose.deploy.yml`, wire `BARRELS_ADMIN_SSO_CLIENT_SECRET`
-(API and web, GitHub environment secrets, env examples, `docs/deployment.md`),
-add the app to `scripts/ci/release-scope.mjs` and `select-images.mjs`, set
-`BARRELS_ADMIN_APP_URL` on the API, and add `barrels-admin` to the auth app's
-directory (`apps/web/auth/src/components/app-directory.tsx`) for its friendly name.
+Compose service `web-admin` (image `barrelsgd-web-admin`, port 3012, health
+`/api/health`) serves it at `BARRELS_ADMIN_HOST`: `admin.staging.barrels.gd` on
+staging (cut over 2026-10-21) and the holding host `console.barrels.gd` on
+production until the separate production cutover release. It is in
+`scripts/ci/release-scope.mjs`. The GMS/GAA portal moved to `gms.*`
+(service `web-gmsadmin`). Secret `BARRELS_ADMIN_SSO_CLIENT_SECRET` (GitHub
+environment secret, same value for the API and this app; empty keeps sign-in
+off). Host runbook, DNS and rollback: `docs/deployment.md`, "Admin
+host move". Still open: a Sentry DSN for the app and an availability monitor.

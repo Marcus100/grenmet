@@ -1,7 +1,18 @@
 export const webImages = [
   { app: "auth", image: "web-auth", path: "apps/web/auth", port: 3000 },
+  // Barrels staff / superuser control plane at admin.barrels.gd (ADR-0039).
   {
     app: "admin",
+    image: "web-admin",
+    path: "apps/web/admin",
+    port: 3012,
+  },
+  // GMS/GAA staff portal (apps/web/gaa-admin) at gms.barrels.gd; the image
+  // keeps its name so existing tags and caches stay valid. The app key (service
+  // web-gmsadmin) differs from the host because web-gms is the public weather site.
+  {
+    app: "gmsadmin",
+    host: "gms",
     image: "web-gaa-admin",
     path: "apps/web/gaa-admin",
     port: 3001,

@@ -196,8 +196,9 @@ certificate expiry (`ssl_expiration`); email only. Ten active monitors fill the
 free allowance, so the staging pilot monitor 5014248 and the old Google test must
 be retired first (the provider refuses to exceed `limits`). `deferred: true`
 resources are validated but never created; remove the flag when a slot frees up.
-`apps/web/admin` (Barrels control plane) is built but not deployed, so it has no
-monitor: `admin.barrels.gd` still serves the GAA staff portal. Babydoll
+`apps/web/admin` (Barrels control plane) is deployed on staging only and has no
+monitor yet: production `admin.barrels.gd` still serves the GAA staff portal
+(monitor URL unchanged). Babydoll
 (`babydoll.barrels.gd`, Vercel client site, no Sentry) is in the service
 catalogue and covered by the probe runner only.
 

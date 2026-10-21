@@ -147,7 +147,7 @@ backup. GMS real data sources are ready; the work is integration.
 | 16 | `JURY_DUTY` leave type; holiday table in timesheets; extra-day-for-holiday-in-vacation suggestion | HR | M | GAA HR rule confirmation | Done, on staging |
 | 17 | DPA purge job and email hashing migration (after verified backup) | Platform | M | — | Purge built (`purge_expired_data`, daily 03:30 UTC) and email hashing on write built (`emailhash20261018`). Held: step 2, the destructive legacy backfill and plaintext null/drop, until a verified backup and the production `EMAIL_HASH_PEPPER` |
 | 18 | E3 outlet cash, E4 settlement report, E5 organiser cancel/refund | Barrels | L | — | Done, on staging |
-| 19 | C1 deploy wiring for `apps/web/admin` once `admin.*` is freed by the gmsadmin cutover | Barrels | M | — | Open (app built, not deployed) |
+| 19 | C1 deploy wiring for `apps/web/admin` once `admin.*` is freed by the admin host move | Barrels | M | — | Staging wired by the 2026-10-21 admin host move PR (compose service `web-admin`, release scope, host variables); production cutover is a separate release |
 | 20 | Test speed: auto workers (CPUs − 2), pre-push runs changed-package tests, CI shards for API and gaa-admin, fuzz in CI only | Platform | M | — | Done, on staging |
 | 21 | Doc fixes: missing env.md rows, invoice settings in deploy, transition-plan port conflicts, note that compose `web-admin` is gaa-admin | Platform | S | — | Partly: domain map in `docs/ports.md`; the rest open |
 
@@ -187,11 +187,11 @@ Owner decisions (2026-10-18):
 | 24 | DMARC: add a `rua=` reporting address (Cloudflare DMARC Management) and `sp=`; review 2–4 weeks, then `quarantine`, then `reject` | Platform | S | Go for quarantine | Approved (reporting) |
 | 25 | CAA records: `issue "letsencrypt.org"` plus the CAs Vercel and Cloudflare need (verify first), and an `iodef` contact | Platform | S | — | Approved |
 | 26 | Security headers: nonce-based CSP in report-only, then enforced; Permissions-Policy; HSTS from 30 days to 1 year after a clean week; preload later | Platform | M | Go to enforce; go to preload | Open |
-| 27 | Health checks: every web app serves `/api/health` (cap and gmsdash already do) and Traefik and compose use it; document the API's liveness and readiness probes | Platform | S | — | Open |
+| 27 | Health checks: every web app serves `/api/health` (cap and gmsdash already do) and Traefik and compose use it; document the API's liveness and readiness probes | Platform | S | — | Partly: catalogue origin and examples updated 2026-10-21 |
 | 28 | `/.well-known/security.txt` (RFC 9116: `Contact`, `Expires` under a year) on barrels.gd and the public apps | Platform | S | Security contact | Open |
 | 29 | Explicit DNS records for every host, then remove the wildcard | Platform | S | — | Open |
 | 30 | GA4 for `cap.barrels.gd` in the service catalogue, production only (`publicAnalytics: true`) | CAP | S | GA4 ID | Open |
-| 31 | Tidy stale config: catalogue `gaa-admin` origin to `gmsadmin.*` (with item 19); retired hosts in `infra/docker/.env.*.example` CORS lists | Platform | S | — | Open |
+| 31 | Tidy stale config: catalogue `gaa-admin` origin to `gms.*` (with item 19); retired hosts in `infra/docker/.env.*.example` CORS lists | Platform | S | — | Open |
 
 Let's Encrypt allows about 50 certificates per registered domain per week,
 shared by staging and production. Today's roughly 28 hosts fit; keep
@@ -360,22 +360,20 @@ janitorial or transport; a separate Barrels Business app; microservices.
 
 ## Host move for the GAA staff portal
 
-Owner decision 2026-10-18: the GAA staff portal (`apps/web/gaa-admin`, code name
-unchanged) moves to `gmsadmin.barrels.gd`, freeing `admin.barrels.gd` for the
-Barrels control plane (C1).
+Owner decisions 2026-10-18 and 2026-10-21: the GAA staff portal
+(`apps/web/gaa-admin`, code name unchanged) moves to `gms.barrels.gd` for
+the Met office, and `admin.barrels.gd` becomes the Barrels staff / superuser
+control plane (C1, `apps/web/admin`). Staging first, production in a later
+release. Runbook, host variables, DNS and rollback: `docs/deployment.md`,
+"Admin host move".
 
-1. **Done:** `docker-compose.deploy.yml` serves the portal on both `admin.*` and
-   `gmsadmin.*` (separate Traefik router and certificate), and both origins are
-   in `BACKEND_CORS_ORIGINS`. The sign-in return-to allowlist already accepts any
-   `.barrels.gd` subdomain.
-2. **DNS:** nothing to add. Wildcard records (`*.staging.barrels.gd` to the
-   staging VM, `*.barrels.gd` to production) already resolve `gmsadmin.*`;
-   Traefik obtains the certificate on the first deploy that includes the router.
-3. **After DNS is verified on staging:** point `GAA_ADMIN_APP_URL` at
-   `gmsadmin.*`, update the service catalogue origin, email links
-   (`packages/email-templates/src/notification.tsx`) and docs, then redirect
-   `admin.*` to `gmsadmin.*`.
-4. **C1:** once the redirect has run for a while, `admin.*` routes to `apps/web/admin`.
+1. **Done (2026-10-18):** the portal answers on `gms.*` with its own router.
+2. **Done in the 2026-10-21 change (staging):** `web-admin` is the console on
+   `admin.staging.barrels.gd`; `web-gmsadmin` is the portal on
+   `gms.staging.barrels.gd`; `GAA_ADMIN_APP_URL`, email links and the
+   catalogue point at `gms.*`; hard switch, no redirect from the old host.
+3. **Later release (production):** flip `BARRELS_ADMIN_HOST` and `GMSADMIN_HOST` in
+   `production.env` and set the production secret.
 
 ## Known documentation conflicts to fix
 

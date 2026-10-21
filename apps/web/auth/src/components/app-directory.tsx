@@ -27,7 +27,9 @@ export const APP_GROUPS: readonly AppGroup[] = [
         name: "GAA Admin",
         description: "CAP, HR, WxWatch, WxProducts, SalesBus, eRegister",
         monogram: "GA",
-        aliases: ["admin", "gaa-admin", "admin-gms"],
+        // "admin" is the Barrels staff console since the 2026-10 host move.
+        // "gms" is the portal host (gms.*); the public site is weather.*.
+        aliases: ["gms", "gaa-admin", "admin-gms"],
       },
       {
         id: "mbia",
@@ -46,7 +48,7 @@ export const APP_GROUPS: readonly AppGroup[] = [
         name: "Weather",
         description: "Forecasts, warnings and news",
         monogram: "Wx",
-        aliases: ["gms", "weather", "gms-cms", "cms"],
+        aliases: ["weather", "gms-cms", "cms"],
       },
       {
         id: "docs",

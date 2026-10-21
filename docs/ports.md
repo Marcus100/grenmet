@@ -74,7 +74,8 @@ entry there or its image build fails.
 | Service | Local dev | Container port | Staging | Production | Health check |
 | --- | --- | --- | --- | --- | --- |
 | auth (Barrels ID) | `localhost:3000` | 3000 | `auth.staging.barrels.gd` | `auth.barrels.gd` | `/` |
-| gaa-admin (GAA/GMS staff portal) | `localhost:3001` | 3001 | `gmsadmin.staging.barrels.gd` and `admin.staging.barrels.gd` | `gmsadmin.barrels.gd` and `admin.barrels.gd` | `/` (redirects to sign-in) |
+| admin (Barrels staff / superuser console) | `localhost:3012` | 3012 | `admin.staging.barrels.gd` | `console.barrels.gd` (holding host) until the production cutover, then `admin.barrels.gd` | `/api/health` |
+| gaa-admin (GMS/GAA staff portal, Met office) | `localhost:3001` | 3001 | `gms.staging.barrels.gd` | `admin.barrels.gd` and `gms.barrels.gd` until the production cutover, then `gms.barrels.gd` only | `/` (redirects to sign-in) |
 | docs | `localhost:3002` | 3002 | `docs.staging.barrels.gd` | `docs.barrels.gd` | `/` |
 | gms (public weather site) | `localhost:3003` | 3003 | `weather.staging.barrels.gd` | `weather.barrels.gd` | `/` |
 | signal | `localhost:3004` | 3004 | `signal.staging.barrels.gd` | `signal.barrels.gd` | `/` |
@@ -91,9 +92,12 @@ entry there or its image build fails.
 Internal only (no hostname): Postgres 5432, Redis 6379, the ARQ `worker`, the
 `nhc-worker`, `prestart` (migrations) and `cms-migrate`.
 
-`admin.<domain>` serves the GAA/GMS staff portal until the gmsadmin cutover;
-it then moves to the Barrels control plane (`apps/web/admin`, port 3012),
-which is built but not deployed and has no catalogue entry yet.
+Admin host move (owner decision 2026-10-21): `admin.<domain>` is the Barrels
+staff / superuser console (`apps/web/admin`, port 3012) and `gms.<domain>`
+is the GMS/GAA staff portal (`apps/web/gaa-admin`, port 3001). Staging is cut
+over; production waits for a separate release (`docs/deployment.md`, "Admin host
+move"). Compose service names follow the release scope: `web-admin` is the
+console, `web-gmsadmin` is the portal.
 
 ### Hosted on Vercel (production only, no staging)
 
@@ -117,7 +121,8 @@ name some of them.
 
 | Hostname | Replaced by |
 | --- | --- |
-| `gms.*`, `gaa-admin.*` | `weather.*`, `gmsadmin.*` |
+| `gaa-admin.*` | `gms.*` (Met office staff portal) |
+| old public `gms.*` site | `weather.*`; old `gms.*` links now land on the staff portal sign-in wall |
 | `wxwatch.*`, `wxproducts.*`, `salesbus.*`, `sales.*` | modules inside gaa-admin |
 | `hurricane.*` | docs (redirect-only during the rename) |
 | `spice.*` | retired Spice weather app |

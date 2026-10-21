@@ -43,8 +43,14 @@ describe("AppDirectory", () => {
 
 describe("findRequestedApp", () => {
   it("matches aliases case-insensitively", () => {
-    expect(findRequestedApp(" GMS ")).toBe("weather");
+    expect(findRequestedApp(" WEATHER ")).toBe("weather");
     expect(findRequestedApp("gaa-admin")).toBe("admin");
+    expect(findRequestedApp("gms")).toBe("admin");
+    expect(findRequestedApp("weather")).toBe("weather");
+  });
+
+  it("no longer treats the admin host as the GAA portal", () => {
+    expect(findRequestedApp("admin")).toBeNull();
   });
 
   it("returns null for unknown or empty names", () => {

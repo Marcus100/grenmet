@@ -67,7 +67,7 @@ NotificationEmail.PreviewProps = {
   projectName: "Grenmet",
   title: "Leave request waiting for your approval",
   body: "Jane Charles — Vacation, 12 Oct 2026 to 16 Oct 2026.",
-  linkUrl: "https://admin.barrels.gd/hr/approvals",
+  linkUrl: "https://gms.barrels.gd/hr/approvals",
 } satisfies NotificationEmailProps;
 
 export default NotificationEmail;

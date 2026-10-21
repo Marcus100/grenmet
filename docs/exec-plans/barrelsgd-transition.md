@@ -167,7 +167,7 @@ document is not approval to bypass repository gates while reaching it.
 | Application | Target package | Port | Production host |
 | --- | --- | ---: | --- |
 | Authentication | `@barrelsgd/web-auth` | 3000 | `auth.barrels.gd` |
-| Barrels superuser admin | `@barrelsgd/web-gaa-admin` | 3001 | `admin.barrels.gd` |
+| Barrels superuser admin | `@barrelsgd/web-admin` | 3012 | `admin.barrels.gd` (staging cut over 2026-10-21; the GMS/GAA portal `@barrelsgd/web-gaa-admin`, 3001, is `gms.barrels.gd`) |
 | GMS documentation and SOPs | `@barrelsgd/web-docs` | 3002 | `docs.weather.gd` |
 | GMS public site | `@barrelsgd/web-gms` | 3003 | `weather.barrels.gd`, later `weather.gd` |
 | Signal | `@barrelsgd/web-signal` | 3004 | `signal.barrels.gd` |
@@ -381,6 +381,10 @@ Create `apps/web/admin` as a separate Barrels-wide control plane at
 - Do not place GMS business modules in this application.
 - Keep `/signin` as its own sign-in route.
 
+> **Superseded 2026-10-21:** no redirects: the portal moves to `gms.*` as a
+> hard switch (old `admin.*` bookmarks reach the console); staging is cut over,
+> production later. See `docs/deployment.md`, "Admin host move".
+
 For bookmarked GMS routes, permanently redirect known former module prefixes
 on `admin.barrels.gd` to their equivalents beneath
 `weather.barrels.gd/admin`. This includes `/cap`, `/hr`, `/wxwatch`,
@@ -525,7 +529,8 @@ Initial production records are:
 
 - `barrels.gd` and `www.barrels.gd`
 - `auth.barrels.gd`
-- `admin.barrels.gd`
+- `admin.barrels.gd` (Barrels staff console; the GMS/GAA portal is `gms.barrels.gd`)
+- `gms.barrels.gd`
 - `api.barrels.gd`
 - `weather.barrels.gd`
 - `docs.weather.barrels.gd` for published SOPs and documentation

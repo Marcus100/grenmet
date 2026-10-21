@@ -103,6 +103,7 @@ Go into each environment and add the following secrets. Staging and production u
 | `JANITORIAL_DB_PASSWORD` | Janitorial database password | Generate a separate random value |
 | `TRANSPORT_DB_PASSWORD` | Transport database password | Generate a separate random value |
 | `GAA_ADMIN_SSO_CLIENT_SECRET` | GAA Admin single sign-on secret    | `openssl rand -base64 32` (different per environment)          |
+| `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Barrels staff console single sign-on secret (empty keeps its sign-in off; superusers only) | `openssl rand -base64 32` (different per environment) |
 | `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment)          |
 | `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment) |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Bookings single sign-on secret (optional; empty keeps sign-in off; the API must register `bookings` first) | `openssl rand -base64 32` (different per environment) |
@@ -522,7 +523,8 @@ hurricane/spice hosts; no legacy redirects are installed.
 | --- | --- | --- | --- |
 | Barrels homepage | Static | https://barrels.gd (Vercel; www redirects here) | Vercel preview deployments |
 | Auth | 3000 | https://auth.barrels.gd | https://auth.staging.barrels.gd |
-| GAA Admin | 3001 | https://admin.barrels.gd (moving to https://gmsadmin.barrels.gd) | https://admin.staging.barrels.gd (also served at https://gmsadmin.staging.barrels.gd) |
+| Barrels admin (staff console) | 3012 | https://admin.barrels.gd (holding host https://console.barrels.gd until the production cutover) | https://admin.staging.barrels.gd |
+| GAA Admin (GMS/GAA portal) | 3001 | https://gms.barrels.gd (https://admin.barrels.gd and gmsadmin.barrels.gd until the production cutover) | https://gms.staging.barrels.gd |
 | Docs | 3002 | https://docs.barrels.gd | https://docs.staging.barrels.gd |
 | Weather | 3003 | https://weather.barrels.gd | https://weather.staging.barrels.gd |
 | Signal | 3004 | https://signal.barrels.gd | https://signal.staging.barrels.gd |
@@ -552,6 +554,51 @@ and Events records remain demo data. The Hono API (`hapi`) was retired on
 2026-09-23 ([ADR-0015](adr/0015-retire-hono-python-backend.md)); remove its old
 container and route with the retirement procedure below. Hosting these apps does not complete those product workflows.
 
+
+## Admin host move
+
+Owner decision 2026-10-21. `admin.*` becomes the Barrels staff / superuser
+control plane (`apps/web/admin`, ADR-0039). The GMS/GAA staff portal
+(`apps/web/gaa-admin`, Met office) moves to `gms.*`. This is the hostname only:
+`apps/web/gms` is still the public weather site at `weather.*`. Hard switch, no
+redirects (the portal is used only by the owner and internal staff in testing).
+Staging first; production is the second step below.
+
+Host variables in `staging.env` / `production.env` drive `docker-compose.deploy.yml`:
+
+| Variable | Staging (cut over) | Production (now, unchanged behaviour) | Production (after cutover) |
+| --- | --- | --- | --- |
+| `BARRELS_ADMIN_HOST` (console, service `web-admin`) | `admin.staging.barrels.gd` | `console.barrels.gd` | `admin.barrels.gd` |
+| `GMSADMIN_HOST` (portal, service `web-gmsadmin`; also the SSO registry URL, email links and auth-app links) | `gms.staging.barrels.gd` | `admin.barrels.gd` | `gms.barrels.gd` |
+| `GMSADMIN_EXTRA_HOST` (optional second portal host) | unset | `gmsadmin.barrels.gd` (existing) | delete |
+
+**Step 1 - staging (owner):**
+
+1. DNS: `*.staging.barrels.gd` already resolves everything to the staging VM, so
+   `admin.staging` and `gms.staging` need no new record. Check in Cloudflare that
+   the wildcard (or explicit A records) exists for both, DNS only like the other
+   staging hosts. `gmsadmin.staging` is no longer served.
+2. Create the GitHub `staging` environment secret `BARRELS_ADMIN_SSO_CLIENT_SECRET`
+   (`openssl rand -base64 32`, at least 32 characters) and apply the
+   `.github/workflows/deploy.yml` change from the PR body (owner-only).
+3. Merge to `staging`; the pipeline builds the new image `barrelsgd-web-admin`
+   and redeploys. Smoke: `https://gms.staging.barrels.gd/api/ready`,
+   `https://admin.staging.barrels.gd/api/health`; sign in to each (console:
+   superuser only). Everyone re-signs in once on `gms.staging` (session cookies
+   are host-only).
+
+**Step 2 - production (right after staging is verified; not part of this PR):**
+in `production.env` set `BARRELS_ADMIN_HOST=admin.barrels.gd`,
+`GMSADMIN_HOST=gms.barrels.gd` and delete `GMSADMIN_EXTRA_HOST`; create the
+`production` secret `BARRELS_ADMIN_SSO_CLIENT_SECRET`; deploy. DNS: the
+`*.barrels.gd` wildcard covers `admin`, `gms` and `console`. Check there is no
+explicit `gms.barrels.gd` or `admin.barrels.gd` record pointing elsewhere (the
+retired public `gms.*` site): old `gms.*` links now reach the portal sign-in.
+
+**Rollback.** Revert the host values in `staging.env` (portal back on
+`admin.staging.barrels.gd`: `GMSADMIN_HOST=admin.staging.barrels.gd`,
+`BARRELS_ADMIN_HOST=console.staging.barrels.gd`) and redeploy, or revert the PR.
+No database or API schema change is involved, so rollback loses no data.
 
 ## Legacy service retirement
 

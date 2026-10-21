@@ -294,7 +294,9 @@ test("staging and production pass integrations to the intended services", () => 
         assert.equal(service.EMAIL_RENDER_SECRET, env.EMAIL_RENDER_SECRET);
         assert.equal(
           service.NOTIFICATIONS_WEB_BASE_URL,
-          `https://admin.${baseDomain}`
+          deploymentEnvironment === "staging"
+            ? "https://gms.staging.barrels.gd"
+            : "https://admin.barrels.gd"
         );
         assert.equal(
           service.NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS,
@@ -302,7 +304,6 @@ test("staging and production pass integrations to the intended services", () => 
         );
       }
       for (const [key, subdomain] of Object.entries({
-        ADMIN_APP_URL: "admin",
         DOCS_APP_URL: "docs",
         GMS_APP_URL: "weather",
         SIGNAL_APP_URL: "signal",
@@ -314,6 +315,48 @@ test("staging and production pass integrations to the intended services", () => 
           `https://${subdomain}.${baseDomain}`
         );
       }
+      // Admin host move (docs/deployment.md): staging is cut over, production
+      // still serves the GMS/GAA portal on admin.* with the console on a holding host.
+      const cutOver = deploymentEnvironment === "staging";
+      const portalHost = cutOver ? "gms" : "admin";
+      assert.equal(
+        model.services["web-auth"].environment.ADMIN_APP_URL,
+        `https://${portalHost}.${baseDomain}`
+      );
+      assert.equal(
+        api.GAA_ADMIN_APP_URL,
+        `https://${portalHost}.${baseDomain}`
+      );
+      assert.equal(
+        api.BARRELS_ADMIN_APP_URL,
+        `https://${cutOver ? "admin" : "console"}.${baseDomain}`
+      );
+      assert.equal(
+        api.BARRELS_ADMIN_SSO_CLIENT_SECRET,
+        model.services["web-admin"].environment.BARRELS_ADMIN_SSO_CLIENT_SECRET
+      );
+      const suffix = cutOver ? "-staging" : "";
+      const adminLabels = model.services["web-admin"].labels;
+      const portalLabels = model.services["web-gmsadmin"].labels;
+      const consoleHost = `${cutOver ? "admin" : "console"}.${baseDomain}`;
+      assert.equal(
+        adminLabels[`traefik.http.routers.web-admin${suffix}.rule`],
+        `Host(\`${consoleHost}\`)`
+      );
+      assert.equal(
+        adminLabels[
+          `traefik.http.services.web-admin${suffix}.loadbalancer.server.port`
+        ],
+        "3012"
+      );
+      const portalRule =
+        portalLabels[`traefik.http.routers.web-gmsadmin${suffix}.rule`];
+      assert.ok(portalRule.includes(`Host(\`${portalHost}.${baseDomain}\`)`));
+      assert.equal(
+        Object.keys(portalLabels).some((key) => key.includes("legacy")),
+        false,
+        "hard switch: no redirect from the old admin host"
+      );
       assert.equal(
         model.services.worker.environment.SENTRY_DSN,
         api.SENTRY_DSN
