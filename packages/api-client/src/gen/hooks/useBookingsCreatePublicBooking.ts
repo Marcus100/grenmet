@@ -15,6 +15,7 @@ import type {
   BookingsCreatePublicBookingOptions,
   BookingsCreatePublicBookingStatus201,
   BookingsCreatePublicBookingStatus400,
+  BookingsCreatePublicBookingStatus403,
   BookingsCreatePublicBookingStatus404,
   BookingsCreatePublicBookingStatus409,
   BookingsCreatePublicBookingStatus422,
@@ -33,6 +34,7 @@ export function bookingsCreatePublicBookingMutationOptions<TContext = unknown>(
     BookingsCreatePublicBookingStatus201,
     ResponseErrorConfig<
       | BookingsCreatePublicBookingStatus400
+      | BookingsCreatePublicBookingStatus403
       | BookingsCreatePublicBookingStatus404
       | BookingsCreatePublicBookingStatus409
       | BookingsCreatePublicBookingStatus422
@@ -64,6 +66,7 @@ export function useBookingsCreatePublicBooking<TContext>(
       BookingsCreatePublicBookingStatus201,
       ResponseErrorConfig<
         | BookingsCreatePublicBookingStatus400
+        | BookingsCreatePublicBookingStatus403
         | BookingsCreatePublicBookingStatus404
         | BookingsCreatePublicBookingStatus409
         | BookingsCreatePublicBookingStatus422
@@ -87,6 +90,7 @@ export function useBookingsCreatePublicBooking<TContext>(
     BookingsCreatePublicBookingStatus201,
     ResponseErrorConfig<
       | BookingsCreatePublicBookingStatus400
+      | BookingsCreatePublicBookingStatus403
       | BookingsCreatePublicBookingStatus404
       | BookingsCreatePublicBookingStatus409
       | BookingsCreatePublicBookingStatus422
@@ -99,6 +103,7 @@ export function useBookingsCreatePublicBooking<TContext>(
     BookingsCreatePublicBookingStatus201,
     ResponseErrorConfig<
       | BookingsCreatePublicBookingStatus400
+      | BookingsCreatePublicBookingStatus403
       | BookingsCreatePublicBookingStatus404
       | BookingsCreatePublicBookingStatus409
       | BookingsCreatePublicBookingStatus422
@@ -116,6 +121,7 @@ export function useBookingsCreatePublicBooking<TContext>(
     BookingsCreatePublicBookingStatus201,
     ResponseErrorConfig<
       | BookingsCreatePublicBookingStatus400
+      | BookingsCreatePublicBookingStatus403
       | BookingsCreatePublicBookingStatus404
       | BookingsCreatePublicBookingStatus409
       | BookingsCreatePublicBookingStatus422

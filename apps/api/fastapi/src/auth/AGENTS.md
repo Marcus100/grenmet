@@ -43,3 +43,6 @@
 
 ## Related
 ADR-0002 (shared auth session), `packages/auth/AGENTS.md`, `apps/web/auth/AGENTS.md`, `docs/security.md`.
+
+## Email verification gates (ADR-0018)
+`email_verification.require_verified_email(user, action)` raises `EmailNotVerifiedError` (403, detail starts `email_verification_required:`). Sign-in and browsing never call it. Gates: `assignments.create_user_role_assignment` (staff role), `organisations.members.accept_invitation` and `change_role` (admin or owner), `bookings.public.create_booking` (signed-in payer when a deposit is due; guests have no account, so they are not gated). Staff approval (`baseline.service`) is administrator-mediated and deliberately exempt. Payout details: none exist (`payments.create_payout` only appends a superuser ledger entry), so no gate yet; add one where payee details are first stored. Tests: `tests/auth/test_email_verification_gates.py`.

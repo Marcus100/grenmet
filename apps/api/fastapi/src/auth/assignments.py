@@ -5,6 +5,7 @@ import uuid
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.email_verification import require_verified_email
 from src.auth.models import (
     Role,
     RoleAssignmentScope,
@@ -95,6 +96,7 @@ async def create_user_role_assignment(
     target = await session.get(User, assignment_in.user_id)
     if role is None or target is None:
         raise AppException("Role or user not found", 404)
+    require_verified_email(target, "receive a staff role")
     from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
 
     if (

@@ -30,6 +30,8 @@ export type BookingsCreatePublicBookingStatus201 = BookingPublicReceipt;
 
 export type BookingsCreatePublicBookingStatus400 = unknown;
 
+export type BookingsCreatePublicBookingStatus403 = unknown;
+
 export type BookingsCreatePublicBookingStatus404 = unknown;
 
 export type BookingsCreatePublicBookingStatus409 = unknown;
@@ -56,6 +58,7 @@ export type BookingsCreatePublicBookingOptions = {
 export type BookingsCreatePublicBookingResponses = {
   "201": BookingsCreatePublicBookingStatus201;
   "400": BookingsCreatePublicBookingStatus400;
+  "403": BookingsCreatePublicBookingStatus403;
   "404": BookingsCreatePublicBookingStatus404;
   "409": BookingsCreatePublicBookingStatus409;
   "422": BookingsCreatePublicBookingStatus422;

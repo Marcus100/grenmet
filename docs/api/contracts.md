@@ -2101,3 +2101,5 @@ t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`, `Barrels-Event-Id` and
 disables the endpoint, other failures retry (1 minute doubling to 1 hour, 5 attempts)
 and 15 failed attempts in a row disable it. Verify the timestamp (reject beyond five
 minutes) to stop replays. Adding an event type or a data field is additive.
+
+- **Verified email for money and power** (ADR-0018): `POST /bookings/public/{slug}/bookings` stays anonymous, but a caller who sends a valid sign-in bearer and books a service with a deposit gets 403 `email_verification_required: ...` until the account has verified its email (guests and no-deposit bookings are not gated; a bad token is treated as a guest). The same 403 code answers accepting or being promoted to an organisation admin or owner role, and assigning a staff role. Sign-in and browsing never need verification.

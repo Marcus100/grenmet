@@ -19,6 +19,7 @@ from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
+from src.auth.email_verification import require_verified_email
 from src.auth.models import User
 from src.config import settings
 from src.email_config import email_settings
@@ -57,6 +58,10 @@ ACCEPT_PATH = "/organisations/accept"
 
 def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
+
+
+# Roles that carry administrative power; the account needs a verified email (ADR-0018).
+_POWER_ROLES = frozenset({MembershipRole.ADMIN.value, MembershipRole.OWNER.value})
 
 
 def _is_owner(role: str) -> bool:
@@ -151,13 +156,15 @@ async def change_role(
     membership = await _get_membership(session, context, membership_id)
     _require_may_grant(context, membership.role)  # touching an owner
     _require_may_grant(context, role.value)  # granting owner
+    user = await session.get(User, membership.user_id)
+    assert user is not None
+    if role.value in _POWER_ROLES and role.value != membership.role:
+        require_verified_email(user, "receive an administrator role")
     if role.value != membership.role:
         if _is_owner(membership.role):
             await _ensure_not_last_owner(session, context.organisation_id, membership)
         membership.role = role.value
         await session.flush()
-    user = await session.get(User, membership.user_id)
-    assert user is not None
     return membership, user
 
 
@@ -300,6 +307,8 @@ async def accept_invitation(
         raise InvitationInvalidError()
     if notification_service.normalise_email(user.email) != invitation.email:
         raise InvitationEmailMismatchError()
+    if invitation.role in _POWER_ROLES:
+        require_verified_email(user, "accept an administrator role")
     organisation = await session.get(PlatformOrganisation, invitation.organisation_id)
     if organisation is None:  # pragma: no cover - the foreign key guarantees it
         raise InvitationInvalidError()
