@@ -28,10 +28,26 @@ import { visitorHeaders } from "@/lib/visitor-headers";
 // Next calls the API from one address, so the visitor's own address travels in
 // headers the API trusts only with the shared secret (src/rate_limit.py).
 async function options() {
-  const visitor = visitorHeaders(await headers(), env.TRUSTED_WEB_SECRET);
+  const visitor = visitorHeaders(
+    await headers(),
+    env.TRUSTED_WEB_SECRET,
+    env.VISITOR_IP_PROXY_HOPS
+  );
   return {
     client: createClient({ baseURL: env.AUTH_API_URL, headers: visitor }),
   };
+}
+
+// A ResponseError carries the Request, whose headers include the visitor
+// secret; Node prints headers when an error is inspected or logged. Swap in a
+// header-free copy before the error travels anywhere.
+function redactRequest(error: unknown): never {
+  if (error instanceof ResponseError) {
+    error.request = new Request(error.request.url, {
+      method: error.request.method,
+    });
+  }
+  throw error;
 }
 
 // An unknown token answers 404; a malformed one (too short) answers 422. Both
@@ -54,7 +70,9 @@ export async function getStorefront(
     return await bookingsGetStorefront({
       ...(await options()),
       path: { slug },
-    }).unwrap();
+    })
+      .unwrap()
+      .catch(redactRequest);
   } catch (error) {
     return nullOn404(error);
   }
@@ -77,7 +95,9 @@ export async function getAvailability(
       last_day: lastDay,
       ...(providerId ? { provider_id: providerId } : {}),
     },
-  }).unwrap();
+  })
+    .unwrap()
+    .catch(redactRequest);
 }
 
 export interface NewBooking {
@@ -102,7 +122,9 @@ export async function createBooking(
     path: { slug },
     headers: { "Idempotency-Key": idempotencyKey },
     body,
-  }).unwrap();
+  })
+    .unwrap()
+    .catch(redactRequest);
 }
 
 /** The customer's booking; null for an unknown, expired or cleared token. */
@@ -113,7 +135,9 @@ export async function getBooking(
     return await bookingsGetPublicBooking({
       ...(await options()),
       path: { token },
-    }).unwrap();
+    })
+      .unwrap()
+      .catch(redactRequest);
   } catch (error) {
     return nullOn404(error);
   }
@@ -126,7 +150,9 @@ export async function cancelBooking(
     ...(await options()),
     path: { token },
     body: {},
-  }).unwrap();
+  })
+    .unwrap()
+    .catch(redactRequest);
 }
 
 export async function rescheduleBooking(
@@ -137,7 +163,9 @@ export async function rescheduleBooking(
     ...(await options()),
     path: { token },
     body: { starts_at: startsAt },
-  }).unwrap();
+  })
+    .unwrap()
+    .catch(redactRequest);
 }
 
 /** The booking as iCalendar text; null for an unknown token. */
@@ -146,7 +174,9 @@ export async function getBookingIcs(token: string): Promise<string | null> {
     return await bookingsGetPublicBookingIcs({
       ...(await options()),
       path: { token },
-    }).unwrap();
+    })
+      .unwrap()
+      .catch(redactRequest);
   } catch (error) {
     return nullOn404(error);
   }

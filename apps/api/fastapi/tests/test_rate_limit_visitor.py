@@ -2,6 +2,7 @@
 
 import random
 from typing import Any, cast
+from unittest.mock import MagicMock
 
 import httpx
 import pytest
@@ -9,6 +10,7 @@ from fastapi import FastAPI, Request
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
+from src import rate_limit, turnstile
 from src.config import settings
 from src.rate_limit import (
     VISITOR_IP_HEADER,
@@ -21,11 +23,20 @@ SECRET = "web-tier-shared-secret-for-tests-0123456789"
 API = settings.API_V1_STR
 
 
-def _request(headers: dict[str, str], client: str = "10.0.0.9") -> Request:
+def _request(
+    headers: dict[str, str], client: str = "10.0.0.9", path: str = "/x"
+) -> Request:
     return Request(
         {
             "type": "http",
-            "headers": [(k.lower().encode(), v.encode()) for k, v in headers.items()],
+            "method": "GET",
+            "scheme": "http",
+            "server": ("api", 8000),
+            "path": path,
+            "query_string": b"",
+            "headers": [
+                (k.lower().encode(), v.encode("latin-1")) for k, v in headers.items()
+            ],
             "client": (client, 1234),
         }
     )
@@ -46,7 +57,7 @@ def _secret(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_trusted_host_names_the_visitor() -> None:
     assert visitor_address(_request(_trusted("203.0.113.7"))) == "203.0.113.7"
-    assert visitor_address(_request(_trusted(" 2001:db8::1 "))) == "2001:db8::1"
+    assert visitor_address(_request(_trusted(" 2001:db8::1 "))) == "2001:db8::/64"
 
 
 @pytest.mark.parametrize(
@@ -155,3 +166,83 @@ async def test_public_booking_route_still_limited_at_60_per_minute(
     last_ok, over = await _saturate(async_client, url, 60, _trusted(_random_ip()))
     assert last_ok == 404
     assert over == 429
+
+
+def test_non_ascii_secret_fails_open_without_error() -> None:
+    headers = {VISITOR_IP_HEADER: "203.0.113.7", VISITOR_SECRET_HEADER: "caf\xe9" * 12}
+    assert visitor_address(_request(headers)) == "10.0.0.9"
+
+
+def test_ipv6_keys_on_the_64_and_ipv4_mapped_maps_to_ipv4() -> None:
+    one = visitor_address(_request(_trusted("2001:db8:1:2::1")))
+    two = visitor_address(_request(_trusted("2001:db8:1:2:ffff::9")))
+    other = visitor_address(_request(_trusted("2001:db8:1:3::1")))
+    assert one == two == "2001:db8:1:2::/64"
+    assert other != one
+    mapped = visitor_address(_request(_trusted("::ffff:1.2.3.4")))
+    assert mapped == visitor_address(_request(_trusted("1.2.3.4"))) == "1.2.3.4"
+
+
+def test_scope_id_is_rejected() -> None:
+    assert visitor_address(_request(_trusted("fe80::1%eth0"))) == "10.0.0.9"
+
+
+def test_auth_routes_ignore_the_visitor_header() -> None:
+    for path in (f"{API}/auth/login", f"{API}/auth/onboarding/issue", f"{API}/auth"):
+        assert visitor_address(_request(_trusted("203.0.113.7"), path=path)) == (
+            "10.0.0.9"
+        )
+    other = f"{API}/authors"
+    assert visitor_address(_request(_trusted("203.0.113.7"), path=other)) == (
+        "203.0.113.7"
+    )
+
+
+def test_short_secret_is_treated_as_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "TRUSTED_WEB_SECRET", "short")
+    headers = {VISITOR_IP_HEADER: "203.0.113.7", VISITOR_SECRET_HEADER: "short"}
+    assert visitor_address(_request(headers)) == "10.0.0.9"
+
+
+def test_short_secret_logs_one_startup_warning_without_the_value(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "TRUSTED_WEB_SECRET", "tooshortvalue")
+    logged = MagicMock()
+    monkeypatch.setattr(rate_limit, "logger", logged)
+    assert rate_limit.warn_if_secret_too_short() is True
+    logged.warning.assert_called_once()
+    assert "tooshortvalue" not in str(logged.warning.call_args)
+    monkeypatch.setattr(settings, "TRUSTED_WEB_SECRET", "")
+    assert rate_limit.warn_if_secret_too_short() is False
+
+
+async def test_turnstile_survives_non_ascii_secret_header(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[str | None] = []
+
+    async def fake_verify(
+        _token: str, ip: str | None, _secret: str | None = None
+    ) -> bool:
+        seen.append(ip)
+        return True
+
+    monkeypatch.setattr(turnstile.turnstile_settings, "TURNSTILE_ENABLED", True)
+    monkeypatch.setattr(turnstile.turnstile_settings, "TURNSTILE_SECRET_KEY", "k")
+    monkeypatch.setattr(turnstile, "verify_turnstile", fake_verify)
+    headers = {VISITOR_IP_HEADER: "203.0.113.7", VISITOR_SECRET_HEADER: "caf\xe9" * 12}
+    await turnstile.require_turnstile(_request(headers), "tok")
+    assert seen == ["10.0.0.9"]
+
+
+async def test_non_ascii_secret_header_gets_a_normal_response(
+    async_client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(limiter, "enabled", True)
+    url = f"{API}/bookings/public/no-such-business"
+    bad = [
+        (VISITOR_IP_HEADER.encode(), b"203.0.113.7"),
+        (VISITOR_SECRET_HEADER.encode(), b"caf\xe9" * 12),
+    ]
+    assert (await async_client.get(url, headers=bad)).status_code == 404
