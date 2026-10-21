@@ -2,8 +2,9 @@
 
 import uuid
 from datetime import datetime
+from enum import Enum
 
-from sqlalchemy import ForeignKey, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Index, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.orm import Base
@@ -74,3 +75,54 @@ class ClockSite(Base):
     created_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class ClockPunchKind(str, Enum):
+    ARRIVE = "ARRIVE"
+    DEPART = "DEPART"
+
+
+class ClockPunchStatus(str, Enum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
+
+class ClockPunch(Base):
+    """A phone clock-in awaiting supervisor approval (ADR-0040).
+
+    A phone punch is not attendance until a supervisor approves it: approval is
+    what writes (or closes) the ``AttendanceRecord``, so hours and timesheets
+    never see a pending or rejected punch. Terminal punches will not use this
+    table; they count immediately.
+    """
+
+    __tablename__ = "clock_punch"
+    __table_args__ = (
+        Index("ix_hr_clock_punch_status_department", "status", "department_id"),
+        Index(
+            "uq_hr_clock_punch_live_kind",
+            "roster_assignment_id",
+            "kind",
+            unique=True,
+            postgresql_where=text("status <> 'REJECTED'"),
+        ),
+        {"schema": "hr"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
+    department_id: Mapped[str] = mapped_column(ForeignKey("hr.department.id"))
+    clock_site_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("hr.clock_site.id"))
+    roster_assignment_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("hr.roster_assignment.id"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(16))
+    punched_at: Mapped[datetime]
+    status: Mapped[str] = mapped_column(
+        String(16), default=ClockPunchStatus.PENDING.value
+    )
+    reviewed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
+    reviewed_at: Mapped[datetime | None]
+    review_note: Mapped[str | None] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)

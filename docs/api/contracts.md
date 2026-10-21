@@ -904,20 +904,34 @@ separate as-of column yet.
 
 | Endpoint | Permission | Purpose |
 | --- | --- | --- |
-| `POST /api/v1/hr/attendance/clock` | `timesheet.submit.self` | Record arrival, or departure when a shift is open |
+| `POST /api/v1/hr/attendance/clock` | `timesheet.submit.self` | Record a PENDING arrival, or departure when a shift is open |
+| `GET /api/v1/hr/attendance/clock-punches/pending` | `timesheet.approve` (named supervisor, or department scope) | Pending phone punches the caller may review; never their own |
+| `POST /api/v1/hr/attendance/clock-punches/{punch_id}/approve` | `timesheet.approve` (named supervisor, or department scope) | Approve a punch; it then counts as attendance |
+| `POST /api/v1/hr/attendance/clock-punches/{punch_id}/reject` | `timesheet.approve` (named supervisor, or department scope) | Reject a punch with a reason; it never counts |
 | `GET /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | List a department's clock points (no tokens) |
 | `POST /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | Create a clock point; the token is returned once |
 | `POST /api/v1/hr/attendance/clock-sites/{site_id}/rotate` | `roster.manage` in the department scope | Replace the token; the old one stops working |
 | `PUT /api/v1/hr/attendance/clock-sites/{site_id}/active` | `roster.manage` in the department scope | Activate or deactivate a clock point |
 
 A clock point proves presence with a static token on an NFC tag or QR poster; only
-its SHA-256 hash is stored. A scan feeds the existing attendance record through
-`save_attendance`, so roster, permission and revision rules and the supervisor
-workflow are those of manual attendance. Arrival needs a published work shift that
+its SHA-256 hash is stored. A phone punch is **pending** until a supervisor approves
+it (ADR-0040): the scan stores a `hr.clock_punch` row and writes no attendance, so
+hours and timesheets ignore pending and rejected punches. Approval calls
+`save_attendance` as the employee (an arrival creates the record, a departure closes
+it), so roster, revision and the supervisor workflow are those of manual attendance.
+A departure can be approved only after its arrival; rejecting an arrival also
+rejects its pending departure, and the employee may then punch again. Only the
+employee's named supervisor (`supervisor_id`) or a `timesheet.approve` holder whose
+assignment covers the employee's department may decide, and nobody may decide their
+own punch (superusers included). Approve and reject are idempotent for the same
+outcome and return 409 for the opposite one. Arrival needs a published work shift that
 started at most two hours ago or ends within the next hour; with none, the call
 returns 409 and no shift is invented. A second scan within 60 seconds changes
 nothing. The clock point must belong to the caller's own department. `late_minutes`,
 `early_departure_minutes` and `overtime_minutes` are informational and not stored.
+`ClockResult` gains `punch` (with `status`); `attendance` stays but is a provisional,
+unsaved view (`attendance_id` null) until the punch is approved. Terminal punches
+(import not built yet) will count immediately and do not use this table.
 
 ### Roster rule limits and check
 
