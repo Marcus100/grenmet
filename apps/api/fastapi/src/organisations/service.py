@@ -229,7 +229,26 @@ async def set_app_enabled(
     else:
         row.enabled = enabled
     await session.flush()
+    if enabled:
+        for bundled in entitlements.BUNDLED_WITH.get(app_key, ()):
+            await _ensure_enabled(session, organisation_id, bundled)
     return row
+
+
+async def _ensure_enabled(
+    session: AsyncSession, organisation_id: str, app_key: str
+) -> None:
+    """Switch an entitlement on if it is missing or off (never touches others)."""
+    row = await session.get(OrganisationApp, (organisation_id, app_key))
+    if row is None:
+        session.add(
+            OrganisationApp(
+                organisation_id=organisation_id, app_key=app_key, enabled=True
+            )
+        )
+    elif not row.enabled:
+        row.enabled = True
+    await session.flush()
 
 
 async def list_my_memberships(

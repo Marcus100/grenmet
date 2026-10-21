@@ -272,6 +272,7 @@ async def test_an_email_links_the_contact_without_recording_consent(
     assert emailed.status_code == 201, emailed.text
     customer = await _customer(db_async, emailed.json())
     assert customer.contact_id is not None
+    emailed_contact_id = customer.contact_id
     contact = await db_async.get(Contact, customer.contact_id)
     assert contact is not None
     assert contact.source == "bookings"
@@ -280,10 +281,15 @@ async def test_an_email_links_the_contact_without_recording_consent(
     assert ConsentPurpose.MARKETING not in consents
 
     walk_in = await _create(async_client, studio, slots[-1])
-    assert (await _customer(db_async, walk_in.json())).contact_id is None
+    walk_in_customer = await _customer(db_async, walk_in.json())
+    walk_in_contact = await db_async.get(Contact, walk_in_customer.contact_id)
+    assert walk_in_contact is not None
+    # No address, so nothing to match on: its own contact, never merged by name.
+    assert walk_in_contact.email is None and walk_in_contact.email_hash is None
+    assert walk_in_contact.id != emailed_contact_id
 
 
-async def test_without_the_contacts_product_nothing_is_linked(
+async def test_the_contact_is_kept_in_a_bookings_only_organisation(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _studio(db_async, async_client)
@@ -291,8 +297,11 @@ async def test_without_the_contacts_product_nothing_is_linked(
     created = await _create(
         async_client, studio, slot, customer_email="plain@example.com"
     )
-    assert (await _customer(db_async, created.json())).contact_id is None
-    contacts = await db_async.scalars(
-        select(Contact).where(Contact.organisation_id == studio.org_id)
-    )
-    assert contacts.all() == []
+    customer = await _customer(db_async, created.json())
+    contacts = (
+        await db_async.scalars(
+            select(Contact).where(Contact.organisation_id == studio.org_id)
+        )
+    ).all()
+    # Every customer has a contact (ADR-0028); the product only unlocks the book.
+    assert [c.id for c in contacts] == [customer.contact_id]

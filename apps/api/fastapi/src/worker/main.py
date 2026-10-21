@@ -35,7 +35,6 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.worker.dispatch",
         "src.notifications.dispatch",
         "src.notifications.scheduler",
-        "src.events.outbox",
         "src.eregister.publisher",
         "src.billing.reminders",
         "src.worker.retention",
@@ -44,6 +43,7 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.notifications.outbox_handlers",
         "src.bookings.reminders",
         "src.bookings.outbox_handlers",
+        "src.events.outbox",
         "src.events.payment_handlers",
         "src.rewards.outbox_handlers",
         "src.webhooks_out.delivery",
@@ -156,46 +156,18 @@ async def send_outbound_emails(ctx: dict[str, Any]) -> int:
 @monitored(
     schedule="* * * * *", checkin_margin=2, max_runtime=5, min_interval_seconds=60
 )
-async def drain_events_outbox(ctx: dict[str, Any]) -> int:
-    """Turn Events outbox rows (published, cancelled, approved...) into notifications."""
-    from src.database import async_session_factory
-    from src.events import database as events_database
-    from src.events import outbox
-
-    events = events_database.create_session()
-    if events is None:
-        return 0
-    async with events, async_session_factory() as session:
-        try:
-            result = await outbox.drain(events, session)
-        except Exception:
-            await operational_metrics.record_job(
-                ctx.get("redis"),
-                "drain_events_outbox",
-                str(ctx.get("job_id", "")),
-                False,
-            )
-            raise
-        await operational_metrics.record_job(
-            ctx.get("redis"), "drain_events_outbox", str(ctx.get("job_id", "")), True
-        )
-        return result
-
-
-@monitored(
-    schedule="* * * * *", checkin_margin=2, max_runtime=5, min_interval_seconds=60
-)
 async def drain_outbox(ctx: dict[str, Any]) -> int:
     """Run due platform outbox rows (email.send, ...); see ADR-0026."""
     from src import outbox
     from src.database import async_session_factory
 
     # Importing these modules registers their outbox handlers (email.send,
-    # rewards.qualifying_action, bookings.deposit_paid, events.order_paid,
-    # events.order_refunded, webhook.deliver).
+    # rewards.qualifying_action, bookings.deposit_paid, events.notify,
+    # events.order_paid, events.order_refunded, webhook.deliver).
     for module in (
         "src.notifications.outbox_handlers",
         "src.bookings.outbox_handlers",
+        "src.events.outbox",
         "src.events.payment_handlers",
         "src.rewards.outbox_handlers",
         "src.webhooks_out.delivery",
@@ -265,15 +237,11 @@ async def expire_unpaid_bookings(ctx: dict[str, Any]) -> int:
 async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
     """Cancel paid-tier orders left unpaid past the hold; releases stock (idempotent)."""
     from src.database import async_session_factory
-    from src.events import database as events_database
     from src.events import order_fulfilment
 
-    events = events_database.create_session()
-    if events is None:
-        return 0
-    async with events, async_session_factory() as session:
+    async with async_session_factory() as session:
         try:
-            result = await order_fulfilment.expire_unpaid(session, events)
+            result = await order_fulfilment.expire_unpaid(session)
         except Exception:
             await operational_metrics.record_job(
                 ctx.get("redis"),
@@ -286,33 +254,6 @@ async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
         ctx.get("redis"), "expire_unpaid_event_orders", str(ctx.get("job_id", "")), True
     )
     return result
-
-
-async def sync_event_rewards(ctx: dict[str, Any]) -> int:
-    """Credit stamps for Events admissions and reverse refunded ones (idempotent)."""
-    from src.database import async_session_factory
-    from src.events import database as events_database
-    from src.rewards import events_link
-
-    events = events_database.create_session()
-    if events is None:
-        return 0
-    async with events, async_session_factory() as session:
-        try:
-            result = await events_link.sync_admissions(session, events)
-            await session.commit()
-        except Exception:
-            await operational_metrics.record_job(
-                ctx.get("redis"),
-                "sync_event_rewards",
-                str(ctx.get("job_id", "")),
-                False,
-            )
-            raise
-        await operational_metrics.record_job(
-            ctx.get("redis"), "sync_event_rewards", str(ctx.get("job_id", "")), True
-        )
-        return result.credited + result.reversed
 
 
 async def send_wis2_publications(ctx: dict[str, Any]) -> int:
@@ -428,11 +369,10 @@ async def check_alert_outbox(ctx: dict[str, Any]) -> int:
 
 
 async def check_outbox_backlog(ctx: dict[str, Any]) -> int:
-    """Gauge dead and overdue rows in both outboxes; warn above the threshold."""
+    """Gauge dead and overdue rows in the platform outbox; warn above the threshold."""
     from datetime import timedelta
 
     from src.database import async_session_factory
-    from src.events import database as events_database
     from src.worker import outbox_health
 
     stale_after = timedelta(minutes=worker_settings.OUTBOX_STALE_MINUTES)
@@ -443,14 +383,6 @@ async def check_outbox_backlog(ctx: dict[str, Any]) -> int:
                 session, stale_after=stale_after, dead_window=dead_window
             )
         ]
-    events = events_database.create_session()
-    if events is not None:
-        async with events:
-            backlogs.append(
-                await outbox_health.events_backlog(
-                    events, stale_after=stale_after, dead_window=dead_window
-                )
-            )
     unhealthy = 0
     for backlog in backlogs:
         healthy = await outbox_health.report(
@@ -556,12 +488,10 @@ class WorkerSettings:
         ingest_cap_feeds,
         send_notification_emails,
         send_outbound_emails,
-        drain_events_outbox,
         drain_outbox,
         enqueue_booking_reminders,
         expire_unpaid_bookings,
         expire_unpaid_event_orders,
-        sync_event_rewards,
         send_wis2_publications,
         run_notification_sweeps,
         send_invoice_reminders,
@@ -596,8 +526,6 @@ class WorkerSettings:
         cron(send_notification_emails, second={0, 30}, run_at_startup=True),
         # Drain the public-flow email outbox (subscriptions, contact) too.
         cron(send_outbound_emails, second={15, 45}, run_at_startup=True),
-        # Events changes (publish, cancel, approve) become notifications.
-        cron(drain_events_outbox, second={5, 35}, run_at_startup=False),
         # Platform outbox (ADR-0026): emails and other side effects, offset so the
         # email worker (seconds 15 and 45) sends what this run queues.
         cron(drain_outbox, second={10, 40}, run_at_startup=False),
@@ -617,13 +545,6 @@ class WorkerSettings:
             minute=set(range(3, 60, 5)),
             run_at_startup=False,
         ),
-        # Admissions become reward stamps; refunded ones are reversed.
-        cron(
-            sync_event_rewards,
-            second={25},
-            minute={0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55},
-            run_at_startup=False,
-        ),
         # eRegister observations queued for wis2box (retries live on the row).
         cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
@@ -636,7 +557,7 @@ class WorkerSettings:
         cron(check_nhc_failures, minute=set(range(0, 60, 5)), run_at_startup=False),
         # Is the email outbox draining? Every 15 minutes.
         cron(check_alert_outbox, minute={0, 15, 30, 45}, run_at_startup=False),
-        # Dead and overdue rows in the platform and Events outboxes, every 15 minutes.
+        # Dead and overdue rows in the platform outbox, every 15 minutes.
         cron(check_outbox_backlog, minute={2, 17, 32, 47}, run_at_startup=False),
         # OpenSky flight movements every 30 minutes; no-op unless the flag is on.
         cron(poll_flights, minute={5, 35}, run_at_startup=False),

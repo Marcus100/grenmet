@@ -42,7 +42,6 @@ DEFAULT_MAIN_DATABASE = "app_prod"
 # The API's variable for each separate-database domain (docker-compose.deploy.yml)
 # and the restored database it reads.
 API_DATABASE_VARIABLES = {
-    "EVENTS_DATABASE_URL": "events",
     "WXPRODUCTS_DATABASE_URL": "wxproducts",
     "WXWATCH_DATABASE_URL": "wxwatch",
     "EREGISTER_DATABASE_URL": "eregister",
@@ -51,7 +50,8 @@ API_DATABASE_VARIABLES = {
 }
 # Read-only GET endpoints from apps/api/fastapi/openapi.json that need a sign-in but no
 # role beyond a superuser's: the current user (main database) and one list from each
-# of three separate databases (events, eregister, wxwatch). Each asks for one row.
+# of the main database (events) and of two separate ones (eregister, wxwatch).
+# Each asks for one row.
 API_READ_PATHS = (
     "/api/v1/auth/users/me",
     "/api/v1/events/listings?limit=1",
@@ -96,7 +96,6 @@ DAILY_REQUIRED = (
     "janitorial",
     "transport",
     "eregister",
-    "events",
 )
 
 

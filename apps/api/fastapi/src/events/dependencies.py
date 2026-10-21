@@ -1,8 +1,6 @@
-from collections.abc import AsyncGenerator
 from typing import Annotated
 
-from fastapi import Depends, HTTPException
-from sqlalchemy.exc import SQLAlchemyError
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import service as auth_service
@@ -11,21 +9,15 @@ from src.auth.models import User
 from src.dependencies import SessionDep
 from src.organisations import service as organisations
 
-from . import database
 from .exceptions import EventsForbidden
 
-UNAVAILABLE = "Barrels Events is unavailable"
 
+async def get_session(session: SessionDep) -> AsyncSession:
+    """The request's main-database session (Events lives in the ``events`` schema).
 
-async def get_session() -> AsyncGenerator[AsyncSession]:
-    session = database.create_session()
-    if session is None:
-        raise HTTPException(503, UNAVAILABLE)
-    try:
-        async with session:
-            yield session
-    except SQLAlchemyError, OSError, TimeoutError:
-        raise HTTPException(503, UNAVAILABLE) from None
+    A separate dependency so tests can override it by identity; FastAPI caches
+    ``SessionDep`` per request, so this is the same session as ``SessionDep``."""
+    return session
 
 
 # Module-level so tests can override them by identity.

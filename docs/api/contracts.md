@@ -992,7 +992,7 @@ carries two time bases.
 
 ## Barrels Events
 
-`/api/v1/events/*` (ADR-0016, separate `events` database; 503 while `EVENTS_DATABASE_URL` is unset).
+`/api/v1/events/*` (ADR-0016; `events` schema in the main database, ADR-0003). Settlement `online_payments` description now says orders and the ledger are compared, not joined (wording only, no shape change).
 
 | Access | Endpoints |
 | --- | --- |

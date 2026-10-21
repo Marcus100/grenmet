@@ -47,7 +47,6 @@ function fixture(directory) {
     "EREGISTER",
     "TRANSPORT",
     "JANITORIAL",
-    "EVENTS",
     "CMS",
   ]) {
     lines.push(
@@ -115,7 +114,6 @@ test("runtime configuration protects quoting, URL credentials and permissions", 
 });
 test("rejects missing secrets, multiline values and mutable references without echoing values", () => {
   for (const change of [
-    { EVENTS_DB_PASSWORD: "" },
     { CMS_DB_PASSWORD: "" },
     { FASTAPI_DB_PASSWORD: "" },
     { SECRET_KEY: "DO-NOT-ECHO\ninvalid" },
@@ -253,23 +251,16 @@ test("staging and production pass integrations to the intended services", () => 
       );
       assert.equal(events.AUTH_API_URL, "http://api:8000");
       assert.equal(events.AUTH_API_V1_STR, "/api/v1");
-      const eventsDatabase = new URL(
-        model.services.api.environment.EVENTS_DATABASE_URL
-      );
-      assert.equal(eventsDatabase.username, "events");
-      assert.equal(eventsDatabase.hostname, "db");
+      // Events lives in the main database (ADR-0003): no separate database.
       assert.equal(
-        eventsDatabase.pathname,
-        deploymentEnvironment === "staging" ? "/events_staging" : "/events"
+        model.services.api.environment.EVENTS_DATABASE_URL,
+        undefined
       );
       assert.equal(
         model.services.prestart.environment.EVENTS_DATABASE_URL,
-        eventsDatabase.href
+        undefined
       );
-      assert.equal(
-        model.services.db.environment.EVENTS_DB_PASSWORD.replaceAll("$$", "$"),
-        env.EVENTS_DB_PASSWORD
-      );
+      assert.equal(model.services.db.environment.EVENTS_DB_PASSWORD, undefined);
       assert.equal(cms.environment.CMS_MEDIA_DIR, "/app/media");
       assert.ok(
         cms.volumes.some(

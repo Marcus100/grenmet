@@ -1,33 +1,24 @@
-"""Disposable, migrated Events database shared by every Events test."""
+"""Events tests run on the main test database (the ``events`` schema, ADR-0003)."""
 
 from collections.abc import AsyncGenerator
 
 import pytest
-from alembic.config import Config
-from sqlalchemy.engine import Engine
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.pool import NullPool
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from alembic import command
+from src.database import async_session_factory
 from src.events import dependencies as deps
 from src.main import app
-from tests.events.support import OVERRIDDEN, ROOT, SessionFactory
+from tests.events.support import OVERRIDDEN, SessionFactory
 
 
 @pytest.fixture
-async def events_db(fresh_weather_engine: Engine) -> AsyncGenerator[SessionFactory]:
-    with fresh_weather_engine.begin() as connection:
-        config = Config(str(ROOT / "src/events/alembic.ini"))
-        config.attributes["expected_database"] = fresh_weather_engine.url.database
-        config.attributes["connection"] = connection
-        command.upgrade(config, "head")
-    engine = create_async_engine(
-        fresh_weather_engine.url.set(drivername="postgresql+asyncpg"),
-        poolclass=NullPool,
-    )
+async def events_db(db_async: AsyncSession) -> AsyncGenerator[SessionFactory]:
+    """A factory for sessions on the cleaned main database; the Events session
+    dependency is overridden so each request gets a fresh one."""
+    assert db_async is not None
 
     def factory() -> AsyncSession:
-        return AsyncSession(engine, expire_on_commit=False)
+        return async_session_factory()
 
     async def session() -> AsyncGenerator[AsyncSession]:
         async with factory() as value:
@@ -39,4 +30,3 @@ async def events_db(fresh_weather_engine: Engine) -> AsyncGenerator[SessionFacto
     finally:
         for dependency in OVERRIDDEN:
             app.dependency_overrides.pop(dependency, None)
-        await engine.dispose()

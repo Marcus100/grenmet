@@ -16,6 +16,7 @@ from src import email as email_module
 from src import outbox, turnstile
 from src.bookings import public, reminders
 from src.bookings.models import Booking, BookingEvent, BookingStatus, Customer
+from src.contacts.models import Contact
 from src.email_config import email_settings
 from src.idempotency import IdempotencyKey
 from src.notifications import outbox_handlers
@@ -212,7 +213,13 @@ async def test_create_confirms_and_never_stores_the_token(
     )
     assert token not in haystack
     assert customer is not None
-    assert customer.email_hash and customer.email_hash != customer.email
+    contact = await db_async.get(Contact, customer.contact_id)
+    assert contact is not None
+    assert contact.email_hash and contact.email_hash != contact.email
+    # The customer keeps no personal data of its own (ADR-0028).
+    assert not {"name", "email", "email_hash", "phone", "marketing_consent"} & set(
+        vars(customer)
+    )
 
 
 async def test_requires_confirmation_creates_a_pending_booking(

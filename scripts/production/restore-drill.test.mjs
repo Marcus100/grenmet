@@ -187,11 +187,10 @@ elif head == "exec" and "DRILL_TOKEN" in args:
 
 const HEADS = {
   alembic_version: "h1",
-  events_alembic_version: "h1",
   eregister_alembic_version: "h1",
   wxwatch_alembic_version: "h1",
 };
-const DATABASES = ["app_prod", "events", "eregister", "wxwatch"];
+const DATABASES = ["app_prod", "eregister", "wxwatch"];
 
 // Runs restore-drill.py against a fake bucket and fake docker; returns what it left.
 function drillRun({ flags = [], env = {} } = {}) {
@@ -342,7 +341,6 @@ test("a healthy API passes, records phase timings and is removed", () => {
   }
   for (const variable of [
     "SECRET_KEY",
-    "EVENTS_DATABASE_URL",
     "EREGISTER_DATABASE_URL",
     "WXWATCH_DATABASE_URL",
   ]) {
@@ -452,7 +450,7 @@ for item in drill.API_READ_PATHS:
     assert paths[path]["get"].get("security"), path
     assert not any(p.get("required") for p in paths[path]["get"].get("parameters", [])), path
 assert set(drill.API_DATABASE_VARIABLES.values()) == {
-    "events", "wxproducts", "wxwatch", "eregister", "janitorial", "transport"}
+    "wxproducts", "wxwatch", "eregister", "janitorial", "transport"}
 `);
 });
 

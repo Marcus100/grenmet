@@ -15,9 +15,6 @@ class RewardsConfig(BaseSettings):
     #: account for review (the entries are still recorded).
     VELOCITY_MAX_EARNS: int = 10
     VELOCITY_WINDOW_MINUTES: int = 60
-    #: How far back the Events sync looks for admissions to credit.
-    SYNC_LOOKBACK_DAYS: int = 30
-    SYNC_BATCH_SIZE: int = 500
     #: Stamp gifting hard switch (ADR-0030). Off by default and refused in
     #: ENVIRONMENT=production whatever the feature flag says, until an accountant
     #: and legal sign off.

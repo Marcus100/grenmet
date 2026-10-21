@@ -201,9 +201,9 @@ async def test_rows_cannot_be_changed_or_deleted(
         assert (await client.post(MANAGE, json=_payload())).status_code == 201
     async with events_db() as db:
         with pytest.raises(DBAPIError, match="append-only"):
-            await db.execute(text("UPDATE activity SET action = 'x'"))
+            await db.execute(text("UPDATE events.activity SET action = 'x'"))
         await db.rollback()
         with pytest.raises(DBAPIError, match="append-only"):
-            await db.execute(text("DELETE FROM activity"))
+            await db.execute(text("DELETE FROM events.activity"))
         await db.rollback()
     assert len(await _rows(events_db)) == 1

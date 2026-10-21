@@ -11,13 +11,13 @@ import hashlib
 import logging
 import secrets
 import uuid
-from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func, select
-from sqlalchemy.exc import DBAPIError, SQLAlchemyError
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.email_verification import require_verified_email
@@ -25,11 +25,9 @@ from src.auth.models import User
 from src.contacts import service as contacts_service
 from src.contacts.models import ConsentPurpose, Contact
 from src.notifications import outbox_handlers
-from src.organisations import service as org_service
 from src.organisations import sites
 from src.rewards import service as rewards_service
 from src.utils.datetime import utc_now
-from src.utils.email_hash import hash_email
 from src.utils.timezones import utc_to_local, zone
 from src.webhooks_out import service as webhook_service
 
@@ -67,6 +65,8 @@ class Managed:
     service: Service
     provider: Provider
     customer: Customer
+    #: The customer's contact-book record: the only home of name, email and phone.
+    contact: Contact
 
 
 def new_manage_token() -> tuple[str, str]:
@@ -247,7 +247,7 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
         starts_at=booking.starts_at,
         ends_at=booking.ends_at,
         timezone=profile.timezone,
-        customer_name=managed.customer.name,
+        customer_name=display_name(managed.contact),
         price_minor=booking.price_minor,
         deposit_minor=booking.deposit_minor,
         currency=booking.currency,
@@ -289,14 +289,14 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
     profile = managed.profile
     return emails.BookingEmail(
         business=profile.display_name,
-        customer_name=managed.customer.name,
+        customer_name=display_name(managed.contact),
         service_name=managed.service.name,
         provider_name=managed.provider.name,
         starts_at=managed.booking.starts_at,
         tz=zone(profile.timezone),
         manage_url=manage_url(profile, token) if token else None,
-        customer_email=managed.customer.email,
-        customer_phone=managed.customer.phone,
+        customer_email=managed.contact.email,
+        customer_phone=managed.contact.phone,
         notes=managed.booking.notes,
     )
 
@@ -307,12 +307,12 @@ async def queue_customer_email(
     message: tuple[str, str],
     dedupe_key: str,
 ) -> None:
-    if not managed.customer.email:
+    if not managed.contact.email:
         return
     subject, body = message
     await outbox_handlers.enqueue_email(
         session,
-        to_email=managed.customer.email,
+        to_email=managed.contact.email,
         subject=subject,
         html=body,
         transactional=True,
@@ -373,84 +373,66 @@ async def _candidate_providers(
     return []
 
 
+async def customer_for_contact(
+    session: AsyncSession, organisation_id: str, contact: Contact, now: datetime
+) -> Customer:
+    """The organisation's booking-side role for this contact, created on first use.
+
+    One customer per contact and organisation (unique key): the insert ignores a
+    row a concurrent first booking just created, then both read the same one."""
+    await session.execute(
+        pg_insert(Customer)
+        .values(
+            id=uuid.uuid4(),
+            organisation_id=organisation_id,
+            contact_id=contact.id,
+            created_at=now,
+            last_booked_at=now,
+        )
+        .on_conflict_do_nothing(constraint="customer_org_contact_key")
+    )
+    customer = (
+        await session.execute(
+            select(Customer)
+            .where(
+                Customer.organisation_id == organisation_id,
+                Customer.contact_id == contact.id,
+            )
+            .execution_options(populate_existing=True)
+        )
+    ).scalar_one()
+    customer.last_booked_at = now
+    await session.flush()
+    return customer
+
+
+def display_name(contact: Contact) -> str:
+    """A contact's name for views and mail; erased contacts have none."""
+    return contact.name or ""
+
+
 async def _upsert_customer(
     session: AsyncSession,
     profile: BookingProfile,
     payload: BookingPublicCreate,
     now: datetime,
-) -> Customer:
-    email = str(payload.customer_email).strip()
-    digest = hash_email(email)
-    customer = await session.scalar(
-        select(Customer)
-        .where(
-            Customer.organisation_id == profile.organisation_id,
-            Customer.email_hash == digest,
-        )
-        .order_by(Customer.created_at)
-        .limit(1)
-    )
-    name = _single_line(payload.customer_name)
+) -> tuple[Customer, Contact]:
+    """Find or create the contact for this email (exact hash match only), record
+    the marketing decision on it, and return the organisation's customer role."""
     phone = payload.customer_phone.strip() if payload.customer_phone else None
-    if customer is None:
-        customer = Customer(
-            organisation_id=profile.organisation_id,
-            name=name,
-            email=email.lower(),
-            email_hash=digest,
-            phone=phone,
-            marketing_consent=payload.marketing_consent,
-            last_booked_at=now,
-        )
-        session.add(customer)
-    else:
-        customer.name = name
-        customer.phone = phone or customer.phone
-        customer.marketing_consent = payload.marketing_consent
-        customer.last_booked_at = now
-    await session.flush()
-    await link_contact(
+    contact = await contacts_service.upsert_contact(
         session,
-        customer,
-        email=email,
+        profile.organisation_id,
+        email=str(payload.customer_email).strip(),
+        name=_single_line(payload.customer_name),
         phone=phone,
+        source="bookings",
         consents={ConsentPurpose.MARKETING: payload.marketing_consent},
     )
-    return customer
-
-
-async def link_contact(
-    session: AsyncSession,
-    customer: Customer,
-    *,
-    email: str,
-    phone: str | None,
-    consents: Mapping[ConsentPurpose, bool] | None,
-) -> None:
-    """Link the customer to the organisation's contact (PF3, ADR-0028).
-
-    Only for organisations entitled to ``contacts``; otherwise, or on any
-    database error, the booking goes ahead without a link. The upsert runs in a
-    savepoint so a failure cannot poison the booking's transaction."""
-    try:
-        if not await org_service.is_app_enabled(
-            session, organisation_id=customer.organisation_id, app_key="contacts"
-        ):
-            return
-        async with session.begin_nested():
-            contact = await contacts_service.upsert_contact(
-                session,
-                customer.organisation_id,
-                email=email,
-                name=customer.name,
-                phone=phone,
-                source="bookings",
-                consents=consents,
-            )
-            customer.contact_id = contact.id
-            await session.flush()
-    except SQLAlchemyError:
-        logger.warning("Booking customer could not be linked to a contact")
+    customer = await customer_for_contact(
+        session, profile.organisation_id, contact, now
+    )
+    return customer, contact
 
 
 async def create_booking(
@@ -481,7 +463,7 @@ async def create_booking(
     if not candidates:
         raise BookingConflictError(SLOT_TAKEN)
 
-    customer = await _upsert_customer(session, profile, payload, moment)
+    customer, contact = await _upsert_customer(session, profile, payload, moment)
     token, token_hash = new_manage_token()
     ends_at = starts_at + timedelta(minutes=svc.duration_min)
     deposit = await deposit_payments.effective_deposit(
@@ -537,13 +519,13 @@ async def create_booking(
     )
     provider = await session.get(Provider, booking.provider_id)
     assert provider is not None
-    managed = Managed(booking, profile, svc, provider, customer)
+    managed = Managed(booking, profile, svc, provider, customer, contact)
     checkout_url: str | None = None
     if initial is BookingStatus.PENDING_PAYMENT:
         # No emails yet: they are queued when the deposit is paid
         # (deposits.confirm_paid), so an abandoned checkout mails nobody.
         checkout_url = await deposit_payments.start_deposit(
-            session, booking, customer.email
+            session, booking, contact.email
         )
     else:
         mail = build_mail(managed, token)
@@ -580,11 +562,12 @@ async def load_by_token(
     """The booking behind ``token``. Unknown, cleared and unentitled tokens all
     answer the same 404."""
     query = (
-        select(Booking, BookingProfile, Service, Provider, Customer)
+        select(Booking, BookingProfile, Service, Provider, Customer, Contact)
         .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
         .join(Service, Service.id == Booking.service_id)
         .join(Provider, Provider.id == Booking.provider_id)
         .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
         .where(Booking.manage_token_hash == hash_token(token))
     )
     if lock:
@@ -592,9 +575,9 @@ async def load_by_token(
     row = (await session.execute(query)).first()
     if row is None:
         raise BookingNotFoundError("Booking")
-    booking, profile, svc, provider, customer = row
+    booking, profile, svc, provider, customer, contact = row
     await service.require_bookings_entitlement(session, profile, what="Booking")
-    return Managed(booking, profile, svc, provider, customer)
+    return Managed(booking, profile, svc, provider, customer, contact)
 
 
 async def load_by_id(
@@ -607,11 +590,12 @@ async def load_by_id(
     """One of the organisation's bookings by id; another organisation's id and
     an unknown id both answer 404. No entitlement check: callers did that."""
     query = (
-        select(Booking, BookingProfile, Service, Provider, Customer)
+        select(Booking, BookingProfile, Service, Provider, Customer, Contact)
         .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
         .join(Service, Service.id == Booking.service_id)
         .join(Provider, Provider.id == Booking.provider_id)
         .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
         .where(Booking.id == booking_id, Booking.organisation_id == organisation_id)
     )
     if lock:
@@ -619,8 +603,8 @@ async def load_by_id(
     row = (await session.execute(query)).first()
     if row is None:
         raise BookingNotFoundError("Booking")
-    booking, profile, svc, provider, customer = row
-    return Managed(booking, profile, svc, provider, customer)
+    booking, profile, svc, provider, customer, contact = row
+    return Managed(booking, profile, svc, provider, customer, contact)
 
 
 async def get_booking(session: AsyncSession, token: str) -> BookingPublicDetail:

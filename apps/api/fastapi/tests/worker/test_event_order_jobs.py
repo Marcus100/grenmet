@@ -21,10 +21,11 @@ async def test_startup_registers_the_events_payment_topics() -> None:
 
 
 @pytest.mark.asyncio
-async def test_the_sweeper_is_a_noop_without_an_events_database(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from src.events import database
+async def test_startup_registers_the_events_notification_topic() -> None:
+    await main.startup({})
+    assert "events.notify" in outbox.registered_topics()
 
-    monkeypatch.setattr(database, "create_session", lambda: None)
-    assert await main.expire_unpaid_event_orders({}) == 0
+
+def test_the_split_database_jobs_are_gone() -> None:
+    assert not hasattr(main, "drain_events_outbox")
+    assert not hasattr(main, "sync_event_rewards")

@@ -57,7 +57,6 @@ def check_marker(marker, environment, kind, now):
                 "JANITORIAL_DB_NAME",
                 "TRANSPORT_DB_NAME",
                 "EREGISTER_DB_NAME",
-                "EVENTS_DB_NAME",
                 "CMS_DB_NAME",
             )
         ]

@@ -9,7 +9,11 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
-from src.events.models import Activity, Admission
+from src.events.models import Activity, Admission, Organiser
+from src.organisations.models import MembershipRole
+from src.rewards import service as rewards_service
+from src.rewards.models import Entry
+from src.rewards.schemas import ProgramCreate
 from tests.events.roles import user_with_role
 from tests.events.support import (
     BASE,
@@ -21,6 +25,7 @@ from tests.events.support import (
 )
 from tests.events.test_organiser_admin import MANAGE, _organiser, _payload
 from tests.events.test_tickets import _claim
+from tests.organisations.support import make_org
 
 FREE_TIER = {"name": "Free", "price_minor": 0, "allocation": 10}
 DUPLICATE = re.compile(r"Already admitted at \d\d:\d\d by ")
@@ -254,3 +259,101 @@ async def test_only_the_events_organiser_staff_can_scan_or_list(
         assert await db.scalar(select(func.count()).select_from(Admission)) == 0
     async with client_with_real_roles(staff) as client:
         assert (await client.get(manifest_url)).status_code == 200
+
+
+async def _stamp_card(factory: SessionFactory, db_async: AsyncSession, staff: User):
+    org = await make_org(
+        db_async,
+        "Fete Co",
+        members=((staff, MembershipRole.OWNER),),
+        apps=("rewards",),
+    )
+    async with factory() as db:
+        organiser = await db.scalar(select(Organiser))
+        assert organiser is not None
+        organiser.organisation_id = org.id
+        await db.commit()
+    await rewards_service.create_program(
+        db_async,
+        organisation_id=org.id,
+        actor=staff,
+        payload=ProgramCreate(
+            name="Fete card", stamps_required=5, reward_description="A free drink"
+        ),
+    )
+    await db_async.commit()
+
+
+async def _stamps(db_async: AsyncSession, user_id: Any) -> int:
+    db_async.expire_all()
+    return int(
+        await db_async.scalar(
+            select(func.count()).select_from(Entry).where(Entry.account_id == user_id)
+        )
+        or 0
+    )
+
+
+@pytest.mark.asyncio
+async def test_an_admission_saves_its_stamp_in_the_same_transaction(
+    events_db: SessionFactory, db_async: AsyncSession
+):
+    staff, event = await _door(events_db, db_async)
+    await _stamp_card(events_db, db_async, staff)
+    ana = await user_with_role(db_async, None)
+    await profiles(events_db, ana)
+    tickets = (await _claim(ana, event, 1)).json()["tickets"]
+    token = await _qr(ana, tickets[0]["id"])
+    async with client_with_real_roles(staff) as client:
+        assert (
+            await client.post(_admissions(event), json=_scan(token))
+        ).status_code == 200
+        # A second scan is refused and credits nothing more.
+        assert (
+            await client.post(_admissions(event), json=_scan(token))
+        ).status_code == 409
+    assert await _stamps(db_async, ana.id) == 1
+
+
+@pytest.mark.asyncio
+async def test_cancelling_the_event_reverses_the_stamps_of_admitted_tickets(
+    events_db: SessionFactory, db_async: AsyncSession
+):
+    staff, event = await _door(events_db, db_async)
+    await _stamp_card(events_db, db_async, staff)
+    ana = await user_with_role(db_async, None)
+    ana_id = ana.id
+    await profiles(events_db, ana)
+    tickets = (await _claim(ana, event, 1)).json()["tickets"]
+    token = await _qr(ana, tickets[0]["id"])
+    async with client_with_real_roles(staff) as client:
+        assert (
+            await client.post(_admissions(event), json=_scan(token))
+        ).status_code == 200
+        cancelled = await client.post(
+            f"{BASE}/manage/{event['listing']}/cancel", json={"confirm": True}
+        )
+        assert cancelled.status_code == 200, cancelled.text
+    db_async.expire_all()
+    total = await db_async.scalar(
+        select(func.coalesce(func.sum(Entry.amount), 0)).where(
+            Entry.account_id == ana_id
+        )
+    )
+    assert total == 0
+
+
+@pytest.mark.asyncio
+async def test_admission_without_a_programme_credits_nothing(
+    events_db: SessionFactory, db_async: AsyncSession
+):
+    staff, event = await _door(events_db, db_async)
+    ana = await user_with_role(db_async, None)
+    await profiles(events_db, ana)
+    tickets = (await _claim(ana, event, 1)).json()["tickets"]
+    token = await _qr(ana, tickets[0]["id"])
+    async with client_with_real_roles(staff) as client:
+        assert (
+            await client.post(_admissions(event), json=_scan(token))
+        ).status_code == 200
+    assert await _stamps(db_async, ana.id) == 0
