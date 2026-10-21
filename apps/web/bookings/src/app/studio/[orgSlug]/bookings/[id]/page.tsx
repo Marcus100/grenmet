@@ -6,11 +6,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DepositBadge, StatusBadge } from "@/components/studio/badges";
+import { BookingActions } from "@/components/studio/booking-actions";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { requireSession } from "@/lib/session";
 import { getBooking } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
-import { depositState, eventLabel, isUuid } from "@/lib/studio-view";
+import {
+  canManageBookings,
+  depositState,
+  eventLabel,
+  isUuid,
+} from "@/lib/studio-view";
 
 export const metadata: Metadata = {
   title: "Booking",
@@ -84,6 +90,16 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           <DepositBadge state={deposit} />
         </div>
       </div>
+
+      {canManageBookings(org.value.role) ? (
+        <BookingActions
+          bookingId={booking.id}
+          depositCaptured={booking.deposit_captured_minor > 0}
+          orgSlug={orgSlug}
+          started={Date.parse(booking.starts_at) <= Date.now()}
+          status={booking.status}
+        />
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
         <section

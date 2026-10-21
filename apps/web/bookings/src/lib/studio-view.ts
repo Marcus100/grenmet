@@ -1,7 +1,7 @@
 // Pure helpers for the read-only studio screens: date ranges from the URL,
 // status wording and the deposit state. No I/O, so the pages stay thin.
 
-import type { BookingStatus } from "@barrelsgd/api-client";
+import type { BookingStatus, MembershipRole } from "@barrelsgd/api-client";
 import {
   addDays,
   formatDay,
@@ -160,4 +160,39 @@ export function agendaDepositView(booking: {
     label: `Deposit ${formatMoney(booking.deposit_minor)}`,
     tone: "neutral",
   };
+}
+
+export type BookingActionKey =
+  | "confirm"
+  | "decline"
+  | "cancel"
+  | "no_show"
+  | "complete";
+
+/** Owners and admins act on bookings; members see the agenda only. The API enforces it too. */
+export function canManageBookings(role: MembershipRole): boolean {
+  return role === "owner" || role === "admin";
+}
+
+/**
+ * Buttons for a booking, mirroring the API's legal transitions
+ * (`bookings/transitions.py`): a booking awaiting its deposit can only be
+ * cancelled, a request can be confirmed, declined or cancelled, a confirmed
+ * booking can be cancelled and, once it has started, marked completed or
+ * no-show. Final statuses have none.
+ */
+export function availableActions(
+  status: BookingStatus,
+  started: boolean
+): BookingActionKey[] {
+  switch (status) {
+    case "pending_payment":
+      return ["cancel"];
+    case "pending":
+      return ["confirm", "decline", "cancel"];
+    case "confirmed":
+      return started ? ["complete", "no_show", "cancel"] : ["cancel"];
+    default:
+      return [];
+  }
 }
