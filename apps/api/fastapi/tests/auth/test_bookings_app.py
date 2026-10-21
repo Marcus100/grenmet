@@ -2,16 +2,25 @@
 
 import pytest
 
-from src.auth import apps
-from src.auth.models import Permission, Role
+from src.auth import app_service, apps
 from src.auth.config import auth_settings
+from src.auth.models import Permission, Role
 from tests.auth.test_app_handoff import (
     _account_session,
     _redeem,
     _start,
     _state,
-    seeded,  # noqa: F401  (fixture)
 )
+
+
+@pytest.fixture
+async def seeded(monkeypatch, db_async):
+    from src.auth.permissions import seed_permissions_and_roles_async
+
+    await seed_permissions_and_roles_async(db_async)
+    monkeypatch.setattr(app_service, "new_code", lambda: "123456")
+    monkeypatch.setattr(app_service, "send_email", lambda **_: None)
+
 
 BASE = "/api/v1/auth/apps/bookings"
 SECRET = "bookings-test-client-secret"
@@ -45,7 +54,7 @@ def test_bookings_sign_in_is_off_while_the_secret_is_empty(monkeypatch):
 async def test_bookings_handoff_round_trip(
     async_client,
     db_async,
-    seeded,  # noqa: F811
+    seeded,
     monkeypatch,
 ):
     _ = seeded
@@ -76,7 +85,7 @@ async def test_bookings_handoff_round_trip(
 async def test_bookings_handoff_refused_with_empty_secret(
     async_client,
     db_async,
-    seeded,  # noqa: F811
+    seeded,
     monkeypatch,
 ):
     _ = seeded
@@ -84,7 +93,5 @@ async def test_bookings_handoff_refused_with_empty_secret(
     secret = await _account_session(db_async)
     started = await _start(async_client, secret, _state(), join=True, base=BASE)
     assert started.status_code == 404
-    redeemed = await _redeem(
-        async_client, "x" * 32, _state(), base=BASE, secret=SECRET
-    )
+    redeemed = await _redeem(async_client, "x" * 32, _state(), base=BASE, secret=SECRET)
     assert redeemed.status_code == 404
