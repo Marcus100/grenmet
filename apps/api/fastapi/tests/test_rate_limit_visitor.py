@@ -246,3 +246,38 @@ async def test_non_ascii_secret_header_gets_a_normal_response(
         (VISITOR_SECRET_HEADER.encode(), b"caf\xe9" * 12),
     ]
     assert (await async_client.get(url, headers=bad)).status_code == 404
+
+
+async def _turnstile_ip(
+    monkeypatch: pytest.MonkeyPatch, request: Request
+) -> str | None:
+    seen: list[str | None] = []
+
+    async def fake_verify(
+        _token: str, ip: str | None, _secret: str | None = None
+    ) -> bool:
+        seen.append(ip)
+        return True
+
+    monkeypatch.setattr(turnstile.turnstile_settings, "TURNSTILE_ENABLED", True)
+    monkeypatch.setattr(turnstile.turnstile_settings, "TURNSTILE_SECRET_KEY", "k")
+    monkeypatch.setattr(turnstile, "verify_turnstile", fake_verify)
+    await turnstile.require_turnstile(request, "tok")
+    return seen[0]
+
+
+async def test_turnstile_gets_the_unmasked_ipv6_not_the_bucket_network(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    ip = await _turnstile_ip(monkeypatch, _request(_trusted("2001:db8:1:2::7")))
+    assert ip == "2001:db8:1:2::7"
+    mapped = await _turnstile_ip(monkeypatch, _request(_trusted("::ffff:1.2.3.4")))
+    assert mapped == "1.2.3.4"
+
+
+async def test_turnstile_gets_the_connecting_address_when_untrusted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    forged = {VISITOR_IP_HEADER: "2001:db8::7", VISITOR_SECRET_HEADER: "wrong"}
+    assert await _turnstile_ip(monkeypatch, _request(forged)) == "10.0.0.9"
+    assert await _turnstile_ip(monkeypatch, _request({})) == "10.0.0.9"

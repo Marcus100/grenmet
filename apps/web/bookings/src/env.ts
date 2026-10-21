@@ -17,14 +17,14 @@ export const env = createEnv({
       (value) => value || undefined,
       z.string().min(32).optional()
     ),
-    // Shared with the API TRUSTED_WEB_SECRET: lets the API rate-limit each
-    // visitor separately. Unset: every visitor shares this server bucket.
     // How many reverse proxies in front of this server append to
     // x-forwarded-for. 1 (default): the right-most entry is the visitor, as
     // written by a Traefik that does not trust its peer. Behind Cloudflare and a
     // Traefik that trusts it, set 2. Never count from the left: that entry is
     // visitor-controlled.
     VISITOR_IP_PROXY_HOPS: z.coerce.number().int().min(1).max(5).default(1),
+    // Shared with the API TRUSTED_WEB_SECRET: lets the API rate-limit each
+    // visitor separately. Unset: every visitor shares this server bucket.
     TRUSTED_WEB_SECRET: z.preprocess(
       (value) => value || undefined,
       z.string().min(32).optional()

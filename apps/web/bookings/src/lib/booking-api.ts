@@ -23,6 +23,7 @@ import {
 import { windowFrom } from "@barrelsgd/bookings-web/lib/booking-format";
 import { headers } from "next/headers";
 import { env } from "@/env";
+import { redactRequest } from "@/lib/redact-request";
 import { visitorHeaders } from "@/lib/visitor-headers";
 
 // Next calls the API from one address, so the visitor's own address travels in
@@ -36,18 +37,6 @@ async function options() {
   return {
     client: createClient({ baseURL: env.AUTH_API_URL, headers: visitor }),
   };
-}
-
-// A ResponseError carries the Request, whose headers include the visitor
-// secret; Node prints headers when an error is inspected or logged. Swap in a
-// header-free copy before the error travels anywhere.
-function redactRequest(error: unknown): never {
-  if (error instanceof ResponseError) {
-    error.request = new Request(error.request.url, {
-      method: error.request.method,
-    });
-  }
-  throw error;
 }
 
 // An unknown token answers 404; a malformed one (too short) answers 422. Both

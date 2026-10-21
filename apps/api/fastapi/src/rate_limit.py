@@ -46,11 +46,12 @@ def _trusted_secret() -> bytes | None:
     return secret.encode("utf-8")
 
 
-def _normalise_visitor_ip(claimed: str) -> str | None:
-    """Canonical bucket key for a claimed address, or None when unusable.
+def _parse_visitor_ip(
+    claimed: str,
+) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
+    """The claimed address as an IP (IPv4-mapped IPv6 unwrapped), or None.
 
-    IPv4-mapped IPv6 maps to IPv4, IPv6 keys on its /64 (one subscriber can
-    rotate through a whole /64), and scope IDs are rejected."""
+    Scope IDs are rejected."""
     text = claimed.strip()
     if "%" in text:
         return None
@@ -58,17 +59,39 @@ def _normalise_visitor_ip(claimed: str) -> str | None:
         ip = ipaddress.ip_address(text)
     except ValueError:
         return None
-    if isinstance(ip, ipaddress.IPv6Address):
-        if ip.ipv4_mapped is not None:
-            return str(ip.ipv4_mapped)
-        return str(ipaddress.ip_network(f"{ip}/64", strict=False))
-    return str(ip)
+    if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None:
+        return ip.ipv4_mapped
+    return ip
 
 
 def _is_auth_path(request: Request) -> bool:
     prefix = f"{settings.API_V1_STR}/auth"
     path = request.url.path
     return path == prefix or path.startswith(prefix + "/")
+
+
+def _trusted_visitor_ip(
+    request: Request,
+) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
+    secret = _trusted_secret()
+    presented = request.headers.get(VISITOR_SECRET_HEADER)
+    claimed = request.headers.get(VISITOR_IP_HEADER)
+    if not (secret and presented and claimed) or _is_auth_path(request):
+        return None
+    try:
+        matches = hmac.compare_digest(presented.encode("utf-8"), secret)
+    except UnicodeEncodeError, TypeError:
+        return None
+    return _parse_visitor_ip(claimed) if matches else None
+
+
+def visitor_ip(request: Request) -> str:
+    """The real client address, unmasked: for services that need an IP (Turnstile).
+
+    The validated ``X-Visitor-IP`` from a trusted web host, else the connecting
+    address."""
+    ip = _trusted_visitor_ip(request)
+    return str(ip) if ip is not None else get_remote_address(request)
 
 
 def visitor_address(request: Request) -> str:
@@ -81,18 +104,14 @@ def visitor_address(request: Request) -> str:
     unusable address, or on ``/auth`` routes (sign-in and OTP limits must not be
     choosable by a secret holder) the header is ignored and the connecting
     address is used. Any malformed header fails open to the connecting address.
+    IPv6 visitors share a bucket per /64 (one subscriber can rotate through it).
     """
-    secret = _trusted_secret()
-    presented = request.headers.get(VISITOR_SECRET_HEADER)
-    claimed = request.headers.get(VISITOR_IP_HEADER)
-    if secret and presented and claimed and not _is_auth_path(request):
-        try:
-            matches = hmac.compare_digest(presented.encode("utf-8"), secret)
-        except UnicodeEncodeError, TypeError:
-            matches = False
-        if matches and (key := _normalise_visitor_ip(claimed)):
-            return key
-    return get_remote_address(request)
+    ip = _trusted_visitor_ip(request)
+    if ip is None:
+        return get_remote_address(request)
+    if isinstance(ip, ipaddress.IPv6Address):
+        return str(ipaddress.ip_network(f"{ip}/64", strict=False))
+    return str(ip)
 
 
 # Use a shared Redis store when REDIS_URL is configured (required for correct

@@ -24,7 +24,7 @@ from fastapi import Request, status
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.exceptions import AppException
-from src.rate_limit import visitor_address
+from src.rate_limit import visitor_ip
 
 logger = logging.getLogger(__name__)
 
@@ -122,5 +122,5 @@ async def require_turnstile(
             raise VerificationUnavailableError
     if not token:
         raise VerificationFailedError
-    if not await verify_turnstile(token, visitor_address(request), secret):
+    if not await verify_turnstile(token, visitor_ip(request), secret):
         raise VerificationFailedError
