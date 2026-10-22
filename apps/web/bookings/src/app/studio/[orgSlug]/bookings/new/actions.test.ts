@@ -141,6 +141,37 @@ describe("create booking action", () => {
     expect(reportError).not.toHaveBeenCalled();
   });
 
+  it("tells a key clash from a taken slot", async () => {
+    vi.mocked(createStudioBooking).mockRejectedValue(
+      apiError(409, {
+        detail:
+          "This Idempotency-Key was already used with a different request",
+      })
+    );
+    const result = await createBookingAction(SLUG, IDLE, form());
+    expect(result).toMatchObject({
+      status: "error",
+      nextStep: "Press Save booking again.",
+    });
+  });
+
+  it("retries after a timeout with the same key and body", async () => {
+    vi.mocked(createStudioBooking).mockRejectedValueOnce(apiError(504));
+    vi.mocked(createStudioBooking).mockResolvedValueOnce({
+      id: BOOKING_ID,
+    } as never);
+    const first = await createBookingAction(SLUG, IDLE, form());
+    expect(first).toMatchObject({ status: "error", kind: "unavailable" });
+    await expect(createBookingAction(SLUG, IDLE, form())).rejects.toMatchObject(
+      {
+        message: `NEXT_REDIRECT /studio/${SLUG}/bookings/${BOOKING_ID}`,
+      }
+    );
+    const [one, two] = vi.mocked(createStudioBooking).mock.calls;
+    expect(two?.[2]).toBe(one?.[2]);
+    expect(two?.[3]).toEqual(one?.[3]);
+  });
+
   it("reports server faults and shows a retry message", async () => {
     vi.mocked(createStudioBooking).mockRejectedValue(apiError(500));
     const result = await createBookingAction(SLUG, IDLE, form());

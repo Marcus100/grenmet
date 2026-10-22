@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 interface StudioNavProps {
+  /** Owners and admins only; the page and API enforce it too. */
+  canCreate?: boolean;
   orgSlug: string;
 }
 
@@ -12,7 +14,7 @@ interface StudioNavProps {
  * Left navigation on desktop, a top tab row on phones. Agenda and New booking
  * are the screens in this release; services, hours and settings join as they ship.
  */
-export function StudioNav({ orgSlug }: StudioNavProps) {
+export function StudioNav({ canCreate = false, orgSlug }: StudioNavProps) {
   const pathname = usePathname();
   const items = [
     {
@@ -23,11 +25,15 @@ export function StudioNav({ orgSlug }: StudioNavProps) {
         (pathname.startsWith(`/studio/${orgSlug}/bookings`) &&
           !pathname.endsWith("/bookings/new")),
     },
-    {
-      label: "New booking",
-      href: `/studio/${orgSlug}/bookings/new`,
-      active: pathname.endsWith("/bookings/new"),
-    },
+    ...(canCreate
+      ? [
+          {
+            label: "New booking",
+            href: `/studio/${orgSlug}/bookings/new`,
+            active: pathname.endsWith("/bookings/new"),
+          },
+        ]
+      : []),
   ];
   return (
     <nav aria-label="Studio" className="border-border border-b md:border-b-0">

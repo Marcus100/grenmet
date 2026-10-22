@@ -7,6 +7,7 @@ vi.mock("@/app/studio/[orgSlug]/bookings/new/actions", () => ({
 
 import { NewBookingForm } from "./new-booking-form";
 
+const UUID = /^[0-9a-f-]{36}$/;
 const CLOCK = /America\/Grenada/;
 const S1 = "44444444-4444-4444-8444-444444444444";
 const S2 = "44444444-4444-4444-8444-444444444445";
@@ -38,11 +39,28 @@ function provider(id: string, name: string, serviceIds: string[]) {
   };
 }
 
+describe("idempotency key", () => {
+  it("is made on mount, so the form is submittable only after it exists", () => {
+    render(
+      <NewBookingForm
+        orgSlug="sea-salt"
+        providers={[provider("p1", "Maya", [S1])]}
+        services={[service(S1, "Massage")]}
+        today="2026-10-21"
+        zone="America/Grenada"
+      />
+    );
+    const key = document.querySelector<HTMLInputElement>(
+      'input[name="idempotencyKey"]'
+    );
+    expect(key?.value).toMatch(UUID);
+  });
+});
+
 describe("new booking form", () => {
   it("offers only providers for the chosen service and names the clock", () => {
     render(
       <NewBookingForm
-        idempotencyKey="99999999-9999-4999-8999-999999999999"
         orgSlug="sea-salt"
         providers={[provider("p1", "Maya", [S1]), provider("p2", "Kofi", [S2])]}
         services={[service(S1, "Massage"), service(S2, "Facial")]}

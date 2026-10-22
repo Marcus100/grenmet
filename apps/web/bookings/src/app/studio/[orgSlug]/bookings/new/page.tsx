@@ -99,7 +99,6 @@ export default async function NewBookingPage({ params }: NewBookingPageProps) {
         </Empty>
       ) : (
         <NewBookingForm
-          idempotencyKey={crypto.randomUUID()}
           orgSlug={orgSlug}
           providers={providers}
           services={bookable}

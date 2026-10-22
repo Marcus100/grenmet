@@ -67,8 +67,26 @@ function invalid(message: string): ActionState {
   });
 }
 
+const IDEMPOTENCY_409 = /idempotency|still being processed/i;
+
+/** The API's error body as text, matched defensively (no error codes yet). */
+function detailText(data: unknown): string {
+  try {
+    return typeof data === "string" ? data : (JSON.stringify(data) ?? "");
+  } catch {
+    return "";
+  }
+}
+
 function createFailure(error: unknown): StudioFailure {
   if (ResponseError.is(error) && error.status === 409) {
+    if (IDEMPOTENCY_409.test(detailText(error.data))) {
+      return {
+        kind: "conflict",
+        message: "That save is out of step with an earlier attempt.",
+        nextStep: "Press Save booking again.",
+      };
+    }
     return {
       kind: "conflict",
       message: "That provider is already booked at that time.",

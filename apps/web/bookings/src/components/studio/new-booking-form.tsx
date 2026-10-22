@@ -25,12 +25,12 @@ import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { createBookingAction } from "@/app/studio/[orgSlug]/bookings/new/actions";
 import { IDLE } from "@/lib/studio-action-state";
+import { rotatesKey } from "@/lib/studio-view";
 
 const SELECT = "w-full [&_select]:h-11";
 const INPUT = "h-11";
 
 export interface NewBookingFormProps {
-  idempotencyKey: string;
   orgSlug: string;
   providers: BookingProviderPublic[];
   services: BookingServicePublic[];
@@ -41,7 +41,6 @@ export interface NewBookingFormProps {
 }
 
 export function NewBookingForm({
-  idempotencyKey,
   orgSlug,
   providers,
   services,
@@ -53,12 +52,23 @@ export function NewBookingForm({
     IDLE
   );
   const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
-  const [key, setKey] = useState(idempotencyKey);
+  // Made on mount, not on the server, so Back (router cache) never restores
+  // a used key. Empty until then; Save stays off until it exists.
+  const [key, setKey] = useState("");
   const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setKey(crypto.randomUUID());
+  }, []);
+
+  useEffect(() => {
     if (state.status === "error") {
-      setKey(crypto.randomUUID());
+      // A refusal of the content gets a fresh key so the fixed retry is a new
+      // request. A timeout or server fault keeps the key: the first attempt
+      // may have been saved, and the same key replays it instead of doubling.
+      if (rotatesKey(state.kind)) {
+        setKey(crypto.randomUUID());
+      }
       errorRef.current?.focus();
     }
   }, [state]);
@@ -217,7 +227,7 @@ export function NewBookingForm({
       </p>
       <Button
         className="min-h-11 w-full sm:w-auto"
-        disabled={pending || offered.length === 0}
+        disabled={pending || key === "" || offered.length === 0}
         size="touch"
         type="submit"
       >

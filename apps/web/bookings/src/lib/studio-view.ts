@@ -97,6 +97,8 @@ function zoneOffsetMs(instant: number, timeZone: string): number {
 /**
  * The UTC instant (ISO string) for a wall-clock day and time in `timeZone`.
  * Staff type the time they see on the business's clock; the API wants UTC.
+ * A time inside a spring-forward gap (it never happens on that clock) lands
+ * one hour later; a repeated autumn time resolves to its first occurrence.
  */
 export function zonedToUtcIso(
   day: string,
@@ -248,4 +250,13 @@ export function availableActions(
     default:
       return [];
   }
+}
+
+/**
+ * Whether a failed create should get a fresh idempotency key. Only an
+ * unavailable result (timeout, 5xx) keeps it, so the retry replays a save that
+ * may have gone through.
+ */
+export function rotatesKey(kind: string): boolean {
+  return kind !== "unavailable";
 }

@@ -8,6 +8,7 @@ import {
   eventLabel,
   isDay,
   parseRange,
+  rotatesKey,
   todayIn,
   weekStart,
   zonedToUtcIso,
@@ -132,5 +133,14 @@ describe("business timezone", () => {
     expect(zonedToUtcIso("2026-01-15", "09:00", "America/New_York")).toBe(
       "2026-01-15T14:00:00.000Z"
     );
+  });
+});
+
+describe("idempotency key rotation", () => {
+  it("keeps the key only after a timeout or server fault", () => {
+    expect(rotatesKey("unavailable")).toBe(false);
+    for (const kind of ["invalid", "conflict", "forbidden", "not_found"]) {
+      expect(rotatesKey(kind)).toBe(true);
+    }
   });
 });
