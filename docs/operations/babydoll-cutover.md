@@ -50,9 +50,12 @@ the studio profile is missing or disabled (404), so a missing seed fails safe.
    so exercise the API and the studio screens on the synthetic studio
    `demo-glow-studio`:
    ```bash
-   docker compose -p grenmet-staging exec -e DEMO_SEED_ENABLED=true api \
+   # from infra/docker on the droplet
+   C=(docker compose --env-file staging.env --env-file runtime/.env.local \
+      -f docker-compose.deploy.yml -p grenmet-staging)
+   "${C[@]}" exec -e DEMO_SEED_ENABLED=true api \
      python scripts/seed_staging_demo.py            # preview
-   docker compose -p grenmet-staging exec -e DEMO_SEED_ENABLED=true api \
+   "${C[@]}" exec -e DEMO_SEED_ENABLED=true api \
      python scripts/seed_staging_demo.py --apply --member-email <your staging account>
    ```
    The script refuses unless `ENVIRONMENT=staging`, `DEMO_SEED_ENABLED=true` and the database name ends with `_staging`,
