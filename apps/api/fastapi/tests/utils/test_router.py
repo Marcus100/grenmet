@@ -2,7 +2,10 @@
 
 from unittest.mock import patch
 
+import asyncpg
 import httpx
+import pytest
+from sqlalchemy.exc import OperationalError
 
 from src.config import settings
 
@@ -38,3 +41,61 @@ async def test_test_email(
     assert call_args.kwargs["email_to"] == email_to
     assert "subject" in call_args.kwargs
     assert "html_content" in call_args.kwargs
+
+
+async def test_ready_ok(async_client: httpx.AsyncClient) -> None:
+    response = await async_client.get(f"{settings.API_V1_STR}/utils/ready/")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ready"}
+
+
+async def test_ready_schema_mismatch_is_503(async_client: httpx.AsyncClient) -> None:
+    """Expected not-ready: same 503 body, returned (not raised) so Sentry is quiet."""
+    with patch("src.utils.router._migration_heads", return_value=frozenset({"x"})):
+        response = await async_client.get(f"{settings.API_V1_STR}/utils/ready/")
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Database unreachable"}
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        OperationalError("select 1", {}, Exception("postgresql://u:pw@db/x")),
+        asyncpg.exceptions.CannotConnectNowError("starting up"),
+        asyncpg.exceptions.TooManyConnectionsError("too many"),
+        asyncpg.exceptions.InvalidPasswordError("bad password"),
+        asyncpg.exceptions.InterfaceError("closed"),
+        ConnectionRefusedError("refused"),
+        TimeoutError("timed out"),
+    ],
+    ids=lambda e: type(e).__name__,
+)
+async def test_ready_expected_failures_are_503_and_not_reported(
+    async_client: httpx.AsyncClient,
+    error: Exception,
+) -> None:
+    """Expected outages answer 503, are not re-raised and never reach Sentry."""
+    with (
+        patch("src.utils.router.logger") as log,
+        patch("src.utils.router._migration_heads", side_effect=error),
+        patch("sentry_sdk.capture_exception") as capture,
+    ):
+        response = await async_client.get(f"{settings.API_V1_STR}/utils/ready/")
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Database unreachable"}
+    capture.assert_not_called()
+    # Exact template + exception class name only: no DSN or driver message text.
+    log.warning.assert_called_once_with(
+        "Readiness check failed: %s", type(error).__name__
+    )
+
+
+async def test_ready_unexpected_exception_still_propagates(
+    async_client: httpx.AsyncClient,
+) -> None:
+    """A genuine bug must stay an exception (reported 500), not hidden as 503."""
+    with (
+        patch("src.utils.router._migration_heads", side_effect=ValueError("bug")),
+        pytest.raises(ValueError, match="bug"),
+    ):
+        await async_client.get(f"{settings.API_V1_STR}/utils/ready/")
