@@ -95,19 +95,30 @@ export const coreServices = [
   ...appServices,
 ];
 const HOST_RULE = /Host\(`([^`]+)`\)/g;
-function routerHosts(model, service, router) {
-  const labels = model.services?.[service]?.labels ?? {};
-  const rule = Object.entries(labels).find(
-    ([key]) =>
-      key.startsWith(`traefik.http.routers.${router}`) && key.endsWith(".rule")
-  )?.[1];
-  return [...String(rule ?? "").matchAll(HOST_RULE)].map((match) => match[1]);
+// Every Host() in every router rule of a service, by service.
+function hostsByService(model) {
+  const result = new Map();
+  for (const [service, definition] of Object.entries(model.services ?? {})) {
+    for (const [key, rule] of Object.entries(definition.labels ?? {})) {
+      if (!(key.startsWith("traefik.http.routers.") && key.endsWith(".rule")))
+        continue;
+      for (const match of String(rule).matchAll(HOST_RULE)) {
+        if (!result.has(match[1])) result.set(match[1], new Set());
+        result.get(match[1]).add(service);
+      }
+    }
+  }
+  return result;
 }
-// The Barrels console (admin.*) and the GMS/GAA portal must never share a host:
-// a dropped variable has to fail the deployment, not move a host silently.
+// The Barrels console (admin.*) and the GMS/GAA portal must never share a host,
+// and no other service may route either host: a dropped or duplicated rule has
+// to fail the deployment, not move a host silently.
 export function validateAdminHosts(model) {
-  const consoleHosts = routerHosts(model, "web-admin", "web-barrels-admin");
-  const portalHosts = routerHosts(model, "web-gmsadmin", "web-gms-portal");
+  const byHost = hostsByService(model);
+  const hostsOf = (service) =>
+    [...byHost].filter(([, services]) => services.has(service)).map(([h]) => h);
+  const consoleHosts = hostsOf("web-admin");
+  const portalHosts = hostsOf("web-gmsadmin");
   if (consoleHosts.length !== 1 || portalHosts.length === 0)
     throw new Error("Admin console and portal routers need explicit hosts");
   if (
@@ -118,6 +129,9 @@ export function validateAdminHosts(model) {
     throw new Error(
       "The Barrels admin console and the GMS/GAA portal need distinct, full hostnames"
     );
+  for (const host of [...consoleHosts, ...portalHosts])
+    if (byHost.get(host).size !== 1)
+      throw new Error(`${host} is routed by more than one service`);
 }
 export function validateComposeScope(model) {
   const services = Object.keys(model.services ?? {});

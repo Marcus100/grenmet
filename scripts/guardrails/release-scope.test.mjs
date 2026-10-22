@@ -239,3 +239,44 @@ test("admin console and portal hosts must be present and distinct", () => {
     assert.throws(() => validateAdminHosts(adminModel(host, rule)));
   assert.throws(() => validateAdminHosts({ services: {} }));
 });
+
+test("no other router or service may use the console or portal host", () => {
+  const base = adminModel(
+    "admin.staging.barrels.gd",
+    "Host(`gms.staging.barrels.gd`)"
+  );
+  const withLabels = (service, labels) => ({
+    services: {
+      ...base.services,
+      [service]: {
+        ...base.services[service],
+        labels: { ...base.services[service]?.labels, ...labels },
+      },
+    },
+  });
+  // A second router on another service reusing either host.
+  for (const host of ["admin.staging.barrels.gd", "gms.staging.barrels.gd"])
+    assert.throws(
+      () =>
+        validateAdminHosts(
+          withLabels("web-docs", {
+            "traefik.http.routers.extra.rule": `Host(\`${host}\`) && PathPrefix(\`/x\`)`,
+          })
+        ),
+      /more than one service/
+    );
+  // A second router on the console itself would make it answer another host.
+  assert.throws(() =>
+    validateAdminHosts(
+      withLabels("web-admin", {
+        "traefik.http.routers.extra.rule": "Host(`other.staging.barrels.gd`)",
+      })
+    )
+  );
+  // Extra routers on the portal are fine while the hosts stay distinct.
+  validateAdminHosts(
+    withLabels("web-gmsadmin", {
+      "traefik.http.routers.alias.rule": "Host(`alias.staging.barrels.gd`)",
+    })
+  );
+});

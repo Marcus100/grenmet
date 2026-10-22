@@ -572,22 +572,35 @@ checks below before promoting.
 
 **Staging (owner):**
 
+0. **Secret uniqueness pre-check.** `render-env.py` now refuses to render when two
+   apps share one single sign-on secret (it fails closed with a message that names
+   no values). Before the first deploy, and again before promoting to production,
+   confirm every secret that is set is unique per app and per environment:
+   `GAA_ADMIN`, `BARRELS_ADMIN`, `CMS`, `EVENTS`, `WEATHER`, `MBIA`, `SIGNAL`,
+   `DOCS`, `ELECTIONS`, `GMSDASH` and `BOOKINGS` `_SSO_CLIENT_SECRET`. Regenerate
+   any duplicates with `openssl rand -base64 32` (and update the matching app and
+   API value together).
 1. DNS: `*.staging.barrels.gd` already resolves everything to the staging VM, so
    `admin.staging` and `gms.staging` need no new record. Check in Cloudflare that
    the wildcard (or explicit A records) exists for both, DNS only like the other
    staging hosts. `gmsadmin.staging` is no longer served.
 2. Create the GitHub `staging` environment secret `BARRELS_ADMIN_SSO_CLIENT_SECRET`
    (`openssl rand -base64 32`, at least 32 characters, different from every other
-   app secret) and apply the `.github/workflows/deploy.yml` change from the PR
-   (owner-only).
+   app secret). Then, owner-only, edit `.github/workflows/deploy.yml` (this PR does
+   not change it): in the render-env `env:` block next to
+   `GAA_ADMIN_SSO_CLIENT_SECRET` (around line 117) add
+   `BARRELS_ADMIN_SSO_CLIENT_SECRET: ${{ secrets.BARRELS_ADMIN_SSO_CLIENT_SECRET }}`.
+   Console sign-in stays OFF until both the line and the secret exist.
 3. Merge to `staging`; the pipeline builds the new image `barrelsgd-web-admin`
    and redeploys. Smoke: `https://gms.staging.barrels.gd/api/ready`,
    `https://admin.staging.barrels.gd/api/health`; sign in to each (console:
    superuser only). Everyone re-signs in once on `gms.staging` (session cookies
    are host-only).
 
-**Before promoting to production:** create the `production` secret
-`BARRELS_ADMIN_SSO_CLIENT_SECRET`; the `*.barrels.gd` wildcard covers `admin` and
+**Before promoting to production:** repeat the secret uniqueness pre-check for
+the `production` environment; create the `production` secret
+`BARRELS_ADMIN_SSO_CLIENT_SECRET` and make sure the `deploy.yml` line above is
+in place (console sign-in stays OFF until both exist); the `*.barrels.gd` wildcard covers `admin` and
 `gms`, but check there is no explicit `gms.barrels.gd` or `admin.barrels.gd`
 record pointing elsewhere (the retired public `gms.*` site: old links now reach
 the portal sign-in). `gmsadmin.barrels.gd` stops being served.
@@ -595,17 +608,25 @@ the portal sign-in). `gmsadmin.barrels.gd` stops being served.
 **Deploy impact.** The portal is listed before the console in
 `scripts/ci/release-scope.mjs`, so a rolling deploy starts the new portal
 container, waited healthy, while the old `web-admin` (the former gaa-admin) still
-serves `admin.*`, and only then replaces it with the console. With rolling on, no outage is expected. If rolling is off or a
+serves `admin.*`, and only then replaces it with the console. With rolling on, no outage is expected. For roughly 5-35 seconds during the
+replacement two routers share `Host(admin.<domain>)` (the old portal container and
+the new console) and either app may answer; there is no security impact because
+each app has its own cookies and sign-in gate. The first request to `gms.<domain>`
+triggers certificate issuance, so the smoke check retries that host (4 attempts,
+15 s apart) on a first deploy. If rolling is off or a
 replacement fails, expect 1-3 minutes of 404s on the portal while it restarts;
 deploy in a quiet window (only the owner and internal staff use production
 today). A rollback has the same shape. `check-release-scope.mjs --compose` fails
 if the console and portal share a host, and `render-env.py` rejects two apps
 sharing one single sign-on secret. Notification emails already sent with
-`admin.staging` links now land on the console sign-in wall.
+`admin.staging` (and, after promotion, production `admin.barrels.gd`) links now
+land on the console sign-in page.
 
 **Rollback.** Revert the change (compose, release scope and docs) and redeploy;
 the portal returns to `admin.*`. No database or API schema change is involved, so
-rollback loses no data.
+rollback loses no data. The rollback deploy needs the images of the reverted
+commit to still exist: pull-verify requires each image revision to equal
+`GITHUB_SHA`, so a revert is rebuilt by the pipeline like any other change.
 
 ## Legacy service retirement
 
