@@ -86,6 +86,11 @@ async def test_cancelling_an_event_cancels_every_ticket_and_tells_holders(
         "listing_id": event["listing"],
         "status": "cancelled",
         "tickets_cancelled": 4,
+        "orders_refunded": 0,
+        "orders_queued": 0,
+        "orders_kept": 0,
+        "refunds_failed": 0,
+        "orders_released": 0,
     }
     async with events_db() as db:
         statuses = (await db.scalars(select(Ticket.status))).all()
@@ -388,7 +393,7 @@ async def test_claims_racing_a_cancellation_never_leave_a_valid_ticket(
     async def cancel_now():
         async with events_db() as db:
             return await service.cancel_event(
-                db, staff, uuid.UUID(event["listing"]), []
+                db, staff, uuid.UUID(event["listing"]), [], refund="none"
             )
 
     results = await asyncio.gather(

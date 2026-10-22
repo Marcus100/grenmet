@@ -4,7 +4,14 @@
  */
 
 import * as z from "zod";
+import { cancelEventPropertiesRefundEnumSchema } from "./cancelEventPropertiesRefundEnumSchema.js";
 
 export const cancelEventSchema = z.object({
   confirm: z.literal(true),
+  refund: cancelEventPropertiesRefundEnumSchema
+    .optional()
+    .default("none")
+    .describe(
+      "What to do with money already paid for online orders. Left out, no money moves (the organiser refunds from the orders page)."
+    ),
 });

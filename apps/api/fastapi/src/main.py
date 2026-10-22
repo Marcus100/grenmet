@@ -47,6 +47,7 @@ from src.contacts.router import router as contacts_router
 from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
 from src.eregister.router import router as eregister_router
+from src.events.org_router import router as events_org_router
 from src.events.router import router as events_router
 from src.exceptions import (
     AppException,
@@ -500,6 +501,7 @@ app.include_router(browser_auth_router, prefix=settings.API_V1_STR)
 app.include_router(janitorial_router, prefix=settings.API_V1_STR)
 app.include_router(transport_router, prefix=settings.API_V1_STR)
 app.include_router(events_router, prefix=settings.API_V1_STR)
+app.include_router(events_org_router, prefix=settings.API_V1_STR)
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]

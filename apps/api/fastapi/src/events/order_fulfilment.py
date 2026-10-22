@@ -49,6 +49,20 @@ async def _locked_order(db: AsyncSession, order_id: uuid.UUID) -> Order | None:
     return result.scalar_one_or_none()
 
 
+async def lock_order(db: AsyncSession, order_id: uuid.UUID) -> Order | None:
+    """Lock an order the way every Events money path does: the listing first (a
+    shared lock, so claims and sales still run but an organiser's cancel waits),
+    then the order. One order everywhere keeps cancel, payment and refund from
+    deadlocking."""
+    listing_id = await db.scalar(select(Order.listing_id).where(Order.id == order_id))
+    if listing_id is None:
+        return None
+    await db.execute(
+        select(Listing.id).where(Listing.id == listing_id).with_for_update(read=True)
+    )
+    return await _locked_order(db, order_id)
+
+
 def _is_online_paid(order: Order) -> bool:
     return order.channel == "online" and order.payment_method == "online"
 
@@ -144,7 +158,7 @@ async def fulfil_paid(
     """The order's payment was captured. Returns ``confirmed``, ``duplicate``,
     ``refunded`` or ``ignored``."""
     now = utc_now()
-    order = await _locked_order(db, order_id)
+    order = await lock_order(db, order_id)
     if order is None or not _is_online_paid(order):
         logger.warning("event order paid for an unknown order")
         return "ignored"

@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import type { OutletTicketPropertiesStatusEnum } from "./OutletTicketPropertiesStatusEnum.js";
+import type { OrgAttendeePropertiesStatusEnum } from "./OrgAttendeePropertiesStatusEnum.js";
 import type { RefundPublic } from "./RefundPublic.js";
 
 export type OutletTicket = {
@@ -17,7 +17,7 @@ export type OutletTicket = {
   qr_token: string;
   tier_name: string;
   price_minor: number;
-  status: OutletTicketPropertiesStatusEnum;
+  status: OrgAttendeePropertiesStatusEnum;
   admitted_at?: string | null;
   refund?: RefundPublic | null;
   /**

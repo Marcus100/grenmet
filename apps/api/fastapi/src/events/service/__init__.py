@@ -11,7 +11,12 @@ edge. Safety rules live here so every client gets them:
   outside the member's network."""
 
 from .admission import admit_ticket, manifest
-from .cancellation import cancel_event, postpone_event, refund_ticket
+from .cancellation import (
+    cancel_event,
+    cancel_event_for_organisation,
+    postpone_event,
+    refund_ticket,
+)
 from .common import FRIDAY, GOING_PREVIEW, GRENADA, SUNDAY, UTC_TZ, when_window
 from .discover import (
     get_group,
@@ -83,6 +88,7 @@ __all__ = [
     "accept_connection",
     "admit_ticket",
     "cancel_event",
+    "cancel_event_for_organisation",
     "postpone_event",
     "refund_ticket",
     "organiser_settlement",
