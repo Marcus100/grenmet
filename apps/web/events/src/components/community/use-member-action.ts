@@ -14,9 +14,9 @@ export function useMemberAction() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  async function perform<T>(
-    call: () => Promise<ActionResult<T>>
-  ): Promise<ActionResult<T>> {
+  async function perform<R extends ActionResult<unknown>>(
+    call: () => Promise<R>
+  ): Promise<R> {
     setPending(true);
     setError(null);
     const result = await call();
