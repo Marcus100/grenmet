@@ -501,11 +501,13 @@ async def test_parallel_guesses_cannot_exceed_the_attempt_limit(
     await _request(async_client, studio, slot)
     code = await latest_code(db_async, studio.org_id)
     wrong = "123456" if code != "123456" else "654321"
+    # Wrong guesses only: were the right code in the burst, its position in the
+    # scheduling order would decide the outcome (a win consumes the code, after
+    # which later guesses are uncounted). It follows once the burst is done.
     burst = [_confirm(async_client, studio, slot, wrong) for _ in range(12)]
-    burst.append(_confirm(async_client, studio, slot, code))
     statuses = [r.status_code for r in await asyncio.gather(*burst)]
     # At most MAX_ATTEMPTS guesses were ever evaluated; the rest hit the lock.
-    assert statuses.count(400) + statuses.count(200) <= email_code.MAX_ATTEMPTS
+    assert statuses.count(400) <= email_code.MAX_ATTEMPTS - 1
     assert statuses.count(429) >= len(statuses) - email_code.MAX_ATTEMPTS
     # Once locked, the right code is refused too.
     assert (await _confirm(async_client, studio, slot, code)).status_code == 429
