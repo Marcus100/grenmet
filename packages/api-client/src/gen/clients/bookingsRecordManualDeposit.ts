@@ -11,7 +11,7 @@ import type {
 } from "../models/BookingsRecordManualDeposit.js";
 
 /**
- * @description Owner or admin records a deposit paid in cash, by bank transfer or by cheque. Requires an `Idempotency-Key` header (same key and body replays the first answer with `Idempotency-Replayed: true`, same key with another body is 409). The booking's deposit is captured through the payments manual rail, so `deposit_captured_minor` in the detail shows it and a `pending_payment` booking is confirmed. 409 when the booking has no deposit, is closed, or its deposit is already paid. API keys are not accepted.
+ * @description Owner or admin records a deposit paid in cash, by bank transfer or by cheque. Requires an `Idempotency-Key` header (same key and body replays the first answer with `Idempotency-Replayed: true`, same key with another body is 409). The booking's deposit is captured through the payments manual rail, so `deposit_captured_minor` in the detail shows it and a `pending_payment` booking is confirmed. 409 when the booking has no deposit, is closed, its deposit is already paid, or an online payment is still open. Needs the `payments` entitlement too. API keys are not accepted.
  * @summary Record a deposit taken outside Stripe
  * {@link /api/v1/bookings/org/bookings/:booking_id/manual-deposit}
  */

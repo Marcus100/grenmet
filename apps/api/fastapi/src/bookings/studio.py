@@ -20,7 +20,7 @@ from src.contacts import service as contacts_service
 from src.contacts.models import Contact
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
-from src.payments.models import ProviderKey
+from src.payments.models import IntentStatus, ProviderKey
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, utc_to_local, zone
 
@@ -531,29 +531,32 @@ async def record_manual_deposit(
         raise BookingConflictError("This booking has no deposit to record")
     if BookingStatus(booking.status) not in _DEPOSIT_OPEN:
         raise BookingConflictError("A closed booking cannot take a deposit")
-    intent = await payments_service.find_by_source(
-        session,
-        organisation_id=organisation_id,
-        source_type=deposit_payments.SOURCE_TYPE,
-        source_id=str(booking.id),
+    key = deposit_payments.intent_key(booking.id)
+    intent = await payments_service.lock_intent_by_key(
+        session, organisation_id=organisation_id, idempotency_key=key
     )
-    if intent is not None and intent.captured_minor > 0:
-        raise BookingConflictError("The deposit has already been paid")
     if intent is None:
         await deposit_payments.start_manual_deposit(session, booking)
-        intent = await payments_service.find_by_source(
-            session,
-            organisation_id=organisation_id,
-            source_type=deposit_payments.SOURCE_TYPE,
-            source_id=str(booking.id),
+        intent = await payments_service.lock_intent_by_key(
+            session, organisation_id=organisation_id, idempotency_key=key
         )
         if intent is None:  # pragma: no cover - create_intent just wrote it
             raise BookingConflictError("The deposit could not be started")
-    if intent.provider != ProviderKey.MANUAL:
+    if intent.status == IntentStatus.SUCCEEDED.value:
+        raise BookingConflictError("The deposit has already been paid")
+    if (
+        intent.amount_minor != booking.deposit_minor
+        or intent.currency != booking.currency
+    ):
         raise BookingConflictError(
-            "The deposit is being paid online; wait for it or cancel that payment"
+            "The deposit payment does not match the booking's deposit"
         )
-    await payments_service.record_manual_payment(
+    if intent.provider != ProviderKey.MANUAL.value:
+        raise BookingConflictError(
+            "The deposit is being paid online; that payment must expire or fail "
+            "first (up to 30 minutes) before it can be recorded by hand"
+        )
+    paid = await payments_service.record_manual_payment(
         session,
         organisation_id=organisation_id,
         intent_id=intent.id,
@@ -569,10 +572,11 @@ async def record_manual_deposit(
         record_id=str(booking.id),
         action="manual_deposit",
         changes={
-            "deposit_captured_minor": (0, booking.deposit_minor),
+            "deposit_captured_minor": (0, paid.captured_minor),
             "method": (None, payload.method.value),
             "reference": (None, payload.reference),
         },
+        sensitive=frozenset({"reference"}),
         organisation_id=organisation_id,
     )
     status = BookingStatus(booking.status)

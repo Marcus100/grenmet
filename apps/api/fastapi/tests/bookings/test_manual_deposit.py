@@ -7,9 +7,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEntry
+from src.auth.models import Role
+from src.auth.permissions import seed_permissions_and_roles_async
+from src.bookings.models import Booking
 from src.organisations import service as org_service
-from src.organisations.models import MembershipRole
-from src.payments.models import LedgerEntry, LedgerKind
+from src.organisations.models import Membership, MembershipRole
+from src.payments.models import Intent, LedgerEntry, LedgerKind
+from tests.bookings.test_app_token_access import _headers as app_headers
 from tests.bookings.test_deposits import (
     DEPOSIT,
     _book_deposit,
@@ -20,7 +24,7 @@ from tests.bookings.test_deposits import (
     _pay_manually,
 )
 from tests.bookings.test_public_bookings import API, Studio, _booking_for
-from tests.factories import make_user
+from tests.factories import assign_role, make_user
 from tests.organisations.support import headers_for
 
 
@@ -151,7 +155,7 @@ async def test_a_booking_without_a_deposit_is_rejected(
 ) -> None:
     from tests.bookings.test_public_bookings import _book, _slots, _studio
 
-    studio = await _studio(db_async, async_client)
+    studio = await _studio(db_async, async_client, apps=("bookings", "payments"))
     slots = await _slots(async_client, studio)
     response = await _book(async_client, studio, slots[0])
     assert response.status_code == 201, response.text
@@ -202,4 +206,165 @@ async def test_a_plain_member_and_a_missing_key_are_refused(
         _url(booking_id), headers=studio.headers, json={"method": "cash"}
     )
     assert no_key.status_code == 400
+    assert await _charges(db_async, booking_id) == 0
+
+
+PAYMENTS = "/api/v1/payments"
+
+
+async def test_a_newer_intent_for_the_booking_is_not_the_one_captured(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    other = await async_client.post(
+        f"{PAYMENTS}/org/intents",
+        headers=studio.headers,
+        json={
+            "amount_minor": 100,
+            "currency": "XCD",
+            "provider": "manual",
+            "source_type": "bookings.deposit",
+            "source_id": booking_id,
+            "idempotency_key": "stray-intent",
+        },
+    )
+    assert other.status_code == 201, other.text
+    response = await _post(async_client, studio, booking_id)
+    assert response.status_code == 200, response.text
+    assert await _charges(db_async, booking_id) == 1  # the booking's own intent
+    stray = await db_async.scalar(
+        select(Intent)
+        .where(Intent.idempotency_key == "stray-intent")
+        .execution_options(populate_existing=True)
+    )
+    assert stray is not None and stray.status != "succeeded"
+    audit = await db_async.scalar(
+        select(AuditEntry).where(AuditEntry.entity_id == booking_id)
+    )
+    assert audit is not None
+    changes = {c["field"]: c for c in audit.changes}
+    assert changes["deposit_captured_minor"]["new"] == DEPOSIT
+    assert changes["reference"]["sensitive"] is True
+
+
+async def test_an_intent_that_differs_from_the_deposit_is_rejected(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    intent = await _intent(db_async, booking_id)
+    assert intent is not None
+    intent.amount_minor = DEPOSIT + 1
+    await db_async.commit()
+    assert (await _post(async_client, studio, booking_id)).status_code == 409
+    assert await _charges(db_async, booking_id) == 0
+
+
+async def test_an_open_online_payment_is_rejected(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    intent = await _intent(db_async, booking_id)
+    assert intent is not None
+    intent.provider = "stripe"
+    intent.status = "processing"
+    await db_async.commit()
+    response = await _post(async_client, studio, booking_id)
+    assert response.status_code == 409
+    assert "expire or fail" in response.json()["detail"]
+    assert await _charges(db_async, booking_id) == 0
+
+
+async def test_a_booking_missing_its_intent_gets_a_manual_one(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    intent = await _intent(db_async, booking_id)
+    assert intent is not None
+    await db_async.delete(intent)
+    await db_async.commit()
+    response = await _post(async_client, studio, booking_id)
+    assert response.status_code == 200, response.text
+    assert response.json()["deposit_captured_minor"] == DEPOSIT
+
+
+async def test_a_confirmed_booking_with_no_capture_can_take_the_deposit(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    booking = await db_async.get(Booking, uuid.UUID(booking_id))
+    assert booking is not None
+    booking.status = "confirmed"
+    await db_async.commit()
+    response = await _post(async_client, studio, booking_id)
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "confirmed"
+    assert response.json()["deposit_captured_minor"] == DEPOSIT
+
+
+async def test_an_api_key_is_refused(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    created = await async_client.post(
+        "/api/v1/organisations/org/api-keys",
+        headers=studio.headers,
+        json={"name": "Kiosk", "scopes": ["bookings.write"]},
+    )
+    assert created.status_code == 201, created.text
+    key = {"Authorization": f"Bearer {created.json()['secret']}"}
+    response = await async_client.post(
+        _url(booking_id),
+        headers={
+            **key,
+            "Idempotency-Key": "k",
+            "X-Barrels-Organisation": studio.org_id,
+        },
+        json={"method": "cash"},
+    )
+    assert response.status_code == 401
+    assert await _charges(db_async, booking_id) == 0
+
+
+async def test_the_bookings_app_session_is_accepted(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    membership = await db_async.scalar(
+        select(Membership).where(Membership.organisation_id == studio.org_id)
+    )
+    assert membership is not None
+    owner = await make_user_by_id(db_async, membership.user_id)
+    await seed_permissions_and_roles_async(db_async)
+    role = await db_async.scalar(select(Role).where(Role.name == "bookings-member"))
+    assert role is not None
+    await assign_role(db_async, user=owner, role=role)
+    await db_async.commit()
+    response = await _post(
+        async_client,
+        studio,
+        booking_id,
+        headers=app_headers(owner, studio.org_id),
+    )
+    assert response.status_code == 200, response.text
+
+
+async def make_user_by_id(db: AsyncSession, user_id: uuid.UUID):
+    from src.auth.models import User
+
+    user = await db.get(User, user_id)
+    assert user is not None
+    return user
+
+
+async def test_the_payments_entitlement_is_required(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    from src.organisations import service as organisation_service
+
+    studio, booking_id = await _unpaid(db_async, async_client)
+    await organisation_service.set_app_enabled(
+        db_async, organisation_id=studio.org_id, app_key="payments", enabled=False
+    )
+    await db_async.commit()
+    assert (await _post(async_client, studio, booking_id)).status_code == 403
     assert await _charges(db_async, booking_id) == 0

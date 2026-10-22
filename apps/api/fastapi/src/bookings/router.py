@@ -126,6 +126,12 @@ BookingsOrgWrite = Annotated[
     ),
 ]
 
+# Money routes also need the organisation's `payments` entitlement.
+PaymentsEntitled = Annotated[
+    OrgContext,
+    Depends(require_org_app("payments", MembershipRole.ADMIN, session_app="bookings")),
+]
+
 READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 
@@ -546,7 +552,7 @@ async def confirm_studio_booking(
         "another body is 409). The booking's deposit is captured through the "
         "payments manual rail, so `deposit_captured_minor` in the detail shows "
         "it and a `pending_payment` booking is confirmed. 409 when the booking "
-        "has no deposit, is closed, or its deposit is already paid. API keys "
+        "has no deposit, is closed, its deposit is already paid, or an online payment is still open. Needs the `payments` entitlement too. API keys "
         "are not accepted."
     ),
     operation_id="bookingsRecordManualDeposit",
@@ -557,6 +563,7 @@ async def record_manual_deposit(
     response: Response,
     session: SessionDep,
     org: BookingsOrgAdmin,
+    _payments: PaymentsEntitled,
     booking_id: BookingId,
     payload: BookingManualDepositCreate,
     idempotency_key: idempotency.RequiredIdempotencyKey,

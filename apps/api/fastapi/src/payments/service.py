@@ -368,6 +368,25 @@ async def find_by_source(
     return _public(row) if row else None
 
 
+async def lock_intent_by_key(
+    session: AsyncSession, *, organisation_id: str, idempotency_key: str
+) -> Intent | None:
+    """The organisation's intent with this idempotency key, row-locked and read
+    fresh (so a payment recorded a moment ago is seen), or None. Unlike
+    ``find_by_source`` this never picks "the newest" of several intents."""
+    return (
+        await session.execute(
+            select(Intent)
+            .where(
+                Intent.organisation_id == organisation_id,
+                Intent.idempotency_key == idempotency_key,
+            )
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+    ).scalar_one_or_none()
+
+
 async def cancel_open_intent(
     session: AsyncSession,
     *,
