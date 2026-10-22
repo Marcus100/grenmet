@@ -8,8 +8,8 @@ import type { CancelEventPropertiesRefundEnum } from "./CancelEventPropertiesRef
 export type CancelEvent = {
   confirm: true;
   /**
-   * @description What to do with money already paid for online orders.
-   * @default 'follow_policy'
+   * @description What to do with money already paid for online orders. Left out, no money moves (the organiser refunds from the orders page).
+   * @default 'none'
    * @type string | undefined
    */
   refund?: CancelEventPropertiesRefundEnum;

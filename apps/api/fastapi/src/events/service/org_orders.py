@@ -10,12 +10,17 @@ transaction. The caller commits.
 """
 
 import uuid
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Any, Literal
 
 from sqlalchemy import func, select, update
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import outbox
 from src.auth.models import User
+from src.pagination import PaginatedResponse
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
 from src.utils.datetime import utc_now
@@ -32,6 +37,20 @@ from ..models import (
     Ticket,
     TicketTier,
 )
+from . import ticketing
+
+
+@asynccontextmanager
+async def conflict_on_deadlock(db: AsyncSession) -> AsyncIterator[None]:
+    """Postgres resolved a lock cycle by aborting this request: tell the caller to
+    retry (409) instead of answering 500. The same rule as ticket claims."""
+    try:
+        yield
+    except DBAPIError as error:
+        if not ticketing.is_deadlock(error):
+            raise
+        await db.rollback()
+        raise EventsConflict("That just changed; please try again") from None
 
 
 def _is_online_paid(order: Order) -> bool:
@@ -58,20 +77,27 @@ async def _order(
     *,
     lock: bool = False,
 ) -> tuple[Order, Listing]:
-    query = (
-        select(Order, Listing)
-        .join(Listing, Listing.id == Order.listing_id)
-        .join(Organiser, Organiser.id == Listing.organiser_id)
-        .where(Order.id == order_id, Organiser.organisation_id == organisation_id)
-    )
-    if lock:
-        query = query.with_for_update(of=Order).execution_options(
-            populate_existing=True
+    """The organisation's order and event. ``lock`` takes the Events money lock
+    order: the listing (shared) first, then the order."""
+    row = (
+        await db.execute(
+            select(Order.listing_id)
+            .join(Listing, Listing.id == Order.listing_id)
+            .join(Organiser, Organiser.id == Listing.organiser_id)
+            .where(Order.id == order_id, Organiser.organisation_id == organisation_id)
         )
-    row = (await db.execute(query)).first()
+    ).first()
     if row is None:
         raise EventsNotFound("Order not found")
-    return row[0], row[1]
+    if lock:
+        order = await order_fulfilment.lock_order(db, order_id)
+        assert order is not None
+    else:
+        order = await db.get(Order, order_id)
+        assert order is not None
+    listing = await db.get(Listing, row[0])
+    assert listing is not None
+    return order, listing
 
 
 async def _buyer_names(
@@ -120,10 +146,10 @@ async def list_orders(
     organisation_id: str,
     listing_id: uuid.UUID,
     *,
-    status: str | None,
+    status: schemas.OrgOrderStatus | None,
     page: int,
     size: int,
-) -> schemas.OrgOrderList:
+) -> PaginatedResponse[schemas.OrgOrderRow]:
     listing = await _listing(db, organisation_id, listing_id)
     conditions = [Order.listing_id == listing.id]
     if status is not None:
@@ -135,6 +161,7 @@ async def list_orders(
             func.count().label("n"),
             func.count().filter(Ticket.status == "valid").label("valid"),
         )
+        .where(Ticket.listing_id == listing.id)
         .group_by(Ticket.order_id)
         .subquery()
     )
@@ -153,7 +180,7 @@ async def list_orders(
         )
     ).all()
     names = await _buyer_names(db, [row[0] for row in rows])
-    return schemas.OrgOrderList(
+    return PaginatedResponse(
         data=[
             schemas.OrgOrderRow(**_row(order, int(n), int(valid), names))
             for order, n, valid in rows
@@ -186,9 +213,11 @@ async def _detail(
         )
     ).all()
     names = await _buyer_names(db, [order])
-    email = None
-    if order.user_id is not None:
-        email = await db.scalar(select(User.email).where(User.id == order.user_id))
+    email = (
+        await db.scalar(select(User.email).where(User.id == order.user_id))
+        if order.user_id is not None
+        else None
+    )
     intent = (
         await order_payments.intent_for(
             db, organisation_id=organisation_id, order_id=order.id
@@ -199,8 +228,8 @@ async def _detail(
     payment = (
         schemas.OrgOrderPayment(
             intent_id=intent.id,
-            provider=str(intent.provider),
-            status=str(intent.status),
+            provider=intent.provider,
+            status=intent.status,
             captured_minor=intent.captured_minor,
             refunded_minor=intent.refunded_minor,
             refundable_minor=max(intent.captured_minor - intent.refunded_minor, 0),
@@ -239,7 +268,31 @@ async def _detail(
             for ticket, tier, admitted in tickets
         ],
         payment=payment,
+        refund_status=await _refund_status(db, order),
     )
+
+
+async def _refund_status(
+    db: AsyncSession, order: Order
+) -> Literal["none", "queued", "partial", "refunded", "failed"]:
+    """Where the order's refund stands. A finished outbox row's payload is cleared,
+    so only waiting and given-up requests are found by order id; the amounts on
+    the order say the rest."""
+    states = set(
+        await db.scalars(
+            select(outbox.Outbox.status).where(
+                outbox.Outbox.topic == order_refunds.REQUESTED_TOPIC,
+                outbox.Outbox.payload["order_id"].as_string() == str(order.id),
+            )
+        )
+    )
+    if outbox.OutboxStatus.DEAD.value in states:
+        return "failed"
+    if outbox.OutboxStatus.PENDING.value in states:
+        return "queued"
+    if order.collected_minor > 0 and order.refunded_minor >= order.collected_minor:
+        return "refunded"
+    return "partial" if order.refunded_minor > 0 else "none"
 
 
 async def get_order(
@@ -254,11 +307,11 @@ async def list_attendees(
     organisation_id: str,
     listing_id: uuid.UUID,
     *,
-    status: str | None,
+    status: schemas.OrgTicketStatus | None,
     tier_id: uuid.UUID | None,
     page: int,
     size: int,
-) -> schemas.OrgAttendeeList:
+) -> PaginatedResponse[schemas.OrgAttendee]:
     listing = await _listing(db, organisation_id, listing_id)
     conditions = [Ticket.listing_id == listing.id]
     if status is not None:
@@ -285,7 +338,7 @@ async def list_attendees(
             .offset((page - 1) * size)
         )
     ).all()
-    return schemas.OrgAttendeeList(
+    return PaginatedResponse(
         data=[
             schemas.OrgAttendee(
                 ticket_id=ticket.id,
@@ -373,34 +426,47 @@ async def refund_order(
     actor: User,
     order_id: uuid.UUID,
     body: schemas.OrgOrderRefundCreate,
+    key: str,
 ) -> schemas.OrgOrderDetail:
     """Hand back money for a paid online order (all of it, or ``amount_minor``).
 
-    Only a full refund cancels the tickets and marks the order ``refunded``."""
+    The manual rail refunds now; a provider rail queues the refund on the outbox
+    (see ``refund_status``). ``key`` (the request's idempotency key) derives the
+    refund's id, so a retry can never refund twice. Only a full refund cancels the
+    tickets and marks the order ``refunded``."""
     order, listing = await _order(db, organisation_id, order_id, lock=True)
     if not _is_online_paid(order):
         raise EventsConflict(
             "Only paid online orders are refunded here; an outlet cash ticket is"
             " refunded from the event's refund screen"
         )
-    if order.collected_minor <= 0 or order.collected_minor <= order.refunded_minor:
+    left = order.collected_minor - order.refunded_minor
+    if order.collected_minor <= 0 or left <= 0:
         raise EventsConflict("There is nothing left to refund on this order")
-    refunded = await order_refunds.refund_order(
+    if body.amount_minor is not None and body.amount_minor > left:
+        raise EventsConflict(f"Only {left} minor units can still be refunded")
+    outcome, moved = await order_refunds.request_refund(
         db,
         organisation_id=organisation_id,
         order=order,
         actor=actor,
         reason=body.reason,
+        key=f"refund:{key}",
         amount_minor=body.amount_minor,
     )
     activity.record(
         db,
         actor_id=actor.id,
-        action="order.refunded",
+        action="order.refunded" if outcome == "refunded" else "order.refund_queued",
         entity_type="listing",
         entity_id=str(listing.id),
         organiser_id=listing.organiser_id,
-        summary={"order_id": str(order.id), "amount_minor": refunded},
+        summary={
+            "order_id": str(order.id),
+            "amount_minor": moved
+            if outcome == "refunded"
+            else body.amount_minor or left,
+        },
     )
     await db.flush()
     return await _detail(db, organisation_id, order, listing)
@@ -416,7 +482,8 @@ async def cancel_order(
     """The organiser cancels one order: its tickets stop working, the seats go
     back on sale and the refund choice decides the money.
 
-    A failed refund aborts the cancel (nothing is saved), so a retry is safe."""
+    A refund that fails on the manual rail aborts the cancel (nothing is saved); a
+    provider-rail refund is queued and followed on the order's ``refund_status``."""
     now = utc_now()
     order, listing = await _order(db, organisation_id, order_id, lock=True)
     if order.status in ("expired", "refunded"):
@@ -431,7 +498,7 @@ async def cancel_order(
     )
     if order.status == "confirmed" and issued and not live:
         raise EventsConflict("This order is already cancelled")
-    outcome: Literal["refunded", "kept", "not_due"] = "not_due"
+    outcome: Literal["refunded", "queued", "kept", "not_due"] = "not_due"
     if order.status == order_fulfilment.PENDING:
         unpaid = await order_payments.stop_collecting(
             db, organisation_id=organisation_id, order_id=order.id
@@ -475,14 +542,15 @@ async def cancel_order(
                 starts_at=listing.starts_at,
                 now=now,
             ):
-                await order_refunds.refund_order(
+                result, _ = await order_refunds.request_refund(
                     db,
                     organisation_id=organisation_id,
                     order=order,
                     actor=actor,
                     reason=(body.reason or "Order cancelled by the organiser")[:500],
+                    key=order_refunds.CANCEL_KEY,
                 )
-                outcome = "refunded"
+                outcome = "queued" if result == "queued" else "refunded"
             else:
                 outcome = "kept"
     activity.record(
@@ -496,7 +564,4 @@ async def cancel_order(
     )
     await db.flush()
     detail = await _detail(db, organisation_id, order, listing)
-    return schemas.OrgOrderCancelResult(
-        order=detail,
-        refund_outcome=outcome,
-    )
+    return schemas.OrgOrderCancelResult(order=detail, refund_outcome=outcome)

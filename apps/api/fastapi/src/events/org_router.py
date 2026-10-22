@@ -1,47 +1,53 @@
 """Barrels Events organiser desk: /api/v1/events/org/... (ADR-0025 org zone).
 
-Acts for the organisation in ``X-Barrels-Organisation``. The caller must be an
-active admin or owner of it, signed in with an account or the Events app session,
-and the organisation must hold the ``events`` entitlement (ADR-0016 amendment).
-Organisation-bound permission is resolved only through ``OrgContext``, never
-``has_permission``. An event or order of another organisation answers 404.
+Acts for the organisation in ``X-Barrels-Organisation``. Each route needs an
+organisation-bound Events key (ADR-0044) held through the member's role or a live
+grant (owners and admins hold them all), the ``events`` entitlement, and an
+account or Events app session (ADR-0016 amendment). Keys are resolved only through
+``require_org_permission``, never ``has_permission``. An event or order of another
+organisation answers 404.
 
-Money moves through the payments core; the three money writes that can be
-retried by a client (manual payment, refund) need an ``Idempotency-Key``.
+Money moves through the payments core. The two money writes a client may retry
+(manual payment, refund) need an ``Idempotency-Key``; cancelling is protected by
+the order's state (a repeat is a 409).
 """
 
 import uuid
-from typing import Annotated, Any, Literal
+from collections.abc import Awaitable, Callable
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Response, status
+from pydantic import BaseModel as PydanticModel
 
 from src import idempotency
 from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
-from src.organisations.dependencies import OrgContext, require_org_app
-from src.organisations.models import MembershipRole
-from src.pagination import MAX_PAGE
+from src.organisations.dependencies import OrgContext, require_org_permission
+from src.pagination import PaginatedResponse, PaginationDep
 
 from . import schemas, service
 from .service import org_orders
 
 router = APIRouter(prefix="/events/org", tags=["events"])
 
-EventsOrgAdmin = Annotated[
-    OrgContext,
-    Depends(require_org_app("events", MembershipRole.ADMIN, session_app="events")),
-]
+
+def _key(permission_key: str) -> Any:
+    return Depends(require_org_permission(permission_key, session_app="events"))
+
+
+OrgCanSeeOrders = Annotated[OrgContext, _key("events.settlement.view")]
+OrgCanSeeAttendees = Annotated[OrgContext, _key("events.door.scan")]
+OrgCanTakePayment = Annotated[OrgContext, _key("events.tickets.sell")]
+OrgCanRefund = Annotated[OrgContext, _key("events.refunds.issue")]
+OrgCanManageEvents = Annotated[OrgContext, _key("events.listings.manage")]
 
 READ_ERRORS = {**AUTHENTICATED, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 
-Page = Annotated[int, Query(ge=1, le=MAX_PAGE, description="Page number (1-indexed)")]
-Size = Annotated[int, Query(ge=1, le=200, description="Items per page")]
-
 
 @router.get(
     "/events/{listing_id}/orders",
-    response_model=schemas.OrgOrderList,
+    response_model=PaginatedResponse[schemas.OrgOrderRow],
     summary="List an event's orders",
     description="Orders for one of the organisation's events, newest first, optionally by status.",
     operation_id="eventsOrgListOrders",
@@ -50,28 +56,26 @@ Size = Annotated[int, Query(ge=1, le=200, description="Items per page")]
 async def list_orders(
     *,
     session: SessionDep,
-    org: EventsOrgAdmin,
+    org: OrgCanSeeOrders,
+    pagination: PaginationDep,
     listing_id: uuid.UUID,
     order_status: Annotated[
-        Literal["confirmed", "pending_payment", "expired", "refunded"] | None,
-        Query(alias="status"),
+        schemas.OrgOrderStatus | None, Query(alias="status")
     ] = None,
-    page: Page = 1,
-    size: Size = 50,
 ) -> Any:
     return await org_orders.list_orders(
         session,
         org.organisation_id,
         listing_id,
         status=order_status,
-        page=page,
-        size=size,
+        page=pagination.page,
+        size=pagination.size,
     )
 
 
 @router.get(
     "/events/{listing_id}/attendees",
-    response_model=schemas.OrgAttendeeList,
+    response_model=PaginatedResponse[schemas.OrgAttendee],
     summary="List an event's attendees",
     description="Tickets for one of the organisation's events with holder, tier and door admission time.",
     operation_id="eventsOrgListAttendees",
@@ -80,14 +84,13 @@ async def list_orders(
 async def list_attendees(
     *,
     session: SessionDep,
-    org: EventsOrgAdmin,
+    org: OrgCanSeeAttendees,
+    pagination: PaginationDep,
     listing_id: uuid.UUID,
     ticket_status: Annotated[
-        Literal["valid", "cancelled", "refunded"] | None, Query(alias="status")
+        schemas.OrgTicketStatus | None, Query(alias="status")
     ] = None,
     tier_id: uuid.UUID | None = None,
-    page: Page = 1,
-    size: Size = 50,
 ) -> Any:
     return await org_orders.list_attendees(
         session,
@@ -95,8 +98,8 @@ async def list_attendees(
         listing_id,
         status=ticket_status,
         tier_id=tier_id,
-        page=page,
-        size=size,
+        page=pagination.page,
+        size=pagination.size,
     )
 
 
@@ -117,13 +120,14 @@ async def list_attendees(
 async def cancel_event(
     *,
     session: SessionDep,
-    org: EventsOrgAdmin,
+    org: OrgCanManageEvents,
     listing_id: uuid.UUID,
-    body: schemas.CancelEvent,
+    body: schemas.OrgEventCancel,
 ) -> Any:
-    return await service.cancel_event_for_organisation(
-        session, org.user, org.organisation_id, listing_id, body.refund
-    )
+    async with org_orders.conflict_on_deadlock(session):
+        return await service.cancel_event_for_organisation(
+            session, org.user, org.organisation_id, listing_id, body.refund
+        )
 
 
 @router.get(
@@ -135,7 +139,7 @@ async def cancel_event(
     responses=READ_ERRORS,
 )
 async def get_order(
-    *, session: SessionDep, org: EventsOrgAdmin, order_id: uuid.UUID
+    *, session: SessionDep, org: OrgCanSeeOrders, order_id: uuid.UUID
 ) -> Any:
     return await org_orders.get_order(session, org.organisation_id, order_id)
 
@@ -158,7 +162,7 @@ async def record_manual_payment(
     *,
     response: Response,
     session: SessionDep,
-    org: EventsOrgAdmin,
+    org: OrgCanTakePayment,
     order_id: uuid.UUID,
     body: schemas.OrgManualPaymentCreate,
     idempotency_key: idempotency.RequiredIdempotencyKey,
@@ -192,14 +196,14 @@ async def refund_order(
     *,
     response: Response,
     session: SessionDep,
-    org: EventsOrgAdmin,
+    org: OrgCanRefund,
     order_id: uuid.UUID,
     body: schemas.OrgOrderRefundCreate,
     idempotency_key: idempotency.RequiredIdempotencyKey,
 ) -> Any:
     async def once() -> tuple[int, dict[str, Any]]:
         detail = await org_orders.refund_order(
-            session, org.organisation_id, org.user, order_id, body
+            session, org.organisation_id, org.user, order_id, body, idempotency_key
         )
         return 201, detail.model_dump(mode="json")
 
@@ -224,14 +228,15 @@ async def refund_order(
 async def cancel_order(
     *,
     session: SessionDep,
-    org: EventsOrgAdmin,
+    org: OrgCanRefund,
     order_id: uuid.UUID,
     body: schemas.OrgOrderCancel,
 ) -> Any:
-    result = await org_orders.cancel_order(
-        session, org.organisation_id, org.user, order_id, body
-    )
-    await session.commit()
+    async with org_orders.conflict_on_deadlock(session):
+        result = await org_orders.cancel_order(
+            session, org.organisation_id, org.user, order_id, body
+        )
+        await session.commit()
     return result
 
 
@@ -241,19 +246,20 @@ async def _run(
     org: OrgContext,
     order_id: uuid.UUID,
     key: str,
-    body: Any,
-    handler: Any,
+    body: PydanticModel,
+    handler: Callable[[], Awaitable[tuple[int, dict[str, Any]]]],
     scope: str,
-) -> Any:
-    result = await idempotency.run_idempotent(
-        session,
-        scope=f"events.order-{scope}",
-        organisation_id=org.organisation_id,
-        key=key,
-        request_body={"order_id": str(order_id), **body.model_dump(mode="json")},
-        handler=handler,
-    )
-    await session.commit()
+) -> dict[str, Any]:
+    async with org_orders.conflict_on_deadlock(session):
+        result = await idempotency.run_idempotent(
+            session,
+            scope=f"events.order-{scope}",
+            organisation_id=org.organisation_id,
+            key=key,
+            request_body={"order_id": str(order_id), **body.model_dump(mode="json")},
+            handler=handler,
+        )
+        await session.commit()
     response.status_code = result.status_code
     if result.replayed:
         response.headers["Idempotency-Replayed"] = "true"

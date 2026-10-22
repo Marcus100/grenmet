@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import Field
 
 from src.models import BaseModel, UtcDateTime
+from src.payments.models import IntentStatus, ProviderKey
 
 Category = Literal[
     "fete",
@@ -726,8 +727,24 @@ class CancelEvent(BaseModel):
     #: Must be true; guards against an accidental call.
     confirm: Literal[True]
     refund: RefundChoice = Field(
+        default="none",
+        description=(
+            "What to do with money already paid for online orders. Left out, no "
+            "money moves (the organiser refunds from the orders page)."
+        ),
+    )
+
+
+class OrgEventCancel(BaseModel):
+    #: Must be true; guards against an accidental call.
+    confirm: Literal[True]
+    refund: RefundChoice = Field(
         default="follow_policy",
-        description="What to do with money already paid for online orders.",
+        description=(
+            "What to do with money already paid for online orders. Left out, the "
+            "organiser policy applies: an event the organiser cancels is refunded "
+            "in full."
+        ),
     )
 
 
@@ -736,11 +753,14 @@ class CancelResult(BaseModel):
     status: Literal["cancelled"]
     #: Valid tickets cancelled with the event (holders are notified).
     tickets_cancelled: int
-    #: Paid online orders refunded in full by this cancel.
+    #: Paid manual-rail orders refunded in full inside this cancel.
     orders_refunded: int = 0
+    #: Paid provider-rail orders whose refund was queued; it is sent by the
+    #: platform outbox with retries. Follow it on each order's `refund_status`.
+    orders_queued: int = 0
     #: Paid online orders whose money was kept (refund choice ``none``).
     orders_kept: int = 0
-    #: Paid online orders whose refund failed; refund them from the orders page.
+    #: Manual-rail refunds that failed inside this cancel; refund them from the orders page.
     refunds_failed: int = 0
     #: Unpaid orders released because the event is off.
     orders_released: int = 0
@@ -776,13 +796,6 @@ class OrgOrderRow(BaseModel):
     paid_at: UtcDateTime | None
 
 
-class OrgOrderList(BaseModel):
-    data: list[OrgOrderRow]
-    count: int
-    page: int
-    size: int
-
-
 class OrgOrderItem(BaseModel):
     tier_id: uuid.UUID
     tier_name: str
@@ -800,8 +813,8 @@ class OrgOrderTicket(BaseModel):
 
 class OrgOrderPayment(BaseModel):
     intent_id: uuid.UUID
-    provider: str
-    status: str
+    provider: ProviderKey
+    status: IntentStatus
     captured_minor: int
     refunded_minor: int
     #: What can still be handed back through the payments core.
@@ -810,8 +823,14 @@ class OrgOrderPayment(BaseModel):
 
 class OrgOrderDetail(OrgOrderRow):
     listing_title: str
+    #: The buyer's Barrels account email (online orders). Shown only to admins and
+    #: owners of the organising organisation; never logged or put in activity.
     buyer_email: str | None
+    #: Phone the buyer gave when the staff took the order (outlet sales).
     buyer_phone: str | None
+    #: Where a refund stands: `queued` is waiting for the payment provider (it
+    #: retries), `failed` gave up and needs a manual refund.
+    refund_status: Literal["none", "queued", "partial", "refunded", "failed"]
     payment_expires_at: UtcDateTime | None
     items: list[OrgOrderItem]
     tickets: list[OrgOrderTicket]
@@ -828,13 +847,6 @@ class OrgAttendee(BaseModel):
     holder_name: str | None
     channel: Literal["online", "outlet"]
     admitted_at: UtcDateTime | None
-
-
-class OrgAttendeeList(BaseModel):
-    data: list[OrgAttendee]
-    count: int
-    page: int
-    size: int
 
 
 class OrgManualPaymentCreate(BaseModel):
@@ -864,5 +876,6 @@ class OrgOrderCancel(BaseModel):
 
 class OrgOrderCancelResult(BaseModel):
     order: OrgOrderDetail
-    #: ``refunded`` money went back, ``kept`` it was not, ``not_due`` nothing was paid.
-    refund_outcome: Literal["refunded", "kept", "not_due"]
+    #: ``refunded`` money went back, ``queued`` the provider refund was handed to
+    #: the outbox, ``kept`` it was not refunded, ``not_due`` nothing was paid.
+    refund_outcome: Literal["refunded", "queued", "kept", "not_due"]

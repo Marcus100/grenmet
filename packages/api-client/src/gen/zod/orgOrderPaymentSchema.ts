@@ -4,11 +4,13 @@
  */
 
 import * as z from "zod";
+import { intentStatusSchema } from "./intentStatusSchema.js";
+import { providerKeySchema } from "./providerKeySchema.js";
 
 export const orgOrderPaymentSchema = z.object({
   intent_id: z.uuid(),
-  provider: z.string(),
-  status: z.string(),
+  provider: providerKeySchema,
+  status: intentStatusSchema,
   captured_minor: z.int(),
   refunded_minor: z.int(),
   refundable_minor: z.int(),

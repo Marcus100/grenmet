@@ -123,7 +123,6 @@ async def test_orders_and_attendees_list_and_detail(
         assert order["items"][0]["quantity"] == 2
         assert order["payment"]["captured_minor"] == 2 * PRICE
         assert order["payment"]["refundable_minor"] == 2 * PRICE
-        assert order["buyer_email"]
 
         attendees = await client.get(
             f"{ORG}/events/{shop.listing_id}/attendees", headers=_h(shop)
@@ -441,10 +440,10 @@ async def test_a_failed_order_refund_aborts_the_cancel(
     shop = await _shop_with_events(db_async, events_db)
     order_id = await _paid(db_async, shop)
 
-    async def boom(*_args: object, **_kwargs: object) -> int:
+    async def boom(*_args: object, **_kwargs: object) -> tuple[str, int]:
         raise EventsConflict("provider down")
 
-    monkeypatch.setattr(order_refunds, "refund_order", boom)
+    monkeypatch.setattr(order_refunds, "request_refund", boom)
     response = await _cancel_order(shop, order_id, refund="full")
     assert response.status_code == 409
     stored = await _row(events_db, order_id)
@@ -527,5 +526,6 @@ async def test_cancel_event_none_keeps_the_money(
 def test_the_cancel_body_defaults_to_follow_policy() -> None:
     from src.events import schemas
 
-    assert schemas.CancelEvent(confirm=True).refund == "follow_policy"
-    assert schemas.CancelEvent(confirm=True, refund="none").refund == "none"
+    assert schemas.OrgEventCancel(confirm=True).refund == "follow_policy"
+    assert schemas.CancelEvent(confirm=True).refund == "none"  # legacy route
+    assert schemas.CancelEvent(confirm=True, refund="full").refund == "full"

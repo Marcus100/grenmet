@@ -21,6 +21,11 @@ export type CancelResult = {
    * @default 0
    * @type integer | undefined
    */
+  orders_queued?: number;
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
   orders_kept?: number;
   /**
    * @default 0

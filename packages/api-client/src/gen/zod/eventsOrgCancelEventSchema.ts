@@ -4,8 +4,8 @@
  */
 
 import * as z from "zod";
-import { cancelEventSchema } from "./cancelEventSchema.js";
 import { cancelResultSchema } from "./cancelResultSchema.js";
+import { orgEventCancelSchema } from "./orgEventCancelSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eventsOrgCancelEventPathListingIdSchema = z.uuid();
@@ -46,4 +46,4 @@ export const eventsOrgCancelEventErrorSchema = z.union([
   eventsOrgCancelEventStatus422Schema,
 ]);
 
-export const eventsOrgCancelEventBodySchema = cancelEventSchema;
+export const eventsOrgCancelEventBodySchema = orgEventCancelSchema;

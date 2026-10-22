@@ -7,6 +7,7 @@ import * as z from "zod";
 import { manifestRowPropertiesChannelEnumSchema } from "./manifestRowPropertiesChannelEnumSchema.js";
 import { orderPublicPropertiesStatusEnumSchema } from "./orderPublicPropertiesStatusEnumSchema.js";
 import { orgOrderDetailPropertiesPaymentMethodEnumSchema } from "./orgOrderDetailPropertiesPaymentMethodEnumSchema.js";
+import { orgOrderDetailPropertiesRefundStatusEnumSchema } from "./orgOrderDetailPropertiesRefundStatusEnumSchema.js";
 import { orgOrderItemSchema } from "./orgOrderItemSchema.js";
 import { orgOrderPaymentSchema } from "./orgOrderPaymentSchema.js";
 import { orgOrderTicketSchema } from "./orgOrderTicketSchema.js";
@@ -29,6 +30,7 @@ export const orgOrderDetailSchema = z.object({
   listing_title: z.string(),
   buyer_email: z.union([z.string(), z.null()]),
   buyer_phone: z.union([z.string(), z.null()]),
+  refund_status: orgOrderDetailPropertiesRefundStatusEnumSchema,
   payment_expires_at: z.union([z.iso.datetime(), z.null()]),
   items: z.array(orgOrderItemSchema),
   tickets: z.array(orgOrderTicketSchema),

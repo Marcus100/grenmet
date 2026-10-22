@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import type { OrgAttendeeList } from "./OrgAttendeeList.js";
 import type { OrgAttendeePropertiesStatusEnum } from "./OrgAttendeePropertiesStatusEnum.js";
+import type { PaginatedResponseOrgAttendee } from "./PaginatedResponseOrgAttendee.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsOrgListAttendeesPath = {
@@ -30,8 +30,8 @@ export type EventsOrgListAttendeesQuery = {
   /**
    * @description Items per page
    * @minLength 1
-   * @maxLength 200
-   * @default 50
+   * @maxLength 1000
+   * @default 100
    * @type integer | undefined
    */
   size?: number;
@@ -44,7 +44,7 @@ export type EventsOrgListAttendeesHeaders = {
   "X-Barrels-Organisation"?: string | null;
 };
 
-export type EventsOrgListAttendeesStatus200 = OrgAttendeeList;
+export type EventsOrgListAttendeesStatus200 = PaginatedResponseOrgAttendee;
 
 export type EventsOrgListAttendeesStatus401 = unknown;
 

@@ -10,6 +10,8 @@ export const cancelEventSchema = z.object({
   confirm: z.literal(true),
   refund: cancelEventPropertiesRefundEnumSchema
     .optional()
-    .default("follow_policy")
-    .describe("What to do with money already paid for online orders."),
+    .default("none")
+    .describe(
+      "What to do with money already paid for online orders. Left out, no money moves (the organiser refunds from the orders page)."
+    ),
 });

@@ -28,7 +28,7 @@ from ..models import (
     Ticket,
     TicketTier,
 )
-from . import holds
+from . import event_cancel, holds
 from .common import _naive_utc, _pairs
 from .discover import (
     _cards,
@@ -38,7 +38,6 @@ from .discover import (
     _organiser_verified,
     _tiers,
 )
-from .ticketing import cancel_valid_tickets
 
 _STATUS = TypeAdapter(Literal["draft", "published", "cancelled"])
 _VISIBILITY = TypeAdapter(Literal["public", "unlisted"])
@@ -417,11 +416,15 @@ async def update_listing(
     listing = await db.get(Listing, listing_id)
     if listing is None or listing.organiser_id != organiser.id:
         raise EventsNotFound("Event not found")
+    if body.status == "cancelled":
+        # Saving as cancelled cancels like the cancel action: the exclusive
+        # listing lock first, then orders, then tickets. No money moves here.
+        await db.refresh(listing, with_for_update=True)
     before = await _snapshot(db, listing)
     await _require_verified_to_publish(organiser, body.status, before["status"])
     await _apply_listing(db, listing, body, organiser)
     if before["status"] != "cancelled" and listing.status == "cancelled":
-        await cancel_valid_tickets(db, listing.id)
+        await event_cancel.cancel_event_orders(db, user, listing, "none", utc_now())
     await _record_listing_change(db, listing, user, before=before)
     await db.commit()
     return await _managed(db, listing, user)

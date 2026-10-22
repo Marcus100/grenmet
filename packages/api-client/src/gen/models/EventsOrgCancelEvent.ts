@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import type { CancelEvent } from "./CancelEvent.js";
 import type { CancelResult } from "./CancelResult.js";
+import type { OrgEventCancel } from "./OrgEventCancel.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsOrgCancelEventPath = {
@@ -41,7 +41,7 @@ export type EventsOrgCancelEventStatus409 = unknown;
  */
 export type EventsOrgCancelEventStatus422 = ValidationErrorResponse;
 
-export type EventsOrgCancelEventBody = CancelEvent;
+export type EventsOrgCancelEventBody = OrgEventCancel;
 
 export type EventsOrgCancelEventOptions = {
   body: EventsOrgCancelEventBody;

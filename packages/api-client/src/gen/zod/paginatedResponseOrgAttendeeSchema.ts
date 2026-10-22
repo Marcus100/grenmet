@@ -6,9 +6,10 @@
 import * as z from "zod";
 import { orgAttendeeSchema } from "./orgAttendeeSchema.js";
 
-export const orgAttendeeListSchema = z.object({
+export const paginatedResponseOrgAttendeeSchema = z.object({
   data: z.array(orgAttendeeSchema),
   count: z.int(),
-  page: z.int(),
-  size: z.int(),
+  page: z.int().optional().default(1),
+  size: z.int().optional().default(100),
+  total_pages: z.int().optional().default(1),
 });

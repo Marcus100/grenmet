@@ -4,8 +4,8 @@
  */
 
 import * as z from "zod";
-import { orgAttendeeListSchema } from "./orgAttendeeListSchema.js";
 import { orgAttendeePropertiesStatusEnumSchema } from "./orgAttendeePropertiesStatusEnumSchema.js";
+import { paginatedResponseOrgAttendeeSchema } from "./paginatedResponseOrgAttendeeSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eventsOrgListAttendeesPathListingIdSchema = z.uuid();
@@ -29,9 +29,9 @@ export const eventsOrgListAttendeesQueryPageSchema = z
 export const eventsOrgListAttendeesQuerySizeSchema = z
   .int()
   .min(1)
-  .max(200)
+  .max(1000)
   .optional()
-  .default(50)
+  .default(100)
   .describe("Items per page");
 
 export const eventsOrgListAttendeesHeaderXBarrelsOrganisationSchema = z
@@ -41,7 +41,8 @@ export const eventsOrgListAttendeesHeaderXBarrelsOrganisationSchema = z
     "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
   );
 
-export const eventsOrgListAttendeesStatus200Schema = orgAttendeeListSchema;
+export const eventsOrgListAttendeesStatus200Schema =
+  paginatedResponseOrgAttendeeSchema;
 
 export const eventsOrgListAttendeesStatus401Schema = z.unknown();
 

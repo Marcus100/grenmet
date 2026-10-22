@@ -6,6 +6,7 @@
 import type { ManifestRowPropertiesChannelEnum } from "./ManifestRowPropertiesChannelEnum.js";
 import type { OrderPublicPropertiesStatusEnum } from "./OrderPublicPropertiesStatusEnum.js";
 import type { OrgOrderDetailPropertiesPaymentMethodEnum } from "./OrgOrderDetailPropertiesPaymentMethodEnum.js";
+import type { OrgOrderDetailPropertiesRefundStatusEnum } from "./OrgOrderDetailPropertiesRefundStatusEnum.js";
 import type { OrgOrderItem } from "./OrgOrderItem.js";
 import type { OrgOrderPayment } from "./OrgOrderPayment.js";
 import type { OrgOrderTicket } from "./OrgOrderTicket.js";
@@ -51,6 +52,7 @@ export type OrgOrderDetail = {
   listing_title: string;
   buyer_email: string | null;
   buyer_phone: string | null;
+  refund_status: OrgOrderDetailPropertiesRefundStatusEnum;
   payment_expires_at: string | null;
   items: OrgOrderItem[];
   tickets: OrgOrderTicket[];

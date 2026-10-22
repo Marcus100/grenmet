@@ -5,6 +5,7 @@
 
 export const orgOrderCancelResultPropertiesRefundOutcomeEnum = {
   refunded: "refunded",
+  queued: "queued",
   kept: "kept",
   not_due: "not_due",
 } as const;

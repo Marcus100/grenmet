@@ -87,6 +87,7 @@ async def test_cancelling_an_event_cancels_every_ticket_and_tells_holders(
         "status": "cancelled",
         "tickets_cancelled": 4,
         "orders_refunded": 0,
+        "orders_queued": 0,
         "orders_kept": 0,
         "refunds_failed": 0,
         "orders_released": 0,

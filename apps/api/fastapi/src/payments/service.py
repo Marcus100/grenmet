@@ -608,12 +608,24 @@ async def refund_intent(
     intent_id: uuid.UUID,
     actor: User | None,
     payload: schemas.PaymentRefundCreate,
+    refund_id: uuid.UUID | None = None,
 ) -> schemas.PaymentRefundPublic:
     """Hand money back. The total refunded can never exceed what was captured.
 
     ``actor`` is ``None`` when the system refunds (for example a booking
-    deposit); the refund and ledger rows then record no user."""
+    deposit); the refund and ledger rows then record no user.
+
+    ``refund_id`` lets a caller that retries (an outbox handler) derive the refund's
+    id from its own request: a refund with that id on this intent is returned as it
+    is, and the provider (Stripe uses ``refund-<id>`` as its idempotency key) never
+    sees a second refund for the same request."""
     intent = await _get_owned(session, organisation_id, intent_id, lock=True)
+    if refund_id is not None:
+        existing = await session.get(Refund, refund_id)
+        if existing is not None:
+            if existing.intent_id != intent.id:
+                raise PaymentsConflictError("That refund belongs to another payment")
+            return _refund_public(existing)
     captured, refunded = await _totals(session, intent.id)
     if captured <= 0:
         raise PaymentsConflictError("Nothing has been collected on this payment")
@@ -626,6 +638,7 @@ async def refund_intent(
 
     provider = registry.get_provider(intent.provider)
     refund = Refund(
+        id=refund_id or uuid.uuid4(),
         intent_id=intent.id,
         amount_minor=amount,
         reason=payload.reason,

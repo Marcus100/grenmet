@@ -37600,7 +37600,7 @@
           "events"
         ],
         "summary": "Cancel an event",
-        "description": "Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` or `follow_policy` (default; an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.",
+        "description": "Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` (default; no money moves) or `follow_policy` (an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.",
         "operationId": "eventsCancelEvent",
         "security": [
           {
@@ -39180,10 +39180,10 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "maximum": 200,
+              "maximum": 1000,
               "minimum": 1,
               "description": "Items per page",
-              "default": 50,
+              "default": 100,
               "title": "Size"
             },
             "description": "Items per page"
@@ -39213,7 +39213,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgOrderList"
+                  "$ref": "#/components/schemas/PaginatedResponse_OrgOrderRow_"
                 }
               }
             }
@@ -39317,10 +39317,10 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "maximum": 200,
+              "maximum": 1000,
               "minimum": 1,
               "description": "Items per page",
-              "default": 50,
+              "default": 100,
               "title": "Size"
             },
             "description": "Items per page"
@@ -39350,7 +39350,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgAttendeeList"
+                  "$ref": "#/components/schemas/PaginatedResponse_OrgAttendee_"
                 }
               }
             }
@@ -39425,7 +39425,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CancelEvent"
+                "$ref": "#/components/schemas/OrgEventCancel"
               }
             }
           }
@@ -50197,6 +50197,11 @@
           "orders_refunded": {
             "type": "integer",
             "title": "Orders Refunded",
+            "default": 0
+          },
+          "orders_queued": {
+            "type": "integer",
+            "title": "Orders Queued",
             "default": 0
           },
           "orders_kept": {
@@ -63726,36 +63731,22 @@
         ],
         "title": "OrgAttendee"
       },
-      "OrgAttendeeList": {
+      "OrgEventCancel": {
         "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/OrgAttendee"
-            },
-            "type": "array",
-            "title": "Data"
+          "confirm": {
+            "type": "boolean",
+            "const": true,
+            "title": "Confirm"
           },
-          "count": {
-            "type": "integer",
-            "title": "Count"
-          },
-          "page": {
-            "type": "integer",
-            "title": "Page"
-          },
-          "size": {
-            "type": "integer",
-            "title": "Size"
+          "refund": {
+            "$ref": "#/components/schemas/CancelEventPropertiesRefundEnum"
           }
         },
         "type": "object",
         "required": [
-          "data",
-          "count",
-          "page",
-          "size"
+          "confirm"
         ],
-        "title": "OrgAttendeeList"
+        "title": "OrgEventCancel"
       },
       "OrgManualPaymentCreate": {
         "properties": {
@@ -63918,6 +63909,9 @@
             ],
             "title": "Buyer Phone"
           },
+          "refund_status": {
+            "$ref": "#/components/schemas/OrgOrderDetailPropertiesRefundStatusEnum"
+          },
           "payment_expires_at": {
             "anyOf": [
               {
@@ -63974,6 +63968,7 @@
           "listing_title",
           "buyer_email",
           "buyer_phone",
+          "refund_status",
           "payment_expires_at",
           "items",
           "tickets",
@@ -64010,37 +64005,6 @@
         ],
         "title": "OrgOrderItem"
       },
-      "OrgOrderList": {
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/OrgOrderRow"
-            },
-            "type": "array",
-            "title": "Data"
-          },
-          "count": {
-            "type": "integer",
-            "title": "Count"
-          },
-          "page": {
-            "type": "integer",
-            "title": "Page"
-          },
-          "size": {
-            "type": "integer",
-            "title": "Size"
-          }
-        },
-        "type": "object",
-        "required": [
-          "data",
-          "count",
-          "page",
-          "size"
-        ],
-        "title": "OrgOrderList"
-      },
       "OrgOrderPayment": {
         "properties": {
           "intent_id": {
@@ -64049,12 +64013,10 @@
             "title": "Intent Id"
           },
           "provider": {
-            "type": "string",
-            "title": "Provider"
+            "$ref": "#/components/schemas/ProviderKey"
           },
           "status": {
-            "type": "string",
-            "title": "Status"
+            "$ref": "#/components/schemas/IntentStatus"
           },
           "captured_minor": {
             "type": "integer",
@@ -65684,6 +65646,78 @@
           "count"
         ],
         "title": "PaginatedResponse[NotificationPublic]"
+      },
+      "PaginatedResponse_OrgAttendee_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/OrgAttendee"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "PaginatedResponse[OrgAttendee]"
+      },
+      "PaginatedResponse_OrgOrderRow_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/OrgOrderRow"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "PaginatedResponse[OrgOrderRow]"
       },
       "PaginatedResponse_PermissionPublic_": {
         "properties": {
@@ -84624,8 +84658,8 @@
           "none",
           "follow_policy"
         ],
-        "description": "What to do with money already paid for online orders.",
-        "default": "follow_policy"
+        "description": "What to do with money already paid for online orders. Left out, no money moves (the organiser refunds from the orders page).",
+        "default": "none"
       },
       "CapAlertImportRequestPropertiesSourceEnum": {
         "type": "string",
@@ -85054,6 +85088,7 @@
         "type": "string",
         "enum": [
           "refunded",
+          "queued",
           "kept",
           "not_due"
         ]
@@ -85064,6 +85099,16 @@
           "none",
           "cash_outlet",
           "online"
+        ]
+      },
+      "OrgOrderDetailPropertiesRefundStatusEnum": {
+        "type": "string",
+        "enum": [
+          "none",
+          "queued",
+          "partial",
+          "refunded",
+          "failed"
         ]
       },
       "ProfilePublicPropertiesConnectionStateEnum": {

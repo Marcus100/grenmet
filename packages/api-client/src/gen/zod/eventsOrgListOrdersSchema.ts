@@ -5,7 +5,7 @@
 
 import * as z from "zod";
 import { orderPublicPropertiesStatusEnumSchema } from "./orderPublicPropertiesStatusEnumSchema.js";
-import { orgOrderListSchema } from "./orgOrderListSchema.js";
+import { paginatedResponseOrgOrderRowSchema } from "./paginatedResponseOrgOrderRowSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eventsOrgListOrdersPathListingIdSchema = z.uuid();
@@ -25,9 +25,9 @@ export const eventsOrgListOrdersQueryPageSchema = z
 export const eventsOrgListOrdersQuerySizeSchema = z
   .int()
   .min(1)
-  .max(200)
+  .max(1000)
   .optional()
-  .default(50)
+  .default(100)
   .describe("Items per page");
 
 export const eventsOrgListOrdersHeaderXBarrelsOrganisationSchema = z
@@ -37,7 +37,8 @@ export const eventsOrgListOrdersHeaderXBarrelsOrganisationSchema = z
     "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
   );
 
-export const eventsOrgListOrdersStatus200Schema = orgOrderListSchema;
+export const eventsOrgListOrdersStatus200Schema =
+  paginatedResponseOrgOrderRowSchema;
 
 export const eventsOrgListOrdersStatus401Schema = z.unknown();
 

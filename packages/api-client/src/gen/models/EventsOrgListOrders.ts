@@ -4,7 +4,7 @@
  */
 
 import type { OrderPublicPropertiesStatusEnum } from "./OrderPublicPropertiesStatusEnum.js";
-import type { OrgOrderList } from "./OrgOrderList.js";
+import type { PaginatedResponseOrgOrderRow } from "./PaginatedResponseOrgOrderRow.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsOrgListOrdersPath = {
@@ -29,8 +29,8 @@ export type EventsOrgListOrdersQuery = {
   /**
    * @description Items per page
    * @minLength 1
-   * @maxLength 200
-   * @default 50
+   * @maxLength 1000
+   * @default 100
    * @type integer | undefined
    */
   size?: number;
@@ -43,7 +43,7 @@ export type EventsOrgListOrdersHeaders = {
   "X-Barrels-Organisation"?: string | null;
 };
 
-export type EventsOrgListOrdersStatus200 = OrgOrderList;
+export type EventsOrgListOrdersStatus200 = PaginatedResponseOrgOrderRow;
 
 export type EventsOrgListOrdersStatus401 = unknown;
 

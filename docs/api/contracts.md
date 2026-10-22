@@ -579,21 +579,35 @@ admitted. The settlement report lists `refunds` and per-channel `refunded`/`refu
 
 ### Events organiser orders (org zone)
 
-`/events/org/*` acts for the organisation in `X-Barrels-Organisation` (active admin or owner,
-account or Events app session, `events` entitlement; another organisation's event or order is
-404). `GET /events/org/events/{id}/orders` (`status`, `page`, `size`), `GET .../attendees`
-(`status`, `tier_id`) and `GET /events/org/orders/{id}` read the desk.
+`/events/org/*` acts for the organisation in `X-Barrels-Organisation` (account or Events app
+session, `events` entitlement). Each route needs an organisation-bound Events key (ADR-0044),
+held by owners and admins and by members through a grant: orders `events.settlement.view`,
+attendees `events.door.scan`, manual payment `events.tickets.sell`, refund and order cancel
+`events.refunds.issue`, event cancel `events.listings.manage`. Another organisation's event or
+order is 404. The order detail carries the buyer's account email (owner-approved); lists carry none and use `PaginatedResponse`.
+`GET /events/org/events/{id}/orders` (`status`, `page`, `size`), `GET .../attendees` (`status`,
+`tier_id`) and `GET /events/org/orders/{id}` (with `refund_status`) read the desk.
 `POST /events/org/orders/{id}/manual-payments` (`{method: "cash"|"bank_transfer", reference?}`,
-`Idempotency-Key` required, 201) records money received for a `pending_payment` order and issues
-its tickets at once; `POST .../refunds` (`{amount_minor?, reason}`, `Idempotency-Key` required)
-hands money back through the payments core (a full refund cancels the tickets). Both replay the
-first answer with `Idempotency-Replayed: true`. Cancelling takes `refund`: `full`, `none` or
-`follow_policy` (default). `POST /events/org/orders/{id}/cancel` (`{reason?, refund}`) cancels one
+`Idempotency-Key` required, 201) records money received for a `pending_payment` order on the manual
+rail and issues its tickets at once. `POST .../refunds` (`{amount_minor?, reason}`,
+`Idempotency-Key` required) hands money back through the payments core. Both replay the first
+answer with `Idempotency-Replayed: true`.
+
+Refund choice: cancelling takes `refund`: `full`, `none` or `follow_policy`.
+`POST /events/org/orders/{id}/cancel` (`{reason?, refund}`, default `follow_policy`) cancels one
 order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUTOFF_HOURS`
-(default 48) away; a failed refund aborts the cancel; outlet cash orders cancel only with `none`.
-`POST /events/org/events/{id}/cancel` and the existing `POST /events/manage/{id}/cancel` (new
-optional `refund`) cancel an event; `follow_policy` refunds paid online orders in full, releases
-unpaid ones and reports `orders_refunded`, `orders_kept`, `refunds_failed`, `orders_released`.
+(default 48) away; outlet cash orders cancel only with `none`.
+`POST /events/org/events/{id}/cancel` (`{confirm, refund}`, default `follow_policy`: paid online
+orders are refunded in full, unpaid holds released) cancels an event. The legacy
+`POST /events/manage/{id}/cancel` takes the same optional `refund` but defaults to `none`, and
+saving a listing as cancelled never moves money. Event cancel reports `orders_refunded`
+(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`
+and `refunds_failed`.
+
+Provider-rail (card) refunds are never sent inside a request: they are queued on the outbox topic
+`events.order_refund_requested` and sent with retries; the refund id is derived from the order and
+the request, so a retry cannot refund twice. Follow it on the order's `refund_status`
+(`none`, `queued`, `partial`, `refunded`, `failed`).
 
 ## Platform foundations (PF-series, 2026-10-20)
 

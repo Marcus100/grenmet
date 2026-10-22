@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
 
-from . import order_fulfilment, order_payments
+from . import order_fulfilment, order_payments, order_refunds
 
 logger = logging.getLogger(__name__)
 
@@ -54,4 +54,38 @@ async def order_refunded(session: AsyncSession, message: outbox.OutboxMessage) -
         return
     await order_fulfilment.apply_refund(
         session, organisation_id=ids[0], order_id=ids[1]
+    )
+
+
+@outbox.handler(order_refunds.REQUESTED_TOPIC)
+async def order_refund_requested(
+    session: AsyncSession, message: outbox.OutboxMessage
+) -> None:
+    """An organiser's refund for a provider-rail order (never sent under request
+    locks). Errors propagate: the outbox retries, then dead-letters."""
+    if message.organisation_id is None:
+        logger.warning("event order refund message without an organisation; dropped")
+        return
+    payload = message.payload
+    try:
+        order_id = uuid.UUID(str(payload["order_id"]))
+        intent_id = uuid.UUID(str(payload["intent_id"]))
+        refund_id = uuid.UUID(str(payload["refund_id"]))
+        actor = payload.get("actor_id")
+        actor_id = uuid.UUID(str(actor)) if actor else None
+        amount = payload.get("amount_minor")
+        amount_minor = int(amount) if amount is not None else None
+        reason = str(payload["reason"])
+    except KeyError, ValueError, TypeError:
+        logger.warning("event order refund message with a bad payload; dropped")
+        return
+    await order_refunds.perform_requested(
+        session,
+        organisation_id=message.organisation_id,
+        order_id=order_id,
+        intent_id=intent_id,
+        refund_id=refund_id,
+        actor_id=actor_id,
+        amount_minor=amount_minor,
+        reason=reason,
     )

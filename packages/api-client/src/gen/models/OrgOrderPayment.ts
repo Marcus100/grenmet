@@ -3,6 +3,9 @@
  * Do not edit manually.
  */
 
+import type { IntentStatus } from "./IntentStatus.js";
+import type { ProviderKey } from "./ProviderKey.js";
+
 export type OrgOrderPayment = {
   /**
    * @description
@@ -10,8 +13,8 @@ export type OrgOrderPayment = {
    * @type string
    */
   intent_id: string;
-  provider: string;
-  status: string;
+  provider: ProviderKey;
+  status: IntentStatus;
   captured_minor: number;
   refunded_minor: number;
   refundable_minor: number;

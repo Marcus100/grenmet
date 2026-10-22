@@ -11,7 +11,7 @@ import type {
 } from "../models/EventsCancelEvent.js";
 
 /**
- * @description Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` or `follow_policy` (default; an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.
+ * @description Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` (default; no money moves) or `follow_policy` (an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.
  * @summary Cancel an event
  * {@link /api/v1/events/manage/:listing_id/cancel}
  */

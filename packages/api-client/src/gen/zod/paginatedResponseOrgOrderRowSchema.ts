@@ -6,9 +6,10 @@
 import * as z from "zod";
 import { orgOrderRowSchema } from "./orgOrderRowSchema.js";
 
-export const orgOrderListSchema = z.object({
+export const paginatedResponseOrgOrderRowSchema = z.object({
   data: z.array(orgOrderRowSchema),
   count: z.int(),
-  page: z.int(),
-  size: z.int(),
+  page: z.int().optional().default(1),
+  size: z.int().optional().default(100),
+  total_pages: z.int().optional().default(1),
 });
