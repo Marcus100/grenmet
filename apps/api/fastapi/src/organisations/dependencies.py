@@ -36,6 +36,7 @@ from src.audit import service as audit_service
 from src.auth import privileged_mfa
 from src.auth.app_dependencies import unauthorized, user_for_app
 from src.auth.config import auth_settings
+from src.auth.eligibility import is_eligible_for_app
 from src.auth.models import User
 from src.auth.permissions import EVENTS_OPS_KEYS
 from src.auth.policy import has_role_permission
@@ -361,12 +362,22 @@ async def _within_staff_limit(limit: str, bucket: str, user_id: uuid.UUID) -> No
         )
 
 
+async def has_staff_access(session: AsyncSession, user: User, staff_key: str) -> bool:
+    """The staff key through a role, and the Events app (``app.events.access``).
+
+    Checked explicitly so a custom role with only an ops key cannot skip the app
+    gate on an account token."""
+    return await has_role_permission(
+        session=session, user=user, permission_key=staff_key
+    ) and await is_eligible_for_app(session=session, user=user, app_key="events")
+
+
 def require_org_permission_or_staff(
     org_key: str,
     staff_key: str,
     *,
     session_app: str | None = "events",
-    write_limit: str | None = None,
+    staff_limit: str | None = None,
 ) -> Callable[..., AsyncGenerator[EventsActor]]:
     """Dependency for an org-zone route a member OR Barrels staff may use (ADR-0050).
 
@@ -378,7 +389,7 @@ def require_org_permission_or_staff(
     when not: a missing key and an unknown organisation answer alike), be active
     (403) and hold the product entitlement (403). Keys in ``STAFF_MFA_KEYS`` also
     need a session that passed two-step verification (403), checked before the
-    organisation is looked up. ``write_limit`` ("20/minute") limits staff-path
+    organisation is looked up. ``staff_limit`` ("20/minute") limits staff-path
     calls per user and staff key. A member who holds neither key keeps the member
     denial (403). Sets ``session.info['events.actor_capacity']``."""
     if not grants.is_product_key(org_key):
@@ -438,9 +449,7 @@ def require_org_permission_or_staff(
             else:
                 member_denial = OrganisationPermissionError()
 
-        if not await has_role_permission(
-            session=session, user=user, permission_key=staff_key
-        ):
+        if not await has_staff_access(session, user, staff_key):
             if member_denial is not None:
                 logger.warning(
                     "Organisation permission denied",
@@ -466,15 +475,15 @@ def require_org_permission_or_staff(
         await service.require_app_enabled(
             session, organisation_id=organisation_id, app_key=product
         )
-        if write_limit is not None:
-            await _within_staff_limit(write_limit, staff_key, user.id)
+        if staff_limit is not None:
+            await _within_staff_limit(staff_limit, staff_key, user.id)
         session.info[ACTOR_CAPACITY_KEY] = "staff"
         with bound_organisation(organisation_id):
             yield EventsActor(
                 organisation=target, user=user, membership=None, capacity="staff"
             )
 
-    # Read by the route registry test (tests/events/test_staff_ops_registry.py).
+    # Read by the route registry test (tests/events/test_staff_ops.py).
     setattr(dependency, "key_pair", (org_key, staff_key))  # noqa: B010
     return dependency
 

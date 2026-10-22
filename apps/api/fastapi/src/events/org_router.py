@@ -31,8 +31,10 @@ from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import (
     EventsActor,
+    has_staff_access,
     require_org_permission_or_staff,
 )
+from src.organisations.exceptions import OrganisationPermissionError
 from src.organisations.models import MembershipRole
 from src.pagination import PaginatedResponse, PaginationDep
 
@@ -45,6 +47,7 @@ router = APIRouter(prefix="/events/org", tags=["events"])
 
 STAFF_WRITE_LIMIT_MONEY = "20/minute"
 STAFF_WRITE_LIMIT_TILL = "120/minute"
+STAFF_READ_LIMIT = "120/minute"
 
 #: Every org-zone route -> exactly one (organisation key, staff key) pair. The
 #: registry test checks this against the router's real dependencies.
@@ -79,27 +82,31 @@ def _log_staff_read(org: EventsActor, what: str, listing_id: uuid.UUID) -> None:
         )
 
 
-def _key(permission_key: str, *, write_limit: str | None = None) -> Any:
+def _key(permission_key: str, *, staff_limit: str | None = None) -> Any:
     staff_key = next(
         staff for org_key, staff in ROUTE_KEYS.values() if org_key == permission_key
     )
     return Depends(
         require_org_permission_or_staff(
-            permission_key, staff_key, session_app="events", write_limit=write_limit
+            permission_key, staff_key, session_app="events", staff_limit=staff_limit
         )
     )
 
 
-OrgCanSeeOrders = Annotated[EventsActor, _key("events.settlement.view")]
-OrgCanSeeAttendees = Annotated[EventsActor, _key("events.door.scan")]
+OrgCanSeeOrders = Annotated[
+    EventsActor, _key("events.settlement.view", staff_limit=STAFF_READ_LIMIT)
+]
+OrgCanSeeAttendees = Annotated[
+    EventsActor, _key("events.door.scan", staff_limit=STAFF_READ_LIMIT)
+]
 OrgCanTakePayment = Annotated[
-    EventsActor, _key("events.tickets.sell", write_limit=STAFF_WRITE_LIMIT_TILL)
+    EventsActor, _key("events.tickets.sell", staff_limit=STAFF_WRITE_LIMIT_TILL)
 ]
 OrgCanRefund = Annotated[
-    EventsActor, _key("events.refunds.issue", write_limit=STAFF_WRITE_LIMIT_MONEY)
+    EventsActor, _key("events.refunds.issue", staff_limit=STAFF_WRITE_LIMIT_MONEY)
 ]
 OrgCanManageEvents = Annotated[
-    EventsActor, _key("events.listings.manage", write_limit=STAFF_WRITE_LIMIT_MONEY)
+    EventsActor, _key("events.listings.manage", staff_limit=STAFF_WRITE_LIMIT_MONEY)
 ]
 
 READ_ERRORS = {**AUTHENTICATED, **NOT_FOUND}
@@ -187,6 +194,11 @@ async def cancel_event(
     listing_id: uuid.UUID,
     body: schemas.OrgEventCancel,
 ) -> Any:
+    if org.is_staff and body.refund != "none":
+        # events.ops.listings alone must not move money: a refunding cancel also
+        # needs events.ops.refunds (the manager role deliberately lacks it).
+        if not await has_staff_access(session, org.user, "events.ops.refunds"):
+            raise OrganisationPermissionError()
     async with org_orders.conflict_on_deadlock(session):
         return await service.cancel_event_for_organisation(
             session, org.user, org.organisation_id, listing_id, body.refund

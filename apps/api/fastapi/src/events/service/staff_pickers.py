@@ -1,7 +1,8 @@
 """Barrels staff pickers (admin zone, ADR-0050): find an organiser's event to act on.
 
-Filtered and paginated in SQL. Only organisers linked to a platform organisation
-are listed (the org-zone routes need one). No emails or other personal data.
+Filtered and paginated in SQL. Only organisers linked to an active platform
+organisation with the ``events`` entitlement are listed (the org-zone routes need
+both). Drafts are listed only for staff who help with listings or settlement. No emails or other personal data.
 """
 
 import uuid
@@ -10,10 +11,34 @@ from datetime import datetime
 from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.organisations.models import (
+    OrganisationApp,
+    OrganisationStatus,
+    PlatformOrganisation,
+)
 from src.pagination import PaginatedResponse
 
 from .. import schemas
 from ..models import Listing, Organiser
+
+
+def _operable() -> ColumnElement[bool]:
+    """The organiser's organisation is active and holds the events entitlement."""
+    return (
+        select(PlatformOrganisation.id)
+        .where(
+            PlatformOrganisation.id == Organiser.organisation_id,
+            PlatformOrganisation.status == OrganisationStatus.ACTIVE.value,
+            select(OrganisationApp.organisation_id)
+            .where(
+                OrganisationApp.organisation_id == PlatformOrganisation.id,
+                OrganisationApp.app_key == "events",
+                OrganisationApp.enabled.is_(True),
+            )
+            .exists(),
+        )
+        .exists()
+    )
 
 
 async def list_events(
@@ -23,10 +48,13 @@ async def list_events(
     starts_to: datetime | None,
     q: str | None,
     organiser_id: uuid.UUID | None,
+    include_drafts: bool,
     page: int,
     size: int,
 ) -> PaginatedResponse[schemas.StaffEventRow]:
-    conditions: list[ColumnElement[bool]] = [Organiser.organisation_id.is_not(None)]
+    conditions: list[ColumnElement[bool]] = [_operable()]
+    if not include_drafts:
+        conditions.append(Listing.status != "draft")
     if starts_from is not None:
         conditions.append(Listing.starts_at >= starts_from)
     if starts_to is not None:
@@ -81,9 +109,16 @@ async def list_events(
 
 
 async def list_organisers(
-    db: AsyncSession, *, q: str | None, page: int, size: int
+    db: AsyncSession, *, q: str | None, include_drafts: bool, page: int, size: int
 ) -> PaginatedResponse[schemas.StaffOrganiserRow]:
-    conditions: list[ColumnElement[bool]] = [Organiser.organisation_id.is_not(None)]
+    conditions: list[ColumnElement[bool]] = [_operable()]
+    if not include_drafts:
+        # A door-only caller sees no organiser that has nothing published.
+        conditions.append(
+            select(Listing.id)
+            .where(Listing.organiser_id == Organiser.id, Listing.status != "draft")
+            .exists()
+        )
     if q and q.strip():
         conditions.append(Organiser.name.icontains(q.strip(), autoescape=True))
     count = await db.scalar(

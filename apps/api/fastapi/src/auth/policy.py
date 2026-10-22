@@ -58,26 +58,25 @@ async def _active_assignments(
 async def has_role_permission(
     *, session: AsyncSession, user: User, permission_key: str
 ) -> bool:
-    """True when a role the user holds right now carries ``permission_key``.
+    """True when a role the user holds right now carries ``permission_key`` (ADR-0050).
 
-    Resolved through ``access.effective_roles`` (ADR-0050), never through
-    ``user.roles`` or ``has_permission``: a role assignment counts from
-    ``effective_from`` until ``effective_to`` (open-ended when null; an expired or
-    not-yet-started one gives nothing), and a plain role link counts only where the
-    user never had an assignment for that role (a plain link cannot expire). A
-    superuser has no implicit key: staff keys must be granted through a role.
-    Organisation-bound keys are always False.
+    Resolved through ``access.all_scope_permission_keys``, never through
+    ``user.roles`` or ``has_permission``: only live ALL-scope assignments count
+    (``effective_from`` <= now < ``effective_to``, open-ended when null; an expired
+    or not-yet-started one gives nothing), plus plain role links for roles the user
+    never had an assignment for (a plain link cannot expire). SELF- and
+    DEPARTMENT-scoped assignments give no staff key. A superuser has no implicit
+    key: staff keys must be granted through a role. Organisation-bound keys are
+    always False.
     """
     wanted = permission_key.strip().lower()
     if not user.is_active or wanted in ORGANISATION_BOUND_KEYS:
         return False
-    from src.auth.access import effective_roles
+    from src.auth.access import all_scope_permission_keys
 
-    return any(
-        permission.key.lower() == wanted
-        for role in await effective_roles(session, user)
-        for permission in role.permissions
-    )
+    return wanted in {
+        key.lower() for key in await all_scope_permission_keys(session, user)
+    }
 
 
 def is_organisation_bound(*, user: User, permission_key: str) -> bool:

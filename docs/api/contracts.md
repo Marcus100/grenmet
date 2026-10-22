@@ -635,7 +635,7 @@ two-step verification (403), whatever `AUTH_PRIVILEGED_MFA_MODE` says. Staff see
 rows show as "Barrels staff" with a nil actor id. Staff pick work with
 `GET /events/admin/events` (`from`, `to`, `q`, `organiser_id`, `page`, `size`) and
 `GET /events/admin/organisers` (`q`): ids, names, dates and status only, any `events.ops.*` key,
-two-step verification unless the only key is `events.ops.door`. Staff end dates are not built yet:
+two-step verification unless the only key is `events.ops.door`. Staff keys count only from live ALL-scope role assignments or plain role links (SELF/DEPARTMENT give none), and the caller needs `app.events.access`. A staff event cancel with `refund` other than `none` also needs `events.ops.refunds` (403). Staff reads are limited to 120/minute per user and key. The pickers list only active organisations with the `events` entitlement, and draft listings only to holders of `events.ops.listings` or `events.ops.settlement`. Staff end dates are not built yet:
 only permanent staff roles are supported.
 
 ## Platform foundations (PF-series, 2026-10-20)

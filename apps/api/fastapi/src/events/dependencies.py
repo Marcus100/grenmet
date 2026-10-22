@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import Depends
@@ -8,11 +9,11 @@ from src.auth import service as auth_service
 from src.auth.app_dependencies import app_user, optional_app_user
 from src.auth.models import User
 from src.auth.permissions import EVENTS_OPS_KEYS
-from src.auth.policy import has_role_permission
 from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.organisations import service as organisations
 from src.organisations.dependencies import (
     STAFF_MFA_KEYS,
+    has_staff_access,
     require_staff_session_mfa,
     resolve_org_caller,
 )
@@ -82,27 +83,40 @@ async def require_moderation_reader(user: CurrentUser, session: SessionDep) -> U
 ModerationReader = Annotated[User, Depends(require_moderation_reader)]
 
 
-async def require_events_staff(session: SessionDep, token: TokenDep) -> User:
+@dataclass(frozen=True)
+class StaffAccess:
+    """A Barrels staff caller and the ``events.ops.*`` keys held through roles."""
+
+    user: User
+    keys: frozenset[str]
+
+    @property
+    def sees_drafts(self) -> bool:
+        """Draft titles are for staff who help with listings or settlement, not the
+        door."""
+        return bool(self.keys & {"events.ops.listings", "events.ops.settlement"})
+
+
+async def require_events_staff(session: SessionDep, token: TokenDep) -> StaffAccess:
     """Barrels staff who hold some ``events.ops.*`` key through a role (ADR-0050).
 
-    An account session or an Events app session. A superuser holds no key
-    implicitly. Two-step verification is required unless the only key held is
-    ``events.ops.door`` (volunteers). 403 for anyone else."""
+    An account session or an Events app session, with the Events app
+    (``app.events.access``). A superuser holds no key implicitly. Two-step
+    verification is required unless the only key held is ``events.ops.door``
+    (volunteers). 403 for anyone else."""
     user, token_app = await resolve_org_caller(
         session,
         HTTPAuthorizationCredentials(scheme="Bearer", credentials=token),
         "events",
     )
-    held = {
-        key
-        for key in EVENTS_OPS_KEYS
-        if await has_role_permission(session=session, user=user, permission_key=key)
-    }
+    held = frozenset(
+        [key for key in EVENTS_OPS_KEYS if await has_staff_access(session, user, key)]
+    )
     if not held:
         raise EventsForbidden("Events staff access is required")
     if held & STAFF_MFA_KEYS:
         await require_staff_session_mfa(session, user, token=token, token_app=token_app)
-    return user
+    return StaffAccess(user=user, keys=held)
 
 
-EventsStaff = Annotated[User, Depends(require_events_staff)]
+EventsStaff = Annotated[StaffAccess, Depends(require_events_staff)]

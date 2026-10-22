@@ -37,7 +37,7 @@ router = APIRouter(prefix="/events/admin", tags=["events"])
 async def list_events(
     *,
     session: EventsSession,
-    _staff: EventsStaff,
+    staff: EventsStaff,
     pagination: PaginationDep,
     starts_from: Annotated[UtcDateTime | None, Query(alias="from")] = None,
     starts_to: Annotated[UtcDateTime | None, Query(alias="to")] = None,
@@ -50,6 +50,7 @@ async def list_events(
         starts_to=starts_to,
         q=q,
         organiser_id=organiser_id,
+        include_drafts=staff.sees_drafts,
         page=pagination.page,
         size=pagination.size,
     )
@@ -66,10 +67,14 @@ async def list_events(
 async def list_organisers(
     *,
     session: EventsSession,
-    _staff: EventsStaff,
+    staff: EventsStaff,
     pagination: PaginationDep,
     q: Annotated[str | None, Query(max_length=100)] = None,
 ) -> Any:
     return await staff_pickers.list_organisers(
-        session, q=q, page=pagination.page, size=pagination.size
+        session,
+        q=q,
+        include_drafts=staff.sees_drafts,
+        page=pagination.page,
+        size=pagination.size,
     )

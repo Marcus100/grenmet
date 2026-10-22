@@ -26,7 +26,7 @@ from src.auth.models import (
 from src.auth.permissions import seed_permissions_and_roles_async
 from src.auth.utils import create_access_token
 from src.events import org_router
-from src.events.models import Activity
+from src.events.models import Activity, Listing, Organiser
 from src.organisations.models import OrganisationApp, PlatformOrganisation
 from src.rate_limit import limiter
 from src.utils.datetime import utc_now
@@ -77,6 +77,8 @@ async def _give_role(
     *,
     how: str = "link",
     effective_to: object = None,
+    scope: RoleAssignmentScope = RoleAssignmentScope.ALL,
+    department_id: str | None = None,
 ) -> None:
     await seed_permissions_and_roles_async(db)
     role = await db.scalar(select(Role).where(Role.name == role_name))
@@ -89,7 +91,8 @@ async def _give_role(
                 organisation_id="gaa",
                 user_id=user_id,
                 role_id=role.id,
-                scope=RoleAssignmentScope.ALL,
+                scope=scope,
+                department_id=department_id,
                 effective_from=utc_now() - timedelta(days=1),
                 effective_to=effective_to,
             )
@@ -106,12 +109,22 @@ async def _staff(
     superuser: bool = False,
     how: str = "link",
     effective_to: object = None,
+    scope: RoleAssignmentScope = RoleAssignmentScope.ALL,
+    department_id: str | None = None,
 ) -> tuple[User, dict[str, str]]:
     """A staff user with ``role_name`` and a bearer token; ``mfa`` signs in with an
     enrolled authenticator, ``app`` mints an app-scoped token (``events``)."""
     user = await make_full_user(db, superuser=superuser)
     if role_name is not None:
-        await _give_role(db, user.id, role_name, how=how, effective_to=effective_to)
+        await _give_role(
+            db,
+            user.id,
+            role_name,
+            how=how,
+            effective_to=effective_to,
+            scope=scope,
+            department_id=department_id,
+        )
     if not mfa:
         token = create_access_token(
             user.id, expires_delta=timedelta(minutes=5), app=app
@@ -644,3 +657,336 @@ def test_every_staff_key_is_used_by_a_route() -> None:
     bindings = {p.key: p.binding for p in PERMISSIONS}
     assert all(bindings[k] == "global" for k in EVENTS_OPS_KEYS)
     assert "events.ops.team" not in bindings
+
+
+# --- ADR-0050 review tightening -------------------------------------------------------
+
+
+async def _custom_user(
+    db: AsyncSession, *keys: str, mfa: bool = True
+) -> tuple[User, dict[str, str]]:
+    """A user whose only role is a custom one carrying ``keys``."""
+    from tests.factories import make_role_with_permission
+
+    user, headers = await _staff(db, None, mfa=mfa)
+    role, _ = await make_role_with_permission(db, *keys)
+    db.add(UserRoleLink(user_id=user.id, role_id=role.id))
+    await db.commit()
+    return user, headers
+
+
+@pytest.mark.asyncio
+async def test_event_cancel_that_refunds_needs_the_refunds_key_too(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    """events-staff-manager has no refunds key: it may cancel with refund=none only."""
+    _, manager = await _staff(db_async, "events-staff-manager")
+    _, both = await _custom_user(
+        db_async,
+        "app.events.access",
+        "events.ops.listings",
+        "events.ops.refunds",
+    )
+    async with await _desk() as client:
+        for choice in ("follow_policy", "full"):
+            shop = await _shop_with_events(db_async, events_db)
+            refused = await client.post(
+                f"{ORG}/events/{shop.listing_id}/cancel",
+                headers=_with_org(manager, shop),
+                json={"confirm": True, "refund": choice},
+            )
+            assert refused.status_code == 403, refused.text
+            async with events_db() as events:
+                listing = await events.get(Listing, shop.listing_id)
+                assert listing is not None and listing.status == "published"
+        shop = await _shop_with_events(db_async, events_db)
+        ok = await client.post(
+            f"{ORG}/events/{shop.listing_id}/cancel",
+            headers=_with_org(manager, shop),
+            json={"confirm": True, "refund": "none"},
+        )
+        assert ok.status_code == 200, ok.text
+        shop = await _shop_with_events(db_async, events_db)
+        allowed = await client.post(
+            f"{ORG}/events/{shop.listing_id}/cancel",
+            headers=_with_org(both, shop),
+            json={"confirm": True, "refund": "follow_policy"},
+        )
+        assert allowed.status_code == 200, allowed.text
+        # The member path is unchanged: an owner cancels with the default policy.
+        from tests.organisations.support import headers_for
+
+        shop = await _shop_with_events(db_async, events_db)
+        owner = await client.post(
+            f"{ORG}/events/{shop.listing_id}/cancel",
+            headers=headers_for(shop.owner, shop.organisation_id),
+            json={"confirm": True},
+        )
+        assert owner.status_code == 200, owner.text
+
+
+@pytest.mark.asyncio
+async def test_only_all_scope_or_plain_links_give_staff_keys(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    from tests.factories import make_department
+
+    shop = await _shop_with_events(db_async, events_db)
+    url = f"{ORG}/events/{shop.listing_id}/orders"
+    dept = await make_department(db_async, f"d{uuid.uuid4().hex[:6]}")
+    cases = [
+        ("self", {"how": "assignment", "scope": RoleAssignmentScope.SELF}, 404),
+        (
+            "department",
+            {
+                "how": "assignment",
+                "scope": RoleAssignmentScope.DEPARTMENT,
+                "department_id": dept.id,
+            },
+            404,
+        ),
+        ("all", {"how": "assignment", "scope": RoleAssignmentScope.ALL}, 200),
+        ("link", {"how": "link"}, 200),
+    ]
+    async with await _desk() as client:
+        for label, kwargs, expected in cases:
+            _, headers = await _staff(db_async, "events-staff-manager", **kwargs)  # type: ignore[arg-type]
+            response = await client.get(url, headers=_with_org(headers, shop))
+            assert response.status_code == expected, (label, response.text)
+
+
+@pytest.mark.asyncio
+async def test_staff_reads_are_rate_limited_per_user(
+    db_async: AsyncSession,
+    events_db: SessionFactory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    user, headers = await _staff(db_async, "events-staff-manager")
+    hits: list[tuple[object, ...]] = []
+
+    def hit(*args: object, **_kwargs: object) -> bool:
+        hits.append(args)
+        return False
+
+    monkeypatch.setattr(limiter, "enabled", True)
+    monkeypatch.setattr(limiter.limiter, "hit", hit)
+    from tests.organisations.support import headers_for
+
+    async with await _desk() as client:
+        for path in (
+            f"events/{shop.listing_id}/orders",
+            f"events/{shop.listing_id}/attendees",
+        ):
+            staff = await client.get(f"{ORG}/{path}", headers=_with_org(headers, shop))
+            assert staff.status_code == 429
+        member = await client.get(
+            f"{ORG}/events/{shop.listing_id}/orders",
+            headers=headers_for(shop.owner, shop.organisation_id),
+        )
+    assert member.status_code == 200
+    assert [str(h[0]) for h in hits] == ["120 per 1 minute"] * 2
+    assert all(str(user.id) in h for h in hits)
+
+
+@pytest.mark.asyncio
+async def test_pickers_list_only_operable_organisations_and_hide_drafts_from_door(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    live = await _shop_with_events(db_async, events_db)
+    off = await _shop_with_events(db_async, events_db)
+    suspended = await _shop_with_events(db_async, events_db)
+    await db_async.execute(
+        update(OrganisationApp)
+        .where(
+            OrganisationApp.organisation_id == off.organisation_id,
+            OrganisationApp.app_key == "events",
+        )
+        .values(enabled=False)
+    )
+    await db_async.execute(
+        update(PlatformOrganisation)
+        .where(PlatformOrganisation.id == suspended.organisation_id)
+        .values(status="suspended")
+    )
+    await db_async.commit()
+    async with events_db() as events:
+        published = await events.get(Listing, live.listing_id)
+        assert published is not None
+        events.add(
+            Listing(
+                slug=f"draft-{uuid.uuid4().hex[:6]}",
+                title="Secret draft title",
+                category="fete",
+                parish="st-george",
+                venue="Stadium",
+                starts_at=published.starts_at,
+                ends_at=published.ends_at,
+                admission="ticketed",
+                organiser_id=published.organiser_id,
+                status="draft",
+            )
+        )
+        await events.commit()
+    _, door = await _staff(db_async, "events-staff-door", mfa=False)
+    _, manager = await _staff(db_async, "events-staff-manager")
+    _, settlement = await _custom_user(
+        db_async, "app.events.access", "events.ops.settlement"
+    )
+    async with await _desk() as client:
+        door_events = (await client.get(f"{ADMIN}/events", headers=door)).json()
+        mgr_events = (await client.get(f"{ADMIN}/events", headers=manager)).json()
+        set_events = (await client.get(f"{ADMIN}/events", headers=settlement)).json()
+        door_orgs = (await client.get(f"{ADMIN}/organisers", headers=door)).json()
+    for body in (door_events, mgr_events, set_events):
+        orgs = {row["organisation_id"] for row in body["data"]}
+        assert live.organisation_id in orgs
+        assert off.organisation_id not in orgs
+        assert suspended.organisation_id not in orgs
+    assert "Secret draft title" not in str(door_events)
+    assert "Secret draft title" in str(mgr_events)
+    assert "Secret draft title" in str(set_events)
+    assert live.organisation_id in {r["organisation_id"] for r in door_orgs["data"]}
+    assert off.organisation_id not in {r["organisation_id"] for r in door_orgs["data"]}
+    async with events_db() as events:
+        assert await events.scalar(select(Organiser.id).limit(1)) is not None
+
+
+@pytest.mark.asyncio
+async def test_staff_roles_are_not_delegatable_and_nobody_grants_themselves(
+    db_async: AsyncSession,
+) -> None:
+    from src.auth.delegation import DELEGATABLE_ROLES
+    from src.dependencies import get_current_user
+    from src.main import app
+    from tests.factories import (
+        assign_role,
+        make_department,
+        make_employee,
+        make_role_with_permission,
+    )
+
+    assert DELEGATABLE_ROLES == {"staff"}
+    await seed_permissions_and_roles_async(db_async)
+    dept = await make_department(db_async, "gaa-hr")
+    delegate = await make_full_user(db_async)
+    target = await make_full_user(db_async)
+    await make_employee(db_async, user=delegate, department_id=dept.id)
+    await make_employee(db_async, user=target, department_id=dept.id)
+    manage, _ = await make_role_with_permission(db_async, "user.manage")
+    await assign_role(
+        db_async, user=delegate, role=manage, scope=RoleAssignmentScope.ALL
+    )
+    previous = dict(app.dependency_overrides)
+    app.dependency_overrides[get_current_user] = lambda: delegate
+    try:
+        async with await _desk() as client:
+            for name in (
+                "events-staff-door",
+                "events-staff-till",
+                "events-staff-refunds",
+                "events-staff-manager",
+            ):
+                role = await db_async.scalar(select(Role).where(Role.name == name))
+                assert role is not None
+                for subject in (target, delegate):
+                    for scope in ("SELF", "ALL"):
+                        response = await client.post(
+                            "/api/v1/auth/role-assignments",
+                            json={
+                                "user_id": str(subject.id),
+                                "role_id": str(role.id),
+                                "scope": scope,
+                            },
+                        )
+                        assert response.status_code == 403, (
+                            name,
+                            scope,
+                            response.text,
+                        )
+    finally:
+        app.dependency_overrides.clear()
+        app.dependency_overrides.update(previous)
+
+
+@pytest.mark.asyncio
+async def test_member_without_the_org_key_who_is_staff_uses_the_staff_path(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    from tests.events.test_org_permissions import _member
+
+    shop = await _shop_with_events(db_async, events_db)
+    url = f"{ORG}/events/{shop.listing_id}/orders"
+    member = await _member(db_async, shop, None)
+    await _give_role(db_async, member.id, "events-staff-manager")
+    token = create_access_token(member.id, expires_delta=timedelta(minutes=5))
+    no_mfa = {"Authorization": f"Bearer {token}"}
+    mfa_user, mfa_headers = await _staff(db_async, "events-staff-manager")
+    await _give_role(db_async, mfa_user.id, "events-staff-manager", how="assignment")
+    async with await _desk() as client:
+        denied = await client.get(url, headers=_with_org(no_mfa, shop))
+        assert denied.status_code == 403
+        assert (
+            "two-step" in denied.text.lower() or "authenticator" in denied.text.lower()
+        )
+    # With MFA the member-and-staff caller is a staff call (no membership on the actor).
+    member_row = await db_async.get(User, member.id)
+    assert member_row is not None
+    row = member_row
+    row.totp_secret = totp.encrypt_secret(totp.generate_secret())
+    row.totp_enabled = True
+    await db_async.commit()
+    stored, _ = await service.create_session(
+        session=db_async,
+        user=row,
+        app_name=None,
+        enforce_approval=False,
+        mfa_verified_at=utc_now(),
+    )
+    signed, _ = service.issue_access_token_for_user(
+        user=row, expires_delta=timedelta(minutes=5), db_session=stored
+    )
+    async with await _desk() as client:
+        allowed = await client.get(
+            url,
+            headers=_with_org({"Authorization": f"Bearer {signed}"}, shop),
+        )
+    assert allowed.status_code == 200, allowed.text
+
+
+@pytest.mark.asyncio
+async def test_unknown_organisation_and_missing_staff_key_answer_identically(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    _, wrong = await _staff(db_async, "events-staff-door")
+    url = f"{ORG}/events/{shop.listing_id}/orders"
+    async with await _desk() as client:
+        known = await client.get(url, headers=_with_org(wrong, shop))
+        unknown = await client.get(
+            url, headers={**wrong, "X-Barrels-Organisation": "org_does_not_exist"}
+        )
+    assert known.status_code == unknown.status_code == 404
+    assert known.json() == unknown.json()
+
+
+@pytest.mark.asyncio
+async def test_staff_path_requires_the_events_app_even_for_account_tokens(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    url = f"{ORG}/events/{shop.listing_id}/orders"
+    _, only_ops = await _custom_user(db_async, "events.ops.settlement")
+    _, with_app = await _custom_user(
+        db_async, "events.ops.settlement", "app.events.access"
+    )
+    async with await _desk() as client:
+        assert (
+            await client.get(url, headers=_with_org(only_ops, shop))
+        ).status_code == 404
+        assert (
+            await client.get(url, headers=_with_org(with_app, shop))
+        ).status_code == 200
+        assert (
+            await client.get(f"{ADMIN}/events", headers=only_ops)
+        ).status_code == 403
