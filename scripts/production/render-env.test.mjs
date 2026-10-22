@@ -714,6 +714,31 @@ test("the payments Stripe key must be a test key and is otherwise optional", () 
   );
 });
 
+test("the payments Stripe settings are set together and return over https", () => {
+  const full = {
+    PAYMENTS_STRIPE_SECRET_KEY: "sk_test_fixture",
+    PAYMENTS_STRIPE_WEBHOOK_SECRET: "whsec_fixture",
+    PAYMENTS_STRIPE_SUCCESS_URL: "https://auth.example.test/?paid=1",
+    PAYMENTS_STRIPE_CANCEL_URL: "https://auth.example.test/?paid=0",
+  };
+  for (const name of Object.keys(full)) {
+    const { [name]: _omitted, ...partial } = full;
+    const half = render(partial);
+    assert.notEqual(half.result.status, 0, `${name} missing`);
+    assert.ok(half.result.stderr.includes("set together"));
+    assert.ok(half.result.stderr.includes(name), name);
+    assert.equal(half.result.stderr.includes("sk_test_fixture"), false);
+  }
+  for (const name of [
+    "PAYMENTS_STRIPE_SUCCESS_URL",
+    "PAYMENTS_STRIPE_CANCEL_URL",
+  ]) {
+    const insecure = render({ ...full, [name]: "http://auth.example.test/" });
+    assert.notEqual(insecure.result.status, 0, name);
+    assert.ok(insecure.result.stderr.includes("https"));
+  }
+});
+
 test("the deploy workflow and compose file pass the new variables to the API and worker", () => {
   const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
   const compose = readFileSync(

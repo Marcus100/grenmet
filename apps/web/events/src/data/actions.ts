@@ -68,6 +68,15 @@ type Options = ReturnType<typeof apiOptions>;
 /** The API's message when object storage is not set up; shown as is. */
 const UPLOADS_UNAVAILABLE = "Uploads are not configured";
 
+/** What the API answers (503) when card checkout is configured but cannot start. */
+const CARD_UNAVAILABLE_PREFIX = "Online payment is temporarily unavailable";
+const CARD_UNAVAILABLE =
+  "Card payments are temporarily unavailable. Try again in a moment.";
+/** A replay found an order that already expired (409); start over with a new key. */
+const ATTEMPT_EXPIRED_PREFIX = "That attempt expired";
+const ATTEMPT_EXPIRED = "That attempt expired. Start a new one.";
+const GENERIC_FAILURE = "Something went wrong. Try again shortly.";
+
 function detailOf(error: ResponseError): string | null {
   const data: unknown = error.data;
   if (typeof data !== "object" || data === null || !("detail" in data)) {
@@ -94,27 +103,49 @@ async function run<T>(
     revalidatePath("/", "layout");
     return { ok: true, data };
   } catch (error) {
-    if (error instanceof ResponseError && error.status === 401) {
-      return { ok: false, error: SIGN_IN_REQUIRED };
-    }
-    if (
-      error instanceof ResponseError &&
-      ((error.status >= 400 && error.status < 500) ||
-        (error.status === 503 && detailOf(error) === UPLOADS_UNAVAILABLE))
-    ) {
-      const detail = detailOf(error);
-      const message =
-        explainConflict && error.status === 409
-          ? friendlyConflict(detail)
-          : detail;
-      return {
-        ok: false,
-        error: message ?? "That didn't work. Check it and try again.",
-      };
-    }
-    reportError(error, area);
-    return { ok: false, error: "Something went wrong. Try again shortly." };
+    return failureOf(error, area, explainConflict);
   }
+}
+
+/** Maps a thrown API error to the failure the UI shows (reports unexpected ones). */
+function failureOf(
+  error: unknown,
+  area: string,
+  explainConflict: boolean
+): ActionResult<never> {
+  if (!(error instanceof ResponseError)) {
+    reportError(error, area);
+    return { ok: false, error: GENERIC_FAILURE };
+  }
+  const detail = detailOf(error);
+  if (error.status === 401) {
+    return { ok: false, error: SIGN_IN_REQUIRED };
+  }
+  if (error.status === 503 && detail?.startsWith(CARD_UNAVAILABLE_PREFIX)) {
+    return { ok: false, error: CARD_UNAVAILABLE, freshKey: true };
+  }
+  if (error.status === 409 && detail?.startsWith(ATTEMPT_EXPIRED_PREFIX)) {
+    return { ok: false, error: ATTEMPT_EXPIRED, freshKey: true };
+  }
+  if (
+    (error.status >= 400 && error.status < 500) ||
+    (error.status === 503 && detail === UPLOADS_UNAVAILABLE)
+  ) {
+    const message =
+      explainConflict && error.status === 409
+        ? friendlyConflict(detail)
+        : detail;
+    return {
+      ok: false,
+      error: message ?? "That didn't work. Check it and try again.",
+    };
+  }
+  reportError(error, area);
+  return {
+    ok: false,
+    error: GENERIC_FAILURE,
+    ...(error.status >= 500 ? { freshKey: true as const } : {}),
+  };
 }
 
 export async function setGoing(slug: string, going: boolean) {

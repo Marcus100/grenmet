@@ -14,3 +14,15 @@ class EventsForbidden(AppException):
 class EventsConflict(AppException):
     def __init__(self, detail: str) -> None:
         super().__init__(detail, 409)
+
+
+class EventsPaymentUnavailable(AppException):
+    """Online card payment is configured but could not start (503, retryable).
+
+    The order's hold is released, so the buyer can simply try again."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Online payment is temporarily unavailable. Please try again shortly.",
+            503,
+        )

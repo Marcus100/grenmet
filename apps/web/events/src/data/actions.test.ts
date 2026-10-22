@@ -8,6 +8,7 @@ const cancelRsvp = vi.fn();
 const createUpload = vi.fn();
 const completeUpload = vi.fn();
 const setLogo = vi.fn();
+const claim = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSession: () => getSession() }));
@@ -23,14 +24,14 @@ vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
   eventsRsvpListing: (...args: unknown[]) => rsvp(...args),
   eventsCancelListingRsvp: (...args: unknown[]) => cancelRsvp(...args),
+  eventsClaimTickets: (...args: unknown[]) => claim(...args),
   eventsSetOrganiserLogo: (...args: unknown[]) => setLogo(...args),
   storageCompleteUpload: (...args: unknown[]) => completeUpload(...args),
   storageCreateUpload: (...args: unknown[]) => createUpload(...args),
 }));
 
-const { finishUpload, saveOrganiserLogo, setGoing, startUpload } = await import(
-  "./actions"
-);
+const { claimTickets, finishUpload, saveOrganiserLogo, setGoing, startUpload } =
+  await import("./actions");
 
 function responseError(status: number, data: unknown) {
   return new ResponseError({
@@ -197,5 +198,54 @@ describe("image uploads", () => {
     expect(setLogo).toHaveBeenLastCalledWith(
       expect.objectContaining({ body: { file_id: null } })
     );
+  });
+});
+
+describe("claimTickets failures", () => {
+  beforeEach(() => {
+    claim.mockReset();
+    reportError.mockReset();
+    getSession.mockResolvedValue({ accessToken: "tok" });
+  });
+
+  function fails(error: ResponseError) {
+    claim.mockReturnValue({ unwrap: () => Promise.reject(error) });
+  }
+
+  it("tells the buyer card payments are down and drops the key", async () => {
+    fails(
+      responseError(503, {
+        detail:
+          "Online payment is temporarily unavailable. Please try again shortly.",
+      })
+    );
+    expect(await claimTickets("fete", [], "key")).toEqual({
+      ok: false,
+      error:
+        "Card payments are temporarily unavailable. Try again in a moment.",
+      freshKey: true,
+    });
+  });
+
+  it("drops the key after an expired attempt and after any 5xx", async () => {
+    fails(
+      responseError(409, { detail: "That attempt expired. Start a new one." })
+    );
+    expect(await claimTickets("fete", [], "key")).toMatchObject({
+      ok: false,
+      freshKey: true,
+    });
+    fails(responseError(500, {}));
+    expect(await claimTickets("fete", [], "key")).toMatchObject({
+      ok: false,
+      freshKey: true,
+    });
+  });
+
+  it("keeps the key for a refusal the buyer can fix", async () => {
+    fails(responseError(409, { detail: "Only 1 VIP tickets are left" }));
+    const result = await claimTickets("fete", [], "key");
+    expect(result.ok).toBe(false);
+    expect("freshKey" in result).toBe(false);
   });
 });
