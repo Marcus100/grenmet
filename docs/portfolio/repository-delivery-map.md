@@ -213,7 +213,7 @@ documented data boundaries.
 | GAA corporate site | GAA public-service delivery | Later | GAA content owner, domain, scope, and acceptance |
 | Barrels Shop | Barrels product option | Explore | Separate product discovery and investment approval |
 | Salesbus | Barrels product option/prototype extraction | Explore | Remove from client portal, then validate users and commercial case |
-| Barrels Human Resource | Barrels product (investment approved 2026-10-18) | Next | Stays inside `apps/web/gaa-admin` for now; eventual own app at `hr.barrels.gd`. Organisation-scoped HR built from shared workforce code; launch needs GAA pilot evidence, signed licence, tenant isolation, support and pricing |
+| Barrels Human Resource | Barrels product (investment approved 2026-10-18) | Next | Stays inside `apps/web/gaa-admin` until built; decision 2026-10-21: a separate multi-organisation HR app at `hr.barrels.gd` with the organisation in the path (`/<orgSlug>/...`), port 3016 (ADR-0043). Organisation-scoped HR built from shared workforce code; launch needs GAA pilot evidence, signed licence, tenant isolation, support and pricing |
 | Streaming/media application | Barrels product option | Explore | Audience, rights, economics, operating model, and architecture approval |
 
 Reserved ports, package names, hosts, or images prevent naming collisions; they

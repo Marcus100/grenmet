@@ -23,7 +23,7 @@ authoritative for priority. Tenancy follows
 | Events pilot | Free and registration tickets plus outlet cash; online card payment waits for the Republic ePay answer |
 | Control plane | Separate `apps/web/admin` at `admin.barrels.gd`, superuser-only, dev and staging first |
 | Pay/Invoice v1 | Barrels invoicing its own service-line clients, manual payments (bank, cash, cheque); no card rail; new Stripe work parked |
-| Barrels HR | Next; stays in `apps/web/gaa-admin`; eventual host `hr.barrels.gd` |
+| Barrels HR | Next; stays in `apps/web/gaa-admin` until built. Decision 2026-10-21: a separate multi-organisation HR app at `hr.barrels.gd`, organisation in the path (`hr.barrels.gd/<orgSlug>/...`), port 3016 (ADR-0043) |
 | Build order | Approved as written (2026-10-18) |
 | Invoicing details | Configurable settings with provisional defaults: entity "Barrels Grenada", VAT 15%, numbers `BG-YYYY-NNNN`; confirm with an accountant |
 | Hub copy | Agent drafts neutral copy from the service-lines doc; owner edits later |
@@ -355,8 +355,10 @@ AI gateway, Knowledge and Automate; workspaces; Places API and a search engine;
 SMS, push and WhatsApp; live card checkout, payouts and wallets (the PF4
 payments core and its Stripe test-mode adapter are approved, owner decision
 2026-10-20; a live rail needs a separate owner approval); Shop and Salesbus
-extraction; `hr.barrels.gd` as its own app; organisation scope for CAP, weather,
+extraction; organisation scope for CAP, weather,
 janitorial or transport; a separate Barrels Business app; microservices.
+The separate HR app (`hr.barrels.gd`, port 3016) is decided (2026-10-21) and
+follows the build order above.
 
 ## Host move for the GAA staff portal
 
