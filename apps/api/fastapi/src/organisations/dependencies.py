@@ -311,6 +311,10 @@ def require_org_permission(
 STAFF_MFA_KEYS = frozenset(EVENTS_OPS_KEYS) - {"events.ops.door"}
 
 
+#: Each dependency built by ``require_org_permission_or_staff`` -> its key pair.
+STAFF_KEY_PAIRS: dict[Callable[..., AsyncGenerator[EventsActor]], tuple[str, str]] = {}
+
+
 @dataclass(frozen=True)
 class EventsActor:
     """Who acts on an organiser's Events data: a member, or Barrels staff (ADR-0050).
@@ -484,7 +488,7 @@ def require_org_permission_or_staff(
             )
 
     # Read by the route registry test (tests/events/test_staff_ops.py).
-    setattr(dependency, "key_pair", (org_key, staff_key))  # noqa: B010
+    STAFF_KEY_PAIRS[dependency] = (org_key, staff_key)
     return dependency
 
 

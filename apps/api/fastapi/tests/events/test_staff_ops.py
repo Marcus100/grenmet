@@ -11,6 +11,7 @@ from datetime import timedelta
 import httpx
 import pytest
 from cryptography.fernet import Fernet
+from fastapi.routing import APIRoute
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,6 +28,7 @@ from src.auth.permissions import seed_permissions_and_roles_async
 from src.auth.utils import create_access_token
 from src.events import org_router
 from src.events.models import Activity, Listing, Organiser
+from src.organisations.dependencies import STAFF_KEY_PAIRS
 from src.organisations.models import OrganisationApp, PlatformOrganisation
 from src.rate_limit import limiter
 from src.utils.datetime import utc_now
@@ -628,8 +630,7 @@ def _pairs() -> dict[str, tuple[str, str]]:
 
     def walk(dependant: object) -> list[tuple[str, str]]:
         pairs: list[tuple[str, str]] = []
-        call = getattr(dependant, "call", None)
-        pair = getattr(call, "key_pair", None)
+        pair = STAFF_KEY_PAIRS.get(getattr(dependant, "call", None))
         if pair is not None:
             pairs.append(pair)
         for sub in getattr(dependant, "dependencies", []):
@@ -639,7 +640,8 @@ def _pairs() -> dict[str, tuple[str, str]]:
     for route in org_router.router.routes:
         operation_id = getattr(route, "operation_id", None)
         assert operation_id is not None
-        pairs = walk(route.dependant)  # type: ignore[attr-defined]
+        assert isinstance(route, APIRoute)
+        pairs = walk(route.dependant)
         assert len(pairs) == 1, f"{operation_id} must have exactly one key pair"
         found[operation_id] = pairs[0]
     return found
@@ -735,22 +737,20 @@ async def test_only_all_scope_or_plain_links_give_staff_keys(
     url = f"{ORG}/events/{shop.listing_id}/orders"
     dept = await make_department(db_async, f"d{uuid.uuid4().hex[:6]}")
     cases = [
-        ("self", {"how": "assignment", "scope": RoleAssignmentScope.SELF}, 404),
-        (
-            "department",
-            {
-                "how": "assignment",
-                "scope": RoleAssignmentScope.DEPARTMENT,
-                "department_id": dept.id,
-            },
-            404,
-        ),
-        ("all", {"how": "assignment", "scope": RoleAssignmentScope.ALL}, 200),
-        ("link", {"how": "link"}, 200),
+        ("self", "assignment", RoleAssignmentScope.SELF, None, 404),
+        ("department", "assignment", RoleAssignmentScope.DEPARTMENT, dept.id, 404),
+        ("all", "assignment", RoleAssignmentScope.ALL, None, 200),
+        ("link", "link", RoleAssignmentScope.ALL, None, 200),
     ]
     async with await _desk() as client:
-        for label, kwargs, expected in cases:
-            _, headers = await _staff(db_async, "events-staff-manager", **kwargs)  # type: ignore[arg-type]
+        for label, how, scope, department_id, expected in cases:
+            _, headers = await _staff(
+                db_async,
+                "events-staff-manager",
+                how=how,
+                scope=scope,
+                department_id=department_id,
+            )
             response = await client.get(url, headers=_with_org(headers, shop))
             assert response.status_code == expected, (label, response.text)
 
