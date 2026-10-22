@@ -41,7 +41,7 @@ async def test_platform_only_member_gets_access(
 ):
     user = await user_with_role(db_async, None)  # no events.organiser.manage
     organisation = await make_org(
-        db_async, "Crew", members=((user, MembershipRole.ADMIN),)
+        db_async, "Crew", members=((user, MembershipRole.ADMIN),), apps=("events",)
     )
     async with events_db() as db:
         db.add(Organiser(slug="crew", name="Crew", organisation_id=organisation.id))
@@ -86,7 +86,7 @@ async def test_removed_platform_member_loses_access(
 ):
     user = await user_with_role(db_async, "events-organiser")
     organisation = await make_org(
-        db_async, "Crew", members=((user, MembershipRole.OWNER),)
+        db_async, "Crew", members=((user, MembershipRole.OWNER),), apps=("events",)
     )
     async with events_db() as db:
         organiser = Organiser(slug="crew", name="Crew", organisation_id=organisation.id)
@@ -112,8 +112,12 @@ async def test_switching_between_organisers(
     events_db: SessionFactory, db_async: AsyncSession
 ):
     user = await user_with_role(db_async, None)
-    first = await make_org(db_async, "Alpha", members=((user, MembershipRole.OWNER),))
-    second = await make_org(db_async, "Beta", members=((user, MembershipRole.ADMIN),))
+    first = await make_org(
+        db_async, "Alpha", members=((user, MembershipRole.OWNER),), apps=("events",)
+    )
+    second = await make_org(
+        db_async, "Beta", members=((user, MembershipRole.ADMIN),), apps=("events",)
+    )
     async with events_db() as db:
         db.add_all(
             [
