@@ -150,6 +150,7 @@ def test_backfill_classifies_existing_listings(migration_at_head):
     assert _row(connection, rsvp)[5:7] == ("community-causes", "church-faith")
     assert _row(connection, free)[:2] == ("free", "none")
     assert _row(connection, free)[5] == "business-learning"
+    assert _row(connection, free)[7] == ["tech"]
     assert _row(connection, family)[5] == "community-causes"
     assert sorted(_row(connection, family)[7]) == ["beach", "kid-friendly"]
     assert _row(connection, family_again)[7] == ["kid-friendly"]

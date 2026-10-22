@@ -190,6 +190,8 @@ export { eregisterRejectRegisterObservation } from "./eregisterRejectRegisterObs
 export { eregisterReopenRegisterObservation } from "./eregisterReopenRegisterObservation.js";
 export { eregisterValidateSynopObservation } from "./eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./eventsAcceptConnection.js";
+export { eventsAdminListEvents } from "./eventsAdminListEvents.js";
+export { eventsAdminListOrganisers } from "./eventsAdminListOrganisers.js";
 export { eventsAdmitTicket } from "./eventsAdmitTicket.js";
 export { eventsApproveOrganiser } from "./eventsApproveOrganiser.js";
 export { eventsBlockMember } from "./eventsBlockMember.js";

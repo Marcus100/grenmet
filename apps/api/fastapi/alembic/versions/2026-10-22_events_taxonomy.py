@@ -17,14 +17,14 @@ from the frozen ten-value ``category`` through this provisional, lossy table
     food      -> food-drink
     sport     -> sports-fitness
     business  -> business-learning
-    tech      -> business-learning
+    tech      -> business-learning, plus the tag ``tech``
     culture   -> arts-culture   (Tours and Markets also map back to culture)
     faith     -> community-causes, subcategory church-faith
     family    -> community-causes, plus the tag ``kid-friendly``
     wellness  -> sports-fitness (the Wellness category stays inactive)
 
 Revision ID: eventstaxonomy20261022
-Revises: orgverifystatus20261022
+Revises: eventsactivitycapacity20261022
 """
 
 import uuid
@@ -34,7 +34,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "eventstaxonomy20261022"
-down_revision = "orgverifystatus20261022"
+down_revision = "eventsactivitycapacity20261022"
 branch_labels = None
 depends_on = None
 
@@ -350,6 +350,10 @@ def _backfill_categories() -> None:
     op.execute(
         "UPDATE events.listings SET tags = array_append(tags, 'kid-friendly') "
         "WHERE category = 'family' AND NOT ('kid-friendly' = ANY(tags))"
+    )
+    op.execute(
+        "UPDATE events.listings SET tags = array_append(tags, 'tech') "
+        "WHERE category = 'tech' AND NOT ('tech' = ANY(tags))"
     )
 
 

@@ -21,6 +21,8 @@ export type { ActivationConfirm } from "./ActivationConfirm.js";
 export type { ActivationIssue } from "./ActivationIssue.js";
 export type { ActivationLink } from "./ActivationLink.js";
 export type { ActivityEntry } from "./ActivityEntry.js";
+export type { ActivityEntryPropertiesActorCapacityEnum } from "./ActivityEntryPropertiesActorCapacityEnum.js";
+export { activityEntryPropertiesActorCapacityEnum } from "./ActivityEntryPropertiesActorCapacityEnum.js";
 export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
 export type { AdjustmentCreate } from "./AdjustmentCreate.js";
@@ -2472,6 +2474,26 @@ export type {
   EventsAcceptConnectionStatus422,
   EventsAcceptConnectionStatus429,
 } from "./EventsAcceptConnection.js";
+export type {
+  EventsAdminListEventsOptions,
+  EventsAdminListEventsQuery,
+  EventsAdminListEventsResponse,
+  EventsAdminListEventsResponses,
+  EventsAdminListEventsStatus200,
+  EventsAdminListEventsStatus401,
+  EventsAdminListEventsStatus403,
+  EventsAdminListEventsStatus422,
+} from "./EventsAdminListEvents.js";
+export type {
+  EventsAdminListOrganisersOptions,
+  EventsAdminListOrganisersQuery,
+  EventsAdminListOrganisersResponse,
+  EventsAdminListOrganisersResponses,
+  EventsAdminListOrganisersStatus200,
+  EventsAdminListOrganisersStatus401,
+  EventsAdminListOrganisersStatus403,
+  EventsAdminListOrganisersStatus422,
+} from "./EventsAdminListOrganisers.js";
 export type {
   EventsAdmitTicketBody,
   EventsAdmitTicketOptions,
@@ -6265,6 +6287,8 @@ export type { PaginatedResponseOrgAttendee } from "./PaginatedResponseOrgAttende
 export type { PaginatedResponseOrgOrderRow } from "./PaginatedResponseOrgOrderRow.js";
 export type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
+export type { PaginatedResponseStaffEventRow } from "./PaginatedResponseStaffEventRow.js";
+export type { PaginatedResponseStaffOrganiserRow } from "./PaginatedResponseStaffOrganiserRow.js";
 export type { PaginatedResponseUserPublic } from "./PaginatedResponseUserPublic.js";
 export type { Parish } from "./Parish.js";
 export { parish } from "./Parish.js";
@@ -7271,7 +7295,9 @@ export type { SignedDocumentPublic } from "./SignedDocumentPublic.js";
 export type { SiteSubscribeRequest } from "./SiteSubscribeRequest.js";
 export type { StaffCard } from "./StaffCard.js";
 export type { StaffCreate } from "./StaffCreate.js";
+export type { StaffEventRow } from "./StaffEventRow.js";
 export type { StaffInput } from "./StaffInput.js";
+export type { StaffOrganiserRow } from "./StaffOrganiserRow.js";
 export type { StaffSetup } from "./StaffSetup.js";
 export type { StaffUpdate } from "./StaffUpdate.js";
 export type { StatusReportCreate } from "./StatusReportCreate.js";
