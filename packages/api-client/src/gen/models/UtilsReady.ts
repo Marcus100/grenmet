@@ -17,7 +17,7 @@ export type UtilsReadyStatus200 = {
 export type UtilsReadyStatus422 = ValidationErrorResponse;
 
 /**
- * @description Body returned when the API cannot serve requests because its database is unavailable or out of date.
+ * @description Body returned when the API cannot serve requests because its database is unavailable or its schema is out of date.
  * @type object
  */
 export type UtilsReadyStatus503 = ReadinessUnavailable;

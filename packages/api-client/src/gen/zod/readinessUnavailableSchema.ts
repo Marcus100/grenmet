@@ -10,5 +10,5 @@ export const readinessUnavailableSchema = z
     detail: z.string(),
   })
   .describe(
-    "Body returned when the API cannot serve requests because its database is unavailable or out of date."
+    "Body returned when the API cannot serve requests because its database is unavailable or its schema is out of date."
   );

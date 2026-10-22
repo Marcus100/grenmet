@@ -4,7 +4,7 @@
  */
 
 /**
- * @description Body returned when the API cannot serve requests because its database is unavailable or out of date.
+ * @description Body returned when the API cannot serve requests because its database is unavailable or its schema is out of date.
  * @type object
  */
 export type ReadinessUnavailable = {

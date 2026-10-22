@@ -1,6 +1,5 @@
 """Tests for utils router."""
 
-import logging
 from unittest.mock import patch
 
 import asyncpg
@@ -73,12 +72,11 @@ async def test_ready_schema_mismatch_is_503(async_client: httpx.AsyncClient) -> 
 )
 async def test_ready_expected_failures_are_503_and_not_reported(
     async_client: httpx.AsyncClient,
-    caplog: pytest.LogCaptureFixture,
     error: Exception,
 ) -> None:
     """Expected outages answer 503, are not re-raised and never reach Sentry."""
     with (
-        caplog.at_level(logging.WARNING, logger="src.utils.router"),
+        patch("src.utils.router.logger") as log,
         patch("src.utils.router._migration_heads", side_effect=error),
         patch("sentry_sdk.capture_exception") as capture,
     ):
@@ -86,9 +84,10 @@ async def test_ready_expected_failures_are_503_and_not_reported(
     assert response.status_code == 503
     assert response.json() == {"detail": "Database unreachable"}
     capture.assert_not_called()
-    messages = [r.getMessage() for r in caplog.records if r.name == "src.utils.router"]
-    assert messages == [f"Readiness check failed: {type(error).__name__}"]
-    assert "postgresql" not in messages[0]
+    # Exact template + exception class name only: no DSN or driver message text.
+    log.warning.assert_called_once_with(
+        "Readiness check failed: %s", type(error).__name__
+    )
 
 
 async def test_ready_unexpected_exception_still_propagates(

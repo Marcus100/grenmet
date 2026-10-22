@@ -25303,7 +25303,7 @@
             }
           },
           "503": {
-            "description": "Database unreachable",
+            "description": "Database unreachable or schema out of date",
             "content": {
               "application/json": {
                 "schema": {
@@ -68041,7 +68041,7 @@
           "detail"
         ],
         "title": "ReadinessUnavailable",
-        "description": "Body returned when the API cannot serve requests because its database is unavailable or out of date."
+        "description": "Body returned when the API cannot serve requests because its database is unavailable or its schema is out of date."
       },
       "ReceivableRowPublic": {
         "properties": {

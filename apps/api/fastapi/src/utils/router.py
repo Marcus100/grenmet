@@ -2,7 +2,7 @@ import logging
 from functools import lru_cache
 from pathlib import Path
 
-import asyncpg  # type: ignore[import-untyped]
+import asyncpg
 from alembic.script import ScriptDirectory
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.concurrency import run_in_threadpool
@@ -83,7 +83,10 @@ async def health_check() -> bool:
     description="Readiness probe; returns 200 if the app can reach the database, 503 otherwise.",
     responses={
         200: {"description": "Database reachable"},
-        503: {"description": "Database unreachable", "model": ReadinessUnavailable},
+        503: {
+            "description": "Database unreachable or schema out of date",
+            "model": ReadinessUnavailable,
+        },
     },
 )
 async def ready(session: SessionDep, response: Response) -> dict[str, str]:

@@ -14,7 +14,7 @@ export const utilsReadyStatus422Schema = validationErrorResponseSchema.describe(
 );
 
 export const utilsReadyStatus503Schema = readinessUnavailableSchema.describe(
-  "Body returned when the API cannot serve requests because its database is unavailable or out of date."
+  "Body returned when the API cannot serve requests because its database is unavailable or its schema is out of date."
 );
 
 export const utilsReadyResponseSchema = utilsReadyStatus200Schema;

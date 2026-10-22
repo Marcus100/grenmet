@@ -71,7 +71,7 @@ class Message(BaseModel):
 
 
 class ReadinessUnavailable(BaseModel):
-    """Body returned when the API cannot serve requests because its database is unavailable or out of date."""
+    """Body returned when the API cannot serve requests because its database is unavailable or its schema is out of date."""
 
     detail: str
 
