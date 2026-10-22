@@ -6,6 +6,11 @@
 **Owner:** Repository maintainers  
 **Last updated:** 2026-10-13
 
+> **Ports and hosts throughout this document are superseded (2026-10-21)** by
+> [ADR-0043](../adr/0043-hostnames-tenancy-and-port-allocation.md) and
+> [docs/ports.md](../ports.md). Treat any port, hostname or DNS record below as
+> historical plan, not current allocation.
+
 This document describes the destination architecture. The execution order,
 baseline freeze, commit boundaries, and rollout sequencing live in
 [Barrels Grenada Migration Plan](barrelsgd-migration-plan.md).
@@ -164,6 +169,8 @@ document is not approval to bypass repository gates while reaching it.
 
 ## Target applications and domains
 
+> **Superseded (2026-10-21)** by [ADR-0043](../adr/0043-hostnames-tenancy-and-port-allocation.md) and [docs/ports.md](../ports.md). The table below is the 2026 plan, not the current port or host allocation.
+
 | Application | Target package | Port | Production host |
 | --- | --- | ---: | --- |
 | Authentication | `@barrelsgd/web-auth` | 3000 | `auth.barrels.gd` |
@@ -186,6 +193,8 @@ migration. Port 3002 is retained.
 [GAA staff portal](#gaa-staff-portal) for why it is named for GAA while serving
 GMS first.
 
+> **Superseded (2026-10-21)** by [ADR-0043](../adr/0043-hostnames-tenancy-and-port-allocation.md) and [docs/ports.md](../ports.md). The table below is the 2026 plan, not the current port or host allocation.
+
 Three further identities are reserved but not built, so the port map, image list,
 and DNS map never need re-cutting:
 
@@ -197,10 +206,12 @@ and DNS map never need re-cutting:
 
 ### Port allocation strategy
 
+> **Superseded (2026-10-21)** by [ADR-0043](../adr/0043-hostnames-tenancy-and-port-allocation.md) and [docs/ports.md](../ports.md). This section and its table are the 2026 plan, not the current port or host allocation.
+
 Ports 3000–3019 were assigned in arrival order, before the Barrels/client
 hierarchy was clear. They are **not** renumbered: ports are an internal dev and
-container detail, and per `docs/ports.md` each change touches seven places across
-env files, Dockerfiles, Compose, and CI. Churning eleven live apps to tidy a
+container detail, and per `docs/ports.md` each change touches six places across
+package.json, Dockerfiles, Compose, release-scope and AGENTS.md. Churning eleven live apps to tidy a
 number nobody sees is not worth it.
 
 Allocation from 3020 onward is **blocked per owner**, so growth stays legible:
@@ -520,6 +531,8 @@ legacy-infrastructure retirement step must not reach this host.
   observability.
 
 ## DNS map and rollout
+
+> **Superseded (2026-10-21)** by [ADR-0043](../adr/0043-hostnames-tenancy-and-port-allocation.md) and [docs/ports.md](../ports.md). The records below (including three-level names such as `docs.weather.barrels.gd`) are the 2026 plan, not the current host map.
 
 Initial production records are:
 
