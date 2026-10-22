@@ -9,6 +9,7 @@ from sqlalchemy.sql.elements import ColumnElement
 from src.auth import service as auth_service
 from src.auth.models import Permission, Role, User, UserImage, UserRoleAssignment
 from src.auth.models import Session as LoginSession
+from src.auth.permissions import ORGANISATION_BOUND_KEYS
 from src.baseline.models import ApprovalPolicy, BaselineAudit, StaffCredential
 from src.baseline.schemas import (
     BalanceInput,
@@ -618,6 +619,9 @@ async def update_role_configuration(
     )
     if not role:
         raise AppException("Role not found", 404)
+    held = {p.key for p in role.permissions}
+    if (set(body.permission_keys) - held) & ORGANISATION_BOUND_KEYS:
+        raise AppException("Organisation permissions cannot be granted to a role", 400)
     permissions = (await session.execute(select(Permission))).scalars().all()
     selected = [p for p in permissions if p.key in body.permission_keys]
     if {p.key for p in selected} != set(body.permission_keys):

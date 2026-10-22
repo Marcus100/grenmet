@@ -15,6 +15,8 @@ from src.auth.models import Permission, Role
 from src.auth.permissions import (
     ALL_PERMISSION_KEYS,
     DEFAULT_ROLES,
+    ORGANISATION_BOUND_KEYS,
+    PERMISSIONS,
     seed_permissions_and_roles_async,
 )
 
@@ -75,3 +77,100 @@ async def test_seeding_is_idempotent(db_async: AsyncSession) -> None:
     await seed_permissions_and_roles_async(db_async)
     second = len((await db_async.execute(select(Permission))).scalars().all())
     assert first == second == len(ALL_PERMISSION_KEYS)
+
+
+# --- Binding (ADR-0044) ---------------------------------------------------------
+
+NEW_ORGANISATION_KEYS = {
+    "events.listings.manage",
+    "events.door.scan",
+    "events.tickets.sell",
+    "events.refunds.issue",
+    "events.settlement.view",
+    "events.team.manage",
+    "bookings.agenda.read",
+    "bookings.bookings.manage",
+    "bookings.settings.manage",
+    "bookings.team.manage",
+}
+
+
+def test_every_key_has_description_and_valid_binding() -> None:
+    assert len({p.key for p in PERMISSIONS}) == len(PERMISSIONS)
+    for pdef in PERMISSIONS:
+        assert pdef.description.strip(), pdef.key
+        assert pdef.binding in ("global", "organisation"), pdef.key
+
+
+def test_organisation_binding_of_known_keys() -> None:
+    from src.organisations.api_key_scopes import all_scopes
+
+    assert NEW_ORGANISATION_KEYS <= ORGANISATION_BOUND_KEYS
+    assert set(all_scopes()) <= ORGANISATION_BOUND_KEYS
+    by_key = {p.key: p for p in PERMISSIONS}
+    for key in ("events.moderate", "events.organiser.manage", "app.events.access"):
+        assert by_key[key].binding == "global"
+
+
+def test_default_roles_never_carry_organisation_keys() -> None:
+    # New organisation keys are granted to no staff role by default.
+    for role_name, (_description, keys) in DEFAULT_ROLES.items():
+        assert not set(keys) & ORGANISATION_BOUND_KEYS, role_name
+
+
+async def test_staff_role_editor_hides_organisation_keys(
+    db_async: AsyncSession,
+) -> None:
+    from src.auth.roles import get_permissions_with_count
+
+    await seed_permissions_and_roles_async(db_async)
+    listed, count = await get_permissions_with_count(
+        session=db_async, skip=0, limit=10_000
+    )
+    keys = {p.key for p in listed}
+    assert not keys & ORGANISATION_BOUND_KEYS
+    assert keys == ALL_PERMISSION_KEYS - ORGANISATION_BOUND_KEYS
+    assert count == len(keys)
+
+
+def organisation_role_bundles() -> dict[str, tuple[str, ...]]:
+    """Product role bundles (ADR-0044). Empty until S1 introduces them."""
+    return {}
+
+
+def test_product_role_bundle_keys_are_organisation_bound() -> None:
+    # Rule for S1: every product role bundle key must exist in PERMISSIONS with
+    # binding=organisation. No bundles exist in S0, so this passes vacuously.
+    for role_key, keys in organisation_role_bundles().items():
+        unknown = set(keys) - ALL_PERMISSION_KEYS
+        assert not unknown, f"{role_key}: unknown keys {sorted(unknown)}"
+        not_bound = set(keys) - ORGANISATION_BOUND_KEYS
+        assert not not_bound, f"{role_key}: not organisation-bound {sorted(not_bound)}"
+
+
+async def test_staff_role_cannot_be_given_organisation_keys(
+    db_async: AsyncSession,
+) -> None:
+    import uuid
+
+    import pytest
+
+    from src.auth.models import User
+    from src.baseline.schemas import RolePermissionsInput
+    from src.baseline.service import update_role_configuration
+    from src.exceptions import AppException
+
+    await seed_permissions_and_roles_async(db_async)
+    role = (
+        (await db_async.execute(select(Role).where(Role.name == "events-member")))
+        .scalars()
+        .one()
+    )
+    with pytest.raises(AppException) as raised:
+        await update_role_configuration(
+            session=db_async,
+            current_user=User(id=uuid.uuid4(), is_superuser=True),
+            role_id=role.id,
+            body=RolePermissionsInput(permission_keys=["events.door.scan"]),
+        )
+    assert raised.value.status_code == 400
