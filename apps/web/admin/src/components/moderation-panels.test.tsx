@@ -17,6 +17,7 @@ vi.mock("next/navigation", () => ({
 
 const row = {
   organisation_id: "org_1",
+  organiser_id: "0b8f6f0e-6a53-4a0e-9a9b-3f1f2c5d7e11",
   organiser_slug: "acme-events",
   name: "Acme Events",
   verification_status: "pending" as const,

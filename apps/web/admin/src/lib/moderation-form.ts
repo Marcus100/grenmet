@@ -2,19 +2,20 @@
 // every outcome. FastAPI owns the rules (apps/api/fastapi/src/events); this file
 // only validates shapes and maps API refusals to readable text.
 
-export const MODERATION_STATUSES = ["pending", "approved", "rejected"] as const;
-export type ModerationStatus = (typeof MODERATION_STATUSES)[number];
+import type { VerificationCase } from "@barrelsgd/api-client";
+
+export type ModerationStatus = VerificationCase["verification_status"];
+export const MODERATION_STATUSES: readonly ModerationStatus[] = [
+  "pending",
+  "approved",
+  "rejected",
+];
 
 export const MODERATION_PAGE_SIZE = 25;
 export const MIN_REASON = 3;
 export const MAX_REASON = 500;
 
 const ORGANISER_PREFIX = /^organiser\./;
-const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,100}$/;
-
-export function parseModerationId(value: string): string | undefined {
-  return ORGANISATION_ID.test(value) ? value : undefined;
-}
 
 export function parseModerationStatus(
   value: string | undefined
@@ -48,7 +49,6 @@ export type ModerationNoticeCode =
   | "mfa"
   | "not-allowed"
   | "already-decided"
-  | "needs-resubmit"
   | "suspended"
   | "missing"
   | "throttled"
@@ -66,7 +66,7 @@ export const MODERATION_NOTICES: Record<ModerationNoticeCode, Notice> = {
   },
   rejected: {
     tone: "ok",
-    text: "Rejected. The organiser's owners were emailed the reason and the organiser can resubmit.",
+    text: "Rejected. The organiser's owners will be emailed the reason and the organiser can resubmit.",
   },
   invalid: {
     tone: "problem",
@@ -83,10 +83,6 @@ export const MODERATION_NOTICES: Record<ModerationNoticeCode, Notice> = {
   "already-decided": {
     tone: "problem",
     text: "Someone already decided this organiser (or it is in a state that does not allow that decision). Nothing was changed; the case below is current.",
-  },
-  "needs-resubmit": {
-    tone: "problem",
-    text: "This organiser was rejected and must resubmit before it can be decided again. Nothing was changed.",
   },
   suspended: {
     tone: "problem",
@@ -138,7 +134,6 @@ export function moderationNoticeForError(
   }
   if (status === 404) return known("missing");
   if (status === 409) {
-    if (text.includes("must be resubmitted")) return known("needs-resubmit");
     if (text.includes("suspended")) return known("suspended");
     return known("already-decided");
   }

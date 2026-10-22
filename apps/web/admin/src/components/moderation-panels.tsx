@@ -1,3 +1,7 @@
+import type {
+  VerificationCase,
+  VerificationCaseEvent,
+} from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import {
   Table,
@@ -14,21 +18,8 @@ import {
   type ModerationStatus,
 } from "@/lib/moderation-form";
 
-export interface CaseRow {
-  decided_at?: string | null;
-  name: string;
-  organisation_id: string;
-  organiser_slug: string;
-  requested_at: string;
-  verification_status: ModerationStatus;
-}
-
-export interface CaseEvent {
-  action: string;
-  actor_name: string;
-  at: string;
-  reason?: string | null;
-}
+export type CaseRow = VerificationCase;
+export type CaseEvent = VerificationCaseEvent;
 
 export function stamp(iso: string): string {
   return `${new Date(iso).toISOString().slice(0, 16).replace("T", " ")} UTC`;

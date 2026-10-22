@@ -3,19 +3,11 @@ import {
   historyActionLabel,
   moderationNoticeFor,
   moderationNoticeForError,
-  parseModerationId,
   parseModerationStatus,
   parseReason,
 } from "./moderation-form";
 
 describe("moderation form helpers", () => {
-  it("accepts only id-shaped path values", () => {
-    expect(parseModerationId("org_1-A")).toBe("org_1-A");
-    expect(parseModerationId("a/b")).toBeUndefined();
-    expect(parseModerationId("../x")).toBeUndefined();
-    expect(parseModerationId("")).toBeUndefined();
-  });
-
   it("defaults the status filter to pending", () => {
     expect(parseModerationStatus("rejected")).toBe("rejected");
     expect(parseModerationStatus("bogus")).toBe("pending");
@@ -53,7 +45,7 @@ describe("moderation form helpers", () => {
     );
     expect(
       code(409, "This organiser was rejected; it must be resubmitted")
-    ).toBe("needs-resubmit");
+    ).toBe("already-decided");
     expect(code(409, "A suspended organisation cannot be verified")).toBe(
       "suspended"
     );

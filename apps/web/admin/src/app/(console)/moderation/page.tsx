@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CaseTable, StatusTabs } from "@/components/moderation-panels";
 import { StaffOnly } from "@/components/staff-only";
 import { listVerificationCases } from "@/lib/moderation-api";
@@ -39,6 +40,9 @@ export default async function ModerationPage({
   const page = pageNumber(one(params.page));
   const list = await listVerificationCases(gate.accessToken, status, page);
   const lastPage = Math.max(1, Math.ceil(list.count / MODERATION_PAGE_SIZE));
+  if (page > lastPage) {
+    redirect(`/moderation?status=${status}&page=${lastPage}`);
+  }
   const linkTo = (target: number) =>
     `/moderation?status=${status}&page=${target}` as const;
 

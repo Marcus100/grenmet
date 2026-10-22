@@ -42,7 +42,7 @@ const detail = {
   history: [],
 };
 
-const RE_0 = /must resubmit/;
+const RE_0 = /Approving overrides that rejection/;
 
 describe("moderation pages", () => {
   beforeEach(() => {
@@ -77,17 +77,13 @@ describe("moderation pages", () => {
     render(
       await CasePage({
         params: Promise.resolve({ id: "org_1" }),
-        searchParams: Promise.resolve({ notice: "approved" }),
+        searchParams: Promise.resolve({ notice: "already-decided" }),
       })
     );
     expect(screen.getByText("Approve this organiser")).toBeTruthy();
     expect(screen.getByText("Reject this organiser")).toBeTruthy();
     expect(screen.getByText("Sam Owner (owner)")).toBeTruthy();
-    expect(
-      screen
-        .getAllByRole("status")
-        .some((el) => (el.textContent ?? "").includes("Approved."))
-    ).toBe(true);
+    expect(screen.getByRole("alert").textContent).toContain("already decided");
   });
 
   it("hides decisions once the case is decided", async () => {
@@ -101,8 +97,24 @@ describe("moderation pages", () => {
         searchParams: Promise.resolve({}),
       })
     );
-    expect(screen.queryByText("Approve this organiser")).toBeNull();
+    expect(screen.getByText("Approve this organiser")).toBeTruthy();
+    expect(screen.queryByText("Reject this organiser")).toBeNull();
     expect(screen.getByText(RE_0)).toBeTruthy();
+  });
+
+  it("ignores a success notice that does not match the real status", async () => {
+    api.getVerificationCase.mockResolvedValue(detail);
+    render(
+      await CasePage({
+        params: Promise.resolve({ id: "org_1" }),
+        searchParams: Promise.resolve({ notice: "rejected" }),
+      })
+    );
+    expect(
+      screen
+        .queryAllByRole("status")
+        .some((el) => (el.textContent ?? "").includes("Rejected."))
+    ).toBe(false);
   });
 
   it("404s a malformed id without calling the API", async () => {

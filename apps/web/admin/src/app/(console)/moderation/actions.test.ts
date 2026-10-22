@@ -114,8 +114,10 @@ describe("moderation actions", () => {
     api.decideVerificationCase.mockRejectedValue(
       new AuthApiError(409, "Organisation is already verified")
     );
-    const state = await approveAction({}, form({ organisation_id: "org_1" }));
-    expect(state.code).toBe("already-decided");
+    const url = await redirected(
+      approveAction({}, form({ organisation_id: "org_1" }))
+    );
+    expect(url).toBe("/moderation/org_1?notice=already-decided");
     expect(report.reportError).not.toHaveBeenCalled();
   });
 

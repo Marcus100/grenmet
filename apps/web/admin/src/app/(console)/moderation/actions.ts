@@ -8,9 +8,9 @@ import {
   type ModerationDecision,
   type ModerationNoticeCode,
   moderationNoticeForError,
-  parseModerationId,
   parseReason,
 } from "@/lib/moderation-form";
+import { parseOrganisationId } from "@/lib/organisation-form";
 import { reportError } from "@/lib/report-error";
 import { requireGate } from "@/lib/staff-gate";
 
@@ -32,7 +32,7 @@ async function decide(
   decision: ModerationDecision,
   formData: FormData
 ): Promise<ModerationFormState> {
-  const id = parseModerationId(String(formData.get("organisation_id") ?? ""));
+  const id = parseOrganisationId(String(formData.get("organisation_id") ?? ""));
   if (!id) redirect("/moderation");
   const gate = await requireGate(casePath(id));
   if (gate.status !== "staff") redirect("/");
@@ -50,6 +50,9 @@ async function decide(
     // Expected refusals are not incidents; anything else is reported.
     if (!mapped.known) reportError(error, "admin-moderation");
     revalidatePath(casePath(id));
+    if (mapped.code === "already-decided") {
+      redirect(`${casePath(id)}?notice=already-decided`);
+    }
     return { code: mapped.code, reason: rawReason };
   }
   revalidatePath(casePath(id));

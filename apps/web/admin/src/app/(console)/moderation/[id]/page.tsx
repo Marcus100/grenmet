@@ -15,11 +15,20 @@ import {
 } from "@/components/moderation-panels";
 import { StaffOnly } from "@/components/staff-only";
 import { getVerificationCase } from "@/lib/moderation-api";
-import { moderationNoticeFor, parseModerationId } from "@/lib/moderation-form";
+import { moderationNoticeFor } from "@/lib/moderation-form";
+import { parseOrganisationId } from "@/lib/organisation-form";
 import { requireGate } from "@/lib/staff-gate";
 
 export const metadata: Metadata = { title: "Verification case" };
 export const dynamic = "force-dynamic";
+
+/** A success banner only shows when the case really is in that state. */
+function noticeFor(code: string | undefined, status: string) {
+  if ((code === "approved" || code === "rejected") && code !== status) {
+    return;
+  }
+  return moderationNoticeFor(code);
+}
 
 export default async function ModerationCasePage({
   params,
@@ -29,14 +38,13 @@ export default async function ModerationCasePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id: rawId } = await params;
-  const id = parseModerationId(rawId);
+  const id = parseOrganisationId(rawId);
   if (!id) notFound();
   const gate = await requireGate(`/moderation/${encodeURIComponent(id)}`);
   if (gate.status !== "staff") return <StaffOnly email={gate.email} />;
 
   const { notice: rawNotice } = await searchParams;
   const noticeCode = Array.isArray(rawNotice) ? rawNotice[0] : rawNotice;
-  const notice = moderationNoticeFor(noticeCode);
 
   let verification: Awaited<ReturnType<typeof getVerificationCase>>;
   try {
@@ -45,6 +53,7 @@ export default async function ModerationCasePage({
     if (isAuthApiError(error) && error.status === 404) notFound();
     throw error;
   }
+  const notice = noticeFor(noticeCode, verification.verification_status);
   const counts = Object.entries(verification.listing_counts);
 
   return (
@@ -141,17 +150,26 @@ export default async function ModerationCasePage({
         )}
       </section>
 
-      <Decision id={id} status={verification.verification_status} />
+      <Decision
+        decidedAt={verification.decided_at}
+        id={id}
+        reason={verification.verification_reason}
+        status={verification.verification_status}
+      />
       <HistoryTimeline events={verification.history} />
     </>
   );
 }
 
 function Decision({
+  decidedAt,
   id,
+  reason,
   status,
 }: {
+  decidedAt?: string | null;
   id: string;
+  reason?: string | null;
   status: "pending" | "approved" | "rejected";
 }) {
   if (status === "approved") {
@@ -164,10 +182,17 @@ function Decision({
   }
   if (status === "rejected") {
     return (
-      <DecisionNotice title="Decision">
-        This organiser was rejected and must resubmit before it can be decided
-        again.
-      </DecisionNotice>
+      <section aria-labelledby="decision-heading" className="space-y-3">
+        <h2 className="font-medium" id="decision-heading">
+          Decision
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          Rejected earlier{decidedAt ? ` on ${stamp(decidedAt)}` : ""}:{" "}
+          {reason ?? "no reason recorded"}. Approving overrides that rejection;
+          the organiser can then publish.
+        </p>
+        <ApproveForm action={approveAction} organisationId={id} />
+      </section>
     );
   }
   return (
