@@ -16,7 +16,7 @@ The app now has two surfaces. The organiser console described below moved to
 `/dash`, where promoters build and customise events. The public root (`/`) is
 a discovery and community site: every event in Grenada, groups and recurring
 meetups, member profiles, connections and messaging. It reads and writes the
-Events API (the `events` schema of the main database, ADR-0003; app-scoped sign-in per ADR-0016); the organiser sales,
+Events API (the `events` schema of the main database, per the 2026-10-21 events migration and `apps/api/fastapi/src/events/AGENTS.md`; this replaces the "own database" wording that stood before this PR; app-scoped sign-in per ADR-0016); the organiser sales,
 settlement and readiness overview at `/dash` is still demo data until ticketing
 exists. Direct messages are limited to accepted connections or shared group
 members, and resident suggestions stay review-before-publish. Design lane:

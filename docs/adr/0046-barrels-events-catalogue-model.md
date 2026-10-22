@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (2026-10-22, owner). Owner decisions of 2026-10-22 are recorded below as inputs, and the
+Accepted (2026-10-22, owner); rules that reference ADR-0050 are conditional on
+ADR-0050 being accepted. Owner decisions of 2026-10-22 are recorded below as inputs, and the
 owner's answers on `booking_mode` are folded into Decision 1. Nothing in this
 ADR is built. Companion ADRs: [0047](0047-experiences-reuse-events-ticketing-through-occurrences.md)
 (experiences and occurrences) and [0048](0048-catalogue-provenance-and-curation.md)
@@ -39,7 +40,7 @@ Owner decisions already made (inputs, not open):
   toggle on the same data.
 
 Constraints: Events lives in the `events` schema of the main database
-(ADR-0003, `apps/api/fastapi/src/events/AGENTS.md`); migrations are additive;
+(ADR-0003; the 2026-10-21 events migration and `apps/api/fastapi/src/events/AGENTS.md`); migrations are additive;
 new Python dependencies and PostGIS are not available (below); new public routes
 follow ADR-0025; organiser authoring uses the org zone with the ADR-0044 keys
 and the ADR-0050 staff path; free/open-source only.
@@ -52,7 +53,7 @@ and the ADR-0050 staff path; free/open-source only.
     culture, faith, family, wellness`, `listings_category_check` in
     `alembic/versions/2026-10-21_events_schema.py`, mirrored by
     `schemas.Category`), `admission` constrained to `free | rsvp | ticketed`,
-    a free-text `recurrence` (max 80 characters, display only), `tags` as a
+    a free-text `recurrence` (max 80 characters, a Pydantic limit in `schemas.py`, display only), `tags` as a
     text array, and `parish` constrained to six parishes plus `carriacou`.
     (high)
   - Inventory is the count of `valid` tickets per tier plus unpaid-order items
@@ -69,7 +70,7 @@ and the ADR-0050 staff path; free/open-source only.
     has `name`, `bio`, `verified`, `logo_file_id` and `organisation_id` but no
     cover image, contact channels, parish or social links. (high)
   - There is no PostGIS in application databases. The CAP migration states
-    PostGIS is intentionally not created (geometry stored as GeoJSON,
+    PostGIS is intentionally not created (CAP deliberately does not create it) (geometry stored as GeoJSON,
     `alembic/versions/2026_06_02_cap_domain.py`). The staging and production
     Postgres image is `postgres:17`; switching to a PostGIS image is refused by
     `scripts/production/render-env.py` unless `POSTGIS_RESTORE_VERIFIED=true`
@@ -124,7 +125,7 @@ and the ADR-0050 staff path; free/open-source only.
   installed (fallback below).
 - **B. PostGIS.** Proper geometry, radius and polygon queries. Rejected for now:
   the deployed image is not PostGIS, switching is gated by an operator restore
-  verification, CAP deliberately dropped it, and island-scale bounding boxes do
+  verification, CAP deliberately does not create it, and island-scale bounding boxes do
   not need it. Revisit if a polygon feature (ferry or road-network distance) is
   wanted.
 - **C. External search (Typesense, Meilisearch, Algolia).** Better ranking and
@@ -157,7 +158,7 @@ Choose A and E, with the model below. All migrations are additive.
 | `listing_type` | `event`, `experience`, `class`, `attraction`, `service` | What it is. Launch lists `event`, `experience`, `class`. `attraction` (a place you can visit, no session) is allowed in the model, shown later. `service` is reserved for the marketplace (ADR-0049) and is **refused by the API until ADR-0049 is accepted**. |
 | `access_type` | `public`, `private` | Who may attend. `private` (invite or private charter) is never shown in discovery; it must have `visibility='unlisted'` (CHECK). |
 | `pricing_type` | `free`, `paid`, `donation` | Display and filter value. `donation` is display-only at launch: the organiser collects at the door. No online donation collection is built (the payments-licence question in the v1 definition is open). |
-| `booking_mode` | `rsvp`, `tickets`, `slots`, `enquiry`, `none`, `external` | How a person takes part (owner-final set of six). `tickets` and `slots` both go through the Events ticket and order machinery (ADR-0047). `enquiry` sends a message to the organiser and takes no payment. `none` is "just turn up": no ticket or RSVP, details only. `external` means tickets are sold elsewhere via `external_ticket_url` (ADR-0048). |
+| `booking_mode` | `rsvp`, `tickets`, `slots`, `enquiry`, `none`, `external` | How a person takes part (owner-final set of six). `tickets` goes through the Events ticket and order machinery (ADR-0047); experiences launch with `tickets` (or `rsvp`) through occurrences. `slots` is **reserved** for the future Bookings bridge (not built; it needs its own ADR) and the API refuses it until then. `enquiry` sends a message to the organiser and takes **no payment**; it is the services-marketplace shape (ADR-0049), and a private charter is never `enquiry`: it is a whole-pool charter tier sold with `tickets`, or an outlet / manual-payment sale (ADR-0047). `none` is "just turn up": no ticket or RSVP, details only. `external` means tickets are sold elsewhere via `external_ticket_url` (ADR-0048). |
 | `recurrence_rule` | JSON, nullable | Machine-readable repeat rule; see ADR-0047. The legacy text `recurrence` stays as the display label. |
 | `island` | `grenada`, `carriacou`, `petite-martinique` | Island group. |
 | `category_slug` | a leaf or top-level slug | See section 2. |
@@ -165,8 +166,9 @@ Choose A and E, with the model below. All migrations are additive.
 `admission` (`free | rsvp | ticketed`) stays as the frozen legacy field and is
 dual-written from the new fields until the web app moves (`free` -> `pricing_type
 free`, `booking_mode` `none`; `rsvp` -> `rsvp`; `ticketed` -> `tickets`). `parish` keeps its current set; Petite Martinique
-needs one more allowed value, done by replacing the CHECK constraint in an
-additive migration (or moving parishes to reference data if the slice prefers).
+needs one more allowed value (pending open decision 5), done by replacing the
+CHECK constraint in an additive migration (or moving parishes to reference data
+if the slice prefers).
 
 ### 2. Categories, subcategories, tags and collections
 
@@ -194,7 +196,7 @@ additive migration (or moving parishes to reference data if the slice prefers).
   Multi-category membership is expressed by tags and collections, not by extra
   categories, so filters never double count.
 - **Tags** stay in `listings.tags` (text array, existing). A small reserved set
-  has meaning in the product: `family` (the Family & Kids audience flag), `boat`,
+  has meaning in the product: `kid-friendly` (the Family & Kids audience flag), `boat`,
   `free-entry`. Other tags are free but lower-cased slugs, validated against a
   length and character rule.
 - **Collections** are curated sets such as Spicemas / Carnival, a festival
@@ -203,13 +205,29 @@ additive migration (or moving parishes to reference data if the slice prefers).
   (`collection_slug`, `listing_id`, `sort_order`). A listing belongs to many
   collections; staff curate them (ADR-0048 key). Collections are not categories
   and never appear as filter values.
-- **Legacy `category` column and CHECK stay, unchanged.** It is filled by a
-  provisional, lossy mapping from the top-level category (for example Parties ->
-  `fete`, Music -> `music`, Food -> `food`, Sports -> `sport`, Business ->
-  `business`, Arts and Tours and Markets -> `culture`, Community -> `faith`) so
-  the existing web app keeps working. The mapping is a stopgap, is **read only
-  by the old web build**, and the column is dropped in a later destructive
-  migration once the web app uses `category_slug` (ask-first when it happens).
+- **Legacy `category` column and CHECK stay, unchanged.** The ten frozen
+  values are mapped to slugs for the one-time backfill (owner to confirm), and
+  new top-level categories are mapped back to a legacy value by a provisional,
+  lossy stopgap so the existing web build keeps working:
+
+  | Legacy value | `category_slug` (backfill) | Extra |
+  | --- | --- | --- |
+  | `fete` | Parties & Fetes | |
+  | `music` | Music & Live Shows | |
+  | `food` | Food & Drink | |
+  | `sport` | Sports & Fitness | |
+  | `business` | Business & Learning | |
+  | `tech` | Business & Learning | tag `tech` |
+  | `culture` | Arts & Culture | |
+  | `faith` | Community & Causes, subcategory church/faith | |
+  | `family` | Community & Causes | tag `kid-friendly` |
+  | `wellness` | Sports & Fitness (the Wellness category stays inactive) | |
+
+  Reverse stopgap (slug to legacy): Parties -> `fete`, Music -> `music`, Food ->
+  `food`, Sports -> `sport`, Business -> `business`, Arts, Tours and Markets ->
+  `culture`, Community -> `faith`. The legacy column is **read only by the old
+  web build**, and is dropped in a later destructive migration once the web app
+  uses `category_slug` (ask-first when it happens).
   `GET /events/public/categories` serves the reference table.
 
 ### 3. Occurrences are the unit of time and inventory
@@ -286,7 +304,7 @@ curated one (ADR-0048).
 - Authoring is on the org zone: `/events/org/*` with the existing ADR-0044
   `events.listings.manage` key, plus the ADR-0050 staff counterpart
   `events.ops.listings`, through the same `require_org_permission_or_staff`
-  dependency. The legacy `/events/manage/*` routes are retired by the S5 plan in
+  dependency. The legacy `/events/manage/*` routes are retired by the ADR-0044 slice S5 plan in
   `docs/exec-plans/events-legacy-manage-routes.md`; new catalogue fields are
   **not** added to legacy routes unless a caller needs them before S5 lands.
 - The OpenAPI contract and generated client change with each route slice
@@ -301,13 +319,17 @@ curated one (ADR-0048).
   cancel/edit of structure) -> occurrence row (`FOR UPDATE`) -> tier rows by id
   ascending. Detail in ADR-0047.
 - The derived `listings.starts_at` is recomputed under the exclusive listing
-  lock whenever an occurrence is added, moved or cancelled.
+  lock whenever an occurrence is added, moved or cancelled. **Time passing**
+  (an occurrence ending) is recomputed by a daily ARQ job that takes a short
+  `FOR UPDATE` on the listing row per listing, one transaction each, skipping
+  rows it cannot lock and retrying on the next run; it never holds the lock
+  across listings.
 
 ### 9. Stale documentation fix
 
 `docs/products/barrels-events-v1-definition.md` is edited in this change to
 replace the stale "own database" wording with the real position (Events data is
-in the `events` schema of the main database, ADR-0003). ADR-0003's own stale
+in the `events` schema of the main database, per the 2026-10-21 events migration). ADR-0003's own stale
 Events text remains a **follow-up for the owner** (ADR-0045 already flags it).
 The v1 definition's scope section still describes events only; extending it to
 experiences and the taxonomy is a follow-up product edit for the owner.
@@ -364,8 +386,8 @@ Still open (none blocks acceptance; each is needed before its slice):
 
 ## Implementation slices
 
-Nothing is built by this ADR. Numbering continues the Events plan (L1 and L2
-are earlier work). Each slice is its own PR with tests; ADR-0047 and ADR-0048
+Nothing is built by this ADR. Slices are numbered L3 to L12 in the owner's catalogue plan (L1 and L2 are not
+sliced here). Each slice is its own PR with tests; ADR-0047 and ADR-0048
 supply the detail for L5 to L8 and L10.
 
 - **L3 taxonomy API:** `events.categories` reference table and seed,

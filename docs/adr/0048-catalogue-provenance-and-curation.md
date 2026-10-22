@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (2026-10-22, owner). Owner direction: the launch catalogue is
+Accepted (2026-10-22, owner); rules that reference ADR-0050 are conditional on
+ADR-0050 being accepted. Owner direction: the launch catalogue is
 organiser-submitted plus a hand-curated seed with source links; no scraping.
 The owner also allowed outbound ticket links and settled the `booking_mode`
 values (Decision 6). Nothing in this ADR is built. The legal points below are
@@ -50,7 +51,7 @@ elsewhere are shown.
     organisation and owner membership are created by `service.create_organiser`.
     (high)
   - The repository is public and keeps confidential or personal material in the
-    gitignored `/private/` (`AGENTS.md`). `scripts/seed_events_demo.py` seeds
+    gitignored `/private/` (`AGENTS.md`). `apps/api/fastapi/scripts/seed_events_demo.py` seeds
     demo data only. (high)
   - ADR-0033 makes Barrels the owner and responsible party for data on its
     platforms. The v1 definition lists the Data Protection Act 1/2023 (subject
@@ -191,8 +192,8 @@ partners or endorsed.
    replace images with their own, or ask Barrels to remove anything. Sources stay
    until the organiser removes them.
 4. At any time an organiser may require removal of their curated entries; staff
-   hide them within the time target (open decision) and the activity row records
-   it.
+   file a hide request, an MFA superuser decides (section 8), and the activity
+   row records it.
 
 ### 6. Tickets sold elsewhere
 
@@ -224,8 +225,9 @@ Design rules, pending counsel review:
 - Named individuals appear only as billed performers or hosts as printed in the
   public promotion, and only where that is the event's public draw.
 - Correction and removal: a named person can ask via the report/contact route;
-  staff hide the listing or remove the name within the target, and the activity
-  row records the action without the requester's personal details.
+  staff file a hide request, an MFA superuser decides and the name is removed or
+  the listing hidden within the target (section 8), and the activity row records
+  the action without the requester's personal details.
 - Source URLs are stored; the content of a source page is not cached or archived.
 - The Information Commission's registration or notification expectations for this
   processing are not known and are an owner/counsel item.
@@ -244,14 +246,22 @@ Design rules, pending counsel review:
   organisers publish" rule **only for** `origin = curated` listings and only with
   the key. Every curation write is an `activity` row with `actor_capacity =
   staff` (shown to organisers as "Barrels staff").
-- **Hide / unhide** (`moderation_state`, any origin): **moderators read** the
-  hide queue and the reports (`events.moderate`, `ModerationReader`); **MFA
-  superusers decide** to hide or unhide, mirroring organiser verification. A
-  hidden listing leaves discovery, search, collections, feeds and the map, and
-  its public URL answers 404; its organiser (if claimed) sees "hidden by Barrels"
-  and the reason code in the org zone. The reason codes are `inaccurate`,
-  `removal_requested`, `rights`, `personal_data`, `unsafe`, `duplicate`, `other`.
-  Hidden listings keep their rows and activity.
+- **Hide / unhide** (`moderation_state`, any origin) has **one deciding
+  authority: MFA superusers** (mirroring organiser verification). Curators
+  (`events.catalogue.curate`) and moderators (`events.moderate`) may **request** a
+  hide or unhide, with a reason code, and moderators read the hide queue and the
+  reports (`ModerationReader`); neither can hide or unhide on their own. An
+  organiser's removal request and a person's correction request become the same
+  kind of request. A hidden listing leaves discovery, search, collections,
+  feeds and the map, and its public URL answers 404; its organiser (if claimed)
+  sees "hidden by Barrels" and the reason code in the org zone. Reason codes:
+  `inaccurate`, `removal_requested`, `rights`, `personal_data`, `unsafe`,
+  `duplicate`, `other`. Hidden listings keep their rows and activity.
+  **Meeting the target:** requests queue for MFA superusers, who work the queue
+  at least once per business day; the proposed two-business-day target is met
+  only if a superuser is available, so it depends on that availability (a single
+  point of failure while there are few superusers). If that is not acceptable,
+  an emergency hide by moderators is the remedy and stays an open decision.
 
 ### 9. Seed data handling
 
@@ -279,7 +289,8 @@ Still open:
 2. **Removal time target** for organiser or individual requests. Proposed: hide
    within 2 business days, resolve within 10.
 3. **Emergency hide by moderators** for personal-data or safety reports pending a
-   superuser decision. Not proposed here (owner said moderators read); confirm.
+   superuser decision. Not proposed here (decisions stay with MFA superusers);
+   needed if the two-day target cannot be met by the superuser path alone.
 4. **MFA for curation writes** (proposed) versus a lighter check for the curator
    role.
 5. **Automated link-health check** of source URLs: allowed (HEAD only, our own

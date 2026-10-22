@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (2026-10-22, owner). Owner direction: launch with events **and**
+Accepted (2026-10-22, owner); rules that reference ADR-0050 are conditional on
+ADR-0050 being accepted. Owner direction: launch with events **and**
 bookable experiences. Nothing in this ADR is built. Read with [ADR-0046](0046-barrels-events-catalogue-model.md) (catalogue
 model) and [ADR-0048](0048-catalogue-provenance-and-curation.md). Builds on
 [ADR-0024](0024-bookings-domain.md), [ADR-0027](0027-payments-core-and-providers.md),
@@ -107,8 +108,19 @@ scale), cost (none), operational risk (C is additive and backfillable; B is not)
 
 Choose C.
 
-Slice names below (X1 to X6) map to ADR-0046's L5 to L8 (occurrences L5,
-per-occurrence ticketing L6, door/outlet/settlement L7, schedules L8).
+Slice mapping to ADR-0046's implementation slices (X-slices are backend
+unless marked web; W-slices are the web app, numbered with ADR-0046's L slices
+by the web plan):
+
+| This ADR | ADR-0046 slice | Content |
+| --- | --- | --- |
+| X1 | L5 | Occurrences, backfill, nullable `occurrence_id` plumbing |
+| X2 | L6 | Pool, bands (`seats_per_unit`), per-occurrence allocation, new lock order |
+| X3 | L8 | Generator and extension job |
+| X4 | L6 / L7 | Session cancel and refund |
+| X5 (backend part) | L7 | Door, outlet and manifest per occurrence |
+| X5 (web part) | W-slices | Session picker, band quantities, door per session |
+| X6 | L7 | Settlement breakdown per occurrence |
 
 ### 1. Occurrences
 
@@ -133,7 +145,7 @@ the exclusive listing lock, and time passing is handled by the scheduled job
   `events.occurrence_tier_allocations(occurrence_id, tier_id, allocation)` lets
   one session differ. For an event with one occurrence nothing changes.
 - Shared pool: `occurrences.capacity` caps the **sum over tiers** of `quantity
-  x seats_per_unit`. A tier gains `seats_per_unit` (default 1). Participant bands
+  x seats_per_unit`. A tier gains `seats_per_unit` (default 1, `CHECK seats_per_unit >= 0`). Participant bands
   are tiers: Adult, Child, Infant (0 seats if infants sit free), Resident,
   Visitor. A private charter is a tier "Private boat (up to 8)" with
   `seats_per_unit = 8`, so one order consumes the whole pool and the same
@@ -181,7 +193,12 @@ cancel, and a claim racing a recurrence extension.
 - **Materialisation:** occurrences are real rows, created ahead for a horizon of
   120 days by an ARQ job (ADR-0038) run daily and at rule save; the unique
   `(listing_id, starts_at)` makes it idempotent. At most 400 rows per listing per
-  run; a rule that would exceed it is rejected on save.
+  run (a run only creates rows missing inside the 120-day horizon; the cap is not
+  a lifetime limit). A one-per-day rule produces at most 120 rows, so only rules
+  with many `additions` or several times a day expressed as one rule can hit it;
+  such a rule is rejected on save. Each run also refreshes the derived
+  `listings.starts_at` with the short per-listing `FOR UPDATE` described in
+  ADR-0046 section 8.
 - **Editing a rule** affects future occurrences only: occurrences with any order
   or ticket are never deleted or silently moved; they are kept, or cancelled
   through the cancellation path (section 5). A time change on a booked session
@@ -212,12 +229,13 @@ cancel, and a claim racing a recurrence extension.
 
 - **Group:** a public occurrence, shared pool, participant-band tiers, any
   number of different buyers.
-- **Private on Events:** a charter tier with `seats_per_unit` equal to the pool, or
-  an enquiry listing (`booking_mode = enquiry`) where the organiser agrees and
-  records the sale through the outlet/manual-payment path.
+- **Private on Events:** a whole-pool charter tier (`seats_per_unit` equal to the
+  pool) sold with `booking_mode = tickets`, or an outlet / manual-payment sale
+  recorded by the organiser after agreeing it. Never `enquiry`: `enquiry`
+  takes no payment and belongs to the services marketplace (ADR-0049).
 - **Appointment-shaped private bookings** (one guide, one client, calendar of
   one person) are **not** built on occurrences. Later, a thin bridge may let a
-  listing with `booking_mode = slots` read availability from a Bookings service
+  listing with `booking_mode = slots` (reserved; refused by the API until then) read availability from a Bookings service
   and create a Bookings booking; it needs its own ADR. The Bookings exclusion
   engine is not generalised.
 
@@ -260,7 +278,7 @@ cancel, and a claim racing a recurrence extension.
    launch (proposed); confirm.
 4. **Participant data**: only a lead booker name and phone; no per-participant
    names, ages, allergies or waivers at launch (proposed, avoids special-category
-   data under the Data Protection Act 2023). Operators may demand waivers.
+   data under the Data Protection Act 1/2023). Operators may demand waivers.
 5. **Minimum participants** stays a manual decision (proposed).
 6. **Is the Bookings bridge for private appointment-shaped experiences wanted**
    at all, and when?
@@ -292,6 +310,6 @@ cancel, and a claim racing a recurrence extension.
   rules the generator cannot express are requested; automatic refunds become
   acceptable to the owner.
 - **Slices (no code in this PR):** X1 occurrences, backfill and key plumbing
-  (ADR-0046 C1); X2 pool, bands and per-occurrence allocation; X3 generator and
+  (ADR-0046 L5); X2 pool, bands and per-occurrence allocation; X3 generator and
   job; X4 session cancel and refund; X5 web: session picker, band quantities,
   door per session; X6 settlement breakdown.
