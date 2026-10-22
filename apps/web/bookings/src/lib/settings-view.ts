@@ -49,6 +49,11 @@ export function moneyInput(minor: number): string {
   return minor % 100 === 0 ? String(minor / 100) : (minor / 100).toFixed(2);
 }
 
+/** An amount with the business currency code: "150 XCD", "25.50 XCD". */
+export function moneyWithCurrency(minor: number, currency: string): string {
+  return `${moneyInput(minor)} ${currency}`;
+}
+
 /** "09:00:00" from the API to "09:00" for a time input. */
 export function hhmm(value: string): string {
   return value.slice(0, 5);

@@ -5,7 +5,7 @@
 // screen reader and a keyboard user land on the outcome.
 
 import { Label } from "@barrelsgd/ui/components/ui/label";
-import { useEffect, useRef } from "react";
+import { type FormEvent, startTransition, useEffect, useRef } from "react";
 import type { ActionState } from "@/lib/studio-action-state";
 
 export const INPUT = "h-11";
@@ -98,4 +98,17 @@ export function SettingsResult({
       ) : null}
     </div>
   );
+}
+
+/**
+ * A submit handler that sends the form to its action without React 19's
+ * automatic form reset, so a refused save keeps what the person typed. Forms
+ * that should start blank after a save reset themselves on success.
+ */
+export function keepTyped(formAction: (data: FormData) => void) {
+  return (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(() => formAction(data));
+  };
 }

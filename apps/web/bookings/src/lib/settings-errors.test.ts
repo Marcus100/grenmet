@@ -39,8 +39,19 @@ describe("settings failures", () => {
     ).toMatchObject({ message: expect.stringContaining("overlap") });
   });
 
+  it("ignores text outside detail and errors", () => {
+    expect(
+      settingsFailure(
+        apiError(422, { other: "That booking address is reserved" })
+      )
+    ).toMatchObject({ message: "The settings were not accepted." });
+  });
+
   it("maps roles, missing rows and faults", () => {
-    expect(settingsFailure(apiError(403))).toMatchObject({ kind: "forbidden" });
+    expect(settingsFailure(apiError(403))).toMatchObject({
+      kind: "forbidden",
+      message: "This business can't change booking settings right now.",
+    });
     expect(settingsFailure(apiError(401))).toMatchObject({
       kind: "signed_out",
     });

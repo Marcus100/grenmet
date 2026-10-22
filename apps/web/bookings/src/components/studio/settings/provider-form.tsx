@@ -12,6 +12,7 @@ import { saveProviderAction } from "@/app/studio/[orgSlug]/settings/actions";
 import { IDLE } from "@/lib/studio-action-state";
 import {
   INPUT,
+  keepTyped,
   SettingsCheck,
   SettingsField,
   SettingsResult,
@@ -42,7 +43,7 @@ export function ProviderForm({
   }, [state, provider]);
 
   return (
-    <form action={formAction} className="space-y-5" ref={formRef}>
+    <form className="space-y-5" onSubmit={keepTyped(formAction)} ref={formRef}>
       <input name="providerId" type="hidden" value={provider?.id ?? ""} />
       <SettingsField id={`${prefix}-name`} label="Name">
         {() => (

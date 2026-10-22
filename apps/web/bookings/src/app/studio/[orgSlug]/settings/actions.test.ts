@@ -247,6 +247,24 @@ describe("services", () => {
     ).toMatchObject({ kind: "invalid" });
     expect(createService).not.toHaveBeenCalled();
   });
+
+  it("enforces the API's money limit with its own message", async () => {
+    expect(
+      await saveServiceAction(
+        SLUG,
+        IDLE,
+        form({ ...SERVICE, price: "1000000.01", deposit: "0" })
+      )
+    ).toMatchObject({ message: "Prices and deposits are at most 1,000,000." });
+    vi.mocked(createService).mockResolvedValue({} as never);
+    expect(
+      await saveServiceAction(
+        SLUG,
+        IDLE,
+        form({ ...SERVICE, price: "1000000", deposit: "0" })
+      )
+    ).toMatchObject({ status: "done" });
+  });
 });
 
 describe("providers and hours", () => {

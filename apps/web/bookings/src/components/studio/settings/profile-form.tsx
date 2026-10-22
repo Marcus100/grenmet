@@ -3,12 +3,13 @@
 import type { BookingProfilePublic } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { saveProfileAction } from "@/app/studio/[orgSlug]/settings/actions";
 import { TIMEZONE_SUGGESTIONS } from "@/lib/settings-view";
 import { IDLE } from "@/lib/studio-action-state";
 import {
   INPUT,
+  keepTyped,
   SettingsCheck,
   SettingsField,
   SettingsResult,
@@ -28,8 +29,15 @@ export function ProfileForm({
     saveProfileAction.bind(null, orgSlug),
     IDLE
   );
+  const [zone, setZone] = useState(profile?.timezone ?? "America/Grenada");
+  const [currency, setCurrency] = useState(profile?.currency ?? "XCD");
+  const zoneChanged =
+    profile?.timezone !== undefined && zone.trim() !== profile.timezone;
+  const currencyChanged =
+    profile?.currency !== undefined &&
+    currency.trim().toUpperCase() !== profile.currency;
   return (
-    <form action={formAction} className="space-y-5">
+    <form className="space-y-5" onSubmit={keepTyped(formAction)}>
       <div className="grid gap-5 lg:grid-cols-2">
         <SettingsField id="profile-displayName" label="Business name">
           {() => (
@@ -62,7 +70,11 @@ export function ProfileForm({
           )}
         </SettingsField>
         <SettingsField
-          hint="Opening hours and booking times are read on this clock."
+          hint={
+            zoneChanged
+              ? "Changing this keeps saved hours as clock times in the new zone (9:00 stays 9:00, but on the new clock)."
+              : "Opening hours and booking times are read on this clock."
+          }
           id="profile-timezone"
           label="Timezone"
         >
@@ -75,6 +87,7 @@ export function ProfileForm({
                 id="profile-timezone"
                 list="profile-timezone-options"
                 name="timezone"
+                onChange={(event) => setZone(event.target.value)}
                 required
               />
               <datalist id="profile-timezone-options">
@@ -86,7 +99,11 @@ export function ProfileForm({
           )}
         </SettingsField>
         <SettingsField
-          hint="Prices and deposits use this currency."
+          hint={
+            currencyChanged
+              ? "Prices are not converted. Existing prices and deposits keep their numbers in the new currency."
+              : "Prices and deposits use this currency."
+          }
           id="profile-currency"
           label="Currency"
         >
@@ -99,6 +116,7 @@ export function ProfileForm({
               id="profile-currency"
               maxLength={3}
               name="currency"
+              onChange={(event) => setCurrency(event.target.value)}
               required
             />
           )}

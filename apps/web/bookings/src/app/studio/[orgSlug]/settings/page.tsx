@@ -3,10 +3,7 @@ import type {
   BookingServicePublic,
   BookingSettings,
 } from "@barrelsgd/api-client";
-import {
-  formatDuration,
-  formatMoney,
-} from "@barrelsgd/bookings-web/lib/booking-format";
+import { formatDuration } from "@barrelsgd/bookings-web/lib/booking-format";
 import {
   Empty,
   EmptyDescription,
@@ -20,7 +17,12 @@ import { ProviderForm } from "@/components/studio/settings/provider-form";
 import { ServiceForm } from "@/components/studio/settings/service-form";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { requireSession } from "@/lib/session";
-import { hhmm, periodsByDay, WEEKDAYS } from "@/lib/settings-view";
+import {
+  hhmm,
+  moneyWithCurrency,
+  periodsByDay,
+  WEEKDAYS,
+} from "@/lib/settings-view";
 import { getSettings } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 import { canManageBookings, DEFAULT_TIMEZONE } from "@/lib/studio-view";
@@ -123,7 +125,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
                   <summary className={SUMMARY}>
                     <span>{item.name}</span>
                     <span className="text-muted-foreground text-sm">
-                      {serviceLine(item)}
+                      {serviceLine(item, currency)}
                     </span>
                   </summary>
                   <div className="pt-4">
@@ -214,13 +216,13 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
   );
 }
 
-function serviceLine(item: BookingServicePublic): string {
+function serviceLine(item: BookingServicePublic, currency: string): string {
   const parts = [
     formatDuration(item.duration_min),
-    formatMoney(item.price_minor),
+    moneyWithCurrency(item.price_minor, currency),
   ];
   if (item.deposit_minor > 0) {
-    parts.push(`${formatMoney(item.deposit_minor)} deposit`);
+    parts.push(`${moneyWithCurrency(item.deposit_minor, currency)} deposit`);
   }
   if (!item.active) {
     parts.push("not offered");

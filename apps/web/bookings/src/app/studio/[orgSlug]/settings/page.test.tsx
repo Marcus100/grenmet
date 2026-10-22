@@ -40,6 +40,8 @@ const ADD_SERVICE = "Add service";
 const HOURS = /09:00 to 17:00/;
 const SALT_ZONE = /Timezone: America\/Barbados/;
 
+const TTD_LINE = /150 TTD, 25 TTD deposit/;
+
 const EMPTY: BookingSettings = {
   profile: null,
   services: [],
@@ -148,5 +150,16 @@ describe("settings page", () => {
     render(await SettingsPage({ params }));
     expect(screen.getByText(NO_PROFILE)).toBeInTheDocument();
     expect(screen.getByText(NO_SERVICES)).toBeInTheDocument();
+  });
+});
+
+describe("service summary currency", () => {
+  it("uses the business currency code, not a dollar sign", async () => {
+    vi.mocked(getSettings).mockResolvedValue({
+      ...FULL,
+      profile: { ...FULL.profile, currency: "TTD" } as never,
+    });
+    render(await SettingsPage({ params }));
+    expect(screen.getByText(TTD_LINE)).toBeInTheDocument();
   });
 });

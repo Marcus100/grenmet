@@ -10,6 +10,7 @@ import { moneyInput } from "@/lib/settings-view";
 import { IDLE } from "@/lib/studio-action-state";
 import {
   INPUT,
+  keepTyped,
   SettingsCheck,
   SettingsField,
   SettingsResult,
@@ -43,7 +44,7 @@ export function ServiceForm({
   }, [state, service]);
 
   return (
-    <form action={formAction} className="space-y-5" ref={formRef}>
+    <form className="space-y-5" onSubmit={keepTyped(formAction)} ref={formRef}>
       <input name="serviceId" type="hidden" value={service?.id ?? ""} />
       <div className="grid gap-5 lg:grid-cols-2">
         <SettingsField id={`${prefix}-name`} label="Service name">

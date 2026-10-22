@@ -7,7 +7,7 @@ import { useActionState } from "react";
 import { saveHoursAction } from "@/app/studio/[orgSlug]/settings/actions";
 import { hhmm, periodsByDay, rowsForDay, WEEKDAYS } from "@/lib/settings-view";
 import { IDLE } from "@/lib/studio-action-state";
-import { INPUT, SettingsResult } from "./settings-ui";
+import { INPUT, keepTyped, SettingsResult } from "./settings-ui";
 
 /**
  * A provider's whole week. Two or more rows a day make a break between them;
@@ -30,7 +30,7 @@ export function HoursForm({
   );
   const days = periodsByDay(hours);
   return (
-    <form action={formAction} className="space-y-4">
+    <form className="space-y-4" onSubmit={keepTyped(formAction)}>
       <input name="providerId" type="hidden" value={providerId} />
       <p className="text-muted-foreground text-sm">
         Times are on the business clock ({zone}). Leave a day empty for a day

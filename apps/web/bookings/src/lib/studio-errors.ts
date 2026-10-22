@@ -106,19 +106,41 @@ export function actionFailure(error: unknown): StudioFailure {
 }
 
 /** A member (not an admin) tried to change the settings. */
+export const SETTINGS_REFUSED: StudioFailure = {
+  kind: "forbidden",
+  message: "This business can't change booking settings right now.",
+  nextStep:
+    "Its bookings access may have changed. Reload, or ask a Barrels admin.",
+};
+
 export const SETTINGS_ADMIN_REQUIRED: StudioFailure = {
   kind: "forbidden",
   message: "You need admin access to change settings.",
   nextStep: "Ask the business owner to make you an admin, then try again.",
 };
 
-/** The API's error body as text, matched defensively (no error codes yet). */
+/**
+ * The API's messages as text: `detail` as a string (AppException), or the
+ * `msg` of each item in `detail[]` (FastAPI request validation) or `errors[]`
+ * (the app's own validation handler). Nothing else is matched.
+ */
 export function detailText(data: unknown): string {
-  try {
-    return typeof data === "string" ? data : (JSON.stringify(data) ?? "");
-  } catch {
+  if (typeof data !== "object" || data === null) {
     return "";
   }
+  const { detail, errors } = data as { detail?: unknown; errors?: unknown };
+  if (typeof detail === "string") {
+    return detail;
+  }
+  const list = Array.isArray(detail) ? detail : errors;
+  const items = Array.isArray(list) ? list : [];
+  return items
+    .map((item) =>
+      typeof item === "object" && item !== null && "msg" in item
+        ? String((item as { msg: unknown }).msg)
+        : ""
+    )
+    .join("; ");
 }
 
 const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
@@ -182,7 +204,8 @@ export function settingsFailure(error: unknown): StudioFailure {
     case 401:
       return studioFailure(error);
     case 403:
-      return SETTINGS_ADMIN_REQUIRED;
+      // Our own role check ran first, so this is not about the person's role.
+      return SETTINGS_REFUSED;
     case 404:
       return {
         kind: "not_found",

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   hhmm,
   moneyInput,
+  moneyWithCurrency,
   parseHours,
   parseMoney,
   periodsByDay,
@@ -25,6 +26,13 @@ describe("money", () => {
     expect(moneyInput(2500)).toBe("25");
     expect(moneyInput(2550)).toBe("25.50");
     expect(moneyInput(0)).toBe("0");
+  });
+});
+
+describe("currency labels", () => {
+  it("names the business currency, not a dollar sign", () => {
+    expect(moneyWithCurrency(15_000, "TTD")).toBe("150 TTD");
+    expect(moneyWithCurrency(2550, "XCD")).toBe("25.50 XCD");
   });
 });
 

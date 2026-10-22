@@ -36,6 +36,8 @@ const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/;
 const BOOKING_ADDRESS = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/;
 const CURRENCY = /^[A-Z]{3}$/;
 const MANAGE_URL = /^https:\/\/[^\s]+\{token\}[^\s]*$/;
+/** The API caps money at 100,000,000 minor units (1,000,000.00). */
+const MAX_MINOR = 100_000_000;
 const WHOLE = /^\d+$/;
 
 const NOT_FOUND: StudioFailure = {
@@ -274,6 +276,9 @@ export async function saveServiceAction(
   }
   if (deposit === null) {
     return invalid("Enter the deposit as an amount like 10 or 10.50.");
+  }
+  if (price > MAX_MINOR || deposit > MAX_MINOR) {
+    return invalid("Prices and deposits are at most 1,000,000.");
   }
   if (deposit > price) {
     return invalid("The deposit cannot exceed the price.");
