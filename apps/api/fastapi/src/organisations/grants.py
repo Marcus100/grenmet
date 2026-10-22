@@ -129,7 +129,7 @@ async def has_org_permission(
     return permission_key in await effective_keys(session, membership=membership)
 
 
-def _required_keys(bundle: frozenset[str]) -> set[str]:
+def required_keys(bundle: frozenset[str]) -> set[str]:
     return set(bundle) | {
         f"{role_bundles.product_of_key(key)}.team.manage" for key in bundle
     }
@@ -139,7 +139,7 @@ async def _require_may_change(
     session: AsyncSession, context: OrgContext, bundle: frozenset[str]
 ) -> None:
     """The grantor holds every key in the bundle and each product's team-manage key."""
-    required = _required_keys(bundle)
+    required = required_keys(bundle)
     held = await effective_keys(session, membership=context.membership)
     if not required <= held:
         logger.warning(
@@ -220,7 +220,7 @@ async def grant_role(
     if target.id == context.membership.id:
         raise SelfGrantError()
     await _require_may_change(session, context, bundle)
-    ceiling = await _expiry_ceiling(session, context.membership, _required_keys(bundle))
+    ceiling = await _expiry_ceiling(session, context.membership, required_keys(bundle))
     if ceiling is not None and (expires_at is None or expires_at > ceiling):
         raise GrantExpiryExceedsGrantorError()
 
@@ -308,6 +308,54 @@ async def revoke_all_for_membership(
     for grant in live.all():
         grant.revoked_at = now
     await session.flush()
+
+
+async def revoke_issued_by(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    user_id: uuid.UUID,
+    actor_id: uuid.UUID,
+) -> int:
+    """End every unrevoked grant ``user_id`` issued in the organisation (used when
+    the issuer is removed, so access they handed out does not outlive their own).
+    A lapsed grant is closed at its real end, a live one now. Returns the count."""
+    audit_service.set_actor(session, actor_id)
+    rows = await session.scalars(
+        select(MembershipGrant)
+        .where(
+            MembershipGrant.organisation_id == organisation_id,
+            MembershipGrant.granted_by == user_id,
+            MembershipGrant.revoked_at.is_(None),
+        )
+        .with_for_update()
+    )
+    now = utc_now()
+    ended = 0
+    for grant in rows.all():
+        if grant.expires_at is not None and grant.expires_at <= now:
+            grant.revoked_at = grant.expires_at
+            continue
+        grant.revoked_at = now
+        ended += 1
+    await session.flush()
+    return ended
+
+
+async def list_issued_by(
+    session: AsyncSession, *, organisation_id: str, user_id: uuid.UUID
+) -> list[MembershipGrant]:
+    """Live grants ``user_id`` issued in the organisation (review after a demotion)."""
+    rows = await session.scalars(
+        select(MembershipGrant)
+        .where(
+            MembershipGrant.organisation_id == organisation_id,
+            MembershipGrant.granted_by == user_id,
+            *_live(utc_now()),
+        )
+        .order_by(MembershipGrant.granted_at, MembershipGrant.id)
+    )
+    return list(rows.all())
 
 
 async def list_grants(

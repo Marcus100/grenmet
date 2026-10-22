@@ -640,6 +640,15 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   `POST /rewards/redemptions/confirm` (`rewards.write`). A key acts on its own
   organisation only (the organisation header is ignored), needs the scope and the
   organisation's entitlement (403), and a revoked or expired key is 401.
+- **Membership grants** (ADR-0044 S3, `organisations/team.py`): org-zone routes under
+  `/organisations/org`: `GET /role-bundles` (entitled products; `grantable` for the
+  caller), `GET`/`POST /members/{membership_id}/grants` (live grants; grant with
+  optional UTC `expires_at`), `POST /grants/{grant_id}/revoke`, and admin-only
+  `GET /members/{membership_id}/issued-grants`. Entry needs some entitled product's
+  `team.manage` key (owner and admin implicitly); the grant rules (hold the bundle,
+  no self-grant 403, expiry cap 422, duplicate or lost race 409) live in
+  `grants.py`. Responses carry display names, never emails. Removing a member also
+  revokes live grants they issued; a demotion only lists them.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
   which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`
