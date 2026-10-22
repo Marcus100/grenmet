@@ -14,6 +14,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/env", () => ({ env: mocks.env }));
 vi.mock("@/lib/booking-api", () => ({ getStorefront: vi.fn() }));
 vi.mock("@/app/book/actions", () => ({
+  confirmEmailCode: vi.fn(),
+  requestEmailCode: vi.fn(),
   loadSlots: vi.fn(),
   submitBooking: vi.fn(),
 }));

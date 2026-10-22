@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
+import type { Failure } from "../lib/booking-errors";
 import {
   type FieldErrors,
   type FieldKey,
@@ -30,6 +31,11 @@ import type {
 } from "../lib/booking-types";
 import { SlotPicker } from "./slot-picker";
 import { Turnstile } from "./turnstile";
+import {
+  CODE_LENGTH,
+  TOKEN_LOADING_MESSAGE,
+  useEmailCode,
+} from "./use-email-code";
 
 /** A link component the host can supply (e.g. a router-aware link). */
 export interface BookingLinkProps {
@@ -77,6 +83,8 @@ const FIELD_IDS: Record<FieldKey, string> = {
   notes: "book-notes",
 };
 
+const CODE_ID = "book-code";
+
 function byCategory(services: BookingPublicService[]) {
   const groups = new Map<string, BookingPublicService[]>();
   for (const service of services) {
@@ -84,6 +92,20 @@ function byCategory(services: BookingPublicService[]) {
     groups.set(key, [...(groups.get(key) ?? []), service]);
   }
   return [...groups];
+}
+
+function buttonLabel(
+  submitting: boolean,
+  codeBusy: "send" | "verify" | null,
+  needsCode: boolean
+): string {
+  if (submitting) {
+    return "Booking…";
+  }
+  if (codeBusy) {
+    return "Sending code…";
+  }
+  return needsCode ? "Email me a verification code" : "Request my booking";
 }
 
 function statusLine(status: string): string {
@@ -212,6 +234,95 @@ function TextField({
   );
 }
 
+interface CodePanelProps {
+  busy: "send" | "verify" | null;
+  code: string;
+  cooldown: number;
+  email: string;
+  error: string | null;
+  notice: string | null;
+  onChangeEmail: () => void;
+  onCode: (value: string) => void;
+  onResend: () => void;
+  resendBlocked: boolean;
+}
+
+/** The emailed-code step: input, verify, resend with a cooldown, change email. */
+function CodePanel({
+  busy,
+  code,
+  cooldown,
+  email,
+  error,
+  notice,
+  onChangeEmail,
+  onCode,
+  onResend,
+  resendBlocked,
+}: CodePanelProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+  return (
+    <fieldset className="step code-step" id={CODE_ID}>
+      <legend>4. Check your email</legend>
+      <p>
+        We emailed a {CODE_LENGTH}-digit code to <strong>{email.trim()}</strong>
+        . It can take a minute to arrive, and it works for 10 minutes. Check
+        your spam folder if you can't see it.
+      </p>
+      <div className="field">
+        <label htmlFor={`${CODE_ID}-input`}>Verification code</label>
+        <input
+          aria-describedby={error ? `${CODE_ID}-error` : undefined}
+          aria-invalid={Boolean(error)}
+          autoComplete="one-time-code"
+          className="code-input"
+          id={`${CODE_ID}-input`}
+          inputMode="numeric"
+          name="email-code"
+          onChange={(e) => onCode(e.target.value)}
+          pattern="[0-9]*"
+          ref={inputRef}
+          spellCheck={false}
+          type="text"
+          value={code}
+        />
+        {error && (
+          <p className="field-error" id={`${CODE_ID}-error`} role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+      <p className="muted" role="status">
+        {notice}
+      </p>
+      <div className="code-actions">
+        <button
+          aria-disabled={busy !== null}
+          className="btn btn-solid"
+          disabled={busy !== null}
+          type="submit"
+        >
+          {busy === "verify" ? "Checking…" : "Verify code"}
+        </button>
+        <button
+          className="btn"
+          disabled={resendBlocked}
+          onClick={onResend}
+          type="button"
+        >
+          {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+        </button>
+        <button className="btn" onClick={onChangeEmail} type="button">
+          Change email
+        </button>
+      </div>
+    </fieldset>
+  );
+}
+
 export function BookingFlow({
   actions,
   contact,
@@ -248,9 +359,45 @@ export function BookingFlow({
 
   useFocusWhen(summaryRef, showSummary);
 
+  const needsCode = (service?.deposit_minor ?? 0) > 0;
+  const tokenMissing = Boolean(turnstileSiteKey) && !token;
+  const emailCode = useEmailCode({
+    actions,
+    email,
+    onFormError: setFormError,
+    // Turnstile tokens are single-use: solve again before the booking call.
+    onTokenSpent: () => setResetKey((n) => n + 1),
+    serviceId,
+    startsAt,
+    token,
+    tokenMissing,
+  });
+  const { isVerified, stepOpen } = emailCode;
+
+  const changeEmail = () => {
+    emailCode.closeStep();
+    document.getElementById(FIELD_IDS.email)?.focus();
+  };
+
+  const onBookingFailed = (outcome: Failure) => {
+    setFormError(outcome.message);
+    if (outcome.code === "email_unverified") {
+      // The proof was used, expired or never accepted: ask for a new code.
+      emailCode.dropProof();
+    }
+    if (outcome.code === "slot_taken") {
+      setStartsAt(null);
+      setReloadKey((n) => n + 1);
+    }
+  };
+
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (submitting) {
+    if (submitting || emailCode.busy) {
+      return;
+    }
+    if (stepOpen) {
+      await emailCode.verify();
       return;
     }
     const found = validateBooking({
@@ -266,10 +413,12 @@ export function BookingFlow({
     if (Object.keys(found).length > 0 || !serviceId || !startsAt) {
       return;
     }
-    if (turnstileSiteKey && !token) {
-      setFormError(
-        "Verification is still loading. Please wait a moment and try again."
-      );
+    if (needsCode && !isVerified) {
+      await emailCode.start();
+      return;
+    }
+    if (tokenMissing) {
+      setFormError(TOKEN_LOADING_MESSAGE);
       return;
     }
     const print = fingerprint({
@@ -292,6 +441,7 @@ export function BookingFlow({
         startsAt,
         name,
         email,
+        ...(emailCode.proof ? { emailProof: emailCode.proof } : {}),
         phone,
         notes,
         marketingConsent: marketing,
@@ -303,11 +453,7 @@ export function BookingFlow({
         setBooked(outcome.data);
         return;
       }
-      setFormError(outcome.message);
-      if (outcome.code === "slot_taken") {
-        setStartsAt(null);
-        setReloadKey((n) => n + 1);
-      }
+      onBookingFailed(outcome);
     } catch {
       // The request may or may not have reached the API; the same key is kept.
       setFormError(NETWORK_MESSAGE);
@@ -509,18 +655,45 @@ export function BookingFlow({
         />
       </fieldset>
 
+      {stepOpen && (
+        <CodePanel
+          busy={emailCode.busy}
+          code={emailCode.code}
+          cooldown={emailCode.cooldown}
+          email={email}
+          error={emailCode.error}
+          notice={emailCode.notice}
+          onChangeEmail={changeEmail}
+          onCode={emailCode.setCode}
+          onResend={emailCode.resend}
+          resendBlocked={
+            emailCode.cooldown > 0 || emailCode.busy !== null || tokenMissing
+          }
+        />
+      )}
+      {isVerified && needsCode && (
+        <p className="notice notice-ok" role="status">
+          {emailCode.proof
+            ? "Your email is verified."
+            : "No email code is needed for this booking."}{" "}
+          Press Request my booking to finish.
+        </p>
+      )}
+
       <p className="muted">
         By appointment only. You can change or cancel online until{" "}
         {storefront.cancel_cutoff_hours} hours before your visit.
       </p>
-      <button
-        aria-disabled={submitting}
-        className="btn btn-solid"
-        disabled={submitting}
-        type="submit"
-      >
-        {submitting ? "Booking…" : "Request my booking"}
-      </button>
+      {!stepOpen && (
+        <button
+          aria-disabled={submitting || emailCode.busy !== null}
+          className="btn btn-solid"
+          disabled={submitting || emailCode.busy !== null}
+          type="submit"
+        >
+          {buttonLabel(submitting, emailCode.busy, needsCode && !isVerified)}
+        </button>
+      )}
     </form>
   );
 }

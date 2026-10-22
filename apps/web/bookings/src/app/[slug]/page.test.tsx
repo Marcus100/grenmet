@@ -7,6 +7,8 @@ import BusinessBookingPage, { generateMetadata } from "./page";
 vi.mock("@/env", () => ({ env: { NEXT_PUBLIC_TURNSTILE_SITE_KEY: "" } }));
 vi.mock("@/lib/booking-api", () => ({ getStorefront: vi.fn() }));
 vi.mock("./actions", () => ({
+  confirmEmailCode: { bind: vi.fn(() => vi.fn()) },
+  requestEmailCode: { bind: vi.fn(() => vi.fn()) },
   loadSlots: { bind: vi.fn(() => vi.fn()) },
   submitBooking: { bind: vi.fn(() => vi.fn()) },
 }));

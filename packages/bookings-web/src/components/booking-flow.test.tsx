@@ -8,7 +8,12 @@ import { BookingFlow } from "./booking-flow";
 
 const loadSlots = vi.fn<BookingFlowActions["loadSlots"]>();
 const submitBooking = vi.fn<BookingFlowActions["submitBooking"]>();
-const actions: BookingFlowActions = { loadSlots, submitBooking };
+const actions: BookingFlowActions = {
+  confirmEmailCode: vi.fn(),
+  loadSlots,
+  requestEmailCode: vi.fn(),
+  submitBooking,
+};
 const STUDIO = "Test Studio";
 const CONTACT = { href: "https://example.test/dm", label: "Instagram" };
 

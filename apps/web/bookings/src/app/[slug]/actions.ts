@@ -1,6 +1,10 @@
 "use server";
 
-import { bookingPublicCreateSchema } from "@barrelsgd/api-client";
+import {
+  bookingEmailCodeConfirmSchema,
+  bookingEmailCodeRequestSchema,
+  bookingPublicCreateSchema,
+} from "@barrelsgd/api-client";
 import type {
   Failure,
   Outcome,
@@ -8,10 +12,21 @@ import type {
 import type {
   Booked,
   BookingInput,
+  EmailCodeConfirmInput,
+  EmailCodeRequestInput,
+  EmailCodeSent,
+  EmailProof,
   SlotList,
 } from "@barrelsgd/bookings-web/lib/booking-types";
-import { createBooking, getAvailability } from "@/lib/booking-api";
+import {
+  confirmEmailCode as confirmCode,
+  createBooking,
+  getAvailability,
+  requestEmailCode as requestCode,
+} from "@/lib/booking-api";
 import { failureFrom } from "@/lib/booking-errors";
+import { reportError } from "@/lib/report-error";
+import { getSession } from "@/lib/session";
 import { isBusinessSlug } from "@/lib/slug";
 
 // Server Actions are the only door from the browser to the API: the API
@@ -36,6 +51,17 @@ const unknownBusiness: Failure = {
   code: "not_found",
   message: "Online booking is not available for this business right now.",
 };
+
+// A signed-in account is sent as a bearer so the API can vouch for its verified
+// email. A sign-in fault must not stop a visitor booking: carry on as a visitor.
+async function accessTokenIfSignedIn(): Promise<string | undefined> {
+  try {
+    return (await getSession())?.accessToken;
+  } catch (error) {
+    reportError(error, "bookings-public-session");
+    return undefined;
+  }
+}
 
 export async function loadSlots(
   slug: string,
@@ -87,6 +113,7 @@ export async function submitBooking(
     ...(turnstile ? { turnstile_token: turnstile } : {}),
     // The honeypot goes through untouched: a filled one is dropped by the API.
     ...(website ? { website } : {}),
+    ...(input.emailProof ? { email_proof: input.emailProof } : {}),
   });
   if (!(body.success && KEY.test(input.idempotencyKey))) {
     return invalid;
@@ -108,8 +135,12 @@ export async function submitBooking(
           ? { turnstile_token: body.data.turnstile_token }
           : {}),
         ...(body.data.website ? { website: body.data.website } : {}),
+        ...(body.data.email_proof
+          ? { email_proof: body.data.email_proof }
+          : {}),
       },
-      input.idempotencyKey
+      input.idempotencyKey,
+      await accessTokenIfSignedIn()
     );
     return {
       ok: true,
@@ -117,5 +148,74 @@ export async function submitBooking(
     };
   } catch (error) {
     return failureFrom(error, "create");
+  }
+}
+
+export async function requestEmailCode(
+  slug: string,
+  input: EmailCodeRequestInput
+): Promise<Outcome<EmailCodeSent>> {
+  if (!isBusinessSlug(slug)) {
+    return unknownBusiness;
+  }
+  const turnstile = input.turnstileToken.trim();
+  const body = bookingEmailCodeRequestSchema.safeParse({
+    service_id: input.serviceId,
+    starts_at: input.startsAt,
+    customer_email: input.email.trim(),
+    ...(turnstile ? { turnstile_token: turnstile } : {}),
+  });
+  if (!body.success) {
+    return invalid;
+  }
+  try {
+    const sent = await requestCode(
+      slug,
+      {
+        service_id: body.data.service_id,
+        starts_at: body.data.starts_at,
+        customer_email: body.data.customer_email,
+        ...(body.data.turnstile_token
+          ? { turnstile_token: body.data.turnstile_token }
+          : {}),
+      },
+      await accessTokenIfSignedIn()
+    );
+    return {
+      ok: true,
+      data: {
+        required: sent.required,
+        expiresInSeconds: sent.expires_in_seconds ?? 0,
+      },
+    };
+  } catch (error) {
+    return failureFrom(error, "email-code");
+  }
+}
+
+export async function confirmEmailCode(
+  slug: string,
+  input: EmailCodeConfirmInput
+): Promise<Outcome<EmailProof>> {
+  if (!isBusinessSlug(slug)) {
+    return unknownBusiness;
+  }
+  const body = bookingEmailCodeConfirmSchema.safeParse({
+    service_id: input.serviceId,
+    starts_at: input.startsAt,
+    customer_email: input.email.trim(),
+    code: input.code.trim(),
+  });
+  if (!body.success) {
+    return invalid;
+  }
+  try {
+    const proof = await confirmCode(slug, body.data);
+    return {
+      ok: true,
+      data: { proof: proof.proof, expiresInSeconds: proof.expires_in_seconds },
+    };
+  } catch (error) {
+    return failureFrom(error, "email-confirm");
   }
 }

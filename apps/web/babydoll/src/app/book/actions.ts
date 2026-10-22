@@ -1,6 +1,10 @@
 "use server";
 
-import { bookingPublicCreateSchema } from "@barrelsgd/api-client";
+import {
+  bookingEmailCodeConfirmSchema,
+  bookingEmailCodeRequestSchema,
+  bookingPublicCreateSchema,
+} from "@barrelsgd/api-client";
 import type {
   Failure,
   Outcome,
@@ -8,10 +12,19 @@ import type {
 import type {
   Booked,
   BookingInput,
+  EmailCodeConfirmInput,
+  EmailCodeRequestInput,
+  EmailCodeSent,
+  EmailProof,
   SlotList,
 } from "@barrelsgd/bookings-web/lib/booking-types";
 import { env } from "@/env";
-import { createBooking, getAvailability } from "@/lib/booking-api";
+import {
+  confirmEmailCode as confirmCode,
+  createBooking,
+  getAvailability,
+  requestEmailCode as requestCode,
+} from "@/lib/booking-api";
 import { failureFrom } from "@/lib/booking-errors";
 
 // Server Actions are the only door from the browser to the API: the API
@@ -82,6 +95,7 @@ export async function submitBooking(
     ...(turnstile ? { turnstile_token: turnstile } : {}),
     // The honeypot goes through untouched: a filled one is dropped by the API.
     ...(website ? { website } : {}),
+    ...(input.emailProof ? { email_proof: input.emailProof } : {}),
   });
   if (!(body.success && KEY.test(input.idempotencyKey))) {
     return invalid;
@@ -102,6 +116,9 @@ export async function submitBooking(
           ? { turnstile_token: body.data.turnstile_token }
           : {}),
         ...(body.data.website ? { website: body.data.website } : {}),
+        ...(body.data.email_proof
+          ? { email_proof: body.data.email_proof }
+          : {}),
       },
       input.idempotencyKey
     );
@@ -111,5 +128,68 @@ export async function submitBooking(
     };
   } catch (error) {
     return failureFrom(error, "create");
+  }
+}
+
+export async function requestEmailCode(
+  input: EmailCodeRequestInput
+): Promise<Outcome<EmailCodeSent>> {
+  if (env.BABYDOLL_ONLINE_BOOKING !== "on") {
+    return switchedOff;
+  }
+  const turnstile = input.turnstileToken.trim();
+  const body = bookingEmailCodeRequestSchema.safeParse({
+    service_id: input.serviceId,
+    starts_at: input.startsAt,
+    customer_email: input.email.trim(),
+    ...(turnstile ? { turnstile_token: turnstile } : {}),
+  });
+  if (!body.success) {
+    return invalid;
+  }
+  try {
+    const sent = await requestCode({
+      service_id: body.data.service_id,
+      starts_at: body.data.starts_at,
+      customer_email: body.data.customer_email,
+      ...(body.data.turnstile_token
+        ? { turnstile_token: body.data.turnstile_token }
+        : {}),
+    });
+    return {
+      ok: true,
+      data: {
+        required: sent.required,
+        expiresInSeconds: sent.expires_in_seconds ?? 0,
+      },
+    };
+  } catch (error) {
+    return failureFrom(error, "email-code");
+  }
+}
+
+export async function confirmEmailCode(
+  input: EmailCodeConfirmInput
+): Promise<Outcome<EmailProof>> {
+  if (env.BABYDOLL_ONLINE_BOOKING !== "on") {
+    return switchedOff;
+  }
+  const body = bookingEmailCodeConfirmSchema.safeParse({
+    service_id: input.serviceId,
+    starts_at: input.startsAt,
+    customer_email: input.email.trim(),
+    code: input.code.trim(),
+  });
+  if (!body.success) {
+    return invalid;
+  }
+  try {
+    const proof = await confirmCode(body.data);
+    return {
+      ok: true,
+      data: { proof: proof.proof, expiresInSeconds: proof.expires_in_seconds },
+    };
+  } catch (error) {
+    return failureFrom(error, "email-confirm");
   }
 }

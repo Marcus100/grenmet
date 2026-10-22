@@ -1,8 +1,18 @@
 import { ResponseError } from "@barrelsgd/api-client";
 import type { BookingInput } from "@barrelsgd/bookings-web/lib/booking-types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createBooking, getAvailability } from "@/lib/booking-api";
-import { loadSlots, submitBooking } from "./actions";
+import {
+  confirmEmailCode as confirmCode,
+  createBooking,
+  getAvailability,
+  requestEmailCode as requestCode,
+} from "@/lib/booking-api";
+import {
+  confirmEmailCode,
+  loadSlots,
+  requestEmailCode,
+  submitBooking,
+} from "./actions";
 
 const mocks = vi.hoisted(() => ({
   env: { BABYDOLL_ONLINE_BOOKING: "on" as "on" | "off" },
@@ -12,6 +22,8 @@ vi.mock("@/env", () => ({ env: mocks.env }));
 vi.mock("@/lib/booking-api", () => ({
   getAvailability: vi.fn(),
   createBooking: vi.fn(),
+  requestEmailCode: vi.fn(),
+  confirmEmailCode: vi.fn(),
 }));
 
 const input: BookingInput = {
@@ -144,5 +156,125 @@ describe("loadSlots", () => {
     expect(await loadSlots(input.serviceId, "tomorrow")).toMatchObject({
       code: "invalid",
     });
+  });
+});
+
+describe("requestEmailCode", () => {
+  const request = {
+    serviceId: input.serviceId,
+    startsAt: input.startsAt,
+    email: " ada@example.com ",
+    turnstileToken: " cf-token ",
+  };
+
+  it("is refused while online booking is off", async () => {
+    mocks.env.BABYDOLL_ONLINE_BOOKING = "off";
+    expect(await requestEmailCode(request)).toMatchObject({
+      code: "not_found",
+    });
+    expect(requestCode).not.toHaveBeenCalled();
+  });
+
+  it("rejects a bad email before any call", async () => {
+    expect(await requestEmailCode({ ...request, email: "nope" })).toMatchObject(
+      { code: "invalid" }
+    );
+    expect(requestCode).not.toHaveBeenCalled();
+  });
+
+  it("sends the trimmed request with the Turnstile token", async () => {
+    vi.mocked(requestCode).mockResolvedValue({
+      required: true,
+      expires_in_seconds: 600,
+    });
+    expect(await requestEmailCode(request)).toEqual({
+      ok: true,
+      data: { required: true, expiresInSeconds: 600 },
+    });
+    expect(requestCode).toHaveBeenCalledWith({
+      service_id: input.serviceId,
+      starts_at: input.startsAt,
+      customer_email: "ada@example.com",
+      turnstile_token: "cf-token",
+    });
+  });
+
+  it("passes required:false through", async () => {
+    vi.mocked(requestCode).mockResolvedValue({ required: false });
+    expect(await requestEmailCode(request)).toEqual({
+      ok: true,
+      data: { required: false, expiresInSeconds: 0 },
+    });
+  });
+
+  it("maps a send limit and an outage, and rethrows a non-API fault", async () => {
+    vi.mocked(requestCode).mockRejectedValueOnce(apiError(429, "Too many"));
+    expect(await requestEmailCode(request)).toMatchObject({
+      code: "code_limited",
+    });
+    vi.mocked(requestCode).mockRejectedValueOnce(apiError(503, "down"));
+    expect(await requestEmailCode(request)).toMatchObject({
+      code: "code_unavailable",
+    });
+    vi.mocked(requestCode).mockRejectedValueOnce(new Error("network down"));
+    await expect(requestEmailCode(request)).rejects.toHaveProperty(
+      "message",
+      "network down"
+    );
+  });
+});
+
+describe("confirmEmailCode", () => {
+  const confirm = {
+    code: "123456",
+    serviceId: input.serviceId,
+    startsAt: input.startsAt,
+    email: "ada@example.com",
+  };
+
+  it("rejects a malformed code before any call", async () => {
+    expect(
+      await confirmEmailCode({ ...confirm, code: "12ab56" })
+    ).toMatchObject({ code: "invalid" });
+    expect(confirmCode).not.toHaveBeenCalled();
+  });
+
+  it("returns the proof", async () => {
+    vi.mocked(confirmCode).mockResolvedValue({
+      proof: "proof-1",
+      expires_in_seconds: 900,
+    });
+    expect(await confirmEmailCode(confirm)).toEqual({
+      ok: true,
+      data: { proof: "proof-1", expiresInSeconds: 900 },
+    });
+  });
+
+  it("maps a wrong code and a lockout", async () => {
+    vi.mocked(confirmCode).mockRejectedValueOnce(apiError(400, "not right"));
+    expect(await confirmEmailCode(confirm)).toMatchObject({
+      code: "code_rejected",
+    });
+    vi.mocked(confirmCode).mockRejectedValueOnce(apiError(429, "locked"));
+    expect(await confirmEmailCode(confirm)).toMatchObject({
+      code: "code_locked",
+    });
+  });
+});
+
+describe("submitBooking email proof", () => {
+  it("sends the proof to the API untouched", async () => {
+    vi.mocked(createBooking).mockResolvedValue({
+      booking: {} as never,
+      manage_token: "tok",
+      manage_url: null,
+    });
+    await submitBooking({ ...input, emailProof: "proof-1" });
+    expect(vi.mocked(createBooking).mock.calls[0]?.[0]).toMatchObject({
+      email_proof: "proof-1",
+    });
+    expect(vi.mocked(createBooking).mock.calls[0]?.[1]).toBe(
+      input.idempotencyKey
+    );
   });
 });
