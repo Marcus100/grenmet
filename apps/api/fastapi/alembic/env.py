@@ -111,6 +111,7 @@ from src.notifications.models import (
 from src.organisations.models import (  # noqa: F401
     Invitation,
     Membership,
+    MembershipGrant,
     OrganisationApp,
     PlatformOrganisation,
 )
