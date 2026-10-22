@@ -11,6 +11,7 @@ from src.auth.models import (
     User,
     UserRoleAssignment,
 )
+from src.auth.permissions import ORGANISATION_BOUND_KEYS
 from src.auth.schemas import (
     PermissionCreate,
     PermissionUpdate,
@@ -157,10 +158,12 @@ async def get_permissions_with_count(
     *, session: AsyncSession, skip: int = 0, limit: int = 100
 ) -> tuple[list[Permission], int]:
     """Get permissions with total count. Returns (list of permissions, total count)."""
-    count_stmt = select(func.count()).select_from(Permission)
+    # Organisation-bound keys are not grantable to staff roles (ADR-0044).
+    grantable = Permission.key.not_in(ORGANISATION_BOUND_KEYS)
+    count_stmt = select(func.count()).select_from(Permission).where(grantable)
     count_result = await session.execute(count_stmt)
     total = count_result.scalar() or 0
-    list_stmt = select(Permission).offset(skip).limit(limit)
+    list_stmt = select(Permission).where(grantable).offset(skip).limit(limit)
     list_result = await session.execute(list_stmt)
     permissions = list(list_result.scalars().all())
     return permissions, total
