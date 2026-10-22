@@ -10,7 +10,9 @@ Kept on file so the work can start quickly if ADR-0045's revisit triggers fire.
 
 No paid analytics tool exists. Browser analytics is consent-gated GA4 on seven
 production origins; PostHog is wired but off (all mappings empty). Neither sees
-server truth. Events has since moved into the APP database (ADR-0003), so every
+server truth. Events has since moved into the APP database (schema `events`, see
+`apps/api/fastapi/src/events/models.py` and `apps/api/fastapi/src/events/AGENTS.md`;
+ADR-0003 is stale on this and the owner will amend it separately), so every
 product table named below is in one database.
 
 ## Goals
@@ -60,7 +62,7 @@ from the owning service, not from the browser.
 
 - Admin summary: global permission key `analytics.read`.
 - Organisation summary: organisation-bound key `analytics.view` (binding
-  `organisation`, ADR-0044), scoped to the caller's organisation.
+  `organisation`, ADR-0044, status Proposed), scoped to the caller's organisation.
 
 Both keys would be added to `src/auth/permissions.py` (owner-reviewed).
 

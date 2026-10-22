@@ -27,7 +27,9 @@ Accepted (2026-10-22, owner).
     retention, with Google signals off (`docs/operations/analytics-monitoring.md`). (high)
   - Bookings state changes go through `transition()` and `BookingEvent`
     (`apps/api/fastapi/src/bookings`), and Events now lives in the APP database
-    (ADR-0003). (high)
+    (schema `events`, `apps/api/fastapi/src/events/models.py`; see
+    `apps/api/fastapi/src/events/AGENTS.md`). ADR-0003 still says Events has no
+    schema there and is stale on this point (owner to amend separately). (high)
 - **Interpretation**
   - Current needs (page views, selected interactions on public sites) are met by
     the free tier. (medium)
