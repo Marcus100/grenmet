@@ -1,7 +1,9 @@
 """Tests for utils router."""
 
+import logging
 from unittest.mock import patch
 
+import asyncpg
 import httpx
 import pytest
 from sqlalchemy.exc import OperationalError
@@ -56,13 +58,37 @@ async def test_ready_schema_mismatch_is_503(async_client: httpx.AsyncClient) -> 
     assert response.json() == {"detail": "Database unreachable"}
 
 
-async def test_ready_database_error_is_503(async_client: httpx.AsyncClient) -> None:
-    with patch(
-        "src.utils.router._migration_heads",
-        side_effect=OperationalError("select", {}, Exception("down")),
+@pytest.mark.parametrize(
+    "error",
+    [
+        OperationalError("select 1", {}, Exception("postgresql://u:pw@db/x")),
+        asyncpg.exceptions.CannotConnectNowError("starting up"),
+        asyncpg.exceptions.TooManyConnectionsError("too many"),
+        asyncpg.exceptions.InvalidPasswordError("bad password"),
+        asyncpg.exceptions.InterfaceError("closed"),
+        ConnectionRefusedError("refused"),
+        TimeoutError("timed out"),
+    ],
+    ids=lambda e: type(e).__name__,
+)
+async def test_ready_expected_failures_are_503_and_not_reported(
+    async_client: httpx.AsyncClient,
+    caplog: pytest.LogCaptureFixture,
+    error: Exception,
+) -> None:
+    """Expected outages answer 503, are not re-raised and never reach Sentry."""
+    with (
+        caplog.at_level(logging.WARNING, logger="src.utils.router"),
+        patch("src.utils.router._migration_heads", side_effect=error),
+        patch("sentry_sdk.capture_exception") as capture,
     ):
         response = await async_client.get(f"{settings.API_V1_STR}/utils/ready/")
     assert response.status_code == 503
+    assert response.json() == {"detail": "Database unreachable"}
+    capture.assert_not_called()
+    messages = [r.getMessage() for r in caplog.records if r.name == "src.utils.router"]
+    assert messages == [f"Readiness check failed: {type(error).__name__}"]
+    assert "postgresql" not in messages[0]
 
 
 async def test_ready_unexpected_exception_still_propagates(

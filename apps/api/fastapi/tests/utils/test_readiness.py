@@ -52,6 +52,6 @@ async def test_unreachable_database_is_unavailable() -> None:
             response = Response()
             body = await ready(session, response)
             assert response.status_code == 503
-        assert body == {"detail": "Database unreachable"}
+            assert body == {"detail": "Database unreachable"}
     finally:
         await engine.dispose()

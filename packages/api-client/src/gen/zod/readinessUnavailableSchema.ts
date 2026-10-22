@@ -10,5 +10,5 @@ export const readinessUnavailableSchema = z
     detail: z.string(),
   })
   .describe(
-    "Body of the 503 readiness response (same shape as the old HTTPException)."
+    "Body returned when the API cannot serve requests because its database is unavailable or out of date."
   );

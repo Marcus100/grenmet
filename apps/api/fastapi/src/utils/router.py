@@ -2,10 +2,10 @@ import logging
 from functools import lru_cache
 from pathlib import Path
 
+import asyncpg  # type: ignore[import-untyped]
 from alembic.script import ScriptDirectory
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.concurrency import run_in_threadpool
-from pydantic import BaseModel
 from pydantic.networks import EmailStr
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -13,7 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from src.auth.dependencies import get_current_active_superuser
 from src.dependencies import SessionDep
 from src.email import generate_test_email, send_email
-from src.models import Message
+from src.models import Message, ReadinessUnavailable
 from src.openapi_responses import AUTHENTICATED
 
 
@@ -29,12 +29,6 @@ def _migration_heads() -> frozenset[str]:
 logger = logging.getLogger(__name__)
 
 
-class ReadinessUnavailable(BaseModel):
-    """Body of the 503 readiness response (same shape as the old HTTPException)."""
-
-    detail: str
-
-
 class SchemaMismatchError(RuntimeError):
     """Database schema revision differs from the deployed migration heads."""
 
@@ -42,7 +36,15 @@ class SchemaMismatchError(RuntimeError):
 # Dependency-not-ready failures are an expected probe result, not an application
 # error: answer 503 without raising so Sentry does not report every probe.
 # Anything else (a bug in this handler) still propagates as a reported 500.
-_NOT_READY_ERRORS = (SQLAlchemyError, OSError, TimeoutError, SchemaMismatchError)
+_NOT_READY_ERRORS = (
+    SQLAlchemyError,
+    # SQLAlchemy's asyncpg adapter does not wrap connect-time errors.
+    asyncpg.PostgresError,
+    asyncpg.InterfaceError,
+    OSError,
+    TimeoutError,
+    SchemaMismatchError,
+)
 
 router = APIRouter(prefix="/utils", tags=["utils"])
 
