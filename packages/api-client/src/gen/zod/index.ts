@@ -21,6 +21,7 @@ export { activityEntrySchema } from "./activityEntrySchema.js";
 export { addressPublicSchema } from "./addressPublicSchema.js";
 export { addressUpdateSchema } from "./addressUpdateSchema.js";
 export { adjustmentCreateSchema } from "./adjustmentCreateSchema.js";
+export { adminActivationSchema } from "./adminActivationSchema.js";
 export { admissionCreateSchema } from "./admissionCreateSchema.js";
 export { admissionPublicSchema } from "./admissionPublicSchema.js";
 export { ageingBucketPublicSchema } from "./ageingBucketPublicSchema.js";
@@ -105,6 +106,28 @@ export {
   authAccountEmailCodeVerifyStatus422Schema,
   authAccountEmailCodeVerifyStatus429Schema,
 } from "./authAccountEmailCodeVerifySchema.js";
+export {
+  authAdminActivateAccountBodySchema,
+  authAdminActivateAccountErrorSchema,
+  authAdminActivateAccountPathUserIdSchema,
+  authAdminActivateAccountResponseSchema,
+  authAdminActivateAccountStatus200Schema,
+  authAdminActivateAccountStatus403Schema,
+  authAdminActivateAccountStatus404Schema,
+  authAdminActivateAccountStatus409Schema,
+  authAdminActivateAccountStatus422Schema,
+} from "./authAdminActivateAccountSchema.js";
+export {
+  authAdminResendVerificationBodySchema,
+  authAdminResendVerificationErrorSchema,
+  authAdminResendVerificationPathUserIdSchema,
+  authAdminResendVerificationResponseSchema,
+  authAdminResendVerificationStatus200Schema,
+  authAdminResendVerificationStatus403Schema,
+  authAdminResendVerificationStatus404Schema,
+  authAdminResendVerificationStatus409Schema,
+  authAdminResendVerificationStatus422Schema,
+} from "./authAdminResendVerificationSchema.js";
 export {
   authAppEmailCodeStartBodySchema,
   authAppEmailCodeStartErrorSchema,
@@ -5068,6 +5091,18 @@ export {
   organisationsAcceptInvitationStatus422Schema,
 } from "./organisationsAcceptInvitationSchema.js";
 export {
+  organisationsAddMemberAdminBodySchema,
+  organisationsAddMemberAdminErrorSchema,
+  organisationsAddMemberAdminPathOrganisationIdSchema,
+  organisationsAddMemberAdminResponseSchema,
+  organisationsAddMemberAdminStatus201Schema,
+  organisationsAddMemberAdminStatus401Schema,
+  organisationsAddMemberAdminStatus403Schema,
+  organisationsAddMemberAdminStatus404Schema,
+  organisationsAddMemberAdminStatus409Schema,
+  organisationsAddMemberAdminStatus422Schema,
+} from "./organisationsAddMemberAdminSchema.js";
+export {
   organisationsCreateAdminSiteBodySchema,
   organisationsCreateAdminSiteErrorSchema,
   organisationsCreateAdminSiteResponseSchema,
@@ -5114,6 +5149,19 @@ export {
   organisationsCreateOneStatus409Schema,
   organisationsCreateOneStatus422Schema,
 } from "./organisationsCreateOneSchema.js";
+export {
+  organisationsDeleteMemberAdminBodySchema,
+  organisationsDeleteMemberAdminErrorSchema,
+  organisationsDeleteMemberAdminPathMembershipIdSchema,
+  organisationsDeleteMemberAdminPathOrganisationIdSchema,
+  organisationsDeleteMemberAdminResponseSchema,
+  organisationsDeleteMemberAdminStatus204Schema,
+  organisationsDeleteMemberAdminStatus401Schema,
+  organisationsDeleteMemberAdminStatus403Schema,
+  organisationsDeleteMemberAdminStatus404Schema,
+  organisationsDeleteMemberAdminStatus409Schema,
+  organisationsDeleteMemberAdminStatus422Schema,
+} from "./organisationsDeleteMemberAdminSchema.js";
 export {
   organisationsDeleteMemberErrorSchema,
   organisationsDeleteMemberHeaderXBarrelsOrganisationSchema,
@@ -5367,6 +5415,19 @@ export {
   organisationsUpdateAdminSiteStatus422Schema,
 } from "./organisationsUpdateAdminSiteSchema.js";
 export {
+  organisationsUpdateMemberAdminBodySchema,
+  organisationsUpdateMemberAdminErrorSchema,
+  organisationsUpdateMemberAdminPathMembershipIdSchema,
+  organisationsUpdateMemberAdminPathOrganisationIdSchema,
+  organisationsUpdateMemberAdminResponseSchema,
+  organisationsUpdateMemberAdminStatus200Schema,
+  organisationsUpdateMemberAdminStatus401Schema,
+  organisationsUpdateMemberAdminStatus403Schema,
+  organisationsUpdateMemberAdminStatus404Schema,
+  organisationsUpdateMemberAdminStatus409Schema,
+  organisationsUpdateMemberAdminStatus422Schema,
+} from "./organisationsUpdateMemberAdminSchema.js";
+export {
   organisationsUpdateMemberBodySchema,
   organisationsUpdateMemberErrorSchema,
   organisationsUpdateMemberHeaderXBarrelsOrganisationSchema,
@@ -5609,6 +5670,9 @@ export { personChipSchema } from "./personChipSchema.js";
 export { personnelStatusSchema } from "./personnelStatusSchema.js";
 export { personSuggestionSchema } from "./personSuggestionSchema.js";
 export { plansPublicSchema } from "./plansPublicSchema.js";
+export { platformMemberAddSchema } from "./platformMemberAddSchema.js";
+export { platformMemberRemoveSchema } from "./platformMemberRemoveSchema.js";
+export { platformMemberRoleUpdateSchema } from "./platformMemberRoleUpdateSchema.js";
 export { platformOrganisationCreateSchema } from "./platformOrganisationCreateSchema.js";
 export { platformOrganisationUpdateSchema } from "./platformOrganisationUpdateSchema.js";
 export { policyInputSchema } from "./policyInputSchema.js";
@@ -6698,6 +6762,7 @@ export { suggestionPublicPropertiesStatusEnumSchema } from "./suggestionPublicPr
 export { suggestionPublicSchema } from "./suggestionPublicSchema.js";
 export { suggestionUpdatePropertiesStatusEnumSchema } from "./suggestionUpdatePropertiesStatusEnumSchema.js";
 export { suggestionUpdateSchema } from "./suggestionUpdateSchema.js";
+export { superuserActionReasonSchema } from "./superuserActionReasonSchema.js";
 export { swapTypeSchema } from "./swapTypeSchema.js";
 export { synopDecodedSchema } from "./synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./synopticImageGroupSchema.js";
@@ -6995,6 +7060,7 @@ export { validationErrorItemSchema } from "./validationErrorItemSchema.js";
 export { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 export { vapidPublicKeySchema } from "./vapidPublicKeySchema.js";
 export { verificationDecisionSchema } from "./verificationDecisionSchema.js";
+export { verificationResendSchema } from "./verificationResendSchema.js";
 export { weatherImageSchema } from "./weatherImageSchema.js";
 export { webhookAdminDisableSchema } from "./webhookAdminDisableSchema.js";
 export { webhookDeliveryListSchema } from "./webhookDeliveryListSchema.js";

@@ -4,13 +4,14 @@ from fastapi import APIRouter, HTTPException, status
 
 from src.auth import service, totp
 from src.auth.account_security import verify_factor
+from src.auth.privileged_mfa import session_id_from_token
 from src.auth.schemas import (
     TwoFactorCodeRequest,
     TwoFactorDisableRequest,
     TwoFactorSetupResponse,
     TwoFactorStatusPublic,
 )
-from src.dependencies import AccountUser, SessionDep
+from src.dependencies import AccountUser, SessionDep, TokenDep
 from src.openapi_responses import AUTHENTICATED
 
 router = APIRouter(prefix="/auth/users/me/security/2fa", tags=["2fa"])
@@ -55,10 +56,17 @@ async def twofa_setup(
     description="Confirms a TOTP code and enables two-factor authentication for the current account.",
 )
 async def twofa_activate(
-    *, session: SessionDep, current_user: AccountUser, payload: TwoFactorCodeRequest
+    *,
+    session: SessionDep,
+    current_user: AccountUser,
+    token: TokenDep,
+    payload: TwoFactorCodeRequest,
 ) -> TwoFactorStatusPublic:
     ok = await service.activate_totp(
-        session=session, user=current_user, code=payload.code
+        session=session,
+        user=current_user,
+        code=payload.code,
+        keep_session_id=session_id_from_token(token),
     )
     if not ok:
         raise HTTPException(
