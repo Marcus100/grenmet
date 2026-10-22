@@ -33,6 +33,12 @@ enrol MFA.
 
 ### 1a. GitHub `staging` environment (Settings, Environments, staging)
 
+> **Stripe key:** it must be the standard `sk_test_` secret key. Restricted
+> `rk_test_` keys are rejected by the adapter and by `render-env.py`.
+> **Silent fallback:** leaving `PAYMENTS_STRIPE_*` unset still deploys green and
+> Events silently uses the manual rail until the in-progress fix lands. Check
+> T1 really reaches Stripe Checkout.
+
 Names are exactly what `.github/workflows/deploy.yml` reads and
 `scripts/production/render-env.py` renders. Generate random values with
 `openssl rand -base64 32`; never reuse a value across apps or environments.
@@ -117,14 +123,12 @@ Checked against `origin/dev` on 2026-10-22:
 ### 1e. Unknowns to verify before trusting a result
 
 - Cloudflare mode and the wildcard/explicit records (1b).
-- Resend: the `barrels.gd` domain is verified; whether sign-in codes and
-  receipts to non-allowed domains are blocked. `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS`
-  is enforced in `notifications/dispatch.py`; whether the transactional receipt
-  (`events/order_fulfilment.py`, `enqueue_email(transactional=True)`) bypasses it
-  is **UNVERIFIED: confirm** (test T3 shows it).
-- Whether the staging worker is running the crons `drain_outbox` (seconds 10 and
-  40 of every minute) and `expire_unpaid_event_orders` (`src/worker/main.py`).
-  Check `"${C[@]}" logs worker --tail 50`.
+- Resend: the `barrels.gd` domain is verified. `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS`
+  gates the email of in-app notifications (`notifications/dispatch.py:105`);
+  outbox mail, including the T3 receipt, is not domain-gated
+  (`dispatch.py:256-262`). Confirm live with T3.
+- The worker runs the crons `drain_outbox` (seconds 10 and 40 of every minute)
+  and `expire_unpaid_event_orders` (`src/worker/main.py`). Check it is up with `"${C[@]}" logs worker --tail 50`.
 - The Stripe account's currency handling for XCD test payments. Events orders
   are priced in the listing currency (EC$); Stripe Checkout accepts `xcd`.
   **UNVERIFIED: confirm** with the first test purchase (T1).
@@ -153,7 +157,7 @@ useful if a restricted key is ever allowed:
 | Call | Stripe API | Permission it implies |
 | --- | --- | --- |
 | Start checkout | `POST /v1/checkout/sessions` | Checkout Sessions: write |
-| Refresh status | `GET /v1/checkout/sessions/{id}` | Checkout Sessions: read |
+| Refresh status (`fetch_status`; not called by any flow today) | `GET /v1/checkout/sessions/{id}` | Checkout Sessions: read |
 | Refund | `POST /v1/refunds` (by `payment_intent`) | Refunds: write (PaymentIntents read may also be needed: **UNVERIFIED: confirm**) |
 
 Webhook verification uses the signing secret only, not the API key.
@@ -280,7 +284,7 @@ Order:
 creates synthetic data through the same service functions the API uses:
 
 - **Events:** the verified organiser `demo-island-events` ("Demo Island Events")
-  with the `events` and `payments` entitlements; two published, ticketed
+  with the `events` entitlement (from organiser creation, `ensure_events_entitlement`) and `payments` (granted explicitly by the seed); two published, ticketed
   listings ("Demo Sunset Fete", tiers General EC$50 and VIP EC$120; "Demo Night
   Market"); three orders (two paid by a recorded **manual** cash payment, one
   unpaid VIP hold that expires after about 30 minutes by design); a second,
@@ -314,14 +318,11 @@ the `cd` to `infra/docker` makes work):
 The account named by `--member-email` must already exist (sign in once at
 `events.staging.barrels.gd`), else it stops with "No account with email ...".
 The preview prints JSON naming what it would create; `--apply` prints
-`{"dry_run": false, "created": [...]}` (empty `created` on a repeat). Whether
-the working directory inside the `api` container makes
-`scripts/seed_staging_demo.py` resolve, and whether the `scripts/` folder is in
-the image, is **UNVERIFIED: confirm** (the Babydoll runbook uses the same
-command and is also unrun). If it fails, run
-`"${C[@]}" exec api ls scripts` and adjust the path.
-`scripts/README.md` does not exist at the repository root, so the script
-docstring is the reference.
+`{"dry_run": false, "created": [...]}` (empty `created` on a repeat). 
+The script path resolves: the image copies `scripts/` and its working
+directory is `/app/apps/api/fastapi` (`Dockerfile.prod`). If it still fails, run
+`"${C[@]}" exec api ls scripts`. See also `apps/api/fastapi/scripts/README.md`;
+the script docstring is the reference for behaviour.
 
 Note the demo organiser's orders are real rows on the manual rail. The Stripe
 tests below use a **new** order that you create, not a demo order.
@@ -361,7 +362,7 @@ organiser. Use your own staff session for the console.
 | O2 | Request verification again / check status. | Status pending. (Resubmit only appears after a rejection.) | `/moderation` |
 | S1 | As staff superuser (MFA enrolled): `admin.staging.barrels.gd/moderation`, open the case, **Reject** with a reason, then have the organiser resubmit, then **Approve**. | Reject emails the owners the reason (only to allowed domains); after approval the organiser can publish. Moderators who are not superusers cannot reach the console. | Outbox kind `organiser.approved` / `organiser.rejected`; audit |
 | O3 | In `/dash/events/new`, create and **publish** an event: tiers General EC$50 and a free tier, capacity, **upload a cover image**. | Event page public; image loads via `/files/<id>`. 503 "Uploads are not configured" means `STORAGE_*` missing (row 9). | Logs; Sentry |
-| S2 | In the console, `/organisations/<id>` for the organiser: confirm entitlements `events` and `payments` are on. | Paid tiers need `payments`; without it the order is refused or falls to manual. A new organiser gets `events` automatically; `payments` is staff-granted. UNVERIFIED: confirm default for `payments`. | Console |
+| S2 | In the console, `/organisations/<id>` for the organiser: confirm entitlements `events` and `payments` are on. | Paid tiers need `payments`; without it the order is refused or falls to manual. A new organiser gets `events` automatically; `payments` is granted by staff (the seed grants it to the demo organiser). | Console |
 | O4 | Buy as attendee A (T1) and as attendee B on the organiser's event. | Orders appear. | Next row |
 | O5 | `/dash/events/<id>/orders` and `/attendees`. | Lists page and filter (status, tier, ticket status); the order detail shows buyer name, phone, email (owner/admin only), items, tickets, payment totals, `refund_status`. | none |
 | O6 | Outlet sale: `/dash/events/<id>/outlet`, open a till with a float, sell 2 tickets for cash (cash received must equal total), close the till with a count. | Slips print with QR; settlement shows the till. Outlet is **admin/owner only**. | `/dash/events/<id>/settlement` |
@@ -457,7 +458,7 @@ Facts from `docs/exec-plans/events-legacy-manage-routes.md` and PRs #510, #519,
   can double count. #515: `order_payments.refund_in_full` uses a random refund id.
 - **Notification email only reaches `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS`.**
   Staging defaults to `barrels.gd`. Other addresses get in-app notices only.
-  The transactional receipt may or may not follow the same rule (1e).
+  Outbox mail such as the receipt is not domain-gated (1e).
 - **Receipts carry no QR, by design.** The QR lives behind sign-in in My tickets.
 - **Online-paid tickets cannot be self-cancelled**; there is no in-app refund
   request for attendees. They ask the organiser, who refunds from the order.
