@@ -18,6 +18,8 @@ export const eventsReviewOrganiserStatus403Schema = z.unknown();
 
 export const eventsReviewOrganiserStatus404Schema = z.unknown();
 
+export const eventsReviewOrganiserStatus409Schema = z.unknown();
+
 export const eventsReviewOrganiserStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -32,6 +34,7 @@ export const eventsReviewOrganiserErrorSchema = z.union([
   eventsReviewOrganiserStatus401Schema,
   eventsReviewOrganiserStatus403Schema,
   eventsReviewOrganiserStatus404Schema,
+  eventsReviewOrganiserStatus409Schema,
   eventsReviewOrganiserStatus422Schema,
   eventsReviewOrganiserStatus429Schema,
 ]);

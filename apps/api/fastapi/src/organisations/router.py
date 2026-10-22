@@ -7,6 +7,7 @@ from starlette.requests import Request
 
 from src.auth.models import User
 from src.dependencies import AccountUser, AdminUser, MfaAdminUser, SessionDep
+from src.events.service import organiser_verification as events_verification
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgAdmin, OrgMember
 from src.pagination import PaginationDep
@@ -571,20 +572,25 @@ async def update_one(
     summary="Verify an organisation",
     description=(
         "Superuser only. Sets verified_at and records the reason in the "
-        "organisation's history. Events shows its organiser as verified. 409 "
-        "when already verified."
+        "organisation's history. Events shows its organiser as verified and "
+        "notifies its owners. MFA superuser. 409 when already verified or suspended."
     ),
     responses=WRITE_ERRORS,
 )
 async def verify_one(
     *,
     session: SessionDep,
-    admin: AdminUser,
+    admin: MfaAdminUser,
     organisation_id: str,
     payload: VerificationDecision,
 ) -> Any:
-    await service.admin_set_verified(
-        session, admin, organisation_id, verified=True, reason=payload.reason
+    # One approval path: the same write and side effects as the Events queue.
+    await events_verification.apply_decision(
+        session,
+        admin,
+        organisation_id,
+        verified=True,
+        reason=payload.reason,
     )
     await session.commit()
     verification.clear_cache(organisation_id)
@@ -604,12 +610,17 @@ async def verify_one(
 async def unverify_one(
     *,
     session: SessionDep,
-    admin: AdminUser,
+    admin: MfaAdminUser,
     organisation_id: str,
     payload: VerificationDecision,
 ) -> Any:
-    await service.admin_set_verified(
-        session, admin, organisation_id, verified=False, reason=payload.reason
+    # One approval path: the same write and side effects as the Events queue.
+    await events_verification.apply_decision(
+        session,
+        admin,
+        organisation_id,
+        verified=False,
+        reason=payload.reason,
     )
     await session.commit()
     verification.clear_cache(organisation_id)

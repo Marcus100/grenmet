@@ -21156,7 +21156,7 @@
           "organisations"
         ],
         "summary": "Verify an organisation",
-        "description": "Superuser only. Sets verified_at and records the reason in the organisation's history. Events shows its organiser as verified. 409 when already verified.",
+        "description": "Superuser only. Sets verified_at and records the reason in the organisation's history. Events shows its organiser as verified and notifies its owners. MFA superuser. 409 when already verified or suspended.",
         "operationId": "organisationsVerifyOne",
         "security": [
           {
@@ -37786,7 +37786,7 @@
           "events"
         ],
         "summary": "Cancel an event",
-        "description": "Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. Outlet cash tickets can then be refunded.",
+        "description": "Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` (default; no money moves) or `follow_policy` (an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.",
         "operationId": "eventsCancelEvent",
         "security": [
           {
@@ -39188,7 +39188,7 @@
           "events"
         ],
         "summary": "List organiser requests",
-        "description": "Organisers awaiting verification.",
+        "description": "Organisers awaiting verification (pending; rejected ones are not listed).",
         "operationId": "eventsListPendingOrganisers",
         "responses": {
           "200": {
@@ -39241,11 +39241,11 @@
           "events"
         ],
         "summary": "Verify an organiser",
-        "description": "Approve (or withdraw approval of) an organiser account. Approving queues a notification to the organiser's owners and admins.",
+        "description": "MFA superuser only (a staff session, not an Events token). Approve or withdraw approval of an organiser account through the same path as `/admin/moderation/organisers`. 409 for a rejected organiser, which must be resubmitted first.",
         "operationId": "eventsReviewOrganiser",
         "security": [
           {
-            "HTTPBearer": []
+            "OAuth2PasswordBearer": []
           }
         ],
         "parameters": [
@@ -39302,6 +39302,9 @@
           },
           "403": {
             "description": "Moderator access required"
+          },
+          "409": {
+            "description": "Organiser was rejected and must be resubmitted"
           }
         }
       }
@@ -39568,6 +39571,745 @@
           },
           "409": {
             "description": "Decision already made or not allowed from this state"
+          }
+        }
+      }
+    },
+    "/api/v1/events/org/events/{listing_id}/orders": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List an event's orders",
+        "description": "Orders for one of the organisation's events, newest first, optionally by status.",
+        "operationId": "eventsOrgListOrders",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/OrderPublicPropertiesStatusEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_OrgOrderRow_"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/events/org/events/{listing_id}/attendees": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List an event's attendees",
+        "description": "Tickets for one of the organisation's events with holder, tier and door admission time.",
+        "operationId": "eventsOrgListAttendees",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/OrgAttendeePropertiesStatusEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "tier_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tier Id"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_OrgAttendee_"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/events/org/events/{listing_id}/cancel": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Cancel an event",
+        "description": "Cancels a published event: every valid ticket is cancelled and members are notified. `refund` decides the money already paid online: `full`, `none` or `follow_policy` (default; an organiser-cancelled event is refunded in full). A refund that fails is counted in `refunds_failed` and can be retried from the order; it never undoes the cancel.",
+        "operationId": "eventsOrgCancelEvent",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgEventCancel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/events/org/orders/{order_id}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get an order",
+        "description": "One order with items, tickets, buyer contact and the payment ledger totals.",
+        "operationId": "eventsOrgGetOrder",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Order Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgOrderDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/events/org/orders/{order_id}/manual-payments": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Record a cash or bank payment for an order",
+        "description": "Staff received the money outside the card rail. The order must be `pending_payment`; it becomes `confirmed` and its tickets are issued now. Requires an `Idempotency-Key` header (same key and body replays the first answer with `Idempotency-Replayed: true`). Recorded in the event's history.",
+        "operationId": "eventsOrgRecordManualPayment",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Order Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgManualPaymentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgOrderDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/events/org/orders/{order_id}/refunds": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Refund an order",
+        "description": "Hands back money for a paid online order: all of it, or `amount_minor`. A full refund cancels the tickets and marks the order `refunded`. A card refund is queued for the payment provider (see `refund_status`); a second refund for the same order is 409 while one is waiting. Requires an `Idempotency-Key` header (replays the first answer with `Idempotency-Replayed: true`).",
+        "operationId": "eventsOrgRefundOrder",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Order Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgOrderRefundCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgOrderDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/events/org/orders/{order_id}/cancel": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Cancel an order",
+        "description": "Cancels one order: its tickets stop working and the seats go back on sale. `refund` is `full`, `none` or `follow_policy` (default: refunded when the event starts at least the policy cutoff away). A refund that fails aborts the cancel. Outlet cash orders can only be cancelled with `none`.",
+        "operationId": "eventsOrgCancelOrder",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Order Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgOrderCancel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgOrderCancelResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
           }
         }
       }
@@ -49906,6 +50648,9 @@
             "type": "boolean",
             "const": true,
             "title": "Confirm"
+          },
+          "refund": {
+            "$ref": "#/components/schemas/CancelEventPropertiesRefundEnum"
           }
         },
         "type": "object",
@@ -49929,6 +50674,31 @@
           "tickets_cancelled": {
             "type": "integer",
             "title": "Tickets Cancelled"
+          },
+          "orders_refunded": {
+            "type": "integer",
+            "title": "Orders Refunded",
+            "default": 0
+          },
+          "orders_queued": {
+            "type": "integer",
+            "title": "Orders Queued",
+            "default": 0
+          },
+          "orders_kept": {
+            "type": "integer",
+            "title": "Orders Kept",
+            "default": 0
+          },
+          "refunds_failed": {
+            "type": "integer",
+            "title": "Refunds Failed",
+            "default": 0
+          },
+          "orders_released": {
+            "type": "integer",
+            "title": "Orders Released",
+            "default": 0
           }
         },
         "type": "object",
@@ -63373,6 +64143,549 @@
         ],
         "title": "OrderPublic"
       },
+      "OrgAttendee": {
+        "properties": {
+          "ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Ticket Id"
+          },
+          "order_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Order Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrgAttendeePropertiesStatusEnum"
+          },
+          "tier_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tier Id"
+          },
+          "tier_name": {
+            "type": "string",
+            "title": "Tier Name"
+          },
+          "holder_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holder Name"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/ManifestRowPropertiesChannelEnum"
+          },
+          "admitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticket_id",
+          "order_id",
+          "code",
+          "status",
+          "tier_id",
+          "tier_name",
+          "holder_name",
+          "channel",
+          "admitted_at"
+        ],
+        "title": "OrgAttendee"
+      },
+      "OrgEventCancel": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "const": true,
+            "title": "Confirm"
+          },
+          "refund": {
+            "$ref": "#/components/schemas/CancelEventPropertiesRefundEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "title": "OrgEventCancel"
+      },
+      "OrgManualPaymentCreate": {
+        "properties": {
+          "method": {
+            "$ref": "#/components/schemas/OrgManualPaymentCreatePropertiesMethodEnum"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference",
+            "description": "Receipt or transfer number."
+          }
+        },
+        "type": "object",
+        "required": [
+          "method"
+        ],
+        "title": "OrgManualPaymentCreate"
+      },
+      "OrgOrderCancel": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "refund": {
+            "$ref": "#/components/schemas/CancelEventPropertiesRefundEnum"
+          }
+        },
+        "type": "object",
+        "title": "OrgOrderCancel"
+      },
+      "OrgOrderCancelResult": {
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/OrgOrderDetail"
+          },
+          "refund_outcome": {
+            "$ref": "#/components/schemas/OrgOrderCancelResultPropertiesRefundOutcomeEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "order",
+          "refund_outcome"
+        ],
+        "title": "OrgOrderCancelResult"
+      },
+      "OrgOrderDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderPublicPropertiesStatusEnum"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/ManifestRowPropertiesChannelEnum"
+          },
+          "payment_method": {
+            "$ref": "#/components/schemas/OrgOrderDetailPropertiesPaymentMethodEnum"
+          },
+          "buyer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Name"
+          },
+          "total_minor": {
+            "type": "integer",
+            "title": "Total Minor"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "collected_minor": {
+            "type": "integer",
+            "title": "Collected Minor"
+          },
+          "refunded_minor": {
+            "type": "integer",
+            "title": "Refunded Minor"
+          },
+          "ticket_count": {
+            "type": "integer",
+            "title": "Ticket Count"
+          },
+          "active_ticket_count": {
+            "type": "integer",
+            "title": "Active Ticket Count"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "paid_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid At"
+          },
+          "listing_title": {
+            "type": "string",
+            "title": "Listing Title"
+          },
+          "buyer_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Email"
+          },
+          "buyer_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Phone"
+          },
+          "refund_status": {
+            "$ref": "#/components/schemas/OrgOrderDetailPropertiesRefundStatusEnum"
+          },
+          "payment_expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Expires At"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrgOrderItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "tickets": {
+            "items": {
+              "$ref": "#/components/schemas/OrgOrderTicket"
+            },
+            "type": "array",
+            "title": "Tickets"
+          },
+          "payment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OrgOrderPayment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "listing_id",
+          "status",
+          "channel",
+          "payment_method",
+          "buyer_name",
+          "total_minor",
+          "currency",
+          "collected_minor",
+          "refunded_minor",
+          "ticket_count",
+          "active_ticket_count",
+          "created_at",
+          "paid_at",
+          "listing_title",
+          "buyer_email",
+          "buyer_phone",
+          "refund_status",
+          "payment_expires_at",
+          "items",
+          "tickets",
+          "payment"
+        ],
+        "title": "OrgOrderDetail"
+      },
+      "OrgOrderItem": {
+        "properties": {
+          "tier_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tier Id"
+          },
+          "tier_name": {
+            "type": "string",
+            "title": "Tier Name"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          },
+          "unit_price_minor": {
+            "type": "integer",
+            "title": "Unit Price Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tier_id",
+          "tier_name",
+          "quantity",
+          "unit_price_minor"
+        ],
+        "title": "OrgOrderItem"
+      },
+      "OrgOrderPayment": {
+        "properties": {
+          "intent_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Intent Id"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/ProviderKey"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IntentStatus"
+          },
+          "captured_minor": {
+            "type": "integer",
+            "title": "Captured Minor"
+          },
+          "refunded_minor": {
+            "type": "integer",
+            "title": "Refunded Minor"
+          },
+          "refundable_minor": {
+            "type": "integer",
+            "title": "Refundable Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "intent_id",
+          "provider",
+          "status",
+          "captured_minor",
+          "refunded_minor",
+          "refundable_minor"
+        ],
+        "title": "OrgOrderPayment"
+      },
+      "OrgOrderRefundCreate": {
+        "properties": {
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor",
+            "description": "Defaults to everything still refundable."
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "OrgOrderRefundCreate"
+      },
+      "OrgOrderRow": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderPublicPropertiesStatusEnum"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/ManifestRowPropertiesChannelEnum"
+          },
+          "payment_method": {
+            "$ref": "#/components/schemas/OrgOrderDetailPropertiesPaymentMethodEnum"
+          },
+          "buyer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Name"
+          },
+          "total_minor": {
+            "type": "integer",
+            "title": "Total Minor"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "collected_minor": {
+            "type": "integer",
+            "title": "Collected Minor"
+          },
+          "refunded_minor": {
+            "type": "integer",
+            "title": "Refunded Minor"
+          },
+          "ticket_count": {
+            "type": "integer",
+            "title": "Ticket Count"
+          },
+          "active_ticket_count": {
+            "type": "integer",
+            "title": "Active Ticket Count"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "paid_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "listing_id",
+          "status",
+          "channel",
+          "payment_method",
+          "buyer_name",
+          "total_minor",
+          "currency",
+          "collected_minor",
+          "refunded_minor",
+          "ticket_count",
+          "active_ticket_count",
+          "created_at",
+          "paid_at"
+        ],
+        "title": "OrgOrderRow"
+      },
+      "OrgOrderTicket": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrgAttendeePropertiesStatusEnum"
+          },
+          "tier_name": {
+            "type": "string",
+            "title": "Tier Name"
+          },
+          "admitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "status",
+          "tier_name",
+          "admitted_at"
+        ],
+        "title": "OrgOrderTicket"
+      },
       "OrganisationAdminDetail": {
         "properties": {
           "id": {
@@ -64246,7 +65559,7 @@
             "title": "Price Minor"
           },
           "status": {
-            "$ref": "#/components/schemas/OutletTicketPropertiesStatusEnum"
+            "$ref": "#/components/schemas/OrgAttendeePropertiesStatusEnum"
           },
           "admitted_at": {
             "anyOf": [
@@ -64814,6 +66127,78 @@
           "count"
         ],
         "title": "PaginatedResponse[NotificationPublic]"
+      },
+      "PaginatedResponse_OrgAttendee_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/OrgAttendee"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "PaginatedResponse[OrgAttendee]"
+      },
+      "PaginatedResponse_OrgOrderRow_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/OrgOrderRow"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "PaginatedResponse[OrgOrderRow]"
       },
       "PaginatedResponse_PermissionPublic_": {
         "properties": {
@@ -78455,7 +79840,7 @@
             "title": "Code"
           },
           "status": {
-            "$ref": "#/components/schemas/OutletTicketPropertiesStatusEnum"
+            "$ref": "#/components/schemas/OrgAttendeePropertiesStatusEnum"
           },
           "tier_name": {
             "type": "string",
@@ -78536,7 +79921,7 @@
             "title": "Code"
           },
           "status": {
-            "$ref": "#/components/schemas/OutletTicketPropertiesStatusEnum"
+            "$ref": "#/components/schemas/OrgAttendeePropertiesStatusEnum"
           },
           "tier_name": {
             "type": "string",
@@ -84021,6 +85406,16 @@
         ],
         "default": "other"
       },
+      "CancelEventPropertiesRefundEnum": {
+        "type": "string",
+        "enum": [
+          "full",
+          "none",
+          "follow_policy"
+        ],
+        "description": "What to do with money already paid for online orders. Left out, no money moves (the organiser refunds from the orders page).",
+        "default": "none"
+      },
       "CapAlertImportRequestPropertiesSourceEnum": {
         "type": "string",
         "enum": [
@@ -84429,12 +85824,46 @@
         ],
         "default": "confirmed"
       },
-      "OutletTicketPropertiesStatusEnum": {
+      "OrgAttendeePropertiesStatusEnum": {
         "type": "string",
         "enum": [
           "valid",
           "cancelled",
           "refunded"
+        ]
+      },
+      "OrgManualPaymentCreatePropertiesMethodEnum": {
+        "type": "string",
+        "enum": [
+          "cash",
+          "bank_transfer"
+        ]
+      },
+      "OrgOrderCancelResultPropertiesRefundOutcomeEnum": {
+        "type": "string",
+        "enum": [
+          "refunded",
+          "queued",
+          "kept",
+          "not_due"
+        ]
+      },
+      "OrgOrderDetailPropertiesPaymentMethodEnum": {
+        "type": "string",
+        "enum": [
+          "none",
+          "cash_outlet",
+          "online"
+        ]
+      },
+      "OrgOrderDetailPropertiesRefundStatusEnum": {
+        "type": "string",
+        "enum": [
+          "none",
+          "queued",
+          "partial",
+          "refunded",
+          "failed"
         ]
       },
       "ProfilePublicPropertiesConnectionStateEnum": {

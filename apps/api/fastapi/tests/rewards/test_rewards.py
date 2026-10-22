@@ -593,7 +593,7 @@ async def test_badges_are_derived_from_records(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
     events_session: SessionFactory,
-    superuser_token_headers_async: dict[str, str],
+    mfa_admin,
 ) -> None:
     person = await make_user(db_async)
     org = await _rewards_org(
@@ -612,7 +612,7 @@ async def test_badges_are_derived_from_records(
     }
     verify = await async_client.post(
         f"/api/v1/organisations/{org.id}/verify",
-        headers=superuser_token_headers_async,
+        headers=(await mfa_admin())[1],
         json={"reason": "Checked registration"},
     )
     assert verify.status_code == 200, verify.text

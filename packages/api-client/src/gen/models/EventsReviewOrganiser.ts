@@ -24,6 +24,8 @@ export type EventsReviewOrganiserStatus403 = unknown;
 
 export type EventsReviewOrganiserStatus404 = unknown;
 
+export type EventsReviewOrganiserStatus409 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -46,6 +48,7 @@ export type EventsReviewOrganiserResponses = {
   "401": EventsReviewOrganiserStatus401;
   "403": EventsReviewOrganiserStatus403;
   "404": EventsReviewOrganiserStatus404;
+  "409": EventsReviewOrganiserStatus409;
   "422": EventsReviewOrganiserStatus422;
   "429": EventsReviewOrganiserStatus429;
 };

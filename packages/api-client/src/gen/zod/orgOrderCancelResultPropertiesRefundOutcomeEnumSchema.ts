@@ -5,8 +5,9 @@
 
 import * as z from "zod";
 
-export const outletTicketPropertiesStatusEnumSchema = z.enum([
-  "valid",
-  "cancelled",
+export const orgOrderCancelResultPropertiesRefundOutcomeEnumSchema = z.enum([
   "refunded",
+  "queued",
+  "kept",
+  "not_due",
 ]);

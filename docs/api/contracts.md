@@ -498,6 +498,7 @@ need an MFA superuser and go through `organisations.service.admin_set_verified`
 (409 on a repeat decision, audit entry with the actor, `organiser.approved` /
 `organiser.rejected` outbox row). A rejected organiser's owners or admins send
 `POST /events/manage/organiser/resubmit` to return to `pending` (409 otherwise).
+The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{id}/verify|unverify` also need an MFA superuser and use the same path (organiser flag mirror, activity row, notification); the PATCH is 409 for a rejected organiser. Approving a suspended organisation is 409.
 `org.organisation` carries `verification_status`, `verification_reason` and
 `verification_decided_at`; `verified_at` stays the single "verified" signal.
 `GET /events/manage/{listing_id}/activity` returns that listing's append-only history
@@ -586,6 +587,38 @@ cash ticket: 409 for online tickets (free), free tickets, amounts above the pric
 without a reference, a ticket already refunded or cancelled by its holder, or a used ticket unless
 the event was cancelled. Ticket `status` can now be `refunded`; refunded tickets are not
 admitted. The settlement report lists `refunds` and per-channel `refunded`/`refunded_minor`.
+
+### Events organiser orders (org zone)
+
+`/events/org/*` acts for the organisation in `X-Barrels-Organisation` (account or Events app
+session, `events` entitlement). Each route needs an organisation-bound Events key (ADR-0044),
+held by owners and admins and by members through a grant: orders `events.settlement.view`,
+attendees `events.door.scan`, manual payment `events.tickets.sell`, refund and order cancel
+`events.refunds.issue`, event cancel `events.listings.manage`. Another organisation's event or
+order is 404. The order detail carries the buyer's account email (owner-approved); lists carry none and use `PaginatedResponse`.
+`GET /events/org/events/{id}/orders` (`status`, `page`, `size`), `GET .../attendees` (`status`,
+`tier_id`) and `GET /events/org/orders/{id}` (with `refund_status`) read the desk.
+`POST /events/org/orders/{id}/manual-payments` (`{method: "cash"|"bank_transfer", reference?}`,
+`Idempotency-Key` required, 201) records money received for a `pending_payment` order on the manual
+rail and issues its tickets at once. `POST .../refunds` (`{amount_minor?, reason}`,
+`Idempotency-Key` required) hands money back through the payments core. Both replay the first
+answer with `Idempotency-Replayed: true`.
+
+Refund choice: cancelling takes `refund`: `full`, `none` or `follow_policy`.
+`POST /events/org/orders/{id}/cancel` (`{reason?, refund}`, default `follow_policy`) cancels one
+order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUTOFF_HOURS`
+(default 48) away; outlet cash orders cancel only with `none`.
+`POST /events/org/events/{id}/cancel` (`{confirm, refund}`, default `follow_policy`: paid online
+orders are refunded in full, unpaid holds released) cancels an event. The legacy
+`POST /events/manage/{id}/cancel` takes the same optional `refund` but defaults to `none`, and
+saving a listing as cancelled never moves money. Event cancel reports `orders_refunded`
+(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`
+and `refunds_failed`.
+
+Provider-rail (card) refunds are never sent inside a request (one may wait per order; a second is 409, and the buyer email is shown to org admins/owners only): they are queued on the outbox topic
+`events.order_refund_requested` and sent with retries; the refund id is derived from the order and
+the request, so a retry cannot refund twice. Follow it on the order's `refund_status`
+(`none`, `queued`, `partial`, `refunded`, `failed`).
 
 ## Platform foundations (PF-series, 2026-10-20)
 
@@ -1062,7 +1095,7 @@ carries two time bases.
 | Public (an Events token personalises) | `GET /listings` (`when`, `category`, `parish`, `price`, `tag`, `q`, `organiser`, `limit`, `offset`), `GET /listings/{slug}`, `GET /organisers/{slug}`, `GET /groups`, `GET /groups/{slug}`, `GET /people/{handle}`, `POST /suggestions` |
 | Events member | `POST /manage/organiser`, `GET`/`PATCH /me/profile`, `GET /me/plans`, `GET /me/network`, `PUT`/`DELETE /listings/{slug}/rsvp` and `/save`, `PUT`/`DELETE /organisers/{slug}/follow`, `PUT`/`DELETE /groups/{slug}/membership`, `POST /connections`, `POST /connections/{id}/accept`, `DELETE /connections/{id}`, `PUT`/`DELETE /blocks/{handle}`, `POST /reports`, `GET`/`POST /threads`, `GET /threads/{id}`, `POST /threads/{id}/messages` |
 | `events.organiser.manage` + organiser membership | `GET /manage`, `POST /manage/listings`, `PUT /manage/listings/{id}`, `GET /manage/{id}/activity` |
-| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions`, `GET /moderation/organisers`, `PATCH /moderation/organisers/{id}` |
+| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions`, `GET /moderation/organisers` (pending only) |
 
 Prices are integer minor units (`price_from_minor`, tier `price_minor`); datetimes are UTC and
 clients render Grenada time. Direct threads open only between accepted connections or members

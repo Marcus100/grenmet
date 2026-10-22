@@ -451,7 +451,10 @@ _SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 async def _load(session: AsyncSession, organisation_id: str) -> PlatformOrganisation:
     organisation = await session.get(
-        PlatformOrganisation, organisation_id, with_for_update=True
+        PlatformOrganisation,
+        organisation_id,
+        with_for_update=True,
+        populate_existing=True,
     )
     if organisation is None:
         raise OrganisationNotFoundError()
@@ -548,6 +551,8 @@ async def admin_set_verified(
     if verified:
         if organisation.verified_at is not None:
             raise AppException("Organisation is already verified", 409)
+        if organisation.status == OrganisationStatus.SUSPENDED.value:
+            raise AppException("A suspended organisation cannot be verified", 409)
         organisation.verified_at = now
         organisation.verification_status = VerificationStatus.APPROVED.value
         action = "verify"

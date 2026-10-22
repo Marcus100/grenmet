@@ -7,15 +7,11 @@ TTL. Kept apart from ``service`` because it needs the session factory.
 """
 
 import time
-import uuid
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.audit import service as audit_service
 from src.database import async_session_factory
-from src.organisations.models import PlatformOrganisation, VerificationStatus
-from src.utils.datetime import utc_now
+from src.organisations.models import PlatformOrganisation
 
 CACHE_TTL_SECONDS = 30.0
 _cache: dict[str, tuple[float, bool]] = {}
@@ -42,41 +38,3 @@ async def organisation_is_verified(organisation_id: str) -> bool:
     verified = verified_at is not None
     _cache[organisation_id] = (now, verified)
     return verified
-
-
-async def moderator_set_verified(
-    session: AsyncSession,
-    organisation_id: str,
-    *,
-    verified: bool,
-    actor_id: uuid.UUID,
-    source: str,
-) -> None:
-    """Apply a domain moderator's verification decision to the platform
-    organisation, the single source of truth since C2. Idempotent: repeating
-    the current state records nothing."""
-    organisation = await session.get(PlatformOrganisation, organisation_id)
-    if organisation is None or (organisation.verified_at is not None) == verified:
-        return
-    audit_service.set_actor(session, actor_id)
-    now = utc_now()
-    organisation.verified_at = now if verified else None
-    organisation.verification_status = (
-        VerificationStatus.APPROVED.value
-        if verified
-        else VerificationStatus.PENDING.value
-    )
-    organisation.verification_reason = f"{source} moderator review"
-    organisation.verification_decided_at = now
-    await audit_service.record_change(
-        session,
-        entity_type="platform_organisation",
-        entity_id=organisation.id,
-        record_type="platform_organisation",
-        record_id=organisation.id,
-        action="verify" if verified else "unverify",
-        changes={"reason": (None, f"{source} moderator review")},
-        organisation_id=organisation.id,
-    )
-    await session.commit()
-    clear_cache(organisation_id)

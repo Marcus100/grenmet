@@ -3,6 +3,7 @@
 from datetime import timedelta
 from uuid import UUID
 
+import httpx
 import pytest
 from sqlalchemy import Row, select
 from sqlalchemy.exc import OperationalError
@@ -198,18 +199,21 @@ async def test_failures_are_retried_by_the_platform_outbox(
 
 @pytest.mark.asyncio
 async def test_moderator_approval_notifies_the_organiser_owners_once(
-    events_db: SessionFactory, db_async: AsyncSession
+    events_db: SessionFactory,
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    mfa_admin,
 ):
     member = await user_with_role(db_async, None)
     async with client_with_real_roles(member) as client:
         created = (
             await client.post(f"{BASE}/manage/organiser", json={"name": "Island Beats"})
         ).json()
-    moderator = await user_with_role(db_async, "events-moderator")
+    _, headers = await mfa_admin()
     url = f"{BASE}/moderation/organisers/{created['id']}"
-    async with client_with_real_roles(moderator) as client:
-        assert (await client.patch(url, json={"verified": True})).status_code == 200
-        assert (await client.patch(url, json={"verified": True})).status_code == 200
+    for _ in range(2):
+        done = await async_client.patch(url, json={"verified": True}, headers=headers)
+        assert done.status_code == 200, done.text
     assert [row.payload["kind"] for row in await queued(events_db)] == [
         "organiser.approved"
     ]

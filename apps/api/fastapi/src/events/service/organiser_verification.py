@@ -45,6 +45,13 @@ def _case(
     )
 
 
+def _actor_label(action: str, actor: User | None) -> str:
+    """Role label only: history never shows an email address."""
+    if actor is None:
+        return "System"
+    return "Organiser owner" if action == "resubmit" else "Staff"
+
+
 async def list_cases(
     db: AsyncSession,
     *,
@@ -136,7 +143,7 @@ async def get_case(
             schemas.VerificationCaseEvent(
                 action=entry.action,
                 reason=reason if isinstance(reason, str) else None,
-                actor_name=(actor.full_name or actor.email) if actor else "System",
+                actor_name=_actor_label(entry.action, actor),
                 at=entry.created_at,
             )
         )
@@ -157,26 +164,30 @@ async def get_case(
     )
 
 
-async def decide(
+async def apply_decision(
     db: AsyncSession,
-    organisation_id: str,
     actor: User,
+    organisation_id: str,
     *,
-    approve: bool,
+    verified: bool,
+    rejected: bool = False,
     reason: str,
-) -> schemas.VerificationCaseDetail:
-    """Approve or reject. 404 unless the organisation backs an Events organiser."""
-    organisation, organiser = await _load(db, organisation_id)
-    await organisations.admin_set_verified(
-        db,
-        actor,
-        organisation.id,
-        verified=approve,
-        rejected=not approve,
-        reason=reason,
+) -> PlatformOrganisation:
+    """The single approval path (no commit): the platform write plus every Events
+    side effect for the organiser backing the organisation, if there is one.
+    Approve and reject notify the organiser's owners and admins; withdrawing an
+    approval does not. The legacy ``verified`` flag follows the organisation."""
+    organisation = await organisations.admin_set_verified(
+        db, actor, organisation_id, verified=verified, rejected=rejected, reason=reason
     )
-    if approve:
-        organiser.verified = True  # the legacy flag the unlinked fallback reads
+    organiser = await db.scalar(
+        select(Organiser).where(Organiser.organisation_id == organisation.id)
+    )
+    if organiser is None:
+        return organisation
+    organiser.verified = organisation.verified_at is not None
+    if verified:
+        action = "organiser.verified"
         await outbox.enqueue(
             db,
             kind=outbox.ORGANISER_APPROVED,
@@ -185,7 +196,8 @@ async def decide(
             dedupe_key=f"organiser.approved:{organiser.id}",
             payload={"actor_id": str(actor.id)},
         )
-    else:
+    elif rejected:
+        action = "organiser.rejected"
         decided = organisation.verification_decided_at
         stamp = decided.isoformat() if decided else ""
         await outbox.enqueue(
@@ -199,14 +211,37 @@ async def decide(
                 "reason": organisation.verification_reason or "",
             },
         )
+    else:
+        action = "organiser.unverified"
     activity.record(
         db,
         actor_id=actor.id,
-        action="organiser.verified" if approve else "organiser.rejected",
+        action=action,
         entity_type="organiser",
         entity_id=str(organiser.id),
         organiser_id=organiser.id,
-        summary={"verified": approve},
+        summary={"verified": verified},
+    )
+    return organisation
+
+
+async def decide(
+    db: AsyncSession,
+    organisation_id: str,
+    actor: User,
+    *,
+    approve: bool,
+    reason: str,
+) -> schemas.VerificationCaseDetail:
+    """Approve or reject. 404 unless the organisation backs an Events organiser."""
+    organisation, _ = await _load(db, organisation_id)
+    await apply_decision(
+        db,
+        actor,
+        organisation.id,
+        verified=approve,
+        rejected=not approve,
+        reason=reason,
     )
     await db.commit()
     verification.clear_cache(organisation.id)

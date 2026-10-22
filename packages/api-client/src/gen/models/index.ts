@@ -1612,6 +1612,8 @@ export type { CalendarEventPublic } from "./CalendarEventPublic.js";
 export type { CalendarEventsPublic } from "./CalendarEventsPublic.js";
 export type { CalendarEventUpdate } from "./CalendarEventUpdate.js";
 export type { CancelEvent } from "./CancelEvent.js";
+export type { CancelEventPropertiesRefundEnum } from "./CancelEventPropertiesRefundEnum.js";
+export { cancelEventPropertiesRefundEnum } from "./CancelEventPropertiesRefundEnum.js";
 export type { CancelResult } from "./CancelResult.js";
 export type { CapAlertAction } from "./CapAlertAction.js";
 export type { CapAlertCreate } from "./CapAlertCreate.js";
@@ -2972,6 +2974,104 @@ export type {
   EventsOpenTillStatus429,
 } from "./EventsOpenTill.js";
 export type {
+  EventsOrgCancelEventBody,
+  EventsOrgCancelEventHeaders,
+  EventsOrgCancelEventOptions,
+  EventsOrgCancelEventPath,
+  EventsOrgCancelEventResponse,
+  EventsOrgCancelEventResponses,
+  EventsOrgCancelEventStatus200,
+  EventsOrgCancelEventStatus400,
+  EventsOrgCancelEventStatus401,
+  EventsOrgCancelEventStatus403,
+  EventsOrgCancelEventStatus404,
+  EventsOrgCancelEventStatus409,
+  EventsOrgCancelEventStatus422,
+} from "./EventsOrgCancelEvent.js";
+export type {
+  EventsOrgCancelOrderBody,
+  EventsOrgCancelOrderHeaders,
+  EventsOrgCancelOrderOptions,
+  EventsOrgCancelOrderPath,
+  EventsOrgCancelOrderResponse,
+  EventsOrgCancelOrderResponses,
+  EventsOrgCancelOrderStatus200,
+  EventsOrgCancelOrderStatus400,
+  EventsOrgCancelOrderStatus401,
+  EventsOrgCancelOrderStatus403,
+  EventsOrgCancelOrderStatus404,
+  EventsOrgCancelOrderStatus409,
+  EventsOrgCancelOrderStatus422,
+} from "./EventsOrgCancelOrder.js";
+export type {
+  EventsOrgGetOrderHeaders,
+  EventsOrgGetOrderOptions,
+  EventsOrgGetOrderPath,
+  EventsOrgGetOrderResponse,
+  EventsOrgGetOrderResponses,
+  EventsOrgGetOrderStatus200,
+  EventsOrgGetOrderStatus401,
+  EventsOrgGetOrderStatus403,
+  EventsOrgGetOrderStatus404,
+  EventsOrgGetOrderStatus422,
+} from "./EventsOrgGetOrder.js";
+export type {
+  EventsOrgListAttendeesHeaders,
+  EventsOrgListAttendeesOptions,
+  EventsOrgListAttendeesPath,
+  EventsOrgListAttendeesQuery,
+  EventsOrgListAttendeesResponse,
+  EventsOrgListAttendeesResponses,
+  EventsOrgListAttendeesStatus200,
+  EventsOrgListAttendeesStatus401,
+  EventsOrgListAttendeesStatus403,
+  EventsOrgListAttendeesStatus404,
+  EventsOrgListAttendeesStatus422,
+} from "./EventsOrgListAttendees.js";
+export type {
+  EventsOrgListOrdersHeaders,
+  EventsOrgListOrdersOptions,
+  EventsOrgListOrdersPath,
+  EventsOrgListOrdersQuery,
+  EventsOrgListOrdersResponse,
+  EventsOrgListOrdersResponses,
+  EventsOrgListOrdersStatus200,
+  EventsOrgListOrdersStatus401,
+  EventsOrgListOrdersStatus403,
+  EventsOrgListOrdersStatus404,
+  EventsOrgListOrdersStatus422,
+} from "./EventsOrgListOrders.js";
+export type {
+  EventsOrgRecordManualPaymentBody,
+  EventsOrgRecordManualPaymentHeaders,
+  EventsOrgRecordManualPaymentOptions,
+  EventsOrgRecordManualPaymentPath,
+  EventsOrgRecordManualPaymentResponse,
+  EventsOrgRecordManualPaymentResponses,
+  EventsOrgRecordManualPaymentStatus201,
+  EventsOrgRecordManualPaymentStatus400,
+  EventsOrgRecordManualPaymentStatus401,
+  EventsOrgRecordManualPaymentStatus403,
+  EventsOrgRecordManualPaymentStatus404,
+  EventsOrgRecordManualPaymentStatus409,
+  EventsOrgRecordManualPaymentStatus422,
+} from "./EventsOrgRecordManualPayment.js";
+export type {
+  EventsOrgRefundOrderBody,
+  EventsOrgRefundOrderHeaders,
+  EventsOrgRefundOrderOptions,
+  EventsOrgRefundOrderPath,
+  EventsOrgRefundOrderResponse,
+  EventsOrgRefundOrderResponses,
+  EventsOrgRefundOrderStatus201,
+  EventsOrgRefundOrderStatus400,
+  EventsOrgRefundOrderStatus401,
+  EventsOrgRefundOrderStatus403,
+  EventsOrgRefundOrderStatus404,
+  EventsOrgRefundOrderStatus409,
+  EventsOrgRefundOrderStatus422,
+} from "./EventsOrgRefundOrder.js";
+export type {
   EventsPostponeEventBody,
   EventsPostponeEventOptions,
   EventsPostponeEventPath,
@@ -3072,6 +3172,7 @@ export type {
   EventsReviewOrganiserStatus401,
   EventsReviewOrganiserStatus403,
   EventsReviewOrganiserStatus404,
+  EventsReviewOrganiserStatus409,
   EventsReviewOrganiserStatus422,
   EventsReviewOrganiserStatus429,
 } from "./EventsReviewOrganiser.js";
@@ -5594,6 +5695,9 @@ export type { OrderItemInput } from "./OrderItemInput.js";
 export type { OrderPublic } from "./OrderPublic.js";
 export type { OrderPublicPropertiesStatusEnum } from "./OrderPublicPropertiesStatusEnum.js";
 export { orderPublicPropertiesStatusEnum } from "./OrderPublicPropertiesStatusEnum.js";
+export type { OrgAttendee } from "./OrgAttendee.js";
+export type { OrgAttendeePropertiesStatusEnum } from "./OrgAttendeePropertiesStatusEnum.js";
+export { orgAttendeePropertiesStatusEnum } from "./OrgAttendeePropertiesStatusEnum.js";
 export type { OrganisationAdminDetail } from "./OrganisationAdminDetail.js";
 export type { OrganisationAdminListPublic } from "./OrganisationAdminListPublic.js";
 export type { OrganisationAdminPublic } from "./OrganisationAdminPublic.js";
@@ -6017,13 +6121,29 @@ export type { OrganiserLogoUpdate } from "./OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./OrganiserOption.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OrganiserReview } from "./OrganiserReview.js";
+export type { OrgEventCancel } from "./OrgEventCancel.js";
+export type { OrgManualPaymentCreate } from "./OrgManualPaymentCreate.js";
+export type { OrgManualPaymentCreatePropertiesMethodEnum } from "./OrgManualPaymentCreatePropertiesMethodEnum.js";
+export { orgManualPaymentCreatePropertiesMethodEnum } from "./OrgManualPaymentCreatePropertiesMethodEnum.js";
+export type { OrgOrderCancel } from "./OrgOrderCancel.js";
+export type { OrgOrderCancelResult } from "./OrgOrderCancelResult.js";
+export type { OrgOrderCancelResultPropertiesRefundOutcomeEnum } from "./OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
+export { orgOrderCancelResultPropertiesRefundOutcomeEnum } from "./OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
+export type { OrgOrderDetail } from "./OrgOrderDetail.js";
+export type { OrgOrderDetailPropertiesPaymentMethodEnum } from "./OrgOrderDetailPropertiesPaymentMethodEnum.js";
+export { orgOrderDetailPropertiesPaymentMethodEnum } from "./OrgOrderDetailPropertiesPaymentMethodEnum.js";
+export type { OrgOrderDetailPropertiesRefundStatusEnum } from "./OrgOrderDetailPropertiesRefundStatusEnum.js";
+export { orgOrderDetailPropertiesRefundStatusEnum } from "./OrgOrderDetailPropertiesRefundStatusEnum.js";
+export type { OrgOrderItem } from "./OrgOrderItem.js";
+export type { OrgOrderPayment } from "./OrgOrderPayment.js";
+export type { OrgOrderRefundCreate } from "./OrgOrderRefundCreate.js";
+export type { OrgOrderRow } from "./OrgOrderRow.js";
+export type { OrgOrderTicket } from "./OrgOrderTicket.js";
 export type { OutletItemInput } from "./OutletItemInput.js";
 export type { OutletOverview } from "./OutletOverview.js";
 export type { OutletSale } from "./OutletSale.js";
 export type { OutletSaleCreate } from "./OutletSaleCreate.js";
 export type { OutletTicket } from "./OutletTicket.js";
-export type { OutletTicketPropertiesStatusEnum } from "./OutletTicketPropertiesStatusEnum.js";
-export { outletTicketPropertiesStatusEnum } from "./OutletTicketPropertiesStatusEnum.js";
 export type { OutletTierStock } from "./OutletTierStock.js";
 export type { OutlookProductPreview } from "./OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js";
@@ -6034,6 +6154,8 @@ export type { PageFeedbackAccepted } from "./PageFeedbackAccepted.js";
 export type { PageFeedbackCreate } from "./PageFeedbackCreate.js";
 export type { PaginatedResponseAuditEntryPublic } from "./PaginatedResponseAuditEntryPublic.js";
 export type { PaginatedResponseNotificationPublic } from "./PaginatedResponseNotificationPublic.js";
+export type { PaginatedResponseOrgAttendee } from "./PaginatedResponseOrgAttendee.js";
+export type { PaginatedResponseOrgOrderRow } from "./PaginatedResponseOrgOrderRow.js";
 export type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
 export type { PaginatedResponseUserPublic } from "./PaginatedResponseUserPublic.js";
