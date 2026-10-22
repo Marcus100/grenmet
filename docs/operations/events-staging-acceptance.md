@@ -95,11 +95,12 @@ Checked against `origin/dev` on 2026-10-22:
    `grep -n BARRELS_ADMIN .github/workflows/deploy.yml`.
 2. **`TRUSTED_WEB_SECRET` has no deploy wiring** (`grep -rn TRUSTED_WEB_SECRET
    .github infra scripts/production` returns nothing), and `apps/web/events/src`
-   does not send `X-Visitor-IP` at all. Events rate limits (for example
-   `5/minute`, `10/minute`, `30/minute` on ordering and sign-in routes in
-   `events/router.py`) are therefore shared by everyone coming through the
-   Events web server until the visitor-identity change lands. Expect 429s if
-   several testers act at once (section 6).
+   does not send `X-Visitor-IP` at all. Events rate limits in `events/router.py`
+   (suggestions 5/min, reports 10/min, RSVP, follow, join group and send message
+   30/min, save listing 60/min, ticket ordering 20/min) are therefore shared by
+   everyone coming through the Events web server until the visitor-identity
+   change lands (sign-in limits live in the auth module, not here). Expect 429s
+   if several testers act at once (section 6).
 3. `render-env.py` does not read `PAYMENTS_STRIPE_*` as required: leaving them
    unset still deploys, and Events then falls back to the manual rail
    (section 6). So a green deploy does **not** prove Stripe is configured.
@@ -123,7 +124,7 @@ Checked against `origin/dev` on 2026-10-22:
   is **UNVERIFIED: confirm** (test T3 shows it).
 - Whether the staging worker is running the crons `drain_outbox` (seconds 10 and
   40 of every minute) and `expire_unpaid_event_orders` (`src/worker/main.py`).
-  Check `docker compose -p grenmet-staging logs worker --tail 50`.
+  Check `"${C[@]}" logs worker --tail 50`.
 - The Stripe account's currency handling for XCD test payments. Events orders
   are priced in the listing currency (EC$); Stripe Checkout accepts `xcd`.
   **UNVERIFIED: confirm** with the first test purchase (T1).
@@ -205,7 +206,7 @@ docs if a number is rejected.
 - **Payments page in the staff console:** `https://admin.staging.barrels.gd/payments`
   (balances per organisation, ledger, reconciliation). API equivalents (superuser
   token): `GET /api/v1/payments/admin/intents`, `/admin/ledger`, `/admin/balances`.
-- **API logs:** `docker compose -p grenmet-staging logs api --tail 100 | grep -i
+- **API logs:** `"${C[@]}" logs api --tail 100 | grep -i
   "stripe\|callback"` (messages: "callback for an unknown payment", "callback
   amount does not match the payment; not credited", "Stripe webhook secret is
   missing or malformed").
@@ -215,7 +216,22 @@ docs if a number is rejected.
 
 ## 3. Deploy order after merging release PR #520
 
-PR #520 ("release: dev to staging (Release A)") is owner-merged. Order:
+PR #520 ("release: dev to staging (Release A)") is open; the owner merges it
+into staging in step 2, after the checks in step 1.
+
+**Compose invocation used everywhere below.** On the droplet, from
+`infra/docker` (the relative env-file paths need that directory; see the headers
+of `docker-compose.deploy.yml` and `staging.env`, and `scripts/production/core.sh`):
+
+```bash
+ssh <staging droplet>              # existing SSH key, see docs/deployment.md
+cd /path/to/grenmet/infra/docker
+C=(docker compose --env-file staging.env --env-file runtime/.env.local \
+   -f docker-compose.deploy.yml -p grenmet-staging)
+"${C[@]}" ps                       # sanity check
+```
+
+Order:
 
 1. **Before merging:** rows 1-11 of section 1a that you intend to use are set,
    and 1c item 1 is done (or consciously skipped). **[owner]**
@@ -228,7 +244,7 @@ PR #520 ("release: dev to staging (Release A)") is owner-merged. Order:
 4. **Confirm migrations.** On the droplet (project `grenmet-staging`, see
    section 4 for the access pattern):
    ```bash
-   docker compose -p grenmet-staging exec api alembic current
+   "${C[@]}" exec api alembic current
    ```
    Expect head `orgverifystatus20261022`. The three revisions in #520, in order:
    `membershipgrant20261022` (table `org.membership_grant`),
@@ -237,7 +253,7 @@ PR #520 ("release: dev to staging (Release A)") is owner-merged. Order:
    `orgverifystatus20261022` (verification columns on `org.organisation`).
    Check the entitlement backfill:
    ```bash
-   docker compose -p grenmet-staging exec db psql -U <POSTGRES_USER> -d app_staging \
+   "${C[@]}" exec db psql -U <POSTGRES_USER> -d app_staging \
      -c "select count(*) from org.organisation_app where app_key='events';"
    ```
    (Table `org.organisation_app`, column `app_key`, from
@@ -250,9 +266,9 @@ PR #520 ("release: dev to staging (Release A)") is owner-merged. Order:
    [release-runbook.md](release-runbook.md) section 1; the current Events data
    is in the main `events` schema). **[owner]** Take a look first:
    ```bash
-   docker compose -p grenmet-staging exec db psql -U <POSTGRES_USER> -d postgres -c "\l"
+   "${C[@]}" exec db psql -U <POSTGRES_USER> -d postgres -c "\l"
    # only when you are sure it is the retired database:
-   docker compose -p grenmet-staging exec db psql -U <POSTGRES_USER> -d postgres \
+   "${C[@]}" exec db psql -U <POSTGRES_USER> -d postgres \
      -c 'DROP DATABASE events_staging;'
    ```
    This is destructive; staging is throwaway, so no backup is required, but do
@@ -279,20 +295,19 @@ Guards (all must hold or it refuses, exit code 2): `ENVIRONMENT=staging`,
 repeat. The seed forces the **manual rail**, so it never calls Stripe, and it
 marks its own outbox rows done so no mail leaves.
 
-Run from the droplet (the compose pattern the Babydoll runbook uses; the
-project is `grenmet-staging`):
+Run from the droplet (using the `"${C[@]}"` invocation defined in section 3, which
+the `cd` to `infra/docker` makes work):
 
 ```bash
-ssh <staging droplet>            # existing SSH key, see docs/deployment.md
-cd /path/to/grenmet/infra/docker  # only needed for compose commands that read env files
+# Run from infra/docker with the C=(...) array defined in section 3.
 
 # 1. Preview (writes nothing)
-docker compose -p grenmet-staging exec -e DEMO_SEED_ENABLED=true api \
+"${C[@]}" exec -e DEMO_SEED_ENABLED=true api \
   python scripts/seed_staging_demo.py
 
 # 2. Apply, adding your existing staging account as owner of the demo
 #    studio and of Demo Island Events so you can sign in to both
-docker compose -p grenmet-staging exec -e DEMO_SEED_ENABLED=true api \
+"${C[@]}" exec -e DEMO_SEED_ENABLED=true api \
   python scripts/seed_staging_demo.py --apply --member-email you@example.org
 ```
 
@@ -304,7 +319,7 @@ the working directory inside the `api` container makes
 `scripts/seed_staging_demo.py` resolve, and whether the `scripts/` folder is in
 the image, is **UNVERIFIED: confirm** (the Babydoll runbook uses the same
 command and is also unrun). If it fails, run
-`docker compose -p grenmet-staging exec api ls scripts` and adjust the path.
+`"${C[@]}" exec api ls scripts` and adjust the path.
 `scripts/README.md` does not exist at the repository root, so the script
 docstring is the reference.
 
@@ -317,7 +332,7 @@ Run in order. Record the result in the pass/fail table at the end. "Where to
 look" abbreviations: **Sentry** (project `grenmet-staging`, Events web and API;
 no personal data is sent), **Outbox** (table `outbox`, rows must reach `done`),
 **Ledger** (`admin.staging.barrels.gd/payments`), **Logs**
-(`docker compose -p grenmet-staging logs api|worker --tail 100`).
+(`"${C[@]}" logs api|worker --tail 100`).
 
 Set up two private browser profiles: one signed in as attendee A, one as the
 organiser. Use your own staff session for the console.
