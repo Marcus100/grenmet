@@ -6,7 +6,12 @@ import { PageHead } from "@/components/sections";
 import { BOOKING_CONTACT, BOOKING_URL, BUSINESS } from "@/data/site";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
-import { loadSlots, submitBooking } from "./actions";
+import {
+  confirmEmailCode,
+  loadSlots,
+  requestEmailCode,
+  submitBooking,
+} from "./actions";
 
 // Read the switch and the live service list on every request, never at build.
 export const dynamic = "force-dynamic";
@@ -38,7 +43,12 @@ export default async function BookPage() {
       <section className="flush-top block">
         <div className="wrap book-wrap">
           <BookingFlow
-            actions={{ loadSlots, submitBooking }}
+            actions={{
+              confirmEmailCode,
+              loadSlots,
+              requestEmailCode,
+              submitBooking,
+            }}
             contact={BOOKING_CONTACT}
             ManageLink={BookingLink}
             managePath="/booking"

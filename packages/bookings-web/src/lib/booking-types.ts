@@ -26,6 +26,8 @@ export interface SlotList {
 /** What the booking form sends when the visitor submits a request. */
 export interface BookingInput {
   email: string;
+  /** Proof from a confirmed emailed code; required when a deposit is due. */
+  emailProof?: string;
   idempotencyKey: string;
   marketingConsent: boolean;
   name: string;
@@ -43,12 +45,46 @@ export interface Booked {
   manageToken: string;
 }
 
+/** Ask for an emailed code. The proof it leads to is bound to all three fields. */
+export interface EmailCodeRequestInput {
+  email: string;
+  serviceId: string;
+  startsAt: string;
+  /** Single use: the widget is solved again before the booking is created. */
+  turnstileToken: string;
+}
+
+/** `required: false` means no code is needed (no deposit, or a signed-in exemption). */
+export interface EmailCodeSent {
+  expiresInSeconds: number;
+  required: boolean;
+}
+
+export interface EmailCodeConfirmInput {
+  code: string;
+  email: string;
+  serviceId: string;
+  startsAt: string;
+}
+
+/** Single-use proof, sent as `emailProof` when the booking is created. */
+export interface EmailProof {
+  expiresInSeconds: number;
+  proof: string;
+}
+
 /** Calls the new-booking form needs. Each one returns an outcome, never throws for API answers. */
 export interface BookingFlowActions {
+  confirmEmailCode: (
+    input: EmailCodeConfirmInput
+  ) => Promise<Outcome<EmailProof>>;
   loadSlots: (
     serviceId: string,
     firstDay: string
   ) => Promise<Outcome<SlotList>>;
+  requestEmailCode: (
+    input: EmailCodeRequestInput
+  ) => Promise<Outcome<EmailCodeSent>>;
   submitBooking: (input: BookingInput) => Promise<Outcome<Booked>>;
 }
 

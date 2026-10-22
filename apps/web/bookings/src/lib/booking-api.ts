@@ -7,15 +7,21 @@ import "server-only";
 
 import {
   type BookingAvailability,
+  type BookingEmailCodeConfirm,
+  type BookingEmailCodeRequest,
+  type BookingEmailCodeSent,
+  type BookingEmailProof,
   type BookingPublicDetail,
   type BookingPublicReceipt,
   type BookingStorefront,
   bookingsCancelPublicBooking,
+  bookingsConfirmEmailCode,
   bookingsCreatePublicBooking,
   bookingsGetAvailability,
   bookingsGetPublicBooking,
   bookingsGetPublicBookingIcs,
   bookingsGetStorefront,
+  bookingsRequestEmailCode,
   bookingsReschedulePublicBooking,
   createClient,
   ResponseError,
@@ -26,16 +32,25 @@ import { env } from "@/env";
 import { redactRequest } from "@/lib/redact-request";
 import { visitorHeaders } from "@/lib/visitor-headers";
 
+// A signed-in account is sent as a bearer so the API can vouch for its own
+// verified email (no emailed code needed). Visitors send nothing.
+function bearer(accessToken: string | undefined): Record<string, string> {
+  return accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+}
+
 // Next calls the API from one address, so the visitor's own address travels in
 // headers the API trusts only with the shared secret (src/rate_limit.py).
-async function options() {
+async function options(accessToken?: string) {
   const visitor = visitorHeaders(
     await headers(),
     env.TRUSTED_WEB_SECRET,
     env.VISITOR_IP_PROXY_HOPS
   );
   return {
-    client: createClient({ baseURL: env.AUTH_API_URL, headers: visitor }),
+    client: createClient({
+      baseURL: env.AUTH_API_URL,
+      headers: { ...visitor, ...bearer(accessToken) },
+    }),
   };
 }
 
@@ -93,6 +108,7 @@ export interface NewBooking {
   customer_email: string;
   customer_name: string;
   customer_phone?: string;
+  email_proof?: string;
   marketing_consent: boolean;
   notes?: string;
   service_id: string;
@@ -104,12 +120,42 @@ export interface NewBooking {
 export async function createBooking(
   slug: string,
   body: NewBooking,
-  idempotencyKey: string
+  idempotencyKey: string,
+  accessToken?: string
 ): Promise<BookingPublicReceipt> {
   return bookingsCreatePublicBooking({
-    ...(await options()),
+    ...(await options(accessToken)),
     path: { slug },
     headers: { "Idempotency-Key": idempotencyKey },
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Emails a verification code when a deposit is due; `required: false` when none is needed. */
+export async function requestEmailCode(
+  slug: string,
+  body: BookingEmailCodeRequest,
+  accessToken?: string
+): Promise<BookingEmailCodeSent> {
+  return bookingsRequestEmailCode({
+    ...(await options(accessToken)),
+    path: { slug },
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Exchanges the emailed code for a single-use proof. */
+export async function confirmEmailCode(
+  slug: string,
+  body: BookingEmailCodeConfirm
+): Promise<BookingEmailProof> {
+  return bookingsConfirmEmailCode({
+    ...(await options()),
+    path: { slug },
     body,
   })
     .unwrap()
