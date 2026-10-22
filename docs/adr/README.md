@@ -51,6 +51,9 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0043](0043-hostnames-tenancy-and-port-allocation.md) | Hostnames, tenancy and port allocation: one brand domain, single-level hosts, tenants as organisation-slug paths, port ranges by category | Proposed |
 | [0044](0044-organisation-scoped-permissions-via-membership-grants.md) | Organisation-scoped permissions via membership grants: `binding` on permission keys, product role bundles, grants on the membership | Proposed |
 | [0045](0045-analytics-external-free-tools-first-party-deferred.md) | Analytics stays on free external tools (GA4 behind consent, PostHog wired but off); first-party analytics design deferred | Accepted |
+| [0046](0046-barrels-events-catalogue-model.md) | Barrels Events catalogue model: listing types and classification fields, adopted taxonomy as reference data, occurrences as the unit of time and inventory, venues, organiser storefront, Postgres full-text plus `pg_trgm` and bounding-box geography (no PostGIS) | Proposed |
+| [0047](0047-experiences-reuse-events-ticketing-through-occurrences.md) | Experiences reuse Events ticketing through occurrences (inventory per tier and occurrence, shared-pool capacity, in-house recurrence generator); Bookings stays for appointments | Proposed |
+| [0048](0048-catalogue-provenance-and-curation.md) | Catalogue provenance and curation: hand-curated seed under unclaimed organiser profiles with source links, no scraping, image-rights and personal-data rules, claim flow, `events.catalogue.curate`, hide/unhide policy | Proposed |
 | [0050](0050-barrels-staff-operations-access-to-organisations.md) | Barrels staff operations access to organisations: global `events.ops.*` keys and staff roles, accepted on Events org-zone routes only through one explicit dependency, with MFA, logging and a "Barrels staff" audit capacity | Proposed |
 
 ## Template
