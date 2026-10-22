@@ -1,8 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+const createBookingAction = vi.hoisted(() => vi.fn());
 vi.mock("@/app/studio/[orgSlug]/bookings/new/actions", () => ({
-  createBookingAction: vi.fn(),
+  createBookingAction,
 }));
 
 import { NewBookingForm } from "./new-booking-form";
@@ -79,5 +80,39 @@ describe("new booking form", () => {
     expect(screen.getByLabelText("Date")).toHaveValue("2026-10-21");
     expect(screen.getByText(CLOCK)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save booking" })).toBeEnabled();
+  });
+
+  it("keeps everything typed after a refused submit", async () => {
+    createBookingAction.mockResolvedValue({
+      status: "error",
+      kind: "conflict",
+      message: "That time is taken.",
+      nextStep: "Pick another time.",
+    });
+    render(
+      <NewBookingForm
+        orgSlug="sea-salt"
+        providers={[provider("p1", "Maya", [S1])]}
+        services={[service(S1, "Massage")]}
+        today="2026-10-21"
+        zone="America/Grenada"
+      />
+    );
+    fireEvent.change(screen.getByLabelText("Customer name"), {
+      target: { value: "Ada Lovelace" },
+    });
+    fireEvent.change(screen.getByLabelText("Start time"), {
+      target: { value: "10:30" },
+    });
+    fireEvent.change(screen.getByLabelText("Notes (optional)"), {
+      target: { value: "Prefers the quiet room" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save booking" }));
+    await screen.findByText("That time is taken.");
+    expect(screen.getByLabelText("Customer name")).toHaveValue("Ada Lovelace");
+    expect(screen.getByLabelText("Start time")).toHaveValue("10:30");
+    expect(screen.getByLabelText("Notes (optional)")).toHaveValue(
+      "Prefers the quiet room"
+    );
   });
 });

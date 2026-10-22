@@ -24,6 +24,7 @@ import {
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { createBookingAction } from "@/app/studio/[orgSlug]/bookings/new/actions";
+import { keepValuesOnSubmit } from "@/lib/keep-values";
 import { IDLE } from "@/lib/studio-action-state";
 import { rotatesKey } from "@/lib/studio-view";
 
@@ -79,7 +80,7 @@ export function NewBookingForm({
   const service = services.find((item) => item.id === serviceId);
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form className="space-y-5" onSubmit={keepValuesOnSubmit(formAction)}>
       <input name="idempotencyKey" type="hidden" value={key} />
       <div className="grid gap-5 lg:grid-cols-2">
         <Field label="Service" name="serviceId">

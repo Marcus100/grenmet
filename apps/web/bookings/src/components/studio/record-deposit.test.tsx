@@ -171,4 +171,27 @@ describe("record deposit", () => {
     ).toBeDisabled();
     spy.mockRestore();
   });
+
+  it("keeps the typed reference after a refusal", async () => {
+    recordDepositAction.mockResolvedValue({
+      status: "error",
+      kind: "unavailable",
+      message: "We could not save that change.",
+      nextStep: "Try again in a moment.",
+    });
+    show();
+    fireEvent.click(screen.getByRole("button", TRIGGER));
+    fireEvent.change(await screen.findByLabelText("Reference (optional)"), {
+      target: { value: "CHQ-1042" },
+    });
+    fireEvent.change(screen.getByLabelText("How was it paid?"), {
+      target: { value: "cheque" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Record deposit" }));
+    await screen.findByText("We could not save that change.");
+    expect(screen.getByLabelText("Reference (optional)")).toHaveValue(
+      "CHQ-1042"
+    );
+    expect(screen.getByLabelText("How was it paid?")).toHaveValue("cheque");
+  });
 });

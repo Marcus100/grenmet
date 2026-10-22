@@ -144,4 +144,59 @@ describe("decision forms", () => {
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toMatch(RE_8);
   });
+
+  it("keeps the typed reason after a refused rejection", async () => {
+    render(
+      <RejectForm
+        action={(_previous, data) =>
+          Promise.resolve({ code: "mfa", reason: String(data.get("reason")) })
+        }
+        organisationId="org_1"
+      />
+    );
+    fireEvent.change(screen.getByLabelText(RE_5), {
+      target: { value: "Papers missing" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Confirm rejection" }));
+    await screen.findByRole("alert");
+    expect((screen.getByLabelText(RE_5) as HTMLTextAreaElement).value).toBe(
+      "Papers missing"
+    );
+  });
+
+  it("keeps the typed reason when the action throws", async () => {
+    render(
+      <RejectForm
+        action={() => Promise.reject(new Error("network"))}
+        organisationId="org_1"
+      />
+    );
+    fireEvent.change(screen.getByLabelText(RE_5), {
+      target: { value: "Papers missing" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Confirm rejection" }));
+    await screen.findByRole("alert");
+    expect((screen.getByLabelText(RE_5) as HTMLTextAreaElement).value).toBe(
+      "Papers missing"
+    );
+  });
+
+  it("keeps the typed note after a refused approval", async () => {
+    render(
+      <ApproveForm
+        action={(_previous, data) =>
+          Promise.resolve({ code: "mfa", reason: String(data.get("reason")) })
+        }
+        organisationId="org_1"
+      />
+    );
+    fireEvent.change(screen.getByLabelText(RE_4), {
+      target: { value: "Checked ID" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Confirm approval" }));
+    await screen.findByRole("alert");
+    expect((screen.getByLabelText(RE_4) as HTMLInputElement).value).toBe(
+      "Checked ID"
+    );
+  });
 });

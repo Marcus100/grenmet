@@ -267,6 +267,23 @@ describe("dialogs", () => {
     expect(screen.getByRole("alertdialog")).toBeInTheDocument();
   });
 
+  it("keeps the typed reason after a refusal", async () => {
+    actions.declineBookingAction.mockResolvedValue({
+      status: "error",
+      kind: "unavailable",
+      message: "We could not save that change.",
+      nextStep: "Try again in a moment.",
+    });
+    show("pending");
+    fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+    fireEvent.change(await screen.findByLabelText(REASON), {
+      target: { value: "Fully booked" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Decline request" }));
+    await screen.findByRole("alert");
+    expect(screen.getByLabelText(REASON)).toHaveValue("Fully booked");
+  });
+
   it("confirms a no-show before running it", async () => {
     actions.noShowBookingAction.mockResolvedValue({
       status: "done",
