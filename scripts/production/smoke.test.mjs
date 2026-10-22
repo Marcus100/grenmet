@@ -31,7 +31,7 @@ test("deployment probes the real sign-in route and requires its form", async () 
     );
   };
   await checkDeployment("staging.example.test", fetcher);
-  assert.ok(urls.includes("https://auth.staging.example.test/"));
+  assert.ok(urls.some((url) => url === "https://auth.staging.example.test/"));
   // The portal host is retried while its certificate is issued (first deploy).
   let portalCalls = 0;
   await checkDeployment("staging.example.test", (url) =>
@@ -116,7 +116,9 @@ test("deployment smoke no longer probes the retired Hono API", async () => {
   });
   assert.ok(!urls.some((url) => new URL(url).hostname.startsWith("hapi.")));
   // The CMS check uses the homepage feed GMS reads, not a removed collection.
-  assert.ok(urls.includes("https://cms.example.test/api/public/home"));
+  assert.ok(
+    urls.some((url) => url === "https://cms.example.test/api/public/home")
+  );
   assert.ok(!urls.some((url) => new URL(url).pathname === "/api/content"));
 });
 
