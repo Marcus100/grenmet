@@ -14,7 +14,7 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
 import { SIGN_IN_REQUIRED } from "@/data/action-result";
 import {
@@ -70,12 +70,17 @@ interface Failure {
   readonly keepKey: boolean;
 }
 
-/** Locks the form after an uncertain failure until the refreshed order arrives. */
+/**
+ * Locks the form after an uncertain failure until the refreshed order arrives:
+ * the lock belongs to the order object it was set on, so a reload (a new
+ * object) lifts it.
+ */
 function useReloadLock(order: OrgOrderDetail) {
-  const [locked, setLocked] = useState(false);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a new order object means the page was reloaded
-  useEffect(() => setLocked(false), [order]);
-  return [locked, setLocked] as const;
+  const [lockedFor, setLockedFor] = useState<OrgOrderDetail | null>(null);
+  return [
+    lockedFor === order,
+    (locked: boolean) => setLockedFor(locked ? order : null),
+  ] as const;
 }
 
 /**
