@@ -21204,6 +21204,223 @@
             "description": "Resource not found"
           }
         }
+      },
+      "post": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "Add a member to any organisation (audited)",
+        "description": "Superuser with an enrolled authenticator adds an account (by user id or email) as member, admin or owner. This is how a superuser enters a business's data: there is no organisation bypass, so adding yourself works the same way. A reason is required and recorded with the actor and target. Owner and admin roles need a verified or administrator-activated target. 409 when already a member.",
+        "operationId": "organisationsAddMemberAdmin",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformMemberAdd"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Superuser with an enrolled authenticator required (superuser_mfa_required), or the target lacks a verified or administrator-activated email for an owner/admin role"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/organisations/{organisation_id}/admin/members/{membership_id}": {
+      "patch": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "Change any member's role (audited)",
+        "description": "Superuser with an enrolled authenticator changes a member's role. A reason is required. 409 when it would leave the organisation without an owner.",
+        "operationId": "organisationsUpdateMemberAdmin",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "membership_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Membership Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformMemberRoleUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Superuser with an enrolled authenticator required (superuser_mfa_required), or the target lacks a verified or administrator-activated email for an owner/admin role"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "Remove any member (audited)",
+        "description": "Superuser with an enrolled authenticator ends a membership. A reason is required in the body. 409 when it would leave the organisation without an owner.",
+        "operationId": "organisationsDeleteMemberAdmin",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "membership_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Membership Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformMemberRemove"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Superuser with an enrolled authenticator required (superuser_mfa_required), or the target lacks a verified or administrator-activated email for an owner/admin role"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
       }
     },
     "/api/v1/organisations/{organisation_id}/members": {
@@ -38989,6 +39206,142 @@
         }
       }
     },
+    "/api/v1/auth/onboarding/{user_id}/admin-activate": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Vouch for an account (roles and memberships only)",
+        "description": "Superuser with an enrolled authenticator vouches for an existing account whose email cannot be verified. Unlocks staff roles and owner/admin memberships (`require_verified_or_admin_activated`); does not set `email_verified_at` and does not clear the strict deposit and organiser-request gate. A reason is required and audited. Idempotent. Body also carries `expected_email`, which must match the account's address (409 otherwise) and is stored in the audit entry. Inactive and superuser accounts are refused (409).",
+        "operationId": "authAdminActivateAccount",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminActivation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Superuser with an authenticator required (superuser_mfa_required)"
+          },
+          "404": {
+            "description": "Account not found"
+          },
+          "409": {
+            "description": "Inactive or superuser account"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/onboarding/{user_id}/resend-verification": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Send an existing account its verification email again",
+        "description": "Superuser with an enrolled authenticator re-sends the verification link. Reports `delivered: false` when mail is not configured or fails. A reason is required and audited.",
+        "operationId": "authAdminResendVerification",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuperuserActionReason"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationResend"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Superuser with an authenticator required (superuser_mfa_required)"
+          },
+          "404": {
+            "description": "Account not found"
+          },
+          "409": {
+            "description": "Inactive account"
+          }
+        }
+      }
+    },
     "/api/v1/auth/onboarding/activate": {
       "post": {
         "tags": [
@@ -43229,6 +43582,28 @@
           "reason"
         ],
         "title": "AdjustmentCreate"
+      },
+      "AdminActivation": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          },
+          "expected_email": {
+            "type": "string",
+            "format": "email",
+            "title": "Expected Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason",
+          "expected_email"
+        ],
+        "title": "AdminActivation",
+        "description": "The operator vouches for the exact address they saw on the account."
       },
       "AdmissionCreate": {
         "properties": {
@@ -62116,6 +62491,11 @@
             "type": "boolean",
             "title": "Can Issue Activation"
           },
+          "admin_activated": {
+            "type": "boolean",
+            "title": "Admin Activated",
+            "default": false
+          },
           "apps": {
             "items": {
               "$ref": "#/components/schemas/AppAccessStatus"
@@ -65389,6 +65769,84 @@
           "following"
         ],
         "title": "PlansPublic"
+      },
+      "PlatformMemberAdd": {
+        "properties": {
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "role": {
+            "$ref": "#/components/schemas/MembershipRole",
+            "default": "member"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "PlatformMemberAdd",
+        "description": "Superuser adds a person (by account id or email) as a member, with a reason."
+      },
+      "PlatformMemberRemove": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "PlatformMemberRemove"
+      },
+      "PlatformMemberRoleUpdate": {
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/MembershipRole"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "reason"
+        ],
+        "title": "PlatformMemberRoleUpdate"
       },
       "PlatformOrganisationCreate": {
         "properties": {
@@ -75840,6 +76298,22 @@
         ],
         "title": "SuggestionUpdate"
       },
+      "SuperuserActionReason": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "SuperuserActionReason",
+        "description": "Why a superuser is using an admin power; stored in the audit trail."
+      },
       "SwapType": {
         "type": "string",
         "enum": [
@@ -80688,6 +81162,24 @@
           "reason"
         ],
         "title": "VerificationDecision"
+      },
+      "VerificationResend": {
+        "properties": {
+          "delivered": {
+            "type": "boolean",
+            "title": "Delivered"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "delivered",
+          "message"
+        ],
+        "title": "VerificationResend"
       },
       "WeatherImage": {
         "properties": {

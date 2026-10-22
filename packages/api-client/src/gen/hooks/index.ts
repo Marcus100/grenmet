@@ -14,6 +14,16 @@ export {
   useAuthAccountEmailCodeVerify,
 } from "./useAuthAccountEmailCodeVerify.js";
 export {
+  authAdminActivateAccountMutationKey,
+  authAdminActivateAccountMutationOptions,
+  useAuthAdminActivateAccount,
+} from "./useAuthAdminActivateAccount.js";
+export {
+  authAdminResendVerificationMutationKey,
+  authAdminResendVerificationMutationOptions,
+  useAuthAdminResendVerification,
+} from "./useAuthAdminResendVerification.js";
+export {
   authAppEmailCodeStartMutationKey,
   authAppEmailCodeStartMutationOptions,
   useAuthAppEmailCodeStart,
@@ -2219,6 +2229,11 @@ export {
   useOrganisationsAcceptInvitation,
 } from "./useOrganisationsAcceptInvitation.js";
 export {
+  organisationsAddMemberAdminMutationKey,
+  organisationsAddMemberAdminMutationOptions,
+  useOrganisationsAddMemberAdmin,
+} from "./useOrganisationsAddMemberAdmin.js";
+export {
   organisationsCreateAdminSiteMutationKey,
   organisationsCreateAdminSiteMutationOptions,
   useOrganisationsCreateAdminSite,
@@ -2243,6 +2258,11 @@ export {
   organisationsDeleteMemberMutationOptions,
   useOrganisationsDeleteMember,
 } from "./useOrganisationsDeleteMember.js";
+export {
+  organisationsDeleteMemberAdminMutationKey,
+  organisationsDeleteMemberAdminMutationOptions,
+  useOrganisationsDeleteMemberAdmin,
+} from "./useOrganisationsDeleteMemberAdmin.js";
 export {
   organisationsGetCurrentQueryKey,
   organisationsGetCurrentQueryOptions,
@@ -2353,6 +2373,11 @@ export {
   organisationsUpdateMemberMutationOptions,
   useOrganisationsUpdateMember,
 } from "./useOrganisationsUpdateMember.js";
+export {
+  organisationsUpdateMemberAdminMutationKey,
+  organisationsUpdateMemberAdminMutationOptions,
+  useOrganisationsUpdateMemberAdmin,
+} from "./useOrganisationsUpdateMemberAdmin.js";
 export {
   organisationsUpdateOneMutationKey,
   organisationsUpdateOneMutationOptions,
