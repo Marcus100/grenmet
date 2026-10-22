@@ -725,7 +725,7 @@ test("the payments Stripe settings are set together and return over https", () =
     const { [name]: _omitted, ...partial } = full;
     const half = render(partial);
     assert.notEqual(half.result.status, 0, `${name} missing`);
-    assert.match(half.result.stderr, /set together/);
+    assert.ok(half.result.stderr.includes("set together"));
     assert.ok(half.result.stderr.includes(name), name);
     assert.equal(half.result.stderr.includes("sk_test_fixture"), false);
   }
@@ -735,7 +735,7 @@ test("the payments Stripe settings are set together and return over https", () =
   ]) {
     const insecure = render({ ...full, [name]: "http://auth.example.test/" });
     assert.notEqual(insecure.result.status, 0, name);
-    assert.match(insecure.result.stderr, /https/);
+    assert.ok(insecure.result.stderr.includes("https"));
   }
 });
 
