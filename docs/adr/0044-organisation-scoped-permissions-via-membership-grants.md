@@ -80,7 +80,7 @@ Choose C.
 - Effective set = implicit bundle union granted bundles, intersected with the
   organisation's entitled products.
 - Superusers get no bypass (the rule lives in `apps/api/fastapi/src/organisations/AGENTS.md` and `src/organisations/dependencies.py`).
-- Organisation-bound keys are resolved only through `OrgContext` and the S1 resolver, never through `has_permission` or `require_permission`. `has_permission` returns True for every key of a superuser (`src/auth/policy.py`), which would be the bypass above, and a staff role that already holds a scope key would pass outside any organisation. S0 therefore makes `has_permission` deny organisation-bound keys (and log); a test covers a superuser without membership.
+- Organisation-bound keys are resolved only through `OrgContext` and the S1 resolver, never through `has_permission`, `require_permission`, `can_act_on_user` or `has_effective_permission` (the four forbidden paths; one shared helper, `is_organisation_bound` in `src/auth/policy.py`, denies them). These return True for every key of a superuser, which would be the bypass above, and a staff role that already holds a scope key would pass outside any organisation. S0 therefore makes all four deny organisation-bound keys (and log); a test covers a superuser without membership.
 - API-key scopes are organisation keys and never wider than the creator.
   All ten API-key scope keys (`<product>.read` and `<product>.write` for bookings, rewards, contacts, payments and webhooks) stay as compatibility aliases for the fine-grained keys.
 - A grantor must hold every key in the bundle and the product's `<product>.team.manage`.

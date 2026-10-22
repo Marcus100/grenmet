@@ -196,6 +196,8 @@ def test_superuser_is_not_granted_organisation_key_through_has_permission() -> N
 async def test_role_with_scope_key_can_be_saved_and_cleaned(
     db_async: AsyncSession,
 ) -> None:
+    import uuid
+
     from sqlalchemy.orm import selectinload
 
     from src.auth.models import User
@@ -243,6 +245,11 @@ async def test_role_with_scope_key_can_be_saved_and_cleaned(
         body=RolePermissionsInput(permission_keys=keys),
     )
     assert "bookings.read" in kept.permission_keys
+    from src.auth.policy import has_permission
+
+    await db_async.refresh(role, ["permissions"])
+    member = User(id=uuid.uuid4(), is_superuser=False, roles=[role])
+    assert has_permission(current_user=member, permission_key="bookings.read") is False
     removed = await update_role_configuration(
         session=db_async,
         current_user=actor,
@@ -250,3 +257,61 @@ async def test_role_with_scope_key_can_be_saved_and_cleaned(
         body=RolePermissionsInput(permission_keys=["app.events.access"]),
     )
     assert removed.permission_keys == ["app.events.access"]
+
+
+def _staff_with(key: str):
+    import uuid
+
+    from src.auth.models import Permission as P
+    from src.auth.models import Role as R
+    from src.auth.models import User
+
+    role = R(name="r", permissions=[P(key=key)])
+    return User(id=uuid.uuid4(), is_superuser=False, roles=[role])
+
+
+def test_staff_role_holding_scope_key_is_denied_by_has_permission() -> None:
+    from src.auth.policy import has_permission
+
+    user = _staff_with("bookings.read")
+    for variant in ("bookings.read", " Bookings.Read "):
+        assert has_permission(current_user=user, permission_key=variant) is False
+    assert (
+        has_permission(
+            current_user=_staff_with("user.manage"), permission_key="user.manage"
+        )
+        is True
+    )
+
+
+async def test_superuser_denied_organisation_key_in_other_global_checks(
+    db_async: AsyncSession,
+) -> None:
+    import uuid
+
+    from src.auth.eligibility import has_effective_permission
+    from src.auth.models import User
+    from src.auth.policy import can_act_on_user
+
+    superuser = User(id=uuid.uuid4(), is_superuser=True, roles=[])
+    assert (
+        await can_act_on_user(
+            session=db_async,
+            current_user=superuser,
+            target_user_id=uuid.uuid4(),
+            permission_key="events.door.scan",
+        )
+        is False
+    )
+    assert (
+        await has_effective_permission(
+            session=db_async, user=superuser, permission_key="events.door.scan"
+        )
+        is False
+    )
+    assert (
+        await has_effective_permission(
+            session=db_async, user=superuser, permission_key="user.manage"
+        )
+        is True
+    )
