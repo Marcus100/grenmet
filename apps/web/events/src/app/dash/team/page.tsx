@@ -1,8 +1,5 @@
-import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
-import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { DashShell } from "@/components/dash/dash-shell";
 import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
 import {
@@ -12,6 +9,7 @@ import {
 import { TeamFeedbackProvider } from "@/components/dash/team/team-feedback";
 import { TeamHelp } from "@/components/dash/team/team-help";
 import { TeamMembers } from "@/components/dash/team/team-members";
+import { TeamPager } from "@/components/dash/team/team-pager";
 import { getManagedOrganiser } from "@/data/events-api";
 import { resolveOrgContext } from "@/data/org-context";
 import { getTeam } from "@/data/team";
@@ -48,10 +46,18 @@ export default async function TeamPage({
     notFound();
   }
 
+  if (
+    team?.kind === "ok" &&
+    team.members?.length === 0 &&
+    team.count > 0 &&
+    team.page > team.totalPages
+  ) {
+    // A bookmarked page past the end: go to the last page that has members.
+    redirect(`/dash/team?page=${team.totalPages}`);
+  }
+
   let body: React.ReactNode;
   if (team?.kind === "ok") {
-    const previous = team.page > 1 ? team.page - 1 : null;
-    const next = team.page < team.totalPages ? team.page + 1 : null;
     body = (
       <TeamFeedbackProvider>
         <TeamHelp />
@@ -61,42 +67,11 @@ export default async function TeamPage({
           members={team.members}
           today={todayUtc(new Date())}
         />
-        {team.members !== null && team.totalPages > 1 ? (
-          <nav
-            aria-label="Team pages"
-            className="flex items-center justify-between gap-3"
-          >
-            {previous ? (
-              <Link
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "min-h-11"
-                )}
-                href={`/dash/team?page=${previous}`}
-              >
-                Previous
-              </Link>
-            ) : (
-              <span />
-            )}
-            <p className="text-caption text-muted-foreground">
-              Page {team.page} of {team.totalPages} ({team.count} members)
-            </p>
-            {next ? (
-              <Link
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "min-h-11"
-                )}
-                href={`/dash/team?page=${next}`}
-              >
-                Next
-              </Link>
-            ) : (
-              <span />
-            )}
-          </nav>
-        ) : null}
+        <TeamPager
+          count={team.count}
+          page={team.page}
+          totalPages={team.totalPages}
+        />
       </TeamFeedbackProvider>
     );
   } else if (team?.kind === "forbidden") {

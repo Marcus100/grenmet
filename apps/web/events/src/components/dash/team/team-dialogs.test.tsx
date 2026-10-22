@@ -14,6 +14,7 @@ const RE_T5 = /Roles they gave to other people stay/;
 const RE_T6 = /Box office for Bo Till/;
 const RE_T7 = /takes away nothing else/;
 
+const RE_NOTHING_ELSE = /takes away nothing else/;
 const refresh = vi.fn();
 const grantRole = vi.fn();
 const revokeGrant = vi.fn();
@@ -284,5 +285,43 @@ describe("RemoveMemberDialog", () => {
       })
     );
     expect(await screen.findByText("Not for you")).toBeInTheDocument();
+  });
+
+  it("keeps Remove disabled while the preview loads, never reading Removing", async () => {
+    loadIssuedGrants.mockReturnValue(new Promise(() => undefined));
+    render(
+      <TeamFeedbackProvider>
+        <RemoveMemberDialog memberName="Lena Lead" membershipId="mem_2" />
+      </TeamFeedbackProvider>
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Remove Lena Lead from the organisation",
+      })
+    );
+    const button = await screen.findByRole("button", { name: "Remove member" });
+    expect(button).toBeDisabled();
+  });
+
+  it("keeps Remove disabled after a failed preview and retries on Try again", async () => {
+    loadIssuedGrants.mockResolvedValueOnce({ ok: false, error: "Not for you" });
+    render(
+      <TeamFeedbackProvider>
+        <RemoveMemberDialog memberName="Lena Lead" membershipId="mem_2" />
+      </TeamFeedbackProvider>
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Remove Lena Lead from the organisation",
+      })
+    );
+    await screen.findByText("Not for you");
+    expect(
+      screen.getByRole("button", { name: "Remove member" })
+    ).toBeDisabled();
+    loadIssuedGrants.mockResolvedValueOnce({ ok: true, data: [] });
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await screen.findByText(RE_NOTHING_ELSE);
+    expect(screen.getByRole("button", { name: "Remove member" })).toBeEnabled();
   });
 });

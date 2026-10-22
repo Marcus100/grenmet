@@ -10,6 +10,7 @@ import {
   type RoleBundlePublic,
 } from "@barrelsgd/api-client";
 import { apiOptions } from "@/lib/api";
+import { reportError } from "@/lib/report-error";
 import type { OrgContext } from "./org-context";
 
 type Ready = Extract<OrgContext, { ok: true }>;
@@ -19,7 +20,8 @@ export const TEAM_PAGE_SIZE = 25;
 export interface TeamMember {
   readonly email: string;
   readonly fullName: string;
-  readonly grants: readonly MembershipGrantPublic[];
+  /** Null when this member's roles could not be loaded. */
+  readonly grants: readonly MembershipGrantPublic[] | null;
   readonly isSelf: boolean;
   readonly membershipId: string;
   readonly role: MemberPublic["role"];
@@ -61,7 +63,9 @@ export async function getTeam(
 ): Promise<TeamRead> {
   let bundles: RoleBundlePublic[];
   try {
-    bundles = await organisationsListRoleBundles(request(context)).unwrap();
+    bundles = (
+      await organisationsListRoleBundles(request(context)).unwrap()
+    ).filter((bundle) => bundle.product === "events");
   } catch (error) {
     const status = statusOf(error);
     if (status === 403) {
@@ -99,18 +103,27 @@ export async function getTeam(
     };
   }
 
+  const eventsRoles = new Set(bundles.map((bundle) => bundle.role_key));
   const members = await Promise.all(
     roster.data.map(async (member): Promise<TeamMember> => {
-      let grants: MembershipGrantPublic[] = [];
+      let grants: MembershipGrantPublic[] | null = [];
       try {
-        grants = await organisationsListMemberGrants({
-          ...request(context),
-          path: { membership_id: member.membership_id },
-        }).unwrap();
+        grants = (
+          await organisationsListMemberGrants({
+            ...request(context),
+            path: { membership_id: member.membership_id },
+          }).unwrap()
+        ).filter((grant) => eventsRoles.has(grant.role_key));
       } catch (error) {
+        const status = statusOf(error);
         // A member who left between the two calls simply has no roles to show.
-        if (statusOf(error) !== 404) {
+        if (status === 401 || status === 403) {
           throw error;
+        }
+        if (status !== 404) {
+          // One member's failure must not take the page down.
+          reportError(error, "events-team");
+          grants = null;
         }
       }
       return {

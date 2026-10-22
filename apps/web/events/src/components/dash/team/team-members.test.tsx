@@ -110,6 +110,21 @@ describe("TeamMembers", () => {
     show([makeTeamMember()], false);
     expect(screen.queryByRole("button", { name: RE_T6 })).toBeNull();
   });
+
+  it("marks a member whose roles failed to load and offers no Give role there", () => {
+    show([makeTeamMember({ grants: null })]);
+    expect(
+      screen.getByText(
+        "We couldn't load this member's roles. Reload to try again."
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Give role" })).toBeNull();
+  });
+
+  it("offers no Give role on owner and admin rows", () => {
+    show([makeTeamMember({ role: "admin" })]);
+    expect(screen.queryByRole("button", { name: "Give role" })).toBeNull();
+  });
 });
 
 describe("TeamHelp", () => {

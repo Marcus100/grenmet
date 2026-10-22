@@ -127,6 +127,8 @@ export function formatUtc(iso: string): string {
   return `${UTC_FORMAT.format(new Date(iso))} UTC`;
 }
 
+export const MEMBER_ROLES_UNAVAILABLE =
+  "We couldn't load this member's roles. Reload to try again.";
 export const COULDNT_CONFIRM_TEAM =
   "We couldn't confirm that change. Reload the page to see the current roles before trying again.";
 export const NOT_FOUND_TEAM =
@@ -142,6 +144,9 @@ const KNOWN_DETAILS: ReadonlySet<string> = new Set([
   "This grant cannot outlast your own access to the role",
   "A grant must expire in the future",
   "Your roles in this organisation do not allow this",
+  "Your role in this organisation does not allow this",
+  "Only owners can remove an owner.",
+  "This organisation is not entitled to this app",
   "Roles for this member changed at the same time; try again",
   "An organisation must keep at least one owner",
 ]);

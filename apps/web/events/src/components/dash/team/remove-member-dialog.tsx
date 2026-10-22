@@ -39,14 +39,20 @@ export function RemoveMemberDialog({
 }) {
   const router = useRouter();
   const feedback = useTeamFeedback();
-  const { pending, perform } = useMemberAction(COULDNT_CONFIRM_TEAM);
+  // Two actions, two states: the preview must not make the destructive
+  // button read "Removing", and a failed preview must not enable it.
+  const preview = useMemberAction(COULDNT_CONFIRM_TEAM);
+  const removal = useMemberAction(COULDNT_CONFIRM_TEAM);
+  const { pending, perform } = removal;
   const [open, setOpen] = useState(false);
   const [issued, setIssued] = useState<Issued>({ kind: "loading" });
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
     setIssued({ kind: "loading" });
-    const result = await perform(() => loadIssuedGrants({ membershipId }));
+    const result = await preview.perform(() =>
+      loadIssuedGrants({ membershipId })
+    );
     setIssued(
       result.ok
         ? { kind: "ok", grants: result.data }
@@ -116,9 +122,19 @@ export function RemoveMemberDialog({
             </p>
           ) : null}
           {issued.kind === "error" ? (
-            <p className="text-body text-destructive" role="alert">
-              {issued.message}
-            </p>
+            <div className="space-y-2">
+              <p className="text-body text-destructive" role="alert">
+                {issued.message}
+              </p>
+              <Button
+                className="min-h-11"
+                onClick={load}
+                type="button"
+                variant="outline"
+              >
+                Try again
+              </Button>
+            </div>
           ) : null}
           {issued.kind === "ok" && issued.grants.length === 0 ? (
             <p className="text-body text-muted-foreground" role="status">
@@ -152,7 +168,7 @@ export function RemoveMemberDialog({
           </AlertDialogCancel>
           <Button
             className="min-h-11"
-            disabled={pending}
+            disabled={pending || issued.kind !== "ok"}
             onClick={confirm}
             type="button"
             variant="destructive"

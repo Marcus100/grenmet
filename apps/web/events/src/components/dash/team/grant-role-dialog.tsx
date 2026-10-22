@@ -14,7 +14,7 @@ import {
 import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
 import { SIGN_IN_REQUIRED } from "@/data/action-result";
 import { grantRole } from "@/data/team-actions";
@@ -70,6 +70,13 @@ export function GrantRoleDialog({
   const [roleKey, setRoleKey] = useState("");
   const [expiresOn, setExpiresOn] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+
+  const alertRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (formError) {
+      alertRef.current?.focus();
+    }
+  }, [formError]);
 
   const chosen = bundles.find((bundle) => bundle.role_key === roleKey) ?? null;
 
@@ -129,6 +136,15 @@ export function GrantRoleDialog({
               : "Check what this role allows before you confirm."}
           </DialogDescription>
         </DialogHeader>
+
+        <p
+          className="font-medium text-body text-destructive empty:hidden"
+          ref={alertRef}
+          role="alert"
+          tabIndex={-1}
+        >
+          {formError}
+        </p>
 
         {step === "choose" ? (
           <form
@@ -204,13 +220,6 @@ export function GrantRoleDialog({
                 Leave empty for no end date.
               </p>
             </Field>
-
-            <p
-              className="font-medium text-body text-destructive empty:hidden"
-              role="alert"
-            >
-              {formError}
-            </p>
 
             <DialogFooter>
               <Button

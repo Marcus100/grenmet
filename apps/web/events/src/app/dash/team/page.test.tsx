@@ -35,6 +35,9 @@ vi.mock("@/components/dash/dash-shell", () => ({
   ),
 }));
 vi.mock("next/navigation", () => ({
+  redirect: (to: string) => {
+    throw new Error(`redirect:${to}`);
+  },
   notFound: () => {
     throw new Error("not-found");
   },
@@ -114,5 +117,20 @@ describe("Team page", () => {
     getTeam.mockResolvedValue({ kind: "not-found" });
     const error = await show().catch((caught: unknown) => caught);
     expect(error instanceof Error ? error.message : null).toBe("not-found");
+  });
+
+  it("sends a page past the end to the last page", async () => {
+    getTeam.mockResolvedValue({
+      kind: "ok",
+      bundles: [],
+      members: [],
+      count: 30,
+      page: 9,
+      totalPages: 2,
+    });
+    const error = await show({ page: "9" }).catch((caught: unknown) => caught);
+    expect(error instanceof Error ? error.message : null).toBe(
+      "redirect:/dash/team?page=2"
+    );
   });
 });

@@ -145,7 +145,7 @@ describe("grantRole", () => {
       "You can only change roles whose permissions you hold yourself",
       "hold yourself",
     ],
-    [403, "Your organisation does not have access to Events", "Events access"],
+    [403, "This organisation is not entitled to this app", "not entitled"],
     [409, "That member already holds this role", "already holds"],
     [
       409,

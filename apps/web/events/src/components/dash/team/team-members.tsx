@@ -1,6 +1,10 @@
 import type { RoleBundlePublic } from "@barrelsgd/api-client";
 import type { TeamMember } from "@/data/team";
-import { bundleCopy, formatUtc } from "@/lib/team-roles";
+import {
+  bundleCopy,
+  formatUtc,
+  MEMBER_ROLES_UNAVAILABLE,
+} from "@/lib/team-roles";
 import { GrantRoleDialog } from "./grant-role-dialog";
 import { RemoveMemberDialog } from "./remove-member-dialog";
 import { RevokeGrantDialog } from "./revoke-grant-dialog";
@@ -43,13 +47,15 @@ function MemberRow({
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            <GrantRoleDialog
-              bundles={bundles}
-              heldRoleKeys={member.grants.map((grant) => grant.role_key)}
-              memberName={member.fullName}
-              membershipId={member.membershipId}
-              today={today}
-            />
+            {member.grants !== null && !implicit ? (
+              <GrantRoleDialog
+                bundles={bundles}
+                heldRoleKeys={member.grants.map((grant) => grant.role_key)}
+                memberName={member.fullName}
+                membershipId={member.membershipId}
+                today={today}
+              />
+            ) : null}
             {canRemove ? (
               <RemoveMemberDialog
                 memberName={member.fullName}
@@ -67,13 +73,19 @@ function MemberRow({
         </p>
       ) : null}
 
-      {member.grants.length === 0 ? (
-        <p className="text-body text-muted-foreground" role="status">
+      {member.grants === null ? (
+        <p className="text-body text-destructive">{MEMBER_ROLES_UNAVAILABLE}</p>
+      ) : null}
+
+      {member.grants?.length === 0 ? (
+        <p className="text-body text-muted-foreground">
           {implicit
             ? "No extra roles given."
             : "No roles yet. This member can only use the public site until you give a role."}
         </p>
-      ) : (
+      ) : null}
+
+      {member.grants && member.grants.length > 0 ? (
         <ul className="space-y-2">
           {member.grants.map((grant) => {
             const copy = bundleCopy(grant.role_key);
@@ -106,7 +118,7 @@ function MemberRow({
             );
           })}
         </ul>
-      )}
+      ) : null}
     </li>
   );
 }
