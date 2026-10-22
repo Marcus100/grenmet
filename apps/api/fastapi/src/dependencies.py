@@ -249,6 +249,10 @@ async def optional_account(
             from src.auth.eligibility import is_eligible_for_app
 
             if not await is_eligible_for_app(session=session, user=user, app_key=app):
+                # A guest from here on: undo the audit attribution made above.
+                from src.audit.service import set_actor
+
+                set_actor(session, None)
                 return None
         return user
     except HTTPException:

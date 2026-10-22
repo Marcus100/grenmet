@@ -467,6 +467,33 @@ async def test_a_failed_booking_does_not_burn_the_proof(
 # --- hardening (security review of #496) ---------------------------------------------------
 
 
+class _YieldingStore(MemoryCodeStore):
+    """Yields to the event loop after every read and after every counter step, so
+    concurrent confirms interleave the way they do against real Redis.
+
+    The OLD order (compare first, count the failure afterwards) lets every request
+    in a burst read the live code and compare before any failure is counted, so
+    the burst below would evaluate all 13 guesses and this test would fail."""
+
+    async def get(self, key: str) -> str | None:
+        value = await super().get(key)
+        await asyncio.sleep(0)
+        return value
+
+    async def incr(self, key: str, ttl: int) -> int:
+        await asyncio.sleep(0)
+        return await super().incr(key, ttl)
+
+
+@pytest.fixture
+def yielding_store():
+    store = _YieldingStore()
+    previous = email_code.set_store(store)
+    yield store
+    email_code.set_store(previous)
+
+
+@pytest.mark.usefixtures("yielding_store")
 async def test_parallel_guesses_cannot_exceed_the_attempt_limit(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
@@ -478,10 +505,39 @@ async def test_parallel_guesses_cannot_exceed_the_attempt_limit(
     burst.append(_confirm(async_client, studio, slot, code))
     statuses = [r.status_code for r in await asyncio.gather(*burst)]
     # At most MAX_ATTEMPTS guesses were ever evaluated; the rest hit the lock.
-    assert statuses.count(429) >= len(statuses) - email_code.MAX_ATTEMPTS
     assert statuses.count(400) + statuses.count(200) <= email_code.MAX_ATTEMPTS
+    assert statuses.count(429) >= len(statuses) - email_code.MAX_ATTEMPTS
     # Once locked, the right code is refused too.
     assert (await _confirm(async_client, studio, slot, code)).status_code == 429
+
+
+async def test_the_right_code_on_the_last_allowed_attempt_works(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, slot = await _setup(db_async, async_client)
+    await _request(async_client, studio, slot)
+    code = await latest_code(db_async, studio.org_id)
+    wrong = "123456" if code != "123456" else "654321"
+    for _ in range(email_code.MAX_ATTEMPTS - 1):
+        assert (await _confirm(async_client, studio, slot, wrong)).status_code == 400
+    assert (await _confirm(async_client, studio, slot, code)).status_code == 200
+
+
+async def test_a_wrong_last_attempt_locks_and_deletes_the_code(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    code_store: MemoryCodeStore,
+) -> None:
+    studio, slot = await _setup(db_async, async_client)
+    await _request(async_client, studio, slot)
+    code = await latest_code(db_async, studio.org_id)
+    wrong = "123456" if code != "123456" else "654321"
+    assert any(":code:" in key for key in code_store._data)
+    for _ in range(email_code.MAX_ATTEMPTS - 1):
+        await _confirm(async_client, studio, slot, wrong)
+    assert (await _confirm(async_client, studio, slot, wrong)).status_code == 429
+    assert not any(":code:" in key for key in code_store._data)
+    assert any(":lock:" in key for key in code_store._data)
 
 
 async def test_junk_confirms_without_a_live_code_never_lock_the_pair(
@@ -517,6 +573,30 @@ async def test_an_ineligible_bookings_token_is_treated_as_a_guest(
         headers={"Authorization": f"Bearer {token}"},
     )
     assert refused.status_code == 403
+
+
+async def test_a_downgraded_bookings_token_leaves_no_audit_actor(
+    db_async: AsyncSession,
+) -> None:
+    from starlette.requests import Request
+
+    from src.audit.listener import ACTOR_KEY
+    from src.dependencies import optional_account
+
+    user = await make_user(db_async, verified=True)  # no bookings access
+    token = create_access_token(
+        user.id,
+        expires_delta=timedelta(minutes=auth_settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+        app="bookings",
+    )
+    request = Request(
+        {
+            "type": "http",
+            "headers": [(b"authorization", f"Bearer {token}".encode())],
+        }
+    )
+    assert await optional_account(request, db_async, app="bookings") is None
+    assert db_async.info.get(ACTOR_KEY) is None
 
 
 async def test_an_inactive_bookings_account_is_treated_as_a_guest(
