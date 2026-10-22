@@ -412,6 +412,22 @@ organisation). A suspended organisation is refused with 403 by every
 `X-Barrels-Organisation` route. A verified organisation shows its linked Events
 organiser as `verified`.
 
+**Superuser admin powers (owner decision 2026-10-21).** All need an active
+superuser with an enrolled authenticator *and a session that passed MFA* (a
+token without `sid`, or a session with empty `mfa_verified_at`, gets 403) in
+every environment, whatever `AUTH_PRIVILEGED_MFA_MODE` says (403
+`superuser_mfa_required: ...` when not enrolled). Activating 2FA on a privileged
+account revokes its other sessions. They are limited to 30/minute.
+Every call needs a `reason` of 10 to 500 characters that is stored in the audit trail:
+`POST /organisations/{id}/admin/members` (`organisationsAddMemberAdmin`: body
+`{user_id | email, role, reason}`; 409 when already a member; owner/admin need a
+verified or administrator-activated target), `PATCH
+/organisations/{id}/admin/members/{membership_id}` (`{role, reason}`) and
+`DELETE` the same path (body `{reason}`); the last-owner rule applies (409).
+Adding yourself works and is audited (`platform_organisation_member`, actor,
+target, role, reason). This is the only way in: ADR-0022 still gives superusers
+no bypass on `X-Barrels-Organisation` routes.
+
 ### Organisation context
 
 Routes that act for one organisation read it from the `X-Barrels-Organisation`
@@ -1975,6 +1991,8 @@ system administrators retain full CMS access.
 - `POST /api/v1/auth/onboarding/accounts` (`authCreateOnboardingAccount`): superuser creates an active, staff-approved account with an unusable random password and password setup pending; no roles or CMS grants are assigned. Existing email/username conflicts return 409.
 - `GET /api/v1/auth/onboarding/{user_id}` (`authGetOnboardingStatus`): superuser receives email/activation state and typed GAA Admin/CMS blockers. This is app admission, not HR workflow readiness.
 - `POST /api/v1/auth/onboarding/{user_id}/activation` (`authIssueActivation`): requires explicit `identity_confirmed: true`; returns a private URL and expiry once with `Cache-Control: no-store`. The URL uses a fragment so its secret is not sent in page requests. Valid for 30 minutes; replacement invalidates earlier links.
+- `POST /api/v1/auth/onboarding/{user_id}/admin-activate` (`authAdminActivateAccount`): superuser with an enrolled authenticator vouches for an existing active, non-superuser account (also one with `email_verification_required` true). Body `{reason, expected_email}` (reason 10 to 500 characters; `expected_email` must equal the account's address or the call is refused with 409, and it is stored in the audit entry). Clears `email_verification_required` and writes the `account_activation`/`activated` audit entry (actor, reason, `admin_override`), so `require_verified_or_admin_activated` passes (staff role, owner/admin membership); `email_verified_at` stays empty and the deposit and organiser-request gate (`require_verified_email`) still refuses. Idempotent (a repeat writes an `admin_activate_noop` audit entry); returns the onboarding status (`admin_activated`). 409 for inactive or superuser targets.
+- `POST /api/v1/auth/onboarding/{user_id}/resend-verification` (`authAdminResendVerification`): same caller rule and body; rate limited (5/minute). Sends the existing verification email again and answers `{delivered, message}` (`delivered: false` when mail is unconfigured or fails); audited as `resend_sent` / `resend_failed`.
 - `DELETE /api/v1/auth/onboarding/{user_id}/activation` (`authRevokeActivation`): superuser revokes outstanding links.
 - `POST /api/v1/auth/onboarding/activate` (`authConfirmActivation`): public, rate-limited; takes the one-use token and a 12–128 character password. Requires an active eligible target and an active superuser issuer, unchanged email and credentials. Atomically consumes proof, sets password, clears password setup/email requirement, revokes sessions and outstanding challenges. Does not verify email, approve pending staff, grant roles, change CMS access or reset MFA.
 
