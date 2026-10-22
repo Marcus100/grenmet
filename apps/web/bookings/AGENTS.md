@@ -2,9 +2,9 @@
 
 Port **3015**, host `bookings.${BASE_DOMAIN}` (`bookings.barrels.gd` in production). Design lane: `docs/design/bookings.md` (read before UI work). Product decision: `docs/exec-plans/product-and-hardening-handoff.md` (A1). Backend and domain: `apps/api/fastapi/src/bookings/AGENTS.md` and ADR-0024.
 
-## Status: public booking flow live, studio still a stub (sign-in works)
+## Status: public booking flow and staff studio live
 
-`/[slug]` is the public booking flow for any business: storefront (name, services with duration, price and deposit label, providers), then the shared `@barrelsgd/bookings-web` flow (service, time, details, confirm), then `/[slug]/booking/[token]` to view, reschedule or cancel (plus `/ics` for the calendar file). The studio (`/studio`) is still a sign-in-guarded stub.
+`/[slug]` is the public booking flow for any business: storefront (name, services with duration, price and deposit label, providers), then the shared `@barrelsgd/bookings-web` flow (service, time, details, confirm), then `/[slug]/booking/[token]` to view, reschedule or cancel (plus `/ics` for the calendar file). The staff studio (`/studio`) is sign-in-guarded and built (see Studio below).
 
 Host wiring mirrors `apps/web/babydoll`: `src/lib/booking-api.ts` (server-only, generated client, every call takes the slug), `src/lib/booking-errors.ts` (`failureFrom`), Server Actions in `src/app/[slug]/actions.ts` and `booking/[token]/actions.ts`, `src/components/booking-link.tsx` (router-aware manage link). The page binds the slug into each action (`loadSlots.bind(null, slug)`) so the package's action shapes stay unchanged; actions re-check the slug. The package carries class names only: `src/app/booking.css` is the host's side, built from the shared semantic tokens (light mode, no `--gm-*`). Turnstile site key is `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (empty: no widget); the API enforces per-site policy and the honeypot. Unknown or switched-off slugs call `notFound()` (a real 404, so there is deliberately no `loading.tsx`).
 
@@ -12,7 +12,7 @@ Host wiring mirrors `apps/web/babydoll`: `src/lib/booking-api.ts` (server-only, 
 
 - `/` is public: what Barrels Bookings is.
 - `/[slug]` is the public booking page for one business (any tenant). It shows the business name from the API, never a name typed into this app. A business with no services says online booking is not open.
-- `/studio` is staff only, behind a Barrels sign-in. Business settings (services, hours, providers) and the agenda go here later.
+- `/studio` is staff only, behind a Barrels sign-in. The agenda, booking detail, New booking, Record deposit and Settings live here.
 - Backend logic stays in FastAPI (`/bookings/public/*`, `/bookings/org/*`). Route handlers may only validate, proxy or render. Never add database access or booking rules here.
 - Server Components by default. Client Components only for interaction. React Query only for client-side mutations and polling; generated clients and types come from `@barrelsgd/api-client`.
 
@@ -20,9 +20,15 @@ Host wiring mirrors `apps/web/babydoll`: `src/lib/booking-api.ts` (server-only, 
 
 - Registry key `bookings`, registered in `apps/api/fastapi/src/auth/apps.py` (API config `BOOKINGS_APP_URL`, `BOOKINGS_SSO_CLIENT_SECRET`). `src/lib/auth-config.ts` (`APP_NAME`) names it. Sign-in only completes where the API has both set.
 - Flow: `/signin` -> `/auth/start` -> auth.barrels.gd -> `/auth/callback` (redeems the code with `BOOKINGS_SSO_CLIENT_SECRET`; without it the callback returns 503). Session cookie `bookings_session`, host-only. `src/proxy.ts` checks only that the cookie exists for `/studio`; `src/lib/session.ts` (`requireSession`) exchanges it on the server for an app-scoped access token (`app = "bookings"`).
-- Studio calls to FastAPI: send that token as the bearer plus `X-Barrels-Organisation: <organisation id>`. The API accepts the bookings session on every `/bookings/org/*` route and on `GET /bookings/me/organisations`, which lists the caller's bookings organisations for the picker (ADR-0016 amendment; `apps/api/fastapi/src/bookings/AGENTS.md`). Membership, role and entitlement are decided by FastAPI each call; this app never decides access. On dev `/studio` is still the signed-in placeholder: the organisation picker and the read-only agenda are being built in a separate change, so do not assume them.
+- Studio calls to FastAPI: send that token as the bearer plus `X-Barrels-Organisation: <organisation id>`. The API accepts the bookings session on every `/bookings/org/*` route and on `GET /bookings/me/organisations`, which lists the caller's bookings organisations for the picker (ADR-0016 amendment; `apps/api/fastapi/src/bookings/AGENTS.md`). Membership, role and entitlement are decided by FastAPI each call; this app never decides access. The studio screens are listed under Studio below.
 - Reserved paths: `studio`, `signin`, `auth` and `api` are app routes and win over `/[slug]`, so a business with one of those slugs would be unreachable. Avoid them when creating a profile. The API currently rejects only `bookings` (`RESERVED_SLUGS` in `src/bookings/schemas.py`); extending it is pending.
 - Never read `process.env` outside `src/env.ts` (plus the Sentry and `next.config` exceptions).
+
+## Studio (`/studio`)
+
+- `/studio` is the organisation picker (`listMyOrganisations`; one business goes straight on). Under `/studio/[orgSlug]/`: `agenda` (read, grouped by local day), `bookings/[id]` (detail, confirm/decline/cancel/no-show/complete in `booking-actions.tsx`, owner/admin "Record deposit received" in `record-deposit.tsx`), `bookings/new` (staff New booking, business-timezone today) and `settings` (profile, services, providers, hours). The organisation id always comes from the person's own list, never the URL. Server actions sit beside each page (`actions.ts`) and call FastAPI through `src/lib/studio-api.ts`; refusals map through `src/lib/studio-errors.ts` and return `ActionState` (`studio-action-state.ts`). FastAPI decides role and entitlement each call; a 403 shows plain wording, not a retry.
+- Money and create actions carry an `Idempotency-Key` made on mount, kept after a timeout or server fault and rotated after a refusal (`rotatesKey` in `studio-view.ts`).
+- Forms that are driven by `useActionState` and whose success redirects or unmounts submit through `keepValuesOnSubmit` (`src/lib/keep-values.ts`) so a refusal keeps what was typed. A form with only an `onSubmit` handler disables its submit until `useHydrated()` (`src/lib/use-hydrated.ts`) is true (New booking does). Rules: `docs/agents/extended-rules.md`, Form patterns.
 
 ## Env, errors and tests
 

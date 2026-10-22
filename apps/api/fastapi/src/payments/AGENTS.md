@@ -19,6 +19,7 @@ Stripe runs in **test mode only**. `providers/stripe.py` refuses (503) any `PAYM
 
 ## Routes (`/api/v1/payments`, ADR-0025 zones)
 - `org/*`: OrgAdmin with the `payments` entitlement (`require_org_app`): create/list/get intents, record manual payment, refund, balance. Other organisations' ids answer 404.
+- `POST org/intents` refuses `source_type` values owned by another domain (`RESERVED_SOURCE_TYPES`: `bookings.deposit`, `events.order`, from `PAID_TOPICS`/`REFUND_TOPICS`) with 422 (`reject_reserved_source`); those domains create intents through the service. Bookings records a deposit taken by hand with `record_manual_payment` (see `src/bookings/AGENTS.md`). `refund_intent(refund_id=)` is replay-safe: an existing refund with that id on the intent is returned as is, another intent's id is 409, and Stripe uses `refund-<id>` as its idempotency key (used by the Events refund outbox handler).
 - `public/webhooks/{provider}`: signature-authenticated, hidden from OpenAPI (like the billing webhook).
 - `admin/*`: superuser only: all intents, ledger, balances, payouts, reconciliation JSON and `reconciliation.csv` (Events settlement CSV style, formula-neutralised cells). Periods are Grenada days, both ends inclusive.
 
