@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { startTransition, useActionState } from "react";
 import { signUpAction } from "@/app/actions";
 import { initialSignUpState } from "@/app/actions-types";
 import {
@@ -13,12 +13,25 @@ import {
   textLinkClass,
 } from "@/components/form-styles";
 import { PasswordField } from "@/components/password-field";
+import { useHydrated } from "@/lib/use-hydrated";
 
 export function SignUpForm() {
   const [state, formAction, pending] = useActionState(
     signUpAction,
     initialSignUpState
   );
+
+  // React 19 resets an uncontrolled <form action> after the action settles,
+  // wiping the names on a refusal. Submit via onSubmit so nothing is reset.
+  function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(() => {
+      formAction(data);
+    });
+  }
+
+  const hydrated = useHydrated();
 
   if (state.success) {
     return (
@@ -49,7 +62,7 @@ export function SignUpForm() {
   }
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form className="space-y-5" onSubmit={submit}>
       {state.error ? (
         <div className={errorBoxClass} role="alert">
           {state.error}
@@ -138,7 +151,11 @@ export function SignUpForm() {
         placeholder="Repeat your password"
       />
 
-      <button className={primaryButtonClass} disabled={pending} type="submit">
+      <button
+        className={primaryButtonClass}
+        disabled={pending || !hydrated}
+        type="submit"
+      >
         {pending ? "Creating account…" : "Create account"}
       </button>
 

@@ -10,12 +10,14 @@ import {
 } from "@/components/form-styles";
 import { PasswordField } from "@/components/password-field";
 import { reportError } from "@/lib/report-error";
+import { useHydrated } from "@/lib/use-hydrated";
 import { changeAccountPassword } from "../security/actions";
 
 export function ChangePasswordForm() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [changed, setChanged] = useState(false);
+  const hydrated = useHydrated();
 
   if (changed) {
     return (
@@ -99,7 +101,11 @@ export function ChangePasswordForm() {
         label="Confirm new password"
         name="confirm_password"
       />
-      <button className={primaryButtonClass} disabled={busy} type="submit">
+      <button
+        className={primaryButtonClass}
+        disabled={busy || !hydrated}
+        type="submit"
+      >
         {busy ? "Changing…" : "Change password"}
       </button>
     </form>
