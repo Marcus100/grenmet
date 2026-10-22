@@ -372,6 +372,41 @@ async def list_issued_by(
     return list(rows.all())
 
 
+def _product_filter(products: Collection[str] | None) -> list[ColumnElement[bool]]:
+    if products is None:
+        return []
+    if not products:
+        return [false()]
+    return [or_(*(MembershipGrant.role_key.startswith(f"{p}-") for p in products))]
+
+
+async def list_grants_for_memberships(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    membership_ids: Collection[str],
+    products: Collection[str],
+) -> dict[str, list[MembershipGrant]]:
+    """Live grants of many memberships in one query, limited to ``products``
+    (same rule as ``list_grants``), keyed by membership id."""
+    result: dict[str, list[MembershipGrant]] = {m: [] for m in membership_ids}
+    if not membership_ids:
+        return result
+    rows = await session.scalars(
+        select(MembershipGrant)
+        .where(
+            MembershipGrant.organisation_id == organisation_id,
+            MembershipGrant.membership_id.in_(list(membership_ids)),
+            *_live(utc_now()),
+            *_product_filter(products),
+        )
+        .order_by(MembershipGrant.granted_at, MembershipGrant.id)
+    )
+    for row in rows.all():
+        result[row.membership_id].append(row)
+    return result
+
+
 async def list_grants(
     session: AsyncSession,
     *,
@@ -381,13 +416,7 @@ async def list_grants(
 ) -> list[MembershipGrant]:
     """Live grants of a membership. ``products`` limits the list to roles named
     ``<product>-...`` (the bundle naming rule); ``None`` lists all."""
-    product_filter = (
-        [or_(*(MembershipGrant.role_key.startswith(f"{p}-") for p in products))]
-        if products is not None and products
-        else [false()]
-        if products is not None
-        else []
-    )
+    product_filter = _product_filter(products)
     rows = await session.scalars(
         select(MembershipGrant)
         .where(

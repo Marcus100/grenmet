@@ -340,6 +340,8 @@ class RoleBundlePublic(BaseModel):
     """A role bundle an organisation may hand out (entitled products only)."""
 
     role_key: str
+    label: str
+    description: str
     product: str
     permissions: list[str]
     grantable: bool  # the caller holds every key and the product's team-manage key
@@ -361,3 +363,36 @@ class MembershipGrantPublic(BaseModel):
     granted_at: UtcDateTime
     expires_at: UtcDateTime | None = None
     revoked_at: UtcDateTime | None = None
+
+
+class TeamMemberGrantPublic(BaseModel):
+    """A live role on the roster. Only products the caller manages are listed."""
+
+    id: str
+    role_key: str
+    granted_at: UtcDateTime
+    expires_at: UtcDateTime | None = None
+
+
+class TeamMemberPublic(BaseModel):
+    """A roster row for team managers. Display name only; never an email."""
+
+    membership_id: str
+    name: str
+    role: MembershipRole
+    grants: list[TeamMemberGrantPublic]
+
+
+class TeamMemberListPublic(BaseModel):
+    data: list[TeamMemberPublic]
+    count: int
+    page: int
+    size: int
+
+
+class TeamCapabilitiesPublic(BaseModel):
+    """What the caller may do on the Team screen."""
+
+    role: MembershipRole
+    managed_products: list[str]  # products whose team.manage the caller holds
+    is_admin_or_owner: bool

@@ -484,6 +484,8 @@ export { organisationsListMine } from "./organisationsListMine.js";
 export { organisationsListOrgApiKeys } from "./organisationsListOrgApiKeys.js";
 export { organisationsListOrgSites } from "./organisationsListOrgSites.js";
 export { organisationsListRoleBundles } from "./organisationsListRoleBundles.js";
+export { organisationsListTeamMembers } from "./organisationsListTeamMembers.js";
+export { organisationsMyTeamCapabilities } from "./organisationsMyTeamCapabilities.js";
 export { organisationsRevokeAdminApiKey } from "./organisationsRevokeAdminApiKey.js";
 export { organisationsRevokeInvitation } from "./organisationsRevokeInvitation.js";
 export { organisationsRevokeMemberGrant } from "./organisationsRevokeMemberGrant.js";
