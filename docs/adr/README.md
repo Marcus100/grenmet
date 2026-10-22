@@ -50,6 +50,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0042](0042-agents-merge-into-dev.md) | Agents merge their own green, reviewed PRs into dev; the owner keeps staging, main and the files that limit agents | Accepted |
 | [0043](0043-hostnames-tenancy-and-port-allocation.md) | Hostnames, tenancy and port allocation: one brand domain, single-level hosts, tenants as organisation-slug paths, port ranges by category | Proposed |
 | [0044](0044-organisation-scoped-permissions-via-membership-grants.md) | Organisation-scoped permissions via membership grants: `binding` on permission keys, product role bundles, grants on the membership | Proposed |
+| [0045](0045-analytics-external-free-tools-first-party-deferred.md) | Analytics stays on free external tools (GA4 behind consent, PostHog wired but off); first-party analytics design deferred | Accepted |
 
 ## Template
 

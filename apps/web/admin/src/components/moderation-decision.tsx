@@ -28,7 +28,8 @@ function guarded(action: DecisionAction): DecisionAction {
       return await action(previous, formData);
     } catch (error) {
       rethrow(error);
-      return { code: "failed" };
+      // Hand the typed text back so the reset after the action keeps it.
+      return { code: "failed", reason: String(formData.get("reason") ?? "") };
     }
   };
 }

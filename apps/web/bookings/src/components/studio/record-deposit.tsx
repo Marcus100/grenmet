@@ -35,6 +35,7 @@ import {
   useState,
 } from "react";
 import { recordDepositAction } from "@/app/studio/[orgSlug]/bookings/[id]/actions";
+import { keepValuesOnSubmit } from "@/lib/keep-values";
 import { type ActionState, IDLE } from "@/lib/studio-action-state";
 import { rotatesKey } from "@/lib/studio-view";
 
@@ -205,7 +206,7 @@ function DepositForm({
   }, [state, onResult]);
 
   return (
-    <form action={formAction} className="grid gap-4">
+    <form className="grid gap-4" onSubmit={keepValuesOnSubmit(formAction)}>
       <input name="idempotencyKey" type="hidden" value={idempotencyKey} />
       <AlertDialogHeader>
         <AlertDialogTitle>Record the deposit as received?</AlertDialogTitle>
