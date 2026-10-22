@@ -829,3 +829,27 @@ async def test_a_stripe_failure_fails_the_claim_instead_of_using_the_manual_rail
     retry = await _order(buyer, shop, 1, key="down-key-00002")
     assert retry.status_code == 201
     assert retry.json()["checkout_url"].startswith("https://checkout.stripe.com/")
+
+
+@pytest.mark.asyncio
+async def test_replaying_the_key_of_a_failed_attempt_is_not_a_successful_claim(
+    db_async: AsyncSession,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    stripe_env.fail_checkout = True
+    shop = await _shop(db_async, events_db)
+    buyer = await make_user(db_async)
+    assert (await _order(buyer, shop, 1, key="same-key-0001")).status_code == 503
+    stripe_env.fail_checkout = False
+    # The dead attempt is reported as such, never as a 201 with an expired order.
+    replay = await _order(buyer, shop, 1, key="same-key-0001")
+    assert replay.status_code == 409
+    assert replay.json()["detail"] == "That attempt expired. Start a new one."
+    assert await _remaining(events_db, shop) == 3
+    # A fresh key works; a legitimate replay of a pending order still converges.
+    fresh = await _order(buyer, shop, 1, key="same-key-0002")
+    assert fresh.status_code == 201
+    again = await _order(buyer, shop, 1, key="same-key-0002")
+    assert again.status_code == 201
+    assert again.json()["id"] == fresh.json()["id"]

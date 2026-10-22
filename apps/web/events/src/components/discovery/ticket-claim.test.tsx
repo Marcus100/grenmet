@@ -157,6 +157,29 @@ describe("TicketClaim", () => {
     expect(third?.[2]).not.toBe(first?.[2]);
   });
 
+  it("drops the Idempotency-Key after a server failure so a retry starts a new order", async () => {
+    vi.mocked(claimTickets).mockResolvedValue({
+      ok: false,
+      error:
+        "Card payments are temporarily unavailable. Try again in a moment.",
+      freshKey: true,
+    });
+    render(<TicketClaim slug="mixed" tiers={[paidTier]} />);
+    fireEvent.click(screen.getByRole("button", { name: "More VIP tickets" }));
+    const pay = screen.getByRole("button", { name: "Pay for 1 ticket" });
+    fireEvent.click(pay);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Card payments are temporarily unavailable"
+    );
+    await vi.waitFor(() => expect(pay).toBeEnabled());
+    fireEvent.click(pay);
+    await vi.waitFor(() => expect(claimTickets).toHaveBeenCalledTimes(2));
+    const [first, second] = vi.mocked(claimTickets).mock.calls;
+    expect(first?.[2]).toBeTruthy();
+    expect(second?.[2]).toBeTruthy();
+    expect(second?.[2]).not.toBe(first?.[2]);
+  });
+
   it("goes to the checkout page for an online payment", async () => {
     vi.mocked(claimTickets).mockResolvedValue({
       ok: true,

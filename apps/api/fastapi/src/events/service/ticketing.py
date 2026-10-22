@@ -274,6 +274,9 @@ async def _existing_order(
         items[tier_id] += quantity
     if items != wanted:
         raise EventsConflict("This Idempotency-Key was already used for another order")
+    if order.status == "expired":
+        # Never hand back a dead order as a successful claim; the client starts over.
+        raise EventsConflict("That attempt expired. Start a new one.")
     return order
 
 

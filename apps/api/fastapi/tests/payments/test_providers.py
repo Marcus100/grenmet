@@ -318,3 +318,45 @@ async def test_manual_provider_has_no_online_step() -> None:
     assert (await provider.fetch_status(intent)).status == "succeeded"
     with pytest.raises(InvalidCallbackError):
         provider.verify_callback({}, json.dumps({}).encode())
+
+
+@pytest.mark.parametrize(
+    ("environment", "url", "ok"),
+    [
+        ("local", "http://localhost:3009/x", True),
+        ("local", "https://events.example.test/x", True),
+        ("local", "http://events.example.test/x", False),
+        ("staging", "http://localhost:3009/x", False),
+        ("production", "https://localhost/x", False),
+        ("production", "http://events.example.test/x", False),
+        ("production", "https://events.example.test/x", True),
+    ],
+)
+def test_localhost_return_addresses_are_for_local_only(
+    monkeypatch: pytest.MonkeyPatch, environment: str, url: str, ok: bool
+) -> None:
+    monkeypatch.setattr(return_urls.settings, "ENVIRONMENT", environment)
+    assert return_urls._acceptable(url) is ok
+
+
+async def test_outside_local_a_localhost_registered_address_falls_back(
+    stripe_env: StripeStub, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(return_urls.settings, "ENVIRONMENT", "production")
+    monkeypatch.setattr(return_urls, "_builders", {})
+    local = "http://localhost:3009/me/orders/1"
+    return_urls.register(
+        "shop.order", lambda _id: return_urls.ReturnAddress(local, local)
+    )
+    await StripeProvider().create_payment(_intent(source_type="shop.order"))
+    assert stripe_env.form()["success_url"] == "https://example.test/paid"
+
+
+async def test_an_unacceptable_global_fallback_is_refused(
+    stripe_env: StripeStub, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(return_urls.settings, "ENVIRONMENT", "production")
+    monkeypatch.setattr(payments_settings, "STRIPE_SUCCESS_URL", "http://x.test/")
+    with pytest.raises(ProviderUnavailableError):
+        await StripeProvider().create_payment(_intent())
+    assert stripe_env.requests == []

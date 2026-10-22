@@ -6,12 +6,14 @@ A consuming domain registers a builder for its ``source_type`` (like
 ``source_id`` and the addresses come from app URL settings, never from a request,
 so there is no open redirect. A source type with no builder, or a builder that
 returns nothing usable, falls back to the global ``PAYMENTS_STRIPE_SUCCESS_URL``
-and ``PAYMENTS_STRIPE_CANCEL_URL``.
+and ``PAYMENTS_STRIPE_CANCEL_URL``; both are held to the same acceptability check.
 """
 
 from collections.abc import Callable
 from dataclasses import dataclass
 from urllib.parse import urlsplit
+
+from src.config import settings
 
 from .config import PaymentsConfig
 
@@ -34,9 +36,15 @@ def register(source_type: str, builder: Builder) -> None:
 
 
 def _acceptable(url: str) -> bool:
+    """HTTPS everywhere; ``http://localhost`` only when ``ENVIRONMENT`` is local.
+
+    In staging and production a localhost address (whatever the scheme) is
+    refused, so a default dev URL cannot reach a real buyer."""
     parts = urlsplit(url)
     if not parts.netloc:
         return False
+    if settings.ENVIRONMENT != "local":
+        return parts.scheme == "https" and parts.hostname not in _LOCAL_HOSTS
     return parts.scheme == "https" or (
         parts.scheme == "http" and parts.hostname in _LOCAL_HOSTS
     )
@@ -55,6 +63,9 @@ def resolve(
             and _acceptable(address.cancel_url)
         ):
             return address
-    if config.STRIPE_SUCCESS_URL and config.STRIPE_CANCEL_URL:
-        return ReturnAddress(config.STRIPE_SUCCESS_URL, config.STRIPE_CANCEL_URL)
+    fallback = ReturnAddress(
+        config.STRIPE_SUCCESS_URL or "", config.STRIPE_CANCEL_URL or ""
+    )
+    if _acceptable(fallback.success_url) and _acceptable(fallback.cancel_url):
+        return fallback
     return None

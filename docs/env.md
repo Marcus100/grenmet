@@ -785,7 +785,7 @@ The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter ru
 | --- | --- |
 | `PAYMENTS_STRIPE_SECRET_KEY` | Stripe test secret. A key that does not start with `sk_test_` is refused at use, so a live key cannot enable a live rail. Unset: the Stripe adapter is disabled (the `manual` provider still works). |
 | `PAYMENTS_STRIPE_WEBHOOK_SECRET` | Signing secret for `POST /api/v1/payments/public/webhooks/stripe` (503 when unset). |
-| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | Fallback return pages (HTTPS) for a purchase type with no registered address; Checkout answers 503 until both are set. A purchase type can register its own address (`src/payments/return_urls.py`): Events returns the buyer to `{EVENTS_APP_URL}/me/orders/<order id>?payment=success\|cancelled`. Return addresses come from settings, never from a request. |
+| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | Fallback return pages (HTTPS) for a purchase type with no registered address; Checkout answers 503 until both are set. A purchase type can register its own address (`src/payments/return_urls.py`): Events returns the buyer to `{EVENTS_APP_URL}/me/orders/<order id>?payment=success\|cancelled`. Return addresses come from settings, never from a request. Outside `ENVIRONMENT=local`, an `http` or localhost address (registered or global) is refused. |
 | `PAYMENTS_STRIPE_API_BASE` | Defaults to `https://api.stripe.com`; override only in tests. |
 | `PAYMENTS_WEBHOOK_TOLERANCE_SECONDS` | How old a signed webhook may be (default 300). |
 | `PAYMENTS_REQUEST_TIMEOUT_SECONDS` | Provider request timeout (default 10). |
