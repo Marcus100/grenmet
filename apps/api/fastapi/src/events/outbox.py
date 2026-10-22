@@ -40,6 +40,7 @@ PUBLISHED = "listing.published"
 CANCELLED = "listing.cancelled"
 POSTPONED = "listing.postponed"
 ORGANISER_APPROVED = "organiser.approved"
+ORGANISER_REJECTED = "organiser.rejected"
 TICKET_ISSUED = "ticket.issued"
 
 _EVENT_KEYS = {
@@ -47,6 +48,7 @@ _EVENT_KEYS = {
     CANCELLED: notifications.LISTING_CANCELLED,
     POSTPONED: notifications.LISTING_POSTPONED,
     ORGANISER_APPROVED: notifications.ORGANISER_APPROVED,
+    ORGANISER_REJECTED: notifications.ORGANISER_REJECTED,
     TICKET_ISSUED: notifications.TICKET_ISSUED,
 }
 
@@ -125,7 +127,7 @@ async def _deliver(db: AsyncSession, row: Row) -> int:
     payload = row.payload
     actor = payload.get("actor_id")
     exclude = [uuid.UUID(actor)] if actor else []
-    if row.kind == ORGANISER_APPROVED:
+    if row.kind in (ORGANISER_APPROVED, ORGANISER_REJECTED):
         organiser = await db.get(Organiser, uuid.UUID(row.entity_id))
         if organiser is None or organiser.organisation_id is None:
             return 0
@@ -147,7 +149,14 @@ async def _deliver(db: AsyncSession, row: Row) -> int:
             event_key=_EVENT_KEYS[row.kind],
             organisation_id=organiser.organisation_id,
             recipients=recipients,
-            context={"organiser": organiser.name},
+            context={
+                "organiser": organiser.name,
+                **(
+                    {"reason": payload.get("reason", "")}
+                    if row.kind == ORGANISER_REJECTED
+                    else {}
+                ),
+            },
             entity_type="organiser",
             entity_id=row.entity_id,
             dedupe_key=row.dedupe_key,

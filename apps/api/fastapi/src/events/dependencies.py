@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth import service as auth_service
 from src.auth.app_dependencies import app_user, optional_app_user
 from src.auth.models import User
-from src.dependencies import SessionDep
+from src.dependencies import CurrentUser, SessionDep
 from src.organisations import service as organisations
 
 from .exceptions import EventsForbidden
@@ -59,3 +59,16 @@ async def organiser_scope(user: EventsOrganiser, session: SessionDep) -> list[st
 
 OrganiserScope = Annotated[list[str], Depends(organiser_scope)]
 EventsModerator = Annotated[User, Depends(require_moderator)]
+
+
+async def require_moderation_reader(user: CurrentUser, session: SessionDep) -> User:
+    """Staff session (not an Events app token) of a superuser or an
+    ``events.moderate`` holder: may read the admin verification queue."""
+    if user.is_superuser or await auth_service.has_effective_permission(
+        session=session, user=user, permission_key="events.moderate"
+    ):
+        return user
+    raise EventsForbidden("Moderator access is required")
+
+
+ModerationReader = Annotated[User, Depends(require_moderation_reader)]

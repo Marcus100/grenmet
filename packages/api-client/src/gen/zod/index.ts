@@ -2277,6 +2277,18 @@ export {
   eventsAdmitTicketStatus429Schema,
 } from "./eventsAdmitTicketSchema.js";
 export {
+  eventsApproveOrganiserBodySchema,
+  eventsApproveOrganiserErrorSchema,
+  eventsApproveOrganiserPathOrganisationIdSchema,
+  eventsApproveOrganiserResponseSchema,
+  eventsApproveOrganiserStatus200Schema,
+  eventsApproveOrganiserStatus401Schema,
+  eventsApproveOrganiserStatus403Schema,
+  eventsApproveOrganiserStatus404Schema,
+  eventsApproveOrganiserStatus409Schema,
+  eventsApproveOrganiserStatus422Schema,
+} from "./eventsApproveOrganiserSchema.js";
+export {
   eventsBlockMemberErrorSchema,
   eventsBlockMemberPathHandleSchema,
   eventsBlockMemberResponseSchema,
@@ -2584,6 +2596,16 @@ export {
   eventsGetThreadStatus429Schema,
 } from "./eventsGetThreadSchema.js";
 export {
+  eventsGetVerificationCaseErrorSchema,
+  eventsGetVerificationCasePathOrganisationIdSchema,
+  eventsGetVerificationCaseResponseSchema,
+  eventsGetVerificationCaseStatus200Schema,
+  eventsGetVerificationCaseStatus401Schema,
+  eventsGetVerificationCaseStatus403Schema,
+  eventsGetVerificationCaseStatus404Schema,
+  eventsGetVerificationCaseStatus422Schema,
+} from "./eventsGetVerificationCaseSchema.js";
+export {
   eventsJoinGroupErrorSchema,
   eventsJoinGroupPathSlugSchema,
   eventsJoinGroupResponseSchema,
@@ -2677,6 +2699,18 @@ export {
   eventsListThreadsStatus422Schema,
   eventsListThreadsStatus429Schema,
 } from "./eventsListThreadsSchema.js";
+export {
+  eventsListVerificationCasesErrorSchema,
+  eventsListVerificationCasesQueryPageSchema,
+  eventsListVerificationCasesQuerySizeSchema,
+  eventsListVerificationCasesQueryStatusSchema,
+  eventsListVerificationCasesResponseSchema,
+  eventsListVerificationCasesStatus200Schema,
+  eventsListVerificationCasesStatus401Schema,
+  eventsListVerificationCasesStatus403Schema,
+  eventsListVerificationCasesStatus404Schema,
+  eventsListVerificationCasesStatus422Schema,
+} from "./eventsListVerificationCasesSchema.js";
 export {
   eventsOpenThreadBodySchema,
   eventsOpenThreadErrorSchema,
@@ -2830,6 +2864,18 @@ export {
   eventsRefundTicketStatus429Schema,
 } from "./eventsRefundTicketSchema.js";
 export {
+  eventsRejectOrganiserBodySchema,
+  eventsRejectOrganiserErrorSchema,
+  eventsRejectOrganiserPathOrganisationIdSchema,
+  eventsRejectOrganiserResponseSchema,
+  eventsRejectOrganiserStatus200Schema,
+  eventsRejectOrganiserStatus401Schema,
+  eventsRejectOrganiserStatus403Schema,
+  eventsRejectOrganiserStatus404Schema,
+  eventsRejectOrganiserStatus409Schema,
+  eventsRejectOrganiserStatus422Schema,
+} from "./eventsRejectOrganiserSchema.js";
+export {
   eventsRemoveConnectionErrorSchema,
   eventsRemoveConnectionPathConnectionIdSchema,
   eventsRemoveConnectionResponseSchema,
@@ -2862,6 +2908,18 @@ export {
   eventsRequestOrganiserStatus429Schema,
 } from "./eventsRequestOrganiserSchema.js";
 export {
+  eventsResubmitOrganiserErrorSchema,
+  eventsResubmitOrganiserQueryOrganiserSchema,
+  eventsResubmitOrganiserResponseSchema,
+  eventsResubmitOrganiserStatus200Schema,
+  eventsResubmitOrganiserStatus401Schema,
+  eventsResubmitOrganiserStatus403Schema,
+  eventsResubmitOrganiserStatus404Schema,
+  eventsResubmitOrganiserStatus409Schema,
+  eventsResubmitOrganiserStatus422Schema,
+  eventsResubmitOrganiserStatus429Schema,
+} from "./eventsResubmitOrganiserSchema.js";
+export {
   eventsReviewOrganiserBodySchema,
   eventsReviewOrganiserErrorSchema,
   eventsReviewOrganiserPathOrganiserIdSchema,
@@ -2870,6 +2928,7 @@ export {
   eventsReviewOrganiserStatus401Schema,
   eventsReviewOrganiserStatus403Schema,
   eventsReviewOrganiserStatus404Schema,
+  eventsReviewOrganiserStatus409Schema,
   eventsReviewOrganiserStatus422Schema,
   eventsReviewOrganiserStatus429Schema,
 } from "./eventsReviewOrganiserSchema.js";
@@ -7192,8 +7251,17 @@ export {
 export { validationErrorItemSchema } from "./validationErrorItemSchema.js";
 export { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 export { vapidPublicKeySchema } from "./vapidPublicKeySchema.js";
+export { verificationApprovalSchema } from "./verificationApprovalSchema.js";
+export { verificationCaseDetailSchema } from "./verificationCaseDetailSchema.js";
+export { verificationCaseEventSchema } from "./verificationCaseEventSchema.js";
+export { verificationCaseListSchema } from "./verificationCaseListSchema.js";
+export { verificationCaseOwnerPropertiesRoleEnumSchema } from "./verificationCaseOwnerPropertiesRoleEnumSchema.js";
+export { verificationCaseOwnerSchema } from "./verificationCaseOwnerSchema.js";
+export { verificationCaseSchema } from "./verificationCaseSchema.js";
 export { verificationDecisionSchema } from "./verificationDecisionSchema.js";
+export { verificationRejectionSchema } from "./verificationRejectionSchema.js";
 export { verificationResendSchema } from "./verificationResendSchema.js";
+export { verificationStatusSchema } from "./verificationStatusSchema.js";
 export { weatherImageSchema } from "./weatherImageSchema.js";
 export { webhookAdminDisableSchema } from "./webhookAdminDisableSchema.js";
 export { webhookDeliveryListSchema } from "./webhookDeliveryListSchema.js";

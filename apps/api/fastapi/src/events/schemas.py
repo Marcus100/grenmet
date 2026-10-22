@@ -2,9 +2,9 @@
 
 import uuid
 from datetime import date
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, StringConstraints
 
 from src.models import BaseModel, UtcDateTime
 from src.payments.models import IntentStatus, ProviderKey
@@ -769,6 +769,61 @@ class CancelResult(BaseModel):
 class PostponeEvent(BaseModel):
     starts_at: UtcDateTime
     ends_at: UtcDateTime
+
+
+# --- Organiser verification cases (admin moderation) ------------------------------------
+
+VerificationStatusName = Literal["pending", "approved", "rejected"]
+
+
+class VerificationCase(BaseModel):
+    organisation_id: str
+    organiser_id: uuid.UUID
+    organiser_slug: str
+    name: str
+    verification_status: VerificationStatusName
+    requested_at: UtcDateTime
+    decided_at: UtcDateTime | None = None
+
+
+class VerificationCaseList(BaseModel):
+    data: list[VerificationCase]
+    count: int
+    page: int
+    size: int
+
+
+class VerificationCaseOwner(BaseModel):
+    name: str
+    role: Literal["owner", "admin"]
+
+
+class VerificationCaseEvent(BaseModel):
+    action: str
+    reason: str | None = None
+    actor_name: str
+    at: UtcDateTime
+
+
+class VerificationCaseDetail(VerificationCase):
+    bio: str
+    logo_file_id: uuid.UUID | None = None
+    verification_reason: str | None = None
+    owners: list[VerificationCaseOwner]
+    listing_counts: dict[str, int]
+    history: list[VerificationCaseEvent]
+
+
+class VerificationApproval(BaseModel):
+    reason: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=3, max_length=500)
+    ] = "Approved by moderation"
+
+
+class VerificationRejection(BaseModel):
+    reason: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=3, max_length=500)
+    ]
 
 
 # --- Organiser orders (org zone) ----------------------------------------------------

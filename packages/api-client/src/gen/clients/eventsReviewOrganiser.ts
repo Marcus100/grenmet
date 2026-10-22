@@ -11,7 +11,7 @@ import type {
 } from "../models/EventsReviewOrganiser.js";
 
 /**
- * @description Approve (or withdraw approval of) an organiser account. Approving queues a notification to the organiser's owners and admins.
+ * @description MFA superuser only (a staff session, not an Events token). Approve or withdraw approval of an organiser account through the same path as `/admin/moderation/organisers`. 409 for a rejected organiser, which must be resubmitted first.
  * @summary Verify an organiser
  * {@link /api/v1/events/moderation/organisers/:organiser_id}
  */
@@ -24,7 +24,7 @@ export function eventsReviewOrganiser<ThrowOnError extends boolean = true>(
     request({
       method: "PATCH",
       url: "/api/v1/events/moderation/organisers/{organiser_id}",
-      security: [{ type: "http", scheme: "bearer" }],
+      security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsReviewOrganiserResponses, ThrowOnError>>

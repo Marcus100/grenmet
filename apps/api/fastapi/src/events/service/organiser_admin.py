@@ -12,11 +12,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.audit import service as audit_service
 from src.auth.email_verification import require_verified_email
 from src.auth.models import User
+from src.exceptions import AppException
 from src.organisations import service as organisations
+from src.organisations import verification
 from src.organisations.models import (
     MembershipRole,
     OrganisationApp,
     OrganisationKind,
+    PlatformOrganisation,
 )
 from src.storage import uploads as org_uploads
 from src.utils.datetime import utc_now
@@ -33,7 +36,7 @@ from ..models import (
     Ticket,
     TicketTier,
 )
-from . import event_cancel, holds
+from . import event_cancel, holds, organiser_verification
 from .common import _naive_utc, _pairs
 from .discover import (
     _cards,
@@ -556,14 +559,46 @@ async def request_organiser(
     )  # self-service stays gated
     owned = await organisations.list_managed_organisation_ids(db, user.id)
     if owned and await db.scalar(
-        select(Organiser.id).where(
-            Organiser.organisation_id.in_(owned), Organiser.verified.is_(False)
+        select(Organiser.id)
+        .join(
+            PlatformOrganisation, PlatformOrganisation.id == Organiser.organisation_id
+        )
+        .where(
+            Organiser.organisation_id.in_(owned),
+            PlatformOrganisation.verified_at.is_(None),
         )
     ):
-        raise EventsConflict("Your organiser request is awaiting review")
+        rejected = await db.scalar(
+            select(PlatformOrganisation.id)
+            .join(Organiser, Organiser.organisation_id == PlatformOrganisation.id)
+            .where(
+                Organiser.organisation_id.in_(owned),
+                PlatformOrganisation.verified_at.is_(None),
+                PlatformOrganisation.verification_status == "rejected",
+            )
+        )
+        raise EventsConflict(
+            "Your organiser request was rejected; resubmit it for review"
+            if rejected
+            else "Your organiser request is awaiting review"
+        )
     organiser = await create_organiser(
         db, user, name=body.name, slug=body.slug, bio=body.bio
     )
+    return await _organiser_public(db, organiser, user.id)
+
+
+async def resubmit_organiser(
+    db: AsyncSession,
+    user: User,
+    org_ids: list[str],
+    slug: str | None = None,
+) -> schemas.OrganiserPublic:
+    """A rejected organiser goes back to the moderation queue (pending)."""
+    if slug is None and len(await my_organisers(db, user, org_ids)) > 1:
+        raise AppException("Choose an organiser with ?organiser=<slug>", 422)
+    organiser = await _my_organiser(db, user, org_ids, slug)
+    await organiser_verification.resubmit(db, user, organiser)
     return await _organiser_public(db, organiser, user.id)
 
 
@@ -578,8 +613,11 @@ async def pending_organisers(db: AsyncSession) -> list[Organiser]:
         (
             await db.scalars(
                 select(Organiser)
-                .where(Organiser.verified.is_(False))
-                .where(Organiser.organisation_id.is_not(None))
+                .join(
+                    PlatformOrganisation,
+                    PlatformOrganisation.id == Organiser.organisation_id,
+                )
+                .where(PlatformOrganisation.verification_status == "pending")
                 .order_by(Organiser.created_at, Organiser.id)
             )
         ).all()
@@ -589,9 +627,32 @@ async def pending_organisers(db: AsyncSession) -> list[Organiser]:
 async def review_organiser(
     db: AsyncSession, organiser_id: uuid.UUID, verified: bool, actor: User
 ) -> Organiser:
+    """Legacy review (MFA superuser). Linked organisers share the admin queue's
+    path, and a rejected one must be resubmitted first; unlinked legacy
+    organisers only have their own flag."""
     organiser = await db.get(Organiser, organiser_id)
     if organiser is None:
         raise EventsNotFound("Organiser not found")
+    if organiser.organisation_id is not None:
+        organisation = await db.get(
+            PlatformOrganisation, organiser.organisation_id, populate_existing=True
+        )
+        if organisation is None:
+            raise EventsNotFound("Organiser not found")
+        if (organisation.verified_at is not None) != verified or (
+            organisation.verification_status == "rejected"
+        ):
+            await organiser_verification.apply_decision(
+                db,
+                actor,
+                organisation.id,
+                verified=verified,
+                refuse_rejected=True,  # re-checked under the row lock
+                reason="Events moderation review",
+            )
+            await db.commit()
+            verification.clear_cache(organisation.id)
+        return organiser
     was_verified = organiser.verified
     organiser.verified = verified
     db.add(organiser)

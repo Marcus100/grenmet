@@ -11,9 +11,9 @@ from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Path, Query, Request, Response, status
 
 from src import idempotency
+from src.dependencies import MfaAdminUser
 from src.models import Message
 from src.openapi_responses import UNAUTHENTICATED
-from src.organisations import verification
 from src.rate_limit import limiter
 
 from . import schemas, service
@@ -626,6 +626,27 @@ async def set_organiser_logo(
 
 
 @router.post(
+    "/manage/organiser/resubmit",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Resubmit a rejected organiser for review",
+    description=(
+        "Owners and admins of an organiser whose verification was rejected put it "
+        "back in the moderation queue (pending). 409 unless it is rejected."
+    ),
+    responses=_ORGANISER,
+)
+async def resubmit_organiser(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    organiser: _ManagedSlug = None,
+) -> schemas.OrganiserPublic:
+    return await service.resubmit_organiser(session, user, scope, organiser)
+
+
+@router.post(
     "/manage/listings",
     response_model=schemas.ManagedListing,
     status_code=status.HTTP_201_CREATED,
@@ -1146,7 +1167,7 @@ async def update_suggestion(
     response_model=list[schemas.OrganiserPublic],
     status_code=status.HTTP_200_OK,
     summary="List organiser requests",
-    description="Organisers awaiting verification.",
+    description="Organisers awaiting verification (pending; rejected ones are not listed).",
     responses=_MODERATOR,
 )
 async def list_pending_organisers(
@@ -1162,26 +1183,22 @@ async def list_pending_organisers(
     status_code=status.HTTP_200_OK,
     summary="Verify an organiser",
     description=(
-        "Approve (or withdraw approval of) an organiser account. "
-        "Approving queues a notification to the organiser's owners and admins."
+        "MFA superuser only (a staff session, not an Events token). Approve or "
+        "withdraw approval of an organiser account through the same path as "
+        "`/admin/moderation/organisers`. 409 for a rejected organiser, which "
+        "must be resubmitted first."
     ),
-    responses=_MODERATOR,
+    responses={
+        **_MODERATOR,
+        409: {"description": "Organiser was rejected and must be resubmitted"},
+    },
 )
 async def review_organiser(
     *,
     session: EventsSession,
-    user: EventsModerator,
+    admin: MfaAdminUser,
     organiser_id: uuid.UUID,
     body: schemas.OrganiserReview,
 ) -> schemas.OrganiserPublic:
-    row = await service.review_organiser(session, organiser_id, body.verified, user)
-    if row.organisation_id is not None:
-        # Linked organisers read verification from the platform organisation.
-        await verification.moderator_set_verified(
-            session,
-            row.organisation_id,
-            verified=body.verified,
-            actor_id=user.id,
-            source="Events",
-        )
-    return await service.organiser_public(session, row, user.id)
+    row = await service.review_organiser(session, organiser_id, body.verified, admin)
+    return await service.organiser_public(session, row, admin.id)

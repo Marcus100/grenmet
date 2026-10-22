@@ -6,10 +6,10 @@ the right key in another organisation gets 404 for this organisation's data.
 Superusers get no bypass. Keys come from ``role_bundles``."""
 
 import uuid
-from datetime import timedelta
-from typing import cast
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from datetime import timedelta
+from typing import cast
 
 import httpx
 import pytest

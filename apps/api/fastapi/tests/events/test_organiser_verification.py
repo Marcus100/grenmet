@@ -7,7 +7,7 @@ from src.events.models import Organiser
 from src.organisations import verification
 from tests.events.support import BASE, SessionFactory, client_with_real_roles
 from tests.factories import make_user
-from tests.organisations.support import headers_for, make_org
+from tests.organisations.support import make_org
 
 URL = "/api/v1/organisations"
 DECISION = {"reason": "Checked registration papers"}
@@ -19,9 +19,9 @@ def _fresh_verification_cache() -> None:
 
 
 async def test_verified_organisation_makes_its_events_organiser_verified(
-    events_db: SessionFactory, db_async: AsyncSession
+    events_db: SessionFactory, db_async: AsyncSession, mfa_admin
 ):
-    admin = await make_user(db_async, superuser=True)
+    admin, headers = await mfa_admin()
     org = await make_org(db_async, "Verified Crew")
     async with events_db() as db:
         db.add(
@@ -30,7 +30,6 @@ async def test_verified_organisation_makes_its_events_organiser_verified(
             )
         )
         await db.commit()
-    headers = headers_for(admin)
     async with client_with_real_roles(admin) as client:
         organiser = f"{BASE}/organisers/verified-crew"
         assert (await client.get(organiser)).json()["verified"] is False

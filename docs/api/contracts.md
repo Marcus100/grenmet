@@ -490,6 +490,17 @@ address or a second pending request); moderators verify it through
 `PATCH /events/moderation/organisers/{id}`. Publishing, cancelling or rescheduling a
 listing and approving an organiser also write `outbox` rows (same Events transaction)
 that the worker turns into notifications; no endpoint is involved.
+Admin moderation (zone `admin`, staff session): `GET /admin/moderation/organisers`
+(`?status=pending|approved|rejected`, paginated) and `GET /admin/moderation/organisers/{organisation_id}`
+(case with owners, listing counts and verification history) are open to superusers and
+`events.moderate` holders; `POST .../approve` and `POST .../reject` (reason required)
+need an MFA superuser and go through `organisations.service.admin_set_verified`
+(409 on a repeat decision, audit entry with the actor, `organiser.approved` /
+`organiser.rejected` outbox row). A rejected organiser's owners or admins send
+`POST /events/manage/organiser/resubmit` to return to `pending` (409 otherwise).
+The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{id}/verify|unverify` also need an MFA superuser and use the same path (organiser flag mirror, activity row, notification); the PATCH is 409 for a rejected organiser (resubmit first). Superuser override: an MFA superuser may approve a rejected organisation directly through `POST /admin/moderation/organisers/{id}/approve` or `POST /organisations/{id}/verify`. Approving a suspended organisation is 409.
+`org.organisation` carries `verification_status`, `verification_reason` and
+`verification_decided_at`; `verified_at` stays the single "verified" signal.
 `GET /events/manage/{listing_id}/activity` returns that listing's append-only history
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.
@@ -1084,7 +1095,7 @@ carries two time bases.
 | Public (an Events token personalises) | `GET /listings` (`when`, `category`, `parish`, `price`, `tag`, `q`, `organiser`, `limit`, `offset`), `GET /listings/{slug}`, `GET /organisers/{slug}`, `GET /groups`, `GET /groups/{slug}`, `GET /people/{handle}`, `POST /suggestions` |
 | Events member | `POST /manage/organiser`, `GET`/`PATCH /me/profile`, `GET /me/plans`, `GET /me/network`, `PUT`/`DELETE /listings/{slug}/rsvp` and `/save`, `PUT`/`DELETE /organisers/{slug}/follow`, `PUT`/`DELETE /groups/{slug}/membership`, `POST /connections`, `POST /connections/{id}/accept`, `DELETE /connections/{id}`, `PUT`/`DELETE /blocks/{handle}`, `POST /reports`, `GET`/`POST /threads`, `GET /threads/{id}`, `POST /threads/{id}/messages` |
 | `events.organiser.manage` + organiser membership | `GET /manage`, `POST /manage/listings`, `PUT /manage/listings/{id}`, `GET /manage/{id}/activity` |
-| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions`, `GET /moderation/organisers`, `PATCH /moderation/organisers/{id}` |
+| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions`, `GET /moderation/organisers` (pending only) |
 
 Prices are integer minor units (`price_from_minor`, tier `price_minor`); datetimes are UTC and
 clients render Grenada time. Direct threads open only between accepted connections or members

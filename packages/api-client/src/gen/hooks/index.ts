@@ -964,6 +964,11 @@ export {
   useEventsAdmitTicket,
 } from "./useEventsAdmitTicket.js";
 export {
+  eventsApproveOrganiserMutationKey,
+  eventsApproveOrganiserMutationOptions,
+  useEventsApproveOrganiser,
+} from "./useEventsApproveOrganiser.js";
+export {
   eventsBlockMemberMutationKey,
   eventsBlockMemberMutationOptions,
   useEventsBlockMember,
@@ -1104,6 +1109,11 @@ export {
   useEventsGetThread,
 } from "./useEventsGetThread.js";
 export {
+  eventsGetVerificationCaseQueryKey,
+  eventsGetVerificationCaseQueryOptions,
+  useEventsGetVerificationCase,
+} from "./useEventsGetVerificationCase.js";
+export {
   eventsJoinGroupMutationKey,
   eventsJoinGroupMutationOptions,
   useEventsJoinGroup,
@@ -1148,6 +1158,11 @@ export {
   eventsListThreadsQueryOptions,
   useEventsListThreads,
 } from "./useEventsListThreads.js";
+export {
+  eventsListVerificationCasesQueryKey,
+  eventsListVerificationCasesQueryOptions,
+  useEventsListVerificationCases,
+} from "./useEventsListVerificationCases.js";
 export {
   eventsOpenThreadMutationKey,
   eventsOpenThreadMutationOptions,
@@ -1204,6 +1219,11 @@ export {
   useEventsRefundTicket,
 } from "./useEventsRefundTicket.js";
 export {
+  eventsRejectOrganiserMutationKey,
+  eventsRejectOrganiserMutationOptions,
+  useEventsRejectOrganiser,
+} from "./useEventsRejectOrganiser.js";
+export {
   eventsRemoveConnectionMutationKey,
   eventsRemoveConnectionMutationOptions,
   useEventsRemoveConnection,
@@ -1218,6 +1238,11 @@ export {
   eventsRequestOrganiserMutationOptions,
   useEventsRequestOrganiser,
 } from "./useEventsRequestOrganiser.js";
+export {
+  eventsResubmitOrganiserMutationKey,
+  eventsResubmitOrganiserMutationOptions,
+  useEventsResubmitOrganiser,
+} from "./useEventsResubmitOrganiser.js";
 export {
   eventsReviewOrganiserMutationKey,
   eventsReviewOrganiserMutationOptions,
