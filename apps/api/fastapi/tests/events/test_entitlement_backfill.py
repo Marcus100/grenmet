@@ -36,14 +36,14 @@ async def at_previous_revision(db_async):
             transaction.rollback()
 
 
-def _org(connection, org_id: str) -> None:
+def _org(connection, org_id: str, status: str = "active") -> None:
     connection.execute(
         text(
             "INSERT INTO org.organisation (id, slug, name, kind, status, "
-            "created_at, updated_at) VALUES (:id, :id, :id, 'business', 'active', "
+            "created_at, updated_at) VALUES (:id, :id, :id, 'business', :status, "
             "now(), now())"
         ),
-        {"id": org_id},
+        {"id": org_id, "status": status},
     )
 
 
@@ -76,13 +76,16 @@ def test_linked_organisations_get_events_and_unlinked_do_not(at_previous_revisio
     connection, migration = at_previous_revision
     for org_id in ("org_evlinked", "org_evoff", "org_evhas", "org_evnone"):
         _org(connection, org_id)
+    _org(connection, "org_evsusp", "suspended")
+    _organiser(connection, "org_evsusp")
     _organiser(connection, "org_evlinked")
     _organiser(connection, "org_evoff")
     _organiser(connection, "org_evhas")
     _organiser(connection, None)  # legacy organiser: no organisation to entitle
     connection.execute(
         text(
-            "INSERT INTO org.organisation_app VALUES "
+            "INSERT INTO org.organisation_app "
+            "(organisation_id, app_key, enabled, created_at, updated_at) VALUES "
             "('org_evoff', 'events', false, now(), now()), "
             "('org_evhas', 'events', true, now(), now()), "
             "('org_evhas', 'payments', true, now(), now())"
@@ -92,7 +95,10 @@ def test_linked_organisations_get_events_and_unlinked_do_not(at_previous_revisio
     migration.upgrade()
 
     assert _apps(connection, "org_evlinked") == [("events", True)]
-    assert _apps(connection, "org_evoff") == [("events", True)]
+    # A staff-set disable is kept; only missing rows are inserted.
+    assert _apps(connection, "org_evoff") == [("events", False)]
+    # Suspension is enforced at request time, not by withholding the product.
+    assert _apps(connection, "org_evsusp") == [("events", True)]
     assert _apps(connection, "org_evhas") == [("events", True), ("payments", True)]
     assert _apps(connection, "org_evnone") == []
 

@@ -3,8 +3,8 @@
 Data only. Organisation-bound Events routes (``/events/org/...``) now require the
 ``events`` entitlement. Every organisation already linked to an events organiser
 (``events.organisers.organisation_id``) gets ``org.organisation_app`` ``events``
-enabled so nobody is locked out. Idempotent: an existing row is switched on, never
-duplicated; an organisation with no organiser is untouched.
+enabled so nobody is locked out. Idempotent: only missing rows are inserted, so an entitlement
+staff switched off stays off; an organisation with no organiser is untouched.
 
 Revision ID: eventsentitlement20261022
 Revises: membershipgrant20261022
@@ -31,8 +31,7 @@ def upgrade() -> None:
             SELECT organisation_id FROM events.organisers
             WHERE organisation_id IS NOT NULL
         )
-        ON CONFLICT (organisation_id, app_key) DO UPDATE
-            SET enabled = true, updated_at = EXCLUDED.updated_at
+        ON CONFLICT (organisation_id, app_key) DO NOTHING
         """
     )
 

@@ -6,6 +6,7 @@ the right key in another organisation gets 404 for this organisation's data.
 Superusers get no bypass. Keys come from ``role_bundles``."""
 
 import uuid
+from datetime import timedelta
 from typing import cast
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -16,6 +17,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.auth.utils import create_access_token
 from src.organisations import service as org_service
 from src.organisations.models import (
     Membership,
@@ -24,7 +26,7 @@ from src.organisations.models import (
     new_grant_id,
 )
 from src.utils.datetime import utc_now
-from tests.events.support import SessionFactory
+from tests.events.support import BASE, SessionFactory, client_with_real_roles
 from tests.events.test_org_orders import (
     ORG,
     _desk,
@@ -227,7 +229,7 @@ async def test_a_superuser_without_membership_gets_no_bypass(
             f"{ORG}/events/{shop.listing_id}/orders",
             headers=headers_for(root, shop.organisation_id),
         )
-    assert response.status_code in (403, 404)
+    assert response.status_code == 404
 
 
 @pytest.mark.asyncio
@@ -250,3 +252,69 @@ async def test_only_admins_and_owners_see_the_buyer_email(
     assert by_manager.status_code == by_owner.status_code == 200
     assert buyer.email not in by_manager.text
     assert buyer.email in by_owner.text
+
+
+@pytest.mark.asyncio
+async def test_expired_and_revoked_grants_give_nothing(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    expired = await _member(db_async, shop, "events-manager")
+    revoked = await _member(db_async, shop, "events-manager")
+    now = utc_now()
+    for user, column in ((expired, "expires_at"), (revoked, "revoked_at")):
+        membership = await db_async.scalar(
+            select(Membership).where(
+                Membership.organisation_id == shop.organisation_id,
+                Membership.user_id == user.id,
+            )
+        )
+        assert membership is not None
+        grant = await db_async.scalar(
+            select(MembershipGrant).where(
+                MembershipGrant.membership_id == membership.id
+            )
+        )
+        assert grant is not None
+        setattr(grant, column, now - timedelta(minutes=5))
+    await db_async.commit()
+    url = f"{ORG}/events/{shop.listing_id}/orders"
+    async with await _desk() as client:
+        for user in (expired, revoked):
+            response = await client.get(
+                url, headers=headers_for(user, shop.organisation_id)
+            )
+            assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_a_token_for_another_app_is_refused(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    token = create_access_token(
+        shop.owner.id, expires_delta=timedelta(minutes=5), app="bookings"
+    )
+    async with await _desk() as client:
+        response = await client.get(
+            f"{ORG}/events/{shop.listing_id}/orders",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "X-Barrels-Organisation": shop.organisation_id,
+            },
+        )
+    assert response.status_code in (401, 403), response.status_code
+
+
+@pytest.mark.asyncio
+async def test_a_grant_alone_does_not_open_legacy_manage_routes(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    """Legacy /events/manage/* still uses the organiser gate (owner/admin or the
+    legacy permission), so an organisation grant on a plain member opens nothing
+    there. Documents why the entitlement is not yet a kill switch for owners."""
+    shop = await _shop_with_events(db_async, events_db)
+    member = await _member(db_async, shop, "events-manager")
+    async with client_with_real_roles(member) as client:
+        response = await client.get(f"{BASE}/manage")
+    assert response.status_code == 403
