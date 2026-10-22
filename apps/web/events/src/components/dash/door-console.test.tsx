@@ -1,11 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { admitTicket } from "@/data/actions";
 import type { DoorManifest } from "@/domain/types";
 import { DoorConsole } from "./door-console";
 
 const refresh = vi.fn();
 const ADMITTED_TEXT = /Ben Tester · Free/;
+const SCAN_BUTTON = /Scan with camera/;
 
 vi.mock("@/data/actions", () => ({ admitTicket: vi.fn() }));
 vi.mock("next/navigation", () => ({
@@ -39,6 +40,52 @@ const manifest: DoorManifest = {
     },
   ],
 };
+
+describe("DoorConsole camera", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+  });
+
+  it("admits a camera read through the same action and shows the result", async () => {
+    const token = "BT1.CCCCCDDDDD.abcdEFGH12345678";
+    vi.stubGlobal(
+      "BarcodeDetector",
+      class {
+        detect = vi.fn().mockResolvedValue([{ rawValue: token }]);
+      }
+    );
+    Object.defineProperty(window, "isSecureContext", {
+      value: true,
+      configurable: true,
+    });
+    Object.defineProperty(navigator, "mediaDevices", {
+      value: {
+        getUserMedia: vi
+          .fn()
+          .mockResolvedValue({ getTracks: () => [{ stop: vi.fn() }] }),
+      },
+      configurable: true,
+    });
+    HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(admitTicket).mockResolvedValue({
+      ok: true,
+      data: {
+        code: "CCCCC-DDDDD",
+        tierName: "Free",
+        holderName: "Ben Tester",
+        admittedAt: "2026-10-30T22:40:00Z",
+        admittedByName: "Door Staff",
+        repeat: false,
+      },
+    });
+    render(<DoorConsole listingId="evt" manifest={manifest} />);
+    fireEvent.click(await screen.findByRole("button", { name: SCAN_BUTTON }));
+    expect(await screen.findByText(ADMITTED_TEXT)).toBeInTheDocument();
+    expect(admitTicket).toHaveBeenCalledWith("evt", token, expect.any(String));
+    expect(screen.getByRole("status")).toBeInTheDocument();
+  });
+});
 
 describe("DoorConsole", () => {
   it("shows live counts and the door list", () => {

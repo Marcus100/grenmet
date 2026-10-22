@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { admitTicket } from "@/data/actions";
 import type { DoorManifest } from "@/domain/types";
 import { formatTime } from "@/lib/datetime";
+import { DoorCamera } from "./door-camera";
 
 const REFRESH_MS = 15_000;
 
@@ -22,8 +23,9 @@ function newKey(): string {
 
 /**
  * The door page: a text field that takes a barcode scanner's keyboard input
- * (it types the code and presses Enter) or a code typed by hand, live counts,
- * and the printable door list. No camera is used.
+ * (it types the code and presses Enter) or a code typed by hand, an optional
+ * camera scan (`DoorCamera`, where the browser supports it), live counts, and
+ * the printable door list.
  */
 export function DoorConsole({
   listingId,
@@ -48,7 +50,7 @@ export function DoorConsole({
     return () => clearInterval(timer);
   }, [router]);
 
-  async function admit(value: string) {
+  async function admit(value: string, fromCamera = false) {
     const trimmed = value.trim();
     if (!trimmed || pending) {
       return;
@@ -67,7 +69,12 @@ export function DoorConsole({
     } else {
       setOutcome({ kind: "error", text: result.error });
     }
-    input.current?.focus();
+    if (fromCamera) {
+      // Keep the on-screen keyboard closed on a phone; buzz so the result is felt.
+      navigator.vibrate?.(result.ok ? 80 : [120, 60, 120]);
+    } else {
+      input.current?.focus();
+    }
   }
 
   const needle = filter.trim().toLowerCase();
@@ -116,20 +123,26 @@ export function DoorConsole({
             Admit
           </Button>
         </div>
+      </form>
+
+      <div className="space-y-3 print:hidden">
+        <DoorCamera disabled={pending} onScan={(value) => admit(value, true)} />
         {outcome ? (
           <p
             className={
               outcome.kind === "ok"
-                ? "flex items-center gap-1 font-medium text-body text-primary"
-                : "font-medium text-body text-destructive"
+                ? "flex min-h-11 items-center gap-2 rounded-xl border border-primary px-3 py-2 font-medium text-body-base text-primary"
+                : "flex min-h-11 items-center rounded-xl border border-destructive px-3 py-2 font-medium text-body-base text-destructive"
             }
             role={outcome.kind === "ok" ? "status" : "alert"}
           >
-            {outcome.kind === "ok" ? <Check className="size-4" /> : null}
+            {outcome.kind === "ok" ? (
+              <Check className="size-5 shrink-0" />
+            ) : null}
             {outcome.text}
           </p>
         ) : null}
-      </form>
+      </div>
 
       <section aria-labelledby="door-list" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
