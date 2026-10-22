@@ -25,6 +25,7 @@ from src.auth.schemas import UserRoleAssignmentCreate
 from src.organisations.models import (
     Invitation,
     Membership,
+    MembershipGrant,
     MembershipRole,
     MembershipStatus,
 )
@@ -438,11 +439,22 @@ async def test_last_owner_rule_still_applies(
         json={"user_id": str(second.id), "role": "owner", **REASON},
     )
     assert added.status_code == 201
+    db_async.add(
+        MembershipGrant(
+            id="grant_removal_probe",
+            membership_id=mid,
+            organisation_id=org_id,
+            role_key="events-door",
+        )
+    )
+    await db_async.commit()
     gone = await async_client.request("DELETE", url, headers=ah, json=REASON)
     assert gone.status_code == 204
     db_async.expire_all()
     row = await db_async.get(Membership, mid)
     assert row.status == MembershipStatus.REMOVED.value
+    grant = await db_async.get(MembershipGrant, "grant_removal_probe")
+    assert grant.revoked_at is not None
     (entry,) = await _entries(db_async, "platform_organisation_member", mid)
     assert entry.action == "remove" and entry.actor_user_id == admin_id
     # A removed member can be added back (row is reactivated).
