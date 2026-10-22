@@ -7,10 +7,11 @@ import httpx
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import outbox
 from src.audit.models import AuditEntry
 from src.auth.models import Role
 from src.auth.permissions import seed_permissions_and_roles_async
-from src.bookings import deposits
+from src.bookings import deposit_payments, deposits, outbox_handlers
 from src.bookings.models import Booking
 from src.organisations import service as org_service
 from src.organisations.models import Membership, MembershipRole
@@ -444,3 +445,55 @@ async def test_the_payments_entitlement_is_required(
     await db_async.commit()
     assert (await _post(async_client, studio, booking_id)).status_code == 403
     assert await _charges(db_async, booking_id) == 0
+
+
+async def test_a_look_alike_intent_under_the_deposit_key_is_refused(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _deposit_studio(db_async, async_client)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
+    real_id = receipt["booking"]["id"]
+    intent = await _intent(db_async, real_id)
+    assert intent is not None
+    # Same key, but sold for something else (the payments route cannot do this
+    # for a reserved type, so it is written straight to the database).
+    intent.source_type = "shop.sale"
+    await db_async.commit()
+    response = await _post(async_client, studio, real_id)
+    assert response.status_code == 409
+    assert "does not belong" in response.json()["detail"]
+    ledger = await db_async.scalar(
+        select(func.count())
+        .select_from(LedgerEntry)
+        .where(LedgerEntry.intent_id == intent.id)
+    )
+    assert ledger == 0
+
+
+async def test_a_cancelled_deposit_intent_is_refused(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    intent = await _intent(db_async, booking_id)
+    assert intent is not None
+    intent.status = "cancelled"
+    await db_async.commit()
+    response = await _post(async_client, studio, booking_id)
+    assert response.status_code == 409
+    assert "failed or expired" in response.json()["detail"]
+
+
+async def test_the_paid_handler_ignores_another_intent(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    message = outbox.OutboxMessage(
+        id=uuid.uuid4(),
+        topic=deposit_payments.PAID_TOPIC,
+        payload={"source_id": booking_id, "intent_id": str(uuid.uuid4())},
+        organisation_id=studio.org_id,
+        dedupe_key="d",
+        attempts=0,
+    )
+    await outbox_handlers.deposit_paid(db_async, message)
+    assert (await _booking_for(db_async, booking_id)).status == "pending_payment"

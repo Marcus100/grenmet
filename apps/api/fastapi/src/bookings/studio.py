@@ -537,6 +537,10 @@ async def record_manual_deposit(
         )
         if intent is None:  # pragma: no cover - create_intent just wrote it
             raise BookingConflictError("The deposit could not be started")
+    if intent.source_type != deposit_payments.SOURCE_TYPE or intent.source_id != str(
+        booking.id
+    ):
+        raise BookingConflictError("That payment does not belong to this booking")
     if intent.status == IntentStatus.SUCCEEDED.value:
         raise BookingConflictError("The deposit has already been paid")
     if intent.status in (IntentStatus.FAILED.value, IntentStatus.CANCELLED.value):
