@@ -123,7 +123,8 @@ entry there or its image build fails.
 | Service | Local dev | Container port | Staging | Production | Health check |
 | --- | --- | --- | --- | --- | --- |
 | auth (Barrels ID) | `localhost:3000` | 3000 | `auth.staging.barrels.gd` | `auth.barrels.gd` | `/` |
-| gaa-admin (GMS staff portal; GAA staff platform) | `localhost:3001` | 3001 | `gmsadmin.staging.barrels.gd` and `admin.staging.barrels.gd` | `gmsadmin.barrels.gd` and `admin.barrels.gd` | `/` (redirects to sign-in) |
+| admin (Barrels staff / superuser console) | `localhost:3012` | 3012 | `admin.staging.barrels.gd` | `admin.barrels.gd` | `/api/health` |
+| gaa-admin (GMS/GAA staff portal, Met office) | `localhost:3001` | 3001 | `gms.staging.barrels.gd` | `gms.barrels.gd` | `/` (redirects to sign-in) |
 | docs | `localhost:3002` | 3002 | `docs.staging.barrels.gd` | `docs.barrels.gd` | `/` |
 | gms (public weather site) | `localhost:3003` | 3003 | `weather.staging.barrels.gd` | `weather.barrels.gd` | `/` |
 | signal | `localhost:3004` | 3004 | `signal.staging.barrels.gd` | `signal.barrels.gd` | `/` |
@@ -139,6 +140,15 @@ entry there or its image build fails.
 
 Internal only (no hostname): Postgres 5432, Redis 6379, the ARQ `worker`, the
 `nhc-worker`, `prestart` (migrations) and `cms-migrate`.
+
+Admin host move (owner decision 2026-10-21): `admin.<domain>` is the Barrels
+staff / superuser console (`apps/web/admin`, port 3012) and `gms.<domain>` is the
+GMS/GAA staff portal (`apps/web/gaa-admin`, port 3001). `gms.*` is the portal's
+hostname only: `apps/web/gms` stays the public weather site at `weather.*`, and
+old links to the former public `gms.*` site now land on the portal sign-in. The
+move reaches production when this change is promoted to `main`
+(`docs/deployment.md`, "Admin host move"). Compose service names follow the
+release scope: `web-admin` is the console, `web-gmsadmin` is the portal.
 
 The table above is what Compose routes today. `scripts/ci/check-ports.mjs`
 fails when its hostnames disagree with the ``Host(`<label>.${BASE_DOMAIN}`)``
@@ -223,7 +233,7 @@ Old CORS lists in `infra/docker/.env.*.example` still name some of them.
 
 | Hostname | Replaced by | Status |
 | --- | --- | --- |
-| `gmsadmin.*` | `gms.*` (Met office staff portal) | Retiring: after the cutover |
+| `gmsadmin.*` | `gms.*` (Met office staff portal) | Retired |
 | `gaa-admin.*` | `gms.*` | Retired |
 | `wxwatch.*`, `wxproducts.*` | modules inside gaa-admin | Retired |
 | `salesbus.*`, `sales.*` | modules inside gaa-admin; the point-of-sale app (port 3030) will choose a new host | Retired |

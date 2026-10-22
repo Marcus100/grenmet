@@ -22,6 +22,7 @@ vi.mock("@/app/actions", () => ({ signOutAction: vi.fn() }));
 vi.mock("@/lib/app-links", () => ({
   getAppHrefs: () => ({
     admin: "https://admin.example.test",
+    "barrels-admin": "https://console.example.test",
     events: "https://events.example.test",
   }),
 }));
@@ -67,6 +68,14 @@ describe("/signed-out", () => {
     expect(
       screen.getByRole("button", { name: "Sign out of all apps" })
     ).toBeTruthy();
+  });
+
+  it("names the Barrels staff console and links back to it", async () => {
+    readSessionCookie.mockResolvedValue("account-session");
+    await show({ app: "barrels-admin" });
+    expect(
+      screen.getByRole("link", { name: "Sign in to Barrels admin again" })
+    ).toHaveProperty("href", "https://console.example.test/");
   });
 
   it("does not link to an app it does not know", async () => {

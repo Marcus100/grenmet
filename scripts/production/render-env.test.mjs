@@ -39,7 +39,7 @@ function fixture(directory) {
     "HASHED_PASSWORD",
     "PAYLOAD_SECRET",
   ])
-    env[key] = "test-only-configuration-value-32-characters";
+    env[key] = `test-only-configuration-value-32-characters-${key}`;
   const lines = ["FASTAPI_DB_USER=app_runtime", "ENVIRONMENT=staging"];
   for (const domain of [
     "WXWATCH",
@@ -294,7 +294,7 @@ test("staging and production pass integrations to the intended services", () => 
         assert.equal(service.EMAIL_RENDER_SECRET, env.EMAIL_RENDER_SECRET);
         assert.equal(
           service.NOTIFICATIONS_WEB_BASE_URL,
-          `https://admin.${baseDomain}`
+          `https://gms.${baseDomain}`
         );
         assert.equal(
           service.NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS,
@@ -302,7 +302,6 @@ test("staging and production pass integrations to the intended services", () => 
         );
       }
       for (const [key, subdomain] of Object.entries({
-        ADMIN_APP_URL: "admin",
         DOCS_APP_URL: "docs",
         GMS_APP_URL: "weather",
         SIGNAL_APP_URL: "signal",
@@ -314,6 +313,40 @@ test("staging and production pass integrations to the intended services", () => 
           `https://${subdomain}.${baseDomain}`
         );
       }
+      // Admin host move (docs/deployment.md): admin.* is the Barrels console and
+      // gms.* the GMS/GAA portal in both environments.
+      const suffix = deploymentEnvironment === "staging" ? "-staging" : "";
+      const portalUrl = `https://gms.${baseDomain}`;
+      assert.equal(
+        model.services["web-auth"].environment.ADMIN_APP_URL,
+        portalUrl
+      );
+      assert.equal(
+        model.services["web-auth"].environment.BARRELS_ADMIN_APP_URL,
+        `https://admin.${baseDomain}`
+      );
+      assert.equal(api.GAA_ADMIN_APP_URL, portalUrl);
+      assert.equal(api.BARRELS_ADMIN_APP_URL, `https://admin.${baseDomain}`);
+      assert.equal(
+        api.BARRELS_ADMIN_SSO_CLIENT_SECRET,
+        model.services["web-admin"].environment.BARRELS_ADMIN_SSO_CLIENT_SECRET
+      );
+      const adminLabels = model.services["web-admin"].labels;
+      const portalLabels = model.services["web-gmsadmin"].labels;
+      assert.equal(
+        adminLabels[`traefik.http.routers.web-barrels-admin${suffix}.rule`],
+        `Host(\`admin.${baseDomain}\`)`
+      );
+      assert.equal(
+        adminLabels[
+          `traefik.http.services.web-barrels-admin${suffix}.loadbalancer.server.port`
+        ],
+        "3012"
+      );
+      assert.equal(
+        portalLabels[`traefik.http.routers.web-gms-portal${suffix}.rule`],
+        `Host(\`gms.${baseDomain}\`)`
+      );
       assert.equal(
         model.services.worker.environment.SENTRY_DSN,
         api.SENTRY_DSN
@@ -423,6 +456,42 @@ test("notification recipient policy rejects malformed domains without echoing th
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
+  }
+});
+test("app single sign-on secrets must differ per app and are never echoed", () => {
+  const directory = mkdtempSync(join(tmpdir(), "sso-secret-shared-"));
+  try {
+    const { env, config, destination } = fixture(directory);
+    const shared = "shared-DO_NOT_ECHO-0123456789abcdefghijklmnop";
+    const result = spawnSync(
+      "python3",
+      ["scripts/production/render-env.py", config, destination],
+      {
+        env: {
+          ...env,
+          GAA_ADMIN_SSO_CLIENT_SECRET: shared,
+          BARRELS_ADMIN_SSO_CLIENT_SECRET: shared,
+        },
+        encoding: "utf8",
+      }
+    );
+    assert.notEqual(result.status, 0);
+    assert.ok(result.stderr.includes("different per app"));
+    assert.equal(result.stderr.includes("DO_NOT_ECHO"), false);
+    const ok = spawnSync(
+      "python3",
+      ["scripts/production/render-env.py", config, destination],
+      {
+        env: {
+          ...env,
+          BARRELS_ADMIN_SSO_CLIENT_SECRET: `${shared}-different`,
+        },
+        encoding: "utf8",
+      }
+    );
+    assert.equal(ok.status, 0, ok.stderr);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
   }
 });
 test("partial provider configuration and live Stripe keys in staging fail closed", () => {

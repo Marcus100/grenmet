@@ -118,7 +118,7 @@
       "kind": "monitors",
       "settings": {
         "pronounceable_name": "Production · GAA staff portal health",
-        "url": "https://admin.barrels.gd/api/health",
+        "url": "https://gms.barrels.gd/api/health",
         "monitor_type": "status",
         "check_frequency": 180,
         "confirmation_period": 180,
