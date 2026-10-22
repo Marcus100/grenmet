@@ -23,6 +23,10 @@ const RE_10 = /Do not refund/;
 
 const refresh = vi.fn();
 
+const reportError = vi.fn();
+vi.mock("@/lib/report-error", () => ({
+  reportError: (...args: unknown[]) => reportError(...args),
+}));
 vi.mock("@/data/order-actions", () => ({
   cancelOrder: vi.fn(),
   recordManualPayment: vi.fn(),
@@ -129,7 +133,7 @@ describe("manual payment", () => {
     expect(live("alert")).toMatch("again");
   });
 
-  it("locks the form after a fault, then uses a new key for new content once reloaded", async () => {
+  it("locks the form after a fault and unlocks only when the person has checked the order", async () => {
     vi.mocked(recordManualPayment).mockResolvedValue({
       ok: false,
       error: "boom",
@@ -146,6 +150,12 @@ describe("manual payment", () => {
     ).toBeDisabled();
     expect(screen.getByLabelText("Reference (optional)")).toBeDisabled();
     rerender(<OrderActions order={{ ...pending }} />);
+    expect(
+      screen.getByRole("button", { name: "Bank transfer" })
+    ).toBeDisabled();
+    fireEvent.click(
+      screen.getByRole("button", { name: "I've checked the order, continue" })
+    );
     fireEvent.click(screen.getByRole("button", { name: "Bank transfer" }));
     fireEvent.click(submit);
     await waitFor(() => expect(recordManualPayment).toHaveBeenCalledTimes(2));
@@ -367,5 +377,78 @@ describe("outcomes persist across the refresh", () => {
       />
     );
     expect(live("status")).toContain("Refund recorded");
+  });
+});
+
+describe("refund lock after an uncertain failure", () => {
+  const paid = makeOrderDetail();
+
+  async function failRefund() {
+    vi.mocked(refundOrder).mockResolvedValueOnce({
+      ok: false,
+      error: "We couldn't confirm this went through.",
+      keepKey: true,
+    });
+    const view = render(<OrderActions order={paid} />);
+    fireEvent.change(screen.getByLabelText("Reason"), {
+      target: { value: "Buyer asked" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Review refund" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm refund" }));
+    await waitFor(() => expect(refundOrder).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    return view;
+  }
+
+  it("stays locked across a reload that shows no change", async () => {
+    const { rerender } = await failRefund();
+    expect(screen.getByLabelText("Reason")).toBeDisabled();
+    rerender(<OrderActions order={{ ...paid }} />);
+    expect(screen.getByLabelText("Reason")).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "I've checked the order, continue" })
+    ).toBeInTheDocument();
+  });
+
+  it("unlocks when the order shows a refund", async () => {
+    const { rerender } = await failRefund();
+    rerender(
+      <OrderActions
+        order={makeOrderDetail({
+          refunded_minor: 5000,
+          refund_status: "partial",
+        })}
+      />
+    );
+    expect(screen.getByLabelText("Reason")).toBeEnabled();
+  });
+
+  it("unlocks on the explicit confirmation, and a changed amount then gets a new key", async () => {
+    const { rerender } = await failRefund();
+    rerender(<OrderActions order={{ ...paid }} />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "I've checked the order, continue" })
+    );
+    expect(screen.getByLabelText("Reason")).toBeEnabled();
+    vi.mocked(refundOrder).mockResolvedValue({ ok: true, data: paid });
+    fireEvent.change(screen.getByLabelText("Reason"), {
+      target: { value: "Different reason" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Review refund" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm refund" }));
+    await waitFor(() => expect(refundOrder).toHaveBeenCalledTimes(2));
+    const [first, second] = vi
+      .mocked(refundOrder)
+      .mock.calls.map(([call]) => call.idempotencyKey);
+    expect(first).not.toBe(second);
+  });
+
+  it("retries with the same key and body while locked", async () => {
+    await failRefund();
+    vi.mocked(refundOrder).mockResolvedValue({ ok: true, data: paid });
+    fireEvent.click(screen.getByRole("button", { name: "Confirm refund" }));
+    await waitFor(() => expect(refundOrder).toHaveBeenCalledTimes(2));
+    const [first, second] = vi.mocked(refundOrder).mock.calls.map(([c]) => c);
+    expect(second).toEqual(first);
   });
 });

@@ -107,8 +107,6 @@ describe("Orders page", () => {
   it("shows a no-access state instead of throwing on a 403", async () => {
     getOrgOrders.mockResolvedValue({ kind: "forbidden" });
     render(await show());
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "doesn't include orders"
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("access to orders");
   });
 });

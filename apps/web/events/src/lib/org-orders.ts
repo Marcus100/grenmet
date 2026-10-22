@@ -3,7 +3,6 @@ import type {
   OrgOrderDetail,
   OrgOrderRow,
 } from "@barrelsgd/api-client";
-import { formatMoney, money } from "@/domain/money";
 
 const MINOR_PER_MAJOR = 100;
 
@@ -104,17 +103,6 @@ const CODE_MONEY = new Intl.NumberFormat("en-US", {
 /** The amount with its ISO code and no symbol: "XCD 150.00", "EUR 25.00". */
 export function formatOrderMoneyCode(minor: number, currency: string): string {
   return `${currency} ${CODE_MONEY.format(minor / MINOR_PER_MAJOR)}`;
-}
-
-/**
- * Formats API minor units. Only currencies the app has a symbol for get one;
- * any other currency is shown as its ISO code, never guessed as dollars.
- */
-export function formatOrderMoney(minor: number, currency: string): string {
-  if (currency === "XCD" || currency === "USD") {
-    return formatMoney(money(minor, currency));
-  }
-  return formatOrderMoneyCode(minor, currency);
 }
 
 /** "stripe" -> "Stripe", "partially_refunded" -> "Partially refunded". */
@@ -241,6 +229,9 @@ export const COULDNT_CONFIRM =
  * ("This order is already paid"), so those pass through; the generic cases get
  * a next step. 403 and 404 usually carry no usable detail.
  */
+export const CANCEL_FORBIDDEN =
+  "Your role or this organisation's Events access doesn't allow cancelling. Ask an owner or Barrels support.";
+
 export function friendlyOrgError(
   status: number,
   detail: string | null,
@@ -252,7 +243,10 @@ export function friendlyOrgError(
   if (status === 404) {
     return "We couldn't find that order or event for this organiser. Reload the page.";
   }
-  if (status === 409 || status === 422) {
+  if (status === 422) {
+    return "The server rejected some of the details. Check the form and try again.";
+  }
+  if (status === 409) {
     if (detail && STILL_RUNNING.test(detail)) {
       return "The first attempt is still being processed. Wait a moment, then press the button again.";
     }
@@ -261,7 +255,7 @@ export function friendlyOrgError(
     }
     const left = detail ? REFUND_LEFT.exec(detail) : null;
     if (left?.[1]) {
-      return `Only ${formatOrderMoney(Number(left[1]), currency)} can still be refunded. Reload the page to see the current amount.`;
+      return `Only ${formatOrderMoneyCode(Number(left[1]), currency)} can still be refunded. Reload the page to see the current amount.`;
     }
     return detail ?? "That can't be done in the order's current state.";
   }

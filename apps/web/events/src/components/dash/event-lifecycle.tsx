@@ -108,6 +108,11 @@ export function EventLifecycle({
       if (result.ok) {
         setCounts(result.data);
         router.refresh();
+      } else if (result.keepKey) {
+        setNotice(
+          "The cancel may have gone through. Reload and check the event before trying again."
+        );
+        router.refresh();
       }
       return;
     }

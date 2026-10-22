@@ -4,6 +4,7 @@ import { cancelEvent, postponeEvent } from "@/data/actions";
 import { cancelEventWithRefund } from "@/data/order-actions";
 import { EventLifecycle } from "./event-lifecycle";
 
+const MAY_HAVE_GONE = "The cancel may have gone through";
 const RE_1 = /Follow the business policy/;
 const RE_2 = /Refund in full/;
 const RE_3 = /moves no money/;
@@ -95,6 +96,23 @@ describe("EventLifecycle", () => {
     expect(summary).toHaveTextContent("1 unpaid order released");
     expect(summary).toHaveTextContent("1 refund failed");
     expect(cancelEvent).not.toHaveBeenCalled();
+  });
+
+  it("says the cancel may have gone through after an unconfirmed failure", async () => {
+    vi.mocked(cancelEventWithRefund).mockResolvedValue({
+      ok: false,
+      error: "We couldn't confirm this went through.",
+      keepKey: true,
+    });
+    renderPanel(true);
+    fireEvent.click(screen.getByRole("button", { name: "Cancel event" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Cancel and follow policy" })
+    );
+    expect(
+      await screen.findByText(MAY_HAVE_GONE, { exact: false })
+    ).toBeVisible();
+    expect(refresh).toHaveBeenCalled();
   });
 
   it("without an organisation, says no money moves", async () => {

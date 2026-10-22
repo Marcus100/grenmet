@@ -1,12 +1,13 @@
 import { ResponseError } from "@barrelsgd/api-client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { COULDNT_CONFIRM } from "@/lib/org-orders";
+import { CANCEL_FORBIDDEN, COULDNT_CONFIRM } from "@/lib/org-orders";
 import { makeOrderDetail } from "@/test/org-factories";
 
 const RE_1 = /permission/;
 const RE_2 = /already waiting/;
 
 const resolveOrgContext = vi.fn();
+const getSession = vi.fn();
 const reportError = vi.fn();
 const recordPayment = vi.fn();
 const refund = vi.fn();
@@ -21,6 +22,7 @@ vi.mock("./org-context", () => ({
 vi.mock("@/lib/report-error", () => ({
   reportError: (...args: unknown[]) => reportError(...args),
 }));
+vi.mock("@/lib/session", () => ({ getSession: () => getSession() }));
 vi.mock("./organiser-choice", () => ({
   chosenOrganiser: async () => "fete-crew",
   rememberOrganiser: vi.fn(),
@@ -311,17 +313,25 @@ describe("cancelEventWithRefund", () => {
     );
   });
 
-  it("shows a 403 for a member without the right", async () => {
-    cancelEventCall.mockReturnValue(failing(responseError(403, {})));
-    legacyCancelCall.mockReturnValue(
-      failing(responseError(403, { detail: "You can't do that here" }))
-    );
-    const result = await cancelEventWithRefund(ORDER, "none");
-    expect(result.ok ? "" : result.error).toBe("You can't do that here");
+  it("never retries a refused org-zone cancel through the legacy route", async () => {
+    for (const status of [403, 404]) {
+      cancelEventCall.mockReturnValue(failing(responseError(status, {})));
+      const result = await cancelEventWithRefund(ORDER, "follow_policy");
+      expect(result).toEqual({
+        ok: false,
+        error: CANCEL_FORBIDDEN,
+        keepKey: false,
+      });
+    }
+    expect(legacyCancelCall).not.toHaveBeenCalled();
   });
 
-  it("falls back to the organiser endpoint on a 403, with the same refund choice", async () => {
-    cancelEventCall.mockReturnValue(failing(responseError(403, {})));
+  it("uses the organiser endpoint only when the organiser has no organisation", async () => {
+    resolveOrgContext.mockResolvedValue({
+      ok: false,
+      reason: "no-organisation",
+    });
+    getSession.mockResolvedValue({ accessToken: "tok" });
     legacyCancelCall.mockReturnValue(
       unwrapped({
         listing_id: ORDER,
@@ -329,7 +339,7 @@ describe("cancelEventWithRefund", () => {
         tickets_cancelled: 2,
       })
     );
-    const result = await cancelEventWithRefund(ORDER, "follow_policy");
+    const result = await cancelEventWithRefund(ORDER, "full");
     expect(result).toMatchObject({
       ok: true,
       data: { ticketsCancelled: 2, ordersQueued: 0 },
@@ -337,9 +347,10 @@ describe("cancelEventWithRefund", () => {
     expect(legacyCancelCall).toHaveBeenCalledWith(
       expect.objectContaining({
         query: { organiser: "fete-crew" },
-        body: { confirm: true, refund: "follow_policy" },
+        body: { confirm: true, refund: "full" },
       })
     );
+    expect(cancelEventCall).not.toHaveBeenCalled();
   });
 });
 

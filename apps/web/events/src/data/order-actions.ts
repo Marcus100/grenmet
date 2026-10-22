@@ -14,6 +14,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { apiOptions } from "@/lib/api";
 import {
+  CANCEL_FORBIDDEN,
   type CancelCounts,
   COULDNT_CONFIRM,
   friendlyOrgError,
@@ -21,6 +22,7 @@ import {
   type RefundChoice,
 } from "@/lib/org-orders";
 import { reportError } from "@/lib/report-error";
+import { getSession } from "@/lib/session";
 import { SIGN_IN_REQUIRED } from "./action-result";
 import { type OrgContext, resolveOrgContext } from "./org-context";
 import { chosenOrganiser } from "./organiser-choice";
@@ -58,6 +60,37 @@ function detailOf(error: ResponseError): string | null {
   return typeof detail === "string" ? detail : null;
 }
 
+/** Turns a thrown error into the refusal the form shows. */
+function failureOf(
+  error: unknown,
+  currency: string,
+  forbidden?: string
+): OrderActionResult<never> {
+  if (error instanceof ResponseError && error.status === 401) {
+    return refuse(SIGN_IN_REQUIRED);
+  }
+  if (
+    error instanceof ResponseError &&
+    forbidden &&
+    [403, 404].includes(error.status)
+  ) {
+    return refuse(forbidden);
+  }
+  if (
+    error instanceof ResponseError &&
+    error.status >= 400 &&
+    error.status < 500
+  ) {
+    const detail = detailOf(error);
+    return refuse(
+      friendlyOrgError(error.status, detail, currency),
+      keepsKey(error.status, detail)
+    );
+  }
+  reportError(error, "events-orders");
+  return refuse(COULDNT_CONFIRM, true);
+}
+
 async function run<T>(
   call: (
     options: ReturnType<typeof apiOptions> & {
@@ -65,7 +98,8 @@ async function run<T>(
     }
   ) => Promise<T>,
   paths: readonly string[],
-  currency = "XCD"
+  currency = "XCD",
+  forbidden?: string
 ): Promise<OrderActionResult<T>> {
   const context: OrgContext = await resolveOrgContext();
   if (!context.ok) {
@@ -83,22 +117,7 @@ async function run<T>(
     }
     return { ok: true, data };
   } catch (error) {
-    if (error instanceof ResponseError && error.status === 401) {
-      return refuse(SIGN_IN_REQUIRED);
-    }
-    if (
-      error instanceof ResponseError &&
-      error.status >= 400 &&
-      error.status < 500
-    ) {
-      const detail = detailOf(error);
-      return refuse(
-        friendlyOrgError(error.status, detail, currency),
-        keepsKey(error.status, detail)
-      );
-    }
-    reportError(error, "events-orders");
-    return refuse(COULDNT_CONFIRM, true);
+    return failureOf(error, currency, forbidden);
   }
 }
 
@@ -220,40 +239,51 @@ export async function cancelEventWithRefund(
     return refuse(CHECK_FORM);
   }
   const { listingId: id, refund: choice } = parsed.data;
+  const toCounts = (result: CancelResult): CancelCounts => ({
+    ticketsCancelled: result.tickets_cancelled,
+    ordersRefunded: result.orders_refunded ?? 0,
+    ordersQueued: result.orders_queued ?? 0,
+    ordersKept: result.orders_kept ?? 0,
+    refundsFailed: result.refunds_failed ?? 0,
+    ordersReleased: result.orders_released ?? 0,
+  });
+  const paths = ["/dash/events", "/events"];
+  const context = await resolveOrgContext();
+  if (!context.ok && context.reason === "no-organisation") {
+    // Only an organiser with no organisation uses the organiser endpoint, which
+    // takes the same refund choice. A refusal from the org zone is never
+    // retried through it.
+    const session = await getSession();
+    if (!session) {
+      return refuse(SIGN_IN_REQUIRED);
+    }
+    try {
+      const organiser = await chosenOrganiser();
+      const result = await eventsCancelEvent({
+        ...apiOptions(session.accessToken),
+        path: { listing_id: id },
+        query: organiser ? { organiser } : {},
+        body: { confirm: true, refund: choice },
+      }).unwrap();
+      for (const path of paths) {
+        revalidatePath(path);
+      }
+      return { ok: true, data: toCounts(result) };
+    } catch (error) {
+      return failureOf(error, "XCD");
+    }
+  }
   return await run(
-    async (options) => {
-      let result: CancelResult;
-      try {
-        result = await eventsOrgCancelEvent({
+    async (options) =>
+      toCounts(
+        await eventsOrgCancelEvent({
           ...options,
           path: { listing_id: id },
           body: { confirm: true, refund: choice },
-        }).unwrap();
-      } catch (error) {
-        // The organisation key is stricter than the organiser access that could
-        // cancel before (organiser team members, `events.organiser.manage`).
-        // Those members must not be locked out: the organiser endpoint accepts
-        // the same refund choice and runs the same cancel.
-        if (!(error instanceof ResponseError && error.status === 403)) {
-          throw error;
-        }
-        const organiser = await chosenOrganiser();
-        result = await eventsCancelEvent({
-          client: options.client,
-          path: { listing_id: id },
-          query: organiser ? { organiser } : {},
-          body: { confirm: true, refund: choice },
-        }).unwrap();
-      }
-      return {
-        ticketsCancelled: result.tickets_cancelled,
-        ordersRefunded: result.orders_refunded ?? 0,
-        ordersQueued: result.orders_queued ?? 0,
-        ordersKept: result.orders_kept ?? 0,
-        refundsFailed: result.refunds_failed ?? 0,
-        ordersReleased: result.orders_released ?? 0,
-      };
-    },
-    ["/dash/events", "/events"]
+        }).unwrap()
+      ),
+    paths,
+    "XCD",
+    CANCEL_FORBIDDEN
   );
 }

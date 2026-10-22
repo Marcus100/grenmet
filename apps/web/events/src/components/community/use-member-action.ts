@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { type ActionResult, SIGN_IN_REQUIRED } from "@/data/action-result";
+import { reportError } from "@/lib/report-error";
 
 /** Returned in place of a result when the action itself threw (network, crash). */
 export interface ThrownFailure {
@@ -41,7 +42,8 @@ export function useMemberAction(thrownMessage: string = GENERIC) {
         setError(result.error);
       }
       return result;
-    } catch {
+    } catch (thrown) {
+      reportError(thrown, "events-member-action");
       setError(thrownMessage);
       return { ok: false, error: thrownMessage, keepKey: true };
     } finally {

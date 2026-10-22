@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   cancelOutcomeMessage,
-  formatOrderMoney,
   formatOrderMoneyCode,
   friendlyOrgError,
   humanise,
@@ -21,6 +20,8 @@ const RE_4 = /Reload/;
 const RE_5 = /queued/;
 const RE_6 = /kept/;
 const RE_7 = /Nothing had been paid/;
+
+const VALIDATION = /rejected some of the details/;
 
 describe("status words", () => {
   it("names every state in words, not only colour", () => {
@@ -48,12 +49,6 @@ describe("pageParam", () => {
     expect(pageParam("-3")).toBe(1);
     expect(pageParam("abc")).toBe(1);
     expect(pageParam("3")).toBe(3);
-  });
-});
-
-describe("formatOrderMoney", () => {
-  it("formats minor units", () => {
-    expect(formatOrderMoney(15_050, "XCD")).toBe("$150.50");
   });
 });
 
@@ -131,7 +126,7 @@ describe("orderBadge", () => {
 
 describe("money display", () => {
   it("never guesses a symbol for an unknown currency", () => {
-    expect(formatOrderMoney(2500, "EUR")).toBe("EUR 25.00");
+    expect(formatOrderMoneyCode(2500, "EUR")).toBe("EUR 25.00");
     expect(formatOrderMoneyCode(15_000, "XCD")).toBe("XCD 150.00");
   });
 
@@ -159,7 +154,13 @@ describe("friendlyOrgError wording", () => {
         "XCD"
       )
     ).toBe(
-      "Only $12.50 can still be refunded. Reload the page to see the current amount."
+      "Only XCD 12.50 can still be refunded. Reload the page to see the current amount."
     );
+  });
+});
+
+describe("422 validation details", () => {
+  it("gives a validation message", () => {
+    expect(friendlyOrgError(422, null)).toMatch(VALIDATION);
   });
 });

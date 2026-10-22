@@ -18,8 +18,8 @@ export function OrgForbidden({ what }: { what: string }) {
       className="rounded-2xl border border-dashed bg-card px-4 py-8 text-center text-body text-muted-foreground"
       role="status"
     >
-      Your role in this organisation doesn't include {what}. Ask an owner or
-      admin to give you access.
+      You don't have access to {what} for this organisation (your role or the
+      organisation's Events access). Ask an owner or Barrels support.
     </p>
   );
 }

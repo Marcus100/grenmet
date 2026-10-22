@@ -95,6 +95,15 @@ describe("OrderDetail", () => {
     expect(screen.getByText("AAAAA-BBBBB")).toBeInTheDocument();
   });
 
+  it("labels the refundable amount as pending while a refund is queued", () => {
+    render(
+      <OrderDetail order={makeOrderDetail({ refund_status: "queued" })} />
+    );
+    expect(
+      screen.getByText("Still refundable (a refund is pending)")
+    ).toBeInTheDocument();
+  });
+
   it("reads a null email as not shown, not as missing", () => {
     render(<OrderDetail order={makeOrderDetail({ buyer_email: null })} />);
     expect(screen.getByText(RE_4)).toBeInTheDocument();

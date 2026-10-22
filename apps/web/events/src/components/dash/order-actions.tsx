@@ -71,16 +71,49 @@ interface Failure {
 }
 
 /**
- * Locks the form after an uncertain failure until the refreshed order arrives:
- * the lock belongs to the order object it was set on, so a reload (a new
- * object) lifts it.
+ * Locks a money form after an uncertain failure (the request may still be
+ * committing). The lock lifts only when the refreshed order shows a change in
+ * what the form acts on, or when the person says they checked the order. A
+ * plain reload that shows no change keeps it, so an edit can never issue a new
+ * key while the first request may still land.
  */
-function useReloadLock(order: OrgOrderDetail) {
+function useReloadLock(
+  order: OrgOrderDetail,
+  changed: (before: OrgOrderDetail, now: OrgOrderDetail) => boolean
+) {
   const [lockedFor, setLockedFor] = useState<OrgOrderDetail | null>(null);
-  return [
-    lockedFor === order,
-    (locked: boolean) => setLockedFor(locked ? order : null),
-  ] as const;
+  const locked = lockedFor !== null && !changed(lockedFor, order);
+  return {
+    locked,
+    lock: () => setLockedFor(order),
+    release: () => setLockedFor(null),
+  };
+}
+
+const paymentChanged = (before: OrgOrderDetail, now: OrgOrderDetail) =>
+  before.status !== now.status;
+const refundChanged = (before: OrgOrderDetail, now: OrgOrderDetail) =>
+  before.refunded_minor !== now.refunded_minor ||
+  before.refund_status !== now.refund_status;
+
+function LockNotice({ onRelease }: { onRelease: () => void }) {
+  return (
+    <div className="space-y-2 rounded-xl border p-3">
+      <p className="text-caption text-muted-foreground">
+        We couldn't confirm the last request, so this form is locked. Pressing
+        the main button again sends exactly the same request. It unlocks when
+        the order shows a change.
+      </p>
+      <Button
+        className="min-h-11"
+        onClick={onRelease}
+        type="button"
+        variant="outline"
+      >
+        I've checked the order, continue
+      </Button>
+    </div>
+  );
 }
 
 /**
@@ -167,7 +200,7 @@ function ManualPaymentForm({
   const router = useRouter();
   const { pending, perform } = useMemberAction(COULDNT_CONFIRM);
   const { keyFor, rotate } = useIdempotencyKey();
-  const [locked, setLocked] = useReloadLock(order);
+  const { locked, lock, release } = useReloadLock(order, paymentChanged);
   const [method, setMethod] = useState<"bank_transfer" | "cash">("cash");
   const [reference, setReference] = useState("");
 
@@ -178,7 +211,7 @@ function ManualPaymentForm({
     if (result.keepKey) {
       // The payment may have been recorded: reload, and keep the same key and
       // body if the person presses the button again.
-      setLocked(true);
+      lock();
       router.refresh();
     } else {
       rotate();
@@ -254,12 +287,7 @@ function ManualPaymentForm({
       <Button className="min-h-11" disabled={pending} type="submit">
         Record payment
       </Button>
-      {locked ? (
-        <p className="text-caption text-muted-foreground">
-          The form is locked until the page reloads. Pressing the button again
-          sends the same request.
-        </p>
-      ) : null}
+      {locked ? <LockNotice onRelease={release} /> : null}
     </form>
   );
 }
@@ -276,7 +304,7 @@ function RefundForm({
   const router = useRouter();
   const { pending, perform } = useMemberAction(COULDNT_CONFIRM);
   const { keyFor, rotate } = useIdempotencyKey();
-  const [locked, setLocked] = useReloadLock(order);
+  const { locked, lock, release } = useReloadLock(order, refundChanged);
   const [mode, setMode] = useState<"full" | "partial">("full");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
@@ -334,7 +362,7 @@ function RefundForm({
       report.error(result.error);
     }
     if (result.keepKey) {
-      setLocked(true);
+      lock();
       router.refresh();
     } else {
       rotate();
@@ -448,12 +476,7 @@ function RefundForm({
           {formError}
         </p>
       ) : null}
-      {locked ? (
-        <p className="text-caption text-muted-foreground">
-          The form is locked until the page reloads. Confirming again sends the
-          same request.
-        </p>
-      ) : null}
+      {locked ? <LockNotice onRelease={release} /> : null}
     </form>
   );
 }
