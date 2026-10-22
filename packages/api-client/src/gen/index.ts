@@ -194,6 +194,7 @@ export { eregisterReopenRegisterObservation } from "./clients/eregisterReopenReg
 export { eregisterValidateSynopObservation } from "./clients/eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./clients/eventsAcceptConnection.js";
 export { eventsAdmitTicket } from "./clients/eventsAdmitTicket.js";
+export { eventsApproveOrganiser } from "./clients/eventsApproveOrganiser.js";
 export { eventsBlockMember } from "./clients/eventsBlockMember.js";
 export { eventsCancelEvent } from "./clients/eventsCancelEvent.js";
 export { eventsCancelListingRsvp } from "./clients/eventsCancelListingRsvp.js";
@@ -222,6 +223,7 @@ export { eventsGetPerson } from "./clients/eventsGetPerson.js";
 export { eventsGetSettlement } from "./clients/eventsGetSettlement.js";
 export { eventsGetSettlementCsv } from "./clients/eventsGetSettlementCsv.js";
 export { eventsGetThread } from "./clients/eventsGetThread.js";
+export { eventsGetVerificationCase } from "./clients/eventsGetVerificationCase.js";
 export { eventsJoinGroup } from "./clients/eventsJoinGroup.js";
 export { eventsLeaveGroup } from "./clients/eventsLeaveGroup.js";
 export { eventsListGroups } from "./clients/eventsListGroups.js";
@@ -231,13 +233,16 @@ export { eventsListPendingOrganisers } from "./clients/eventsListPendingOrganise
 export { eventsListReports } from "./clients/eventsListReports.js";
 export { eventsListSuggestions } from "./clients/eventsListSuggestions.js";
 export { eventsListThreads } from "./clients/eventsListThreads.js";
+export { eventsListVerificationCases } from "./clients/eventsListVerificationCases.js";
 export { eventsOpenThread } from "./clients/eventsOpenThread.js";
 export { eventsOpenTill } from "./clients/eventsOpenTill.js";
 export { eventsPostponeEvent } from "./clients/eventsPostponeEvent.js";
 export { eventsRefundTicket } from "./clients/eventsRefundTicket.js";
+export { eventsRejectOrganiser } from "./clients/eventsRejectOrganiser.js";
 export { eventsRemoveConnection } from "./clients/eventsRemoveConnection.js";
 export { eventsRequestConnection } from "./clients/eventsRequestConnection.js";
 export { eventsRequestOrganiser } from "./clients/eventsRequestOrganiser.js";
+export { eventsResubmitOrganiser } from "./clients/eventsResubmitOrganiser.js";
 export { eventsReviewOrganiser } from "./clients/eventsReviewOrganiser.js";
 export { eventsRsvpListing } from "./clients/eventsRsvpListing.js";
 export { eventsSaveListing } from "./clients/eventsSaveListing.js";
@@ -1600,6 +1605,11 @@ export {
   useEventsAdmitTicket,
 } from "./hooks/useEventsAdmitTicket.js";
 export {
+  eventsApproveOrganiserMutationKey,
+  eventsApproveOrganiserMutationOptions,
+  useEventsApproveOrganiser,
+} from "./hooks/useEventsApproveOrganiser.js";
+export {
   eventsBlockMemberMutationKey,
   eventsBlockMemberMutationOptions,
   useEventsBlockMember,
@@ -1740,6 +1750,11 @@ export {
   useEventsGetThread,
 } from "./hooks/useEventsGetThread.js";
 export {
+  eventsGetVerificationCaseQueryKey,
+  eventsGetVerificationCaseQueryOptions,
+  useEventsGetVerificationCase,
+} from "./hooks/useEventsGetVerificationCase.js";
+export {
   eventsJoinGroupMutationKey,
   eventsJoinGroupMutationOptions,
   useEventsJoinGroup,
@@ -1785,6 +1800,11 @@ export {
   useEventsListThreads,
 } from "./hooks/useEventsListThreads.js";
 export {
+  eventsListVerificationCasesQueryKey,
+  eventsListVerificationCasesQueryOptions,
+  useEventsListVerificationCases,
+} from "./hooks/useEventsListVerificationCases.js";
+export {
   eventsOpenThreadMutationKey,
   eventsOpenThreadMutationOptions,
   useEventsOpenThread,
@@ -1805,6 +1825,11 @@ export {
   useEventsRefundTicket,
 } from "./hooks/useEventsRefundTicket.js";
 export {
+  eventsRejectOrganiserMutationKey,
+  eventsRejectOrganiserMutationOptions,
+  useEventsRejectOrganiser,
+} from "./hooks/useEventsRejectOrganiser.js";
+export {
   eventsRemoveConnectionMutationKey,
   eventsRemoveConnectionMutationOptions,
   useEventsRemoveConnection,
@@ -1819,6 +1844,11 @@ export {
   eventsRequestOrganiserMutationOptions,
   useEventsRequestOrganiser,
 } from "./hooks/useEventsRequestOrganiser.js";
+export {
+  eventsResubmitOrganiserMutationKey,
+  eventsResubmitOrganiserMutationOptions,
+  useEventsResubmitOrganiser,
+} from "./hooks/useEventsResubmitOrganiser.js";
 export {
   eventsReviewOrganiserMutationKey,
   eventsReviewOrganiserMutationOptions,
@@ -6282,6 +6312,19 @@ export type {
   EventsAdmitTicketStatus429,
 } from "./models/EventsAdmitTicket.js";
 export type {
+  EventsApproveOrganiserBody,
+  EventsApproveOrganiserOptions,
+  EventsApproveOrganiserPath,
+  EventsApproveOrganiserResponse,
+  EventsApproveOrganiserResponses,
+  EventsApproveOrganiserStatus200,
+  EventsApproveOrganiserStatus401,
+  EventsApproveOrganiserStatus403,
+  EventsApproveOrganiserStatus404,
+  EventsApproveOrganiserStatus409,
+  EventsApproveOrganiserStatus422,
+} from "./models/EventsApproveOrganiser.js";
+export type {
   EventsBlockMemberOptions,
   EventsBlockMemberPath,
   EventsBlockMemberResponse,
@@ -6615,6 +6658,17 @@ export type {
   EventsGetThreadStatus429,
 } from "./models/EventsGetThread.js";
 export type {
+  EventsGetVerificationCaseOptions,
+  EventsGetVerificationCasePath,
+  EventsGetVerificationCaseResponse,
+  EventsGetVerificationCaseResponses,
+  EventsGetVerificationCaseStatus200,
+  EventsGetVerificationCaseStatus401,
+  EventsGetVerificationCaseStatus403,
+  EventsGetVerificationCaseStatus404,
+  EventsGetVerificationCaseStatus422,
+} from "./models/EventsGetVerificationCase.js";
+export type {
   EventsJoinGroupOptions,
   EventsJoinGroupPath,
   EventsJoinGroupResponse,
@@ -6711,6 +6765,17 @@ export type {
   EventsListThreadsStatus429,
 } from "./models/EventsListThreads.js";
 export type {
+  EventsListVerificationCasesOptions,
+  EventsListVerificationCasesQuery,
+  EventsListVerificationCasesResponse,
+  EventsListVerificationCasesResponses,
+  EventsListVerificationCasesStatus200,
+  EventsListVerificationCasesStatus401,
+  EventsListVerificationCasesStatus403,
+  EventsListVerificationCasesStatus404,
+  EventsListVerificationCasesStatus422,
+} from "./models/EventsListVerificationCases.js";
+export type {
   EventsOpenThreadBody,
   EventsOpenThreadOptions,
   EventsOpenThreadResponse,
@@ -6768,6 +6833,19 @@ export type {
   EventsRefundTicketStatus429,
 } from "./models/EventsRefundTicket.js";
 export type {
+  EventsRejectOrganiserBody,
+  EventsRejectOrganiserOptions,
+  EventsRejectOrganiserPath,
+  EventsRejectOrganiserResponse,
+  EventsRejectOrganiserResponses,
+  EventsRejectOrganiserStatus200,
+  EventsRejectOrganiserStatus401,
+  EventsRejectOrganiserStatus403,
+  EventsRejectOrganiserStatus404,
+  EventsRejectOrganiserStatus409,
+  EventsRejectOrganiserStatus422,
+} from "./models/EventsRejectOrganiser.js";
+export type {
   EventsRemoveConnectionOptions,
   EventsRemoveConnectionPath,
   EventsRemoveConnectionResponse,
@@ -6802,6 +6880,19 @@ export type {
   EventsRequestOrganiserStatus422,
   EventsRequestOrganiserStatus429,
 } from "./models/EventsRequestOrganiser.js";
+export type {
+  EventsResubmitOrganiserOptions,
+  EventsResubmitOrganiserQuery,
+  EventsResubmitOrganiserResponse,
+  EventsResubmitOrganiserResponses,
+  EventsResubmitOrganiserStatus200,
+  EventsResubmitOrganiserStatus401,
+  EventsResubmitOrganiserStatus403,
+  EventsResubmitOrganiserStatus404,
+  EventsResubmitOrganiserStatus409,
+  EventsResubmitOrganiserStatus422,
+  EventsResubmitOrganiserStatus429,
+} from "./models/EventsResubmitOrganiser.js";
 export type {
   EventsReviewOrganiserBody,
   EventsReviewOrganiserOptions,
@@ -11464,8 +11555,19 @@ export type {
 export type { ValidationErrorItem } from "./models/ValidationErrorItem.js";
 export type { ValidationErrorResponse } from "./models/ValidationErrorResponse.js";
 export type { VapidPublicKey } from "./models/VapidPublicKey.js";
+export type { VerificationApproval } from "./models/VerificationApproval.js";
+export type { VerificationCase } from "./models/VerificationCase.js";
+export type { VerificationCaseDetail } from "./models/VerificationCaseDetail.js";
+export type { VerificationCaseEvent } from "./models/VerificationCaseEvent.js";
+export type { VerificationCaseList } from "./models/VerificationCaseList.js";
+export type { VerificationCaseOwner } from "./models/VerificationCaseOwner.js";
+export type { VerificationCaseOwnerPropertiesRoleEnum } from "./models/VerificationCaseOwnerPropertiesRoleEnum.js";
+export { verificationCaseOwnerPropertiesRoleEnum } from "./models/VerificationCaseOwnerPropertiesRoleEnum.js";
 export type { VerificationDecision } from "./models/VerificationDecision.js";
+export type { VerificationRejection } from "./models/VerificationRejection.js";
 export type { VerificationResend } from "./models/VerificationResend.js";
+export type { VerificationStatus } from "./models/VerificationStatus.js";
+export { verificationStatus } from "./models/VerificationStatus.js";
 export type { WeatherImage } from "./models/WeatherImage.js";
 export type { WebhookAdminDisable } from "./models/WebhookAdminDisable.js";
 export type { WebhookDeliveryList } from "./models/WebhookDeliveryList.js";
@@ -14292,6 +14394,18 @@ export {
   eventsAdmitTicketStatus429Schema,
 } from "./zod/eventsAdmitTicketSchema.js";
 export {
+  eventsApproveOrganiserBodySchema,
+  eventsApproveOrganiserErrorSchema,
+  eventsApproveOrganiserPathOrganisationIdSchema,
+  eventsApproveOrganiserResponseSchema,
+  eventsApproveOrganiserStatus200Schema,
+  eventsApproveOrganiserStatus401Schema,
+  eventsApproveOrganiserStatus403Schema,
+  eventsApproveOrganiserStatus404Schema,
+  eventsApproveOrganiserStatus409Schema,
+  eventsApproveOrganiserStatus422Schema,
+} from "./zod/eventsApproveOrganiserSchema.js";
+export {
   eventsBlockMemberErrorSchema,
   eventsBlockMemberPathHandleSchema,
   eventsBlockMemberResponseSchema,
@@ -14599,6 +14713,16 @@ export {
   eventsGetThreadStatus429Schema,
 } from "./zod/eventsGetThreadSchema.js";
 export {
+  eventsGetVerificationCaseErrorSchema,
+  eventsGetVerificationCasePathOrganisationIdSchema,
+  eventsGetVerificationCaseResponseSchema,
+  eventsGetVerificationCaseStatus200Schema,
+  eventsGetVerificationCaseStatus401Schema,
+  eventsGetVerificationCaseStatus403Schema,
+  eventsGetVerificationCaseStatus404Schema,
+  eventsGetVerificationCaseStatus422Schema,
+} from "./zod/eventsGetVerificationCaseSchema.js";
+export {
   eventsJoinGroupErrorSchema,
   eventsJoinGroupPathSlugSchema,
   eventsJoinGroupResponseSchema,
@@ -14693,6 +14817,18 @@ export {
   eventsListThreadsStatus429Schema,
 } from "./zod/eventsListThreadsSchema.js";
 export {
+  eventsListVerificationCasesErrorSchema,
+  eventsListVerificationCasesQueryPageSchema,
+  eventsListVerificationCasesQuerySizeSchema,
+  eventsListVerificationCasesQueryStatusSchema,
+  eventsListVerificationCasesResponseSchema,
+  eventsListVerificationCasesStatus200Schema,
+  eventsListVerificationCasesStatus401Schema,
+  eventsListVerificationCasesStatus403Schema,
+  eventsListVerificationCasesStatus404Schema,
+  eventsListVerificationCasesStatus422Schema,
+} from "./zod/eventsListVerificationCasesSchema.js";
+export {
   eventsOpenThreadBodySchema,
   eventsOpenThreadErrorSchema,
   eventsOpenThreadResponseSchema,
@@ -14747,6 +14883,18 @@ export {
   eventsRefundTicketStatus429Schema,
 } from "./zod/eventsRefundTicketSchema.js";
 export {
+  eventsRejectOrganiserBodySchema,
+  eventsRejectOrganiserErrorSchema,
+  eventsRejectOrganiserPathOrganisationIdSchema,
+  eventsRejectOrganiserResponseSchema,
+  eventsRejectOrganiserStatus200Schema,
+  eventsRejectOrganiserStatus401Schema,
+  eventsRejectOrganiserStatus403Schema,
+  eventsRejectOrganiserStatus404Schema,
+  eventsRejectOrganiserStatus409Schema,
+  eventsRejectOrganiserStatus422Schema,
+} from "./zod/eventsRejectOrganiserSchema.js";
+export {
   eventsRemoveConnectionErrorSchema,
   eventsRemoveConnectionPathConnectionIdSchema,
   eventsRemoveConnectionResponseSchema,
@@ -14778,6 +14926,18 @@ export {
   eventsRequestOrganiserStatus422Schema,
   eventsRequestOrganiserStatus429Schema,
 } from "./zod/eventsRequestOrganiserSchema.js";
+export {
+  eventsResubmitOrganiserErrorSchema,
+  eventsResubmitOrganiserQueryOrganiserSchema,
+  eventsResubmitOrganiserResponseSchema,
+  eventsResubmitOrganiserStatus200Schema,
+  eventsResubmitOrganiserStatus401Schema,
+  eventsResubmitOrganiserStatus403Schema,
+  eventsResubmitOrganiserStatus404Schema,
+  eventsResubmitOrganiserStatus409Schema,
+  eventsResubmitOrganiserStatus422Schema,
+  eventsResubmitOrganiserStatus429Schema,
+} from "./zod/eventsResubmitOrganiserSchema.js";
 export {
   eventsReviewOrganiserBodySchema,
   eventsReviewOrganiserErrorSchema,
@@ -19092,8 +19252,17 @@ export {
 export { validationErrorItemSchema } from "./zod/validationErrorItemSchema.js";
 export { validationErrorResponseSchema } from "./zod/validationErrorResponseSchema.js";
 export { vapidPublicKeySchema } from "./zod/vapidPublicKeySchema.js";
+export { verificationApprovalSchema } from "./zod/verificationApprovalSchema.js";
+export { verificationCaseDetailSchema } from "./zod/verificationCaseDetailSchema.js";
+export { verificationCaseEventSchema } from "./zod/verificationCaseEventSchema.js";
+export { verificationCaseListSchema } from "./zod/verificationCaseListSchema.js";
+export { verificationCaseOwnerPropertiesRoleEnumSchema } from "./zod/verificationCaseOwnerPropertiesRoleEnumSchema.js";
+export { verificationCaseOwnerSchema } from "./zod/verificationCaseOwnerSchema.js";
+export { verificationCaseSchema } from "./zod/verificationCaseSchema.js";
 export { verificationDecisionSchema } from "./zod/verificationDecisionSchema.js";
+export { verificationRejectionSchema } from "./zod/verificationRejectionSchema.js";
 export { verificationResendSchema } from "./zod/verificationResendSchema.js";
+export { verificationStatusSchema } from "./zod/verificationStatusSchema.js";
 export { weatherImageSchema } from "./zod/weatherImageSchema.js";
 export { webhookAdminDisableSchema } from "./zod/webhookAdminDisableSchema.js";
 export { webhookDeliveryListSchema } from "./zod/webhookDeliveryListSchema.js";

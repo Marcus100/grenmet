@@ -33,6 +33,7 @@ from src.organisations.models import (
     OrganisationKind,
     OrganisationStatus,
     PlatformOrganisation,
+    VerificationStatus,
     new_membership_id,
     new_organisation_id,
 )
@@ -532,26 +533,75 @@ async def admin_set_verified(
     *,
     verified: bool,
     reason: str,
+    rejected: bool = False,
 ) -> PlatformOrganisation:
+    """The one write path for verification decisions.
+
+    ``verified=True`` approves (from pending or rejected), ``verified=False``
+    withdraws an approval, and ``rejected=True`` (with ``verified=False``) rejects
+    a pending request. Repeating a decision is a 409. Every decision records the
+    reason, the decision time and an explicit audit entry for the actor."""
     clean = _clean_reason(reason)
     organisation = await _load(session, organisation_id)
     audit_service.set_actor(session, actor.id)
+    now = utc_now()
     if verified:
         if organisation.verified_at is not None:
             raise AppException("Organisation is already verified", 409)
-        organisation.verified_at = utc_now()
+        organisation.verified_at = now
+        organisation.verification_status = VerificationStatus.APPROVED.value
+        action = "verify"
+    elif rejected:
+        if organisation.verified_at is not None:
+            raise AppException(
+                "Organisation is verified; withdraw its verification instead", 409
+            )
+        if organisation.verification_status == VerificationStatus.REJECTED.value:
+            raise AppException("Organisation is already rejected", 409)
+        organisation.verification_status = VerificationStatus.REJECTED.value
+        action = "reject"
     else:
         if organisation.verified_at is None:
             raise AppException("Organisation is not verified", 409)
         organisation.verified_at = None
+        organisation.verification_status = VerificationStatus.PENDING.value
+        action = "unverify"
+    organisation.verification_reason = clean
+    organisation.verification_decided_at = now
     await audit_service.record_change(
         session,
         entity_type="platform_organisation",
         entity_id=organisation.id,
         record_type="platform_organisation",
         record_id=organisation.id,
-        action="verify" if verified else "unverify",
+        action=action,
         changes={"reason": (None, clean)},
+        organisation_id=organisation.id,
+    )
+    await session.flush()
+    return organisation
+
+
+async def resubmit_verification(
+    session: AsyncSession, actor: User, organisation_id: str
+) -> PlatformOrganisation:
+    """A rejected organisation asks to be reviewed again: back to pending.
+
+    The caller has already checked the actor manages the organisation. The
+    rejection reason stays on the row until the next decision."""
+    organisation = await _load(session, organisation_id)
+    if organisation.verification_status != VerificationStatus.REJECTED.value:
+        raise AppException("Only a rejected request can be resubmitted", 409)
+    audit_service.set_actor(session, actor.id)
+    organisation.verification_status = VerificationStatus.PENDING.value
+    await audit_service.record_change(
+        session,
+        entity_type="platform_organisation",
+        entity_id=organisation.id,
+        record_type="platform_organisation",
+        record_id=organisation.id,
+        action="resubmit",
+        changes={"verification_status": ("rejected", "pending")},
         organisation_id=organisation.id,
     )
     await session.flush()

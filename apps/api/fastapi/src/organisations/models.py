@@ -25,6 +25,12 @@ class OrganisationStatus(str, Enum):
     SUSPENDED = "suspended"
 
 
+class VerificationStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 class MembershipRole(str, Enum):
     OWNER = "owner"
     ADMIN = "admin"
@@ -67,6 +73,10 @@ class PlatformOrganisation(Base):
     __table_args__ = (
         sa.CheckConstraint(f"kind IN ({_values(OrganisationKind)})", name="kind"),
         sa.CheckConstraint(f"status IN ({_values(OrganisationStatus)})", name="status"),
+        sa.CheckConstraint(
+            f"verification_status IN ({_values(VerificationStatus)})",
+            name="verification_status",
+        ),
         {"schema": "org"},
     )
 
@@ -78,6 +88,15 @@ class PlatformOrganisation(Base):
         String(20), default=OrganisationStatus.ACTIVE.value
     )
     verified_at: Mapped[datetime | None]
+    #: Moderation state; ``verified_at`` stays the single "is verified" signal.
+    verification_status: Mapped[str] = mapped_column(
+        String(20),
+        default=VerificationStatus.PENDING.value,
+        server_default=VerificationStatus.PENDING.value,
+    )
+    #: Reason given with the latest decision (approve, reject or unverify).
+    verification_reason: Mapped[str | None] = mapped_column(sa.Text)
+    verification_decided_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

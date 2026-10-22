@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
 from src.database import async_session_factory
-from src.organisations.models import PlatformOrganisation
+from src.organisations.models import PlatformOrganisation, VerificationStatus
 from src.utils.datetime import utc_now
 
 CACHE_TTL_SECONDS = 30.0
@@ -59,7 +59,15 @@ async def moderator_set_verified(
     if organisation is None or (organisation.verified_at is not None) == verified:
         return
     audit_service.set_actor(session, actor_id)
-    organisation.verified_at = utc_now() if verified else None
+    now = utc_now()
+    organisation.verified_at = now if verified else None
+    organisation.verification_status = (
+        VerificationStatus.APPROVED.value
+        if verified
+        else VerificationStatus.PENDING.value
+    )
+    organisation.verification_reason = f"{source} moderator review"
+    organisation.verification_decided_at = now
     await audit_service.record_change(
         session,
         entity_type="platform_organisation",

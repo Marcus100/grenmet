@@ -490,6 +490,16 @@ address or a second pending request); moderators verify it through
 `PATCH /events/moderation/organisers/{id}`. Publishing, cancelling or rescheduling a
 listing and approving an organiser also write `outbox` rows (same Events transaction)
 that the worker turns into notifications; no endpoint is involved.
+Admin moderation (zone `admin`, staff session): `GET /admin/moderation/organisers`
+(`?status=pending|approved|rejected`, paginated) and `GET /admin/moderation/organisers/{organisation_id}`
+(case with owners, listing counts and verification history) are open to superusers and
+`events.moderate` holders; `POST .../approve` and `POST .../reject` (reason required)
+need an MFA superuser and go through `organisations.service.admin_set_verified`
+(409 on a repeat decision, audit entry with the actor, `organiser.approved` /
+`organiser.rejected` outbox row). A rejected organiser's owners or admins send
+`POST /events/manage/organiser/resubmit` to return to `pending` (409 otherwise).
+`org.organisation` carries `verification_status`, `verification_reason` and
+`verification_decided_at`; `verified_at` stays the single "verified" signal.
 `GET /events/manage/{listing_id}/activity` returns that listing's append-only history
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.

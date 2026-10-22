@@ -625,6 +625,27 @@ async def set_organiser_logo(
 
 
 @router.post(
+    "/manage/organiser/resubmit",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Resubmit a rejected organiser for review",
+    description=(
+        "Owners and admins of an organiser whose verification was rejected put it "
+        "back in the moderation queue (pending). 409 unless it is rejected."
+    ),
+    responses=_ORGANISER,
+)
+async def resubmit_organiser(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    organiser: _ManagedSlug = None,
+) -> schemas.OrganiserPublic:
+    return await service.resubmit_organiser(session, user, scope, organiser)
+
+
+@router.post(
     "/manage/listings",
     response_model=schemas.ManagedListing,
     status_code=status.HTTP_201_CREATED,

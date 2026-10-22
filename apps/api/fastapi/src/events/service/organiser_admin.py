@@ -12,7 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.email_verification import require_verified_email
 from src.auth.models import User
 from src.organisations import service as organisations
-from src.organisations.models import MembershipRole, OrganisationKind
+from src.organisations.models import (
+    MembershipRole,
+    OrganisationKind,
+    PlatformOrganisation,
+)
 from src.storage import uploads as org_uploads
 from src.utils.datetime import utc_now
 from src.utils.reserved_names import is_reserved
@@ -28,7 +32,7 @@ from ..models import (
     Ticket,
     TicketTier,
 )
-from . import holds
+from . import holds, organiser_verification
 from .common import _naive_utc, _pairs
 from .discover import (
     _cards,
@@ -536,10 +540,35 @@ async def request_organiser(
             Organiser.organisation_id.in_(owned), Organiser.verified.is_(False)
         )
     ):
-        raise EventsConflict("Your organiser request is awaiting review")
+        rejected = await db.scalar(
+            select(PlatformOrganisation.id)
+            .join(Organiser, Organiser.organisation_id == PlatformOrganisation.id)
+            .where(
+                Organiser.organisation_id.in_(owned),
+                Organiser.verified.is_(False),
+                PlatformOrganisation.verification_status == "rejected",
+            )
+        )
+        raise EventsConflict(
+            "Your organiser request was rejected; resubmit it for review"
+            if rejected
+            else "Your organiser request is awaiting review"
+        )
     organiser = await create_organiser(
         db, user, name=body.name, slug=body.slug, bio=body.bio
     )
+    return await _organiser_public(db, organiser, user.id)
+
+
+async def resubmit_organiser(
+    db: AsyncSession,
+    user: User,
+    org_ids: list[str],
+    slug: str | None = None,
+) -> schemas.OrganiserPublic:
+    """A rejected organiser goes back to the moderation queue (pending)."""
+    organiser = await _my_organiser(db, user, org_ids, slug)
+    await organiser_verification.resubmit(db, user, organiser)
     return await _organiser_public(db, organiser, user.id)
 
 

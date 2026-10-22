@@ -2481,6 +2481,19 @@ export type {
   EventsAdmitTicketStatus429,
 } from "./EventsAdmitTicket.js";
 export type {
+  EventsApproveOrganiserBody,
+  EventsApproveOrganiserOptions,
+  EventsApproveOrganiserPath,
+  EventsApproveOrganiserResponse,
+  EventsApproveOrganiserResponses,
+  EventsApproveOrganiserStatus200,
+  EventsApproveOrganiserStatus401,
+  EventsApproveOrganiserStatus403,
+  EventsApproveOrganiserStatus404,
+  EventsApproveOrganiserStatus409,
+  EventsApproveOrganiserStatus422,
+} from "./EventsApproveOrganiser.js";
+export type {
   EventsBlockMemberOptions,
   EventsBlockMemberPath,
   EventsBlockMemberResponse,
@@ -2814,6 +2827,17 @@ export type {
   EventsGetThreadStatus429,
 } from "./EventsGetThread.js";
 export type {
+  EventsGetVerificationCaseOptions,
+  EventsGetVerificationCasePath,
+  EventsGetVerificationCaseResponse,
+  EventsGetVerificationCaseResponses,
+  EventsGetVerificationCaseStatus200,
+  EventsGetVerificationCaseStatus401,
+  EventsGetVerificationCaseStatus403,
+  EventsGetVerificationCaseStatus404,
+  EventsGetVerificationCaseStatus422,
+} from "./EventsGetVerificationCase.js";
+export type {
   EventsJoinGroupOptions,
   EventsJoinGroupPath,
   EventsJoinGroupResponse,
@@ -2910,6 +2934,17 @@ export type {
   EventsListThreadsStatus429,
 } from "./EventsListThreads.js";
 export type {
+  EventsListVerificationCasesOptions,
+  EventsListVerificationCasesQuery,
+  EventsListVerificationCasesResponse,
+  EventsListVerificationCasesResponses,
+  EventsListVerificationCasesStatus200,
+  EventsListVerificationCasesStatus401,
+  EventsListVerificationCasesStatus403,
+  EventsListVerificationCasesStatus404,
+  EventsListVerificationCasesStatus422,
+} from "./EventsListVerificationCases.js";
+export type {
   EventsOpenThreadBody,
   EventsOpenThreadOptions,
   EventsOpenThreadResponse,
@@ -2967,6 +3002,19 @@ export type {
   EventsRefundTicketStatus429,
 } from "./EventsRefundTicket.js";
 export type {
+  EventsRejectOrganiserBody,
+  EventsRejectOrganiserOptions,
+  EventsRejectOrganiserPath,
+  EventsRejectOrganiserResponse,
+  EventsRejectOrganiserResponses,
+  EventsRejectOrganiserStatus200,
+  EventsRejectOrganiserStatus401,
+  EventsRejectOrganiserStatus403,
+  EventsRejectOrganiserStatus404,
+  EventsRejectOrganiserStatus409,
+  EventsRejectOrganiserStatus422,
+} from "./EventsRejectOrganiser.js";
+export type {
   EventsRemoveConnectionOptions,
   EventsRemoveConnectionPath,
   EventsRemoveConnectionResponse,
@@ -3001,6 +3049,19 @@ export type {
   EventsRequestOrganiserStatus422,
   EventsRequestOrganiserStatus429,
 } from "./EventsRequestOrganiser.js";
+export type {
+  EventsResubmitOrganiserOptions,
+  EventsResubmitOrganiserQuery,
+  EventsResubmitOrganiserResponse,
+  EventsResubmitOrganiserResponses,
+  EventsResubmitOrganiserStatus200,
+  EventsResubmitOrganiserStatus401,
+  EventsResubmitOrganiserStatus403,
+  EventsResubmitOrganiserStatus404,
+  EventsResubmitOrganiserStatus409,
+  EventsResubmitOrganiserStatus422,
+  EventsResubmitOrganiserStatus429,
+} from "./EventsResubmitOrganiser.js";
 export type {
   EventsReviewOrganiserBody,
   EventsReviewOrganiserOptions,
@@ -7663,8 +7724,19 @@ export type {
 export type { ValidationErrorItem } from "./ValidationErrorItem.js";
 export type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 export type { VapidPublicKey } from "./VapidPublicKey.js";
+export type { VerificationApproval } from "./VerificationApproval.js";
+export type { VerificationCase } from "./VerificationCase.js";
+export type { VerificationCaseDetail } from "./VerificationCaseDetail.js";
+export type { VerificationCaseEvent } from "./VerificationCaseEvent.js";
+export type { VerificationCaseList } from "./VerificationCaseList.js";
+export type { VerificationCaseOwner } from "./VerificationCaseOwner.js";
+export type { VerificationCaseOwnerPropertiesRoleEnum } from "./VerificationCaseOwnerPropertiesRoleEnum.js";
+export { verificationCaseOwnerPropertiesRoleEnum } from "./VerificationCaseOwnerPropertiesRoleEnum.js";
 export type { VerificationDecision } from "./VerificationDecision.js";
+export type { VerificationRejection } from "./VerificationRejection.js";
 export type { VerificationResend } from "./VerificationResend.js";
+export type { VerificationStatus } from "./VerificationStatus.js";
+export { verificationStatus } from "./VerificationStatus.js";
 export type { WeatherImage } from "./WeatherImage.js";
 export type { WebhookAdminDisable } from "./WebhookAdminDisable.js";
 export type { WebhookDeliveryList } from "./WebhookDeliveryList.js";
