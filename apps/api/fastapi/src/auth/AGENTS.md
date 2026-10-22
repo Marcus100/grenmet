@@ -19,7 +19,7 @@
 - **CMS access:** `User.cms_access` is superuser-managed and independent of employment. CMS issues app-scoped tokens; live identity and session exchange recheck grants, and changes revoke CMS sessions.
 - `permissions.py` is the single catalogue. Every key passed to `require_permission(..., permission_key=...)` must exist in `PERMISSIONS`; `tests/auth/test_permission_registry.py` fails otherwise. Seeders are idempotent and run at prestart.
 - Authorization matches on `Permission.key` only; `action`/`entity`/`access` columns are derived metadata.
-- Keys with `binding="organisation"` (ADR-0044, e.g. `events.door.scan`) are held inside one organisation and are denied by `has_permission`/`require_permission`; they resolve only through `organisations.grants` (`require_org_permission`).
+- Keys with `binding="organisation"` (ADR-0044, e.g. `events.door.scan`) are held inside one organisation and are denied by `has_permission`/`require_permission`; product keys resolve only through `organisations.grants` (`require_org_permission`). API-key scope aliases (`bookings.read`, `payments.write`, ...) also carry `binding="organisation"` but resolve through API-key scopes (ADR-0029); `grants` excludes them.
 - JWT via PyJWT (`import jwt`) only. Never `python-jose`.
 - Superuser-only actions (granting superuser, editing role/permission definitions) are enforced in routes, not by a permission key.
 - App-scoped tokens carry an `app` claim; `get_current_user` must keep refusing them, and app routes must use `app_user(key)`/`optional_app_user(key)`. Self-service accounts keep `registration_pending=True`.

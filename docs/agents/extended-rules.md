@@ -19,8 +19,8 @@ design tokens, branding, telemetry, monitoring or CI workflows.
 
 ## Form patterns (React 19)
 
-- An uncontrolled `<form action={fn}>` is reset by React 19 after the action settles, even on a refusal, which wipes what the user typed. For `useActionState` forms whose success redirects or unmounts, submit through `onSubmit` + `startTransition` (`keepValuesOnSubmit`, `apps/web/bookings/src/lib/keep-values.ts`); otherwise return the submitted values from the action and use them as `defaultValue`.
-- A page-level form that only has `onSubmit` falls back to a native GET before hydration, which puts passwords and personal data in the URL. Disable its submit until hydrated (`useHydrated()`, `use-hydrated.ts` in the auth and bookings apps). Never rely on a handler that has not attached yet.
+- An uncontrolled `<form action={fn}>` is reset by React 19 after the action settles, even on a refusal, which wipes what the user typed. For `useActionState` forms whose success redirects or unmounts, submit through `onSubmit` + `startTransition` (`keepValuesOnSubmit`, `apps/web/bookings/src/lib/keep-values.ts`); otherwise return the submitted values from the action and use them as `defaultValue` (the studio Settings forms use `keepTyped`, `settings-ui.tsx`).
+- A page-level form that only has `onSubmit` falls back to a native GET before hydration, which puts passwords and personal data in the URL. Disable its submit until hydrated (`useHydrated()`, `use-hydrated.ts` in the auth and bookings apps). Never rely on a handler that has not attached yet. Known gap: the bookings studio Settings forms do not wait for `useHydrated()` yet.
 
 ## Telemetry, Sentry and monitoring
 
