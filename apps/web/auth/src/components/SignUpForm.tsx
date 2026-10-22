@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { startTransition, useActionState } from "react";
 import { signUpAction } from "@/app/actions";
 import { initialSignUpState } from "@/app/actions-types";
 import {
@@ -19,6 +19,16 @@ export function SignUpForm() {
     signUpAction,
     initialSignUpState
   );
+
+  // React 19 resets an uncontrolled <form action> after the action settles,
+  // wiping the names on a refusal. Submit via onSubmit so nothing is reset.
+  function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(() => {
+      formAction(data);
+    });
+  }
 
   if (state.success) {
     return (
@@ -49,7 +59,7 @@ export function SignUpForm() {
   }
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form className="space-y-5" onSubmit={submit}>
       {state.error ? (
         <div className={errorBoxClass} role="alert">
           {state.error}

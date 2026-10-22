@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 const createBookingAction = vi.hoisted(() => vi.fn());
@@ -107,8 +107,25 @@ describe("new booking form", () => {
     fireEvent.change(screen.getByLabelText("Notes (optional)"), {
       target: { value: "Prefers the quiet room" },
     });
+    const firstKey = document.querySelector<HTMLInputElement>(
+      'input[name="idempotencyKey"]'
+    )?.value;
     fireEvent.click(screen.getByRole("button", { name: "Save booking" }));
     await screen.findByText("That time is taken.");
+    const sent = createBookingAction.mock.calls[0]?.[2] as FormData;
+    expect(sent.get("idempotencyKey")).toBe(firstKey);
+    // A refused (conflict) submit rotates the key; the retry carries the new one.
+    await waitFor(() =>
+      expect(
+        document.querySelector<HTMLInputElement>('input[name="idempotencyKey"]')
+          ?.value
+      ).not.toBe(firstKey)
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Save booking" }));
+    await waitFor(() => expect(createBookingAction).toHaveBeenCalledTimes(2));
+    const retry = createBookingAction.mock.calls[1]?.[2] as FormData;
+    expect(retry.get("idempotencyKey")).not.toBe(firstKey);
+    expect(retry.get("idempotencyKey")).toMatch(UUID);
     expect(screen.getByLabelText("Customer name")).toHaveValue("Ada Lovelace");
     expect(screen.getByLabelText("Start time")).toHaveValue("10:30");
     expect(screen.getByLabelText("Notes (optional)")).toHaveValue(

@@ -187,8 +187,12 @@ describe("record deposit", () => {
     fireEvent.change(screen.getByLabelText("How was it paid?"), {
       target: { value: "cheque" },
     });
+    const firstKey = key();
     fireEvent.click(screen.getByRole("button", { name: "Record deposit" }));
     await screen.findByText("We could not save that change.");
+    const sent = recordDepositAction.mock.calls[0]?.[3] as FormData;
+    expect(sent.get("idempotencyKey")).toBe(firstKey);
+    expect(sent.get("reference")).toBe("CHQ-1042");
     expect(screen.getByLabelText("Reference (optional)")).toHaveValue(
       "CHQ-1042"
     );

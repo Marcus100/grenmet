@@ -145,7 +145,7 @@ describe("decision forms", () => {
     expect(alert.textContent).toMatch(RE_8);
   });
 
-  it("keeps the typed reason after a refused rejection", async () => {
+  it("regression: the typed reason survives a refused rejection", async () => {
     render(
       <RejectForm
         action={(_previous, data) =>
@@ -164,7 +164,7 @@ describe("decision forms", () => {
     );
   });
 
-  it("keeps the typed reason when the action throws", async () => {
+  it("keeps the typed reason when the action throws (fails without the guard fix)", async () => {
     render(
       <RejectForm
         action={() => Promise.reject(new Error("network"))}
@@ -181,7 +181,7 @@ describe("decision forms", () => {
     );
   });
 
-  it("keeps the typed note after a refused approval", async () => {
+  it("regression: the typed note survives a refused approval", async () => {
     render(
       <ApproveForm
         action={(_previous, data) =>
