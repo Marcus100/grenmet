@@ -22,6 +22,7 @@ import {
   eventsRemoveConnection,
   eventsRequestConnection,
   eventsRequestOrganiser,
+  eventsResubmitOrganiser,
   eventsRsvpListing,
   eventsSaveListing,
   eventsSellOutletTickets,
@@ -339,6 +340,44 @@ export async function requestOrganiser(organiser: OrganiserCreate) {
     await rememberOrganiser(created.slug);
     return created.slug;
   });
+}
+
+/** The API's 409 when the organiser is not in the rejected state. */
+const NOT_REJECTED_PREFIX = "Only a rejected request can be resubmitted";
+
+/**
+ * Puts a rejected organiser back in the moderation queue. The organiser is
+ * resolved here from the member's cookie (never sent by the browser) and the
+ * API checks they own or administer it. A 409 means it is no longer rejected
+ * (a double click, or a moderator already decided): the outcome is
+ * "unchanged", not an error, so a repeat converges.
+ */
+export async function resubmitOrganiser(): Promise<
+  ActionResult<"resubmitted" | "unchanged">
+> {
+  const organiser = await chosenOrganiser();
+  const session = await getSession();
+  if (!session) {
+    return { ok: false, error: SIGN_IN_REQUIRED };
+  }
+  try {
+    await eventsResubmitOrganiser({
+      ...apiOptions(session.accessToken),
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap();
+    revalidatePath("/", "layout");
+    return { ok: true, data: "resubmitted" };
+  } catch (error) {
+    if (
+      error instanceof ResponseError &&
+      error.status === 409 &&
+      detailOf(error)?.startsWith(NOT_REJECTED_PREFIX)
+    ) {
+      revalidatePath("/", "layout");
+      return { ok: true, data: "unchanged" };
+    }
+    return failureOf(error, "events-organiser", false);
+  }
 }
 
 /**

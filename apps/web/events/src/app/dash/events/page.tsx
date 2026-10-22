@@ -82,6 +82,8 @@ export default async function DashEventsPage() {
                   <EventFlyer
                     category={event.category}
                     className="w-full sm:w-36"
+                    imageAlt={`Cover image for ${event.title}`}
+                    imageFileId={event.imageFileId}
                     startsAt={event.startsAt}
                   />
                   <div className="min-w-0 flex-1 space-y-1">
