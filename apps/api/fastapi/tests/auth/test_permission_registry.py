@@ -174,3 +174,79 @@ async def test_staff_role_cannot_be_given_organisation_keys(
             body=RolePermissionsInput(permission_keys=["events.door.scan"]),
         )
     assert raised.value.status_code == 400
+
+
+def test_superuser_is_not_granted_organisation_key_through_has_permission() -> None:
+    import uuid
+
+    from src.auth.models import User
+    from src.auth.policy import has_permission
+
+    superuser = User(id=uuid.uuid4(), is_superuser=True, roles=[])
+    assert (
+        has_permission(current_user=superuser, permission_key="events.door.scan")
+        is False
+    )
+    assert (
+        has_permission(current_user=superuser, permission_key="bookings.read") is False
+    )
+    assert has_permission(current_user=superuser, permission_key="user.manage") is True
+
+
+async def test_role_with_scope_key_can_be_saved_and_cleaned(
+    db_async: AsyncSession,
+) -> None:
+    from sqlalchemy.orm import selectinload
+
+    from src.auth.models import User
+    from src.baseline.schemas import RolePermissionsInput
+    from src.baseline.service import update_role_configuration
+
+    await seed_permissions_and_roles_async(db_async)
+    role = (
+        (
+            await db_async.execute(
+                select(Role)
+                .where(Role.name == "events-member")
+                .options(selectinload(Role.permissions))
+            )
+        )
+        .scalars()
+        .one()
+    )
+    scope = (
+        (
+            await db_async.execute(
+                select(Permission).where(Permission.key == "bookings.read")
+            )
+        )
+        .scalars()
+        .one()
+    )
+    role.permissions = [*role.permissions, scope]
+    await db_async.commit()
+    keys = ["app.events.access", "bookings.read"]
+    actor = User(
+        username="roleadmin",
+        first_name="Role",
+        last_name="Admin",
+        email="roleadmin@example.com",
+        hashed_password="unused",
+        is_superuser=True,
+    )
+    db_async.add(actor)
+    await db_async.flush()
+    kept = await update_role_configuration(
+        session=db_async,
+        current_user=actor,
+        role_id=role.id,
+        body=RolePermissionsInput(permission_keys=keys),
+    )
+    assert "bookings.read" in kept.permission_keys
+    removed = await update_role_configuration(
+        session=db_async,
+        current_user=actor,
+        role_id=role.id,
+        body=RolePermissionsInput(permission_keys=["app.events.access"]),
+    )
+    assert removed.permission_keys == ["app.events.access"]

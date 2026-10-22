@@ -29,6 +29,9 @@ class PermissionDef:
     ``binding`` says where the key can be held (ADR-0044): ``global`` keys are
     granted to staff through roles; ``organisation`` keys only mean something
     inside one organisation and never appear in the staff role editor.
+    Organisation keys are resolved only through OrgContext and the organisation
+    resolver, never through ``has_permission`` / ``require_permission``, which
+    deny them (a superuser bypass or a staff role must not grant them).
     """
 
     key: str

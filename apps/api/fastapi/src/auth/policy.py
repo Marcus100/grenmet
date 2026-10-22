@@ -5,6 +5,7 @@ from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.permissions import ORGANISATION_BOUND_KEYS
 from src.exceptions import AuthorizationError
 from src.utils.datetime import utc_now
 
@@ -50,6 +51,15 @@ async def _active_assignments(
 
 
 def has_permission(*, current_user: User, permission_key: str) -> bool:
+    # Organisation-bound keys are resolved only through OrgContext and the
+    # organisation resolver (ADR-0044), never here: this path gives superusers
+    # every key and lets a staff role pass outside any organisation.
+    if permission_key.strip().lower() in ORGANISATION_BOUND_KEYS:
+        logger.warning(
+            "Organisation-bound permission asked of the global check",
+            extra={"user_id": str(current_user.id), "permission_key": permission_key},
+        )
+        return False
     if current_user.is_superuser:
         return True
     normalized_permission_key = permission_key.strip().lower()

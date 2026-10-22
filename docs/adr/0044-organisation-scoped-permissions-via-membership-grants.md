@@ -16,7 +16,7 @@ a product, and the only finer-grained keys are API-key scopes (ADR-0029).
 
 Constraints: one permission vocabulary (`src/auth/permissions.py` is
 owner-reviewed, ADR-0031 keeps domain wiring separate), no superuser bypass
-(ADR-0022), staff roles (ADR-0018, ADR-0039) must stay uncluttered, and the
+(`apps/api/fastapi/src/organisations/AGENTS.md` and `src/organisations/dependencies.py`), staff roles (ADR-0018, ADR-0039) must stay uncluttered, and the
 staff role editor must not offer keys that mean nothing outside an organisation.
 
 ## Evidence
@@ -79,9 +79,10 @@ Choose C.
   product; plain `member` holds nothing extra (so no Events permissions by default).
 - Effective set = implicit bundle union granted bundles, intersected with the
   organisation's entitled products.
-- Superusers get no bypass (ADR-0022).
+- Superusers get no bypass (the rule lives in `apps/api/fastapi/src/organisations/AGENTS.md` and `src/organisations/dependencies.py`).
+- Organisation-bound keys are resolved only through `OrgContext` and the S1 resolver, never through `has_permission` or `require_permission`. `has_permission` returns True for every key of a superuser (`src/auth/policy.py`), which would be the bypass above, and a staff role that already holds a scope key would pass outside any organisation. S0 therefore makes `has_permission` deny organisation-bound keys (and log); a test covers a superuser without membership.
 - API-key scopes are organisation keys and never wider than the creator.
-  `bookings.read` and `bookings.write` stay as compatibility aliases.
+  All ten API-key scope keys (`<product>.read` and `<product>.write` for bookings, rewards, contacts, payments and webhooks) stay as compatibility aliases for the fine-grained keys.
 - A grantor must hold every key in the bundle and the product's `<product>.team.manage`.
   The last-owner guard is unchanged.
 - HR keeps `user_role_assignment` until ADR-0022 Phase 3.
