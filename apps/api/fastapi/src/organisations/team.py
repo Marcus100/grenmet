@@ -8,16 +8,18 @@ conflict mapping, and the issued-grants review list. Functions flush; the router
 commits and rolls back on error.
 """
 
-from collections.abc import AsyncIterator
+import logging
+from collections.abc import AsyncIterator, Awaitable
 from contextlib import asynccontextmanager
 from datetime import datetime
 
 from sqlalchemy import select
-from sqlalchemy.exc import DBAPIError, IntegrityError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from src.auth.models import User
+from src.exceptions import AppException
 from src.organisations import grants, role_bundles
 from src.organisations.dependencies import OrgContext
 from src.organisations.exceptions import (
@@ -27,8 +29,11 @@ from src.organisations.exceptions import (
 from src.organisations.models import Membership, MembershipGrant, MembershipStatus
 from src.organisations.schemas import MembershipGrantPublic, RoleBundlePublic
 
-# Postgres: deadlock_detected, serialization_failure, unique_violation.
-_CONFLICT_SQLSTATES = frozenset({"40P01", "40001", "23505"})
+logger = logging.getLogger(__name__)
+
+# Postgres: unique_violation, deadlock_detected, serialization_failure. Any other
+# integrity error is a bug, not a lost race: it surfaces as a 500.
+_CONFLICT_SQLSTATES = frozenset({"23505", "40P01", "40001"})
 
 
 def _sqlstate(exc: DBAPIError) -> str | None:
@@ -46,12 +51,25 @@ async def conflicts_as_409() -> AsyncIterator[None]:
     """Map lost races (unique violation, deadlock, serialization failure) to 409."""
     try:
         yield
-    except IntegrityError:
-        raise GrantConflictError() from None
-    except DBAPIError as exc:
-        if _sqlstate(exc) in _CONFLICT_SQLSTATES:
+    except DBAPIError as exc:  # IntegrityError is a subclass
+        state = _sqlstate(exc)
+        if state in _CONFLICT_SQLSTATES:
             raise GrantConflictError() from None
+        logger.error("Unexpected database error", extra={"sqlstate": state})
         raise
+
+
+async def run_and_commit[T](session: AsyncSession, work: Awaitable[T]) -> T:
+    """Await ``work`` and commit; lost races become 409 and any ``AppException``
+    rolls the transaction back before it propagates."""
+    try:
+        async with conflicts_as_409():
+            result = await work
+            await session.commit()
+    except AppException:
+        await session.rollback()
+        raise
+    return result
 
 
 def _name(user: User | None) -> str | None:
@@ -117,8 +135,17 @@ async def list_member_grants(
     session: AsyncSession, context: OrgContext, *, membership_id: str
 ) -> list[MembershipGrantPublic]:
     await _active_membership(session, context.organisation_id, membership_id)
+    held = await grants.effective_keys(session, membership=context.membership)
+    # Only products whose team-manage key the caller holds (owner and admin: every
+    # entitled product); a lead never reads another product's roles.
+    products = {
+        role_bundles.product_of_key(k) for k in held if k.endswith(".team.manage")
+    }
     live = await grants.list_grants(
-        session, organisation_id=context.organisation_id, membership_id=membership_id
+        session,
+        organisation_id=context.organisation_id,
+        membership_id=membership_id,
+        products=products,
     )
     return await _to_public(session, live)
 
@@ -145,7 +172,8 @@ async def list_issued(
     session: AsyncSession, context: OrgContext, *, membership_id: str
 ) -> list[MembershipGrantPublic]:
     """Live grants issued by the person behind ``membership_id`` (any status), for
-    admins reviewing a demoted member's handouts."""
+    admins reviewing a demoted member's handouts. Direct grants only: grants made
+    by the people they granted to are not followed."""
     membership = await session.scalar(
         select(Membership).where(
             Membership.id == membership_id,

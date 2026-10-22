@@ -11,7 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.audit.models import AuditEntry
 from src.organisations import grants, service
 from src.organisations.dependencies import OrgContext
-from src.organisations.exceptions import GrantConflictError
+from src.organisations.exceptions import GrantConflictError, GrantNotHeldError
+from src.organisations.members import apply_removal
 from src.organisations.models import Membership, MembershipGrant, MembershipRole
 from src.organisations.team import conflicts_as_409
 from src.utils.datetime import utc_now
@@ -377,6 +378,12 @@ async def test_removing_an_issuer_revokes_what_they_issued_and_demotion_lists_it
         )
     ).all()
     assert rows and all(r.revoked_at is not None for r in rows)
+    count_entry = await db_async.scalar(
+        select(AuditEntry).where(
+            AuditEntry.entity_id == org.id, AuditEntry.action == "revoke_issued_grants"
+        )
+    )
+    assert count_entry is not None and count_entry.actor_user_id == owner.id
     # Audit: the removal's revocations name the person who removed them.
     updates = list(
         (
@@ -394,14 +401,99 @@ async def test_removing_an_issuer_revokes_what_they_issued_and_demotion_lists_it
 
 async def test_conflicts_map_to_409():
     class _Cause(Exception):
-        sqlstate = "40P01"
+        def __init__(self, state: str) -> None:
+            self.sqlstate = state
 
-    with pytest.raises(GrantConflictError):
+    for state in ("40P01", "40001", "23505"):
+        with pytest.raises(GrantConflictError):
+            async with conflicts_as_409():
+                raise DBAPIError("stmt", {}, _Cause(state))
+    # Other integrity errors (or unknown driver errors) are bugs, not races.
+    with pytest.raises(IntegrityError):
         async with conflicts_as_409():
-            raise DBAPIError("stmt", {}, _Cause())
-    with pytest.raises(GrantConflictError):
-        async with conflicts_as_409():
-            raise IntegrityError("stmt", {}, Exception())
+            raise IntegrityError("stmt", {}, _Cause("23503"))
     with pytest.raises(DBAPIError):
         async with conflicts_as_409():
             raise DBAPIError("stmt", {}, Exception())
+
+
+async def test_revoke_checks_authority_before_returning_a_revoked_grant(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    owner, lead, other, org = await _world(db_async)
+    await _seed_grant(db_async, owner, org, lead, "events-team")
+    await _seed_grant(db_async, owner, org, lead, "events-door")
+    till = await _seed_grant(db_async, owner, org, other, "events-till")
+    live = await _seed_grant(db_async, owner, org, other, "events-door")
+    ended = await _seed_grant(db_async, owner, org, other, "events-refunds")
+    ended.revoked_at = utc_now()
+    await db_async.commit()
+
+    headers = headers_for(lead, org.id)
+    for grant_id in (till.id, ended.id):  # live and already revoked, not held
+        response = await async_client.post(
+            f"{API}/grants/{grant_id}/revoke", headers=headers
+        )
+        assert response.status_code == 403
+        assert other.full_name not in response.text
+    await db_async.refresh(till)
+    assert till.revoked_at is None
+    # A bundle they do hold can be revoked; repeating is idempotent.
+    for _ in range(2):
+        assert (
+            await async_client.post(f"{API}/grants/{live.id}/revoke", headers=headers)
+        ).status_code == 200
+
+
+async def test_listing_is_limited_to_products_the_caller_manages(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    owner, lead, other, org = await _world(db_async)
+    await _seed_grant(db_async, owner, org, other, "events-door")
+    # A role of a product the organisation is not entitled to (retired or foreign).
+    db_async.add(
+        MembershipGrant(
+            id="grant_foreign",
+            membership_id=(await _membership(db_async, org.id, other)).id,
+            organisation_id=org.id,
+            role_key="bookings-agenda",
+            granted_by=owner.id,
+            granted_at=utc_now(),
+        )
+    )
+    await db_async.commit()
+    mid = (await _membership(db_async, org.id, other)).id
+    listed = await async_client.get(
+        f"{API}/members/{mid}/grants", headers=headers_for(owner, org.id)
+    )
+    assert [g["role_key"] for g in listed.json()] == ["events-door"]
+
+
+async def test_grantor_removed_first_cannot_grant(db_async: AsyncSession):
+    owner, lead, other, org = await _world(db_async)
+    await _seed_grant(db_async, owner, org, lead, "events-team")
+    await _seed_grant(db_async, owner, org, lead, "events-door")
+    resolved = await service.resolve_membership(
+        db_async, user_id=lead.id, organisation_id=org.id
+    )
+    stale = OrgContext(
+        organisation=resolved.organisation, membership=resolved.membership, user=lead
+    )
+    lead_row = await _membership(db_async, org.id, lead)
+    await apply_removal(
+        db_async,
+        org.id,
+        lead_row.id,
+        actor_id=owner.id,
+        actor_may_grant_owner=True,
+    )
+    await db_async.commit()
+    target = await _membership(db_async, org.id, other)
+    with pytest.raises(GrantNotHeldError):
+        await grants.grant_role(
+            db_async, stale, membership_id=target.id, role_key="events-door"
+        )
+    assert (
+        await grants.list_issued_by(db_async, organisation_id=org.id, user_id=lead.id)
+        == []
+    )

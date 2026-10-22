@@ -8,7 +8,6 @@ from starlette.requests import Request
 from src.auth.models import User
 from src.dependencies import AccountUser, AdminUser, MfaAdminUser, SessionDep
 from src.events.service import organiser_verification as events_verification
-from src.exceptions import AppException
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgAdmin, OrgMember, OrgTeamManager
 from src.pagination import PaginationDep
@@ -272,7 +271,8 @@ async def list_member_grants(
     response_model=list[MembershipGrantPublic],
     summary="List live grants a member issued",
     description=(
-        "For reviewing a demoted member's handouts. Removing a member revokes "
+        "For reviewing a demoted member's handouts. Direct grants only: grants made "
+        "by the people they granted to are not followed. Removing a member revokes "
         "them automatically; a demotion does not. Admins and owners only."
     ),
     responses={**AUTHENTICATED, **NOT_FOUND},
@@ -304,19 +304,16 @@ async def grant_member_role(
     membership_id: str,
     payload: MembershipGrantCreate,
 ) -> Any:
-    try:
-        result = await team.grant(
+    return await team.run_and_commit(
+        session,
+        team.grant(
             session,
             context,
             membership_id=membership_id,
             role_key=payload.role_key,
             expires_at=payload.expires_at,
-        )
-        await session.commit()
-    except AppException:
-        await session.rollback()
-        raise
-    return result
+        ),
+    )
 
 
 @router.post(
@@ -332,13 +329,9 @@ async def grant_member_role(
 async def revoke_member_grant(
     *, session: SessionDep, context: OrgTeamManager, grant_id: str
 ) -> Any:
-    try:
-        result = await team.revoke(session, context, grant_id=grant_id)
-        await session.commit()
-    except AppException:
-        await session.rollback()
-        raise
-    return result
+    return await team.run_and_commit(
+        session, team.revoke(session, context, grant_id=grant_id)
+    )
 
 
 @router.get(
@@ -901,10 +894,12 @@ async def delete_member_admin(
     payload: PlatformMemberRemove,
 ) -> None:
     _ = request, response
-    await admin_members.remove(
-        session, admin, organisation_id, membership_id, reason=payload.reason
+    await team.run_and_commit(
+        session,
+        admin_members.remove(
+            session, admin, organisation_id, membership_id, reason=payload.reason
+        ),
     )
-    await session.commit()
 
 
 # ── Membership management (F4) ───────────────────────────────────────────────
@@ -996,8 +991,9 @@ async def delete_member(
     membership_id: str,
 ) -> None:
     _require_path_match(context, organisation_id)
-    await members.remove_member(session, context, membership_id)
-    await session.commit()
+    await team.run_and_commit(
+        session, members.remove_member(session, context, membership_id)
+    )
 
 
 @router.get(

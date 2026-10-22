@@ -648,7 +648,9 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   `team.manage` key (owner and admin implicitly); the grant rules (hold the bundle,
   no self-grant 403, expiry cap 422, duplicate or lost race 409) live in
   `grants.py`. Responses carry display names, never emails. Removing a member also
-  revokes live grants they issued; a demotion only lists them.
+  revokes live grants they issued (audited with a count); a demotion only lists them.
+  `issued-grants` lists direct grants only: revocation is not transitive. Member grant
+  lists show only products whose `team.manage` the caller holds.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
   which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`

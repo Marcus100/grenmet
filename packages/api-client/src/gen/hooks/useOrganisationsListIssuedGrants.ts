@@ -67,7 +67,7 @@ export function organisationsListIssuedGrantsQueryOptions(
 }
 
 /**
- * @description For reviewing a demoted member's handouts. Removing a member revokes them automatically; a demotion does not. Admins and owners only.
+ * @description For reviewing a demoted member's handouts. Direct grants only: grants made by the people they granted to are not followed. Removing a member revokes them automatically; a demotion does not. Admins and owners only.
  * @summary List live grants a member issued
  * {@link /api/v1/organisations/org/members/:membership_id/issued-grants}
  */
