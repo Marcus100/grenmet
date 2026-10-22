@@ -312,7 +312,7 @@ async def test_a_grant_alone_does_not_open_legacy_manage_routes(
 ) -> None:
     """Legacy /events/manage/* still uses the organiser gate (owner/admin or the
     legacy permission), so an organisation grant on a plain member opens nothing
-    there. Documents why the entitlement is not yet a kill switch for owners."""
+    there. The entitlement switch for owners is tested in test_legacy_entitlement.py."""
     shop = await _shop_with_events(db_async, events_db)
     member = await _member(db_async, shop, "events-manager")
     async with client_with_real_roles(member) as client:

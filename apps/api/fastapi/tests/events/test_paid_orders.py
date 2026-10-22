@@ -96,7 +96,7 @@ async def _shop(
     *,
     allocation: int = 3,
     limit: int = 4,
-    apps: tuple[str, ...] = ("payments",),
+    apps: tuple[str, ...] = ("payments", "events"),
     linked: bool = True,
 ) -> Shop:
     owner = await make_user(db)
