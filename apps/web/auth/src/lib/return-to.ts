@@ -42,7 +42,13 @@ function originsFromEntry(entry: string): string[] {
   if (entry.startsWith(".") || entry.includes("*")) return [];
   if (entry.includes("://")) {
     const origin = originOf(entry);
-    return origin ? [origin] : [];
+    if (!origin) return [];
+    // Same rules as a bare host: in production only https, never localhost.
+    if (env.NODE_ENV === "production") {
+      const url = new URL(origin);
+      if (url.protocol !== "https:" || isLocalHost(url.hostname)) return [];
+    }
+    return [origin];
   }
   if (!BARE_HOST.test(entry)) return [];
   const hostname = entry.split(":")[0] ?? "";
@@ -104,6 +110,14 @@ function hasAmbiguousCharacters(value: string): boolean {
   return false;
 }
 
+function decoded(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 export function readQueryParam(
   value: string | string[] | undefined
 ): string | null {
@@ -121,6 +135,11 @@ export function getSafeReturnTo(
   const value = returnTo.trim();
   if (!value) return null;
 
+  // Raw and percent-decoded: a decoded CR/LF or NUL must never reach redirect().
+  if (hasAmbiguousCharacters(value) || hasAmbiguousCharacters(decoded(value))) {
+    return null;
+  }
+
   if (value.startsWith("/")) {
     try {
       const base = "https://return.invalid";
@@ -129,8 +148,6 @@ export function getSafeReturnTo(
       return null;
     }
   }
-
-  if (hasAmbiguousCharacters(value)) return null;
 
   try {
     const parsedUrl = new URL(value);

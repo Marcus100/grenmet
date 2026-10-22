@@ -188,6 +188,45 @@ describe("getSafeReturnTo: look-alikes and parser tricks", () => {
   });
 });
 
+describe("getSafeReturnTo: origin entries and control characters", () => {
+  it("applies the production rules to full-origin entries", () => {
+    configure({
+      hosts:
+        "http://localhost:3015,http://admin.barrels.gd,https://localhost:3015,https://ok.barrels.gd",
+    });
+    expect(getSafeReturnTo("http://localhost:3015/")).toBeNull();
+    expect(getSafeReturnTo("https://localhost:3015/")).toBeNull();
+    expect(getSafeReturnTo("http://admin.barrels.gd/")).toBeNull();
+    expect(getSafeReturnTo("https://ok.barrels.gd/")).toBe(
+      "https://ok.barrels.gd/"
+    );
+  });
+
+  it("allows an http localhost origin entry outside production", () => {
+    configure({ nodeEnv: "test", hosts: "http://localhost:3015" });
+    expect(getSafeReturnTo("http://localhost:3015/")).toBe(
+      "http://localhost:3015/"
+    );
+  });
+
+  for (const attempt of [
+    "/x%0d%0aSet-Cookie:a=b",
+    "/x%0D%0A",
+    "/x%09y",
+    "/x%00",
+    "/x\u0000y",
+    "/x\ty",
+    "/x\r\nSet-Cookie:a=b",
+    "https://admin.barrels.gd/x%0d%0aSet-Cookie:a=b",
+    "https://admin.barrels.gd/x%00",
+  ]) {
+    it(`refuses ${JSON.stringify(attempt)}`, () => {
+      configure({ apps: DEPLOYED });
+      expect(getSafeReturnTo(attempt)).toBeNull();
+    });
+  }
+});
+
 describe("getSafeReturnTo: local development", () => {
   it("allows the local app ports only when NODE_ENV is development", () => {
     configure({ nodeEnv: "development" });
