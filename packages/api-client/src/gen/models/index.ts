@@ -24,6 +24,7 @@ export type { ActivityEntry } from "./ActivityEntry.js";
 export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
 export type { AdjustmentCreate } from "./AdjustmentCreate.js";
+export type { AdminActivation } from "./AdminActivation.js";
 export type { AdmissionCreate } from "./AdmissionCreate.js";
 export type { AdmissionPublic } from "./AdmissionPublic.js";
 export type { AgeingBucket } from "./AgeingBucket.js";
@@ -113,6 +114,30 @@ export type {
   AuthAccountEmailCodeVerifyStatus422,
   AuthAccountEmailCodeVerifyStatus429,
 } from "./AuthAccountEmailCodeVerify.js";
+export type {
+  AuthAdminActivateAccountBody,
+  AuthAdminActivateAccountOptions,
+  AuthAdminActivateAccountPath,
+  AuthAdminActivateAccountResponse,
+  AuthAdminActivateAccountResponses,
+  AuthAdminActivateAccountStatus200,
+  AuthAdminActivateAccountStatus403,
+  AuthAdminActivateAccountStatus404,
+  AuthAdminActivateAccountStatus409,
+  AuthAdminActivateAccountStatus422,
+} from "./AuthAdminActivateAccount.js";
+export type {
+  AuthAdminResendVerificationBody,
+  AuthAdminResendVerificationOptions,
+  AuthAdminResendVerificationPath,
+  AuthAdminResendVerificationResponse,
+  AuthAdminResendVerificationResponses,
+  AuthAdminResendVerificationStatus200,
+  AuthAdminResendVerificationStatus403,
+  AuthAdminResendVerificationStatus404,
+  AuthAdminResendVerificationStatus409,
+  AuthAdminResendVerificationStatus422,
+} from "./AuthAdminResendVerification.js";
 export type {
   AuthAppEmailCodeStartBody,
   AuthAppEmailCodeStartOptions,
@@ -5487,6 +5512,19 @@ export type {
   OrganisationsAcceptInvitationStatus422,
 } from "./OrganisationsAcceptInvitation.js";
 export type {
+  OrganisationsAddMemberAdminBody,
+  OrganisationsAddMemberAdminOptions,
+  OrganisationsAddMemberAdminPath,
+  OrganisationsAddMemberAdminResponse,
+  OrganisationsAddMemberAdminResponses,
+  OrganisationsAddMemberAdminStatus201,
+  OrganisationsAddMemberAdminStatus401,
+  OrganisationsAddMemberAdminStatus403,
+  OrganisationsAddMemberAdminStatus404,
+  OrganisationsAddMemberAdminStatus409,
+  OrganisationsAddMemberAdminStatus422,
+} from "./OrganisationsAddMemberAdmin.js";
+export type {
   OrganisationsCreateAdminSiteBody,
   OrganisationsCreateAdminSiteOptions,
   OrganisationsCreateAdminSiteResponse,
@@ -5551,6 +5589,19 @@ export type {
   OrganisationsDeleteMemberStatus409,
   OrganisationsDeleteMemberStatus422,
 } from "./OrganisationsDeleteMember.js";
+export type {
+  OrganisationsDeleteMemberAdminBody,
+  OrganisationsDeleteMemberAdminOptions,
+  OrganisationsDeleteMemberAdminPath,
+  OrganisationsDeleteMemberAdminResponse,
+  OrganisationsDeleteMemberAdminResponses,
+  OrganisationsDeleteMemberAdminStatus204,
+  OrganisationsDeleteMemberAdminStatus401,
+  OrganisationsDeleteMemberAdminStatus403,
+  OrganisationsDeleteMemberAdminStatus404,
+  OrganisationsDeleteMemberAdminStatus409,
+  OrganisationsDeleteMemberAdminStatus422,
+} from "./OrganisationsDeleteMemberAdmin.js";
 export type {
   OrganisationsGetCurrentHeaders,
   OrganisationsGetCurrentOptions,
@@ -5815,6 +5866,19 @@ export type {
   OrganisationsUpdateMemberStatus422,
 } from "./OrganisationsUpdateMember.js";
 export type {
+  OrganisationsUpdateMemberAdminBody,
+  OrganisationsUpdateMemberAdminOptions,
+  OrganisationsUpdateMemberAdminPath,
+  OrganisationsUpdateMemberAdminResponse,
+  OrganisationsUpdateMemberAdminResponses,
+  OrganisationsUpdateMemberAdminStatus200,
+  OrganisationsUpdateMemberAdminStatus401,
+  OrganisationsUpdateMemberAdminStatus403,
+  OrganisationsUpdateMemberAdminStatus404,
+  OrganisationsUpdateMemberAdminStatus409,
+  OrganisationsUpdateMemberAdminStatus422,
+} from "./OrganisationsUpdateMemberAdmin.js";
+export type {
   OrganisationsUpdateOneBody,
   OrganisationsUpdateOneOptions,
   OrganisationsUpdateOnePath,
@@ -6047,6 +6111,9 @@ export type { PersonnelStatus } from "./PersonnelStatus.js";
 export { personnelStatus } from "./PersonnelStatus.js";
 export type { PersonSuggestion } from "./PersonSuggestion.js";
 export type { PlansPublic } from "./PlansPublic.js";
+export type { PlatformMemberAdd } from "./PlatformMemberAdd.js";
+export type { PlatformMemberRemove } from "./PlatformMemberRemove.js";
+export type { PlatformMemberRoleUpdate } from "./PlatformMemberRoleUpdate.js";
 export type { PlatformOrganisationCreate } from "./PlatformOrganisationCreate.js";
 export type { PlatformOrganisationUpdate } from "./PlatformOrganisationUpdate.js";
 export type { PolicyInput } from "./PolicyInput.js";
@@ -7217,6 +7284,7 @@ export { suggestionPublicPropertiesStatusEnum } from "./SuggestionPublicProperti
 export type { SuggestionUpdate } from "./SuggestionUpdate.js";
 export type { SuggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePropertiesStatusEnum.js";
 export { suggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePropertiesStatusEnum.js";
+export type { SuperuserActionReason } from "./SuperuserActionReason.js";
 export type { SwapType } from "./SwapType.js";
 export { swapType } from "./SwapType.js";
 export type { SynopDecoded } from "./SynopDecoded.js";
@@ -7549,6 +7617,7 @@ export type { ValidationErrorItem } from "./ValidationErrorItem.js";
 export type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 export type { VapidPublicKey } from "./VapidPublicKey.js";
 export type { VerificationDecision } from "./VerificationDecision.js";
+export type { VerificationResend } from "./VerificationResend.js";
 export type { WeatherImage } from "./WeatherImage.js";
 export type { WebhookAdminDisable } from "./WebhookAdminDisable.js";
 export type { WebhookDeliveryList } from "./WebhookDeliveryList.js";

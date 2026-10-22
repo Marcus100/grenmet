@@ -1,8 +1,9 @@
 import uuid
-from typing import Annotated
+from typing import Annotated, Self
 
-from pydantic import EmailStr, Field, StringConstraints
+from pydantic import EmailStr, Field, StringConstraints, model_validator
 
+from src.auth.onboarding_schemas import AdminReasonText
 from src.models import BaseModel, UtcDateTime
 from src.organisations.models import (
     MembershipRole,
@@ -55,6 +56,30 @@ class MemberListPublic(BaseModel):
 
 class MemberRoleUpdate(BaseModel):
     role: MembershipRole
+
+
+class PlatformMemberAdd(BaseModel):
+    """Superuser adds a person (by account id or email) as a member, with a reason."""
+
+    user_id: uuid.UUID | None = None
+    email: EmailStr | None = None
+    role: MembershipRole = MembershipRole.MEMBER
+    reason: AdminReasonText
+
+    @model_validator(mode="after")
+    def _exactly_one_target(self) -> Self:
+        if (self.user_id is None) == (self.email is None):
+            raise ValueError("give exactly one of user_id or email")
+        return self
+
+
+class PlatformMemberRoleUpdate(BaseModel):
+    role: MembershipRole
+    reason: AdminReasonText
+
+
+class PlatformMemberRemove(BaseModel):
+    reason: AdminReasonText
 
 
 class InvitationCreate(BaseModel):

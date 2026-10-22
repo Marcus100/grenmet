@@ -16,5 +16,10 @@ export type OnboardingStatus = {
   password_setup_pending: boolean;
   activation_pending: boolean;
   can_issue_activation: boolean;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  admin_activated?: boolean;
   apps: AppAccessStatus[];
 };
