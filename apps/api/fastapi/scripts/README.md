@@ -30,6 +30,8 @@ python scripts/seed_data.py --reset    # clear test users first, then create
 python scripts/clear_seed_data.py      # remove test users only
 ```
 
+Staging only: `seed_staging_demo.py` creates a synthetic studio (bookings in every state, a deposit service) and a verified and a pending events organiser with orders. It refuses unless `ENVIRONMENT=staging` and `DEMO_SEED_ENABLED=true` (see `docs/env.md`); it previews by default and `--apply` writes. Safe to repeat.
+
 Or via docker compose from `apps/api/fastapi`:
 
 ```bash
