@@ -658,7 +658,9 @@ Some older auth endpoints still use `skip` and `limit`. New list endpoints shoul
 | Endpoint | Meaning | Expected response |
 | --- | --- | --- |
 | `GET /api/v1/utils/health-check/` | Liveness | JSON `true` |
-| `GET /api/v1/utils/ready/` | Database readiness | `{"status":"ready"}` or 503 |
+| `GET /api/v1/utils/ready/` | Database readiness | `{"status":"ready"}` or 503 `{"detail":"Database unreachable"}` |
+
+Readiness returns the 503 as a response, not a raised exception, so expected not-ready probes are not reported to Sentry. Only database (SQLAlchemy and asyncpg, including connect-time errors), I/O, timeout and schema-revision failures map to 503; any other exception stays a reported 500 (including a failure to read the migration heads).
 
 Deployment smoke checks currently use liveness. Operational diagnosis should use readiness when database access matters.
 
@@ -710,6 +712,19 @@ entitlement, `POST /bookings/public/{slug}/bookings` answers a booking in
 mode; null when the business records payment itself). Unpaid bookings are cancelled
 and their slot released after `BOOKINGS_DEPOSIT_HOLD_MINUTES` (30). Both receipt
 fields are additive.
+
+Email code before a deposit (#471, ADR-0018): a deposit booking needs `email_proof` in
+the create body unless the caller is a signed-in account (any session, including the
+bookings app's) whose verified or administrator-activated email equals
+`customer_email`. Without it the create answers 403 `email_verification_required` and
+stores nothing. `POST /bookings/public/{slug}/email-code` (`service_id`, `starts_at`,
+`customer_email`, Turnstile; 5/minute and 20/hour per visitor, 5 per email per hour)
+emails a 6-digit code (10 minutes) and answers `{required, expires_in_seconds}`
+(`required: false` and no mail when no step applies). `POST
+/bookings/public/{slug}/email-code/confirm` (same fields plus `code`) answers `{proof,
+expires_in_seconds}`: wrong or expired 400, five wrong answers lock the email for 15
+minutes (429), Redis down 503. The proof is single use, valid 15 minutes and bound to
+organisation, email, service and start time. Both routes and `email_proof` are additive.
 
 ## Billing
 

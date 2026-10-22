@@ -9518,7 +9518,139 @@
             "description": "Request conflicts with current state"
           },
           "403": {
-            "description": "A deposit is due and the signed-in account has not verified its email (`email_verification_required`)"
+            "description": "A deposit is due and the email is not verified: no valid `email_proof` and no signed-in account vouching for it (`email_verification_required`)"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/public/{slug}/email-code": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Email a verification code before a deposit booking",
+        "description": "When a deposit is due for the service, emails a 6-digit code (valid 10 minutes) to `customer_email`. `required: false` means no step is needed (no deposit, or the signed-in account already vouches for the email) and nothing was sent. Applies the organisation's Turnstile policy. Limited per visitor and to 5 codes per email per hour (429). Unknown, disabled and unentitled pages answer 404.",
+        "operationId": "bookingsRequestEmailCode",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 60,
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingEmailCodeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingEmailCodeSent"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "429": {
+            "description": "Too many codes requested or attempts made"
+          },
+          "503": {
+            "description": "Verification is temporarily unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/public/{slug}/email-code/confirm": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Exchange an emailed code for a deposit proof",
+        "description": "Checks the code. A correct code is single use and returns a proof bound to the email, service and start time, valid 15 minutes, to send as `email_proof` when creating the booking. A wrong or expired code is 400; five wrong answers lock the email for 15 minutes (429).",
+        "operationId": "bookingsConfirmEmailCode",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 60,
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingEmailCodeConfirm"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingEmailProof"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "429": {
+            "description": "Too many attempts; locked for a while"
+          },
+          "503": {
+            "description": "Verification is temporarily unavailable"
           }
         }
       }
@@ -25520,7 +25652,14 @@
             }
           },
           "503": {
-            "description": "Database unreachable"
+            "description": "Database unreachable or schema out of date",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessUnavailable"
+                }
+              }
+            }
           }
         }
       }
@@ -46905,6 +47044,120 @@
         ],
         "title": "BookingAvailability"
       },
+      "BookingEmailCodeConfirm": {
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "customer_email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Customer Email"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "title": "Code",
+            "description": "The 6-digit emailed code."
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_id",
+          "starts_at",
+          "customer_email",
+          "code"
+        ],
+        "title": "BookingEmailCodeConfirm"
+      },
+      "BookingEmailCodeRequest": {
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At",
+            "description": "The slot being booked; the proof is bound to it."
+          },
+          "customer_email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Customer Email"
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_id",
+          "starts_at",
+          "customer_email"
+        ],
+        "title": "BookingEmailCodeRequest",
+        "description": "Ask for a code to be emailed before a deposit booking."
+      },
+      "BookingEmailCodeSent": {
+        "properties": {
+          "required": {
+            "type": "boolean",
+            "title": "Required",
+            "description": "False when no step is needed (no deposit is due, or the signed-in account already vouches for the email); nothing was sent."
+          },
+          "expires_in_seconds": {
+            "type": "integer",
+            "title": "Expires In Seconds",
+            "description": "Code lifetime; 0 when `required` is false.",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "required"
+        ],
+        "title": "BookingEmailCodeSent"
+      },
+      "BookingEmailProof": {
+        "properties": {
+          "proof": {
+            "type": "string",
+            "title": "Proof",
+            "description": "Send as `email_proof` when creating the booking."
+          },
+          "expires_in_seconds": {
+            "type": "integer",
+            "title": "Expires In Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "proof",
+          "expires_in_seconds"
+        ],
+        "title": "BookingEmailProof"
+      },
       "BookingExceptionCreate": {
         "properties": {
           "kind": {
@@ -47564,6 +47817,19 @@
             "type": "boolean",
             "title": "Marketing Consent",
             "default": false
+          },
+          "email_proof": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1024
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Proof",
+            "description": "Proof from `confirm-email-code`. Needed only when a deposit is due and the caller is not a signed-in account that already vouches for `customer_email`. Bound to this email, service and start time; single use."
           },
           "turnstile_token": {
             "anyOf": [
@@ -68482,6 +68748,20 @@
         },
         "type": "object",
         "title": "QcDecisionRequest"
+      },
+      "ReadinessUnavailable": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ReadinessUnavailable",
+        "description": "Body returned when the API cannot serve requests because its database is unavailable or its schema is out of date."
       },
       "ReceivableRowPublic": {
         "properties": {

@@ -996,6 +996,10 @@ export { bookingAgendaDaySchema } from "./bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./bookingAvailabilitySchema.js";
+export { bookingEmailCodeConfirmSchema } from "./bookingEmailCodeConfirmSchema.js";
+export { bookingEmailCodeRequestSchema } from "./bookingEmailCodeRequestSchema.js";
+export { bookingEmailCodeSentSchema } from "./bookingEmailCodeSentSchema.js";
+export { bookingEmailProofSchema } from "./bookingEmailProofSchema.js";
 export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
@@ -1065,6 +1069,18 @@ export {
   bookingsCompleteStudioBookingStatus409Schema,
   bookingsCompleteStudioBookingStatus422Schema,
 } from "./bookingsCompleteStudioBookingSchema.js";
+export {
+  bookingsConfirmEmailCodeBodySchema,
+  bookingsConfirmEmailCodeErrorSchema,
+  bookingsConfirmEmailCodePathSlugSchema,
+  bookingsConfirmEmailCodeResponseSchema,
+  bookingsConfirmEmailCodeStatus200Schema,
+  bookingsConfirmEmailCodeStatus400Schema,
+  bookingsConfirmEmailCodeStatus404Schema,
+  bookingsConfirmEmailCodeStatus422Schema,
+  bookingsConfirmEmailCodeStatus429Schema,
+  bookingsConfirmEmailCodeStatus503Schema,
+} from "./bookingsConfirmEmailCodeSchema.js";
 export {
   bookingsConfirmStudioBookingErrorSchema,
   bookingsConfirmStudioBookingHeaderXBarrelsOrganisationSchema,
@@ -1382,6 +1398,18 @@ export {
   bookingsReplaceWorkingHoursStatus409Schema,
   bookingsReplaceWorkingHoursStatus422Schema,
 } from "./bookingsReplaceWorkingHoursSchema.js";
+export {
+  bookingsRequestEmailCodeBodySchema,
+  bookingsRequestEmailCodeErrorSchema,
+  bookingsRequestEmailCodePathSlugSchema,
+  bookingsRequestEmailCodeResponseSchema,
+  bookingsRequestEmailCodeStatus200Schema,
+  bookingsRequestEmailCodeStatus400Schema,
+  bookingsRequestEmailCodeStatus404Schema,
+  bookingsRequestEmailCodeStatus422Schema,
+  bookingsRequestEmailCodeStatus429Schema,
+  bookingsRequestEmailCodeStatus503Schema,
+} from "./bookingsRequestEmailCodeSchema.js";
 export {
   bookingsReschedulePublicBookingBodySchema,
   bookingsReschedulePublicBookingErrorSchema,
@@ -5730,6 +5758,7 @@ export {
   pushVapidPublicKeyStatus422Schema,
 } from "./pushVapidPublicKeySchema.js";
 export { qcDecisionRequestSchema } from "./qcDecisionRequestSchema.js";
+export { readinessUnavailableSchema } from "./readinessUnavailableSchema.js";
 export { receivableRowPublicSchema } from "./receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./receivablesPublicSchema.js";
 export { recoveryCodesPublicSchema } from "./recoveryCodesPublicSchema.js";

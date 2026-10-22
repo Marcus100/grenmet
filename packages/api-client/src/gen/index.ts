@@ -96,6 +96,7 @@ export { billingVoidInvoice } from "./clients/billingVoidInvoice.js";
 export { bookingsCancelPublicBooking } from "./clients/bookingsCancelPublicBooking.js";
 export { bookingsCancelStudioBooking } from "./clients/bookingsCancelStudioBooking.js";
 export { bookingsCompleteStudioBooking } from "./clients/bookingsCompleteStudioBooking.js";
+export { bookingsConfirmEmailCode } from "./clients/bookingsConfirmEmailCode.js";
 export { bookingsConfirmStudioBooking } from "./clients/bookingsConfirmStudioBooking.js";
 export { bookingsCreateException } from "./clients/bookingsCreateException.js";
 export { bookingsCreateProvider } from "./clients/bookingsCreateProvider.js";
@@ -122,6 +123,7 @@ export { bookingsNoShowStudioBooking } from "./clients/bookingsNoShowStudioBooki
 export { bookingsReorderProviders } from "./clients/bookingsReorderProviders.js";
 export { bookingsReorderServices } from "./clients/bookingsReorderServices.js";
 export { bookingsReplaceWorkingHours } from "./clients/bookingsReplaceWorkingHours.js";
+export { bookingsRequestEmailCode } from "./clients/bookingsRequestEmailCode.js";
 export { bookingsReschedulePublicBooking } from "./clients/bookingsReschedulePublicBooking.js";
 export { bookingsUpdateProvider } from "./clients/bookingsUpdateProvider.js";
 export { bookingsUpdateService } from "./clients/bookingsUpdateService.js";
@@ -1107,6 +1109,11 @@ export {
   useBookingsCompleteStudioBooking,
 } from "./hooks/useBookingsCompleteStudioBooking.js";
 export {
+  bookingsConfirmEmailCodeMutationKey,
+  bookingsConfirmEmailCodeMutationOptions,
+  useBookingsConfirmEmailCode,
+} from "./hooks/useBookingsConfirmEmailCode.js";
+export {
   bookingsConfirmStudioBookingMutationKey,
   bookingsConfirmStudioBookingMutationOptions,
   useBookingsConfirmStudioBooking,
@@ -1236,6 +1243,11 @@ export {
   bookingsReplaceWorkingHoursMutationOptions,
   useBookingsReplaceWorkingHours,
 } from "./hooks/useBookingsReplaceWorkingHours.js";
+export {
+  bookingsRequestEmailCodeMutationKey,
+  bookingsRequestEmailCodeMutationOptions,
+  useBookingsRequestEmailCode,
+} from "./hooks/useBookingsRequestEmailCode.js";
 export {
   bookingsReschedulePublicBookingMutationKey,
   bookingsReschedulePublicBookingMutationOptions,
@@ -4869,6 +4881,10 @@ export type { BookingAgenda } from "./models/BookingAgenda.js";
 export type { BookingAgendaDay } from "./models/BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./models/BookingAgendaItem.js";
 export type { BookingAvailability } from "./models/BookingAvailability.js";
+export type { BookingEmailCodeConfirm } from "./models/BookingEmailCodeConfirm.js";
+export type { BookingEmailCodeRequest } from "./models/BookingEmailCodeRequest.js";
+export type { BookingEmailCodeSent } from "./models/BookingEmailCodeSent.js";
+export type { BookingEmailProof } from "./models/BookingEmailProof.js";
 export type { BookingExceptionCreate } from "./models/BookingExceptionCreate.js";
 export type { BookingExceptionKind } from "./models/BookingExceptionKind.js";
 export { bookingExceptionKind } from "./models/BookingExceptionKind.js";
@@ -4944,6 +4960,19 @@ export type {
   BookingsCompleteStudioBookingStatus409,
   BookingsCompleteStudioBookingStatus422,
 } from "./models/BookingsCompleteStudioBooking.js";
+export type {
+  BookingsConfirmEmailCodeBody,
+  BookingsConfirmEmailCodeOptions,
+  BookingsConfirmEmailCodePath,
+  BookingsConfirmEmailCodeResponse,
+  BookingsConfirmEmailCodeResponses,
+  BookingsConfirmEmailCodeStatus200,
+  BookingsConfirmEmailCodeStatus400,
+  BookingsConfirmEmailCodeStatus404,
+  BookingsConfirmEmailCodeStatus422,
+  BookingsConfirmEmailCodeStatus429,
+  BookingsConfirmEmailCodeStatus503,
+} from "./models/BookingsConfirmEmailCode.js";
 export type {
   BookingsConfirmStudioBookingHeaders,
   BookingsConfirmStudioBookingOptions,
@@ -5276,6 +5305,19 @@ export type {
   BookingsReplaceWorkingHoursStatus409,
   BookingsReplaceWorkingHoursStatus422,
 } from "./models/BookingsReplaceWorkingHours.js";
+export type {
+  BookingsRequestEmailCodeBody,
+  BookingsRequestEmailCodeOptions,
+  BookingsRequestEmailCodePath,
+  BookingsRequestEmailCodeResponse,
+  BookingsRequestEmailCodeResponses,
+  BookingsRequestEmailCodeStatus200,
+  BookingsRequestEmailCodeStatus400,
+  BookingsRequestEmailCodeStatus404,
+  BookingsRequestEmailCodeStatus422,
+  BookingsRequestEmailCodeStatus429,
+  BookingsRequestEmailCodeStatus503,
+} from "./models/BookingsRequestEmailCode.js";
 export type {
   BookingsReschedulePublicBookingBody,
   BookingsReschedulePublicBookingOptions,
@@ -9993,6 +10035,7 @@ export type {
   PushVapidPublicKeyStatus422,
 } from "./models/PushVapidPublicKey.js";
 export type { QcDecisionRequest } from "./models/QcDecisionRequest.js";
+export type { ReadinessUnavailable } from "./models/ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./models/ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./models/ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./models/RecoveryCodesPublic.js";
@@ -12947,6 +12990,10 @@ export { bookingAgendaDaySchema } from "./zod/bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./zod/bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./zod/bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./zod/bookingAvailabilitySchema.js";
+export { bookingEmailCodeConfirmSchema } from "./zod/bookingEmailCodeConfirmSchema.js";
+export { bookingEmailCodeRequestSchema } from "./zod/bookingEmailCodeRequestSchema.js";
+export { bookingEmailCodeSentSchema } from "./zod/bookingEmailCodeSentSchema.js";
+export { bookingEmailProofSchema } from "./zod/bookingEmailProofSchema.js";
 export { bookingExceptionCreateSchema } from "./zod/bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./zod/bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./zod/bookingExceptionPublicSchema.js";
@@ -13016,6 +13063,18 @@ export {
   bookingsCompleteStudioBookingStatus409Schema,
   bookingsCompleteStudioBookingStatus422Schema,
 } from "./zod/bookingsCompleteStudioBookingSchema.js";
+export {
+  bookingsConfirmEmailCodeBodySchema,
+  bookingsConfirmEmailCodeErrorSchema,
+  bookingsConfirmEmailCodePathSlugSchema,
+  bookingsConfirmEmailCodeResponseSchema,
+  bookingsConfirmEmailCodeStatus200Schema,
+  bookingsConfirmEmailCodeStatus400Schema,
+  bookingsConfirmEmailCodeStatus404Schema,
+  bookingsConfirmEmailCodeStatus422Schema,
+  bookingsConfirmEmailCodeStatus429Schema,
+  bookingsConfirmEmailCodeStatus503Schema,
+} from "./zod/bookingsConfirmEmailCodeSchema.js";
 export {
   bookingsConfirmStudioBookingErrorSchema,
   bookingsConfirmStudioBookingHeaderXBarrelsOrganisationSchema,
@@ -13333,6 +13392,18 @@ export {
   bookingsReplaceWorkingHoursStatus409Schema,
   bookingsReplaceWorkingHoursStatus422Schema,
 } from "./zod/bookingsReplaceWorkingHoursSchema.js";
+export {
+  bookingsRequestEmailCodeBodySchema,
+  bookingsRequestEmailCodeErrorSchema,
+  bookingsRequestEmailCodePathSlugSchema,
+  bookingsRequestEmailCodeResponseSchema,
+  bookingsRequestEmailCodeStatus200Schema,
+  bookingsRequestEmailCodeStatus400Schema,
+  bookingsRequestEmailCodeStatus404Schema,
+  bookingsRequestEmailCodeStatus422Schema,
+  bookingsRequestEmailCodeStatus429Schema,
+  bookingsRequestEmailCodeStatus503Schema,
+} from "./zod/bookingsRequestEmailCodeSchema.js";
 export {
   bookingsReschedulePublicBookingBodySchema,
   bookingsReschedulePublicBookingErrorSchema,
@@ -17681,6 +17752,7 @@ export {
   pushVapidPublicKeyStatus422Schema,
 } from "./zod/pushVapidPublicKeySchema.js";
 export { qcDecisionRequestSchema } from "./zod/qcDecisionRequestSchema.js";
+export { readinessUnavailableSchema } from "./zod/readinessUnavailableSchema.js";
 export { receivableRowPublicSchema } from "./zod/receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./zod/receivablesPublicSchema.js";
 export { recoveryCodesPublicSchema } from "./zod/recoveryCodesPublicSchema.js";

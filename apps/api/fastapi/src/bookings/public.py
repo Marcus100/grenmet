@@ -20,7 +20,6 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.email_verification import require_verified_email
 from src.auth.models import User
 from src.contacts import service as contacts_service
 from src.contacts.models import ConsentPurpose, Contact
@@ -31,7 +30,7 @@ from src.utils.datetime import utc_now
 from src.utils.timezones import utc_to_local, zone
 from src.webhooks_out import service as webhook_service
 
-from . import deposit_payments, emails, ics, service, transitions
+from . import deposit_payments, email_code, emails, ics, service, transitions
 from .exceptions import BookingConflictError, BookingNotFoundError
 from .models import (
     ACTIVE_STATUSES,
@@ -45,6 +44,10 @@ from .models import (
     Service,
 )
 from .schemas import (
+    BookingEmailCodeConfirm,
+    BookingEmailCodeRequest,
+    BookingEmailCodeSent,
+    BookingEmailProof,
     BookingPublicCreate,
     BookingPublicDetail,
     BookingPublicReceipt,
@@ -435,6 +438,63 @@ async def _upsert_customer(
     return customer, contact
 
 
+async def deposit_due(
+    session: AsyncSession, profile: BookingProfile, service_id: uuid.UUID
+) -> int:
+    """The deposit a booking of this service would owe now (0 = none)."""
+    svc = await service.get_service(
+        session, service_id, organisation_id=profile.organisation_id
+    )
+    if not svc.active:
+        raise BookingNotFoundError("Service")
+    return await deposit_payments.effective_deposit(
+        session, profile.organisation_id, svc
+    )
+
+
+def _binding(
+    profile: BookingProfile, email: str, service_id: uuid.UUID, starts_at: datetime
+) -> email_code.Binding:
+    return email_code.bind(
+        profile.organisation_id, email, service_id, service.as_naive_utc(starts_at)
+    )
+
+
+async def request_email_code(
+    session: AsyncSession,
+    profile: BookingProfile,
+    payload: BookingEmailCodeRequest,
+    *,
+    payer: User | None,
+) -> BookingEmailCodeSent:
+    """Email a code when a deposit is due and the caller is not exempt; else do
+    nothing (bookings without a deposit have no step)."""
+    email = str(payload.customer_email)
+    if await deposit_due(session, profile, payload.service_id) <= 0:
+        return BookingEmailCodeSent(required=False)
+    if await email_code.is_exempt(session, payer, email):
+        return BookingEmailCodeSent(required=False)
+    ttl = await email_code.request_code(
+        session,
+        _binding(profile, email, payload.service_id, payload.starts_at),
+        to_email=email,
+        business=profile.display_name,
+    )
+    return BookingEmailCodeSent(required=True, expires_in_seconds=ttl)
+
+
+async def confirm_email_code(
+    profile: BookingProfile, payload: BookingEmailCodeConfirm
+) -> BookingEmailProof:
+    proof, ttl = await email_code.confirm_code(
+        _binding(
+            profile, str(payload.customer_email), payload.service_id, payload.starts_at
+        ),
+        payload.code,
+    )
+    return BookingEmailProof(proof=proof, expires_in_seconds=ttl)
+
+
 async def create_booking(
     session: AsyncSession,
     profile: BookingProfile,
@@ -443,15 +503,47 @@ async def create_booking(
     payer: User | None = None,
     now: datetime | None = None,
 ) -> tuple[int, dict[str, Any]]:
-    """Book a slot. A signed-in ``payer`` needs a verified email when a deposit
-    is due (ADR-0018); a guest has no account to check. Returns ``(201, receipt as JSON)`` for ``run_idempotent``."""
-    moment = now or utc_now()
-    starts_at = service.as_naive_utc(payload.starts_at)
+    """Book a slot. When a deposit is due the caller needs an emailed-code proof
+    (``payload.email_proof``) unless a signed-in ``payer`` already vouches for the
+    booking email (ADR-0018, #471); otherwise 403 ``email_verification_required``
+    and nothing is stored. Returns ``(201, receipt as JSON)`` for ``run_idempotent``."""
     svc = await service.get_service(
         session, payload.service_id, organisation_id=profile.organisation_id
     )
     if not svc.active:
         raise BookingNotFoundError("Service")
+    deposit = await deposit_payments.effective_deposit(
+        session, profile.organisation_id, svc
+    )
+    use = email_code.ProofUse(None)
+    if deposit > 0:
+        email = str(payload.customer_email)
+        use = await email_code.require_proof(
+            session,
+            _binding(profile, email, svc.id, payload.starts_at),
+            payer=payer,
+            email=email,
+            proof=payload.email_proof,
+        )
+    try:
+        return await _create_booking(session, profile, payload, svc, deposit, now=now)
+    except BaseException:
+        # The proof is single use, but a booking that never happened must not burn it.
+        await use.release()
+        raise
+
+
+async def _create_booking(
+    session: AsyncSession,
+    profile: BookingProfile,
+    payload: BookingPublicCreate,
+    svc: Service,
+    deposit: int,
+    *,
+    now: datetime | None,
+) -> tuple[int, dict[str, Any]]:
+    moment = now or utc_now()
+    starts_at = service.as_naive_utc(payload.starts_at)
     candidates = await _candidate_providers(
         session,
         profile,
@@ -466,12 +558,7 @@ async def create_booking(
     customer, contact = await _upsert_customer(session, profile, payload, moment)
     token, token_hash = new_manage_token()
     ends_at = starts_at + timedelta(minutes=svc.duration_min)
-    deposit = await deposit_payments.effective_deposit(
-        session, profile.organisation_id, svc
-    )
     if deposit > 0:
-        if payer is not None:
-            require_verified_email(payer, "pay a deposit")
         # The exclusion constraint already holds the slot while the deposit is
         # paid; the expiry sweeper releases it if it is not.
         initial = BookingStatus.PENDING_PAYMENT

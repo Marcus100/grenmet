@@ -76,6 +76,7 @@ exclude = ["venv", ".venv", "alembic"]
 # Third-party libraries that ship no type information (or, for gms_ingest, no
 # py.typed marker). Importing them is fine; state it once instead of per import.
 module = [
+    "asyncpg.*",
     "boto3",
     "cdsapi.*",
     "eccodes.*",

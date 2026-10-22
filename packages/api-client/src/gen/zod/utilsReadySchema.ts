@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { readinessUnavailableSchema } from "./readinessUnavailableSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const utilsReadyStatus200Schema = z.record(z.string(), z.string());
@@ -12,7 +13,9 @@ export const utilsReadyStatus422Schema = validationErrorResponseSchema.describe(
   "Validation error envelope returned for malformed requests."
 );
 
-export const utilsReadyStatus503Schema = z.unknown();
+export const utilsReadyStatus503Schema = readinessUnavailableSchema.describe(
+  "Body returned when the API cannot serve requests because its database is unavailable or its schema is out of date."
+);
 
 export const utilsReadyResponseSchema = utilsReadyStatus200Schema;
 
