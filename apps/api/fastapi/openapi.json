@@ -25520,7 +25520,14 @@
             }
           },
           "503": {
-            "description": "Database unreachable"
+            "description": "Database unreachable or schema out of date",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessUnavailable"
+                }
+              }
+            }
           }
         }
       }
@@ -68479,6 +68486,20 @@
         },
         "type": "object",
         "title": "QcDecisionRequest"
+      },
+      "ReadinessUnavailable": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ReadinessUnavailable",
+        "description": "Body returned when the API cannot serve requests because its database is unavailable or its schema is out of date."
       },
       "ReceivableRowPublic": {
         "properties": {

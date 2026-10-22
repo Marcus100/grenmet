@@ -70,6 +70,12 @@ class Message(BaseModel):
     message: str
 
 
+class ReadinessUnavailable(BaseModel):
+    """Body returned when the API cannot serve requests because its database is unavailable or its schema is out of date."""
+
+    detail: str
+
+
 # JSON payload containing access token
 class Token(BaseModel):
     access_token: str
