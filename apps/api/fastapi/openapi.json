@@ -6213,7 +6213,7 @@
           "payments"
         ],
         "summary": "Create a payment",
-        "description": "Ask to collect money for something the organisation sells. Idempotent per `idempotency_key`. Online rails return a hosted checkout URL; the manual rail is completed by staff recording the payment.",
+        "description": "Ask to collect money for something the organisation sells. Idempotent per `idempotency_key`. Online rails return a hosted checkout URL; the manual rail is completed by staff recording the payment. `source_type` values owned by another domain (`bookings.deposit`, `events.order`) are refused with 422.",
         "operationId": "paymentsCreateIntent",
         "security": [
           {
@@ -8889,6 +8889,119 @@
             "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/bookings/{booking_id}/manual-deposit": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Record a deposit taken outside Stripe",
+        "description": "Owner or admin records a deposit paid in cash, by bank transfer or by cheque. Requires an `Idempotency-Key` header (same key and body replays the first answer with `Idempotency-Replayed: true`, same key with another body is 409). The booking's deposit is captured through the payments manual rail, so `deposit_captured_minor` in the detail shows it and a `pending_payment` booking is confirmed. 409 when the booking has no deposit, is closed, its deposit is already paid, or an online payment is still open. Needs the `payments` entitlement too. API keys are not accepted.",
+        "operationId": "bookingsRecordManualDeposit",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The booking's id.",
+              "title": "Booking Id"
+            },
+            "description": "The booking's id."
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingManualDepositCreate"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -47249,6 +47362,32 @@
           "reason"
         ],
         "title": "BookingExceptionPublic"
+      },
+      "BookingManualDepositCreate": {
+        "properties": {
+          "method": {
+            "$ref": "#/components/schemas/ManualMethod"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference",
+            "description": "Receipt, cheque or transfer number."
+          }
+        },
+        "type": "object",
+        "required": [
+          "method"
+        ],
+        "title": "BookingManualDepositCreate",
+        "description": "How a deposit taken outside Stripe was paid (``method``, optional receipt\nor transfer ``reference``)."
       },
       "BookingMyOrganisation": {
         "properties": {

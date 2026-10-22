@@ -6,6 +6,7 @@ from pydantic import EmailStr, Field, field_validator, model_validator
 
 from src.models import BaseModel, UtcDateTime
 from src.organisations.models import MembershipRole
+from src.payments.schemas import ManualPaymentCreate
 from src.utils.reserved_names import is_reserved
 from src.utils.timezones import is_valid_timezone
 
@@ -265,6 +266,11 @@ class BookingAgenda(BaseModel):
 
 
 # --- studio actions (B5) -------------------------------------------------------------
+
+
+class BookingManualDepositCreate(ManualPaymentCreate):
+    """How a deposit taken outside Stripe was paid (``method``, optional receipt
+    or transfer ``reference``)."""
 
 
 class BookingStudioDecline(BaseModel):
