@@ -15,14 +15,17 @@ Where the money moves:
   response reuses the same refund row and the same provider idempotency key and
   can never refund twice.
 
-Lock order everywhere in Events money code: listing, then order, then the
-payments intent, then tickets.
+Locking: every Events money path takes the listing lock (shared, or exclusive for
+an event cancel), then the order lock, and only then touches that order's payments
+intent or tickets. Intent and tickets are not always reached in the same order,
+but both sit behind the order lock, which serialises the paths that matter.
 """
 
 import uuid
 from datetime import datetime, timedelta
 from typing import Literal
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
@@ -30,15 +33,26 @@ from src.auth.models import User
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
 from src.payments.models import ProviderKey
+from src.utils.datetime import utc_now
 
 from . import order_fulfilment, order_payments
 from .config import events_settings
+from .exceptions import EventsConflict
 from .models import Order
 
 REQUESTED_TOPIC = "events.order_refund_requested"
 CANCEL_KEY = "cancel"
 
 RefundResult = Literal["refunded", "queued", "none"]
+ReasonCode = Literal["event_cancelled", "order_cancelled", "organiser_refund"]
+
+#: What the payments ledger says for a queued refund. The outbox payload carries
+#: only the code, never the organiser's free text.
+_REASONS: dict[str, str] = {
+    "event_cancelled": "Event cancelled by the organiser",
+    "order_cancelled": "Order cancelled by the organiser",
+    "organiser_refund": "Refund issued by the organiser",
+}
 
 
 def should_refund(
@@ -91,6 +105,7 @@ async def request_refund(
     order: Order,
     actor: User,
     reason: str,
+    reason_code: ReasonCode,
     key: str,
     amount_minor: int | None = None,
 ) -> tuple[RefundResult, int]:
@@ -106,6 +121,7 @@ async def request_refund(
     if intent is None or intent.captured_minor - intent.refunded_minor <= 0:
         return "none", 0
     refund_id = refund_id_for(order.id, key)
+    left = intent.captured_minor - intent.refunded_minor
     if intent.provider == ProviderKey.MANUAL:
         moved = await _refund_now(
             db,
@@ -118,20 +134,61 @@ async def request_refund(
             refund_id=refund_id,
         )
         return "refunded", moved
-    await outbox.enqueue(
+    # One provider refund at a time per order: a second request (another amount
+    # or key) would race the first one's remaining amount.
+    waiting = await db.scalar(
+        select(outbox.Outbox.id)
+        .where(
+            outbox.Outbox.topic == REQUESTED_TOPIC,
+            outbox.Outbox.status == outbox.OutboxStatus.PENDING.value,
+            outbox.Outbox.payload["order_id"].as_string() == str(order.id),
+            outbox.Outbox.dedupe_key != str(refund_id),
+        )
+        .limit(1)
+    )
+    if waiting is not None:
+        raise EventsConflict(
+            "A refund for this order is already waiting for the payment provider"
+        )
+    if amount_minor is not None and amount_minor > left:
+        raise EventsConflict(f"Only {left} minor units can still be refunded")
+    payload = {
+        "order_id": str(order.id),
+        "intent_id": str(intent.id),
+        "refund_id": str(refund_id),
+        "actor_id": str(actor.id),
+        "reason_code": reason_code,
+        # Fixed now, so the provider never sees another amount under this refund id.
+        "amount_minor": amount_minor if amount_minor is not None else left,
+    }
+    added = await outbox.enqueue(
         db,
         topic=REQUESTED_TOPIC,
-        payload={
-            "order_id": str(order.id),
-            "intent_id": str(intent.id),
-            "refund_id": str(refund_id),
-            "actor_id": str(actor.id),
-            "reason": reason,
-            "amount_minor": amount_minor,
-        },
+        payload=payload,
         dedupe_key=str(refund_id),
         organisation_id=organisation_id,
     )
+    if added:
+        return "queued", 0
+    # The same request is already on the outbox: report what it is really doing.
+    row = await db.scalar(
+        select(outbox.Outbox)
+        .where(
+            outbox.Outbox.topic == REQUESTED_TOPIC,
+            outbox.Outbox.dedupe_key == str(refund_id),
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if row is None or row.status == outbox.OutboxStatus.DONE.value:
+        return "none", 0
+    if row.status == outbox.OutboxStatus.DEAD.value:
+        # Re-arm a refund the outbox gave up on, so a re-cancel retries it.
+        row.status = outbox.OutboxStatus.PENDING.value
+        row.attempts = 0
+        row.next_attempt_at = utc_now()
+        row.last_error = None
+        row.payload = payload
     return "queued", 0
 
 
@@ -143,7 +200,7 @@ async def perform_requested(
     intent_id: uuid.UUID,
     refund_id: uuid.UUID,
     actor_id: uuid.UUID | None,
-    reason: str,
+    reason_code: str,
     amount_minor: int | None,
 ) -> str:
     """Outbox side of ``request_refund``: send the refund to the provider.
@@ -161,6 +218,10 @@ async def perform_requested(
     left = intent.captured_minor - intent.refunded_minor
     if left <= 0:
         return "duplicate"
+    if amount_minor is not None and amount_minor > left:
+        # Money moved elsewhere meanwhile. Sending another amount under the same
+        # provider idempotency key is unsafe: fail so the outbox dead-letters it.
+        raise EventsConflict("The refundable amount changed; refund again by hand")
     actor = await db.get(User, actor_id) if actor_id else None
     await _refund_now(
         db,
@@ -168,8 +229,8 @@ async def perform_requested(
         order=order,
         intent_id=intent.id,
         actor=actor,
-        reason=reason,
-        amount_minor=min(amount_minor, left) if amount_minor is not None else None,
+        reason=_REASONS.get(reason_code, _REASONS["organiser_refund"]),
+        amount_minor=amount_minor,
         refund_id=refund_id,
     )
     return "refunded"

@@ -604,7 +604,7 @@ saving a listing as cancelled never moves money. Event cancel reports `orders_re
 (manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`
 and `refunds_failed`.
 
-Provider-rail (card) refunds are never sent inside a request: they are queued on the outbox topic
+Provider-rail (card) refunds are never sent inside a request (one may wait per order; a second is 409, and the buyer email is shown to org admins/owners only): they are queued on the outbox topic
 `events.order_refund_requested` and sent with retries; the refund id is derived from the order and
 the request, so a retry cannot refund twice. Follow it on the order's `refund_status`
 (`none`, `queued`, `partial`, `refunded`, `failed`).

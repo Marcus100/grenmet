@@ -1,9 +1,13 @@
 """The ticket and money side of an event being cancelled (shared by the organiser
 cancel actions and the legacy "save as cancelled" path).
 
-The caller holds the exclusive lock on the listing row. Lock order, everywhere in
-Events money code: listing, then orders (by id), then the payments intent, then
-tickets. Online orders are therefore locked before any ticket is touched.
+The caller holds the exclusive lock on the listing row. Every Events money path
+takes the listing lock first, then the order locks (by id), and only then touches
+that order's tickets or payments intent. The tickets and the intent are not always
+reached in the same order (this module cancels tickets before settling each
+order's intent; a manual payment locks the intent before issuing tickets), but
+both are only touched while holding the order's lock, or the exclusive listing
+lock that waits for all of them, so no two paths can hold them crosswise.
 
 Money: the manual rail settles inline; a provider rail is queued on the outbox
 (``order_refunds.request_refund``) and never called under these locks. Outlet cash
@@ -109,6 +113,7 @@ async def _settle_order(
         order=order,
         actor=user,
         reason="Event cancelled by the organiser",
+        reason_code="event_cancelled",
         key=order_refunds.CANCEL_KEY,
     )
     if outcome == "refunded":

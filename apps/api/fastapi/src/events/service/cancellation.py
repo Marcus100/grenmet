@@ -50,7 +50,8 @@ async def cancel_event(
     listing_id: uuid.UUID,
     org_ids: list[str],
     slug: str | None = None,
-    refund: str = "follow_policy",
+    *,
+    refund: str,
 ) -> schemas.CancelResult:
     listing = await _locked_listing(db, user, listing_id, org_ids, slug)
     return await cancel_locked_event(db, user, listing, refund)
@@ -61,7 +62,7 @@ async def cancel_event_for_organisation(
     user: User,
     organisation_id: str,
     listing_id: uuid.UUID,
-    refund: str = "follow_policy",
+    refund: str,
 ) -> schemas.CancelResult:
     """Org-zone cancel: the event must belong to the organiser of ``organisation_id``."""
     listing = await db.scalar(

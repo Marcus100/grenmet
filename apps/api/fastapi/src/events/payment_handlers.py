@@ -75,7 +75,7 @@ async def order_refund_requested(
         actor_id = uuid.UUID(str(actor)) if actor else None
         amount = payload.get("amount_minor")
         amount_minor = int(amount) if amount is not None else None
-        reason = str(payload["reason"])
+        reason_code = str(payload["reason_code"])
     except KeyError, ValueError, TypeError:
         logger.warning("event order refund message with a bad payload; dropped")
         return
@@ -87,5 +87,5 @@ async def order_refund_requested(
         refund_id=refund_id,
         actor_id=actor_id,
         amount_minor=amount_minor,
-        reason=reason,
+        reason_code=reason_code,
     )

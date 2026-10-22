@@ -4,7 +4,7 @@ idempotency and the legacy cancel paths. Complements ``test_org_orders.py``."""
 import asyncio
 import uuid
 from datetime import timedelta
-from typing import Any
+from typing import Any, cast
 
 import httpx
 import pytest
@@ -354,7 +354,7 @@ async def test_event_cancel_queues_card_refunds_and_the_outbox_sends_them_once(
             uuid.UUID(order_id), order_refunds.CANCEL_KEY
         ),
         actor_id=shop.owner.id,
-        reason="Event cancelled by the organiser",
+        reason_code="event_cancelled",
         amount_minor=None,
     )
     assert again == "duplicate"
@@ -645,3 +645,243 @@ async def test_the_buyer_email_is_on_the_detail_for_the_organising_admin_only(
             f"{ORG}/events/{shop.listing_id}/orders", headers=_h(shop)
         )
         assert buyer.email not in listed.text  # lists carry no email
+
+
+@pytest.mark.asyncio
+async def test_grant_holding_members_never_get_the_buyer_email(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    from src.organisations import service as org_service
+    from src.organisations.models import Membership, MembershipGrant, MembershipRole
+    from tests.organisations.support import headers_for
+
+    shop = await _shop_with_events(db_async, events_db, allocation=8)
+    staff = await make_user(db_async)
+    membership = await org_service.add_member(
+        db_async,
+        organisation_id=shop.organisation_id,
+        user_id=staff.id,
+        role=MembershipRole.MEMBER,
+    )
+    for role_key in ("events-manager", "events-refunds"):
+        db_async.add(
+            MembershipGrant(
+                id=f"grant_{uuid.uuid4().hex}",
+                membership_id=membership.id,
+                organisation_id=shop.organisation_id,
+                role_key=role_key,
+                granted_by=shop.owner.id,
+            )
+        )
+    await db_async.commit()
+    assert isinstance(membership, Membership)
+
+    buyers = [await make_user(db_async) for _ in range(5)]
+    ids = [(await _order(b, shop)).json()["id"] for b in buyers]
+    member = headers_for(staff, shop.organisation_id)
+    admin = _h(shop)
+
+    def keyed(headers: dict[str, str], key: str) -> dict[str, str]:
+        return {**headers, "Idempotency-Key": key}
+
+    async with await _desk() as client:
+        # Order detail and manual payment (the member holds the till key via manager).
+        for who, headers in (("member", member), ("admin", admin)):
+            index = 0 if who == "member" else 1
+            detail = await client.get(f"{ORG}/orders/{ids[index]}", headers=headers)
+            assert detail.status_code == 200
+            expected = None if who == "member" else buyers[1].email
+            assert detail.json()["buyer_email"] == expected
+
+            pay = await client.post(
+                f"{ORG}/orders/{ids[index]}/manual-payments",
+                headers=keyed(headers, f"email-pay-{who}-0001"),
+                json={"method": "cash"},
+            )
+            assert pay.status_code == 201, pay.text
+            assert pay.json()["buyer_email"] == expected
+
+            refund = await client.post(
+                f"{ORG}/orders/{ids[index]}/refunds",
+                headers=keyed(headers, f"email-refund-{who}01"),
+                json={"amount_minor": 100, "reason": "Part refund"},
+            )
+            assert refund.status_code == 201, refund.text
+            assert refund.json()["buyer_email"] == expected
+
+        paid = await _paid(db_async, shop)
+        cancelled = await client.post(
+            f"{ORG}/orders/{paid}/cancel", headers=member, json={"refund": "none"}
+        )
+        assert cancelled.status_code == 200, cancelled.text
+        assert cancelled.json()["order"]["buyer_email"] is None
+
+
+@pytest.mark.asyncio
+async def test_a_queued_refund_reports_its_real_state_and_rearms_a_dead_row(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    from src.auth.models import User
+
+    shop = await _shop_with_events(db_async, events_db)
+    order_id, _ = await _pending(db_async, shop)
+    await _pay_stripe(db_async, async_client, order_id)
+    order = await db_async.get(Order, uuid.UUID(order_id))
+    actor = await db_async.get(User, shop.owner.id)
+    assert order is not None
+    assert actor is not None
+
+    async def ask() -> str:
+        outcome, _ = await order_refunds.request_refund(
+            db_async,
+            organisation_id=shop.organisation_id,
+            order=order,
+            actor=actor,
+            reason="Secret organiser words",
+            reason_code="order_cancelled",
+            key=order_refunds.CANCEL_KEY,
+        )
+        await db_async.commit()
+        return outcome
+
+    async def row() -> outbox.Outbox:
+        found = await db_async.scalar(
+            select(outbox.Outbox)
+            .where(outbox.Outbox.topic == order_refunds.REQUESTED_TOPIC)
+            .execution_options(populate_existing=True)
+        )
+        assert found is not None
+        return found
+
+    assert await ask() == "queued"
+    first = await row()
+    assert "reason" not in first.payload
+    assert "Secret" not in str(first.payload)
+    assert first.payload["reason_code"] == "order_cancelled"
+
+    stripe_env.requests.clear()  # fixture used: the card rail is live
+    first.status = "dead"
+    first.attempts = 5
+    await db_async.commit()
+    assert await ask() == "queued"  # re-armed, not silently lost
+    again = await row()
+    assert (again.status, again.attempts) == ("pending", 0)
+
+    await outbox.drain(
+        db_async,
+        only_topics={order_refunds.REQUESTED_TOPIC, "events.order_refunded"},
+    )
+    assert await _refund_rows(db_async, order_id) == 1
+    assert (await _row(events_db, order_id)).status == "refunded"
+
+
+@pytest.mark.asyncio
+async def test_a_second_card_refund_waits_for_the_first_and_status_trusts_the_ledger(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    order_id, _ = await _pending(db_async, shop)
+    await _pay_stripe(db_async, async_client, order_id)
+    url = f"{ORG}/orders/{order_id}/refunds"
+    async with await _desk() as client:
+        first = await client.post(
+            url,
+            headers=_h(shop, "queue-key-000001"),
+            json={"amount_minor": 3000, "reason": "Part one"},
+        )
+        assert first.status_code == 201, first.text
+        assert first.json()["refund_status"] == "queued"
+        second = await client.post(
+            url,
+            headers=_h(shop, "queue-key-000002"),
+            json={"amount_minor": 3000, "reason": "Part two"},
+        )
+        assert second.status_code == 409  # 3000 + 3000 > 5000 would race
+        # Nothing reached the provider inside either request.
+        assert not any(r.url.path == "/v1/refunds" for r in stripe_env.requests)
+
+        # The outbox gives up on the request; the order is then refunded another way
+        # (the ledger now says everything is back): the status must say refunded.
+        await db_async.execute(
+            update(outbox.Outbox)
+            .where(outbox.Outbox.topic == order_refunds.REQUESTED_TOPIC)
+            .values(status="dead", attempts=5)
+        )
+        await db_async.execute(
+            update(Order)
+            .where(Order.id == uuid.UUID(order_id))
+            .values(refunded_minor=PRICE)
+        )
+        await db_async.commit()
+        detail = await client.get(f"{ORG}/orders/{order_id}", headers=_h(shop))
+    assert detail.json()["refund_status"] == "refunded"
+
+
+@pytest.mark.asyncio
+async def test_a_changed_refundable_amount_fails_the_queued_request_instead_of_cutting_it(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    from src.events.exceptions import EventsConflict
+
+    shop = await _shop_with_events(db_async, events_db)
+    order_id = await _paid(db_async, shop)
+    intent = await _intent(db_async, order_id)
+    assert intent is not None
+    await payments_service.refund_intent(
+        db_async,
+        organisation_id=shop.organisation_id,
+        intent_id=intent.id,
+        actor=None,
+        payload=payment_schemas.PaymentRefundCreate(
+            amount_minor=4000, reason="Refunded elsewhere"
+        ),
+    )
+    await db_async.commit()
+    with pytest.raises(EventsConflict):
+        await order_refunds.perform_requested(
+            db_async,
+            organisation_id=shop.organisation_id,
+            order_id=uuid.UUID(order_id),
+            intent_id=intent.id,
+            refund_id=uuid.uuid4(),
+            actor_id=shop.owner.id,
+            reason_code="organiser_refund",
+            amount_minor=2000,  # only 1000 is left
+        )
+    await db_async.rollback()
+    assert await _refunded(db_async, order_id) == 4000
+
+
+@pytest.mark.asyncio
+async def test_a_deadlock_becomes_a_409_and_rolls_back() -> None:
+    from sqlalchemy.exc import DBAPIError
+
+    from src.events.exceptions import EventsConflict
+    from src.events.service import org_orders
+
+    class Deadlock(Exception):
+        sqlstate = "40P01"
+
+    class Session:
+        rolled_back = False
+
+        async def rollback(self) -> None:
+            self.rolled_back = True
+
+    session = Session()
+    with pytest.raises(EventsConflict):
+        async with org_orders.conflict_on_deadlock(cast(AsyncSession, session)):
+            raise DBAPIError("UPDATE", {}, Deadlock("deadlock detected"))
+    assert session.rolled_back
+
+    other = Session()
+    with pytest.raises(DBAPIError):
+        async with org_orders.conflict_on_deadlock(cast(AsyncSession, other)):
+            raise DBAPIError("UPDATE", {}, Exception("something else"))
+    assert not other.rolled_back

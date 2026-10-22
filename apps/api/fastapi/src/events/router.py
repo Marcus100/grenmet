@@ -793,7 +793,7 @@ async def cancel_event(
 ) -> schemas.CancelResult:
     async with org_orders.conflict_on_deadlock(session):
         return await service.cancel_event(
-            session, user, listing_id, scope, organiser, body.refund
+            session, user, listing_id, scope, organiser, refund=body.refund
         )
 
 
@@ -967,9 +967,10 @@ async def update_managed_listing(
     body: schemas.ListingUpsert,
     organiser: _ManagedSlug = None,
 ) -> schemas.ManagedListing:
-    return await service.update_listing(
-        session, user, listing_id, body, scope, organiser
-    )
+    async with org_orders.conflict_on_deadlock(session):
+        return await service.update_listing(
+            session, user, listing_id, body, scope, organiser
+        )
 
 
 # --- Tickets -------------------------------------------------------------------------

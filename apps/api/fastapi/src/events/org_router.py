@@ -23,12 +23,19 @@ from src import idempotency
 from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgContext, require_org_permission
+from src.organisations.models import MembershipRole
 from src.pagination import PaginatedResponse, PaginationDep
 
 from . import schemas, service
 from .service import org_orders
 
 router = APIRouter(prefix="/events/org", tags=["events"])
+
+
+def _sees_email(org: OrgContext) -> bool:
+    """Buyer account emails go to the organisation's admins and owners only, not
+    to members holding a grant (owner decision)."""
+    return org.role in (MembershipRole.ADMIN, MembershipRole.OWNER)
 
 
 def _key(permission_key: str) -> Any:
@@ -141,7 +148,9 @@ async def cancel_event(
 async def get_order(
     *, session: SessionDep, org: OrgCanSeeOrders, order_id: uuid.UUID
 ) -> Any:
-    return await org_orders.get_order(session, org.organisation_id, order_id)
+    return await org_orders.get_order(
+        session, org.organisation_id, order_id, _sees_email(org)
+    )
 
 
 @router.post(
@@ -169,7 +178,7 @@ async def record_manual_payment(
 ) -> Any:
     async def once() -> tuple[int, dict[str, Any]]:
         detail = await org_orders.record_payment(
-            session, org.organisation_id, org.user, order_id, body
+            session, org.organisation_id, org.user, order_id, body, _sees_email(org)
         )
         return 201, detail.model_dump(mode="json")
 
@@ -185,7 +194,9 @@ async def record_manual_payment(
     summary="Refund an order",
     description=(
         "Hands back money for a paid online order: all of it, or `amount_minor`. A "
-        "full refund cancels the tickets and marks the order `refunded`. Requires an "
+        "full refund cancels the tickets and marks the order `refunded`. "
+        "A card refund is queued for the payment provider (see `refund_status`); a second "
+        "refund for the same order is 409 while one is waiting. Requires an "
         "`Idempotency-Key` header (replays the first answer with "
         "`Idempotency-Replayed: true`)."
     ),
@@ -203,7 +214,13 @@ async def refund_order(
 ) -> Any:
     async def once() -> tuple[int, dict[str, Any]]:
         detail = await org_orders.refund_order(
-            session, org.organisation_id, org.user, order_id, body, idempotency_key
+            session,
+            org.organisation_id,
+            org.user,
+            order_id,
+            body,
+            idempotency_key,
+            _sees_email(org),
         )
         return 201, detail.model_dump(mode="json")
 
@@ -234,7 +251,7 @@ async def cancel_order(
 ) -> Any:
     async with org_orders.conflict_on_deadlock(session):
         result = await org_orders.cancel_order(
-            session, org.organisation_id, org.user, order_id, body
+            session, org.organisation_id, org.user, order_id, body, _sees_email(org)
         )
         await session.commit()
     return result
@@ -256,7 +273,11 @@ async def _run(
             scope=f"events.order-{scope}",
             organisation_id=org.organisation_id,
             key=key,
-            request_body={"order_id": str(order_id), **body.model_dump(mode="json")},
+            request_body={
+                "order_id": str(order_id),
+                "show_email": _sees_email(org),
+                **body.model_dump(mode="json"),
+            },
             handler=handler,
         )
         await session.commit()

@@ -393,7 +393,7 @@ async def test_claims_racing_a_cancellation_never_leave_a_valid_ticket(
     async def cancel_now():
         async with events_db() as db:
             return await service.cancel_event(
-                db, staff, uuid.UUID(event["listing"]), []
+                db, staff, uuid.UUID(event["listing"]), [], refund="none"
             )
 
     results = await asyncio.gather(

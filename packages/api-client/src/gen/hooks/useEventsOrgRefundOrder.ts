@@ -58,7 +58,7 @@ export function eventsOrgRefundOrderMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Hands back money for a paid online order: all of it, or `amount_minor`. A full refund cancels the tickets and marks the order `refunded`. Requires an `Idempotency-Key` header (replays the first answer with `Idempotency-Replayed: true`).
+ * @description Hands back money for a paid online order: all of it, or `amount_minor`. A full refund cancels the tickets and marks the order `refunded`. A card refund is queued for the payment provider (see `refund_status`); a second refund for the same order is 409 while one is waiting. Requires an `Idempotency-Key` header (replays the first answer with `Idempotency-Replayed: true`).
  * @summary Refund an order
  * {@link /api/v1/events/org/orders/:order_id/refunds}
  */

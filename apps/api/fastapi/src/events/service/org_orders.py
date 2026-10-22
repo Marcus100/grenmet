@@ -91,12 +91,11 @@ async def _order(
         raise EventsNotFound("Order not found")
     if lock:
         order = await order_fulfilment.lock_order(db, order_id)
-        assert order is not None
     else:
         order = await db.get(Order, order_id)
-        assert order is not None
     listing = await db.get(Listing, row[0])
-    assert listing is not None
+    if order is None or listing is None:
+        raise EventsNotFound("Order not found")
     return order, listing
 
 
@@ -192,7 +191,11 @@ async def list_orders(
 
 
 async def _detail(
-    db: AsyncSession, organisation_id: str, order: Order, listing: Listing
+    db: AsyncSession,
+    organisation_id: str,
+    order: Order,
+    listing: Listing,
+    show_email: bool,
 ) -> schemas.OrgOrderDetail:
     items = (
         await db.execute(
@@ -215,7 +218,7 @@ async def _detail(
     names = await _buyer_names(db, [order])
     email = (
         await db.scalar(select(User.email).where(User.id == order.user_id))
-        if order.user_id is not None
+        if order.user_id is not None and show_email
         else None
     )
     intent = (
@@ -278,6 +281,8 @@ async def _refund_status(
     """Where the order's refund stands. A finished outbox row's payload is cleared,
     so only waiting and given-up requests are found by order id; the amounts on
     the order say the rest."""
+    if order.collected_minor > 0 and order.refunded_minor >= order.collected_minor:
+        return "refunded"
     states = set(
         await db.scalars(
             select(outbox.Outbox.status).where(
@@ -290,16 +295,14 @@ async def _refund_status(
         return "failed"
     if outbox.OutboxStatus.PENDING.value in states:
         return "queued"
-    if order.collected_minor > 0 and order.refunded_minor >= order.collected_minor:
-        return "refunded"
     return "partial" if order.refunded_minor > 0 else "none"
 
 
 async def get_order(
-    db: AsyncSession, organisation_id: str, order_id: uuid.UUID
+    db: AsyncSession, organisation_id: str, order_id: uuid.UUID, show_email: bool
 ) -> schemas.OrgOrderDetail:
     order, listing = await _order(db, organisation_id, order_id)
-    return await _detail(db, organisation_id, order, listing)
+    return await _detail(db, organisation_id, order, listing, show_email)
 
 
 async def list_attendees(
@@ -365,6 +368,7 @@ async def record_payment(
     actor: User,
     order_id: uuid.UUID,
     body: schemas.OrgManualPaymentCreate,
+    show_email: bool,
 ) -> schemas.OrgOrderDetail:
     """Staff received cash or a bank transfer for a ``pending_payment`` order.
 
@@ -417,7 +421,7 @@ async def record_payment(
         },
     )
     await db.flush()
-    return await _detail(db, organisation_id, order, listing)
+    return await _detail(db, organisation_id, order, listing, show_email)
 
 
 async def refund_order(
@@ -427,6 +431,7 @@ async def refund_order(
     order_id: uuid.UUID,
     body: schemas.OrgOrderRefundCreate,
     key: str,
+    show_email: bool,
 ) -> schemas.OrgOrderDetail:
     """Hand back money for a paid online order (all of it, or ``amount_minor``).
 
@@ -452,6 +457,7 @@ async def refund_order(
         actor=actor,
         reason=body.reason,
         key=f"refund:{key}",
+        reason_code="organiser_refund",
         amount_minor=body.amount_minor,
     )
     activity.record(
@@ -469,7 +475,7 @@ async def refund_order(
         },
     )
     await db.flush()
-    return await _detail(db, organisation_id, order, listing)
+    return await _detail(db, organisation_id, order, listing, show_email)
 
 
 async def cancel_order(
@@ -478,6 +484,7 @@ async def cancel_order(
     actor: User,
     order_id: uuid.UUID,
     body: schemas.OrgOrderCancel,
+    show_email: bool,
 ) -> schemas.OrgOrderCancelResult:
     """The organiser cancels one order: its tickets stop working, the seats go
     back on sale and the refund choice decides the money.
@@ -549,6 +556,7 @@ async def cancel_order(
                     actor=actor,
                     reason=(body.reason or "Order cancelled by the organiser")[:500],
                     key=order_refunds.CANCEL_KEY,
+                    reason_code="order_cancelled",
                 )
                 outcome = "queued" if result == "queued" else "refunded"
             else:
@@ -563,5 +571,5 @@ async def cancel_order(
         summary={"order_id": str(order.id), "refund": outcome, "choice": body.refund},
     )
     await db.flush()
-    detail = await _detail(db, organisation_id, order, listing)
+    detail = await _detail(db, organisation_id, order, listing, show_email)
     return schemas.OrgOrderCancelResult(order=detail, refund_outcome=outcome)
