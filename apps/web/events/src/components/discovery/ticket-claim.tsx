@@ -96,6 +96,10 @@ export function TicketClaim({
     setOutcome(null);
     const result = await perform(() => claimTickets(slug, chosen, keyFor()));
     if (!result.ok) {
+      // A server failure may have expired the order behind this key: start over.
+      if ("freshKey" in result && result.freshKey) {
+        attempt.current = null;
+      }
       return;
     }
     attempt.current = null;

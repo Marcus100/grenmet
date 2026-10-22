@@ -6046,6 +6046,29 @@ export type {
   OrganisationsListRoleBundlesStatus422,
 } from "./OrganisationsListRoleBundles.js";
 export type {
+  OrganisationsListTeamMembersHeaders,
+  OrganisationsListTeamMembersOptions,
+  OrganisationsListTeamMembersQuery,
+  OrganisationsListTeamMembersResponse,
+  OrganisationsListTeamMembersResponses,
+  OrganisationsListTeamMembersStatus200,
+  OrganisationsListTeamMembersStatus401,
+  OrganisationsListTeamMembersStatus403,
+  OrganisationsListTeamMembersStatus404,
+  OrganisationsListTeamMembersStatus422,
+} from "./OrganisationsListTeamMembers.js";
+export type {
+  OrganisationsMyTeamCapabilitiesHeaders,
+  OrganisationsMyTeamCapabilitiesOptions,
+  OrganisationsMyTeamCapabilitiesResponse,
+  OrganisationsMyTeamCapabilitiesResponses,
+  OrganisationsMyTeamCapabilitiesStatus200,
+  OrganisationsMyTeamCapabilitiesStatus401,
+  OrganisationsMyTeamCapabilitiesStatus403,
+  OrganisationsMyTeamCapabilitiesStatus404,
+  OrganisationsMyTeamCapabilitiesStatus422,
+} from "./OrganisationsMyTeamCapabilities.js";
+export type {
   OrganisationsRevokeAdminApiKeyOptions,
   OrganisationsRevokeAdminApiKeyPath,
   OrganisationsRevokeAdminApiKeyResponse,
@@ -7621,6 +7644,10 @@ export type { SynopWorkbook } from "./SynopWorkbook.js";
 export type { TaskCreate } from "./TaskCreate.js";
 export type { TaskUpdate } from "./TaskUpdate.js";
 export type { TaskView } from "./TaskView.js";
+export type { TeamCapabilitiesPublic } from "./TeamCapabilitiesPublic.js";
+export type { TeamMemberGrantPublic } from "./TeamMemberGrantPublic.js";
+export type { TeamMemberListPublic } from "./TeamMemberListPublic.js";
+export type { TeamMemberPublic } from "./TeamMemberPublic.js";
 export type { ThreadCreate } from "./ThreadCreate.js";
 export type { ThreadDetail } from "./ThreadDetail.js";
 export type { ThreadDetailPropertiesKindEnum } from "./ThreadDetailPropertiesKindEnum.js";

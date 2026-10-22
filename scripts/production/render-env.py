@@ -80,6 +80,22 @@ def render(config, environment):
     stripe_key = values["PAYMENTS_STRIPE_SECRET_KEY"]
     if stripe_key and not stripe_key.startswith("sk_test_"):
         raise ValueError("PAYMENTS_STRIPE_SECRET_KEY must be a Stripe test key (sk_test_...)")
+    # Half-set Stripe settings make Checkout fail at the first paid order, so the
+    # four settings the adapter needs are set together or not at all, and the
+    # return pages must be HTTPS.
+    stripe_names = [
+        "PAYMENTS_STRIPE_SECRET_KEY",
+        "PAYMENTS_STRIPE_WEBHOOK_SECRET",
+        "PAYMENTS_STRIPE_SUCCESS_URL",
+        "PAYMENTS_STRIPE_CANCEL_URL",
+    ]
+    stripe_set = [name for name in stripe_names if values[name]]
+    if stripe_set and len(stripe_set) != len(stripe_names):
+        missing = ", ".join(name for name in stripe_names if not values[name])
+        raise ValueError(f"PAYMENTS_STRIPE_* settings must be set together; missing: {missing}")
+    for name in ("PAYMENTS_STRIPE_SUCCESS_URL", "PAYMENTS_STRIPE_CANCEL_URL"):
+        if values[name] and not values[name].startswith("https://"):
+            raise ValueError(f"{name} must be an https:// URL")
     telemetry_enabled = environment.get("TELEMETRY_ENABLED", "")
     if telemetry_enabled not in {"", "true", "false"}:
         raise ValueError("TELEMETRY_ENABLED must be true or false")

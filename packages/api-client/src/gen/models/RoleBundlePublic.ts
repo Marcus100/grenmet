@@ -9,6 +9,8 @@
  */
 export type RoleBundlePublic = {
   role_key: string;
+  label: string;
+  description: string;
   product: string;
   permissions: string[];
   grantable: boolean;

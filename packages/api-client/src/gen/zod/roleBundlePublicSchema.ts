@@ -8,6 +8,8 @@ import * as z from "zod";
 export const roleBundlePublicSchema = z
   .object({
     role_key: z.string(),
+    label: z.string(),
+    description: z.string(),
     product: z.string(),
     permissions: z.array(z.string()),
     grantable: z.boolean(),
