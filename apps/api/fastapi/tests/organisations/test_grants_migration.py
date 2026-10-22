@@ -13,12 +13,21 @@ from sqlalchemy.exc import IntegrityError
 from src.config import settings
 from src.database import engine
 from tests.database_target import require_owned_database
+from tests.factories import make_user
 
 REVISION = "membershipgrant20261022"
 
 
 @pytest.fixture
-async def before_migration(db_async):
+async def before_migration_user(db_async):
+    user = await make_user(db_async)
+    await db_async.commit()
+    return user.id
+
+
+@pytest.fixture
+async def before_migration(db_async, before_migration_user):
+    assert before_migration_user is not None
     await db_async.rollback()
     require_owned_database(settings.POSTGRES_DB, os.environ)
     scripts = ScriptDirectory.from_config(Config("alembic.ini"))
@@ -46,7 +55,9 @@ def _exists(connection) -> bool:
     )
 
 
-def test_upgrade_creates_the_table_with_a_live_unique_index(before_migration):
+def test_upgrade_creates_the_table_with_a_live_unique_index(
+    before_migration, before_migration_user
+):
     connection, migration = before_migration
     assert not _exists(connection)
     migration.upgrade()
@@ -58,9 +69,7 @@ def test_upgrade_creates_the_table_with_a_live_unique_index(before_migration):
             "'business', 'active', now(), now())"
         )
     )
-    user_id = connection.execute(text('SELECT id FROM "user" LIMIT 1')).scalar()
-    if user_id is None:
-        pytest.skip("needs one user row for the membership foreign key")
+    user_id = before_migration_user
     connection.execute(
         text(
             "INSERT INTO org.membership (id, organisation_id, user_id, role, "

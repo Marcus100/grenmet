@@ -196,3 +196,18 @@ class RoleAlreadyGrantedError(AppException):
         super().__init__(
             "That member already holds this role", status.HTTP_409_CONFLICT
         )
+
+
+class SelfGrantError(AppException):
+    def __init__(self) -> None:
+        super().__init__("You cannot change your own roles", status.HTTP_403_FORBIDDEN)
+
+
+class GrantExpiryExceedsGrantorError(AppException):
+    """The grantor's own access to the bundle ends sooner than the new grant would."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This grant cannot outlast your own access to the role",
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+        )

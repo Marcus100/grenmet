@@ -17,22 +17,25 @@ audit actor is the grantor, so grant history commits with the change.
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import ColumnElement, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
 from src.auth.permissions import ORGANISATION_BOUND_KEYS
 from src.organisations import api_key_scopes, role_bundles
 from src.organisations.exceptions import (
+    GrantExpiryExceedsGrantorError,
     GrantExpiryInvalidError,
     GrantNotFoundError,
     GrantNotHeldError,
     MembershipNotFoundError,
     RoleAlreadyGrantedError,
     RoleBundleUnknownError,
+    SelfGrantError,
 )
 from src.organisations.models import (
     Membership,
@@ -50,12 +53,16 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def product_keys() -> frozenset[str]:
-    """Every organisation key a product owns: bound keys minus API-key scope aliases.
+#: Every organisation key a product owns: bound keys minus API-key scope aliases.
+#: Scope aliases (``bookings.read`` ...) are bounded by the creator of an API key
+#: (ADR-0029), not by a member's roles.
+_PRODUCT_KEYS: frozenset[str] = frozenset(
+    ORGANISATION_BOUND_KEYS - set(api_key_scopes.all_scopes())
+)
 
-    Scope aliases (``bookings.read`` ...) are bounded by the creator of an API key
-    (ADR-0029), not by a member's roles."""
-    return frozenset(ORGANISATION_BOUND_KEYS - set(api_key_scopes.all_scopes()))
+
+def product_keys() -> frozenset[str]:
+    return _PRODUCT_KEYS
 
 
 def is_product_key(permission_key: str) -> bool:
@@ -82,7 +89,11 @@ def _live(now: datetime) -> list[ColumnElement[bool]]:
 async def effective_keys(
     session: AsyncSession, *, membership: Membership
 ) -> frozenset[str]:
-    """The organisation keys ``membership`` holds now (empty unless it is active)."""
+    """The organisation keys ``membership`` holds now (empty unless it is active).
+
+    The caller must have obtained ``membership`` through ``resolve_membership`` /
+    ``OrgContext``: that is where a suspended organisation is refused; this
+    function does not check the organisation's status."""
     if membership.status != MembershipStatus.ACTIVE.value:
         return frozenset()
     keys: set[str] = set()
@@ -118,13 +129,17 @@ async def has_org_permission(
     return permission_key in await effective_keys(session, membership=membership)
 
 
+def _required_keys(bundle: frozenset[str]) -> set[str]:
+    return set(bundle) | {
+        f"{role_bundles.product_of_key(key)}.team.manage" for key in bundle
+    }
+
+
 async def _require_may_change(
     session: AsyncSession, context: OrgContext, bundle: frozenset[str]
 ) -> None:
     """The grantor holds every key in the bundle and each product's team-manage key."""
-    required = set(bundle) | {
-        f"{role_bundles.product_of_key(key)}.team.manage" for key in bundle
-    }
+    required = _required_keys(bundle)
     held = await effective_keys(session, membership=context.membership)
     if not required <= held:
         logger.warning(
@@ -137,6 +152,38 @@ async def _require_may_change(
         raise GrantNotHeldError()
 
 
+async def _expiry_ceiling(
+    session: AsyncSession, membership: Membership, required: set[str]
+) -> datetime | None:
+    """Earliest moment the grantor stops holding ``required`` (``None`` = never).
+
+    Owner and admin bundles are permanent. For each key the grantor relies on only
+    through grants, the key lasts until its latest-expiring provider; a provider
+    without expiry makes it permanent. The ceiling is the earliest such end."""
+    if membership.role in (MembershipRole.OWNER.value, MembershipRole.ADMIN.value):
+        return None
+    rows = await session.execute(
+        select(MembershipGrant.role_key, MembershipGrant.expires_at).where(
+            MembershipGrant.membership_id == membership.id,
+            MembershipGrant.organisation_id == membership.organisation_id,
+            *_live(utc_now()),
+        )
+    )
+    grants_held = [
+        (bundle, expires)
+        for role_key, expires in rows.all()
+        if (bundle := role_bundles.bundle_keys(role_key)) is not None
+    ]
+    ceiling: datetime | None = None
+    for key in required:
+        providers = [expires for bundle, expires in grants_held if key in bundle]
+        if not providers or None in providers:
+            continue  # permanent (or not held; _require_may_change refuses first)
+        ends = max(e for e in providers if e is not None)
+        ceiling = ends if ceiling is None else min(ceiling, ends)
+    return ceiling
+
+
 async def grant_role(
     session: AsyncSession,
     context: OrgContext,
@@ -145,23 +192,37 @@ async def grant_role(
     role_key: str,
     expires_at: datetime | None = None,
 ) -> MembershipGrant:
+    """Give a member a role bundle. ``expires_at`` is UTC; a timezone-aware value
+    is converted, a naive one is taken as UTC. A grantor whose own keys expire
+    cannot grant beyond that expiry, and nobody can grant themselves a role."""
     bundle = role_bundles.bundle_keys(role_key)
     if bundle is None:
         raise RoleBundleUnknownError(role_key)
     now = utc_now()
+    if expires_at is not None and expires_at.tzinfo is not None:
+        # Columns are naive UTC (utc_now); normalise aware input.
+        expires_at = expires_at.astimezone(UTC).replace(tzinfo=None)
     if expires_at is not None and expires_at <= now:
         raise GrantExpiryInvalidError()
     audit_service.set_actor(session, context.user.id)
+    # Lock the target row so concurrent grants of the same role serialise.
     target = await session.scalar(
-        select(Membership).where(
+        select(Membership)
+        .where(
             Membership.id == membership_id,
             Membership.organisation_id == context.organisation_id,
             Membership.status == MembershipStatus.ACTIVE.value,
         )
+        .with_for_update()
     )
     if target is None:
         raise MembershipNotFoundError()
+    if target.id == context.membership.id:
+        raise SelfGrantError()
     await _require_may_change(session, context, bundle)
+    ceiling = await _expiry_ceiling(session, context.membership, _required_keys(bundle))
+    if ceiling is not None and (expires_at is None or expires_at > ceiling):
+        raise GrantExpiryExceedsGrantorError()
 
     existing = await session.scalar(
         select(MembershipGrant)
@@ -175,8 +236,10 @@ async def grant_role(
     if existing is not None:
         if existing.expires_at is None or existing.expires_at > now:
             raise RoleAlreadyGrantedError()
-        # A lapsed grant still holds the unique slot; close it before re-granting.
-        existing.revoked_at = now
+        # A lapsed grant still holds the unique slot (the partial index looks at
+        # revoked_at only), so close it at its real end, not now, and keep it as
+        # history before inserting the fresh row.
+        existing.revoked_at = existing.expires_at
         await session.flush()
 
     grant = MembershipGrant(
@@ -189,7 +252,11 @@ async def grant_role(
         expires_at=expires_at,
     )
     session.add(grant)
-    await session.flush()
+    try:
+        async with session.begin_nested():
+            await session.flush()
+    except IntegrityError:
+        raise RoleAlreadyGrantedError() from None
     return grant
 
 
@@ -212,6 +279,14 @@ async def revoke_grant(
     bundle = role_bundles.bundle_keys(grant.role_key)
     if bundle is not None:
         await _require_may_change(session, context, bundle)
+    else:
+        # Renamed or retired role: still needs authority. Use the product's
+        # team-manage key when the role_key prefix names one, else refuse.
+        team_key = f"{grant.role_key.partition('-')[0]}.team.manage"
+        if team_key not in product_keys() or team_key not in await effective_keys(
+            session, membership=context.membership
+        ):
+            raise GrantNotHeldError()
     grant.revoked_at = utc_now()
     await session.flush()
     return grant

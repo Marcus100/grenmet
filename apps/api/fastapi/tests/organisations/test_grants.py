@@ -1,6 +1,6 @@
 """Membership grants, the resolver and require_org_permission (ADR-0044, S1)."""
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
 import httpx
@@ -17,11 +17,13 @@ from src.exceptions import AppException, AuthorizationError, app_exception_handl
 from src.organisations import grants, role_bundles, service
 from src.organisations.dependencies import OrgContext, require_org_permission
 from src.organisations.exceptions import (
+    GrantExpiryExceedsGrantorError,
     GrantExpiryInvalidError,
     GrantNotHeldError,
     MembershipNotFoundError,
     RoleAlreadyGrantedError,
     RoleBundleUnknownError,
+    SelfGrantError,
 )
 from src.organisations.members import apply_removal
 from src.organisations.models import Membership, MembershipGrant, MembershipRole
@@ -438,3 +440,169 @@ def test_every_bundle_key_is_an_organisation_key_in_the_catalogue():
         assert keys <= permissions.ORGANISATION_BOUND_KEYS, role_key
         assert keys <= grants.product_keys(), role_key
         assert role_key.startswith(role_bundles.product_of_key(next(iter(keys))))
+
+
+async def test_aware_expiry_is_normalised(db_async: AsyncSession):
+    owner = await make_user(db_async)
+    member = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "A",
+        members=((owner, MembershipRole.OWNER), (member, MembershipRole.MEMBER)),
+        apps=("events",),
+    )
+    aware = datetime.now(UTC) + timedelta(hours=1)
+    grant = await _grant(db_async, org, owner, member, "events-door", expires_at=aware)
+    assert grant.expires_at.tzinfo is None
+    with pytest.raises(GrantExpiryInvalidError):
+        await _grant(
+            db_async,
+            org,
+            owner,
+            member,
+            "events-till",
+            expires_at=datetime.now(UTC) - timedelta(hours=1),
+        )
+
+
+async def test_revoke_rules_and_listing(db_async: AsyncSession):
+    owner = await make_user(db_async)
+    lead = await make_user(db_async)
+    target = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "A",
+        members=(
+            (owner, MembershipRole.OWNER),
+            (lead, MembershipRole.MEMBER),
+            (target, MembershipRole.MEMBER),
+        ),
+        apps=("events",),
+    )
+    door = await _grant(db_async, org, owner, target, "events-door")
+    till = await _grant(db_async, org, owner, target, "events-till")
+    lapsed = await _grant(db_async, org, owner, target, "events-refunds")
+    lapsed.expires_at = utc_now() - timedelta(seconds=1)
+    await db_async.commit()
+    # A lead without the bundle and team.manage cannot revoke it.
+    with pytest.raises(GrantNotHeldError):
+        await grants.revoke_grant(
+            db_async, await _context(db_async, org, lead), grant_id=door.id
+        )
+    owner_ctx = await _context(db_async, org, owner)
+    first = await grants.revoke_grant(db_async, owner_ctx, grant_id=door.id)
+    stamp = first.revoked_at
+    again = await grants.revoke_grant(db_async, owner_ctx, grant_id=door.id)
+    assert again.revoked_at == stamp
+    await db_async.commit()
+    row = await _membership(db_async, org.id, target)
+    live = await grants.list_grants(
+        db_async, organisation_id=org.id, membership_id=row.id
+    )
+    assert [g.id for g in live] == [till.id]
+
+
+async def test_self_grant_is_refused(db_async: AsyncSession):
+    owner = await make_user(db_async)
+    org = await make_org(
+        db_async, "A", members=((owner, MembershipRole.OWNER),), apps=("events",)
+    )
+    with pytest.raises(SelfGrantError):
+        await _grant(db_async, org, owner, owner, "events-door")
+
+
+async def test_grant_cannot_outlast_the_grantors_own_access(db_async: AsyncSession):
+    owner = await make_user(db_async)
+    admin = await make_user(db_async)
+    lead = await make_user(db_async)
+    target = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "A",
+        members=(
+            (owner, MembershipRole.OWNER),
+            (admin, MembershipRole.ADMIN),
+            (lead, MembershipRole.MEMBER),
+            (target, MembershipRole.MEMBER),
+        ),
+        apps=("events",),
+    )
+    soon = utc_now() + timedelta(days=1)
+    later = utc_now() + timedelta(days=30)
+    await _grant(db_async, org, owner, lead, "events-door", expires_at=later)
+    await _grant(db_async, org, owner, lead, "events-team", expires_at=soon)
+    # The lead's team-manage ends first, so that is the ceiling.
+    with pytest.raises(GrantExpiryExceedsGrantorError):
+        await _grant(db_async, org, lead, target, "events-door")
+    with pytest.raises(GrantExpiryExceedsGrantorError):
+        await _grant(db_async, org, lead, target, "events-door", expires_at=later)
+    ok = await _grant(db_async, org, lead, target, "events-door", expires_at=soon)
+    assert ok.expires_at == soon
+    # Owners and admins hold permanent bundles and may grant permanently.
+    for grantor in (owner, admin):
+        person = await make_user(db_async)
+        org_member = await service.add_member(
+            db_async,
+            organisation_id=org.id,
+            user_id=person.id,
+            role=MembershipRole.MEMBER,
+        )
+        await db_async.commit()
+        assert org_member is not None
+        grant = await _grant(db_async, org, grantor, person, "events-refunds")
+        assert grant.expires_at is None
+
+
+async def test_revoking_a_retired_role_still_needs_authority(db_async: AsyncSession):
+    owner = await make_user(db_async)
+    lead = await make_user(db_async)
+    member = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "A",
+        members=(
+            (owner, MembershipRole.OWNER),
+            (lead, MembershipRole.MEMBER),
+            (member, MembershipRole.MEMBER),
+        ),
+        apps=("events",),
+    )
+    row = await _membership(db_async, org.id, member)
+    for gid, key in (("grant_old1", "events-retired"), ("grant_old2", "mystery")):
+        db_async.add(
+            MembershipGrant(
+                id=gid, membership_id=row.id, organisation_id=org.id, role_key=key
+            )
+        )
+    await db_async.commit()
+    await _grant(db_async, org, owner, lead, "events-team")
+    lead_ctx = await _context(db_async, org, lead)
+    owner_ctx = await _context(db_async, org, owner)
+    # team.manage of the product (derived from the prefix) is enough...
+    await grants.revoke_grant(db_async, lead_ctx, grant_id="grant_old1")
+    # ...but a role with no derivable product is refused for non-admins and
+    # also for owners, since no authority can be established.
+    with pytest.raises(GrantNotHeldError):
+        await grants.revoke_grant(db_async, lead_ctx, grant_id="grant_old2")
+    with pytest.raises(GrantNotHeldError):
+        await grants.revoke_grant(db_async, owner_ctx, grant_id="grant_old2")
+
+
+async def test_regranting_over_a_lapsed_grant_keeps_its_real_end(
+    db_async: AsyncSession,
+):
+    owner = await make_user(db_async)
+    member = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "A",
+        members=((owner, MembershipRole.OWNER), (member, MembershipRole.MEMBER)),
+        apps=("events",),
+    )
+    first = await _grant(db_async, org, owner, member, "events-door")
+    ended = utc_now() - timedelta(hours=2)
+    first.expires_at = ended
+    await db_async.commit()
+    await _grant(db_async, org, owner, member, "events-door")
+    await db_async.refresh(first)
+    assert first.revoked_at == ended
