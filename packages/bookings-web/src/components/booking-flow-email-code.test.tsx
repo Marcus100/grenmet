@@ -409,6 +409,24 @@ describe("BookingFlow emailed code", () => {
     expect(confirmEmailCode).not.toHaveBeenCalled();
   });
 
+  it("forces the code step when a stale page shows no deposit but the API wants a code", async () => {
+    const user = userEvent.setup();
+    submitBooking.mockResolvedValueOnce({
+      ok: false,
+      code: "email_unverified",
+      message: "We need to confirm your email again.",
+    });
+    renderFlow();
+    await fill(user, "Free brows");
+    await user.click(screen.getByRole("button", { name: BOOK }));
+    expect(await screen.findByText(CONFIRM_AGAIN)).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: SEND }));
+    expect(requestEmailCode).toHaveBeenCalledTimes(1);
+    expect(submitBooking).toHaveBeenCalledTimes(1);
+    expect(await screen.findByLabelText("Verification code")).toBeVisible();
+  });
+
   it("sends the visitor back to the code step when the proof is refused", async () => {
     const user = userEvent.setup();
     submitBooking.mockResolvedValueOnce({

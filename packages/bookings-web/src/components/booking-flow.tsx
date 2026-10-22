@@ -343,6 +343,9 @@ export function BookingFlow({
   const [token, setToken] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
+  // A service the API demanded a code for although the page showed no deposit
+  // (a stale page): the next press requests a code instead of resubmitting.
+  const [codeForced, setCodeForced] = useState<string | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -359,7 +362,9 @@ export function BookingFlow({
 
   useFocusWhen(summaryRef, showSummary);
 
-  const needsCode = (service?.deposit_minor ?? 0) > 0;
+  const needsCode =
+    (service?.deposit_minor ?? 0) > 0 ||
+    (serviceId !== null && codeForced === serviceId);
   const tokenMissing = Boolean(turnstileSiteKey) && !token;
   const emailCode = useEmailCode({
     actions,
@@ -384,6 +389,7 @@ export function BookingFlow({
     if (outcome.code === "email_unverified") {
       // The proof was used, expired or never accepted: ask for a new code.
       emailCode.dropProof();
+      setCodeForced(serviceId);
     }
     if (outcome.code === "slot_taken") {
       setStartsAt(null);

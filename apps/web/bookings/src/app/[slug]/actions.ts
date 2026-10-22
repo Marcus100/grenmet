@@ -33,7 +33,8 @@ import { isBusinessSlug } from "@/lib/slug";
 // address never leaves the server, and the generated client does the calling.
 // The page binds the business slug as the first argument (`action.bind(null,
 // slug)`), so the browser calls the shape the booking package expects. The slug
-// is still untrusted input and is checked here.
+// is still untrusted input (a client can call the action with any value) and
+// is checked here.
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -61,6 +62,12 @@ async function accessTokenIfSignedIn(): Promise<string | undefined> {
     reportError(error, "bookings-public-session");
     return undefined;
   }
+}
+
+// Server Action arguments come from the browser and are not guaranteed to
+// match their TypeScript types: never call a string method on them unchecked.
+function trimmed(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 export async function loadSlots(
@@ -98,15 +105,18 @@ export async function submitBooking(
   if (!isBusinessSlug(slug)) {
     return unknownBusiness;
   }
-  const phone = input.phone.trim();
-  const notes = input.notes.trim();
-  const website = input.website.trim();
-  const turnstile = input.turnstileToken.trim();
+  if (typeof input !== "object" || input === null) {
+    return invalid;
+  }
+  const phone = trimmed(input.phone);
+  const notes = trimmed(input.notes);
+  const website = trimmed(input.website);
+  const turnstile = trimmed(input.turnstileToken);
   const body = bookingPublicCreateSchema.safeParse({
     service_id: input.serviceId,
     starts_at: input.startsAt,
-    customer_name: input.name.trim(),
-    customer_email: input.email.trim(),
+    customer_name: trimmed(input.name),
+    customer_email: trimmed(input.email),
     marketing_consent: input.marketingConsent,
     ...(phone ? { customer_phone: phone } : {}),
     ...(notes ? { notes } : {}),
@@ -158,11 +168,14 @@ export async function requestEmailCode(
   if (!isBusinessSlug(slug)) {
     return unknownBusiness;
   }
-  const turnstile = input.turnstileToken.trim();
+  if (typeof input !== "object" || input === null) {
+    return invalid;
+  }
+  const turnstile = trimmed(input.turnstileToken);
   const body = bookingEmailCodeRequestSchema.safeParse({
     service_id: input.serviceId,
     starts_at: input.startsAt,
-    customer_email: input.email.trim(),
+    customer_email: trimmed(input.email),
     ...(turnstile ? { turnstile_token: turnstile } : {}),
   });
   if (!body.success) {
@@ -200,11 +213,14 @@ export async function confirmEmailCode(
   if (!isBusinessSlug(slug)) {
     return unknownBusiness;
   }
+  if (typeof input !== "object" || input === null) {
+    return invalid;
+  }
   const body = bookingEmailCodeConfirmSchema.safeParse({
     service_id: input.serviceId,
     starts_at: input.startsAt,
-    customer_email: input.email.trim(),
-    code: input.code.trim(),
+    customer_email: trimmed(input.email),
+    code: trimmed(input.code),
   });
   if (!body.success) {
     return invalid;

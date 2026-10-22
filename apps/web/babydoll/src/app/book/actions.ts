@@ -47,6 +47,12 @@ const switchedOff: Failure = {
   message: "Online booking is not available right now.",
 };
 
+// Server Action arguments come from the browser and are not guaranteed to
+// match their TypeScript types: never call a string method on them unchecked.
+function trimmed(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
 export async function loadSlots(
   serviceId: string,
   firstDay: string
@@ -80,15 +86,18 @@ export async function submitBooking(
   if (env.BABYDOLL_ONLINE_BOOKING !== "on") {
     return switchedOff;
   }
-  const phone = input.phone.trim();
-  const notes = input.notes.trim();
-  const website = input.website.trim();
-  const turnstile = input.turnstileToken.trim();
+  if (typeof input !== "object" || input === null) {
+    return invalid;
+  }
+  const phone = trimmed(input.phone);
+  const notes = trimmed(input.notes);
+  const website = trimmed(input.website);
+  const turnstile = trimmed(input.turnstileToken);
   const body = bookingPublicCreateSchema.safeParse({
     service_id: input.serviceId,
     starts_at: input.startsAt,
-    customer_name: input.name.trim(),
-    customer_email: input.email.trim(),
+    customer_name: trimmed(input.name),
+    customer_email: trimmed(input.email),
     marketing_consent: input.marketingConsent,
     ...(phone ? { customer_phone: phone } : {}),
     ...(notes ? { notes } : {}),
@@ -137,11 +146,14 @@ export async function requestEmailCode(
   if (env.BABYDOLL_ONLINE_BOOKING !== "on") {
     return switchedOff;
   }
-  const turnstile = input.turnstileToken.trim();
+  if (typeof input !== "object" || input === null) {
+    return invalid;
+  }
+  const turnstile = trimmed(input.turnstileToken);
   const body = bookingEmailCodeRequestSchema.safeParse({
     service_id: input.serviceId,
     starts_at: input.startsAt,
-    customer_email: input.email.trim(),
+    customer_email: trimmed(input.email),
     ...(turnstile ? { turnstile_token: turnstile } : {}),
   });
   if (!body.success) {
@@ -174,11 +186,14 @@ export async function confirmEmailCode(
   if (env.BABYDOLL_ONLINE_BOOKING !== "on") {
     return switchedOff;
   }
+  if (typeof input !== "object" || input === null) {
+    return invalid;
+  }
   const body = bookingEmailCodeConfirmSchema.safeParse({
     service_id: input.serviceId,
     starts_at: input.startsAt,
-    customer_email: input.email.trim(),
-    code: input.code.trim(),
+    customer_email: trimmed(input.email),
+    code: trimmed(input.code),
   });
   if (!body.success) {
     return invalid;

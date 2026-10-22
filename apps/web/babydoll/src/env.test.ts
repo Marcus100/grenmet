@@ -13,24 +13,27 @@ describe("parseEnv", () => {
     });
   });
 
-  it("uses the visitor secret only when it is long enough", () => {
+  it("accepts a long enough visitor secret and rejects a short one", () => {
     const secret = "s".repeat(32);
     expect(parseEnv({ TRUSTED_WEB_SECRET: secret }).TRUSTED_WEB_SECRET).toBe(
       secret
     );
-    expect(
-      parseEnv({ TRUSTED_WEB_SECRET: "short" }).TRUSTED_WEB_SECRET
-    ).toBeUndefined();
+    expect(() => parseEnv({ TRUSTED_WEB_SECRET: "short" })).toThrow(
+      "TRUSTED_WEB_SECRET"
+    );
   });
 
-  it("reads proxy hops as 1 to 5 and falls back to 1", () => {
+  it("reads proxy hops as 1 to 5, defaults to 1, and rejects bad values", () => {
     expect(parseEnv({ VISITOR_IP_PROXY_HOPS: "2" }).VISITOR_IP_PROXY_HOPS).toBe(
       2
     );
-    for (const value of ["0", "6", "x", "1.5", ""]) {
-      expect(
-        parseEnv({ VISITOR_IP_PROXY_HOPS: value }).VISITOR_IP_PROXY_HOPS
-      ).toBe(1);
+    expect(parseEnv({ VISITOR_IP_PROXY_HOPS: "" }).VISITOR_IP_PROXY_HOPS).toBe(
+      1
+    );
+    for (const value of ["0", "6", "x", "1.5"]) {
+      expect(() => parseEnv({ VISITOR_IP_PROXY_HOPS: value })).toThrow(
+        "VISITOR_IP_PROXY_HOPS"
+      );
     }
   });
 

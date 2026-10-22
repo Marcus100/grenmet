@@ -295,3 +295,7 @@ fieldset.notice {
   gap: 0.75rem;
   margin-top: 1rem;
 }
+.code-actions .btn,
+.code-input {
+  min-height: 44px;
+}

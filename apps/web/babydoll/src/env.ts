@@ -23,16 +23,30 @@ function originOf(value: string | undefined, fallback: string): string {
 const MIN_SECRET_LENGTH = 32;
 const MAX_PROXY_HOPS = 5;
 
+// A set but invalid value fails loudly, like apps/web/bookings, instead of
+// silently weakening rate limiting.
 function secretOf(value: string | undefined): string | undefined {
   const secret = clean(value);
-  return secret && secret.length >= MIN_SECRET_LENGTH ? secret : undefined;
+  if (secret && secret.length < MIN_SECRET_LENGTH) {
+    throw new Error(
+      `TRUSTED_WEB_SECRET must be at least ${MIN_SECRET_LENGTH} characters`
+    );
+  }
+  return secret;
 }
 
 function hopsOf(value: string | undefined): number {
-  const hops = Number(clean(value));
-  return Number.isInteger(hops) && hops >= 1 && hops <= MAX_PROXY_HOPS
-    ? hops
-    : 1;
+  const raw = clean(value);
+  if (raw === undefined) {
+    return 1;
+  }
+  const hops = Number(raw);
+  if (!Number.isInteger(hops) || hops < 1 || hops > MAX_PROXY_HOPS) {
+    throw new Error(
+      `VISITOR_IP_PROXY_HOPS must be a whole number from 1 to ${MAX_PROXY_HOPS}`
+    );
+  }
+  return hops;
 }
 
 export interface BabydollEnv {
@@ -50,8 +64,8 @@ export interface BabydollEnv {
   readonly NEXT_PUBLIC_TURNSTILE_SITE_KEY: string;
   /**
    * Shared with the API's TRUSTED_WEB_SECRET so it can rate-limit each visitor
-   * on their own address. Under 32 characters or unset: ignored, and every
-   * visitor shares this server's bucket.
+   * on their own address. Unset: every visitor shares this server's bucket.
+   * Set but under 32 characters: parsing throws.
    */
   readonly TRUSTED_WEB_SECRET: string | undefined;
   /** Proxies in front of this server that append to `x-forwarded-for`. */

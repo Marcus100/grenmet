@@ -337,3 +337,29 @@ describe("confirmEmailCode", () => {
     });
   });
 });
+
+describe("untyped browser input", () => {
+  // Server Action arguments are whatever the client sends, not their TS types.
+  const bad = {
+    ...input,
+    email: 42,
+    code: {},
+    turnstileToken: ["x"],
+    phone: null,
+  } as never;
+
+  it("answers a non-string field with the normal validation failure", async () => {
+    await expect(submitBooking(SLUG, bad)).resolves.toMatchObject({
+      code: "invalid",
+    });
+    await expect(requestEmailCode(SLUG, bad)).resolves.toMatchObject({
+      code: "invalid",
+    });
+    await expect(confirmEmailCode(SLUG, bad)).resolves.toMatchObject({
+      code: "invalid",
+    });
+    await expect(submitBooking(SLUG, null as never)).resolves.toMatchObject({
+      code: "invalid",
+    });
+  });
+});
