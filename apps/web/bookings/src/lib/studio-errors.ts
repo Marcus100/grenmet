@@ -104,3 +104,112 @@ export function actionFailure(error: unknown): StudioFailure {
       return unavailable;
   }
 }
+
+/** A member (not an admin) tried to change the settings. */
+export const SETTINGS_ADMIN_REQUIRED: StudioFailure = {
+  kind: "forbidden",
+  message: "You need admin access to change settings.",
+  nextStep: "Ask the business owner to make you an admin, then try again.",
+};
+
+/** The API's error body as text, matched defensively (no error codes yet). */
+export function detailText(data: unknown): string {
+  try {
+    return typeof data === "string" ? data : (JSON.stringify(data) ?? "");
+  } catch {
+    return "";
+  }
+}
+
+const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
+  {
+    match: /already in use/i,
+    failure: {
+      kind: "conflict",
+      message: "That booking address is already in use.",
+      nextStep: "Choose another address and save again.",
+    },
+  },
+  {
+    match: /reserved/i,
+    failure: {
+      kind: "invalid",
+      message: "That booking address is reserved by the platform.",
+      nextStep: "Choose another address and save again.",
+    },
+  },
+  {
+    match: /deposit cannot exceed/i,
+    failure: {
+      kind: "invalid",
+      message: "The deposit cannot exceed the price.",
+      nextStep: "Lower the deposit or raise the price, then save again.",
+    },
+  },
+  {
+    match: /unknown iana timezone/i,
+    failure: {
+      kind: "invalid",
+      message: "That timezone is not recognised.",
+      nextStep: "Use a name like America/Grenada.",
+    },
+  },
+  {
+    match: /overlap/i,
+    failure: {
+      kind: "invalid",
+      message: "Two working periods on the same day overlap.",
+      nextStep: "Make each period start after the one before it ends.",
+    },
+  },
+];
+
+/**
+ * Failures of a settings save, using the API's own error strings (reserved or
+ * taken address, deposit above price, unknown timezone, overlapping hours).
+ * Anything else that is not an API response is "unavailable".
+ */
+export function settingsFailure(error: unknown): StudioFailure {
+  const unavailable: StudioFailure = {
+    kind: "unavailable",
+    message: "We could not save that change.",
+    nextStep: "Try again in a moment.",
+  };
+  if (!ResponseError.is(error)) {
+    return unavailable;
+  }
+  switch (error.status) {
+    case 401:
+      return studioFailure(error);
+    case 403:
+      return SETTINGS_ADMIN_REQUIRED;
+    case 404:
+      return {
+        kind: "not_found",
+        message: "That item no longer exists.",
+        nextStep: "Reload the settings and try again.",
+      };
+    case 409:
+    case 400:
+    case 422: {
+      const text = detailText(error.data);
+      const known = RULES.find((rule) => rule.match.test(text));
+      if (known) {
+        return known.failure;
+      }
+      return error.status === 409
+        ? {
+            kind: "conflict",
+            message: "That change clashes with another one.",
+            nextStep: "Reload the settings and try again.",
+          }
+        : {
+            kind: "invalid",
+            message: "The settings were not accepted.",
+            nextStep: "Check each field and save again.",
+          };
+    }
+    default:
+      return unavailable;
+  }
+}
