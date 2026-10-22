@@ -273,3 +273,29 @@ async def test_only_entitled_organisers_are_listed_and_chosen(
         named = await client.get(MANAGE, params={"organiser": "off-co"})
         assert named.status_code == 403
         assert named.json()["detail"] == REFUSED
+
+
+@pytest.mark.asyncio
+async def test_a_suspended_linked_organisation_is_refused(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    from src.organisations.models import OrganisationStatus, PlatformOrganisation
+
+    shop = await _shop_with_events(db_async, events_db)
+    async with client_with_real_roles(shop.owner) as client:
+        assert (await client.get(MANAGE)).status_code == 200
+    organisation = await db_async.get(PlatformOrganisation, shop.organisation_id)
+    assert organisation is not None
+    organisation.status = OrganisationStatus.SUSPENDED.value
+    await db_async.commit()
+    async with client_with_real_roles(shop.owner) as client:
+        assert (await client.get(MANAGE)).status_code == 403
+        assert (
+            await client.get(f"{MANAGE}/{shop.listing_id}/settlement")
+        ).status_code == 403
+        assert (
+            await client.post(
+                f"{MANAGE}/{shop.listing_id}/outlet/till",
+                json={"opening_float_minor": 0},
+            )
+        ).status_code == 403

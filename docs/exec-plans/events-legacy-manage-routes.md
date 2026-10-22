@@ -33,9 +33,10 @@ only when its organisation holds an enabled `events` row in `org.organisation_ap
 | Plain member with a grant only | still 403 (unchanged) |
 | Member of several organisations | `GET /manage` lists only entitled organisers; naming a switched-off one with `?organiser=` is 403 with the message above |
 
-`POST /manage/organiser` (request an organiser) has no organisation yet and is not gated. The suspended
-status of an organisation is still not checked on the legacy routes (org-zone `OrgContext` refuses it):
-see open questions.
+`POST /manage/organiser` (request an organiser) has no organisation yet and is not gated. Suspended
+organisations are already refused on the legacy routes: `organisations.list_managed_organisation_ids` keeps
+only active organisations and active admin/owner memberships, so the caller gets the generic "not a member
+of an organiser yet" 403 (tested in `test_legacy_entitlement.py`).
 
 ## Inventory
 
@@ -112,10 +113,17 @@ regenerate `openapi.json` and the client (breaking: needs the owner's go-ahead,
 - A switched-off organisation now gets 403 on `GET /manage`. The web app may read a 403 there as "not an
   organiser" and offer the "request an organiser account" flow. Phase 2 (or a small web fix) should show the
   entitlement message instead; the API message is `Barrels Events isn't enabled for this organisation`.
-- Suspended organisations are not refused on the legacy routes (`OrgContext` does refuse them). Add in phase 2
-  by construction, or sooner with a `PlatformOrganisation.status` check in `my_organisers`?
+- A switched-off owner can still create a new organisation through `POST /manage/organiser`; it gets the
+  `events` entitlement automatically. It is unverified so it cannot publish, and the route is limited to
+  5/hour. A policy gap, not a bypass of the switch.
+- Storage upload start may not check the `events` entitlement (pre-existing, unverified).
 - Org-linked organisers created before `eventsentitlement20261022` and later switched off by staff on purpose
   stay off; organisers linked after it get the row at creation. A linked organisation with no row (for example
   a manual SQL link) is now refused.
 - Outlet cash access widening under keys (above) is an owner decision.
 - `ensure_events_entitlement` never re-enables a row staff switched off; there is no self-service way back.
+
+## Pre-deploy notes
+
+- Confirm migration `eventsentitlement20261022` has run on every target database before this gate ships;
+  otherwise linked organisers without an `events` row are refused.
