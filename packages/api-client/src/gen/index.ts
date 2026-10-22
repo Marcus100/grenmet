@@ -120,6 +120,7 @@ export { bookingsListProviders } from "./clients/bookingsListProviders.js";
 export { bookingsListServices } from "./clients/bookingsListServices.js";
 export { bookingsListStudioBookings } from "./clients/bookingsListStudioBookings.js";
 export { bookingsNoShowStudioBooking } from "./clients/bookingsNoShowStudioBooking.js";
+export { bookingsRecordManualDeposit } from "./clients/bookingsRecordManualDeposit.js";
 export { bookingsReorderProviders } from "./clients/bookingsReorderProviders.js";
 export { bookingsReorderServices } from "./clients/bookingsReorderServices.js";
 export { bookingsReplaceWorkingHours } from "./clients/bookingsReplaceWorkingHours.js";
@@ -1228,6 +1229,11 @@ export {
   bookingsNoShowStudioBookingMutationOptions,
   useBookingsNoShowStudioBooking,
 } from "./hooks/useBookingsNoShowStudioBooking.js";
+export {
+  bookingsRecordManualDepositMutationKey,
+  bookingsRecordManualDepositMutationOptions,
+  useBookingsRecordManualDeposit,
+} from "./hooks/useBookingsRecordManualDeposit.js";
 export {
   bookingsReorderProvidersMutationKey,
   bookingsReorderProvidersMutationOptions,
@@ -4889,6 +4895,7 @@ export type { BookingExceptionCreate } from "./models/BookingExceptionCreate.js"
 export type { BookingExceptionKind } from "./models/BookingExceptionKind.js";
 export { bookingExceptionKind } from "./models/BookingExceptionKind.js";
 export type { BookingExceptionPublic } from "./models/BookingExceptionPublic.js";
+export type { BookingManualDepositCreate } from "./models/BookingManualDepositCreate.js";
 export type { BookingMyOrganisation } from "./models/BookingMyOrganisation.js";
 export type { BookingOrder } from "./models/BookingOrder.js";
 export type { BookingProfilePublic } from "./models/BookingProfilePublic.js";
@@ -5262,6 +5269,21 @@ export type {
   BookingsNoShowStudioBookingStatus409,
   BookingsNoShowStudioBookingStatus422,
 } from "./models/BookingsNoShowStudioBooking.js";
+export type {
+  BookingsRecordManualDepositBody,
+  BookingsRecordManualDepositHeaders,
+  BookingsRecordManualDepositOptions,
+  BookingsRecordManualDepositPath,
+  BookingsRecordManualDepositResponse,
+  BookingsRecordManualDepositResponses,
+  BookingsRecordManualDepositStatus200,
+  BookingsRecordManualDepositStatus400,
+  BookingsRecordManualDepositStatus401,
+  BookingsRecordManualDepositStatus403,
+  BookingsRecordManualDepositStatus404,
+  BookingsRecordManualDepositStatus409,
+  BookingsRecordManualDepositStatus422,
+} from "./models/BookingsRecordManualDeposit.js";
 export type {
   BookingsReorderProvidersBody,
   BookingsReorderProvidersHeaders,
@@ -12997,6 +13019,7 @@ export { bookingEmailProofSchema } from "./zod/bookingEmailProofSchema.js";
 export { bookingExceptionCreateSchema } from "./zod/bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./zod/bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./zod/bookingExceptionPublicSchema.js";
+export { bookingManualDepositCreateSchema } from "./zod/bookingManualDepositCreateSchema.js";
 export { bookingMyOrganisationSchema } from "./zod/bookingMyOrganisationSchema.js";
 export { bookingOrderSchema } from "./zod/bookingOrderSchema.js";
 export { bookingProfilePublicSchema } from "./zod/bookingProfilePublicSchema.js";
@@ -13352,6 +13375,21 @@ export {
   bookingsNoShowStudioBookingStatus409Schema,
   bookingsNoShowStudioBookingStatus422Schema,
 } from "./zod/bookingsNoShowStudioBookingSchema.js";
+export {
+  bookingsRecordManualDepositBodySchema,
+  bookingsRecordManualDepositErrorSchema,
+  bookingsRecordManualDepositHeaderIdempotencyKeySchema,
+  bookingsRecordManualDepositHeaderXBarrelsOrganisationSchema,
+  bookingsRecordManualDepositPathBookingIdSchema,
+  bookingsRecordManualDepositResponseSchema,
+  bookingsRecordManualDepositStatus200Schema,
+  bookingsRecordManualDepositStatus400Schema,
+  bookingsRecordManualDepositStatus401Schema,
+  bookingsRecordManualDepositStatus403Schema,
+  bookingsRecordManualDepositStatus404Schema,
+  bookingsRecordManualDepositStatus409Schema,
+  bookingsRecordManualDepositStatus422Schema,
+} from "./zod/bookingsRecordManualDepositSchema.js";
 export {
   bookingsReorderProvidersBodySchema,
   bookingsReorderProvidersErrorSchema,

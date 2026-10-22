@@ -1003,6 +1003,7 @@ export { bookingEmailProofSchema } from "./bookingEmailProofSchema.js";
 export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
+export { bookingManualDepositCreateSchema } from "./bookingManualDepositCreateSchema.js";
 export { bookingMyOrganisationSchema } from "./bookingMyOrganisationSchema.js";
 export { bookingOrderSchema } from "./bookingOrderSchema.js";
 export { bookingProfilePublicSchema } from "./bookingProfilePublicSchema.js";
@@ -1358,6 +1359,21 @@ export {
   bookingsNoShowStudioBookingStatus409Schema,
   bookingsNoShowStudioBookingStatus422Schema,
 } from "./bookingsNoShowStudioBookingSchema.js";
+export {
+  bookingsRecordManualDepositBodySchema,
+  bookingsRecordManualDepositErrorSchema,
+  bookingsRecordManualDepositHeaderIdempotencyKeySchema,
+  bookingsRecordManualDepositHeaderXBarrelsOrganisationSchema,
+  bookingsRecordManualDepositPathBookingIdSchema,
+  bookingsRecordManualDepositResponseSchema,
+  bookingsRecordManualDepositStatus200Schema,
+  bookingsRecordManualDepositStatus400Schema,
+  bookingsRecordManualDepositStatus401Schema,
+  bookingsRecordManualDepositStatus403Schema,
+  bookingsRecordManualDepositStatus404Schema,
+  bookingsRecordManualDepositStatus409Schema,
+  bookingsRecordManualDepositStatus422Schema,
+} from "./bookingsRecordManualDepositSchema.js";
 export {
   bookingsReorderProvidersBodySchema,
   bookingsReorderProvidersErrorSchema,

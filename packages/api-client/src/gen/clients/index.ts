@@ -117,6 +117,7 @@ export { bookingsListProviders } from "./bookingsListProviders.js";
 export { bookingsListServices } from "./bookingsListServices.js";
 export { bookingsListStudioBookings } from "./bookingsListStudioBookings.js";
 export { bookingsNoShowStudioBooking } from "./bookingsNoShowStudioBooking.js";
+export { bookingsRecordManualDeposit } from "./bookingsRecordManualDeposit.js";
 export { bookingsReorderProviders } from "./bookingsReorderProviders.js";
 export { bookingsReorderServices } from "./bookingsReorderServices.js";
 export { bookingsReplaceWorkingHours } from "./bookingsReplaceWorkingHours.js";

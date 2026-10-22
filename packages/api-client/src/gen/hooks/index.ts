@@ -594,6 +594,11 @@ export {
   useBookingsNoShowStudioBooking,
 } from "./useBookingsNoShowStudioBooking.js";
 export {
+  bookingsRecordManualDepositMutationKey,
+  bookingsRecordManualDepositMutationOptions,
+  useBookingsRecordManualDeposit,
+} from "./useBookingsRecordManualDeposit.js";
+export {
   bookingsReorderProvidersMutationKey,
   bookingsReorderProvidersMutationOptions,
   useBookingsReorderProviders,

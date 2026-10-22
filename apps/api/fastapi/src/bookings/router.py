@@ -38,6 +38,7 @@ from .schemas import (
     BookingEmailProof,
     BookingExceptionCreate,
     BookingExceptionPublic,
+    BookingManualDepositCreate,
     BookingMyOrganisation,
     BookingProfilePublic,
     BookingProfileUpdate,
@@ -532,6 +533,52 @@ async def confirm_studio_booking(
     )
     await session.commit()
     return result
+
+
+@router.post(
+    "/org/bookings/{booking_id}/manual-deposit",
+    response_model=BookingStudioDetail,
+    summary="Record a deposit taken outside Stripe",
+    description=(
+        "Owner or admin records a deposit paid in cash, by bank transfer or by "
+        "cheque. Requires an `Idempotency-Key` header (same key and body replays "
+        "the first answer with `Idempotency-Replayed: true`, same key with "
+        "another body is 409). The booking's deposit is captured through the "
+        "payments manual rail, so `deposit_captured_minor` in the detail shows "
+        "it and a `pending_payment` booking is confirmed. 409 when the booking "
+        "has no deposit, is closed, or its deposit is already paid. API keys "
+        "are not accepted."
+    ),
+    operation_id="bookingsRecordManualDeposit",
+    responses=WRITE_ERRORS,
+)
+async def record_manual_deposit(
+    *,
+    response: Response,
+    session: SessionDep,
+    org: BookingsOrgAdmin,
+    booking_id: BookingId,
+    payload: BookingManualDepositCreate,
+    idempotency_key: idempotency.RequiredIdempotencyKey,
+) -> Any:
+    async def record_once() -> tuple[int, dict[str, Any]]:
+        return await studio.record_manual_deposit(
+            session, org.organisation_id, booking_id, payload, actor=org.user
+        )
+
+    result = await idempotency.run_idempotent(
+        session,
+        scope="bookings.manual-deposit",
+        organisation_id=org.organisation_id,
+        key=idempotency_key,
+        request_body={**payload.model_dump(mode="json"), "booking_id": str(booking_id)},
+        handler=record_once,
+    )
+    await session.commit()
+    response.status_code = result.status_code
+    if result.replayed:
+        response.headers["Idempotency-Replayed"] = "true"
+    return result.body
 
 
 @router.post(

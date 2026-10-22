@@ -108,6 +108,17 @@ async def start_deposit(
     return manual.checkout_url
 
 
+async def start_manual_deposit(session: AsyncSession, booking: Booking) -> None:
+    """Create the manual deposit intent for a booking that has none (staff record
+    a deposit that was never started online)."""
+    await payments_service.create_intent(
+        session,
+        organisation_id=booking.organisation_id,
+        actor=None,
+        payload=_payload(booking, ProviderKey.MANUAL, None),
+    )
+
+
 def refund_by_policy(booking: Booking, profile: BookingProfile, now: datetime) -> bool:
     """Deposits come back when the booking is cancelled at least
     ``cancel_cutoff_hours`` before it starts; inside the cutoff they are kept."""

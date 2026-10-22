@@ -14,9 +14,13 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit import service as audit_service
+from src.auth.models import User
 from src.contacts import service as contacts_service
 from src.contacts.models import Contact
+from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
+from src.payments.models import ProviderKey
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, utc_to_local, zone
 
@@ -494,3 +498,92 @@ async def _studio_customer(
         )
     customer = await public.customer_for_contact(session, organisation_id, contact, now)
     return customer, contact
+
+
+# --- manual deposit ------------------------------------------------------------------
+
+_DEPOSIT_OPEN = (
+    BookingStatus.PENDING_PAYMENT,
+    BookingStatus.PENDING,
+    BookingStatus.CONFIRMED,
+)
+
+
+async def record_manual_deposit(
+    session: AsyncSession,
+    organisation_id: str,
+    booking_id: uuid.UUID,
+    payload: payment_schemas.ManualPaymentCreate,
+    *,
+    actor: User,
+) -> tuple[int, dict[str, object]]:
+    """Staff took the deposit outside Stripe (cash, bank transfer, cheque).
+
+    Records it through the payments manual rail so the ledger, the
+    ``bookings.deposit_paid`` outbox topic and ``deposit_captured_minor`` in the
+    studio detail all follow from one charge. Locks the booking row, so two
+    racing calls end with one charge and one 409. A deposit already captured
+    (by Stripe or by hand) is 409; a ``pending_payment`` booking is confirmed by
+    the outbox handler, exactly as for any other paid deposit."""
+    managed = await public.load_by_id(session, booking_id, organisation_id, lock=True)
+    booking = managed.booking
+    if booking.deposit_minor <= 0:
+        raise BookingConflictError("This booking has no deposit to record")
+    if BookingStatus(booking.status) not in _DEPOSIT_OPEN:
+        raise BookingConflictError("A closed booking cannot take a deposit")
+    intent = await payments_service.find_by_source(
+        session,
+        organisation_id=organisation_id,
+        source_type=deposit_payments.SOURCE_TYPE,
+        source_id=str(booking.id),
+    )
+    if intent is not None and intent.captured_minor > 0:
+        raise BookingConflictError("The deposit has already been paid")
+    if intent is None:
+        await deposit_payments.start_manual_deposit(session, booking)
+        intent = await payments_service.find_by_source(
+            session,
+            organisation_id=organisation_id,
+            source_type=deposit_payments.SOURCE_TYPE,
+            source_id=str(booking.id),
+        )
+        if intent is None:  # pragma: no cover - create_intent just wrote it
+            raise BookingConflictError("The deposit could not be started")
+    if intent.provider != ProviderKey.MANUAL:
+        raise BookingConflictError(
+            "The deposit is being paid online; wait for it or cancel that payment"
+        )
+    await payments_service.record_manual_payment(
+        session,
+        organisation_id=organisation_id,
+        intent_id=intent.id,
+        actor=actor,
+        payload=payload,
+    )
+    audit_service.set_actor(session, actor.id)
+    await audit_service.record_change(
+        session,
+        entity_type="booking",
+        entity_id=str(booking.id),
+        record_type="booking",
+        record_id=str(booking.id),
+        action="manual_deposit",
+        changes={
+            "deposit_captured_minor": (0, booking.deposit_minor),
+            "method": (None, payload.method.value),
+            "reference": (None, payload.reference),
+        },
+        organisation_id=organisation_id,
+    )
+    status = BookingStatus(booking.status)
+    public.record_event(
+        session,
+        booking,
+        status,
+        status,
+        actor_user_id=actor.id,
+        note=f"Deposit recorded by hand ({payload.method.value})",
+    )
+    await session.flush()
+    detail = await _detail(session, managed)
+    return 200, detail.model_dump(mode="json")
