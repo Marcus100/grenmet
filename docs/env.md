@@ -415,7 +415,7 @@ An operator opt-in for the staging API container only; it is not in the deploy w
 
 | Variable | Description |
 | --- | --- |
-| `DEMO_SEED_ENABLED` | Set to `true` on the command line (`docker compose -p grenmet-staging exec -e DEMO_SEED_ENABLED=true api python scripts/seed_staging_demo.py --apply`) to allow the synthetic Bookings and Events demo data. Anything else, or unset, refuses. The script also refuses unless the API's own `ENVIRONMENT` is `staging`, so production and local runs exit with status 2 before touching the database. Never set it in a GitHub environment or a `.env*` file. |
+| `DEMO_SEED_ENABLED` | Set to `true` on the command line (`docker compose -p grenmet-staging exec -e DEMO_SEED_ENABLED=true api python scripts/seed_staging_demo.py --apply`) to allow the synthetic Bookings and Events demo data. Anything else, or unset, refuses. The script also refuses unless the API's own `ENVIRONMENT` is `staging`, and the configured database name must end with `_staging`, so production and local runs exit with status 2 before touching the database. Demo bookings are found by their `[demo] <key>` notes; editing those in the studio makes a re-run recreate them (possibly failing on a slot conflict). Never set it in a GitHub environment or a `.env*` file. |
 
 ### Scrapy script (`scripts/scrapy-wxwatch/.env.local`)
 

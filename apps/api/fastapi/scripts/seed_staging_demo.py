@@ -9,21 +9,36 @@ goes through the same service-layer functions the API uses.
 It is for the staging dry-run of a cutover (docs/operations/babydoll-cutover.md)
 and for demos. Staging is throwaway; production must never get this data.
 
-Guards (both must hold, checked before anything is opened or written):
+Guards (all must hold, checked before anything is opened or written):
 
 * ``ENVIRONMENT`` (the API's own setting) is exactly ``staging``. ``local`` and
   ``production`` are refused; local dev has ``seed_events_demo.py``.
 * ``DEMO_SEED_ENABLED`` is ``true`` in the environment of this command.
+* The configured database name (``POSTGRES_DB``) ends with ``_staging``.
 
 Synthetic data only: fake names, addresses ``demo-*@example.com`` (RFC 2606
 reserved; ``example.test`` is refused by the API's email validation), accounts
-with random passwords nobody knows. No mail is sent to them: the run marks the
-outbox rows it generates as done. No secrets are read or written.
+with random passwords nobody knows. No secrets are read or written.
+
+Online bookings (pending, deposit unpaid, deposit paid) are made through
+``public.create_booking`` and the deposit handler, so their rows and history are
+what production produces; staff entries use ``studio.create_booking``. Every slot
+sits inside the provider's weekly hours.
+
+Mail: the run marks the outbox rows it generates for the demo (by organisation,
+organiser/listing/order/ticket id or demo address) as done before each of its own
+commits, so ``drain_outbox`` (cron, seconds 10 and 40 of every minute) never sees
+them pending. Service functions that commit themselves (``create_listing``,
+``claim_tickets``) can leave a row visible for a moment; the demo has no followers
+and the unpaid order issues no tickets, so those rows have no recipients.
 
 Idempotent: every item is looked up by a stable key first, so a second run
-creates nothing and never overwrites edits. Unpaid bookings and orders are
-released by the platform's own expiry jobs after about 30 minutes (that is the
-behaviour under test); they are not recreated on a re-run.
+creates nothing and never overwrites edits. Bookings are found by their notes
+(``[demo] <key>``): editing or clearing those notes in the studio makes the next
+run create the booking again, which can then fail on a slot conflict. Unpaid
+bookings and orders are released by the platform's own expiry jobs after about 30
+minutes (that is the behaviour under test); they are not recreated on a re-run.
+Concurrent runs are serialised by an advisory lock only until the first commit.
 
 Usage, from ``apps/api/fastapi`` inside the staging ``api`` container::
 
@@ -44,7 +59,7 @@ import secrets
 import sys
 import uuid
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, time, timedelta
 from typing import TYPE_CHECKING, Any, cast
 
@@ -77,6 +92,12 @@ USERS: dict[str, tuple[str, str]] = {
     "buyer1": ("Demo", "Buyer-One"),
     "buyer2": ("Demo", "Buyer-Two"),
     "buyer3": ("Demo", "Buyer-Three"),
+    "moderator": ("Demo", "Moderator"),
+    # Online customers: verified accounts whose email equals the booking email,
+    # which is how production skips the email-code step for a signed-in payer.
+    "customer-cf": ("Demo", "Customer-CF"),
+    "customer-cg": ("Demo", "Customer-CG"),
+    "customer-ch": ("Demo", "Customer-CH"),
 }
 
 # (category, name, minutes, price whole XCD, deposit whole XCD)
@@ -85,19 +106,27 @@ SERVICES = (
     ("Demo brows", "Demo brow shape", 30, 40, 0),
     ("Demo facials", "Demo express facial", 45, 90, 0),
 )
-PROVIDERS = (("Demo Ana", 0), ("Demo Bea", 1))  # name, weekly-hours variant
+# name, working weekdays (Monday = 0), local start, local end
+PROVIDERS = (
+    ("Demo Ana", (0, 1, 2, 3, 4), time(9), time(17)),
+    ("Demo Bea", (1, 2, 3, 4, 5), time(10), time(18)),
+)
 
-# key, service index, provider index, day offset, local hour, kind, customer
+# key, service index, provider index, nearest day offset, local hour, kind, customer.
+# The day moves on to the provider's next (or, for a negative offset, previous)
+# working weekday; hours are distinct per provider so nothing overlaps and every
+# slot sits inside that provider's weekly hours.
 BOOKINGS = (
-    ("confirmed-1", 1, 0, 1, 10, "confirmed", "ca"),
+    ("confirmed-1", 1, 0, 1, 13, "confirmed", "ca"),
     ("confirmed-2", 2, 1, 2, 14, "confirmed", "cb"),
     ("completed", 1, 0, -3, 11, "completed", "cc"),
     ("no-show", 2, 1, -5, 15, "no_show", "cd"),
-    ("cancelled", 1, 1, -2, 9, "cancelled", "ce"),
-    ("pending", 1, 0, 3, 10, "pending", "cf"),
+    ("cancelled", 1, 1, -2, 10, "cancelled", "ce"),
+    ("pending", 1, 0, 3, 15, "pending", "cf"),
     ("deposit-unpaid", 0, 0, 4, 9, "pending_payment", "cg"),
-    ("deposit-paid", 0, 1, 5, 9, "deposit_paid", "ch"),
+    ("deposit-paid", 0, 1, 5, 11, "deposit_paid", "ch"),
 )
+ONLINE_KINDS = ("pending", "pending_payment", "deposit_paid")
 
 # title, summary, category, venue, day offset, tiers (name, minor XCD, allocation)
 LISTINGS = (
@@ -131,8 +160,9 @@ class DemoSeedRefusedError(RuntimeError):
     """The environment or flag does not allow demo data."""
 
 
-def check_allowed(environment: str, enabled: str | None) -> None:
-    """Raise unless this is staging and the flag is explicitly on."""
+def check_allowed(environment: str, enabled: str | None, database: str) -> None:
+    """Raise unless this is staging, the flag is explicitly on and the database
+    is a staging one (its name ends with ``_staging``)."""
     if environment != ALLOWED_ENVIRONMENT:
         raise DemoSeedRefusedError(
             f"Refusing to seed demo data: ENVIRONMENT is '{environment}', "
@@ -142,24 +172,45 @@ def check_allowed(environment: str, enabled: str | None) -> None:
         raise DemoSeedRefusedError(
             f"Refusing to seed demo data: set {ENABLE_VAR}=true to opt in"
         )
+    if not database.endswith("_staging"):
+        raise DemoSeedRefusedError(
+            f"Refusing to seed demo data: database '{database}' is not a "
+            "staging database (its name must end with '_staging')"
+        )
 
 
 @dataclass
 class SeedResult:
     created: list[str] = field(default_factory=list)
+    #: Naive UTC start of the run; the outbox cleanup only touches newer rows.
+    started: datetime = field(default_factory=lambda: _utc_now())
 
     def add(self, what: str) -> None:
         self.created.append(what)
+
+
+def _utc_now() -> datetime:
+    from src.utils.datetime import utc_now
+
+    return utc_now()
 
 
 def email_for(key: str) -> str:
     return f"demo-{key}@{EMAIL_DOMAIN}"
 
 
-def at(now: datetime, days: int, hour: int) -> datetime:
-    """Grenada wall-clock ``hour`` on the day ``days`` from today, as aware UTC."""
-    today = (now + GRENADA_OFFSET).date()
-    local = datetime(today.year, today.month, today.day, hour) + timedelta(days=days)
+def at(
+    now: datetime, days: int, hour: int, weekdays: tuple[int, ...] | None = None
+) -> datetime:
+    """Grenada wall-clock ``hour`` on the day ``days`` from today, as aware UTC.
+
+    With ``weekdays`` the day moves on (forward for ``days >= 0``, back
+    otherwise) to the first Grenada weekday in that set."""
+    day = (now + GRENADA_OFFSET).date() + timedelta(days=days)
+    step = 1 if days >= 0 else -1
+    while weekdays is not None and day.weekday() not in weekdays:
+        day += timedelta(days=step)
+    local = datetime(day.year, day.month, day.day, hour)
     return (local - GRENADA_OFFSET).replace(tzinfo=UTC)
 
 
@@ -338,7 +389,7 @@ async def seed_studio(
             select(Service.id).where(Service.organisation_id == STUDIO_ID)
         )
     )
-    for name, variant in PROVIDERS:
+    for name, weekdays, start, end in PROVIDERS:
         if await session.scalar(
             select(Provider.id).where(
                 Provider.organisation_id == STUDIO_ID, Provider.name == name
@@ -352,16 +403,13 @@ async def seed_studio(
         )
         provider = await session.get(Provider, created["id"])
         assert provider is not None
-        # Ana: Mon-Fri 09:00-17:00. Bea: Tue-Sat 10:00-18:00.
-        days = range(0, 5) if variant == 0 else range(1, 6)
-        start, end = (time(9), time(17)) if variant == 0 else (time(10), time(18))
         await service.replace_working_hours(
             session,
             provider,
             BookingWorkingHoursUpdate(
                 periods=[
                     BookingWorkingPeriodIn(weekday=d, start_time=start, end_time=end)
-                    for d in days
+                    for d in weekdays
                 ]
             ),
         )
@@ -374,15 +422,11 @@ async def seed_bookings(
 ) -> None:
     from sqlalchemy import select
 
-    from src.bookings import deposit_payments, public, studio
-    from src.bookings.models import (
-        Booking,
-        BookingSource,
-        BookingStatus,
-        Provider,
-    )
+    from src.bookings import deposit_payments, deposits, public, studio
+    from src.bookings import service as studio_service
+    from src.bookings.models import Booking, BookingStatus, Provider
     from src.bookings.models import Service as ServiceRow
-    from src.bookings.schemas import BookingStudioCreate
+    from src.bookings.schemas import BookingPublicCreate, BookingStudioCreate
     from src.payments import schemas as payment_schemas
     from src.payments import service as payments_service
 
@@ -400,7 +444,7 @@ async def seed_bookings(
                 Provider.organisation_id == STUDIO_ID, Provider.name == name
             )
         )
-        for name, _variant in PROVIDERS
+        for name, *_rest in PROVIDERS
     ]
     done = set(
         await session.scalars(
@@ -417,69 +461,37 @@ async def seed_bookings(
         svc, provider = services[s_idx], providers[p_idx]
         assert svc is not None
         assert provider is not None
-        _status, detail = await studio.create_booking(
-            session,
-            STUDIO_ID,
-            BookingStudioCreate(
-                service_id=svc.id,
-                provider_id=provider.id,
-                starts_at=at(now, days, hour),
-                customer_name=f"Demo Customer {who.upper()}",
-                customer_email=email_for(f"customer-{who}"),
-                customer_phone="+1 473 555 0100",
-                notes=note,
-            ),
-            actor_user_id=None,
-            now=now,
-        )
-        managed = await public.load_by_id(
-            session, uuid.UUID(str(detail["id"])), STUDIO_ID, lock=True
-        )
-        booking = managed.booking
-        if kind == "completed":
-            await public.transition(
-                session, booking, BookingStatus.COMPLETED, note="Demo: done"
-            )
-        elif kind == "no_show":
-            await public.transition(
-                session, booking, BookingStatus.NO_SHOW, note="Demo: no show"
-            )
-        elif kind == "cancelled":
-            await public.transition(
+        starts = at(now, days, hour, PROVIDERS[p_idx][1])
+        email = email_for(f"customer-{who}")
+        if kind in ONLINE_KINDS:
+            # The customer-facing path, so rows, history, deposit intent and
+            # status are exactly what production produces. A signed-in payer
+            # whose verified email equals the booking email skips the
+            # email-code proof (as it does in production).
+            profile = await studio_service.get_profile(session, STUDIO_ID)
+            payer = await _user(session, f"customer-{who}")
+            _status, receipt = await public.create_booking(
                 session,
-                booking,
-                BookingStatus.CANCELLED,
-                note="Demo: cancelled by the customer",
+                profile,
+                BookingPublicCreate(
+                    service_id=svc.id,
+                    provider_id=provider.id,
+                    starts_at=starts,
+                    customer_name=f"Demo Customer {who.upper()}",
+                    customer_email=email,
+                    customer_phone="+1 473 555 0100",
+                    notes=note,
+                ),
+                payer=payer,
+                now=now,
             )
-        elif kind in ("pending", "pending_payment", "deposit_paid"):
-            # studio.create_booking makes confirmed, deposit-free staff entries.
-            # Online states are set on the fresh row so that no email and no
-            # Stripe call is made; the history says what happened.
-            booking.source = BookingSource.ONLINE.value
-            target = (
-                BookingStatus.PENDING
-                if kind == "pending"
-                else BookingStatus.PENDING_PAYMENT
-            )
-            if kind != "pending":
-                booking.deposit_minor = svc.deposit_minor
-            booking.status = target.value
-            public.record_event(
-                session,
-                booking,
-                BookingStatus.CONFIRMED,
-                target,
-                note="Demo: booked online",
-            )
-            await session.flush()
-            if kind != "pending":
-                await deposit_payments.start_manual_deposit(session, booking)
+            booking_id = uuid.UUID(str(receipt["booking"]["id"]))
             if kind == "deposit_paid":
                 intent = await payments_service.find_by_source(
                     session,
                     organisation_id=STUDIO_ID,
                     source_type=deposit_payments.SOURCE_TYPE,
-                    source_id=str(booking.id),
+                    source_id=str(booking_id),
                 )
                 assert intent is not None
                 await payments_service.record_manual_payment(
@@ -492,13 +504,43 @@ async def seed_bookings(
                         reference="demo deposit",
                     ),
                 )
-                await public.transition(
-                    session,
-                    booking,
-                    BookingStatus.CONFIRMED,
-                    note="Demo: deposit received",
+                # What the outbox handler does in production; with
+                # requires_confirmation the booking lands in "pending".
+                await deposits.confirm_paid(
+                    session, organisation_id=STUDIO_ID, booking_id=booking_id
                 )
-        await session.commit()
+                await studio.confirm(
+                    session, STUDIO_ID, booking_id, actor_user_id=actor.id
+                )
+        else:
+            _status, detail = await studio.create_booking(
+                session,
+                STUDIO_ID,
+                BookingStudioCreate(
+                    service_id=svc.id,
+                    provider_id=provider.id,
+                    starts_at=starts,
+                    customer_name=f"Demo Customer {who.upper()}",
+                    customer_email=email,
+                    customer_phone="+1 473 555 0100",
+                    notes=note,
+                ),
+                actor_user_id=None,
+                now=now,
+            )
+            managed = await public.load_by_id(
+                session, uuid.UUID(str(detail["id"])), STUDIO_ID, lock=True
+            )
+            target = {
+                "completed": BookingStatus.COMPLETED,
+                "no_show": BookingStatus.NO_SHOW,
+                "cancelled": BookingStatus.CANCELLED,
+            }.get(kind)
+            if target is not None:
+                await public.transition(
+                    session, managed.booking, target, note=f"Demo: {kind}"
+                )
+        await _commit(session, result)
         result.add(f"studio:booking:{key}")
 
 
@@ -506,6 +548,7 @@ async def seed_events(
     session: AsyncSession,
     organiser_user: User,
     pending_user: User,
+    moderator: User,
     buyers: dict[str, User],
     member: User | None,
     result: SeedResult,
@@ -515,8 +558,12 @@ async def seed_events(
 
     from src.events import order_fulfilment, order_payments, schemas
     from src.events.models import Listing, Order, Organiser, TicketTier
-    from src.events.service import create_listing, create_organiser, ticketing
-    from src.organisations import service as organisations
+    from src.events.service import (
+        create_listing,
+        create_organiser,
+        organiser_verification,
+        ticketing,
+    )
     from src.organisations import verification
     from src.organisations.models import MembershipRole, PlatformOrganisation
     from src.payments import schemas as payment_schemas
@@ -545,17 +592,18 @@ async def seed_events(
     platform = await session.get(PlatformOrganisation, org_id)
     assert platform is not None
     if platform.verified_at is None:
-        # The one write path for decisions; it notifies nobody by itself.
-        await organisations.admin_set_verified(
+        # The approval path moderation uses (platform write, legacy flag,
+        # activity row), decided by a dedicated demo moderator, never by the
+        # organiser itself. Its approval notice is silenced before the commit.
+        await organiser_verification.apply_decision(
             session,
-            organiser_user,
+            moderator,
             org_id,
             verified=True,
             reason="Demo seed: synthetic organiser",
         )
-        organiser.verified = True
         result.add("events:organiser-verified")
-    await session.commit()
+    await _commit(session, result)
     verification.clear_cache(org_id)
 
     if (
@@ -571,7 +619,7 @@ async def seed_events(
             slug=PENDING_ORGANISER_SLUG,
             bio="Waiting in the moderation queue.",
         )
-        await session.commit()
+        await _commit(session, result)
         result.add("events:pending-organiser")
 
     listings: list[Listing] = []
@@ -657,20 +705,47 @@ async def seed_events(
                 order_id=order.id,
                 intent_id=intent.id,
             )
-            await session.commit()
+            await _commit(session, result)
         state = "paid" if paid else "unpaid"
         result.add(f"events:order:{listing.slug}:{buyer_key}:{state}")
 
 
-async def silence_outbox(
-    session: AsyncSession, started: datetime, org_ids: list[str]
-) -> int:
-    """Mark this run's undelivered outbox rows done so no mail or notification
-    reaches a demo address and no handler replays demo money events."""
-    from sqlalchemy import or_, update
+async def silence_outbox(session: AsyncSession, started: datetime) -> int:
+    """Mark this run's undelivered outbox rows for the demo organisations done,
+    so no mail or notification reaches a demo address and no handler replays
+    demo money events. Only rows created since ``started`` that belong to the
+    demo (its organisation ids, its organiser, listing, order and ticket ids,
+    or a demo address) are touched; other organisations' rows never are."""
+    from sqlalchemy import or_, select, update
 
+    from src.events.models import Listing, Order, Organiser, Ticket
     from src.outbox import Outbox, OutboxStatus
 
+    organisers = (
+        await session.execute(
+            select(Organiser.id, Organiser.organisation_id).where(
+                Organiser.slug.in_([ORGANISER_SLUG, PENDING_ORGANISER_SLUG])
+            )
+        )
+    ).all()
+    org_ids = [STUDIO_ID] + [o for _i, o in organisers if o]
+    organiser_ids = [i for i, _o in organisers]
+    listing_ids = list(
+        await session.scalars(
+            select(Listing.id).where(Listing.organiser_id.in_(organiser_ids))
+        )
+    )
+    order_ids = list(
+        await session.scalars(select(Order.id).where(Order.listing_id.in_(listing_ids)))
+    )
+    ticket_ids = list(
+        await session.scalars(
+            select(Ticket.id).where(Ticket.listing_id.in_(listing_ids))
+        )
+    )
+    entity_ids = [
+        str(x) for x in (*organiser_ids, *listing_ids, *order_ids, *ticket_ids)
+    ]
     outcome = await session.execute(
         update(Outbox)
         .where(
@@ -678,7 +753,7 @@ async def silence_outbox(
             Outbox.created_at >= started,
             or_(
                 Outbox.organisation_id.in_(org_ids),
-                Outbox.topic == "events.notify",
+                Outbox.payload["entity_id"].astext.in_(entity_ids),
                 Outbox.payload["to_email"].astext.like(f"demo-%@{EMAIL_DOMAIN}"),
             ),
         )
@@ -687,50 +762,52 @@ async def silence_outbox(
     return int(cast("CursorResult[Any]", outcome).rowcount or 0)
 
 
+async def _commit(session: AsyncSession, result: SeedResult) -> None:
+    """Silence the demo's outbox rows, then commit, so nothing the seed queued
+    is ever visible as pending to the ``drain_outbox`` job."""
+    silenced = await silence_outbox(session, result.started)
+    if silenced:
+        result.add(f"outbox:silenced:{silenced}")
+    await session.commit()
+
+
 async def seed_demo(
     session: AsyncSession, *, member_email: str | None = None
 ) -> SeedResult:
     """Create what is missing, committing as it goes. Call ``check_allowed``
     first; this function does not know which environment it is in."""
-    from sqlalchemy import select
+    from sqlalchemy import func, select, text
 
     from src.auth.models import User
-    from src.organisations.models import PlatformOrganisation
-    from src.utils.datetime import utc_now
 
-    started = utc_now()
-    now = started  # naive UTC, like every service-layer timestamp
+    # Serialises concurrent runs while the first transaction lasts; every later
+    # step looks its rows up first, so a late overlap still creates nothing twice.
+    await session.execute(text("SELECT pg_advisory_xact_lock(:id)"), {"id": _LOCK_ID})
     result = SeedResult()
+    now = result.started  # naive UTC, like every service-layer timestamp
     member = None
     if member_email:
-        member = await session.scalar(select(User).where(User.email == member_email))
+        member = await session.scalar(
+            select(User).where(func.lower(User.email) == member_email.strip().lower())
+        )
         if member is None:
             raise DemoSeedRefusedError(f"No account with email {member_email}")
     users = {key: await _user(session, key) for key in USERS}
     with manual_rail_only():
         await seed_studio(session, users["studio"], member, result)
-        await session.commit()
+        await _commit(session, result)
         await seed_bookings(session, users["studio"], now, result)
         await seed_events(
             session,
             users["organiser"],
             users["pending"],
+            users["moderator"],
             {key: users[key] for key in ("buyer1", "buyer2", "buyer3")},
             member,
             result,
             now,
         )
-    org_ids = [STUDIO_ID] + list(
-        await session.scalars(
-            select(PlatformOrganisation.id).where(
-                PlatformOrganisation.slug.in_([ORGANISER_SLUG, PENDING_ORGANISER_SLUG])
-            )
-        )
-    )
-    silenced = await silence_outbox(session, started, org_ids)
-    if silenced:
-        result.add(f"outbox:silenced:{silenced}")
-    await session.commit()
+    await _commit(session, result)
     return result
 
 
@@ -753,7 +830,9 @@ def preview() -> dict[str, object]:
 async def run(*, apply: bool, member_email: str | None) -> int:
     from src.config import settings
 
-    check_allowed(settings.ENVIRONMENT, os.environ.get(ENABLE_VAR))
+    check_allowed(
+        settings.ENVIRONMENT, os.environ.get(ENABLE_VAR), settings.POSTGRES_DB
+    )
     if not apply:
         sys.stdout.write(json.dumps(preview(), indent=2) + "\n")
         return 0
@@ -761,7 +840,7 @@ async def run(*, apply: bool, member_email: str | None) -> int:
 
     async with async_session_factory() as session:
         result = await seed_demo(session, member_email=member_email)
-    sys.stdout.write(json.dumps({"dry_run": False, **asdict(result)}) + "\n")
+    sys.stdout.write(json.dumps({"dry_run": False, "created": result.created}) + "\n")
     return 0
 
 
