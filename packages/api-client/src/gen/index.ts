@@ -472,19 +472,24 @@ export { organisationsDeleteMemberAdmin } from "./clients/organisationsDeleteMem
 export { organisationsGetCurrent } from "./clients/organisationsGetCurrent.js";
 export { organisationsGetOne } from "./clients/organisationsGetOne.js";
 export { organisationsGetPublicSite } from "./clients/organisationsGetPublicSite.js";
+export { organisationsGrantMemberRole } from "./clients/organisationsGrantMemberRole.js";
 export { organisationsKeyInfo } from "./clients/organisationsKeyInfo.js";
 export { organisationsListAdminApiKeys } from "./clients/organisationsListAdminApiKeys.js";
 export { organisationsListAdminSites } from "./clients/organisationsListAdminSites.js";
 export { organisationsListAll } from "./clients/organisationsListAll.js";
 export { organisationsListApiKeyScopes } from "./clients/organisationsListApiKeyScopes.js";
 export { organisationsListInvitations } from "./clients/organisationsListInvitations.js";
+export { organisationsListIssuedGrants } from "./clients/organisationsListIssuedGrants.js";
+export { organisationsListMemberGrants } from "./clients/organisationsListMemberGrants.js";
 export { organisationsListMembers } from "./clients/organisationsListMembers.js";
 export { organisationsListMembersAdmin } from "./clients/organisationsListMembersAdmin.js";
 export { organisationsListMine } from "./clients/organisationsListMine.js";
 export { organisationsListOrgApiKeys } from "./clients/organisationsListOrgApiKeys.js";
 export { organisationsListOrgSites } from "./clients/organisationsListOrgSites.js";
+export { organisationsListRoleBundles } from "./clients/organisationsListRoleBundles.js";
 export { organisationsRevokeAdminApiKey } from "./clients/organisationsRevokeAdminApiKey.js";
 export { organisationsRevokeInvitation } from "./clients/organisationsRevokeInvitation.js";
+export { organisationsRevokeMemberGrant } from "./clients/organisationsRevokeMemberGrant.js";
 export { organisationsRevokeOrgApiKey } from "./clients/organisationsRevokeOrgApiKey.js";
 export { organisationsRotateApiKey } from "./clients/organisationsRotateApiKey.js";
 export { organisationsSetApp } from "./clients/organisationsSetApp.js";
@@ -3002,6 +3007,11 @@ export {
   useOrganisationsGetPublicSite,
 } from "./hooks/useOrganisationsGetPublicSite.js";
 export {
+  organisationsGrantMemberRoleMutationKey,
+  organisationsGrantMemberRoleMutationOptions,
+  useOrganisationsGrantMemberRole,
+} from "./hooks/useOrganisationsGrantMemberRole.js";
+export {
   organisationsKeyInfoQueryKey,
   organisationsKeyInfoQueryOptions,
   useOrganisationsKeyInfo,
@@ -3032,6 +3042,16 @@ export {
   useOrganisationsListInvitations,
 } from "./hooks/useOrganisationsListInvitations.js";
 export {
+  organisationsListIssuedGrantsQueryKey,
+  organisationsListIssuedGrantsQueryOptions,
+  useOrganisationsListIssuedGrants,
+} from "./hooks/useOrganisationsListIssuedGrants.js";
+export {
+  organisationsListMemberGrantsQueryKey,
+  organisationsListMemberGrantsQueryOptions,
+  useOrganisationsListMemberGrants,
+} from "./hooks/useOrganisationsListMemberGrants.js";
+export {
   organisationsListMembersQueryKey,
   organisationsListMembersQueryOptions,
   useOrganisationsListMembers,
@@ -3057,6 +3077,11 @@ export {
   useOrganisationsListOrgSites,
 } from "./hooks/useOrganisationsListOrgSites.js";
 export {
+  organisationsListRoleBundlesQueryKey,
+  organisationsListRoleBundlesQueryOptions,
+  useOrganisationsListRoleBundles,
+} from "./hooks/useOrganisationsListRoleBundles.js";
+export {
   organisationsRevokeAdminApiKeyMutationKey,
   organisationsRevokeAdminApiKeyMutationOptions,
   useOrganisationsRevokeAdminApiKey,
@@ -3066,6 +3091,11 @@ export {
   organisationsRevokeInvitationMutationOptions,
   useOrganisationsRevokeInvitation,
 } from "./hooks/useOrganisationsRevokeInvitation.js";
+export {
+  organisationsRevokeMemberGrantMutationKey,
+  organisationsRevokeMemberGrantMutationOptions,
+  useOrganisationsRevokeMemberGrant,
+} from "./hooks/useOrganisationsRevokeMemberGrant.js";
 export {
   organisationsRevokeOrgApiKeyMutationKey,
   organisationsRevokeOrgApiKeyMutationOptions,
@@ -9315,6 +9345,8 @@ export type { MarineRow } from "./models/MarineRow.js";
 export type { MemberListPublic } from "./models/MemberListPublic.js";
 export type { MemberPublic } from "./models/MemberPublic.js";
 export type { MemberRoleUpdate } from "./models/MemberRoleUpdate.js";
+export type { MembershipGrantCreate } from "./models/MembershipGrantCreate.js";
+export type { MembershipGrantPublic } from "./models/MembershipGrantPublic.js";
 export type { MembershipRole } from "./models/MembershipRole.js";
 export { membershipRole } from "./models/MembershipRole.js";
 export type { MembershipStatus } from "./models/MembershipStatus.js";
@@ -9719,6 +9751,21 @@ export type {
   OrganisationsGetPublicSiteStatus422,
 } from "./models/OrganisationsGetPublicSite.js";
 export type {
+  OrganisationsGrantMemberRoleBody,
+  OrganisationsGrantMemberRoleHeaders,
+  OrganisationsGrantMemberRoleOptions,
+  OrganisationsGrantMemberRolePath,
+  OrganisationsGrantMemberRoleResponse,
+  OrganisationsGrantMemberRoleResponses,
+  OrganisationsGrantMemberRoleStatus201,
+  OrganisationsGrantMemberRoleStatus400,
+  OrganisationsGrantMemberRoleStatus401,
+  OrganisationsGrantMemberRoleStatus403,
+  OrganisationsGrantMemberRoleStatus404,
+  OrganisationsGrantMemberRoleStatus409,
+  OrganisationsGrantMemberRoleStatus422,
+} from "./models/OrganisationsGrantMemberRole.js";
+export type {
   OrganisationsKeyInfoOptions,
   OrganisationsKeyInfoResponse,
   OrganisationsKeyInfoResponses,
@@ -9784,6 +9831,30 @@ export type {
   OrganisationsListInvitationsStatus422,
 } from "./models/OrganisationsListInvitations.js";
 export type {
+  OrganisationsListIssuedGrantsHeaders,
+  OrganisationsListIssuedGrantsOptions,
+  OrganisationsListIssuedGrantsPath,
+  OrganisationsListIssuedGrantsResponse,
+  OrganisationsListIssuedGrantsResponses,
+  OrganisationsListIssuedGrantsStatus200,
+  OrganisationsListIssuedGrantsStatus401,
+  OrganisationsListIssuedGrantsStatus403,
+  OrganisationsListIssuedGrantsStatus404,
+  OrganisationsListIssuedGrantsStatus422,
+} from "./models/OrganisationsListIssuedGrants.js";
+export type {
+  OrganisationsListMemberGrantsHeaders,
+  OrganisationsListMemberGrantsOptions,
+  OrganisationsListMemberGrantsPath,
+  OrganisationsListMemberGrantsResponse,
+  OrganisationsListMemberGrantsResponses,
+  OrganisationsListMemberGrantsStatus200,
+  OrganisationsListMemberGrantsStatus401,
+  OrganisationsListMemberGrantsStatus403,
+  OrganisationsListMemberGrantsStatus404,
+  OrganisationsListMemberGrantsStatus422,
+} from "./models/OrganisationsListMemberGrants.js";
+export type {
   OrganisationsListMembersHeaders,
   OrganisationsListMembersOptions,
   OrganisationsListMembersPath,
@@ -9845,6 +9916,17 @@ export type {
   OrganisationsListOrgSitesStatus422,
 } from "./models/OrganisationsListOrgSites.js";
 export type {
+  OrganisationsListRoleBundlesHeaders,
+  OrganisationsListRoleBundlesOptions,
+  OrganisationsListRoleBundlesResponse,
+  OrganisationsListRoleBundlesResponses,
+  OrganisationsListRoleBundlesStatus200,
+  OrganisationsListRoleBundlesStatus401,
+  OrganisationsListRoleBundlesStatus403,
+  OrganisationsListRoleBundlesStatus404,
+  OrganisationsListRoleBundlesStatus422,
+} from "./models/OrganisationsListRoleBundles.js";
+export type {
   OrganisationsRevokeAdminApiKeyOptions,
   OrganisationsRevokeAdminApiKeyPath,
   OrganisationsRevokeAdminApiKeyResponse,
@@ -9869,6 +9951,20 @@ export type {
   OrganisationsRevokeInvitationStatus409,
   OrganisationsRevokeInvitationStatus422,
 } from "./models/OrganisationsRevokeInvitation.js";
+export type {
+  OrganisationsRevokeMemberGrantHeaders,
+  OrganisationsRevokeMemberGrantOptions,
+  OrganisationsRevokeMemberGrantPath,
+  OrganisationsRevokeMemberGrantResponse,
+  OrganisationsRevokeMemberGrantResponses,
+  OrganisationsRevokeMemberGrantStatus200,
+  OrganisationsRevokeMemberGrantStatus400,
+  OrganisationsRevokeMemberGrantStatus401,
+  OrganisationsRevokeMemberGrantStatus403,
+  OrganisationsRevokeMemberGrantStatus404,
+  OrganisationsRevokeMemberGrantStatus409,
+  OrganisationsRevokeMemberGrantStatus422,
+} from "./models/OrganisationsRevokeMemberGrant.js";
 export type {
   OrganisationsRevokeOrgApiKeyHeaders,
   OrganisationsRevokeOrgApiKeyOptions,
@@ -10936,6 +11032,7 @@ export type {
 } from "./models/RewardsWithdrawFromLeaderboard.js";
 export type { RoleAssignmentScope } from "./models/RoleAssignmentScope.js";
 export { roleAssignmentScope } from "./models/RoleAssignmentScope.js";
+export type { RoleBundlePublic } from "./models/RoleBundlePublic.js";
 export type { RoleConfiguration } from "./models/RoleConfiguration.js";
 export type { RoleCreate } from "./models/RoleCreate.js";
 export type { RolePermissionsInput } from "./models/RolePermissionsInput.js";
@@ -17303,6 +17400,8 @@ export { marineRowSchema } from "./zod/marineRowSchema.js";
 export { memberListPublicSchema } from "./zod/memberListPublicSchema.js";
 export { memberPublicSchema } from "./zod/memberPublicSchema.js";
 export { memberRoleUpdateSchema } from "./zod/memberRoleUpdateSchema.js";
+export { membershipGrantCreateSchema } from "./zod/membershipGrantCreateSchema.js";
+export { membershipGrantPublicSchema } from "./zod/membershipGrantPublicSchema.js";
 export { membershipRoleSchema } from "./zod/membershipRoleSchema.js";
 export { membershipStatusSchema } from "./zod/membershipStatusSchema.js";
 export { messageCreateSchema } from "./zod/messageCreateSchema.js";
@@ -17664,6 +17763,20 @@ export {
   organisationsGetPublicSiteStatus422Schema,
 } from "./zod/organisationsGetPublicSiteSchema.js";
 export {
+  organisationsGrantMemberRoleBodySchema,
+  organisationsGrantMemberRoleErrorSchema,
+  organisationsGrantMemberRoleHeaderXBarrelsOrganisationSchema,
+  organisationsGrantMemberRolePathMembershipIdSchema,
+  organisationsGrantMemberRoleResponseSchema,
+  organisationsGrantMemberRoleStatus201Schema,
+  organisationsGrantMemberRoleStatus400Schema,
+  organisationsGrantMemberRoleStatus401Schema,
+  organisationsGrantMemberRoleStatus403Schema,
+  organisationsGrantMemberRoleStatus404Schema,
+  organisationsGrantMemberRoleStatus409Schema,
+  organisationsGrantMemberRoleStatus422Schema,
+} from "./zod/organisationsGrantMemberRoleSchema.js";
+export {
   organisationsKeyInfoErrorSchema,
   organisationsKeyInfoResponseSchema,
   organisationsKeyInfoStatus200Schema,
@@ -17729,6 +17842,28 @@ export {
   organisationsListInvitationsStatus422Schema,
 } from "./zod/organisationsListInvitationsSchema.js";
 export {
+  organisationsListIssuedGrantsErrorSchema,
+  organisationsListIssuedGrantsHeaderXBarrelsOrganisationSchema,
+  organisationsListIssuedGrantsPathMembershipIdSchema,
+  organisationsListIssuedGrantsResponseSchema,
+  organisationsListIssuedGrantsStatus200Schema,
+  organisationsListIssuedGrantsStatus401Schema,
+  organisationsListIssuedGrantsStatus403Schema,
+  organisationsListIssuedGrantsStatus404Schema,
+  organisationsListIssuedGrantsStatus422Schema,
+} from "./zod/organisationsListIssuedGrantsSchema.js";
+export {
+  organisationsListMemberGrantsErrorSchema,
+  organisationsListMemberGrantsHeaderXBarrelsOrganisationSchema,
+  organisationsListMemberGrantsPathMembershipIdSchema,
+  organisationsListMemberGrantsResponseSchema,
+  organisationsListMemberGrantsStatus200Schema,
+  organisationsListMemberGrantsStatus401Schema,
+  organisationsListMemberGrantsStatus403Schema,
+  organisationsListMemberGrantsStatus404Schema,
+  organisationsListMemberGrantsStatus422Schema,
+} from "./zod/organisationsListMemberGrantsSchema.js";
+export {
   organisationsListMembersAdminErrorSchema,
   organisationsListMembersAdminPathOrganisationIdSchema,
   organisationsListMembersAdminQueryPageSchema,
@@ -17788,6 +17923,16 @@ export {
   organisationsListOrgSitesStatus422Schema,
 } from "./zod/organisationsListOrgSitesSchema.js";
 export {
+  organisationsListRoleBundlesErrorSchema,
+  organisationsListRoleBundlesHeaderXBarrelsOrganisationSchema,
+  organisationsListRoleBundlesResponseSchema,
+  organisationsListRoleBundlesStatus200Schema,
+  organisationsListRoleBundlesStatus401Schema,
+  organisationsListRoleBundlesStatus403Schema,
+  organisationsListRoleBundlesStatus404Schema,
+  organisationsListRoleBundlesStatus422Schema,
+} from "./zod/organisationsListRoleBundlesSchema.js";
+export {
   organisationsRevokeAdminApiKeyErrorSchema,
   organisationsRevokeAdminApiKeyPathKeyIdSchema,
   organisationsRevokeAdminApiKeyResponseSchema,
@@ -17811,6 +17956,19 @@ export {
   organisationsRevokeInvitationStatus409Schema,
   organisationsRevokeInvitationStatus422Schema,
 } from "./zod/organisationsRevokeInvitationSchema.js";
+export {
+  organisationsRevokeMemberGrantErrorSchema,
+  organisationsRevokeMemberGrantHeaderXBarrelsOrganisationSchema,
+  organisationsRevokeMemberGrantPathGrantIdSchema,
+  organisationsRevokeMemberGrantResponseSchema,
+  organisationsRevokeMemberGrantStatus200Schema,
+  organisationsRevokeMemberGrantStatus400Schema,
+  organisationsRevokeMemberGrantStatus401Schema,
+  organisationsRevokeMemberGrantStatus403Schema,
+  organisationsRevokeMemberGrantStatus404Schema,
+  organisationsRevokeMemberGrantStatus409Schema,
+  organisationsRevokeMemberGrantStatus422Schema,
+} from "./zod/organisationsRevokeMemberGrantSchema.js";
 export {
   organisationsRevokeOrgApiKeyErrorSchema,
   organisationsRevokeOrgApiKeyHeaderXBarrelsOrganisationSchema,
@@ -18812,6 +18970,7 @@ export {
   rewardsWithdrawFromLeaderboardStatus422Schema,
 } from "./zod/rewardsWithdrawFromLeaderboardSchema.js";
 export { roleAssignmentScopeSchema } from "./zod/roleAssignmentScopeSchema.js";
+export { roleBundlePublicSchema } from "./zod/roleBundlePublicSchema.js";
 export { roleConfigurationSchema } from "./zod/roleConfigurationSchema.js";
 export { roleCreateSchema } from "./zod/roleCreateSchema.js";
 export { rolePermissionsInputSchema } from "./zod/rolePermissionsInputSchema.js";

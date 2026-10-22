@@ -291,6 +291,35 @@ def require_org_permission(
     return dependency
 
 
+def _team_manage_keys() -> frozenset[str]:
+    return frozenset(k for k in grants.product_keys() if k.endswith(".team.manage"))
+
+
+async def get_org_team_manager(
+    session: SessionDep, context: Annotated[OrgContext, Depends(get_org_context)]
+) -> OrgContext:
+    """Organisation member who holds some entitled product's ``team.manage`` key
+    (owner and admin implicitly; a member through a granted bundle) - ADR-0044, S3.
+
+    The key is per product, so the route family cannot name one: this gates entry,
+    and ``grants.grant_role`` / ``revoke_grant`` then require the specific product's
+    ``team.manage`` for the bundle being changed. Entitlement is part of
+    ``effective_keys``. No superuser bypass."""
+    held = await grants.effective_keys(session, membership=context.membership)
+    if not held & _team_manage_keys():
+        logger.warning(
+            "Organisation permission denied",
+            extra={
+                "user_id": str(context.user.id),
+                "organisation_id": context.organisation_id,
+                "permission_key": "team.manage",
+            },
+        )
+        raise OrganisationPermissionError()
+    return context
+
+
 OrgMember = Annotated[OrgContext, Depends(get_org_context)]
+OrgTeamManager = Annotated[OrgContext, Depends(get_org_team_manager)]
 OrgAdmin = Annotated[OrgContext, Depends(require_org_role(MembershipRole.ADMIN))]
 OrgOwner = Annotated[OrgContext, Depends(require_org_role(MembershipRole.OWNER))]

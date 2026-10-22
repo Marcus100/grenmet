@@ -212,6 +212,26 @@ async def apply_removal(
     await grants.revoke_all_for_membership(
         session, membership_id=membership.id, actor_id=actor_id
     )
+    # Access the removed person handed out ends with their own (ADR-0044, S3).
+    # A demotion only lists it (``GET .../issued-grants``): admins decide.
+    ended = await grants.revoke_issued_by(
+        session,
+        organisation_id=organisation_id,
+        user_id=membership.user_id,
+        actor_id=actor_id,
+    )
+    if ended:
+        # Visible next to the per-grant history rows (the 204 response has no body).
+        await audit_service.record_change(
+            session,
+            entity_type="platform_organisation",
+            entity_id=organisation_id,
+            record_type="organisation_membership",
+            record_id=membership.id,
+            action="revoke_issued_grants",
+            changes={"grants_revoked": (None, ended)},
+            organisation_id=organisation_id,
+        )
     return membership
 
 

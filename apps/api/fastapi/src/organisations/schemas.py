@@ -334,3 +334,30 @@ class ApiKeyInfoPublic(BaseModel):
     key_prefix: str
     scopes: list[str]
     expires_at: UtcDateTime | None = None
+
+
+class RoleBundlePublic(BaseModel):
+    """A role bundle an organisation may hand out (entitled products only)."""
+
+    role_key: str
+    product: str
+    permissions: list[str]
+    grantable: bool  # the caller holds every key and the product's team-manage key
+
+
+class MembershipGrantCreate(BaseModel):
+    role_key: Annotated[str, StringConstraints(min_length=1, max_length=60)]
+    expires_at: UtcDateTime | None = None  # UTC; must be in the future
+
+
+class MembershipGrantPublic(BaseModel):
+    """A role a member holds. Display names only; never email addresses."""
+
+    id: str
+    membership_id: str
+    member_name: str
+    role_key: str
+    granted_by_name: str | None = None
+    granted_at: UtcDateTime
+    expires_at: UtcDateTime | None = None
+    revoked_at: UtcDateTime | None = None

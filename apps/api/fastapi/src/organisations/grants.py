@@ -17,10 +17,11 @@ audit actor is the grantor, so grant history commits with the change.
 
 import logging
 import uuid
+from collections.abc import Collection
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ColumnElement, or_, select
+from sqlalchemy import ColumnElement, false, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -129,7 +130,7 @@ async def has_org_permission(
     return permission_key in await effective_keys(session, membership=membership)
 
 
-def _required_keys(bundle: frozenset[str]) -> set[str]:
+def required_keys(bundle: frozenset[str]) -> set[str]:
     return set(bundle) | {
         f"{role_bundles.product_of_key(key)}.team.manage" for key in bundle
     }
@@ -139,7 +140,7 @@ async def _require_may_change(
     session: AsyncSession, context: OrgContext, bundle: frozenset[str]
 ) -> None:
     """The grantor holds every key in the bundle and each product's team-manage key."""
-    required = _required_keys(bundle)
+    required = required_keys(bundle)
     held = await effective_keys(session, membership=context.membership)
     if not required <= held:
         logger.warning(
@@ -205,22 +206,33 @@ async def grant_role(
     if expires_at is not None and expires_at <= now:
         raise GrantExpiryInvalidError()
     audit_service.set_actor(session, context.user.id)
-    # Lock the target row so concurrent grants of the same role serialise.
-    target = await session.scalar(
-        select(Membership)
-        .where(
-            Membership.id == membership_id,
-            Membership.organisation_id == context.organisation_id,
-            Membership.status == MembershipStatus.ACTIVE.value,
+    # Lock the target and the grantor rows (fixed order by id, so two grants cannot
+    # deadlock). ``populate_existing`` refreshes the grantor's role and status, so a
+    # grantor removed a moment ago cannot slip a grant past ``apply_removal``'s
+    # ``revoke_issued_by``: removal holds the same row lock until it commits.
+    locked = (
+        await session.scalars(
+            select(Membership)
+            .where(
+                Membership.id.in_([membership_id, context.membership.id]),
+                Membership.organisation_id == context.organisation_id,
+            )
+            .order_by(Membership.id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
         )
-        .with_for_update()
-    )
-    if target is None:
+    ).all()
+    rows = {m.id: m for m in locked}
+    grantor = rows.get(context.membership.id)
+    if grantor is None or grantor.status != MembershipStatus.ACTIVE.value:
+        raise GrantNotHeldError()
+    target = rows.get(membership_id)
+    if target is None or target.status != MembershipStatus.ACTIVE.value:
         raise MembershipNotFoundError()
     if target.id == context.membership.id:
         raise SelfGrantError()
     await _require_may_change(session, context, bundle)
-    ceiling = await _expiry_ceiling(session, context.membership, _required_keys(bundle))
+    ceiling = await _expiry_ceiling(session, context.membership, required_keys(bundle))
     if ceiling is not None and (expires_at is None or expires_at > ceiling):
         raise GrantExpiryExceedsGrantorError()
 
@@ -274,8 +286,6 @@ async def revoke_grant(
     )
     if grant is None:
         raise GrantNotFoundError()
-    if grant.revoked_at is not None:
-        return grant
     bundle = role_bundles.bundle_keys(grant.role_key)
     if bundle is not None:
         await _require_may_change(session, context, bundle)
@@ -287,6 +297,8 @@ async def revoke_grant(
             session, membership=context.membership
         ):
             raise GrantNotHeldError()
+    if grant.revoked_at is not None:
+        return grant
     grant.revoked_at = utc_now()
     await session.flush()
     return grant
@@ -310,15 +322,79 @@ async def revoke_all_for_membership(
     await session.flush()
 
 
-async def list_grants(
-    session: AsyncSession, *, organisation_id: str, membership_id: str
+async def revoke_issued_by(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    user_id: uuid.UUID,
+    actor_id: uuid.UUID,
+) -> int:
+    """End every unrevoked grant ``user_id`` issued in the organisation (used when
+    the issuer is removed, so access they handed out does not outlive their own).
+    A lapsed grant is closed at its real end, a live one now. Returns the number of
+    live grants ended. Direct grants only: grants issued by the people whose roles
+    this ends are not followed (revocation is not transitive)."""
+    audit_service.set_actor(session, actor_id)
+    rows = await session.scalars(
+        select(MembershipGrant)
+        .where(
+            MembershipGrant.organisation_id == organisation_id,
+            MembershipGrant.granted_by == user_id,
+            MembershipGrant.revoked_at.is_(None),
+        )
+        .with_for_update()
+    )
+    now = utc_now()
+    ended = 0
+    for grant in rows.all():
+        if grant.expires_at is not None and grant.expires_at <= now:
+            grant.revoked_at = grant.expires_at
+            continue
+        grant.revoked_at = now
+        ended += 1
+    await session.flush()
+    return ended
+
+
+async def list_issued_by(
+    session: AsyncSession, *, organisation_id: str, user_id: uuid.UUID
 ) -> list[MembershipGrant]:
+    """Live grants ``user_id`` issued in the organisation (review after a demotion)."""
+    rows = await session.scalars(
+        select(MembershipGrant)
+        .where(
+            MembershipGrant.organisation_id == organisation_id,
+            MembershipGrant.granted_by == user_id,
+            *_live(utc_now()),
+        )
+        .order_by(MembershipGrant.granted_at, MembershipGrant.id)
+    )
+    return list(rows.all())
+
+
+async def list_grants(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    membership_id: str,
+    products: Collection[str] | None = None,
+) -> list[MembershipGrant]:
+    """Live grants of a membership. ``products`` limits the list to roles named
+    ``<product>-...`` (the bundle naming rule); ``None`` lists all."""
+    product_filter = (
+        [or_(*(MembershipGrant.role_key.startswith(f"{p}-") for p in products))]
+        if products is not None and products
+        else [false()]
+        if products is not None
+        else []
+    )
     rows = await session.scalars(
         select(MembershipGrant)
         .where(
             MembershipGrant.organisation_id == organisation_id,
             MembershipGrant.membership_id == membership_id,
             *_live(utc_now()),
+            *product_filter,
         )
         .order_by(MembershipGrant.granted_at, MembershipGrant.id)
     )

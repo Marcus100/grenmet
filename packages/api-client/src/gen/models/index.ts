@@ -5442,6 +5442,8 @@ export type { MarineRow } from "./MarineRow.js";
 export type { MemberListPublic } from "./MemberListPublic.js";
 export type { MemberPublic } from "./MemberPublic.js";
 export type { MemberRoleUpdate } from "./MemberRoleUpdate.js";
+export type { MembershipGrantCreate } from "./MembershipGrantCreate.js";
+export type { MembershipGrantPublic } from "./MembershipGrantPublic.js";
 export type { MembershipRole } from "./MembershipRole.js";
 export { membershipRole } from "./MembershipRole.js";
 export type { MembershipStatus } from "./MembershipStatus.js";
@@ -5846,6 +5848,21 @@ export type {
   OrganisationsGetPublicSiteStatus422,
 } from "./OrganisationsGetPublicSite.js";
 export type {
+  OrganisationsGrantMemberRoleBody,
+  OrganisationsGrantMemberRoleHeaders,
+  OrganisationsGrantMemberRoleOptions,
+  OrganisationsGrantMemberRolePath,
+  OrganisationsGrantMemberRoleResponse,
+  OrganisationsGrantMemberRoleResponses,
+  OrganisationsGrantMemberRoleStatus201,
+  OrganisationsGrantMemberRoleStatus400,
+  OrganisationsGrantMemberRoleStatus401,
+  OrganisationsGrantMemberRoleStatus403,
+  OrganisationsGrantMemberRoleStatus404,
+  OrganisationsGrantMemberRoleStatus409,
+  OrganisationsGrantMemberRoleStatus422,
+} from "./OrganisationsGrantMemberRole.js";
+export type {
   OrganisationsKeyInfoOptions,
   OrganisationsKeyInfoResponse,
   OrganisationsKeyInfoResponses,
@@ -5911,6 +5928,30 @@ export type {
   OrganisationsListInvitationsStatus422,
 } from "./OrganisationsListInvitations.js";
 export type {
+  OrganisationsListIssuedGrantsHeaders,
+  OrganisationsListIssuedGrantsOptions,
+  OrganisationsListIssuedGrantsPath,
+  OrganisationsListIssuedGrantsResponse,
+  OrganisationsListIssuedGrantsResponses,
+  OrganisationsListIssuedGrantsStatus200,
+  OrganisationsListIssuedGrantsStatus401,
+  OrganisationsListIssuedGrantsStatus403,
+  OrganisationsListIssuedGrantsStatus404,
+  OrganisationsListIssuedGrantsStatus422,
+} from "./OrganisationsListIssuedGrants.js";
+export type {
+  OrganisationsListMemberGrantsHeaders,
+  OrganisationsListMemberGrantsOptions,
+  OrganisationsListMemberGrantsPath,
+  OrganisationsListMemberGrantsResponse,
+  OrganisationsListMemberGrantsResponses,
+  OrganisationsListMemberGrantsStatus200,
+  OrganisationsListMemberGrantsStatus401,
+  OrganisationsListMemberGrantsStatus403,
+  OrganisationsListMemberGrantsStatus404,
+  OrganisationsListMemberGrantsStatus422,
+} from "./OrganisationsListMemberGrants.js";
+export type {
   OrganisationsListMembersHeaders,
   OrganisationsListMembersOptions,
   OrganisationsListMembersPath,
@@ -5972,6 +6013,17 @@ export type {
   OrganisationsListOrgSitesStatus422,
 } from "./OrganisationsListOrgSites.js";
 export type {
+  OrganisationsListRoleBundlesHeaders,
+  OrganisationsListRoleBundlesOptions,
+  OrganisationsListRoleBundlesResponse,
+  OrganisationsListRoleBundlesResponses,
+  OrganisationsListRoleBundlesStatus200,
+  OrganisationsListRoleBundlesStatus401,
+  OrganisationsListRoleBundlesStatus403,
+  OrganisationsListRoleBundlesStatus404,
+  OrganisationsListRoleBundlesStatus422,
+} from "./OrganisationsListRoleBundles.js";
+export type {
   OrganisationsRevokeAdminApiKeyOptions,
   OrganisationsRevokeAdminApiKeyPath,
   OrganisationsRevokeAdminApiKeyResponse,
@@ -5996,6 +6048,20 @@ export type {
   OrganisationsRevokeInvitationStatus409,
   OrganisationsRevokeInvitationStatus422,
 } from "./OrganisationsRevokeInvitation.js";
+export type {
+  OrganisationsRevokeMemberGrantHeaders,
+  OrganisationsRevokeMemberGrantOptions,
+  OrganisationsRevokeMemberGrantPath,
+  OrganisationsRevokeMemberGrantResponse,
+  OrganisationsRevokeMemberGrantResponses,
+  OrganisationsRevokeMemberGrantStatus200,
+  OrganisationsRevokeMemberGrantStatus400,
+  OrganisationsRevokeMemberGrantStatus401,
+  OrganisationsRevokeMemberGrantStatus403,
+  OrganisationsRevokeMemberGrantStatus404,
+  OrganisationsRevokeMemberGrantStatus409,
+  OrganisationsRevokeMemberGrantStatus422,
+} from "./OrganisationsRevokeMemberGrant.js";
 export type {
   OrganisationsRevokeOrgApiKeyHeaders,
   OrganisationsRevokeOrgApiKeyOptions,
@@ -7063,6 +7129,7 @@ export type {
 } from "./RewardsWithdrawFromLeaderboard.js";
 export type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 export { roleAssignmentScope } from "./RoleAssignmentScope.js";
+export type { RoleBundlePublic } from "./RoleBundlePublic.js";
 export type { RoleConfiguration } from "./RoleConfiguration.js";
 export type { RoleCreate } from "./RoleCreate.js";
 export type { RolePermissionsInput } from "./RolePermissionsInput.js";

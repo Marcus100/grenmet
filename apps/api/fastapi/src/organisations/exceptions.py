@@ -211,3 +211,13 @@ class GrantExpiryExceedsGrantorError(AppException):
             "This grant cannot outlast your own access to the role",
             status.HTTP_422_UNPROCESSABLE_CONTENT,
         )
+
+
+class GrantConflictError(AppException):
+    """Another request changed the same member's roles at the same moment."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Roles for this member changed at the same time; try again",
+            status.HTTP_409_CONFLICT,
+        )
