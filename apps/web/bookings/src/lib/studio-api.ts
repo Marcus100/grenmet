@@ -9,24 +9,40 @@ import "server-only";
 import {
   type BookingAgenda,
   type BookingMyOrganisation,
+  type BookingProfilePublic,
+  type BookingProfileUpdate,
+  type BookingProviderCreate,
   type BookingProviderPublic,
+  type BookingProviderUpdate,
+  type BookingServiceCreate,
   type BookingServicePublic,
+  type BookingServiceUpdate,
+  type BookingSettings,
   type BookingStatus,
   type BookingStudioCreate,
   type BookingStudioDetail,
+  type BookingWorkingPeriodIn,
+  type BookingWorkingPeriodPublic,
   bookingsCancelStudioBooking,
   bookingsCompleteStudioBooking,
   bookingsConfirmStudioBooking,
+  bookingsCreateProvider,
+  bookingsCreateService,
   bookingsCreateStudioBooking,
   bookingsDeclineStudioBooking,
   bookingsGetAgenda,
   bookingsGetProfile,
+  bookingsGetSettings,
   bookingsGetStudioBooking,
   bookingsListMyOrganisations,
   bookingsListProviders,
   bookingsListServices,
   bookingsNoShowStudioBooking,
   bookingsRecordManualDeposit,
+  bookingsReplaceWorkingHours,
+  bookingsUpdateProvider,
+  bookingsUpdateService,
+  bookingsUpsertProfile,
   createClient,
   type ManualMethod,
   ResponseError,
@@ -297,6 +313,107 @@ export function recordManualDeposit(
       method: input.method,
       ...(input.reference ? { reference: input.reference } : {}),
     },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+// --- settings ----------------------------------------------------------------
+// Owners and admins change them; FastAPI answers 403 to anyone else.
+
+/** Profile, services, providers with hours, and whether deposits are collected. */
+export function getSettings(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingSettings> {
+  return bookingsGetSettings({
+    client: studioClient(accessToken, organisationId),
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Creates or replaces the whole booking profile (the API's PUT has no partial form). */
+export function saveProfile(
+  accessToken: string,
+  organisationId: string,
+  body: BookingProfileUpdate
+): Promise<BookingProfilePublic> {
+  return bookingsUpsertProfile({
+    client: studioClient(accessToken, organisationId),
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function createService(
+  accessToken: string,
+  organisationId: string,
+  body: BookingServiceCreate
+): Promise<BookingServicePublic> {
+  return bookingsCreateService({
+    client: studioClient(accessToken, organisationId),
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function updateService(
+  accessToken: string,
+  organisationId: string,
+  serviceId: string,
+  body: BookingServiceUpdate
+): Promise<BookingServicePublic> {
+  return bookingsUpdateService({
+    client: studioClient(accessToken, organisationId),
+    path: { service_id: serviceId },
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function createProvider(
+  accessToken: string,
+  organisationId: string,
+  body: BookingProviderCreate
+): Promise<BookingProviderPublic> {
+  return bookingsCreateProvider({
+    client: studioClient(accessToken, organisationId),
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function updateProvider(
+  accessToken: string,
+  organisationId: string,
+  providerId: string,
+  body: BookingProviderUpdate
+): Promise<BookingProviderPublic> {
+  return bookingsUpdateProvider({
+    client: studioClient(accessToken, organisationId),
+    path: { provider_id: providerId },
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Replaces a provider's whole week; no periods on a day is a day off. */
+export function replaceHours(
+  accessToken: string,
+  organisationId: string,
+  providerId: string,
+  periods: BookingWorkingPeriodIn[]
+): Promise<BookingWorkingPeriodPublic[]> {
+  return bookingsReplaceWorkingHours({
+    client: studioClient(accessToken, organisationId),
+    path: { provider_id: providerId },
+    body: { periods },
   })
     .unwrap()
     .catch(redactRequest);

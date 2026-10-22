@@ -11,8 +11,8 @@ interface StudioNavProps {
 }
 
 /**
- * Left navigation on desktop, a top tab row on phones. Agenda and New booking
- * are the screens in this release; services, hours and settings join as they ship.
+ * Left navigation on desktop, a top tab row on phones. Agenda, New booking and Settings
+ * are the screens in this release. Settings is shown to every member (read-only for non-admins).
  */
 export function StudioNav({ canCreate = false, orgSlug }: StudioNavProps) {
   const pathname = usePathname();
@@ -34,6 +34,11 @@ export function StudioNav({ canCreate = false, orgSlug }: StudioNavProps) {
           },
         ]
       : []),
+    {
+      label: "Settings",
+      href: `/studio/${orgSlug}/settings`,
+      active: pathname.startsWith(`/studio/${orgSlug}/settings`),
+    },
   ];
   return (
     <nav aria-label="Studio" className="border-border border-b md:border-b-0">
