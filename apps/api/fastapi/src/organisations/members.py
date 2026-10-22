@@ -25,6 +25,7 @@ from src.auth.models import User
 from src.config import settings
 from src.email_config import email_settings
 from src.notifications import service as notification_service
+from src.organisations import grants
 from src.organisations.dependencies import OrgContext
 from src.organisations.exceptions import (
     AlreadyMemberError,
@@ -208,6 +209,9 @@ async def apply_removal(
     await _ensure_not_last_owner(session, organisation_id, membership)
     membership.status = MembershipStatus.REMOVED.value
     await session.flush()
+    await grants.revoke_all_for_membership(
+        session, membership_id=membership.id, actor_id=actor_id
+    )
     return membership
 
 

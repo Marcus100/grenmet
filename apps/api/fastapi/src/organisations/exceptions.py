@@ -149,3 +149,65 @@ class ApiKeyNotActiveError(AppException):
             "This API key is revoked or expired and cannot be rotated",
             status.HTTP_409_CONFLICT,
         )
+
+
+class OrganisationPermissionError(AppException):
+    """The member's roles in this organisation do not include the required key."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Your roles in this organisation do not allow this",
+            status.HTTP_403_FORBIDDEN,
+        )
+
+
+class RoleBundleUnknownError(AppException):
+    def __init__(self, role_key: str) -> None:
+        super().__init__(
+            f"Unknown organisation role: {role_key}",
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+        )
+
+
+class GrantExpiryInvalidError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            "A grant must expire in the future", status.HTTP_422_UNPROCESSABLE_CONTENT
+        )
+
+
+class GrantNotHeldError(AppException):
+    """The grantor does not hold every key of the bundle and the team-manage key."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "You can only change roles whose permissions you hold yourself",
+            status.HTTP_403_FORBIDDEN,
+        )
+
+
+class GrantNotFoundError(AppException):
+    def __init__(self) -> None:
+        super().__init__("Role grant not found", status.HTTP_404_NOT_FOUND)
+
+
+class RoleAlreadyGrantedError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            "That member already holds this role", status.HTTP_409_CONFLICT
+        )
+
+
+class SelfGrantError(AppException):
+    def __init__(self) -> None:
+        super().__init__("You cannot change your own roles", status.HTTP_403_FORBIDDEN)
+
+
+class GrantExpiryExceedsGrantorError(AppException):
+    """The grantor's own access to the bundle ends sooner than the new grant would."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This grant cannot outlast your own access to the role",
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+        )

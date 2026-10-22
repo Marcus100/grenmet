@@ -9,11 +9,14 @@ Resolution order and error contract:
 4. Member whose role is too low for the route -> 403 (``OrgAdmin``, ``OrgOwner``).
 5. Organisation not entitled to the route's app or product -> 403
    (``require_org_app``; ``org.organisation_app``, keys in ``entitlements.py``).
+6. Organisation-bound permission key not held through the role or a live grant
+   -> 403 (``require_org_permission``; ``grants.py``, ADR-0044).
 
 There is deliberately no superuser bypass. A route is only organisation-isolated
 if it uses one of these aliases **and** has a cross-organisation denial test.
 """
 
+import logging
 import uuid
 from collections.abc import AsyncGenerator, Awaitable, Callable, Iterator
 from contextlib import contextmanager
@@ -39,13 +42,16 @@ from src.dependencies import (
     get_authenticated_user,
 )
 from src.models import TokenPayload
-from src.organisations import entitlements, service
+from src.organisations import entitlements, grants, role_bundles, service
 from src.organisations.exceptions import (
     OrganisationContextRequiredError,
     OrganisationNotFoundError,
+    OrganisationPermissionError,
 )
 from src.organisations.models import Membership, MembershipRole, PlatformOrganisation
 from src.request_context import bind_organisation_id, reset_organisation_id
+
+logger = logging.getLogger(__name__)
 
 ORGANISATION_HEADER = "X-Barrels-Organisation"
 _MAX_ID_LENGTH = 100
@@ -244,6 +250,42 @@ def require_org_app(
         await service.require_app_enabled(
             session, organisation_id=context.organisation_id, app_key=app_key
         )
+        return context
+
+    return dependency
+
+
+def require_org_permission(
+    permission_key: str, *, session_app: str | None = None
+) -> Callable[..., Awaitable[OrgContext]]:
+    """Build a dependency for an organisation-bound permission key (ADR-0044, S1).
+
+    Resolves ``OrgContext`` and the product entitlement (``require_org_app`` for the
+    key's product), then checks the key against the member's effective keys
+    (``grants.effective_keys``): implicit role bundle plus live grants. Never use
+    ``has_permission`` / ``require_permission`` for these keys; they deny them.
+    No superuser bypass. ``session_app`` is passed through to ``require_org_app``.
+    """
+    if not grants.is_product_key(permission_key):
+        raise ValueError(f"Not an organisation-bound product key: {permission_key}")
+    product = role_bundles.product_of_key(permission_key)
+    base = require_org_app(product, MembershipRole.MEMBER, session_app=session_app)
+
+    async def dependency(
+        session: SessionDep, context: Annotated[OrgContext, Depends(base)]
+    ) -> OrgContext:
+        if not await grants.has_org_permission(
+            session, membership=context.membership, permission_key=permission_key
+        ):
+            logger.warning(
+                "Organisation permission denied",
+                extra={
+                    "user_id": str(context.user.id),
+                    "organisation_id": context.organisation_id,
+                    "permission_key": permission_key,
+                },
+            )
+            raise OrganisationPermissionError()
         return context
 
     return dependency

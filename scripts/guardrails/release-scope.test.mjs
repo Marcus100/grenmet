@@ -11,6 +11,7 @@ import {
   migrationServices,
   releaseScope,
   routedServices,
+  validateAdminHosts,
   validateComposeScope,
   validateReleaseConfiguration,
   webImages,
@@ -21,8 +22,8 @@ const CHECK_SCRIPT = fileURLToPath(
   new URL("../ci/check-release-scope.mjs", import.meta.url)
 );
 
-test("release includes twelve core images and rejects contradictory weather configuration", () => {
-  assert.equal(releaseScope.web.length, 12);
+test("release includes thirteen core images and rejects contradictory weather configuration", () => {
+  assert.equal(releaseScope.web.length, 13);
   assert.equal(releaseScope.api, true);
   assert.deepEqual(releaseScope.weather, []);
   validateReleaseConfiguration({});
@@ -208,4 +209,74 @@ test("routed services can run twice during a rolling start", () => {
   validateComposeScope({
     services: { ...services, proxy: { ports: ["443:443"] } },
   });
+});
+
+const adminModel = (consoleHost, portalRule) => ({
+  services: {
+    "web-admin": {
+      labels: {
+        "traefik.http.routers.web-barrels-admin-staging.rule": `Host(\`${consoleHost}\`)`,
+      },
+    },
+    "web-gmsadmin": {
+      labels: {
+        "traefik.http.routers.web-gms-portal-staging.rule": portalRule,
+      },
+    },
+  },
+});
+
+test("admin console and portal hosts must be present and distinct", () => {
+  validateAdminHosts(
+    adminModel("admin.staging.barrels.gd", "Host(`gms.staging.barrels.gd`)")
+  );
+  for (const [host, rule] of [
+    ["admin.barrels.gd", "Host(`admin.barrels.gd`)"],
+    ["admin.barrels.gd", "Host(`gms.barrels.gd`) || Host(`admin.barrels.gd`)"],
+    ["", "Host(`gms.barrels.gd`)"],
+    ["admin", "Host(`gms.barrels.gd`)"],
+  ])
+    assert.throws(() => validateAdminHosts(adminModel(host, rule)));
+  assert.throws(() => validateAdminHosts({ services: {} }));
+});
+
+test("no other router or service may use the console or portal host", () => {
+  const base = adminModel(
+    "admin.staging.barrels.gd",
+    "Host(`gms.staging.barrels.gd`)"
+  );
+  const withLabels = (service, labels) => ({
+    services: {
+      ...base.services,
+      [service]: {
+        ...base.services[service],
+        labels: { ...base.services[service]?.labels, ...labels },
+      },
+    },
+  });
+  // A second router on another service reusing either host.
+  for (const host of ["admin.staging.barrels.gd", "gms.staging.barrels.gd"])
+    assert.throws(
+      () =>
+        validateAdminHosts(
+          withLabels("web-docs", {
+            "traefik.http.routers.extra.rule": `Host(\`${host}\`) && PathPrefix(\`/x\`)`,
+          })
+        ),
+      /more than one service/
+    );
+  // A second router on the console itself would make it answer another host.
+  assert.throws(() =>
+    validateAdminHosts(
+      withLabels("web-admin", {
+        "traefik.http.routers.extra.rule": "Host(`other.staging.barrels.gd`)",
+      })
+    )
+  );
+  // Extra routers on the portal are fine while the hosts stay distinct.
+  validateAdminHosts(
+    withLabels("web-gmsadmin", {
+      "traefik.http.routers.alias.rule": "Host(`alias.staging.barrels.gd`)",
+    })
+  );
 });

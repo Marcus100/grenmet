@@ -21,7 +21,7 @@ Each stack includes:
 - `api`: FastAPI backend on internal port `8000`.
 - `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
 - `redis` + `worker`: Redis and the arq background worker (CAP publish jobs, notification and email outboxes, retention purge; see `src/worker/AGENTS.md`).
-- `web-cms`, `web-auth`, `web-admin`, `web-docs`, `web-gms`, `web-signal`, `web-mbia`, `web-events`, `web-cap`, `web-gmsdash`, and `web-bookings`: eleven configured web services (recounted from `docker-compose.deploy.yml`). The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-admin`.
+- `web-cms`, `web-auth`, `web-admin` (Barrels staff console), `web-gmsadmin` (GMS/GAA portal), `web-docs`, `web-gms`, `web-signal`, `web-mbia`, `web-events`, `web-cap`, `web-gmsdash`, and `web-bookings`: twelve configured web services (recounted from `docker-compose.deploy.yml`). The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-gmsadmin`.
 - `proxy`: Traefik v3, terminating HTTPS and routing by host.
 - `adminer`: present in staging only in the current compose files.
 
