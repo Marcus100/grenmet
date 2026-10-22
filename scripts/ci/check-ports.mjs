@@ -1,5 +1,10 @@
 // Fails when a web app's port disagrees between docs/ports.md and the files
-// that must repeat it (see "Where each web-app port lives" in docs/ports.md).
+// that must repeat it (see "Where each web-app port lives" in docs/ports.md),
+// when port ranges overlap or a vendored port sits inside a Barrels range
+// without an exception row, when a retired port is in use, and when the
+// hostnames in the ports.md domain table disagree with the Host() rules in
+// docker-compose.deploy.yml. The range, retired and hostname checks run only
+// when docs/ports.md has the matching section.
 // Usage: node scripts/ci/check-ports.mjs
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -39,14 +44,385 @@ export function parseWebApps(markdown) {
   return apps;
 }
 
-/** `| 3008 | `@barrelsgd/web-shop` (...) | Reserved |` rows. */
-export function parseReserved(markdown) {
+/** Every `| 3008 | `@barrelsgd/web-shop` (...) | Reserved |` row, in order. */
+export function parseReservedRows(markdown) {
   const rows = section(markdown, "### Reserved and planned");
-  const reserved = new Map();
-  for (const match of rows.matchAll(/^\|\s*(\d{4,5})\s*\|\s*`([^`]+)`/gm)) {
-    reserved.set(Number(match[1]), match[2]);
+  return [...rows.matchAll(/^\|\s*(\d{4,5})\s*\|\s*`([^`]+)`/gm)].map(
+    (match) => ({ port: Number(match[1]), pkg: match[2] })
+  );
+}
+
+/** Reserved ports mapped to their package (a later duplicate replaces; see checkReservedRows). */
+export function parseReserved(markdown) {
+  return new Map(
+    parseReservedRows(markdown).map(({ port, pkg }) => [port, pkg])
+  );
+}
+
+/** Rows of a markdown table section as trimmed cells (rule rows dropped, header kept). */
+function tableRows(markdown, heading) {
+  return section(markdown, heading)
+    .split("\n")
+    .filter((line) => line.trim().startsWith("|"))
+    .map((line) =>
+      line
+        .trim()
+        .replace(TABLE_EDGE_LEFT, "")
+        .replace(TABLE_EDGE_RIGHT, "")
+        .split("|")
+        .map((cell) => cell.trim())
+    )
+    .filter((cells) => !cells.every((cell) => TABLE_RULE.test(cell)));
+}
+
+const TABLE_EDGE_LEFT = /^\|/;
+const TABLE_EDGE_RIGHT = /\|$/;
+const TABLE_RULE = /^:?-+:?$/;
+const BULLET_NAMES = /^- \*\*[^*]+:\*\*\s*(.+)$/;
+const TRAILING_DOT = /\.$/;
+const RANGE_CELL = /^`(\d{4,5})[–-](\d{4,5})`$/;
+const SINGLE_CELL = /^`?(\d{4,5})`?$/;
+const PORT_NUMBER = /\b(\d{2,5})\b/g;
+const STAGING_HOST = /^([a-z0-9-]+)\.staging\.barrels\.gd$/;
+const BARRELS_HOST = /`([a-z0-9-]+)(?:\.staging)?\.barrels\.gd`/g;
+const COMPOSE_HOST = /Host\(`([^`$]+)\.\$\{BASE_DOMAIN\}`\)/g;
+const COMMENT_LINE = /^\s*#.*$/gm;
+
+/** `| `3000–3019` | Legacy, frozen | ... |` rows of "## Port ranges". */
+export function parseRanges(markdown) {
+  const ranges = [];
+  for (const cells of tableRows(markdown, "## Port ranges")) {
+    const match = cells[0]?.match(RANGE_CELL);
+    if (match) {
+      ranges.push({
+        lo: Number(match[1]),
+        hi: Number(match[2]),
+        name: cells[1] ?? "",
+      });
+    }
   }
-  return reserved;
+  return ranges;
+}
+
+/** `| 3011 | ...` and `| `4000–4099` | ...` rows of "### Retired ports". */
+export function parseRetired(markdown) {
+  const retired = [];
+  for (const cells of tableRows(markdown, "### Retired ports")) {
+    const single = cells[0]?.match(SINGLE_CELL);
+    const range = cells[0]?.match(RANGE_CELL);
+    if (single) {
+      retired.push({ lo: Number(single[1]), hi: Number(single[1]) });
+    } else if (range) {
+      retired.push({ lo: Number(range[1]), hi: Number(range[2]) });
+    }
+  }
+  return retired;
+}
+
+/** Infrastructure, API and vendored ports (every number in the port column). */
+export function parseFixedPorts(markdown) {
+  const tables = {
+    "## APIs": "API",
+    "## Infrastructure & dev tools": "infrastructure",
+    "## Vendored ops apps": "vendored",
+  };
+  const fixed = [];
+  for (const [heading, kind] of Object.entries(tables)) {
+    for (const cells of tableRows(markdown, heading).slice(1)) {
+      for (const match of (cells[1] ?? "").matchAll(PORT_NUMBER)) {
+        fixed.push({ kind, label: cells[0], port: Number(match[1]) });
+      }
+    }
+  }
+  return fixed;
+}
+
+/** Ports in "### Vendored exceptions inside Barrels ranges". */
+export function parseVendoredExceptions(markdown) {
+  const ports = new Set();
+  const heading = "### Vendored exceptions inside Barrels ranges";
+  for (const cells of tableRows(markdown, heading)) {
+    const match = cells[0]?.match(SINGLE_CELL);
+    if (match) ports.add(Number(match[1]));
+  }
+  return ports;
+}
+
+/** Production and staging labels of "### Served by the DigitalOcean stack". */
+export function parseServedHosts(markdown) {
+  const rows = tableRows(markdown, "### Served by the DigitalOcean stack");
+  const header = rows[0] ?? [];
+  const stagingAt = header.indexOf("Staging");
+  const productionAt = header.indexOf("Production");
+  if (stagingAt === -1 || productionAt === -1) return null;
+  const hosts = { production: [], staging: [], badStaging: [] };
+  for (const cells of rows.slice(1)) {
+    for (const match of (cells[productionAt] ?? "").matchAll(BARRELS_HOST)) {
+      hosts.production.push(match[1]);
+    }
+    for (const match of (cells[stagingAt] ?? "").matchAll(/`([^`]+)`/g)) {
+      const staging = match[1].match(STAGING_HOST);
+      if (staging) {
+        hosts.staging.push(staging[1]);
+      } else {
+        hosts.badStaging.push(match[1]);
+      }
+    }
+  }
+  return hosts;
+}
+
+/** Labels (and status cells) of the "### Retired hostnames" table. */
+export function parseRetiredHosts(markdown) {
+  const hosts = [];
+  for (const cells of tableRows(markdown, "### Retired hostnames")) {
+    for (const match of (cells[0] ?? "").matchAll(/`([a-z0-9-]+)\.\*`/g)) {
+      hosts.push({ label: match[1], status: cells[2] ?? "" });
+    }
+  }
+  return hosts;
+}
+
+/** Labels in the planned-hosts and Vercel tables. */
+function parsePlannedHosts(markdown) {
+  const labels = [];
+  const tables = [
+    ["### Planned host changes and new hosts", 0],
+    ["### Hosted on Vercel", 1],
+  ];
+  for (const [heading, column] of tables) {
+    for (const cells of tableRows(markdown, heading).slice(1)) {
+      for (const match of (cells[column] ?? "").matchAll(BARRELS_HOST)) {
+        labels.push(match[1]);
+      }
+    }
+  }
+  return labels;
+}
+
+/** Every comma-separated name in the bullets of "## Reserved names". */
+export function parseReservedNames(markdown) {
+  const names = new Set();
+  for (const line of section(markdown, "## Reserved names").split("\n")) {
+    const match = line.match(BULLET_NAMES);
+    if (!match) continue;
+    for (const name of match[1].replace(TRAILING_DOT, "").split(",")) {
+      names.add(name.trim());
+    }
+  }
+  return names;
+}
+
+/** Labels of every ``Host(`<label>.${BASE_DOMAIN}`)`` rule in the deploy compose. */
+export function composeHostLabels(compose) {
+  const live = compose.replace(COMMENT_LINE, "");
+  return new Set([...live.matchAll(COMPOSE_HOST)].map((match) => match[1]));
+}
+
+const inRange = (port, { lo, hi }) => port >= lo && port <= hi;
+
+function checkRangeShapes(ranges, errors) {
+  for (const range of ranges) {
+    if (range.lo > range.hi) {
+      errors.push(`docs/ports.md: range ${range.lo}-${range.hi} is backwards`);
+    }
+  }
+  for (const [i, a] of ranges.entries()) {
+    for (const b of ranges.slice(i + 1)) {
+      if (a.lo <= b.hi && b.lo <= a.hi) {
+        errors.push(
+          `docs/ports.md: range ${a.lo}-${a.hi} (${a.name}) overlaps ${b.lo}-${b.hi} (${b.name})`
+        );
+      }
+    }
+  }
+}
+
+function checkFixedPorts(markdown, errors, { ranges, retired, registry }) {
+  const exceptions = parseVendoredExceptions(markdown);
+  const seenFixed = new Map();
+  for (const { kind, label, port } of parseFixedPorts(markdown)) {
+    const clash = registry.find((entry) => entry.port === port);
+    if (clash) {
+      errors.push(
+        `docs/ports.md: ${kind} port ${port} (${label}) collides with ${clash.label}`
+      );
+    }
+    if (retired.some((range) => inRange(port, range))) {
+      errors.push(
+        `docs/ports.md: ${kind} port ${port} (${label}) is in a retired range`
+      );
+    }
+    const earlier = seenFixed.get(port);
+    if (earlier !== undefined && earlier !== label) {
+      errors.push(
+        `docs/ports.md: port ${port} is listed for both ${earlier} and ${label}`
+      );
+    }
+    seenFixed.set(port, label);
+    // Vendored software cannot move, so a vendored port inside a Barrels range
+    // must be acknowledged. Barrels' own fixed ports are not held to this.
+    const insideRange = ranges.some((range) => inRange(port, range));
+    if (kind === "vendored" && insideRange && !exceptions.has(port)) {
+      errors.push(
+        `docs/ports.md: vendored port ${port} (${label}) is inside a Barrels range and not in "Vendored exceptions inside Barrels ranges"`
+      );
+    }
+  }
+}
+
+function checkRanges(markdown, errors, registry) {
+  const ranges = parseRanges(markdown);
+  if (ranges.length === 0) return;
+  checkRangeShapes(ranges, errors);
+  const retired = parseRetired(markdown);
+  for (const { port, label } of registry) {
+    if (!ranges.some((range) => inRange(port, range))) {
+      errors.push(`docs/ports.md: ${label} port ${port} is in no listed range`);
+    }
+    if (retired.some((range) => inRange(port, range))) {
+      errors.push(`docs/ports.md: ${label} uses retired port ${port}`);
+    }
+  }
+  checkFixedPorts(markdown, errors, { ranges, retired, registry });
+}
+
+function isRetiredNow(retiredHosts, label) {
+  const row = retiredHosts.find((host) => host.label === label);
+  return row !== undefined && !row.status.startsWith("Retiring");
+}
+
+function checkServedTable(errors, served) {
+  const seen = new Set();
+  for (const label of served.production) {
+    if (seen.has(label)) {
+      errors.push(
+        `docs/ports.md: host ${label} is listed twice in the domain table`
+      );
+    }
+    seen.add(label);
+    if (!served.staging.includes(label)) {
+      errors.push(
+        `docs/ports.md: ${label} has a production host but no ${label}.staging.barrels.gd`
+      );
+    }
+  }
+  for (const host of served.badStaging) {
+    errors.push(
+      `docs/ports.md: staging host ${host} must be <label>.staging.barrels.gd (single level)`
+    );
+  }
+  return seen;
+}
+
+function checkCompose(compose, errors, listed, retiredHosts) {
+  const routed = composeHostLabels(compose);
+  for (const label of routed) {
+    if (label.includes(".")) {
+      errors.push(
+        `docker-compose.deploy.yml routes the multi-level host ${label}.\${BASE_DOMAIN}; hosts must be single-level`
+      );
+    }
+    if (!listed.has(label)) {
+      errors.push(
+        `docker-compose.deploy.yml routes Host(${label}.*) but the docs/ports.md domain table does not list it`
+      );
+    }
+    if (isRetiredNow(retiredHosts, label)) {
+      errors.push(`docker-compose.deploy.yml routes retired host ${label}.*`);
+    }
+  }
+  for (const label of listed) {
+    if (!routed.has(label)) {
+      errors.push(
+        `docs/ports.md lists ${label}.barrels.gd but docker-compose.deploy.yml has no Host() rule for it`
+      );
+    }
+  }
+}
+
+function checkReservedNames(markdown, errors, listed, retiredHosts) {
+  const reservedNames = parseReservedNames(markdown);
+  if (reservedNames.size === 0) return;
+  const planned = parsePlannedHosts(markdown);
+  const everyHost = new Set([
+    ...listed,
+    ...planned,
+    ...retiredHosts.map((host) => host.label),
+  ]);
+  for (const label of everyHost) {
+    if (!reservedNames.has(label)) {
+      errors.push(`docs/ports.md: host ${label} is not in "Reserved names"`);
+    }
+  }
+  for (const label of [...listed, ...planned]) {
+    if (isRetiredNow(retiredHosts, label)) {
+      errors.push(
+        `docs/ports.md: retired host ${label} is also listed as live or planned`
+      );
+    }
+  }
+}
+
+/** Real-repo guard: a renamed heading must not silently switch a check off. */
+function checkRequiredSections(markdown, errors) {
+  const required = [
+    ["## Port ranges", parseRanges(markdown).length],
+    ["### Retired ports", parseRetired(markdown).length],
+    [
+      "### Served by the DigitalOcean stack",
+      parseServedHosts(markdown)?.production.length ?? 0,
+    ],
+    ["### Retired hostnames", parseRetiredHosts(markdown).length],
+    ["## Reserved names", parseReservedNames(markdown).size],
+    ["### Reserved and planned", parseReservedRows(markdown).length],
+  ];
+  for (const [heading, count] of required) {
+    if (count === 0) {
+      errors.push(
+        `docs/ports.md: section "${heading}" is missing or has no parsable rows, so its checks cannot run`
+      );
+    }
+  }
+}
+
+function checkReservedRows(markdown, errors, apps) {
+  const ports = new Map();
+  const packages = new Map();
+  for (const { port, pkg } of parseReservedRows(markdown)) {
+    if (ports.has(port)) {
+      errors.push(
+        `docs/ports.md: port ${port} is reserved twice (${ports.get(port)} and ${pkg})`
+      );
+    }
+    ports.set(port, pkg);
+    if (packages.has(pkg) && packages.get(pkg) !== port) {
+      errors.push(
+        `docs/ports.md: package ${pkg} is reserved on both ${packages.get(pkg)} and ${port}`
+      );
+    }
+    packages.set(pkg, port);
+  }
+  for (const [dir, app] of apps) {
+    const reservedPort = packages.get(app.pkg);
+    if (reservedPort !== undefined && reservedPort !== app.port) {
+      errors.push(
+        `docs/ports.md: package ${app.pkg} (${dir}) is on ${app.port} but also reserved on ${reservedPort}`
+      );
+    }
+  }
+}
+
+function checkHosts(root, markdown, errors) {
+  const served = parseServedHosts(markdown);
+  if (served === null) return;
+  const listed = checkServedTable(errors, served);
+  const retiredHosts = parseRetiredHosts(markdown);
+  const compose = maybeRead(root, "infra/docker/docker-compose.deploy.yml");
+  if (compose !== null) {
+    checkCompose(compose, errors, listed, retiredHosts);
+  }
+  checkReservedNames(markdown, errors, listed, retiredHosts);
 }
 
 function expectPort(errors, label, actual, expected) {
@@ -130,9 +506,13 @@ async function checkDeployed(root, errors, apps) {
 }
 
 /** Returns a list of human-readable problems; empty means the ports agree. */
-export async function checkPorts(root = defaultRoot) {
+export async function checkPorts(
+  root = defaultRoot,
+  { requireSections = root === defaultRoot } = {}
+) {
   const errors = [];
   const markdown = read(root, "docs/ports.md");
+  if (requireSections) checkRequiredSections(markdown, errors);
   const apps = parseWebApps(markdown);
   const reserved = parseReserved(markdown);
 
@@ -168,6 +548,14 @@ export async function checkPorts(root = defaultRoot) {
       );
     }
   }
+
+  const registry = [
+    ...[...apps].map(([dir, { port }]) => ({ label: `app ${dir}`, port })),
+    ...[...reserved].map(([port, pkg]) => ({ label: `reserved ${pkg}`, port })),
+  ];
+  checkReservedRows(markdown, errors, apps);
+  checkRanges(markdown, errors, registry);
+  checkHosts(root, markdown, errors);
 
   await checkDeployed(root, errors, apps);
   return errors;

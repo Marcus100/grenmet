@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-
-const PORTAL_HOST_LINE = /^GMSADMIN_HOST=(\S+)$/m;
 const anchorHref = /<a\b[^>]*\bhref=["']([^"']+)["']/g;
 const validState = /^[A-Za-z0-9_-]{32}$/;
 const validDomain = /^[a-z0-9.-]+$/;
@@ -69,24 +66,6 @@ export async function checkCmsSignIn(domain, fetcher = fetch) {
   await check(target.href, "<form", fetcher);
 }
 
-// Full hostname of the GMS/GAA staff portal: GMSADMIN_HOST from the committed
-// environment file of the deployment being checked, else gms.<domain>.
-function portalHost(domain) {
-  for (const file of ["staging.env", "production.env"]) {
-    try {
-      const text = readFileSync(
-        new URL(`../../infra/docker/${file}`, import.meta.url),
-        "utf8"
-      );
-      if (new RegExp(`^BASE_DOMAIN=${domain}$`, "m").test(text))
-        return text.match(PORTAL_HOST_LINE)?.[1] ?? `gms.${domain}`;
-    } catch {
-      // Not available (for example in a packaged run): use the default.
-    }
-  }
-  return `gms.${domain}`;
-}
-
 export async function checkDeployment(domain, fetcher = fetch) {
   if (!(domain && validDomain.test(domain)))
     throw new Error("A valid base domain is required");
@@ -99,17 +78,13 @@ export async function checkDeployment(domain, fetcher = fetch) {
   for (const [host, path, marker] of [
     ["api", "/api/v1/utils/ready/", '"ready"'],
     ["api", "/api/cap/latest-active", '"data":'],
-    // The GMS/GAA portal host comes from the environment file (GMSADMIN_HOST).
-    [portalHost(domain), "/api/public/products", '"products":'],
-    [portalHost(domain), "/api/ready", '"ready"'],
+    // The GMS/GAA portal (hostname gms.*; the public weather site is weather.*).
+    ["gms", "/api/public/products", '"products":'],
+    ["gms", "/api/ready", '"ready"'],
     ["cms", "/api/ready", '"ready"'],
     ["auth", "/", "<form"],
   ])
-    await check(
-      `https://${host.includes(".") ? host : `${host}.${domain}`}${path}`,
-      marker,
-      fetcher
-    );
+    await check(`https://${host}.${domain}${path}`, marker, fetcher);
   for (const host of ["docs", "weather", "signal", "mbia", "events"])
     await check(`https://${host}.${domain}/`, "<main", fetcher);
   await checkCmsSignIn(domain, fetcher);

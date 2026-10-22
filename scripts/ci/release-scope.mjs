@@ -116,7 +116,7 @@ export function validateAdminHosts(model) {
     )
   )
     throw new Error(
-      "BARRELS_ADMIN_HOST must be a full hostname different from GMSADMIN_HOST and GMSADMIN_EXTRA_HOST"
+      "The Barrels admin console and the GMS/GAA portal need distinct, full hostnames"
     );
 }
 export function validateComposeScope(model) {

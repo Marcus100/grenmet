@@ -102,9 +102,8 @@ with `SKIP_ENV_VALIDATION` and fixed values from `vitest.config.ts`.
 ## Deployment
 
 Compose service `web-admin` (image `barrelsgd-web-admin`, port 3012, health
-`/api/health`) serves it at `BARRELS_ADMIN_HOST`: `admin.staging.barrels.gd` on
-staging (cut over 2026-10-21) and the holding host `console.barrels.gd` on
-production until the separate production cutover release. It is in
+`/api/health`) serves it at `admin.${BASE_DOMAIN}` (owner decision 2026-10-21;
+it reaches production when the change is promoted to `main`). It is in
 `scripts/ci/release-scope.mjs`. The GMS/GAA portal moved to `gms.*`
 (service `web-gmsadmin`). Secret `BARRELS_ADMIN_SSO_CLIENT_SECRET` (GitHub
 environment secret, same value for the API and this app; empty keeps sign-in

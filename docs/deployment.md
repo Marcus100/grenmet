@@ -523,8 +523,8 @@ hurricane/spice hosts; no legacy redirects are installed.
 | --- | --- | --- | --- |
 | Barrels homepage | Static | https://barrels.gd (Vercel; www redirects here) | Vercel preview deployments |
 | Auth | 3000 | https://auth.barrels.gd | https://auth.staging.barrels.gd |
-| Barrels admin (staff console) | 3012 | https://admin.barrels.gd (holding host https://console.barrels.gd until the production cutover) | https://admin.staging.barrels.gd |
-| GAA Admin (GMS/GAA portal) | 3001 | https://gms.barrels.gd (https://admin.barrels.gd and gmsadmin.barrels.gd until the production cutover) | https://gms.staging.barrels.gd |
+| Barrels admin (staff console) | 3012 | https://admin.barrels.gd | https://admin.staging.barrels.gd |
+| GAA Admin (GMS/GAA portal) | 3001 | https://gms.barrels.gd | https://gms.staging.barrels.gd |
 | Docs | 3002 | https://docs.barrels.gd | https://docs.staging.barrels.gd |
 | Weather | 3003 | https://weather.barrels.gd | https://weather.staging.barrels.gd |
 | Signal | 3004 | https://signal.barrels.gd | https://signal.staging.barrels.gd |
@@ -562,58 +562,50 @@ control plane (`apps/web/admin`, ADR-0039). The GMS/GAA staff portal
 (`apps/web/gaa-admin`, Met office) moves to `gms.*`. This is the hostname only:
 `apps/web/gms` is still the public weather site at `weather.*`. Hard switch, no
 redirects (the portal is used only by the owner and internal staff in testing).
-Staging first; production is the second step below.
+Compose service `web-admin` is the console and `web-gmsadmin` the portal; their
+Traefik router/service labels are `web-barrels-admin` and `web-gms-portal`, names
+no earlier container defined.
 
-Host variables in `staging.env` / `production.env` drive `docker-compose.deploy.yml`:
+Staging is cut over first by the normal flow (dev, then `staging`); production
+follows only when the same change is promoted to `main`, so do the production
+checks below before promoting.
 
-| Variable | Staging (cut over) | Production (now, unchanged behaviour) | Production (after cutover) |
-| --- | --- | --- | --- |
-| `BARRELS_ADMIN_HOST` (console, service `web-admin`) | `admin.staging.barrels.gd` | `console.barrels.gd` | `admin.barrels.gd` |
-| `GMSADMIN_HOST` (portal, service `web-gmsadmin`; also the SSO registry URL, email links and auth-app links) | `gms.staging.barrels.gd` | `admin.barrels.gd` | `gms.barrels.gd` |
-| `GMSADMIN_EXTRA_HOST` (optional second portal host) | unset | `gmsadmin.barrels.gd` (existing) | delete |
-
-**Step 1 - staging (owner):**
+**Staging (owner):**
 
 1. DNS: `*.staging.barrels.gd` already resolves everything to the staging VM, so
    `admin.staging` and `gms.staging` need no new record. Check in Cloudflare that
    the wildcard (or explicit A records) exists for both, DNS only like the other
    staging hosts. `gmsadmin.staging` is no longer served.
 2. Create the GitHub `staging` environment secret `BARRELS_ADMIN_SSO_CLIENT_SECRET`
-   (`openssl rand -base64 32`, at least 32 characters) and apply the
-   `.github/workflows/deploy.yml` change from the PR body (owner-only).
+   (`openssl rand -base64 32`, at least 32 characters, different from every other
+   app secret) and apply the `.github/workflows/deploy.yml` change from the PR
+   (owner-only).
 3. Merge to `staging`; the pipeline builds the new image `barrelsgd-web-admin`
    and redeploys. Smoke: `https://gms.staging.barrels.gd/api/ready`,
    `https://admin.staging.barrels.gd/api/health`; sign in to each (console:
    superuser only). Everyone re-signs in once on `gms.staging` (session cookies
    are host-only).
 
-**Step 2 - production (right after staging is verified; not part of this PR):**
-in `production.env` set `BARRELS_ADMIN_HOST=admin.barrels.gd`,
-`GMSADMIN_HOST=gms.barrels.gd` and delete `GMSADMIN_EXTRA_HOST`; create the
-`production` secret `BARRELS_ADMIN_SSO_CLIENT_SECRET`; deploy. DNS: the
-`*.barrels.gd` wildcard covers `admin`, `gms` and `console`. Check there is no
-explicit `gms.barrels.gd` or `admin.barrels.gd` record pointing elsewhere (the
-retired public `gms.*` site): old `gms.*` links now reach the portal sign-in.
+**Before promoting to production:** create the `production` secret
+`BARRELS_ADMIN_SSO_CLIENT_SECRET`; the `*.barrels.gd` wildcard covers `admin` and
+`gms`, but check there is no explicit `gms.barrels.gd` or `admin.barrels.gd`
+record pointing elsewhere (the retired public `gms.*` site: old links now reach
+the portal sign-in). `gmsadmin.barrels.gd` stops being served.
 
-**Deploy impact.** Router and service labels for the console and portal use new
-names (`web-barrels-admin`, `web-gms-portal`) that no earlier container defines,
-and the portal is listed before the console in `scripts/ci/release-scope.mjs`, so
-the rolling deploy brings the new portal container up before the old `web-admin`
-(the former gaa-admin) is replaced by the console. With rolling deploys on, no
-outage is expected. If rolling is off or a replacement fails, expect 1-3 minutes
-of 404s on the portal while it restarts; deploy in a quiet window (only the owner
-and internal staff use production today). A rollback has the same shape.
-`BARRELS_ADMIN_HOST` and `GMSADMIN_HOST` are required in the environment files:
-the compose file refuses to render without them, and
-`scripts/ci/check-release-scope.mjs --compose` fails if the console and portal
-share a host. `render-env.py` rejects two apps sharing one single sign-on secret.
-Notification emails already sent with `admin.staging` links now land on the
-console sign-in wall.
+**Deploy impact.** The portal is listed before the console in
+`scripts/ci/release-scope.mjs`, so a rolling deploy starts the new portal
+container, waited healthy, while the old `web-admin` (the former gaa-admin) still
+serves `admin.*`, and only then replaces it with the console. With rolling on, no outage is expected. If rolling is off or a
+replacement fails, expect 1-3 minutes of 404s on the portal while it restarts;
+deploy in a quiet window (only the owner and internal staff use production
+today). A rollback has the same shape. `check-release-scope.mjs --compose` fails
+if the console and portal share a host, and `render-env.py` rejects two apps
+sharing one single sign-on secret. Notification emails already sent with
+`admin.staging` links now land on the console sign-in wall.
 
-**Rollback.** Revert the host values in `staging.env` (portal back on
-`admin.staging.barrels.gd`: `GMSADMIN_HOST=admin.staging.barrels.gd`,
-`BARRELS_ADMIN_HOST=console.staging.barrels.gd`) and redeploy, or revert the PR.
-No database or API schema change is involved, so rollback loses no data.
+**Rollback.** Revert the change (compose, release scope and docs) and redeploy;
+the portal returns to `admin.*`. No database or API schema change is involved, so
+rollback loses no data.
 
 ## Legacy service retirement
 

@@ -152,7 +152,7 @@ the API image and the local source mount contain the same migration assets.
 | `EMAIL_TEST_USER` | Recipient used by email tests and diagnostics |
 | `RESEND_WEBHOOK_SECRET` | Optional Svix signing secret for Resend webhook verification |
 | `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` | Comma-separated domains notification email may go to. Deployment reads the GitHub environment variable of this name; missing/blank staging values default to `barrels.gd`, while missing/blank production values allow all domains. Explicit values must be domain names (no wildcards, URLs or email addresses). Local development must configure its own restriction. |
-| `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (local default `http://localhost:3001`). Deployment sets `https://${GMSADMIN_HOST}` (gms.staging.barrels.gd on staging) for both API and worker. |
+| `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (local default `http://localhost:3001`). Deployment sets `https://gms.${BASE_DOMAIN}` for both API and worker. |
 | `NOTIFICATIONS_BATCH_SIZE`, `NOTIFICATIONS_MAX_ATTEMPTS` | Worker email outbox batch size (50) and retry limit (5); also used for the public-flow outbox (subscriptions, contact) |
 | `MBIA_CONTACT_RECIPIENT` | Inbox that receives MBIA website contact messages (`site: "mbia"`). Unset: messages are stored and logged only, nothing is emailed. Sent through the worker outbox as transactional mail |
 | `BARRELS_CONTACT_RECIPIENT` | Inbox that receives Barrels Grenada website contact messages (`site: "barrels"`). Same behaviour as `MBIA_CONTACT_RECIPIENT`; each site has its own inbox and a message is never sent to another site's inbox |

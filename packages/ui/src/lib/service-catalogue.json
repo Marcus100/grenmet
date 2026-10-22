@@ -513,7 +513,7 @@
           }
         },
         "production": {
-          "origin": "https://admin.barrels.gd",
+          "origin": "https://gms.barrels.gd",
           "deployment": "unverified",
           "release": null,
           "analytics": {
@@ -1322,7 +1322,7 @@
           }
         },
         "production": {
-          "origin": null,
+          "origin": "https://admin.barrels.gd",
           "deployment": "pending",
           "release": null,
           "analytics": {
@@ -1344,7 +1344,7 @@
             "kind": "probe",
             "monitorId": null,
             "deliveryEvidence": [],
-            "reason": "Production cutover is a separate later release: until then admin.barrels.gd still serves the GMS/GAA portal (docs/deployment.md, Admin host move)."
+            "reason": "Deployed with the admin host move once promoted to main; no availability monitor yet."
           }
         }
       },

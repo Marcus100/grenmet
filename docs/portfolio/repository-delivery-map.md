@@ -28,7 +28,7 @@ acceptance.
 | Repository surface | Primary classification and owner | Lifecycle | Planning destination |
 | --- | --- | --- | --- |
 | `apps/web/auth` | Barrels platform identity | Active | Product-aware shared sign-in with application-scoped access |
-| `apps/web/admin` | Barrels control plane (superuser-only; status, organisations; no GMS or GAA modules) | Built (C1); deployed on staging at `admin.staging.barrels.gd` (2026-10-21), production cutover pending | `admin.barrels.gd` after the GAA portal moves to `gms.barrels.gd`; never merges with the client portal |
+| `apps/web/admin` | Barrels control plane (superuser-only; status, organisations; no GMS or GAA modules) | Built (C1); deployed at `admin.<domain>` with the 2026-10-21 admin host move (staging first) | `admin.barrels.gd` after the GAA portal moves to `gms.barrels.gd`; never merges with the client portal |
 | `apps/web/cap` | GMS-branded public CAP alert hub (active alerts, map, history, feeds); built and operated by Barrels for GMS | Built, deploy wired (compose + release scope), awaiting DNS for `cap.barrels.gd` | Public alert hub first; sign-in CAP authoring moves here from `apps/web/gaa-admin` later |
 | `apps/web/gmsdash` | GMS Dashboard: GMS client service giving organisations raw ECMWF/NOAA model point meteograms (not an official forecast); access by organisation entitlement approved by GMS | Built, deploy wired (compose + release scope), awaiting DNS for `gmsdash.barrels.gd` and `GMSDASH_SSO_CLIENT_SECRET` | Premium GMS products for external users; more products join later |
 | `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Vercel site at barrels.gd |
@@ -213,7 +213,7 @@ documented data boundaries.
 | GAA corporate site | GAA public-service delivery | Later | GAA content owner, domain, scope, and acceptance |
 | Barrels Shop | Barrels product option | Explore | Separate product discovery and investment approval |
 | Salesbus | Barrels product option/prototype extraction | Explore | Remove from client portal, then validate users and commercial case |
-| Barrels Human Resource | Barrels product (investment approved 2026-10-18) | Next | Stays inside `apps/web/gaa-admin` for now; eventual own app at `hr.barrels.gd`. Organisation-scoped HR built from shared workforce code; launch needs GAA pilot evidence, signed licence, tenant isolation, support and pricing |
+| Barrels Human Resource | Barrels product (investment approved 2026-10-18) | Next | Stays inside `apps/web/gaa-admin` until built; decision 2026-10-21: a separate multi-organisation HR app at `hr.barrels.gd` with the organisation in the path (`/<orgSlug>/...`), port 3016 (ADR-0043). Organisation-scoped HR built from shared workforce code; launch needs GAA pilot evidence, signed licence, tenant isolation, support and pricing |
 | Streaming/media application | Barrels product option | Explore | Audience, rights, economics, operating model, and architecture approval |
 
 Reserved ports, package names, hosts, or images prevent naming collisions; they

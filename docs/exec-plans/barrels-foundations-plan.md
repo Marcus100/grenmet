@@ -23,7 +23,7 @@ authoritative for priority. Tenancy follows
 | Events pilot | Free and registration tickets plus outlet cash; online card payment waits for the Republic ePay answer |
 | Control plane | Separate `apps/web/admin` at `admin.barrels.gd`, superuser-only, dev and staging first |
 | Pay/Invoice v1 | Barrels invoicing its own service-line clients, manual payments (bank, cash, cheque); no card rail; new Stripe work parked |
-| Barrels HR | Next; stays in `apps/web/gaa-admin`; eventual host `hr.barrels.gd` |
+| Barrels HR | Next; stays in `apps/web/gaa-admin` until built. Decision 2026-10-21: a separate multi-organisation HR app at `hr.barrels.gd`, organisation in the path (`hr.barrels.gd/<orgSlug>/...`), port 3016 (ADR-0043) |
 | Build order | Approved as written (2026-10-18) |
 | Invoicing details | Configurable settings with provisional defaults: entity "Barrels Grenada", VAT 15%, numbers `BG-YYYY-NNNN`; confirm with an accountant |
 | Hub copy | Agent drafts neutral copy from the service-lines doc; owner edits later |
@@ -147,7 +147,7 @@ backup. GMS real data sources are ready; the work is integration.
 | 16 | `JURY_DUTY` leave type; holiday table in timesheets; extra-day-for-holiday-in-vacation suggestion | HR | M | GAA HR rule confirmation | Done, on staging |
 | 17 | DPA purge job and email hashing migration (after verified backup) | Platform | M | — | Purge built (`purge_expired_data`, daily 03:30 UTC) and email hashing on write built (`emailhash20261018`). Held: step 2, the destructive legacy backfill and plaintext null/drop, until a verified backup and the production `EMAIL_HASH_PEPPER` |
 | 18 | E3 outlet cash, E4 settlement report, E5 organiser cancel/refund | Barrels | L | — | Done, on staging |
-| 19 | C1 deploy wiring for `apps/web/admin` once `admin.*` is freed by the admin host move | Barrels | M | — | Staging wired by the 2026-10-21 admin host move PR (compose service `web-admin`, release scope, host variables); production cutover is a separate release |
+| 19 | C1 deploy wiring for `apps/web/admin` once `admin.*` is freed by the admin host move | Barrels | M | — | Staging wired by the 2026-10-21 admin host move PR (compose service `web-admin`, release scope); reaches production when promoted to `main` |
 | 20 | Test speed: auto workers (CPUs − 2), pre-push runs changed-package tests, CI shards for API and gaa-admin, fuzz in CI only | Platform | M | — | Done, on staging |
 | 21 | Doc fixes: missing env.md rows, invoice settings in deploy, transition-plan port conflicts, note that compose `web-admin` is gaa-admin | Platform | S | — | Partly: domain map in `docs/ports.md`; the rest open |
 
@@ -355,25 +355,27 @@ AI gateway, Knowledge and Automate; workspaces; Places API and a search engine;
 SMS, push and WhatsApp; live card checkout, payouts and wallets (the PF4
 payments core and its Stripe test-mode adapter are approved, owner decision
 2026-10-20; a live rail needs a separate owner approval); Shop and Salesbus
-extraction; `hr.barrels.gd` as its own app; organisation scope for CAP, weather,
+extraction; organisation scope for CAP, weather,
 janitorial or transport; a separate Barrels Business app; microservices.
+The separate HR app (`hr.barrels.gd`, port 3016) is decided (2026-10-21) and
+follows the build order above.
 
 ## Host move for the GAA staff portal
 
 Owner decisions 2026-10-18 and 2026-10-21: the GAA staff portal
 (`apps/web/gaa-admin`, code name unchanged) moves to `gms.barrels.gd` for
 the Met office, and `admin.barrels.gd` becomes the Barrels staff / superuser
-control plane (C1, `apps/web/admin`). Staging first, production in a later
-release. Runbook, host variables, DNS and rollback: `docs/deployment.md`,
+control plane (C1, `apps/web/admin`). Staging first, production when
+promoted to `main`. Runbook, DNS and rollback: `docs/deployment.md`,
 "Admin host move".
 
-1. **Done (2026-10-18):** the portal answers on `gmsadmin.*` with its own router (replaced by `gms.*` on staging in step 2).
+1. **Done (2026-10-18):** the portal answers on `gmsadmin.*` with its own router (replaced by `gms.*` in step 2).
 2. **Done in the 2026-10-21 change (staging):** `web-admin` is the console on
    `admin.staging.barrels.gd`; `web-gmsadmin` is the portal on
    `gms.staging.barrels.gd`; `GAA_ADMIN_APP_URL`, email links and the
    catalogue point at `gms.*`; hard switch, no redirect from the old host.
-3. **Later release (production):** flip `BARRELS_ADMIN_HOST` and `GMSADMIN_HOST` in
-   `production.env` and set the production secret.
+3. **Production:** follows when this change is promoted to `main`; set the
+   production secret first.
 
 ## Known documentation conflicts to fix
 
