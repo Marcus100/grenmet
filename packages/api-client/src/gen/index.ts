@@ -487,6 +487,8 @@ export { organisationsListMine } from "./clients/organisationsListMine.js";
 export { organisationsListOrgApiKeys } from "./clients/organisationsListOrgApiKeys.js";
 export { organisationsListOrgSites } from "./clients/organisationsListOrgSites.js";
 export { organisationsListRoleBundles } from "./clients/organisationsListRoleBundles.js";
+export { organisationsListTeamMembers } from "./clients/organisationsListTeamMembers.js";
+export { organisationsMyTeamCapabilities } from "./clients/organisationsMyTeamCapabilities.js";
 export { organisationsRevokeAdminApiKey } from "./clients/organisationsRevokeAdminApiKey.js";
 export { organisationsRevokeInvitation } from "./clients/organisationsRevokeInvitation.js";
 export { organisationsRevokeMemberGrant } from "./clients/organisationsRevokeMemberGrant.js";
@@ -3081,6 +3083,16 @@ export {
   organisationsListRoleBundlesQueryOptions,
   useOrganisationsListRoleBundles,
 } from "./hooks/useOrganisationsListRoleBundles.js";
+export {
+  organisationsListTeamMembersQueryKey,
+  organisationsListTeamMembersQueryOptions,
+  useOrganisationsListTeamMembers,
+} from "./hooks/useOrganisationsListTeamMembers.js";
+export {
+  organisationsMyTeamCapabilitiesQueryKey,
+  organisationsMyTeamCapabilitiesQueryOptions,
+  useOrganisationsMyTeamCapabilities,
+} from "./hooks/useOrganisationsMyTeamCapabilities.js";
 export {
   organisationsRevokeAdminApiKeyMutationKey,
   organisationsRevokeAdminApiKeyMutationOptions,
@@ -9927,6 +9939,29 @@ export type {
   OrganisationsListRoleBundlesStatus422,
 } from "./models/OrganisationsListRoleBundles.js";
 export type {
+  OrganisationsListTeamMembersHeaders,
+  OrganisationsListTeamMembersOptions,
+  OrganisationsListTeamMembersQuery,
+  OrganisationsListTeamMembersResponse,
+  OrganisationsListTeamMembersResponses,
+  OrganisationsListTeamMembersStatus200,
+  OrganisationsListTeamMembersStatus401,
+  OrganisationsListTeamMembersStatus403,
+  OrganisationsListTeamMembersStatus404,
+  OrganisationsListTeamMembersStatus422,
+} from "./models/OrganisationsListTeamMembers.js";
+export type {
+  OrganisationsMyTeamCapabilitiesHeaders,
+  OrganisationsMyTeamCapabilitiesOptions,
+  OrganisationsMyTeamCapabilitiesResponse,
+  OrganisationsMyTeamCapabilitiesResponses,
+  OrganisationsMyTeamCapabilitiesStatus200,
+  OrganisationsMyTeamCapabilitiesStatus401,
+  OrganisationsMyTeamCapabilitiesStatus403,
+  OrganisationsMyTeamCapabilitiesStatus404,
+  OrganisationsMyTeamCapabilitiesStatus422,
+} from "./models/OrganisationsMyTeamCapabilities.js";
+export type {
   OrganisationsRevokeAdminApiKeyOptions,
   OrganisationsRevokeAdminApiKeyPath,
   OrganisationsRevokeAdminApiKeyResponse,
@@ -11498,6 +11533,10 @@ export type { SynopWorkbook } from "./models/SynopWorkbook.js";
 export type { TaskCreate } from "./models/TaskCreate.js";
 export type { TaskUpdate } from "./models/TaskUpdate.js";
 export type { TaskView } from "./models/TaskView.js";
+export type { TeamCapabilitiesPublic } from "./models/TeamCapabilitiesPublic.js";
+export type { TeamMemberGrantPublic } from "./models/TeamMemberGrantPublic.js";
+export type { TeamMemberListPublic } from "./models/TeamMemberListPublic.js";
+export type { TeamMemberPublic } from "./models/TeamMemberPublic.js";
 export type { ThreadCreate } from "./models/ThreadCreate.js";
 export type { ThreadDetail } from "./models/ThreadDetail.js";
 export type { ThreadDetailPropertiesKindEnum } from "./models/ThreadDetailPropertiesKindEnum.js";
@@ -17933,6 +17972,28 @@ export {
   organisationsListRoleBundlesStatus422Schema,
 } from "./zod/organisationsListRoleBundlesSchema.js";
 export {
+  organisationsListTeamMembersErrorSchema,
+  organisationsListTeamMembersHeaderXBarrelsOrganisationSchema,
+  organisationsListTeamMembersQueryPageSchema,
+  organisationsListTeamMembersQuerySizeSchema,
+  organisationsListTeamMembersResponseSchema,
+  organisationsListTeamMembersStatus200Schema,
+  organisationsListTeamMembersStatus401Schema,
+  organisationsListTeamMembersStatus403Schema,
+  organisationsListTeamMembersStatus404Schema,
+  organisationsListTeamMembersStatus422Schema,
+} from "./zod/organisationsListTeamMembersSchema.js";
+export {
+  organisationsMyTeamCapabilitiesErrorSchema,
+  organisationsMyTeamCapabilitiesHeaderXBarrelsOrganisationSchema,
+  organisationsMyTeamCapabilitiesResponseSchema,
+  organisationsMyTeamCapabilitiesStatus200Schema,
+  organisationsMyTeamCapabilitiesStatus401Schema,
+  organisationsMyTeamCapabilitiesStatus403Schema,
+  organisationsMyTeamCapabilitiesStatus404Schema,
+  organisationsMyTeamCapabilitiesStatus422Schema,
+} from "./zod/organisationsMyTeamCapabilitiesSchema.js";
+export {
   organisationsRevokeAdminApiKeyErrorSchema,
   organisationsRevokeAdminApiKeyPathKeyIdSchema,
   organisationsRevokeAdminApiKeyResponseSchema,
@@ -19408,6 +19469,10 @@ export { synopWorkbookSchema } from "./zod/synopWorkbookSchema.js";
 export { taskCreateSchema } from "./zod/taskCreateSchema.js";
 export { taskUpdateSchema } from "./zod/taskUpdateSchema.js";
 export { taskViewSchema } from "./zod/taskViewSchema.js";
+export { teamCapabilitiesPublicSchema } from "./zod/teamCapabilitiesPublicSchema.js";
+export { teamMemberGrantPublicSchema } from "./zod/teamMemberGrantPublicSchema.js";
+export { teamMemberListPublicSchema } from "./zod/teamMemberListPublicSchema.js";
+export { teamMemberPublicSchema } from "./zod/teamMemberPublicSchema.js";
 export { threadCreateSchema } from "./zod/threadCreateSchema.js";
 export { threadDetailPropertiesKindEnumSchema } from "./zod/threadDetailPropertiesKindEnumSchema.js";
 export { threadDetailSchema } from "./zod/threadDetailSchema.js";

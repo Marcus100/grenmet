@@ -5554,6 +5554,28 @@ export {
   organisationsListRoleBundlesStatus422Schema,
 } from "./organisationsListRoleBundlesSchema.js";
 export {
+  organisationsListTeamMembersErrorSchema,
+  organisationsListTeamMembersHeaderXBarrelsOrganisationSchema,
+  organisationsListTeamMembersQueryPageSchema,
+  organisationsListTeamMembersQuerySizeSchema,
+  organisationsListTeamMembersResponseSchema,
+  organisationsListTeamMembersStatus200Schema,
+  organisationsListTeamMembersStatus401Schema,
+  organisationsListTeamMembersStatus403Schema,
+  organisationsListTeamMembersStatus404Schema,
+  organisationsListTeamMembersStatus422Schema,
+} from "./organisationsListTeamMembersSchema.js";
+export {
+  organisationsMyTeamCapabilitiesErrorSchema,
+  organisationsMyTeamCapabilitiesHeaderXBarrelsOrganisationSchema,
+  organisationsMyTeamCapabilitiesResponseSchema,
+  organisationsMyTeamCapabilitiesStatus200Schema,
+  organisationsMyTeamCapabilitiesStatus401Schema,
+  organisationsMyTeamCapabilitiesStatus403Schema,
+  organisationsMyTeamCapabilitiesStatus404Schema,
+  organisationsMyTeamCapabilitiesStatus422Schema,
+} from "./organisationsMyTeamCapabilitiesSchema.js";
+export {
   organisationsRevokeAdminApiKeyErrorSchema,
   organisationsRevokeAdminApiKeyPathKeyIdSchema,
   organisationsRevokeAdminApiKeyResponseSchema,
@@ -7029,6 +7051,10 @@ export { synopWorkbookSchema } from "./synopWorkbookSchema.js";
 export { taskCreateSchema } from "./taskCreateSchema.js";
 export { taskUpdateSchema } from "./taskUpdateSchema.js";
 export { taskViewSchema } from "./taskViewSchema.js";
+export { teamCapabilitiesPublicSchema } from "./teamCapabilitiesPublicSchema.js";
+export { teamMemberGrantPublicSchema } from "./teamMemberGrantPublicSchema.js";
+export { teamMemberListPublicSchema } from "./teamMemberListPublicSchema.js";
+export { teamMemberPublicSchema } from "./teamMemberPublicSchema.js";
 export { threadCreateSchema } from "./threadCreateSchema.js";
 export { threadDetailPropertiesKindEnumSchema } from "./threadDetailPropertiesKindEnumSchema.js";
 export { threadDetailSchema } from "./threadDetailSchema.js";

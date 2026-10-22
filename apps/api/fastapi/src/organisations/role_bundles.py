@@ -31,6 +31,26 @@ ROLE_BUNDLES: MappingProxyType[str, frozenset[str]] = MappingProxyType(
     }
 )
 
+#: Human copy for each bundle: ``(label, description)``. One source of truth for
+#: every screen that lists roles; a registry test requires an entry per bundle.
+BUNDLE_COPY: MappingProxyType[str, tuple[str, str]] = MappingProxyType(
+    {
+        "events-door": ("Door staff", "Scan tickets at the door."),
+        "events-till": ("Ticket seller", "Sell tickets at the till."),
+        "events-manager": (
+            "Events manager",
+            "Manage listings, scan and sell tickets, and view settlement.",
+        ),
+        "events-refunds": ("Refunds", "Issue refunds on ticket sales."),
+        "events-team": ("Team manager", "Give and remove Events roles for others."),
+    }
+)
+
+
+def bundle_copy(role_key: str) -> tuple[str, str]:
+    """``(label, description)`` of a bundle; falls back to the role key."""
+    return BUNDLE_COPY.get(role_key, (role_key, ""))
+
 
 def bundle_keys(role_key: str) -> frozenset[str] | None:
     """The keys a role bundle holds, or ``None`` for an unknown ``role_key``."""
