@@ -6,7 +6,7 @@ import uuid
 from typing import Any, Literal
 
 from pydantic import TypeAdapter
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import ColumnElement, and_, exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
@@ -53,12 +53,27 @@ _VISIBILITY = TypeAdapter(Literal["public", "unlisted"])
 # --- Organiser management -------------------------------------------------------------------
 
 
+def _events_entitled(org_ids: list[str]) -> Any:
+    """SQL condition: the organiser's organisation is one of ``org_ids`` and holds
+    an enabled ``events`` entitlement (the legacy kill switch, ADR-0044 S5)."""
+    return and_(
+        Organiser.organisation_id.in_(org_ids),
+        exists().where(
+            OrganisationApp.organisation_id == Organiser.organisation_id,
+            OrganisationApp.app_key == "events",
+            OrganisationApp.enabled.is_(True),
+        ),
+    )
+
+
 async def my_organisers(
     db: AsyncSession, user: User, org_ids: list[str]
 ) -> list[Organiser]:
-    """Organisers the user can manage: a platform admin/owner membership, or (for
-    organisers not yet linked to an organisation) a legacy ``organiser_members`` row.
-    Once linked, the platform membership is authoritative."""
+    """Organisers the user can manage: a platform admin/owner membership whose
+    organisation holds the ``events`` entitlement, or (for organisers not yet linked
+    to an organisation) a legacy ``organiser_members`` row. Once linked, the platform
+    membership is authoritative and the entitlement is a kill switch; an unlinked
+    legacy organiser has no organisation to switch off."""
     return list(
         (
             await db.scalars(
@@ -76,7 +91,7 @@ async def my_organisers(
                             Organiser.organisation_id.is_(None),
                             OrganiserMember.user_id.is_not(None),
                         ),
-                        Organiser.organisation_id.in_(org_ids),
+                        _events_entitled(org_ids),
                     )
                 )
                 .order_by(Organiser.name, Organiser.id)
@@ -93,6 +108,11 @@ async def _my_organiser(
         (row for row in candidates if slug is None or row.slug == slug), None
     )
     if organiser is None:
+        linked: list[ColumnElement[bool]] = [Organiser.organisation_id.in_(org_ids)]
+        if slug is not None:
+            linked.append(Organiser.slug == slug)
+        if org_ids and await db.scalar(select(exists().where(*linked))):
+            raise EventsForbidden("Barrels Events isn't enabled for this organisation")
         raise EventsForbidden("You're not a member of an organiser yet")
     return organiser
 

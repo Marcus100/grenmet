@@ -72,7 +72,12 @@ async def _book_deposit(
 async def _intent(db: AsyncSession, booking_id: str) -> Intent | None:
     return await db.scalar(
         select(Intent)
-        .where(Intent.source_type == "bookings.deposit", Intent.source_id == booking_id)
+        .where(
+            Intent.source_type == "bookings.deposit",
+            Intent.source_id == booking_id,
+            # The booking's own intent, never a stray one for the same booking.
+            Intent.idempotency_key == f"bookings.deposit:{booking_id}",
+        )
         .execution_options(populate_existing=True)
     )
 

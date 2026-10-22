@@ -2354,6 +2354,11 @@ export {
   useOrganisationsGetPublicSite,
 } from "./useOrganisationsGetPublicSite.js";
 export {
+  organisationsGrantMemberRoleMutationKey,
+  organisationsGrantMemberRoleMutationOptions,
+  useOrganisationsGrantMemberRole,
+} from "./useOrganisationsGrantMemberRole.js";
+export {
   organisationsKeyInfoQueryKey,
   organisationsKeyInfoQueryOptions,
   useOrganisationsKeyInfo,
@@ -2384,6 +2389,16 @@ export {
   useOrganisationsListInvitations,
 } from "./useOrganisationsListInvitations.js";
 export {
+  organisationsListIssuedGrantsQueryKey,
+  organisationsListIssuedGrantsQueryOptions,
+  useOrganisationsListIssuedGrants,
+} from "./useOrganisationsListIssuedGrants.js";
+export {
+  organisationsListMemberGrantsQueryKey,
+  organisationsListMemberGrantsQueryOptions,
+  useOrganisationsListMemberGrants,
+} from "./useOrganisationsListMemberGrants.js";
+export {
   organisationsListMembersQueryKey,
   organisationsListMembersQueryOptions,
   useOrganisationsListMembers,
@@ -2409,6 +2424,11 @@ export {
   useOrganisationsListOrgSites,
 } from "./useOrganisationsListOrgSites.js";
 export {
+  organisationsListRoleBundlesQueryKey,
+  organisationsListRoleBundlesQueryOptions,
+  useOrganisationsListRoleBundles,
+} from "./useOrganisationsListRoleBundles.js";
+export {
   organisationsRevokeAdminApiKeyMutationKey,
   organisationsRevokeAdminApiKeyMutationOptions,
   useOrganisationsRevokeAdminApiKey,
@@ -2418,6 +2438,11 @@ export {
   organisationsRevokeInvitationMutationOptions,
   useOrganisationsRevokeInvitation,
 } from "./useOrganisationsRevokeInvitation.js";
+export {
+  organisationsRevokeMemberGrantMutationKey,
+  organisationsRevokeMemberGrantMutationOptions,
+  useOrganisationsRevokeMemberGrant,
+} from "./useOrganisationsRevokeMemberGrant.js";
 export {
   organisationsRevokeOrgApiKeyMutationKey,
   organisationsRevokeOrgApiKeyMutationOptions,

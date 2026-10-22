@@ -5021,6 +5021,8 @@ export { marineRowSchema } from "./marineRowSchema.js";
 export { memberListPublicSchema } from "./memberListPublicSchema.js";
 export { memberPublicSchema } from "./memberPublicSchema.js";
 export { memberRoleUpdateSchema } from "./memberRoleUpdateSchema.js";
+export { membershipGrantCreateSchema } from "./membershipGrantCreateSchema.js";
+export { membershipGrantPublicSchema } from "./membershipGrantPublicSchema.js";
 export { membershipRoleSchema } from "./membershipRoleSchema.js";
 export { membershipStatusSchema } from "./membershipStatusSchema.js";
 export { messageCreateSchema } from "./messageCreateSchema.js";
@@ -5382,6 +5384,20 @@ export {
   organisationsGetPublicSiteStatus422Schema,
 } from "./organisationsGetPublicSiteSchema.js";
 export {
+  organisationsGrantMemberRoleBodySchema,
+  organisationsGrantMemberRoleErrorSchema,
+  organisationsGrantMemberRoleHeaderXBarrelsOrganisationSchema,
+  organisationsGrantMemberRolePathMembershipIdSchema,
+  organisationsGrantMemberRoleResponseSchema,
+  organisationsGrantMemberRoleStatus201Schema,
+  organisationsGrantMemberRoleStatus400Schema,
+  organisationsGrantMemberRoleStatus401Schema,
+  organisationsGrantMemberRoleStatus403Schema,
+  organisationsGrantMemberRoleStatus404Schema,
+  organisationsGrantMemberRoleStatus409Schema,
+  organisationsGrantMemberRoleStatus422Schema,
+} from "./organisationsGrantMemberRoleSchema.js";
+export {
   organisationsKeyInfoErrorSchema,
   organisationsKeyInfoResponseSchema,
   organisationsKeyInfoStatus200Schema,
@@ -5447,6 +5463,28 @@ export {
   organisationsListInvitationsStatus422Schema,
 } from "./organisationsListInvitationsSchema.js";
 export {
+  organisationsListIssuedGrantsErrorSchema,
+  organisationsListIssuedGrantsHeaderXBarrelsOrganisationSchema,
+  organisationsListIssuedGrantsPathMembershipIdSchema,
+  organisationsListIssuedGrantsResponseSchema,
+  organisationsListIssuedGrantsStatus200Schema,
+  organisationsListIssuedGrantsStatus401Schema,
+  organisationsListIssuedGrantsStatus403Schema,
+  organisationsListIssuedGrantsStatus404Schema,
+  organisationsListIssuedGrantsStatus422Schema,
+} from "./organisationsListIssuedGrantsSchema.js";
+export {
+  organisationsListMemberGrantsErrorSchema,
+  organisationsListMemberGrantsHeaderXBarrelsOrganisationSchema,
+  organisationsListMemberGrantsPathMembershipIdSchema,
+  organisationsListMemberGrantsResponseSchema,
+  organisationsListMemberGrantsStatus200Schema,
+  organisationsListMemberGrantsStatus401Schema,
+  organisationsListMemberGrantsStatus403Schema,
+  organisationsListMemberGrantsStatus404Schema,
+  organisationsListMemberGrantsStatus422Schema,
+} from "./organisationsListMemberGrantsSchema.js";
+export {
   organisationsListMembersAdminErrorSchema,
   organisationsListMembersAdminPathOrganisationIdSchema,
   organisationsListMembersAdminQueryPageSchema,
@@ -5506,6 +5544,16 @@ export {
   organisationsListOrgSitesStatus422Schema,
 } from "./organisationsListOrgSitesSchema.js";
 export {
+  organisationsListRoleBundlesErrorSchema,
+  organisationsListRoleBundlesHeaderXBarrelsOrganisationSchema,
+  organisationsListRoleBundlesResponseSchema,
+  organisationsListRoleBundlesStatus200Schema,
+  organisationsListRoleBundlesStatus401Schema,
+  organisationsListRoleBundlesStatus403Schema,
+  organisationsListRoleBundlesStatus404Schema,
+  organisationsListRoleBundlesStatus422Schema,
+} from "./organisationsListRoleBundlesSchema.js";
+export {
   organisationsRevokeAdminApiKeyErrorSchema,
   organisationsRevokeAdminApiKeyPathKeyIdSchema,
   organisationsRevokeAdminApiKeyResponseSchema,
@@ -5529,6 +5577,19 @@ export {
   organisationsRevokeInvitationStatus409Schema,
   organisationsRevokeInvitationStatus422Schema,
 } from "./organisationsRevokeInvitationSchema.js";
+export {
+  organisationsRevokeMemberGrantErrorSchema,
+  organisationsRevokeMemberGrantHeaderXBarrelsOrganisationSchema,
+  organisationsRevokeMemberGrantPathGrantIdSchema,
+  organisationsRevokeMemberGrantResponseSchema,
+  organisationsRevokeMemberGrantStatus200Schema,
+  organisationsRevokeMemberGrantStatus400Schema,
+  organisationsRevokeMemberGrantStatus401Schema,
+  organisationsRevokeMemberGrantStatus403Schema,
+  organisationsRevokeMemberGrantStatus404Schema,
+  organisationsRevokeMemberGrantStatus409Schema,
+  organisationsRevokeMemberGrantStatus422Schema,
+} from "./organisationsRevokeMemberGrantSchema.js";
 export {
   organisationsRevokeOrgApiKeyErrorSchema,
   organisationsRevokeOrgApiKeyHeaderXBarrelsOrganisationSchema,
@@ -6530,6 +6591,7 @@ export {
   rewardsWithdrawFromLeaderboardStatus422Schema,
 } from "./rewardsWithdrawFromLeaderboardSchema.js";
 export { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
+export { roleBundlePublicSchema } from "./roleBundlePublicSchema.js";
 export { roleConfigurationSchema } from "./roleConfigurationSchema.js";
 export { roleCreateSchema } from "./roleCreateSchema.js";
 export { rolePermissionsInputSchema } from "./rolePermissionsInputSchema.js";

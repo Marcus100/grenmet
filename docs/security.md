@@ -22,7 +22,7 @@ This guide records the current Barrels Grenada security posture and the rules th
 | Webhooks | The Resend webhook verifies Svix signatures when `RESEND_WEBHOOK_SECRET` is set. If unset, it logs a warning and accepts events. |
 | Vulnerability scanning | Image verification blocks fixable high/critical findings before publishing; JSON/SARIF evidence is retained. The initial enforcement candidate still requires remediation and staging acceptance. |
 | Error tracking | FastAPI initializes Sentry outside local environments when `SENTRY_DSN` is set. Next.js apps include Sentry instrumentation files and build-time Sentry configuration. |
-| Analytics | Several apps use PostHog through `@barrelsgd/ui/components/posthog-provider` when public PostHog env vars are configured. |
+| Analytics | Production-only, consent-gated Google Analytics 4 on seven public origins. PostHog is wired in the shared runtime but disabled (all mappings empty). See ADR-0045 and `docs/operations/analytics-monitoring.md`. |
 
 ## Rules For Engineers
 
