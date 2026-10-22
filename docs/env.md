@@ -238,7 +238,7 @@ The `*_APP_URL` links fall back to the local ports in `docs/ports.md` in develop
 
 ### `AUTH_ALLOWED_RETURN_HOSTS` — how it works
 
-After a successful sign-in, the auth app reads a `return_to` query parameter and redirects the user back to the originating app. `getSafeReturnTo()` in `apps/web/auth/src/lib/return-to.ts` validates that the redirect target's host is in this allowlist.
+After a successful sign-in, the auth app reads a `return_to` query parameter and redirects the user back to the originating app. `getSafeReturnTo()` in `apps/web/auth/src/lib/return-to.ts` validates that the redirect target's origin is in this allowlist. Matching is exact (ADR-0043): the origins of `AUTH_APP_URL` and the `*_APP_URL` settings are always accepted, plus each entry listed here; a leading-dot or wildcard entry such as `.barrels.gd` is ignored. Bare hosts mean `https`; `localhost` entries and the local ports in `ports.md` work outside production only.
 
 **If a host is missing from the allowlist, the redirect silently falls back to `/` with no error.** The user signs in successfully but lands on the auth app home page instead of where they came from.
 
@@ -252,18 +252,19 @@ Port map: 3001=gaa-admin, 3002=docs, 3003=gms, 3004=signal. See [`ports.md`](./p
 
 For staging/production, replace with the actual subdomain hosts (no port needed).
 
-**Production:**
+**Production** (exact hosts; list every app that sends users back to auth):
 
 ```text
-AUTH_ALLOWED_RETURN_HOSTS=.barrels.gd
+AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,elections.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
 ```
 
-Staging uses `.staging.barrels.gd`. The shared Compose file assembles this as
-`.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}`; current production configuration does
-not add `.weather.gd`. Production CORS origins are the seven frontend hosts
+Staging uses the same labels under `staging.barrels.gd`. The shared Compose file
+still assembles `.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}`; the code ignores the
+leading-dot entry, so replace it with the exact list above (owner change).
+Current production configuration does not add `.weather.gd`. Production CORS origins are the seven frontend hosts
 listed in `infra/docker/production.env`; staging uses their staging equivalents.
 
-A leading-dot entry accepts the apex and its subdomains. The superseded
+The superseded
 weather.gd go-live plan is historical context, not an active allowlist recipe.
 
 ### Public sites with "Sign in" (gms, docs, signal, mbia, elections)

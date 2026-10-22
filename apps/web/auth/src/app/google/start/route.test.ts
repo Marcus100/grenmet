@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 const jar = vi.hoisted(() => ({ delete: vi.fn(), set: vi.fn() }));
 vi.mock("next/headers", () => ({ cookies: () => Promise.resolve(jar) }));
 vi.mock("@/lib/env", () => ({
-  env: { AUTH_ALLOWED_RETURN_HOSTS: ".barrels.gd" },
+  env: { NODE_ENV: "production", AUTH_ALLOWED_RETURN_HOSTS: "app.barrels.gd" },
 }));
 vi.mock("@/lib/modern-auth", () => ({
   googleStart: vi

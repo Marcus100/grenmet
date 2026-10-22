@@ -7,7 +7,12 @@ import * as z from "zod";
 
 export const bookingProfileUpdateSchema = z
   .object({
-    public_slug: z.string().regex(/^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/),
+    public_slug: z
+      .string()
+      .regex(/^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/)
+      .describe(
+        "Address under the bookings host. Must not be a platform reserved name such as studio, signin, auth or api (docs/ports.md); a reserved name is refused with 422."
+      ),
     display_name: z.string().min(1).max(120),
     enabled: z.boolean().optional().default(false),
     timezone: z.string().optional().default("America/Grenada"),

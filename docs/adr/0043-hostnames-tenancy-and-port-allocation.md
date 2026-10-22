@@ -159,11 +159,16 @@ and AGENTS.md files and are not worth renumbering (ports are an internal detail)
 ### Phasing
 
 - **P0 (this change):** ADR, `docs/ports.md`, doc fixes, checker. No runtime change.
+- **P1 (built):** the reserved list is enforced in the API
+  (`src/utils/reserved_names.py`: organisation, booking and events organiser
+  slugs; only new or changed slugs are validated), with a guardrail test against
+  `docs/ports.md` and the bookings route folders; the auth app's return-host
+  check accepts exact origins only (no suffix rule) and takes the app from
+  `?app=`. Compose still passes `.${BASE_DOMAIN}`, which the code now ignores;
+  the owner replaces it with the explicit list.
 - **Later phases (separate changes, not authorised here):** finish the
-  admin/gms hostname cutover; drop the suffix rule from
-  `AUTH_ALLOWED_RETURN_HOSTS` and pass the app explicitly; `__Host-` cookie
-  names; organisation-slug validation against the reserved list in the API;
-  the `hr` app and `hr.barrels.gd/<orgSlug>` routes.
+  admin/gms hostname cutover; `__Host-` cookie names; the `hr` app and
+  `hr.barrels.gd/<orgSlug>` routes.
 
 ## Consequences
 

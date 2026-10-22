@@ -402,7 +402,7 @@ purpose and take no `X-Barrels-Organisation` header. The detail also lists
 
 Control-plane writes (superuser only, all return the refreshed detail and are
 audited under the `platform_organisation` history subject): `POST /organisations`
-(`name`, `kind` barrels, client or business, optional `slug`; 409 when taken),
+(`name`, `kind` barrels, client or business, optional `slug`; 409 when taken, 422 when it is a platform reserved name from `docs/ports.md`),
 `PATCH /organisations/{id}` (`name`, `slug`, `kind`, `status` active or
 suspended; at least one field), `POST /organisations/{id}/verify` and
 `/unverify` (body `{reason}`, 3 to 500 characters; 409 when already in that
@@ -685,7 +685,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | Endpoint | Authentication | Contract |
 | --- | --- | --- |
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
-| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409 |
+| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409, a platform reserved name 422 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
 | `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
 | `GET/PUT /api/v1/bookings/org/providers/{id}/hours` | Same | Replace the weekly plan; overlapping periods on one day 422 |

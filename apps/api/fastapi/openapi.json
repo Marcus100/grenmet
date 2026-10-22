@@ -47050,7 +47050,8 @@
           "public_slug": {
             "type": "string",
             "pattern": "^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$",
-            "title": "Public Slug"
+            "title": "Public Slug",
+            "description": "Address under the bookings host. Must not be a platform reserved name such as studio, signin, auth or api (docs/ports.md); a reserved name is refused with 422."
           },
           "display_name": {
             "type": "string",
@@ -47169,7 +47170,8 @@
           "public_slug": {
             "type": "string",
             "pattern": "^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$",
-            "title": "Public Slug"
+            "title": "Public Slug",
+            "description": "Address under the bookings host. Must not be a platform reserved name such as studio, signin, auth or api (docs/ports.md); a reserved name is refused with 422."
           },
           "display_name": {
             "type": "string",
@@ -65870,7 +65872,8 @@
                 "type": "null"
               }
             ],
-            "title": "Slug"
+            "title": "Slug",
+            "description": "Defaults to the name. A platform reserved name is refused (422)."
           }
         },
         "type": "object",

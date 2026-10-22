@@ -106,6 +106,7 @@ async def seed_babydoll(session: AsyncSession) -> SeedResult:
             name=ORGANISATION_NAME,
             kind=OrganisationKind.CLIENT,
             slug="babydoll",
+            reserved_ok=True,
             organisation_id=ORGANISATION_ID,
         )
         result.created.append("organisation")

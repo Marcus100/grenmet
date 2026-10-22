@@ -6,6 +6,7 @@ from pydantic import EmailStr, Field, field_validator, model_validator
 
 from src.models import BaseModel, UtcDateTime
 from src.organisations.models import MembershipRole
+from src.utils.reserved_names import is_reserved
 from src.utils.timezones import is_valid_timezone
 
 from .models import BookingExceptionKind, BookingSource, BookingStatus
@@ -15,8 +16,6 @@ Slug = Annotated[str, Field(pattern=r"^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$")]
 Minutes = Annotated[int, Field(ge=0, le=1440)]
 Minor = Annotated[int, Field(ge=0, le=100_000_000)]
 Currency = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
-#: Path words under /bookings/public that a slug must not shadow.
-RESERVED_SLUGS = frozenset({"bookings"})
 
 
 # --- caller's organisations -------------------------------------------------------
@@ -37,7 +36,13 @@ class BookingMyOrganisation(BaseModel):
 class BookingProfileUpdate(BaseModel):
     """Create or replace the organisation's booking profile."""
 
-    public_slug: Slug
+    public_slug: Slug = Field(
+        description=(
+            "Address under the bookings host. Must not be a platform reserved "
+            "name such as studio, signin, auth or api (docs/ports.md); a "
+            "reserved name is refused with 422."
+        )
+    )
     display_name: Name
     enabled: bool = False
     timezone: str = "America/Grenada"
@@ -66,7 +71,9 @@ class BookingProfileUpdate(BaseModel):
     @field_validator("public_slug")
     @classmethod
     def _not_reserved(cls, value: str) -> str:
-        if value in RESERVED_SLUGS:
+        # Platform reserved names (ADR-0043) cover the web app's top-level routes
+        # (studio, signin, auth, api) and the /bookings/public path word.
+        if is_reserved(value):
             raise ValueError("That booking address is reserved")
         return value
 

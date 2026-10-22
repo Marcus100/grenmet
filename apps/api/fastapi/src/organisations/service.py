@@ -37,6 +37,7 @@ from src.organisations.models import (
     new_organisation_id,
 )
 from src.utils.datetime import utc_now
+from src.utils.reserved_names import is_reserved
 
 logger = logging.getLogger(__name__)
 
@@ -52,10 +53,14 @@ def slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")[:100] or "org"
 
 
-async def _unique_slug(session: AsyncSession, wanted: str) -> str:
+async def _unique_slug(
+    session: AsyncSession, wanted: str, *, allow_reserved: bool = False
+) -> str:
+    """A free slug near ``wanted``; reserved names (ADR-0043) are treated as taken
+    unless the caller is the platform itself (seeds, the HR mirror)."""
     slug = slugify(wanted)
     candidate, n = slug, 1
-    while await session.scalar(
+    while (not allow_reserved and is_reserved(candidate)) or await session.scalar(
         select(PlatformOrganisation.id).where(PlatformOrganisation.slug == candidate)
     ):
         n += 1
@@ -70,17 +75,20 @@ async def create_organisation(
     kind: OrganisationKind = OrganisationKind.BUSINESS,
     slug: str | None = None,
     organisation_id: str | None = None,
+    reserved_ok: bool = False,
 ) -> PlatformOrganisation:
     """Create a new organisation with an immutable ``org_<hex>`` id.
 
     The id is generated unless a caller needs a deterministic one (idempotent
-    cross-database backfills)."""
+    cross-database backfills). A slug on the platform reserved list is never
+    used (a numeric suffix is added) unless ``reserved_ok``, which only platform
+    seeds pass for their own names (``barrels``, ``babydoll``)."""
     clean = name.strip()
     if not clean:
         raise AppException("Organisation name is required", 422)
     organisation = PlatformOrganisation(
         id=organisation_id or new_organisation_id(),
-        slug=await _unique_slug(session, slug or clean),
+        slug=await _unique_slug(session, slug or clean, allow_reserved=reserved_ok),
         name=clean,
         kind=kind.value,
         status=OrganisationStatus.ACTIVE.value,
@@ -115,7 +123,9 @@ async def ensure_for_hr_organisation(
     organisation = _hr_mirror(
         organisation_id,
         name,
-        await _unique_slug(session, organisation_id or code or name),
+        await _unique_slug(
+            session, organisation_id or code or name, allow_reserved=True
+        ),
     )
     session.add(organisation)
     await session.flush()
@@ -459,6 +469,8 @@ async def _ensure_slug_free(
 ) -> None:
     if not _SLUG_PATTERN.match(slug):
         raise AppException("Slug must be lowercase letters, digits and hyphens", 422)
+    if is_reserved(slug):
+        raise AppException("That slug is reserved", 422)
     taken = await session.scalar(
         select(PlatformOrganisation.id).where(
             PlatformOrganisation.slug == slug,
