@@ -63,6 +63,18 @@ REFUND_TOPICS = {"events.order": "events.order_refunded"}
 #: Refunds that still count against what can be handed back.
 _LIVE_REFUND = (RefundStatus.PENDING.value, RefundStatus.SUCCEEDED.value)
 
+#: Source types owned by another domain (it creates them through the service with
+#: its own idempotency key and reacts to their payments): the generic org route
+#: refuses them so nobody can plant a look-alike intent.
+RESERVED_SOURCE_TYPES = frozenset(PAID_TOPICS) | frozenset(REFUND_TOPICS)
+
+
+def reject_reserved_source(source_type: str) -> None:
+    if source_type in RESERVED_SOURCE_TYPES:
+        raise PaymentsValidationError(
+            f"source_type {source_type} is reserved for the domain that owns it"
+        )
+
 
 def hash_email(email: str) -> str:
     """SHA-256 hex of the trimmed, lower-cased address. The address is not kept."""
@@ -351,8 +363,11 @@ async def find_by_source(
     organisation_id: str,
     source_type: str,
     source_id: str,
+    idempotency_key: str | None = None,
 ) -> schemas.PaymentIntentPublic | None:
-    """The newest intent sold for ``(source_type, source_id)``, or None."""
+    """The newest intent sold for ``(source_type, source_id)``, or None. With
+    ``idempotency_key`` the consumer's own intent is returned instead, whatever
+    other intents share the source."""
     row = (
         await session.execute(
             _intent_select()
@@ -360,6 +375,11 @@ async def find_by_source(
                 Intent.organisation_id == organisation_id,
                 Intent.source_type == source_type,
                 Intent.source_id == source_id,
+                *(
+                    [Intent.idempotency_key == idempotency_key]
+                    if idempotency_key is not None
+                    else []
+                ),
             )
             .order_by(Intent.created_at.desc(), Intent.id)
             .limit(1)
@@ -393,6 +413,7 @@ async def cancel_open_intent(
     organisation_id: str,
     source_type: str,
     source_id: str,
+    idempotency_key: str | None = None,
 ) -> bool:
     """Stop collecting for a sale that no longer exists.
 
@@ -406,6 +427,11 @@ async def cancel_open_intent(
                 Intent.organisation_id == organisation_id,
                 Intent.source_type == source_type,
                 Intent.source_id == source_id,
+                *(
+                    [Intent.idempotency_key == idempotency_key]
+                    if idempotency_key is not None
+                    else []
+                ),
             )
             .order_by(Intent.created_at.desc(), Intent.id)
             .limit(1)

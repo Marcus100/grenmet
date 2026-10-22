@@ -69,12 +69,7 @@ async def _detail(
             .order_by(BookingEvent.created_at, BookingEvent.id)
         )
     ).all()
-    intent = await payments_service.find_by_source(
-        session,
-        organisation_id=booking.organisation_id,
-        source_type=deposit_payments.SOURCE_TYPE,
-        source_id=str(booking.id),
-    )
+    intent = await deposit_payments.find_deposit(session, booking)
     return BookingStudioDetail(
         id=booking.id,
         status=BookingStatus(booking.status),
@@ -544,6 +539,11 @@ async def record_manual_deposit(
             raise BookingConflictError("The deposit could not be started")
     if intent.status == IntentStatus.SUCCEEDED.value:
         raise BookingConflictError("The deposit has already been paid")
+    if intent.status in (IntentStatus.FAILED.value, IntentStatus.CANCELLED.value):
+        raise BookingConflictError(
+            "The card payment for this deposit has failed or expired, so it "
+            "cannot be recorded by hand; the customer needs to book again"
+        )
     if (
         intent.amount_minor != booking.deposit_minor
         or intent.currency != booking.currency

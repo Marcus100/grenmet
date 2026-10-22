@@ -1,6 +1,7 @@
 """Bookings: staff record a deposit taken outside Stripe."""
 
 import uuid
+from datetime import timedelta
 
 import httpx
 from sqlalchemy import func, select
@@ -9,10 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.audit.models import AuditEntry
 from src.auth.models import Role
 from src.auth.permissions import seed_permissions_and_roles_async
+from src.bookings import deposits
 from src.bookings.models import Booking
 from src.organisations import service as org_service
 from src.organisations.models import Membership, MembershipRole
 from src.payments.models import Intent, LedgerEntry, LedgerKind
+from src.utils.datetime import utc_now
 from tests.bookings.test_app_token_access import _headers as app_headers
 from tests.bookings.test_deposits import (
     DEPOSIT,
@@ -212,25 +215,35 @@ async def test_a_plain_member_and_a_missing_key_are_refused(
 PAYMENTS = "/api/v1/payments"
 
 
+async def _plant_stray(db: AsyncSession, studio: Studio, booking_id: str) -> None:
+    """A newer ``bookings.deposit`` intent for the booking under another key (the
+    org route now refuses these, so it is written straight to the database)."""
+    db.add(
+        Intent(
+            organisation_id=studio.org_id,
+            amount_minor=100,
+            currency="XCD",
+            provider="manual",
+            source_type="bookings.deposit",
+            source_id=booking_id,
+            idempotency_key="stray-intent",
+        )
+    )
+    await db.commit()
+
+
 async def test_a_newer_intent_for_the_booking_is_not_the_one_captured(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio, booking_id = await _unpaid(db_async, async_client)
-    other = await async_client.post(
-        f"{PAYMENTS}/org/intents",
-        headers=studio.headers,
-        json={
-            "amount_minor": 100,
-            "currency": "XCD",
-            "provider": "manual",
-            "source_type": "bookings.deposit",
-            "source_id": booking_id,
-            "idempotency_key": "stray-intent",
-        },
-    )
-    assert other.status_code == 201, other.text
+    await _plant_stray(db_async, studio, booking_id)
     response = await _post(async_client, studio, booking_id)
     assert response.status_code == 200, response.text
+    assert response.json()["deposit_captured_minor"] == DEPOSIT
+    detail = await async_client.get(
+        f"{API}/org/bookings/{booking_id}", headers=studio.headers
+    )
+    assert detail.json()["deposit_captured_minor"] == DEPOSIT
     assert await _charges(db_async, booking_id) == 1  # the booking's own intent
     stray = await db_async.scalar(
         select(Intent)
@@ -245,6 +258,69 @@ async def test_a_newer_intent_for_the_booking_is_not_the_one_captured(
     changes = {c["field"]: c for c in audit.changes}
     assert changes["deposit_captured_minor"]["new"] == DEPOSIT
     assert changes["reference"]["sensitive"] is True
+
+
+async def test_cancelling_refunds_the_real_deposit_despite_a_stray_intent(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    await _plant_stray(db_async, studio, booking_id)
+    assert (await _post(async_client, studio, booking_id)).status_code == 200
+    await _drain(db_async)
+    cancelled = await async_client.post(
+        f"{API}/org/bookings/{booking_id}/cancel",
+        headers=studio.headers,
+        json={"reason": "Closed", "refund_deposit": True},
+    )
+    assert cancelled.status_code == 200, cancelled.text
+    assert cancelled.json()["deposit_captured_minor"] == DEPOSIT
+    assert cancelled.json()["deposit_refunded_minor"] == DEPOSIT
+
+
+async def test_the_sweeper_keeps_a_captured_booking_despite_a_stray_intent(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    await _plant_stray(db_async, studio, booking_id)
+    assert (await _post(async_client, studio, booking_id)).status_code == 200
+    later = utc_now() + timedelta(hours=2)
+    db_async.expire_all()
+    await deposits.expire_unpaid(db_async, now=later, organisation_id=studio.org_id)
+    await db_async.commit()
+    assert (await _booking_for(db_async, booking_id)).status != "cancelled"
+
+
+async def test_payments_refuses_a_reserved_source_type(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, _ = await _unpaid(db_async, async_client)
+    for source in ("bookings.deposit", "events.order"):
+        response = await async_client.post(
+            f"{PAYMENTS}/org/intents",
+            headers=studio.headers,
+            json={
+                "amount_minor": 100,
+                "source_type": source,
+                "source_id": "x",
+                "idempotency_key": uuid.uuid4().hex,
+            },
+        )
+        assert response.status_code == 422, response.text
+
+
+async def test_a_failed_card_payment_cannot_be_recorded_by_hand(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _unpaid(db_async, async_client)
+    intent = await _intent(db_async, booking_id)
+    assert intent is not None
+    intent.provider = "stripe"
+    intent.status = "failed"
+    await db_async.commit()
+    response = await _post(async_client, studio, booking_id)
+    assert response.status_code == 409
+    assert "failed or expired" in response.json()["detail"]
+    assert await _charges(db_async, booking_id) == 0
 
 
 async def test_an_intent_that_differs_from_the_deposit_is_rejected(
