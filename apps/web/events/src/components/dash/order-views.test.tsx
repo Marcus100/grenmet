@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
   LISTING_ID,
@@ -13,7 +13,7 @@ import { OrderList } from "./order-list";
 const RE_1 = /Ana Tester/;
 const RE_2 = /Page 1 of 1/;
 const RE_3 = /2 × General/;
-const RE_4 = /Not shown/;
+const RE_4 = /No account email to show/;
 const RE_5 = /No tickets issued yet/;
 const RE_6 = /Not admitted yet/;
 const RE_7 = /Admitted /;
@@ -156,5 +156,42 @@ describe("AttendeeList", () => {
       "href",
       `/dash/events/${LISTING_ID}/attendees?tier=t1&status=cancelled`
     );
+  });
+
+  it("never calls a confirmed order with no valid tickets Paid", () => {
+    render(
+      <OrderList
+        count={1}
+        listingId={LISTING_ID}
+        page={1}
+        rows={[makeOrderRow({ active_ticket_count: 0 })]}
+        status={undefined}
+        totalPages={1}
+      />
+    );
+    const list = within(screen.getByRole("list"));
+    expect(list.getByText("Cancelled")).toBeInTheDocument();
+    expect(list.queryByText("Paid")).not.toBeInTheDocument();
+  });
+
+  it("calls a free order Free and shows an unknown currency by code", () => {
+    render(
+      <OrderList
+        count={1}
+        listingId={LISTING_ID}
+        page={1}
+        rows={[
+          makeOrderRow({
+            payment_method: "none",
+            total_minor: 2500,
+            currency: "EUR",
+          }),
+        ]}
+        status={undefined}
+        totalPages={1}
+      />
+    );
+    expect(screen.getAllByText("Free").length).toBeGreaterThan(0);
+    expect(screen.getByText("EUR 25.00")).toBeInTheDocument();
   });
 });

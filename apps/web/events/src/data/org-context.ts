@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { getManagedOrganiser } from "@/data/events-api";
 import { getSession } from "@/lib/session";
 
@@ -16,7 +17,7 @@ export type OrgContext =
  * from their own organiser workspace (the `events_organiser` choice). Ids from
  * the browser are never used for this.
  */
-export async function resolveOrgContext(): Promise<OrgContext> {
+export const resolveOrgContext = cache(async (): Promise<OrgContext> => {
   const session = await getSession();
   if (!session) {
     return { ok: false, reason: "signed-out" };
@@ -27,4 +28,4 @@ export async function resolveOrgContext(): Promise<OrgContext> {
     return { ok: false, reason: "no-organisation" };
   }
   return { ok: true, accessToken: session.accessToken, organisationId };
-}
+});

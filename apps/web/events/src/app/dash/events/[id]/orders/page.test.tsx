@@ -63,10 +63,8 @@ beforeEach(() => {
 describe("Orders page", () => {
   it("passes a valid status and page to the API", async () => {
     getOrgOrders.mockResolvedValue({
-      rows: [makeOrderRow()],
-      count: 1,
-      page: 2,
-      totalPages: 2,
+      kind: "ok",
+      value: { rows: [makeOrderRow()], count: 1, page: 2, totalPages: 2 },
     });
     render(await show({ status: "confirmed", page: "2" }));
     expect(getOrgOrders).toHaveBeenCalledWith(
@@ -80,10 +78,8 @@ describe("Orders page", () => {
 
   it("drops an unknown status instead of forwarding it", async () => {
     getOrgOrders.mockResolvedValue({
-      rows: [],
-      count: 0,
-      page: 1,
-      totalPages: 1,
+      kind: "ok",
+      value: { rows: [], count: 0, page: 1, totalPages: 1 },
     });
     render(await show({ status: "bogus" }));
     expect(getOrgOrders).toHaveBeenCalledWith(expect.anything(), LISTING_ID, {
@@ -106,5 +102,13 @@ describe("Orders page", () => {
     render(await show());
     expect(getOrgOrders).not.toHaveBeenCalled();
     expect(screen.getByRole("status")).toHaveTextContent(RE_2);
+  });
+
+  it("shows a no-access state instead of throwing on a 403", async () => {
+    getOrgOrders.mockResolvedValue({ kind: "forbidden" });
+    render(await show());
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "doesn't include orders"
+    );
   });
 });

@@ -19,6 +19,7 @@ import { cancelEvent, postponeEvent } from "@/data/actions";
 import { cancelEventWithRefund } from "@/data/order-actions";
 import {
   type CancelCounts,
+  EVENT_CANCEL_BUTTON,
   EVENT_REFUND_CHOICES,
   type RefundChoice,
 } from "@/lib/org-orders";
@@ -209,13 +210,17 @@ export function EventLifecycle({
               value={refund}
             />
           ) : (
-            <p className="text-caption text-muted-foreground">
-              No money is moved by this cancel. Refund orders by hand.
+            <p className="rounded-xl border border-destructive/40 p-3 font-medium text-body">
+              This cancel moves no money. Orders and refunds aren't available
+              for this organiser until a Barrels admin links it to an
+              organisation.
             </p>
           )}
           <AlertDialogFooter>
             <AlertDialogCancel>Keep event</AlertDialogCancel>
-            <AlertDialogAction onClick={cancel}>Cancel event</AlertDialogAction>
+            <AlertDialogAction onClick={cancel}>
+              {canChooseRefund ? EVENT_CANCEL_BUTTON[refund] : "Cancel event"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

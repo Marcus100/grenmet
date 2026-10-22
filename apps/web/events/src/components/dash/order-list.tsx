@@ -4,6 +4,7 @@ import { formatEventDate } from "@/lib/datetime";
 import {
   formatOrderMoney,
   ORDER_STATUSES,
+  orderBadge,
   orderStatus,
   PAYMENT_METHOD_LABEL,
 } from "@/lib/org-orders";
@@ -79,7 +80,7 @@ export function OrderList({
                   <span className="font-medium tabular-nums">
                     {formatOrderMoney(order.total_minor, order.currency)}
                   </span>
-                  <StatusBadge status={orderStatus(order.status)} />
+                  <StatusBadge status={orderBadge(order)} />
                 </span>
               </Link>
             </li>

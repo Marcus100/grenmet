@@ -1,5 +1,6 @@
 import { ResponseError } from "@barrelsgd/api-client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { COULDNT_CONFIRM } from "@/lib/org-orders";
 import { makeOrderDetail } from "@/test/org-factories";
 
 const RE_1 = /permission/;
@@ -11,6 +12,7 @@ const recordPayment = vi.fn();
 const refund = vi.fn();
 const cancelOrderCall = vi.fn();
 const cancelEventCall = vi.fn();
+const legacyCancelCall = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("./org-context", () => ({
@@ -19,6 +21,10 @@ vi.mock("./org-context", () => ({
 vi.mock("@/lib/report-error", () => ({
   reportError: (...args: unknown[]) => reportError(...args),
 }));
+vi.mock("./organiser-choice", () => ({
+  chosenOrganiser: async () => "fete-crew",
+  rememberOrganiser: vi.fn(),
+}));
 vi.mock("@/lib/api", () => ({ apiOptions: () => ({}) }));
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
@@ -26,6 +32,7 @@ vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   eventsOrgRefundOrder: (...a: unknown[]) => refund(...a),
   eventsOrgCancelOrder: (...a: unknown[]) => cancelOrderCall(...a),
   eventsOrgCancelEvent: (...a: unknown[]) => cancelEventCall(...a),
+  eventsCancelEvent: (...a: unknown[]) => legacyCancelCall(...a),
 }));
 
 const { cancelEventWithRefund, cancelOrder, recordManualPayment, refundOrder } =
@@ -59,6 +66,7 @@ beforeEach(() => {
     refund,
     cancelOrderCall,
     cancelEventCall,
+    legacyCancelCall,
   ]) {
     mock.mockReset();
   }
@@ -139,7 +147,7 @@ describe("recordManualPayment", () => {
     recordPayment.mockReturnValue(failing(error));
     expect(await recordManualPayment(input)).toEqual({
       ok: false,
-      error: "Something went wrong. Try again shortly.",
+      error: COULDNT_CONFIRM,
       keepKey: true,
     });
     expect(reportError).toHaveBeenCalledWith(error, "events-orders");
@@ -304,10 +312,53 @@ describe("cancelEventWithRefund", () => {
   });
 
   it("shows a 403 for a member without the right", async () => {
-    cancelEventCall.mockReturnValue(
+    cancelEventCall.mockReturnValue(failing(responseError(403, {})));
+    legacyCancelCall.mockReturnValue(
       failing(responseError(403, { detail: "You can't do that here" }))
     );
     const result = await cancelEventWithRefund(ORDER, "none");
     expect(result.ok ? "" : result.error).toBe("You can't do that here");
+  });
+
+  it("falls back to the organiser endpoint on a 403, with the same refund choice", async () => {
+    cancelEventCall.mockReturnValue(failing(responseError(403, {})));
+    legacyCancelCall.mockReturnValue(
+      unwrapped({
+        listing_id: ORDER,
+        status: "cancelled",
+        tickets_cancelled: 2,
+      })
+    );
+    const result = await cancelEventWithRefund(ORDER, "follow_policy");
+    expect(result).toMatchObject({
+      ok: true,
+      data: { ticketsCancelled: 2, ordersQueued: 0 },
+    });
+    expect(legacyCancelCall).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: { organiser: "fete-crew" },
+        body: { confirm: true, refund: "follow_policy" },
+      })
+    );
+  });
+});
+
+describe("refund amount wording", () => {
+  it("formats the API's minor-unit 409 with the order's currency", async () => {
+    refund.mockReturnValue(
+      failing(
+        responseError(409, {
+          detail: "Only 2500 minor units can still be refunded",
+        })
+      )
+    );
+    const result = await refundOrder({
+      orderId: ORDER,
+      idempotencyKey: KEY,
+      reason: "Goodwill",
+      currency: "EUR",
+    });
+    expect(result.ok ? "" : result.error).toContain("EUR 25.00");
+    expect(result.ok ? "" : result.error).toContain("Reload the page");
   });
 });

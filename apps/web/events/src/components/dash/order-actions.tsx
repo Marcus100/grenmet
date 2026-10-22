@@ -14,8 +14,9 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
+import { SIGN_IN_REQUIRED } from "@/data/action-result";
 import {
   cancelOrder,
   recordManualPayment,
@@ -23,8 +24,9 @@ import {
 } from "@/data/order-actions";
 import { parseMinor } from "@/domain/money";
 import {
+  COULDNT_CONFIRM,
   cancelOutcomeMessage,
-  formatOrderMoney,
+  formatOrderMoneyCode,
   REFUND_CHOICES,
   type RefundChoice,
 } from "@/lib/org-orders";
@@ -52,23 +54,28 @@ function Panel({
   );
 }
 
-function Feedback({
-  error,
-  notice,
-}: {
-  error: string | null;
-  notice: string | null;
-}) {
-  return (
-    <>
-      <p className="text-body text-primary empty:hidden" role="status">
-        {notice}
-      </p>
-      <p className="text-body text-destructive empty:hidden" role="alert">
-        {error}
-      </p>
-    </>
-  );
+/**
+ * Where a money action reports back. It lives in `OrderActions`, outside the
+ * panels, because a successful action refreshes the order and a panel that no
+ * longer applies swaps its form for a reason: the outcome must survive that.
+ */
+interface Report {
+  clear: () => void;
+  error: (message: string) => void;
+  notice: (message: string) => void;
+}
+
+interface Failure {
+  readonly error: string;
+  readonly keepKey: boolean;
+}
+
+/** Locks the form after an uncertain failure until the refreshed order arrives. */
+function useReloadLock(order: OrgOrderDetail) {
+  const [locked, setLocked] = useState(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new order object means the page was reloaded
+  useEffect(() => setLocked(false), [order]);
+  return [locked, setLocked] as const;
 }
 
 /**
@@ -78,54 +85,103 @@ function Feedback({
  * after a refusal or a success.
  */
 export function OrderActions({ order }: { order: OrgOrderDetail }) {
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const report: Report = {
+    clear: () => {
+      setNotice(null);
+      setError(null);
+    },
+    error: setError,
+    notice: setNotice,
+  };
   const refundable = order.payment?.refundable_minor ?? 0;
+  // The API allows cancelling a confirmed order that never issued tickets.
   const cancellable =
     order.status === "pending_payment" ||
-    (order.status === "confirmed" && order.active_ticket_count > 0);
+    (order.status === "confirmed" &&
+      (order.ticket_count === 0 || order.active_ticket_count > 0));
+  let refundReason: string | null = null;
+  if (order.refund_status === "queued") {
+    refundReason =
+      "A card refund is waiting for the payment provider. Reload the page later to see when it is done.";
+  } else if (refundable <= 0) {
+    refundReason =
+      "There is nothing left to refund through the payment system. Outlet cash is refunded from the event's Outlet screen.";
+  }
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      <Panel
-        disabledReason={
-          order.status === "pending_payment"
-            ? null
-            : "Only an order that is awaiting payment can take a cash or bank payment."
-        }
-        title="Record manual payment"
-      >
-        <ManualPaymentForm order={order} />
-      </Panel>
-      <Panel
-        disabledReason={
-          refundable > 0
-            ? null
-            : "There is nothing left to refund through the payment system. Outlet cash is refunded from the event's Outlet screen."
-        }
-        title="Refund"
-      >
-        <RefundForm order={order} refundable={refundable} />
-      </Panel>
-      <Panel
-        disabledReason={
-          cancellable ? null : "This order is already cancelled or finished."
-        }
-        title="Cancel order"
-      >
-        <CancelOrderForm order={order} />
-      </Panel>
+    <div className="space-y-4">
+      <div aria-live="polite" className="space-y-1">
+        <p
+          className="font-medium text-body text-primary empty:hidden"
+          role="status"
+        >
+          {notice}
+        </p>
+        <p
+          className="font-medium text-body text-destructive empty:hidden"
+          role="alert"
+        >
+          {error}
+        </p>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Panel
+          disabledReason={
+            order.status === "pending_payment"
+              ? null
+              : "Only an order that is awaiting payment can take a cash or bank payment."
+          }
+          title="Record manual payment"
+        >
+          <ManualPaymentForm order={order} report={report} />
+        </Panel>
+        <Panel disabledReason={refundReason} title="Refund">
+          <RefundForm order={order} refundable={refundable} report={report} />
+        </Panel>
+        <Panel
+          disabledReason={
+            cancellable ? null : "This order is already cancelled or finished."
+          }
+          title="Cancel order"
+        >
+          <CancelOrderForm order={order} report={report} />
+        </Panel>
+      </div>
     </div>
   );
 }
 
-function ManualPaymentForm({ order }: { order: OrgOrderDetail }) {
+function ManualPaymentForm({
+  order,
+  report,
+}: {
+  order: OrgOrderDetail;
+  report: Report;
+}) {
   const router = useRouter();
-  const { error, pending, perform } = useMemberAction();
+  const { pending, perform } = useMemberAction(COULDNT_CONFIRM);
   const { keyFor, rotate } = useIdempotencyKey();
+  const [locked, setLocked] = useReloadLock(order);
   const [method, setMethod] = useState<"bank_transfer" | "cash">("cash");
   const [reference, setReference] = useState("");
-  const [notice, setNotice] = useState<string | null>(null);
+
+  function failed(result: Failure) {
+    if (result.error !== SIGN_IN_REQUIRED) {
+      report.error(result.error);
+    }
+    if (result.keepKey) {
+      // The payment may have been recorded: reload, and keep the same key and
+      // body if the person presses the button again.
+      setLocked(true);
+      router.refresh();
+    } else {
+      rotate();
+    }
+  }
 
   async function submit() {
-    setNotice(null);
+    report.clear();
     const result = await perform(() =>
       recordManualPayment({
         orderId: order.id,
@@ -136,10 +192,10 @@ function ManualPaymentForm({ order }: { order: OrgOrderDetail }) {
     );
     if (result.ok) {
       rotate();
-      setNotice("Payment recorded. The tickets are issued.");
+      report.notice("Payment recorded. The tickets are issued.");
       router.refresh();
-    } else if (!result.keepKey) {
-      rotate();
+    } else {
+      failed(result);
     }
   }
 
@@ -153,8 +209,8 @@ function ManualPaymentForm({ order }: { order: OrgOrderDetail }) {
     >
       <p className="text-body text-muted-foreground">
         Use this when you received{" "}
-        {formatOrderMoney(order.total_minor, order.currency)} in cash or by bank
-        transfer. The order is confirmed and tickets are issued at once.
+        {formatOrderMoneyCode(order.total_minor, order.currency)} in cash or by
+        bank transfer. The order is confirmed and tickets are issued at once.
       </p>
       <div className="flex gap-2">
         {(
@@ -166,6 +222,7 @@ function ManualPaymentForm({ order }: { order: OrgOrderDetail }) {
           <Button
             aria-pressed={method === value}
             className="min-h-11 flex-1"
+            disabled={locked}
             key={value}
             onClick={() => setMethod(value)}
             type="button"
@@ -181,6 +238,7 @@ function ManualPaymentForm({ order }: { order: OrgOrderDetail }) {
         </FieldLabel>
         <Input
           className="min-h-11"
+          disabled={locked}
           id={`payment-ref-${order.id}`}
           maxLength={200}
           onChange={(event) => setReference(event.target.value)}
@@ -191,7 +249,12 @@ function ManualPaymentForm({ order }: { order: OrgOrderDetail }) {
       <Button className="min-h-11" disabled={pending} type="submit">
         Record payment
       </Button>
-      <Feedback error={error} notice={notice} />
+      {locked ? (
+        <p className="text-caption text-muted-foreground">
+          The form is locked until the page reloads. Pressing the button again
+          sends the same request.
+        </p>
+      ) : null}
     </form>
   );
 }
@@ -199,32 +262,35 @@ function ManualPaymentForm({ order }: { order: OrgOrderDetail }) {
 function RefundForm({
   order,
   refundable,
+  report,
 }: {
   order: OrgOrderDetail;
   refundable: number;
+  report: Report;
 }) {
   const router = useRouter();
-  const { error, pending, perform } = useMemberAction();
+  const { pending, perform } = useMemberAction(COULDNT_CONFIRM);
   const { keyFor, rotate } = useIdempotencyKey();
+  const [locked, setLocked] = useReloadLock(order);
   const [mode, setMode] = useState<"full" | "partial">("full");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
   const [confirming, setConfirming] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   const partialMinor = mode === "partial" ? parseMinor(amount) : null;
   const amountMinor = mode === "full" ? refundable : partialMinor;
+  const code = (minor: number) => formatOrderMoneyCode(minor, order.currency);
 
   function review() {
-    setNotice(null);
+    report.clear();
     if (reason.trim().length < 3) {
       setFormError("Give a reason of at least 3 characters.");
       return;
     }
     if (amountMinor === null || amountMinor < 1 || amountMinor > refundable) {
       setFormError(
-        `Enter an amount between ${formatOrderMoney(1, order.currency)} and ${formatOrderMoney(refundable, order.currency)}.`
+        `Enter an amount between ${code(1)} and ${code(refundable)}.`
       );
       return;
     }
@@ -236,6 +302,7 @@ function RefundForm({
     if (amountMinor === null) {
       return;
     }
+    report.clear();
     const result = await perform(() =>
       refundOrder({
         orderId: order.id,
@@ -244,18 +311,27 @@ function RefundForm({
         ),
         ...(mode === "partial" ? { amountMinor } : {}),
         reason,
+        currency: order.currency,
       })
     );
     if (result.ok) {
       rotate();
       setConfirming(false);
-      setNotice(
+      report.notice(
         result.data.refund_status === "queued"
           ? "Refund requested. The card refund is queued with the payment provider."
           : "Refund recorded."
       );
       router.refresh();
-    } else if (!result.keepKey) {
+      return;
+    }
+    if (result.error !== SIGN_IN_REQUIRED) {
+      report.error(result.error);
+    }
+    if (result.keepKey) {
+      setLocked(true);
+      router.refresh();
+    } else {
       rotate();
     }
   }
@@ -269,8 +345,8 @@ function RefundForm({
       }}
     >
       <p className="text-body text-muted-foreground">
-        Up to {formatOrderMoney(refundable, order.currency)} can still be
-        refunded. A full refund cancels the tickets.
+        Up to {code(refundable)} can still be refunded. A full refund cancels
+        the tickets.
       </p>
       <div className="flex gap-2">
         {(
@@ -282,6 +358,7 @@ function RefundForm({
           <Button
             aria-pressed={mode === value}
             className="min-h-11 flex-1"
+            disabled={locked}
             key={value}
             onClick={() => {
               setMode(value);
@@ -297,10 +374,11 @@ function RefundForm({
       {mode === "partial" ? (
         <Field>
           <FieldLabel htmlFor={`refund-amount-${order.id}`}>
-            Amount to refund
+            Amount to refund ({order.currency})
           </FieldLabel>
           <Input
             className="min-h-11"
+            disabled={locked}
             id={`refund-amount-${order.id}`}
             inputMode="decimal"
             onChange={(event) => {
@@ -316,6 +394,7 @@ function RefundForm({
         <FieldLabel htmlFor={`refund-reason-${order.id}`}>Reason</FieldLabel>
         <Input
           className="min-h-11"
+          disabled={locked}
           id={`refund-reason-${order.id}`}
           maxLength={500}
           onChange={(event) => {
@@ -328,7 +407,7 @@ function RefundForm({
       {confirming && amountMinor !== null ? (
         <div className="space-y-2 rounded-xl border border-destructive/40 p-3">
           <p className="font-medium text-body">
-            Refund {formatOrderMoney(amountMinor, order.currency)} to the buyer?
+            Refund {code(amountMinor)} to the buyer?
           </p>
           <p className="text-caption text-muted-foreground">
             This moves money and can't be undone.
@@ -345,7 +424,7 @@ function RefundForm({
             </Button>
             <Button
               className="min-h-11"
-              disabled={pending}
+              disabled={pending || locked}
               onClick={() => setConfirming(false)}
               type="button"
               variant="outline"
@@ -359,29 +438,52 @@ function RefundForm({
           Review refund
         </Button>
       )}
-      <Feedback error={formError ?? error} notice={notice} />
+      {formError ? (
+        <p className="text-body text-destructive" role="alert">
+          {formError}
+        </p>
+      ) : null}
+      {locked ? (
+        <p className="text-caption text-muted-foreground">
+          The form is locked until the page reloads. Confirming again sends the
+          same request.
+        </p>
+      ) : null}
     </form>
   );
 }
 
-function CancelOrderForm({ order }: { order: OrgOrderDetail }) {
+function CancelOrderForm({
+  order,
+  report,
+}: {
+  order: OrgOrderDetail;
+  report: Report;
+}) {
   const router = useRouter();
-  const { error, pending, perform } = useMemberAction();
+  const { pending, perform } = useMemberAction(COULDNT_CONFIRM);
   const outletCash = order.payment_method === "cash_outlet";
   const [refund, setRefund] = useState<RefundChoice>(
     outletCash ? "none" : "follow_policy"
   );
   const [reason, setReason] = useState("");
   const [open, setOpen] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
 
   async function confirm() {
+    report.clear();
     const result = await perform(() =>
       cancelOrder({ orderId: order.id, refund, reason })
     );
     setOpen(false);
     if (result.ok) {
-      setNotice(cancelOutcomeMessage(result.data.outcome));
+      report.notice(cancelOutcomeMessage(result.data.outcome));
+      router.refresh();
+      return;
+    }
+    if (result.error !== SIGN_IN_REQUIRED) {
+      report.error(result.error);
+    }
+    if (result.keepKey) {
       router.refresh();
     }
   }
@@ -428,7 +530,6 @@ function CancelOrderForm({ order }: { order: OrgOrderDetail }) {
       >
         Cancel order
       </Button>
-      <Feedback error={error} notice={notice} />
       <AlertDialog onOpenChange={setOpen} open={open}>
         <AlertDialogContent>
           <AlertDialogTitle>Cancel this order?</AlertDialogTitle>

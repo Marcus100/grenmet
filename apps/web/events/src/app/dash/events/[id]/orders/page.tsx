@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { DashShell } from "@/components/dash/dash-shell";
 import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
 import { OrderList } from "@/components/dash/order-list";
-import { OrgUnavailable } from "@/components/dash/org-unavailable";
+import {
+  OrgForbidden,
+  OrgUnavailable,
+} from "@/components/dash/org-unavailable";
 import { getManagedOrganiser } from "@/data/events-api";
 import { resolveOrgContext } from "@/data/org-context";
 import { getOrgOrders } from "@/data/org-orders";
@@ -35,15 +38,23 @@ export default async function OrdersPage({
     notFound();
   }
   const context = await resolveOrgContext();
-  const orders = context.ok
+  const result = context.ok
     ? await getOrgOrders(context, id, {
         page: pageParam(query.page),
         ...(isOrderStatus(query.status) ? { status: query.status } : {}),
       })
     : null;
-  if (context.ok && !orders) {
+  if (result?.kind === "not-found") {
     notFound();
   }
+  const orders = result?.kind === "ok" ? result.value : null;
+
+  const fallback =
+    result?.kind === "forbidden" ? (
+      <OrgForbidden what="orders" />
+    ) : (
+      <OrgUnavailable />
+    );
 
   return (
     <DashShell
@@ -75,7 +86,7 @@ export default async function OrdersPage({
             totalPages={orders.totalPages}
           />
         ) : (
-          <OrgUnavailable />
+          fallback
         )}
       </main>
     </DashShell>

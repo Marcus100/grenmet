@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { AttendeeList } from "@/components/dash/attendee-list";
 import { DashShell } from "@/components/dash/dash-shell";
 import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
-import { OrgUnavailable } from "@/components/dash/org-unavailable";
+import {
+  OrgForbidden,
+  OrgUnavailable,
+} from "@/components/dash/org-unavailable";
 import { getManagedOrganiser } from "@/data/events-api";
 import { resolveOrgContext } from "@/data/org-context";
 import { getOrgAttendees } from "@/data/org-orders";
@@ -38,16 +41,24 @@ export default async function AttendeesPage({
   const tier = event.tiers.find((candidate) => candidate.id === query.tier);
   const status = isTicketStatus(query.status) ? query.status : undefined;
   const context = await resolveOrgContext();
-  const attendees = context.ok
+  const result = context.ok
     ? await getOrgAttendees(context, id, {
         page: pageParam(query.page),
         ...(status ? { status } : {}),
         ...(tier ? { tierId: tier.id } : {}),
       })
     : null;
-  if (context.ok && !attendees) {
+  if (result?.kind === "not-found") {
     notFound();
   }
+  const attendees = result?.kind === "ok" ? result.value : null;
+
+  const fallback =
+    result?.kind === "forbidden" ? (
+      <OrgForbidden what="the attendee list" />
+    ) : (
+      <OrgUnavailable />
+    );
 
   return (
     <DashShell
@@ -81,7 +92,7 @@ export default async function AttendeesPage({
             totalPages={attendees.totalPages}
           />
         ) : (
-          <OrgUnavailable />
+          fallback
         )}
       </main>
     </DashShell>

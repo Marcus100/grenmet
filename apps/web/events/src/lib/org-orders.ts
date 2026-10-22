@@ -5,6 +5,8 @@ import type {
 } from "@barrelsgd/api-client";
 import { formatMoney, money } from "@/domain/money";
 
+const MINOR_PER_MAJOR = 100;
+
 /** Badge colours are the shared status variants; the words carry the meaning too. */
 export type StatusTone =
   | "light-error"
@@ -56,6 +58,30 @@ const TICKET_STATUS: Record<OrgAttendee["status"], Status> = {
 
 export const orderStatus = (value: OrgOrderRow["status"]): Status =>
   ORDER_STATUS[value];
+
+/**
+ * The badge for an order row. A confirmed order whose tickets were all
+ * cancelled reads "Cancelled" (the API keeps its status `confirmed` when the
+ * money was kept), and a free order is not "Paid".
+ */
+export function orderBadge(
+  order: Pick<
+    OrgOrderRow,
+    "active_ticket_count" | "payment_method" | "status" | "ticket_count"
+  >
+): Status {
+  if (
+    order.status === "confirmed" &&
+    order.ticket_count > 0 &&
+    order.active_ticket_count === 0
+  ) {
+    return { label: "Cancelled", tone: "light-light" };
+  }
+  if (order.status === "confirmed" && order.payment_method === "none") {
+    return { label: "Free", tone: "light-success" };
+  }
+  return ORDER_STATUS[order.status];
+}
 export const refundStatus = (value: OrgOrderDetail["refund_status"]): Status =>
   REFUND_STATUS[value];
 export const ticketStatus = (value: OrgAttendee["status"]): Status =>
@@ -70,9 +96,31 @@ export const PAYMENT_METHOD_LABEL: Record<
   online: "Online",
 };
 
-/** Formats API minor units; unknown currencies fall back to the app's default. */
+const CODE_MONEY = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/** The amount with its ISO code and no symbol: "XCD 150.00", "EUR 25.00". */
+export function formatOrderMoneyCode(minor: number, currency: string): string {
+  return `${currency} ${CODE_MONEY.format(minor / MINOR_PER_MAJOR)}`;
+}
+
+/**
+ * Formats API minor units. Only currencies the app has a symbol for get one;
+ * any other currency is shown as its ISO code, never guessed as dollars.
+ */
 export function formatOrderMoney(minor: number, currency: string): string {
-  return formatMoney(money(minor, currency === "USD" ? "USD" : "XCD"));
+  if (currency === "XCD" || currency === "USD") {
+    return formatMoney(money(minor, currency));
+  }
+  return formatOrderMoneyCode(minor, currency);
+}
+
+/** "stripe" -> "Stripe", "partially_refunded" -> "Partially refunded". */
+export function humanise(value: string): string {
+  const text = value.replaceAll("_", " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 export function isOrderStatus(
@@ -145,6 +193,13 @@ export const EVENT_REFUND_CHOICES: readonly {
   },
 ];
 
+/** The confirm button of the cancel-event dialog says what it will do. */
+export const EVENT_CANCEL_BUTTON: Record<RefundChoice, string> = {
+  follow_policy: "Cancel and follow policy",
+  full: "Cancel and refund everyone",
+  none: "Cancel, keep the money",
+};
+
 /** What a finished order cancel did with the money, in words. */
 export function cancelOutcomeMessage(
   outcome: "kept" | "not_due" | "queued" | "refunded"
@@ -173,8 +228,13 @@ export interface CancelCounts {
 
 const KEY_PROBLEM = /Idempotency-Key/i;
 const STILL_RUNNING = /still being processed/i;
+const REFUND_LEFT = /^Only (\d+) minor units can still be refunded/;
 
 const FORBIDDEN = "You don't have permission to do that for this organisation.";
+
+/** Shown when a money request may or may not have gone through. */
+export const COULDNT_CONFIRM =
+  "We couldn't confirm this went through. Reload the page and check the order before changing anything.";
 
 /**
  * Words an org-zone refusal for the organiser. The API words its own 409s
@@ -183,7 +243,8 @@ const FORBIDDEN = "You don't have permission to do that for this organisation.";
  */
 export function friendlyOrgError(
   status: number,
-  detail: string | null
+  detail: string | null,
+  currency = "XCD"
 ): string {
   if (status === 403) {
     return detail ?? FORBIDDEN;
@@ -191,11 +252,16 @@ export function friendlyOrgError(
   if (status === 404) {
     return "We couldn't find that order or event for this organiser. Reload the page.";
   }
-  if (status === 409) {
+  if (status === 409 || status === 422) {
+    if (detail && STILL_RUNNING.test(detail)) {
+      return "The first attempt is still being processed. Wait a moment, then press the button again.";
+    }
     if (detail && KEY_PROBLEM.test(detail)) {
-      return STILL_RUNNING.test(detail)
-        ? "The first attempt is still being processed. Wait a moment, then press the button again."
-        : "That request changed since the last attempt. Check the form and try again.";
+      return "That request changed since the last attempt. Check the form and try again.";
+    }
+    const left = detail ? REFUND_LEFT.exec(detail) : null;
+    if (left?.[1]) {
+      return `Only ${formatOrderMoney(Number(left[1]), currency)} can still be refunded. Reload the page to see the current amount.`;
     }
     return detail ?? "That can't be done in the order's current state.";
   }

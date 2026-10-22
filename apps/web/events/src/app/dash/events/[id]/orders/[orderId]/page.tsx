@@ -5,7 +5,10 @@ import { DashShell } from "@/components/dash/dash-shell";
 import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
 import { OrderActions } from "@/components/dash/order-actions";
 import { OrderDetail } from "@/components/dash/order-detail";
-import { OrgUnavailable } from "@/components/dash/org-unavailable";
+import {
+  OrgForbidden,
+  OrgUnavailable,
+} from "@/components/dash/org-unavailable";
 import { getManagedOrganiser } from "@/data/events-api";
 import { resolveOrgContext } from "@/data/org-context";
 import { getOrgOrder } from "@/data/org-orders";
@@ -32,11 +35,22 @@ export default async function OrderPage({
     notFound();
   }
   const context = await resolveOrgContext();
-  const order = context.ok ? await getOrgOrder(context, orderId) : null;
+  const result = context.ok ? await getOrgOrder(context, orderId) : null;
   // The order must belong to the event in the URL, not just to the organisation.
-  if (context.ok && (!order || order.listing_id !== id)) {
+  if (
+    result?.kind === "not-found" ||
+    (result?.kind === "ok" && result.value.listing_id !== id)
+  ) {
     notFound();
   }
+  const order = result?.kind === "ok" ? result.value : null;
+
+  const fallback =
+    result?.kind === "forbidden" ? (
+      <OrgForbidden what="orders" />
+    ) : (
+      <OrgUnavailable />
+    );
 
   return (
     <DashShell
@@ -64,7 +78,7 @@ export default async function OrderPage({
             <OrderActions order={order} />
           </>
         ) : (
-          <OrgUnavailable />
+          fallback
         )}
       </main>
     </DashShell>

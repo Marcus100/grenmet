@@ -6,7 +6,7 @@ import { EventLifecycle } from "./event-lifecycle";
 
 const RE_1 = /Follow the business policy/;
 const RE_2 = /Refund in full/;
-const RE_3 = /No money is moved/;
+const RE_3 = /moves no money/;
 
 const refresh = vi.fn();
 
@@ -86,11 +86,9 @@ describe("EventLifecycle", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cancel event" }));
     expect(await screen.findByRole("radio", { name: RE_1 })).toBeChecked();
     fireEvent.click(screen.getByRole("radio", { name: RE_2 }));
-    const buttons = screen.getAllByRole("button", { name: "Cancel event" });
-    const confirm = buttons.at(-1);
-    if (confirm) {
-      fireEvent.click(confirm);
-    }
+    fireEvent.click(
+      screen.getByRole("button", { name: "Cancel and refund everyone" })
+    );
     const summary = await screen.findByRole("status");
     expect(cancelEventWithRefund).toHaveBeenCalledWith("evt", "full");
     expect(summary).toHaveTextContent("2 orders queued for a card refund");

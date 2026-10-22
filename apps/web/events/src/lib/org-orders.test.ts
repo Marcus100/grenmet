@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   cancelOutcomeMessage,
   formatOrderMoney,
+  formatOrderMoneyCode,
   friendlyOrgError,
+  humanise,
   isOrderStatus,
   isTicketStatus,
   keepsKey,
+  orderBadge,
   orderStatus,
   pageParam,
   refundStatus,
@@ -103,5 +106,60 @@ describe("cancelOutcomeMessage", () => {
     expect(cancelOutcomeMessage("queued")).toMatch(RE_5);
     expect(cancelOutcomeMessage("kept")).toMatch(RE_6);
     expect(cancelOutcomeMessage("not_due")).toMatch(RE_7);
+  });
+});
+
+describe("orderBadge", () => {
+  const base = {
+    active_ticket_count: 2,
+    payment_method: "online" as const,
+    status: "confirmed" as const,
+    ticket_count: 2,
+  };
+
+  it("derives Cancelled and Free", () => {
+    expect(orderBadge({ ...base, active_ticket_count: 0 }).label).toBe(
+      "Cancelled"
+    );
+    expect(orderBadge({ ...base, payment_method: "none" }).label).toBe("Free");
+    expect(orderBadge(base).label).toBe("Paid");
+    expect(
+      orderBadge({ ...base, ticket_count: 0, active_ticket_count: 0 }).label
+    ).toBe("Paid");
+  });
+});
+
+describe("money display", () => {
+  it("never guesses a symbol for an unknown currency", () => {
+    expect(formatOrderMoney(2500, "EUR")).toBe("EUR 25.00");
+    expect(formatOrderMoneyCode(15_000, "XCD")).toBe("XCD 150.00");
+  });
+
+  it("humanises raw enums", () => {
+    expect(humanise("stripe")).toBe("Stripe");
+    expect(humanise("partially_refunded")).toBe("Partially refunded");
+  });
+});
+
+describe("friendlyOrgError wording", () => {
+  it("recognises the real in-progress string", () => {
+    expect(
+      friendlyOrgError(
+        409,
+        "A request with this key is still being processed; retry shortly"
+      )
+    ).toContain("still being processed");
+  });
+
+  it("formats the remaining refundable amount", () => {
+    expect(
+      friendlyOrgError(
+        409,
+        "Only 1250 minor units can still be refunded",
+        "XCD"
+      )
+    ).toBe(
+      "Only $12.50 can still be refunded. Reload the page to see the current amount."
+    );
   });
 });

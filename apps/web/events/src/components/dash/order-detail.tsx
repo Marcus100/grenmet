@@ -1,8 +1,9 @@
 import type { OrgOrderDetail } from "@barrelsgd/api-client";
 import { formatEventDate } from "@/lib/datetime";
 import {
-  formatOrderMoney,
-  orderStatus,
+  formatOrderMoneyCode,
+  humanise,
+  orderBadge,
   PAYMENT_METHOD_LABEL,
   refundStatus,
   ticketStatus,
@@ -39,11 +40,11 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
  * shown", never as "the buyer has no email".
  */
 export function OrderDetail({ order }: { order: OrgOrderDetail }) {
-  const money = (minor: number) => formatOrderMoney(minor, order.currency);
+  const money = (minor: number) => formatOrderMoneyCode(minor, order.currency);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <StatusBadge status={orderStatus(order.status)} />
+        <StatusBadge status={orderBadge(order)} />
         <StatusBadge status={refundStatus(order.refund_status)} />
         <span className="text-caption text-muted-foreground">
           {PAYMENT_METHOD_LABEL[order.payment_method]} ·{" "}
@@ -57,10 +58,7 @@ export function OrderDetail({ order }: { order: OrgOrderDetail }) {
             <Row label="Phone" value={order.buyer_phone ?? "Not given"} />
             <Row
               label="Email"
-              value={
-                order.buyer_email ??
-                "Not shown (organisation admins and owners see account emails)"
-              }
+              value={order.buyer_email ?? "No account email to show"}
             />
             <Row label="Placed" value={formatEventDate(order.created_at)} />
             <Row
@@ -75,19 +73,23 @@ export function OrderDetail({ order }: { order: OrgOrderDetail }) {
             ) : null}
           </dl>
         </Section>
-        <Section title="Money">
+        <Section title={`Money (${order.currency})`}>
           <dl className="space-y-1">
             <Row label="Order total" value={money(order.total_minor)} />
             <Row label="Collected" value={money(order.collected_minor)} />
             <Row label="Refunded" value={money(order.refunded_minor)} />
             <Row
-              label="Still refundable"
+              label={
+                order.refund_status === "queued"
+                  ? "Still refundable (a refund is pending)"
+                  : "Still refundable"
+              }
               value={money(order.payment?.refundable_minor ?? 0)}
             />
             {order.payment ? (
               <Row
                 label="Payment"
-                value={`${order.payment.provider} · ${order.payment.status}`}
+                value={`${humanise(order.payment.provider)} · ${humanise(order.payment.status)}`}
               />
             ) : (
               <Row label="Payment" value="No online payment" />

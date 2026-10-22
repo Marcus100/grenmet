@@ -13,7 +13,7 @@ const ALREADY_WAITING = /already waiting/;
 const RE_1 = /Only an order that is awaiting payment/;
 const RE_2 = /nothing left to refund/i;
 const RE_3 = /Payment recorded/;
-const RE_4 = /Refund \$150\.00 to the buyer/;
+const RE_4 = /Refund XCD 150\.00 to the buyer/;
 const RE_5 = /between/;
 const RE_6 = /Follow the business policy/;
 const RE_7 = /at least 48 hours away/;
@@ -129,17 +129,23 @@ describe("manual payment", () => {
     expect(live("alert")).toMatch("again");
   });
 
-  it("uses a new key when the content changes after a fault", async () => {
+  it("locks the form after a fault, then uses a new key for new content once reloaded", async () => {
     vi.mocked(recordManualPayment).mockResolvedValue({
       ok: false,
       error: "boom",
       keepKey: true,
     });
-    render(<OrderActions order={pending} />);
+    const { rerender } = render(<OrderActions order={pending} />);
     const submit = screen.getByRole("button", { name: "Record payment" });
     fireEvent.click(submit);
     await waitFor(() => expect(recordManualPayment).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(submit).toBeEnabled());
+    expect(refresh).toHaveBeenCalled();
+    expect(
+      screen.getByRole("button", { name: "Bank transfer" })
+    ).toBeDisabled();
+    expect(screen.getByLabelText("Reference (optional)")).toBeDisabled();
+    rerender(<OrderActions order={{ ...pending }} />);
     fireEvent.click(screen.getByRole("button", { name: "Bank transfer" }));
     fireEvent.click(submit);
     await waitFor(() => expect(recordManualPayment).toHaveBeenCalledTimes(2));
@@ -147,6 +153,34 @@ describe("manual payment", () => {
       .mocked(recordManualPayment)
       .mock.calls.map(([call]) => call.idempotencyKey);
     expect(first).not.toBe(second);
+  });
+
+  it("keeps its outcome on screen after the refreshed order no longer allows it", async () => {
+    vi.mocked(recordManualPayment).mockResolvedValue({
+      ok: true,
+      data: makeOrderDetail(),
+    });
+    const { rerender } = render(<OrderActions order={pending} />);
+    fireEvent.click(screen.getByRole("button", { name: "Record payment" }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    rerender(<OrderActions order={makeOrderDetail()} />);
+    expect(
+      screen.queryByRole("button", { name: "Record payment" })
+    ).not.toBeInTheDocument();
+    expect(live("status")).toContain("Payment recorded");
+  });
+
+  it("says the result is unconfirmed when the action throws", async () => {
+    vi.mocked(recordManualPayment).mockRejectedValue(new Error("network"));
+    render(<OrderActions order={pending} />);
+    fireEvent.click(screen.getByRole("button", { name: "Record payment" }));
+    await waitFor(() =>
+      expect(live("alert")).toContain("We couldn't confirm this went through")
+    );
+    expect(refresh).toHaveBeenCalled();
+    expect(
+      screen.getByRole("button", { name: "Record payment" })
+    ).toBeEnabled();
   });
 });
 
@@ -176,7 +210,7 @@ describe("refund", () => {
     vi.mocked(refundOrder).mockResolvedValue({ ok: true, data: paid });
     render(<OrderActions order={paid} />);
     fireEvent.click(screen.getByRole("button", { name: "Partial amount" }));
-    fireEvent.change(screen.getByLabelText("Amount to refund"), {
+    fireEvent.change(screen.getByLabelText("Amount to refund (XCD)"), {
       target: { value: "25.50" },
     });
     fireEvent.change(screen.getByLabelText("Reason"), {
@@ -193,7 +227,7 @@ describe("refund", () => {
   it("refuses an amount above what is refundable, without calling the API", () => {
     render(<OrderActions order={paid} />);
     fireEvent.click(screen.getByRole("button", { name: "Partial amount" }));
-    fireEvent.change(screen.getByLabelText("Amount to refund"), {
+    fireEvent.change(screen.getByLabelText("Amount to refund (XCD)"), {
       target: { value: "999" },
     });
     fireEvent.change(screen.getByLabelText("Reason"), {
@@ -265,5 +299,73 @@ describe("cancel order", () => {
     );
     expect(screen.getByRole("radio", { name: RE_10 })).toBeChecked();
     expect(screen.getByRole("radio", { name: RE_8 })).toBeDisabled();
+  });
+});
+
+describe("pending card refund", () => {
+  it("disables the refund panel and says the refund is waiting", () => {
+    render(
+      <OrderActions order={makeOrderDetail({ refund_status: "queued" })} />
+    );
+    expect(
+      screen.getByText("A card refund is waiting for the payment provider.", {
+        exact: false,
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Review refund" })
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("outcomes persist across the refresh", () => {
+  it("keeps the cancel outcome once the order is cancelled", async () => {
+    vi.mocked(cancelOrder).mockResolvedValue({
+      ok: true,
+      data: { order: makeOrderDetail(), outcome: "kept" },
+    });
+    const { rerender } = render(<OrderActions order={makeOrderDetail()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Cancel order" }));
+    const buttons = await screen.findAllByRole("button", {
+      name: "Cancel order",
+    });
+    const confirm = buttons.at(-1);
+    if (confirm) {
+      fireEvent.click(confirm);
+    }
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    rerender(
+      <OrderActions
+        order={makeOrderDetail({ active_ticket_count: 0, refunded_minor: 0 })}
+      />
+    );
+    expect(
+      screen.getByText("This order is already cancelled or finished.")
+    ).toBeInTheDocument();
+    expect(live("status")).toContain("The money was kept");
+  });
+
+  it("keeps the refund outcome once nothing is left to refund", async () => {
+    vi.mocked(refundOrder).mockResolvedValue({
+      ok: true,
+      data: makeOrderDetail({ refund_status: "refunded" }),
+    });
+    const { rerender } = render(<OrderActions order={makeOrderDetail()} />);
+    fireEvent.change(screen.getByLabelText("Reason"), {
+      target: { value: "Buyer asked" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Review refund" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm refund" }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    rerender(
+      <OrderActions
+        order={makeOrderDetail({
+          status: "refunded",
+          refund_status: "refunded",
+          payment: null,
+        })}
+      />
+    );
+    expect(live("status")).toContain("Refund recorded");
   });
 });

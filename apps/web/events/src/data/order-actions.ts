@@ -1,6 +1,8 @@
 "use server";
 
 import {
+  type CancelResult,
+  eventsCancelEvent,
   eventsOrgCancelEvent,
   eventsOrgCancelOrder,
   eventsOrgRecordManualPayment,
@@ -13,6 +15,7 @@ import { z } from "zod";
 import { apiOptions } from "@/lib/api";
 import {
   type CancelCounts,
+  COULDNT_CONFIRM,
   friendlyOrgError,
   keepsKey,
   type RefundChoice,
@@ -20,6 +23,7 @@ import {
 import { reportError } from "@/lib/report-error";
 import { SIGN_IN_REQUIRED } from "./action-result";
 import { type OrgContext, resolveOrgContext } from "./org-context";
+import { chosenOrganiser } from "./organiser-choice";
 
 /**
  * Organiser money actions. Each one re-checks the session and resolves the
@@ -60,7 +64,8 @@ async function run<T>(
       headers: { "X-Barrels-Organisation": string };
     }
   ) => Promise<T>,
-  paths: readonly string[]
+  paths: readonly string[],
+  currency = "XCD"
 ): Promise<OrderActionResult<T>> {
   const context: OrgContext = await resolveOrgContext();
   if (!context.ok) {
@@ -88,12 +93,12 @@ async function run<T>(
     ) {
       const detail = detailOf(error);
       return refuse(
-        friendlyOrgError(error.status, detail),
+        friendlyOrgError(error.status, detail, currency),
         keepsKey(error.status, detail)
       );
     }
     reportError(error, "events-orders");
-    return refuse("Something went wrong. Try again shortly.", true);
+    return refuse(COULDNT_CONFIRM, true);
   }
 }
 
@@ -105,6 +110,12 @@ const paymentInput = z.object({
   method: z.enum(["cash", "bank_transfer"]),
   reference: z.string().trim().max(200),
 });
+
+/** Display only: the ISO code used to word an amount in an error message. */
+const currencyCode = z
+  .string()
+  .regex(/^[A-Z]{3}$/)
+  .optional();
 
 /** Staff received cash or a bank transfer for a waiting order; tickets issue now. */
 export async function recordManualPayment(
@@ -136,6 +147,7 @@ const refundInput = z.object({
   // Omitted means everything still refundable.
   amountMinor: z.number().int().min(1).max(1_000_000_000).optional(),
   reason: z.string().trim().min(3).max(500),
+  currency: currencyCode,
 });
 
 /** Hands money back for a paid online order: all of it or a part. */
@@ -148,7 +160,8 @@ export async function refundOrder(
       "Give a reason of at least 3 characters and an amount above zero."
     );
   }
-  const { orderId, idempotencyKey, amountMinor, reason } = parsed.data;
+  const { orderId, idempotencyKey, amountMinor, reason, currency } =
+    parsed.data;
   return await run(
     async (options) =>
       await eventsOrgRefundOrder({
@@ -160,7 +173,8 @@ export async function refundOrder(
         path: { order_id: orderId },
         body: { amount_minor: amountMinor ?? null, reason },
       }).unwrap(),
-    ORDER_PATHS
+    ORDER_PATHS,
+    currency
   );
 }
 
@@ -205,13 +219,32 @@ export async function cancelEventWithRefund(
   if (!parsed.success) {
     return refuse(CHECK_FORM);
   }
+  const { listingId: id, refund: choice } = parsed.data;
   return await run(
     async (options) => {
-      const result = await eventsOrgCancelEvent({
-        ...options,
-        path: { listing_id: parsed.data.listingId },
-        body: { confirm: true, refund: parsed.data.refund },
-      }).unwrap();
+      let result: CancelResult;
+      try {
+        result = await eventsOrgCancelEvent({
+          ...options,
+          path: { listing_id: id },
+          body: { confirm: true, refund: choice },
+        }).unwrap();
+      } catch (error) {
+        // The organisation key is stricter than the organiser access that could
+        // cancel before (organiser team members, `events.organiser.manage`).
+        // Those members must not be locked out: the organiser endpoint accepts
+        // the same refund choice and runs the same cancel.
+        if (!(error instanceof ResponseError && error.status === 403)) {
+          throw error;
+        }
+        const organiser = await chosenOrganiser();
+        result = await eventsCancelEvent({
+          client: options.client,
+          path: { listing_id: id },
+          query: organiser ? { organiser } : {},
+          body: { confirm: true, refund: choice },
+        }).unwrap();
+      }
       return {
         ticketsCancelled: result.tickets_cancelled,
         ordersRefunded: result.orders_refunded ?? 0,

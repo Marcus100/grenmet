@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { addMoney, formatMoney, money, subtractMoney, sumMoney } from "./money";
+import {
+  addMoney,
+  formatMoney,
+  money,
+  parseMinor,
+  subtractMoney,
+  sumMoney,
+} from "./money";
 
 const MIXED_CURRENCY_MESSAGE = /Cannot combine XCD with USD/;
 
@@ -61,4 +68,22 @@ describe("money arithmetic", () => {
       MIXED_CURRENCY_MESSAGE
     );
   });
+});
+
+describe("parseMinor separators and limits", () => {
+  it.each([
+    ["1,250.00", 125_000],
+    ["0.1", 10],
+    ["25", 2500],
+    ["1,250", 125_000],
+  ])("reads %s", (text, minor) => {
+    expect(parseMinor(text)).toBe(minor);
+  });
+
+  it.each(["10,50", "-5", "1,25", "12345678901234567890", "1,2500.00", ""])(
+    "refuses %s",
+    (text) => {
+      expect(parseMinor(text)).toBeNull();
+    }
+  );
 });

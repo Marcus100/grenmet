@@ -10,3 +10,16 @@ export function OrgUnavailable() {
     </p>
   );
 }
+
+/** The member's role in the organisation doesn't include this screen. */
+export function OrgForbidden({ what }: { what: string }) {
+  return (
+    <p
+      className="rounded-2xl border border-dashed bg-card px-4 py-8 text-center text-body text-muted-foreground"
+      role="status"
+    >
+      Your role in this organisation doesn't include {what}. Ask an owner or
+      admin to give you access.
+    </p>
+  );
+}
