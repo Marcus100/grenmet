@@ -12,4 +12,24 @@ export type CancelResult = {
   listing_id: string;
   status: "cancelled";
   tickets_cancelled: number;
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
+  orders_refunded?: number;
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
+  orders_kept?: number;
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
+  refunds_failed?: number;
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
+  orders_released?: number;
 };

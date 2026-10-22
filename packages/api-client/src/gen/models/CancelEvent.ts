@@ -3,6 +3,14 @@
  * Do not edit manually.
  */
 
+import type { CancelEventPropertiesRefundEnum } from "./CancelEventPropertiesRefundEnum.js";
+
 export type CancelEvent = {
   confirm: true;
+  /**
+   * @description What to do with money already paid for online orders.
+   * @default 'follow_policy'
+   * @type string | undefined
+   */
+  refund?: CancelEventPropertiesRefundEnum;
 };

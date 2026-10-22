@@ -5,8 +5,7 @@
 
 import * as z from "zod";
 
-export const outletTicketPropertiesStatusEnumSchema = z.enum([
-  "valid",
-  "cancelled",
-  "refunded",
+export const orgManualPaymentCreatePropertiesMethodEnumSchema = z.enum([
+  "cash",
+  "bank_transfer",
 ]);

@@ -778,7 +778,7 @@ async def get_settlement_csv(
     response_model=schemas.CancelResult,
     status_code=status.HTTP_200_OK,
     summary="Cancel an event",
-    description="Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. Outlet cash tickets can then be refunded.",
+    description="Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` or `follow_policy` (default; an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.",
     responses={**_ORGANISER, 409: {"description": "Not a published event"}},
 )
 async def cancel_event(
@@ -790,8 +790,9 @@ async def cancel_event(
     body: schemas.CancelEvent,
     organiser: _ManagedSlug = None,
 ) -> schemas.CancelResult:
-    _ = body
-    return await service.cancel_event(session, user, listing_id, scope, organiser)
+    return await service.cancel_event(
+        session, user, listing_id, scope, organiser, body.refund
+    )
 
 
 @router.post(

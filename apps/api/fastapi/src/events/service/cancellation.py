@@ -14,22 +14,34 @@ and a reference, and writes an activity row. A cash refund is linked to the
 refunding staff member's open till so settlement subtracts it from expected cash.
 """
 
+import logging
 import uuid
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.exceptions import AppException
 from src.utils.datetime import utc_now
 
-from .. import activity, outbox, schemas
+from .. import (
+    activity,
+    order_fulfilment,
+    order_payments,
+    order_refunds,
+    outbox,
+    schemas,
+)
 from ..exceptions import EventsConflict, EventsNotFound
-from ..models import Admission, Listing, Order, OrderItem, Refund, Ticket
+from ..models import Admission, Listing, Order, OrderItem, Organiser, Refund, Ticket
 from .admission import _door_listing
 from .common import _naive_utc
 from .outlet import _my_till, money, refund_views
 from .ticketing import cancel_valid_tickets
+
+logger = logging.getLogger(__name__)
 
 
 async def _locked_listing(
@@ -50,13 +62,107 @@ async def cancel_event(
     listing_id: uuid.UUID,
     org_ids: list[str],
     slug: str | None = None,
+    refund: str = "follow_policy",
 ) -> schemas.CancelResult:
     listing = await _locked_listing(db, user, listing_id, org_ids, slug)
+    return await cancel_locked_event(db, user, listing, refund)
+
+
+async def cancel_event_for_organisation(
+    db: AsyncSession,
+    user: User,
+    organisation_id: str,
+    listing_id: uuid.UUID,
+    refund: str = "follow_policy",
+) -> schemas.CancelResult:
+    """Org-zone cancel: the event must belong to the organiser of ``organisation_id``."""
+    listing = await db.scalar(
+        select(Listing)
+        .join(Organiser, Organiser.id == Listing.organiser_id)
+        .where(Listing.id == listing_id, Organiser.organisation_id == organisation_id)
+    )
+    if listing is None:
+        raise EventsNotFound("Event not found")
+    await db.refresh(listing, with_for_update=True)
+    return await cancel_locked_event(db, user, listing, refund)
+
+
+async def _settle_orders(
+    db: AsyncSession,
+    user: User,
+    listing: Listing,
+    refund: str,
+    now: datetime,
+) -> dict[str, int]:
+    """Money side of a cancelled event: online orders only (outlet cash is handed
+    back by hand, ticket by ticket). The listing row is locked and already marked
+    cancelled. A failed refund is counted and left for the orders page; it never
+    undoes the cancel."""
+    counts = {"refunded": 0, "kept": 0, "failed": 0, "released": 0}
+    organisation_id = await db.scalar(
+        select(Organiser.organisation_id).where(Organiser.id == listing.organiser_id)
+    )
+    if organisation_id is None:
+        return counts
+    orders = list(
+        await db.scalars(
+            select(Order)
+            .where(
+                Order.listing_id == listing.id,
+                Order.channel == "online",
+                Order.payment_method == "online",
+                Order.status.in_(("confirmed", order_fulfilment.PENDING)),
+            )
+            .order_by(Order.id)
+            .with_for_update()
+        )
+    )
+    for order in orders:
+        try:
+            async with db.begin_nested():
+                if order.status == order_fulfilment.PENDING:
+                    unpaid = await order_payments.stop_collecting(
+                        db, organisation_id=organisation_id, order_id=order.id
+                    )
+                    if unpaid:
+                        order.status = "expired"
+                        counts["released"] += 1
+                    # else: the payment just landed; the paid reaction refunds it.
+                    continue
+                if order.collected_minor - order.refunded_minor <= 0:
+                    continue
+                if not order_refunds.should_refund(
+                    refund, event_cancelled=True, starts_at=listing.starts_at, now=now
+                ):
+                    counts["kept"] += 1
+                    continue
+                await order_refunds.refund_order(
+                    db,
+                    organisation_id=organisation_id,
+                    order=order,
+                    actor=user,
+                    reason="Event cancelled by the organiser",
+                )
+                counts["refunded"] += 1
+        except AppException as error:
+            logger.warning(
+                "event order refund failed on cancel",
+                extra={"order_id": str(order.id), "reason": error.message},
+            )
+            counts["failed"] += 1
+    return counts
+
+
+async def cancel_locked_event(
+    db: AsyncSession, user: User, listing: Listing, refund: str
+) -> schemas.CancelResult:
+    now = utc_now()
     if listing.status != "published":
         raise EventsConflict("Only a published event can be cancelled")
     listing.status = "cancelled"
     listing.updated_at = utc_now()
     cancelled = await cancel_valid_tickets(db, listing.id)
+    money = await _settle_orders(db, user, listing, refund, now)
     key = str(listing.id)
     await outbox.enqueue(
         db,
@@ -81,11 +187,20 @@ async def cancel_event(
             "from": {"status": "published"},
             "to": {"status": "cancelled"},
             "tickets_cancelled": cancelled,
+            "refund": refund,
+            "orders_refunded": money["refunded"],
+            "refunds_failed": money["failed"],
         },
     )
     await db.commit()
     return schemas.CancelResult(
-        listing_id=listing.id, status="cancelled", tickets_cancelled=cancelled
+        listing_id=listing.id,
+        status="cancelled",
+        tickets_cancelled=cancelled,
+        orders_refunded=money["refunded"],
+        orders_kept=money["kept"],
+        refunds_failed=money["failed"],
+        orders_released=money["released"],
     )
 
 

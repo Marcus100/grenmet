@@ -577,6 +577,24 @@ without a reference, a ticket already refunded or cancelled by its holder, or a 
 the event was cancelled. Ticket `status` can now be `refunded`; refunded tickets are not
 admitted. The settlement report lists `refunds` and per-channel `refunded`/`refunded_minor`.
 
+### Events organiser orders (org zone)
+
+`/events/org/*` acts for the organisation in `X-Barrels-Organisation` (active admin or owner,
+account or Events app session, `events` entitlement; another organisation's event or order is
+404). `GET /events/org/events/{id}/orders` (`status`, `page`, `size`), `GET .../attendees`
+(`status`, `tier_id`) and `GET /events/org/orders/{id}` read the desk.
+`POST /events/org/orders/{id}/manual-payments` (`{method: "cash"|"bank_transfer", reference?}`,
+`Idempotency-Key` required, 201) records money received for a `pending_payment` order and issues
+its tickets at once; `POST .../refunds` (`{amount_minor?, reason}`, `Idempotency-Key` required)
+hands money back through the payments core (a full refund cancels the tickets). Both replay the
+first answer with `Idempotency-Replayed: true`. Cancelling takes `refund`: `full`, `none` or
+`follow_policy` (default). `POST /events/org/orders/{id}/cancel` (`{reason?, refund}`) cancels one
+order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUTOFF_HOURS`
+(default 48) away; a failed refund aborts the cancel; outlet cash orders cancel only with `none`.
+`POST /events/org/events/{id}/cancel` and the existing `POST /events/manage/{id}/cancel` (new
+optional `refund`) cancel an event; `follow_policy` refunds paid online orders in full, releases
+unpaid ones and reports `orders_refunded`, `orders_kept`, `refunds_failed`, `orders_released`.
+
 ## Platform foundations (PF-series, 2026-10-20)
 
 Shared APIs for every Barrels app. Zones follow ADR-0025.

@@ -715,9 +715,20 @@ class SettlementOverview(BaseModel):
 # --- Cancel, postpone and refund (E5) ---------------------------------------------------
 
 
+#: What happens to money already paid when an organiser cancels. ``full`` hands
+#: everything back, ``none`` keeps it, ``follow_policy`` applies the organiser's
+#: refund policy (an event the organiser cancels is refunded in full; a single
+#: order is refunded when the event is at least the policy cutoff away).
+RefundChoice = Literal["full", "none", "follow_policy"]
+
+
 class CancelEvent(BaseModel):
     #: Must be true; guards against an accidental call.
     confirm: Literal[True]
+    refund: RefundChoice = Field(
+        default="follow_policy",
+        description="What to do with money already paid for online orders.",
+    )
 
 
 class CancelResult(BaseModel):
@@ -725,8 +736,133 @@ class CancelResult(BaseModel):
     status: Literal["cancelled"]
     #: Valid tickets cancelled with the event (holders are notified).
     tickets_cancelled: int
+    #: Paid online orders refunded in full by this cancel.
+    orders_refunded: int = 0
+    #: Paid online orders whose money was kept (refund choice ``none``).
+    orders_kept: int = 0
+    #: Paid online orders whose refund failed; refund them from the orders page.
+    refunds_failed: int = 0
+    #: Unpaid orders released because the event is off.
+    orders_released: int = 0
 
 
 class PostponeEvent(BaseModel):
     starts_at: UtcDateTime
     ends_at: UtcDateTime
+
+
+# --- Organiser orders (org zone) ----------------------------------------------------
+
+OrgOrderStatus = Literal["confirmed", "pending_payment", "expired", "refunded"]
+OrgTicketStatus = Literal["valid", "cancelled", "refunded"]
+
+
+class OrgOrderRow(BaseModel):
+    id: uuid.UUID
+    listing_id: uuid.UUID
+    status: OrgOrderStatus
+    channel: Literal["online", "outlet"]
+    payment_method: Literal["none", "cash_outlet", "online"]
+    buyer_name: str | None
+    total_minor: int
+    currency: str
+    collected_minor: int
+    refunded_minor: int
+    #: All tickets on the order, including cancelled and refunded ones.
+    ticket_count: int
+    #: Tickets that still work (valid): 0 after a cancel that kept the money.
+    active_ticket_count: int
+    created_at: UtcDateTime
+    paid_at: UtcDateTime | None
+
+
+class OrgOrderList(BaseModel):
+    data: list[OrgOrderRow]
+    count: int
+    page: int
+    size: int
+
+
+class OrgOrderItem(BaseModel):
+    tier_id: uuid.UUID
+    tier_name: str
+    quantity: int
+    unit_price_minor: int
+
+
+class OrgOrderTicket(BaseModel):
+    id: uuid.UUID
+    code: str
+    status: OrgTicketStatus
+    tier_name: str
+    admitted_at: UtcDateTime | None
+
+
+class OrgOrderPayment(BaseModel):
+    intent_id: uuid.UUID
+    provider: str
+    status: str
+    captured_minor: int
+    refunded_minor: int
+    #: What can still be handed back through the payments core.
+    refundable_minor: int
+
+
+class OrgOrderDetail(OrgOrderRow):
+    listing_title: str
+    buyer_email: str | None
+    buyer_phone: str | None
+    payment_expires_at: UtcDateTime | None
+    items: list[OrgOrderItem]
+    tickets: list[OrgOrderTicket]
+    payment: OrgOrderPayment | None
+
+
+class OrgAttendee(BaseModel):
+    ticket_id: uuid.UUID
+    order_id: uuid.UUID
+    code: str
+    status: OrgTicketStatus
+    tier_id: uuid.UUID
+    tier_name: str
+    holder_name: str | None
+    channel: Literal["online", "outlet"]
+    admitted_at: UtcDateTime | None
+
+
+class OrgAttendeeList(BaseModel):
+    data: list[OrgAttendee]
+    count: int
+    page: int
+    size: int
+
+
+class OrgManualPaymentCreate(BaseModel):
+    method: Literal["cash", "bank_transfer"]
+    reference: str | None = Field(
+        default=None, max_length=200, description="Receipt or transfer number."
+    )
+
+
+class OrgOrderRefundCreate(BaseModel):
+    amount_minor: int | None = Field(
+        default=None,
+        ge=1,
+        le=1_000_000_000,
+        description="Defaults to everything still refundable.",
+    )
+    reason: str = Field(min_length=3, max_length=500)
+
+
+class OrgOrderCancel(BaseModel):
+    reason: str | None = Field(default=None, max_length=300)
+    refund: RefundChoice = Field(
+        default="follow_policy",
+        description="What to do with money already paid for this order.",
+    )
+
+
+class OrgOrderCancelResult(BaseModel):
+    order: OrgOrderDetail
+    #: ``refunded`` money went back, ``kept`` it was not, ``not_due`` nothing was paid.
+    refund_outcome: Literal["refunded", "kept", "not_due"]

@@ -232,6 +232,13 @@ export { eventsListSuggestions } from "./clients/eventsListSuggestions.js";
 export { eventsListThreads } from "./clients/eventsListThreads.js";
 export { eventsOpenThread } from "./clients/eventsOpenThread.js";
 export { eventsOpenTill } from "./clients/eventsOpenTill.js";
+export { eventsOrgCancelEvent } from "./clients/eventsOrgCancelEvent.js";
+export { eventsOrgCancelOrder } from "./clients/eventsOrgCancelOrder.js";
+export { eventsOrgGetOrder } from "./clients/eventsOrgGetOrder.js";
+export { eventsOrgListAttendees } from "./clients/eventsOrgListAttendees.js";
+export { eventsOrgListOrders } from "./clients/eventsOrgListOrders.js";
+export { eventsOrgRecordManualPayment } from "./clients/eventsOrgRecordManualPayment.js";
+export { eventsOrgRefundOrder } from "./clients/eventsOrgRefundOrder.js";
 export { eventsPostponeEvent } from "./clients/eventsPostponeEvent.js";
 export { eventsRefundTicket } from "./clients/eventsRefundTicket.js";
 export { eventsRemoveConnection } from "./clients/eventsRemoveConnection.js";
@@ -1788,6 +1795,41 @@ export {
   eventsOpenTillMutationOptions,
   useEventsOpenTill,
 } from "./hooks/useEventsOpenTill.js";
+export {
+  eventsOrgCancelEventMutationKey,
+  eventsOrgCancelEventMutationOptions,
+  useEventsOrgCancelEvent,
+} from "./hooks/useEventsOrgCancelEvent.js";
+export {
+  eventsOrgCancelOrderMutationKey,
+  eventsOrgCancelOrderMutationOptions,
+  useEventsOrgCancelOrder,
+} from "./hooks/useEventsOrgCancelOrder.js";
+export {
+  eventsOrgGetOrderQueryKey,
+  eventsOrgGetOrderQueryOptions,
+  useEventsOrgGetOrder,
+} from "./hooks/useEventsOrgGetOrder.js";
+export {
+  eventsOrgListAttendeesQueryKey,
+  eventsOrgListAttendeesQueryOptions,
+  useEventsOrgListAttendees,
+} from "./hooks/useEventsOrgListAttendees.js";
+export {
+  eventsOrgListOrdersQueryKey,
+  eventsOrgListOrdersQueryOptions,
+  useEventsOrgListOrders,
+} from "./hooks/useEventsOrgListOrders.js";
+export {
+  eventsOrgRecordManualPaymentMutationKey,
+  eventsOrgRecordManualPaymentMutationOptions,
+  useEventsOrgRecordManualPayment,
+} from "./hooks/useEventsOrgRecordManualPayment.js";
+export {
+  eventsOrgRefundOrderMutationKey,
+  eventsOrgRefundOrderMutationOptions,
+  useEventsOrgRefundOrder,
+} from "./hooks/useEventsOrgRefundOrder.js";
 export {
   eventsPostponeEventMutationKey,
   eventsPostponeEventMutationOptions,
@@ -5391,6 +5433,8 @@ export type { CalendarEventPublic } from "./models/CalendarEventPublic.js";
 export type { CalendarEventsPublic } from "./models/CalendarEventsPublic.js";
 export type { CalendarEventUpdate } from "./models/CalendarEventUpdate.js";
 export type { CancelEvent } from "./models/CancelEvent.js";
+export type { CancelEventPropertiesRefundEnum } from "./models/CancelEventPropertiesRefundEnum.js";
+export { cancelEventPropertiesRefundEnum } from "./models/CancelEventPropertiesRefundEnum.js";
 export type { CancelResult } from "./models/CancelResult.js";
 export type { CapAlertAction } from "./models/CapAlertAction.js";
 export type { CapAlertCreate } from "./models/CapAlertCreate.js";
@@ -6715,6 +6759,104 @@ export type {
   EventsOpenTillStatus422,
   EventsOpenTillStatus429,
 } from "./models/EventsOpenTill.js";
+export type {
+  EventsOrgCancelEventBody,
+  EventsOrgCancelEventHeaders,
+  EventsOrgCancelEventOptions,
+  EventsOrgCancelEventPath,
+  EventsOrgCancelEventResponse,
+  EventsOrgCancelEventResponses,
+  EventsOrgCancelEventStatus200,
+  EventsOrgCancelEventStatus400,
+  EventsOrgCancelEventStatus401,
+  EventsOrgCancelEventStatus403,
+  EventsOrgCancelEventStatus404,
+  EventsOrgCancelEventStatus409,
+  EventsOrgCancelEventStatus422,
+} from "./models/EventsOrgCancelEvent.js";
+export type {
+  EventsOrgCancelOrderBody,
+  EventsOrgCancelOrderHeaders,
+  EventsOrgCancelOrderOptions,
+  EventsOrgCancelOrderPath,
+  EventsOrgCancelOrderResponse,
+  EventsOrgCancelOrderResponses,
+  EventsOrgCancelOrderStatus200,
+  EventsOrgCancelOrderStatus400,
+  EventsOrgCancelOrderStatus401,
+  EventsOrgCancelOrderStatus403,
+  EventsOrgCancelOrderStatus404,
+  EventsOrgCancelOrderStatus409,
+  EventsOrgCancelOrderStatus422,
+} from "./models/EventsOrgCancelOrder.js";
+export type {
+  EventsOrgGetOrderHeaders,
+  EventsOrgGetOrderOptions,
+  EventsOrgGetOrderPath,
+  EventsOrgGetOrderResponse,
+  EventsOrgGetOrderResponses,
+  EventsOrgGetOrderStatus200,
+  EventsOrgGetOrderStatus401,
+  EventsOrgGetOrderStatus403,
+  EventsOrgGetOrderStatus404,
+  EventsOrgGetOrderStatus422,
+} from "./models/EventsOrgGetOrder.js";
+export type {
+  EventsOrgListAttendeesHeaders,
+  EventsOrgListAttendeesOptions,
+  EventsOrgListAttendeesPath,
+  EventsOrgListAttendeesQuery,
+  EventsOrgListAttendeesResponse,
+  EventsOrgListAttendeesResponses,
+  EventsOrgListAttendeesStatus200,
+  EventsOrgListAttendeesStatus401,
+  EventsOrgListAttendeesStatus403,
+  EventsOrgListAttendeesStatus404,
+  EventsOrgListAttendeesStatus422,
+} from "./models/EventsOrgListAttendees.js";
+export type {
+  EventsOrgListOrdersHeaders,
+  EventsOrgListOrdersOptions,
+  EventsOrgListOrdersPath,
+  EventsOrgListOrdersQuery,
+  EventsOrgListOrdersResponse,
+  EventsOrgListOrdersResponses,
+  EventsOrgListOrdersStatus200,
+  EventsOrgListOrdersStatus401,
+  EventsOrgListOrdersStatus403,
+  EventsOrgListOrdersStatus404,
+  EventsOrgListOrdersStatus422,
+} from "./models/EventsOrgListOrders.js";
+export type {
+  EventsOrgRecordManualPaymentBody,
+  EventsOrgRecordManualPaymentHeaders,
+  EventsOrgRecordManualPaymentOptions,
+  EventsOrgRecordManualPaymentPath,
+  EventsOrgRecordManualPaymentResponse,
+  EventsOrgRecordManualPaymentResponses,
+  EventsOrgRecordManualPaymentStatus201,
+  EventsOrgRecordManualPaymentStatus400,
+  EventsOrgRecordManualPaymentStatus401,
+  EventsOrgRecordManualPaymentStatus403,
+  EventsOrgRecordManualPaymentStatus404,
+  EventsOrgRecordManualPaymentStatus409,
+  EventsOrgRecordManualPaymentStatus422,
+} from "./models/EventsOrgRecordManualPayment.js";
+export type {
+  EventsOrgRefundOrderBody,
+  EventsOrgRefundOrderHeaders,
+  EventsOrgRefundOrderOptions,
+  EventsOrgRefundOrderPath,
+  EventsOrgRefundOrderResponse,
+  EventsOrgRefundOrderResponses,
+  EventsOrgRefundOrderStatus201,
+  EventsOrgRefundOrderStatus400,
+  EventsOrgRefundOrderStatus401,
+  EventsOrgRefundOrderStatus403,
+  EventsOrgRefundOrderStatus404,
+  EventsOrgRefundOrderStatus409,
+  EventsOrgRefundOrderStatus422,
+} from "./models/EventsOrgRefundOrder.js";
 export type {
   EventsPostponeEventBody,
   EventsPostponeEventOptions,
@@ -9312,6 +9454,10 @@ export type { OrderItemInput } from "./models/OrderItemInput.js";
 export type { OrderPublic } from "./models/OrderPublic.js";
 export type { OrderPublicPropertiesStatusEnum } from "./models/OrderPublicPropertiesStatusEnum.js";
 export { orderPublicPropertiesStatusEnum } from "./models/OrderPublicPropertiesStatusEnum.js";
+export type { OrgAttendee } from "./models/OrgAttendee.js";
+export type { OrgAttendeeList } from "./models/OrgAttendeeList.js";
+export type { OrgAttendeePropertiesStatusEnum } from "./models/OrgAttendeePropertiesStatusEnum.js";
+export { orgAttendeePropertiesStatusEnum } from "./models/OrgAttendeePropertiesStatusEnum.js";
 export type { OrganisationAdminDetail } from "./models/OrganisationAdminDetail.js";
 export type { OrganisationAdminListPublic } from "./models/OrganisationAdminListPublic.js";
 export type { OrganisationAdminPublic } from "./models/OrganisationAdminPublic.js";
@@ -9735,13 +9881,27 @@ export type { OrganiserLogoUpdate } from "./models/OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./models/OrganiserOption.js";
 export type { OrganiserPublic } from "./models/OrganiserPublic.js";
 export type { OrganiserReview } from "./models/OrganiserReview.js";
+export type { OrgManualPaymentCreate } from "./models/OrgManualPaymentCreate.js";
+export type { OrgManualPaymentCreatePropertiesMethodEnum } from "./models/OrgManualPaymentCreatePropertiesMethodEnum.js";
+export { orgManualPaymentCreatePropertiesMethodEnum } from "./models/OrgManualPaymentCreatePropertiesMethodEnum.js";
+export type { OrgOrderCancel } from "./models/OrgOrderCancel.js";
+export type { OrgOrderCancelResult } from "./models/OrgOrderCancelResult.js";
+export type { OrgOrderCancelResultPropertiesRefundOutcomeEnum } from "./models/OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
+export { orgOrderCancelResultPropertiesRefundOutcomeEnum } from "./models/OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
+export type { OrgOrderDetail } from "./models/OrgOrderDetail.js";
+export type { OrgOrderDetailPropertiesPaymentMethodEnum } from "./models/OrgOrderDetailPropertiesPaymentMethodEnum.js";
+export { orgOrderDetailPropertiesPaymentMethodEnum } from "./models/OrgOrderDetailPropertiesPaymentMethodEnum.js";
+export type { OrgOrderItem } from "./models/OrgOrderItem.js";
+export type { OrgOrderList } from "./models/OrgOrderList.js";
+export type { OrgOrderPayment } from "./models/OrgOrderPayment.js";
+export type { OrgOrderRefundCreate } from "./models/OrgOrderRefundCreate.js";
+export type { OrgOrderRow } from "./models/OrgOrderRow.js";
+export type { OrgOrderTicket } from "./models/OrgOrderTicket.js";
 export type { OutletItemInput } from "./models/OutletItemInput.js";
 export type { OutletOverview } from "./models/OutletOverview.js";
 export type { OutletSale } from "./models/OutletSale.js";
 export type { OutletSaleCreate } from "./models/OutletSaleCreate.js";
 export type { OutletTicket } from "./models/OutletTicket.js";
-export type { OutletTicketPropertiesStatusEnum } from "./models/OutletTicketPropertiesStatusEnum.js";
-export { outletTicketPropertiesStatusEnum } from "./models/OutletTicketPropertiesStatusEnum.js";
 export type { OutletTierStock } from "./models/OutletTierStock.js";
 export type { OutlookProductPreview } from "./models/OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./models/OutlookProductPreviewInput.js";
@@ -13470,6 +13630,7 @@ export { calendarEventKindSchema } from "./zod/calendarEventKindSchema.js";
 export { calendarEventPublicSchema } from "./zod/calendarEventPublicSchema.js";
 export { calendarEventsPublicSchema } from "./zod/calendarEventsPublicSchema.js";
 export { calendarEventUpdateSchema } from "./zod/calendarEventUpdateSchema.js";
+export { cancelEventPropertiesRefundEnumSchema } from "./zod/cancelEventPropertiesRefundEnumSchema.js";
 export { cancelEventSchema } from "./zod/cancelEventSchema.js";
 export { cancelResultSchema } from "./zod/cancelResultSchema.js";
 export { capAlertActionSchema } from "./zod/capAlertActionSchema.js";
@@ -14679,6 +14840,104 @@ export {
   eventsOpenTillStatus422Schema,
   eventsOpenTillStatus429Schema,
 } from "./zod/eventsOpenTillSchema.js";
+export {
+  eventsOrgCancelEventBodySchema,
+  eventsOrgCancelEventErrorSchema,
+  eventsOrgCancelEventHeaderXBarrelsOrganisationSchema,
+  eventsOrgCancelEventPathListingIdSchema,
+  eventsOrgCancelEventResponseSchema,
+  eventsOrgCancelEventStatus200Schema,
+  eventsOrgCancelEventStatus400Schema,
+  eventsOrgCancelEventStatus401Schema,
+  eventsOrgCancelEventStatus403Schema,
+  eventsOrgCancelEventStatus404Schema,
+  eventsOrgCancelEventStatus409Schema,
+  eventsOrgCancelEventStatus422Schema,
+} from "./zod/eventsOrgCancelEventSchema.js";
+export {
+  eventsOrgCancelOrderBodySchema,
+  eventsOrgCancelOrderErrorSchema,
+  eventsOrgCancelOrderHeaderXBarrelsOrganisationSchema,
+  eventsOrgCancelOrderPathOrderIdSchema,
+  eventsOrgCancelOrderResponseSchema,
+  eventsOrgCancelOrderStatus200Schema,
+  eventsOrgCancelOrderStatus400Schema,
+  eventsOrgCancelOrderStatus401Schema,
+  eventsOrgCancelOrderStatus403Schema,
+  eventsOrgCancelOrderStatus404Schema,
+  eventsOrgCancelOrderStatus409Schema,
+  eventsOrgCancelOrderStatus422Schema,
+} from "./zod/eventsOrgCancelOrderSchema.js";
+export {
+  eventsOrgGetOrderErrorSchema,
+  eventsOrgGetOrderHeaderXBarrelsOrganisationSchema,
+  eventsOrgGetOrderPathOrderIdSchema,
+  eventsOrgGetOrderResponseSchema,
+  eventsOrgGetOrderStatus200Schema,
+  eventsOrgGetOrderStatus401Schema,
+  eventsOrgGetOrderStatus403Schema,
+  eventsOrgGetOrderStatus404Schema,
+  eventsOrgGetOrderStatus422Schema,
+} from "./zod/eventsOrgGetOrderSchema.js";
+export {
+  eventsOrgListAttendeesErrorSchema,
+  eventsOrgListAttendeesHeaderXBarrelsOrganisationSchema,
+  eventsOrgListAttendeesPathListingIdSchema,
+  eventsOrgListAttendeesQueryPageSchema,
+  eventsOrgListAttendeesQuerySizeSchema,
+  eventsOrgListAttendeesQueryStatusSchema,
+  eventsOrgListAttendeesQueryTierIdSchema,
+  eventsOrgListAttendeesResponseSchema,
+  eventsOrgListAttendeesStatus200Schema,
+  eventsOrgListAttendeesStatus401Schema,
+  eventsOrgListAttendeesStatus403Schema,
+  eventsOrgListAttendeesStatus404Schema,
+  eventsOrgListAttendeesStatus422Schema,
+} from "./zod/eventsOrgListAttendeesSchema.js";
+export {
+  eventsOrgListOrdersErrorSchema,
+  eventsOrgListOrdersHeaderXBarrelsOrganisationSchema,
+  eventsOrgListOrdersPathListingIdSchema,
+  eventsOrgListOrdersQueryPageSchema,
+  eventsOrgListOrdersQuerySizeSchema,
+  eventsOrgListOrdersQueryStatusSchema,
+  eventsOrgListOrdersResponseSchema,
+  eventsOrgListOrdersStatus200Schema,
+  eventsOrgListOrdersStatus401Schema,
+  eventsOrgListOrdersStatus403Schema,
+  eventsOrgListOrdersStatus404Schema,
+  eventsOrgListOrdersStatus422Schema,
+} from "./zod/eventsOrgListOrdersSchema.js";
+export {
+  eventsOrgRecordManualPaymentBodySchema,
+  eventsOrgRecordManualPaymentErrorSchema,
+  eventsOrgRecordManualPaymentHeaderIdempotencyKeySchema,
+  eventsOrgRecordManualPaymentHeaderXBarrelsOrganisationSchema,
+  eventsOrgRecordManualPaymentPathOrderIdSchema,
+  eventsOrgRecordManualPaymentResponseSchema,
+  eventsOrgRecordManualPaymentStatus201Schema,
+  eventsOrgRecordManualPaymentStatus400Schema,
+  eventsOrgRecordManualPaymentStatus401Schema,
+  eventsOrgRecordManualPaymentStatus403Schema,
+  eventsOrgRecordManualPaymentStatus404Schema,
+  eventsOrgRecordManualPaymentStatus409Schema,
+  eventsOrgRecordManualPaymentStatus422Schema,
+} from "./zod/eventsOrgRecordManualPaymentSchema.js";
+export {
+  eventsOrgRefundOrderBodySchema,
+  eventsOrgRefundOrderErrorSchema,
+  eventsOrgRefundOrderHeaderIdempotencyKeySchema,
+  eventsOrgRefundOrderHeaderXBarrelsOrganisationSchema,
+  eventsOrgRefundOrderPathOrderIdSchema,
+  eventsOrgRefundOrderResponseSchema,
+  eventsOrgRefundOrderStatus201Schema,
+  eventsOrgRefundOrderStatus400Schema,
+  eventsOrgRefundOrderStatus401Schema,
+  eventsOrgRefundOrderStatus403Schema,
+  eventsOrgRefundOrderStatus404Schema,
+  eventsOrgRefundOrderStatus409Schema,
+  eventsOrgRefundOrderStatus422Schema,
+} from "./zod/eventsOrgRefundOrderSchema.js";
 export {
   eventsPostponeEventBodySchema,
   eventsPostponeEventErrorSchema,
@@ -17063,6 +17322,9 @@ export { orderCreateSchema } from "./zod/orderCreateSchema.js";
 export { orderItemInputSchema } from "./zod/orderItemInputSchema.js";
 export { orderPublicPropertiesStatusEnumSchema } from "./zod/orderPublicPropertiesStatusEnumSchema.js";
 export { orderPublicSchema } from "./zod/orderPublicSchema.js";
+export { orgAttendeeListSchema } from "./zod/orgAttendeeListSchema.js";
+export { orgAttendeePropertiesStatusEnumSchema } from "./zod/orgAttendeePropertiesStatusEnumSchema.js";
+export { orgAttendeeSchema } from "./zod/orgAttendeeSchema.js";
 export { organisationAdminDetailSchema } from "./zod/organisationAdminDetailSchema.js";
 export { organisationAdminListPublicSchema } from "./zod/organisationAdminListPublicSchema.js";
 export { organisationAdminPublicSchema } from "./zod/organisationAdminPublicSchema.js";
@@ -17466,11 +17728,23 @@ export { organiserLogoUpdateSchema } from "./zod/organiserLogoUpdateSchema.js";
 export { organiserOptionSchema } from "./zod/organiserOptionSchema.js";
 export { organiserPublicSchema } from "./zod/organiserPublicSchema.js";
 export { organiserReviewSchema } from "./zod/organiserReviewSchema.js";
+export { orgManualPaymentCreatePropertiesMethodEnumSchema } from "./zod/orgManualPaymentCreatePropertiesMethodEnumSchema.js";
+export { orgManualPaymentCreateSchema } from "./zod/orgManualPaymentCreateSchema.js";
+export { orgOrderCancelResultPropertiesRefundOutcomeEnumSchema } from "./zod/orgOrderCancelResultPropertiesRefundOutcomeEnumSchema.js";
+export { orgOrderCancelResultSchema } from "./zod/orgOrderCancelResultSchema.js";
+export { orgOrderCancelSchema } from "./zod/orgOrderCancelSchema.js";
+export { orgOrderDetailPropertiesPaymentMethodEnumSchema } from "./zod/orgOrderDetailPropertiesPaymentMethodEnumSchema.js";
+export { orgOrderDetailSchema } from "./zod/orgOrderDetailSchema.js";
+export { orgOrderItemSchema } from "./zod/orgOrderItemSchema.js";
+export { orgOrderListSchema } from "./zod/orgOrderListSchema.js";
+export { orgOrderPaymentSchema } from "./zod/orgOrderPaymentSchema.js";
+export { orgOrderRefundCreateSchema } from "./zod/orgOrderRefundCreateSchema.js";
+export { orgOrderRowSchema } from "./zod/orgOrderRowSchema.js";
+export { orgOrderTicketSchema } from "./zod/orgOrderTicketSchema.js";
 export { outletItemInputSchema } from "./zod/outletItemInputSchema.js";
 export { outletOverviewSchema } from "./zod/outletOverviewSchema.js";
 export { outletSaleCreateSchema } from "./zod/outletSaleCreateSchema.js";
 export { outletSaleSchema } from "./zod/outletSaleSchema.js";
-export { outletTicketPropertiesStatusEnumSchema } from "./zod/outletTicketPropertiesStatusEnumSchema.js";
 export { outletTicketSchema } from "./zod/outletTicketSchema.js";
 export { outletTierStockSchema } from "./zod/outletTierStockSchema.js";
 export { outlookProductPreviewInputSchema } from "./zod/outlookProductPreviewInputSchema.js";
