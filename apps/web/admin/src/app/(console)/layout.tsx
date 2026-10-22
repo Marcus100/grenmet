@@ -49,6 +49,12 @@ export default async function ConsoleLayout({
             <Link className="underline-offset-4 hover:underline" href="/flags">
               Flags
             </Link>
+            <Link
+              className="underline-offset-4 hover:underline"
+              href="/moderation"
+            >
+              Moderation
+            </Link>
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm">
             <span className="text-muted-foreground">{gate.email}</span>
