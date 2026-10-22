@@ -13,6 +13,7 @@ import {
   textLinkClass,
 } from "@/components/form-styles";
 import { PasswordField } from "@/components/password-field";
+import { useHydrated } from "@/lib/use-hydrated";
 
 export function SignUpForm() {
   const [state, formAction, pending] = useActionState(
@@ -29,6 +30,8 @@ export function SignUpForm() {
       formAction(data);
     });
   }
+
+  const hydrated = useHydrated();
 
   if (state.success) {
     return (
@@ -148,7 +151,11 @@ export function SignUpForm() {
         placeholder="Repeat your password"
       />
 
-      <button className={primaryButtonClass} disabled={pending} type="submit">
+      <button
+        className={primaryButtonClass}
+        disabled={pending || !hydrated}
+        type="submit"
+      >
         {pending ? "Creating account…" : "Create account"}
       </button>
 

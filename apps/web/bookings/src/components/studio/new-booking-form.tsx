@@ -27,6 +27,7 @@ import { createBookingAction } from "@/app/studio/[orgSlug]/bookings/new/actions
 import { keepValuesOnSubmit } from "@/lib/keep-values";
 import { IDLE } from "@/lib/studio-action-state";
 import { rotatesKey } from "@/lib/studio-view";
+import { useHydrated } from "@/lib/use-hydrated";
 
 const SELECT = "w-full [&_select]:h-11";
 const INPUT = "h-11";
@@ -57,6 +58,7 @@ export function NewBookingForm({
   // a used key. Empty until then; Save stays off until it exists.
   const [key, setKey] = useState("");
   const errorRef = useRef<HTMLDivElement>(null);
+  const hydrated = useHydrated();
 
   useEffect(() => {
     setKey(crypto.randomUUID());
@@ -228,7 +230,7 @@ export function NewBookingForm({
       </p>
       <Button
         className="min-h-11 w-full sm:w-auto"
-        disabled={pending || key === "" || offered.length === 0}
+        disabled={pending || !hydrated || key === "" || offered.length === 0}
         size="touch"
         type="submit"
       >
