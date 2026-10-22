@@ -136,6 +136,12 @@ export const NOT_FOUND_TEAM =
 export const CHANGED_TOGETHER =
   "Roles for this member changed at the same time. Reload the page and check before trying again.";
 
+/** The API's refusal when the caller may not touch an owner's membership. */
+export const OWNER_TOUCH_REFUSED =
+  "Your role in this organisation does not allow this";
+export const OWNER_ONLY_REMOVE =
+  "Only an owner can remove an owner. Ask an owner to do this.";
+
 /** API refusals whose own wording is already plain; shown as sent. */
 const KNOWN_DETAILS: ReadonlySet<string> = new Set([
   "You cannot change your own roles",
@@ -144,8 +150,7 @@ const KNOWN_DETAILS: ReadonlySet<string> = new Set([
   "This grant cannot outlast your own access to the role",
   "A grant must expire in the future",
   "Your roles in this organisation do not allow this",
-  "Your role in this organisation does not allow this",
-  "Only owners can remove an owner.",
+  OWNER_TOUCH_REFUSED,
   "This organisation is not entitled to this app",
   "Roles for this member changed at the same time; try again",
   "An organisation must keep at least one owner",

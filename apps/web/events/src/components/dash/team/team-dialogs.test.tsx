@@ -13,8 +13,8 @@ const RE_T4 = /no roles to give yet/;
 const RE_T5 = /Roles they gave to other people stay/;
 const RE_T6 = /Box office for Bo Till/;
 const RE_T7 = /takes away nothing else/;
+const RE_OWNER_ONLY = /Only an owner can remove an owner/;
 
-const RE_NOTHING_ELSE = /takes away nothing else/;
 const refresh = vi.fn();
 const grantRole = vi.fn();
 const revokeGrant = vi.fn();
@@ -234,7 +234,11 @@ describe("RemoveMemberDialog", () => {
     });
     render(
       <TeamFeedbackProvider>
-        <RemoveMemberDialog memberName="Lena Lead" membershipId="mem_2" />
+        <RemoveMemberDialog
+          memberName="Lena Lead"
+          membershipId="mem_2"
+          targetRole="member"
+        />
       </TeamFeedbackProvider>
     );
     fireEvent.click(
@@ -251,7 +255,11 @@ describe("RemoveMemberDialog", () => {
     removeMember.mockResolvedValue({ ok: true, data: undefined });
     render(
       <TeamFeedbackProvider>
-        <RemoveMemberDialog memberName="Lena Lead" membershipId="mem_2" />
+        <RemoveMemberDialog
+          memberName="Lena Lead"
+          membershipId="mem_2"
+          targetRole="member"
+        />
       </TeamFeedbackProvider>
     );
     fireEvent.click(
@@ -276,7 +284,11 @@ describe("RemoveMemberDialog", () => {
     loadIssuedGrants.mockResolvedValue({ ok: false, error: "Not for you" });
     render(
       <TeamFeedbackProvider>
-        <RemoveMemberDialog memberName="Lena Lead" membershipId="mem_2" />
+        <RemoveMemberDialog
+          memberName="Lena Lead"
+          membershipId="mem_2"
+          targetRole="member"
+        />
       </TeamFeedbackProvider>
     );
     fireEvent.click(
@@ -291,7 +303,11 @@ describe("RemoveMemberDialog", () => {
     loadIssuedGrants.mockReturnValue(new Promise(() => undefined));
     render(
       <TeamFeedbackProvider>
-        <RemoveMemberDialog memberName="Lena Lead" membershipId="mem_2" />
+        <RemoveMemberDialog
+          memberName="Lena Lead"
+          membershipId="mem_2"
+          targetRole="member"
+        />
       </TeamFeedbackProvider>
     );
     fireEvent.click(
@@ -307,7 +323,11 @@ describe("RemoveMemberDialog", () => {
     loadIssuedGrants.mockResolvedValueOnce({ ok: false, error: "Not for you" });
     render(
       <TeamFeedbackProvider>
-        <RemoveMemberDialog memberName="Lena Lead" membershipId="mem_2" />
+        <RemoveMemberDialog
+          memberName="Lena Lead"
+          membershipId="mem_2"
+          targetRole="member"
+        />
       </TeamFeedbackProvider>
     );
     fireEvent.click(
@@ -321,7 +341,69 @@ describe("RemoveMemberDialog", () => {
     ).toBeDisabled();
     loadIssuedGrants.mockResolvedValueOnce({ ok: true, data: [] });
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
-    await screen.findByText(RE_NOTHING_ELSE);
+    await screen.findByText(RE_T7);
     expect(screen.getByRole("button", { name: "Remove member" })).toBeEnabled();
+  });
+
+  it("words the owner-only refusal when removing an owner", async () => {
+    loadIssuedGrants.mockResolvedValue({ ok: true, data: [] });
+    removeMember.mockResolvedValue({
+      ok: false,
+      error: "Your role in this organisation does not allow this",
+    });
+    render(
+      <TeamFeedbackProvider>
+        <RemoveMemberDialog
+          memberName="Olu Owner"
+          membershipId="mem_3"
+          targetRole="owner"
+        />
+      </TeamFeedbackProvider>
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Remove Olu Owner from the organisation",
+      })
+    );
+    await screen.findByText(RE_T7);
+    fireEvent.click(screen.getByRole("button", { name: "Remove member" }));
+    expect(await screen.findByText(RE_OWNER_ONLY)).toBeInTheDocument();
+  });
+});
+
+describe("GrantRoleDialog alert", () => {
+  it("has one alert node across both steps, focuses it on every refusal, and resets on close", async () => {
+    grantRole.mockResolvedValue({ ok: false, error: "Same refusal" });
+    renderGrant();
+    await openGrant();
+    const alerts = () =>
+      screen
+        .getAllByRole("alert")
+        .filter((node) => node.closest("[role=dialog]"));
+    expect(alerts()).toHaveLength(1);
+    fireEvent.click(screen.getByRole("radio", { name: RE_T1 }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: RE_REVIEW }).hasAttribute("disabled")
+      ).toBe(false)
+    );
+    fireEvent.click(screen.getByRole("button", { name: RE_REVIEW }));
+    expect(alerts()).toHaveLength(1);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Confirm and give role" })
+      );
+      await waitFor(() =>
+        expect(alerts()[0]).toHaveTextContent("Same refusal")
+      );
+      await waitFor(() => expect(alerts()[0]).toHaveFocus());
+      (document.activeElement as HTMLElement).blur();
+      fireEvent.click(screen.getByRole("button", { name: RE_REVIEW }));
+    }
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await openGrant();
+    expect(alerts()[0]).toHaveTextContent("");
+    expect(screen.getByRole("radio", { name: RE_T1 })).not.toBeChecked();
   });
 });

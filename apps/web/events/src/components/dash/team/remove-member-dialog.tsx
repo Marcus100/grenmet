@@ -17,7 +17,13 @@ import { useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
 import { SIGN_IN_REQUIRED } from "@/data/action-result";
 import { loadIssuedGrants, removeMember } from "@/data/team-actions";
-import { bundleCopy, COULDNT_CONFIRM_TEAM, formatUtc } from "@/lib/team-roles";
+import {
+  bundleCopy,
+  COULDNT_CONFIRM_TEAM,
+  formatUtc,
+  OWNER_ONLY_REMOVE,
+  OWNER_TOUCH_REFUSED,
+} from "@/lib/team-roles";
 import { useTeamFeedback } from "./team-feedback";
 
 type Issued =
@@ -33,9 +39,12 @@ type Issued =
 export function RemoveMemberDialog({
   memberName,
   membershipId,
+  targetRole,
 }: {
   memberName: string;
   membershipId: string;
+  /** The member's organisation role, to word the owner-only refusal. */
+  targetRole: "admin" | "member" | "owner";
 }) {
   const router = useRouter();
   const feedback = useTeamFeedback();
@@ -84,7 +93,11 @@ export function RemoveMemberDialog({
       return;
     }
     if (result.error !== SIGN_IN_REQUIRED) {
-      setError(result.error);
+      setError(
+        targetRole === "owner" && result.error === OWNER_TOUCH_REFUSED
+          ? OWNER_ONLY_REMOVE
+          : result.error
+      );
     }
   }
 

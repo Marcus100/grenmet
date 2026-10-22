@@ -70,24 +70,40 @@ export function GrantRoleDialog({
   const [roleKey, setRoleKey] = useState("");
   const [expiresOn, setExpiresOn] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+  // Counts refusals so an identical repeated error still takes focus.
+  const [alertTick, setAlertTick] = useState(0);
+
+  function changeOpen(next: boolean) {
+    setOpen(next);
+    if (!next) {
+      setStep("choose");
+      setFormError(null);
+      setRoleKey("");
+    }
+  }
+
+  function fail(message: string) {
+    setFormError(message);
+    setAlertTick((tick) => tick + 1);
+  }
 
   const alertRef = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
-    if (formError) {
+    if (alertTick > 0) {
       alertRef.current?.focus();
     }
-  }, [formError]);
+  }, [alertTick]);
 
   const chosen = bundles.find((bundle) => bundle.role_key === roleKey) ?? null;
 
   function review() {
     if (!chosen) {
-      setFormError("Choose a role to give.");
+      fail("Choose a role to give.");
       return;
     }
     const expiry = expiryFromDate(expiresOn, new Date());
     if (!expiry.ok) {
-      setFormError(expiry.error);
+      fail(expiry.error);
       return;
     }
     setFormError(null);
@@ -115,13 +131,13 @@ export function GrantRoleDialog({
     }
     if (result.error !== SIGN_IN_REQUIRED) {
       // Back to the choices with what was typed still in place.
-      setFormError(result.error);
+      fail(result.error);
       setStep("choose");
     }
   }
 
   return (
-    <Dialog onOpenChange={setOpen} open={open}>
+    <Dialog onOpenChange={changeOpen} open={open}>
       <DialogTrigger
         render={<Button className="min-h-11" type="button" variant="outline" />}
       >
@@ -224,7 +240,7 @@ export function GrantRoleDialog({
             <DialogFooter>
               <Button
                 className="min-h-11"
-                onClick={() => setOpen(false)}
+                onClick={() => changeOpen(false)}
                 type="button"
                 variant="outline"
               >

@@ -60,6 +60,7 @@ function MemberRow({
               <RemoveMemberDialog
                 memberName={member.fullName}
                 membershipId={member.membershipId}
+                targetRole={member.role}
               />
             ) : null}
           </div>

@@ -97,6 +97,15 @@ describe("friendlyTeamError", () => {
     expect(friendlyTeamError(404, "Role grant not found")).toBe(NOT_FOUND_TEAM);
   });
 
+  it("passes the real owner-touch refusal through", () => {
+    expect(
+      friendlyTeamError(
+        403,
+        "Your role in this organisation does not allow this"
+      )
+    ).toBe("Your role in this organisation does not allow this");
+  });
+
   it("does not echo unknown detail text", () => {
     expect(friendlyTeamError(403, "secret internal text")).not.toContain(
       "secret"
