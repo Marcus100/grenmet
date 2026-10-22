@@ -2,9 +2,9 @@
 
 ## Status
 
-Proposed (2026-10-22). Owner decisions of 2026-10-22 are recorded below as
-inputs; the ADR becomes Accepted when the owner merges it. Nothing in this ADR
-is built. Companion ADRs: [0047](0047-experiences-reuse-events-ticketing-through-occurrences.md)
+Accepted (2026-10-22, owner). Owner decisions of 2026-10-22 are recorded below as inputs, and the
+owner's answers on `booking_mode` are folded into Decision 1. Nothing in this
+ADR is built. Companion ADRs: [0047](0047-experiences-reuse-events-ticketing-through-occurrences.md)
 (experiences and occurrences) and [0048](0048-catalogue-provenance-and-curation.md)
 (provenance and curation). ADR-0049 is reserved for a later services marketplace
 and is not written.
@@ -157,17 +157,14 @@ Choose A and E, with the model below. All migrations are additive.
 | `listing_type` | `event`, `experience`, `class`, `attraction`, `service` | What it is. Launch lists `event`, `experience`, `class`. `attraction` (a place you can visit, no session) is allowed in the model, shown later. `service` is reserved for the marketplace (ADR-0049) and is **refused by the API until ADR-0049 is accepted**. |
 | `access_type` | `public`, `private` | Who may attend. `private` (invite or private charter) is never shown in discovery; it must have `visibility='unlisted'` (CHECK). |
 | `pricing_type` | `free`, `paid`, `donation` | Display and filter value. `donation` is display-only at launch: the organiser collects at the door. No online donation collection is built (the payments-licence question in the v1 definition is open). |
-| `booking_mode` | `rsvp`, `tickets`, `slots`, `enquiry` | How a person takes part. `tickets` and `slots` both go through the Events ticket and order machinery (ADR-0047). `enquiry` sends a message to the organiser and takes no payment. |
+| `booking_mode` | `rsvp`, `tickets`, `slots`, `enquiry`, `none`, `external` | How a person takes part (owner-final set of six). `tickets` and `slots` both go through the Events ticket and order machinery (ADR-0047). `enquiry` sends a message to the organiser and takes no payment. `none` is "just turn up": no ticket or RSVP, details only. `external` means tickets are sold elsewhere via `external_ticket_url` (ADR-0048). |
 | `recurrence_rule` | JSON, nullable | Machine-readable repeat rule; see ADR-0047. The legacy text `recurrence` stays as the display label. |
 | `island` | `grenada`, `carriacou`, `petite-martinique` | Island group. |
 | `category_slug` | a leaf or top-level slug | See section 2. |
 
 `admission` (`free | rsvp | ticketed`) stays as the frozen legacy field and is
 dual-written from the new fields until the web app moves (`free` -> `pricing_type
-free`, `booking_mode` none; `rsvp` -> `rsvp`; `ticketed` -> `tickets`). A fifth
-`booking_mode` value, **`none` ("just turn up"), is proposed because a free
-event with no registration fits none of the four values the owner listed**; it
-is an open decision (below). `parish` keeps its current set; Petite Martinique
+free`, `booking_mode` `none`; `rsvp` -> `rsvp`; `ticketed` -> `tickets`). `parish` keeps its current set; Petite Martinique
 needs one more allowed value, done by replacing the CHECK constraint in an
 additive migration (or moving parishes to reference data if the slice prefers).
 
@@ -315,23 +312,27 @@ Events text remains a **follow-up for the owner** (ADR-0045 already flags it).
 The v1 definition's scope section still describes events only; extending it to
 experiences and the taxonomy is a follow-up product edit for the owner.
 
+## Resolved owner decisions (2026-10-22)
+
+- `booking_mode` gains `none` and `external`; the final set is `rsvp`,
+  `tickets`, `slots`, `enquiry`, `none`, `external` (Decision 1).
+
 ## Open owner decisions
 
-1. **`booking_mode = none` ("just turn up").** Add it as a fifth value, or map
-   free no-registration events onto `rsvp` with registration optional?
-   Recommendation: add `none`.
-2. **Wellness.** Launch it as its own category, or hold it inactive and merge
+Still open (none blocks acceptance; each is needed before its slice):
+
+1. **Wellness.** Launch it as its own category, or hold it inactive and merge
    into Sports & Fitness until volume proves it? Recommendation: inactive.
-3. **`pg_trgm` availability.** Operator pre-check on staging and production
+2. **`pg_trgm` availability.** Operator pre-check on staging and production
    (UNKNOWN). Decides whether typo-tolerant search ships in the first slice.
-4. **Legacy category mapping.** The provisional lossy mapping above is
+3. **Legacy category mapping.** The provisional lossy mapping above is
    acceptable only as a stopgap; confirm, or choose to ship the web move first.
-5. **Venue ownership.** Venues are shared and editable by staff only, or an
+4. **Venue ownership.** Venues are shared and editable by staff only, or an
    organiser may create and edit their own? Recommendation: organisers create,
    staff merge duplicates.
-6. **Petite Martinique parish handling** and whether `island` replaces the
+5. **Petite Martinique parish handling** and whether `island` replaces the
    current `carriacou` parish value long-term.
-7. **Contact visibility.** Business email and phone on an organiser page are
+6. **Contact visibility.** Business email and phone on an organiser page are
    opt-in per field (proposed); confirm.
 
 ## Consequences
@@ -360,7 +361,29 @@ experiences and the taxonomy is a follow-up product edit for the owner.
   gate); a second island-scale market is added (taxonomy and parish become
   data); `wellness` volume justifies activation; the web app has fully moved to
   `category_slug` (drop the legacy column).
-- **Slices (no code in this PR):** C0 pre-check and extension; C1 reference
-  tables, new columns, backfill, occurrence table (ADR-0047 S1); C2 public
-  routes and search; C3 organiser authoring fields; C4 web marketplace home,
-  list and map; C5 retire the legacy category column.
+
+## Implementation slices
+
+Nothing is built by this ADR. Numbering continues the Events plan (L1 and L2
+are earlier work). Each slice is its own PR with tests; ADR-0047 and ADR-0048
+supply the detail for L5 to L8 and L10.
+
+- **L3 taxonomy API:** `events.categories` reference table and seed,
+  `category_slug`, the new classification columns and `booking_mode` values,
+  `GET /events/public/categories`, tags rules.
+- **L4 search:** the `pg_trgm` pre-check, `search_tsv`, indexes, `q`, facets
+  and ranking on `GET /events/public/listings`, bounding-box filter.
+- **L5 occurrences:** `events.occurrences`, one-per-listing backfill, derived
+  next-occurrence start (ADR-0047).
+- **L6 per-occurrence ticketing:** occurrence key on orders, items and tickets,
+  per-occurrence allocation, shared pool, new lock order (ADR-0047).
+- **L7 door, outlet and settlement per occurrence:** session-aware scanning,
+  manifests, till sales and settlement breakdown (ADR-0047).
+- **L8 schedules:** `recurrence_rule`, the in-house generator and the ARQ
+  extension job (ADR-0047).
+- **L9 venues:** `events.venues`, coordinates, venue override, map data.
+- **L10 curation:** curated listings, sources, claim flow, hide/unhide,
+  `events.catalogue.curate` (ADR-0048).
+- **L11 collections:** `events.collections`, Spicemas and festival sets, home rows.
+- **L12 reminders and ICS:** session reminders through the outbox and
+  calendar (ICS) downloads for saved listings and tickets.

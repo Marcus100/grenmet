@@ -2,9 +2,10 @@
 
 ## Status
 
-Proposed (2026-10-22). Owner direction: the launch catalogue is organiser-submitted
-plus a hand-curated seed with source links; no scraping. Becomes Accepted when
-the owner merges it. Nothing in this ADR is built. The legal points below are
+Accepted (2026-10-22, owner). Owner direction: the launch catalogue is
+organiser-submitted plus a hand-curated seed with source links; no scraping.
+The owner also allowed outbound ticket links and settled the `booking_mode`
+values (Decision 6). Nothing in this ADR is built. The legal points below are
 design assumptions, **not legal advice**; counsel review is an open owner item.
 Read with [ADR-0046](0046-barrels-events-catalogue-model.md),
 [ADR-0047](0047-experiences-reuse-events-ticketing-through-occurrences.md),
@@ -195,14 +196,16 @@ partners or endorsed.
 
 ### 6. Tickets sold elsewhere
 
-`external_ticket_url` (http/https only) lets a listing point to a vendor
-(Go2Fete or a venue's own page). The page shows "Tickets are sold by <host>",
-opens the link with `rel="noopener noreferrer nofollow"`, shows no Barrels price
-claim beyond the published price text, and records no commission or affiliate
-tag. A listing with an external ticket URL has `booking_mode = external`
-(proposed sixth value; open decision) and no Barrels tiers until the organiser
-claims and chooses to sell with Barrels. **This promotes other vendors, including
-the incumbent;** whether and when to allow it is an owner decision (below).
+Owner decision (2026-10-22): **allowed.** `external_ticket_url` (http/https
+only) lets a curated listing point to the vendor that sells the tickets
+(Go2Fete or a venue's own page). The page shows a button labelled
+**"Tickets sold by <vendor>"** with the vendor's name (derived from the host or
+set by staff), opens the link with `rel="noopener noreferrer"`, and uses no
+affiliate or commission tracking. It shows no Barrels price claim beyond the
+published price text. Such a listing has `booking_mode = external` (final value,
+ADR-0046) and no Barrels tiers until the organiser claims and chooses to sell
+with Barrels. This promotes other vendors, including the incumbent; the owner
+accepted that.
 
 ### 7. Personal data (Data Protection Act 1/2023)
 
@@ -259,30 +262,32 @@ a script that calls the service layer from a gitignored file under `/private/`
 island and parish, and is idempotent by `(organiser slug, listing slug)`. It
 performs no network access.
 
+## Resolved owner decisions (2026-10-22)
+
+- Outbound ticket links for other vendors are allowed, with the clear label
+  above (Decision 6).
+- `booking_mode` gains `external` (and `none`); final set `rsvp`, `tickets`,
+  `slots`, `enquiry`, `none`, `external`.
+
 ## Open owner decisions
 
-1. **Outbound tickets for other vendors (`external_ticket_url`).** Allow from
-   launch, allow only for claimed organisers, or never? It promotes Go2Fete and
-   other vendors. Recommendation: allow for unclaimed entries at launch because
-   the audience needs the real route to a ticket, and label it plainly; revisit
-   after the first claims.
-2. **`booking_mode` value `external`.** Add it (proposed) or reuse `enquiry`
-   with the URL? Related to ADR-0046 decision 1.
-3. **Legal review** of publishing facts with source links, and of the Data
+Still open:
+
+1. **Legal review** of publishing facts with source links, and of the Data
    Protection Act position (lawful basis, notice, registration, response times):
    counsel or the Information Commission, before the seed goes public.
-4. **Removal time target** for organiser or individual requests. Proposed: hide
+2. **Removal time target** for organiser or individual requests. Proposed: hide
    within 2 business days, resolve within 10.
-5. **Emergency hide by moderators** for personal-data or safety reports pending a
+3. **Emergency hide by moderators** for personal-data or safety reports pending a
    superuser decision. Not proposed here (owner said moderators read); confirm.
-6. **MFA for curation writes** (proposed) versus a lighter check for the curator
+4. **MFA for curation writes** (proposed) versus a lighter check for the curator
    role.
-7. **Automated link-health check** of source URLs: allowed (HEAD only, our own
+5. **Automated link-health check** of source URLs: allowed (HEAD only, our own
    stored links) or not at all?
-8. **Claim evidence standard** and the sign-off person for disputed claims.
-9. **Curated seed size and cadence** (for example 30 to 100 entries before
+6. **Claim evidence standard** and the sign-off person for disputed claims.
+7. **Curated seed size and cadence** (for example 30 to 100 entries before
    public launch, re-verified every 30 days before event dates).
-10. **Image placeholder style** for entries without rights (category illustration
+8. **Image placeholder style** for entries without rights (category illustration
     set to be designed; owner to approve).
 
 ## Consequences
@@ -297,8 +302,8 @@ performs no network access.
   is accepted for rights safety.
 - Maintenance is manual: `verified_at` ages, and events past their date leave
   discovery through the existing ended-event rule.
-- The Go2Fete question (promoting an incumbent) is explicit and reversible by
-  switching the field off.
+- Promoting other vendors (including Go2Fete) is accepted and reversible by
+  clearing the field.
 - Needed edits to owner-only or separately owned files, **listed in the pull
   request body and not made here (no `AGENTS.md` edited):**
   `apps/api/fastapi/src/events/AGENTS.md` (curated listings, sources, hide/
@@ -310,7 +315,7 @@ performs no network access.
   claimed (shrink curation); stale entries exceed an agreed share; organisers ask
   for syndication of their own feed (a different, opt-in ingest ADR); an
   Information Commission requirement applies; the first removal dispute.
-- **Slices (no code in this PR):** P0 owner decisions and legal check; P1 tables
+- **Slices (no code in this PR; the build is ADR-0046's L10, with L11 for collections):** P0 legal check; P1 tables
   and columns (`listing_sources`, `profile_status`, `origin`, `moderation_state`,
   external ticket URL, image rights); P2 key, role, curator tooling and import
   script; P3 public display of unclaimed pages; P4 claim flow over the existing

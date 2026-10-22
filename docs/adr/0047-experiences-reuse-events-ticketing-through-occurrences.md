@@ -2,9 +2,8 @@
 
 ## Status
 
-Proposed (2026-10-22). Owner direction: launch with events **and** bookable
-experiences. Becomes Accepted when the owner merges it. Nothing in this ADR is
-built. Read with [ADR-0046](0046-barrels-events-catalogue-model.md) (catalogue
+Accepted (2026-10-22, owner). Owner direction: launch with events **and**
+bookable experiences. Nothing in this ADR is built. Read with [ADR-0046](0046-barrels-events-catalogue-model.md) (catalogue
 model) and [ADR-0048](0048-catalogue-provenance-and-curation.md). Builds on
 [ADR-0024](0024-bookings-domain.md), [ADR-0027](0027-payments-core-and-providers.md),
 [ADR-0044](0044-organisation-scoped-permissions-via-membership-grants.md) and
@@ -107,6 +106,9 @@ scale), cost (none), operational risk (C is additive and backfillable; B is not)
 ## Decision
 
 Choose C.
+
+Slice names below (X1 to X6) map to ADR-0046's L5 to L8 (occurrences L5,
+per-occurrence ticketing L6, door/outlet/settlement L7, schedules L8).
 
 ### 1. Occurrences
 
