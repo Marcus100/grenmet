@@ -19,7 +19,10 @@ from tests.organisations.support import make_org
 NOW = datetime.fromisoformat("2026-10-20T12:00:00")
 
 
-@pytest.mark.parametrize("job", [main.drain_outbox, main.enqueue_booking_reminders])
+@pytest.mark.parametrize(
+    "job",
+    [main.drain_outbox, main.enqueue_booking_reminders, main.enqueue_event_reminders],
+)
 def test_jobs_are_registered_and_scheduled(job: object) -> None:
     assert job in main.WorkerSettings.functions
     assert sum(1 for c in main.WorkerSettings.cron_jobs if c.coroutine is job) == 1
@@ -69,6 +72,26 @@ async def test_booking_reminder_job_records_metrics(
     monkeypatch.setattr(reminders, "enqueue_due_reminders", queued)
     assert await main.enqueue_booking_reminders({"job_id": "t"}) == 2
     assert recorded == [("enqueue_booking_reminders", True)]
+
+
+async def test_event_reminder_job_records_metrics(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from src import operational_metrics
+    from src.events import reminders as event_reminders
+
+    recorded: list[tuple[str, bool]] = []
+
+    async def record(_: object, name: str, __: str, success: bool) -> None:
+        recorded.append((name, success))
+
+    async def queued(_: object) -> int:
+        return 4
+
+    monkeypatch.setattr(operational_metrics, "record_job", record)
+    monkeypatch.setattr(event_reminders, "enqueue_due_reminders", queued)
+    assert await main.enqueue_event_reminders({"job_id": "t"}) == 4
+    assert recorded == [("enqueue_event_reminders", True)]
 
 
 async def _booking(db: AsyncSession, org_id: str, ends_at: datetime) -> Booking:

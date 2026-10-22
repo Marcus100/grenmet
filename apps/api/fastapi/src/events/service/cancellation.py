@@ -96,6 +96,9 @@ async def cancel_locked_event(
         payload={
             "actor_id": str(user.id),
             "starts_at": listing.starts_at.isoformat(),
+            # Cancelling an event refunds in full unless the organiser keeps the
+            # money; the per-refund receipt email is a separate, deduplicated mail.
+            "refund": "keep" if refund == "none" else "refund",
         },
     )
     activity.record(

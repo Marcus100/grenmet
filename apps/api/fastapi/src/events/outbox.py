@@ -87,6 +87,18 @@ async def enqueue(
     )
 
 
+REFUND_NOTES = {
+    "refund": (
+        " If you bought tickets online, they are being refunded to the way you "
+        "paid; you will get a separate refund receipt for each order."
+    ),
+    "keep": (
+        " If you bought tickets online, they are not refunded automatically; "
+        "contact the organiser about a refund."
+    ),
+}
+
+
 def _when(value: str | None) -> str:
     if not value:
         return "a time to be confirmed"
@@ -176,6 +188,7 @@ async def _deliver(db: AsyncSession, row: Row) -> int:
             "title": listing.title,
             "organiser": organiser.name if organiser else "The organiser",
             "starts": _when(payload.get("starts_at")),
+            "refund_note": REFUND_NOTES.get(payload.get("refund", ""), ""),
         },
         entity_type="listing",
         entity_id=row.entity_id,

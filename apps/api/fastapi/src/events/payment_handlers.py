@@ -52,8 +52,12 @@ async def order_refunded(session: AsyncSession, message: outbox.OutboxMessage) -
     ids = _ids(message)
     if ids is None:
         return
+    try:
+        refund_id = uuid.UUID(str(message.payload.get("refund_id")))
+    except ValueError:
+        refund_id = None  # no receipt without a refund to describe
     await order_fulfilment.apply_refund(
-        session, organisation_id=ids[0], order_id=ids[1]
+        session, organisation_id=ids[0], order_id=ids[1], refund_id=refund_id
     )
 
 

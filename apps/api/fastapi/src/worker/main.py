@@ -211,6 +211,29 @@ async def enqueue_booking_reminders(ctx: dict[str, Any]) -> int:
     return result
 
 
+async def enqueue_event_reminders(ctx: dict[str, Any]) -> int:
+    """Queue 24-hour reminders for Events ticket holders and RSVPs (idempotent)."""
+    from src.database import async_session_factory
+    from src.events import reminders
+
+    async with async_session_factory() as session:
+        try:
+            result = await reminders.enqueue_due_reminders(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "enqueue_event_reminders",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "enqueue_event_reminders", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
 async def expire_unpaid_bookings(ctx: dict[str, Any]) -> int:
     """Cancel deposit bookings left unpaid past the hold; frees the slot (idempotent)."""
     from src.bookings import deposits
@@ -490,6 +513,7 @@ class WorkerSettings:
         send_outbound_emails,
         drain_outbox,
         enqueue_booking_reminders,
+        enqueue_event_reminders,
         expire_unpaid_bookings,
         expire_unpaid_event_orders,
         send_wis2_publications,
@@ -531,6 +555,9 @@ class WorkerSettings:
         cron(drain_outbox, second={10, 40}, run_at_startup=False),
         # Booking reminders (24 hours ahead), hourly; one per booking.
         cron(enqueue_booking_reminders, minute={7}, run_at_startup=False),
+        # Event reminders (events starting in 23-24 hours), hourly; one per member
+        # and event start time.
+        cron(enqueue_event_reminders, minute={12}, run_at_startup=False),
         # Unpaid deposit holds (BOOKINGS_DEPOSIT_HOLD_MINUTES, default 30) are
         # cancelled and their slots released, every 5 minutes.
         cron(

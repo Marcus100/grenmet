@@ -33,8 +33,11 @@ def register() -> None:
             description="An event you are going to or saved was cancelled.",
             audience="Members going to or saving the event",
             title="Cancelled: {{ title }}",
-            body="{{ organiser }} cancelled {{ title }}, planned for {{ starts }}.",
-            variables=("title", "organiser", "starts"),
+            body=(
+                "{{ organiser }} cancelled {{ title }}, planned for {{ starts }}."
+                "{{ refund_note }}"
+            ),
+            variables=("title", "organiser", "starts", "refund_note"),
             email_mutable=False,
         )
     )
