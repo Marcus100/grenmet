@@ -9,10 +9,15 @@ from pydantic import TypeAdapter
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit import service as audit_service
 from src.auth.email_verification import require_verified_email
 from src.auth.models import User
 from src.organisations import service as organisations
-from src.organisations.models import MembershipRole, OrganisationKind
+from src.organisations.models import (
+    MembershipRole,
+    OrganisationApp,
+    OrganisationKind,
+)
 from src.storage import uploads as org_uploads
 from src.utils.datetime import utc_now
 from src.utils.reserved_names import is_reserved
@@ -447,6 +452,21 @@ async def listing_activity(
     )
 
 
+async def ensure_events_entitlement(
+    db: AsyncSession, actor: User, organisation_id: str
+) -> None:
+    """Give an organisation behind an organiser the ``events`` product (ADR-0044 S2).
+
+    Only a missing row is created (audited like other entitlement writes); an
+    existing row, including one staff switched off, is left as it is. Call it
+    wherever an organiser is linked to an organisation."""
+    if await db.get(OrganisationApp, (organisation_id, "events")) is None:
+        audit_service.set_actor(db, actor.id)
+        await organisations.set_app_enabled(
+            db, organisation_id=organisation_id, app_key="events", enabled=True
+        )
+
+
 async def create_organiser(
     db: AsyncSession,
     user: User,
@@ -477,6 +497,7 @@ async def create_organiser(
         # administrator-created / seed / backfill: ADR-0018 exempts administrator-mediated grants
         skip_email_check=True,
     )
+    await ensure_events_entitlement(db, user, organisation.id)
     organiser = Organiser(
         id=uuid.uuid4(),
         slug=wanted,
