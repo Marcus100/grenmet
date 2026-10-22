@@ -27,8 +27,27 @@ vi.mock("@/components/studio/booking-actions", () => ({
   ),
 }));
 
+vi.mock("@/components/studio/record-deposit", () => ({
+  RecordDeposit: ({
+    amountLabel,
+    due,
+    takesDeposit,
+  }: {
+    amountLabel: string;
+    due: boolean;
+    takesDeposit: boolean;
+  }) => (
+    <button type="button">
+      Record deposit {amountLabel} due={String(due)} takes=
+      {String(takesDeposit)}
+    </button>
+  ),
+}));
+
 import { findOrganisation, getBooking } from "@/lib/studio-api";
 import StudioBookingPage from "./page";
+
+const RECORD = /Record deposit/;
 
 const props = (id = BOOKING_ID) => ({
   params: Promise.resolve({ id, orgSlug: "sea-salt" }),
@@ -177,5 +196,66 @@ describe("studio booking detail", () => {
       "NEXT_NOT_FOUND"
     );
     expect(getBooking).not.toHaveBeenCalled();
+  });
+
+  describe("record deposit", () => {
+    const asRole = (role: "owner" | "admin" | "member") =>
+      vi.mocked(findOrganisation).mockResolvedValue({
+        id: ORG_ID,
+        name: "Sea Salt Spa",
+        slug: "sea-salt",
+        role,
+      });
+
+    it("is offered to an admin and an owner with the booking's own amount", async () => {
+      vi.mocked(getBooking).mockResolvedValue(detail());
+      for (const role of ["admin", "owner"] as const) {
+        asRole(role);
+        const { unmount } = render(await StudioBookingPage(props()));
+        expect(screen.getByRole("button", { name: RECORD })).toHaveTextContent(
+          "due=true"
+        );
+        unmount();
+      }
+    });
+
+    it("is not offered to a member", async () => {
+      asRole("member");
+      vi.mocked(getBooking).mockResolvedValue(detail());
+      render(await StudioBookingPage(props()));
+      expect(screen.queryByRole("button", { name: RECORD })).toBeNull();
+    });
+
+    it.each(["cancelled", "completed", "no_show"] as const)(
+      "is not offered for a %s booking",
+      async (status) => {
+        asRole("admin");
+        vi.mocked(getBooking).mockResolvedValue(detail({ status }));
+        render(await StudioBookingPage(props()));
+        expect(screen.getByRole("button", { name: RECORD })).toHaveTextContent(
+          "takes=false"
+        );
+      }
+    );
+
+    it("is not offered when there is no deposit", async () => {
+      asRole("admin");
+      vi.mocked(getBooking).mockResolvedValue(detail({ deposit_minor: 0 }));
+      render(await StudioBookingPage(props()));
+      expect(screen.getByRole("button", { name: RECORD })).toHaveTextContent(
+        "takes=false"
+      );
+    });
+
+    it("is told the deposit is not due once it is paid", async () => {
+      asRole("admin");
+      vi.mocked(getBooking).mockResolvedValue(
+        detail({ deposit_captured_minor: 2500 })
+      );
+      render(await StudioBookingPage(props()));
+      expect(screen.getByRole("button", { name: RECORD })).toHaveTextContent(
+        "due=false"
+      );
+    });
   });
 });
