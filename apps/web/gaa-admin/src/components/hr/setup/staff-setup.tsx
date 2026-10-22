@@ -65,7 +65,10 @@ function StaffEditor({
         {staff.registration_pending ? "approval needed" : "approved"} · HR
         details: {staff.employment_ready ? "ready" : "incomplete"}
       </p>
-      <AccountActivation open={expanded} user={{ id: staff.user_id }} />
+      <AccountActivation
+        open={expanded}
+        user={{ id: staff.user_id, email: staff.email }}
+      />
       <Button onClick={onSaved} type="button" variant="outline">
         Refresh onboarding status
       </Button>

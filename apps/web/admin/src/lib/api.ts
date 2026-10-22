@@ -4,15 +4,19 @@ import {
   apiKeyListPublicSchema,
   apiKeyPublicSchema,
   memberListPublicSchema,
+  memberPublicSchema,
   organisationAdminDetailSchema,
   organisationAdminListPublicSchema,
+  type PlatformMemberAdd,
+  type PlatformMemberRemove,
+  type PlatformMemberRoleUpdate,
   type PublicSiteCreate,
   type PublicSiteUpdate,
   paginatedResponseAuditEntryPublicSchema,
   publicSiteAdminSchema,
   publicSiteListPublicSchema,
 } from "@barrelsgd/api-client";
-import { authApiFetch } from "@barrelsgd/auth/server";
+import { authApiFetch, authApiFetchResponse } from "@barrelsgd/auth/server";
 import { getAuthConfig } from "@/lib/auth-config";
 
 export const ORGANISATIONS_PAGE_SIZE = 25;
@@ -206,5 +210,52 @@ export function updateSite(
     `/organisations/admin/sites/${encodeURIComponent(siteId)}`,
     publicSiteAdminSchema,
     { accessToken, method: "PATCH", body }
+  );
+}
+
+function membersPath(organisationId: string): string {
+  return `/organisations/${encodeURIComponent(organisationId)}/admin/members`;
+}
+
+/** Superuser-only, audited `POST /organisations/{id}/admin/members`. */
+export function addOrganisationMember(
+  accessToken: string,
+  organisationId: string,
+  body: PlatformMemberAdd
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    membersPath(organisationId),
+    memberPublicSchema,
+    { accessToken, method: "POST", body }
+  );
+}
+
+/** Superuser-only, audited `PATCH /organisations/{id}/admin/members/{membership}`. */
+export function updateOrganisationMember(
+  accessToken: string,
+  organisationId: string,
+  membershipId: string,
+  body: PlatformMemberRoleUpdate
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    `${membersPath(organisationId)}/${encodeURIComponent(membershipId)}`,
+    memberPublicSchema,
+    { accessToken, method: "PATCH", body }
+  );
+}
+
+/** Superuser-only, audited `DELETE ...`; the reason travels in the body (204). */
+export async function removeOrganisationMember(
+  accessToken: string,
+  organisationId: string,
+  membershipId: string,
+  body: PlatformMemberRemove
+): Promise<void> {
+  await authApiFetchResponse(
+    getAuthConfig(),
+    `${membersPath(organisationId)}/${encodeURIComponent(membershipId)}`,
+    { accessToken, method: "DELETE", body }
   );
 }

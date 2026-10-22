@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ApiKeysLoading } from "@/components/api-key-panels";
 import { ApiKeysSection } from "@/components/api-keys-section";
+import { MemberAddSection, MemberRowActions } from "@/components/member-admin";
 import {
   AppEntitlements,
   OrganisationActions,
@@ -20,6 +21,8 @@ import {
   listOrganisationMembers,
 } from "@/lib/api";
 import { apiKeyNoticeFor } from "@/lib/api-key-form";
+import { getAuthConfig } from "@/lib/auth-config";
+import { memberNoticeFor } from "@/lib/member-form";
 import { noticeFor } from "@/lib/organisation-form";
 import { siteNoticeFor } from "@/lib/site-form";
 import { requireGate } from "@/lib/staff-gate";
@@ -58,7 +61,8 @@ export default async function OrganisationPage({
   const notice =
     noticeFor(noticeCode) ??
     siteNoticeFor(noticeCode) ??
-    apiKeyNoticeFor(noticeCode);
+    apiKeyNoticeFor(noticeCode) ??
+    memberNoticeFor(noticeCode);
 
   return (
     <>
@@ -71,7 +75,15 @@ export default async function OrganisationPage({
           role={notice.tone === "problem" ? "alert" : "status"}
         >
           {notice.tone === "problem" ? "Problem: " : "Done: "}
-          {notice.text}
+          {notice.text}{" "}
+          {noticeCode === "member-mfa" ? (
+            <a
+              className="underline"
+              href={new URL("/security", getAuthConfig().authAppUrl).toString()}
+            >
+              Open Security settings
+            </a>
+          ) : null}
         </p>
       ) : null}
       <div className="space-y-2">
@@ -124,7 +136,16 @@ export default async function OrganisationPage({
       <Suspense fallback={<ApiKeysLoading />}>
         <ApiKeysSection accessToken={gate.accessToken} organisationId={id} />
       </Suspense>
-      <MembersPanel count={members.count} rows={members.data} />
+      <MembersPanel
+        addForm={
+          <MemberAddSection organisationId={id} selfEmail={gate.email} />
+        }
+        count={members.count}
+        rowActions={(row) => (
+          <MemberRowActions member={row} organisationId={id} />
+        )}
+        rows={members.data}
+      />
       <HistoryPanel count={history.count} rows={history.data} />
     </>
   );

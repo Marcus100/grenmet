@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
+import type { ReactNode } from "react";
 
 export interface MemberRow {
   email: string;
@@ -32,10 +33,16 @@ function show(value: unknown): string {
 }
 
 export function MembersPanel({
+  addForm,
   count,
+  rowActions,
   rows,
 }: {
+  /** Slot for the superuser "Add member" form; shown even when the roster is empty. */
+  addForm?: ReactNode;
   count: number;
+  /** Optional per-row controls (change role, remove). */
+  rowActions?: (row: MemberRow) => ReactNode;
   rows: MemberRow[];
 }) {
   return (
@@ -54,6 +61,7 @@ export function MembersPanel({
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              {rowActions ? <TableHead>Manage</TableHead> : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -62,6 +70,7 @@ export function MembersPanel({
                 <TableCell>{row.full_name}</TableCell>
                 <TableCell>{row.email}</TableCell>
                 <TableCell className="capitalize">{row.role}</TableCell>
+                {rowActions ? <TableCell>{rowActions(row)}</TableCell> : null}
               </TableRow>
             ))}
           </TableBody>
@@ -72,6 +81,7 @@ export function MembersPanel({
           Showing the first {rows.length} members.
         </p>
       ) : null}
+      {addForm}
     </section>
   );
 }
