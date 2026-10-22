@@ -31,12 +31,15 @@ vi.mock("@/components/studio/record-deposit", () => ({
   RecordDeposit: ({
     amountLabel,
     due,
+    takesDeposit,
   }: {
     amountLabel: string;
     due: boolean;
+    takesDeposit: boolean;
   }) => (
     <button type="button">
-      Record deposit {amountLabel} due={String(due)}
+      Record deposit {amountLabel} due={String(due)} takes=
+      {String(takesDeposit)}
     </button>
   ),
 }));
@@ -229,7 +232,9 @@ describe("studio booking detail", () => {
         asRole("admin");
         vi.mocked(getBooking).mockResolvedValue(detail({ status }));
         render(await StudioBookingPage(props()));
-        expect(screen.queryByRole("button", { name: RECORD })).toBeNull();
+        expect(screen.getByRole("button", { name: RECORD })).toHaveTextContent(
+          "takes=false"
+        );
       }
     );
 
@@ -237,7 +242,9 @@ describe("studio booking detail", () => {
       asRole("admin");
       vi.mocked(getBooking).mockResolvedValue(detail({ deposit_minor: 0 }));
       render(await StudioBookingPage(props()));
-      expect(screen.queryByRole("button", { name: RECORD })).toBeNull();
+      expect(screen.getByRole("button", { name: RECORD })).toHaveTextContent(
+        "takes=false"
+      );
     });
 
     it("is told the deposit is not due once it is paid", async () => {

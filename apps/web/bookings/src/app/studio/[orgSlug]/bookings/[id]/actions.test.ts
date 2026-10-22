@@ -365,7 +365,16 @@ describe("recordDepositAction", () => {
   });
 
   it.each([
-    ["no deposit to record", "no deposit"],
+    ["This booking has no deposit to record", "no deposit"],
+    [
+      "That payment does not belong to this booking",
+      "could not be recorded by hand",
+    ],
+    [
+      "The deposit payment does not match the booking's deposit",
+      "could not be recorded by hand",
+    ],
+    ["The deposit could not be started", "could not be recorded by hand"],
     ["A closed booking cannot take a deposit", "closed"],
     ["The deposit has already been paid", "already been paid"],
     [
@@ -387,7 +396,10 @@ describe("recordDepositAction", () => {
 
   it("does not refresh for an idempotency 409", async () => {
     vi.mocked(recordManualDeposit).mockRejectedValue(
-      apiError(409, { detail: "Idempotency key reused with another body" })
+      apiError(409, {
+        detail:
+          "This Idempotency-Key was already used with a different request",
+      })
     );
     await run();
     expect(revalidatePath).not.toHaveBeenCalled();
@@ -395,16 +407,39 @@ describe("recordDepositAction", () => {
 
   it("names the payments entitlement on a 403 about it", async () => {
     vi.mocked(recordManualDeposit).mockRejectedValue(
-      apiError(403, { detail: "Missing entitlement: payments" })
+      apiError(403, { detail: "This organisation is not entitled to this app" })
     );
     expect(await run()).toMatchObject({
       kind: "forbidden",
-      message: expect.stringContaining("not included"),
+      message: expect.stringContaining("isn't set up"),
     });
   });
 
   it("reports a server fault as unavailable", async () => {
     vi.mocked(recordManualDeposit).mockRejectedValue(apiError(503));
+    expect(await run()).toMatchObject({ kind: "unavailable" });
+    expect(reportError).toHaveBeenCalledWith(expect.anything(), "studio");
+  });
+
+  it("keeps the key for an in-progress 409 (kind unavailable) and does not refresh", async () => {
+    vi.mocked(recordManualDeposit).mockRejectedValue(
+      apiError(409, {
+        detail:
+          "A request with this key is still being processed; retry shortly",
+      })
+    );
+    expect(await run()).toMatchObject({
+      status: "error",
+      kind: "unavailable",
+      message: expect.stringContaining("still being processed"),
+    });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("treats a timeout as unavailable and reports it", async () => {
+    vi.mocked(recordManualDeposit).mockRejectedValue(
+      new DOMException("timed out", "TimeoutError")
+    );
     expect(await run()).toMatchObject({ kind: "unavailable" });
     expect(reportError).toHaveBeenCalledWith(expect.anything(), "studio");
   });

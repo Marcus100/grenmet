@@ -106,12 +106,13 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
         />
       ) : null}
 
-      {canManageBookings(org.value.role) && takesDeposit(booking) ? (
+      {canManageBookings(org.value.role) ? (
         <RecordDeposit
           amountLabel={formatMoney(booking.deposit_minor)}
           bookingId={booking.id}
           due={deposit === "due"}
           orgSlug={orgSlug}
+          takesDeposit={takesDeposit(booking)}
         />
       ) : null}
 

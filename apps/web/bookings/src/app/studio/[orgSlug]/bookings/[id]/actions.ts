@@ -5,7 +5,11 @@
 // browser supplies only the reason and the refund choice. FastAPI still
 // enforces role and legal transitions and answers 403 / 409.
 
-import { type BookingStudioDetail, ResponseError } from "@barrelsgd/api-client";
+import {
+  type BookingStudioDetail,
+  manualMethod,
+  ResponseError,
+} from "@barrelsgd/api-client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -220,7 +224,7 @@ export async function cancelBookingAction(
 // reference and an idempotency key.
 
 const depositSchema = z.object({
-  method: z.enum(["cash", "bank_transfer", "cheque"], {
+  method: z.enum(manualMethod, {
     error: "Choose how the deposit was paid.",
   }),
   reference: z
@@ -231,7 +235,8 @@ const depositSchema = z.object({
 });
 
 const IDEMPOTENCY_409 = /idempotency|still being processed/i;
-const ENTITLEMENT_403 = /entitle|payments|plan|subscription/i;
+const IN_PROGRESS_409 = /still being processed/i;
+const ENTITLEMENT_403 = /entitle/i;
 
 function detailText(data: unknown): string {
   try {
@@ -243,7 +248,7 @@ function detailText(data: unknown): string {
 
 const DEPOSIT_409: { match: RegExp; message: string; nextStep: string }[] = [
   {
-    match: IDEMPOTENCY_409,
+    match: /different request/i,
     message: "That save is out of step with an earlier attempt.",
     nextStep: "Press Record deposit again.",
   },
@@ -282,11 +287,19 @@ function depositFailure(error: unknown): StudioFailure {
     if (error.status === 403 && ENTITLEMENT_403.test(text)) {
       return {
         kind: "forbidden",
-        message: "Recording deposits is not included for this business yet.",
-        nextStep: "Ask the business owner to enable payments, then try again.",
+        message: "This business isn't set up for this feature.",
+        nextStep: "Ask Barrels support.",
       };
     }
     if (error.status === 409) {
+      if (IN_PROGRESS_409.test(text)) {
+        // "unavailable" keeps the key, so the retry replays the first result.
+        return {
+          kind: "unavailable",
+          message: "The earlier attempt is still being processed.",
+          nextStep: "Wait a moment, then press Record deposit again.",
+        };
+      }
       const known = DEPOSIT_409.find((item) => item.match.test(text));
       if (known) {
         return {
@@ -295,6 +308,12 @@ function depositFailure(error: unknown): StudioFailure {
           nextStep: known.nextStep,
         };
       }
+      return {
+        kind: "conflict",
+        message: "The deposit could not be recorded by hand.",
+        nextStep:
+          "Check the booking's deposit and contact support if it keeps happening.",
+      };
     }
     if (error.status === 400 || error.status === 422) {
       return {

@@ -8,6 +8,7 @@
 // may have been recorded) and rotated when the API refused the content.
 // Results are announced (role="status" success, role="alert" refusal).
 
+import type { ManualMethod } from "@barrelsgd/api-client";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -39,11 +40,16 @@ import { rotatesKey } from "@/lib/studio-view";
 
 const TARGET = "min-h-11";
 
-const METHODS = [
-  { value: "cash", label: "Cash" },
-  { value: "bank_transfer", label: "Bank transfer" },
-  { value: "cheque", label: "Cheque" },
-] as const;
+const METHOD_LABEL: Record<ManualMethod, string> = {
+  cash: "Cash",
+  bank_transfer: "Bank transfer",
+  cheque: "Cheque",
+};
+const METHODS = Object.keys(METHOD_LABEL) as ManualMethod[];
+
+// Refusals that mean the booking has moved on (the page refreshes under us):
+// shown outside the dialog, because the button may be gone by then.
+const PAGE_LEVEL = new Set(["conflict", "forbidden", "not_found"]);
 
 export interface RecordDepositProps {
   /** The booking's deposit, already formatted. Display only. */
@@ -52,6 +58,8 @@ export interface RecordDepositProps {
   /** The deposit is still awaited (the page decides from the booking). */
   due: boolean;
   orgSlug: string;
+  /** The booking asks for a deposit and is not closed. */
+  takesDeposit: boolean;
 }
 
 export function RecordDeposit({
@@ -59,6 +67,7 @@ export function RecordDeposit({
   bookingId,
   due,
   orgSlug,
+  takesDeposit,
 }: RecordDepositProps) {
   const [open, setOpen] = useState(false);
   const [opened, setOpened] = useState(0);
@@ -66,14 +75,14 @@ export function RecordDeposit({
   // Made on mount, not on the server, so Back (router cache) never restores
   // a used key. Empty until then; the submit stays off until it exists.
   const [key, setKey] = useState("");
-  const noticeRef = useRef<HTMLParagraphElement>(null);
+  const noticeRef = useRef<HTMLParagraphElement & HTMLDivElement>(null);
 
   useEffect(() => {
     setKey(crypto.randomUUID());
   }, []);
 
   useEffect(() => {
-    if (notice.status === "done") {
+    if (notice.status !== "idle") {
       noticeRef.current?.focus();
     }
   }, [notice]);
@@ -85,12 +94,19 @@ export function RecordDeposit({
       setKey(crypto.randomUUID());
       setOpen(false);
       setNotice(state);
-    } else if (state.status === "error" && rotatesKey(state.kind)) {
-      setKey(crypto.randomUUID());
+    } else if (state.status === "error") {
+      if (rotatesKey(state.kind)) {
+        setKey(crypto.randomUUID());
+      }
+      if (PAGE_LEVEL.has(state.kind)) {
+        setOpen(false);
+        setNotice(state);
+      }
     }
   }, []);
 
-  if (!due && notice.status !== "done") {
+  const canRecord = takesDeposit && due;
+  if (!canRecord && notice.status === "idle") {
     return null;
   }
 
@@ -99,10 +115,11 @@ export function RecordDeposit({
       <h2 className="font-semibold text-lg" id="deposit-title">
         Deposit
       </h2>
-      {due ? (
+      {canRecord ? (
         <AlertDialog
           onOpenChange={(next) => {
             if (next) {
+              setNotice(IDLE);
               setOpened((count) => count + 1);
             }
             setOpen(next);
@@ -137,9 +154,21 @@ export function RecordDeposit({
         >
           {notice.message}
         </p>
-      ) : (
+      ) : null}
+      {notice.status === "error" ? (
+        <div
+          className="space-y-1 rounded-lg border border-destructive/40 bg-destructive/10 p-3"
+          ref={noticeRef}
+          role="alert"
+          tabIndex={-1}
+        >
+          <p className="font-semibold">{notice.message}</p>
+          <p className="text-muted-foreground">{notice.nextStep}</p>
+        </div>
+      ) : null}
+      {notice.status === "idle" ? (
         <p className="sr-only" role="status" />
-      )}
+      ) : null}
     </section>
   );
 }
@@ -200,8 +229,8 @@ function DepositForm({
           required
         >
           {METHODS.map((method) => (
-            <NativeSelectOption key={method.value} value={method.value}>
-              {method.label}
+            <NativeSelectOption key={method} value={method}>
+              {METHOD_LABEL[method]}
             </NativeSelectOption>
           ))}
         </NativeSelect>
