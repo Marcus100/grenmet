@@ -3,7 +3,7 @@
 **Status:** Phase 1 delivered (inventory plus entitlement kill switch); phases 2 and 3 proposed  
 **Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-10-22  
-**Relates to:** ADR-0044 (slice S5), ADR-0025 (org zone), issue #517 (known lows)
+**Relates to:** ADR-0044 (slice S5), ADR-0050 (staff path), ADR-0025 (org zone), issue #517 (known lows)
 
 ## Objective and boundary
 
@@ -100,6 +100,31 @@ cross-organisation 404 test, entitlement-off 403 test), then move callers, then 
    `app/dash/events/page.tsx`, `app/dash/events/new`. Add a forbidden state for "Events switched off for this
    organisation" (see risk below).
 5. Anything in `apps/pwa/pwa-events` when it lands.
+
+## Staff path on every ported route
+
+ADR-0050 (Proposed) lets Barrels staff operate any organiser's events without being members. Every route
+ported in Phase 2 therefore gets its staff-key pair from day one: it uses
+`require_org_permission_or_staff(org_key, staff_key, session_app="events")` instead of
+`require_org_permission`, never only the member dependency. Staff need MFA for every key except
+`events.ops.door`; reads of attendee or order lists are logged (ids only); writes are rate-limited per user;
+Events activity records `actor_capacity` (`member` or `staff`). A route that must stay member-only is listed
+here on purpose, with the reason.
+
+| Group | Routes (org zone, ported or existing) | Member key (ADR-0044) | Staff key (ADR-0050) |
+| --- | --- | --- | --- |
+| door | admissions, manifest, attendees (`GET /events/org/events/{id}/attendees`) | `events.door.scan` | `events.ops.door` |
+| till | outlet overview, till open, till close, cash sale, sale reprint, manual payment (`POST /events/org/orders/{id}/manual-payments`) | `events.tickets.sell` | `events.ops.till` |
+| refunds | cash or bank ticket refund, online order refund (`POST /events/org/orders/{id}/refunds`), order cancel (`POST /events/org/orders/{id}/cancel`) | `events.refunds.issue` | `events.ops.refunds` |
+| settlement | settlement summary, settlement report, CSV, order list and detail (`GET /events/org/events/{id}/orders`, `GET /events/org/orders/{id}`) | `events.settlement.view` | `events.ops.settlement` |
+| listings | workspace read, create, update, postpone, cancel event (`POST /events/org/events/{id}/cancel`), logo, activity | `events.listings.manage` | `events.ops.listings` |
+
+Not in the table by design: `POST /manage/organiser` and `/resubmit` (organiser lifecycle, `me` zone, no
+organisation yet) and anything needing `events.team.manage` (staff have no team key). Staff pick the organisation
+and event through the admin-zone reads `GET /events/admin/events` and `GET /events/admin/organisers`, then call
+the same org-zone routes with `X-Barrels-Organisation`. Each ported route's tests add: a staff-role caller passes,
+a superuser without the role is refused, an unknown organisation or a missing staff key is 404, a suspended or
+unentitled organisation is refused, MFA is required (except door), and the activity row says `staff`.
 
 ## Phase 3: retire (proposed)
 

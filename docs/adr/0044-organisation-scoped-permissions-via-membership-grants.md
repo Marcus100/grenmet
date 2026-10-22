@@ -94,3 +94,14 @@ Choose C.
 - Phases: S0 binding and keys (this change); S1 `membership_grant` table,
   bundles and resolver; S2 Events enforcement; S3 team-management routes and
   UI; S4 Bookings enforcement; S5 retire compatibility aliases and review.
+
+## Amended by ADR-0050 (2026-10-22, Proposed)
+
+Organisation keys stay membership-only and are never held by a staff role. Barrels
+staff operating organisers' events use five separate global keys
+(`events.ops.door`, `.till`, `.refunds`, `.settlement`, `.listings`) in four
+`events-staff-*` roles, accepted only on Events org-zone routes through
+`require_org_permission_or_staff`. There is no staff counterpart of
+`events.team.manage`, and a superuser still gets nothing implicit. Slice S5 (porting
+the legacy `/events/manage/*` routes) gives each ported route its staff-key pair.
+See [ADR-0050](0050-barrels-staff-operations-access-to-organisations.md).
