@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ActivityEntryPropertiesActorCapacityEnum } from "./ActivityEntryPropertiesActorCapacityEnum.js";
+
 export type ActivityEntry = {
   /**
    * @description
@@ -20,6 +22,11 @@ export type ActivityEntry = {
    */
   actor_id: string;
   actor_name?: string | null;
+  /**
+   * @default 'member'
+   * @type string | undefined
+   */
+  actor_capacity?: ActivityEntryPropertiesActorCapacityEnum;
   summary: {
     [key: string]: unknown;
   };

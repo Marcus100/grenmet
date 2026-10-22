@@ -356,6 +356,8 @@ class ActivityEntry(BaseModel):
     actor_id: uuid.UUID
     #: Display name from the actor's current profile; null once they have none.
     actor_name: str | None = None
+    #: `staff` when Barrels staff acted for the organiser, else `member`.
+    actor_capacity: Literal["member", "staff"] = "member"
     summary: dict[str, object]
     created_at: UtcDateTime
 
@@ -934,3 +936,24 @@ class OrgOrderCancelResult(BaseModel):
     #: ``refunded`` money went back, ``queued`` the provider refund was handed to
     #: the outbox, ``kept`` it was not refunded, ``not_due`` nothing was paid.
     refund_outcome: Literal["refunded", "queued", "kept", "not_due"]
+
+
+class StaffEventRow(BaseModel):
+    """One event in the Barrels staff picker. No personal data."""
+
+    listing_id: uuid.UUID
+    title: str
+    status: str
+    starts_at: UtcDateTime
+    organiser_id: uuid.UUID
+    organiser_name: str
+    #: Send as `X-Barrels-Organisation` on the org-zone routes to act for it.
+    organisation_id: str
+
+
+class StaffOrganiserRow(BaseModel):
+    """One organiser that staff can act for. No personal data."""
+
+    organiser_id: uuid.UUID
+    name: str
+    organisation_id: str

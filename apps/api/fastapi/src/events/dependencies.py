@@ -1,13 +1,21 @@
 from typing import Annotated
 
 from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import service as auth_service
 from src.auth.app_dependencies import app_user, optional_app_user
 from src.auth.models import User
-from src.dependencies import CurrentUser, SessionDep
+from src.auth.permissions import EVENTS_OPS_KEYS
+from src.auth.policy import has_role_permission
+from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.organisations import service as organisations
+from src.organisations.dependencies import (
+    STAFF_MFA_KEYS,
+    require_staff_session_mfa,
+    resolve_org_caller,
+)
 
 from .exceptions import EventsForbidden
 
@@ -72,3 +80,29 @@ async def require_moderation_reader(user: CurrentUser, session: SessionDep) -> U
 
 
 ModerationReader = Annotated[User, Depends(require_moderation_reader)]
+
+
+async def require_events_staff(session: SessionDep, token: TokenDep) -> User:
+    """Barrels staff who hold some ``events.ops.*`` key through a role (ADR-0050).
+
+    An account session or an Events app session. A superuser holds no key
+    implicitly. Two-step verification is required unless the only key held is
+    ``events.ops.door`` (volunteers). 403 for anyone else."""
+    user, token_app = await resolve_org_caller(
+        session,
+        HTTPAuthorizationCredentials(scheme="Bearer", credentials=token),
+        "events",
+    )
+    held = {
+        key
+        for key in EVENTS_OPS_KEYS
+        if await has_role_permission(session=session, user=user, permission_key=key)
+    }
+    if not held:
+        raise EventsForbidden("Events staff access is required")
+    if held & STAFF_MFA_KEYS:
+        await require_staff_session_mfa(session, user, token=token, token_app=token_app)
+    return user
+
+
+EventsStaff = Annotated[User, Depends(require_events_staff)]

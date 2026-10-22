@@ -4,14 +4,21 @@ Acts for the organisation in ``X-Barrels-Organisation``. Each route needs an
 organisation-bound Events key (ADR-0044) held through the member's role or a live
 grant (owners and admins hold them all), the ``events`` entitlement, and an
 account or Events app session (ADR-0016 amendment). Keys are resolved only through
-``require_org_permission``, never ``has_permission``. An event or order of another
-organisation answers 404.
+``require_org_permission_or_staff``, never ``has_permission``. An event or order of
+another organisation answers 404.
+
+Barrels staff may use the same routes through an explicit staff path (ADR-0050):
+each route names one (organisation key, staff key) pair in ``ROUTE_KEYS``, a staff
+caller holds the staff key through a role (never implied for a superuser), and its
+history rows record ``actor_capacity = 'staff'``. Staff reads of orders are logged
+at INFO with ids only.
 
 Money moves through the payments core. The two money writes a client may retry
 (manual payment, refund) need an ``Idempotency-Key``; cancelling is protected by
 the order's state (a repeat is a 409).
 """
 
+import logging
 import uuid
 from collections.abc import Awaitable, Callable
 from typing import Annotated, Any
@@ -22,31 +29,78 @@ from pydantic import BaseModel as PydanticModel
 from src import idempotency
 from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
-from src.organisations.dependencies import OrgContext, require_org_permission
+from src.organisations.dependencies import (
+    EventsActor,
+    require_org_permission_or_staff,
+)
 from src.organisations.models import MembershipRole
 from src.pagination import PaginatedResponse, PaginationDep
 
 from . import schemas, service
 from .service import org_orders
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/events/org", tags=["events"])
 
+STAFF_WRITE_LIMIT_MONEY = "20/minute"
+STAFF_WRITE_LIMIT_TILL = "120/minute"
 
-def _sees_email(org: OrgContext) -> bool:
-    """Buyer account emails go to the organisation's admins and owners only, not
-    to members holding a grant (owner decision)."""
-    return org.role in (MembershipRole.ADMIN, MembershipRole.OWNER)
+#: Every org-zone route -> exactly one (organisation key, staff key) pair. The
+#: registry test checks this against the router's real dependencies.
+ROUTE_KEYS: dict[str, tuple[str, str]] = {
+    "eventsOrgListOrders": ("events.settlement.view", "events.ops.settlement"),
+    "eventsOrgGetOrder": ("events.settlement.view", "events.ops.settlement"),
+    "eventsOrgListAttendees": ("events.door.scan", "events.ops.door"),
+    "eventsOrgRecordManualPayment": ("events.tickets.sell", "events.ops.till"),
+    "eventsOrgRefundOrder": ("events.refunds.issue", "events.ops.refunds"),
+    "eventsOrgCancelOrder": ("events.refunds.issue", "events.ops.refunds"),
+    "eventsOrgCancelEvent": ("events.listings.manage", "events.ops.listings"),
+}
 
 
-def _key(permission_key: str) -> Any:
-    return Depends(require_org_permission(permission_key, session_app="events"))
+def _sees_email(org: EventsActor) -> bool:
+    """Buyer account emails go to the organisation's admins and owners, and to
+    Barrels staff acting through the staff path (owner decision, ADR-0050), not to
+    members holding a grant. Staff reads are logged (``_log_staff_read``)."""
+    return org.is_staff or org.role in (MembershipRole.ADMIN, MembershipRole.OWNER)
 
 
-OrgCanSeeOrders = Annotated[OrgContext, _key("events.settlement.view")]
-OrgCanSeeAttendees = Annotated[OrgContext, _key("events.door.scan")]
-OrgCanTakePayment = Annotated[OrgContext, _key("events.tickets.sell")]
-OrgCanRefund = Annotated[OrgContext, _key("events.refunds.issue")]
-OrgCanManageEvents = Annotated[OrgContext, _key("events.listings.manage")]
+def _log_staff_read(org: EventsActor, what: str, listing_id: uuid.UUID) -> None:
+    if org.is_staff:
+        logger.info(
+            "Staff read of organiser data",
+            extra={
+                "what": what,
+                "user_id": str(org.user.id),
+                "organisation_id": org.organisation_id,
+                "listing_id": str(listing_id),
+            },
+        )
+
+
+def _key(permission_key: str, *, write_limit: str | None = None) -> Any:
+    staff_key = next(
+        staff for org_key, staff in ROUTE_KEYS.values() if org_key == permission_key
+    )
+    return Depends(
+        require_org_permission_or_staff(
+            permission_key, staff_key, session_app="events", write_limit=write_limit
+        )
+    )
+
+
+OrgCanSeeOrders = Annotated[EventsActor, _key("events.settlement.view")]
+OrgCanSeeAttendees = Annotated[EventsActor, _key("events.door.scan")]
+OrgCanTakePayment = Annotated[
+    EventsActor, _key("events.tickets.sell", write_limit=STAFF_WRITE_LIMIT_TILL)
+]
+OrgCanRefund = Annotated[
+    EventsActor, _key("events.refunds.issue", write_limit=STAFF_WRITE_LIMIT_MONEY)
+]
+OrgCanManageEvents = Annotated[
+    EventsActor, _key("events.listings.manage", write_limit=STAFF_WRITE_LIMIT_MONEY)
+]
 
 READ_ERRORS = {**AUTHENTICATED, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
@@ -70,6 +124,7 @@ async def list_orders(
         schemas.OrgOrderStatus | None, Query(alias="status")
     ] = None,
 ) -> Any:
+    _log_staff_read(org, "orders.list", listing_id)
     return await org_orders.list_orders(
         session,
         org.organisation_id,
@@ -99,6 +154,7 @@ async def list_attendees(
     ] = None,
     tier_id: uuid.UUID | None = None,
 ) -> Any:
+    _log_staff_read(org, "attendees.list", listing_id)
     return await org_orders.list_attendees(
         session,
         org.organisation_id,
@@ -148,9 +204,11 @@ async def cancel_event(
 async def get_order(
     *, session: SessionDep, org: OrgCanSeeOrders, order_id: uuid.UUID
 ) -> Any:
-    return await org_orders.get_order(
+    detail = await org_orders.get_order(
         session, org.organisation_id, order_id, _sees_email(org)
     )
+    _log_staff_read(org, "orders.get", detail.listing_id)
+    return detail
 
 
 @router.post(
@@ -260,7 +318,7 @@ async def cancel_order(
 async def _run(
     response: Response,
     session: SessionDep,
-    org: OrgContext,
+    org: EventsActor,
     order_id: uuid.UUID,
     key: str,
     body: PydanticModel,

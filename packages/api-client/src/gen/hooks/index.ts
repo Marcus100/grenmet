@@ -959,6 +959,16 @@ export {
   useEventsAcceptConnection,
 } from "./useEventsAcceptConnection.js";
 export {
+  eventsAdminListEventsQueryKey,
+  eventsAdminListEventsQueryOptions,
+  useEventsAdminListEvents,
+} from "./useEventsAdminListEvents.js";
+export {
+  eventsAdminListOrganisersQueryKey,
+  eventsAdminListOrganisersQueryOptions,
+  useEventsAdminListOrganisers,
+} from "./useEventsAdminListOrganisers.js";
+export {
   eventsAdmitTicketMutationKey,
   eventsAdmitTicketMutationOptions,
   useEventsAdmitTicket,

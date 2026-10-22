@@ -50,6 +50,7 @@ from src.eregister.router import router as eregister_router
 from src.events.moderation_router import router as events_moderation_router
 from src.events.org_router import router as events_org_router
 from src.events.router import router as events_router
+from src.events.staff_router import router as events_staff_router
 from src.exceptions import (
     AppException,
     app_exception_handler,
@@ -504,6 +505,7 @@ app.include_router(transport_router, prefix=settings.API_V1_STR)
 app.include_router(events_router, prefix=settings.API_V1_STR)
 app.include_router(events_moderation_router, prefix=settings.API_V1_STR)
 app.include_router(events_org_router, prefix=settings.API_V1_STR)
+app.include_router(events_staff_router, prefix=settings.API_V1_STR)
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
