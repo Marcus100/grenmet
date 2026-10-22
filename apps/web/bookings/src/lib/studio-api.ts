@@ -10,16 +10,21 @@ import {
   type BookingAgenda,
   type BookingMyOrganisation,
   type BookingProviderPublic,
+  type BookingServicePublic,
   type BookingStatus,
+  type BookingStudioCreate,
   type BookingStudioDetail,
   bookingsCancelStudioBooking,
   bookingsCompleteStudioBooking,
   bookingsConfirmStudioBooking,
+  bookingsCreateStudioBooking,
   bookingsDeclineStudioBooking,
   bookingsGetAgenda,
+  bookingsGetProfile,
   bookingsGetStudioBooking,
   bookingsListMyOrganisations,
   bookingsListProviders,
+  bookingsListServices,
   bookingsNoShowStudioBooking,
   createClient,
   ResponseError,
@@ -27,6 +32,7 @@ import {
 import { cache } from "react";
 import { getAuthConfig } from "@/lib/auth-config";
 import { redactRequest } from "@/lib/redact-request";
+import { DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
 const API_PREFIX = /\/api\/v1(?=\/|$)/;
 const TIMEOUT_MS = 10_000;
@@ -106,6 +112,58 @@ export function listProviders(
 ): Promise<BookingProviderPublic[]> {
   return bookingsListProviders({
     client: studioClient(accessToken, organisationId),
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** The business's services, for the new-booking form. */
+export function listServices(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingServicePublic[]> {
+  return bookingsListServices({
+    client: studioClient(accessToken, organisationId),
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/**
+ * The business's own timezone from its booking profile, so "today" is the day
+ * on the business's calendar. A business without a profile yet has no zone
+ * (404); it falls back to the default instead of failing the page.
+ */
+export async function getBusinessTimezone(
+  accessToken: string,
+  organisationId: string
+): Promise<string> {
+  try {
+    const profile = await bookingsGetProfile({
+      client: studioClient(accessToken, organisationId),
+    })
+      .unwrap()
+      .catch(redactRequest);
+    return profile.timezone ?? DEFAULT_TIMEZONE;
+  } catch (error) {
+    if (ResponseError.is(error) && error.status === 404) {
+      return DEFAULT_TIMEZONE;
+    }
+    throw error;
+  }
+}
+
+/** Enters a phone or walk-in booking. The key makes a retry safe. */
+export function createStudioBooking(
+  accessToken: string,
+  organisationId: string,
+  idempotencyKey: string,
+  body: BookingStudioCreate
+): Promise<BookingStudioDetail> {
+  return bookingsCreateStudioBooking({
+    client: studioClient(accessToken, organisationId),
+    headers: { "Idempotency-Key": idempotencyKey },
+    body,
   })
     .unwrap()
     .catch(redactRequest);

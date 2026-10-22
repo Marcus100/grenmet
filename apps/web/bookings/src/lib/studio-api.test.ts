@@ -20,6 +20,7 @@ import {
   findOrganisation,
   getAgenda,
   getBooking,
+  getBusinessTimezone,
   listMyOrganisations,
   markCompleted,
   markNoShow,
@@ -108,6 +109,27 @@ describe("studio API reads", () => {
     const seen = stubFetch(404, { detail: "Not found" });
     expect(await getBooking("tok", ORG, BOOKING)).toBeNull();
     expect(seen[0]?.org).toBe(ORG);
+  });
+
+  it("reads the business timezone from its profile", async () => {
+    const seen = stubFetch(200, { timezone: "Pacific/Auckland" });
+    expect(await getBusinessTimezone("tok", ORG)).toBe("Pacific/Auckland");
+    expect(seen[0]?.org).toBe(ORG);
+    expect(new URL(seen[0]?.url ?? "").pathname).toBe(
+      "/api/v1/bookings/org/profile"
+    );
+  });
+
+  it("falls back to the default zone when there is no profile yet", async () => {
+    stubFetch(404, { detail: "No profile" });
+    expect(await getBusinessTimezone("tok", ORG)).toBe("America/Grenada");
+  });
+
+  it("rethrows other timezone read failures", async () => {
+    stubFetch(500, { detail: "boom" });
+    await expect(getBusinessTimezone("tok", ORG)).rejects.toBeInstanceOf(
+      ResponseError
+    );
   });
 
   it("lets a server fault reach the caller", async () => {

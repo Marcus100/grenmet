@@ -10,9 +10,9 @@ export const session = {
   name: "Maya",
 };
 
-export function apiError(status: number) {
+export function apiError(status: number, data: unknown = {}) {
   return new ResponseError({
-    data: {},
+    data,
     status,
     statusText: "",
     request: new Request("http://localhost/x"),
