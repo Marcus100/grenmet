@@ -57,6 +57,10 @@ def render(config, environment):
     for key in ["GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET", "EVENTS_SSO_CLIENT_SECRET", "WEATHER_SSO_CLIENT_SECRET", "MBIA_SSO_CLIENT_SECRET", "SIGNAL_SSO_CLIENT_SECRET", "DOCS_SSO_CLIENT_SECRET", "ELECTIONS_SSO_CLIENT_SECRET", "GMSDASH_SSO_CLIENT_SECRET", "BOOKINGS_SSO_CLIENT_SECRET", "BARRELS_ADMIN_SSO_CLIENT_SECRET"]:
         if values[key] and len(values[key]) < 32:
             raise ValueError(f"{key} must contain at least 32 characters")
+    # One secret per app: a leaked or shared value must not sign in to another app.
+    set_secrets = [key for key in values if key.endswith("_SSO_CLIENT_SECRET") and values[key]]
+    if len({values[key] for key in set_secrets}) != len(set_secrets):
+        raise ValueError("Each *_SSO_CLIENT_SECRET must be different per app")
     mode = environment.get("AUTH_PRIVILEGED_MFA_MODE", "") or "disabled"
     if mode not in {"disabled", "enforce"}:
         raise ValueError("AUTH_PRIVILEGED_MFA_MODE must be disabled or enforce")

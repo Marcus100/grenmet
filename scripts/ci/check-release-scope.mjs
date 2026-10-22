@@ -5,6 +5,7 @@ import {
   migrationServices,
   releaseScope,
   routedServices,
+  validateAdminHosts,
   validateComposeScope,
   validateReleaseConfiguration,
 } from "./release-scope.mjs";
@@ -30,8 +31,11 @@ if (printIndex !== -1) {
 }
 
 validateReleaseConfiguration(process.env);
-if (process.argv.includes("--compose"))
-  validateComposeScope(JSON.parse(readFileSync(0, "utf8")));
+if (process.argv.includes("--compose")) {
+  const model = JSON.parse(readFileSync(0, "utf8"));
+  validateComposeScope(model);
+  validateAdminHosts(model);
+}
 const report = `Release images: FastAPI, ${releaseScope.web.map((image) => image.image).join(", ")}. Deferred services excluded.\n`;
 console.log(report);
 if (process.env.GITHUB_STEP_SUMMARY)

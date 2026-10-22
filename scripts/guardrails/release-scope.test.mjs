@@ -11,6 +11,7 @@ import {
   migrationServices,
   releaseScope,
   routedServices,
+  validateAdminHosts,
   validateComposeScope,
   validateReleaseConfiguration,
   webImages,
@@ -208,4 +209,56 @@ test("routed services can run twice during a rolling start", () => {
   validateComposeScope({
     services: { ...services, proxy: { ports: ["443:443"] } },
   });
+});
+
+const adminModel = (consoleHost, portalRule) => ({
+  services: {
+    "web-admin": {
+      labels: {
+        "traefik.http.routers.web-barrels-admin-staging.rule": `Host(\`${consoleHost}\`)`,
+      },
+    },
+    "web-gmsadmin": {
+      labels: {
+        "traefik.http.routers.web-gms-portal-staging.rule": portalRule,
+      },
+    },
+  },
+});
+
+test("admin console and portal hosts must be present and distinct", () => {
+  validateAdminHosts(
+    adminModel("admin.staging.barrels.gd", "Host(`gms.staging.barrels.gd`)")
+  );
+  validateAdminHosts(
+    adminModel(
+      "console.barrels.gd",
+      "Host(`admin.barrels.gd`) || Host(`gmsadmin.barrels.gd`)"
+    )
+  );
+  for (const [host, rule] of [
+    ["admin.barrels.gd", "Host(`admin.barrels.gd`)"],
+    ["admin.barrels.gd", "Host(`gms.barrels.gd`) || Host(`admin.barrels.gd`)"],
+    ["", "Host(`gms.barrels.gd`)"],
+    ["admin", "Host(`gms.barrels.gd`)"],
+  ])
+    assert.throws(() => validateAdminHosts(adminModel(host, rule)));
+  assert.throws(() => validateAdminHosts({ services: {} }));
+});
+
+test("the committed environment files define the admin hosts the compose file requires", () => {
+  for (const file of ["staging.env", "production.env"]) {
+    const text = readFileSync(
+      new URL(`../../infra/docker/${file}`, import.meta.url),
+      "utf8"
+    );
+    for (const key of ["BARRELS_ADMIN_HOST", "GMSADMIN_HOST"])
+      assert.match(text, new RegExp(`^${key}=\\S+$`, "m"), `${file} ${key}`);
+  }
+  const compose = readFileSync(
+    new URL("../../infra/docker/docker-compose.deploy.yml", import.meta.url),
+    "utf8"
+  );
+  assert.ok(compose.includes("BARRELS_ADMIN_HOST:?"));
+  assert.ok(compose.includes("GMSADMIN_HOST:?"));
 });

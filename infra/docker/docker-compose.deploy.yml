@@ -158,7 +158,7 @@ services:
       RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
       EMAIL_RENDER_URL: ${EMAIL_RENDER_URL:-}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
-      NOTIFICATIONS_WEB_BASE_URL: https://${GMSADMIN_HOST:-gms.${BASE_DOMAIN}}
+      NOTIFICATIONS_WEB_BASE_URL: https://${GMSADMIN_HOST:?GMSADMIN_HOST required in the environment file}
       NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS: ${NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS?Render notification policy before deployment}
       CAP_SIGNING_CERT: ${CAP_SIGNING_CERT:-}
       CAP_SIGNING_KEY: ${CAP_SIGNING_KEY:-}
@@ -173,11 +173,11 @@ services:
       GMSDASH_SSO_CLIENT_SECRET: ${GMSDASH_SSO_CLIENT_SECRET:-}
       BOOKINGS_APP_URL: https://bookings.${BASE_DOMAIN}
       BOOKINGS_SSO_CLIENT_SECRET: ${BOOKINGS_SSO_CLIENT_SECRET:-}
-      GAA_ADMIN_APP_URL: https://${GMSADMIN_HOST:-gms.${BASE_DOMAIN}}
+      GAA_ADMIN_APP_URL: https://${GMSADMIN_HOST:?GMSADMIN_HOST required in the environment file}
       GAA_ADMIN_SSO_CLIENT_SECRET: ${GAA_ADMIN_SSO_CLIENT_SECRET:?GAA_ADMIN_SSO_CLIENT_SECRET required}
       # Barrels staff console (apps/web/admin, registry key barrels-admin,
       # superusers only). Empty secret keeps its sign-in off.
-      BARRELS_ADMIN_APP_URL: https://${BARRELS_ADMIN_HOST:-admin.${BASE_DOMAIN}}
+      BARRELS_ADMIN_APP_URL: https://${BARRELS_ADMIN_HOST:?BARRELS_ADMIN_HOST required in the environment file}
       BARRELS_ADMIN_SSO_CLIENT_SECRET: ${BARRELS_ADMIN_SSO_CLIENT_SECRET:-}
       CMS_APP_URL: https://cms.${BASE_DOMAIN}
       CMS_SSO_CLIENT_SECRET: ${CMS_SSO_CLIENT_SECRET:?CMS_SSO_CLIENT_SECRET required}
@@ -341,7 +341,7 @@ services:
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       EMAIL_RENDER_URL: ${EMAIL_RENDER_URL:-}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
-      NOTIFICATIONS_WEB_BASE_URL: https://${GMSADMIN_HOST:-gms.${BASE_DOMAIN}}
+      NOTIFICATIONS_WEB_BASE_URL: https://${GMSADMIN_HOST:?GMSADMIN_HOST required in the environment file}
       NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS: ${NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS?Render notification policy before deployment}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
@@ -474,7 +474,8 @@ services:
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       AUTH_API_URL: http://api:8000
-      ADMIN_APP_URL: https://${GMSADMIN_HOST:-gms.${BASE_DOMAIN}}
+      ADMIN_APP_URL: https://${GMSADMIN_HOST:?GMSADMIN_HOST required in the environment file}
+      BARRELS_ADMIN_APP_URL: https://${BARRELS_ADMIN_HOST:?BARRELS_ADMIN_HOST required in the environment file}
       DOCS_APP_URL: https://docs.${BASE_DOMAIN}
       GMS_APP_URL: https://weather.${BASE_DOMAIN}
       SIGNAL_APP_URL: https://signal.${BASE_DOMAIN}
@@ -491,6 +492,9 @@ services:
     networks:
       - grenmet
 
+  # Router and service labels use new names (web-barrels-admin, web-gms-portal)
+  # that no earlier container defines, so the first rolling deploy never has two
+  # containers defining one router differently (the old web-admin was gaa-admin).
   # Barrels staff / superuser control plane (apps/web/admin, ADR-0039). Calls
   # FastAPI only; no database credentials. BARRELS_ADMIN_HOST decides where it
   # is served: admin.${BASE_DOMAIN} on staging; production keeps a holding host
@@ -513,11 +517,11 @@ services:
       BARRELS_ADMIN_SSO_CLIENT_SECRET: ${BARRELS_ADMIN_SSO_CLIENT_SECRET:-}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.rule=Host(`${BARRELS_ADMIN_HOST:-admin.${BASE_DOMAIN}}`)"
-      - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3012"
-      - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/health"
+      - "traefik.http.routers.web-barrels-admin${ROUTER_SUFFIX}.rule=Host(`${BARRELS_ADMIN_HOST:?BARRELS_ADMIN_HOST required in the environment file}`)"
+      - "traefik.http.routers.web-barrels-admin${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-barrels-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-barrels-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3012"
+      - "traefik.http.services.web-barrels-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/health"
     networks:
       - grenmet
 
@@ -556,12 +560,12 @@ services:
       # its cutover) plus an optional GMSADMIN_EXTRA_HOST (production keeps its
       # existing gmsadmin.barrels.gd until the cutover). The public weather site
       # is the separate web-gms service at weather.${BASE_DOMAIN}.
-      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.rule=Host(`${GMSADMIN_HOST:-gms.${BASE_DOMAIN}}`) || Host(`${GMSADMIN_EXTRA_HOST:-gms.${BASE_DOMAIN}}`)"
-      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.service=web-gmsadmin${ROUTER_SUFFIX}"
-      - "traefik.http.services.web-gmsadmin${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
-      - "traefik.http.services.web-gmsadmin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
+      - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.rule=Host(`${GMSADMIN_HOST:?GMSADMIN_HOST required in the environment file}`) || Host(`${GMSADMIN_EXTRA_HOST:-${GMSADMIN_HOST}}`)"
+      - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.service=web-gms-portal${ROUTER_SUFFIX}"
+      - "traefik.http.services.web-gms-portal${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
+      - "traefik.http.services.web-gms-portal${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
     networks:
       - grenmet
 

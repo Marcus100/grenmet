@@ -1,21 +1,27 @@
 export const webImages = [
   { app: "auth", image: "web-auth", path: "apps/web/auth", port: 3000 },
-  // Barrels staff / superuser control plane at admin.barrels.gd (ADR-0039).
-  {
-    app: "admin",
-    image: "web-admin",
-    path: "apps/web/admin",
-    port: 3012,
-  },
+  // Listed before the console on purpose: the rolling deploy replaces routed
+  // services in this order, so the portal is up before the old web-admin
+  // container (the former gaa-admin) is replaced by the console.
   // GMS/GAA staff portal (apps/web/gaa-admin) at gms.barrels.gd; the image
   // keeps its name so existing tags and caches stay valid. The app key (service
   // web-gmsadmin) differs from the host because web-gms is the public weather site.
   {
     app: "gmsadmin",
+    router: "gms-portal",
     host: "gms",
     image: "web-gaa-admin",
     path: "apps/web/gaa-admin",
     port: 3001,
+  },
+  // Barrels staff / superuser control plane at admin.barrels.gd (ADR-0039).
+  {
+    app: "admin",
+    // Traefik router/service label name (the old web-admin was gaa-admin).
+    router: "barrels-admin",
+    image: "web-admin",
+    path: "apps/web/admin",
+    port: 3012,
   },
   { app: "docs", image: "web-docs", path: "apps/web/docs", port: 3002 },
   // Served at weather.barrels.gd, so its public address uses that host.
@@ -88,6 +94,31 @@ export const coreServices = [
   ...migrationServices,
   ...appServices,
 ];
+const HOST_RULE = /Host\(`([^`]+)`\)/g;
+function routerHosts(model, service, router) {
+  const labels = model.services?.[service]?.labels ?? {};
+  const rule = Object.entries(labels).find(
+    ([key]) =>
+      key.startsWith(`traefik.http.routers.${router}`) && key.endsWith(".rule")
+  )?.[1];
+  return [...String(rule ?? "").matchAll(HOST_RULE)].map((match) => match[1]);
+}
+// The Barrels console (admin.*) and the GMS/GAA portal must never share a host:
+// a dropped variable has to fail the deployment, not move a host silently.
+export function validateAdminHosts(model) {
+  const consoleHosts = routerHosts(model, "web-admin", "web-barrels-admin");
+  const portalHosts = routerHosts(model, "web-gmsadmin", "web-gms-portal");
+  if (consoleHosts.length !== 1 || portalHosts.length === 0)
+    throw new Error("Admin console and portal routers need explicit hosts");
+  if (
+    consoleHosts.some(
+      (host) => !host.includes(".") || portalHosts.includes(host)
+    )
+  )
+    throw new Error(
+      "BARRELS_ADMIN_HOST must be a full hostname different from GMSADMIN_HOST and GMSADMIN_EXTRA_HOST"
+    );
+}
 export function validateComposeScope(model) {
   const services = Object.keys(model.services ?? {});
   if (coreServices.some((service) => !services.includes(service)))

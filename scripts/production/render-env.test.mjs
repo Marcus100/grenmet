@@ -39,7 +39,7 @@ function fixture(directory) {
     "HASHED_PASSWORD",
     "PAYLOAD_SECRET",
   ])
-    env[key] = "test-only-configuration-value-32-characters";
+    env[key] = `test-only-configuration-value-32-characters-${key}`;
   const lines = ["FASTAPI_DB_USER=app_runtime", "ENVIRONMENT=staging"];
   for (const domain of [
     "WXWATCH",
@@ -340,17 +340,17 @@ test("staging and production pass integrations to the intended services", () => 
       const portalLabels = model.services["web-gmsadmin"].labels;
       const consoleHost = `${cutOver ? "admin" : "console"}.${baseDomain}`;
       assert.equal(
-        adminLabels[`traefik.http.routers.web-admin${suffix}.rule`],
+        adminLabels[`traefik.http.routers.web-barrels-admin${suffix}.rule`],
         `Host(\`${consoleHost}\`)`
       );
       assert.equal(
         adminLabels[
-          `traefik.http.services.web-admin${suffix}.loadbalancer.server.port`
+          `traefik.http.services.web-barrels-admin${suffix}.loadbalancer.server.port`
         ],
         "3012"
       );
       const portalRule =
-        portalLabels[`traefik.http.routers.web-gmsadmin${suffix}.rule`];
+        portalLabels[`traefik.http.routers.web-gms-portal${suffix}.rule`];
       assert.ok(portalRule.includes(`Host(\`${portalHost}.${baseDomain}\`)`));
       assert.equal(
         Object.keys(portalLabels).some((key) => key.includes("legacy")),
@@ -466,6 +466,42 @@ test("notification recipient policy rejects malformed domains without echoing th
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
+  }
+});
+test("app single sign-on secrets must differ per app and are never echoed", () => {
+  const directory = mkdtempSync(join(tmpdir(), "sso-secret-shared-"));
+  try {
+    const { env, config, destination } = fixture(directory);
+    const shared = "shared-DO_NOT_ECHO-0123456789abcdefghijklmnop";
+    const result = spawnSync(
+      "python3",
+      ["scripts/production/render-env.py", config, destination],
+      {
+        env: {
+          ...env,
+          GAA_ADMIN_SSO_CLIENT_SECRET: shared,
+          BARRELS_ADMIN_SSO_CLIENT_SECRET: shared,
+        },
+        encoding: "utf8",
+      }
+    );
+    assert.notEqual(result.status, 0);
+    assert.ok(result.stderr.includes("different per app"));
+    assert.equal(result.stderr.includes("DO_NOT_ECHO"), false);
+    const ok = spawnSync(
+      "python3",
+      ["scripts/production/render-env.py", config, destination],
+      {
+        env: {
+          ...env,
+          BARRELS_ADMIN_SSO_CLIENT_SECRET: `${shared}-different`,
+        },
+        encoding: "utf8",
+      }
+    );
+    assert.equal(ok.status, 0, ok.stderr);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
   }
 });
 test("partial provider configuration and live Stripe keys in staging fail closed", () => {

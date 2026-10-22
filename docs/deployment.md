@@ -102,11 +102,11 @@ Go into each environment and add the following secrets. Staging and production u
 | `WXPRODUCTS_DB_PASSWORD`   | wxproducts DB user password           | Generate with the command above                                |
 | `JANITORIAL_DB_PASSWORD` | Janitorial database password | Generate a separate random value |
 | `TRANSPORT_DB_PASSWORD` | Transport database password | Generate a separate random value |
-| `GAA_ADMIN_SSO_CLIENT_SECRET` | GAA Admin single sign-on secret    | `openssl rand -base64 32` (different per environment)          |
-| `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Barrels staff console single sign-on secret (empty keeps its sign-in off; superusers only) | `openssl rand -base64 32` (different per environment) |
-| `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment)          |
-| `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment) |
-| `BOOKINGS_SSO_CLIENT_SECRET` | Bookings single sign-on secret (optional; empty keeps sign-in off; the API must register `bookings` first) | `openssl rand -base64 32` (different per environment) |
+| `GAA_ADMIN_SSO_CLIENT_SECRET` | GAA Admin single sign-on secret    | `openssl rand -base64 32` (different per environment and per app)   |
+| `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Barrels staff console single sign-on secret (empty keeps its sign-in off; superusers only) | `openssl rand -base64 32` (different per environment and per app) |
+| `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment and per app)   |
+| `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment and per app) |
+| `BOOKINGS_SSO_CLIENT_SECRET` | Bookings single sign-on secret (optional; empty keeps sign-in off; the API must register `bookings` first) | `openssl rand -base64 32` (different per environment and per app) |
 | `EVENTS_SSO_CLIENT_SECRET` | Events single sign-on secret (optional) | `openssl rand -base64 32` (different per environment)        |
 | `RESEND_API_KEY`           | Email sending via Resend              | From your resend.com dashboard                                 |
 | `EMAIL`                    | Let's Encrypt registration email      | Your real email address                                        |
@@ -594,6 +594,21 @@ in `production.env` set `BARRELS_ADMIN_HOST=admin.barrels.gd`,
 `*.barrels.gd` wildcard covers `admin`, `gms` and `console`. Check there is no
 explicit `gms.barrels.gd` or `admin.barrels.gd` record pointing elsewhere (the
 retired public `gms.*` site): old `gms.*` links now reach the portal sign-in.
+
+**Deploy impact.** Router and service labels for the console and portal use new
+names (`web-barrels-admin`, `web-gms-portal`) that no earlier container defines,
+and the portal is listed before the console in `scripts/ci/release-scope.mjs`, so
+the rolling deploy brings the new portal container up before the old `web-admin`
+(the former gaa-admin) is replaced by the console. With rolling deploys on, no
+outage is expected. If rolling is off or a replacement fails, expect 1-3 minutes
+of 404s on the portal while it restarts; deploy in a quiet window (only the owner
+and internal staff use production today). A rollback has the same shape.
+`BARRELS_ADMIN_HOST` and `GMSADMIN_HOST` are required in the environment files:
+the compose file refuses to render without them, and
+`scripts/ci/check-release-scope.mjs --compose` fails if the console and portal
+share a host. `render-env.py` rejects two apps sharing one single sign-on secret.
+Notification emails already sent with `admin.staging` links now land on the
+console sign-in wall.
 
 **Rollback.** Revert the host values in `staging.env` (portal back on
 `admin.staging.barrels.gd`: `GMSADMIN_HOST=admin.staging.barrels.gd`,

@@ -367,7 +367,7 @@ control plane (C1, `apps/web/admin`). Staging first, production in a later
 release. Runbook, host variables, DNS and rollback: `docs/deployment.md`,
 "Admin host move".
 
-1. **Done (2026-10-18):** the portal answers on `gms.*` with its own router.
+1. **Done (2026-10-18):** the portal answers on `gmsadmin.*` with its own router (replaced by `gms.*` on staging in step 2).
 2. **Done in the 2026-10-21 change (staging):** `web-admin` is the console on
    `admin.staging.barrels.gd`; `web-gmsadmin` is the portal on
    `gms.staging.barrels.gd`; `GAA_ADMIN_APP_URL`, email links and the

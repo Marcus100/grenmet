@@ -75,7 +75,7 @@ entry there or its image build fails.
 | --- | --- | --- | --- | --- | --- |
 | auth (Barrels ID) | `localhost:3000` | 3000 | `auth.staging.barrels.gd` | `auth.barrels.gd` | `/` |
 | admin (Barrels staff / superuser console) | `localhost:3012` | 3012 | `admin.staging.barrels.gd` | `console.barrels.gd` (holding host) until the production cutover, then `admin.barrels.gd` | `/api/health` |
-| gaa-admin (GMS/GAA staff portal, Met office) | `localhost:3001` | 3001 | `gms.staging.barrels.gd` | `admin.barrels.gd` and `gms.barrels.gd` until the production cutover, then `gms.barrels.gd` only | `/` (redirects to sign-in) |
+| gaa-admin (GMS/GAA staff portal, Met office) | `localhost:3001` | 3001 | `gms.staging.barrels.gd` | `admin.barrels.gd` and `gmsadmin.barrels.gd` until the production cutover (`gms.barrels.gd` has no router before then), then `gms.barrels.gd` only | `/` (redirects to sign-in) |
 | docs | `localhost:3002` | 3002 | `docs.staging.barrels.gd` | `docs.barrels.gd` | `/` |
 | gms (public weather site) | `localhost:3003` | 3003 | `weather.staging.barrels.gd` | `weather.barrels.gd` | `/` |
 | signal | `localhost:3004` | 3004 | `signal.staging.barrels.gd` | `signal.barrels.gd` | `/` |

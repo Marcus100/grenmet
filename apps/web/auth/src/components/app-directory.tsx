@@ -1,6 +1,13 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
 
-export type AppId = "admin" | "mbia" | "weather" | "docs" | "signal" | "events";
+export type AppId =
+  | "admin"
+  | "barrels-admin"
+  | "mbia"
+  | "weather"
+  | "docs"
+  | "signal"
+  | "events";
 
 interface AppEntry {
   // Names an app may send as `?app=` or as its return host's first label.
@@ -62,6 +69,13 @@ export const APP_GROUPS: readonly AppGroup[] = [
   {
     label: "Barrels",
     apps: [
+      {
+        id: "barrels-admin",
+        name: "Barrels admin",
+        description: "Staff console (superusers only)",
+        monogram: "Ba",
+        aliases: ["barrels-admin", "admin"],
+      },
       {
         id: "signal",
         name: "Signal",

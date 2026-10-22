@@ -119,7 +119,7 @@ async function checkDeployed(root, errors, apps) {
     const label = `docker-compose.deploy.yml web-${image.app}`;
     const traefik = compose.match(
       new RegExp(
-        `traefik\\.http\\.services\\.web-${image.app}\\$\\{ROUTER_SUFFIX\\}\\.loadbalancer\\.server\\.port=${PORT_PATTERN}`
+        `traefik\\.http\\.services\\.web-${image.router ?? image.app}\\$\\{ROUTER_SUFFIX\\}\\.loadbalancer\\.server\\.port=${PORT_PATTERN}`
       )
     )?.[1];
     expectPort(errors, `${label} Traefik port`, traefik, documented.port);

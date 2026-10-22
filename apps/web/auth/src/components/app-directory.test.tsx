@@ -49,8 +49,9 @@ describe("findRequestedApp", () => {
     expect(findRequestedApp("weather")).toBe("weather");
   });
 
-  it("no longer treats the admin host as the GAA portal", () => {
-    expect(findRequestedApp("admin")).toBeNull();
+  it("treats the admin host as the Barrels staff console, not the GAA portal", () => {
+    expect(findRequestedApp("admin")).toBe("barrels-admin");
+    expect(findRequestedApp("barrels-admin")).toBe("barrels-admin");
   });
 
   it("returns null for unknown or empty names", () => {
