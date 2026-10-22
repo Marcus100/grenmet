@@ -249,12 +249,12 @@ async def list_listings(
     if tag:
         stmt = stmt.where(Listing.tags.contains([tag]))
     if query:
-        like = f"%{query.strip()[:100]}%"
+        term = query.strip()[:100]
         stmt = stmt.where(
             or_(
-                Listing.title.ilike(like),
-                Listing.summary.ilike(like),
-                Listing.venue.ilike(like),
+                Listing.title.icontains(term, autoescape=True),
+                Listing.summary.icontains(term, autoescape=True),
+                Listing.venue.icontains(term, autoescape=True),
             )
         )
     if organiser_slug:
@@ -448,6 +448,8 @@ async def _group_summaries(
                 .where(
                     Listing.group_id.in_(ids),
                     Listing.status == "published",
+                    Listing.visibility == "public",
+                    Listing.access_type == "public",
                     Listing.ends_at > utc_now(),
                 )
                 .group_by(Listing.group_id)

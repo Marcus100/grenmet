@@ -5,9 +5,11 @@ from typing import Any
 
 import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.events.models import Category, Listing, Organiser, OrganiserMember
+from src.events.models import Category, Group, Listing, Organiser, OrganiserMember
+from src.events.urls import normalise_https_url, vendor_host
 from src.utils.datetime import utc_now
 from tests.events.roles import user_with_role
 from tests.events.support import (
@@ -137,10 +139,14 @@ async def test_filters_select_by_each_dimension(
         title="Boat Fete One",
         category_slug="parties-fetes",
         subcategory_slug="boat-fete",
-        pricing_type="paid",
-        booking_mode="external",
-        external_ticket_url="https://tickets.example/boat",
     )
+    async with events_db() as db:  # staff curation sets external links, not organisers
+        boat = await db.scalar(select(Listing).where(Listing.title == "Boat Fete One"))
+        assert boat is not None
+        boat.pricing_type = "paid"
+        boat.booking_mode = "external"
+        boat.external_ticket_url = "https://tickets.example/boat"
+        await db.commit()
     await _post(
         organiser,
         title="Snorkel Morning",
@@ -204,11 +210,6 @@ async def test_filters_select_by_each_dimension(
         ({"subcategory_slug": "parties-fetes"}, "is a category"),
         ({"category_slug": "wellness"}, "isn't available"),
         ({"category_slug": "nope"}, "Unknown category"),
-        (
-            {"external_ticket_url": "https://x.example/t"},
-            "only allowed with external",
-        ),
-        ({"booking_mode": "external"}, "needs an https ticket link"),
         ({"booking_mode": "tickets"}, "doesn't fit admission"),
         ({"admission": "rsvp", "booking_mode": "none"}, "doesn't fit admission"),
         ({"pricing_type": "paid"}, "Paid listings need"),
@@ -279,11 +280,15 @@ async def test_updates_keep_classification_unless_changed(
             organiser,
             category_slug="parties-fetes",
             subcategory_slug="boat-fete",
-            booking_mode="external",
-            external_ticket_url="https://t.example/a",
-            pricing_type="paid",
         )
     ).json()
+    async with events_db() as db:
+        listing = await db.scalar(select(Listing))
+        assert listing is not None
+        listing.pricing_type = "paid"
+        listing.booking_mode = "external"
+        listing.external_ticket_url = "https://t.example/a"
+        await db.commit()
     async with client_with_real_roles(organiser) as client:
         same = (
             await client.put(
@@ -305,6 +310,163 @@ async def test_updates_keep_classification_unless_changed(
             f"{MANAGE}/{created['id']}", json=_payload(listing_type="experience")
         )
         assert wrong_type.status_code == 409
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"booking_mode": "external"},
+        {"booking_mode": "external", "external_ticket_url": "https://ok.example/t"},
+        {"external_ticket_url": "https://ok.example/t"},
+    ],
+)
+async def test_organisers_cannot_set_external_booking(
+    events_db: SessionFactory, db_async: AsyncSession, changes
+):
+    organiser = await _organiser(events_db, db_async)
+    response = await _post(organiser, **changes)
+    assert response.status_code == 422
+    assert "Barrels staff" in response.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "link",
+    [
+        "https://good.gd@evil.com",
+        "https:///evil.com",
+        "https://evil.com\u202e/x",
+        "https://evil.com/\u0000",
+        "https://evil.com/\n",
+        "https://exämple.com/",
+        "http://evil.com/",
+    ],
+)
+async def test_bad_links_are_422_not_500(
+    events_db: SessionFactory, db_async: AsyncSession, link
+):
+    organiser = await _organiser(events_db, db_async)
+    response = await _post(organiser, booking_mode="external", external_ticket_url=link)
+    assert response.status_code == 422
+
+
+def test_link_normalisation_and_vendor_host():
+    assert normalise_https_url("HTTPS://Tickets.Example.COM:8443/a?b=1#c") == (
+        "https://tickets.example.com:8443/a?b=1#c"
+    )
+    assert normalise_https_url("https://xn--bcher-kva.example") == (
+        "https://xn--bcher-kva.example/"
+    )
+    assert vendor_host("https://Tickets.Example.com/x") == "tickets.example.com"
+    assert vendor_host(None) is None
+    for bad in (
+        "https://good.gd@evil.com",
+        "https:///evil.com",
+        "https://evil.com/\u202e",
+        "https://evil.com/\u0000",
+        "https://evil.com/\n",
+        "https://exämple.com",
+        "https://a.example:99999999/",
+        "ftp://a.example",
+        "",
+    ):
+        with pytest.raises(ValueError):
+            normalise_https_url(bad)
+
+
+@pytest.mark.asyncio
+async def test_database_still_enforces_the_external_and_curated_rules(
+    events_db: SessionFactory, db_async: AsyncSession
+):
+    organiser = await _organiser(events_db, db_async)
+    await _post(organiser)
+    async with events_db() as db:
+        listing = await db.scalar(select(Listing))
+        assert listing is not None
+        listing.external_ticket_url = "https://x.example/"  # not external mode
+        with pytest.raises(IntegrityError):
+            await db.commit()
+        await db.rollback()
+        listing = await db.scalar(select(Listing))
+        assert listing is not None
+        listing.access_type = "private"
+        listing.visibility = "unlisted"
+        listing.curated = True
+        with pytest.raises(IntegrityError):
+            await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_search_treats_percent_and_underscore_literally(
+    events_db: SessionFactory, db_async: AsyncSession
+):
+    organiser = await _organiser(events_db, db_async)
+    await _post(organiser, title="100% Soca Night")
+    await _post(organiser, title="Plain Fete")
+    await _post(organiser, title="Under_score Jam")
+    assert {c["title"] for c in (await _public("/listings", q="%")).json()["data"]} == {
+        "100% Soca Night"
+    }
+    assert {c["title"] for c in (await _public("/listings", q="_")).json()["data"]} == {
+        "Under_score Jam"
+    }
+    assert (await _public("/listings", q="Plain")).json()["count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_group_next_event_ignores_unlisted_and_private_listings(
+    events_db: SessionFactory,
+):
+    await seed(events_db)
+    async with events_db() as db:
+        group_id = await db.scalar(select(Group.id))
+        template = await db.scalar(select(Listing).where(Listing.slug == "sunset-fete"))
+        assert template is not None
+        soon = utc_now() + timedelta(hours=3)
+        for slug, visibility, access in (
+            ("hidden-unlisted", "unlisted", "public"),
+            ("hidden-private", "unlisted", "private"),
+        ):
+            db.add(
+                Listing(
+                    slug=slug,
+                    title=slug,
+                    summary="x",
+                    category="fete",
+                    parish="st-george",
+                    venue="V",
+                    starts_at=soon,
+                    ends_at=soon + timedelta(hours=1),
+                    admission="free",
+                    organiser_id=template.organiser_id,
+                    group_id=group_id,
+                    status="published",
+                    visibility=visibility,
+                    access_type=access,
+                )
+            )
+        visible = utc_now() + timedelta(days=5)
+        db.add(
+            Listing(
+                slug="shown",
+                title="shown",
+                summary="x",
+                category="fete",
+                parish="st-george",
+                venue="V",
+                starts_at=visible,
+                ends_at=visible + timedelta(hours=1),
+                admission="free",
+                organiser_id=template.organiser_id,
+                group_id=group_id,
+                status="published",
+            )
+        )
+        await db.commit()
+    groups = (await _public("/groups")).json()
+    group = next(g for g in groups if g["slug"] == "anse-runners")
+    assert group["next_listing_starts_at"].startswith(visible.date().isoformat())
 
 
 @pytest.mark.asyncio

@@ -518,10 +518,12 @@ and `admission` are unchanged. Listing responses add `listing_type`,
 `subcategory_slug` and `external_ticket_url` (defaults keep old clients valid).
 `POST/PUT /events/manage/listings` accept the same fields, all optional, with
 409 rules: the category must apply to the `listing_type`, the subcategory must
-belong to the category, `external_ticket_url` (https) is required with and only
-allowed for `booking_mode=external`, priced tiers need `pricing_type=paid`,
-`service` is refused, and `access_type=private` forces `visibility=unlisted`.
-`booking_mode=slots` is reserved and answers 422.
+belong to the category, priced tiers need `pricing_type=paid`, `service` is
+refused, and `access_type=private` forces `visibility=unlisted`.
+`booking_mode=slots` (reserved for the Bookings bridge) and `booking_mode=external`
+or `external_ticket_url` (set by Barrels staff through the later curation routes,
+ADR-0048) answer 422 on the organiser routes. External links are https only,
+normalised, and refuse userinfo, control or bidi characters and non-ASCII hosts.
 
 ### Events tickets (E1)
 

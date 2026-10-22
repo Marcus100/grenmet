@@ -6,6 +6,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, StringConstraints, field_validator
 
+from src.events.urls import normalise_https_url
 from src.models import BaseModel, UtcDateTime
 from src.payments.models import IntentStatus, ProviderKey
 
@@ -335,16 +336,27 @@ class ListingUpsert(BaseModel):
     #: Top-level category slug; `subcategory_slug` must belong to it.
     category_slug: str | None = Field(default=None, pattern=SLUG_PATTERN)
     subcategory_slug: str | None = Field(default=None, pattern=SLUG_PATTERN)
-    #: Only with `booking_mode` `external`; https only.
-    external_ticket_url: str | None = Field(
-        default=None, max_length=500, pattern=r"^https://[^\s]+$"
-    )
+    #: Reserved for staff curation (ADR-0048): organisers cannot set it, and
+    #: booking mode `external` with it. Kept for the curation routes.
+    external_ticket_url: str | None = Field(default=None, max_length=500)
+
+    @field_validator("external_ticket_url")
+    @classmethod
+    def _external_link(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalise_https_url(value)  # a bad link is a format error first
+        raise ValueError("external_ticket_url is set by Barrels staff, not organisers")
 
     @field_validator("booking_mode")
     @classmethod
-    def _slots_reserved(cls, value: BookingMode | None) -> BookingMode | None:
+    def _reserved_modes(cls, value: BookingMode | None) -> BookingMode | None:
         if value == "slots":
             raise ValueError("booking_mode 'slots' is reserved")
+        if value == "external":
+            raise ValueError(
+                "booking_mode 'external' is set by Barrels staff, not organisers"
+            )
         return value
 
 

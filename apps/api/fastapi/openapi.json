@@ -62729,8 +62729,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 500,
-                "pattern": "^https://[^\\s]+$"
+                "maxLength": 500
               },
               {
                 "type": "null"

@@ -55,13 +55,5 @@ export const listingUpsertSchema = z.object({
   subcategory_slug: z
     .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
     .optional(),
-  external_ticket_url: z
-    .union([
-      z
-        .string()
-        .max(500)
-        .regex(/^https:\/\/[^\s]+$/),
-      z.null(),
-    ])
-    .optional(),
+  external_ticket_url: z.union([z.string().max(500), z.null()]).optional(),
 });

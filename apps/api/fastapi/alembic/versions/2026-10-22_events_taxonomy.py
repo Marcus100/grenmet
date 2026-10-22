@@ -23,6 +23,14 @@ from the frozen ten-value ``category`` through this provisional, lossy table
     family    -> community-causes, plus the tag ``kid-friendly``
     wellness  -> sports-fitness (the Wellness category stays inactive)
 
+Notes:
+
+* ``curated`` is a stopgap boolean; ADR-0048's ``origin`` field will replace it.
+* The downgrade does not remove the tags ``kid-friendly`` and ``tech`` that the
+  backfill appended; they are harmless free tags.
+* Constraints are added ``NOT VALID`` and then validated, and the upgrade sets a
+  short ``lock_timeout`` so it fails fast instead of queueing behind traffic.
+
 Revision ID: eventstaxonomy20261022
 Revises: eventsactivitycapacity20261022
 """
@@ -208,6 +216,7 @@ LEGACY_TO_CATEGORY = {
 
 
 def upgrade() -> None:
+    op.execute("SET LOCAL lock_timeout = '5s'")
     op.execute(
         f"""
         CREATE TABLE events.categories (
@@ -300,9 +309,9 @@ def upgrade() -> None:
 
         UPDATE events.listings SET booking_mode = CASE admission
             WHEN 'rsvp' THEN 'rsvp'
-            WHEN 'ticketed' THEN 'tickets'
-            ELSE 'none'
-        END;
+            ELSE 'tickets'
+        END
+        WHERE admission IN ('rsvp', 'ticketed');
 
         """
     )
@@ -311,26 +320,40 @@ def upgrade() -> None:
         f"""
         ALTER TABLE events.listings
             ADD CONSTRAINT listings_listing_type_check
-                CHECK (listing_type IN ({LISTING_TYPES})),
+                CHECK (listing_type IN ({LISTING_TYPES})) NOT VALID,
             ADD CONSTRAINT listings_access_type_check
-                CHECK (access_type IN ('public', 'private')),
+                CHECK (access_type IN ('public', 'private')) NOT VALID,
             ADD CONSTRAINT listings_pricing_type_check
-                CHECK (pricing_type IN ('free', 'paid', 'donation')),
+                CHECK (pricing_type IN ('free', 'paid', 'donation')) NOT VALID,
             ADD CONSTRAINT listings_booking_mode_check
                 CHECK (booking_mode IN
-                    ('rsvp', 'tickets', 'slots', 'enquiry', 'none', 'external')),
+                    ('rsvp', 'tickets', 'slots', 'enquiry', 'none', 'external'))
+                NOT VALID,
             ADD CONSTRAINT listings_private_is_unlisted_check
-                CHECK (access_type = 'public' OR visibility = 'unlisted'),
+                CHECK (access_type = 'public' OR visibility = 'unlisted') NOT VALID,
             ADD CONSTRAINT listings_external_ticket_url_check
                 CHECK (external_ticket_url IS NULL OR (
                     booking_mode = 'external'
                     AND external_ticket_url LIKE 'https://%'
                     AND char_length(external_ticket_url) <= 500
-                )),
+                )) NOT VALID,
+            ADD CONSTRAINT listings_curated_is_public_check
+                CHECK (NOT curated OR access_type = 'public') NOT VALID,
             ADD CONSTRAINT listings_category_id_fkey
-                FOREIGN KEY (category_id) REFERENCES events.categories(id),
+                FOREIGN KEY (category_id) REFERENCES events.categories(id)
+                NOT VALID,
             ADD CONSTRAINT listings_subcategory_id_fkey
-                FOREIGN KEY (subcategory_id) REFERENCES events.categories(id);
+                FOREIGN KEY (subcategory_id) REFERENCES events.categories(id)
+                NOT VALID;
+        ALTER TABLE events.listings VALIDATE CONSTRAINT listings_listing_type_check;
+        ALTER TABLE events.listings VALIDATE CONSTRAINT listings_access_type_check;
+        ALTER TABLE events.listings VALIDATE CONSTRAINT listings_pricing_type_check;
+        ALTER TABLE events.listings VALIDATE CONSTRAINT listings_booking_mode_check;
+        ALTER TABLE events.listings VALIDATE CONSTRAINT listings_private_is_unlisted_check;
+        ALTER TABLE events.listings VALIDATE CONSTRAINT listings_external_ticket_url_check;
+        ALTER TABLE events.listings VALIDATE CONSTRAINT listings_curated_is_public_check;
+        ALTER TABLE events.listings VALIDATE CONSTRAINT listings_category_id_fkey;
+        ALTER TABLE events.listings VALIDATE CONSTRAINT listings_subcategory_id_fkey;
         CREATE INDEX listings_category_id_idx ON events.listings (category_id);
         CREATE INDEX listings_subcategory_id_idx ON events.listings (subcategory_id);
         """
@@ -365,6 +388,7 @@ def downgrade() -> None:
         ALTER TABLE events.listings
             DROP CONSTRAINT listings_subcategory_id_fkey,
             DROP CONSTRAINT listings_category_id_fkey,
+            DROP CONSTRAINT listings_curated_is_public_check,
             DROP CONSTRAINT listings_external_ticket_url_check,
             DROP CONSTRAINT listings_private_is_unlisted_check,
             DROP CONSTRAINT listings_booking_mode_check,
