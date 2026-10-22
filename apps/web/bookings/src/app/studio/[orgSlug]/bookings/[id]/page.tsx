@@ -7,6 +7,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DepositBadge, StatusBadge } from "@/components/studio/badges";
 import { BookingActions } from "@/components/studio/booking-actions";
+import { RecordDeposit } from "@/components/studio/record-deposit";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { requireSession } from "@/lib/session";
 import { getBooking } from "@/lib/studio-api";
@@ -16,6 +17,7 @@ import {
   depositState,
   eventLabel,
   isUuid,
+  takesDeposit,
 } from "@/lib/studio-view";
 
 export const metadata: Metadata = {
@@ -101,6 +103,15 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           }
           started={Date.parse(booking.starts_at) <= Date.now()}
           status={booking.status}
+        />
+      ) : null}
+
+      {canManageBookings(org.value.role) && takesDeposit(booking) ? (
+        <RecordDeposit
+          amountLabel={formatMoney(booking.deposit_minor)}
+          bookingId={booking.id}
+          due={deposit === "due"}
+          orgSlug={orgSlug}
         />
       ) : null}
 

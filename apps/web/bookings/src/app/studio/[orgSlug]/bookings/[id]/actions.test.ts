@@ -19,6 +19,7 @@ vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
   markCompleted: vi.fn(),
   markNoShow: vi.fn(),
+  recordManualDeposit: vi.fn(),
 }));
 
 import { getSession } from "@/lib/session";
@@ -29,6 +30,7 @@ import {
   findOrganisation,
   markCompleted,
   markNoShow,
+  recordManualDeposit,
 } from "@/lib/studio-api";
 import {
   cancelBookingAction,
@@ -36,6 +38,7 @@ import {
   confirmBookingAction,
   declineBookingAction,
   noShowBookingAction,
+  recordDepositAction,
 } from "./actions";
 
 const OK = { events: [] } as never;
@@ -305,5 +308,104 @@ describe("cancel", () => {
       form({ reason: "Ill", organisationId: "other-org" })
     );
     expect(vi.mocked(cancelBooking).mock.calls[0]?.[1]).toBe(ORG_ID);
+  });
+});
+
+describe("recordDepositAction", () => {
+  const KEY = "99999999-9999-4999-8999-999999999999";
+  const run = (values: Record<string, string> = {}) =>
+    recordDepositAction(
+      SLUG,
+      BOOKING_ID,
+      IDLE,
+      form({ method: "cash", reference: "R-1", idempotencyKey: KEY, ...values })
+    );
+
+  it("records with the key, the method and the organisation from the server", async () => {
+    vi.mocked(recordManualDeposit).mockResolvedValue(OK);
+    expect(await run({ amount: "1" })).toEqual({
+      status: "done",
+      message: "Deposit recorded.",
+    });
+    expect(recordManualDeposit).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      BOOKING_ID,
+      KEY,
+      { method: "cash", reference: "R-1" }
+    );
+    expect(revalidatePath).toHaveBeenCalledWith(
+      `/studio/${SLUG}/bookings/${BOOKING_ID}`
+    );
+  });
+
+  it("refuses a member before any call", async () => {
+    org("member");
+    expect(await run()).toMatchObject({ status: "error", kind: "forbidden" });
+    expect(recordManualDeposit).not.toHaveBeenCalled();
+  });
+
+  it("rejects an unknown method and a bad key before any call", async () => {
+    expect(await run({ method: "bitcoin" })).toMatchObject({
+      status: "error",
+      kind: "invalid",
+    });
+    expect(await run({ idempotencyKey: "nope" })).toMatchObject({
+      status: "error",
+      kind: "invalid",
+    });
+    expect(recordManualDeposit).not.toHaveBeenCalled();
+  });
+
+  it("sends a signed-out person to sign in", async () => {
+    vi.mocked(getSession).mockResolvedValue(null);
+    await expect(run()).rejects.toMatchObject({
+      message: expect.stringContaining("NEXT_REDIRECT /signin?returnTo="),
+    });
+  });
+
+  it.each([
+    ["no deposit to record", "no deposit"],
+    ["A closed booking cannot take a deposit", "closed"],
+    ["The deposit has already been paid", "already been paid"],
+    [
+      "The deposit is being paid online; that payment must expire or fail first",
+      "card payment is still open",
+    ],
+    [
+      "The card payment for this deposit has failed or expired, so it cannot",
+      "book again",
+    ],
+  ])("explains the 409 %s", async (detail, expected) => {
+    vi.mocked(recordManualDeposit).mockRejectedValue(apiError(409, { detail }));
+    const result = await run();
+    expect(result).toMatchObject({ status: "error", kind: "conflict" });
+    expect(JSON.stringify(result)).toContain(expected);
+    expect(revalidatePath).toHaveBeenCalled();
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("does not refresh for an idempotency 409", async () => {
+    vi.mocked(recordManualDeposit).mockRejectedValue(
+      apiError(409, { detail: "Idempotency key reused with another body" })
+    );
+    await run();
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("names the payments entitlement on a 403 about it", async () => {
+    vi.mocked(recordManualDeposit).mockRejectedValue(
+      apiError(403, { detail: "Missing entitlement: payments" })
+    );
+    expect(await run()).toMatchObject({
+      kind: "forbidden",
+      message: expect.stringContaining("not included"),
+    });
+  });
+
+  it("reports a server fault as unavailable", async () => {
+    vi.mocked(recordManualDeposit).mockRejectedValue(apiError(503));
+    expect(await run()).toMatchObject({ kind: "unavailable" });
+    expect(reportError).toHaveBeenCalledWith(expect.anything(), "studio");
   });
 });
