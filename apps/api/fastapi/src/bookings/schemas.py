@@ -391,9 +391,54 @@ class BookingPublicCreate(BaseModel):
     customer_phone: str | None = Field(default=None, max_length=40)
     notes: str | None = Field(default=None, max_length=1000)
     marketing_consent: bool = False
+    email_proof: str | None = Field(
+        default=None,
+        max_length=1024,
+        description=(
+            "Proof from `confirm-email-code`. Needed only when a deposit is due "
+            "and the caller is not a signed-in account that already vouches for "
+            "`customer_email`. Bound to this email, service and start time; "
+            "single use."
+        ),
+    )
     turnstile_token: str | None = Field(default=None, max_length=2048)
     # Honeypot. Hidden from people; a bot that fills it is silently dropped.
     website: str | None = Field(default=None, max_length=200)
+
+
+class BookingEmailCodeRequest(BaseModel):
+    """Ask for a code to be emailed before a deposit booking."""
+
+    service_id: uuid.UUID
+    starts_at: UtcDateTime = Field(
+        description="The slot being booked; the proof is bound to it."
+    )
+    customer_email: EmailStr = Field(max_length=254)
+    turnstile_token: str | None = Field(default=None, max_length=2048)
+
+
+class BookingEmailCodeSent(BaseModel):
+    required: bool = Field(
+        description=(
+            "False when no step is needed (no deposit is due, or the signed-in "
+            "account already vouches for the email); nothing was sent."
+        )
+    )
+    expires_in_seconds: int = Field(
+        default=0, description="Code lifetime; 0 when `required` is false."
+    )
+
+
+class BookingEmailCodeConfirm(BaseModel):
+    service_id: uuid.UUID
+    starts_at: UtcDateTime
+    customer_email: EmailStr = Field(max_length=254)
+    code: str = Field(pattern=r"^\d{6}$", description="The 6-digit emailed code.")
+
+
+class BookingEmailProof(BaseModel):
+    proof: str = Field(description="Send as `email_proof` when creating the booking.")
+    expires_in_seconds: int
 
 
 class BookingStudioCreate(BaseModel):

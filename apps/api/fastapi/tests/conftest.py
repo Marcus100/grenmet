@@ -4,7 +4,11 @@
 import os
 from collections.abc import AsyncGenerator, Generator
 from datetime import timedelta
+from typing import TYPE_CHECKING
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from tests.bookings.memory_code_store import MemoryCodeStore
 
 # --- Test database isolation -------------------------------------------------
 # Every test truncates all application tables between runs, so the suite MUST
@@ -398,6 +402,18 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
             else "unit"
         )
         item.add_marker(marker)
+
+
+@pytest.fixture(autouse=True)
+def code_store() -> Generator[MemoryCodeStore]:
+    """Booking email-code store in memory so tests need no Redis (and stay isolated)."""
+    from src.bookings import email_code
+    from tests.bookings.memory_code_store import MemoryCodeStore
+
+    store = MemoryCodeStore()
+    previous = email_code.set_store(store)
+    yield store
+    email_code.set_store(previous)
 
 
 @pytest.fixture
