@@ -15,7 +15,6 @@ from sqlalchemy.orm import Session
 from src.bookings.models import Booking, Provider, Service
 from src.config import settings
 from src.database import engine
-from src.organisations.models import PlatformOrganisation
 from tests.database_target import require_owned_database
 
 REVISION = "bookingspartyrole20261021"
@@ -100,10 +99,15 @@ def test_upgrade_deletes_unlinked_customers_and_their_bookings(before_migration)
     org = "org_partyrole00001"
     customer_id = uuid.uuid4()
     with Session(bind=connection) as session:
-        session.add(
-            PlatformOrganisation(id=org, slug=org, name="Party Role", kind="business")
+        # Raw SQL: the table is at its old shape here (later revisions add columns).
+        connection.execute(
+            text(
+                "INSERT INTO org.organisation (id, slug, name, kind, status, "
+                "created_at, updated_at) VALUES (:id, :id, 'Party Role', 'business', "
+                "'active', now(), now())"
+            ),
+            {"id": org},
         )
-        session.flush()
         service = Service(organisation_id=org, name="S", duration_min=60)
         provider = Provider(organisation_id=org, name="P")
         session.add_all([service, provider])
