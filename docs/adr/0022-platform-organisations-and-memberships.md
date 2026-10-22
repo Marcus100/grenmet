@@ -54,3 +54,13 @@ assignments, and would not be an additive change.
 - Dual-write drift is the main risk. It is covered by a reconciliation test.
 - The GAA staff platform keeps working unchanged. The bridge is not evidence of
   tenant isolation for HR.
+
+## Amended by ADR-0050 (2026-10-22, Proposed)
+
+Decision 4 stays true for `OrgContext`: it resolves the organisation from
+`X-Barrels-Organisation`, checks membership and role, and has no bypass. What
+changes is the statement that a person acts on an organisation only through a
+membership or the control plane. On Events org-zone routes only, Barrels staff
+holding an `events.ops.*` role may also act, through the explicit dependency
+`require_org_permission_or_staff`, with MFA, logging and an audit capacity of
+"staff". See [ADR-0050](0050-barrels-staff-operations-access-to-organisations.md).
