@@ -537,7 +537,7 @@ async def test_roster_for_team_manager_is_limited_to_their_products(
             id="grant_bk",
             organisation_id=org.id,
             membership_id=other_row.id,
-            role_key="bookings-staff",
+            role_key="bookings-manager",
             granted_by=owner.id,
         )
     )
@@ -551,7 +551,7 @@ async def test_roster_for_team_manager_is_limited_to_their_products(
     assert body["count"] == 3
     by_id = {m["membership_id"]: m for m in body["data"]}
     assert [g["role_key"] for g in by_id[other_row.id]["grants"]] == ["events-door"]
-    assert "bookings-staff" not in lead_view.text
+    assert "bookings-manager" not in lead_view.text
     assert "@" not in lead_view.text
     for user in (owner, lead, other):
         assert user.email not in lead_view.text
@@ -668,3 +668,69 @@ async def test_team_me_capabilities(
         "managed_products": [],
         "is_admin_or_owner": False,
     }
+
+
+async def test_product_keys_with_team_manage_are_safe_for_prefix_filter():
+    products = sorted({role_bundles.product_of_key(k) for k in grants.product_keys()})
+    managed = [p for p in products if f"{p}.team.manage" in grants.product_keys()]
+    assert managed
+    for product in managed:
+        assert not set("-_%") & set(product), product
+        assert not any(o != product and o.startswith(product) for o in products), (
+            product
+        )
+
+
+async def test_roster_excludes_deactivated_accounts(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    owner, lead, other, org = await _world(db_async)
+    other.is_active = False
+    await db_async.commit()
+    response = await async_client.get(
+        f"{TEAM}/members", headers=headers_for(owner, org.id)
+    )
+    assert response.json()["count"] == 2
+    other_row = await _membership(db_async, org.id, other)
+    assert other_row.id not in {m["membership_id"] for m in response.json()["data"]}
+
+
+async def test_roster_never_lists_another_organisations_members(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    owner, _, _, org = await _world(db_async)
+    stranger = await make_user(db_async)
+    await make_org(
+        db_async,
+        "Other",
+        members=((stranger, MembershipRole.OWNER),),
+        apps=("events",),
+    )
+    response = await async_client.get(
+        f"{TEAM}/members", headers=headers_for(owner, org.id)
+    )
+    assert response.json()["count"] == 3
+    assert stranger.full_name not in response.text or stranger.full_name in {
+        owner.full_name
+    }
+    stranger_row = await db_async.scalar(
+        select(Membership.id).where(Membership.user_id == stranger.id)
+    )
+    assert stranger_row not in {m["membership_id"] for m in response.json()["data"]}
+
+
+async def test_lead_loses_team_routes_when_entitlement_is_switched_off(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    owner, lead, _, org = await _world(db_async)
+    await _seed_grant(db_async, owner, org, lead, "events-team")
+    headers = headers_for(lead, org.id)
+    assert (
+        await async_client.get(f"{TEAM}/members", headers=headers)
+    ).status_code == 200
+    await service.set_app_enabled(
+        db_async, organisation_id=org.id, app_key="events", enabled=False
+    )
+    await db_async.commit()
+    for path in (f"{TEAM}/members", f"{API}/role-bundles"):
+        assert (await async_client.get(path, headers=headers)).status_code == 403

@@ -176,9 +176,13 @@ async def list_roster(
     where = (
         Membership.organisation_id == context.organisation_id,
         Membership.status == MembershipStatus.ACTIVE.value,
+        User.is_active.is_(True),
     )
     total = await session.scalar(
-        select(func.count()).select_from(Membership).where(*where)
+        select(func.count())
+        .select_from(Membership)
+        .join(User, User.id == Membership.user_id)
+        .where(*where)
     )
     rows = (
         await session.execute(

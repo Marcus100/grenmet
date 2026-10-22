@@ -292,6 +292,8 @@ async def revoke_grant(
     else:
         # Renamed or retired role: still needs authority. Use the product's
         # team-manage key when the role_key prefix names one, else refuse.
+        # Product keys contain no "-" (registry test), so the text before the first
+        # "-" is the whole product key, matching ``_product_filter``.
         team_key = f"{grant.role_key.partition('-')[0]}.team.manage"
         if team_key not in product_keys() or team_key not in await effective_keys(
             session, membership=context.membership
@@ -377,7 +379,14 @@ def _product_filter(products: Collection[str] | None) -> list[ColumnElement[bool
         return []
     if not products:
         return [false()]
-    return [or_(*(MembershipGrant.role_key.startswith(f"{p}-") for p in products))]
+    return [
+        or_(
+            *(
+                MembershipGrant.role_key.startswith(f"{p}-", autoescape=True)
+                for p in products
+            )
+        )
+    ]
 
 
 async def list_grants_for_memberships(
