@@ -204,10 +204,12 @@ file records the target, not the live state.
 - **Cookies:** host-only, `HttpOnly`, `SameSite=Lax`, `Secure`, `__Host-` prefix
   as the target (the SSO state cookie on `Path=/auth` can only take
   `__Secure-`). `Domain=` is never set.
-- **Sign-in return hosts:** exact registry origins only (the `.barrels.gd`
-  suffix rule is to be dropped); the app is passed explicitly, not guessed from
-  the hostname label. Current state: Compose still passes
-  `.${BASE_DOMAIN}`.
+- **Sign-in return hosts:** exact registry origins only; the app is passed
+  explicitly, not guessed from the hostname label. Built (P1): the auth app
+  (`apps/web/auth/src/lib/return-to.ts`) ignores `.`-prefixed and wildcard
+  entries. Until the owner updates Compose, which still passes
+  `.${BASE_DOMAIN}`, only the configured `*_APP_URL` origins are accepted
+  (see `docs/env.md`).
 - **Second registrable domain:** required before any of uploads served from a
   Barrels hostname, tenants authoring HTML/themes/scripts, a client gaining DNS
   or deploy control of `<client>.barrels.gd`, or a site-builder product. It
@@ -241,7 +243,11 @@ their servers only, so they are not listed there.
 
 These names cannot be claimed as an organisation slug or a host label by
 anyone except the platform. Every hostname in the tables above (live, planned
-or retired) must appear here; `scripts/ci/check-ports.mjs` checks it.
+or retired) must appear here; `scripts/ci/check-ports.mjs` checks it. The API
+enforces the list for organisation slugs, booking `public_slug`s and events
+organiser addresses from `apps/api/fastapi/src/utils/reserved_names.py`;
+`tests/test_reserved_names.py` fails if the two differ or if a top-level route
+folder of `apps/web/bookings` (or `apps/web/hr`) is missing from the list.
 
 - **Identity and access:** app, apps, account, accounts, id, login, signin, signout, signup, sso, oauth, auth, admin, root, superuser, staff, internal.
 - **Environments:** staging, stg, dev, test, preview, sandbox, demo, beta.

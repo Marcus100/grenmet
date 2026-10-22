@@ -15,6 +15,7 @@ from src.organisations import service as organisations
 from src.organisations.models import MembershipRole, OrganisationKind
 from src.storage import uploads as org_uploads
 from src.utils.datetime import utc_now
+from src.utils.reserved_names import is_reserved
 
 from .. import activity, outbox, schemas
 from ..exceptions import EventsConflict, EventsForbidden, EventsNotFound
@@ -457,6 +458,9 @@ async def create_organiser(
     wanted = _SLUG_STRIP.sub("-", (slug or clean).lower()).strip("-")[:60]
     if not clean or not wanted:
         raise EventsConflict("An organiser needs a name")
+    if is_reserved(wanted):
+        # The organiser's platform organisation takes the same slug (ADR-0043).
+        raise EventsConflict("That organiser address is reserved")
     if await db.scalar(select(Organiser.id).where(Organiser.slug == wanted)):
         raise EventsConflict("That organiser address is taken")
     organisation = await organisations.create_organisation(

@@ -1,7 +1,13 @@
 import uuid
 from typing import Annotated, Self
 
-from pydantic import EmailStr, Field, StringConstraints, model_validator
+from pydantic import (
+    EmailStr,
+    Field,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
 
 from src.auth.onboarding_schemas import AdminReasonText
 from src.models import BaseModel, UtcDateTime
@@ -12,6 +18,7 @@ from src.organisations.models import (
     OrganisationStatus,
     TurnstileMode,
 )
+from src.utils.reserved_names import is_reserved
 
 
 class OrganisationSummary(BaseModel):
@@ -141,10 +148,23 @@ OrganisationName = Annotated[
 ]
 
 
+def _slug_not_reserved(value: str | None) -> str | None:
+    if value is not None and is_reserved(value):
+        raise ValueError("That slug is reserved")
+    return value
+
+
 class PlatformOrganisationCreate(BaseModel):
     name: OrganisationName
     kind: OrganisationKind
-    slug: str | None = Field(default=None, max_length=100, pattern=SLUG_PATTERN)
+    slug: str | None = Field(
+        default=None,
+        max_length=100,
+        pattern=SLUG_PATTERN,
+        description="Defaults to the name. A platform reserved name is refused (422).",
+    )
+
+    _check_slug = field_validator("slug")(_slug_not_reserved)
 
 
 class PlatformOrganisationUpdate(BaseModel):
@@ -154,6 +174,8 @@ class PlatformOrganisationUpdate(BaseModel):
     slug: str | None = Field(default=None, max_length=100, pattern=SLUG_PATTERN)
     status: OrganisationStatus | None = None
     kind: OrganisationKind | None = None
+    # No reserved-name validator here: an unchanged slug that predates the
+    # reserved list must stay editable. service._ensure_slug_free checks changes.
 
 
 class VerificationDecision(BaseModel):

@@ -248,6 +248,7 @@ async def ensure_default_public_sites(session: AsyncSession) -> None:
             kind=OrganisationKind.BARRELS,
             slug="barrels",
             organisation_id=service.BARRELS_ORGANISATION_ID,
+            reserved_ok=True,
         )
     existing = set((await session.scalars(select(PublicSite.key))).all())
     for default in DEFAULT_SITES:

@@ -49,10 +49,11 @@ on 2026-10-21; an earlier version of this section claimed more than exists.
 - Auth return-host allowlist: `docker-compose.deploy.yml` passes
   `AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}` to auth,
   docs and gms. `EXTRA_RETURN_HOSTS` is **not set** in `production.env`, so
-  `.weather.gd` is not accepted yet; add `EXTRA_RETURN_HOSTS=,.weather.gd` at
-  cutover. Leading-dot suffix matching is implemented in
-  `apps/web/auth/src/lib/return-to.ts`. ADR-0043 plans to replace suffix rules
-  with exact origins, so the cutover would then list exact `weather.gd` origins.
+  `weather.gd` is not accepted yet. Leading-dot and wildcard entries (such as
+  `.weather.gd` or `.barrels.gd`) are now **ignored** by
+  `apps/web/auth/src/lib/return-to.ts` (ADR-0043 P1): at cutover list EXACT
+  hosts, for example `weather.gd,www.weather.gd` (bare hosts mean https), in
+  `AUTH_ALLOWED_RETURN_HOSTS`, and set `GMS_APP_URL` to the public weather origin.
 - `BACKEND_CORS_ORIGINS` in `production.env` has **no** `weather.gd` origins
   (only `*.barrels.gd`); add them at cutover.
 - Traefik alias hook: only the API router has it
