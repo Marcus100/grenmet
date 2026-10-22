@@ -8,7 +8,9 @@ import {
   eventLabel,
   isDay,
   parseRange,
+  todayIn,
   weekStart,
+  zonedToUtcIso,
 } from "./studio-view";
 
 describe("agenda ranges", () => {
@@ -105,5 +107,30 @@ describe("eventLabel", () => {
   it("words a transition and a first event", () => {
     expect(eventLabel(null, "pending")).toBe("Created as Pending");
     expect(eventLabel("pending", "cancelled")).toBe("Pending to Cancelled");
+  });
+});
+
+describe("business timezone", () => {
+  const instant = new Date("2026-10-22T02:30:00Z");
+
+  it("reads today on the business's calendar", () => {
+    expect(todayIn("America/Grenada", instant)).toBe("2026-10-21");
+    expect(todayIn("Pacific/Auckland", instant)).toBe("2026-10-22");
+  });
+
+  it("turns a wall-clock time in the zone into UTC", () => {
+    expect(zonedToUtcIso("2026-10-21", "14:00", "America/Grenada")).toBe(
+      "2026-10-21T18:00:00.000Z"
+    );
+    expect(zonedToUtcIso("2026-10-21", "23:30", "America/Grenada")).toBe(
+      "2026-10-22T03:30:00.000Z"
+    );
+    // Daylight saving: New York is UTC-4 in July and UTC-5 in January.
+    expect(zonedToUtcIso("2026-07-01", "09:00", "America/New_York")).toBe(
+      "2026-07-01T13:00:00.000Z"
+    );
+    expect(zonedToUtcIso("2026-01-15", "09:00", "America/New_York")).toBe(
+      "2026-01-15T14:00:00.000Z"
+    );
   });
 });

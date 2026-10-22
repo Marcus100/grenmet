@@ -9,8 +9,8 @@ interface StudioNavProps {
 }
 
 /**
- * Left navigation on desktop, a top tab row on phones. Agenda is the only
- * screen in this release; services, hours and settings join as they ship.
+ * Left navigation on desktop, a top tab row on phones. Agenda and New booking
+ * are the screens in this release; services, hours and settings join as they ship.
  */
 export function StudioNav({ orgSlug }: StudioNavProps) {
   const pathname = usePathname();
@@ -20,7 +20,13 @@ export function StudioNav({ orgSlug }: StudioNavProps) {
       href: `/studio/${orgSlug}/agenda`,
       active:
         pathname.startsWith(`/studio/${orgSlug}/agenda`) ||
-        pathname.startsWith(`/studio/${orgSlug}/bookings`),
+        (pathname.startsWith(`/studio/${orgSlug}/bookings`) &&
+          !pathname.endsWith("/bookings/new")),
+    },
+    {
+      label: "New booking",
+      href: `/studio/${orgSlug}/bookings/new`,
+      active: pathname.endsWith("/bookings/new"),
     },
   ];
   return (

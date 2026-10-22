@@ -18,11 +18,16 @@ import { DepositBadge, StatusBadge } from "@/components/studio/badges";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
-import { getAgenda, listProviders } from "@/lib/studio-api";
+import {
+  getAgenda,
+  getBusinessTimezone,
+  listProviders,
+} from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 import {
   type AgendaRange,
   agendaDepositView,
+  canManageBookings,
   DEFAULT_TIMEZONE,
   daysIn,
   isUuid,
@@ -72,10 +77,6 @@ export default async function AgendaPage({
   const base = `/studio/${orgSlug}/agenda`;
   const session = await requireSession(base);
 
-  const range = parseRange(
-    { view: first(query.view), date: first(query.date) },
-    todayIn()
-  );
   const providerParam = first(query.provider);
   const providerId = isUuid(providerParam) ? providerParam : undefined;
   const offsetParam = Number(first(query.offset));
@@ -87,6 +88,20 @@ export default async function AgendaPage({
     return <StudioAlert backHref="/studio" failure={org.failure} />;
   }
   const organisationId = org.value.id;
+
+  // "Today" is the day on the business's own calendar, so its zone comes first.
+  const zone = await guarded(
+    () => getBusinessTimezone(session.accessToken, organisationId),
+    base
+  );
+  if (!zone.ok) {
+    return <StudioAlert backHref="/studio" failure={zone.failure} />;
+  }
+  const today = todayIn(zone.value);
+  const range = parseRange(
+    { view: first(query.view), date: first(query.date) },
+    today
+  );
 
   const [agenda, providers] = await Promise.all([
     guarded(
@@ -131,13 +146,22 @@ export default async function AgendaPage({
   // providers are offered as filters.
   const providerNames = new Map(providers.map((item) => [item.id, item.name]));
   const activeProviders = providers.filter((item) => item.active);
-  const today = todayIn();
 
   return (
     <div className="space-y-6">
       <header className="space-y-1">
         <p className="text-muted-foreground text-sm">{org.value.name}</p>
-        <h1 className="font-semibold text-2xl">Agenda</h1>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="font-semibold text-2xl">Agenda</h1>
+          {canManageBookings(org.value.role) ? (
+            <Link
+              className={pill(true)}
+              href={{ pathname: `/studio/${orgSlug}/bookings/new` }}
+            >
+              New booking
+            </Link>
+          ) : null}
+        </div>
       </header>
 
       <div className="flex flex-wrap items-center gap-2">

@@ -9,7 +9,7 @@ import {
   localDay,
 } from "@barrelsgd/bookings-web/lib/booking-format";
 
-/** Grenada has no daylight saving; the API's timezone replaces this once known. */
+/** Used only until the business has a booking profile (no timezone yet); Grenada has no daylight saving. */
 export const DEFAULT_TIMEZONE = "America/Grenada";
 
 export type AgendaView = "day" | "week";
@@ -55,8 +55,61 @@ export function rangeFor(
   return { from, to: addDays(from, 6) };
 }
 
-export function todayIn(timeZone: string = DEFAULT_TIMEZONE): string {
-  return localDay(new Date(), timeZone);
+/** Today's date on the business's own wall calendar, never the server's or browser's. */
+export function todayIn(
+  timeZone: string = DEFAULT_TIMEZONE,
+  now: Date = new Date()
+): string {
+  return localDay(now, timeZone);
+}
+
+const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+export function isTime(value: string | undefined): value is string {
+  return value !== undefined && TIME_PATTERN.test(value);
+}
+
+/** Milliseconds the zone is ahead of UTC at `instant`. */
+function zoneOffsetMs(instant: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(instant));
+  const pick = (type: string) =>
+    Number(parts.find((part) => part.type === type)?.value ?? 0);
+  const asUtc = Date.UTC(
+    pick("year"),
+    pick("month") - 1,
+    pick("day"),
+    pick("hour"),
+    pick("minute"),
+    pick("second")
+  );
+  return asUtc - Math.floor(instant / 1000) * 1000;
+}
+
+/**
+ * The UTC instant (ISO string) for a wall-clock day and time in `timeZone`.
+ * Staff type the time they see on the business's clock; the API wants UTC.
+ */
+export function zonedToUtcIso(
+  day: string,
+  time: string,
+  timeZone: string
+): string {
+  const [year = 0, month = 1, date = 1] = day.split("-").map(Number);
+  const [hour = 0, minute = 0] = time.split(":").map(Number);
+  const wall = Date.UTC(year, month - 1, date, hour, minute);
+  // Two passes settle the offset when the guess lands across a zone change.
+  const first = wall - zoneOffsetMs(wall, timeZone);
+  const second = wall - zoneOffsetMs(first, timeZone);
+  return new Date(second).toISOString();
 }
 
 /** Reads `view` and `date` from the URL, falling back to today's day view. */
