@@ -2252,6 +2252,10 @@ export {
   eregisterValidateSynopObservationStatus403Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./eregisterValidateSynopObservationSchema.js";
+export { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
+export { eventCategoryNodeSchema } from "./eventCategoryNodeSchema.js";
+export { eventCategorySubSchema } from "./eventCategorySubSchema.js";
+export { eventCategoryTreeSchema } from "./eventCategoryTreeSchema.js";
 export {
   eventsAcceptConnectionErrorSchema,
   eventsAcceptConnectionPathConnectionIdSchema,
@@ -2626,6 +2630,12 @@ export {
   eventsLeaveGroupStatus429Schema,
 } from "./eventsLeaveGroupSchema.js";
 export {
+  eventsListCategoriesErrorSchema,
+  eventsListCategoriesResponseSchema,
+  eventsListCategoriesStatus200Schema,
+  eventsListCategoriesStatus422Schema,
+} from "./eventsListCategoriesSchema.js";
+export {
   eventsListGroupsErrorSchema,
   eventsListGroupsResponseSchema,
   eventsListGroupsStatus200Schema,
@@ -2636,15 +2646,21 @@ export { eventsListListingsParametersSchemaAnyOfEnum2Schema } from "./eventsList
 export { eventsListListingsParametersSchemaAnyOfEnumSchema } from "./eventsListListingsParametersSchemaAnyOfEnumSchema.js";
 export {
   eventsListListingsErrorSchema,
+  eventsListListingsQueryAccessSchema,
+  eventsListListingsQueryBookingModeSchema,
   eventsListListingsQueryCategorySchema,
+  eventsListListingsQueryCategorySlugSchema,
   eventsListListingsQueryIncludePastSchema,
   eventsListListingsQueryLimitSchema,
   eventsListListingsQueryOffsetSchema,
   eventsListListingsQueryOrganiserSchema,
   eventsListListingsQueryParishSchema,
   eventsListListingsQueryPriceSchema,
+  eventsListListingsQueryPricingSchema,
   eventsListListingsQueryQSchema,
+  eventsListListingsQuerySubcategorySlugSchema,
   eventsListListingsQueryTagSchema,
+  eventsListListingsQueryTypeSchema,
   eventsListListingsQueryWhenSchema,
   eventsListListingsResponseSchema,
   eventsListListingsStatus200Schema,
@@ -4998,8 +5014,11 @@ export { legacyProductWritePropertiesActionEnumSchema } from "./legacyProductWri
 export { legacyProductWriteSchema } from "./legacyProductWriteSchema.js";
 export { legacyStoredProductSchema } from "./legacyStoredProductSchema.js";
 export { listingCardListSchema } from "./listingCardListSchema.js";
+export { listingCardPropertiesAccessTypeEnumSchema } from "./listingCardPropertiesAccessTypeEnumSchema.js";
 export { listingCardPropertiesAdmissionEnumSchema } from "./listingCardPropertiesAdmissionEnumSchema.js";
+export { listingCardPropertiesBookingModeEnumSchema } from "./listingCardPropertiesBookingModeEnumSchema.js";
 export { listingCardPropertiesCurrencyEnumSchema } from "./listingCardPropertiesCurrencyEnumSchema.js";
+export { listingCardPropertiesPricingTypeEnumSchema } from "./listingCardPropertiesPricingTypeEnumSchema.js";
 export { listingCardSchema } from "./listingCardSchema.js";
 export { listingDetailSchema } from "./listingDetailSchema.js";
 export { listingUpsertPropertiesStatusEnumSchema } from "./listingUpsertPropertiesStatusEnumSchema.js";

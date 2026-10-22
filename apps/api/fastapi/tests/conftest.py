@@ -242,6 +242,10 @@ def weather_engine(request: pytest.FixtureRequest) -> Generator[Engine]:
             )
 
 
+#: Migration-seeded reference data that cleanup must keep (tests never edit it).
+REFERENCE_TABLES = {"events.categories"}
+
+
 async def _clear_database_async(session: AsyncSession) -> None:
     """Clear app tables in dependency order so FK constraints are respected."""
     await session.rollback()
@@ -260,6 +264,8 @@ async def _clear_database_async(session: AsyncSession) -> None:
         text(f"ALTER TABLE {events_activity} DISABLE TRIGGER activity_append_only")
     )
     for table in reversed(Base.metadata.sorted_tables):
+        if table.fullname in REFERENCE_TABLES:
+            continue
         await session.execute(table.delete())
     await session.execute(
         text(f"ALTER TABLE {ledger} ENABLE TRIGGER entry_append_only")

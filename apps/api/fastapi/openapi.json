@@ -35808,7 +35808,7 @@
           "events"
         ],
         "summary": "List upcoming events",
-        "description": "Published public events, soonest first, filtered by Grenada-calendar window, category, parish, price, tag or text.",
+        "description": "Published public events, soonest first, filtered by Grenada-calendar window, category, parish, price, tag or text; and by catalogue type, category and subcategory slug, pricing type, access (public only: private listings are never listed) and booking mode.",
         "operationId": "eventsListListings",
         "security": [
           {
@@ -35878,6 +35878,105 @@
                 }
               ],
               "title": "Price"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          },
+          {
+            "name": "category_slug",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category Slug"
+            }
+          },
+          {
+            "name": "subcategory_slug",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subcategory Slug"
+            }
+          },
+          {
+            "name": "pricing",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ListingCardPropertiesPricingTypeEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pricing"
+            }
+          },
+          {
+            "name": "access",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "const": "public",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access"
+            }
+          },
+          {
+            "name": "booking_mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ListingCardPropertiesBookingModeEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Booking Mode"
             }
           },
           {
@@ -35989,6 +36088,38 @@
           },
           "401": {
             "description": "Missing or invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/v1/events/public/categories": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List event categories",
+        "description": "Active categories with their subcategories and the number of upcoming published public listings in each (ADR-0046).",
+        "operationId": "eventsListCategories",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventCategoryTree"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -57164,6 +57295,102 @@
           "production"
         ]
       },
+      "EventCategoryNode": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "applies_to": {
+            "items": {
+              "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+            },
+            "type": "array",
+            "title": "Applies To"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order"
+          },
+          "listing_count": {
+            "type": "integer",
+            "title": "Listing Count"
+          },
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/EventCategorySub"
+            },
+            "type": "array",
+            "title": "Children"
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "applies_to",
+          "sort_order",
+          "listing_count",
+          "children"
+        ],
+        "title": "EventCategoryNode"
+      },
+      "EventCategorySub": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "applies_to": {
+            "items": {
+              "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+            },
+            "type": "array",
+            "title": "Applies To"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order"
+          },
+          "listing_count": {
+            "type": "integer",
+            "title": "Listing Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "applies_to",
+          "sort_order",
+          "listing_count"
+        ],
+        "title": "EventCategorySub"
+      },
+      "EventCategoryTree": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EventCategoryNode"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "EventCategoryTree"
+      },
       "FeatureFlagAdmin": {
         "properties": {
           "id": {
@@ -61767,6 +61994,51 @@
               }
             ],
             "title": "Viewer Saved"
+          },
+          "listing_type": {
+            "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+          },
+          "access_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesAccessTypeEnum"
+          },
+          "pricing_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesPricingTypeEnum"
+          },
+          "booking_mode": {
+            "$ref": "#/components/schemas/ListingCardPropertiesBookingModeEnum"
+          },
+          "category_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Slug"
+          },
+          "subcategory_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subcategory Slug"
+          },
+          "external_ticket_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ticket Url"
           }
         },
         "type": "object",
@@ -61940,6 +62212,51 @@
             ],
             "title": "Viewer Saved"
           },
+          "listing_type": {
+            "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+          },
+          "access_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesAccessTypeEnum"
+          },
+          "pricing_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesPricingTypeEnum"
+          },
+          "booking_mode": {
+            "$ref": "#/components/schemas/ListingCardPropertiesBookingModeEnum"
+          },
+          "category_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Slug"
+          },
+          "subcategory_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subcategory Slug"
+          },
+          "external_ticket_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ticket Url"
+          },
           "description": {
             "type": "string",
             "title": "Description"
@@ -62105,6 +62422,87 @@
               }
             ],
             "title": "Image File Id"
+          },
+          "listing_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Type"
+          },
+          "access_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingCardPropertiesAccessTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Access Type"
+          },
+          "pricing_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingCardPropertiesPricingTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pricing Type"
+          },
+          "booking_mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingCardPropertiesBookingModeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Mode"
+          },
+          "category_slug": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Slug"
+          },
+          "subcategory_slug": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subcategory Slug"
+          },
+          "external_ticket_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "pattern": "^https://[^\\s]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ticket Url"
           }
         },
         "type": "object",
@@ -62346,6 +62744,51 @@
               }
             ],
             "title": "Viewer Saved"
+          },
+          "listing_type": {
+            "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+          },
+          "access_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesAccessTypeEnum"
+          },
+          "pricing_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesPricingTypeEnum"
+          },
+          "booking_mode": {
+            "$ref": "#/components/schemas/ListingCardPropertiesBookingModeEnum"
+          },
+          "category_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Slug"
+          },
+          "subcategory_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subcategory Slug"
+          },
+          "external_ticket_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ticket Url"
           },
           "description": {
             "type": "string",
@@ -86298,6 +86741,16 @@
           "received"
         ]
       },
+      "EventCategoryNodePropertiesAppliesToItemsEnum": {
+        "type": "string",
+        "enum": [
+          "event",
+          "experience",
+          "class",
+          "attraction",
+          "service"
+        ]
+      },
       "FlightBoardResponsePropertiesBoardEnum": {
         "type": "string",
         "enum": [
@@ -86503,6 +86956,35 @@
           "XCD",
           "USD"
         ]
+      },
+      "ListingCardPropertiesAccessTypeEnum": {
+        "type": "string",
+        "enum": [
+          "public",
+          "private"
+        ],
+        "default": "public"
+      },
+      "ListingCardPropertiesPricingTypeEnum": {
+        "type": "string",
+        "enum": [
+          "free",
+          "paid",
+          "donation"
+        ],
+        "default": "free"
+      },
+      "ListingCardPropertiesBookingModeEnum": {
+        "type": "string",
+        "enum": [
+          "rsvp",
+          "tickets",
+          "slots",
+          "enquiry",
+          "none",
+          "external"
+        ],
+        "default": "none"
       },
       "ListingUpsertPropertiesVisibilityEnum": {
         "type": "string",

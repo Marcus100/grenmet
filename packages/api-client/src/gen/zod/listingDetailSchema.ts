@@ -4,11 +4,15 @@
  */
 
 import * as z from "zod";
+import { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
 import { groupDetailPropertiesCategoryEnumSchema } from "./groupDetailPropertiesCategoryEnumSchema.js";
 import { groupDetailPropertiesParishEnumSchema } from "./groupDetailPropertiesParishEnumSchema.js";
 import { groupSummarySchema } from "./groupSummarySchema.js";
+import { listingCardPropertiesAccessTypeEnumSchema } from "./listingCardPropertiesAccessTypeEnumSchema.js";
 import { listingCardPropertiesAdmissionEnumSchema } from "./listingCardPropertiesAdmissionEnumSchema.js";
+import { listingCardPropertiesBookingModeEnumSchema } from "./listingCardPropertiesBookingModeEnumSchema.js";
 import { listingCardPropertiesCurrencyEnumSchema } from "./listingCardPropertiesCurrencyEnumSchema.js";
+import { listingCardPropertiesPricingTypeEnumSchema } from "./listingCardPropertiesPricingTypeEnumSchema.js";
 import { organiserPublicSchema } from "./organiserPublicSchema.js";
 import { personChipSchema } from "./personChipSchema.js";
 import { tierPublicSchema } from "./tierPublicSchema.js";
@@ -35,6 +39,19 @@ export const listingDetailSchema = z.object({
   going_preview: z.array(personChipSchema),
   viewer_going: z.union([z.boolean(), z.null()]).optional(),
   viewer_saved: z.union([z.boolean(), z.null()]).optional(),
+  listing_type: eventCategoryNodePropertiesAppliesToItemsEnumSchema.optional(),
+  access_type: listingCardPropertiesAccessTypeEnumSchema
+    .optional()
+    .default("public"),
+  pricing_type: listingCardPropertiesPricingTypeEnumSchema
+    .optional()
+    .default("free"),
+  booking_mode: listingCardPropertiesBookingModeEnumSchema
+    .optional()
+    .default("none"),
+  category_slug: z.union([z.string(), z.null()]).optional(),
+  subcategory_slug: z.union([z.string(), z.null()]).optional(),
+  external_ticket_url: z.union([z.string(), z.null()]).optional(),
   description: z.string(),
   capacity: z.int(),
   organiser: organiserPublicSchema,

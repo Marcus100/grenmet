@@ -505,6 +505,24 @@ The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.
 
+### Events catalogue taxonomy (ADR-0046, L3)
+
+`GET /events/public/categories` returns the active two-level category tree
+(`slug`, `name`, `applies_to`, `children`) with `listing_count` of upcoming
+published, public-visibility, public-access listings. `GET /events/listings`
+gains `type`, `category_slug`, `subcategory_slug`, `pricing`
+(`free|paid|donation`), `access` (`public` only: private listings are never
+listed) and `booking_mode`; the legacy `category` (ten frozen values), `price`
+and `admission` are unchanged. Listing responses add `listing_type`,
+`access_type`, `pricing_type`, `booking_mode`, `category_slug`,
+`subcategory_slug` and `external_ticket_url` (defaults keep old clients valid).
+`POST/PUT /events/manage/listings` accept the same fields, all optional, with
+409 rules: the category must apply to the `listing_type`, the subcategory must
+belong to the category, `external_ticket_url` (https) is required with and only
+allowed for `booking_mode=external`, priced tiers need `pricing_type=paid`,
+`service` is refused, and `access_type=private` forces `visibility=unlisted`.
+`booking_mode=slots` is reserved and answers 422.
+
 ### Events tickets (E1)
 
 `POST /events/listings/{slug}/orders` (Events member, 20/minute) claims free or
