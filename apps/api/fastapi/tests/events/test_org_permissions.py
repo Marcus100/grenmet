@@ -6,6 +6,7 @@ the right key in another organisation gets 404 for this organisation's data.
 Superusers get no bypass. Keys come from ``role_bundles``."""
 
 import uuid
+from typing import cast
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
@@ -234,7 +235,8 @@ async def test_only_admins_and_owners_see_the_buyer_email(
     db_async: AsyncSession, events_db: SessionFactory
 ) -> None:
     shop = await _shop_with_events(db_async, events_db)
-    order_id, buyer = await _pending(db_async, shop)
+    order_id, raw_buyer = await _pending(db_async, shop)
+    buyer = cast(User, raw_buyer)
     manager = await _member(db_async, shop, "events-manager")
     async with await _desk() as client:
         by_manager = await client.get(
@@ -246,5 +248,5 @@ async def test_only_admins_and_owners_see_the_buyer_email(
             headers=headers_for(shop.owner, shop.organisation_id),
         )
     assert by_manager.status_code == by_owner.status_code == 200
-    assert buyer.email not in by_manager.text  # type: ignore[attr-defined]
-    assert buyer.email in by_owner.text  # type: ignore[attr-defined]
+    assert buyer.email not in by_manager.text
+    assert buyer.email in by_owner.text
