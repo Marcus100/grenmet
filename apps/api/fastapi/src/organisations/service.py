@@ -537,6 +537,7 @@ async def admin_set_verified(
     verified: bool,
     reason: str,
     rejected: bool = False,
+    refuse_rejected: bool = False,
 ) -> PlatformOrganisation:
     """The one write path for verification decisions.
 
@@ -548,6 +549,12 @@ async def admin_set_verified(
     organisation = await _load(session, organisation_id)
     audit_service.set_actor(session, actor.id)
     now = utc_now()
+    if (
+        refuse_rejected
+        and organisation.verification_status == VerificationStatus.REJECTED.value
+    ):
+        # Checked under the row lock, so a concurrent reject cannot slip past.
+        raise AppException("This organiser was rejected; it must be resubmitted", 409)
     if verified:
         if organisation.verified_at is not None:
             raise AppException("Organisation is already verified", 409)

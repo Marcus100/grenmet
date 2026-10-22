@@ -26,7 +26,9 @@ import {
   bookingsListProviders,
   bookingsListServices,
   bookingsNoShowStudioBooking,
+  bookingsRecordManualDeposit,
   createClient,
+  type ManualMethod,
   ResponseError,
 } from "@barrelsgd/api-client";
 import { cache } from "react";
@@ -273,6 +275,29 @@ export function markCompleted(
   return bookingsCompleteStudioBooking(
     actionTarget(accessToken, organisationId, bookingId)
   )
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/**
+ * Records a deposit taken outside Stripe. The key makes a retry safe: the same
+ * key and body replays the first answer instead of recording twice.
+ */
+export function recordManualDeposit(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string,
+  idempotencyKey: string,
+  input: { method: ManualMethod; reference?: string }
+): Promise<BookingStudioDetail> {
+  return bookingsRecordManualDeposit({
+    ...actionTarget(accessToken, organisationId, bookingId),
+    headers: { "Idempotency-Key": idempotencyKey },
+    body: {
+      method: input.method,
+      ...(input.reference ? { reference: input.reference } : {}),
+    },
+  })
     .unwrap()
     .catch(redactRequest);
 }

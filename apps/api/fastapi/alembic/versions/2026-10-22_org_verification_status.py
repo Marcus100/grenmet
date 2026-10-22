@@ -7,7 +7,7 @@ Additive. ``org.organisation`` gains ``verification_status``
 remains the single "is verified" signal.
 
 Revision ID: orgverifystatus20261022
-Revises: membershipgrant20261022
+Revises: eventsentitlement20261022
 """
 
 import sqlalchemy as sa
@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "orgverifystatus20261022"
-down_revision = "membershipgrant20261022"
+down_revision = "eventsentitlement20261022"
 branch_labels = None
 depends_on = None
 

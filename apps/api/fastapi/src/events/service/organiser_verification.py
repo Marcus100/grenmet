@@ -171,6 +171,7 @@ async def apply_decision(
     *,
     verified: bool,
     rejected: bool = False,
+    refuse_rejected: bool = False,
     reason: str,
 ) -> PlatformOrganisation:
     """The single approval path (no commit): the platform write plus every Events
@@ -178,7 +179,13 @@ async def apply_decision(
     Approve and reject notify the organiser's owners and admins; withdrawing an
     approval does not. The legacy ``verified`` flag follows the organisation."""
     organisation = await organisations.admin_set_verified(
-        db, actor, organisation_id, verified=verified, rejected=rejected, reason=reason
+        db,
+        actor,
+        organisation_id,
+        verified=verified,
+        rejected=rejected,
+        refuse_rejected=refuse_rejected,
+        reason=reason,
     )
     organiser = await db.scalar(
         select(Organiser).where(Organiser.organisation_id == organisation.id)

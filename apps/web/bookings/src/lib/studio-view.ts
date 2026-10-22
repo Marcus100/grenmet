@@ -260,3 +260,21 @@ export function availableActions(
 export function rotatesKey(kind: string): boolean {
   return kind !== "unavailable";
 }
+
+/** Statuses in which the API still accepts a hand-recorded deposit. */
+const DEPOSIT_OPEN: readonly BookingStatus[] = [
+  "pending_payment",
+  "pending",
+  "confirmed",
+];
+
+/**
+ * Whether the booking can take a deposit at all (it asks for one and is not
+ * closed). The API decides the rest (a card payment may still be open).
+ */
+export function takesDeposit(booking: {
+  deposit_minor: number;
+  status: BookingStatus;
+}): boolean {
+  return booking.deposit_minor > 0 && DEPOSIT_OPEN.includes(booking.status);
+}

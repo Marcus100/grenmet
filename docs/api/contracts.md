@@ -498,7 +498,7 @@ need an MFA superuser and go through `organisations.service.admin_set_verified`
 (409 on a repeat decision, audit entry with the actor, `organiser.approved` /
 `organiser.rejected` outbox row). A rejected organiser's owners or admins send
 `POST /events/manage/organiser/resubmit` to return to `pending` (409 otherwise).
-The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{id}/verify|unverify` also need an MFA superuser and use the same path (organiser flag mirror, activity row, notification); the PATCH is 409 for a rejected organiser. Approving a suspended organisation is 409.
+The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{id}/verify|unverify` also need an MFA superuser and use the same path (organiser flag mirror, activity row, notification); the PATCH is 409 for a rejected organiser (resubmit first). Superuser override: an MFA superuser may approve a rejected organisation directly through `POST /admin/moderation/organisers/{id}/approve` or `POST /organisations/{id}/verify`. Approving a suspended organisation is 409.
 `org.organisation` carries `verification_status`, `verification_reason` and
 `verification_decided_at`; `verified_at` stays the single "verified" signal.
 `GET /events/manage/{listing_id}/activity` returns that listing's append-only history
