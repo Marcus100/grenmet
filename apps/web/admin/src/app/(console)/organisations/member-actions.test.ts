@@ -105,7 +105,6 @@ describe("member actions", () => {
     const cases: [number, string, string][] = [
       [403, "superuser_mfa_required: set up", "member-mfa"],
       [403, "email_verification_required: verify", "member-unverified"],
-      [403, "Only a superuser can do this", "member-forbidden"],
       [404, "Account not found", "member-missing"],
       [409, "already a member", "member-already"],
       [429, "slow", "member-throttled"],
@@ -119,6 +118,28 @@ describe("member actions", () => {
       );
     }
     expect(report.reportError).not.toHaveBeenCalled();
+  });
+
+  it("shows a neutral notice and reports an unrecognised 403 on change and remove", async () => {
+    const data = form({
+      organisation_id: "org_1",
+      membership_id: "mem_1",
+      role: "admin",
+      reason: REASON,
+    });
+    api.updateOrganisationMember.mockRejectedValueOnce(
+      new AuthApiError(403, "Only an owner can change owners")
+    );
+    expect(await redirected(changeMemberRoleAction(data))).toContain(
+      "member-forbidden"
+    );
+    api.removeOrganisationMember.mockRejectedValueOnce(
+      new AuthApiError(403, "Only an owner can remove owners")
+    );
+    expect(await redirected(removeMemberAction(data))).toContain(
+      "member-forbidden"
+    );
+    expect(report.reportError).toHaveBeenCalledTimes(2);
   });
 
   it("reports unexpected failures", async () => {

@@ -65,4 +65,37 @@ describe("member admin controls", () => {
     ).toBeInTheDocument();
     expect(screen.getByLabelText("New role")).toHaveValue("member");
   });
+
+  it("renders the member notice by the heading with the right role", () => {
+    const { rerender } = render(
+      <MembersPanel
+        count={0}
+        notice={{ text: "Member added.", tone: "ok" }}
+        rows={[]}
+      />
+    );
+    expect(screen.getAllByRole("status")[0]).toHaveTextContent("Member added.");
+    rerender(
+      <MembersPanel
+        count={0}
+        notice={{ text: "Nope.", tone: "problem", href: "https://a/security" }}
+        rows={[]}
+      />
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("Nope.");
+    expect(
+      screen.getByRole("link", { name: "Open Security settings" })
+    ).toHaveAttribute("href", "https://a/security");
+  });
+
+  it("submits the prefilled self email with role and organisation", () => {
+    render(<MemberAddSection organisationId="org_1" selfEmail="me@b.gd" />);
+    fireEvent.click(screen.getByRole("button", { name: "Add myself" }));
+    const data = new FormData(
+      screen.getByRole("form", { name: "Add member" }) as HTMLFormElement
+    );
+    expect(data.get("user")).toBe("me@b.gd");
+    expect(data.get("organisation_id")).toBe("org_1");
+    expect(data.get("role")).toBe("member");
+  });
 });

@@ -27,7 +27,8 @@ export function AccountActivation({
   user,
   open,
 }: {
-  user: Pick<UserPublic, "id" | "email">;
+  user: Pick<UserPublic, "id" | "email"> &
+    Partial<Pick<UserPublic, "is_superuser">>;
   open: boolean;
 }) {
   const actor = useSessionUser();
@@ -39,7 +40,8 @@ export function AccountActivation({
 function ActivationDetails({
   user,
 }: {
-  user: Pick<UserPublic, "id" | "email">;
+  user: Pick<UserPublic, "id" | "email"> &
+    Partial<Pick<UserPublic, "is_superuser">>;
 }) {
   const fieldId = useId();
   const status = useAuthGetOnboardingStatus({ path: { user_id: user.id } });

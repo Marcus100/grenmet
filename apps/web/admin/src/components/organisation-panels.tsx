@@ -35,12 +35,15 @@ function show(value: unknown): string {
 export function MembersPanel({
   addForm,
   count,
+  notice,
   rowActions,
   rows,
 }: {
   /** Slot for the superuser "Add member" form; shown even when the roster is empty. */
   addForm?: ReactNode;
   count: number;
+  /** Result of the last member action, shown next to the heading. */
+  notice?: { text: string; tone: string; href?: string };
   /** Optional per-row controls (change role, remove). */
   rowActions?: (row: MemberRow) => ReactNode;
   rows: MemberRow[];
@@ -50,6 +53,20 @@ export function MembersPanel({
       <h2 className="font-medium" id="members-heading">
         Members ({count})
       </h2>
+      {notice ? (
+        <p
+          className="rounded-md border px-3 py-2 text-sm"
+          role={notice.tone === "problem" ? "alert" : "status"}
+        >
+          {notice.tone === "problem" ? "Problem: " : "Done: "}
+          {notice.text}{" "}
+          {notice.href ? (
+            <a className="underline" href={notice.href}>
+              Open Security settings
+            </a>
+          ) : null}
+        </p>
+      ) : null}
       {rows.length === 0 ? (
         <p className="text-muted-foreground text-sm" role="status">
           No active members.

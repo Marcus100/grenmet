@@ -88,7 +88,7 @@ export const MEMBER_NOTICES = {
   },
   "member-forbidden": {
     tone: "problem",
-    text: "You are not allowed to do this. Only superusers can manage any organisation's members.",
+    text: "The API refused this change. Nothing was changed.",
   },
   "member-missing": {
     tone: "problem",
@@ -117,7 +117,7 @@ export type MemberNoticeCode = keyof typeof MEMBER_NOTICES;
 export function memberNoticeFor(
   code: string | undefined
 ): (typeof MEMBER_NOTICES)[MemberNoticeCode] | undefined {
-  return code && code in MEMBER_NOTICES
+  return code && Object.hasOwn(MEMBER_NOTICES, code)
     ? MEMBER_NOTICES[code as MemberNoticeCode]
     : undefined;
 }
@@ -134,7 +134,7 @@ export function memberNoticeForError(
     if (detail.includes("email_verification_required")) {
       return known("member-unverified");
     }
-    return known("member-forbidden");
+    return { code: "member-forbidden", known: false };
   }
   if (status === 404) return known("member-missing");
   if (status === 409) {

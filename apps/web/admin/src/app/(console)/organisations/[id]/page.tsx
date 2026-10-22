@@ -61,8 +61,8 @@ export default async function OrganisationPage({
   const notice =
     noticeFor(noticeCode) ??
     siteNoticeFor(noticeCode) ??
-    apiKeyNoticeFor(noticeCode) ??
-    memberNoticeFor(noticeCode);
+    apiKeyNoticeFor(noticeCode);
+  const memberNotice = memberNoticeFor(noticeCode);
 
   return (
     <>
@@ -75,15 +75,7 @@ export default async function OrganisationPage({
           role={notice.tone === "problem" ? "alert" : "status"}
         >
           {notice.tone === "problem" ? "Problem: " : "Done: "}
-          {notice.text}{" "}
-          {noticeCode === "member-mfa" ? (
-            <a
-              className="underline"
-              href={new URL("/security", getAuthConfig().authAppUrl).toString()}
-            >
-              Open Security settings
-            </a>
-          ) : null}
+          {notice.text}
         </p>
       ) : null}
       <div className="space-y-2">
@@ -141,6 +133,20 @@ export default async function OrganisationPage({
           <MemberAddSection organisationId={id} selfEmail={gate.email} />
         }
         count={members.count}
+        notice={
+          memberNotice
+            ? {
+                ...memberNotice,
+                href:
+                  noticeCode === "member-mfa"
+                    ? new URL(
+                        "/security",
+                        getAuthConfig().authAppUrl
+                      ).toString()
+                    : undefined,
+              }
+            : undefined
+        }
         rowActions={(row) => (
           <MemberRowActions member={row} organisationId={id} />
         )}
