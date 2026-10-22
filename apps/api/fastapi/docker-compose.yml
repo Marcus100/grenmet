@@ -42,7 +42,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - JANITORIAL_DATABASE_URL=${JANITORIAL_DATABASE_URL:-}
       - TRANSPORT_DATABASE_URL=${TRANSPORT_DATABASE_URL:-}
-      - EVENTS_DATABASE_URL=${EVENTS_DATABASE_URL:-}
     networks:
       - grenmet
 
@@ -73,7 +72,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - JANITORIAL_DATABASE_URL=${JANITORIAL_DATABASE_URL:-}
       - TRANSPORT_DATABASE_URL=${TRANSPORT_DATABASE_URL:-}
-      - EVENTS_DATABASE_URL=${EVENTS_DATABASE_URL:-}
       - SMTP_HOST=grenmet-mailcatcher
       - SMTP_PORT=1025
       - SMTP_TLS=false
@@ -170,7 +168,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - JANITORIAL_DATABASE_URL=${JANITORIAL_DATABASE_URL:-}
       - TRANSPORT_DATABASE_URL=${TRANSPORT_DATABASE_URL:-}
-      - EVENTS_DATABASE_URL=${EVENTS_DATABASE_URL:-}
       - REDIS_URL=redis://grenmet-redis:6379/0
     volumes:
       - ./src:/app/apps/api/fastapi/src
@@ -214,7 +211,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - JANITORIAL_DATABASE_URL=${JANITORIAL_DATABASE_URL:-}
       - TRANSPORT_DATABASE_URL=${TRANSPORT_DATABASE_URL:-}
-      - EVENTS_DATABASE_URL=${EVENTS_DATABASE_URL:-}
       - REDIS_URL=redis://grenmet-redis:6379/0
     volumes:
       - ../../../data/gms-ingest/nhc:/app/nhc-archive

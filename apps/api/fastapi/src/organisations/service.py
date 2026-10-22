@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from src.audit import service as audit_service
+from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import User
 from src.exceptions import AppException
 from src.hr.models import Organisation as HrOrganisation
@@ -36,6 +37,7 @@ from src.organisations.models import (
     new_organisation_id,
 )
 from src.utils.datetime import utc_now
+from src.utils.reserved_names import is_reserved
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +53,14 @@ def slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")[:100] or "org"
 
 
-async def _unique_slug(session: AsyncSession, wanted: str) -> str:
+async def _unique_slug(
+    session: AsyncSession, wanted: str, *, allow_reserved: bool = False
+) -> str:
+    """A free slug near ``wanted``; reserved names (ADR-0043) are treated as taken
+    unless the caller is the platform itself (seeds, the HR mirror)."""
     slug = slugify(wanted)
     candidate, n = slug, 1
-    while await session.scalar(
+    while (not allow_reserved and is_reserved(candidate)) or await session.scalar(
         select(PlatformOrganisation.id).where(PlatformOrganisation.slug == candidate)
     ):
         n += 1
@@ -69,17 +75,20 @@ async def create_organisation(
     kind: OrganisationKind = OrganisationKind.BUSINESS,
     slug: str | None = None,
     organisation_id: str | None = None,
+    reserved_ok: bool = False,
 ) -> PlatformOrganisation:
     """Create a new organisation with an immutable ``org_<hex>`` id.
 
     The id is generated unless a caller needs a deterministic one (idempotent
-    cross-database backfills)."""
+    cross-database backfills). A slug on the platform reserved list is never
+    used (a numeric suffix is added) unless ``reserved_ok``, which only platform
+    seeds pass for their own names (``barrels``, ``babydoll``)."""
     clean = name.strip()
     if not clean:
         raise AppException("Organisation name is required", 422)
     organisation = PlatformOrganisation(
         id=organisation_id or new_organisation_id(),
-        slug=await _unique_slug(session, slug or clean),
+        slug=await _unique_slug(session, slug or clean, allow_reserved=reserved_ok),
         name=clean,
         kind=kind.value,
         status=OrganisationStatus.ACTIVE.value,
@@ -114,7 +123,9 @@ async def ensure_for_hr_organisation(
     organisation = _hr_mirror(
         organisation_id,
         name,
-        await _unique_slug(session, organisation_id or code or name),
+        await _unique_slug(
+            session, organisation_id or code or name, allow_reserved=True
+        ),
     )
     session.add(organisation)
     await session.flush()
@@ -189,7 +200,18 @@ async def add_member(
     role: MembershipRole,
     status: MembershipStatus = MembershipStatus.ACTIVE,
     invited_by_user_id: uuid.UUID | None = None,
+    skip_email_check: bool = False,
 ) -> Membership:
+    # ADR-0018: owning or administering an organisation needs a verified email.
+    # Callers that must stay exempt pass skip_email_check=True with a comment
+    # and are listed in src/auth/AGENTS.md.
+    if not skip_email_check and role in (MembershipRole.OWNER, MembershipRole.ADMIN):
+        user = await session.get(User, user_id)
+        if user is None:
+            raise AppException("User not found", 404)
+        await require_verified_or_admin_activated(
+            session, user, f"become an organisation {role.value}"
+        )
     membership = Membership(
         id=new_membership_id(),
         organisation_id=organisation_id,
@@ -217,7 +239,26 @@ async def set_app_enabled(
     else:
         row.enabled = enabled
     await session.flush()
+    if enabled:
+        for bundled in entitlements.BUNDLED_WITH.get(app_key, ()):
+            await _ensure_enabled(session, organisation_id, bundled)
     return row
+
+
+async def _ensure_enabled(
+    session: AsyncSession, organisation_id: str, app_key: str
+) -> None:
+    """Switch an entitlement on if it is missing or off (never touches others)."""
+    row = await session.get(OrganisationApp, (organisation_id, app_key))
+    if row is None:
+        session.add(
+            OrganisationApp(
+                organisation_id=organisation_id, app_key=app_key, enabled=True
+            )
+        )
+    elif not row.enabled:
+        row.enabled = True
+    await session.flush()
 
 
 async def list_my_memberships(
@@ -428,6 +469,8 @@ async def _ensure_slug_free(
 ) -> None:
     if not _SLUG_PATTERN.match(slug):
         raise AppException("Slug must be lowercase letters, digits and hyphens", 422)
+    if is_reserved(slug):
+        raise AppException("That slug is reserved", 422)
     taken = await session.scalar(
         select(PlatformOrganisation.id).where(
             PlatformOrganisation.slug == slug,

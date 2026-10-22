@@ -5,6 +5,7 @@ import { BookBar } from "@/components/book-bar";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { BUSINESS, SITE_URL } from "@/data/site";
+import { siteBookingLink } from "@/lib/book-link";
 import "./globals.css";
 
 // Primary brand face is Adorn Story (licensed). Italiana stands in until the
@@ -53,10 +54,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        <SiteHeader />
+        <SiteHeader booking={siteBookingLink()} />
         <main id="main">{children}</main>
         <SiteFooter />
-        <BookBar />
+        <BookBar booking={siteBookingLink()} />
       </body>
     </html>
   );

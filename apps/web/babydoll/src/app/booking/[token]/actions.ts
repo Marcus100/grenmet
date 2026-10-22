@@ -1,14 +1,18 @@
 "use server";
 
 import type { BookingPublicDetail } from "@barrelsgd/api-client";
-import type { SlotList } from "@/app/book/actions";
+import type {
+  Failure,
+  Outcome,
+} from "@barrelsgd/bookings-web/lib/booking-errors";
+import type { SlotList } from "@barrelsgd/bookings-web/lib/booking-types";
 import {
   cancelBooking,
   getAvailability,
   getBooking,
   rescheduleBooking,
 } from "@/lib/booking-api";
-import { type Failure, failureFrom, type Outcome } from "@/lib/booking-errors";
+import { failureFrom } from "@/lib/booking-errors";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?Z$/;

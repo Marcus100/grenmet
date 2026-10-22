@@ -12,7 +12,7 @@ Future clients include mobile apps, kiosks, partner websites and organisations' 
 
 Today:
 - The only non-browser credential is a per-app SSO `client_secret` held in env.
-- The only outbound webhook is CAP's (`CapWebhook`, HMAC-signed, `src/worker/publishers.py`).
+- The only outbound webhook was CAP's (`CapWebhook`, HMAC-signed, `src/worker/publishers.py`, using `src/utils/signing.py`).
 
 ## Evidence
 
@@ -39,7 +39,7 @@ Today:
 - Table `org.api_key`: organisation, name, a prefix shown in lists, an SHA-256 hash, scopes, `expires_at`, `last_used_at`, `revoked_at`, creator.
 - The secret `bk_<prefix>_<random>` is shown once.
 - `Authorization: Bearer bk_…` resolves to an `OrgContext`-equivalent caller restricted to the key's scopes.
-- A key's scopes are taken from `permissions.py` and are never wider than its creator's role.
+- A key's scopes are taken from `permissions.py` and are never wider than its creator's role. Owner decision 2026-10-20 (decided, to be implemented): API-key scopes reference the same permission keys as `src/auth/permissions.py`, one list, not the separate product-level list in `src/organisations/api_key_scopes.py`; a test fails on an unknown scope.
 - Creation, rotation and revocation are audited.
 - Entitlements (`require_org_app`) still apply.
 
@@ -47,7 +47,7 @@ Today:
 - Organisations register endpoints with an event-type filter.
 - Payloads are signed with HMAC-SHA256 over a timestamp and the body, generalising CAP's signer.
 - Delivery uses the PF2 outbox with retries and a replay window.
-- Endpoints that keep failing are disabled automatically and the organisation is notified.
+- Endpoints that keep failing are disabled automatically and the organisation is notified (built in `src/webhooks_out/delivery.py`).
 
 ## Consequences
 

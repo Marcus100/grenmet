@@ -25,13 +25,19 @@ Hosted on Vercel at `babydoll.barrels.gd` (production only, no staging), like El
 - Booking is the Acuity link (`BOOKING_URL`) unless online booking is switched
   on (see "Online booking"). Contact and training interest go to Instagram DM.
   The marketing pages themselves make no API calls and use no analytics.
+- Every Book call-to-action uses `siteBookingLink()` (Server Components) or a
+  `CtaLink` prop (client components) from `src/lib/book-link.ts`. Never
+  link `BOOKING_URL` directly. The only deliberate Acuity links left on the
+  switched-on site are the `/book` redirects (switch off, or the studio page
+  disabled) and the `/book` error fallback ("Book on our other page").
 - Portfolio and portrait photos go in `public/portfolio/` only with the client's
   confirmation that the people shown consented; add `image` and `alt` to the slot.
 
 ## UI rules
 
 - Server Components by default. Client components only for the mobile menu,
-  service tabs, portfolio filter and the booking forms (`components/booking/`). Every service panel stays in the HTML
+  service tabs, portfolio filter and the booking forms (the booking flow lives in
+  `@barrelsgd/bookings-web`; this app wires it up in `app/book` and `app/booking`). Every service panel stays in the HTML
   (inactive panels are `hidden`), so prices are indexable.
 - Phone first: the fixed `BookBar` shows under 820px; keep the page's bottom
   padding (`--bar-h`) when changing it.
@@ -51,13 +57,19 @@ Acuity.
   needs a signed-in member, and there is no public evaluate endpoint yet.
   `/booking/[token]` works whatever the switch says, so existing manage links
   never break.
+- **Package:** the flow (form, slot picker, manage page, Turnstile) is
+  `@barrelsgd/bookings-web` (`packages/bookings-web`). It takes the server
+  actions as props; this app passes `app/book/actions.ts` and
+  `app/booking/[token]/actions.ts` in, and gives it `BookingLink` (Next `Link`),
+  `/booking` as the manage path, and the calendar href and Instagram contact link.
 - **Calls:** server-side only, through the generated client
   (`src/lib/booking-api.ts`, `createClient({ baseURL })`; the API address never
   reaches the browser). The browser reaches it through Server Actions
   (`app/book/actions.ts`, `app/booking/[token]/actions.ts`); the calendar file is
   proxied by `app/booking/[token]/ics/route.ts`. No business logic here.
 - **Errors:** API 4xx/409 become `Failure` results with customer wording
-  (`src/lib/booking-errors.ts`); a slot-taken 409 is told apart from the
+  (wording in `@barrelsgd/bookings-web/lib/booking-errors`; the app's
+  `src/lib/booking-errors.ts` maps the generated client's `ResponseError`); a slot-taken 409 is told apart from the
   cancellation-cutoff 409 by the API's message text (the schema types the 409
   body as unknown). Network faults and 5xx are not swallowed by the actions:
   the form catches them to offer a safe retry. There is no Sentry in this app,
@@ -76,5 +88,20 @@ Acuity.
   mirrored from `src/data/site.ts` and the `babydoll-beauty-bar` profile. Service
   durations are assumptions the client should confirm; keep prices in step with
   `SERVICE_MENU`.
-- **Not yet:** the BookBar and Book links still point at Acuity; pointing them at
-  `/book` is a follow-up once the switch goes on in production.
+- **Book links:** `src/lib/book-link.ts` decides where every Book CTA goes.
+  Switch off: Acuity (`BOOKING_URL`, new tab, `rel="noopener"`). Switch on:
+  `/book` (same tab). `siteBookingLink()` reads `env` and runs only in Server
+  Components and the layout; client components (`SiteHeader`, `ServiceMenu`)
+  take a `booking: CtaLink` prop and never read the switch, because
+  `BABYDOLL_ONLINE_BOOKING` is not a `NEXT_PUBLIC_` variable and would be
+  `undefined` in the browser.
+- **Static pages:** most pages are prerendered at build, so the switch is read
+  at build time. Changing `BABYDOLL_ONLINE_BOOKING` in Vercel needs a redeploy
+  to take effect on those pages. `/book` and `/booking/[token]` are dynamic.
+- **Per-service links:** every Book link goes to `/book` without a service
+  id. `/book` cannot preselect a service yet: `BookingFlow`
+  (`@barrelsgd/bookings-web`) has no initial-service prop and `/book` reads no
+  search params. Adding `?service=<id>` is a follow-up that needs that prop.
+- **Left on Acuity on purpose:** `/book`'s own redirects (`app/book/page.tsx`)
+  and `app/book/error.tsx`'s "Book on our other page" fallback, so a failed
+  on-site flow always has a working route to a booking.

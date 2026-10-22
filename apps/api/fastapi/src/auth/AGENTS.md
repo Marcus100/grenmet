@@ -36,6 +36,8 @@
 
 `app_router.account_router` (`/auth/account/apps`, `/{app}/join`, `/{app}/leave`) manages memberships for the auth.barrels.gd account session; `_account_session_user` rejects app sessions. Leaving removes only the app's default role link and ends that app's sessions (`sessions.revoke_user_app_sessions`); staff-scope apps cannot be left. Tests: `tests/auth/test_account_apps.py`.
 
+`bookings` (Barrels Bookings, `apps/web/bookings`) is a self-service `app`-scope site (instant Join, role `bookings-member`, permission `app.bookings.access`).
+
 `gmsdash` (GMS Dashboard, `apps/web/gmsdash`) is a self-service `app`-scope site like the others (instant Join, role `gmsdash-member`). The gate to its data is the organisation entitlement and a staff-approved access request, not the Join; see `src/models_guidance/AGENTS.md`.
 
 ## Tests
@@ -43,3 +45,14 @@
 
 ## Related
 ADR-0002 (shared auth session), `packages/auth/AGENTS.md`, `apps/web/auth/AGENTS.md`, `docs/security.md`.
+
+## Email verification gates (ADR-0018)
+`email_verification.require_verified_email(user, action)` raises `EmailNotVerifiedError` (403, detail starts `email_verification_required:`). Sign-in and browsing never call it. Gates: `assignments.create_user_role_assignment` (staff role), `organisations.members.accept_invitation` and `change_role` (admin or owner), `bookings.public.create_booking` (signed-in payer when a deposit is due; guests have no account, so they are not gated). Staff approval (`baseline.service`) is administrator-mediated and deliberately exempt. Payout details: none exist (`payments.create_payout` only appends a superuser ledger entry), so no gate yet; add one where payee details are first stored. Tests: `tests/auth/test_email_verification_gates.py`.
+
+**Owner/admin membership and the exempt list.** `organisations.service.add_member` now requires a verified email for OWNER and ADMIN (the events organiser request goes through it), unless the caller passes `skip_email_check=True`. Exempt callers (administrator-mediated, ADR-0018): `src/events/backfill.py` and `events.service.create_organiser` (admin-created organisers and the demo seed). The self-service `request_organiser` checks `require_verified_email` itself, so it stays gated. Tests and fixtures use verified users.
+
+**The deposit gate is advisory until a host forwards the session.** `optional_account` treats a missing, invalid, app-scoped or activation-pending token as a guest, and the public booking site sends no bearer today, so nothing is refused in production yet.
+
+**Role editors.** `PermissionDef` has no hidden or key-only flag, so the ten API-key `<product>.<read|write>` keys show as grantable in the staff Permission table although granting them does nothing. Follow-up.
+
+**Administrator-activated accounts are exempt (owner decision 2026-10-21).** The staff-role gate (`create_user_role_assignment`) and the owner/admin membership gates (`add_member`, `accept_invitation`, `change_role`) use `require_verified_or_admin_activated`: a verified email, or an `account_activation`/`activated` audit entry for the account. Only `onboarding.confirm_activation` writes that entry, and only for a link issued by an active superuser, so no schema change is needed. Self-registered accounts never have it and stay gated. The deposit gate and the self-service `request_organiser` stay strict. The exemption lapses when the account's email changes: `is_admin_activated` also requires `email_verification_required` to be false, which `confirm_activation` clears and both email-change paths in `auth.service` set again.

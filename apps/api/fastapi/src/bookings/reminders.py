@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.contacts.models import Contact
 from src.notifications import outbox_handlers
 from src.utils.datetime import utc_now
 from src.utils.timezones import zone
@@ -34,31 +35,32 @@ async def enqueue_due_reminders(
     to one organisation (tests, backfills)."""
     moment = now or utc_now()
     query = (
-        select(Booking, BookingProfile, Service, Provider, Customer)
+        select(Booking, BookingProfile, Service, Provider, Contact)
         .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
         .join(Service, Service.id == Booking.service_id)
         .join(Provider, Provider.id == Booking.provider_id)
         .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
         .where(
             Booking.status == BookingStatus.CONFIRMED.value,
             Booking.starts_at > moment,
             Booking.starts_at <= moment + REMINDER_WINDOW,
-            Customer.email.is_not(None),
+            Contact.email.is_not(None),
         )
         .order_by(Booking.starts_at)
     )
     if organisation_id is not None:
         query = query.where(Booking.organisation_id == organisation_id)
     queued = 0
-    for booking, profile, service, provider, customer in (
+    for booking, profile, service, provider, contact in (
         await session.execute(query)
     ).all():
-        if not customer.email:
+        if not contact.email:
             continue
         subject, body = emails.customer_reminder(
             emails.BookingEmail(
                 business=profile.display_name,
-                customer_name=customer.name,
+                customer_name=contact.name or "",
                 service_name=service.name,
                 provider_name=provider.name,
                 starts_at=booking.starts_at,
@@ -67,7 +69,7 @@ async def enqueue_due_reminders(
         )
         if await outbox_handlers.enqueue_email(
             session,
-            to_email=customer.email,
+            to_email=contact.email,
             subject=subject,
             html=body,
             transactional=True,

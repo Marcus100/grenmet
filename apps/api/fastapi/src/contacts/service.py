@@ -20,6 +20,7 @@ from src.utils.datetime import utc_now
 from src.utils.email_hash import hash_email
 from src.webhooks_out import service as webhook_service
 
+from . import references
 from .audit import SUBJECT
 from .exceptions import ContactErasedError, ContactMergeError, ContactNotFoundError
 from .models import ConsentPurpose, Contact, ContactConsent
@@ -180,6 +181,31 @@ async def upsert_contact(
     return contact
 
 
+async def create_without_email(
+    session: AsyncSession,
+    organisation_id: str,
+    *,
+    name: str | None,
+    phone: str | None = None,
+    source: str,
+) -> Contact:
+    """A new contact for someone with no email address (for example a walk-in).
+
+    Never matched or reused: with no address there is nothing safe to match on, so
+    each call is a new person (merge them by hand if they turn out to be one)."""
+    contact = Contact(
+        organisation_id=organisation_id,
+        email_hash=None,
+        email=None,
+        name=name,
+        phone=phone,
+        source=source,
+    )
+    session.add(contact)
+    await session.flush()
+    return contact
+
+
 async def update_contact(
     session: AsyncSession,
     contact: Contact,
@@ -223,11 +249,18 @@ async def merge_contacts(
         .where(ContactConsent.contact_id == drop.id)
         .values(contact_id=keep.id)
     )
+    await references.move_all(session, from_id=drop.id, to_id=keep.id)
     keep.created_at = min(keep.created_at, drop.created_at)
     keep.name = keep.name or drop.name
     keep.phone = keep.phone or drop.phone
     keep.user_id = keep.user_id or drop.user_id
+    # An address-less contact (a walk-in) takes the other record's address. The
+    # unique (organisation, email_hash) means the dropped row must go first.
+    inherit = (drop.email, drop.email_hash) if keep.email_hash is None else None
     await session.delete(drop)
+    if inherit is not None:
+        await session.flush()
+        keep.email, keep.email_hash = inherit
     await audit_service.record_change(
         session,
         entity_type=SUBJECT,

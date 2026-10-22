@@ -20,7 +20,7 @@ from src.notifications.config import notification_settings
 from src.notifications.models import OutboundEmail, OutboundEmailStatus
 from src.utils.datetime import utc_now
 
-from . import encode, rules
+from . import encode, gate, rules
 from .config import eregister_settings, wis2box_settings
 from .models import (
     STATUS_FAILED,
@@ -234,15 +234,37 @@ def wis2_unavailable_reason(item: SendableObservation) -> str | None:
 async def queue_wis2(
     *,
     session: AsyncSession,
+    register: AsyncSession,
     item: SendableObservation,
     observation_id: UUID,
     user: User,
     resend: bool,
 ) -> ObservationSend:
+    del resend  # WIS2 files are never repeated (ADR-0032)
     reason = wis2_unavailable_reason(item)
     if reason:
         raise HTTPException(409, reason)
-    await _claim(session, observation_id, TARGET_WIS2, resend=resend)
+    # The gate comes first: an hour owned by the automatic source is never
+    # queued, and a station-hour is claimed by one observation only. A WIS2
+    # file is never queued twice, so `resend` does not apply here.
+    claimed = await gate.claim_manual_hour(
+        register,
+        station_id=item.station_id,
+        observed_at=item.observed_at,
+        observation_id=observation_id,
+        actor=str(user.id),
+    )
+    try:
+        await _claim(session, observation_id, TARGET_WIS2, resend=False)
+    except BaseException:
+        if claimed:
+            await gate.release_hour(
+                register,
+                station_id=item.station_id,
+                observed_at=item.observed_at,
+                observation_id=observation_id,
+            )
+        raise
     observed = item.observed_at.astimezone(UTC)
     row = encode.wis2_row(item.workbook, item.decoded, observed, wis2box_settings)
     filename = encode.wis2_filename(wis2box_settings, observed)

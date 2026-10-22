@@ -2,8 +2,8 @@
 
 There is no table of badges and no write path: a badge cannot be bought, given
 or transferred, only earned by the underlying record existing. Each badge says
-whether its source could be read, so a missing Events database shows as
-"unavailable", not as a lost badge.
+whether its source is available; Events shares the main database, so the
+attendee and purchaser badges are always readable.
 """
 
 import uuid
@@ -58,9 +58,7 @@ def _badge(
     )
 
 
-async def badges_for(
-    session: AsyncSession, events: AsyncSession | None, user_id: uuid.UUID
-) -> list[BadgePublic]:
+async def badges_for(session: AsyncSession, user_id: uuid.UUID) -> list[BadgePublic]:
     organisers = (
         await session.execute(
             select(func.count(), func.min(PlatformOrganisation.verified_at))
@@ -86,13 +84,8 @@ async def badges_for(
             since=organisers[1],
         )
     ]
-    if events is None:
-        return result + [
-            _badge(key, earned=False, available=False, count=0, since=None)
-            for key in (BadgeKey.VERIFIED_ATTENDEE, BadgeKey.VERIFIED_PURCHASER)
-        ]
     attended = (
-        await events.execute(
+        await session.execute(
             select(func.count(), func.min(Admission.admitted_at))
             .select_from(Admission)
             .join(Ticket, Ticket.id == Admission.ticket_id)
@@ -100,7 +93,7 @@ async def badges_for(
         )
     ).one()
     paid = (
-        await events.execute(
+        await session.execute(
             select(func.count(), func.min(Order.created_at)).where(
                 Order.user_id == user_id,
                 Order.status == "confirmed",

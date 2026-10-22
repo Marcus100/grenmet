@@ -7,7 +7,7 @@ This guide explains how to use the database seeding scripts.
 You have two scripts for managing seed data:
 
 1. **`seed_data.py`** - Create custom users from the CUSTOM_USERS list
-2. **`clear_seed_data.py`** - Remove test users (testuser*@weather.gd)
+2. **`clear_seed_data.py`** - Remove test users (testuser*@example.com)
 
 ## Quick Start
 
@@ -25,7 +25,7 @@ Creates all custom users defined in CUSTOM_USERS at the top of `seed_data.py`.
 python scripts/clear_seed_data.py
 ```
 
-Removes all users matching `testuser*@weather.gd`.
+Removes all users matching `testuser*@example.com`.
 
 ### Reset and Reseed
 

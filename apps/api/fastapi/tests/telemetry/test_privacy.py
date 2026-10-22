@@ -39,13 +39,13 @@ class PrivacyTests(unittest.TestCase):
 
     def test_log_only_events_keep_a_safe_title(self):
         event = {
-            "logger": "ddtrace.internal.writer.writer",
+            "logger": "httpx",
             "logentry": {"formatted": "secret payload"},
         }
         result = scrub_sentry_event(event, {})
         self.assertEqual(result["message"], "Log event (details redacted)")
         self.assertNotIn("secret payload", json.dumps(result))
-        self.assertEqual(result["logger"], "ddtrace.internal.writer.writer")
+        self.assertEqual(result["logger"], "httpx")
 
     def test_keeps_only_safe_tags(self):
         result = scrub_sentry_event(
@@ -53,3 +53,37 @@ class PrivacyTests(unittest.TestCase):
         )
         self.assertEqual(result["tags"], {"area": "cap", "digest": "d1"})
         self.assertNotIn("tags", scrub_sentry_event({"tags": {"email": "x"}}, {}))
+
+    def test_keeps_internal_user_and_org_ids_but_drops_personal_fields(self):
+        result = scrub_sentry_event(
+            {
+                "user": {"id": "u1", "email": "private", "username": "private"},
+                "tags": {"user_id": "u1", "org_id": "o1", "email": "private"},
+            },
+            {},
+        )
+        self.assertEqual(result["tags"], {"user_id": "u1", "org_id": "o1"})
+        self.assertNotIn("user", result)
+        self.assertNotIn("private", json.dumps(result))
+
+    def test_rejects_non_opaque_user_id_tag(self):
+        for bad in ("a@example.test", "Private Person", "x" * 65, ""):
+            result = scrub_sentry_event({"tags": {"user_id": bad, "org_id": "o1"}}, {})
+            self.assertEqual(result["tags"], {"org_id": "o1"})
+        uuid_like = "11111111-2222-3333-4444-555555555555"
+        result = scrub_sentry_event({"tags": {"user_id": uuid_like}}, {})
+        self.assertEqual(result["tags"], {"user_id": uuid_like})
+
+    def test_error_events_are_never_dropped_by_scrubber(self):
+        """before_send is the only API drop point and must always return the event."""
+        for event in (
+            {"exception": {"values": [{"type": "RuntimeError", "value": "x"}]}},
+            {"message": "x"},
+            {"logentry": {"message": "x"}},
+            {},
+        ):
+            self.assertIsNotNone(scrub_sentry_event(event, {}))
+
+    def test_transactions_are_intentionally_dropped(self):
+        before_send_transaction = sentry_options()["before_send_transaction"]
+        self.assertIsNone(before_send_transaction({"type": "transaction"}, {}))

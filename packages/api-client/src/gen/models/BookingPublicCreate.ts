@@ -45,6 +45,10 @@ export type BookingPublicCreate = {
    * @type boolean | undefined
    */
   marketing_consent?: boolean;
+  /**
+   * @description Proof from `confirm-email-code`. Needed only when a deposit is due and the caller is not a signed-in account that already vouches for `customer_email`. Bound to this email, service and start time; single use.
+   */
+  email_proof?: string | null;
   turnstile_token?: string | null;
   website?: string | null;
 };

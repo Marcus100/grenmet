@@ -9,12 +9,15 @@ Postgres exclusion constraint forbids double-booking a provider.
 import uuid
 from datetime import datetime, time
 from enum import Enum
+from typing import cast
 
 import sqlalchemy as sa
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import ExcludeConstraint
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from src.contacts import references as contact_references
 from src.orm import Base
 from src.utils.datetime import utc_now
 from src.utils.timezones import DEFAULT_TIMEZONE
@@ -197,11 +200,13 @@ class AvailabilityException(Base):
 
 
 class Customer(Base):
-    """A business's customer. Personal data scoped to one organisation."""
+    """A business's customer: the booking-side role of one contact (ADR-0028)."""
 
     __tablename__ = "customer"
     __table_args__ = (
-        sa.Index("ix_customer_org_email_hash", "organisation_id", "email_hash"),
+        sa.UniqueConstraint(
+            "organisation_id", "contact_id", name="customer_org_contact_key"
+        ),
         SCHEMA,
     )
 
@@ -209,16 +214,11 @@ class Customer(Base):
     organisation_id: Mapped[str] = mapped_column(
         String(100), ForeignKey("org.organisation.id"), index=True
     )
-    name: Mapped[str] = mapped_column(String(120))
-    email: Mapped[str | None] = mapped_column(String(320))
-    email_hash: Mapped[str | None] = mapped_column(String(64))
-    phone: Mapped[str | None] = mapped_column(String(40))
-    marketing_consent: Mapped[bool] = mapped_column(default=False)
-    #: The organisation's contact-book record for this person (PF3), when the
-    #: organisation has the `contacts` product. The contact is erased or merged
-    #: independently of bookings, so deleting it only clears this link.
-    contact_id: Mapped[str | None] = mapped_column(
-        String(100), ForeignKey("org.contact.id", ondelete="SET NULL"), index=True
+    #: The person, in the organisation's contact book (ADR-0028). Name, email,
+    #: phone and consent live only there; this row keeps booking facts. A merge
+    #: re-points it (``contacts.references``); erasure blanks the contact in place.
+    contact_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.contact.id"), index=True
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     last_booked_at: Mapped[datetime | None]
@@ -290,3 +290,38 @@ class BookingEvent(Base):
     actor_user_id: Mapped[uuid.UUID | None]
     note: Mapped[str | None] = mapped_column(String(300))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+async def _merge_customers(session: AsyncSession, from_id: str, to_id: str) -> None:
+    """A contact merge: keep one customer per contact. If both contacts have a
+    customer, the dropped one's bookings move to the kept one and its row goes."""
+    dropped = list(
+        await session.scalars(
+            sa.select(Customer.id).where(Customer.contact_id == from_id)
+        )
+    )
+    if not dropped:
+        return
+    kept = await session.scalar(
+        sa.select(Customer.id)
+        .where(Customer.contact_id == to_id)
+        .order_by(Customer.created_at)
+        .limit(1)
+    )
+    if kept is None:
+        first, *extra = dropped
+        await session.execute(
+            sa.update(Customer).where(Customer.id == first).values(contact_id=to_id)
+        )
+        dropped = extra
+        kept = first
+    if dropped:
+        await session.execute(
+            sa.update(Booking)
+            .where(Booking.customer_id.in_(dropped))
+            .values(customer_id=kept)
+        )
+        await session.execute(sa.delete(Customer).where(Customer.id.in_(dropped)))
+
+
+contact_references.register(cast(sa.Table, Customer.__table__), merge=_merge_customers)

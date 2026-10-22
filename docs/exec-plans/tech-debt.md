@@ -2,7 +2,7 @@
 
 **Status:** Working plan  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-16
+**Last updated:** 2026-10-20
 
 Known debt, tracked continuously. Each item includes why it exists and
 what unblocks resolution.
@@ -12,11 +12,13 @@ what unblocks resolution.
 | Item | Area | Why deferred | Unblocked by |
 |---|---|---|---|
 | Engineering friction | Repo-wide | Tracked as GitHub issues labelled `friction` | Triage, then `ready-for-agent` |
+| `@barrelsgd/ui` and other shared packages have no tests | `packages/ui`, `gms`, `theme`, `email-templates` | Not yet prioritised | Component test harness for `packages/ui` |
 
 ## Resolved
 
 | Item | Resolved | How |
 |---|---|---|
+| Import boundaries not enforced | 2026-10-20 | `scripts/guardrails/check-boundaries.mjs`, run by `pnpm test:guardrails` in CI |
 | Hono API was a stub | 2026-09-23 | Retired by [ADR-0015](../adr/0015-retire-hono-python-backend.md): FastAPI is the only backend |
 | `salesbus` auth not wired | 2026-06 | App decommissioned — folded into `gaa-admin` during the consolidation |
 | `AGENTS.md` was empty | 2026-05-31 | Written — 78 lines, commands-first, self-contained for Codex |

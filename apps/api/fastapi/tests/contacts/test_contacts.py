@@ -12,6 +12,7 @@ from src.auth.models import User
 from src.contacts import service
 from src.contacts.exceptions import ContactErasedError, ContactMergeError
 from src.contacts.models import ConsentPurpose, Contact, ContactConsent
+from src.organisations import service as org_service
 from src.organisations.models import MembershipRole
 from src.utils.email_hash import hash_email
 from tests.factories import make_user
@@ -186,6 +187,29 @@ async def test_merge_moves_consents_and_audits(db_async: AsyncSession) -> None:
         await service.merge_contacts(
             db_async, owner, keep.id, keep.id, organisation_id=org_id
         )
+
+
+@pytest.mark.asyncio
+async def test_merge_gives_an_addressless_contact_the_other_address(
+    db_async: AsyncSession,
+) -> None:
+    owner, _, org_id = await _org(db_async)
+    walk_in = await service.create_without_email(
+        db_async, org_id, name="Walk In", source="bookings"
+    )
+    email = _email()
+    emailed = await service.upsert_contact(
+        db_async, org_id, email=email, source="billing"
+    )
+    walk_in_id, emailed_id = walk_in.id, emailed.id
+    merged = await service.merge_contacts(
+        db_async, owner, walk_in_id, emailed_id, organisation_id=org_id
+    )
+    assert merged.id == walk_in_id
+    assert merged.email == email.strip()
+    assert merged.name == "Walk In"
+    found = await service.find_by_email(db_async, org_id, email)
+    assert found is not None and found.id == walk_in_id
 
 
 @pytest.mark.asyncio
@@ -469,6 +493,61 @@ async def test_entitlement_required(
         f"{API}/org/contacts", headers=headers_for(owner, org_id)
     )
     assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_granting_bookings_grants_contacts(db_async: AsyncSession) -> None:
+    _, _, org_id = await _org(db_async, apps=("bookings",))
+    assert (
+        await org_service.is_app_enabled(
+            db_async, organisation_id=org_id, app_key="contacts"
+        )
+    ) is True
+    # Other products do not bring the contact book with them.
+    _, _, other = await _org(db_async, apps=("rewards",))
+    assert (
+        await org_service.is_app_enabled(
+            db_async, organisation_id=other, app_key="contacts"
+        )
+    ) is False
+    # A switched-off contacts row is switched back on by granting bookings.
+    await org_service.set_app_enabled(
+        db_async, organisation_id=other, app_key="contacts", enabled=False
+    )
+    await org_service.set_app_enabled(
+        db_async, organisation_id=other, app_key="bookings", enabled=True
+    )
+    assert await org_service.is_app_enabled(
+        db_async, organisation_id=other, app_key="contacts"
+    )
+
+
+@pytest.mark.asyncio
+async def test_an_organisation_with_bookings_can_view_merge_and_erase(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    owner, _, org_id = await _org(db_async, apps=("bookings",))
+    headers = headers_for(owner, org_id)
+    first = await service.upsert_contact(
+        db_async, org_id, email=_email(), name="Ada", source="bookings"
+    )
+    second = await service.upsert_contact(
+        db_async, org_id, email=_email(), name="Grace", source="bookings"
+    )
+    first_id, second_id = first.id, second.id
+    await db_async.commit()
+    listing = await async_client.get(f"{API}/org/contacts", headers=headers)
+    assert listing.status_code == 200
+    merged = await async_client.post(
+        f"{API}/org/contacts/{first_id}/merge",
+        headers=headers,
+        json={"drop_contact_id": second_id},
+    )
+    assert merged.status_code == 200, merged.text
+    erased = await async_client.post(
+        f"{API}/org/contacts/{first_id}/erase", headers=headers
+    )
+    assert erased.status_code == 200
 
 
 @pytest.mark.asyncio

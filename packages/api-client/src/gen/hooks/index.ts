@@ -14,6 +14,16 @@ export {
   useAuthAccountEmailCodeVerify,
 } from "./useAuthAccountEmailCodeVerify.js";
 export {
+  authAdminActivateAccountMutationKey,
+  authAdminActivateAccountMutationOptions,
+  useAuthAdminActivateAccount,
+} from "./useAuthAdminActivateAccount.js";
+export {
+  authAdminResendVerificationMutationKey,
+  authAdminResendVerificationMutationOptions,
+  useAuthAdminResendVerification,
+} from "./useAuthAdminResendVerification.js";
+export {
   authAppEmailCodeStartMutationKey,
   authAppEmailCodeStartMutationOptions,
   useAuthAppEmailCodeStart,
@@ -464,6 +474,11 @@ export {
   useBookingsCompleteStudioBooking,
 } from "./useBookingsCompleteStudioBooking.js";
 export {
+  bookingsConfirmEmailCodeMutationKey,
+  bookingsConfirmEmailCodeMutationOptions,
+  useBookingsConfirmEmailCode,
+} from "./useBookingsConfirmEmailCode.js";
+export {
   bookingsConfirmStudioBookingMutationKey,
   bookingsConfirmStudioBookingMutationOptions,
   useBookingsConfirmStudioBooking,
@@ -488,6 +503,11 @@ export {
   bookingsCreateServiceMutationOptions,
   useBookingsCreateService,
 } from "./useBookingsCreateService.js";
+export {
+  bookingsCreateStudioBookingMutationKey,
+  bookingsCreateStudioBookingMutationOptions,
+  useBookingsCreateStudioBooking,
+} from "./useBookingsCreateStudioBooking.js";
 export {
   bookingsDeclineStudioBookingMutationKey,
   bookingsDeclineStudioBookingMutationOptions,
@@ -524,6 +544,11 @@ export {
   useBookingsGetPublicBookingIcs,
 } from "./useBookingsGetPublicBookingIcs.js";
 export {
+  bookingsGetSettingsQueryKey,
+  bookingsGetSettingsQueryOptions,
+  useBookingsGetSettings,
+} from "./useBookingsGetSettings.js";
+export {
   bookingsGetStorefrontQueryKey,
   bookingsGetStorefrontQueryOptions,
   useBookingsGetStorefront,
@@ -543,6 +568,11 @@ export {
   bookingsListExceptionsQueryOptions,
   useBookingsListExceptions,
 } from "./useBookingsListExceptions.js";
+export {
+  bookingsListMyOrganisationsQueryKey,
+  bookingsListMyOrganisationsQueryOptions,
+  useBookingsListMyOrganisations,
+} from "./useBookingsListMyOrganisations.js";
 export {
   bookingsListProvidersQueryKey,
   bookingsListProvidersQueryOptions,
@@ -564,10 +594,30 @@ export {
   useBookingsNoShowStudioBooking,
 } from "./useBookingsNoShowStudioBooking.js";
 export {
+  bookingsRecordManualDepositMutationKey,
+  bookingsRecordManualDepositMutationOptions,
+  useBookingsRecordManualDeposit,
+} from "./useBookingsRecordManualDeposit.js";
+export {
+  bookingsReorderProvidersMutationKey,
+  bookingsReorderProvidersMutationOptions,
+  useBookingsReorderProviders,
+} from "./useBookingsReorderProviders.js";
+export {
+  bookingsReorderServicesMutationKey,
+  bookingsReorderServicesMutationOptions,
+  useBookingsReorderServices,
+} from "./useBookingsReorderServices.js";
+export {
   bookingsReplaceWorkingHoursMutationKey,
   bookingsReplaceWorkingHoursMutationOptions,
   useBookingsReplaceWorkingHours,
 } from "./useBookingsReplaceWorkingHours.js";
+export {
+  bookingsRequestEmailCodeMutationKey,
+  bookingsRequestEmailCodeMutationOptions,
+  useBookingsRequestEmailCode,
+} from "./useBookingsRequestEmailCode.js";
 export {
   bookingsReschedulePublicBookingMutationKey,
   bookingsReschedulePublicBookingMutationOptions,
@@ -1219,6 +1269,11 @@ export {
   useFeatureEvaluateForOrganisation,
 } from "./useFeatureEvaluateForOrganisation.js";
 export {
+  featureEvaluatePublicQueryKey,
+  featureEvaluatePublicQueryOptions,
+  useFeatureEvaluatePublic,
+} from "./useFeatureEvaluatePublic.js";
+export {
   featureGetFlagQueryKey,
   featureGetFlagQueryOptions,
   useFeatureGetFlag,
@@ -1258,6 +1313,11 @@ export {
   hrActionShiftSwapMutationOptions,
   useHrActionShiftSwap,
 } from "./useHrActionShiftSwap.js";
+export {
+  hrApproveClockPunchMutationKey,
+  hrApproveClockPunchMutationOptions,
+  useHrApproveClockPunch,
+} from "./useHrApproveClockPunch.js";
 export {
   hrApproveStaffRegistrationMutationKey,
   hrApproveStaffRegistrationMutationOptions,
@@ -1699,6 +1759,11 @@ export {
   useHrListMyShiftSwaps,
 } from "./useHrListMyShiftSwaps.js";
 export {
+  hrListPendingClockPunchesQueryKey,
+  hrListPendingClockPunchesQueryOptions,
+  useHrListPendingClockPunches,
+} from "./useHrListPendingClockPunches.js";
+export {
   hrListPeriodsQueryKey,
   hrListPeriodsQueryOptions,
   useHrListPeriods,
@@ -1773,6 +1838,11 @@ export {
   hrPutDepartmentRulesMutationOptions,
   useHrPutDepartmentRules,
 } from "./useHrPutDepartmentRules.js";
+export {
+  hrRejectClockPunchMutationKey,
+  hrRejectClockPunchMutationOptions,
+  useHrRejectClockPunch,
+} from "./useHrRejectClockPunch.js";
 export {
   hrRemoveHolidayMutationKey,
   hrRemoveHolidayMutationOptions,
@@ -2174,6 +2244,11 @@ export {
   useOrganisationsAcceptInvitation,
 } from "./useOrganisationsAcceptInvitation.js";
 export {
+  organisationsAddMemberAdminMutationKey,
+  organisationsAddMemberAdminMutationOptions,
+  useOrganisationsAddMemberAdmin,
+} from "./useOrganisationsAddMemberAdmin.js";
+export {
   organisationsCreateAdminSiteMutationKey,
   organisationsCreateAdminSiteMutationOptions,
   useOrganisationsCreateAdminSite,
@@ -2198,6 +2273,11 @@ export {
   organisationsDeleteMemberMutationOptions,
   useOrganisationsDeleteMember,
 } from "./useOrganisationsDeleteMember.js";
+export {
+  organisationsDeleteMemberAdminMutationKey,
+  organisationsDeleteMemberAdminMutationOptions,
+  useOrganisationsDeleteMemberAdmin,
+} from "./useOrganisationsDeleteMemberAdmin.js";
 export {
   organisationsGetCurrentQueryKey,
   organisationsGetCurrentQueryOptions,
@@ -2308,6 +2388,11 @@ export {
   organisationsUpdateMemberMutationOptions,
   useOrganisationsUpdateMember,
 } from "./useOrganisationsUpdateMember.js";
+export {
+  organisationsUpdateMemberAdminMutationKey,
+  organisationsUpdateMemberAdminMutationOptions,
+  useOrganisationsUpdateMemberAdmin,
+} from "./useOrganisationsUpdateMemberAdmin.js";
 export {
   organisationsUpdateOneMutationKey,
   organisationsUpdateOneMutationOptions,

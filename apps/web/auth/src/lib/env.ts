@@ -17,6 +17,7 @@ export const env = createEnv({
     // App directory links on the account pages. Unset in production hides the
     // link; development falls back to the local ports in docs/ports.md.
     ADMIN_APP_URL: z.string().url().optional(),
+    BARRELS_ADMIN_APP_URL: z.string().url().optional(),
     MBIA_APP_URL: z.string().url().optional(),
     GMS_APP_URL: z.string().url().optional(),
     DOCS_APP_URL: z.string().url().optional(),
@@ -44,6 +45,7 @@ export const env = createEnv({
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
     EMAIL_RENDER_SECRET: process.env.EMAIL_RENDER_SECRET,
     ADMIN_APP_URL: process.env.ADMIN_APP_URL,
+    BARRELS_ADMIN_APP_URL: process.env.BARRELS_ADMIN_APP_URL,
     MBIA_APP_URL: process.env.MBIA_APP_URL,
     GMS_APP_URL: process.env.GMS_APP_URL,
     DOCS_APP_URL: process.env.DOCS_APP_URL,

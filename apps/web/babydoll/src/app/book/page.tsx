@@ -1,10 +1,17 @@
+import { BookingFlow } from "@barrelsgd/bookings-web/components/booking-flow";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { BookingFlow } from "@/components/booking/booking-flow";
+import { BookingLink } from "@/components/booking/booking-link";
 import { PageHead } from "@/components/sections";
-import { BOOKING_URL, BUSINESS } from "@/data/site";
+import { BOOKING_CONTACT, BOOKING_URL, BUSINESS } from "@/data/site";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
+import {
+  confirmEmailCode,
+  loadSlots,
+  requestEmailCode,
+  submitBooking,
+} from "./actions";
 
 // Read the switch and the live service list on every request, never at build.
 export const dynamic = "force-dynamic";
@@ -36,7 +43,17 @@ export default async function BookPage() {
       <section className="flush-top block">
         <div className="wrap book-wrap">
           <BookingFlow
+            actions={{
+              confirmEmailCode,
+              loadSlots,
+              requestEmailCode,
+              submitBooking,
+            }}
+            contact={BOOKING_CONTACT}
+            ManageLink={BookingLink}
+            managePath="/booking"
             storefront={storefront}
+            studioName={BUSINESS.name}
             turnstileSiteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
           />
         </div>

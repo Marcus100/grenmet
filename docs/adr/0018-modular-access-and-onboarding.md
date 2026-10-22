@@ -26,7 +26,7 @@ Use administrator-mediated activation when email is unavailable. Confirm identit
 4. Next: privileged MFA enrolment, recovery and enforced access checks with a tested break-glass process; protect TOTP secrets at rest.
 5. Extend module-owned readiness to Transport, Janitor, eRegister and weather workflows; model SURFACE and wis2box as explicit external provisioning/offboarding steps until integrations exist.
 
-The first delivery does not claim the wider permission migration is complete. Public-account email requirements, domain resource scope and workflow approval rules remain enforced. No production settings or data are changed by this code delivery.
+The first delivery does not claim the wider permission migration is complete. Domain resource scope and workflow approval rules remain enforced. Owner decision (2026-10-20): email verification never blocks sign-in or browsing. It is required before paying a deposit, receiving a staff or admin role, or changing payout details. MFA: the goal is two-factor sign-in for all staff; it is being tested and is not yet required (CAP privileged roles already require it in code). No production settings or data are changed by this code delivery.
 
 ## Consequences
 

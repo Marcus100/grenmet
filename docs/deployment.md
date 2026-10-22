@@ -102,9 +102,11 @@ Go into each environment and add the following secrets. Staging and production u
 | `WXPRODUCTS_DB_PASSWORD`   | wxproducts DB user password           | Generate with the command above                                |
 | `JANITORIAL_DB_PASSWORD` | Janitorial database password | Generate a separate random value |
 | `TRANSPORT_DB_PASSWORD` | Transport database password | Generate a separate random value |
-| `GAA_ADMIN_SSO_CLIENT_SECRET` | GAA Admin single sign-on secret    | `openssl rand -base64 32` (different per environment)          |
-| `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment)          |
-| `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment) |
+| `GAA_ADMIN_SSO_CLIENT_SECRET` | GAA Admin single sign-on secret    | `openssl rand -base64 32` (different per environment and per app)   |
+| `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Barrels staff console single sign-on secret (empty keeps its sign-in off; superusers only) | `openssl rand -base64 32` (different per environment and per app) |
+| `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment and per app)   |
+| `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment and per app) |
+| `BOOKINGS_SSO_CLIENT_SECRET` | Bookings single sign-on secret (optional; empty keeps sign-in off; the API must register `bookings` first) | `openssl rand -base64 32` (different per environment and per app) |
 | `EVENTS_SSO_CLIENT_SECRET` | Events single sign-on secret (optional) | `openssl rand -base64 32` (different per environment)        |
 | `RESEND_API_KEY`           | Email sending via Resend              | From your resend.com dashboard                                 |
 | `EMAIL`                    | Let's Encrypt registration email      | Your real email address                                        |
@@ -337,6 +339,49 @@ A new required secret goes in `REQUIRED_SECRETS` in
 `scripts/production/render-env.py` and in the `deploy.yml` env block; the same
 test fails if either is missing.
 
+### Rolling starts (no gap while containers are replaced)
+
+By default the `start` phase recreates every app service, which stops each
+service's only container before its replacement is healthy. Traefik then has no
+backend, so every route returns 404 for up to the start period (seen on staging
+run 37131928180).
+
+Set the GitHub environment variable `ROLLING_DEPLOY` to `1` (or `true`) to start routed
+services (`api` and every `web-*`, the `routed` role in
+`scripts/ci/release-scope.mjs`) one at a time instead:
+
+1. Start a second container from the new image beside the old one.
+2. Wait until it is healthy. Traefik only routes to healthy containers.
+3. Stop and remove the old container.
+
+If the new container never becomes healthy, it is removed, the old one keeps
+serving, and the deploy fails in the `start` phase. Workers and the proxy are
+not rolled: they still start the ordinary way after the routed services.
+
+Stopped leftover containers of a routed service are removed before each
+rolling start. If a deploy fails or is cancelled mid-rollout, the unfinished new
+container is removed. Any other value of `ROLLING_DEPLOY` stops the deploy
+before anything changes.
+
+Constraints and known gaps:
+
+- A routed service cannot publish host ports or set `container_name`, because
+  two copies must run at once. The release-scope check rejects either.
+- During the overlap, old and new code serve requests together against the
+  already-migrated schema, so migrations must stay backward compatible
+  (additive).
+- Traefik drops a router whose containers disagree on its `traefik.*` labels.
+  A release that changes a routed service's labels (router rule, extra hosts,
+  port or healthcheck path) can still return 404 briefly while both containers
+  run.
+- The old container keeps receiving requests until it stops (up to 30
+  seconds), so a few in-flight requests can fail with 502.
+- Container numbers keep increasing (`api-2`, `api-3`, …). Read logs by service:
+  `docker compose -p <project> logs api`.
+
+Turn it on for `staging` first and confirm that the smoke checks and logs are
+clean before you set it for `production`.
+
 ## Troubleshooting
 
 ### Runner is offline
@@ -412,13 +457,13 @@ Check the prestart (migrations) container first — it runs before the API:
 
 ```bash
 docker logs grenmet-staging-prestart-1 --tail 50
-docker logs grenmet-staging-api-1 --tail 50
+docker compose -p grenmet-staging logs api --tail 50
 ```
 
 ### A web app container keeps restarting
 
 ```bash
-docker logs grenmet-staging-web-auth-1 --tail 50
+docker compose -p grenmet-staging logs web-auth --tail 50
 # Replace web-auth with the failing service name
 ```
 
@@ -507,7 +552,8 @@ hurricane/spice hosts; no legacy redirects are installed.
 | --- | --- | --- | --- |
 | Barrels homepage | Static | https://barrels.gd (Vercel; www redirects here) | Vercel preview deployments |
 | Auth | 3000 | https://auth.barrels.gd | https://auth.staging.barrels.gd |
-| GAA Admin | 3001 | https://admin.barrels.gd (moving to https://gmsadmin.barrels.gd) | https://admin.staging.barrels.gd (also served at https://gmsadmin.staging.barrels.gd) |
+| Barrels admin (staff console) | 3012 | https://admin.barrels.gd | https://admin.staging.barrels.gd |
+| GAA Admin (GMS/GAA portal) | 3001 | https://gms.barrels.gd | https://gms.staging.barrels.gd |
 | Docs | 3002 | https://docs.barrels.gd | https://docs.staging.barrels.gd |
 | Weather | 3003 | https://weather.barrels.gd | https://weather.staging.barrels.gd |
 | Signal | 3004 | https://signal.barrels.gd | https://signal.staging.barrels.gd |
@@ -515,11 +561,12 @@ hurricane/spice hosts; no legacy redirects are installed.
 | Events | 3009 | https://events.barrels.gd | https://events.staging.barrels.gd |
 | CAP alert hub | 3010 | https://cap.barrels.gd | https://cap.staging.barrels.gd |
 | GMS Dashboard | 3013 | https://gmsdash.barrels.gd | https://gmsdash.staging.barrels.gd |
+| Bookings | 3015 | https://bookings.barrels.gd | https://bookings.staging.barrels.gd |
 | Elections | 3007 | https://elections.barrels.gd (Vercel) | Vercel preview deployments |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
-Cloudflare wildcard A records point `*.barrels.gd` and `*.staging.barrels.gd` at
-the production and staging droplets (addresses: see the DigitalOcean dashboard). The DNS configuration supplied on 2026-09-06 uses DNS-only mode;
+Cloudflare wildcard A records point `*.barrels.gd` to the production droplet and
+`*.staging.barrels.gd` to the staging droplet (IPs: see the DigitalOcean dashboard). The DNS configuration supplied on 2026-09-06 uses DNS-only mode;
 Traefik obtains host certificates through the existing ACME challenge.
 
 Roll out staging first and verify every app health endpoint, login return URLs,
@@ -536,6 +583,79 @@ and Events records remain demo data. The Hono API (`hapi`) was retired on
 2026-09-23 ([ADR-0015](adr/0015-retire-hono-python-backend.md)); remove its old
 container and route with the retirement procedure below. Hosting these apps does not complete those product workflows.
 
+
+## Admin host move
+
+Owner decision 2026-10-21. `admin.*` becomes the Barrels staff / superuser
+control plane (`apps/web/admin`, ADR-0039). The GMS/GAA staff portal
+(`apps/web/gaa-admin`, Met office) moves to `gms.*`. This is the hostname only:
+`apps/web/gms` is still the public weather site at `weather.*`. Hard switch, no
+redirects (the portal is used only by the owner and internal staff in testing).
+Compose service `web-admin` is the console and `web-gmsadmin` the portal; their
+Traefik router/service labels are `web-barrels-admin` and `web-gms-portal`, names
+no earlier container defined.
+
+Staging is cut over first by the normal flow (dev, then `staging`); production
+follows only when the same change is promoted to `main`, so do the production
+checks below before promoting.
+
+**Staging (owner):**
+
+0. **Secret uniqueness pre-check.** `render-env.py` now refuses to render when two
+   apps share one single sign-on secret (it fails closed with a message that names
+   no values). Before the first deploy, and again before promoting to production,
+   confirm every secret that is set is unique per app and per environment:
+   `GAA_ADMIN`, `BARRELS_ADMIN`, `CMS`, `EVENTS`, `WEATHER`, `MBIA`, `SIGNAL`,
+   `DOCS`, `ELECTIONS`, `GMSDASH` and `BOOKINGS` `_SSO_CLIENT_SECRET`. Regenerate
+   any duplicates with `openssl rand -base64 32` (and update the matching app and
+   API value together).
+1. DNS: `*.staging.barrels.gd` already resolves everything to the staging VM, so
+   `admin.staging` and `gms.staging` need no new record. Check in Cloudflare that
+   the wildcard (or explicit A records) exists for both, DNS only like the other
+   staging hosts. `gmsadmin.staging` is no longer served.
+2. Create the GitHub `staging` environment secret `BARRELS_ADMIN_SSO_CLIENT_SECRET`
+   (`openssl rand -base64 32`, at least 32 characters, different from every other
+   app secret). Then, owner-only, edit `.github/workflows/deploy.yml` (this PR does
+   not change it): in the render-env `env:` block next to
+   `GAA_ADMIN_SSO_CLIENT_SECRET` (around line 117) add
+   `BARRELS_ADMIN_SSO_CLIENT_SECRET: ${{ secrets.BARRELS_ADMIN_SSO_CLIENT_SECRET }}`.
+   Console sign-in stays OFF until both the line and the secret exist.
+3. Merge to `staging`; the pipeline builds the new image `barrelsgd-web-admin`
+   and redeploys. Smoke: `https://gms.staging.barrels.gd/api/ready`,
+   `https://admin.staging.barrels.gd/api/health`; sign in to each (console:
+   superuser only). Everyone re-signs in once on `gms.staging` (session cookies
+   are host-only).
+
+**Before promoting to production:** repeat the secret uniqueness pre-check for
+the `production` environment; create the `production` secret
+`BARRELS_ADMIN_SSO_CLIENT_SECRET` and make sure the `deploy.yml` line above is
+in place (console sign-in stays OFF until both exist); the `*.barrels.gd` wildcard covers `admin` and
+`gms`, but check there is no explicit `gms.barrels.gd` or `admin.barrels.gd`
+record pointing elsewhere (the retired public `gms.*` site: old links now reach
+the portal sign-in). `gmsadmin.barrels.gd` stops being served.
+
+**Deploy impact.** The portal is listed before the console in
+`scripts/ci/release-scope.mjs`, so a rolling deploy starts the new portal
+container, waited healthy, while the old `web-admin` (the former gaa-admin) still
+serves `admin.*`, and only then replaces it with the console. With rolling on, no outage is expected. For roughly 5-35 seconds during the
+replacement two routers share `Host(admin.<domain>)` (the old portal container and
+the new console) and either app may answer; there is no security impact because
+each app has its own cookies and sign-in gate. The first request to `gms.<domain>`
+triggers certificate issuance, so the smoke check retries that host (4 attempts,
+15 s apart) on a first deploy. If rolling is off or a
+replacement fails, expect 1-3 minutes of 404s on the portal while it restarts;
+deploy in a quiet window (only the owner and internal staff use production
+today). A rollback has the same shape. `check-release-scope.mjs --compose` fails
+if the console and portal share a host, and `render-env.py` rejects two apps
+sharing one single sign-on secret. Notification emails already sent with
+`admin.staging` (and, after promotion, production `admin.barrels.gd`) links now
+land on the console sign-in page.
+
+**Rollback.** Revert the change (compose, release scope and docs) and redeploy;
+the portal returns to `admin.*`. No database or API schema change is involved, so
+rollback loses no data. The rollback deploy needs the images of the reverted
+commit to still exist: pull-verify requires each image revision to equal
+`GITHUB_SHA`, so a revert is rebuilt by the pipeline like any other change.
 
 ## Legacy service retirement
 

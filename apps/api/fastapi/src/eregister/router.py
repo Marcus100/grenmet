@@ -179,8 +179,11 @@ async def email_register_observation(
         "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the "
         "wis2box incoming drop through an ARQ job with retries. Requires "
         "`eregister.send`. Only QC-accepted observations are published: 409 "
-        "otherwise, unless WIS2BOX_* is configured, or when the "
-        "observation was already queued (send `resend: true` to repeat)."
+        "otherwise, unless WIS2BOX_* is configured. The station-hour publish gate "
+        "(ADR-0032) must give the hour to the manual source: 409 when the "
+        "schedule gives it to the automatic source, when another observation "
+        "holds the hour, or when this one is already queued (WIS2 is never "
+        "repeated; `resend` is ignored)."
     ),
     responses=SEND_RESPONSES,
 )
@@ -195,6 +198,7 @@ async def publish_register_observation(
     item = await sends.load_sendable(register, observation_id, require_accepted=True)
     return await sends.queue_wis2(
         session=session,
+        register=register,
         item=item,
         observation_id=observation_id,
         user=user,

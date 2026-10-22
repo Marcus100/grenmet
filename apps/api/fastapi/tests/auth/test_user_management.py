@@ -14,11 +14,12 @@ from src.auth.schemas import (
 )
 from src.auth.service import create_user
 from src.dependencies import get_current_user_manager, is_user_manager
+from src.utils.datetime import utc_now
 from tests.utils.utils import random_email, random_lower_string
 
 
 async def _user(db_async: AsyncSession, *, superuser: bool = False):
-    return await create_user(
+    user = await create_user(
         session=db_async,
         user_create=UserCreate(
             email=random_email(),
@@ -29,6 +30,9 @@ async def _user(db_async: AsyncSession, *, superuser: bool = False):
             is_superuser=superuser,
         ),
     )
+    user.email_verified_at = utc_now()  # staff roles need a verified email
+    await db_async.commit()
+    return user
 
 
 async def _grant_user_manage(db_async: AsyncSession, user) -> None:

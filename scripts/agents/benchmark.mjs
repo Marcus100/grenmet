@@ -32,6 +32,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { riskTier } from "../guardrails/risk-tier.mjs";
 import { formatRecord, validateRecord } from "./run-record.mjs";
+import { claudeBinary } from "./sessions.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const TASKS_FILE = join(repoRoot, "docs/agents/benchmarks/tasks.json");
@@ -389,7 +390,7 @@ export function agentCommand({
         "WebFetch,WebSearch",
         ...(model ? ["--model", model] : []),
       ],
-      command: "claude",
+      command: claudeBinary(),
     };
   if (agent === "codex")
     return {

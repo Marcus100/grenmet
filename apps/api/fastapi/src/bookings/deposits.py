@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.payments import service as payments_service
 from src.utils.datetime import utc_now
 
 from . import deposit_payments, emails, public
@@ -109,12 +108,7 @@ async def expire_unpaid(
     due = (await session.scalars(query)).all()
     cancelled = 0
     for booking in due:
-        unpaid = await payments_service.cancel_open_intent(
-            session,
-            organisation_id=booking.organisation_id,
-            source_type=deposit_payments.SOURCE_TYPE,
-            source_id=str(booking.id),
-        )
+        unpaid = await deposit_payments.cancel_unpaid_deposit(session, booking)
         if not unpaid:
             continue
         booking.cancel_reason = "Deposit not paid in time"

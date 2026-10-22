@@ -35,6 +35,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from src import operational_metrics
 from src.orm import Base
 from src.utils.datetime import utc_now
 
@@ -254,12 +255,9 @@ async def _record_failure(
     # The exception type only: messages can quote the payload's personal data.
     row.last_error = type(error).__name__
     row.updated_at = moment
-    if row.attempts >= MAX_ATTEMPTS:
+    dead = row.attempts >= MAX_ATTEMPTS
+    if dead:
         row.status = OutboxStatus.DEAD.value
-        logger.error(
-            "Outbox message is dead",
-            extra={"outbox_id": str(row.id), "topic": row.topic},
-        )
         await _run_dead_handler(session, message, error)
     else:
         row.next_attempt_at = moment + timedelta(
@@ -273,4 +271,10 @@ async def _record_failure(
                 "attempts": row.attempts,
             },
         )
+    attempts = row.attempts
     await session.commit()
+    if dead:
+        # After the commit, so the signal only fires for a row that is really dead.
+        await operational_metrics.outbox_dead_lettered(
+            "platform", message.topic, outbox_id=message.id, attempts=attempts
+        )

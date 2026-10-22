@@ -4,7 +4,11 @@
 import os
 from collections.abc import AsyncGenerator, Generator
 from datetime import timedelta
+from typing import TYPE_CHECKING
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from tests.bookings.memory_code_store import MemoryCodeStore
 
 # --- Test database isolation -------------------------------------------------
 # Every test truncates all application tables between runs, so the suite MUST
@@ -250,6 +254,10 @@ async def _clear_database_async(session: AsyncSession) -> None:
     await session.execute(
         text(f"ALTER TABLE {payments_ledger} DISABLE TRIGGER ledger_entry_append_only")
     )
+    events_activity = "events.activity"
+    await session.execute(
+        text(f"ALTER TABLE {events_activity} DISABLE TRIGGER activity_append_only")
+    )
     for table in reversed(Base.metadata.sorted_tables):
         await session.execute(table.delete())
     await session.execute(
@@ -257,6 +265,9 @@ async def _clear_database_async(session: AsyncSession) -> None:
     )
     await session.execute(
         text(f"ALTER TABLE {payments_ledger} ENABLE TRIGGER ledger_entry_append_only")
+    )
+    await session.execute(
+        text(f"ALTER TABLE {events_activity} ENABLE TRIGGER activity_append_only")
     )
     await session.commit()
 
@@ -391,6 +402,18 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
             else "unit"
         )
         item.add_marker(marker)
+
+
+@pytest.fixture(autouse=True)
+def code_store() -> Generator[MemoryCodeStore]:
+    """Booking email-code store in memory so tests need no Redis (and stay isolated)."""
+    from src.bookings import email_code
+    from tests.bookings.memory_code_store import MemoryCodeStore
+
+    store = MemoryCodeStore()
+    previous = email_code.set_store(store)
+    yield store
+    email_code.set_store(previous)
 
 
 @pytest.fixture

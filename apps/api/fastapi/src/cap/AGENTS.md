@@ -20,4 +20,4 @@ Imports point one way: `common` and `mapping` ← `public_queries` and `admin_li
 `tests/cap/` (state machine, validation/XML/geo, signing, feeds, public scope, PDF, images, pagination).
 
 ## Related
-ADR-0007, ADR-0013, `docs/internal/warning-operations.md`, `docs/operations/gms-products.md`, `docs/fastapi-cap-audit.md`.
+ADR-0023 (approval gate, current), ADR-0013 (bulletin linkage), ADR-0007 (CAP-XML, audit, feeds), `docs/internal/warning-operations.md`, `docs/operations/gms-products.md`, `docs/fastapi-cap-audit.md`.

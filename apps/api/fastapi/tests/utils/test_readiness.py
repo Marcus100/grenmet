@@ -1,5 +1,5 @@
 import pytest
-from fastapi import HTTPException
+from fastapi import Response
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
@@ -8,7 +8,9 @@ from src.utils.router import ready
 
 @pytest.mark.asyncio
 async def test_migrated_database_is_ready(db_async: AsyncSession) -> None:
-    assert await ready(db_async) == {"status": "ready"}
+    response = Response()
+    assert await ready(db_async, response) == {"status": "ready"}
+    assert response.status_code == 200
 
 
 @pytest.mark.asyncio
@@ -17,9 +19,10 @@ async def test_wrong_revision_is_unavailable(db_async: AsyncSession) -> None:
         await db_async.execute(
             text("UPDATE alembic_version SET version_num = 'wrong-revision'")
         )
-        with pytest.raises(HTTPException) as error:
-            await ready(db_async)
-        assert error.value.status_code == 503
+        response = Response()
+        body = await ready(db_async, response)
+        assert response.status_code == 503
+        assert body == {"detail": "Database unreachable"}
     finally:
         await db_async.rollback()
 
@@ -30,9 +33,10 @@ async def test_missing_required_table_is_unavailable(db_async: AsyncSession) -> 
         await db_async.execute(
             text("SET LOCAL search_path TO missing_readiness_schema")
         )
-        with pytest.raises(HTTPException) as error:
-            await ready(db_async)
-        assert error.value.status_code == 503
+        response = Response()
+        body = await ready(db_async, response)
+        assert response.status_code == 503
+        assert body == {"detail": "Database unreachable"}
     finally:
         await db_async.rollback()
 
@@ -45,8 +49,9 @@ async def test_unreachable_database_is_unavailable() -> None:
     )
     try:
         async with AsyncSession(engine) as session:
-            with pytest.raises(HTTPException) as error:
-                await ready(session)
-            assert error.value.status_code == 503
+            response = Response()
+            body = await ready(session, response)
+            assert response.status_code == 503
+            assert body == {"detail": "Database unreachable"}
     finally:
         await engine.dispose()

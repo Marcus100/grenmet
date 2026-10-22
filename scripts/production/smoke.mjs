@@ -66,6 +66,20 @@ export async function checkCmsSignIn(domain, fetcher = fetch) {
   await check(target.href, "<form", fetcher);
 }
 
+// The first request to a new host triggers certificate issuance, so the first
+// deploy of gms.* may need a few seconds. Retries only apply where asked for.
+async function checkWithRetry(url, expected, fetcher, attempts) {
+  const delay = Number(process.env.SMOKE_RETRY_DELAY_MS ?? 15_000);
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await check(url, expected, fetcher);
+    } catch (error) {
+      if (attempt >= attempts) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 export async function checkDeployment(domain, fetcher = fetch) {
   if (!(domain && validDomain.test(domain)))
     throw new Error("A valid base domain is required");
@@ -78,12 +92,18 @@ export async function checkDeployment(domain, fetcher = fetch) {
   for (const [host, path, marker] of [
     ["api", "/api/v1/utils/ready/", '"ready"'],
     ["api", "/api/cap/latest-active", '"data":'],
-    ["admin", "/api/public/products", '"products":'],
-    ["admin", "/api/ready", '"ready"'],
+    // The GMS/GAA portal (hostname gms.*; the public weather site is weather.*).
+    ["gms", "/api/public/products", '"products":'],
+    ["gms", "/api/ready", '"ready"'],
     ["cms", "/api/ready", '"ready"'],
     ["auth", "/", "<form"],
   ])
-    await check(`https://${host}.${domain}${path}`, marker, fetcher);
+    await checkWithRetry(
+      `https://${host}.${domain}${path}`,
+      marker,
+      fetcher,
+      host === "gms" ? 4 : 1
+    );
   for (const host of ["docs", "weather", "signal", "mbia", "events"])
     await check(`https://${host}.${domain}/`, "<main", fetcher);
   await checkCmsSignIn(domain, fetcher);

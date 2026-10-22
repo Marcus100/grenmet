@@ -15,6 +15,7 @@ import {
   PORTFOLIO,
   SERVICE_MENU,
 } from "@/data/site";
+import { bookingLink } from "@/lib/book-link";
 
 const APPOINTMENT = /appointment/i;
 const OLD_LISTING = /True Blue|Fresha/;
@@ -112,7 +113,7 @@ describe("portfolio", () => {
 
 describe("chrome", () => {
   it("marks the current page and toggles the mobile menu", async () => {
-    render(<SiteHeader />);
+    render(<SiteHeader booking={bookingLink(false)} />);
     expect(screen.getByRole("link", { name: "Services" })).toHaveAttribute(
       "aria-current",
       "page"
@@ -123,7 +124,7 @@ describe("chrome", () => {
   });
 
   it("the phone book bar links to booking", () => {
-    render(<BookBar />);
+    render(<BookBar booking={bookingLink(false)} />);
     expect(screen.getByRole("link", { name: "Book me" })).toHaveAttribute(
       "href",
       BOOKING_URL

@@ -5,6 +5,8 @@
 export const SITE_URL = "https://babydoll.barrels.gd";
 export const BOOKING_URL = "https://babydollgnd.as.me";
 export const INSTAGRAM_DM_URL = "https://ig.me/m/babydoll.gnd";
+/** The manual channel the booking flow points people to (Instagram DM). */
+export const BOOKING_CONTACT = { href: INSTAGRAM_DM_URL, label: "Instagram" };
 // The client's Google Business Profile: review form and public profile.
 export const GOOGLE_REVIEW_URL = "https://g.page/r/CXicqwbsBju0EAE/review";
 export const GOOGLE_PROFILE_URL = "https://share.google/lqfZTCWbyABRADcTp";

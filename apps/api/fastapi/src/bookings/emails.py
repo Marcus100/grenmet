@@ -49,6 +49,16 @@ def _manage(mail: BookingEmail) -> str:
     return f'<p>Need to change or cancel? <a href="{url}">Manage your booking</a>.</p>'
 
 
+def verification_code(*, business: str, code: str, minutes: int) -> tuple[str, str]:
+    """The code that proves a visitor controls the booking email (deposit step)."""
+    return (
+        f"Your {business} booking code",
+        f"<p>Your verification code is <strong>{_e(code)}</strong>.</p>"
+        f"<p>It expires in {minutes} minutes. If you did not ask for it, "
+        "ignore this email.</p>",
+    )
+
+
 def customer_received(mail: BookingEmail, *, confirmed: bool) -> tuple[str, str]:
     if confirmed:
         subject = f"Your booking at {mail.business} is confirmed"

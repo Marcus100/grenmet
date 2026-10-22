@@ -24,6 +24,7 @@ export type { ActivityEntry } from "./ActivityEntry.js";
 export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
 export type { AdjustmentCreate } from "./AdjustmentCreate.js";
+export type { AdminActivation } from "./AdminActivation.js";
 export type { AdmissionCreate } from "./AdmissionCreate.js";
 export type { AdmissionPublic } from "./AdmissionPublic.js";
 export type { AgeingBucket } from "./AgeingBucket.js";
@@ -113,6 +114,30 @@ export type {
   AuthAccountEmailCodeVerifyStatus422,
   AuthAccountEmailCodeVerifyStatus429,
 } from "./AuthAccountEmailCodeVerify.js";
+export type {
+  AuthAdminActivateAccountBody,
+  AuthAdminActivateAccountOptions,
+  AuthAdminActivateAccountPath,
+  AuthAdminActivateAccountResponse,
+  AuthAdminActivateAccountResponses,
+  AuthAdminActivateAccountStatus200,
+  AuthAdminActivateAccountStatus403,
+  AuthAdminActivateAccountStatus404,
+  AuthAdminActivateAccountStatus409,
+  AuthAdminActivateAccountStatus422,
+} from "./AuthAdminActivateAccount.js";
+export type {
+  AuthAdminResendVerificationBody,
+  AuthAdminResendVerificationOptions,
+  AuthAdminResendVerificationPath,
+  AuthAdminResendVerificationResponse,
+  AuthAdminResendVerificationResponses,
+  AuthAdminResendVerificationStatus200,
+  AuthAdminResendVerificationStatus403,
+  AuthAdminResendVerificationStatus404,
+  AuthAdminResendVerificationStatus409,
+  AuthAdminResendVerificationStatus422,
+} from "./AuthAdminResendVerification.js";
 export type {
   AuthAppEmailCodeStartBody,
   AuthAppEmailCodeStartOptions,
@@ -1061,14 +1086,22 @@ export type { BookingAgenda } from "./BookingAgenda.js";
 export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
 export type { BookingAvailability } from "./BookingAvailability.js";
+export type { BookingEmailCodeConfirm } from "./BookingEmailCodeConfirm.js";
+export type { BookingEmailCodeRequest } from "./BookingEmailCodeRequest.js";
+export type { BookingEmailCodeSent } from "./BookingEmailCodeSent.js";
+export type { BookingEmailProof } from "./BookingEmailProof.js";
 export type { BookingExceptionCreate } from "./BookingExceptionCreate.js";
 export type { BookingExceptionKind } from "./BookingExceptionKind.js";
 export { bookingExceptionKind } from "./BookingExceptionKind.js";
 export type { BookingExceptionPublic } from "./BookingExceptionPublic.js";
+export type { BookingManualDepositCreate } from "./BookingManualDepositCreate.js";
+export type { BookingMyOrganisation } from "./BookingMyOrganisation.js";
+export type { BookingOrder } from "./BookingOrder.js";
 export type { BookingProfilePublic } from "./BookingProfilePublic.js";
 export type { BookingProfileUpdate } from "./BookingProfileUpdate.js";
 export type { BookingProviderCreate } from "./BookingProviderCreate.js";
 export type { BookingProviderPublic } from "./BookingProviderPublic.js";
+export type { BookingProviderSettings } from "./BookingProviderSettings.js";
 export type { BookingProviderUpdate } from "./BookingProviderUpdate.js";
 export type { BookingPublicCancel } from "./BookingPublicCancel.js";
 export type { BookingPublicCreate } from "./BookingPublicCreate.js";
@@ -1080,6 +1113,7 @@ export type { BookingPublicService } from "./BookingPublicService.js";
 export type { BookingServiceCreate } from "./BookingServiceCreate.js";
 export type { BookingServicePublic } from "./BookingServicePublic.js";
 export type { BookingServiceUpdate } from "./BookingServiceUpdate.js";
+export type { BookingSettings } from "./BookingSettings.js";
 export type { BookingSlot } from "./BookingSlot.js";
 export type { BookingSource } from "./BookingSource.js";
 export { bookingSource } from "./BookingSource.js";
@@ -1087,6 +1121,7 @@ export type { BookingStatus } from "./BookingStatus.js";
 export { bookingStatus } from "./BookingStatus.js";
 export type { BookingStorefront } from "./BookingStorefront.js";
 export type { BookingStudioCancel } from "./BookingStudioCancel.js";
+export type { BookingStudioCreate } from "./BookingStudioCreate.js";
 export type { BookingStudioCustomer } from "./BookingStudioCustomer.js";
 export type { BookingStudioDecline } from "./BookingStudioDecline.js";
 export type { BookingStudioDetail } from "./BookingStudioDetail.js";
@@ -1131,6 +1166,19 @@ export type {
   BookingsCompleteStudioBookingStatus409,
   BookingsCompleteStudioBookingStatus422,
 } from "./BookingsCompleteStudioBooking.js";
+export type {
+  BookingsConfirmEmailCodeBody,
+  BookingsConfirmEmailCodeOptions,
+  BookingsConfirmEmailCodePath,
+  BookingsConfirmEmailCodeResponse,
+  BookingsConfirmEmailCodeResponses,
+  BookingsConfirmEmailCodeStatus200,
+  BookingsConfirmEmailCodeStatus400,
+  BookingsConfirmEmailCodeStatus404,
+  BookingsConfirmEmailCodeStatus422,
+  BookingsConfirmEmailCodeStatus429,
+  BookingsConfirmEmailCodeStatus503,
+} from "./BookingsConfirmEmailCode.js";
 export type {
   BookingsConfirmStudioBookingHeaders,
   BookingsConfirmStudioBookingOptions,
@@ -1183,6 +1231,7 @@ export type {
   BookingsCreatePublicBookingResponses,
   BookingsCreatePublicBookingStatus201,
   BookingsCreatePublicBookingStatus400,
+  BookingsCreatePublicBookingStatus403,
   BookingsCreatePublicBookingStatus404,
   BookingsCreatePublicBookingStatus409,
   BookingsCreatePublicBookingStatus422,
@@ -1201,6 +1250,20 @@ export type {
   BookingsCreateServiceStatus409,
   BookingsCreateServiceStatus422,
 } from "./BookingsCreateService.js";
+export type {
+  BookingsCreateStudioBookingBody,
+  BookingsCreateStudioBookingHeaders,
+  BookingsCreateStudioBookingOptions,
+  BookingsCreateStudioBookingResponse,
+  BookingsCreateStudioBookingResponses,
+  BookingsCreateStudioBookingStatus201,
+  BookingsCreateStudioBookingStatus400,
+  BookingsCreateStudioBookingStatus401,
+  BookingsCreateStudioBookingStatus403,
+  BookingsCreateStudioBookingStatus404,
+  BookingsCreateStudioBookingStatus409,
+  BookingsCreateStudioBookingStatus422,
+} from "./BookingsCreateStudioBooking.js";
 export type {
   BookingsDeclineStudioBookingBody,
   BookingsDeclineStudioBookingHeaders,
@@ -1285,6 +1348,18 @@ export type {
   BookingsGetPublicBookingIcsStatus422,
 } from "./BookingsGetPublicBookingIcs.js";
 export type {
+  BookingsGetSettingsHeaders,
+  BookingsGetSettingsOptions,
+  BookingsGetSettingsResponse,
+  BookingsGetSettingsResponses,
+  BookingsGetSettingsStatus200,
+  BookingsGetSettingsStatus400,
+  BookingsGetSettingsStatus401,
+  BookingsGetSettingsStatus403,
+  BookingsGetSettingsStatus404,
+  BookingsGetSettingsStatus422,
+} from "./BookingsGetSettings.js";
+export type {
   BookingsGetStorefrontOptions,
   BookingsGetStorefrontPath,
   BookingsGetStorefrontResponse,
@@ -1333,6 +1408,15 @@ export type {
   BookingsListExceptionsStatus404,
   BookingsListExceptionsStatus422,
 } from "./BookingsListExceptions.js";
+export type {
+  BookingsListMyOrganisationsOptions,
+  BookingsListMyOrganisationsResponse,
+  BookingsListMyOrganisationsResponses,
+  BookingsListMyOrganisationsStatus200,
+  BookingsListMyOrganisationsStatus401,
+  BookingsListMyOrganisationsStatus403,
+  BookingsListMyOrganisationsStatus422,
+} from "./BookingsListMyOrganisations.js";
 export type {
   BookingsListProvidersHeaders,
   BookingsListProvidersOptions,
@@ -1385,6 +1469,49 @@ export type {
   BookingsNoShowStudioBookingStatus422,
 } from "./BookingsNoShowStudioBooking.js";
 export type {
+  BookingsRecordManualDepositBody,
+  BookingsRecordManualDepositHeaders,
+  BookingsRecordManualDepositOptions,
+  BookingsRecordManualDepositPath,
+  BookingsRecordManualDepositResponse,
+  BookingsRecordManualDepositResponses,
+  BookingsRecordManualDepositStatus200,
+  BookingsRecordManualDepositStatus400,
+  BookingsRecordManualDepositStatus401,
+  BookingsRecordManualDepositStatus403,
+  BookingsRecordManualDepositStatus404,
+  BookingsRecordManualDepositStatus409,
+  BookingsRecordManualDepositStatus422,
+} from "./BookingsRecordManualDeposit.js";
+export type {
+  BookingsReorderProvidersBody,
+  BookingsReorderProvidersHeaders,
+  BookingsReorderProvidersOptions,
+  BookingsReorderProvidersResponse,
+  BookingsReorderProvidersResponses,
+  BookingsReorderProvidersStatus200,
+  BookingsReorderProvidersStatus400,
+  BookingsReorderProvidersStatus401,
+  BookingsReorderProvidersStatus403,
+  BookingsReorderProvidersStatus404,
+  BookingsReorderProvidersStatus409,
+  BookingsReorderProvidersStatus422,
+} from "./BookingsReorderProviders.js";
+export type {
+  BookingsReorderServicesBody,
+  BookingsReorderServicesHeaders,
+  BookingsReorderServicesOptions,
+  BookingsReorderServicesResponse,
+  BookingsReorderServicesResponses,
+  BookingsReorderServicesStatus200,
+  BookingsReorderServicesStatus400,
+  BookingsReorderServicesStatus401,
+  BookingsReorderServicesStatus403,
+  BookingsReorderServicesStatus404,
+  BookingsReorderServicesStatus409,
+  BookingsReorderServicesStatus422,
+} from "./BookingsReorderServices.js";
+export type {
   BookingsReplaceWorkingHoursBody,
   BookingsReplaceWorkingHoursHeaders,
   BookingsReplaceWorkingHoursOptions,
@@ -1399,6 +1526,19 @@ export type {
   BookingsReplaceWorkingHoursStatus409,
   BookingsReplaceWorkingHoursStatus422,
 } from "./BookingsReplaceWorkingHours.js";
+export type {
+  BookingsRequestEmailCodeBody,
+  BookingsRequestEmailCodeOptions,
+  BookingsRequestEmailCodePath,
+  BookingsRequestEmailCodeResponse,
+  BookingsRequestEmailCodeResponses,
+  BookingsRequestEmailCodeStatus200,
+  BookingsRequestEmailCodeStatus400,
+  BookingsRequestEmailCodeStatus404,
+  BookingsRequestEmailCodeStatus422,
+  BookingsRequestEmailCodeStatus429,
+  BookingsRequestEmailCodeStatus503,
+} from "./BookingsRequestEmailCode.js";
 export type {
   BookingsReschedulePublicBookingBody,
   BookingsReschedulePublicBookingOptions,
@@ -1925,6 +2065,15 @@ export { challengeStatus } from "./ChallengeStatus.js";
 export type { CheckInCreate } from "./CheckInCreate.js";
 export type { CheckInPublic } from "./CheckInPublic.js";
 export type { CheckoutSessionPublic } from "./CheckoutSessionPublic.js";
+export type { ClockPunchApprove } from "./ClockPunchApprove.js";
+export type { ClockPunchesPublic } from "./ClockPunchesPublic.js";
+export type { ClockPunchKind } from "./ClockPunchKind.js";
+export { clockPunchKind } from "./ClockPunchKind.js";
+export type { ClockPunchPendingPublic } from "./ClockPunchPendingPublic.js";
+export type { ClockPunchPublic } from "./ClockPunchPublic.js";
+export type { ClockPunchReject } from "./ClockPunchReject.js";
+export type { ClockPunchStatus } from "./ClockPunchStatus.js";
+export { clockPunchStatus } from "./ClockPunchStatus.js";
 export type { ClockRequest } from "./ClockRequest.js";
 export type { ClockResult } from "./ClockResult.js";
 export type { ClockResultPropertiesActionEnum } from "./ClockResultPropertiesActionEnum.js";
@@ -3058,6 +3207,15 @@ export type {
   FeatureEvaluateForOrganisationStatus404,
   FeatureEvaluateForOrganisationStatus422,
 } from "./FeatureEvaluateForOrganisation.js";
+export type {
+  FeatureEvaluatePublicOptions,
+  FeatureEvaluatePublicQuery,
+  FeatureEvaluatePublicResponse,
+  FeatureEvaluatePublicResponses,
+  FeatureEvaluatePublicStatus200,
+  FeatureEvaluatePublicStatus422,
+  FeatureEvaluatePublicStatus429,
+} from "./FeatureEvaluatePublic.js";
 export type { FeatureFlagAdmin } from "./FeatureFlagAdmin.js";
 export type { FeatureFlagAdminList } from "./FeatureFlagAdminList.js";
 export type { FeatureFlagAudience } from "./FeatureFlagAudience.js";
@@ -3207,6 +3365,18 @@ export type {
   HrActionShiftSwapStatus404,
   HrActionShiftSwapStatus422,
 } from "./HrActionShiftSwap.js";
+export type {
+  HrApproveClockPunchBody,
+  HrApproveClockPunchOptions,
+  HrApproveClockPunchPath,
+  HrApproveClockPunchResponse,
+  HrApproveClockPunchResponses,
+  HrApproveClockPunchStatus200,
+  HrApproveClockPunchStatus403,
+  HrApproveClockPunchStatus404,
+  HrApproveClockPunchStatus409,
+  HrApproveClockPunchStatus422,
+} from "./HrApproveClockPunch.js";
 export type {
   HrApproveStaffRegistrationOptions,
   HrApproveStaffRegistrationPath,
@@ -4114,6 +4284,15 @@ export type {
   HrListMyShiftSwapsStatus422,
 } from "./HrListMyShiftSwaps.js";
 export type {
+  HrListPendingClockPunchesOptions,
+  HrListPendingClockPunchesQuery,
+  HrListPendingClockPunchesResponse,
+  HrListPendingClockPunchesResponses,
+  HrListPendingClockPunchesStatus200,
+  HrListPendingClockPunchesStatus403,
+  HrListPendingClockPunchesStatus422,
+} from "./HrListPendingClockPunches.js";
+export type {
   HrListPeriodsOptions,
   HrListPeriodsQuery,
   HrListPeriodsResponse,
@@ -4274,6 +4453,18 @@ export type {
   HrPutDepartmentRulesStatus403,
   HrPutDepartmentRulesStatus422,
 } from "./HrPutDepartmentRules.js";
+export type {
+  HrRejectClockPunchBody,
+  HrRejectClockPunchOptions,
+  HrRejectClockPunchPath,
+  HrRejectClockPunchResponse,
+  HrRejectClockPunchResponses,
+  HrRejectClockPunchStatus200,
+  HrRejectClockPunchStatus403,
+  HrRejectClockPunchStatus404,
+  HrRejectClockPunchStatus409,
+  HrRejectClockPunchStatus422,
+} from "./HrRejectClockPunch.js";
 export type {
   HrRemoveHolidayOptions,
   HrRemoveHolidayPath,
@@ -5367,6 +5558,19 @@ export type {
   OrganisationsAcceptInvitationStatus422,
 } from "./OrganisationsAcceptInvitation.js";
 export type {
+  OrganisationsAddMemberAdminBody,
+  OrganisationsAddMemberAdminOptions,
+  OrganisationsAddMemberAdminPath,
+  OrganisationsAddMemberAdminResponse,
+  OrganisationsAddMemberAdminResponses,
+  OrganisationsAddMemberAdminStatus201,
+  OrganisationsAddMemberAdminStatus401,
+  OrganisationsAddMemberAdminStatus403,
+  OrganisationsAddMemberAdminStatus404,
+  OrganisationsAddMemberAdminStatus409,
+  OrganisationsAddMemberAdminStatus422,
+} from "./OrganisationsAddMemberAdmin.js";
+export type {
   OrganisationsCreateAdminSiteBody,
   OrganisationsCreateAdminSiteOptions,
   OrganisationsCreateAdminSiteResponse,
@@ -5431,6 +5635,19 @@ export type {
   OrganisationsDeleteMemberStatus409,
   OrganisationsDeleteMemberStatus422,
 } from "./OrganisationsDeleteMember.js";
+export type {
+  OrganisationsDeleteMemberAdminBody,
+  OrganisationsDeleteMemberAdminOptions,
+  OrganisationsDeleteMemberAdminPath,
+  OrganisationsDeleteMemberAdminResponse,
+  OrganisationsDeleteMemberAdminResponses,
+  OrganisationsDeleteMemberAdminStatus204,
+  OrganisationsDeleteMemberAdminStatus401,
+  OrganisationsDeleteMemberAdminStatus403,
+  OrganisationsDeleteMemberAdminStatus404,
+  OrganisationsDeleteMemberAdminStatus409,
+  OrganisationsDeleteMemberAdminStatus422,
+} from "./OrganisationsDeleteMemberAdmin.js";
 export type {
   OrganisationsGetCurrentHeaders,
   OrganisationsGetCurrentOptions,
@@ -5695,6 +5912,19 @@ export type {
   OrganisationsUpdateMemberStatus422,
 } from "./OrganisationsUpdateMember.js";
 export type {
+  OrganisationsUpdateMemberAdminBody,
+  OrganisationsUpdateMemberAdminOptions,
+  OrganisationsUpdateMemberAdminPath,
+  OrganisationsUpdateMemberAdminResponse,
+  OrganisationsUpdateMemberAdminResponses,
+  OrganisationsUpdateMemberAdminStatus200,
+  OrganisationsUpdateMemberAdminStatus401,
+  OrganisationsUpdateMemberAdminStatus403,
+  OrganisationsUpdateMemberAdminStatus404,
+  OrganisationsUpdateMemberAdminStatus409,
+  OrganisationsUpdateMemberAdminStatus422,
+} from "./OrganisationsUpdateMemberAdmin.js";
+export type {
   OrganisationsUpdateOneBody,
   OrganisationsUpdateOneOptions,
   OrganisationsUpdateOnePath,
@@ -5927,6 +6157,9 @@ export type { PersonnelStatus } from "./PersonnelStatus.js";
 export { personnelStatus } from "./PersonnelStatus.js";
 export type { PersonSuggestion } from "./PersonSuggestion.js";
 export type { PlansPublic } from "./PlansPublic.js";
+export type { PlatformMemberAdd } from "./PlatformMemberAdd.js";
+export type { PlatformMemberRemove } from "./PlatformMemberRemove.js";
+export type { PlatformMemberRoleUpdate } from "./PlatformMemberRoleUpdate.js";
 export type { PlatformOrganisationCreate } from "./PlatformOrganisationCreate.js";
 export type { PlatformOrganisationUpdate } from "./PlatformOrganisationUpdate.js";
 export type { PolicyInput } from "./PolicyInput.js";
@@ -6023,6 +6256,7 @@ export type {
   PushVapidPublicKeyStatus422,
 } from "./PushVapidPublicKey.js";
 export type { QcDecisionRequest } from "./QcDecisionRequest.js";
+export type { ReadinessUnavailable } from "./ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";
@@ -7097,6 +7331,7 @@ export { suggestionPublicPropertiesStatusEnum } from "./SuggestionPublicProperti
 export type { SuggestionUpdate } from "./SuggestionUpdate.js";
 export type { SuggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePropertiesStatusEnum.js";
 export { suggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePropertiesStatusEnum.js";
+export type { SuperuserActionReason } from "./SuperuserActionReason.js";
 export type { SwapType } from "./SwapType.js";
 export { swapType } from "./SwapType.js";
 export type { SynopDecoded } from "./SynopDecoded.js";
@@ -7429,6 +7664,7 @@ export type { ValidationErrorItem } from "./ValidationErrorItem.js";
 export type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 export type { VapidPublicKey } from "./VapidPublicKey.js";
 export type { VerificationDecision } from "./VerificationDecision.js";
+export type { VerificationResend } from "./VerificationResend.js";
 export type { WeatherImage } from "./WeatherImage.js";
 export type { WebhookAdminDisable } from "./WebhookAdminDisable.js";
 export type { WebhookDeliveryList } from "./WebhookDeliveryList.js";

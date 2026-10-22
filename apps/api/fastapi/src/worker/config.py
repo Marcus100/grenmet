@@ -4,7 +4,7 @@ When REDIS_URL is unset the app falls back to in-memory rate limiting and the wo
 uses a localhost default; set it in staging/prod for the shared Redis instance.
 """
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,6 +20,14 @@ class WorkerConfig(BaseSettings):
     CAP_JOB_BATCH_SIZE: int = 20
     CAP_JOB_MAX_ATTEMPTS: int = 5
     CAP_JOB_POLL_SECONDS: int = 10
+    # check_outbox_backlog: pending rows overdue this long count as stale, dead rows
+    # count for this window, and a warning is logged when either exceeds the threshold.
+    OUTBOX_STALE_MINUTES: int = Field(default=30, ge=1)
+    OUTBOX_DEAD_WINDOW_HOURS: int = Field(default=24, ge=1)
+    OUTBOX_ALERT_THRESHOLD: int = Field(default=0, ge=0)
+    # Sentry Cron check-ins for key jobs (src/worker/cron_monitor.py). Off by
+    # default: each Sentry cron monitor may count against the plan's quota.
+    SENTRY_CRONS_ENABLED: bool = False
 
     @field_validator("CAP_JOB_POLL_SECONDS")
     @classmethod

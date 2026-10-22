@@ -5157,7 +5157,7 @@
           "rewards"
         ],
         "summary": "My tickets (account page)",
-        "description": "The account's Events tickets for the Barrels ID page, read-only. Empty when Events has no database. Manage tickets in Barrels Events.",
+        "description": "The account's Events tickets for the Barrels ID page, read-only. Manage tickets in Barrels Events.",
         "operationId": "rewardsListMyTickets",
         "responses": {
           "200": {
@@ -5228,10 +5228,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -5476,10 +5476,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account); ignored with an organisation API key."
           }
         ],
         "requestBody": {
@@ -6213,7 +6213,7 @@
           "payments"
         ],
         "summary": "Create a payment",
-        "description": "Ask to collect money for something the organisation sells. Idempotent per `idempotency_key`. Online rails return a hosted checkout URL; the manual rail is completed by staff recording the payment.",
+        "description": "Ask to collect money for something the organisation sells. Idempotent per `idempotency_key`. Online rails return a hosted checkout URL; the manual rail is completed by staff recording the payment. `source_type` values owned by another domain (`bookings.deposit`, `events.order`) are refused with 422.",
         "operationId": "paymentsCreateIntent",
         "security": [
           {
@@ -7247,6 +7247,53 @@
         }
       }
     },
+    "/api/v1/bookings/me/organisations": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "The caller's organisations that use Barrels Bookings",
+        "description": "Active memberships in active organisations entitled to bookings, with the caller's role; feeds the studio's organisation picker. Accepts an account or the bookings app session.",
+        "operationId": "bookingsListMyOrganisations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BookingMyOrganisation"
+                  },
+                  "type": "array",
+                  "title": "Response Bookingslistmyorganisations"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/bookings/org/profile": {
       "get": {
         "tags": [
@@ -7277,10 +7324,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -7344,10 +7391,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7429,10 +7476,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -7500,10 +7547,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7592,10 +7639,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7677,10 +7724,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -7748,10 +7795,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7840,10 +7887,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -7935,10 +7982,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8016,10 +8063,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -8149,10 +8196,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8230,10 +8277,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "requestBody": {
@@ -8322,10 +8369,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
           }
         ],
         "responses": {
@@ -8410,10 +8457,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8452,6 +8499,108 @@
           },
           "404": {
             "description": "Resource not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Enter a booking for a customer",
+        "description": "The business books a slot itself: a phone call, a walk-in or an appointment re-entered from another system. Requires an `Idempotency-Key` header (same key and body replays the first answer with `Idempotency-Replayed: true`, same key with another body is 409). The booking is `confirmed` with no deposit and is never limited by lead time, horizon or weekly hours, but a provider's time cannot be double-booked (409). `customer_email` is optional; the customer is emailed only when `send_confirmation` is true.",
+        "operationId": "bookingsCreateStudioBooking",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingStudioCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
           }
         }
       }
@@ -8566,10 +8715,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8650,10 +8799,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -8734,12 +8883,125 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStudioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/bookings/{booking_id}/manual-deposit": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Record a deposit taken outside Stripe",
+        "description": "Owner or admin records a deposit paid in cash, by bank transfer or by cheque. Requires an `Idempotency-Key` header (same key and body replays the first answer with `Idempotency-Replayed: true`, same key with another body is 409). The booking's deposit is captured through the payments manual rail, so `deposit_captured_minor` in the detail shows it and a `pending_payment` booking is confirmed. 409 when the booking has no deposit, is closed, its deposit is already paid, or an online payment is still open. Needs the `payments` entitlement too. API keys are not accepted.",
+        "operationId": "bookingsRecordManualDeposit",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The booking's id.",
+              "title": "Booking Id"
+            },
+            "description": "The booking's id."
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingManualDepositCreate"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -8821,10 +9083,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "requestBody": {
@@ -8918,10 +9180,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "requestBody": {
@@ -9015,10 +9277,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -9102,10 +9364,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key.",
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. Required for a signed-in member; ignored with an organisation API key."
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
           }
         ],
         "responses": {
@@ -9367,6 +9629,141 @@
           },
           "409": {
             "description": "Request conflicts with current state"
+          },
+          "403": {
+            "description": "A deposit is due and the email is not verified: no valid `email_proof` and no signed-in account vouching for it (`email_verification_required`)"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/public/{slug}/email-code": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Email a verification code before a deposit booking",
+        "description": "When a deposit is due for the service, emails a 6-digit code (valid 10 minutes) to `customer_email`. `required: false` means no step is needed (no deposit, or the signed-in account already vouches for the email) and nothing was sent. Applies the organisation's Turnstile policy. Limited per visitor and to 5 codes per email per hour (429). Unknown, disabled and unentitled pages answer 404.",
+        "operationId": "bookingsRequestEmailCode",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 60,
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingEmailCodeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingEmailCodeSent"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "429": {
+            "description": "Too many codes requested or attempts made"
+          },
+          "503": {
+            "description": "Verification is temporarily unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/public/{slug}/email-code/confirm": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Exchange an emailed code for a deposit proof",
+        "description": "Checks the code. A correct code is single use and returns a proof bound to the email, service and start time, valid 15 minutes, to send as `email_proof` when creating the booking. A wrong or expired code is 400; five wrong answers lock the email for 15 minutes (429).",
+        "operationId": "bookingsConfirmEmailCode",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 60,
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingEmailCodeConfirm"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingEmailProof"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "429": {
+            "description": "Too many attempts; locked for a while"
+          },
+          "503": {
+            "description": "Verification is temporarily unavailable"
           }
         }
       }
@@ -9600,6 +9997,256 @@
           },
           "404": {
             "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/settings": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Get my booking settings",
+        "description": "The profile, services, providers (with the services they offer and weekly hours) and whether deposits can be collected, in one call.",
+        "operationId": "bookingsGetSettings",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingSettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/services/order": {
+      "put": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Reorder services",
+        "description": "Set the menu order: each service's `sort_order` becomes its position.",
+        "operationId": "bookingsReorderServices",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingServicePublic"
+                  },
+                  "title": "Response Bookingsreorderservices"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/providers/order": {
+      "put": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Reorder providers",
+        "description": "Set the provider order: each `sort_order` becomes its position.",
+        "operationId": "bookingsReorderProviders",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingProviderPublic"
+                  },
+                  "title": "Response Bookingsreorderproviders"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
           }
         }
       }
@@ -12715,7 +13362,7 @@
           "hr-attendance"
         ],
         "summary": "Clock in or out at a clock point",
-        "description": "Records arrival against the caller's rostered work shift, or departure when a shift is already open. The token proves presence at a department clock point. It feeds the same attendance record and supervisor review as manual attendance. Late, early-departure and overtime minutes are informational only.",
+        "description": "Records a PENDING punch for the caller's rostered work shift (arrival, or departure when a shift is already open). The token proves presence at a department clock point. A phone punch is not attendance, hours or timesheet input until a supervisor approves it (ADR-0040). Late, early-departure and overtime minutes are informational only.",
         "operationId": "hrClock",
         "requestBody": {
           "content": {
@@ -12989,6 +13636,215 @@
           },
           "404": {
             "description": "Clock site not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-punches/pending": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "List phone clock punches awaiting approval",
+        "description": "Pending phone punches of employees the caller supervises or reviews (named supervisor, or timesheet.approve in the department scope). Never includes the caller's own punches.",
+        "operationId": "hrListPendingClockPunches",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockPunchesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Requires timesheet.approve"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-punches/{punch_id}/approve": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Approve a phone clock punch",
+        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Only the employee's named supervisor or a timesheet.approve holder in scope; never the punching employee. Idempotent.",
+        "operationId": "hrApproveClockPunch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "punch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Punch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ClockPunchApprove"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockPunchPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+          },
+          "404": {
+            "description": "Clock punch not found"
+          },
+          "409": {
+            "description": "Punch already decided, or its arrival is not approved"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-punches/{punch_id}/reject": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Reject a phone clock punch",
+        "description": "A rejected punch never becomes attendance. Rejecting an arrival also rejects its pending departure. A reason is required. Same authority as approval.",
+        "operationId": "hrRejectClockPunch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "punch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Punch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClockPunchReject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockPunchPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+          },
+          "404": {
+            "description": "Clock punch not found"
+          },
+          "409": {
+            "description": "Punch already decided, or its arrival is not approved"
           }
         }
       }
@@ -20593,6 +21449,223 @@
             "description": "Resource not found"
           }
         }
+      },
+      "post": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "Add a member to any organisation (audited)",
+        "description": "Superuser with an enrolled authenticator adds an account (by user id or email) as member, admin or owner. This is how a superuser enters a business's data: there is no organisation bypass, so adding yourself works the same way. A reason is required and recorded with the actor and target. Owner and admin roles need a verified or administrator-activated target. 409 when already a member.",
+        "operationId": "organisationsAddMemberAdmin",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformMemberAdd"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Superuser with an enrolled authenticator required (superuser_mfa_required), or the target lacks a verified or administrator-activated email for an owner/admin role"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/organisations/{organisation_id}/admin/members/{membership_id}": {
+      "patch": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "Change any member's role (audited)",
+        "description": "Superuser with an enrolled authenticator changes a member's role. A reason is required. 409 when it would leave the organisation without an owner.",
+        "operationId": "organisationsUpdateMemberAdmin",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "membership_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Membership Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformMemberRoleUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Superuser with an enrolled authenticator required (superuser_mfa_required), or the target lacks a verified or administrator-activated email for an owner/admin role"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "organisations"
+        ],
+        "summary": "Remove any member (audited)",
+        "description": "Superuser with an enrolled authenticator ends a membership. A reason is required in the body. 409 when it would leave the organisation without an owner.",
+        "operationId": "organisationsDeleteMemberAdmin",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "membership_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Membership Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformMemberRemove"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Superuser with an enrolled authenticator required (superuser_mfa_required), or the target lacks a verified or administrator-activated email for an owner/admin role"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        }
       }
     },
     "/api/v1/organisations/{organisation_id}/members": {
@@ -21196,6 +22269,56 @@
             "OAuth2PasswordBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/feature-flags/public/evaluate": {
+      "get": {
+        "tags": [
+          "feature-flags"
+        ],
+        "summary": "Evaluate client-visible flags for an anonymous visitor",
+        "description": "No authentication. Flag key to on/off for the requested keys (comma separated, at most 20). The visitor is anonymous, so only environment rules and the everyone audience can be on. Unknown and non-exposed keys are absent. Cacheable for 30 seconds; callers should cache about 60 seconds and treat 429 or any error as flag off.",
+        "operationId": "featureEvaluatePublic",
+        "parameters": [
+          {
+            "name": "keys",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 1700,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(,[a-z0-9]+(?:-[a-z0-9]+)*){0,19}$",
+              "description": "Comma-separated kebab-case flag keys, at most 20.",
+              "title": "Keys"
+            },
+            "description": "Comma-separated kebab-case flag keys, at most 20."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureFlagEvaluation"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
       }
     },
     "/api/v1/feature-flags/org/evaluate": {
@@ -24642,7 +25765,14 @@
             }
           },
           "503": {
-            "description": "Database unreachable"
+            "description": "Database unreachable or schema out of date",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessUnavailable"
+                }
+              }
+            }
           }
         }
       }
@@ -28525,7 +29655,7 @@
           "eregister"
         ],
         "summary": "Queue a register observation for WIS2",
-        "description": "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. Only QC-accepted observations are published: 409 otherwise, unless WIS2BOX_* is configured, or when the observation was already queued (send `resend: true` to repeat).",
+        "description": "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. Only QC-accepted observations are published: 409 otherwise, unless WIS2BOX_* is configured. The station-hour publish gate (ADR-0032) must give the hour to the manual source: 409 when the schedule gives it to the automatic source, when another observation holds the hour, or when this one is already queued (WIS2 is never repeated; `resend` is ignored).",
         "operationId": "eregisterPublishRegisterObservation",
         "security": [
           {
@@ -38328,6 +39458,142 @@
         }
       }
     },
+    "/api/v1/auth/onboarding/{user_id}/admin-activate": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Vouch for an account (roles and memberships only)",
+        "description": "Superuser with an enrolled authenticator vouches for an existing account whose email cannot be verified. Unlocks staff roles and owner/admin memberships (`require_verified_or_admin_activated`); does not set `email_verified_at` and does not clear the strict deposit and organiser-request gate. A reason is required and audited. Idempotent. Body also carries `expected_email`, which must match the account's address (409 otherwise) and is stored in the audit entry. Inactive and superuser accounts are refused (409).",
+        "operationId": "authAdminActivateAccount",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminActivation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Superuser with an authenticator required (superuser_mfa_required)"
+          },
+          "404": {
+            "description": "Account not found"
+          },
+          "409": {
+            "description": "Inactive or superuser account"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/onboarding/{user_id}/resend-verification": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Send an existing account its verification email again",
+        "description": "Superuser with an enrolled authenticator re-sends the verification link. Reports `delivered: false` when mail is not configured or fails. A reason is required and audited.",
+        "operationId": "authAdminResendVerification",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuperuserActionReason"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationResend"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Superuser with an authenticator required (superuser_mfa_required)"
+          },
+          "404": {
+            "description": "Account not found"
+          },
+          "409": {
+            "description": "Inactive account"
+          }
+        }
+      }
+    },
     "/api/v1/auth/onboarding/activate": {
       "post": {
         "tags": [
@@ -42569,6 +43835,28 @@
         ],
         "title": "AdjustmentCreate"
       },
+      "AdminActivation": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          },
+          "expected_email": {
+            "type": "string",
+            "format": "email",
+            "title": "Expected Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason",
+          "expected_email"
+        ],
+        "title": "AdminActivation",
+        "description": "The operator vouches for the exact address they saw on the account."
+      },
       "AdmissionCreate": {
         "properties": {
           "code": {
@@ -45869,6 +47157,120 @@
         ],
         "title": "BookingAvailability"
       },
+      "BookingEmailCodeConfirm": {
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "customer_email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Customer Email"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "title": "Code",
+            "description": "The 6-digit emailed code."
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_id",
+          "starts_at",
+          "customer_email",
+          "code"
+        ],
+        "title": "BookingEmailCodeConfirm"
+      },
+      "BookingEmailCodeRequest": {
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At",
+            "description": "The slot being booked; the proof is bound to it."
+          },
+          "customer_email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Customer Email"
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_id",
+          "starts_at",
+          "customer_email"
+        ],
+        "title": "BookingEmailCodeRequest",
+        "description": "Ask for a code to be emailed before a deposit booking."
+      },
+      "BookingEmailCodeSent": {
+        "properties": {
+          "required": {
+            "type": "boolean",
+            "title": "Required",
+            "description": "False when no step is needed (no deposit is due, or the signed-in account already vouches for the email); nothing was sent."
+          },
+          "expires_in_seconds": {
+            "type": "integer",
+            "title": "Expires In Seconds",
+            "description": "Code lifetime; 0 when `required` is false.",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "required"
+        ],
+        "title": "BookingEmailCodeSent"
+      },
+      "BookingEmailProof": {
+        "properties": {
+          "proof": {
+            "type": "string",
+            "title": "Proof",
+            "description": "Send as `email_proof` when creating the booking."
+          },
+          "expires_in_seconds": {
+            "type": "integer",
+            "title": "Expires In Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "proof",
+          "expires_in_seconds"
+        ],
+        "title": "BookingEmailProof"
+      },
       "BookingExceptionCreate": {
         "properties": {
           "kind": {
@@ -45961,12 +47363,87 @@
         ],
         "title": "BookingExceptionPublic"
       },
+      "BookingManualDepositCreate": {
+        "properties": {
+          "method": {
+            "$ref": "#/components/schemas/ManualMethod"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference",
+            "description": "Receipt, cheque or transfer number."
+          }
+        },
+        "type": "object",
+        "required": [
+          "method"
+        ],
+        "title": "BookingManualDepositCreate",
+        "description": "How a deposit taken outside Stripe was paid (``method``, optional receipt\nor transfer ``reference``)."
+      },
+      "BookingMyOrganisation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "role": {
+            "$ref": "#/components/schemas/MembershipRole"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "role"
+        ],
+        "title": "BookingMyOrganisation",
+        "description": "An organisation the caller can open in the studio, with their role in it."
+      },
+      "BookingOrder": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "BookingOrder",
+        "description": "Ids of one kind in the order the business wants them listed."
+      },
       "BookingProfilePublic": {
         "properties": {
           "public_slug": {
             "type": "string",
             "pattern": "^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$",
-            "title": "Public Slug"
+            "title": "Public Slug",
+            "description": "Address under the bookings host. Must not be a platform reserved name such as studio, signin, auth or api (docs/ports.md); a reserved name is refused with 422."
           },
           "display_name": {
             "type": "string",
@@ -46085,7 +47562,8 @@
           "public_slug": {
             "type": "string",
             "pattern": "^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$",
-            "title": "Public Slug"
+            "title": "Public Slug",
+            "description": "Address under the bookings host. Must not be a platform reserved name such as studio, signin, auth or api (docs/ports.md); a reserved name is refused with 422."
           },
           "display_name": {
             "type": "string",
@@ -46276,6 +47754,65 @@
         ],
         "title": "BookingProviderPublic"
       },
+      "BookingProviderSettings": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order"
+          },
+          "service_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Service Ids"
+          },
+          "working_hours": {
+            "items": {
+              "$ref": "#/components/schemas/BookingWorkingPeriodPublic"
+            },
+            "type": "array",
+            "title": "Working Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "user_id",
+          "active",
+          "sort_order",
+          "service_ids",
+          "working_hours"
+        ],
+        "title": "BookingProviderSettings"
+      },
       "BookingProviderUpdate": {
         "properties": {
           "name": {
@@ -46419,6 +47956,19 @@
             "type": "boolean",
             "title": "Marketing Consent",
             "default": false
+          },
+          "email_proof": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1024
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Proof",
+            "description": "Proof from `confirm-email-code`. Needed only when a deposit is due and the caller is not a signed-in account that already vouches for `customer_email`. Bound to this email, service and start time; single use."
           },
           "turnstile_token": {
             "anyOf": [
@@ -46991,6 +48541,49 @@
         "type": "object",
         "title": "BookingServiceUpdate"
       },
+      "BookingSettings": {
+        "properties": {
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingProfilePublic"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null until the business creates its booking profile."
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/BookingServicePublic"
+            },
+            "type": "array",
+            "title": "Services"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/BookingProviderSettings"
+            },
+            "type": "array",
+            "title": "Providers"
+          },
+          "deposits_available": {
+            "type": "boolean",
+            "title": "Deposits Available",
+            "description": "False when the organisation lacks the `payments` entitlement: a service deposit is stored but not collected."
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile",
+          "services",
+          "providers",
+          "deposits_available"
+        ],
+        "title": "BookingSettings",
+        "description": "Everything the settings screen renders, in one call."
+      },
       "BookingSlot": {
         "properties": {
           "starts_at": {
@@ -47117,6 +48710,83 @@
           "reason"
         ],
         "title": "BookingStudioCancel"
+      },
+      "BookingStudioCreate": {
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "provider_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Provider Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "customer_name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Customer Name"
+          },
+          "customer_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254,
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Email"
+          },
+          "customer_phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Phone"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "send_confirmation": {
+            "type": "boolean",
+            "title": "Send Confirmation",
+            "description": "Email the customer a confirmation with a manage link. Needs `customer_email`; off by default so re-entering existing appointments does not mail anyone.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_id",
+          "provider_id",
+          "starts_at",
+          "customer_name"
+        ],
+        "title": "BookingStudioCreate",
+        "description": "A booking the business enters itself: phone, walk-in or a re-entered\nappointment. Sent with an `Idempotency-Key` header."
       },
       "BookingStudioCustomer": {
         "properties": {
@@ -50815,6 +52485,258 @@
         ],
         "title": "CheckoutSessionPublic"
       },
+      "ClockPunchApprove": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "title": "ClockPunchApprove"
+      },
+      "ClockPunchKind": {
+        "type": "string",
+        "enum": [
+          "ARRIVE",
+          "DEPART"
+        ],
+        "title": "ClockPunchKind"
+      },
+      "ClockPunchPendingPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ClockPunchKind"
+          },
+          "punched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Punched At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ClockPunchStatus"
+          },
+          "reviewed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By User Id"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "site_name": {
+            "type": "string",
+            "title": "Site Name"
+          },
+          "shift_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Shift Date"
+          },
+          "shift_code": {
+            "type": "string",
+            "title": "Shift Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "department_id",
+          "roster_assignment_id",
+          "kind",
+          "punched_at",
+          "status",
+          "employee_name",
+          "site_name",
+          "shift_date",
+          "shift_code"
+        ],
+        "title": "ClockPunchPendingPublic"
+      },
+      "ClockPunchPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ClockPunchKind"
+          },
+          "punched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Punched At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ClockPunchStatus"
+          },
+          "reviewed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By User Id"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "department_id",
+          "roster_assignment_id",
+          "kind",
+          "punched_at",
+          "status"
+        ],
+        "title": "ClockPunchPublic"
+      },
+      "ClockPunchReject": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ClockPunchReject"
+      },
+      "ClockPunchStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "APPROVED",
+          "REJECTED"
+        ],
+        "title": "ClockPunchStatus"
+      },
+      "ClockPunchesPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ClockPunchPendingPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "ClockPunchesPublic"
+      },
       "ClockRequest": {
         "properties": {
           "token": {
@@ -50842,6 +52764,9 @@
           "attendance": {
             "$ref": "#/components/schemas/AttendanceShiftPublic"
           },
+          "punch": {
+            "$ref": "#/components/schemas/ClockPunchPublic"
+          },
           "late_minutes": {
             "type": "integer",
             "title": "Late Minutes",
@@ -50862,7 +52787,8 @@
         "required": [
           "action",
           "site_name",
-          "attendance"
+          "attendance",
+          "punch"
         ],
         "title": "ClockResult"
       },
@@ -60972,6 +62898,11 @@
             "type": "boolean",
             "title": "Can Issue Activation"
           },
+          "admin_activated": {
+            "type": "boolean",
+            "title": "Admin Activated",
+            "default": false
+          },
           "apps": {
             "items": {
               "$ref": "#/components/schemas/AppAccessStatus"
@@ -64246,6 +66177,84 @@
         ],
         "title": "PlansPublic"
       },
+      "PlatformMemberAdd": {
+        "properties": {
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "role": {
+            "$ref": "#/components/schemas/MembershipRole",
+            "default": "member"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "PlatformMemberAdd",
+        "description": "Superuser adds a person (by account id or email) as a member, with a reason."
+      },
+      "PlatformMemberRemove": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "PlatformMemberRemove"
+      },
+      "PlatformMemberRoleUpdate": {
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/MembershipRole"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "reason"
+        ],
+        "title": "PlatformMemberRoleUpdate"
+      },
       "PlatformOrganisationCreate": {
         "properties": {
           "name": {
@@ -64268,7 +66277,8 @@
                 "type": "null"
               }
             ],
-            "title": "Slug"
+            "title": "Slug",
+            "description": "Defaults to the name. A platform reserved name is refused (422)."
           }
         },
         "type": "object",
@@ -66877,6 +68887,20 @@
         },
         "type": "object",
         "title": "QcDecisionRequest"
+      },
+      "ReadinessUnavailable": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ReadinessUnavailable",
+        "description": "Body returned when the API cannot serve requests because its database is unavailable or its schema is out of date."
       },
       "ReceivableRowPublic": {
         "properties": {
@@ -71487,7 +73511,7 @@
           "refunded_minor"
         ],
         "title": "SettlementOnlinePayments",
-        "description": "Online (paid tier) orders against the payments ledger (N4b).\n\nThe Events side comes from the orders; the ledger side is the sum of the\n``events.order`` intents for this event in the payments ledger (charges and\nrefunds). They are separate databases, so the two are compared, not joined."
+        "description": "Online (paid tier) orders against the payments ledger (N4b).\n\nThe Events side comes from the orders; the ledger side is the sum of the\n``events.order`` intents for this event in the payments ledger (charges and\nrefunds). Orders and the payments ledger are compared, not joined."
       },
       "SettlementOverview": {
         "properties": {
@@ -74695,6 +76719,22 @@
           "status"
         ],
         "title": "SuggestionUpdate"
+      },
+      "SuperuserActionReason": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "SuperuserActionReason",
+        "description": "Why a superuser is using an admin power; stored in the audit trail."
       },
       "SwapType": {
         "type": "string",
@@ -79544,6 +81584,24 @@
           "reason"
         ],
         "title": "VerificationDecision"
+      },
+      "VerificationResend": {
+        "properties": {
+          "delivered": {
+            "type": "boolean",
+            "title": "Delivered"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "delivered",
+          "message"
+        ],
+        "title": "VerificationResend"
       },
       "WeatherImage": {
         "properties": {

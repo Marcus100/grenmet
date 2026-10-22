@@ -57,7 +57,7 @@ export function eregisterPublishRegisterObservationMutationOptions<
 }
 
 /**
- * @description Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. Only QC-accepted observations are published: 409 otherwise, unless WIS2BOX_* is configured, or when the observation was already queued (send `resend: true` to repeat).
+ * @description Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. Only QC-accepted observations are published: 409 otherwise, unless WIS2BOX_* is configured. The station-hour publish gate (ADR-0032) must give the hour to the manual source: 409 when the schedule gives it to the automatic source, when another observation holds the hour, or when this one is already queued (WIS2 is never repeated; `resend` is ignored).
  * @summary Queue a register observation for WIS2
  * {@link /api/v1/eregister/observations/:observation_id/publish}
  */

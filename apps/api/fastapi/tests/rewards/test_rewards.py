@@ -1,7 +1,6 @@
 """Rewards ledger (U2), programmes/redemption (U3), badges (U4), account bridge (U1)."""
 
 import uuid
-from collections.abc import AsyncGenerator
 from datetime import timedelta
 
 import httpx
@@ -13,11 +12,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.audit.models import AuditEntry
 from src.auth.models import User
 from src.events.models import Admission, Listing, Order, Organiser, Ticket
-from src.main import app
 from src.organisations.models import MembershipRole
-from src.rewards import events_link, service
+from src.rewards import service
 from src.rewards.config import rewards_settings
-from src.rewards.dependencies import optional_events_session
 from src.rewards.models import (
     Entry,
     EntryKind,
@@ -518,20 +515,12 @@ async def test_flag_review_flow(
     assert again.status_code == 409
 
 
-# --- Events: sync, badges, tickets ---------------------------------------------------
+# --- Events: badges, tickets ---------------------------------------------------
 
 
 @pytest.fixture
-async def events_session(events_db: SessionFactory) -> AsyncGenerator[SessionFactory]:
-    async def override() -> AsyncGenerator[AsyncSession]:
-        async with events_db() as session:
-            yield session
-
-    app.dependency_overrides[optional_events_session] = override
-    try:
-        yield events_db
-    finally:
-        app.dependency_overrides.pop(optional_events_session, None)
+def events_session(events_db: SessionFactory) -> SessionFactory:
+    return events_db
 
 
 async def _admit(
@@ -600,84 +589,6 @@ async def _admit(
 
 
 @pytest.mark.asyncio
-async def test_sync_credits_admissions_once_and_reverses_refunds(
-    db_async: AsyncSession, events_session: SessionFactory
-) -> None:
-    customer, _owner, org_id, _program = await _setup(db_async, stamps=5)
-    admission_id, ticket_id, _order = await _admit(
-        events_session, user=customer, organisation_id=org_id
-    )
-    async with events_session() as events:
-        first = await events_link.sync_admissions(db_async, events)
-        second = await events_link.sync_admissions(db_async, events)
-    await db_async.commit()
-    assert (first.credited, second.credited) == (1, 0)
-    entry = await db_async.scalar(select(Entry).where(Entry.account_id == customer.id))
-    assert entry is not None
-    assert (entry.source_type, entry.source_id) == (
-        "events.admission",
-        str(admission_id),
-    )
-
-    async with events_session() as events:
-        await events.execute(
-            text("UPDATE tickets SET status = 'cancelled' WHERE id = :i"),
-            {"i": ticket_id},
-        )
-        await events.commit()
-        result = await events_link.sync_admissions(db_async, events)
-    await db_async.commit()
-    assert result.reversed == 1
-    total = await db_async.scalar(
-        select(func.sum(Entry.amount)).where(Entry.account_id == customer.id)
-    )
-    assert total == 0
-
-
-@pytest.mark.asyncio
-async def test_sync_ignores_admissions_on_unpaid_orders(
-    db_async: AsyncSession, events_session: SessionFactory
-) -> None:
-    """Only a ``confirmed`` order earns: a paid-tier order that is still waiting
-    for money, or that expired, never credits stamps (N4b)."""
-    customer, _owner, org_id, _program = await _setup(db_async, stamps=5)
-    _admission, _ticket, order_id = await _admit(
-        events_session, user=customer, organisation_id=org_id
-    )
-    for status in ("pending_payment", "expired"):
-        async with events_session() as events:
-            await events.execute(
-                text("UPDATE orders SET status = :s WHERE id = :i"),
-                {"s": status, "i": order_id},
-            )
-            await events.commit()
-            result = await events_link.sync_admissions(db_async, events)
-        await db_async.commit()
-        assert (result.credited, result.reversed) == (0, 0), status
-    async with events_session() as events:
-        await events.execute(
-            text("UPDATE orders SET status = 'confirmed' WHERE id = :i"),
-            {"i": order_id},
-        )
-        await events.commit()
-        result = await events_link.sync_admissions(db_async, events)
-    await db_async.commit()
-    assert result.credited == 1
-
-
-@pytest.mark.asyncio
-async def test_sync_ignores_organisers_without_a_programme(
-    db_async: AsyncSession, events_session: SessionFactory
-) -> None:
-    customer = await make_user(db_async)
-    org = await _rewards_org(db_async, "No card")
-    await _admit(events_session, user=customer, organisation_id=org.id)
-    async with events_session() as events:
-        result = await events_link.sync_admissions(db_async, events)
-    assert result.credited == 0
-
-
-@pytest.mark.asyncio
 async def test_badges_are_derived_from_records(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
@@ -719,28 +630,6 @@ async def test_badges_are_derived_from_records(
     for method in ("post", "put", "patch", "delete"):
         resp = await async_client.request(method, f"{API}/me/badges", headers=h)
         assert resp.status_code == 405
-
-
-@pytest.mark.asyncio
-async def test_badges_degrade_without_events(
-    db_async: AsyncSession, async_client: httpx.AsyncClient
-) -> None:
-    async def none() -> AsyncGenerator[None]:
-        yield None
-
-    app.dependency_overrides[optional_events_session] = none
-    try:
-        person = await make_user(db_async)
-        resp = await async_client.get(f"{API}/me/badges", headers=headers_for(person))
-        by_key = {b["key"]: b for b in resp.json()}
-        assert by_key["verified_organiser"]["available"] is True
-        assert by_key["verified_attendee"]["available"] is False
-        tickets = await async_client.get(
-            f"{API}/me/tickets", headers=headers_for(person)
-        )
-        assert tickets.json() == []
-    finally:
-        app.dependency_overrides.pop(optional_events_session, None)
 
 
 @pytest.mark.asyncio

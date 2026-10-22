@@ -118,7 +118,7 @@ async def test_list_audit_events_pagination(
 def _draft_payload(index: int) -> dict[str, Any]:
     now = datetime.now(UTC)
     return {
-        "sender": "cap@weather.gd",
+        "sender": "cap@example.com",
         "sent": now.isoformat(),
         "status": "Actual",
         "msg_type": "Alert",

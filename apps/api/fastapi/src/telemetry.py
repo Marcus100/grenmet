@@ -1,12 +1,24 @@
 """Content-minimising Sentry policy shared by HTTP and CAP workers."""
 
 import os
+import re
 from typing import Any
 
 # Tags without customer content or identity; must match the web scrubber in
 # packages/ui/src/lib/sentry-privacy.ts. `request_id` is a random per-request
 # token (src/request_context.py) that links an event to its log lines.
-SAFE_TAGS = frozenset({"area", "digest", "request_id"})
+# `user_id` and `org_id` are opaque internal database IDs, allowed by ADR-0037;
+# never names, emails or phone numbers.
+SAFE_TAGS = frozenset({"area", "digest", "org_id", "request_id", "user_id"})
+
+# `user_id` must look like a UUID or short token, so an email put there is dropped.
+_OPAQUE_ID = re.compile(r"[A-Za-z0-9_-]{1,64}")
+
+
+def _tag_allowed(key: str, value: object) -> bool:
+    if key not in SAFE_TAGS or not isinstance(value, str):
+        return False
+    return key != "user_id" or _OPAQUE_ID.fullmatch(value) is not None
 
 
 def scrub_sentry_event(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str, Any]:
@@ -14,7 +26,7 @@ def scrub_sentry_event(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str
     had_logentry = bool(event.get("logentry"))
     tags = event.get("tags")
     safe_tags = (
-        {k: v for k, v in tags.items() if k in SAFE_TAGS and isinstance(v, str)}
+        {k: v for k, v in tags.items() if _tag_allowed(k, v)}
         if isinstance(tags, dict)
         else {}
     )

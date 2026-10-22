@@ -37,6 +37,7 @@ const webApps = [
     note: "Barrels Events brand; Bricolage Grotesque display face is a documented lane choice (docs/design/events.md).",
     root: "apps/web/events",
   },
+  { name: "bookings", root: "apps/web/bookings" },
   { name: "gmsdash", root: "apps/web/gmsdash" },
   { name: "mbia", root: "apps/web/mbia" },
   { name: "signal", root: "apps/web/signal" },

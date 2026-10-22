@@ -1,25 +1,27 @@
-"""Events tables use separate metadata; main-database Alembic must not see them.
+"""Events tables (main database, ``events`` schema; ADR-0003).
 
-Migrations are hand-written in ``migrations/versions``; these models mirror
-them. Users are referenced by auth ``user_id`` with no foreign key (ADR-0003).
+Migrated by the main Alembic chain. Users are referenced by auth ``user_id``
+without a foreign key (the auth tables are another module's); payments and
+organisations are referenced by plain ids too, so Events never joins another
+module's tables (ADR-0003).
 """
 
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, MetaData, Text
+from sqlalchemy import Date, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
+from src.orm import Base
 from src.utils.datetime import utc_now
 
-events_metadata = MetaData()
 
+class EventsModel(Base):
+    """Declarative base for every table in the ``events`` schema."""
 
-class EventsModel(DeclarativeBase):
-    """Declarative base for the independently migrated events database."""
-
-    metadata = events_metadata
+    __abstract__ = True
+    __table_args__ = {"schema": "events"}
 
 
 class Organiser(EventsModel):
@@ -39,7 +41,7 @@ class Organiser(EventsModel):
 class OrganiserMember(EventsModel):
     __tablename__ = "organiser_members"
     organiser_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("organisers.id"), primary_key=True
+        ForeignKey("events.organisers.id"), primary_key=True
     )
     user_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
 
@@ -75,7 +77,7 @@ class Group(EventsModel):
 class GroupMember(EventsModel):
     __tablename__ = "group_members"
     group_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("groups.id"), primary_key=True
+        ForeignKey("events.groups.id"), primary_key=True
     )
     user_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     role: Mapped[str] = mapped_column(Text, default="member")
@@ -86,7 +88,7 @@ class GroupMember(EventsModel):
 class Announcement(EventsModel):
     __tablename__ = "announcements"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    group_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("groups.id"))
+    group_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.groups.id"))
     author_id: Mapped[uuid.UUID]
     body: Mapped[str] = mapped_column(Text)
     posted_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
@@ -108,8 +110,8 @@ class Listing(EventsModel):
     ends_at: Mapped[datetime] = mapped_column(DateTime)
     admission: Mapped[str] = mapped_column(Text)
     capacity: Mapped[int] = mapped_column(Integer, default=0)
-    organiser_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organisers.id"))
-    group_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("groups.id"))
+    organiser_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.organisers.id"))
+    group_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("events.groups.id"))
     featured: Mapped[bool] = mapped_column(default=False)
     #: Completed organisation upload (purpose listing-image); no cross-DB FK.
     image_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
@@ -124,7 +126,7 @@ class Listing(EventsModel):
 class TicketTier(EventsModel):
     __tablename__ = "ticket_tiers"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.listings.id"))
     name: Mapped[str] = mapped_column(Text)
     price_minor: Mapped[int] = mapped_column(Integer)
     currency: Mapped[str] = mapped_column(Text, default="XCD")
@@ -137,7 +139,7 @@ class TicketTier(EventsModel):
 class Rsvp(EventsModel):
     __tablename__ = "rsvps"
     listing_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("listings.id"), primary_key=True
+        ForeignKey("events.listings.id"), primary_key=True
     )
     user_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
@@ -146,7 +148,7 @@ class Rsvp(EventsModel):
 class SavedListing(EventsModel):
     __tablename__ = "saved_listings"
     listing_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("listings.id"), primary_key=True
+        ForeignKey("events.listings.id"), primary_key=True
     )
     user_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
 
@@ -154,7 +156,7 @@ class SavedListing(EventsModel):
 class Follow(EventsModel):
     __tablename__ = "follows"
     organiser_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("organisers.id"), primary_key=True
+        ForeignKey("events.organisers.id"), primary_key=True
     )
     user_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
 
@@ -190,7 +192,7 @@ class Thread(EventsModel):
     __tablename__ = "threads"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     kind: Mapped[str] = mapped_column(Text)
-    group_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("groups.id"))
+    group_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("events.groups.id"))
     #: "<smaller uuid>:<larger uuid>" for direct threads, so each pair has one.
     direct_key: Mapped[str | None] = mapped_column(Text, unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
@@ -199,7 +201,7 @@ class Thread(EventsModel):
 class ThreadParticipant(EventsModel):
     __tablename__ = "thread_participants"
     thread_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("threads.id"), primary_key=True
+        ForeignKey("events.threads.id"), primary_key=True
     )
     user_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
 
@@ -207,7 +209,7 @@ class ThreadParticipant(EventsModel):
 class Message(EventsModel):
     __tablename__ = "messages"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    thread_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("threads.id"))
+    thread_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.threads.id"))
     author_id: Mapped[uuid.UUID]
     body: Mapped[str] = mapped_column(Text)
     sent_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
@@ -229,24 +231,6 @@ class Suggestion(EventsModel):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 
-class Outbox(EventsModel):
-    """Changes that must notify people (F6); drained by the worker, never inline."""
-
-    __tablename__ = "outbox"
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    kind: Mapped[str] = mapped_column(Text)
-    entity_type: Mapped[str] = mapped_column(Text)
-    entity_id: Mapped[str] = mapped_column(Text)
-    payload: Mapped[dict[str, str]] = mapped_column(JSONB, default=dict)
-    dedupe_key: Mapped[str] = mapped_column(Text, unique=True)
-    attempts: Mapped[int] = mapped_column(Integer, default=0)
-    last_error: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
-    available_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
-    processed_at: Mapped[datetime | None] = mapped_column(DateTime)
-    failed_at: Mapped[datetime | None] = mapped_column(DateTime)
-
-
 class Activity(EventsModel):
     """Append-only history (F7). A database trigger rejects UPDATE and DELETE."""
 
@@ -266,7 +250,7 @@ class TillSession(EventsModel):
 
     __tablename__ = "till_sessions"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.listings.id"))
     staff_id: Mapped[uuid.UUID]
     day: Mapped[date] = mapped_column(Date)
     opening_float_minor: Mapped[int] = mapped_column(Integer, default=0)
@@ -281,7 +265,7 @@ class Order(EventsModel):
 
     __tablename__ = "orders"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.listings.id"))
     #: The claiming account; null for outlet sales (the buyer has no account).
     user_id: Mapped[uuid.UUID | None]
     #: confirmed | pending_payment | expired | refunded (N4b).
@@ -298,7 +282,7 @@ class Order(EventsModel):
     buyer_phone: Mapped[str | None] = mapped_column(Text)
     sold_by: Mapped[uuid.UUID | None]
     till_session_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("till_sessions.id")
+        ForeignKey("events.till_sessions.id")
     )
     idempotency_key: Mapped[str | None] = mapped_column(Text)
     #: ``payments.intent.id`` in the main database (ADR-0003: no cross-database FK).
@@ -314,8 +298,8 @@ class Order(EventsModel):
 class OrderItem(EventsModel):
     __tablename__ = "order_items"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("orders.id"))
-    tier_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ticket_tiers.id"))
+    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.orders.id"))
+    tier_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.ticket_tiers.id"))
     quantity: Mapped[int] = mapped_column(Integer)
     unit_price_minor: Mapped[int] = mapped_column(Integer, default=0)
 
@@ -325,9 +309,9 @@ class Ticket(EventsModel):
 
     __tablename__ = "tickets"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("orders.id"))
-    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
-    tier_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ticket_tiers.id"))
+    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.orders.id"))
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.listings.id"))
+    tier_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.ticket_tiers.id"))
     #: Holder account; null for outlet tickets (the order has the buyer's name).
     user_id: Mapped[uuid.UUID | None]
     code: Mapped[str] = mapped_column(Text, unique=True)
@@ -341,8 +325,10 @@ class Admission(EventsModel):
 
     __tablename__ = "admissions"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    ticket_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tickets.id"), unique=True)
-    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
+    ticket_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("events.tickets.id"), unique=True
+    )
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.listings.id"))
     admitted_by: Mapped[uuid.UUID]
     admitted_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     #: "qr" for a scanned token, "code" for a typed or keyboard-wedge code.
@@ -355,9 +341,11 @@ class Refund(EventsModel):
 
     __tablename__ = "refunds"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("listings.id"))
-    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("orders.id"))
-    ticket_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tickets.id"), unique=True)
+    listing_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.listings.id"))
+    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.orders.id"))
+    ticket_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("events.tickets.id"), unique=True
+    )
     amount_minor: Mapped[int] = mapped_column(Integer)
     #: "cash" (paid from a till) or "bank".
     method: Mapped[str] = mapped_column(Text)
@@ -366,5 +354,5 @@ class Refund(EventsModel):
     refunded_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     #: The till a cash refund was paid from, if one was open.
     till_session_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("till_sessions.id")
+        ForeignKey("events.till_sessions.id")
     )

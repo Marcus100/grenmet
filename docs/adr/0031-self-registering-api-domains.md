@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed. Nothing is built; the owner has not reviewed it. It needs owner approval before step 1 of the migration starts.
+Approved by the owner 2026-10-20; build it after the observations store (ADR-0032) lands.
 
 ## Context
 

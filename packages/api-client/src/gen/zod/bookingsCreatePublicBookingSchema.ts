@@ -24,6 +24,8 @@ export const bookingsCreatePublicBookingStatus201Schema =
 
 export const bookingsCreatePublicBookingStatus400Schema = z.unknown();
 
+export const bookingsCreatePublicBookingStatus403Schema = z.unknown();
+
 export const bookingsCreatePublicBookingStatus404Schema = z.unknown();
 
 export const bookingsCreatePublicBookingStatus409Schema = z.unknown();
@@ -38,6 +40,7 @@ export const bookingsCreatePublicBookingResponseSchema =
 
 export const bookingsCreatePublicBookingErrorSchema = z.union([
   bookingsCreatePublicBookingStatus400Schema,
+  bookingsCreatePublicBookingStatus403Schema,
   bookingsCreatePublicBookingStatus404Schema,
   bookingsCreatePublicBookingStatus409Schema,
   bookingsCreatePublicBookingStatus422Schema,

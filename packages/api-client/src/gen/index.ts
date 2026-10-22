@@ -4,6 +4,8 @@ export * from "./.kubb/standardSchema.js";
 export { auditGetHistory } from "./clients/auditGetHistory.js";
 export { authAccountEmailCodeStart } from "./clients/authAccountEmailCodeStart.js";
 export { authAccountEmailCodeVerify } from "./clients/authAccountEmailCodeVerify.js";
+export { authAdminActivateAccount } from "./clients/authAdminActivateAccount.js";
+export { authAdminResendVerification } from "./clients/authAdminResendVerification.js";
 export { authAppEmailCodeStart } from "./clients/authAppEmailCodeStart.js";
 export { authAppEmailCodeVerify } from "./clients/authAppEmailCodeVerify.js";
 export { authAppGoogleComplete } from "./clients/authAppGoogleComplete.js";
@@ -94,11 +96,13 @@ export { billingVoidInvoice } from "./clients/billingVoidInvoice.js";
 export { bookingsCancelPublicBooking } from "./clients/bookingsCancelPublicBooking.js";
 export { bookingsCancelStudioBooking } from "./clients/bookingsCancelStudioBooking.js";
 export { bookingsCompleteStudioBooking } from "./clients/bookingsCompleteStudioBooking.js";
+export { bookingsConfirmEmailCode } from "./clients/bookingsConfirmEmailCode.js";
 export { bookingsConfirmStudioBooking } from "./clients/bookingsConfirmStudioBooking.js";
 export { bookingsCreateException } from "./clients/bookingsCreateException.js";
 export { bookingsCreateProvider } from "./clients/bookingsCreateProvider.js";
 export { bookingsCreatePublicBooking } from "./clients/bookingsCreatePublicBooking.js";
 export { bookingsCreateService } from "./clients/bookingsCreateService.js";
+export { bookingsCreateStudioBooking } from "./clients/bookingsCreateStudioBooking.js";
 export { bookingsDeclineStudioBooking } from "./clients/bookingsDeclineStudioBooking.js";
 export { bookingsDeleteException } from "./clients/bookingsDeleteException.js";
 export { bookingsGetAgenda } from "./clients/bookingsGetAgenda.js";
@@ -106,15 +110,21 @@ export { bookingsGetAvailability } from "./clients/bookingsGetAvailability.js";
 export { bookingsGetProfile } from "./clients/bookingsGetProfile.js";
 export { bookingsGetPublicBooking } from "./clients/bookingsGetPublicBooking.js";
 export { bookingsGetPublicBookingIcs } from "./clients/bookingsGetPublicBookingIcs.js";
+export { bookingsGetSettings } from "./clients/bookingsGetSettings.js";
 export { bookingsGetStorefront } from "./clients/bookingsGetStorefront.js";
 export { bookingsGetStudioBooking } from "./clients/bookingsGetStudioBooking.js";
 export { bookingsGetWorkingHours } from "./clients/bookingsGetWorkingHours.js";
 export { bookingsListExceptions } from "./clients/bookingsListExceptions.js";
+export { bookingsListMyOrganisations } from "./clients/bookingsListMyOrganisations.js";
 export { bookingsListProviders } from "./clients/bookingsListProviders.js";
 export { bookingsListServices } from "./clients/bookingsListServices.js";
 export { bookingsListStudioBookings } from "./clients/bookingsListStudioBookings.js";
 export { bookingsNoShowStudioBooking } from "./clients/bookingsNoShowStudioBooking.js";
+export { bookingsRecordManualDeposit } from "./clients/bookingsRecordManualDeposit.js";
+export { bookingsReorderProviders } from "./clients/bookingsReorderProviders.js";
+export { bookingsReorderServices } from "./clients/bookingsReorderServices.js";
 export { bookingsReplaceWorkingHours } from "./clients/bookingsReplaceWorkingHours.js";
+export { bookingsRequestEmailCode } from "./clients/bookingsRequestEmailCode.js";
 export { bookingsReschedulePublicBooking } from "./clients/bookingsReschedulePublicBooking.js";
 export { bookingsUpdateProvider } from "./clients/bookingsUpdateProvider.js";
 export { bookingsUpdateService } from "./clients/bookingsUpdateService.js";
@@ -245,6 +255,7 @@ export { featureCreateFlag } from "./clients/featureCreateFlag.js";
 export { featureDeleteFlag } from "./clients/featureDeleteFlag.js";
 export { featureEvaluateForMe } from "./clients/featureEvaluateForMe.js";
 export { featureEvaluateForOrganisation } from "./clients/featureEvaluateForOrganisation.js";
+export { featureEvaluatePublic } from "./clients/featureEvaluatePublic.js";
 export { featureGetFlag } from "./clients/featureGetFlag.js";
 export { featureListFlags } from "./clients/featureListFlags.js";
 export { featureListStaleFlags } from "./clients/featureListStaleFlags.js";
@@ -253,6 +264,7 @@ export { feedbackSendPageFeedback } from "./clients/feedbackSendPageFeedback.js"
 export { flightsGetFlightBoard } from "./clients/flightsGetFlightBoard.js";
 export { hrActionLeaveRequest } from "./clients/hrActionLeaveRequest.js";
 export { hrActionShiftSwap } from "./clients/hrActionShiftSwap.js";
+export { hrApproveClockPunch } from "./clients/hrApproveClockPunch.js";
 export { hrApproveStaffRegistration } from "./clients/hrApproveStaffRegistration.js";
 export { hrApproveTimesheet } from "./clients/hrApproveTimesheet.js";
 export { hrArchiveDocument } from "./clients/hrArchiveDocument.js";
@@ -341,6 +353,7 @@ export { hrListDepartmentMembers } from "./clients/hrListDepartmentMembers.js";
 export { hrListDepartments } from "./clients/hrListDepartments.js";
 export { hrListHolidays } from "./clients/hrListHolidays.js";
 export { hrListMyShiftSwaps } from "./clients/hrListMyShiftSwaps.js";
+export { hrListPendingClockPunches } from "./clients/hrListPendingClockPunches.js";
 export { hrListPeriods } from "./clients/hrListPeriods.js";
 export { hrListShiftCatalog } from "./clients/hrListShiftCatalog.js";
 export { hrLoadProvisionalHolidays } from "./clients/hrLoadProvisionalHolidays.js";
@@ -356,6 +369,7 @@ export { hrPreviewStatusReportPdf } from "./clients/hrPreviewStatusReportPdf.js"
 export { hrProposeAttendanceCorrection } from "./clients/hrProposeAttendanceCorrection.js";
 export { hrPublishPeriod } from "./clients/hrPublishPeriod.js";
 export { hrPutDepartmentRules } from "./clients/hrPutDepartmentRules.js";
+export { hrRejectClockPunch } from "./clients/hrRejectClockPunch.js";
 export { hrRemoveHoliday } from "./clients/hrRemoveHoliday.js";
 export { hrRenameOrganisation } from "./clients/hrRenameOrganisation.js";
 export { hrRotateClockSite } from "./clients/hrRotateClockSite.js";
@@ -436,11 +450,13 @@ export { notificationsMarkNotificationRead } from "./clients/notificationsMarkNo
 export { notificationsUpdateNotificationPreferences } from "./clients/notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./clients/notificationsUpdateNotificationSetting.js";
 export { organisationsAcceptInvitation } from "./clients/organisationsAcceptInvitation.js";
+export { organisationsAddMemberAdmin } from "./clients/organisationsAddMemberAdmin.js";
 export { organisationsCreateAdminSite } from "./clients/organisationsCreateAdminSite.js";
 export { organisationsCreateApiKey } from "./clients/organisationsCreateApiKey.js";
 export { organisationsCreateInvitation } from "./clients/organisationsCreateInvitation.js";
 export { organisationsCreateOne } from "./clients/organisationsCreateOne.js";
 export { organisationsDeleteMember } from "./clients/organisationsDeleteMember.js";
+export { organisationsDeleteMemberAdmin } from "./clients/organisationsDeleteMemberAdmin.js";
 export { organisationsGetCurrent } from "./clients/organisationsGetCurrent.js";
 export { organisationsGetOne } from "./clients/organisationsGetOne.js";
 export { organisationsGetPublicSite } from "./clients/organisationsGetPublicSite.js";
@@ -463,6 +479,7 @@ export { organisationsSetApp } from "./clients/organisationsSetApp.js";
 export { organisationsUnverifyOne } from "./clients/organisationsUnverifyOne.js";
 export { organisationsUpdateAdminSite } from "./clients/organisationsUpdateAdminSite.js";
 export { organisationsUpdateMember } from "./clients/organisationsUpdateMember.js";
+export { organisationsUpdateMemberAdmin } from "./clients/organisationsUpdateMemberAdmin.js";
 export { organisationsUpdateOne } from "./clients/organisationsUpdateOne.js";
 export { organisationsVerifyOne } from "./clients/organisationsVerifyOne.js";
 export { paymentsAdminCreatePayout } from "./clients/paymentsAdminCreatePayout.js";
@@ -632,6 +649,16 @@ export {
   authAccountEmailCodeVerifyMutationOptions,
   useAuthAccountEmailCodeVerify,
 } from "./hooks/useAuthAccountEmailCodeVerify.js";
+export {
+  authAdminActivateAccountMutationKey,
+  authAdminActivateAccountMutationOptions,
+  useAuthAdminActivateAccount,
+} from "./hooks/useAuthAdminActivateAccount.js";
+export {
+  authAdminResendVerificationMutationKey,
+  authAdminResendVerificationMutationOptions,
+  useAuthAdminResendVerification,
+} from "./hooks/useAuthAdminResendVerification.js";
 export {
   authAppEmailCodeStartMutationKey,
   authAppEmailCodeStartMutationOptions,
@@ -1083,6 +1110,11 @@ export {
   useBookingsCompleteStudioBooking,
 } from "./hooks/useBookingsCompleteStudioBooking.js";
 export {
+  bookingsConfirmEmailCodeMutationKey,
+  bookingsConfirmEmailCodeMutationOptions,
+  useBookingsConfirmEmailCode,
+} from "./hooks/useBookingsConfirmEmailCode.js";
+export {
   bookingsConfirmStudioBookingMutationKey,
   bookingsConfirmStudioBookingMutationOptions,
   useBookingsConfirmStudioBooking,
@@ -1107,6 +1139,11 @@ export {
   bookingsCreateServiceMutationOptions,
   useBookingsCreateService,
 } from "./hooks/useBookingsCreateService.js";
+export {
+  bookingsCreateStudioBookingMutationKey,
+  bookingsCreateStudioBookingMutationOptions,
+  useBookingsCreateStudioBooking,
+} from "./hooks/useBookingsCreateStudioBooking.js";
 export {
   bookingsDeclineStudioBookingMutationKey,
   bookingsDeclineStudioBookingMutationOptions,
@@ -1143,6 +1180,11 @@ export {
   useBookingsGetPublicBookingIcs,
 } from "./hooks/useBookingsGetPublicBookingIcs.js";
 export {
+  bookingsGetSettingsQueryKey,
+  bookingsGetSettingsQueryOptions,
+  useBookingsGetSettings,
+} from "./hooks/useBookingsGetSettings.js";
+export {
   bookingsGetStorefrontQueryKey,
   bookingsGetStorefrontQueryOptions,
   useBookingsGetStorefront,
@@ -1162,6 +1204,11 @@ export {
   bookingsListExceptionsQueryOptions,
   useBookingsListExceptions,
 } from "./hooks/useBookingsListExceptions.js";
+export {
+  bookingsListMyOrganisationsQueryKey,
+  bookingsListMyOrganisationsQueryOptions,
+  useBookingsListMyOrganisations,
+} from "./hooks/useBookingsListMyOrganisations.js";
 export {
   bookingsListProvidersQueryKey,
   bookingsListProvidersQueryOptions,
@@ -1183,10 +1230,30 @@ export {
   useBookingsNoShowStudioBooking,
 } from "./hooks/useBookingsNoShowStudioBooking.js";
 export {
+  bookingsRecordManualDepositMutationKey,
+  bookingsRecordManualDepositMutationOptions,
+  useBookingsRecordManualDeposit,
+} from "./hooks/useBookingsRecordManualDeposit.js";
+export {
+  bookingsReorderProvidersMutationKey,
+  bookingsReorderProvidersMutationOptions,
+  useBookingsReorderProviders,
+} from "./hooks/useBookingsReorderProviders.js";
+export {
+  bookingsReorderServicesMutationKey,
+  bookingsReorderServicesMutationOptions,
+  useBookingsReorderServices,
+} from "./hooks/useBookingsReorderServices.js";
+export {
   bookingsReplaceWorkingHoursMutationKey,
   bookingsReplaceWorkingHoursMutationOptions,
   useBookingsReplaceWorkingHours,
 } from "./hooks/useBookingsReplaceWorkingHours.js";
+export {
+  bookingsRequestEmailCodeMutationKey,
+  bookingsRequestEmailCodeMutationOptions,
+  useBookingsRequestEmailCode,
+} from "./hooks/useBookingsRequestEmailCode.js";
 export {
   bookingsReschedulePublicBookingMutationKey,
   bookingsReschedulePublicBookingMutationOptions,
@@ -1838,6 +1905,11 @@ export {
   useFeatureEvaluateForOrganisation,
 } from "./hooks/useFeatureEvaluateForOrganisation.js";
 export {
+  featureEvaluatePublicQueryKey,
+  featureEvaluatePublicQueryOptions,
+  useFeatureEvaluatePublic,
+} from "./hooks/useFeatureEvaluatePublic.js";
+export {
   featureGetFlagQueryKey,
   featureGetFlagQueryOptions,
   useFeatureGetFlag,
@@ -1877,6 +1949,11 @@ export {
   hrActionShiftSwapMutationOptions,
   useHrActionShiftSwap,
 } from "./hooks/useHrActionShiftSwap.js";
+export {
+  hrApproveClockPunchMutationKey,
+  hrApproveClockPunchMutationOptions,
+  useHrApproveClockPunch,
+} from "./hooks/useHrApproveClockPunch.js";
 export {
   hrApproveStaffRegistrationMutationKey,
   hrApproveStaffRegistrationMutationOptions,
@@ -2318,6 +2395,11 @@ export {
   useHrListMyShiftSwaps,
 } from "./hooks/useHrListMyShiftSwaps.js";
 export {
+  hrListPendingClockPunchesQueryKey,
+  hrListPendingClockPunchesQueryOptions,
+  useHrListPendingClockPunches,
+} from "./hooks/useHrListPendingClockPunches.js";
+export {
   hrListPeriodsQueryKey,
   hrListPeriodsQueryOptions,
   useHrListPeriods,
@@ -2392,6 +2474,11 @@ export {
   hrPutDepartmentRulesMutationOptions,
   useHrPutDepartmentRules,
 } from "./hooks/useHrPutDepartmentRules.js";
+export {
+  hrRejectClockPunchMutationKey,
+  hrRejectClockPunchMutationOptions,
+  useHrRejectClockPunch,
+} from "./hooks/useHrRejectClockPunch.js";
 export {
   hrRemoveHolidayMutationKey,
   hrRemoveHolidayMutationOptions,
@@ -2793,6 +2880,11 @@ export {
   useOrganisationsAcceptInvitation,
 } from "./hooks/useOrganisationsAcceptInvitation.js";
 export {
+  organisationsAddMemberAdminMutationKey,
+  organisationsAddMemberAdminMutationOptions,
+  useOrganisationsAddMemberAdmin,
+} from "./hooks/useOrganisationsAddMemberAdmin.js";
+export {
   organisationsCreateAdminSiteMutationKey,
   organisationsCreateAdminSiteMutationOptions,
   useOrganisationsCreateAdminSite,
@@ -2817,6 +2909,11 @@ export {
   organisationsDeleteMemberMutationOptions,
   useOrganisationsDeleteMember,
 } from "./hooks/useOrganisationsDeleteMember.js";
+export {
+  organisationsDeleteMemberAdminMutationKey,
+  organisationsDeleteMemberAdminMutationOptions,
+  useOrganisationsDeleteMemberAdmin,
+} from "./hooks/useOrganisationsDeleteMemberAdmin.js";
 export {
   organisationsGetCurrentQueryKey,
   organisationsGetCurrentQueryOptions,
@@ -2927,6 +3024,11 @@ export {
   organisationsUpdateMemberMutationOptions,
   useOrganisationsUpdateMember,
 } from "./hooks/useOrganisationsUpdateMember.js";
+export {
+  organisationsUpdateMemberAdminMutationKey,
+  organisationsUpdateMemberAdminMutationOptions,
+  useOrganisationsUpdateMemberAdmin,
+} from "./hooks/useOrganisationsUpdateMemberAdmin.js";
 export {
   organisationsUpdateOneMutationKey,
   organisationsUpdateOneMutationOptions,
@@ -3723,6 +3825,7 @@ export type { ActivityEntry } from "./models/ActivityEntry.js";
 export type { AddressPublic } from "./models/AddressPublic.js";
 export type { AddressUpdate } from "./models/AddressUpdate.js";
 export type { AdjustmentCreate } from "./models/AdjustmentCreate.js";
+export type { AdminActivation } from "./models/AdminActivation.js";
 export type { AdmissionCreate } from "./models/AdmissionCreate.js";
 export type { AdmissionPublic } from "./models/AdmissionPublic.js";
 export type { AgeingBucket } from "./models/AgeingBucket.js";
@@ -3812,6 +3915,30 @@ export type {
   AuthAccountEmailCodeVerifyStatus422,
   AuthAccountEmailCodeVerifyStatus429,
 } from "./models/AuthAccountEmailCodeVerify.js";
+export type {
+  AuthAdminActivateAccountBody,
+  AuthAdminActivateAccountOptions,
+  AuthAdminActivateAccountPath,
+  AuthAdminActivateAccountResponse,
+  AuthAdminActivateAccountResponses,
+  AuthAdminActivateAccountStatus200,
+  AuthAdminActivateAccountStatus403,
+  AuthAdminActivateAccountStatus404,
+  AuthAdminActivateAccountStatus409,
+  AuthAdminActivateAccountStatus422,
+} from "./models/AuthAdminActivateAccount.js";
+export type {
+  AuthAdminResendVerificationBody,
+  AuthAdminResendVerificationOptions,
+  AuthAdminResendVerificationPath,
+  AuthAdminResendVerificationResponse,
+  AuthAdminResendVerificationResponses,
+  AuthAdminResendVerificationStatus200,
+  AuthAdminResendVerificationStatus403,
+  AuthAdminResendVerificationStatus404,
+  AuthAdminResendVerificationStatus409,
+  AuthAdminResendVerificationStatus422,
+} from "./models/AuthAdminResendVerification.js";
 export type {
   AuthAppEmailCodeStartBody,
   AuthAppEmailCodeStartOptions,
@@ -4760,14 +4887,22 @@ export type { BookingAgenda } from "./models/BookingAgenda.js";
 export type { BookingAgendaDay } from "./models/BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./models/BookingAgendaItem.js";
 export type { BookingAvailability } from "./models/BookingAvailability.js";
+export type { BookingEmailCodeConfirm } from "./models/BookingEmailCodeConfirm.js";
+export type { BookingEmailCodeRequest } from "./models/BookingEmailCodeRequest.js";
+export type { BookingEmailCodeSent } from "./models/BookingEmailCodeSent.js";
+export type { BookingEmailProof } from "./models/BookingEmailProof.js";
 export type { BookingExceptionCreate } from "./models/BookingExceptionCreate.js";
 export type { BookingExceptionKind } from "./models/BookingExceptionKind.js";
 export { bookingExceptionKind } from "./models/BookingExceptionKind.js";
 export type { BookingExceptionPublic } from "./models/BookingExceptionPublic.js";
+export type { BookingManualDepositCreate } from "./models/BookingManualDepositCreate.js";
+export type { BookingMyOrganisation } from "./models/BookingMyOrganisation.js";
+export type { BookingOrder } from "./models/BookingOrder.js";
 export type { BookingProfilePublic } from "./models/BookingProfilePublic.js";
 export type { BookingProfileUpdate } from "./models/BookingProfileUpdate.js";
 export type { BookingProviderCreate } from "./models/BookingProviderCreate.js";
 export type { BookingProviderPublic } from "./models/BookingProviderPublic.js";
+export type { BookingProviderSettings } from "./models/BookingProviderSettings.js";
 export type { BookingProviderUpdate } from "./models/BookingProviderUpdate.js";
 export type { BookingPublicCancel } from "./models/BookingPublicCancel.js";
 export type { BookingPublicCreate } from "./models/BookingPublicCreate.js";
@@ -4779,6 +4914,7 @@ export type { BookingPublicService } from "./models/BookingPublicService.js";
 export type { BookingServiceCreate } from "./models/BookingServiceCreate.js";
 export type { BookingServicePublic } from "./models/BookingServicePublic.js";
 export type { BookingServiceUpdate } from "./models/BookingServiceUpdate.js";
+export type { BookingSettings } from "./models/BookingSettings.js";
 export type { BookingSlot } from "./models/BookingSlot.js";
 export type { BookingSource } from "./models/BookingSource.js";
 export { bookingSource } from "./models/BookingSource.js";
@@ -4786,6 +4922,7 @@ export type { BookingStatus } from "./models/BookingStatus.js";
 export { bookingStatus } from "./models/BookingStatus.js";
 export type { BookingStorefront } from "./models/BookingStorefront.js";
 export type { BookingStudioCancel } from "./models/BookingStudioCancel.js";
+export type { BookingStudioCreate } from "./models/BookingStudioCreate.js";
 export type { BookingStudioCustomer } from "./models/BookingStudioCustomer.js";
 export type { BookingStudioDecline } from "./models/BookingStudioDecline.js";
 export type { BookingStudioDetail } from "./models/BookingStudioDetail.js";
@@ -4830,6 +4967,19 @@ export type {
   BookingsCompleteStudioBookingStatus409,
   BookingsCompleteStudioBookingStatus422,
 } from "./models/BookingsCompleteStudioBooking.js";
+export type {
+  BookingsConfirmEmailCodeBody,
+  BookingsConfirmEmailCodeOptions,
+  BookingsConfirmEmailCodePath,
+  BookingsConfirmEmailCodeResponse,
+  BookingsConfirmEmailCodeResponses,
+  BookingsConfirmEmailCodeStatus200,
+  BookingsConfirmEmailCodeStatus400,
+  BookingsConfirmEmailCodeStatus404,
+  BookingsConfirmEmailCodeStatus422,
+  BookingsConfirmEmailCodeStatus429,
+  BookingsConfirmEmailCodeStatus503,
+} from "./models/BookingsConfirmEmailCode.js";
 export type {
   BookingsConfirmStudioBookingHeaders,
   BookingsConfirmStudioBookingOptions,
@@ -4882,6 +5032,7 @@ export type {
   BookingsCreatePublicBookingResponses,
   BookingsCreatePublicBookingStatus201,
   BookingsCreatePublicBookingStatus400,
+  BookingsCreatePublicBookingStatus403,
   BookingsCreatePublicBookingStatus404,
   BookingsCreatePublicBookingStatus409,
   BookingsCreatePublicBookingStatus422,
@@ -4900,6 +5051,20 @@ export type {
   BookingsCreateServiceStatus409,
   BookingsCreateServiceStatus422,
 } from "./models/BookingsCreateService.js";
+export type {
+  BookingsCreateStudioBookingBody,
+  BookingsCreateStudioBookingHeaders,
+  BookingsCreateStudioBookingOptions,
+  BookingsCreateStudioBookingResponse,
+  BookingsCreateStudioBookingResponses,
+  BookingsCreateStudioBookingStatus201,
+  BookingsCreateStudioBookingStatus400,
+  BookingsCreateStudioBookingStatus401,
+  BookingsCreateStudioBookingStatus403,
+  BookingsCreateStudioBookingStatus404,
+  BookingsCreateStudioBookingStatus409,
+  BookingsCreateStudioBookingStatus422,
+} from "./models/BookingsCreateStudioBooking.js";
 export type {
   BookingsDeclineStudioBookingBody,
   BookingsDeclineStudioBookingHeaders,
@@ -4984,6 +5149,18 @@ export type {
   BookingsGetPublicBookingIcsStatus422,
 } from "./models/BookingsGetPublicBookingIcs.js";
 export type {
+  BookingsGetSettingsHeaders,
+  BookingsGetSettingsOptions,
+  BookingsGetSettingsResponse,
+  BookingsGetSettingsResponses,
+  BookingsGetSettingsStatus200,
+  BookingsGetSettingsStatus400,
+  BookingsGetSettingsStatus401,
+  BookingsGetSettingsStatus403,
+  BookingsGetSettingsStatus404,
+  BookingsGetSettingsStatus422,
+} from "./models/BookingsGetSettings.js";
+export type {
   BookingsGetStorefrontOptions,
   BookingsGetStorefrontPath,
   BookingsGetStorefrontResponse,
@@ -5032,6 +5209,15 @@ export type {
   BookingsListExceptionsStatus404,
   BookingsListExceptionsStatus422,
 } from "./models/BookingsListExceptions.js";
+export type {
+  BookingsListMyOrganisationsOptions,
+  BookingsListMyOrganisationsResponse,
+  BookingsListMyOrganisationsResponses,
+  BookingsListMyOrganisationsStatus200,
+  BookingsListMyOrganisationsStatus401,
+  BookingsListMyOrganisationsStatus403,
+  BookingsListMyOrganisationsStatus422,
+} from "./models/BookingsListMyOrganisations.js";
 export type {
   BookingsListProvidersHeaders,
   BookingsListProvidersOptions,
@@ -5084,6 +5270,49 @@ export type {
   BookingsNoShowStudioBookingStatus422,
 } from "./models/BookingsNoShowStudioBooking.js";
 export type {
+  BookingsRecordManualDepositBody,
+  BookingsRecordManualDepositHeaders,
+  BookingsRecordManualDepositOptions,
+  BookingsRecordManualDepositPath,
+  BookingsRecordManualDepositResponse,
+  BookingsRecordManualDepositResponses,
+  BookingsRecordManualDepositStatus200,
+  BookingsRecordManualDepositStatus400,
+  BookingsRecordManualDepositStatus401,
+  BookingsRecordManualDepositStatus403,
+  BookingsRecordManualDepositStatus404,
+  BookingsRecordManualDepositStatus409,
+  BookingsRecordManualDepositStatus422,
+} from "./models/BookingsRecordManualDeposit.js";
+export type {
+  BookingsReorderProvidersBody,
+  BookingsReorderProvidersHeaders,
+  BookingsReorderProvidersOptions,
+  BookingsReorderProvidersResponse,
+  BookingsReorderProvidersResponses,
+  BookingsReorderProvidersStatus200,
+  BookingsReorderProvidersStatus400,
+  BookingsReorderProvidersStatus401,
+  BookingsReorderProvidersStatus403,
+  BookingsReorderProvidersStatus404,
+  BookingsReorderProvidersStatus409,
+  BookingsReorderProvidersStatus422,
+} from "./models/BookingsReorderProviders.js";
+export type {
+  BookingsReorderServicesBody,
+  BookingsReorderServicesHeaders,
+  BookingsReorderServicesOptions,
+  BookingsReorderServicesResponse,
+  BookingsReorderServicesResponses,
+  BookingsReorderServicesStatus200,
+  BookingsReorderServicesStatus400,
+  BookingsReorderServicesStatus401,
+  BookingsReorderServicesStatus403,
+  BookingsReorderServicesStatus404,
+  BookingsReorderServicesStatus409,
+  BookingsReorderServicesStatus422,
+} from "./models/BookingsReorderServices.js";
+export type {
   BookingsReplaceWorkingHoursBody,
   BookingsReplaceWorkingHoursHeaders,
   BookingsReplaceWorkingHoursOptions,
@@ -5098,6 +5327,19 @@ export type {
   BookingsReplaceWorkingHoursStatus409,
   BookingsReplaceWorkingHoursStatus422,
 } from "./models/BookingsReplaceWorkingHours.js";
+export type {
+  BookingsRequestEmailCodeBody,
+  BookingsRequestEmailCodeOptions,
+  BookingsRequestEmailCodePath,
+  BookingsRequestEmailCodeResponse,
+  BookingsRequestEmailCodeResponses,
+  BookingsRequestEmailCodeStatus200,
+  BookingsRequestEmailCodeStatus400,
+  BookingsRequestEmailCodeStatus404,
+  BookingsRequestEmailCodeStatus422,
+  BookingsRequestEmailCodeStatus429,
+  BookingsRequestEmailCodeStatus503,
+} from "./models/BookingsRequestEmailCode.js";
 export type {
   BookingsReschedulePublicBookingBody,
   BookingsReschedulePublicBookingOptions,
@@ -5624,6 +5866,15 @@ export { challengeStatus } from "./models/ChallengeStatus.js";
 export type { CheckInCreate } from "./models/CheckInCreate.js";
 export type { CheckInPublic } from "./models/CheckInPublic.js";
 export type { CheckoutSessionPublic } from "./models/CheckoutSessionPublic.js";
+export type { ClockPunchApprove } from "./models/ClockPunchApprove.js";
+export type { ClockPunchesPublic } from "./models/ClockPunchesPublic.js";
+export type { ClockPunchKind } from "./models/ClockPunchKind.js";
+export { clockPunchKind } from "./models/ClockPunchKind.js";
+export type { ClockPunchPendingPublic } from "./models/ClockPunchPendingPublic.js";
+export type { ClockPunchPublic } from "./models/ClockPunchPublic.js";
+export type { ClockPunchReject } from "./models/ClockPunchReject.js";
+export type { ClockPunchStatus } from "./models/ClockPunchStatus.js";
+export { clockPunchStatus } from "./models/ClockPunchStatus.js";
 export type { ClockRequest } from "./models/ClockRequest.js";
 export type { ClockResult } from "./models/ClockResult.js";
 export type { ClockResultPropertiesActionEnum } from "./models/ClockResultPropertiesActionEnum.js";
@@ -6757,6 +7008,15 @@ export type {
   FeatureEvaluateForOrganisationStatus404,
   FeatureEvaluateForOrganisationStatus422,
 } from "./models/FeatureEvaluateForOrganisation.js";
+export type {
+  FeatureEvaluatePublicOptions,
+  FeatureEvaluatePublicQuery,
+  FeatureEvaluatePublicResponse,
+  FeatureEvaluatePublicResponses,
+  FeatureEvaluatePublicStatus200,
+  FeatureEvaluatePublicStatus422,
+  FeatureEvaluatePublicStatus429,
+} from "./models/FeatureEvaluatePublic.js";
 export type { FeatureFlagAdmin } from "./models/FeatureFlagAdmin.js";
 export type { FeatureFlagAdminList } from "./models/FeatureFlagAdminList.js";
 export type { FeatureFlagAudience } from "./models/FeatureFlagAudience.js";
@@ -6906,6 +7166,18 @@ export type {
   HrActionShiftSwapStatus404,
   HrActionShiftSwapStatus422,
 } from "./models/HrActionShiftSwap.js";
+export type {
+  HrApproveClockPunchBody,
+  HrApproveClockPunchOptions,
+  HrApproveClockPunchPath,
+  HrApproveClockPunchResponse,
+  HrApproveClockPunchResponses,
+  HrApproveClockPunchStatus200,
+  HrApproveClockPunchStatus403,
+  HrApproveClockPunchStatus404,
+  HrApproveClockPunchStatus409,
+  HrApproveClockPunchStatus422,
+} from "./models/HrApproveClockPunch.js";
 export type {
   HrApproveStaffRegistrationOptions,
   HrApproveStaffRegistrationPath,
@@ -7813,6 +8085,15 @@ export type {
   HrListMyShiftSwapsStatus422,
 } from "./models/HrListMyShiftSwaps.js";
 export type {
+  HrListPendingClockPunchesOptions,
+  HrListPendingClockPunchesQuery,
+  HrListPendingClockPunchesResponse,
+  HrListPendingClockPunchesResponses,
+  HrListPendingClockPunchesStatus200,
+  HrListPendingClockPunchesStatus403,
+  HrListPendingClockPunchesStatus422,
+} from "./models/HrListPendingClockPunches.js";
+export type {
   HrListPeriodsOptions,
   HrListPeriodsQuery,
   HrListPeriodsResponse,
@@ -7973,6 +8254,18 @@ export type {
   HrPutDepartmentRulesStatus403,
   HrPutDepartmentRulesStatus422,
 } from "./models/HrPutDepartmentRules.js";
+export type {
+  HrRejectClockPunchBody,
+  HrRejectClockPunchOptions,
+  HrRejectClockPunchPath,
+  HrRejectClockPunchResponse,
+  HrRejectClockPunchResponses,
+  HrRejectClockPunchStatus200,
+  HrRejectClockPunchStatus403,
+  HrRejectClockPunchStatus404,
+  HrRejectClockPunchStatus409,
+  HrRejectClockPunchStatus422,
+} from "./models/HrRejectClockPunch.js";
 export type {
   HrRemoveHolidayOptions,
   HrRemoveHolidayPath,
@@ -9066,6 +9359,19 @@ export type {
   OrganisationsAcceptInvitationStatus422,
 } from "./models/OrganisationsAcceptInvitation.js";
 export type {
+  OrganisationsAddMemberAdminBody,
+  OrganisationsAddMemberAdminOptions,
+  OrganisationsAddMemberAdminPath,
+  OrganisationsAddMemberAdminResponse,
+  OrganisationsAddMemberAdminResponses,
+  OrganisationsAddMemberAdminStatus201,
+  OrganisationsAddMemberAdminStatus401,
+  OrganisationsAddMemberAdminStatus403,
+  OrganisationsAddMemberAdminStatus404,
+  OrganisationsAddMemberAdminStatus409,
+  OrganisationsAddMemberAdminStatus422,
+} from "./models/OrganisationsAddMemberAdmin.js";
+export type {
   OrganisationsCreateAdminSiteBody,
   OrganisationsCreateAdminSiteOptions,
   OrganisationsCreateAdminSiteResponse,
@@ -9130,6 +9436,19 @@ export type {
   OrganisationsDeleteMemberStatus409,
   OrganisationsDeleteMemberStatus422,
 } from "./models/OrganisationsDeleteMember.js";
+export type {
+  OrganisationsDeleteMemberAdminBody,
+  OrganisationsDeleteMemberAdminOptions,
+  OrganisationsDeleteMemberAdminPath,
+  OrganisationsDeleteMemberAdminResponse,
+  OrganisationsDeleteMemberAdminResponses,
+  OrganisationsDeleteMemberAdminStatus204,
+  OrganisationsDeleteMemberAdminStatus401,
+  OrganisationsDeleteMemberAdminStatus403,
+  OrganisationsDeleteMemberAdminStatus404,
+  OrganisationsDeleteMemberAdminStatus409,
+  OrganisationsDeleteMemberAdminStatus422,
+} from "./models/OrganisationsDeleteMemberAdmin.js";
 export type {
   OrganisationsGetCurrentHeaders,
   OrganisationsGetCurrentOptions,
@@ -9394,6 +9713,19 @@ export type {
   OrganisationsUpdateMemberStatus422,
 } from "./models/OrganisationsUpdateMember.js";
 export type {
+  OrganisationsUpdateMemberAdminBody,
+  OrganisationsUpdateMemberAdminOptions,
+  OrganisationsUpdateMemberAdminPath,
+  OrganisationsUpdateMemberAdminResponse,
+  OrganisationsUpdateMemberAdminResponses,
+  OrganisationsUpdateMemberAdminStatus200,
+  OrganisationsUpdateMemberAdminStatus401,
+  OrganisationsUpdateMemberAdminStatus403,
+  OrganisationsUpdateMemberAdminStatus404,
+  OrganisationsUpdateMemberAdminStatus409,
+  OrganisationsUpdateMemberAdminStatus422,
+} from "./models/OrganisationsUpdateMemberAdmin.js";
+export type {
   OrganisationsUpdateOneBody,
   OrganisationsUpdateOneOptions,
   OrganisationsUpdateOnePath,
@@ -9626,6 +9958,9 @@ export type { PersonnelStatus } from "./models/PersonnelStatus.js";
 export { personnelStatus } from "./models/PersonnelStatus.js";
 export type { PersonSuggestion } from "./models/PersonSuggestion.js";
 export type { PlansPublic } from "./models/PlansPublic.js";
+export type { PlatformMemberAdd } from "./models/PlatformMemberAdd.js";
+export type { PlatformMemberRemove } from "./models/PlatformMemberRemove.js";
+export type { PlatformMemberRoleUpdate } from "./models/PlatformMemberRoleUpdate.js";
 export type { PlatformOrganisationCreate } from "./models/PlatformOrganisationCreate.js";
 export type { PlatformOrganisationUpdate } from "./models/PlatformOrganisationUpdate.js";
 export type { PolicyInput } from "./models/PolicyInput.js";
@@ -9722,6 +10057,7 @@ export type {
   PushVapidPublicKeyStatus422,
 } from "./models/PushVapidPublicKey.js";
 export type { QcDecisionRequest } from "./models/QcDecisionRequest.js";
+export type { ReadinessUnavailable } from "./models/ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./models/ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./models/ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./models/RecoveryCodesPublic.js";
@@ -10796,6 +11132,7 @@ export { suggestionPublicPropertiesStatusEnum } from "./models/SuggestionPublicP
 export type { SuggestionUpdate } from "./models/SuggestionUpdate.js";
 export type { SuggestionUpdatePropertiesStatusEnum } from "./models/SuggestionUpdatePropertiesStatusEnum.js";
 export { suggestionUpdatePropertiesStatusEnum } from "./models/SuggestionUpdatePropertiesStatusEnum.js";
+export type { SuperuserActionReason } from "./models/SuperuserActionReason.js";
 export type { SwapType } from "./models/SwapType.js";
 export { swapType } from "./models/SwapType.js";
 export type { SynopDecoded } from "./models/SynopDecoded.js";
@@ -11128,6 +11465,7 @@ export type { ValidationErrorItem } from "./models/ValidationErrorItem.js";
 export type { ValidationErrorResponse } from "./models/ValidationErrorResponse.js";
 export type { VapidPublicKey } from "./models/VapidPublicKey.js";
 export type { VerificationDecision } from "./models/VerificationDecision.js";
+export type { VerificationResend } from "./models/VerificationResend.js";
 export type { WeatherImage } from "./models/WeatherImage.js";
 export type { WebhookAdminDisable } from "./models/WebhookAdminDisable.js";
 export type { WebhookDeliveryList } from "./models/WebhookDeliveryList.js";
@@ -11699,6 +12037,7 @@ export { activityEntrySchema } from "./zod/activityEntrySchema.js";
 export { addressPublicSchema } from "./zod/addressPublicSchema.js";
 export { addressUpdateSchema } from "./zod/addressUpdateSchema.js";
 export { adjustmentCreateSchema } from "./zod/adjustmentCreateSchema.js";
+export { adminActivationSchema } from "./zod/adminActivationSchema.js";
 export { admissionCreateSchema } from "./zod/admissionCreateSchema.js";
 export { admissionPublicSchema } from "./zod/admissionPublicSchema.js";
 export { ageingBucketPublicSchema } from "./zod/ageingBucketPublicSchema.js";
@@ -11783,6 +12122,28 @@ export {
   authAccountEmailCodeVerifyStatus422Schema,
   authAccountEmailCodeVerifyStatus429Schema,
 } from "./zod/authAccountEmailCodeVerifySchema.js";
+export {
+  authAdminActivateAccountBodySchema,
+  authAdminActivateAccountErrorSchema,
+  authAdminActivateAccountPathUserIdSchema,
+  authAdminActivateAccountResponseSchema,
+  authAdminActivateAccountStatus200Schema,
+  authAdminActivateAccountStatus403Schema,
+  authAdminActivateAccountStatus404Schema,
+  authAdminActivateAccountStatus409Schema,
+  authAdminActivateAccountStatus422Schema,
+} from "./zod/authAdminActivateAccountSchema.js";
+export {
+  authAdminResendVerificationBodySchema,
+  authAdminResendVerificationErrorSchema,
+  authAdminResendVerificationPathUserIdSchema,
+  authAdminResendVerificationResponseSchema,
+  authAdminResendVerificationStatus200Schema,
+  authAdminResendVerificationStatus403Schema,
+  authAdminResendVerificationStatus404Schema,
+  authAdminResendVerificationStatus409Schema,
+  authAdminResendVerificationStatus422Schema,
+} from "./zod/authAdminResendVerificationSchema.js";
 export {
   authAppEmailCodeStartBodySchema,
   authAppEmailCodeStartErrorSchema,
@@ -12651,13 +13012,21 @@ export { bookingAgendaDaySchema } from "./zod/bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./zod/bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./zod/bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./zod/bookingAvailabilitySchema.js";
+export { bookingEmailCodeConfirmSchema } from "./zod/bookingEmailCodeConfirmSchema.js";
+export { bookingEmailCodeRequestSchema } from "./zod/bookingEmailCodeRequestSchema.js";
+export { bookingEmailCodeSentSchema } from "./zod/bookingEmailCodeSentSchema.js";
+export { bookingEmailProofSchema } from "./zod/bookingEmailProofSchema.js";
 export { bookingExceptionCreateSchema } from "./zod/bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./zod/bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./zod/bookingExceptionPublicSchema.js";
+export { bookingManualDepositCreateSchema } from "./zod/bookingManualDepositCreateSchema.js";
+export { bookingMyOrganisationSchema } from "./zod/bookingMyOrganisationSchema.js";
+export { bookingOrderSchema } from "./zod/bookingOrderSchema.js";
 export { bookingProfilePublicSchema } from "./zod/bookingProfilePublicSchema.js";
 export { bookingProfileUpdateSchema } from "./zod/bookingProfileUpdateSchema.js";
 export { bookingProviderCreateSchema } from "./zod/bookingProviderCreateSchema.js";
 export { bookingProviderPublicSchema } from "./zod/bookingProviderPublicSchema.js";
+export { bookingProviderSettingsSchema } from "./zod/bookingProviderSettingsSchema.js";
 export { bookingProviderUpdateSchema } from "./zod/bookingProviderUpdateSchema.js";
 export { bookingPublicCancelSchema } from "./zod/bookingPublicCancelSchema.js";
 export { bookingPublicCreateSchema } from "./zod/bookingPublicCreateSchema.js";
@@ -12669,11 +13038,13 @@ export { bookingPublicServiceSchema } from "./zod/bookingPublicServiceSchema.js"
 export { bookingServiceCreateSchema } from "./zod/bookingServiceCreateSchema.js";
 export { bookingServicePublicSchema } from "./zod/bookingServicePublicSchema.js";
 export { bookingServiceUpdateSchema } from "./zod/bookingServiceUpdateSchema.js";
+export { bookingSettingsSchema } from "./zod/bookingSettingsSchema.js";
 export { bookingSlotSchema } from "./zod/bookingSlotSchema.js";
 export { bookingSourceSchema } from "./zod/bookingSourceSchema.js";
 export { bookingStatusSchema } from "./zod/bookingStatusSchema.js";
 export { bookingStorefrontSchema } from "./zod/bookingStorefrontSchema.js";
 export { bookingStudioCancelSchema } from "./zod/bookingStudioCancelSchema.js";
+export { bookingStudioCreateSchema } from "./zod/bookingStudioCreateSchema.js";
 export { bookingStudioCustomerSchema } from "./zod/bookingStudioCustomerSchema.js";
 export { bookingStudioDeclineSchema } from "./zod/bookingStudioDeclineSchema.js";
 export { bookingStudioDetailSchema } from "./zod/bookingStudioDetailSchema.js";
@@ -12715,6 +13086,18 @@ export {
   bookingsCompleteStudioBookingStatus409Schema,
   bookingsCompleteStudioBookingStatus422Schema,
 } from "./zod/bookingsCompleteStudioBookingSchema.js";
+export {
+  bookingsConfirmEmailCodeBodySchema,
+  bookingsConfirmEmailCodeErrorSchema,
+  bookingsConfirmEmailCodePathSlugSchema,
+  bookingsConfirmEmailCodeResponseSchema,
+  bookingsConfirmEmailCodeStatus200Schema,
+  bookingsConfirmEmailCodeStatus400Schema,
+  bookingsConfirmEmailCodeStatus404Schema,
+  bookingsConfirmEmailCodeStatus422Schema,
+  bookingsConfirmEmailCodeStatus429Schema,
+  bookingsConfirmEmailCodeStatus503Schema,
+} from "./zod/bookingsConfirmEmailCodeSchema.js";
 export {
   bookingsConfirmStudioBookingErrorSchema,
   bookingsConfirmStudioBookingHeaderXBarrelsOrganisationSchema,
@@ -12763,6 +13146,7 @@ export {
   bookingsCreatePublicBookingResponseSchema,
   bookingsCreatePublicBookingStatus201Schema,
   bookingsCreatePublicBookingStatus400Schema,
+  bookingsCreatePublicBookingStatus403Schema,
   bookingsCreatePublicBookingStatus404Schema,
   bookingsCreatePublicBookingStatus409Schema,
   bookingsCreatePublicBookingStatus422Schema,
@@ -12780,6 +13164,20 @@ export {
   bookingsCreateServiceStatus409Schema,
   bookingsCreateServiceStatus422Schema,
 } from "./zod/bookingsCreateServiceSchema.js";
+export {
+  bookingsCreateStudioBookingBodySchema,
+  bookingsCreateStudioBookingErrorSchema,
+  bookingsCreateStudioBookingHeaderIdempotencyKeySchema,
+  bookingsCreateStudioBookingHeaderXBarrelsOrganisationSchema,
+  bookingsCreateStudioBookingResponseSchema,
+  bookingsCreateStudioBookingStatus201Schema,
+  bookingsCreateStudioBookingStatus400Schema,
+  bookingsCreateStudioBookingStatus401Schema,
+  bookingsCreateStudioBookingStatus403Schema,
+  bookingsCreateStudioBookingStatus404Schema,
+  bookingsCreateStudioBookingStatus409Schema,
+  bookingsCreateStudioBookingStatus422Schema,
+} from "./zod/bookingsCreateStudioBookingSchema.js";
 export {
   bookingsDeclineStudioBookingBodySchema,
   bookingsDeclineStudioBookingErrorSchema,
@@ -12865,6 +13263,17 @@ export {
   bookingsGetPublicBookingStatus422Schema,
 } from "./zod/bookingsGetPublicBookingSchema.js";
 export {
+  bookingsGetSettingsErrorSchema,
+  bookingsGetSettingsHeaderXBarrelsOrganisationSchema,
+  bookingsGetSettingsResponseSchema,
+  bookingsGetSettingsStatus200Schema,
+  bookingsGetSettingsStatus400Schema,
+  bookingsGetSettingsStatus401Schema,
+  bookingsGetSettingsStatus403Schema,
+  bookingsGetSettingsStatus404Schema,
+  bookingsGetSettingsStatus422Schema,
+} from "./zod/bookingsGetSettingsSchema.js";
+export {
   bookingsGetStorefrontErrorSchema,
   bookingsGetStorefrontPathSlugSchema,
   bookingsGetStorefrontResponseSchema,
@@ -12910,6 +13319,14 @@ export {
   bookingsListExceptionsStatus404Schema,
   bookingsListExceptionsStatus422Schema,
 } from "./zod/bookingsListExceptionsSchema.js";
+export {
+  bookingsListMyOrganisationsErrorSchema,
+  bookingsListMyOrganisationsResponseSchema,
+  bookingsListMyOrganisationsStatus200Schema,
+  bookingsListMyOrganisationsStatus401Schema,
+  bookingsListMyOrganisationsStatus403Schema,
+  bookingsListMyOrganisationsStatus422Schema,
+} from "./zod/bookingsListMyOrganisationsSchema.js";
 export {
   bookingsListProvidersErrorSchema,
   bookingsListProvidersHeaderXBarrelsOrganisationSchema,
@@ -12959,6 +13376,47 @@ export {
   bookingsNoShowStudioBookingStatus422Schema,
 } from "./zod/bookingsNoShowStudioBookingSchema.js";
 export {
+  bookingsRecordManualDepositBodySchema,
+  bookingsRecordManualDepositErrorSchema,
+  bookingsRecordManualDepositHeaderIdempotencyKeySchema,
+  bookingsRecordManualDepositHeaderXBarrelsOrganisationSchema,
+  bookingsRecordManualDepositPathBookingIdSchema,
+  bookingsRecordManualDepositResponseSchema,
+  bookingsRecordManualDepositStatus200Schema,
+  bookingsRecordManualDepositStatus400Schema,
+  bookingsRecordManualDepositStatus401Schema,
+  bookingsRecordManualDepositStatus403Schema,
+  bookingsRecordManualDepositStatus404Schema,
+  bookingsRecordManualDepositStatus409Schema,
+  bookingsRecordManualDepositStatus422Schema,
+} from "./zod/bookingsRecordManualDepositSchema.js";
+export {
+  bookingsReorderProvidersBodySchema,
+  bookingsReorderProvidersErrorSchema,
+  bookingsReorderProvidersHeaderXBarrelsOrganisationSchema,
+  bookingsReorderProvidersResponseSchema,
+  bookingsReorderProvidersStatus200Schema,
+  bookingsReorderProvidersStatus400Schema,
+  bookingsReorderProvidersStatus401Schema,
+  bookingsReorderProvidersStatus403Schema,
+  bookingsReorderProvidersStatus404Schema,
+  bookingsReorderProvidersStatus409Schema,
+  bookingsReorderProvidersStatus422Schema,
+} from "./zod/bookingsReorderProvidersSchema.js";
+export {
+  bookingsReorderServicesBodySchema,
+  bookingsReorderServicesErrorSchema,
+  bookingsReorderServicesHeaderXBarrelsOrganisationSchema,
+  bookingsReorderServicesResponseSchema,
+  bookingsReorderServicesStatus200Schema,
+  bookingsReorderServicesStatus400Schema,
+  bookingsReorderServicesStatus401Schema,
+  bookingsReorderServicesStatus403Schema,
+  bookingsReorderServicesStatus404Schema,
+  bookingsReorderServicesStatus409Schema,
+  bookingsReorderServicesStatus422Schema,
+} from "./zod/bookingsReorderServicesSchema.js";
+export {
   bookingsReplaceWorkingHoursBodySchema,
   bookingsReplaceWorkingHoursErrorSchema,
   bookingsReplaceWorkingHoursHeaderXBarrelsOrganisationSchema,
@@ -12972,6 +13430,18 @@ export {
   bookingsReplaceWorkingHoursStatus409Schema,
   bookingsReplaceWorkingHoursStatus422Schema,
 } from "./zod/bookingsReplaceWorkingHoursSchema.js";
+export {
+  bookingsRequestEmailCodeBodySchema,
+  bookingsRequestEmailCodeErrorSchema,
+  bookingsRequestEmailCodePathSlugSchema,
+  bookingsRequestEmailCodeResponseSchema,
+  bookingsRequestEmailCodeStatus200Schema,
+  bookingsRequestEmailCodeStatus400Schema,
+  bookingsRequestEmailCodeStatus404Schema,
+  bookingsRequestEmailCodeStatus422Schema,
+  bookingsRequestEmailCodeStatus429Schema,
+  bookingsRequestEmailCodeStatus503Schema,
+} from "./zod/bookingsRequestEmailCodeSchema.js";
 export {
   bookingsReschedulePublicBookingBodySchema,
   bookingsReschedulePublicBookingErrorSchema,
@@ -13441,6 +13911,13 @@ export { challengeStatusSchema } from "./zod/challengeStatusSchema.js";
 export { checkInCreateSchema } from "./zod/checkInCreateSchema.js";
 export { checkInPublicSchema } from "./zod/checkInPublicSchema.js";
 export { checkoutSessionPublicSchema } from "./zod/checkoutSessionPublicSchema.js";
+export { clockPunchApproveSchema } from "./zod/clockPunchApproveSchema.js";
+export { clockPunchesPublicSchema } from "./zod/clockPunchesPublicSchema.js";
+export { clockPunchKindSchema } from "./zod/clockPunchKindSchema.js";
+export { clockPunchPendingPublicSchema } from "./zod/clockPunchPendingPublicSchema.js";
+export { clockPunchPublicSchema } from "./zod/clockPunchPublicSchema.js";
+export { clockPunchRejectSchema } from "./zod/clockPunchRejectSchema.js";
+export { clockPunchStatusSchema } from "./zod/clockPunchStatusSchema.js";
 export { clockRequestSchema } from "./zod/clockRequestSchema.js";
 export { clockResultPropertiesActionEnumSchema } from "./zod/clockResultPropertiesActionEnumSchema.js";
 export { clockResultSchema } from "./zod/clockResultSchema.js";
@@ -14490,6 +14967,14 @@ export {
   featureEvaluateForOrganisationStatus404Schema,
   featureEvaluateForOrganisationStatus422Schema,
 } from "./zod/featureEvaluateForOrganisationSchema.js";
+export {
+  featureEvaluatePublicErrorSchema,
+  featureEvaluatePublicQueryKeysSchema,
+  featureEvaluatePublicResponseSchema,
+  featureEvaluatePublicStatus200Schema,
+  featureEvaluatePublicStatus422Schema,
+  featureEvaluatePublicStatus429Schema,
+} from "./zod/featureEvaluatePublicSchema.js";
 export { featureFlagAdminListSchema } from "./zod/featureFlagAdminListSchema.js";
 export { featureFlagAdminSchema } from "./zod/featureFlagAdminSchema.js";
 export { featureFlagAudienceSchema } from "./zod/featureFlagAudienceSchema.js";
@@ -14618,6 +15103,17 @@ export {
   hrActionShiftSwapStatus404Schema,
   hrActionShiftSwapStatus422Schema,
 } from "./zod/hrActionShiftSwapSchema.js";
+export {
+  hrApproveClockPunchBodySchema,
+  hrApproveClockPunchErrorSchema,
+  hrApproveClockPunchPathPunchIdSchema,
+  hrApproveClockPunchResponseSchema,
+  hrApproveClockPunchStatus200Schema,
+  hrApproveClockPunchStatus403Schema,
+  hrApproveClockPunchStatus404Schema,
+  hrApproveClockPunchStatus409Schema,
+  hrApproveClockPunchStatus422Schema,
+} from "./zod/hrApproveClockPunchSchema.js";
 export {
   hrApproveStaffRegistrationErrorSchema,
   hrApproveStaffRegistrationPathUserIdSchema,
@@ -15479,6 +15975,15 @@ export {
   hrListMyShiftSwapsStatus422Schema,
 } from "./zod/hrListMyShiftSwapsSchema.js";
 export {
+  hrListPendingClockPunchesErrorSchema,
+  hrListPendingClockPunchesQueryLimitSchema,
+  hrListPendingClockPunchesQueryOffsetSchema,
+  hrListPendingClockPunchesResponseSchema,
+  hrListPendingClockPunchesStatus200Schema,
+  hrListPendingClockPunchesStatus403Schema,
+  hrListPendingClockPunchesStatus422Schema,
+} from "./zod/hrListPendingClockPunchesSchema.js";
+export {
   hrListPeriodsErrorSchema,
   hrListPeriodsQueryDepartmentIdSchema,
   hrListPeriodsQueryPeriodStatusSchema,
@@ -15625,6 +16130,17 @@ export {
   hrPutDepartmentRulesStatus403Schema,
   hrPutDepartmentRulesStatus422Schema,
 } from "./zod/hrPutDepartmentRulesSchema.js";
+export {
+  hrRejectClockPunchBodySchema,
+  hrRejectClockPunchErrorSchema,
+  hrRejectClockPunchPathPunchIdSchema,
+  hrRejectClockPunchResponseSchema,
+  hrRejectClockPunchStatus200Schema,
+  hrRejectClockPunchStatus403Schema,
+  hrRejectClockPunchStatus404Schema,
+  hrRejectClockPunchStatus409Schema,
+  hrRejectClockPunchStatus422Schema,
+} from "./zod/hrRejectClockPunchSchema.js";
 export {
   hrRemoveHolidayErrorSchema,
   hrRemoveHolidayPathHolidayIdSchema,
@@ -16607,6 +17123,18 @@ export {
   organisationsAcceptInvitationStatus422Schema,
 } from "./zod/organisationsAcceptInvitationSchema.js";
 export {
+  organisationsAddMemberAdminBodySchema,
+  organisationsAddMemberAdminErrorSchema,
+  organisationsAddMemberAdminPathOrganisationIdSchema,
+  organisationsAddMemberAdminResponseSchema,
+  organisationsAddMemberAdminStatus201Schema,
+  organisationsAddMemberAdminStatus401Schema,
+  organisationsAddMemberAdminStatus403Schema,
+  organisationsAddMemberAdminStatus404Schema,
+  organisationsAddMemberAdminStatus409Schema,
+  organisationsAddMemberAdminStatus422Schema,
+} from "./zod/organisationsAddMemberAdminSchema.js";
+export {
   organisationsCreateAdminSiteBodySchema,
   organisationsCreateAdminSiteErrorSchema,
   organisationsCreateAdminSiteResponseSchema,
@@ -16653,6 +17181,19 @@ export {
   organisationsCreateOneStatus409Schema,
   organisationsCreateOneStatus422Schema,
 } from "./zod/organisationsCreateOneSchema.js";
+export {
+  organisationsDeleteMemberAdminBodySchema,
+  organisationsDeleteMemberAdminErrorSchema,
+  organisationsDeleteMemberAdminPathMembershipIdSchema,
+  organisationsDeleteMemberAdminPathOrganisationIdSchema,
+  organisationsDeleteMemberAdminResponseSchema,
+  organisationsDeleteMemberAdminStatus204Schema,
+  organisationsDeleteMemberAdminStatus401Schema,
+  organisationsDeleteMemberAdminStatus403Schema,
+  organisationsDeleteMemberAdminStatus404Schema,
+  organisationsDeleteMemberAdminStatus409Schema,
+  organisationsDeleteMemberAdminStatus422Schema,
+} from "./zod/organisationsDeleteMemberAdminSchema.js";
 export {
   organisationsDeleteMemberErrorSchema,
   organisationsDeleteMemberHeaderXBarrelsOrganisationSchema,
@@ -16906,6 +17447,19 @@ export {
   organisationsUpdateAdminSiteStatus422Schema,
 } from "./zod/organisationsUpdateAdminSiteSchema.js";
 export {
+  organisationsUpdateMemberAdminBodySchema,
+  organisationsUpdateMemberAdminErrorSchema,
+  organisationsUpdateMemberAdminPathMembershipIdSchema,
+  organisationsUpdateMemberAdminPathOrganisationIdSchema,
+  organisationsUpdateMemberAdminResponseSchema,
+  organisationsUpdateMemberAdminStatus200Schema,
+  organisationsUpdateMemberAdminStatus401Schema,
+  organisationsUpdateMemberAdminStatus403Schema,
+  organisationsUpdateMemberAdminStatus404Schema,
+  organisationsUpdateMemberAdminStatus409Schema,
+  organisationsUpdateMemberAdminStatus422Schema,
+} from "./zod/organisationsUpdateMemberAdminSchema.js";
+export {
   organisationsUpdateMemberBodySchema,
   organisationsUpdateMemberErrorSchema,
   organisationsUpdateMemberHeaderXBarrelsOrganisationSchema,
@@ -17148,6 +17702,9 @@ export { personChipSchema } from "./zod/personChipSchema.js";
 export { personnelStatusSchema } from "./zod/personnelStatusSchema.js";
 export { personSuggestionSchema } from "./zod/personSuggestionSchema.js";
 export { plansPublicSchema } from "./zod/plansPublicSchema.js";
+export { platformMemberAddSchema } from "./zod/platformMemberAddSchema.js";
+export { platformMemberRemoveSchema } from "./zod/platformMemberRemoveSchema.js";
+export { platformMemberRoleUpdateSchema } from "./zod/platformMemberRoleUpdateSchema.js";
 export { platformOrganisationCreateSchema } from "./zod/platformOrganisationCreateSchema.js";
 export { platformOrganisationUpdateSchema } from "./zod/platformOrganisationUpdateSchema.js";
 export { policyInputSchema } from "./zod/policyInputSchema.js";
@@ -17233,6 +17790,7 @@ export {
   pushVapidPublicKeyStatus422Schema,
 } from "./zod/pushVapidPublicKeySchema.js";
 export { qcDecisionRequestSchema } from "./zod/qcDecisionRequestSchema.js";
+export { readinessUnavailableSchema } from "./zod/readinessUnavailableSchema.js";
 export { receivableRowPublicSchema } from "./zod/receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./zod/receivablesPublicSchema.js";
 export { recoveryCodesPublicSchema } from "./zod/recoveryCodesPublicSchema.js";
@@ -18237,6 +18795,7 @@ export { suggestionPublicPropertiesStatusEnumSchema } from "./zod/suggestionPubl
 export { suggestionPublicSchema } from "./zod/suggestionPublicSchema.js";
 export { suggestionUpdatePropertiesStatusEnumSchema } from "./zod/suggestionUpdatePropertiesStatusEnumSchema.js";
 export { suggestionUpdateSchema } from "./zod/suggestionUpdateSchema.js";
+export { superuserActionReasonSchema } from "./zod/superuserActionReasonSchema.js";
 export { swapTypeSchema } from "./zod/swapTypeSchema.js";
 export { synopDecodedSchema } from "./zod/synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./zod/synopticImageGroupSchema.js";
@@ -18534,6 +19093,7 @@ export { validationErrorItemSchema } from "./zod/validationErrorItemSchema.js";
 export { validationErrorResponseSchema } from "./zod/validationErrorResponseSchema.js";
 export { vapidPublicKeySchema } from "./zod/vapidPublicKeySchema.js";
 export { verificationDecisionSchema } from "./zod/verificationDecisionSchema.js";
+export { verificationResendSchema } from "./zod/verificationResendSchema.js";
 export { weatherImageSchema } from "./zod/weatherImageSchema.js";
 export { webhookAdminDisableSchema } from "./zod/webhookAdminDisableSchema.js";
 export { webhookDeliveryListSchema } from "./zod/webhookDeliveryListSchema.js";

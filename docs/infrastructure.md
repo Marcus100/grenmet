@@ -21,7 +21,7 @@ Each stack includes:
 - `api`: FastAPI backend on internal port `8000`.
 - `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
 - `redis` + `worker`: Redis and the arq background worker (CAP publish jobs, notification and email outboxes, retention purge; see `src/worker/AGENTS.md`).
-- `web-auth`, `web-admin`, `web-docs`, `web-gms`, `web-signal`, `web-mbia`, `web-events`, `web-cap`, and `web-gmsdash`: nine configured web services. The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-admin`.
+- `web-cms`, `web-auth`, `web-admin` (Barrels staff console), `web-gmsadmin` (GMS/GAA portal), `web-docs`, `web-gms`, `web-signal`, `web-mbia`, `web-events`, `web-cap`, `web-gmsdash`, and `web-bookings`: twelve configured web services (recounted from `docker-compose.deploy.yml`). The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-gmsadmin`.
 - `proxy`: Traefik v3, terminating HTTPS and routing by host.
 - `adminer`: present in staging only in the current compose files.
 
@@ -79,7 +79,7 @@ Useful commands on a server (confirm names with `docker ps -a`):
 
 ```bash
 docker ps -a --filter label=com.docker.compose.project=grenmet
-docker logs grenmet-api-1 --tail 100
+docker compose -p grenmet logs api --tail 100
 docker logs grenmet-prestart-1 --tail 100
 docker logs grenmet-proxy-1 --tail 100
 docker logs grenmet-db-1 --tail 100
@@ -126,6 +126,13 @@ Review these access points at least quarterly and after staff changes:
 - Traefik and Adminer basic-auth credentials.
 - FastAPI superusers, roles, permissions, and role assignments.
 - Resend, Sentry, PostHog, GHCR, and DigitalOcean access.
+
+Owner hardening runbooks (step-by-step, with verify and undo for each step):
+
+- [Host hardening](operations/host-hardening.md): updates, SSH, fail2ban, DigitalOcean Cloud Firewall, runner least privilege.
+- [Domain security](operations/domain-security.md): registrar lock, DNSSEC, wildcards, CAA, Microsoft 365 mail, DMARC.
+- [Account 2FA checklist](operations/account-2fa-checklist.md): provider 2FA and read-only audit tokens.
+- [Sentry hardening](operations/sentry-hardening.md): organization privacy and scrubbing settings.
 
 ## Current Operational Gaps
 
