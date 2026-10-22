@@ -38,6 +38,7 @@ import {
   declineBookingAction,
   noShowBookingAction,
 } from "@/app/studio/[orgSlug]/bookings/[id]/actions";
+import { keepValuesOnSubmit } from "@/lib/keep-values";
 import { type ActionState, IDLE } from "@/lib/studio-action-state";
 import { availableActions } from "@/lib/studio-view";
 
@@ -429,7 +430,7 @@ function DialogForm({
   }, [state, onDone]);
 
   return (
-    <form action={formAction} className="grid gap-4">
+    <form className="grid gap-4" onSubmit={keepValuesOnSubmit(formAction)}>
       <AlertDialogHeader>
         <AlertDialogTitle>{title}</AlertDialogTitle>
         <AlertDialogDescription>{description}</AlertDialogDescription>

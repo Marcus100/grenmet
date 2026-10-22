@@ -94,7 +94,15 @@ function CreateAccount({ onCreated }: { onCreated?: () => void }) {
             </p>
           </>
         ) : (
-          <form action={submit} className="space-y-3">
+          <form
+            className="space-y-3"
+            onSubmit={(event) => {
+              // No form action: React 19 would reset every field when
+              // mutateAsync throws, wiping what the admin typed.
+              event.preventDefault();
+              submit(new FormData(event.currentTarget));
+            }}
+          >
             {(
               [
                 ["first_name", "First name"],
