@@ -309,6 +309,7 @@ async def _payment_link(
             organisation_id=organiser.organisation_id,
             order=order,
             customer_email=user.email if user else None,
+            listing_title=listing.title,
         )
         if order.payment_intent_id != intent_id:
             order.payment_intent_id = intent_id

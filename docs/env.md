@@ -133,7 +133,7 @@ the API image and the local source mount contain the same migration assets.
 | `WXPRODUCTS_DATABASE_URL` | PostgreSQL URL for the separate existing weather-products database; required to serve the public product feed. Use a hostname reachable from FastAPI (`grenmet-postgres` in local Compose, `host.docker.internal` from the devcontainer). The API role needs read/write access to authored products, revisions and their identity sequence; the migration runner needs schema ownership. Weather migrations are owned by FastAPI. Missing configuration returns 503, not an empty feed. |
 | `EVENTS_ORDER_HOLD_MINUTES` | How long an unpaid paid-tier order holds its tickets before the `expire_unpaid_event_orders` job cancels it and releases the stock (default `30`). The Stripe rail is test mode only (`PAYMENTS_STRIPE_*`). |
 | `EVENTS_REFUND_CUTOFF_HOURS` | Refund policy for an organiser cancelling one paid order with `refund: follow_policy`: refunded when the event starts at least this many hours away, kept inside the window (default `48`). An event the organiser cancels is refunded in full. |
-| `EVENTS_APP_URL` | Public URL of the Barrels Events web app (app-scoped sign-in, ADR-0016). Default `http://localhost:3009`. |
+| `EVENTS_APP_URL` | Public URL of the Barrels Events web app (app-scoped sign-in, ADR-0016; also where Stripe Checkout returns an Events buyer, `/me/orders/<order id>`). Default `http://localhost:3009`. |
 | `EVENTS_SSO_CLIENT_SECRET` | Secret the Events web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters (`openssl rand -base64 32`). Set the same value for the API and the Events web app (which also needs `AUTH_APP_URL`); deployment reads the GitHub environment secret of this name. Empty disables single sign-on into Events and hides "Continue with your Barrels account". |
 | `GMSDASH_APP_URL` | Public URL of the GMS Dashboard web app (app-scoped sign-in). Default `http://localhost:3013`. |
 | `GMSDASH_SSO_CLIENT_SECRET` | Secret the GMS Dashboard web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Set the same value for the API and `apps/web/gmsdash`. |
@@ -779,13 +779,13 @@ change does not provision secrets or enable enforcement in production.
 
 ### Payments (PF4, test mode only)
 
-The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter runs in **test mode only**. They are wired into the deployment (`deploy.yml` → `render-env.py` → the API and worker in `docker-compose.deploy.yml`), but leave them **unset** in staging and production until the owner approves a payment rail. `render-env.py` refuses a `PAYMENTS_STRIPE_SECRET_KEY` that does not start with `sk_test_`, so a live key cannot be deployed by accident.
+The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter runs in **test mode only**. They are wired into the deployment (`deploy.yml` → `render-env.py` → the API and worker in `docker-compose.deploy.yml`), but leave them **unset** in staging and production until the owner approves a payment rail. `render-env.py` refuses a `PAYMENTS_STRIPE_SECRET_KEY` that does not start with `sk_test_`, so a live key cannot be deployed by accident. It also refuses a half-set Stripe configuration: `PAYMENTS_STRIPE_SECRET_KEY`, `_WEBHOOK_SECRET`, `_SUCCESS_URL` and `_CANCEL_URL` are set together or not at all, and both URLs must be `https://`.
 
 | Variable | Purpose |
 | --- | --- |
 | `PAYMENTS_STRIPE_SECRET_KEY` | Stripe test secret. A key that does not start with `sk_test_` is refused at use, so a live key cannot enable a live rail. Unset: the Stripe adapter is disabled (the `manual` provider still works). |
 | `PAYMENTS_STRIPE_WEBHOOK_SECRET` | Signing secret for `POST /api/v1/payments/public/webhooks/stripe` (503 when unset). |
-| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | Where Stripe Checkout returns the customer (our HTTPS pages). Checkout answers 503 until both are set. |
+| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | Fallback return pages (HTTPS) for a purchase type with no registered address; Checkout answers 503 until both are set. A purchase type can register its own address (`src/payments/return_urls.py`): Events returns the buyer to `{EVENTS_APP_URL}/me/orders/<order id>?payment=success\|cancelled`. Return addresses come from settings, never from a request. |
 | `PAYMENTS_STRIPE_API_BASE` | Defaults to `https://api.stripe.com`; override only in tests. |
 | `PAYMENTS_WEBHOOK_TOLERANCE_SECONDS` | How old a signed webhook may be (default 300). |
 | `PAYMENTS_REQUEST_TIMEOUT_SECONDS` | Provider request timeout (default 10). |
