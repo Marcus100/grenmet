@@ -59,6 +59,12 @@ ROUTE_KEYS: dict[str, tuple[str, str]] = {
     "eventsOrgRefundOrder": ("events.refunds.issue", "events.ops.refunds"),
     "eventsOrgCancelOrder": ("events.refunds.issue", "events.ops.refunds"),
     "eventsOrgCancelEvent": ("events.listings.manage", "events.ops.listings"),
+    "eventsOrgGetWorkspace": ("events.listings.manage", "events.ops.listings"),
+    "eventsOrgCreateListing": ("events.listings.manage", "events.ops.listings"),
+    "eventsOrgUpdateListing": ("events.listings.manage", "events.ops.listings"),
+    "eventsOrgPostponeEvent": ("events.listings.manage", "events.ops.listings"),
+    "eventsOrgSetOrganiserLogo": ("events.listings.manage", "events.ops.listings"),
+    "eventsOrgGetListingActivity": ("events.listings.manage", "events.ops.listings"),
 }
 
 
@@ -107,6 +113,10 @@ OrgCanRefund = Annotated[
 ]
 OrgCanManageEvents = Annotated[
     EventsActor, _key("events.listings.manage", staff_limit=STAFF_WRITE_LIMIT_MONEY)
+]
+
+OrgCanReadListings = Annotated[
+    EventsActor, _key("events.listings.manage", staff_limit=STAFF_READ_LIMIT)
 ]
 
 READ_ERRORS = {**AUTHENTICATED, **NOT_FOUND}
@@ -203,6 +213,134 @@ async def cancel_event(
         return await service.cancel_event_for_organisation(
             session, org.user, org.organisation_id, listing_id, body.refund
         )
+
+
+# --- Listing management (legacy /events/manage/* family, slice L1) ----------------------
+# The organisation has exactly one organiser (``organisers.organisation_id`` is
+# unique), so there is no ``?organiser=`` here: it is resolved from the header.
+
+
+@router.get(
+    "/workspace",
+    response_model=schemas.ManagedOrganiser,
+    summary="Get the organisation's organiser workspace",
+    description=(
+        "The organiser backing the organisation and all its listings, drafts "
+        "included. 404 when the organisation has no organiser yet."
+    ),
+    operation_id="eventsOrgGetWorkspace",
+    responses=READ_ERRORS,
+)
+async def get_workspace(*, session: SessionDep, org: OrgCanReadListings) -> Any:
+    organiser = await service.organiser_of_organisation(session, org.organisation_id)
+    return await service.managed_workspace(session, org.user, organiser, [organiser])
+
+
+@router.post(
+    "/listings",
+    response_model=schemas.ManagedListing,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create an event listing",
+    description=(
+        "Create a draft or published listing with ticket tiers for the organisation's "
+        "organiser. Only a verified organiser can publish (403)."
+    ),
+    operation_id="eventsOrgCreateListing",
+    responses={**WRITE_ERRORS, 403: {"description": "Not allowed to publish"}},
+)
+async def create_listing(
+    *, session: SessionDep, org: OrgCanManageEvents, body: schemas.ListingUpsert
+) -> Any:
+    organiser = await service.organiser_of_organisation(session, org.organisation_id)
+    return await service.create_listing_for(session, org.user, body, organiser)
+
+
+@router.put(
+    "/listings/{listing_id}",
+    response_model=schemas.ManagedListing,
+    summary="Update an event listing",
+    description=(
+        "Replace a listing's details and tiers. Saving with status `cancelled` "
+        "cancels the event without moving money; use the cancel route to refund."
+    ),
+    operation_id="eventsOrgUpdateListing",
+    responses={**WRITE_ERRORS, 403: {"description": "Not allowed to publish"}},
+)
+async def update_listing(
+    *,
+    session: SessionDep,
+    org: OrgCanManageEvents,
+    listing_id: uuid.UUID,
+    body: schemas.ListingUpsert,
+) -> Any:
+    organiser = await service.organiser_of_organisation(session, org.organisation_id)
+    async with org_orders.conflict_on_deadlock(session):
+        return await service.update_listing_for(
+            session, org.user, listing_id, body, organiser
+        )
+
+
+@router.post(
+    "/events/{listing_id}/postpone",
+    response_model=schemas.PostponeResult,
+    summary="Postpone an event",
+    description="Move a published event to new times. Tickets stay valid and holders are notified.",
+    operation_id="eventsOrgPostponeEvent",
+    responses=WRITE_ERRORS,
+)
+async def postpone_event(
+    *,
+    session: SessionDep,
+    org: OrgCanManageEvents,
+    listing_id: uuid.UUID,
+    body: schemas.PostponeEvent,
+) -> Any:
+    organiser = await service.organiser_of_organisation(session, org.organisation_id)
+    return await service.postpone_event_for_organiser(
+        session, org.user, organiser, listing_id, body
+    )
+
+
+@router.put(
+    "/organiser/logo",
+    response_model=schemas.OrganiserPublic,
+    summary="Set the organiser logo",
+    description=(
+        "Attach a completed `organiser-logo` upload of the organisation, or send "
+        "null to clear it."
+    ),
+    operation_id="eventsOrgSetOrganiserLogo",
+    responses=WRITE_ERRORS,
+)
+async def set_organiser_logo(
+    *, session: SessionDep, org: OrgCanManageEvents, body: schemas.OrganiserLogoUpdate
+) -> Any:
+    organiser = await service.organiser_of_organisation(session, org.organisation_id)
+    return await service.set_organiser_logo_for(
+        session, org.user, body.file_id, organiser
+    )
+
+
+@router.get(
+    "/events/{listing_id}/activity",
+    response_model=list[schemas.ActivityEntry],
+    summary="Get a listing's activity history",
+    description=(
+        "Append-only record of who changed the listing and what, newest first. "
+        "Barrels staff entries show as `staff`."
+    ),
+    operation_id="eventsOrgGetListingActivity",
+    responses=READ_ERRORS,
+)
+async def get_listing_activity(
+    *,
+    session: SessionDep,
+    org: OrgCanReadListings,
+    listing_id: uuid.UUID,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> Any:
+    organiser = await service.organiser_of_organisation(session, org.organisation_id)
+    return await service.listing_activity_for(session, organiser, listing_id, limit)
 
 
 @router.get(

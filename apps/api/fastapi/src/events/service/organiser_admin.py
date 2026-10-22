@@ -140,6 +140,29 @@ async def managed_organiser(
     db: AsyncSession, user: User, org_ids: list[str], slug: str | None = None
 ) -> schemas.ManagedOrganiser:
     organiser = await _my_organiser(db, user, org_ids, slug)
+    return await managed_workspace(
+        db, user, organiser, await my_organisers(db, user, org_ids)
+    )
+
+
+async def organiser_of_organisation(db: AsyncSession, organisation_id: str) -> Organiser:
+    """The organiser backing an organisation (``organisations`` is unique on
+    ``organiser.organisation_id``, so there is at most one). Org-zone routes use
+    this instead of ``?organiser=<slug>``; the caller's access to the organisation
+    is already decided by the route dependency."""
+    organiser = await db.scalar(
+        select(Organiser).where(Organiser.organisation_id == organisation_id)
+    )
+    if organiser is None:
+        raise EventsNotFound("This organisation has no organiser")
+    return organiser
+
+
+async def managed_workspace(
+    db: AsyncSession, user: User, organiser: Organiser, options: list[Organiser]
+) -> schemas.ManagedOrganiser:
+    """Organiser, option list and every listing (drafts included); shared by the
+    legacy ``/manage`` and the org-zone workspace read."""
     listings = (
         await db.scalars(
             select(Listing)
@@ -158,10 +181,20 @@ async def managed_organiser(
                 organisation_id=row.organisation_id,
                 verified=row.verified,
             )
-            for row in await my_organisers(db, user, org_ids)
+            for row in options
         ],
         listings=[await _managed(db, row, user) for row in listings],
     )
+
+
+async def organiser_listing(
+    db: AsyncSession, organiser: Organiser, listing_id: uuid.UUID
+) -> Listing:
+    """The organiser's own listing, else 404 (another organiser's id is not found)."""
+    listing = await db.get(Listing, listing_id)
+    if listing is None or listing.organiser_id != organiser.id:
+        raise EventsNotFound("Event not found")
+    return listing
 
 
 _SLUG_STRIP = re.compile(r"[^a-z0-9]+")
@@ -424,6 +457,12 @@ async def create_listing(
     slug: str | None = None,
 ) -> schemas.ManagedListing:
     organiser = await _my_organiser(db, user, org_ids, slug)
+    return await create_listing_for(db, user, body, organiser)
+
+
+async def create_listing_for(
+    db: AsyncSession, user: User, body: schemas.ListingUpsert, organiser: Organiser
+) -> schemas.ManagedListing:
     await _require_verified_to_publish(organiser, body.status, None)
     listing = Listing(slug=await _unique_slug(db, body.title))
     await _apply_listing(db, listing, body, organiser)
@@ -441,9 +480,17 @@ async def update_listing(
     slug: str | None = None,
 ) -> schemas.ManagedListing:
     organiser = await _my_organiser(db, user, org_ids, slug)
-    listing = await db.get(Listing, listing_id)
-    if listing is None or listing.organiser_id != organiser.id:
-        raise EventsNotFound("Event not found")
+    return await update_listing_for(db, user, listing_id, body, organiser)
+
+
+async def update_listing_for(
+    db: AsyncSession,
+    user: User,
+    listing_id: uuid.UUID,
+    body: schemas.ListingUpsert,
+    organiser: Organiser,
+) -> schemas.ManagedListing:
+    listing = await organiser_listing(db, organiser, listing_id)
     if body.status == "cancelled":
         # Saving as cancelled cancels like the cancel action: the exclusive
         # listing lock first, then orders, then tickets. No money moves here.
@@ -467,9 +514,13 @@ async def listing_activity(
     limit: int = 50,
 ) -> list[schemas.ActivityEntry]:
     organiser = await _my_organiser(db, user, org_ids, slug)
-    listing = await db.get(Listing, listing_id)
-    if listing is None or listing.organiser_id != organiser.id:
-        raise EventsNotFound("Event not found")
+    return await listing_activity_for(db, organiser, listing_id, limit)
+
+
+async def listing_activity_for(
+    db: AsyncSession, organiser: Organiser, listing_id: uuid.UUID, limit: int = 50
+) -> list[schemas.ActivityEntry]:
+    listing = await organiser_listing(db, organiser, listing_id)
     return await activity.entries(
         db, entity_type="listing", entity_id=str(listing.id), limit=limit
     )
@@ -551,6 +602,12 @@ async def set_organiser_logo(
 ) -> schemas.OrganiserPublic:
     """Set or clear the organiser's logo (a completed `organiser-logo` upload)."""
     organiser = await _my_organiser(db, user, org_ids, slug)
+    return await set_organiser_logo_for(db, user, file_id, organiser)
+
+
+async def set_organiser_logo_for(
+    db: AsyncSession, user: User, file_id: uuid.UUID | None, organiser: Organiser
+) -> schemas.OrganiserPublic:
     if file_id != organiser.logo_file_id:
         await _require_file(file_id, organiser, "organiser-logo")
         organiser.logo_file_id = file_id

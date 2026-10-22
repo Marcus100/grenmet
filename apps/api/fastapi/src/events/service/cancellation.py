@@ -29,6 +29,7 @@ from ..models import Admission, Listing, Order, OrderItem, Organiser, Refund, Ti
 from . import event_cancel
 from .admission import _door_listing
 from .common import _naive_utc
+from .organiser_admin import organiser_listing
 from .outlet import _my_till, money, refund_views
 
 
@@ -138,6 +139,25 @@ async def postpone_event(
     slug: str | None = None,
 ) -> schemas.PostponeResult:
     listing = await _locked_listing(db, user, listing_id, org_ids, slug)
+    return await _postpone_locked(db, user, listing, body)
+
+
+async def postpone_event_for_organiser(
+    db: AsyncSession,
+    user: User,
+    organiser: Organiser,
+    listing_id: uuid.UUID,
+    body: schemas.PostponeEvent,
+) -> schemas.PostponeResult:
+    """Org-zone postpone: the event must belong to the organisation's organiser."""
+    listing = await organiser_listing(db, organiser, listing_id)
+    await db.refresh(listing, with_for_update=True)
+    return await _postpone_locked(db, user, listing, body)
+
+
+async def _postpone_locked(
+    db: AsyncSession, user: User, listing: Listing, body: schemas.PostponeEvent
+) -> schemas.PostponeResult:
     if listing.status != "published":
         raise EventsConflict("Only a published event can be postponed")
     starts, ends = _naive_utc(body.starts_at), _naive_utc(body.ends_at)

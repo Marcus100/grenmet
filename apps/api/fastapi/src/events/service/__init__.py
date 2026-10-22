@@ -15,6 +15,7 @@ from .cancellation import (
     cancel_event,
     cancel_event_for_organisation,
     postpone_event,
+    postpone_event_for_organiser,
     refund_ticket,
 )
 from .common import FRIDAY, GOING_PREVIEW, GRENADA, SUNDAY, UTC_TZ, when_window
@@ -49,16 +50,22 @@ from .network import (
 )
 from .organiser_admin import (
     create_listing,
+    create_listing_for,
     create_organiser,
     listing_activity,
+    listing_activity_for,
     managed_organiser,
+    managed_workspace,
+    organiser_of_organisation,
     organiser_public,
     pending_organisers,
     request_organiser,
     resubmit_organiser,
     review_organiser,
     set_organiser_logo,
+    set_organiser_logo_for,
     update_listing,
+    update_listing_for,
 )
 from .outlet import (
     close_till,
@@ -91,6 +98,13 @@ __all__ = [
     "cancel_event",
     "cancel_event_for_organisation",
     "postpone_event",
+    "postpone_event_for_organiser",
+    "create_listing_for",
+    "listing_activity_for",
+    "managed_workspace",
+    "organiser_of_organisation",
+    "set_organiser_logo_for",
+    "update_listing_for",
     "refund_ticket",
     "organiser_settlement",
     "settlement",

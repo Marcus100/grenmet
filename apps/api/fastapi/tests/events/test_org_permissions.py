@@ -86,6 +86,34 @@ def _idem(headers: dict[str, str]) -> dict[str, str]:
     return {**headers, "Idempotency-Key": f"k-{uuid.uuid4().hex}"}
 
 
+def listing_body(**changes: object) -> dict[str, object]:
+    """A valid ``ListingUpsert`` body for the org-zone listing routes."""
+    start = (utc_now() + timedelta(days=12)).replace(microsecond=0)
+    body: dict[str, object] = {
+        "title": "Harbour Lights Fete",
+        "summary": "Lantern night on the water",
+        "category": "fete",
+        "parish": "st-george",
+        "venue": "Carenage",
+        "starts_at": f"{start.isoformat()}Z",
+        "ends_at": f"{(start + timedelta(hours=5)).isoformat()}Z",
+        "admission": "ticketed",
+        "capacity": 300,
+        "status": "published",
+        "tiers": [{"name": "General", "price_minor": 8000, "allocation": 250}],
+    }
+    body.update(changes)
+    return body
+
+
+def _postpone_body() -> dict[str, object]:
+    start = (utc_now() + timedelta(days=20)).replace(microsecond=0)
+    return {
+        "starts_at": f"{start.isoformat()}Z",
+        "ends_at": f"{(start + timedelta(hours=4)).isoformat()}Z",
+    }
+
+
 ROUTES = [
     Route(
         "list-orders",
@@ -145,6 +173,51 @@ ROUTES = [
             headers=h,
             json={"confirm": True, "refund": "none"},
         ),
+    ),
+    Route(
+        "get-workspace",
+        "events-manager",
+        "events-door",
+        lambda c, h, o, s: c.get(f"{ORG}/workspace", headers=h),
+    ),
+    Route(
+        "create-listing",
+        "events-manager",
+        "events-door",
+        lambda c, h, o, s: c.post(
+            f"{ORG}/listings", headers=h, json=listing_body(status="draft")
+        ),
+        ok=201,
+    ),
+    Route(
+        "update-listing",
+        "events-manager",
+        "events-door",
+        lambda c, h, o, s: c.put(
+            f"{ORG}/listings/{s.listing_id}", headers=h, json=listing_body()
+        ),
+    ),
+    Route(
+        "postpone-event",
+        "events-manager",
+        "events-refunds",
+        lambda c, h, o, s: c.post(
+            f"{ORG}/events/{s.listing_id}/postpone", headers=h, json=_postpone_body()
+        ),
+    ),
+    Route(
+        "set-logo",
+        "events-manager",
+        "events-door",
+        lambda c, h, o, s: c.put(
+            f"{ORG}/organiser/logo", headers=h, json={"file_id": None}
+        ),
+    ),
+    Route(
+        "listing-activity",
+        "events-manager",
+        "events-door",
+        lambda c, h, o, s: c.get(f"{ORG}/events/{s.listing_id}/activity", headers=h),
     ),
 ]
 

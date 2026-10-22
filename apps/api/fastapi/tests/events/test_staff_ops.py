@@ -55,6 +55,12 @@ STAFF_ROLE = {
     "refund-order": "events-staff-refunds",
     "cancel-order": "events-staff-refunds",
     "cancel-event": "events-staff-manager",
+    "get-workspace": "events-staff-manager",
+    "create-listing": "events-staff-manager",
+    "update-listing": "events-staff-manager",
+    "postpone-event": "events-staff-manager",
+    "set-logo": "events-staff-manager",
+    "listing-activity": "events-staff-manager",
 }
 WRONG_ROLE = {
     "list-attendees": "events-staff-till",
