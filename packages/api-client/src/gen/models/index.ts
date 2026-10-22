@@ -1086,6 +1086,10 @@ export type { BookingAgenda } from "./BookingAgenda.js";
 export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
 export type { BookingAvailability } from "./BookingAvailability.js";
+export type { BookingEmailCodeConfirm } from "./BookingEmailCodeConfirm.js";
+export type { BookingEmailCodeRequest } from "./BookingEmailCodeRequest.js";
+export type { BookingEmailCodeSent } from "./BookingEmailCodeSent.js";
+export type { BookingEmailProof } from "./BookingEmailProof.js";
 export type { BookingExceptionCreate } from "./BookingExceptionCreate.js";
 export type { BookingExceptionKind } from "./BookingExceptionKind.js";
 export { bookingExceptionKind } from "./BookingExceptionKind.js";
@@ -1161,6 +1165,19 @@ export type {
   BookingsCompleteStudioBookingStatus409,
   BookingsCompleteStudioBookingStatus422,
 } from "./BookingsCompleteStudioBooking.js";
+export type {
+  BookingsConfirmEmailCodeBody,
+  BookingsConfirmEmailCodeOptions,
+  BookingsConfirmEmailCodePath,
+  BookingsConfirmEmailCodeResponse,
+  BookingsConfirmEmailCodeResponses,
+  BookingsConfirmEmailCodeStatus200,
+  BookingsConfirmEmailCodeStatus400,
+  BookingsConfirmEmailCodeStatus404,
+  BookingsConfirmEmailCodeStatus422,
+  BookingsConfirmEmailCodeStatus429,
+  BookingsConfirmEmailCodeStatus503,
+} from "./BookingsConfirmEmailCode.js";
 export type {
   BookingsConfirmStudioBookingHeaders,
   BookingsConfirmStudioBookingOptions,
@@ -1493,6 +1510,19 @@ export type {
   BookingsReplaceWorkingHoursStatus409,
   BookingsReplaceWorkingHoursStatus422,
 } from "./BookingsReplaceWorkingHours.js";
+export type {
+  BookingsRequestEmailCodeBody,
+  BookingsRequestEmailCodeOptions,
+  BookingsRequestEmailCodePath,
+  BookingsRequestEmailCodeResponse,
+  BookingsRequestEmailCodeResponses,
+  BookingsRequestEmailCodeStatus200,
+  BookingsRequestEmailCodeStatus400,
+  BookingsRequestEmailCodeStatus404,
+  BookingsRequestEmailCodeStatus422,
+  BookingsRequestEmailCodeStatus429,
+  BookingsRequestEmailCodeStatus503,
+} from "./BookingsRequestEmailCode.js";
 export type {
   BookingsReschedulePublicBookingBody,
   BookingsReschedulePublicBookingOptions,
