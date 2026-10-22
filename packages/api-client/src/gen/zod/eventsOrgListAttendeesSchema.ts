@@ -38,7 +38,7 @@ export const eventsOrgListAttendeesHeaderXBarrelsOrganisationSchema = z
   .union([z.string(), z.null()])
   .optional()
   .describe(
-    "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+    "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
   );
 
 export const eventsOrgListAttendeesStatus200Schema =

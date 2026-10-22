@@ -17,6 +17,7 @@ export { activationAccountCreateSchema } from "./activationAccountCreateSchema.j
 export { activationConfirmSchema } from "./activationConfirmSchema.js";
 export { activationIssueSchema } from "./activationIssueSchema.js";
 export { activationLinkSchema } from "./activationLinkSchema.js";
+export { activityEntryPropertiesActorCapacityEnumSchema } from "./activityEntryPropertiesActorCapacityEnumSchema.js";
 export { activityEntrySchema } from "./activityEntrySchema.js";
 export { addressPublicSchema } from "./addressPublicSchema.js";
 export { addressUpdateSchema } from "./addressUpdateSchema.js";
@@ -2262,6 +2263,31 @@ export {
   eventsAcceptConnectionStatus422Schema,
   eventsAcceptConnectionStatus429Schema,
 } from "./eventsAcceptConnectionSchema.js";
+export {
+  eventsAdminListEventsErrorSchema,
+  eventsAdminListEventsQueryFromSchema,
+  eventsAdminListEventsQueryOrganiserIdSchema,
+  eventsAdminListEventsQueryPageSchema,
+  eventsAdminListEventsQueryQSchema,
+  eventsAdminListEventsQuerySizeSchema,
+  eventsAdminListEventsQueryToSchema,
+  eventsAdminListEventsResponseSchema,
+  eventsAdminListEventsStatus200Schema,
+  eventsAdminListEventsStatus401Schema,
+  eventsAdminListEventsStatus403Schema,
+  eventsAdminListEventsStatus422Schema,
+} from "./eventsAdminListEventsSchema.js";
+export {
+  eventsAdminListOrganisersErrorSchema,
+  eventsAdminListOrganisersQueryPageSchema,
+  eventsAdminListOrganisersQueryQSchema,
+  eventsAdminListOrganisersQuerySizeSchema,
+  eventsAdminListOrganisersResponseSchema,
+  eventsAdminListOrganisersStatus200Schema,
+  eventsAdminListOrganisersStatus401Schema,
+  eventsAdminListOrganisersStatus403Schema,
+  eventsAdminListOrganisersStatus422Schema,
+} from "./eventsAdminListOrganisersSchema.js";
 export {
   eventsAdmitTicketBodySchema,
   eventsAdmitTicketErrorSchema,
@@ -5764,6 +5790,8 @@ export { paginatedResponseOrgAttendeeSchema } from "./paginatedResponseOrgAttend
 export { paginatedResponseOrgOrderRowSchema } from "./paginatedResponseOrgOrderRowSchema.js";
 export { paginatedResponsePermissionPublicSchema } from "./paginatedResponsePermissionPublicSchema.js";
 export { paginatedResponseRolePublicSchema } from "./paginatedResponseRolePublicSchema.js";
+export { paginatedResponseStaffEventRowSchema } from "./paginatedResponseStaffEventRowSchema.js";
+export { paginatedResponseStaffOrganiserRowSchema } from "./paginatedResponseStaffOrganiserRowSchema.js";
 export { paginatedResponseUserPublicSchema } from "./paginatedResponseUserPublicSchema.js";
 export { parishSchema } from "./parishSchema.js";
 export { parkingActionSchema } from "./parkingActionSchema.js";
@@ -6703,7 +6731,9 @@ export { signedDocumentPublicSchema } from "./signedDocumentPublicSchema.js";
 export { siteSubscribeRequestSchema } from "./siteSubscribeRequestSchema.js";
 export { staffCardSchema } from "./staffCardSchema.js";
 export { staffCreateSchema } from "./staffCreateSchema.js";
+export { staffEventRowSchema } from "./staffEventRowSchema.js";
 export { staffInputSchema } from "./staffInputSchema.js";
+export { staffOrganiserRowSchema } from "./staffOrganiserRowSchema.js";
 export { staffSetupSchema } from "./staffSetupSchema.js";
 export { staffUpdateSchema } from "./staffUpdateSchema.js";
 export { statusReportCreateSchema } from "./statusReportCreateSchema.js";

@@ -40214,10 +40214,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+            "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
           }
         ],
         "responses": {
@@ -40351,10 +40351,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+            "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
           }
         ],
         "responses": {
@@ -40427,10 +40427,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+            "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
           }
         ],
         "requestBody": {
@@ -40519,10 +40519,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+            "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
           }
         ],
         "responses": {
@@ -40595,10 +40595,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+            "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
           },
           {
             "name": "Idempotency-Key",
@@ -40706,10 +40706,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+            "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
           },
           {
             "name": "Idempotency-Key",
@@ -40817,10 +40817,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+            "description": "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
           }
         ],
         "requestBody": {
@@ -40868,6 +40868,237 @@
           },
           "409": {
             "description": "Request conflicts with current state"
+          }
+        }
+      }
+    },
+    "/api/v1/events/admin/events": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Find an organiser's event (staff)",
+        "description": "Events of every organiser linked to an organisation, latest start first. Filter by start window (`from` inclusive, `to` exclusive), `q` (title or organiser name) and `organiser_id`.",
+        "operationId": "eventsAdminListEvents",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "organiser_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organiser Id"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_StaffEventRow_"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/events/admin/organisers": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Find an organiser (staff)",
+        "description": "Organisers linked to an organisation, by name, optionally filtered by `q`.",
+        "operationId": "eventsAdminListOrganisers",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_StaffOrganiserRow_"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -45269,6 +45500,9 @@
               }
             ],
             "title": "Actor Name"
+          },
+          "actor_capacity": {
+            "$ref": "#/components/schemas/ActivityEntryPropertiesActorCapacityEnum"
           },
           "summary": {
             "additionalProperties": true,
@@ -66927,6 +67161,78 @@
         ],
         "title": "PaginatedResponse[RolePublic]"
       },
+      "PaginatedResponse_StaffEventRow_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/StaffEventRow"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "PaginatedResponse[StaffEventRow]"
+      },
+      "PaginatedResponse_StaffOrganiserRow_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/StaffOrganiserRow"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "PaginatedResponse[StaffOrganiserRow]"
+      },
       "PaginatedResponse_UserPublic_": {
         "properties": {
           "data": {
@@ -77266,6 +77572,53 @@
         ],
         "title": "StaffCreate"
       },
+      "StaffEventRow": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "organiser_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organiser Id"
+          },
+          "organiser_name": {
+            "type": "string",
+            "title": "Organiser Name"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "title",
+          "status",
+          "starts_at",
+          "organiser_id",
+          "organiser_name",
+          "organisation_id"
+        ],
+        "title": "StaffEventRow",
+        "description": "One event in the Barrels staff picker. No personal data."
+      },
       "StaffInput": {
         "properties": {
           "organisation_id": {
@@ -77400,6 +77753,31 @@
           "grade_id"
         ],
         "title": "StaffInput"
+      },
+      "StaffOrganiserRow": {
+        "properties": {
+          "organiser_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organiser Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organiser_id",
+          "name",
+          "organisation_id"
+        ],
+        "title": "StaffOrganiserRow",
+        "description": "One organiser that staff can act for. No personal data."
       },
       "StaffSetup": {
         "properties": {
@@ -86171,6 +86549,14 @@
           "expectedRevision"
         ],
         "title": "ZoneUpdate"
+      },
+      "ActivityEntryPropertiesActorCapacityEnum": {
+        "type": "string",
+        "enum": [
+          "member",
+          "staff"
+        ],
+        "default": "member"
       },
       "AppPhoneCodeStartPropertiesChannelEnum": {
         "type": "string",

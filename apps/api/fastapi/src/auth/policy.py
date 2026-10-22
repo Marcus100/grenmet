@@ -4,7 +4,12 @@ import uuid
 from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.models import (
+    Role,
+    RoleAssignmentScope,
+    User,
+    UserRoleAssignment,
+)
 from src.auth.permissions import ORGANISATION_BOUND_KEYS
 from src.exceptions import AuthorizationError
 from src.utils.datetime import utc_now
@@ -48,6 +53,30 @@ async def _active_assignments(
     from src.auth.delegation import valid_delegated_assignments
 
     return await valid_delegated_assignments(session, list(result.scalars().all()))
+
+
+async def has_role_permission(
+    *, session: AsyncSession, user: User, permission_key: str
+) -> bool:
+    """True when a role the user holds right now carries ``permission_key`` (ADR-0050).
+
+    Resolved through ``access.all_scope_permission_keys``, never through
+    ``user.roles`` or ``has_permission``: only live ALL-scope assignments count
+    (``effective_from`` <= now < ``effective_to``, open-ended when null; an expired
+    or not-yet-started one gives nothing), plus plain role links for roles the user
+    never had an assignment for (a plain link cannot expire). SELF- and
+    DEPARTMENT-scoped assignments give no staff key. A superuser has no implicit
+    key: staff keys must be granted through a role. Organisation-bound keys are
+    always False.
+    """
+    wanted = permission_key.strip().lower()
+    if not user.is_active or wanted in ORGANISATION_BOUND_KEYS:
+        return False
+    from src.auth.access import all_scope_permission_keys
+
+    return wanted in {
+        key.lower() for key in await all_scope_permission_keys(session, user)
+    }
 
 
 def is_organisation_bound(*, user: User, permission_key: str) -> bool:

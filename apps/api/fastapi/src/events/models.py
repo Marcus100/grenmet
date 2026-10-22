@@ -241,6 +241,10 @@ class Activity(EventsModel):
     entity_id: Mapped[str] = mapped_column(Text)
     action: Mapped[str] = mapped_column(Text)
     actor_id: Mapped[uuid.UUID]
+    # 'member' or 'staff' (Barrels staff acting on an organiser's event, ADR-0050).
+    actor_capacity: Mapped[str] = mapped_column(
+        Text, default="member", server_default="member"
+    )
     summary: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 

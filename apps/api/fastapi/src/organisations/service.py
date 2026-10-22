@@ -311,6 +311,29 @@ async def resolve_membership(
     return ResolvedMembership(organisation=organisation, membership=membership)
 
 
+async def find_membership(
+    session: AsyncSession, *, user_id: uuid.UUID, organisation_id: str
+) -> ResolvedMembership | None:
+    """Active membership with its organisation (any organisation status), or None."""
+    row = (
+        await session.execute(
+            select(Membership, PlatformOrganisation)
+            .join(
+                PlatformOrganisation,
+                PlatformOrganisation.id == Membership.organisation_id,
+            )
+            .where(
+                Membership.user_id == user_id,
+                Membership.organisation_id == organisation_id,
+                Membership.status == MembershipStatus.ACTIVE.value,
+            )
+        )
+    ).first()
+    if row is None:
+        return None
+    return ResolvedMembership(organisation=row[1], membership=row[0])
+
+
 async def is_app_enabled(
     session: AsyncSession, *, organisation_id: str, app_key: str
 ) -> bool:

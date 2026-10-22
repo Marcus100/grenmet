@@ -620,6 +620,24 @@ Provider-rail (card) refunds are never sent inside a request (one may wait per o
 the request, so a retry cannot refund twice. Follow it on the order's `refund_status`
 (`none`, `queued`, `partial`, `refunded`, `failed`).
 
+### Events staff path (ADR-0050)
+
+The same `/events/org/*` routes also accept Barrels staff who hold a global staff key through a
+role (never implied for a superuser): orders list and detail `events.ops.settlement`, attendees
+`events.ops.door`, manual payment `events.ops.till`, refund and order cancel `events.ops.refunds`,
+event cancel `events.ops.listings`. A member holding the organisation key is a member call;
+otherwise the staff path applies and an unknown organisation or missing staff key gives the member
+path's own answer (404, or 403 for a member without the key). Suspended organisation or `events`
+entitlement off is 403. Every staff key except `events.ops.door` needs a session that passed
+two-step verification (403), whatever `AUTH_PRIVILEGED_MFA_MODE` says. Staff see the buyer email
+(each read is logged with ids only). Staff writes are limited per user and key (refunds, cancels
+20/minute; till 120/minute; 429). `ActivityEntry.actor_capacity` is `member` or `staff`; staff
+rows show as "Barrels staff" with a nil actor id. Staff pick work with
+`GET /events/admin/events` (`from`, `to`, `q`, `organiser_id`, `page`, `size`) and
+`GET /events/admin/organisers` (`q`): ids, names, dates and status only, any `events.ops.*` key,
+two-step verification unless the only key is `events.ops.door`. Staff keys count only from live ALL-scope role assignments or plain role links (SELF/DEPARTMENT give none), and the caller needs `app.events.access`. A staff event cancel with `refund` other than `none` also needs `events.ops.refunds` (403). Staff reads are limited to 120/minute per user and key. The pickers list only active organisations with the `events` entitlement, and draft listings only to holders of `events.ops.listings` or `events.ops.settlement`. Staff end dates are not built yet:
+only permanent staff roles are supported.
+
 ## Platform foundations (PF-series, 2026-10-20)
 
 Shared APIs for every Barrels app. Zones follow ADR-0025.
