@@ -264,7 +264,7 @@ pandas==2.2.3
     #   metpy
     #   seaborn
     #   xarray
-pillow==12.0.0
+pillow==13.0.0
     # via matplotlib
 pint==0.18
     # via
