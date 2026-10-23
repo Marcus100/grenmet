@@ -246,14 +246,19 @@ command -v pnpm   # a path under /mnt/c is the cause
 **Fix:** use a native pnpm from the `packageManager` field. Run
 `corepack enable pnpm` in WSL and make sure that shim comes before any
 `/mnt/c/...` entry on `PATH`, or set `appendWindowsPath = false` under
-`[interop]` in `/etc/wsl.conf` and restart WSL (`wsl --shutdown`). Check:
+`[interop]` in `/etc/wsl.conf` and restart WSL (`wsl --shutdown`). Check both
+parts, because `pnpm install --frozen-lockfile` exits 0 with either binary:
 
 ```bash
-pnpm install --frozen-lockfile && git diff --stat pnpm-lock.yaml   # prints nothing
+command -v pnpm                                                    # must not be under /mnt/c
+pnpm install --frozen-lockfile && git diff --stat -- pnpm-lock.yaml   # must print nothing
 ```
 
-Until it is fixed, run `git checkout pnpm-lock.yaml` before committing and
-never commit that rewrite. Tracked in issue #432.
+Until it is fixed, never commit that rewrite. Read `git diff pnpm-lock.yaml`
+first: if the only change is the `@pnpm/exe` importer entry and its package and
+snapshot blocks, `git checkout pnpm-lock.yaml` removes it. If you changed
+dependencies on purpose, or another agent's lockfile change is in the tree,
+delete just the `@pnpm/exe` blocks and keep the rest. Tracked in issue #432.
 
 ---
 
