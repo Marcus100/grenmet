@@ -23,9 +23,48 @@ import { collect, render } from "./review-handoff.mjs";
 
 const COMMENT_HEADER = "Codex read-only review (fresh context)";
 
-/** Fills the author's fields into the handoff block. */
+const PUSHED_LINE = /^Pushed: .*$/m;
+const TREE_LINE = /^Working tree: .*$/m;
+
+/**
+ * Detached checkout of exactly `head`, so the reviewer reads the committed
+ * bytes the handoff names and never uncommitted edits made after it. Callers
+ * must call `release()`.
+ */
+export function pinHead(root, head) {
+  const dir = mkdtempSync(join(tmpdir(), "codex-pin-"));
+  const add = spawnSync("git", ["worktree", "add", "--detach", dir, head], {
+    cwd: root,
+    encoding: "utf8",
+  });
+  if (add.status !== 0) {
+    rmSync(dir, { recursive: true, force: true });
+    throw new Error(`git worktree add failed: ${add.stderr}`);
+  }
+  return {
+    dir,
+    release() {
+      spawnSync("git", ["worktree", "remove", "--force", dir], { cwd: root });
+      rmSync(dir, { recursive: true, force: true });
+    },
+  };
+}
+
+/**
+ * Fills the author's fields into the handoff block. The block was written for
+ * a remote reviewer, so the push and working-tree lines are restated for this
+ * local, pinned run.
+ */
 export function buildPrompt(info, { task, criteria, limitations }) {
   return render(info)
+    .replace(
+      PUSHED_LINE,
+      "Pushed: not required (local review of the committed head)"
+    )
+    .replace(
+      TREE_LINE,
+      "Working tree: detached checkout of the head SHA; uncommitted changes are excluded"
+    )
     .replace(
       "Task: <fill in>",
       `Task: ${task ?? "(not given; infer from the diff)"}`
@@ -95,18 +134,25 @@ function main(args) {
   });
   const dir = mkdtempSync(join(tmpdir(), "codex-review-"));
   const outFile = join(dir, "findings.md");
-  const codexArgs = buildArgs(root, outFile);
   if (args.includes("--dry-run")) {
-    console.log(`codex ${codexArgs.join(" ")}\n\n${prompt}`);
+    console.log(
+      `codex ${buildArgs(`<detached checkout of ${info.head}>`, outFile).join(" ")}\n\n${prompt}`
+    );
     rmSync(dir, { recursive: true, force: true });
     return 0;
   }
-  const run = spawnSync("codex", codexArgs, {
-    cwd: root,
-    encoding: "utf8",
-    input: prompt,
-    stdio: ["pipe", "inherit", "inherit"],
-  });
+  const pin = pinHead(root, info.head);
+  let run;
+  try {
+    run = spawnSync("codex", buildArgs(pin.dir, outFile), {
+      cwd: pin.dir,
+      encoding: "utf8",
+      input: prompt,
+      stdio: ["pipe", "inherit", "inherit"],
+    });
+  } finally {
+    pin.release();
+  }
   if (run.status !== 0) {
     console.error("codex exited with an error; no findings were produced.");
     rmSync(dir, { recursive: true, force: true });
