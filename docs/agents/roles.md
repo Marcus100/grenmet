@@ -50,6 +50,34 @@ Mixing tools is encouraged: a diff written in Codex gets its fresh-context
 review in Claude Code, and the reverse. The automatic AI review below adds a
 third, tool-independent pass.
 
+### Which tool for what
+
+Different jobs for each tool, so they do not re-read and redo each other's work.
+This covers interactive and review work; unattended routines are routed by area
+in [routines.md](routines.md) (`docs/agents/routing.json`).
+
+| Job | Tool | Why |
+| --- | --- | --- |
+| Plan, spec, orchestrate roles, feature implementation | Claude Code | Owns the branch and the role subagents |
+| Fresh-context review of Claude's diff | Codex, read-only | A different model is less likely to wave through its own family's mistakes |
+| Fresh-context review of Codex's diff | Claude `code-reviewer` / `security-reviewer` | Same reason, reversed |
+| Unattended `area:api` routines | Codex | Cheap tier, owner preference |
+| Needs Sentry, PostHog, Cloudflare or the owner's browser | Claude Code | Codex has none of these |
+| CI, infra, security changes | Human | Agents diagnose, never write |
+
+Rules: one author per branch at a time; the author never counts its own review
+as the fresh-context one; and a review request carries the handoff block, not the
+author's conclusion, so the reviewer is not anchored on it.
+
+**Automating the Codex review.** `pnpm agents:codex-review -- --task "..." --criteria "..."`
+builds the handoff block from git and runs `codex exec` in a read-only,
+ephemeral session on that exact head. It prints the findings; add `--post <pr>`
+to leave them as a PR comment, and `--dry-run` to see the command and prompt.
+It is opt-in per PR because it spends Codex tokens, and its comment counts as the
+fresh-context review only when it reports no blocking finding for the head SHA
+it names. There is still no live link between the tools: the script runs one
+review and exits.
+
 ### Working with Codex on GitHub
 
 Claude Code and Codex do not talk to each other. The owner relays every handoff
