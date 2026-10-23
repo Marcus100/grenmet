@@ -15,7 +15,7 @@ const day = (overrides: Partial<StripDay>): StripDay => ({
   low: 25,
   month: "Oct",
   path: "/weather/2026/10/23",
-  rain: 20,
+  rain: "Low",
   slug: "2026-10-23",
   ...overrides,
 });
