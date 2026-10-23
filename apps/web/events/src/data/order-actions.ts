@@ -93,7 +93,7 @@ function failureOf(
 
 async function run<T>(
   call: (
-    options: ReturnType<typeof apiOptions> & {
+    options: Awaited<ReturnType<typeof apiOptions>> & {
       headers: { "X-Barrels-Organisation": string };
     }
   ) => Promise<T>,
@@ -109,7 +109,7 @@ async function run<T>(
   }
   try {
     const data = await call({
-      ...apiOptions(context.accessToken),
+      ...(await apiOptions(context.accessToken)),
       headers: { "X-Barrels-Organisation": context.organisationId },
     });
     for (const path of paths) {
@@ -260,7 +260,7 @@ export async function cancelEventWithRefund(
     try {
       const organiser = await chosenOrganiser();
       const result = await eventsCancelEvent({
-        ...apiOptions(session.accessToken),
+        ...(await apiOptions(session.accessToken)),
         path: { listing_id: id },
         query: organiser ? { organiser } : {},
         body: { confirm: true, refund: choice },

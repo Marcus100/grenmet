@@ -40,7 +40,7 @@ export async function getViewer(): Promise<Profile> {
   }
   try {
     const mine = await eventsGetMyProfile(
-      apiOptions(session.accessToken)
+      await apiOptions(session.accessToken)
     ).unwrap();
     return {
       ...ANONYMOUS_VIEWER,

@@ -33,6 +33,7 @@ function fixture(directory) {
     "FIRST_SUPERUSER_PASSWORD",
     "GAA_ADMIN_SSO_CLIENT_SECRET",
     "CMS_SSO_CLIENT_SECRET",
+    "TRUSTED_WEB_SECRET",
     "RESEND_API_KEY",
     "EMAIL",
     "USERNAME",
@@ -766,4 +767,68 @@ test("the deploy workflow and compose file pass the new variables to the API and
       .filter((line) => line.includes("ORG_SECRET_ENCRYPTION_KEYS:")).length,
     4
   );
+});
+
+const RENDERED_SECRET = /^TRUSTED_WEB_SECRET=".{32,}"$/m;
+const WORKFLOW_PASS =
+  /TRUSTED_WEB_SECRET: \$\{\{ secrets\.TRUSTED_WEB_SECRET \}\}/;
+const NAMED_SECRET = /TRUSTED_WEB_SECRET/;
+const SERVICE_START = /\n(?= {2}[a-z-]+:\n)/;
+
+function renderWith(change) {
+  const directory = mkdtempSync(join(tmpdir(), "trusted-web-secret-"));
+  try {
+    const { env, config, destination } = fixture(directory);
+    const result = spawnSync(
+      "python3",
+      ["scripts/production/render-env.py", config, destination],
+      { env: { ...env, ...change }, encoding: "utf8" }
+    );
+    return {
+      result,
+      rendered: result.status === 0 ? readFileSync(destination, "utf8") : "",
+    };
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+
+test("TRUSTED_WEB_SECRET is required, at least 32 characters and distinct, without echoing it", () => {
+  const ok = renderWith({});
+  assert.equal(ok.result.status, 0, ok.result.stderr);
+  assert.match(ok.rendered, RENDERED_SECRET);
+  for (const change of [
+    { TRUSTED_WEB_SECRET: "" },
+    { TRUSTED_WEB_SECRET: "short-DO_NOT_ECHO" },
+    {
+      TRUSTED_WEB_SECRET:
+        "test-only-configuration-value-32-characters-SECRET_KEY",
+    },
+    {
+      TRUSTED_WEB_SECRET:
+        "test-only-configuration-value-32-characters-CMS_SSO_CLIENT_SECRET",
+    },
+  ]) {
+    const { result } = renderWith(change);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, NAMED_SECRET);
+    assert.equal(result.stderr.includes("DO_NOT_ECHO"), false);
+    assert.equal(result.stderr.includes("test-only-configuration"), false);
+  }
+});
+
+test("TRUSTED_WEB_SECRET reaches the API and Events only, from deploy.yml", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  assert.ok(WORKFLOW_PASS.test(workflow));
+  const services = compose.split(SERVICE_START);
+  const holders = services
+    .filter((block) =>
+      block.includes("TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET")
+    )
+    .map((block) => block.trim().split(":")[0]);
+  assert.deepEqual(holders, ["api", "web-events"]);
 });
