@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  eregisterCorrectRegisterObservation,
   eregisterCreateRegisterObservation,
   eregisterListRegisterObservations,
   eregisterValidateSynopObservation,
@@ -36,6 +37,12 @@ const STATION = {
   position: "12.0°N · 61.47°W",
 };
 
+interface SaveResult {
+  data?: RegisterObservationRead;
+  error?: unknown;
+  response?: Response;
+}
+
 function toReportRows(
   observations: readonly RegisterObservationRead[]
 ): ReportRow[] {
@@ -58,6 +65,7 @@ function lastObservedLabel(
 ): string {
   if (state === "loading") return "Loading…";
   if (state === "unavailable") return "Unavailable";
+  if (state === "forbidden") return "No register access";
   if (!latest?.observed_at) return "No saved observations yet";
   return `${new Date(latest.observed_at).toISOString().slice(0, 16).replace("T", " ")} UTC`;
 }
@@ -124,7 +132,9 @@ export function ERegister() {
       .then(([synop, metar, speci]) => {
         if (!active) return;
         if (synop.error || !synop.data) {
-          setLiveState("unavailable");
+          setLiveState(
+            synop.response?.status === 403 ? "forbidden" : "unavailable"
+          );
           return;
         }
         setLiveObservations(synop.data.observations);
@@ -172,34 +182,87 @@ export function ERegister() {
       setSaveState("idle");
       return null;
     }
-    const result = await eregisterCreateRegisterObservation({
+    const record = {
+      station_id: STATION.number,
+      station_name: STATION.name,
+      aerodrome_icao: STATION.icao,
+      kind: "SYNOP" as const,
+      observed_at: observationDate.toISOString(),
       body: {
-        station_id: STATION.number,
-        station_name: STATION.name,
-        aerodrome_icao: STATION.icao,
-        kind: "SYNOP",
-        observed_at: observationDate.toISOString(),
-        body: {
-          ...structuredValues,
-          source: "eregister-workbook",
-          validation: "pending_wmo_encoder",
-        },
-        raw_tac: null,
+        ...structuredValues,
+        source: "eregister-workbook",
+        validation: "pending_wmo_encoder",
       },
+      raw_tac: null,
+    };
+    let result: SaveResult = await eregisterCreateRegisterObservation({
+      body: record,
       throwOnError: false,
     });
+    // The hour already has a live observation that cannot be edited in place
+    // (accepted, or recorded by someone else): save a correction. Paper practice
+    // is strike through and re-enter, so the old one stays listed, struck out.
+    const earlier =
+      result.response?.status === 409
+        ? liveObservations.find(
+            (item) =>
+              item.observed_at.slice(0, 16) === observedAt &&
+              (item.state === "draft" ||
+                item.state === "qc_pending" ||
+                item.state === "accepted")
+          )
+        : undefined;
+    if (earlier) {
+      const corrected = await eregisterCorrectRegisterObservation({
+        body: { body: record.body },
+        path: { observation_id: earlier.id },
+        throwOnError: false,
+      });
+      if (corrected.data) {
+        setLiveObservations((current) =>
+          current.map((item) =>
+            item.id === earlier.id
+              ? { ...item, state: "superseded" as const }
+              : item
+          )
+        );
+      }
+      result = corrected;
+    }
     if (result.error || !result.data) {
+      const failure = result.error as
+        | { detail?: { issues?: unknown } }
+        | undefined;
+      if (
+        result.response?.status === 422 &&
+        Array.isArray(failure?.detail?.issues)
+      ) {
+        setValidationIssues(
+          failure.detail.issues as {
+            field: string;
+            message: string;
+            severity?: "error" | "warning";
+          }[]
+        );
+        setValidationState("invalid");
+        setSaveState("idle");
+        return null;
+      }
       setSaveState("error");
       return null;
     }
+    const saved = result.data;
     setSaveState("saved");
     savedRef.current = {
-      id: result.data.id,
+      id: saved.id,
       key: JSON.stringify(structuredValues),
     };
-    setLiveObservations((current) => [result.data, ...current].slice(0, 24));
+    // An in-place update of the observer's own draft keeps its id.
+    setLiveObservations((current) =>
+      [saved, ...current.filter((item) => item.id !== saved.id)].slice(0, 24)
+    );
     setLiveState("ready");
-    return result.data.id;
+    return saved.id;
   }
 
   async function saveDraft(event: FormEvent<HTMLFormElement>) {
@@ -290,6 +353,13 @@ export function ERegister() {
         </p>
       ) : null}
 
+      {liveState === "forbidden" ? (
+        <p className="rounded-lg border px-4 py-3 text-sm" role="alert">
+          You don't have access to the observation register. Ask an
+          administrator for the eRegister observer role.
+        </p>
+      ) : null}
+
       {/* Last observation: Section 0 (station card on its right), then Sections 1 and 3 */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-stretch gap-4">
@@ -326,7 +396,6 @@ export function ERegister() {
 
       {live ? (
         <QcQueue
-          observations={liveObservations}
           onDecided={(updated) =>
             setLiveObservations((current) =>
               current.map((item) => (item.id === updated.id ? updated : item))
@@ -353,9 +422,10 @@ export function ERegister() {
       </div>
 
       <p className="text-muted-foreground text-xs">
-        Latest saved records appear once the register service responds. A
-        different person from the observer accepts each observation, and only
-        accepted observations go to WIS2.
+        Latest saved records appear once the register service responds. The
+        observer accepts each observation, and only accepted observations go to
+        WIS2. Another person may review an accepted observation. A correction
+        keeps the old observation, struck out.
       </p>
     </div>
   );

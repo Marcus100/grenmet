@@ -909,6 +909,11 @@ export {
   useEregisterAcceptRegisterObservation,
 } from "./useEregisterAcceptRegisterObservation.js";
 export {
+  eregisterCorrectRegisterObservationMutationKey,
+  eregisterCorrectRegisterObservationMutationOptions,
+  useEregisterCorrectRegisterObservation,
+} from "./useEregisterCorrectRegisterObservation.js";
+export {
   eregisterCreateRegisterObservationMutationKey,
   eregisterCreateRegisterObservationMutationOptions,
   useEregisterCreateRegisterObservation,
@@ -953,6 +958,11 @@ export {
   eregisterReopenRegisterObservationMutationOptions,
   useEregisterReopenRegisterObservation,
 } from "./useEregisterReopenRegisterObservation.js";
+export {
+  eregisterReviewRegisterObservationMutationKey,
+  eregisterReviewRegisterObservationMutationOptions,
+  useEregisterReviewRegisterObservation,
+} from "./useEregisterReviewRegisterObservation.js";
 export {
   eregisterValidateSynopObservationMutationKey,
   eregisterValidateSynopObservationMutationOptions,

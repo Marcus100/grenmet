@@ -10,4 +10,8 @@ export const synopValidationRequestSchema = z.object({
   workbook: synopWorkbookSchema.describe(
     "Structured FM-12 workbook values before TAC/BUFR encoding."
   ),
+  observed_at: z
+    .union([z.iso.datetime(), z.null()])
+    .optional()
+    .describe("When given, the keyed day and hour must match this UTC time."),
 });

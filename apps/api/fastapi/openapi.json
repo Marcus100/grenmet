@@ -29987,7 +29987,7 @@
           "eregister"
         ],
         "summary": "List register observations",
-        "description": "Returns recent SYNOP, METAR, and SPECI observations, optionally filtered by station and observation kind.",
+        "description": "Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterListRegisterObservations",
         "security": [
           {
@@ -30040,16 +30040,34 @@
               "anyOf": [
                 {
                   "type": "string",
-                  "pattern": "^(draft|qc_pending|accepted|rejected|superseded)$"
+                  "pattern": "^(draft|qc_pending|accepted|rejected|superseded)(,(draft|qc_pending|accepted|rejected|superseded))*$"
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "Only observations in this QC state (the QC queue is draft and qc_pending).",
+              "description": "Only observations in these QC states, comma separated. Awaiting acceptance: draft,qc_pending.",
               "title": "State"
             },
-            "description": "Only observations in this QC state (the QC queue is draft and qc_pending)."
+            "description": "Only observations in these QC states, comma separated. Awaiting acceptance: draft,qc_pending."
+          },
+          {
+            "name": "reviewed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false).",
+              "title": "Reviewed"
+            },
+            "description": "true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false)."
           },
           {
             "name": "limit",
@@ -30061,6 +30079,17 @@
               "minimum": 1,
               "default": 100,
               "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
             }
           }
         ],
@@ -30089,7 +30118,7 @@
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
           }
         }
       },
@@ -30098,7 +30127,7 @@
           "eregister"
         ],
         "summary": "Create a register observation",
-        "description": "Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record.",
+        "description": "Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record. A SYNOP is validated first: errors (including a keyed day or hour that does not match `observed_at`) are `422` with the issues in `detail.issues`; warnings are allowed. One live observation exists per station, time and kind: saving again as the observer of an unsent draft updates it in place (`200`); any other existing live observation is `409` (use the correct endpoint). Requires `eregister.observe`, `eregister.qc` or `eregister.send`; a saved SYNOP shows on the public weather site as provisional.",
         "operationId": "eregisterCreateRegisterObservation",
         "security": [
           {
@@ -30130,20 +30159,26 @@
             }
           },
           "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationErrorResponse"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
+            "description": "The SYNOP workbook has errors; see `detail.issues`"
           },
           "401": {
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "200": {
+            "description": "The observer's own unsent draft was updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterObservationRead"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A live observation for this station and time exists"
           }
         }
       }
@@ -30202,6 +30237,73 @@
             "HTTPBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/eregister/observations/{observation_id}/correct": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Correct a register observation",
+        "description": "Saves a replacement that supersedes the observation (`supersedes_id`); the old one becomes `superseded` and stays listed. Station, kind and time are kept. `409` when the observation is rejected or already superseded; `422` when the replacement SYNOP has errors. The replacement starts as a draft: when its observer accepts it, a station-hour already sent to WIS2 is sent again marked as a correction. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "operationId": "eregisterCorrectRegisterObservation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Observation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterObservationCorrection"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterObservationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The SYNOP workbook has errors; see `detail.issues`"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Observation not found"
+          },
+          "409": {
+            "description": "The observation is rejected or already superseded"
+          }
+        }
       }
     },
     "/api/v1/eregister/observations/{observation_id}/email": {
@@ -30284,7 +30386,7 @@
           "eregister"
         ],
         "summary": "Queue a register observation for WIS2",
-        "description": "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. Only QC-accepted observations are published: 409 otherwise, unless WIS2BOX_* is configured. The station-hour publish gate (ADR-0032) must give the hour to the manual source: 409 when the schedule gives it to the automatic source, when another observation holds the hour, or when this one is already queued (WIS2 is never repeated; `resend` is ignored).",
+        "description": "Writes the observation as a csv2bufr (Surface-RA-IV-100) CSV into the wis2box incoming drop through an ARQ job with retries. Requires `eregister.send`. Only observations accepted by their observer are published: 409 otherwise, unless WIS2BOX_* is configured. The station-hour publish gate (ADR-0032) must give the hour to the manual source: 409 when the schedule gives it to the automatic source, when another observation holds the hour, or when this one is already queued (WIS2 is never repeated; `resend` is ignored).",
         "operationId": "eregisterPublishRegisterObservation",
         "security": [
           {
@@ -30357,8 +30459,8 @@
         "tags": [
           "eregister"
         ],
-        "summary": "Accept a register observation (QC)",
-        "description": "Moves a draft or qc_pending SYNOP to accepted. Requires `eregister.qc`. Four-eyes: always a different person from the observer who saved it, superusers included. The observation must pass validation. Audited.",
+        "summary": "Accept a register observation",
+        "description": "Moves a draft or qc_pending SYNOP to accepted after validation. The observer who keyed it may accept it alone; other register staff may too. Acceptance queues the WIS2 file and the email at once (a refused hand-off never undoes the acceptance; see the send history). Requires `eregister.observe`, `eregister.qc` or `eregister.send`. Audited.",
         "operationId": "eregisterAcceptRegisterObservation",
         "security": [
           {
@@ -30415,7 +30517,74 @@
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "Missing `eregister.qc`, or the observer deciding their own"
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Observation not found"
+          },
+          "409": {
+            "description": "The observation is not in a state that allows this"
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/observations/{observation_id}/review": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Record a review of a register observation",
+        "description": "Optional second look by register staff other than the observer: `reviewed` or `query` with a note (required for a query). Shown on the record and audited; it changes no state and never holds back WIS2 or email. Allowed on draft, qc_pending and accepted observations; a new review replaces the previous one on the record (every one is audited). Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "operationId": "eregisterReviewRegisterObservation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Observation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterObservationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing reason, or the observation fails validation"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Not register staff, or the observer reviewing their own"
           },
           "404": {
             "description": "Observation not found"
@@ -30432,7 +30601,7 @@
           "eregister"
         ],
         "summary": "Reject a register observation (QC)",
-        "description": "Moves a draft or qc_pending observation to rejected; a reason is required. Requires `eregister.qc`. Rejected observations are never sent or shown publicly. Audited.",
+        "description": "Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Requires register staff access. Audited.",
         "operationId": "eregisterRejectRegisterObservation",
         "security": [
           {
@@ -30489,7 +30658,7 @@
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "Missing `eregister.qc`, or the observer deciding their own"
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
           },
           "404": {
             "description": "Observation not found"
@@ -30505,8 +30674,8 @@
         "tags": [
           "eregister"
         ],
-        "summary": "Reopen an accepted or rejected observation (QC)",
-        "description": "Moves an accepted or rejected observation back to qc_pending; a reason is required. Requires `eregister.qc`. 409 once the observation was queued or sent to WIS2. Audited.",
+        "summary": "Reopen an accepted or rejected observation",
+        "description": "Moves an accepted or rejected observation back to qc_pending (any review is cleared); a reason is required. 409 once the observation was queued or sent to WIS2. Requires register staff access. Audited.",
         "operationId": "eregisterReopenRegisterObservation",
         "security": [
           {
@@ -30563,7 +30732,7 @@
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "Missing `eregister.qc`, or the observer deciding their own"
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
           },
           "404": {
             "description": "Observation not found"
@@ -30580,7 +30749,7 @@
           "eregister"
         ],
         "summary": "Send history of a register observation",
-        "description": "Newest first: each email and WIS2 hand-off with its status.",
+        "description": "Newest first: each email and WIS2 hand-off with its status. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterListObservationSends",
         "security": [
           {
@@ -30627,7 +30796,7 @@
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
           }
         }
       }
@@ -64939,6 +65108,11 @@
               }
             ],
             "title": "Sent At"
+          },
+          "is_correction": {
+            "type": "boolean",
+            "title": "Is Correction",
+            "default": false
           }
         },
         "type": "object",
@@ -72038,6 +72212,107 @@
         ],
         "title": "RefundStatus"
       },
+      "RegisterObservationCorrection": {
+        "properties": {
+          "body": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Body"
+          },
+          "station_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Name"
+          },
+          "aerodrome_icao": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4,
+                "minLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aerodrome Icao"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "raw_tac": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 12000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Tac"
+          },
+          "bufr": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bufr"
+          },
+          "iwxxm": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Iwxxm"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "body"
+        ],
+        "title": "RegisterObservationCorrection",
+        "description": "The replacement for an observation; station, kind and time are kept."
+      },
       "RegisterObservationCreate": {
         "properties": {
           "station_id": {
@@ -72155,6 +72430,12 @@
             },
             "type": "array",
             "title": "Observations"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Matching rows before paging.",
+            "default": 0
           }
         },
         "type": "object",
@@ -72299,6 +72580,51 @@
             ],
             "title": "Qc At"
           },
+          "review_outcome": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Outcome"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
           "wis2_topic": {
             "anyOf": [
               {
@@ -72348,6 +72674,38 @@
           "actor_id": {
             "type": "string",
             "title": "Actor Id"
+          },
+          "actor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Name",
+            "description": "Who recorded it (listing only)."
+          },
+          "coded": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coded",
+            "description": "The coded FM 12 row (SYNOP, listing only)."
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/SynopValidationIssue"
+            },
+            "type": "array",
+            "title": "Issues",
+            "description": "Validation findings, warnings included (SYNOP, listing only)."
           },
           "created_at": {
             "type": "string",
@@ -73092,6 +73450,31 @@
           "created_at"
         ],
         "title": "ReviewPublic"
+      },
+      "ReviewRequest": {
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Required for a query; optional for reviewed."
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome"
+        ],
+        "title": "ReviewRequest"
       },
       "RewardCardPublic": {
         "properties": {
@@ -79890,6 +80273,19 @@
         "properties": {
           "workbook": {
             "$ref": "#/components/schemas/SynopWorkbook"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At",
+            "description": "When given, the keyed day and hour must match this UTC time."
           }
         },
         "type": "object",
@@ -87227,6 +87623,13 @@
           "accepted",
           "rejected",
           "superseded"
+        ]
+      },
+      "RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "reviewed",
+          "query"
         ]
       },
       "ReportCreatePropertiesSubjectTypeEnum": {

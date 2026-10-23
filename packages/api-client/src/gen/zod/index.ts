@@ -2165,12 +2165,26 @@ export {
   eregisterAcceptRegisterObservationStatus422Schema,
 } from "./eregisterAcceptRegisterObservationSchema.js";
 export {
+  eregisterCorrectRegisterObservationBodySchema,
+  eregisterCorrectRegisterObservationErrorSchema,
+  eregisterCorrectRegisterObservationPathObservationIdSchema,
+  eregisterCorrectRegisterObservationResponseSchema,
+  eregisterCorrectRegisterObservationStatus201Schema,
+  eregisterCorrectRegisterObservationStatus401Schema,
+  eregisterCorrectRegisterObservationStatus403Schema,
+  eregisterCorrectRegisterObservationStatus404Schema,
+  eregisterCorrectRegisterObservationStatus409Schema,
+  eregisterCorrectRegisterObservationStatus422Schema,
+} from "./eregisterCorrectRegisterObservationSchema.js";
+export {
   eregisterCreateRegisterObservationBodySchema,
   eregisterCreateRegisterObservationErrorSchema,
   eregisterCreateRegisterObservationResponseSchema,
+  eregisterCreateRegisterObservationStatus200Schema,
   eregisterCreateRegisterObservationStatus201Schema,
   eregisterCreateRegisterObservationStatus401Schema,
   eregisterCreateRegisterObservationStatus403Schema,
+  eregisterCreateRegisterObservationStatus409Schema,
   eregisterCreateRegisterObservationStatus422Schema,
 } from "./eregisterCreateRegisterObservationSchema.js";
 export {
@@ -2198,6 +2212,8 @@ export {
   eregisterListRegisterObservationsErrorSchema,
   eregisterListRegisterObservationsQueryKindSchema,
   eregisterListRegisterObservationsQueryLimitSchema,
+  eregisterListRegisterObservationsQueryOffsetSchema,
+  eregisterListRegisterObservationsQueryReviewedSchema,
   eregisterListRegisterObservationsQueryStateSchema,
   eregisterListRegisterObservationsQueryStationIdSchema,
   eregisterListRegisterObservationsResponseSchema,
@@ -2258,6 +2274,18 @@ export {
   eregisterReopenRegisterObservationStatus409Schema,
   eregisterReopenRegisterObservationStatus422Schema,
 } from "./eregisterReopenRegisterObservationSchema.js";
+export {
+  eregisterReviewRegisterObservationBodySchema,
+  eregisterReviewRegisterObservationErrorSchema,
+  eregisterReviewRegisterObservationPathObservationIdSchema,
+  eregisterReviewRegisterObservationResponseSchema,
+  eregisterReviewRegisterObservationStatus200Schema,
+  eregisterReviewRegisterObservationStatus401Schema,
+  eregisterReviewRegisterObservationStatus403Schema,
+  eregisterReviewRegisterObservationStatus404Schema,
+  eregisterReviewRegisterObservationStatus409Schema,
+  eregisterReviewRegisterObservationStatus422Schema,
+} from "./eregisterReviewRegisterObservationSchema.js";
 export {
   eregisterValidateSynopObservationBodySchema,
   eregisterValidateSynopObservationErrorSchema,
@@ -6086,8 +6114,10 @@ export { refundCreatePropertiesMethodEnumSchema } from "./refundCreateProperties
 export { refundCreateSchema } from "./refundCreateSchema.js";
 export { refundPublicSchema } from "./refundPublicSchema.js";
 export { refundStatusSchema } from "./refundStatusSchema.js";
+export { registerObservationCorrectionSchema } from "./registerObservationCorrectionSchema.js";
 export { registerObservationCreateSchema } from "./registerObservationCreateSchema.js";
 export { registerObservationListSchema } from "./registerObservationListSchema.js";
+export { registerObservationReadPropertiesReviewOutcomeAnyOfEnumSchema } from "./registerObservationReadPropertiesReviewOutcomeAnyOfEnumSchema.js";
 export { registerObservationReadPropertiesStateEnumSchema } from "./registerObservationReadPropertiesStateEnumSchema.js";
 export { registerObservationReadSchema } from "./registerObservationReadSchema.js";
 export { reportCreatePropertiesSubjectTypeEnumSchema } from "./reportCreatePropertiesSubjectTypeEnumSchema.js";
@@ -6111,6 +6141,7 @@ export { reviewAssignmentSchema } from "./reviewAssignmentSchema.js";
 export { reviewInputPropertiesDecisionEnumSchema } from "./reviewInputPropertiesDecisionEnumSchema.js";
 export { reviewInputSchema } from "./reviewInputSchema.js";
 export { reviewPublicSchema } from "./reviewPublicSchema.js";
+export { reviewRequestSchema } from "./reviewRequestSchema.js";
 export { rewardCardPublicSchema } from "./rewardCardPublicSchema.js";
 export { rewardEntryListPublicSchema } from "./rewardEntryListPublicSchema.js";
 export { rewardEntryPublicSchema } from "./rewardEntryPublicSchema.js";

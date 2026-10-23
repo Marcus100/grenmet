@@ -74,6 +74,10 @@ class SynopWorkbook(BaseModel):
 
 class SynopValidationRequest(BaseModel):
     workbook: SynopWorkbook
+    observed_at: UtcDateTime | None = Field(
+        default=None,
+        description="When given, the keyed day and hour must match this UTC time.",
+    )
 
 
 class SynopValidationIssue(BaseModel):
@@ -134,17 +138,47 @@ class RegisterObservationRead(RegisterObservationWrite):
     qc_notes: str | None = None
     qc_by: str | None = None
     qc_at: UtcDateTime | None = None
+    review_outcome: Literal["reviewed", "query"] | None = None
+    review_note: str | None = None
+    reviewed_by: str | None = None
+    reviewed_at: UtcDateTime | None = None
     wis2_topic: str | None = None
     wis2_message_id: str | None = None
     wis2_published_at: UtcDateTime | None = None
     supersedes_id: UUID | None = None
     actor_id: str
+    actor_name: str | None = Field(
+        default=None, description="Who recorded it (listing only)."
+    )
+    coded: str | None = Field(
+        default=None, description="The coded FM 12 row (SYNOP, listing only)."
+    )
+    issues: list[SynopValidationIssue] = Field(
+        default_factory=list,
+        description="Validation findings, warnings included (SYNOP, listing only).",
+    )
     created_at: UtcDateTime
     updated_at: UtcDateTime
 
 
 class RegisterObservationList(BaseModel):
     observations: list[RegisterObservationRead]
+    total: int = Field(default=0, description="Matching rows before paging.")
+
+
+class RegisterObservationCorrection(BaseModel):
+    """The replacement for an observation; station, kind and time are kept."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    body: dict[str, Any]
+    station_name: str | None = Field(default=None, max_length=200)
+    aerodrome_icao: str | None = Field(default=None, min_length=4, max_length=4)
+    issued_at: Annotated[UtcDateTime, AwareDatetime()] | None = None
+    raw_tac: str | None = Field(default=None, max_length=12000)
+    bufr: dict[str, Any] | None = None
+    iwxxm: dict[str, Any] | None = None
+    reason: str | None = Field(default=None, max_length=1000)
 
 
 class RegisterObservationCreate(RegisterObservationWrite):
@@ -156,6 +190,15 @@ class RegisterObservationCreate(RegisterObservationWrite):
     observed_at: Annotated[UtcDateTime, AwareDatetime()]
     issued_at: Annotated[UtcDateTime, AwareDatetime()] | None = None
     id: UUID = Field(default_factory=uuid4)
+
+
+class ReviewRequest(BaseModel):
+    outcome: Literal["reviewed", "query"]
+    note: str | None = Field(
+        default=None,
+        max_length=1000,
+        description="Required for a query; optional for reviewed.",
+    )
 
 
 class QcDecisionRequest(BaseModel):
@@ -249,6 +292,7 @@ class ObservationSend(BaseModel):
     last_error: str | None = None
     queued_at: UtcDateTime
     sent_at: UtcDateTime | None = None
+    is_correction: bool = False
 
 
 class ObservationSendList(BaseModel):

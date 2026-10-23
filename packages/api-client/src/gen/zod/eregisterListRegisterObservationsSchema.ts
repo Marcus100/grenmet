@@ -17,12 +17,23 @@ export const eregisterListRegisterObservationsQueryKindSchema = z
 
 export const eregisterListRegisterObservationsQueryStateSchema = z
   .union([
-    z.string().regex(/^(draft|qc_pending|accepted|rejected|superseded)$/),
+    z
+      .string()
+      .regex(
+        /^(draft|qc_pending|accepted|rejected|superseded)(,(draft|qc_pending|accepted|rejected|superseded))*$/
+      ),
     z.null(),
   ])
   .optional()
   .describe(
-    "Only observations in this QC state (the QC queue is draft and qc_pending)."
+    "Only observations in these QC states, comma separated. Awaiting acceptance: draft,qc_pending."
+  );
+
+export const eregisterListRegisterObservationsQueryReviewedSchema = z
+  .union([z.boolean(), z.null()])
+  .optional()
+  .describe(
+    "true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false)."
   );
 
 export const eregisterListRegisterObservationsQueryLimitSchema = z
@@ -31,6 +42,12 @@ export const eregisterListRegisterObservationsQueryLimitSchema = z
   .max(500)
   .optional()
   .default(100);
+
+export const eregisterListRegisterObservationsQueryOffsetSchema = z
+  .int()
+  .min(0)
+  .optional()
+  .default(0);
 
 export const eregisterListRegisterObservationsStatus200Schema =
   registerObservationListSchema;
