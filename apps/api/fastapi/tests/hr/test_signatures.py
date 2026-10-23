@@ -289,7 +289,10 @@ async def test_signature_routes_are_self_only_and_download_is_private(
     assert pdf.status_code == 200 and pdf.content.startswith(b"%PDF-")
     assert pdf.headers["content-type"] == "application/pdf"
     assert "no-store" in pdf.headers["cache-control"]
-    assert "attachment" in pdf.headers["content-disposition"]
+    disposition = pdf.headers["content-disposition"]
+    assert disposition.startswith("attachment")
+    assert "filename*=UTF-8''" in disposition
+    assert str(document_id) not in disposition
 
     assert (
         await async_client.delete("/api/v1/hr/signature/me", headers=headers)

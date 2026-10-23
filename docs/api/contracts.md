@@ -1353,6 +1353,11 @@ Sign & submit action. Proxy submitters sign as themselves, never as the employee
 `GET /api/v1/hr/signed-documents/{id}/pdf` returns the original PDF to the signer,
 subject, or an HR document reader scoped over the subject and organisation.
 Authorized HR form responses include `signed_document_id` when a signed copy exists.
+PDF download names are human and dated in Grenada time, never UUIDs (headers only;
+routes are unchanged), e.g. `GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf` or
+`Leave Application - <signer> - 2026-10-23.pdf`. Every PDF response sends an ASCII
+`filename` plus `filename*=UTF-8''...` (RFC 6266) from `src/utils/filenames.py`; the
+signer's name appears only on signed documents, where it is already printed.
 All signature and PDF responses use private, no-store caching. Signed PDFs, signer
 identity, signature version, timestamp, canonical form snapshot and SHA-256 are
 committed with submission and remain unchanged when the saved signature changes.

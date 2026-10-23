@@ -9,6 +9,8 @@ from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 
+from src.utils.filenames import content_disposition
+
 from . import (
     advisories,
     aviation_rules,
@@ -26,6 +28,7 @@ from .dependencies import (
     WxProductsSessionDep,
 )
 from .exceptions import ProductValidationError, WeatherUnavailable
+from .filenames import product_pdf_filename
 from .models import AviationDraft
 from .observation_service import list_observations
 from .observations import ObservationKind, ObservationList
@@ -529,7 +532,10 @@ async def preview_product_pdf(
         media_type="application/pdf",
         headers={
             **NO_STORE,
-            "Content-Disposition": 'inline; filename="gms-product-preview.pdf"',
+            "Content-Disposition": content_disposition(
+                "inline",
+                product_pdf_filename(body.kind, values, recorded_at=None),
+            ),
             "X-Content-Type-Options": "nosniff",
         },
     )
@@ -540,13 +546,19 @@ async def preview_product_pdf(
     response_class=Response,
     status_code=200,
     summary="Download a saved weather revision PDF",
-    description="Staff-only saved revision export; drafts and historical publications are explicitly labelled. Does not publish or change records.",
+    description="Staff-only saved revision export; drafts and historical publications are explicitly labelled. Does not publish or change records. The download file name is human and dated, for example 'GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf'.",
     tags=["wxproducts"],
     responses={
         200: {
+            "headers": {
+                "Content-Disposition": {
+                    "description": "Attachment with a human, dated file name (ASCII filename plus RFC 6266 filename*).",
+                    "schema": {"type": "string"},
+                }
+            },
             "content": {
                 "application/pdf": {"schema": {"type": "string", "format": "binary"}}
-            }
+            },
         },
         401: {"model": AuthoringError},
         403: {"model": AuthoringError},
@@ -573,7 +585,15 @@ async def product_revision_pdf(
         media_type="application/pdf",
         headers={
             **NO_STORE,
-            "Content-Disposition": f'attachment; filename="gms-{source.kind}-{product_id}-r{revision}.pdf"',
+            "Content-Disposition": content_disposition(
+                "attachment",
+                product_pdf_filename(
+                    source.kind,
+                    values_as_dict(source.values),
+                    recorded_at=source.recorded_at,
+                    revision=revision,
+                ),
+            ),
             "X-Content-Type-Options": "nosniff",
         },
     )

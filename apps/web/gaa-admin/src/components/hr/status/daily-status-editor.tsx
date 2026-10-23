@@ -47,6 +47,7 @@ import {
 import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import type { SubmissionMetadata } from "@/components/hr/submission-date";
 import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
+import { hrFormFilename } from "@/lib/pdf-filename";
 import { reportError } from "@/lib/report-error";
 import {
   type DailyStatusEntry,
@@ -232,7 +233,7 @@ export function DailyStatusEditor() {
         payload: buildStatusReportPayload(form.state.values, departmentId),
         previewPath: "/api/v1/hr/status-reports/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: `daily-status-${form.getFieldValue("date")}.pdf`,
+        filename: hrFormFilename("status_report", true),
       });
     } catch (error) {
       reportError(error, "hr-status-download");
@@ -683,7 +684,7 @@ export function DailyStatusEditor() {
           label="Daily Airport Status Report"
           preview={
             <HrPdfPreview
-              filename="daily-status-report.pdf"
+              filename={hrFormFilename("status_report")}
               payload={
                 departmentId
                   ? buildStatusReportPayload(values, departmentId)
