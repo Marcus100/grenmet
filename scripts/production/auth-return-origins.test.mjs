@@ -26,6 +26,13 @@ const ENV_NAME = /env\.([A-Z][A-Z_]*_APP_URL)/g;
 const RETURN_HOSTS = /^\s+AUTH_ALLOWED_RETURN_HOSTS: (.+)$/m;
 const EXTRA_HOSTS = /\$\{EXTRA_RETURN_HOSTS:-\}/;
 const HTTPS_ORIGIN = /^https:\/\//;
+// One label under the base domain: no port, path, query or other host.
+const NAMED_ORIGIN = /^https:\/\/[a-z0-9-]+\.\$\{BASE_DOMAIN\}$/;
+const BASE_DOMAIN_REF = /\$\{BASE_DOMAIN\}/g;
+const STAGING_DOMAIN = "staging.barrels.gd";
+// The hand-written staging configuration in the auth app's unit test.
+const FIXTURE_HOSTS = /const STAGING = \{[\s\S]*?hosts:\s*"([^"]+)"/;
+const UNIT_TEST = "apps/web/auth/src/test/return-to.test.ts";
 
 /** The text of one top-level service (two-space indent), up to the next one. */
 function service(name) {
@@ -90,5 +97,33 @@ test("every app in the API registry is a valid sign-in return target", () => {
     refused,
     [],
     `sign-in cannot return to: ${refused.join(", ")}. Add each exact origin to AUTH_ALLOWED_RETURN_HOSTS in the web-auth service.`
+  );
+});
+
+test("every origin named in AUTH_ALLOWED_RETURN_HOSTS is a registered app, exactly", () => {
+  const registry = new Set(appUrls(service("api")).map(([, origin]) => origin));
+  for (const entry of explicitEntries()) {
+    assert.match(
+      entry,
+      NAMED_ORIGIN,
+      `${entry} must be one https host under the base domain, with no port or path`
+    );
+    assert.ok(
+      registry.has(entry),
+      `${entry} is not an app in the api registry; sign-in would return to a host no app serves`
+    );
+  }
+});
+
+test("the auth app's unit-test configuration lists the same origins as compose", () => {
+  const fixture = read(UNIT_TEST).match(FIXTURE_HOSTS);
+  assert.ok(fixture, `${UNIT_TEST} no longer has a STAGING.hosts fixture`);
+  const fromCompose = explicitEntries().map((entry) =>
+    entry.replace(BASE_DOMAIN_REF, STAGING_DOMAIN)
+  );
+  assert.deepEqual(
+    fixture[1].split(",").sort(),
+    fromCompose.sort(),
+    `update STAGING.hosts in ${UNIT_TEST} to match AUTH_ALLOWED_RETURN_HOSTS`
   );
 });
