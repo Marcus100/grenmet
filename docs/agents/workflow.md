@@ -25,8 +25,10 @@ agent instructions. Nothing here relaxes a root rule.
   cannot make symlinks (`git worktree add` run inside WSL makes it correctly).
   Run `git restore .agents/skills` there instead of staging or committing the
   typechange; `git rebase` refuses to start while it is dirty.
-- Commit in the worktree, then merge completed branches into local `dev` in a
-  clean integration checkout. Dev servers stay on the host in the main checkout.
+- Commit in the worktree, validate, push the task branch and open a PR into
+  `dev`; the agent merges it once CI is green on its head and a fresh-context
+  review has no open blocking finding (`AGENTS.md` → Git, parallel agents and
+  handoff). Never push `dev`. Dev servers stay on the host in the main checkout.
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`: take either
   side and regenerate (openapi command in `AGENTS.md` → `pnpm generate:api-client`
   → `pnpm check:drift`).

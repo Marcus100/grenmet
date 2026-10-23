@@ -43,8 +43,9 @@ counted; their PRs and run records still are.
 ## Measures
 
 `pnpm agents:flow --days 14` counts a **change** as one merge (or direct
-commit) on `origin/dev`'s first-parent history, because attended work merges
-branches into local `dev` instead of opening PRs. It reports:
+commit) on `origin/dev`'s first-parent history: each merged PR is one merge
+commit, and older history also holds branches merged locally and direct
+commits. It reports:
 
 - changes merged, reverts and revert rate;
 - lead time from a branch's first commit to its merge;
