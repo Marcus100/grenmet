@@ -279,7 +279,7 @@ async def update_alert(
     payload: CapAlertUpdate,
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.edit")
-    alert = await get_alert_or_404(session=session, alert_id=alert_id)
+    alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
     if alert.lifecycle_state not in EDITABLE_STATES:
         raise CapStateError(
             "Only draft, submitted, or approved CAP alerts can be edited."
@@ -431,7 +431,7 @@ async def submit_alert(
     payload: CapAlertAction,
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.submit")
-    alert = await get_alert_or_404(session=session, alert_id=alert_id)
+    alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
     from src.baseline.models import ApprovalPolicy
 
     policy = await session.get(ApprovalPolicy, "cap")
@@ -462,7 +462,7 @@ async def approve_alert(
     payload: CapAlertAction,
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.approve")
-    alert = await get_alert_or_404(session=session, alert_id=alert_id)
+    alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
     # ADR-0023: approval always needs a different person; the legacy
     # `allow_self_approval` policy flag no longer relaxes this for CAP.
     if alert.created_by_user_id == current_user.id:
@@ -505,7 +505,7 @@ async def publish_alert(
 ) -> tuple[CapAlertPublic, CapSnapshotPublic]:
     """Normal publish: only an Approved alert (approved by a non-author)."""
     require_permission(current_user=current_user, permission_key="cap.alert.publish")
-    alert = await get_alert_or_404(session=session, alert_id=alert_id)
+    alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
     if alert.lifecycle_state != CapLifecycleState.APPROVED:
         raise CapStateError(
             "Only an approved alert can be published. Submit it for approval, "
@@ -534,7 +534,7 @@ async def emergency_publish_alert(
     reason = payload.reason.strip()
     if not reason:
         raise CapValidationFailedError(["An emergency publish reason is required."])
-    alert = await get_alert_or_404(session=session, alert_id=alert_id)
+    alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
     if alert.lifecycle_state not in {
         CapLifecycleState.DRAFT,
         CapLifecycleState.SUBMITTED,
@@ -802,7 +802,7 @@ async def expire_alert(
     payload: CapAlertAction,
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.publish")
-    alert = await get_alert_or_404(session=session, alert_id=alert_id)
+    alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
     identifier = alert.identifier
     public = await _transition(
         session=session,
@@ -820,8 +820,18 @@ async def expire_alert(
     return public
 
 
-async def get_alert_or_404(*, session: AsyncSession, alert_id: uuid.UUID) -> CapAlert:
-    result = await session.execute(select(CapAlert).where(CapAlert.id == alert_id))
+async def get_alert_or_404(
+    *, session: AsyncSession, alert_id: uuid.UUID, for_update: bool = False
+) -> CapAlert:
+    """Load an alert. ``for_update`` takes a row lock until the transaction ends.
+
+    Lifecycle writers (edit, submit, approve, publish, expire) lock so an edit
+    and a publish cannot interleave; the loser re-reads the committed state.
+    """
+    stmt = select(CapAlert).where(CapAlert.id == alert_id)
+    if for_update:
+        stmt = stmt.with_for_update().execution_options(populate_existing=True)
+    result = await session.execute(stmt)
     alert = result.scalars().first()
     if not alert:
         raise CapAlertNotFoundError()

@@ -1,5 +1,6 @@
 """CAP service state machine tests — invalid transitions raise CapStateError."""
 
+import asyncio
 from datetime import UTC, timedelta
 
 import pytest
@@ -668,3 +669,47 @@ async def test_submit_without_policy_preserves_draft(db_async: AsyncSession) -> 
         )
     stored = await db_async.get(CapAlert, alert.id)
     assert stored.lifecycle_state == CapLifecycleState.DRAFT
+
+
+async def test_edit_waits_for_a_publish_in_progress_and_is_then_refused(
+    db_async: AsyncSession,
+) -> None:
+    """An edit that starts while a publish holds the row lock must not slip in."""
+    from src.database import async_session_factory
+
+    user = await make_user(db_async, superuser=True)
+    alert = await _create_alert_for_test(db_async, user)
+    await submit_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    await approve_alert(
+        session=db_async,
+        current_user=await make_user(db_async, superuser=True),
+        alert_id=alert.id,
+        payload=CapAlertAction(),
+    )
+
+    async def edit() -> None:
+        async with async_session_factory() as other:
+            await update_alert(
+                session=other,
+                current_user=user,
+                alert_id=alert.id,
+                payload=CapAlertUpdate(note="late edit"),
+            )
+
+    # The publisher's transaction takes the lock first (as publish_alert now does).
+    await cap_service.get_alert_or_404(
+        session=db_async, alert_id=alert.id, for_update=True
+    )
+    editor = asyncio.create_task(edit())
+    await asyncio.sleep(0.5)
+    assert not editor.done(), "the edit must wait for the row lock"
+
+    await _publish_approved(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    with pytest.raises(CapStateError):
+        await asyncio.wait_for(editor, timeout=10)
+    row = await db_async.get(CapAlert, alert.id, populate_existing=True)
+    assert row is not None and row.note != "late edit"
