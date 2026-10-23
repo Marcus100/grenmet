@@ -111,16 +111,22 @@ export function SkyDayStrip({
                   <span className="sr-only"> {day.month}</span>
                 </span>
                 <SkyIcon hidden={missing} sky={day.condition} />
-                <span className="flex flex-col items-center tabular-nums sm:flex-row sm:items-baseline sm:gap-1">
-                  <span className="font-bold text-body-base leading-body-base sm:text-heading-sm sm:leading-heading-sm">
-                    {day.high === null ? "—" : `${day.high}°`}
-                    <span className="sr-only"> maximum,</span>
-                  </span>
+                {missing ? (
                   <span className="text-caption text-gm-text-inverse/85 leading-caption sm:text-body-sm sm:leading-body-sm">
-                    {day.low === null ? "—" : `${day.low}°`}
-                    <span className="sr-only"> minimum</span>
+                    No forecast yet
                   </span>
-                </span>
+                ) : (
+                  <span className="flex flex-col items-center tabular-nums sm:flex-row sm:items-baseline sm:gap-1">
+                    <span className="font-bold text-body-base leading-body-base sm:text-heading-sm sm:leading-heading-sm">
+                      {day.high === null ? "—" : `${day.high}°`}
+                      <span className="sr-only"> maximum,</span>
+                    </span>
+                    <span className="text-caption text-gm-text-inverse/85 leading-caption sm:text-body-sm sm:leading-body-sm">
+                      {day.low === null ? "—" : `${day.low}°`}
+                      <span className="sr-only"> minimum</span>
+                    </span>
+                  </span>
+                )}
                 <span className="hidden whitespace-nowrap font-semibold text-body-sm tabular-nums leading-body-sm sm:block">
                   {day.rain === null ? (
                     " "

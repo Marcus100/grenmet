@@ -44,13 +44,19 @@ const COLUMNS = [
   },
 ] as const;
 
+/*
+ * Social accounts. PLACEHOLDER URLs: these are generic platform home pages
+ * until GMS supplies its own account links. Replace each `href` here (one place)
+ * when the owner sends them. lucide-react ships no brand icons, so each network
+ * is named in text.
+ */
 const SOCIAL = [
-  { label: "X / Twitter", abbr: "X", href: "https://x.com" },
-  { label: "Facebook", abbr: "f", href: "https://facebook.com" },
-  { label: "Instagram", abbr: "ig", href: "https://instagram.com" },
-  { label: "YouTube", abbr: "yt", href: "https://youtube.com" },
-  { label: "LinkedIn", abbr: "in", href: "https://linkedin.com" },
-  { label: "WhatsApp", abbr: "wa", href: "https://whatsapp.com" },
+  { label: "X", href: "https://x.com" },
+  { label: "Facebook", href: "https://facebook.com" },
+  { label: "Instagram", href: "https://instagram.com" },
+  { label: "YouTube", href: "https://youtube.com" },
+  { label: "LinkedIn", href: "https://linkedin.com" },
+  { label: "WhatsApp", href: "https://whatsapp.com" },
 ] as const;
 
 const LEGAL_LINKS = [
@@ -64,15 +70,16 @@ const LEGAL_LINKS = [
 const LINK = "hover:text-gm-text-inverse hover:underline";
 
 /**
- * Bold sky footer: navy, brand block and four link columns. Full window width,
- * not the page content column (owner decision, 30 Sep 2026).
+ * Bold sky footer: navy, brand block and four link columns. The navy band is
+ * full window width; its rows align to the page column (`max-w-6xl`, as the
+ * header does).
  */
 export function Footer() {
   const copyright = `Copyright © Grenada Airports Authority ${new Date().getFullYear()}, Grenada Meteorological Service`;
 
   return (
     <footer className="bg-gm-navy text-body text-gm-text-inverse/80 leading-body lg:text-body-base lg:leading-body-base">
-      <div className="grid grid-cols-2 gap-x-6 gap-y-8 px-4 pt-10 pb-8 sm:px-6 lg:grid-cols-[1.4fr_repeat(4,minmax(0,1fr))] xl:px-8">
+      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-8 px-4 pt-10 pb-8 sm:px-6 lg:grid-cols-[1.4fr_repeat(4,minmax(0,1fr))] xl:px-8">
         <div className="col-span-2 flex flex-col gap-3 lg:col-span-1">
           <Link
             aria-label="Grenada Meteorological Service — home"
@@ -90,15 +97,15 @@ export function Footer() {
           </p>
           <ul aria-label="GMS on social media" className="flex flex-wrap gap-2">
             {SOCIAL.map((s) => (
-              <li key={s.href}>
+              <li key={s.label}>
                 <a
-                  aria-label={s.label}
-                  className="flex size-9 items-center justify-center rounded-full border border-gm-text-inverse/30 font-bold text-caption leading-caption hover:bg-gm-text-inverse/10"
+                  aria-label={`GMS on ${s.label}`}
+                  className="flex h-9 items-center justify-center rounded-full border border-gm-border px-3 font-semibold text-caption leading-caption hover:bg-gm-text-inverse/10"
                   href={s.href}
                   rel="noopener noreferrer"
                   target="_blank"
                 >
-                  {s.abbr}
+                  {s.label}
                 </a>
               </li>
             ))}
@@ -124,7 +131,7 @@ export function Footer() {
       </div>
 
       <div className="border-gm-text-inverse/15 border-t">
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-4 text-body-sm leading-body-sm sm:px-6 lg:text-body lg:leading-body xl:px-8">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-4 text-body-sm leading-body-sm sm:px-6 lg:text-body lg:leading-body xl:px-8">
           <p className="text-body-sm leading-body-sm lg:text-body lg:leading-body">
             {copyright}
           </p>

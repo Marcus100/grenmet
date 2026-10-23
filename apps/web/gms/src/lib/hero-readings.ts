@@ -50,7 +50,10 @@ export type ReadingIcon =
   | "visibility"
   | "wind";
 
-/** Shown for a reading no real feed supplies yet; never a placeholder figure. */
+/**
+ * Shown for a reading no real feed supplies yet; never a placeholder figure.
+ * The grid draws a dash for it and reads this text to screen readers.
+ */
 export const NOT_AVAILABLE = "Not available yet";
 
 export type PressureTrend = "falling" | "rising" | "steady";
@@ -93,7 +96,7 @@ function computedSun(
  * The Now tab's readings, in reading order: wind and gusts, humidity and dew
  * point, pressure and visibility, cloud and UV, rain, then air quality.
  * Only real register values appear; a field the register does not record
- * says "Not available yet" and never carries a stand-in figure.
+ * says NOT_AVAILABLE and never carries a stand-in figure.
  */
 export function nowReadings(current: CurrentConditions): Reading[] {
   const tile = (pattern: RegExp) =>
@@ -175,7 +178,7 @@ export function rainChance(day: ForecastDayData): number | null {
  * gusts, rain chance and amount, humidity and cloud, seas and swell, sunrise
  * and sunset, high and low tides, then visibility and air quality. Forecasts
  * carry no feels-like or UV. Only issued values appear (sun times are
- * computed from the date); a gap says "Not available yet".
+ * computed from the date); a gap says NOT_AVAILABLE.
  */
 export function dayReadings(day: ForecastDayData): Reading[] {
   if (!isIssued(day)) return [];

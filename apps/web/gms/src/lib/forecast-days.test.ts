@@ -2,11 +2,21 @@
 import { describe, expect, it } from "vitest";
 import { DAY_CONDITIONS } from "@/lib/forecast-data";
 import {
+  forecastDayTitle,
   getForecastDays,
   getUpcomingDaySlugs,
   segmentsToSlug,
   slugToSegments,
 } from "@/lib/forecast-days";
+
+describe("forecastDayTitle", () => {
+  it("names the day in full, in Grenada's calendar", () => {
+    expect(forecastDayTitle("2026-10-23")).toBe(
+      "Forecast for Friday, 23 October 2026"
+    );
+    expect(forecastDayTitle("not-a-date")).toBe("Forecast");
+  });
+});
 
 /** Hoisted: a regex literal rebuilt on every call is a needless allocation. */
 const DATED_PATH = /^\/weather\/\d{4}\/\d{2}\/\d{2}$/;

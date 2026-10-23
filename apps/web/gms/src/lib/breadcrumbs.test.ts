@@ -1,6 +1,8 @@
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { breadcrumbTrail } from "@/lib/breadcrumbs";
 import { NAV_SECTIONS } from "@/lib/nav-sections";
+import { APP_DIR, routesOnDisk } from "@/test/routes";
 
 const labels = (path: string) => breadcrumbTrail(path).map((c) => c.label);
 
@@ -60,9 +62,46 @@ describe("breadcrumbTrail", () => {
     ]);
   });
 
+  it("gives every section index page not in a group a trail of its section", () => {
+    const linked = new Set(
+      NAV_SECTIONS.flatMap((section) =>
+        section.groups.flatMap((group) => group.links.map((link) => link.href))
+      )
+    );
+    for (const section of NAV_SECTIONS) {
+      if (linked.has(section.href)) {
+        continue;
+      }
+      expect(breadcrumbTrail(section.href)).toEqual([
+        { current: true, href: section.href, label: section.label },
+      ]);
+    }
+    expect(labels("/marine")).toEqual(["Marine"]);
+  });
+
+  it("keeps the three-level trail for a section index that is also a link", () => {
+    expect(labels("/weather")).toEqual(["Weather", "Forecasts", "Today"]);
+  });
+
   it("gives pages outside the navigation no trail", () => {
     for (const path of ["/", "/privacy", "/sitemap"]) {
       expect(breadcrumbTrail(path)).toEqual([]);
+    }
+  });
+
+  it("gives every standing page on disk a trail unless it sits outside the nav", () => {
+    // Footer-only pages that are not in NAV_SECTIONS.
+    const outside = new Set(["/privacy", "/sitemap", "/disclaimer"]);
+    const standing = routesOnDisk(path.join(APP_DIR, "(pages)")).filter(
+      (route) => !route.includes("[")
+    );
+    expect(standing.length).toBeGreaterThan(0);
+    for (const route of standing) {
+      if (outside.has(route)) {
+        expect(breadcrumbTrail(route)).toEqual([]);
+      } else {
+        expect(breadcrumbTrail(route).length, route).toBeGreaterThan(0);
+      }
     }
   });
 

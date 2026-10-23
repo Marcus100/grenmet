@@ -64,6 +64,13 @@ export function breadcrumbTrail(pathname: string): Crumb[] {
     return navTrail(exact, true);
   }
 
+  // A section's index page sits above its groups, so its trail is the
+  // section alone. (/alerts, /weather and /about are also links, handled above.)
+  const section = NAV_SECTIONS.find((item) => item.href === path);
+  if (section) {
+    return [{ current: true, href: section.href, label: section.label }];
+  }
+
   const parent = NAV_ENTRIES.filter(
     (entry) => entry.link.href !== "/" && isWithin(path, entry.link.href)
   ).sort((a, b) => b.link.href.length - a.link.href.length)[0];
