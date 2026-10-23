@@ -371,12 +371,14 @@ async def check_alert_outbox(ctx: dict[str, Any]) -> int:
     return 0
 
 
-async def check_cap_job_failures(ctx: dict[str, Any]) -> int:  # noqa: ARG001
+async def check_cap_job_failures(ctx: dict[str, Any]) -> int:
     """Log an error when a CAP job has failed on every attempt (nothing retries it).
 
     Counts and job kinds only: no recipients, payloads or error text.
     """
     from datetime import timedelta
+
+    _ = ctx  # arq passes the job context; this check needs none of it
 
     from src.database import async_session_factory
     from src.worker import cap_failure_mail, dispatch

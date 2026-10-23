@@ -76,7 +76,7 @@ async def publish_push(
                 failures.append(
                     {"subscription_id": sub_id, "error": outcome.error or ""}
                 )
-    except Exception as exc:  # noqa: BLE001 - keep the delivered list for the retry
+    except Exception as exc:
         raise PublishError(
             {
                 "delivered": delivered,
