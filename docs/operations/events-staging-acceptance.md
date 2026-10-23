@@ -250,11 +250,14 @@ Order:
    ```bash
    "${C[@]}" exec api alembic current
    ```
-   Expect head `orgverifystatus20261022`. The three revisions in #520, in order:
+   Expect head `eventsactivitycapacity20261022` (single head, no branches). The
+   four revisions in #520, in order:
    `membershipgrant20261022` (table `org.membership_grant`),
    `eventsentitlement20261022` (inserts missing `events` rows in
    `org.organisation_app` for existing organisers),
-   `orgverifystatus20261022` (verification columns on `org.organisation`).
+   `orgverifystatus20261022` (verification columns on `org.organisation`),
+   `eventsactivitycapacity20261022` (adds `actor_capacity`, `member` for every
+   existing row, to `events.activity`; additive, ADR-0050).
    Check the entitlement backfill:
    ```bash
    "${C[@]}" exec db psql -U <POSTGRES_USER> -d app_staging \
