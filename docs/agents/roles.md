@@ -74,8 +74,11 @@ builds the handoff block from git and runs `codex exec` in a detached checkout
 of that exact head, with a read-only sandbox, an ephemeral session and user
 config ignored (so the private Bishop and Playwright MCP servers are not
 loaded). Read-only stops shell writes, not reads: the reviewer can still read the
-whole disk, which is why `--post` refuses to comment unless the head is pushed
-and the findings pass the private-content and secret-shape checks. It prints the
+whole disk, which is why `--post` refuses to comment unless the head is pushed,
+the PR's head SHA is the reviewed head (a mistyped PR number cannot receive it),
+and the findings pass the private-content, vault-path and secret-shape checks.
+Those checks fail closed, so a finding that merely mentions a word like "token"
+in a `token: value` form is also held back; read it and post it by hand. It prints the
 findings; add `--post <pr>` to leave them as a PR comment, and `--dry-run` to see
 the command and prompt. It is opt-in per PR because it spends Codex tokens, and
 its comment counts as the fresh-context review only when it reports no blocking

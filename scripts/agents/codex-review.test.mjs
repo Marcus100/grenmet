@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import {
   existsSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -26,6 +27,10 @@ const GIT_ENV = {
   GIT_COMMITTER_NAME: "t",
   GIT_COMMITTER_EMAIL: "t@example.com",
 };
+const NOT_POSTED = /Not posted to PR/;
+const NO_FINDINGS = /wrote no findings/;
+const BLEW_UP = /codex blew up/;
+const COULD_NOT_RUN = /could not run codex/;
 const PIN_DIR = /codex-pin-/;
 const NEEDS_VALUE = /needs a value/;
 const PUSH_ORDER = /Push the branch first/;
@@ -137,16 +142,52 @@ test("posting is blocked for an unpushed head, vault content or a secret", () =>
   assert.equal(postBlockers("key sk_live_abcdefgh12345", INFO).length, 1);
 });
 
-/** A spawn double that records calls; codex writes `findings` to its out file. */
-function fakeSpawn({ codexStatus = 0, findings = "No findings." } = {}) {
+test("posting is blocked when the findings quote a vault path or a token", () => {
+  const leaks = [
+    "Per /home/eugine/bishop/wiki/05-gaa-client/contract.md the fee is X",
+    "see ~/bishop/notes",
+    "from raw/02-atmosphere-aviation/report",
+    "reads /private/clients.md",
+    "token sk-proj-abcdefghijklmnopqrstuvwx leaked",
+    "ghs_abcdefghijklmnopqrstuvwxyz0123456789",
+    "Authorization: Bearer abcdefghijklmnop1234",
+    "-----BEGIN RSA PRIVATE KEY-----",
+  ];
+  for (const leak of leaks) {
+    assert.ok(postBlockers(leak, INFO).length >= 1, leak);
+  }
+});
+
+/**
+ * A spawn double that records calls. Codex writes `findings` to its out file
+ * unless `writesOutput` is false; `throwOn` makes that command throw.
+ */
+function fakeSpawn({
+  codexStatus = 0,
+  codexError,
+  findings = "No findings.",
+  prHead = HEAD,
+  throwOn,
+  writesOutput = true,
+} = {}) {
   const calls = [];
+  const state = { pinDir: undefined };
   const spawn = (cmd, args, options = {}) => {
-    calls.push({ args, cmd });
+    calls.push({ args, cmd, options });
+    if (cmd === throwOn) {
+      throw new Error(`${cmd} blew up`);
+    }
     if (cmd === "git" && args[0] === "rev-parse") {
       return { status: 0, stdout: process.cwd() };
     }
+    if (cmd === "git" && args[0] === "worktree" && args[1] === "add") {
+      state.pinDir = args[3];
+    }
     if (cmd === "codex") {
-      if (codexStatus === 0) {
+      if (codexError) {
+        return { error: codexError, status: null };
+      }
+      if (codexStatus === 0 && writesOutput) {
         writeFileSync(
           args[args.indexOf("--output-last-message") + 1],
           findings
@@ -155,9 +196,12 @@ function fakeSpawn({ codexStatus = 0, findings = "No findings." } = {}) {
       assert.equal(options.input.startsWith("Read-only review."), true);
       return { status: codexStatus };
     }
+    if (cmd === "gh" && args[1] === "view") {
+      return { status: 0, stdout: `${prHead}\n` };
+    }
     return { status: 0, stdout: "", stderr: "" };
   };
-  return { calls, spawn };
+  return { calls, spawn, state };
 }
 
 const gather =
@@ -166,6 +210,26 @@ const gather =
 const named = (calls, cmd) => calls.filter((call) => call.cmd === cmd);
 const removed = (calls) =>
   calls.filter((c) => c.cmd === "git" && c.args[1] === "remove");
+const REVIEW_TMP = /^codex-review-(?!test-)/;
+const reviewTempDirs = () =>
+  readdirSync(tmpdir()).filter((name) => REVIEW_TMP.test(name));
+
+/** Runs `run`, capturing console.error, and returns code, errors and thrown. */
+function runQuiet(args, deps) {
+  const errors = [];
+  const original = console.error;
+  console.error = (message) => errors.push(String(message));
+  let code;
+  let thrown;
+  try {
+    code = run(args, deps);
+  } catch (error) {
+    thrown = error;
+  } finally {
+    console.error = original;
+  }
+  return { code, errors, thrown };
+}
 
 test("--dry-run starts neither codex nor a worktree nor gh", () => {
   const { calls, spawn } = fakeSpawn();
@@ -178,39 +242,114 @@ test("--dry-run starts neither codex nor a worktree nor gh", () => {
   );
 });
 
-test("nothing is posted without --post", () => {
-  const { calls, spawn } = fakeSpawn();
-  assert.equal(run([], { collect: gather(), spawn }), 0);
-  assert.equal(named(calls, "codex").length, 1);
+test("codex runs in a pinned checkout of the head, and nothing is posted without --post", () => {
+  const before = reviewTempDirs();
+  const { calls, spawn, state } = fakeSpawn();
+  assert.equal(runQuiet([], { collect: gather(), spawn }).code, 0);
+  const add = calls.find(
+    (c) => c.cmd === "git" && c.args[0] === "worktree" && c.args[1] === "add"
+  );
+  assert.deepEqual(add.args.slice(0, 3), ["worktree", "add", "--detach"]);
+  assert.equal(add.args[4], HEAD);
+  const [codex] = named(calls, "codex");
+  assert.equal(codex.options.cwd, state.pinDir);
+  assert.equal(codex.args[codex.args.indexOf("--cd") + 1], state.pinDir);
+  assert.notEqual(state.pinDir, process.cwd());
   assert.equal(named(calls, "gh").length, 0);
+  assert.equal(existsSync(state.pinDir), false);
+  assert.deepEqual(reviewTempDirs(), before);
 });
 
-test("--post comments once when the head is pushed and the findings are clean", () => {
+test("--post checks the PR head, then comments once", () => {
   const { calls, spawn } = fakeSpawn();
-  assert.equal(run(["--post", "7"], { collect: gather(), spawn }), 0);
-  const [gh] = named(calls, "gh");
-  assert.deepEqual(gh.args.slice(0, 3), ["pr", "comment", "7"]);
+  assert.equal(runQuiet(["--post", "7"], { collect: gather(), spawn }).code, 0);
+  const gh = named(calls, "gh");
+  assert.deepEqual(
+    gh.map((c) => c.args.slice(0, 3)),
+    [
+      ["pr", "view", "7"],
+      ["pr", "comment", "7"],
+    ]
+  );
 });
 
 test("--post refuses an unpushed head and still cleans up", () => {
-  const { calls, spawn } = fakeSpawn();
-  const code = run(["--post", "7"], {
+  const before = reviewTempDirs();
+  const { calls, spawn, state } = fakeSpawn();
+  const { code, errors } = runQuiet(["--post", "7"], {
     collect: gather({ pushed: false }),
     spawn,
   });
   assert.equal(code, 1);
+  assert.match(errors.join("\n"), NOT_POSTED);
   assert.equal(named(calls, "gh").length, 0);
-  assert.equal(removed(calls).length >= 1, true);
+  assert.equal(existsSync(state.pinDir), false);
+  assert.deepEqual(reviewTempDirs(), before);
 });
 
-test("the worktree is released when codex fails", () => {
-  const { calls, spawn } = fakeSpawn({ codexStatus: 3 });
-  assert.equal(run([], { collect: gather(), spawn }), 3);
-  assert.equal(removed(calls).length >= 1, true);
+test("--post refuses a PR whose head is not the reviewed head", () => {
+  const { calls, spawn } = fakeSpawn({ prHead: "c".repeat(40) });
+  const { code, errors } = runQuiet(["--post", "515"], {
+    collect: gather(),
+    spawn,
+  });
+  assert.equal(code, 1);
+  assert.match(errors.join("\n"), NOT_POSTED);
+  assert.equal(
+    named(calls, "gh").filter((c) => c.args[1] === "comment").length,
+    0
+  );
 });
 
-test("a missing value for a flag exits 2 before any codex run", () => {
-  const { calls, spawn } = fakeSpawn();
-  assert.equal(run(["--post"], { collect: gather(), spawn }), 2);
-  assert.equal(named(calls, "codex").length, 0);
+test("--post refuses findings that quote a vault path", () => {
+  const { calls, spawn } = fakeSpawn({
+    findings: "Per /home/eugine/bishop/wiki/05-gaa-client/x.md the fee is X",
+  });
+  const { code } = runQuiet(["--post", "7"], { collect: gather(), spawn });
+  assert.equal(code, 1);
+  assert.equal(named(calls, "gh").length, 0);
+});
+
+test("the worktree and temp dir are released when codex fails", () => {
+  const before = reviewTempDirs();
+  const { calls, spawn, state } = fakeSpawn({ codexStatus: 3 });
+  assert.equal(runQuiet([], { collect: gather(), spawn }).code, 3);
+  assert.equal(removed(calls).length >= 1, true);
+  assert.equal(existsSync(state.pinDir), false);
+  assert.deepEqual(reviewTempDirs(), before);
+});
+
+test("codex exiting 0 without an output file is an error, not a crash", () => {
+  const before = reviewTempDirs();
+  const { spawn, state } = fakeSpawn({ writesOutput: false });
+  const { code, errors, thrown } = runQuiet([], { collect: gather(), spawn });
+  assert.equal(thrown, undefined);
+  assert.equal(code, 1);
+  assert.match(errors.join("\n"), NO_FINDINGS);
+  assert.equal(existsSync(state.pinDir), false);
+  assert.deepEqual(reviewTempDirs(), before);
+});
+
+test("a throw while codex runs still releases the worktree and temp dir", () => {
+  const before = reviewTempDirs();
+  const { spawn, state } = fakeSpawn({ throwOn: "codex" });
+  const { thrown } = runQuiet([], { collect: gather(), spawn });
+  assert.match(thrown.message, BLEW_UP);
+  assert.equal(existsSync(state.pinDir), false);
+  assert.deepEqual(reviewTempDirs(), before);
+});
+
+test("a missing codex binary says so", () => {
+  const { spawn } = fakeSpawn({ codexError: new Error("spawn codex ENOENT") });
+  const { code, errors } = runQuiet([], { collect: gather(), spawn });
+  assert.equal(code, 1);
+  assert.match(errors.join("\n"), COULD_NOT_RUN);
+});
+
+test("a missing or malformed flag value exits 2 before any codex run", () => {
+  for (const args of [["--post"], ["--post", "abc"], ["--task", "--dry-run"]]) {
+    const { calls, spawn } = fakeSpawn();
+    assert.equal(runQuiet(args, { collect: gather(), spawn }).code, 2);
+    assert.equal(named(calls, "codex").length, 0);
+  }
 });

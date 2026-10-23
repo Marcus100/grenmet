@@ -24,6 +24,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { redactSecrets } from "../../.claude/hooks/audit-log.mjs";
 import { findPrivateContent } from "../guardrails/check-private-content.mjs";
 import { DEFAULT_BASE } from "../verification/receipt.mjs";
 import { collect, render } from "./review-handoff.mjs";
@@ -32,8 +33,14 @@ const COMMENT_HEADER = "Codex read-only review (fresh context)";
 
 const PUSHED_LINE = /^Pushed: .*$/m;
 const TREE_LINE = /^Working tree: .*$/m;
-const SECRET_SHAPE =
-  /(?:sk_(?:live|test)_|ghp_|github_pat_|AKIA)[A-Za-z0-9_]{8,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;
+// findPrivateContent tests vault paths against a file path only, so a vault or
+// home path quoted inside the findings text needs its own check here.
+const VAULT_REFERENCE =
+  /(?:\/home\/[^/\s]+\/|~\/)(?:bishop|\.claude|\.codex|backups|grenmet-cleanup-archives)\b|\b(?:wiki|raw)\/(?:0[0-9]|9[89])-[a-z]|\/private\//;
+// Shapes the shared redactor does not cover (this repo uses Stripe keys).
+const EXTRA_SECRET_SHAPE =
+  /sk_(?:live|test)_[A-Za-z0-9]{8,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;
+const PR_NUMBER = /^\d+$/;
 
 /**
  * Detached checkout of exactly `head`, so the reviewer reads the committed
@@ -50,12 +57,26 @@ export function pinHead(root, head, spawn = spawnSync) {
     rmSync(dir, { recursive: true, force: true });
     throw new Error(`git worktree add failed: ${add.stderr}`);
   }
+  let released = false;
   return {
     dir,
+    // Idempotent, and each step runs even if an earlier one throws, so a
+    // failed cleanup cannot be repeated by a finally block or mask the first
+    // error.
     release() {
-      spawn("git", ["worktree", "remove", "--force", dir], { cwd: root });
-      rmSync(dir, { recursive: true, force: true });
-      spawn("git", ["worktree", "prune"], { cwd: root });
+      if (released) {
+        return;
+      }
+      released = true;
+      try {
+        spawn("git", ["worktree", "remove", "--force", dir], { cwd: root });
+      } finally {
+        try {
+          rmSync(dir, { recursive: true, force: true });
+        } finally {
+          spawn("git", ["worktree", "prune"], { cwd: root });
+        }
+      }
     },
   };
 }
@@ -84,7 +105,9 @@ export function buildPrompt(info, { task, criteria, limitations }) {
     );
   // Template lines first, from the rendered block, so author text that quotes
   // a placeholder cannot be hit by a later replacement.
-  const lines = prompt.split("\n").map((line) => fields[line] ?? line);
+  const lines = prompt
+    .split("\n")
+    .map((line) => (Object.hasOwn(fields, line) ? fields[line] : line));
   prompt = lines.join("\n");
   return prompt.concat(
     `\nInspect only this head against the base with \`git diff ${info.mergeBase}..${info.head}\`. Follow AGENTS.md and the nested AGENTS.md of each changed directory.\n`
@@ -124,7 +147,16 @@ export function postBlockers(findings, info) {
   ])) {
     blockers.push(finding);
   }
-  if (SECRET_SHAPE.test(findings)) {
+  if (VAULT_REFERENCE.test(findings)) {
+    blockers.push(
+      "the findings reference a private vault, home or /private/ path"
+    );
+  }
+  // Same redactor the Bash audit log uses, so there is one list of secret shapes.
+  if (
+    redactSecrets(findings) !== findings ||
+    EXTRA_SECRET_SHAPE.test(findings)
+  ) {
     blockers.push("the findings contain a secret-shaped string");
   }
   return blockers;
@@ -137,8 +169,11 @@ export function flag(args, name) {
     return;
   }
   const value = args[at + 1];
-  if (value === undefined || value.startsWith("--")) {
+  if (value === undefined || value.startsWith("-")) {
     throw new Error(`${name} needs a value`);
+  }
+  if (name === "--post" && !PR_NUMBER.test(value)) {
+    throw new Error("--post needs a PR number");
   }
   return value;
 }
@@ -146,6 +181,42 @@ export function flag(args, name) {
 function gitOut(spawn, root, args) {
   const result = spawn("git", args, { cwd: root, encoding: "utf8" });
   return result.status === 0 ? result.stdout.trim() : null;
+}
+
+/** Comments the findings on `pr` after every gate passes; returns an exit code. */
+function postFindings({ findings, info, pr, root, spawn }) {
+  const blockers = postBlockers(findings, info);
+  if (blockers.length > 0) {
+    console.error(
+      `Not posted to PR ${pr}:\n${blockers.map((b) => `  - ${b}`).join("\n")}`
+    );
+    return 1;
+  }
+  // A pushed branch does not prove this PR is that branch: a mistyped number
+  // would put the review on an unrelated public PR.
+  const view = spawn(
+    "gh",
+    ["pr", "view", pr, "--json", "headRefOid", "--jq", ".headRefOid"],
+    { cwd: root, encoding: "utf8" }
+  );
+  const prHead = view.status === 0 ? String(view.stdout).trim() : null;
+  if (prHead !== info.head) {
+    console.error(
+      `Not posted to PR ${pr}: its head is ${prHead ?? "unknown"}, not ${info.head}.`
+    );
+    return 1;
+  }
+  const body = `**${COMMENT_HEADER}** at \`${info.head}\` (base \`${info.mergeBase}\`)\n\n${findings}`;
+  const post = spawn("gh", ["pr", "comment", pr, "--body-file", "-"], {
+    cwd: root,
+    encoding: "utf8",
+    input: body,
+  });
+  if (post.status !== 0) {
+    console.error(post.stderr);
+    return post.status ?? 1;
+  }
+  return 0;
 }
 
 /**
@@ -212,7 +283,11 @@ export function run(args, deps = {}) {
     pin.release();
     pin = undefined;
     if (codex.status !== 0) {
-      console.error("codex exited with an error; no findings were produced.");
+      console.error(
+        codex.error
+          ? `could not run codex: ${codex.error.message}`
+          : "codex exited with an error; no findings were produced."
+      );
       return codex.status ?? 1;
     }
     if (!existsSync(outFile)) {
@@ -221,31 +296,9 @@ export function run(args, deps = {}) {
     }
     const findings = readFileSync(outFile, "utf8").trim();
     console.log(findings);
-    if (!options.pr) {
-      return 0;
-    }
-    const blockers = postBlockers(findings, info);
-    if (blockers.length > 0) {
-      console.error(
-        `Not posted to PR ${options.pr}:\n${blockers.map((b) => `  - ${b}`).join("\n")}`
-      );
-      return 1;
-    }
-    const body = `**${COMMENT_HEADER}** at \`${info.head}\` (base \`${info.mergeBase}\`)\n\n${findings}`;
-    const post = spawn(
-      "gh",
-      ["pr", "comment", options.pr, "--body-file", "-"],
-      {
-        cwd: root,
-        encoding: "utf8",
-        input: body,
-      }
-    );
-    if (post.status !== 0) {
-      console.error(post.stderr);
-      return post.status ?? 1;
-    }
-    return 0;
+    return options.pr
+      ? postFindings({ findings, info, pr: options.pr, root, spawn })
+      : 0;
   } finally {
     pin?.release();
     rmSync(dir, { recursive: true, force: true });
