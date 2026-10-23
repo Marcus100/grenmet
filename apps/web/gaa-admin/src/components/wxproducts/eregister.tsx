@@ -9,6 +9,7 @@ import {
 import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { REGISTER_KEYS, REGISTER_SECTIONS } from "./eregister-layout";
 import { metarFromCoded } from "./eregister-metar";
 import { observerInitials } from "./eregister-observer";
@@ -262,23 +263,22 @@ export function ERegister() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Station header: the view buttons sit beside the cards, not across the page */}
-      <div className="flex flex-col items-start gap-3">
-        <h1 className="font-semibold text-2xl tracking-tight">
-          Weather Electronic Register
-        </h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            onClick={() => setView("archive")}
-            variant={view === "archive" ? "default" : "outline"}
-          >
-            Observation archive
-          </Button>
-          <Button onClick={() => setView("new")} variant="outline">
-            New observation
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        actions={
+          <>
+            <Button
+              onClick={() => setView("archive")}
+              variant={view === "archive" ? "default" : "outline"}
+            >
+              Observation archive
+            </Button>
+            <Button onClick={() => setView("new")} variant="outline">
+              New observation
+            </Button>
+          </>
+        }
+        title="Weather Electronic Register"
+      />
 
       {liveState === "unavailable" ? (
         <p className="rounded-lg border px-4 py-3 text-sm" role="alert">

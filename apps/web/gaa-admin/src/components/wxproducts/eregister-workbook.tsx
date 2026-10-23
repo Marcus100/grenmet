@@ -6,6 +6,7 @@ import { Input } from "@barrelsgd/ui/components/ui/input";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { CircleAlert, Mail, Save, Send, TriangleAlert } from "lucide-react";
 import { type FormEvent, useState } from "react";
+import { PageHeader } from "@/components/layout/page-header";
 
 interface Station {
   icao: string;
@@ -228,17 +229,17 @@ export function ERegisterWorkbook({
   );
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col items-start gap-3">
-        <h1 className="font-semibold text-2xl tracking-tight">
-          Weather Electronic Register
-        </h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={() => onBack()} variant="outline">
-            Observation archive
-          </Button>
-          <Button aria-current="page">New observation</Button>
-        </div>
-      </div>
+      <PageHeader
+        actions={
+          <>
+            <Button onClick={() => onBack()} variant="outline">
+              Observation archive
+            </Button>
+            <Button aria-current="page">New observation</Button>
+          </>
+        }
+        title="Weather Electronic Register"
+      />
 
       <form className="flex flex-col gap-6" onSubmit={onSubmit}>
         <div className="flex flex-col gap-4">

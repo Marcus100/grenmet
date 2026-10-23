@@ -45,6 +45,7 @@ import {
   saveProductAction,
 } from "@/app/(admin)/wxproducts/product-actions";
 import { DeskLayout } from "@/components/document/desk-layout";
+import { PageHeader } from "@/components/layout/page-header";
 import type { PdfPreviewRequest } from "@/components/wxproducts/forecast-pdf-frame";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
@@ -454,8 +455,7 @@ function ProductEditor({
                     >
                       <TabsList
                         aria-label="Evening forecast period"
-                        className="w-full"
-                        variant="line"
+                        className="w-full max-w-full justify-start overflow-x-auto"
                       >
                         {PERIOD_PREFIXES.map((prefix, index) => (
                           <TabsTrigger
@@ -927,13 +927,10 @@ export function ProductDesk({
   }
   return (
     <div className="space-y-4">
-      <header className="space-y-1">
-        <h1 className="font-semibold text-2xl tracking-tight">{title}</h1>
-        <p className="text-muted-foreground text-sm">
-          Save a draft, check the preview, then publish. Revisions preserve the
-          currently published product until you issue the update.
-        </p>
-      </header>
+      <PageHeader
+        description="Save a draft, check the preview, then publish. Revisions preserve the currently published product until you issue the update."
+        title={title}
+      />
       <ProductDiscardDialog
         onConfirm={() => {
           discard?.();
@@ -998,7 +995,6 @@ export function ProductDesk({
                 {deskKinds.map((value) => (
                   <TabsTrigger
                     className={cn(
-                      "font-normal text-muted-foreground data-active:text-foreground",
                       hasAlertTabs &&
                         "h-auto min-h-10 whitespace-normal text-balance px-2 py-1 text-center leading-4"
                     )}

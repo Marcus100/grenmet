@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ShiftExchangeEditor } from "@/components/hr/shift/shift-exchange-editor";
 import { ShiftSwapSubmissions } from "@/components/hr/shift/shift-swap-submissions";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = {
   title: "Shift Exchange",
@@ -10,14 +11,10 @@ export const metadata: Metadata = {
 export default function ShiftExchangePage() {
   return (
     <div className="@container space-y-6">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight">
-          Shift Exchange Requisition
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Fill in the form to preview the document, then print or export.
-        </p>
-      </div>
+      <PageHeader
+        description="Fill in the form to preview the document, then print or export."
+        title="Shift Exchange Requisition"
+      />
       <ShiftExchangeEditor />
       <ShiftSwapSubmissions />
     </div>

@@ -23,7 +23,7 @@ export default function UserMetaCard({ profile }: UserMetaCardProps) {
   const location = profile.employment.work_location || "Location not recorded";
 
   return (
-    <div className="rounded-2xl border border-border p-5 lg:p-6">
+    <div className="rounded-xl border border-border p-5 lg:p-6">
       <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex w-full flex-col items-center gap-6 xl:flex-row">
           <div className="h-20 w-20 overflow-hidden rounded-full border border-border">

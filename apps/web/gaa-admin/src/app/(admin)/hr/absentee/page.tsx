@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AbsenteeEditor } from "@/components/hr/absentee/absentee-editor";
 import { AbsenteeSubmissions } from "@/components/hr/absentee/absentee-submissions";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = {
   title: "Absentee Report",
@@ -10,14 +11,10 @@ export const metadata: Metadata = {
 export default function AbsenteePage() {
   return (
     <div className="@container space-y-6">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight">
-          Absentee Report
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Fill in the form to preview the document, then print or export.
-        </p>
-      </div>
+      <PageHeader
+        description="Fill in the form to preview the document, then print or export."
+        title="Absentee Report"
+      />
       <AbsenteeEditor />
       <AbsenteeSubmissions />
     </div>

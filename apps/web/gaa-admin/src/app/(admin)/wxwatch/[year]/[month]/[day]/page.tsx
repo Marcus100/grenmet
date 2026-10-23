@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PageHeader } from "@/components/layout/page-header";
 import { DateNavigation } from "@/components/wxwatch/date-navigation";
 import { Gallery } from "@/components/wxwatch/gallery";
 import { getImagesByDateAndSynoptic } from "@/db/wxwatch/queries";
@@ -38,10 +39,17 @@ export default async function DatePage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-semibold text-2xl tracking-tight">WxWatch</h1>
-          <p className="text-muted-foreground text-sm">
+      <PageHeader
+        actions={
+          <div className="space-y-2">
+            <Link className="text-sm underline" href="/wxwatch/archive">
+              Browse all editions
+            </Link>
+            <DateNavigation currentDate={date} />
+          </div>
+        }
+        description={
+          <>
             {date.toLocaleDateString("en-GB", {
               weekday: "long",
               year: "numeric",
@@ -50,15 +58,10 @@ export default async function DatePage({ params }: PageProps) {
               timeZone: "UTC",
             })}{" "}
             UTC — imagery at the eight synoptic hours.
-          </p>
-        </div>
-        <div className="space-y-2">
-          <Link className="text-sm underline" href="/wxwatch/archive">
-            Browse all editions
-          </Link>
-          <DateNavigation currentDate={date} />
-        </div>
-      </div>
+          </>
+        }
+        title="WxWatch"
+      />
 
       <Gallery imagesBySynoptic={images} />
     </div>

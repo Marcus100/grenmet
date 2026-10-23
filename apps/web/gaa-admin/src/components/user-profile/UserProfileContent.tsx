@@ -10,7 +10,6 @@ import {
 import {
   Tabs,
   TabsContent,
-  TabsList,
   TabsTrigger,
 } from "@barrelsgd/ui/components/ui/tabs";
 import { useQueryClient } from "@tanstack/react-query";
@@ -18,6 +17,7 @@ import { RecordHistory } from "@/components/audit/record-history";
 import { EmployeeDocuments } from "@/components/hr/documents/employee-documents";
 import { SignatureSettings } from "@/components/hr/signatures/signature-settings";
 import { NotificationPreferences } from "@/components/notifications/notification-preferences";
+import { PageTabsList } from "@/components/ui/page-tabs";
 import { EmployeeDetailsCard } from "@/components/user-profile/EmployeeDetailsCard";
 import UserAddressCard from "@/components/user-profile/UserAddressCard";
 import UserInfoCard from "@/components/user-profile/UserInfoCard";
@@ -51,7 +51,7 @@ export default function UserProfileContent({
 
   if (profileQuery.isLoading) {
     return (
-      <div className="rounded-2xl border border-border p-6 text-muted-foreground text-sm">
+      <div className="rounded-xl border border-border p-6 text-muted-foreground text-sm">
         Loading profile...
       </div>
     );
@@ -59,7 +59,7 @@ export default function UserProfileContent({
 
   if (profileQuery.isError || !profileQuery.data) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700 text-sm">
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-700 text-sm">
         Unable to load profile data. Please refresh and try again.
       </div>
     );
@@ -67,7 +67,7 @@ export default function UserProfileContent({
 
   return (
     <Tabs className="gap-4" defaultValue={initialTab}>
-      <TabsList className="w-full max-w-full shrink-0 justify-start overflow-x-auto">
+      <PageTabsList>
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="personal">Personal</TabsTrigger>
         <TabsTrigger value="employment">Employment</TabsTrigger>
@@ -75,7 +75,7 @@ export default function UserProfileContent({
         <TabsTrigger value="signature">Signature</TabsTrigger>
         <TabsTrigger value="notifications">Notifications</TabsTrigger>
         <TabsTrigger value="history">History</TabsTrigger>
-      </TabsList>
+      </PageTabsList>
 
       <TabsContent value="overview">
         <UserMetaCard profile={profileQuery.data} />
@@ -117,7 +117,7 @@ export default function UserProfileContent({
       </TabsContent>
 
       <TabsContent value="history">
-        <div className="rounded-2xl border border-border p-6">
+        <div className="rounded-xl border border-border p-6">
           <RecordHistory
             entityId={profileQuery.data.id}
             entityType="employee"
