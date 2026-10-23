@@ -10,7 +10,14 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { buildArgs, buildPrompt, pinHead } from "./codex-review.mjs";
+import {
+  buildArgs,
+  buildPrompt,
+  flag,
+  pinHead,
+  postBlockers,
+  run,
+} from "./codex-review.mjs";
 
 const GIT_ENV = {
   ...process.env,
@@ -19,6 +26,8 @@ const GIT_ENV = {
   GIT_COMMITTER_NAME: "t",
   GIT_COMMITTER_EMAIL: "t@example.com",
 };
+const PIN_DIR = /codex-pin-/;
+const NEEDS_VALUE = /needs a value/;
 const PUSH_ORDER = /Push the branch first/;
 const PUSHED_LOCAL = /Pushed: not required/;
 const TREE_PINNED = /Working tree: detached checkout of the head SHA/;
@@ -93,7 +102,115 @@ test("the pinned checkout holds the committed bytes, not later edits", () => {
     pin.release();
     assert.equal(pinned, "committed\n");
     assert.equal(existsSync(pin.dir), false);
+    assert.doesNotMatch(git(repo, "worktree", "list"), PIN_DIR);
   } finally {
     rmSync(repo, { recursive: true, force: true });
   }
+});
+
+test("user config, and so the private MCP servers, is ignored", () => {
+  assert.ok(buildArgs("/repo", "/tmp/out.md").includes("--ignore-user-config"));
+});
+
+test("$ patterns and quoted placeholders in the author's text are copied verbatim", () => {
+  const prompt = buildPrompt(INFO, {
+    task: "fix the $` bug and $& too",
+    criteria: "Acceptance criteria: <fill in>",
+  });
+  assert.ok(prompt.includes("Task: fix the $` bug and $& too"));
+  assert.ok(
+    prompt.includes("Acceptance criteria: Acceptance criteria: <fill in>")
+  );
+});
+
+test("flag rejects a missing value or a following flag", () => {
+  assert.equal(flag(["--task", "x"], "--task"), "x");
+  assert.equal(flag([], "--task"), undefined);
+  assert.throws(() => flag(["--post"], "--post"), NEEDS_VALUE);
+  assert.throws(() => flag(["--post", "--dry-run"], "--post"), NEEDS_VALUE);
+});
+
+test("posting is blocked for an unpushed head, vault content or a secret", () => {
+  assert.deepEqual(postBlockers("No findings.", INFO), []);
+  assert.equal(postBlockers("ok", { ...INFO, pushed: false }).length, 1);
+  assert.equal(postBlockers("see [[some-note]]", INFO).length, 1);
+  assert.equal(postBlockers("key sk_live_abcdefgh12345", INFO).length, 1);
+});
+
+/** A spawn double that records calls; codex writes `findings` to its out file. */
+function fakeSpawn({ codexStatus = 0, findings = "No findings." } = {}) {
+  const calls = [];
+  const spawn = (cmd, args, options = {}) => {
+    calls.push({ args, cmd });
+    if (cmd === "git" && args[0] === "rev-parse") {
+      return { status: 0, stdout: process.cwd() };
+    }
+    if (cmd === "codex") {
+      if (codexStatus === 0) {
+        writeFileSync(
+          args[args.indexOf("--output-last-message") + 1],
+          findings
+        );
+      }
+      assert.equal(options.input.startsWith("Read-only review."), true);
+      return { status: codexStatus };
+    }
+    return { status: 0, stdout: "", stderr: "" };
+  };
+  return { calls, spawn };
+}
+
+const gather =
+  (overrides = {}) =>
+  () => ({ ...INFO, ...overrides });
+const named = (calls, cmd) => calls.filter((call) => call.cmd === cmd);
+const removed = (calls) =>
+  calls.filter((c) => c.cmd === "git" && c.args[1] === "remove");
+
+test("--dry-run starts neither codex nor a worktree nor gh", () => {
+  const { calls, spawn } = fakeSpawn();
+  assert.equal(run(["--dry-run"], { collect: gather(), spawn }), 0);
+  assert.equal(named(calls, "codex").length, 0);
+  assert.equal(named(calls, "gh").length, 0);
+  assert.equal(
+    calls.some((c) => c.args[0] === "worktree"),
+    false
+  );
+});
+
+test("nothing is posted without --post", () => {
+  const { calls, spawn } = fakeSpawn();
+  assert.equal(run([], { collect: gather(), spawn }), 0);
+  assert.equal(named(calls, "codex").length, 1);
+  assert.equal(named(calls, "gh").length, 0);
+});
+
+test("--post comments once when the head is pushed and the findings are clean", () => {
+  const { calls, spawn } = fakeSpawn();
+  assert.equal(run(["--post", "7"], { collect: gather(), spawn }), 0);
+  const [gh] = named(calls, "gh");
+  assert.deepEqual(gh.args.slice(0, 3), ["pr", "comment", "7"]);
+});
+
+test("--post refuses an unpushed head and still cleans up", () => {
+  const { calls, spawn } = fakeSpawn();
+  const code = run(["--post", "7"], {
+    collect: gather({ pushed: false }),
+    spawn,
+  });
+  assert.equal(code, 1);
+  assert.equal(named(calls, "gh").length, 0);
+  assert.equal(removed(calls).length >= 1, true);
+});
+
+test("the worktree is released when codex fails", () => {
+  const { calls, spawn } = fakeSpawn({ codexStatus: 3 });
+  assert.equal(run([], { collect: gather(), spawn }), 3);
+  assert.equal(removed(calls).length >= 1, true);
+});
+
+test("a missing value for a flag exits 2 before any codex run", () => {
+  const { calls, spawn } = fakeSpawn();
+  assert.equal(run(["--post"], { collect: gather(), spawn }), 2);
+  assert.equal(named(calls, "codex").length, 0);
 });

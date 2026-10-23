@@ -61,21 +61,27 @@ in [routines.md](routines.md) (`docs/agents/routing.json`).
 | Plan, spec, orchestrate roles, feature implementation | Claude Code | Owns the branch and the role subagents |
 | Fresh-context review of Claude's diff | Codex, read-only | A different model is less likely to wave through its own family's mistakes |
 | Fresh-context review of Codex's diff | Claude `code-reviewer` / `security-reviewer` | Same reason, reversed |
-| Unattended `area:api` routines | Codex | Cheap tier, owner preference |
+| Unattended `area:api` routines | Codex | Cheap tier, owner preference; the Claude routine also takes `area:api` until a Codex task exists ([routines.md](routines.md)) |
 | Needs Sentry, PostHog, Cloudflare or the owner's browser | Claude Code | Codex has none of these |
-| CI, infra, security changes | Human | Agents diagnose, never write |
+| CI, infra, security changes | Unattended: human writes. Attended: the agent may write, with a `security-reviewer` pass | The owner merges the ones `AGENTS.md` reserves to the owner |
 
 Rules: one author per branch at a time; the author never counts its own review
 as the fresh-context one; and a review request carries the handoff block, not the
 author's conclusion, so the reviewer is not anchored on it.
 
 **Automating the Codex review.** `pnpm agents:codex-review -- --task "..." --criteria "..."`
-builds the handoff block from git and runs `codex exec` in a read-only,
-ephemeral session on that exact head. It prints the findings; add `--post <pr>`
-to leave them as a PR comment, and `--dry-run` to see the command and prompt.
-It is opt-in per PR because it spends Codex tokens, and its comment counts as the
-fresh-context review only when it reports no blocking finding for the head SHA
-it names. There is still no live link between the tools: the script runs one
+builds the handoff block from git and runs `codex exec` in a detached checkout
+of that exact head, with a read-only sandbox, an ephemeral session and user
+config ignored (so the private Bishop and Playwright MCP servers are not
+loaded). Read-only stops shell writes, not reads: the reviewer can still read the
+whole disk, which is why `--post` refuses to comment unless the head is pushed
+and the findings pass the private-content and secret-shape checks. It prints the
+findings; add `--post <pr>` to leave them as a PR comment, and `--dry-run` to see
+the command and prompt. It is opt-in per PR because it spends Codex tokens, and
+its comment counts as the fresh-context review only when it reports no blocking
+finding for the head SHA it names. Running it (with `--post`) is the relay the
+section below describes for that one review; every other handoff is still relayed
+by the owner. There is no live link between the tools: the script runs one
 review and exits.
 
 ### Working with Codex on GitHub
