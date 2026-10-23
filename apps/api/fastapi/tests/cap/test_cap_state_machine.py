@@ -401,6 +401,7 @@ async def test_cancel_from_published_succeeds(db_async: AsyncSession) -> None:
     assert cancellation.sender == alert.sender
     assert cancellation.lifecycle_state == CapLifecycleState.PUBLISHED
     assert cancellation.note == "Hazard has ended"
+    assert cancellation.sent.microsecond == 0
     assert (
         await cap_service._to_public(session=db_async, alert=cancellation)
     ).references[0].identifier == alert.identifier

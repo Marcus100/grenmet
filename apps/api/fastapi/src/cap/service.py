@@ -671,7 +671,9 @@ async def cancel_alert(
     cancellation = CapAlert(
         identifier=_new_identifier(settings=settings),
         sender=alert.sender,
-        sent=now,
+        # Whole seconds: CAP 1.2 dates carry none, and the reference to this
+        # message must repeat the same instant.
+        sent=now.replace(microsecond=0),
         status=alert.status,
         msg_type=CapMessageType.CANCEL,
         source=alert.source,
