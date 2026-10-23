@@ -90,8 +90,10 @@ The draft's generated notes only list pull request titles. Before publishing, ad
 ## Irreversible data migrations need a verified backup first
 
 `scripts/production/core.sh deploy` runs a `backup-gate` phase before
-`migrations` (phases: render-config, auth, disk, pull-verify, databases,
-backup-gate, migrations, grants, start, smoke). It warns by default and blocks
+`migrations` (phases: render-config, auth, disk, pull-verify, backup-gate,
+network, databases, migrations, grants, start, smoke). The gate only lists the
+backup store, so it runs before `network`, which stops the whole project when
+the network's pinned subnet changed. It warns by default and blocks
 only when you turn on `enforce`, so a deploy is not yet a guaranteed backup
 point (see "Backup gate" below). Scheduled backups run separately
 (`monitoring-maintenance.yml`, `backup-database.yml`, `core.sh backup`).
