@@ -19,14 +19,12 @@ def test_compass_and_wmo_sea_state_table():
 
 
 def test_display_text():
-    assert (
-        units.wind_text("NE", "E", 10, 20, 30)
-        == "NE to E 12–23 mph (10–20 kt), gusts 35 mph (30 kt)"
-    )
+    # Stored knots and metres are shown in one public unit only (mph, feet).
+    assert units.wind_text("NE", "E", 10, 20, 30) == "NE to E 12–23 mph, gusts 35 mph"
     assert units.wind_text("E", "", 15, 15, None, unit="kt") == "E 15 kt"
-    assert units.height_text(1.8, 2.7) == "1.8–2.7 m (6–9 ft)"
+    assert units.height_text(1.8, 2.7) == "6–9 ft"
     assert units.sea_state_text("Moderate", "Rough") == "Moderate to rough"
-    assert units.swell_text("NE", 9, 1.2) == "NE 1.2 m (4 ft) every 9 s"
+    assert units.swell_text("NE", 9, 1.2) == "NE 4 ft every 9 s"
 
 
 def test_normalize_composes_legacy_text_from_structured_values():
@@ -50,9 +48,9 @@ def test_normalize_composes_legacy_text_from_structured_values():
             "tide3Time": "18:10",
         },
     )
-    assert values["wind"] == "NE to E 12–23 mph (10–20 kt)"
-    assert values["seaState"] == "Moderate; waves 1.8–2.7 m (6–9 ft)"
-    assert values["highTides"] == "05:50 (0.6 m), 18:10"
+    assert values["wind"] == "NE to E 12–23 mph"
+    assert values["seaState"] == "Moderate; waves 6–9 ft"
+    assert values["highTides"] == "05:50 (2 ft), 18:10"
     assert values["lowTides"] == "12:30"
 
 
@@ -101,7 +99,7 @@ def test_evening_days_compose_and_validate_per_day():
         "day3Tide1Time": "06:15",
     }
     normalized = validation.normalize("evening", values)
-    assert normalized["day2Wind"] == "E 17–12 mph (15–10 kt)"
+    assert normalized["day2Wind"] == "E 17–12 mph"
     assert normalized["day3HighTides"] == "06:15"
     assert normalized["day3LowTides"] == ""
     assert normalized["wind"] != normalized["day2Wind"]

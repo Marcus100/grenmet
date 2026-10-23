@@ -62,12 +62,19 @@ def test_palette_mirrors_design_tokens():
 def test_conditions_tiles_follow_units_and_tide_order():
     tiles = presentation.conditions(validation.normalize("morning", STRUCTURED))
     as_text = [(value, label) for _, value, label in tiles]
-    assert ("12–23 mph", "Wind speed (10–20 kt)") in as_text
-    assert ("35 mph", "Gusts (30 kt)") in as_text
+    assert ("12–23 mph", "Wind speed") in as_text
+    assert ("35 mph", "Gusts") in as_text
     assert ("NE to E", "Wind direction") in as_text
-    assert ("1.8–2.7 m", "Wave height (6–9 ft)") in as_text
+    assert ("6–9 ft", "Wave height") in as_text
     tides = [value for icon, value, _ in tiles if icon.startswith("arrow")]
     assert tides == ["05:50", "12:30"]
+
+
+def test_rain_chance_shows_the_word_or_an_older_percentage():
+    word = presentation.conditions({"rainChance": "Medium"})
+    assert ("umbrella", "Medium", "Chance of rain") in word
+    older = presentation.conditions({"rainChance": "40"})
+    assert ("umbrella", "40%", "Chance of rain") in older
 
 
 def test_conditions_fall_back_to_legacy_free_text():
@@ -103,6 +110,30 @@ def test_renders_forecast_sheet(kind, pages):
     assert forecast_pdf.render_forecast_pdf(kind, values, **options).startswith(
         b"%PDF-"
     )
+
+
+def test_midday_sheet_prints_the_airport_reading_first():
+    values = STRUCTURED | {"observedTemperature": "31.9"}
+    midday = forecast_pdf.forecast_context(
+        "midday", values, status="PUBLISHED ISSUE", revision="r1"
+    )
+    assert midday["tiles"][0] == {
+        "icon": "thermometer-sun",
+        "value": "31.9°C",
+        "label": "Midday temperature at MBIA",
+    }
+    morning = forecast_pdf.forecast_context(
+        "morning", values, status="PUBLISHED ISSUE", revision="r1"
+    )
+    assert all(t["label"] != "Midday temperature at MBIA" for t in morning["tiles"])
+
+
+def test_evening_day_cards_carry_their_own_sun_times():
+    values = {"day1Date": "2026-09-25", "day1Sunrise": "05:56", "day1Sunset": "18:12"}
+    day = forecast_pdf._outlook(values)[0]
+    labels = {tile["label"]: tile["value"] for tile in day["tiles"]}
+    assert labels["Sunrise"] == "05:56"
+    assert labels["Sunset"] == "18:12"
 
 
 def test_context_escapes_and_marks_matrix():
@@ -229,7 +260,7 @@ def test_bulletin_sheet_context_and_render():
         "marine", values, status="DRAFT — NOT FOR ISSUE", revision="r1"
     )
     assert values["forecaster"] == "Signed In"
-    assert values["wind"] == "E 17–25 mph (15–22 kt)"
+    assert values["wind"] == "E 17–25 mph"
     assert context["level_colour"] == "orange"
     assert context["product_code"] == "GMS-BUL-MARINE"
     assert ("Moonrise", "21:14") in context["details"]

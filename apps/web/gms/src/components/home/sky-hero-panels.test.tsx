@@ -327,6 +327,20 @@ describe("hero readings", () => {
     expect(byLabel.Sunrise?.unavailable).toBeUndefined();
   });
 
+  it("shows a Low, Medium or High chance of rain as issued", () => {
+    const day = issued({
+      conditions: [
+        { label: "Chance of rain", value: "Medium" },
+        { label: "Wind speed", value: "12–25 mph" },
+        { label: "Wave height", value: "5–7 ft" },
+      ],
+    });
+    expect(rainChance(day)).toBe("Medium");
+    const rain = dayReadings(day).find((r) => r.label === "Chance of rain");
+    expect(rain?.value).toBe("Medium");
+    expect(rainChance(issued())).toBe("20%");
+  });
+
   it("never invents a forecast for an outage", () => {
     const outage = unavailableWeather().days[0];
     if (!outage) {
