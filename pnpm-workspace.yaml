@@ -175,10 +175,13 @@ overrides:
   # CVE-2026-19534 / CVE-2026-84961: payload@3.90.2 pins undici 7.29.0.
   # Remove once Payload ships a release depending on a fixed undici.
   "payload@3.90.2>undici": "7.29.1"
-  # GHSA-cg2g-xh64-v4q7 / GHSA-mrv2-3pqr-j5jr: posthog-js resolves dompurify
-  # 3.4.15; 3.4.17 is the first fixed release. Remove once the lockfile
-  # resolves a fixed release without the override.
-  "posthog-js>dompurify": "3.4.17"
+  # GHSA-cg2g-xh64-v4q7 (critical) / GHSA-mrv2-3pqr-j5jr (high): dompurify
+  # <= 3.4.16 is affected; 3.4.17 is the first fixed release. monaco-editor
+  # (a peer of @payloadcms/ui) and posthog-js pin or resolve affected copies,
+  # and the CMS migrate image re-resolves them with `pnpm deploy --legacy`,
+  # so the override is global. Remove once no dependant resolves an affected
+  # release without it.
+  dompurify: ">=3.4.17 <4"
 
 # Payload migration tooling expects the JavaScript compiler API. Keep the
 # application build/type-check catalog on TypeScript 7.
