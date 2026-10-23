@@ -325,22 +325,19 @@ export function ERegister() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Station header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-semibold text-2xl tracking-tight">
-            Weather Electronic Register
-          </h1>
-        </div>
+      {/* Station header: the view buttons sit beside the cards, not across the page */}
+      <div className="flex flex-col items-start gap-3">
+        <h1 className="font-semibold text-2xl tracking-tight">
+          Weather Electronic Register
+        </h1>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             onClick={() => setView("archive")}
-            size="lg"
             variant={view === "archive" ? "default" : "outline"}
           >
             Observation archive
           </Button>
-          <Button onClick={() => setView("new")} size="lg" variant="outline">
+          <Button onClick={() => setView("new")} variant="outline">
             New observation
           </Button>
         </div>

@@ -114,7 +114,10 @@ export function ApprovalsInbox() {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card">
+    <div
+      className="overflow-x-auto rounded-xl border bg-card"
+      data-content-width="wide"
+    >
       <Table>
         <TableHeader>
           <TableRow>
