@@ -261,9 +261,15 @@ AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookin
 ```
 
 Staging uses the same labels under `staging.barrels.gd`. The shared Compose file
-still assembles `.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}`; the code ignores the
-leading-dot entry, so replace it with the exact list above (owner change).
-Current production configuration does not add `.weather.gd`. Production CORS origins are the seven frontend hosts
+gives the `web-auth` service the app-URL variables the code honours as they are
+(auth, gms, docs, weather, signal, mbia, events) and one exact `https://` entry in
+`AUTH_ALLOWED_RETURN_HOSTS` for each other app that signs in through it (admin,
+bookings, cms, elections, gmsdash), all built from `${BASE_DOMAIN}`. A leading-dot
+entry such as `.${BASE_DOMAIN}` is ignored by the code and reaches no app.
+`EXTRA_RETURN_HOSTS`, if set, is appended as it is and must start with a comma.
+`scripts/production/auth-return-origins.test.mjs` fails when an app in the API
+registry is neither honoured nor named. Babydoll does not sign in through the auth
+app, so it is not listed. Current production configuration does not add `.weather.gd`. Production CORS origins are the seven frontend hosts
 listed in `infra/docker/production.env`; staging uses their staging equivalents.
 
 The superseded
