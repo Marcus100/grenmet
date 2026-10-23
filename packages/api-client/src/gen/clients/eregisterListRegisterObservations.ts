@@ -11,7 +11,7 @@ import type {
 } from "../models/EregisterListRegisterObservations.js";
 
 /**
- * @description Returns recent SYNOP, METAR, and SPECI observations, optionally filtered by station and observation kind.
+ * @description Returns recent SYNOP, METAR, and SPECI observations, optionally filtered by station and observation kind. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.
  * @summary List register observations
  * {@link /api/v1/eregister/observations}
  */

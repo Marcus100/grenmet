@@ -58,6 +58,7 @@ function lastObservedLabel(
 ): string {
   if (state === "loading") return "Loading…";
   if (state === "unavailable") return "Unavailable";
+  if (state === "forbidden") return "No register access";
   if (!latest?.observed_at) return "No saved observations yet";
   return `${new Date(latest.observed_at).toISOString().slice(0, 16).replace("T", " ")} UTC`;
 }
@@ -124,7 +125,9 @@ export function ERegister() {
       .then(([synop, metar, speci]) => {
         if (!active) return;
         if (synop.error || !synop.data) {
-          setLiveState("unavailable");
+          setLiveState(
+            synop.response?.status === 403 ? "forbidden" : "unavailable"
+          );
           return;
         }
         setLiveObservations(synop.data.observations);
@@ -287,6 +290,13 @@ export function ERegister() {
         <p className="rounded-lg border px-4 py-3 text-sm" role="alert">
           The eRegister service is unavailable. No observations are shown until
           it responds.
+        </p>
+      ) : null}
+
+      {liveState === "forbidden" ? (
+        <p className="rounded-lg border px-4 py-3 text-sm" role="alert">
+          You don't have access to the observation register. Ask an
+          administrator for the eRegister observer role.
         </p>
       ) : null}
 

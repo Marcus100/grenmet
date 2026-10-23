@@ -33,7 +33,7 @@ export type ReportKind = "SYNOP" | "METAR" | "SPECI";
 const KINDS: readonly ReportKind[] = ["SYNOP", "METAR", "SPECI"];
 
 /** Only "ready" rows are real records; every other state shows a status line. */
-export type LiveState = "loading" | "ready" | "unavailable";
+export type LiveState = "loading" | "ready" | "unavailable" | "forbidden";
 
 function ReportPanel({
   kind,
@@ -59,6 +59,14 @@ function ReportPanel({
     return (
       <p className="px-4 py-3 text-sm" role="alert">
         {kind} reports are unavailable. The register service did not respond.
+      </p>
+    );
+  }
+
+  if (state === "forbidden") {
+    return (
+      <p className="px-4 py-3 text-muted-foreground text-sm" role="status">
+        {kind} reports are shown to register staff only.
       </p>
     );
   }

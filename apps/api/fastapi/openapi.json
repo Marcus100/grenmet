@@ -29916,7 +29916,7 @@
           "eregister"
         ],
         "summary": "List register observations",
-        "description": "Returns recent SYNOP, METAR, and SPECI observations, optionally filtered by station and observation kind.",
+        "description": "Returns recent SYNOP, METAR, and SPECI observations, optionally filtered by station and observation kind. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterListRegisterObservations",
         "security": [
           {
@@ -30018,7 +30018,7 @@
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
           }
         }
       },
@@ -30027,7 +30027,7 @@
           "eregister"
         ],
         "summary": "Create a register observation",
-        "description": "Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record.",
+        "description": "Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record. Requires `eregister.observe`, `eregister.qc` or `eregister.send`; a saved SYNOP shows on the public weather site as provisional.",
         "operationId": "eregisterCreateRegisterObservation",
         "security": [
           {
@@ -30072,7 +30072,7 @@
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
           }
         }
       }
@@ -30509,7 +30509,7 @@
           "eregister"
         ],
         "summary": "Send history of a register observation",
-        "description": "Newest first: each email and WIS2 hand-off with its status.",
+        "description": "Newest first: each email and WIS2 hand-off with its status. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterListObservationSends",
         "security": [
           {
@@ -30556,7 +30556,7 @@
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
           }
         }
       }

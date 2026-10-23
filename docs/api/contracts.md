@@ -1746,6 +1746,12 @@ an observation value). The endpoint does not save, publish, or
 transmit an observation; `POST /api/v1/eregister/observations` still stores a
 draft.
 
+Recording and reading the register (`POST` and `GET
+/api/v1/eregister/observations`, `GET .../{id}/sends`) need one of
+`eregister.observe` (role `eregister-observer`), `eregister.qc` or
+`eregister.send`; anyone else gets `403`. A saved SYNOP shows on the public
+weather site as provisional, so a signed-in account alone is not enough.
+
 #### eRegister send actions
 
 `POST /api/v1/eregister/observations/{id}/email` and `.../publish` (permission

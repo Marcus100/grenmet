@@ -346,6 +346,43 @@ async def test_send_requires_the_send_permission(
     assert (await client.post(url)).status_code == 202
 
 
+async def test_register_needs_a_register_permission(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+) -> None:
+    # Saved readings show on the public site, so a signed-in account alone
+    # (a self-registered Join, say) may not record or read the register.
+    client, _ = send_client
+    observation = await save(client)
+    plain = await make_user(db_async)
+    app.dependency_overrides[get_browser_or_token_user] = lambda: plain
+    record = {
+        "station_id": "78958",
+        "kind": "SYNOP",
+        "observed_at": OBSERVED.isoformat(),
+        "body": {**FULL_ROW, "source": "eregister-workbook"},
+    }
+    list_url = "/api/v1/eregister/observations"
+    sends_url = f"/api/v1/eregister/observations/{observation}/sends"
+    assert (await client.post(list_url, json=record)).status_code == 403
+    assert (await client.get(list_url)).status_code == 403
+    assert (await client.get(sends_url)).status_code == 403
+    for key in ("eregister.observe", "eregister.qc", "eregister.send"):
+        holder = await make_user(db_async)
+        role, _perms = await make_role_with_permission(db_async, key)
+        await assign_role(db_async, user=holder, role=role)
+        app.dependency_overrides[get_browser_or_token_user] = lambda u=holder: u
+        assert (await client.post(list_url, json=record)).status_code == 201, key
+        assert (await client.get(list_url)).status_code == 200, key
+        assert (await client.get(sends_url)).status_code == 200, key
+
+
+def test_observer_role_carries_the_observe_permission() -> None:
+    from src.auth.permissions import DEFAULT_ROLES
+
+    assert DEFAULT_ROLES["eregister-observer"][1] == ("eregister.observe",)
+
+
 async def set_state(observation: str, state: str) -> None:
     """Put an observation in a QC state directly (the QC endpoints have their own tests)."""
     register = await anext(app.dependency_overrides[get_session]())

@@ -11,7 +11,7 @@ import type {
 } from "../models/EregisterCreateRegisterObservation.js";
 
 /**
- * @description Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record.
+ * @description Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record. Requires `eregister.observe`, `eregister.qc` or `eregister.send`; a saved SYNOP shows on the public weather site as provisional.
  * @summary Create a register observation
  * {@link /api/v1/eregister/observations}
  */

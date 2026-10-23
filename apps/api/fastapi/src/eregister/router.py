@@ -9,7 +9,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.auth.browser import BrowserUser
-from src.auth.policy import require_permission
+from src.auth.models import User
+from src.auth.policy import has_permission, require_permission
 from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED
 from src.rate_limit import limiter
@@ -32,6 +33,27 @@ from .schemas import (
 
 router = APIRouter(prefix="/eregister", tags=["eregister"])
 
+# Saved readings show on the public weather site at once (``public.py``), so only
+# register staff may record or read them. QC and senders already work the
+# register, and their roles predate ``eregister.observe``, so they keep access.
+REGISTER_ACCESS_KEYS = ("eregister.observe", "eregister.qc", "eregister.send")
+
+REGISTER_RESPONSES = {
+    **AUTHENTICATED,
+    403: {
+        "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+    },
+}
+
+
+def _require_register_access(user: User) -> None:
+    if not any(
+        has_permission(current_user=user, permission_key=key)
+        for key in REGISTER_ACCESS_KEYS
+    ):
+        # None held: logs the denial and raises the standard 403.
+        require_permission(current_user=user, permission_key="eregister.observe")
+
 
 def _read(row: dict[str, Any]) -> RegisterObservationRead:
     return RegisterObservationRead.model_validate(row)
@@ -41,11 +63,11 @@ def _read(row: dict[str, Any]) -> RegisterObservationRead:
     "/observations",
     response_model=RegisterObservationList,
     summary="List register observations",
-    description="Returns recent SYNOP, METAR, and SPECI observations, optionally filtered by station and observation kind.",
-    responses={**AUTHENTICATED},
+    description="Returns recent SYNOP, METAR, and SPECI observations, optionally filtered by station and observation kind. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+    responses=REGISTER_RESPONSES,
 )
 async def list_register_observations(
-    _user: BrowserUser,
+    user: BrowserUser,
     session: RegisterSession,
     response: Response,
     station_id: Annotated[str | None, Query(max_length=64)] = None,
@@ -57,6 +79,7 @@ async def list_register_observations(
     ),
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
 ) -> RegisterObservationList:
+    _require_register_access(user)
     response.headers["Cache-Control"] = "private, no-store"
     result = await session.execute(
         text(
@@ -101,8 +124,8 @@ async def validate_synop_observation(
     response_model=RegisterObservationRead,
     status_code=201,
     summary="Create a register observation",
-    description="Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record.",
-    responses={**AUTHENTICATED},
+    description="Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record. Requires `eregister.observe`, `eregister.qc` or `eregister.send`; a saved SYNOP shows on the public weather site as provisional.",
+    responses=REGISTER_RESPONSES,
 )
 async def create_register_observation(
     body: RegisterObservationCreate,
@@ -110,6 +133,7 @@ async def create_register_observation(
     session: RegisterSession,
     response: Response,
 ) -> RegisterObservationRead:
+    _require_register_access(user)
     response.headers["Cache-Control"] = "no-store"
     result = await session.execute(
         text("""
@@ -301,15 +325,16 @@ async def reopen_register_observation(
     "/observations/{observation_id}/sends",
     response_model=ObservationSendList,
     summary="Send history of a register observation",
-    description="Newest first: each email and WIS2 hand-off with its status.",
-    responses={**AUTHENTICATED},
+    description="Newest first: each email and WIS2 hand-off with its status. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+    responses=REGISTER_RESPONSES,
 )
 async def list_observation_sends(
     observation_id: UUID,
-    _user: BrowserUser,
+    user: BrowserUser,
     session: SessionDep,
     response: Response,
 ) -> ObservationSendList:
+    _require_register_access(user)
     response.headers["Cache-Control"] = "private, no-store"
     return ObservationSendList(sends=await sends.list_sends(session, observation_id))
 
