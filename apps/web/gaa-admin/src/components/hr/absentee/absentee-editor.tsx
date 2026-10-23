@@ -58,6 +58,7 @@ import {
   useEditorPrefill,
   useProfileReference,
 } from "@/components/hr/use-editor-prefill";
+import { hrFormFilename } from "@/lib/pdf-filename";
 import { reportError } from "@/lib/report-error";
 import { ABSENTEE_REASONS, EMPTY_ABSENTEE } from "./absentee-document";
 
@@ -231,7 +232,7 @@ export function AbsenteeEditor() {
         ),
         previewPath: "/api/v1/hr/absentee-reports/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: "absentee-report.pdf",
+        filename: hrFormFilename("absentee_report", true),
       });
     } catch (error) {
       reportError(error, "hr-absentee-pdf-download");
@@ -620,7 +621,7 @@ export function AbsenteeEditor() {
           label="Absentee Report"
           preview={
             <HrPdfPreview
-              filename="absentee-report.pdf"
+              filename={hrFormFilename("absentee_report")}
               payload={buildAbsenteeReportPayload(
                 values,
                 values.employeeId || userId || "",
