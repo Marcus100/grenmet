@@ -112,6 +112,14 @@ case "$*" in
     if [[ "$*" == *gd.barrels.environment* ]]; then if [[ "$TEST_FAILURE" == environment ]]; then echo wrong; else echo "$DEPLOY_ENV"; fi; elif [[ "$TEST_FAILURE" == revision ]]; then echo wrong; else echo "$GITHUB_SHA"; fi ;;
   *"run --rm --no-deps prestart"*) [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
   *"up -d --no-deps --remove-orphans --wait"*) [[ "$TEST_FAILURE" != readiness ]] || exit 1 ;;
+  # Only the network check reads the lock file as JSON; the release-scope check pipes
+  # docker-compose.deploy.yml into a node stub that closes stdin, so printing there
+  # would kill the pipe (SIGPIPE).
+  *"deploy.lock.yml"*"config --format json"*)
+    if [[ -n "$TEST_PINNED_SUBNET" ]]; then printf '{"networks":{"grenmet":{"ipam":{"config":[{"subnet":"%s"}]}}}}\\n' "$TEST_PINNED_SUBNET"; else echo '{}'; fi ;;
+  "network inspect"*)
+    [[ -n "$TEST_LIVE_SUBNET" ]] || exit 1
+    echo "$TEST_LIVE_SUBNET " ;;
   "ps -aq --filter label=com.docker.compose.project=test")
     [[ -z "$TEST_DIAGNOSTIC_HANG" ]] || exec sleep 30
     printf 'c1\\nc2\\n' ;;
@@ -176,6 +184,8 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           TEST_NO_OLD: "",
           TEST_STALE_SERVICE: "",
           TEST_UNHEALTHY_SERVICE: "",
+          TEST_PINNED_SUBNET: "",
+          TEST_LIVE_SUBNET: "",
           ROLLOUT_SETTLE_SECONDS: "0",
           ROLLOUT_POLL_SECONDS: "0",
           ...extraEnv,
@@ -284,11 +294,57 @@ const FAILED_MIGRATIONS =
 const PARTIAL_RELEASE = /a partial release may be running/;
 const UNHEALTHY_STATE = /test-nhc-worker-1 status=running health=unhealthy/;
 const HEALTH_PROBE = /exit=1 heartbeat missing/;
+const NETWORK_RECREATE = /stopping the project so Compose can recreate it/;
 const DIAGNOSTICS_INCOMPLETE = /Diagnostics incomplete/;
 const SUMMARY_FAILED_START =
   /Core delivery failed[\s\S]*\| start \| \d+s \| failed \|/;
 const SUMMARY_SUCCEEDED =
   /Core delivery succeeded[\s\S]*\| render-config \| \d+s \| ok \|[\s\S]*\| smoke \| \d+s \| ok \|/;
+
+// Release A's staging deploy failed this way: #485 pinned the network subnet, Compose
+// had to recreate the network, but only db and redis were being started, so the web
+// containers kept it in use and the deploy stopped with db and redis down.
+test("a changed network subnet stops the whole project before the databases start", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: {
+      TEST_PINNED_SUBNET: "172.31.250.0/24",
+      TEST_LIVE_SUBNET: "172.18.0.0/16",
+    },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, NETWORK_RECREATE);
+  const lines = calls.split("\n");
+  const down = lines.findIndex((line) =>
+    line.includes(" down --remove-orphans")
+  );
+  const databases = lines.findIndex((line) => line.includes(" up -d --wait"));
+  assert.notEqual(down, -1, "expected the project to be stopped");
+  assert.ok(
+    down < databases,
+    "the project must stop before the databases start"
+  );
+  assert.equal(
+    lines[down].includes(" -v") || lines[down].includes("--volumes"),
+    false,
+    "stopping the project must keep its volumes"
+  );
+});
+
+test("a matching or missing network, or no pinned subnet, leaves containers running", () => {
+  for (const extraEnv of [
+    {
+      TEST_PINNED_SUBNET: "172.31.250.0/24",
+      TEST_LIVE_SUBNET: "172.31.250.0/24",
+    },
+    { TEST_PINNED_SUBNET: "172.31.250.0/24", TEST_LIVE_SUBNET: "" },
+    { TEST_PINNED_SUBNET: "", TEST_LIVE_SUBNET: "172.18.0.0/16" },
+  ]) {
+    const { result, calls } = runDeploy({ environment: "staging", extraEnv });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(calls.includes(" down "), false, JSON.stringify(extraEnv));
+  }
+});
 
 test("deploy groups timestamped phases and summarises their durations", () => {
   const { result, summary } = runDeploy({ environment: "staging" });

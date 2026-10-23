@@ -227,6 +227,21 @@ done < runtime/images.txt
 # Images only: the full resolved Compose file contains secrets.
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --images >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
+phase network
+# A changed IPAM block on the project network (the subnet pinned for uvicorn's
+# --forwarded-allow-ips) makes Compose recreate the network on the next `up`. That
+# `up` can only stop the services it names, so every other container keeps the
+# network in use, Docker refuses ("network ... has active endpoints") and db and
+# redis are left stopped. When the live subnet differs from the deployment file,
+# stop the whole project first so the databases phase creates the network fresh.
+# Volumes are kept (no -v). This is a full, one-off outage for that deploy.
+pinned_subnet=$(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --format json | grep -oE '"subnet": *"[^"]+"' | head -n 1 | sed -E 's/.*"([^"]+)"$/\1/' || true)
+live_subnets=$(docker network inspect --format '{{range .IPAM.Config}}{{.Subnet}} {{end}}' "${COMPOSE_PROJECT}_grenmet" 2>/dev/null || true)
+if [[ -n "$pinned_subnet" && -n "$live_subnets" && " $live_subnets " != *" $pinned_subnet "* ]]; then
+  echo "Network ${COMPOSE_PROJECT}_grenmet uses ${live_subnets% } but the deployment pins $pinned_subnet: stopping the project so Compose can recreate it (volumes are kept)."
+  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" down --remove-orphans
+fi
+
 phase databases
 # shellcheck disable=SC2086
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --wait $data_services
