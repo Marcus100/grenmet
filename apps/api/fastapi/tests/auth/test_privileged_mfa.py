@@ -271,7 +271,11 @@ async def test_handoff_and_exchange_preserve_only_live_source_mfa(
     base = f"/api/v1/auth/apps/{app_key}"
     state = "mfa-test-state-long-enough"
     body = {"session_token": legacy["session_token"], "state": state}
-    assert (await async_client.post(f"{base}/handoff", json=body)).status_code == 403
+    # Enrolment revoked the pre-enrolment session (401); a surviving one would be 403.
+    assert (await async_client.post(f"{base}/handoff", json=body)).status_code in (
+        401,
+        403,
+    )
     authenticated = (await login(async_client, user, codes[0])).json()
     body["session_token"] = authenticated["session_token"]
     challenge = await async_client.post(f"{base}/handoff", json=body)

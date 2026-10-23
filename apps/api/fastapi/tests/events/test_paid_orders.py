@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import email as email_module
 from src import outbox
+from src.auth.config import auth_settings
 from src.auth.models import User
 from src.email_config import email_settings
 from src.events import order_fulfilment, order_payments
@@ -96,7 +97,7 @@ async def _shop(
     *,
     allocation: int = 3,
     limit: int = 4,
-    apps: tuple[str, ...] = ("payments",),
+    apps: tuple[str, ...] = ("payments", "events"),
     linked: bool = True,
 ) -> Shop:
     owner = await make_user(db)
@@ -786,3 +787,69 @@ async def test_settlement_reconciles_online_orders_with_the_ledger(
     assert [i.kind for i in broken.discrepancies] == ["online_ledger_mismatch"]
     assert overview.listings[0].online_collected_minor == 2 * PRICE
     assert overview.listings[0].issues == 1
+
+
+@pytest.mark.asyncio
+async def test_stripe_checkout_returns_to_the_order_page_and_names_the_event(
+    db_async: AsyncSession,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(auth_settings, "EVENTS_APP_URL", "https://events.example.test/")
+    shop = await _shop(db_async, events_db)
+    placed = await _order(await make_user(db_async), shop, 2, key="return-key-0001")
+    assert placed.status_code == 201
+    page = f"https://events.example.test/me/orders/{placed.json()['id']}"
+    form = stripe_env.form()
+    assert form["success_url"] == f"{page}?payment=success"
+    assert form["cancel_url"] == f"{page}?payment=cancelled"
+    name = form["line_items[0][price_data][product_data][name]"]
+    assert name == "Paid Fete (2 x General)"
+    assert "@" not in name
+
+
+@pytest.mark.asyncio
+async def test_a_stripe_failure_fails_the_claim_instead_of_using_the_manual_rail(
+    db_async: AsyncSession,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    stripe_env.fail_checkout = True
+    shop = await _shop(db_async, events_db)
+    buyer = await make_user(db_async)
+    failed = await _order(buyer, shop, 1, key="down-key-00001")
+    assert failed.status_code == 503
+    assert "Please try again" in failed.json()["detail"]
+    # No intent of any rail, and the hold is given back.
+    assert await _intent_count(db_async, shop) == 0
+    assert await _remaining(events_db, shop) == 3
+    # Stripe recovers: the buyer can order again.
+    stripe_env.fail_checkout = False
+    retry = await _order(buyer, shop, 1, key="down-key-00002")
+    assert retry.status_code == 201
+    assert retry.json()["checkout_url"].startswith("https://checkout.stripe.com/")
+
+
+@pytest.mark.asyncio
+async def test_replaying_the_key_of_a_failed_attempt_is_not_a_successful_claim(
+    db_async: AsyncSession,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    stripe_env.fail_checkout = True
+    shop = await _shop(db_async, events_db)
+    buyer = await make_user(db_async)
+    assert (await _order(buyer, shop, 1, key="same-key-0001")).status_code == 503
+    stripe_env.fail_checkout = False
+    # The dead attempt is reported as such, never as a 201 with an expired order.
+    replay = await _order(buyer, shop, 1, key="same-key-0001")
+    assert replay.status_code == 409
+    assert replay.json()["detail"] == "That attempt expired. Start a new one."
+    assert await _remaining(events_db, shop) == 3
+    # A fresh key works; a legitimate replay of a pending order still converges.
+    fresh = await _order(buyer, shop, 1, key="same-key-0002")
+    assert fresh.status_code == 201
+    again = await _order(buyer, shop, 1, key="same-key-0002")
+    assert again.status_code == 201
+    assert again.json()["id"] == fresh.json()["id"]

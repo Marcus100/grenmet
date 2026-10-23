@@ -2,9 +2,13 @@
 # the file (env must be set before any `src` import), so E402 is disabled here.
 # ruff: noqa: E402
 import os
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, Awaitable, Callable, Generator
 from datetime import timedelta
+from typing import TYPE_CHECKING
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from tests.bookings.memory_code_store import MemoryCodeStore
 
 # --- Test database isolation -------------------------------------------------
 # Every test truncates all application tables between runs, so the suite MUST
@@ -113,6 +117,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import service as auth_service
 from src.auth.config import auth_settings
+from src.auth.models import User
 from src.auth.schemas import UserCreate
 from src.auth.utils import create_access_token
 from src.config import settings
@@ -333,6 +338,42 @@ async def db_async(test_database: None) -> AsyncGenerator[AsyncSession]:
 
 
 @pytest.fixture
+def mfa_admin(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> Callable[[], Awaitable[tuple[User, dict[str, str]]]]:
+    """Factory for a superuser with an enrolled authenticator and an MFA-verified
+    session: ``user, headers = await mfa_admin()``."""
+    from cryptography.fernet import Fernet
+
+    from src.auth import totp
+    from src.utils.datetime import utc_now
+    from tests.factories import make_user
+
+    monkeypatch.setattr(
+        auth_settings, "AUTH_TOTP_ENCRYPTION_KEYS", [Fernet.generate_key().decode()]
+    )
+
+    async def make() -> tuple[User, dict[str, str]]:
+        admin = await make_user(db_async, superuser=True)
+        admin.totp_secret = totp.encrypt_secret(totp.generate_secret())
+        admin.totp_enabled = True
+        await db_async.commit()
+        stored, _ = await auth_service.create_session(
+            session=db_async,
+            user=admin,
+            app_name=None,
+            enforce_approval=False,
+            mfa_verified_at=utc_now(),
+        )
+        token, _ = auth_service.issue_access_token_for_user(
+            user=admin, db_session=stored
+        )
+        return admin, {"Authorization": f"Bearer {token}"}
+
+    return make
+
+
+@pytest.fixture
 async def async_client(test_database: None) -> AsyncGenerator[httpx.AsyncClient]:
     """Preferred client for new tests: async HTTP client with ASGI transport (avoids event loop issues)."""
     assert test_database is None
@@ -398,6 +439,18 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
             else "unit"
         )
         item.add_marker(marker)
+
+
+@pytest.fixture(autouse=True)
+def code_store() -> Generator[MemoryCodeStore]:
+    """Booking email-code store in memory so tests need no Redis (and stay isolated)."""
+    from src.bookings import email_code
+    from tests.bookings.memory_code_store import MemoryCodeStore
+
+    store = MemoryCodeStore()
+    previous = email_code.set_store(store)
+    yield store
+    email_code.set_store(previous)
 
 
 @pytest.fixture

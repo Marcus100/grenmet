@@ -2,7 +2,7 @@
 
 **Status:** Superseded (2026-07-25)  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-08-19
+**Last updated:** 2026-10-21
 
 > **Superseded on 2026-07-25** by the
 > [Barrels Grenada Migration Plan](exec-plans/barrelsgd-migration-plan.md).
@@ -43,16 +43,27 @@ registrable domains); weather.gd stays public/no-auth.
 
 ## Already prepared (dormant) in the repo
 
-- Auth return-host allowlist accepts both domains: `EXTRA_RETURN_HOSTS=,.weather.gd`
-  in `infra/docker/production.env` (new stack) and
-  `AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd,.weather.gd` in `docker-compose.prod.yml`
-  (legacy stack). Leading-dot suffix matching implemented + tested in
-  `apps/web/auth/src/lib/return-to.ts` (was an exact-match bug, fixed 2026-07-11).
-- `BACKEND_CORS_ORIGINS` in `production.env` already includes the weather.gd origins.
-- Traefik rules take dormant aliases: `${*_EXTRA_HOSTS_RULE:-}` interpolation in
-  `docker-compose.deploy.yml`, with the cutover values commented in
-  `production.env`. Legacy `docker-compose.prod.yml` carries equivalent
-  commented replacement lines.
+Verified against `infra/docker/production.env` and `docker-compose.deploy.yml`
+on 2026-10-21; an earlier version of this section claimed more than exists.
+
+- Auth return-host allowlist: `docker-compose.deploy.yml` passes
+  `AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}` to auth,
+  docs and gms. `EXTRA_RETURN_HOSTS` is **not set** in `production.env`, so
+  `weather.gd` is not accepted yet. Leading-dot and wildcard entries (such as
+  `.weather.gd` or `.barrels.gd`) are now **ignored** by
+  `apps/web/auth/src/lib/return-to.ts` (ADR-0043 P1): at cutover list EXACT
+  hosts, for example `weather.gd,www.weather.gd` (bare hosts mean https), in
+  `AUTH_ALLOWED_RETURN_HOSTS`, and set `GMS_APP_URL` to the public weather origin.
+- `BACKEND_CORS_ORIGINS` in `production.env` has **no** `weather.gd` origins
+  (only `*.barrels.gd`); add them at cutover.
+- Traefik alias hook: only the API router has it
+  (`${API_EXTRA_HOSTS_RULE:-}` in `docker-compose.deploy.yml`). There is no
+  `*_EXTRA_HOSTS_RULE` for gms or docs, and `production.env` carries no
+  commented cutover values; for `weather.gd` itself, the gms router needs a
+  new alias line.
+- The legacy `docker-compose.prod.yml` carries `.barrels.gd,.weather.gd` return
+  hosts and commented replacement rule lines for its old services
+  (hurricaneplan, spicewx); they do not map onto the current stack.
 
 ## Go-live steps (in order — DNS first, then labels)
 
@@ -62,10 +73,11 @@ registrable domains); weather.gd stays public/no-auth.
    `weather.gd A`, `www.weather.gd A` (or CNAME), `api.weather.gd A`,
    `hurricane.weather.gd A` (or wildcard `*.weather.gd A`).
 4. Verify from outside: `nslookup weather.gd` returns the droplet IP.
-5. Uncomment the three `*_EXTRA_HOSTS_RULE` lines in
-   `infra/docker/production.env` (double quotes required — they preserve the
-   leading space in ` || Host(...)`). Legacy stack: apply the commented
-   replacement rule lines in `docker-compose.prod.yml` instead.
+5. Set ``API_EXTRA_HOSTS_RULE=" || Host(`api.weather.gd`)"`` (double quotes
+   required to keep the leading space), `EXTRA_RETURN_HOSTS` and the CORS
+   origins in `infra/docker/production.env`, and add a `weather.gd` alias to
+   the gms router in `docker-compose.deploy.yml`. The legacy stack is not
+   the target.
 6. Ship through the normal train (dev → staging → main, publish release).
    The deploy workflow's `docker compose config` validation gates syntax.
 7. Verify: `curl -sI https://weather.gd` → gms with a valid certificate

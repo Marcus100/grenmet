@@ -43,8 +43,15 @@ describe("AppDirectory", () => {
 
 describe("findRequestedApp", () => {
   it("matches aliases case-insensitively", () => {
-    expect(findRequestedApp(" GMS ")).toBe("weather");
+    expect(findRequestedApp(" WEATHER ")).toBe("weather");
     expect(findRequestedApp("gaa-admin")).toBe("admin");
+    expect(findRequestedApp("gms")).toBe("admin");
+    expect(findRequestedApp("weather")).toBe("weather");
+  });
+
+  it("treats the admin host as the Barrels staff console, not the GAA portal", () => {
+    expect(findRequestedApp("admin")).toBe("barrels-admin");
+    expect(findRequestedApp("barrels-admin")).toBe("barrels-admin");
   });
 
   it("returns null for unknown or empty names", () => {

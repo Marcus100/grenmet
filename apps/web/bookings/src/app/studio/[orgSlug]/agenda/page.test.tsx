@@ -4,7 +4,7 @@ import type {
   BookingProviderPublic,
 } from "@barrelsgd/api-client";
 import { formatDay } from "@barrelsgd/bookings-web/lib/booking-format";
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { apiError, ORG_ID, PROVIDER_ID, session } from "@/test/studio";
 
@@ -16,6 +16,7 @@ vi.mock("@/lib/session", () => ({
 vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
   getAgenda: vi.fn(),
+  getBusinessTimezone: vi.fn(),
   listProviders: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
@@ -27,7 +28,12 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-import { findOrganisation, getAgenda, listProviders } from "@/lib/studio-api";
+import {
+  findOrganisation,
+  getAgenda,
+  getBusinessTimezone,
+  listProviders,
+} from "@/lib/studio-api";
 import AgendaPage from "./page";
 
 const params = Promise.resolve({ orgSlug: "sea-salt" });
@@ -85,6 +91,7 @@ beforeEach(() => {
     role: "member",
   });
   vi.mocked(getAgenda).mockReset();
+  vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
   vi.mocked(listProviders).mockResolvedValue([
     provider(PROVIDER_ID, "Maya"),
     provider("66666666-6666-4666-8666-666666666666", "Kofi"),
@@ -93,6 +100,53 @@ beforeEach(() => {
 });
 
 describe("studio agenda", () => {
+  it("defaults to today on the business's calendar, not the server's", async () => {
+    // 02:30 UTC on 22 Oct is still the evening of 21 Oct in Grenada, but
+    // already the 22nd in Auckland: the profile's zone must decide.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-22T02:30:00Z"));
+    try {
+      vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+      vi.mocked(getBusinessTimezone).mockResolvedValue("Pacific/Auckland");
+      render(await AgendaPage({ params, searchParams: search() }));
+      expect(getAgenda).toHaveBeenLastCalledWith(
+        "tok",
+        ORG_ID,
+        expect.objectContaining({ fromDate: "2026-10-22" })
+      );
+      cleanup();
+      vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+      render(await AgendaPage({ params, searchParams: search() }));
+      expect(getAgenda).toHaveBeenLastCalledWith(
+        "tok",
+        ORG_ID,
+        expect.objectContaining({ fromDate: "2026-10-21" })
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("offers New booking to admins only", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(
+      screen.queryByRole("link", { name: "New booking" })
+    ).not.toBeInTheDocument();
+    cleanup();
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "admin",
+    });
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(screen.getByRole("link", { name: "New booking" })).toHaveAttribute(
+      "href",
+      "/studio/sea-salt/bookings/new"
+    );
+  });
+
   it("says what to do when the day is empty", async () => {
     vi.mocked(getAgenda).mockResolvedValue(agenda([]));
     render(

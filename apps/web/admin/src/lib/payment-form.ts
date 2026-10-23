@@ -139,7 +139,7 @@ export type PaymentNoticeCode = keyof typeof PAYMENT_NOTICES;
 export function paymentNoticeFor(
   code: string | undefined
 ): (typeof PAYMENT_NOTICES)[PaymentNoticeCode] | undefined {
-  return code && code in PAYMENT_NOTICES
+  return code && Object.hasOwn(PAYMENT_NOTICES, code)
     ? PAYMENT_NOTICES[code as PaymentNoticeCode]
     : undefined;
 }

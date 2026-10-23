@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import outbox
 
 from . import deposit_payments, deposits
+from .models import Booking
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,17 @@ async def deposit_paid(session: AsyncSession, message: outbox.OutboxMessage) -> 
         booking_id = uuid.UUID(str(message.payload.get("source_id")))
     except ValueError:
         logger.warning("deposit_paid message with a bad booking id; dropped")
+        return
+    booking = await session.get(Booking, booking_id)
+    if booking is None or booking.organisation_id != message.organisation_id:
+        logger.warning("deposit_paid for an unknown booking; dropped")
+        return
+    own = await deposit_payments.find_deposit(session, booking)
+    if own is None or str(own.id) != str(message.payload.get("intent_id")):
+        logger.warning(
+            "deposit_paid for an intent that is not the booking's deposit; ignored",
+            extra={"intent_id": str(message.payload.get("intent_id"))},
+        )
         return
     await deposits.confirm_paid(
         session, organisation_id=message.organisation_id, booking_id=booking_id

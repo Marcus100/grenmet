@@ -12,6 +12,7 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { useId, useState } from "react";
 import { reportError } from "@/lib/report-error";
+import { AdminAccountActions } from "./admin-account-actions";
 
 const reasons: Record<AccessBlocker, string> = {
   inactive: "Account is disabled. Review this before enabling access.",
@@ -26,7 +27,8 @@ export function AccountActivation({
   user,
   open,
 }: {
-  user: Pick<UserPublic, "id">;
+  user: Pick<UserPublic, "id" | "email"> &
+    Partial<Pick<UserPublic, "is_superuser">>;
   open: boolean;
 }) {
   const actor = useSessionUser();
@@ -35,7 +37,12 @@ export function AccountActivation({
   ) : null;
 }
 
-function ActivationDetails({ user }: { user: Pick<UserPublic, "id"> }) {
+function ActivationDetails({
+  user,
+}: {
+  user: Pick<UserPublic, "id" | "email"> &
+    Partial<Pick<UserPublic, "is_superuser">>;
+}) {
   const fieldId = useId();
   const status = useAuthGetOnboardingStatus({ path: { user_id: user.id } });
   const issue = useAuthIssueActivation();
@@ -90,6 +97,7 @@ function ActivationDetails({ user }: { user: Pick<UserPublic, "id"> }) {
             Email: {status.data.email_verified ? "verified" : "not verified"}.
             Activation does not verify the mailbox.
           </p>
+          <AdminAccountActions status={status.data} user={user} />
           {status.data.apps.map((app) => (
             <div key={app.app}>
               <p className="font-medium text-sm">

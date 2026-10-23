@@ -266,7 +266,7 @@ async def _stamp_card(factory: SessionFactory, db_async: AsyncSession, staff: Us
         db_async,
         "Fete Co",
         members=((staff, MembershipRole.OWNER),),
-        apps=("rewards",),
+        apps=("rewards", "events"),
     )
     async with factory() as db:
         organiser = await db.scalar(select(Organiser))

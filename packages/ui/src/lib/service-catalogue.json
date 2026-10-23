@@ -487,7 +487,7 @@
           }
         },
         "staging": {
-          "origin": "https://admin.staging.barrels.gd",
+          "origin": "https://gms.staging.barrels.gd",
           "deployment": "unverified",
           "release": null,
           "analytics": {
@@ -513,7 +513,7 @@
           }
         },
         "production": {
-          "origin": "https://admin.barrels.gd",
+          "origin": "https://gms.barrels.gd",
           "deployment": "unverified",
           "release": null,
           "analytics": {
@@ -1295,7 +1295,7 @@
           }
         },
         "staging": {
-          "origin": null,
+          "origin": "https://admin.staging.barrels.gd",
           "deployment": "pending",
           "release": null,
           "analytics": {
@@ -1318,11 +1318,11 @@
             "kind": "probe",
             "monitorId": null,
             "deliveryEvidence": [],
-            "reason": "Built but not deployed: admin.<domain> serves the GAA/GMS staff portal (gaa-admin) until the gmsadmin cutover (docs/ports.md)."
+            "reason": "Staging cutover deployed with the 2026-10-21 admin host move; no availability monitor yet."
           }
         },
         "production": {
-          "origin": null,
+          "origin": "https://admin.barrels.gd",
           "deployment": "pending",
           "release": null,
           "analytics": {
@@ -1344,7 +1344,7 @@
             "kind": "probe",
             "monitorId": null,
             "deliveryEvidence": [],
-            "reason": "Built but not deployed: admin.<domain> serves the GAA/GMS staff portal (gaa-admin) until the gmsadmin cutover (docs/ports.md)."
+            "reason": "Deployed with the admin host move once promoted to main; no availability monitor yet."
           }
         }
       },

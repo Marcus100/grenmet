@@ -25,8 +25,10 @@ agent instructions. Nothing here relaxes a root rule.
   cannot make symlinks (`git worktree add` run inside WSL makes it correctly).
   Run `git restore .agents/skills` there instead of staging or committing the
   typechange; `git rebase` refuses to start while it is dirty.
-- Commit in the worktree, then merge completed branches into local `dev` in a
-  clean integration checkout. Dev servers stay on the host in the main checkout.
+- Commit in the worktree, validate, push the task branch and open a PR into
+  `dev`; the agent merges it once CI is green on its head and a fresh-context
+  review has no open blocking finding (`AGENTS.md` → Git, parallel agents and
+  handoff). Never push `dev`. Dev servers stay on the host in the main checkout.
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`: take either
   side and regenerate (openapi command in `AGENTS.md` → `pnpm generate:api-client`
   → `pnpm check:drift`).
@@ -112,6 +114,24 @@ summary, files, friction issues, next step, newest at the bottom. A read-only
 reviewer appends nothing; the author records the review outcome (`AGENTS.md`).
 If you worked around anything, run the `file-friction` skill. For tool switches,
 follow [tool-usage.md](tool-usage.md).
+
+### Context reset
+
+Long sessions get slower, dearer and forgetful: auto-compaction is lossy, and
+practitioner guides put the quality drop-off well before the window fills (about
+60%; a heuristic, not a measured limit). So:
+
+- **One session, one task.** Start a fresh session after each merged PR and
+  whenever the work changes area. Do not carry a finished task into the next one.
+- **Reset at about 60% context**, or when you notice the signs: forgetting a
+  decision made earlier, contradicting yourself, or rewriting code already
+  validated. Do not start a multi-file change in a session that is already long.
+- **Before resetting, write the handoff** to `SESSION_LOG.md`: at most 10 lines
+  covering state (branch, head SHA, PR), what is done, what is next, and open
+  decisions. Put detail in the PR body or an issue, not the log. The next session
+  reads the tail of the log and the PR, not the old transcript.
+- Anything that must survive every reset goes in `AGENTS.md`, a hook or a test,
+  not in the conversation.
 
 ## Editing agent instructions
 

@@ -14,6 +14,9 @@ const CURRENCY_SYMBOL: Record<CurrencyCode, string> = {
 
 const MINOR_UNITS_PER_MAJOR = 100;
 const DOLLARS = /^\d+(\.\d{1,2})?$/;
+/** Thousands separators must group exactly three digits ("1,250.00", never "10,50"). */
+const GROUPED_DOLLARS = /^\d{1,3}(,\d{3})+(\.\d{1,2})?$/;
+const MAX_WHOLE_DIGITS = 12;
 
 const groupingFormat = new Intl.NumberFormat("en-US", {
   useGrouping: true,
@@ -82,11 +85,15 @@ function assertSameCurrency(a: Money, b: Money): void {
  * decimals, so the UI never guesses at a cash figure.
  */
 export function parseMinor(text: string): number | null {
-  const cleaned = text.trim().replaceAll(",", "");
-  if (!DOLLARS.test(cleaned)) {
+  const trimmed = text.trim();
+  if (!(DOLLARS.test(trimmed) || GROUPED_DOLLARS.test(trimmed))) {
     return null;
   }
+  const cleaned = trimmed.replaceAll(",", "");
   const [whole = "0", fraction = ""] = cleaned.split(".");
+  if (whole.length > MAX_WHOLE_DIGITS) {
+    return null;
+  }
   return (
     Number.parseInt(whole, 10) * MINOR_UNITS_PER_MAJOR +
     Number.parseInt(fraction.padEnd(2, "0"), 10)

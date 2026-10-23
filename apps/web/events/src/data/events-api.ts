@@ -23,6 +23,7 @@ import {
   eventsListThreads,
   ResponseError,
 } from "@barrelsgd/api-client";
+import { cache } from "react";
 import type {
   ActivityEntry,
   DoorManifest,
@@ -195,41 +196,43 @@ export interface ManagedWorkspace {
  * The organiser's own listings, drafts included, for the organiser picked in
  * the switcher (cookie) or the first one. Null without organiser access.
  */
-export async function getManagedOrganiser(): Promise<ManagedWorkspace | null> {
-  const chosen = await chosenOrganiser();
-  const load = async (organiser: string | undefined) =>
-    await eventsGetManagedOrganiser({
-      ...(await options()),
-      ...(organiser ? { query: { organiser } } : {}),
-    }).unwrap();
-  try {
-    let managed: Awaited<ReturnType<typeof load>>;
+export const getManagedOrganiser = cache(
+  async (): Promise<ManagedWorkspace | null> => {
+    const chosen = await chosenOrganiser();
+    const load = async (organiser: string | undefined) =>
+      await eventsGetManagedOrganiser({
+        ...(await options()),
+        ...(organiser ? { query: { organiser } } : {}),
+      }).unwrap();
     try {
-      managed = await load(chosen);
-    } catch (error) {
-      // A remembered organiser the member no longer manages: fall back.
-      if (chosen && error instanceof ResponseError && error.status === 403) {
-        managed = await load(undefined);
-      } else {
-        throw error;
+      let managed: Awaited<ReturnType<typeof load>>;
+      try {
+        managed = await load(chosen);
+      } catch (error) {
+        // A remembered organiser the member no longer manages: fall back.
+        if (chosen && error instanceof ResponseError && error.status === 403) {
+          managed = await load(undefined);
+        } else {
+          throw error;
+        }
       }
+      return {
+        organiser: toOrganiser(managed),
+        organisers: managed.organisers.map((row) => ({
+          slug: row.slug,
+          name: row.name,
+          organisationId: row.organisation_id ?? null,
+        })),
+        listings: managed.listings.map(toManagedEvent),
+      };
+    } catch (error) {
+      if (error instanceof ResponseError && error.status === 403) {
+        return null;
+      }
+      throw error;
     }
-    return {
-      organiser: toOrganiser(managed),
-      organisers: managed.organisers.map((row) => ({
-        slug: row.slug,
-        name: row.name,
-        organisationId: row.organisation_id ?? null,
-      })),
-      listings: managed.listings.map(toManagedEvent),
-    };
-  } catch (error) {
-    if (error instanceof ResponseError && error.status === 403) {
-      return null;
-    }
-    throw error;
   }
-}
+);
 
 /** A listing's change history, newest first. Empty without organiser access. */
 export async function getListingActivity(

@@ -56,7 +56,8 @@ _BAD_GATEWAY: ResponseMap = {
     description=(
         "Ask to collect money for something the organisation sells. Idempotent per "
         "`idempotency_key`. Online rails return a hosted checkout URL; the manual "
-        "rail is completed by staff recording the payment."
+        "rail is completed by staff recording the payment. `source_type` values owned "
+        "by another domain (`bookings.deposit`, `events.order`) are refused with 422."
     ),
     operation_id="paymentsCreateIntent",
     responses={**WRITE_ERRORS, **_UNAVAILABLE, **_BAD_GATEWAY},
@@ -64,6 +65,7 @@ _BAD_GATEWAY: ResponseMap = {
 async def create_intent(
     *, session: SessionDep, org: PaymentsOrgAdmin, payload: schemas.PaymentIntentCreate
 ) -> Any:
+    service.reject_reserved_source(payload.source_type)
     result = await service.create_intent(
         session, organisation_id=org.organisation_id, actor=org.user, payload=payload
     )

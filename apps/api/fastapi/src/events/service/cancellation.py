@@ -25,11 +25,11 @@ from src.utils.datetime import utc_now
 
 from .. import activity, outbox, schemas
 from ..exceptions import EventsConflict, EventsNotFound
-from ..models import Admission, Listing, Order, OrderItem, Refund, Ticket
+from ..models import Admission, Listing, Order, OrderItem, Organiser, Refund, Ticket
+from . import event_cancel
 from .admission import _door_listing
 from .common import _naive_utc
 from .outlet import _my_till, money, refund_views
-from .ticketing import cancel_valid_tickets
 
 
 async def _locked_listing(
@@ -50,13 +50,42 @@ async def cancel_event(
     listing_id: uuid.UUID,
     org_ids: list[str],
     slug: str | None = None,
+    *,
+    refund: str,
 ) -> schemas.CancelResult:
     listing = await _locked_listing(db, user, listing_id, org_ids, slug)
+    return await cancel_locked_event(db, user, listing, refund)
+
+
+async def cancel_event_for_organisation(
+    db: AsyncSession,
+    user: User,
+    organisation_id: str,
+    listing_id: uuid.UUID,
+    refund: str,
+) -> schemas.CancelResult:
+    """Org-zone cancel: the event must belong to the organiser of ``organisation_id``."""
+    listing = await db.scalar(
+        select(Listing)
+        .join(Organiser, Organiser.id == Listing.organiser_id)
+        .where(Listing.id == listing_id, Organiser.organisation_id == organisation_id)
+    )
+    if listing is None:
+        raise EventsNotFound("Event not found")
+    await db.refresh(listing, with_for_update=True)
+    return await cancel_locked_event(db, user, listing, refund)
+
+
+async def cancel_locked_event(
+    db: AsyncSession, user: User, listing: Listing, refund: str
+) -> schemas.CancelResult:
+    now = utc_now()
     if listing.status != "published":
         raise EventsConflict("Only a published event can be cancelled")
     listing.status = "cancelled"
     listing.updated_at = utc_now()
-    cancelled = await cancel_valid_tickets(db, listing.id)
+    settled = await event_cancel.cancel_event_orders(db, user, listing, refund, now)
+    cancelled = settled.tickets_cancelled
     key = str(listing.id)
     await outbox.enqueue(
         db,
@@ -81,11 +110,22 @@ async def cancel_event(
             "from": {"status": "published"},
             "to": {"status": "cancelled"},
             "tickets_cancelled": cancelled,
+            "refund": refund,
+            "orders_refunded": settled.refunded,
+            "orders_queued": settled.queued,
+            "refunds_failed": settled.failed,
         },
     )
     await db.commit()
     return schemas.CancelResult(
-        listing_id=listing.id, status="cancelled", tickets_cancelled=cancelled
+        listing_id=listing.id,
+        status="cancelled",
+        tickets_cancelled=cancelled,
+        orders_refunded=settled.refunded,
+        orders_queued=settled.queued,
+        orders_kept=settled.kept,
+        refunds_failed=settled.failed,
+        orders_released=settled.released,
     )
 
 

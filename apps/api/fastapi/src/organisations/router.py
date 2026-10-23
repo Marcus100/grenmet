@@ -1,22 +1,27 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Path, Query
+from fastapi import APIRouter, Path, Query, Response
 from fastapi import status as http_status
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.auth.models import User
-from src.dependencies import AccountUser, AdminUser, SessionDep
+from src.dependencies import AccountUser, AdminUser, MfaAdminUser, SessionDep
+from src.events.service import organiser_verification as events_verification
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
-from src.organisations.dependencies import OrgAdmin, OrgMember
+from src.organisations.dependencies import OrgAdmin, OrgMember, OrgTeamManager
 from src.pagination import PaginationDep
+from src.rate_limit import limiter
 
 from . import (
+    admin_members,
     api_key_scopes,
     api_keys,
     entitlements,
     members,
     service,
     sites,
+    team,
     verification,
 )
 from .api_key_auth import ApiKeyCaller
@@ -46,12 +51,17 @@ from .schemas import (
     MemberListPublic,
     MemberPublic,
     MemberRoleUpdate,
+    MembershipGrantCreate,
+    MembershipGrantPublic,
     MyMembershipPublic,
     OrganisationAdminDetail,
     OrganisationAdminListPublic,
     OrganisationAdminPublic,
     OrganisationAppPublic,
     OrganisationSummary,
+    PlatformMemberAdd,
+    PlatformMemberRemove,
+    PlatformMemberRoleUpdate,
     PlatformOrganisationCreate,
     PlatformOrganisationUpdate,
     PublicSiteAdmin,
@@ -59,6 +69,9 @@ from .schemas import (
     PublicSiteListPublic,
     PublicSitePublic,
     PublicSiteUpdate,
+    RoleBundlePublic,
+    TeamCapabilitiesPublic,
+    TeamMemberListPublic,
     VerificationDecision,
 )
 
@@ -221,6 +234,138 @@ async def update_admin_site(
 # ── API keys (PF5, ADR-0029) ─────────────────────────────────────────────────
 
 KEY_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
+
+
+GRANT_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
+
+
+@router.get(
+    "/org/role-bundles",
+    response_model=list[RoleBundlePublic],
+    summary="List role bundles my organisation can grant",
+    description=(
+        "Bundles of the products the organisation is entitled to. `grantable` is "
+        "true when the caller holds every permission in the bundle and the "
+        "product's team-manage permission. Needs a team-manage permission "
+        "(owners and admins hold it)."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def list_role_bundles(*, session: SessionDep, context: OrgTeamManager) -> Any:
+    return await team.list_bundles(session, context)
+
+
+@router.get(
+    "/org/team/me",
+    response_model=TeamCapabilitiesPublic,
+    summary="My team capabilities",
+    description=(
+        "The caller's organisation role, the products whose team-manage "
+        "permission they hold, and whether they are an admin or owner. Any "
+        "member may read it; plain members get an empty product list."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def my_team_capabilities(*, session: SessionDep, context: OrgMember) -> Any:
+    return await team.my_capabilities(session, context)
+
+
+@router.get(
+    "/org/team/members",
+    response_model=TeamMemberListPublic,
+    summary="List the team roster",
+    description=(
+        "Active members with their live role grants, limited to the products the "
+        "caller manages. Display names only. Needs a team-manage permission "
+        "(owners and admins hold it)."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def list_team_members(
+    *, session: SessionDep, context: OrgTeamManager, pagination: PaginationDep
+) -> Any:
+    return await team.list_roster(session, context, pagination)
+
+
+@router.get(
+    "/org/members/{membership_id}/grants",
+    response_model=list[MembershipGrantPublic],
+    summary="List a member's role grants",
+    description="Live grants only (not revoked, not expired). Display names only.",
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def list_member_grants(
+    *, session: SessionDep, context: OrgTeamManager, membership_id: str
+) -> Any:
+    return await team.list_member_grants(session, context, membership_id=membership_id)
+
+
+@router.get(
+    "/org/members/{membership_id}/issued-grants",
+    response_model=list[MembershipGrantPublic],
+    summary="List live grants a member issued",
+    description=(
+        "For reviewing a demoted member's handouts. Direct grants only: grants made "
+        "by the people they granted to are not followed. Removing a member revokes "
+        "them automatically; a demotion does not. Admins and owners only."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def list_issued_grants(
+    *, session: SessionDep, context: OrgAdmin, membership_id: str
+) -> Any:
+    return await team.list_issued(session, context, membership_id=membership_id)
+
+
+@router.post(
+    "/org/members/{membership_id}/grants",
+    response_model=MembershipGrantPublic,
+    status_code=http_status.HTTP_201_CREATED,
+    summary="Grant a role bundle to a member",
+    description=(
+        "You must hold every permission in the bundle and its product's "
+        "team-manage permission, you cannot change your own roles (403), and the "
+        "grant cannot outlast your own access (422). `expires_at` is UTC and must "
+        "be in the future. 409 when the member already holds the role or another "
+        "request changed it at the same time."
+    ),
+    responses={**GRANT_ERRORS},
+)
+async def grant_member_role(
+    *,
+    session: SessionDep,
+    context: OrgTeamManager,
+    membership_id: str,
+    payload: MembershipGrantCreate,
+) -> Any:
+    return await team.run_and_commit(
+        session,
+        team.grant(
+            session,
+            context,
+            membership_id=membership_id,
+            role_key=payload.role_key,
+            expires_at=payload.expires_at,
+        ),
+    )
+
+
+@router.post(
+    "/org/grants/{grant_id}/revoke",
+    response_model=MembershipGrantPublic,
+    summary="Revoke a role grant",
+    description=(
+        "Needs the bundle's permissions and its product's team-manage permission. "
+        "Revoking an already revoked grant returns it unchanged."
+    ),
+    responses={**GRANT_ERRORS},
+)
+async def revoke_member_grant(
+    *, session: SessionDep, context: OrgTeamManager, grant_id: str
+) -> Any:
+    return await team.run_and_commit(
+        session, team.revoke(session, context, grant_id=grant_id)
+    )
 
 
 @router.get(
@@ -565,20 +710,25 @@ async def update_one(
     summary="Verify an organisation",
     description=(
         "Superuser only. Sets verified_at and records the reason in the "
-        "organisation's history. Events shows its organiser as verified. 409 "
-        "when already verified."
+        "organisation's history. Events shows its organiser as verified and "
+        "notifies its owners. MFA superuser. 409 when already verified or suspended."
     ),
     responses=WRITE_ERRORS,
 )
 async def verify_one(
     *,
     session: SessionDep,
-    admin: AdminUser,
+    admin: MfaAdminUser,
     organisation_id: str,
     payload: VerificationDecision,
 ) -> Any:
-    await service.admin_set_verified(
-        session, admin, organisation_id, verified=True, reason=payload.reason
+    # One approval path: the same write and side effects as the Events queue.
+    await events_verification.apply_decision(
+        session,
+        admin,
+        organisation_id,
+        verified=True,
+        reason=payload.reason,
     )
     await session.commit()
     verification.clear_cache(organisation_id)
@@ -598,12 +748,17 @@ async def verify_one(
 async def unverify_one(
     *,
     session: SessionDep,
-    admin: AdminUser,
+    admin: MfaAdminUser,
     organisation_id: str,
     payload: VerificationDecision,
 ) -> Any:
-    await service.admin_set_verified(
-        session, admin, organisation_id, verified=False, reason=payload.reason
+    # One approval path: the same write and side effects as the Events queue.
+    await events_verification.apply_decision(
+        session,
+        admin,
+        organisation_id,
+        verified=False,
+        reason=payload.reason,
     )
     await session.commit()
     verification.clear_cache(organisation_id)
@@ -659,6 +814,125 @@ async def list_members_admin(
         count=total,
         page=pagination.page,
         size=pagination.size,
+    )
+
+
+MFA_ERRORS = {
+    **AUTHENTICATED,
+    **NOT_FOUND,
+    **CONFLICT,
+    403: {
+        "description": "Superuser with an enrolled authenticator required "
+        "(superuser_mfa_required), or the target lacks a verified or "
+        "administrator-activated email for an owner/admin role"
+    },
+}
+
+
+@router.post(
+    "/{organisation_id}/admin/members",
+    response_model=MemberPublic,
+    status_code=201,
+    summary="Add a member to any organisation (audited)",
+    description=(
+        "Superuser with an enrolled authenticator adds an account (by user id or "
+        "email) as member, admin or owner. This is how a superuser enters a "
+        "business's data: there is no organisation bypass, so adding yourself "
+        "works the same way. A reason is required and recorded with the actor "
+        "and target. Owner and admin roles need a verified or "
+        "administrator-activated target. 409 when already a member."
+    ),
+    responses=MFA_ERRORS,
+)
+@limiter.limit("30/minute")
+async def add_member_admin(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    admin: MfaAdminUser,
+    organisation_id: str,
+    payload: PlatformMemberAdd,
+) -> Any:
+    _ = request, response
+    membership, user = await admin_members.add(
+        session,
+        admin,
+        organisation_id,
+        user_id=payload.user_id,
+        email=payload.email,
+        role=payload.role,
+        reason=payload.reason,
+    )
+    result = _member(membership, user)
+    await session.commit()
+    return result
+
+
+@router.patch(
+    "/{organisation_id}/admin/members/{membership_id}",
+    response_model=MemberPublic,
+    summary="Change any member's role (audited)",
+    description=(
+        "Superuser with an enrolled authenticator changes a member's role. "
+        "A reason is required. 409 when it would leave the organisation "
+        "without an owner."
+    ),
+    responses=MFA_ERRORS,
+)
+@limiter.limit("30/minute")
+async def update_member_admin(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    admin: MfaAdminUser,
+    organisation_id: str,
+    membership_id: str,
+    payload: PlatformMemberRoleUpdate,
+) -> Any:
+    _ = request, response
+    membership, user = await admin_members.change(
+        session,
+        admin,
+        organisation_id,
+        membership_id,
+        payload.role,
+        reason=payload.reason,
+    )
+    result = _member(membership, user)
+    await session.commit()
+    return result
+
+
+@router.delete(
+    "/{organisation_id}/admin/members/{membership_id}",
+    status_code=204,
+    summary="Remove any member (audited)",
+    description=(
+        "Superuser with an enrolled authenticator ends a membership. A reason "
+        "is required in the body. 409 when it would leave the organisation "
+        "without an owner."
+    ),
+    responses=MFA_ERRORS,
+)
+@limiter.limit("30/minute")
+async def delete_member_admin(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    admin: MfaAdminUser,
+    organisation_id: str,
+    membership_id: str,
+    payload: PlatformMemberRemove,
+) -> None:
+    _ = request, response
+    await team.run_and_commit(
+        session,
+        admin_members.remove(
+            session, admin, organisation_id, membership_id, reason=payload.reason
+        ),
     )
 
 
@@ -751,8 +1025,9 @@ async def delete_member(
     membership_id: str,
 ) -> None:
     _require_path_match(context, organisation_id)
-    await members.remove_member(session, context, membership_id)
-    await session.commit()
+    await team.run_and_commit(
+        session, members.remove_member(session, context, membership_id)
+    )
 
 
 @router.get(

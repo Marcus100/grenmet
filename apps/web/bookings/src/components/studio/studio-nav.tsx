@@ -5,14 +5,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 interface StudioNavProps {
+  /** Owners and admins only; the page and API enforce it too. */
+  canCreate?: boolean;
   orgSlug: string;
 }
 
 /**
- * Left navigation on desktop, a top tab row on phones. Agenda is the only
- * screen in this release; services, hours and settings join as they ship.
+ * Left navigation on desktop, a top tab row on phones. Agenda, New booking and Settings
+ * are the screens in this release. Settings is shown to every member (read-only for non-admins).
  */
-export function StudioNav({ orgSlug }: StudioNavProps) {
+export function StudioNav({ canCreate = false, orgSlug }: StudioNavProps) {
   const pathname = usePathname();
   const items = [
     {
@@ -20,7 +22,22 @@ export function StudioNav({ orgSlug }: StudioNavProps) {
       href: `/studio/${orgSlug}/agenda`,
       active:
         pathname.startsWith(`/studio/${orgSlug}/agenda`) ||
-        pathname.startsWith(`/studio/${orgSlug}/bookings`),
+        (pathname.startsWith(`/studio/${orgSlug}/bookings`) &&
+          !pathname.endsWith("/bookings/new")),
+    },
+    ...(canCreate
+      ? [
+          {
+            label: "New booking",
+            href: `/studio/${orgSlug}/bookings/new`,
+            active: pathname.endsWith("/bookings/new"),
+          },
+        ]
+      : []),
+    {
+      label: "Settings",
+      href: `/studio/${orgSlug}/settings`,
+      active: pathname.startsWith(`/studio/${orgSlug}/settings`),
     },
   ];
   return (

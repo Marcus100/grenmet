@@ -9,4 +9,9 @@ export const cancelResultSchema = z.object({
   listing_id: z.uuid(),
   status: z.enum(["cancelled"]),
   tickets_cancelled: z.int(),
+  orders_refunded: z.int().optional().default(0),
+  orders_queued: z.int().optional().default(0),
+  orders_kept: z.int().optional().default(0),
+  refunds_failed: z.int().optional().default(0),
+  orders_released: z.int().optional().default(0),
 });

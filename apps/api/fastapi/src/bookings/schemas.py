@@ -6,6 +6,8 @@ from pydantic import EmailStr, Field, field_validator, model_validator
 
 from src.models import BaseModel, UtcDateTime
 from src.organisations.models import MembershipRole
+from src.payments.schemas import ManualPaymentCreate
+from src.utils.reserved_names import is_reserved
 from src.utils.timezones import is_valid_timezone
 
 from .models import BookingExceptionKind, BookingSource, BookingStatus
@@ -15,8 +17,6 @@ Slug = Annotated[str, Field(pattern=r"^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$")]
 Minutes = Annotated[int, Field(ge=0, le=1440)]
 Minor = Annotated[int, Field(ge=0, le=100_000_000)]
 Currency = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
-#: Path words under /bookings/public that a slug must not shadow.
-RESERVED_SLUGS = frozenset({"bookings"})
 
 
 # --- caller's organisations -------------------------------------------------------
@@ -37,7 +37,13 @@ class BookingMyOrganisation(BaseModel):
 class BookingProfileUpdate(BaseModel):
     """Create or replace the organisation's booking profile."""
 
-    public_slug: Slug
+    public_slug: Slug = Field(
+        description=(
+            "Address under the bookings host. Must not be a platform reserved "
+            "name such as studio, signin, auth or api (docs/ports.md); a "
+            "reserved name is refused with 422."
+        )
+    )
     display_name: Name
     enabled: bool = False
     timezone: str = "America/Grenada"
@@ -66,7 +72,9 @@ class BookingProfileUpdate(BaseModel):
     @field_validator("public_slug")
     @classmethod
     def _not_reserved(cls, value: str) -> str:
-        if value in RESERVED_SLUGS:
+        # Platform reserved names (ADR-0043) cover the web app's top-level routes
+        # (studio, signin, auth, api) and the /bookings/public path word.
+        if is_reserved(value):
             raise ValueError("That booking address is reserved")
         return value
 
@@ -260,6 +268,11 @@ class BookingAgenda(BaseModel):
 # --- studio actions (B5) -------------------------------------------------------------
 
 
+class BookingManualDepositCreate(ManualPaymentCreate):
+    """How a deposit taken outside Stripe was paid (``method``, optional receipt
+    or transfer ``reference``)."""
+
+
 class BookingStudioDecline(BaseModel):
     reason: str = Field(
         min_length=1,
@@ -391,9 +404,54 @@ class BookingPublicCreate(BaseModel):
     customer_phone: str | None = Field(default=None, max_length=40)
     notes: str | None = Field(default=None, max_length=1000)
     marketing_consent: bool = False
+    email_proof: str | None = Field(
+        default=None,
+        max_length=1024,
+        description=(
+            "Proof from `confirm-email-code`. Needed only when a deposit is due "
+            "and the caller is not a signed-in account that already vouches for "
+            "`customer_email`. Bound to this email, service and start time; "
+            "single use."
+        ),
+    )
     turnstile_token: str | None = Field(default=None, max_length=2048)
     # Honeypot. Hidden from people; a bot that fills it is silently dropped.
     website: str | None = Field(default=None, max_length=200)
+
+
+class BookingEmailCodeRequest(BaseModel):
+    """Ask for a code to be emailed before a deposit booking."""
+
+    service_id: uuid.UUID
+    starts_at: UtcDateTime = Field(
+        description="The slot being booked; the proof is bound to it."
+    )
+    customer_email: EmailStr = Field(max_length=254)
+    turnstile_token: str | None = Field(default=None, max_length=2048)
+
+
+class BookingEmailCodeSent(BaseModel):
+    required: bool = Field(
+        description=(
+            "False when no step is needed (no deposit is due, or the signed-in "
+            "account already vouches for the email); nothing was sent."
+        )
+    )
+    expires_in_seconds: int = Field(
+        default=0, description="Code lifetime; 0 when `required` is false."
+    )
+
+
+class BookingEmailCodeConfirm(BaseModel):
+    service_id: uuid.UUID
+    starts_at: UtcDateTime
+    customer_email: EmailStr = Field(max_length=254)
+    code: str = Field(pattern=r"^\d{6}$", description="The 6-digit emailed code.")
+
+
+class BookingEmailProof(BaseModel):
+    proof: str = Field(description="Send as `email_proof` when creating the booking.")
+    expires_in_seconds: int
 
 
 class BookingStudioCreate(BaseModel):

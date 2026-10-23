@@ -170,7 +170,7 @@ export type SiteNoticeCode = keyof typeof SITE_NOTICES;
 export function siteNoticeFor(
   code: string | undefined
 ): (typeof SITE_NOTICES)[SiteNoticeCode] | undefined {
-  return code && code in SITE_NOTICES
+  return code && Object.hasOwn(SITE_NOTICES, code)
     ? SITE_NOTICES[code as SiteNoticeCode]
     : undefined;
 }

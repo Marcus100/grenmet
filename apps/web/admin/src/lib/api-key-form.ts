@@ -27,7 +27,7 @@ export type ApiKeyNoticeCode = keyof typeof API_KEY_NOTICES;
 export function apiKeyNoticeFor(
   code: string | undefined
 ): (typeof API_KEY_NOTICES)[ApiKeyNoticeCode] | undefined {
-  return code && code in API_KEY_NOTICES
+  return code && Object.hasOwn(API_KEY_NOTICES, code)
     ? API_KEY_NOTICES[code as ApiKeyNoticeCode]
     : undefined;
 }

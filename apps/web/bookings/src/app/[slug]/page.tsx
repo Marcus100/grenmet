@@ -11,7 +11,12 @@ import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
 import { CONTACT_LABEL } from "@/lib/booking-errors";
 import { isBusinessSlug } from "@/lib/slug";
-import { loadSlots, submitBooking } from "./actions";
+import {
+  confirmEmailCode,
+  loadSlots,
+  requestEmailCode,
+  submitBooking,
+} from "./actions";
 
 // Read the live service list on every request, never at build.
 export const dynamic = "force-dynamic";
@@ -121,7 +126,9 @@ export default async function BusinessBookingPage({
           </h2>
           <BookingFlow
             actions={{
+              confirmEmailCode: confirmEmailCode.bind(null, slug),
               loadSlots: loadSlots.bind(null, slug),
+              requestEmailCode: requestEmailCode.bind(null, slug),
               submitBooking: submitBooking.bind(null, slug),
             }}
             contact={{ href: `/${slug}`, label: CONTACT_LABEL }}

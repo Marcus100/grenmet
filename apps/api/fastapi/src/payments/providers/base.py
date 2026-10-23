@@ -67,7 +67,9 @@ class ProviderStatus:
 class PaymentProvider(Protocol):
     key: str
 
-    async def create_payment(self, intent: Intent, /) -> PaymentStart: ...
+    async def create_payment(
+        self, intent: Intent, /, *, title: str | None = None
+    ) -> PaymentStart: ...
 
     def verify_callback(
         self, headers: Mapping[str, str], body: bytes, /

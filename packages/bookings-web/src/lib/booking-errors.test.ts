@@ -37,6 +37,47 @@ describe("booking-errors", () => {
     );
   });
 
+  it("maps the emailed-code request failures", () => {
+    const code = (status: number) =>
+      classifyFailure(status, undefined, "email-code", "Instagram");
+    expect(code(429).code).toBe("code_limited");
+    expect(code(503).code).toBe("code_unavailable");
+    expect(code(404).code).toBe("not_found");
+    expect(code(422).code).toBe("invalid");
+    expect(code(400).code).toBe("verification");
+    const failed = code(502);
+    expect(failed.code).toBe("code_send_failed");
+    expect(failed.message).toContain("not yours");
+    expect(failed.message).toContain("Instagram");
+    expect(code(500).code).toBe("code_send_failed");
+  });
+
+  it("maps the code confirmation failures, naming when to retry a lockout", () => {
+    const confirm = (status: number) =>
+      classifyFailure(status, undefined, "email-confirm");
+    expect(confirm(400).code).toBe("code_rejected");
+    expect(confirm(400).message).toContain("expired");
+    const locked = confirm(429);
+    expect(locked.code).toBe("code_locked");
+    expect(locked.message).toContain("15 minutes");
+    expect(confirm(503).code).toBe("code_unavailable");
+    expect(confirm(500).code).toBe("code_unavailable");
+    expect(confirm(404).code).toBe("not_found");
+  });
+
+  it("tells a missing email proof from a failed human check on create", () => {
+    const missing = classifyFailure(
+      403,
+      "email_verification_required: pay a deposit needs a verified email",
+      "create"
+    );
+    expect(missing.code).toBe("email_unverified");
+    expect(missing.message).toContain("new code");
+    expect(classifyFailure(403, "Turnstile failed", "create").code).toBe(
+      "verification"
+    );
+  });
+
   it("reads the API's detail text only when it is a string", () => {
     expect(detailOf({ detail: "x" })).toBe("x");
     expect(detailOf({ detail: [{ msg: "x" }] })).toBeUndefined();

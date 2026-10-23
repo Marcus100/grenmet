@@ -3,6 +3,7 @@ import { env } from "@/lib/env";
 
 const DEV_FALLBACKS: Record<AppId, string> = {
   admin: "http://localhost:3001",
+  "barrels-admin": "http://localhost:3012",
   docs: "http://localhost:3002",
   weather: "http://localhost:3003",
   signal: "http://localhost:3004",
@@ -13,6 +14,7 @@ const DEV_FALLBACKS: Record<AppId, string> = {
 export function getAppHrefs(): Partial<Record<AppId, string>> {
   const configured: Partial<Record<AppId, string | undefined>> = {
     admin: env.ADMIN_APP_URL,
+    "barrels-admin": env.BARRELS_ADMIN_APP_URL,
     docs: env.DOCS_APP_URL,
     weather: env.GMS_APP_URL,
     signal: env.SIGNAL_APP_URL,

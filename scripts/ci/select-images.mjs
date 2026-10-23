@@ -28,14 +28,10 @@ function imagesForPath(path) {
     return { ...noImages, web: webImages };
   // Elections and Babydoll deploy independently on Vercel. Their manifests still affect
   // Docker installation layers above, but their source does not enter them.
-  // The Barrels control plane (apps/web/admin) has a Dockerfile but is not
-  // deployed yet (docs/exec-plans/barrels-foundations-plan.md, "Host move"):
-  // move it into release-scope.mjs when its service is added.
   if (
     path.startsWith("apps/web/elections/") ||
     path.startsWith("apps/web/babydoll/") ||
-    path.startsWith("apps/web/barrels/") ||
-    path.startsWith("apps/web/admin/")
+    path.startsWith("apps/web/barrels/")
   )
     return noImages;
   if (path.startsWith("apps/api/fastapi/")) return { ...noImages, api: true };

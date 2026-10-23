@@ -33,10 +33,12 @@ from src.organisations.models import (
     OrganisationKind,
     OrganisationStatus,
     PlatformOrganisation,
+    VerificationStatus,
     new_membership_id,
     new_organisation_id,
 )
 from src.utils.datetime import utc_now
+from src.utils.reserved_names import is_reserved
 
 logger = logging.getLogger(__name__)
 
@@ -52,10 +54,14 @@ def slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")[:100] or "org"
 
 
-async def _unique_slug(session: AsyncSession, wanted: str) -> str:
+async def _unique_slug(
+    session: AsyncSession, wanted: str, *, allow_reserved: bool = False
+) -> str:
+    """A free slug near ``wanted``; reserved names (ADR-0043) are treated as taken
+    unless the caller is the platform itself (seeds, the HR mirror)."""
     slug = slugify(wanted)
     candidate, n = slug, 1
-    while await session.scalar(
+    while (not allow_reserved and is_reserved(candidate)) or await session.scalar(
         select(PlatformOrganisation.id).where(PlatformOrganisation.slug == candidate)
     ):
         n += 1
@@ -70,17 +76,20 @@ async def create_organisation(
     kind: OrganisationKind = OrganisationKind.BUSINESS,
     slug: str | None = None,
     organisation_id: str | None = None,
+    reserved_ok: bool = False,
 ) -> PlatformOrganisation:
     """Create a new organisation with an immutable ``org_<hex>`` id.
 
     The id is generated unless a caller needs a deterministic one (idempotent
-    cross-database backfills)."""
+    cross-database backfills). A slug on the platform reserved list is never
+    used (a numeric suffix is added) unless ``reserved_ok``, which only platform
+    seeds pass for their own names (``barrels``, ``babydoll``)."""
     clean = name.strip()
     if not clean:
         raise AppException("Organisation name is required", 422)
     organisation = PlatformOrganisation(
         id=organisation_id or new_organisation_id(),
-        slug=await _unique_slug(session, slug or clean),
+        slug=await _unique_slug(session, slug or clean, allow_reserved=reserved_ok),
         name=clean,
         kind=kind.value,
         status=OrganisationStatus.ACTIVE.value,
@@ -115,7 +124,9 @@ async def ensure_for_hr_organisation(
     organisation = _hr_mirror(
         organisation_id,
         name,
-        await _unique_slug(session, organisation_id or code or name),
+        await _unique_slug(
+            session, organisation_id or code or name, allow_reserved=True
+        ),
     )
     session.add(organisation)
     await session.flush()
@@ -300,6 +311,29 @@ async def resolve_membership(
     return ResolvedMembership(organisation=organisation, membership=membership)
 
 
+async def find_membership(
+    session: AsyncSession, *, user_id: uuid.UUID, organisation_id: str
+) -> ResolvedMembership | None:
+    """Active membership with its organisation (any organisation status), or None."""
+    row = (
+        await session.execute(
+            select(Membership, PlatformOrganisation)
+            .join(
+                PlatformOrganisation,
+                PlatformOrganisation.id == Membership.organisation_id,
+            )
+            .where(
+                Membership.user_id == user_id,
+                Membership.organisation_id == organisation_id,
+                Membership.status == MembershipStatus.ACTIVE.value,
+            )
+        )
+    ).first()
+    if row is None:
+        return None
+    return ResolvedMembership(organisation=row[1], membership=row[0])
+
+
 async def is_app_enabled(
     session: AsyncSession, *, organisation_id: str, app_key: str
 ) -> bool:
@@ -440,7 +474,10 @@ _SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 async def _load(session: AsyncSession, organisation_id: str) -> PlatformOrganisation:
     organisation = await session.get(
-        PlatformOrganisation, organisation_id, with_for_update=True
+        PlatformOrganisation,
+        organisation_id,
+        with_for_update=True,
+        populate_existing=True,
     )
     if organisation is None:
         raise OrganisationNotFoundError()
@@ -459,6 +496,8 @@ async def _ensure_slug_free(
 ) -> None:
     if not _SLUG_PATTERN.match(slug):
         raise AppException("Slug must be lowercase letters, digits and hyphens", 422)
+    if is_reserved(slug):
+        raise AppException("That slug is reserved", 422)
     taken = await session.scalar(
         select(PlatformOrganisation.id).where(
             PlatformOrganisation.slug == slug,
@@ -520,26 +559,84 @@ async def admin_set_verified(
     *,
     verified: bool,
     reason: str,
+    rejected: bool = False,
+    refuse_rejected: bool = False,
 ) -> PlatformOrganisation:
+    """The one write path for verification decisions.
+
+    ``verified=True`` approves (from pending or rejected), ``verified=False``
+    withdraws an approval, and ``rejected=True`` (with ``verified=False``) rejects
+    a pending request. Repeating a decision is a 409. Every decision records the
+    reason, the decision time and an explicit audit entry for the actor."""
     clean = _clean_reason(reason)
     organisation = await _load(session, organisation_id)
     audit_service.set_actor(session, actor.id)
+    now = utc_now()
+    if (
+        refuse_rejected
+        and organisation.verification_status == VerificationStatus.REJECTED.value
+    ):
+        # Checked under the row lock, so a concurrent reject cannot slip past.
+        raise AppException("This organiser was rejected; it must be resubmitted", 409)
     if verified:
         if organisation.verified_at is not None:
             raise AppException("Organisation is already verified", 409)
-        organisation.verified_at = utc_now()
+        if organisation.status == OrganisationStatus.SUSPENDED.value:
+            raise AppException("A suspended organisation cannot be verified", 409)
+        organisation.verified_at = now
+        organisation.verification_status = VerificationStatus.APPROVED.value
+        action = "verify"
+    elif rejected:
+        if organisation.verified_at is not None:
+            raise AppException(
+                "Organisation is verified; withdraw its verification instead", 409
+            )
+        if organisation.verification_status == VerificationStatus.REJECTED.value:
+            raise AppException("Organisation is already rejected", 409)
+        organisation.verification_status = VerificationStatus.REJECTED.value
+        action = "reject"
     else:
         if organisation.verified_at is None:
             raise AppException("Organisation is not verified", 409)
         organisation.verified_at = None
+        organisation.verification_status = VerificationStatus.PENDING.value
+        action = "unverify"
+    organisation.verification_reason = clean
+    organisation.verification_decided_at = now
     await audit_service.record_change(
         session,
         entity_type="platform_organisation",
         entity_id=organisation.id,
         record_type="platform_organisation",
         record_id=organisation.id,
-        action="verify" if verified else "unverify",
+        action=action,
         changes={"reason": (None, clean)},
+        organisation_id=organisation.id,
+    )
+    await session.flush()
+    return organisation
+
+
+async def resubmit_verification(
+    session: AsyncSession, actor: User, organisation_id: str
+) -> PlatformOrganisation:
+    """A rejected organisation asks to be reviewed again: back to pending.
+
+    The caller has already checked the actor manages the organisation. The
+    rejection reason stays on the row until the next decision."""
+    organisation = await _load(session, organisation_id)
+    if organisation.verification_status != VerificationStatus.REJECTED.value:
+        raise AppException("Only a rejected request can be resubmitted", 409)
+    audit_service.set_actor(session, actor.id)
+    organisation.verification_status = VerificationStatus.PENDING.value
+    await audit_service.record_change(
+        session,
+        entity_type="platform_organisation",
+        entity_id=organisation.id,
+        record_type="platform_organisation",
+        record_id=organisation.id,
+        action="resubmit",
+        changes={"verification_status": ("rejected", "pending")},
         organisation_id=organisation.id,
     )
     await session.flush()

@@ -4,7 +4,13 @@ import uuid
 from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.models import (
+    Role,
+    RoleAssignmentScope,
+    User,
+    UserRoleAssignment,
+)
+from src.auth.permissions import ORGANISATION_BOUND_KEYS
 from src.exceptions import AuthorizationError
 from src.utils.datetime import utc_now
 
@@ -49,7 +55,49 @@ async def _active_assignments(
     return await valid_delegated_assignments(session, list(result.scalars().all()))
 
 
+async def has_role_permission(
+    *, session: AsyncSession, user: User, permission_key: str
+) -> bool:
+    """True when a role the user holds right now carries ``permission_key`` (ADR-0050).
+
+    Resolved through ``access.all_scope_permission_keys``, never through
+    ``user.roles`` or ``has_permission``: only live ALL-scope assignments count
+    (``effective_from`` <= now < ``effective_to``, open-ended when null; an expired
+    or not-yet-started one gives nothing), plus plain role links for roles the user
+    never had an assignment for (a plain link cannot expire). SELF- and
+    DEPARTMENT-scoped assignments give no staff key. A superuser has no implicit
+    key: staff keys must be granted through a role. Organisation-bound keys are
+    always False.
+    """
+    wanted = permission_key.strip().lower()
+    if not user.is_active or wanted in ORGANISATION_BOUND_KEYS:
+        return False
+    from src.auth.access import all_scope_permission_keys
+
+    return wanted in {
+        key.lower() for key in await all_scope_permission_keys(session, user)
+    }
+
+
+def is_organisation_bound(*, user: User, permission_key: str) -> bool:
+    """True (and logged) when the key is organisation-bound (ADR-0044).
+
+    Organisation keys are resolved only through OrgContext and the organisation
+    resolver, never by the global checks: those give superusers every key and
+    let a staff role pass outside any organisation. The one place for the rule.
+    """
+    if permission_key.strip().lower() not in ORGANISATION_BOUND_KEYS:
+        return False
+    logger.warning(
+        "Organisation-bound permission asked of a global check",
+        extra={"user_id": str(user.id), "permission_key": permission_key},
+    )
+    return True
+
+
 def has_permission(*, current_user: User, permission_key: str) -> bool:
+    if is_organisation_bound(user=current_user, permission_key=permission_key):
+        return False
     if current_user.is_superuser:
         return True
     normalized_permission_key = permission_key.strip().lower()
@@ -77,6 +125,8 @@ async def can_act_on_user(
     permission_key: str,
     allow_self: bool = False,
 ) -> bool:
+    if is_organisation_bound(user=current_user, permission_key=permission_key):
+        return False
     if current_user.is_superuser:
         return True
 

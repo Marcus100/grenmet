@@ -5,6 +5,7 @@
 
 export type BookingProfilePublic = {
   /**
+   * @description Address under the bookings host. Must not be a platform reserved name such as studio, signin, auth or api (docs/ports.md); a reserved name is refused with 422.
    * @pattern ^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$
    * @type string
    */

@@ -33,6 +33,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.auth import superuser_mfa
 from src.auth.config import auth_settings
 from src.auth.constants import (
     ERROR_INACTIVE_USER,
@@ -75,8 +76,10 @@ SessionDep = Annotated[AsyncSession, Depends(get_db)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
-def _token_user_id(token: str) -> uuid.UUID:
-    """Validate a staff or account bearer token (never an app-scoped one)."""
+def _token_user_id(token: str, *, app: str | None = None) -> uuid.UUID:
+    """Validate a staff or account bearer token (never an app-scoped one).
+
+    ``app`` also admits that one app's session; only ``optional_account`` passes it."""
     try:
         payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
         token_data = TokenPayload(**payload)
@@ -84,13 +87,22 @@ def _token_user_id(token: str) -> uuid.UUID:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
     if not token_data.sub:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
-    if token_data.app is not None:
+    if token_data.app is not None and token_data.app != app:
         # App-scoped tokens (src/auth/apps.py) only work on their own app's routes.
         raise _unauthorized("This sign-in is limited to another app")
     try:
         return uuid.UUID(token_data.sub)
     except ValueError:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
+
+
+def _token_app(token: str) -> str | None:
+    """The ``app`` claim of a token already validated by ``_token_user_id``."""
+    try:
+        payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
+        return TokenPayload(**payload).app
+    except InvalidTokenError, ValidationError:
+        return None
 
 
 async def get_current_user(session: SessionDep, token: TokenDep) -> User:
@@ -212,19 +224,53 @@ async def get_current_user_manager(current_user: CurrentUser) -> User:
 AdminUser = Annotated[User, Depends(get_current_active_superuser)]
 
 
-async def optional_account(request: Request, session: AsyncSession) -> User | None:
+async def get_current_mfa_superuser(
+    admin: AdminUser, session: SessionDep, token: TokenDep
+) -> User:
+    """Superuser with an enrolled authenticator and a session that passed MFA.
+
+    Applies in every environment, whatever ``AUTH_PRIVILEGED_MFA_MODE`` says."""
+    from src.auth import privileged_mfa
+
+    superuser_mfa.require_superuser_mfa(admin)
+    await privileged_mfa.require_mfa_session(session, admin, token=token)
+    return admin
+
+
+MfaAdminUser = Annotated[User, Depends(get_current_mfa_superuser)]
+
+
+async def optional_account(
+    request: Request, session: AsyncSession, *, app: str | None = None
+) -> User | None:
     """The signed-in account behind a bearer header, or None.
 
     For public routes that stay anonymous but apply a rule to a signed-in
     caller (for example the verified-email deposit gate, ADR-0018). It reads the
     header itself so the route's OpenAPI security stays public, and a missing or
-    bad credential never fails the request: browsing needs no sign-in."""
+    bad credential never fails the request: browsing needs no sign-in. ``app``
+    also recognises that app's own session (for example ``bookings``), so its
+    users are not mistaken for guests; it grants nothing, it only names the caller."""
     scheme, _, token = request.headers.get("Authorization", "").partition(" ")
     if scheme.lower() != "bearer" or not token.strip():
         return None
     try:
-        return await get_authenticated_user(
-            session, _token_user_id(token.strip()), allow_unapproved=True
+        user = await get_authenticated_user(
+            session,
+            _token_user_id(token.strip(), app=app),
+            allow_unapproved=True,
         )
+        if app is not None and _token_app(token.strip()) == app:
+            # An app session counts only while the account still holds that
+            # app's access (the check user_for_app makes).
+            from src.auth.eligibility import is_eligible_for_app
+
+            if not await is_eligible_for_app(session=session, user=user, app_key=app):
+                # A guest from here on: undo the audit attribution made above.
+                from src.audit.service import set_actor
+
+                set_actor(session, None)
+                return None
+        return user
     except HTTPException:
         return None

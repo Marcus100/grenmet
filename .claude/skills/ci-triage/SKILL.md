@@ -1,6 +1,6 @@
 ---
 name: ci-triage
-description: "Diagnoses failing GitHub Actions checks on a PR or branch: lists the failures, ranks falsifiable hypotheses, confirms the root cause with log evidence, then applies and verifies the smallest authorized fix. Use when CI is red, a check or workflow run fails, or the user asks why a build, lint or test job failed."
+description: "Diagnoses failing GitHub Actions checks on a PR or branch: lists the failures, ranks falsifiable hypotheses, confirms the root cause with log evidence, then applies and verifies the smallest authorized fix. Use when CI is red, checks or a workflow run fail, or the user asks why a build, lint, type-check or test job failed; invoke it before running any gh pr checks or gh run command."
 allowed-tools: Bash(gh pr *), Bash(gh run *), Bash(git branch *), Bash(git log *)
 ---
 

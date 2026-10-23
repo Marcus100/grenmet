@@ -21,9 +21,12 @@ export type { ActivationConfirm } from "./ActivationConfirm.js";
 export type { ActivationIssue } from "./ActivationIssue.js";
 export type { ActivationLink } from "./ActivationLink.js";
 export type { ActivityEntry } from "./ActivityEntry.js";
+export type { ActivityEntryPropertiesActorCapacityEnum } from "./ActivityEntryPropertiesActorCapacityEnum.js";
+export { activityEntryPropertiesActorCapacityEnum } from "./ActivityEntryPropertiesActorCapacityEnum.js";
 export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
 export type { AdjustmentCreate } from "./AdjustmentCreate.js";
+export type { AdminActivation } from "./AdminActivation.js";
 export type { AdmissionCreate } from "./AdmissionCreate.js";
 export type { AdmissionPublic } from "./AdmissionPublic.js";
 export type { AgeingBucket } from "./AgeingBucket.js";
@@ -113,6 +116,30 @@ export type {
   AuthAccountEmailCodeVerifyStatus422,
   AuthAccountEmailCodeVerifyStatus429,
 } from "./AuthAccountEmailCodeVerify.js";
+export type {
+  AuthAdminActivateAccountBody,
+  AuthAdminActivateAccountOptions,
+  AuthAdminActivateAccountPath,
+  AuthAdminActivateAccountResponse,
+  AuthAdminActivateAccountResponses,
+  AuthAdminActivateAccountStatus200,
+  AuthAdminActivateAccountStatus403,
+  AuthAdminActivateAccountStatus404,
+  AuthAdminActivateAccountStatus409,
+  AuthAdminActivateAccountStatus422,
+} from "./AuthAdminActivateAccount.js";
+export type {
+  AuthAdminResendVerificationBody,
+  AuthAdminResendVerificationOptions,
+  AuthAdminResendVerificationPath,
+  AuthAdminResendVerificationResponse,
+  AuthAdminResendVerificationResponses,
+  AuthAdminResendVerificationStatus200,
+  AuthAdminResendVerificationStatus403,
+  AuthAdminResendVerificationStatus404,
+  AuthAdminResendVerificationStatus409,
+  AuthAdminResendVerificationStatus422,
+} from "./AuthAdminResendVerification.js";
 export type {
   AuthAppEmailCodeStartBody,
   AuthAppEmailCodeStartOptions,
@@ -1061,10 +1088,15 @@ export type { BookingAgenda } from "./BookingAgenda.js";
 export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
 export type { BookingAvailability } from "./BookingAvailability.js";
+export type { BookingEmailCodeConfirm } from "./BookingEmailCodeConfirm.js";
+export type { BookingEmailCodeRequest } from "./BookingEmailCodeRequest.js";
+export type { BookingEmailCodeSent } from "./BookingEmailCodeSent.js";
+export type { BookingEmailProof } from "./BookingEmailProof.js";
 export type { BookingExceptionCreate } from "./BookingExceptionCreate.js";
 export type { BookingExceptionKind } from "./BookingExceptionKind.js";
 export { bookingExceptionKind } from "./BookingExceptionKind.js";
 export type { BookingExceptionPublic } from "./BookingExceptionPublic.js";
+export type { BookingManualDepositCreate } from "./BookingManualDepositCreate.js";
 export type { BookingMyOrganisation } from "./BookingMyOrganisation.js";
 export type { BookingOrder } from "./BookingOrder.js";
 export type { BookingProfilePublic } from "./BookingProfilePublic.js";
@@ -1136,6 +1168,19 @@ export type {
   BookingsCompleteStudioBookingStatus409,
   BookingsCompleteStudioBookingStatus422,
 } from "./BookingsCompleteStudioBooking.js";
+export type {
+  BookingsConfirmEmailCodeBody,
+  BookingsConfirmEmailCodeOptions,
+  BookingsConfirmEmailCodePath,
+  BookingsConfirmEmailCodeResponse,
+  BookingsConfirmEmailCodeResponses,
+  BookingsConfirmEmailCodeStatus200,
+  BookingsConfirmEmailCodeStatus400,
+  BookingsConfirmEmailCodeStatus404,
+  BookingsConfirmEmailCodeStatus422,
+  BookingsConfirmEmailCodeStatus429,
+  BookingsConfirmEmailCodeStatus503,
+} from "./BookingsConfirmEmailCode.js";
 export type {
   BookingsConfirmStudioBookingHeaders,
   BookingsConfirmStudioBookingOptions,
@@ -1426,6 +1471,21 @@ export type {
   BookingsNoShowStudioBookingStatus422,
 } from "./BookingsNoShowStudioBooking.js";
 export type {
+  BookingsRecordManualDepositBody,
+  BookingsRecordManualDepositHeaders,
+  BookingsRecordManualDepositOptions,
+  BookingsRecordManualDepositPath,
+  BookingsRecordManualDepositResponse,
+  BookingsRecordManualDepositResponses,
+  BookingsRecordManualDepositStatus200,
+  BookingsRecordManualDepositStatus400,
+  BookingsRecordManualDepositStatus401,
+  BookingsRecordManualDepositStatus403,
+  BookingsRecordManualDepositStatus404,
+  BookingsRecordManualDepositStatus409,
+  BookingsRecordManualDepositStatus422,
+} from "./BookingsRecordManualDeposit.js";
+export type {
   BookingsReorderProvidersBody,
   BookingsReorderProvidersHeaders,
   BookingsReorderProvidersOptions,
@@ -1468,6 +1528,19 @@ export type {
   BookingsReplaceWorkingHoursStatus409,
   BookingsReplaceWorkingHoursStatus422,
 } from "./BookingsReplaceWorkingHours.js";
+export type {
+  BookingsRequestEmailCodeBody,
+  BookingsRequestEmailCodeOptions,
+  BookingsRequestEmailCodePath,
+  BookingsRequestEmailCodeResponse,
+  BookingsRequestEmailCodeResponses,
+  BookingsRequestEmailCodeStatus200,
+  BookingsRequestEmailCodeStatus400,
+  BookingsRequestEmailCodeStatus404,
+  BookingsRequestEmailCodeStatus422,
+  BookingsRequestEmailCodeStatus429,
+  BookingsRequestEmailCodeStatus503,
+} from "./BookingsRequestEmailCode.js";
 export type {
   BookingsReschedulePublicBookingBody,
   BookingsReschedulePublicBookingOptions,
@@ -1541,6 +1614,8 @@ export type { CalendarEventPublic } from "./CalendarEventPublic.js";
 export type { CalendarEventsPublic } from "./CalendarEventsPublic.js";
 export type { CalendarEventUpdate } from "./CalendarEventUpdate.js";
 export type { CancelEvent } from "./CancelEvent.js";
+export type { CancelEventPropertiesRefundEnum } from "./CancelEventPropertiesRefundEnum.js";
+export { cancelEventPropertiesRefundEnum } from "./CancelEventPropertiesRefundEnum.js";
 export type { CancelResult } from "./CancelResult.js";
 export type { CapAlertAction } from "./CapAlertAction.js";
 export type { CapAlertCreate } from "./CapAlertCreate.js";
@@ -2395,6 +2470,26 @@ export type {
   EventsAcceptConnectionStatus429,
 } from "./EventsAcceptConnection.js";
 export type {
+  EventsAdminListEventsOptions,
+  EventsAdminListEventsQuery,
+  EventsAdminListEventsResponse,
+  EventsAdminListEventsResponses,
+  EventsAdminListEventsStatus200,
+  EventsAdminListEventsStatus401,
+  EventsAdminListEventsStatus403,
+  EventsAdminListEventsStatus422,
+} from "./EventsAdminListEvents.js";
+export type {
+  EventsAdminListOrganisersOptions,
+  EventsAdminListOrganisersQuery,
+  EventsAdminListOrganisersResponse,
+  EventsAdminListOrganisersResponses,
+  EventsAdminListOrganisersStatus200,
+  EventsAdminListOrganisersStatus401,
+  EventsAdminListOrganisersStatus403,
+  EventsAdminListOrganisersStatus422,
+} from "./EventsAdminListOrganisers.js";
+export type {
   EventsAdmitTicketBody,
   EventsAdmitTicketOptions,
   EventsAdmitTicketPath,
@@ -2409,6 +2504,19 @@ export type {
   EventsAdmitTicketStatus422,
   EventsAdmitTicketStatus429,
 } from "./EventsAdmitTicket.js";
+export type {
+  EventsApproveOrganiserBody,
+  EventsApproveOrganiserOptions,
+  EventsApproveOrganiserPath,
+  EventsApproveOrganiserResponse,
+  EventsApproveOrganiserResponses,
+  EventsApproveOrganiserStatus200,
+  EventsApproveOrganiserStatus401,
+  EventsApproveOrganiserStatus403,
+  EventsApproveOrganiserStatus404,
+  EventsApproveOrganiserStatus409,
+  EventsApproveOrganiserStatus422,
+} from "./EventsApproveOrganiser.js";
 export type {
   EventsBlockMemberOptions,
   EventsBlockMemberPath,
@@ -2743,6 +2851,17 @@ export type {
   EventsGetThreadStatus429,
 } from "./EventsGetThread.js";
 export type {
+  EventsGetVerificationCaseOptions,
+  EventsGetVerificationCasePath,
+  EventsGetVerificationCaseResponse,
+  EventsGetVerificationCaseResponses,
+  EventsGetVerificationCaseStatus200,
+  EventsGetVerificationCaseStatus401,
+  EventsGetVerificationCaseStatus403,
+  EventsGetVerificationCaseStatus404,
+  EventsGetVerificationCaseStatus422,
+} from "./EventsGetVerificationCase.js";
+export type {
   EventsJoinGroupOptions,
   EventsJoinGroupPath,
   EventsJoinGroupResponse,
@@ -2839,6 +2958,17 @@ export type {
   EventsListThreadsStatus429,
 } from "./EventsListThreads.js";
 export type {
+  EventsListVerificationCasesOptions,
+  EventsListVerificationCasesQuery,
+  EventsListVerificationCasesResponse,
+  EventsListVerificationCasesResponses,
+  EventsListVerificationCasesStatus200,
+  EventsListVerificationCasesStatus401,
+  EventsListVerificationCasesStatus403,
+  EventsListVerificationCasesStatus404,
+  EventsListVerificationCasesStatus422,
+} from "./EventsListVerificationCases.js";
+export type {
   EventsOpenThreadBody,
   EventsOpenThreadOptions,
   EventsOpenThreadResponse,
@@ -2865,6 +2995,104 @@ export type {
   EventsOpenTillStatus422,
   EventsOpenTillStatus429,
 } from "./EventsOpenTill.js";
+export type {
+  EventsOrgCancelEventBody,
+  EventsOrgCancelEventHeaders,
+  EventsOrgCancelEventOptions,
+  EventsOrgCancelEventPath,
+  EventsOrgCancelEventResponse,
+  EventsOrgCancelEventResponses,
+  EventsOrgCancelEventStatus200,
+  EventsOrgCancelEventStatus400,
+  EventsOrgCancelEventStatus401,
+  EventsOrgCancelEventStatus403,
+  EventsOrgCancelEventStatus404,
+  EventsOrgCancelEventStatus409,
+  EventsOrgCancelEventStatus422,
+} from "./EventsOrgCancelEvent.js";
+export type {
+  EventsOrgCancelOrderBody,
+  EventsOrgCancelOrderHeaders,
+  EventsOrgCancelOrderOptions,
+  EventsOrgCancelOrderPath,
+  EventsOrgCancelOrderResponse,
+  EventsOrgCancelOrderResponses,
+  EventsOrgCancelOrderStatus200,
+  EventsOrgCancelOrderStatus400,
+  EventsOrgCancelOrderStatus401,
+  EventsOrgCancelOrderStatus403,
+  EventsOrgCancelOrderStatus404,
+  EventsOrgCancelOrderStatus409,
+  EventsOrgCancelOrderStatus422,
+} from "./EventsOrgCancelOrder.js";
+export type {
+  EventsOrgGetOrderHeaders,
+  EventsOrgGetOrderOptions,
+  EventsOrgGetOrderPath,
+  EventsOrgGetOrderResponse,
+  EventsOrgGetOrderResponses,
+  EventsOrgGetOrderStatus200,
+  EventsOrgGetOrderStatus401,
+  EventsOrgGetOrderStatus403,
+  EventsOrgGetOrderStatus404,
+  EventsOrgGetOrderStatus422,
+} from "./EventsOrgGetOrder.js";
+export type {
+  EventsOrgListAttendeesHeaders,
+  EventsOrgListAttendeesOptions,
+  EventsOrgListAttendeesPath,
+  EventsOrgListAttendeesQuery,
+  EventsOrgListAttendeesResponse,
+  EventsOrgListAttendeesResponses,
+  EventsOrgListAttendeesStatus200,
+  EventsOrgListAttendeesStatus401,
+  EventsOrgListAttendeesStatus403,
+  EventsOrgListAttendeesStatus404,
+  EventsOrgListAttendeesStatus422,
+} from "./EventsOrgListAttendees.js";
+export type {
+  EventsOrgListOrdersHeaders,
+  EventsOrgListOrdersOptions,
+  EventsOrgListOrdersPath,
+  EventsOrgListOrdersQuery,
+  EventsOrgListOrdersResponse,
+  EventsOrgListOrdersResponses,
+  EventsOrgListOrdersStatus200,
+  EventsOrgListOrdersStatus401,
+  EventsOrgListOrdersStatus403,
+  EventsOrgListOrdersStatus404,
+  EventsOrgListOrdersStatus422,
+} from "./EventsOrgListOrders.js";
+export type {
+  EventsOrgRecordManualPaymentBody,
+  EventsOrgRecordManualPaymentHeaders,
+  EventsOrgRecordManualPaymentOptions,
+  EventsOrgRecordManualPaymentPath,
+  EventsOrgRecordManualPaymentResponse,
+  EventsOrgRecordManualPaymentResponses,
+  EventsOrgRecordManualPaymentStatus201,
+  EventsOrgRecordManualPaymentStatus400,
+  EventsOrgRecordManualPaymentStatus401,
+  EventsOrgRecordManualPaymentStatus403,
+  EventsOrgRecordManualPaymentStatus404,
+  EventsOrgRecordManualPaymentStatus409,
+  EventsOrgRecordManualPaymentStatus422,
+} from "./EventsOrgRecordManualPayment.js";
+export type {
+  EventsOrgRefundOrderBody,
+  EventsOrgRefundOrderHeaders,
+  EventsOrgRefundOrderOptions,
+  EventsOrgRefundOrderPath,
+  EventsOrgRefundOrderResponse,
+  EventsOrgRefundOrderResponses,
+  EventsOrgRefundOrderStatus201,
+  EventsOrgRefundOrderStatus400,
+  EventsOrgRefundOrderStatus401,
+  EventsOrgRefundOrderStatus403,
+  EventsOrgRefundOrderStatus404,
+  EventsOrgRefundOrderStatus409,
+  EventsOrgRefundOrderStatus422,
+} from "./EventsOrgRefundOrder.js";
 export type {
   EventsPostponeEventBody,
   EventsPostponeEventOptions,
@@ -2895,6 +3123,19 @@ export type {
   EventsRefundTicketStatus422,
   EventsRefundTicketStatus429,
 } from "./EventsRefundTicket.js";
+export type {
+  EventsRejectOrganiserBody,
+  EventsRejectOrganiserOptions,
+  EventsRejectOrganiserPath,
+  EventsRejectOrganiserResponse,
+  EventsRejectOrganiserResponses,
+  EventsRejectOrganiserStatus200,
+  EventsRejectOrganiserStatus401,
+  EventsRejectOrganiserStatus403,
+  EventsRejectOrganiserStatus404,
+  EventsRejectOrganiserStatus409,
+  EventsRejectOrganiserStatus422,
+} from "./EventsRejectOrganiser.js";
 export type {
   EventsRemoveConnectionOptions,
   EventsRemoveConnectionPath,
@@ -2931,6 +3172,19 @@ export type {
   EventsRequestOrganiserStatus429,
 } from "./EventsRequestOrganiser.js";
 export type {
+  EventsResubmitOrganiserOptions,
+  EventsResubmitOrganiserQuery,
+  EventsResubmitOrganiserResponse,
+  EventsResubmitOrganiserResponses,
+  EventsResubmitOrganiserStatus200,
+  EventsResubmitOrganiserStatus401,
+  EventsResubmitOrganiserStatus403,
+  EventsResubmitOrganiserStatus404,
+  EventsResubmitOrganiserStatus409,
+  EventsResubmitOrganiserStatus422,
+  EventsResubmitOrganiserStatus429,
+} from "./EventsResubmitOrganiser.js";
+export type {
   EventsReviewOrganiserBody,
   EventsReviewOrganiserOptions,
   EventsReviewOrganiserPath,
@@ -2940,6 +3194,7 @@ export type {
   EventsReviewOrganiserStatus401,
   EventsReviewOrganiserStatus403,
   EventsReviewOrganiserStatus404,
+  EventsReviewOrganiserStatus409,
   EventsReviewOrganiserStatus422,
   EventsReviewOrganiserStatus429,
 } from "./EventsReviewOrganiser.js";
@@ -5209,6 +5464,8 @@ export type { MarineRow } from "./MarineRow.js";
 export type { MemberListPublic } from "./MemberListPublic.js";
 export type { MemberPublic } from "./MemberPublic.js";
 export type { MemberRoleUpdate } from "./MemberRoleUpdate.js";
+export type { MembershipGrantCreate } from "./MembershipGrantCreate.js";
+export type { MembershipGrantPublic } from "./MembershipGrantPublic.js";
 export type { MembershipRole } from "./MembershipRole.js";
 export { membershipRole } from "./MembershipRole.js";
 export type { MembershipStatus } from "./MembershipStatus.js";
@@ -5462,6 +5719,9 @@ export type { OrderItemInput } from "./OrderItemInput.js";
 export type { OrderPublic } from "./OrderPublic.js";
 export type { OrderPublicPropertiesStatusEnum } from "./OrderPublicPropertiesStatusEnum.js";
 export { orderPublicPropertiesStatusEnum } from "./OrderPublicPropertiesStatusEnum.js";
+export type { OrgAttendee } from "./OrgAttendee.js";
+export type { OrgAttendeePropertiesStatusEnum } from "./OrgAttendeePropertiesStatusEnum.js";
+export { orgAttendeePropertiesStatusEnum } from "./OrgAttendeePropertiesStatusEnum.js";
 export type { OrganisationAdminDetail } from "./OrganisationAdminDetail.js";
 export type { OrganisationAdminListPublic } from "./OrganisationAdminListPublic.js";
 export type { OrganisationAdminPublic } from "./OrganisationAdminPublic.js";
@@ -5486,6 +5746,19 @@ export type {
   OrganisationsAcceptInvitationStatus403,
   OrganisationsAcceptInvitationStatus422,
 } from "./OrganisationsAcceptInvitation.js";
+export type {
+  OrganisationsAddMemberAdminBody,
+  OrganisationsAddMemberAdminOptions,
+  OrganisationsAddMemberAdminPath,
+  OrganisationsAddMemberAdminResponse,
+  OrganisationsAddMemberAdminResponses,
+  OrganisationsAddMemberAdminStatus201,
+  OrganisationsAddMemberAdminStatus401,
+  OrganisationsAddMemberAdminStatus403,
+  OrganisationsAddMemberAdminStatus404,
+  OrganisationsAddMemberAdminStatus409,
+  OrganisationsAddMemberAdminStatus422,
+} from "./OrganisationsAddMemberAdmin.js";
 export type {
   OrganisationsCreateAdminSiteBody,
   OrganisationsCreateAdminSiteOptions,
@@ -5552,6 +5825,19 @@ export type {
   OrganisationsDeleteMemberStatus422,
 } from "./OrganisationsDeleteMember.js";
 export type {
+  OrganisationsDeleteMemberAdminBody,
+  OrganisationsDeleteMemberAdminOptions,
+  OrganisationsDeleteMemberAdminPath,
+  OrganisationsDeleteMemberAdminResponse,
+  OrganisationsDeleteMemberAdminResponses,
+  OrganisationsDeleteMemberAdminStatus204,
+  OrganisationsDeleteMemberAdminStatus401,
+  OrganisationsDeleteMemberAdminStatus403,
+  OrganisationsDeleteMemberAdminStatus404,
+  OrganisationsDeleteMemberAdminStatus409,
+  OrganisationsDeleteMemberAdminStatus422,
+} from "./OrganisationsDeleteMemberAdmin.js";
+export type {
   OrganisationsGetCurrentHeaders,
   OrganisationsGetCurrentOptions,
   OrganisationsGetCurrentResponse,
@@ -5583,6 +5869,21 @@ export type {
   OrganisationsGetPublicSiteStatus404,
   OrganisationsGetPublicSiteStatus422,
 } from "./OrganisationsGetPublicSite.js";
+export type {
+  OrganisationsGrantMemberRoleBody,
+  OrganisationsGrantMemberRoleHeaders,
+  OrganisationsGrantMemberRoleOptions,
+  OrganisationsGrantMemberRolePath,
+  OrganisationsGrantMemberRoleResponse,
+  OrganisationsGrantMemberRoleResponses,
+  OrganisationsGrantMemberRoleStatus201,
+  OrganisationsGrantMemberRoleStatus400,
+  OrganisationsGrantMemberRoleStatus401,
+  OrganisationsGrantMemberRoleStatus403,
+  OrganisationsGrantMemberRoleStatus404,
+  OrganisationsGrantMemberRoleStatus409,
+  OrganisationsGrantMemberRoleStatus422,
+} from "./OrganisationsGrantMemberRole.js";
 export type {
   OrganisationsKeyInfoOptions,
   OrganisationsKeyInfoResponse,
@@ -5649,6 +5950,30 @@ export type {
   OrganisationsListInvitationsStatus422,
 } from "./OrganisationsListInvitations.js";
 export type {
+  OrganisationsListIssuedGrantsHeaders,
+  OrganisationsListIssuedGrantsOptions,
+  OrganisationsListIssuedGrantsPath,
+  OrganisationsListIssuedGrantsResponse,
+  OrganisationsListIssuedGrantsResponses,
+  OrganisationsListIssuedGrantsStatus200,
+  OrganisationsListIssuedGrantsStatus401,
+  OrganisationsListIssuedGrantsStatus403,
+  OrganisationsListIssuedGrantsStatus404,
+  OrganisationsListIssuedGrantsStatus422,
+} from "./OrganisationsListIssuedGrants.js";
+export type {
+  OrganisationsListMemberGrantsHeaders,
+  OrganisationsListMemberGrantsOptions,
+  OrganisationsListMemberGrantsPath,
+  OrganisationsListMemberGrantsResponse,
+  OrganisationsListMemberGrantsResponses,
+  OrganisationsListMemberGrantsStatus200,
+  OrganisationsListMemberGrantsStatus401,
+  OrganisationsListMemberGrantsStatus403,
+  OrganisationsListMemberGrantsStatus404,
+  OrganisationsListMemberGrantsStatus422,
+} from "./OrganisationsListMemberGrants.js";
+export type {
   OrganisationsListMembersHeaders,
   OrganisationsListMembersOptions,
   OrganisationsListMembersPath,
@@ -5710,6 +6035,40 @@ export type {
   OrganisationsListOrgSitesStatus422,
 } from "./OrganisationsListOrgSites.js";
 export type {
+  OrganisationsListRoleBundlesHeaders,
+  OrganisationsListRoleBundlesOptions,
+  OrganisationsListRoleBundlesResponse,
+  OrganisationsListRoleBundlesResponses,
+  OrganisationsListRoleBundlesStatus200,
+  OrganisationsListRoleBundlesStatus401,
+  OrganisationsListRoleBundlesStatus403,
+  OrganisationsListRoleBundlesStatus404,
+  OrganisationsListRoleBundlesStatus422,
+} from "./OrganisationsListRoleBundles.js";
+export type {
+  OrganisationsListTeamMembersHeaders,
+  OrganisationsListTeamMembersOptions,
+  OrganisationsListTeamMembersQuery,
+  OrganisationsListTeamMembersResponse,
+  OrganisationsListTeamMembersResponses,
+  OrganisationsListTeamMembersStatus200,
+  OrganisationsListTeamMembersStatus401,
+  OrganisationsListTeamMembersStatus403,
+  OrganisationsListTeamMembersStatus404,
+  OrganisationsListTeamMembersStatus422,
+} from "./OrganisationsListTeamMembers.js";
+export type {
+  OrganisationsMyTeamCapabilitiesHeaders,
+  OrganisationsMyTeamCapabilitiesOptions,
+  OrganisationsMyTeamCapabilitiesResponse,
+  OrganisationsMyTeamCapabilitiesResponses,
+  OrganisationsMyTeamCapabilitiesStatus200,
+  OrganisationsMyTeamCapabilitiesStatus401,
+  OrganisationsMyTeamCapabilitiesStatus403,
+  OrganisationsMyTeamCapabilitiesStatus404,
+  OrganisationsMyTeamCapabilitiesStatus422,
+} from "./OrganisationsMyTeamCapabilities.js";
+export type {
   OrganisationsRevokeAdminApiKeyOptions,
   OrganisationsRevokeAdminApiKeyPath,
   OrganisationsRevokeAdminApiKeyResponse,
@@ -5734,6 +6093,20 @@ export type {
   OrganisationsRevokeInvitationStatus409,
   OrganisationsRevokeInvitationStatus422,
 } from "./OrganisationsRevokeInvitation.js";
+export type {
+  OrganisationsRevokeMemberGrantHeaders,
+  OrganisationsRevokeMemberGrantOptions,
+  OrganisationsRevokeMemberGrantPath,
+  OrganisationsRevokeMemberGrantResponse,
+  OrganisationsRevokeMemberGrantResponses,
+  OrganisationsRevokeMemberGrantStatus200,
+  OrganisationsRevokeMemberGrantStatus400,
+  OrganisationsRevokeMemberGrantStatus401,
+  OrganisationsRevokeMemberGrantStatus403,
+  OrganisationsRevokeMemberGrantStatus404,
+  OrganisationsRevokeMemberGrantStatus409,
+  OrganisationsRevokeMemberGrantStatus422,
+} from "./OrganisationsRevokeMemberGrant.js";
 export type {
   OrganisationsRevokeOrgApiKeyHeaders,
   OrganisationsRevokeOrgApiKeyOptions,
@@ -5815,6 +6188,19 @@ export type {
   OrganisationsUpdateMemberStatus422,
 } from "./OrganisationsUpdateMember.js";
 export type {
+  OrganisationsUpdateMemberAdminBody,
+  OrganisationsUpdateMemberAdminOptions,
+  OrganisationsUpdateMemberAdminPath,
+  OrganisationsUpdateMemberAdminResponse,
+  OrganisationsUpdateMemberAdminResponses,
+  OrganisationsUpdateMemberAdminStatus200,
+  OrganisationsUpdateMemberAdminStatus401,
+  OrganisationsUpdateMemberAdminStatus403,
+  OrganisationsUpdateMemberAdminStatus404,
+  OrganisationsUpdateMemberAdminStatus409,
+  OrganisationsUpdateMemberAdminStatus422,
+} from "./OrganisationsUpdateMemberAdmin.js";
+export type {
   OrganisationsUpdateOneBody,
   OrganisationsUpdateOneOptions,
   OrganisationsUpdateOnePath,
@@ -5846,13 +6232,29 @@ export type { OrganiserLogoUpdate } from "./OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./OrganiserOption.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OrganiserReview } from "./OrganiserReview.js";
+export type { OrgEventCancel } from "./OrgEventCancel.js";
+export type { OrgManualPaymentCreate } from "./OrgManualPaymentCreate.js";
+export type { OrgManualPaymentCreatePropertiesMethodEnum } from "./OrgManualPaymentCreatePropertiesMethodEnum.js";
+export { orgManualPaymentCreatePropertiesMethodEnum } from "./OrgManualPaymentCreatePropertiesMethodEnum.js";
+export type { OrgOrderCancel } from "./OrgOrderCancel.js";
+export type { OrgOrderCancelResult } from "./OrgOrderCancelResult.js";
+export type { OrgOrderCancelResultPropertiesRefundOutcomeEnum } from "./OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
+export { orgOrderCancelResultPropertiesRefundOutcomeEnum } from "./OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
+export type { OrgOrderDetail } from "./OrgOrderDetail.js";
+export type { OrgOrderDetailPropertiesPaymentMethodEnum } from "./OrgOrderDetailPropertiesPaymentMethodEnum.js";
+export { orgOrderDetailPropertiesPaymentMethodEnum } from "./OrgOrderDetailPropertiesPaymentMethodEnum.js";
+export type { OrgOrderDetailPropertiesRefundStatusEnum } from "./OrgOrderDetailPropertiesRefundStatusEnum.js";
+export { orgOrderDetailPropertiesRefundStatusEnum } from "./OrgOrderDetailPropertiesRefundStatusEnum.js";
+export type { OrgOrderItem } from "./OrgOrderItem.js";
+export type { OrgOrderPayment } from "./OrgOrderPayment.js";
+export type { OrgOrderRefundCreate } from "./OrgOrderRefundCreate.js";
+export type { OrgOrderRow } from "./OrgOrderRow.js";
+export type { OrgOrderTicket } from "./OrgOrderTicket.js";
 export type { OutletItemInput } from "./OutletItemInput.js";
 export type { OutletOverview } from "./OutletOverview.js";
 export type { OutletSale } from "./OutletSale.js";
 export type { OutletSaleCreate } from "./OutletSaleCreate.js";
 export type { OutletTicket } from "./OutletTicket.js";
-export type { OutletTicketPropertiesStatusEnum } from "./OutletTicketPropertiesStatusEnum.js";
-export { outletTicketPropertiesStatusEnum } from "./OutletTicketPropertiesStatusEnum.js";
 export type { OutletTierStock } from "./OutletTierStock.js";
 export type { OutlookProductPreview } from "./OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js";
@@ -5863,8 +6265,12 @@ export type { PageFeedbackAccepted } from "./PageFeedbackAccepted.js";
 export type { PageFeedbackCreate } from "./PageFeedbackCreate.js";
 export type { PaginatedResponseAuditEntryPublic } from "./PaginatedResponseAuditEntryPublic.js";
 export type { PaginatedResponseNotificationPublic } from "./PaginatedResponseNotificationPublic.js";
+export type { PaginatedResponseOrgAttendee } from "./PaginatedResponseOrgAttendee.js";
+export type { PaginatedResponseOrgOrderRow } from "./PaginatedResponseOrgOrderRow.js";
 export type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
+export type { PaginatedResponseStaffEventRow } from "./PaginatedResponseStaffEventRow.js";
+export type { PaginatedResponseStaffOrganiserRow } from "./PaginatedResponseStaffOrganiserRow.js";
 export type { PaginatedResponseUserPublic } from "./PaginatedResponseUserPublic.js";
 export type { Parish } from "./Parish.js";
 export { parish } from "./Parish.js";
@@ -6047,6 +6453,9 @@ export type { PersonnelStatus } from "./PersonnelStatus.js";
 export { personnelStatus } from "./PersonnelStatus.js";
 export type { PersonSuggestion } from "./PersonSuggestion.js";
 export type { PlansPublic } from "./PlansPublic.js";
+export type { PlatformMemberAdd } from "./PlatformMemberAdd.js";
+export type { PlatformMemberRemove } from "./PlatformMemberRemove.js";
+export type { PlatformMemberRoleUpdate } from "./PlatformMemberRoleUpdate.js";
 export type { PlatformOrganisationCreate } from "./PlatformOrganisationCreate.js";
 export type { PlatformOrganisationUpdate } from "./PlatformOrganisationUpdate.js";
 export type { PolicyInput } from "./PolicyInput.js";
@@ -6143,6 +6552,7 @@ export type {
   PushVapidPublicKeyStatus422,
 } from "./PushVapidPublicKey.js";
 export type { QcDecisionRequest } from "./QcDecisionRequest.js";
+export type { ReadinessUnavailable } from "./ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";
@@ -6766,6 +7176,7 @@ export type {
 } from "./RewardsWithdrawFromLeaderboard.js";
 export type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 export { roleAssignmentScope } from "./RoleAssignmentScope.js";
+export type { RoleBundlePublic } from "./RoleBundlePublic.js";
 export type { RoleConfiguration } from "./RoleConfiguration.js";
 export type { RoleCreate } from "./RoleCreate.js";
 export type { RolePermissionsInput } from "./RolePermissionsInput.js";
@@ -6866,7 +7277,9 @@ export type { SignedDocumentPublic } from "./SignedDocumentPublic.js";
 export type { SiteSubscribeRequest } from "./SiteSubscribeRequest.js";
 export type { StaffCard } from "./StaffCard.js";
 export type { StaffCreate } from "./StaffCreate.js";
+export type { StaffEventRow } from "./StaffEventRow.js";
 export type { StaffInput } from "./StaffInput.js";
+export type { StaffOrganiserRow } from "./StaffOrganiserRow.js";
 export type { StaffSetup } from "./StaffSetup.js";
 export type { StaffUpdate } from "./StaffUpdate.js";
 export type { StatusReportCreate } from "./StatusReportCreate.js";
@@ -7217,6 +7630,7 @@ export { suggestionPublicPropertiesStatusEnum } from "./SuggestionPublicProperti
 export type { SuggestionUpdate } from "./SuggestionUpdate.js";
 export type { SuggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePropertiesStatusEnum.js";
 export { suggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePropertiesStatusEnum.js";
+export type { SuperuserActionReason } from "./SuperuserActionReason.js";
 export type { SwapType } from "./SwapType.js";
 export { swapType } from "./SwapType.js";
 export type { SynopDecoded } from "./SynopDecoded.js";
@@ -7230,6 +7644,10 @@ export type { SynopWorkbook } from "./SynopWorkbook.js";
 export type { TaskCreate } from "./TaskCreate.js";
 export type { TaskUpdate } from "./TaskUpdate.js";
 export type { TaskView } from "./TaskView.js";
+export type { TeamCapabilitiesPublic } from "./TeamCapabilitiesPublic.js";
+export type { TeamMemberGrantPublic } from "./TeamMemberGrantPublic.js";
+export type { TeamMemberListPublic } from "./TeamMemberListPublic.js";
+export type { TeamMemberPublic } from "./TeamMemberPublic.js";
 export type { ThreadCreate } from "./ThreadCreate.js";
 export type { ThreadDetail } from "./ThreadDetail.js";
 export type { ThreadDetailPropertiesKindEnum } from "./ThreadDetailPropertiesKindEnum.js";
@@ -7548,7 +7966,19 @@ export type {
 export type { ValidationErrorItem } from "./ValidationErrorItem.js";
 export type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 export type { VapidPublicKey } from "./VapidPublicKey.js";
+export type { VerificationApproval } from "./VerificationApproval.js";
+export type { VerificationCase } from "./VerificationCase.js";
+export type { VerificationCaseDetail } from "./VerificationCaseDetail.js";
+export type { VerificationCaseEvent } from "./VerificationCaseEvent.js";
+export type { VerificationCaseList } from "./VerificationCaseList.js";
+export type { VerificationCaseOwner } from "./VerificationCaseOwner.js";
+export type { VerificationCaseOwnerPropertiesRoleEnum } from "./VerificationCaseOwnerPropertiesRoleEnum.js";
+export { verificationCaseOwnerPropertiesRoleEnum } from "./VerificationCaseOwnerPropertiesRoleEnum.js";
 export type { VerificationDecision } from "./VerificationDecision.js";
+export type { VerificationRejection } from "./VerificationRejection.js";
+export type { VerificationResend } from "./VerificationResend.js";
+export type { VerificationStatus } from "./VerificationStatus.js";
+export { verificationStatus } from "./VerificationStatus.js";
 export type { WeatherImage } from "./WeatherImage.js";
 export type { WebhookAdminDisable } from "./WebhookAdminDisable.js";
 export type { WebhookDeliveryList } from "./WebhookDeliveryList.js";

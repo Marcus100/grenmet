@@ -11,7 +11,7 @@ import type {
 } from "../models/OrganisationsVerifyOne.js";
 
 /**
- * @description Superuser only. Sets verified_at and records the reason in the organisation's history. Events shows its organiser as verified. 409 when already verified.
+ * @description Superuser only. Sets verified_at and records the reason in the organisation's history. Events shows its organiser as verified and notifies its owners. MFA superuser. 409 when already verified or suspended.
  * @summary Verify an organisation
  * {@link /api/v1/organisations/:organisation_id/verify}
  */

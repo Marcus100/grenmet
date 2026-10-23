@@ -22,6 +22,19 @@ const ATTENDANCE = {
   departed_at: null,
 };
 
+const PUNCH = {
+  id: "p1",
+  user_id: "u1",
+  department_id: "dept_met",
+  roster_assignment_id: "a1",
+  kind: "ARRIVE",
+  punched_at: "2026-07-06T09:40:00Z",
+  status: "PENDING",
+  reviewed_by_user_id: null,
+  reviewed_at: null,
+  review_note: null,
+};
+
 let sentBody: unknown;
 const server = setupServer(
   http.post(CLOCK_URL, async ({ request }) => {
@@ -30,6 +43,7 @@ const server = setupServer(
       action: "ARRIVED",
       site_name: "Main gate",
       attendance: ATTENDANCE,
+      punch: PUNCH,
       late_minutes: 10,
       early_departure_minutes: 0,
       overtime_minutes: 0,
@@ -59,15 +73,92 @@ function renderClock(initialCode?: string) {
 }
 
 describe("ClockIn", () => {
-  it("sends the scanned code and shows arrival with lateness", async () => {
+  it("sends the scanned code and shows a pending arrival as sent for approval", async () => {
     renderClock("scanned-code-123");
     expect(screen.queryByLabelText("Clock point code")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", BUTTON));
     const result = await screen.findByRole("region", { name: "Clock result" });
     expect(sentBody).toEqual({ token: "scanned-code-123" });
-    expect(result).toHaveTextContent("Arrival recorded");
+    expect(result).toHaveTextContent("Arrival sent for approval");
+    expect(result).not.toHaveTextContent("Arrival recorded");
+    expect(result).toHaveTextContent("supervisor needs to approve");
     expect(result).toHaveTextContent("Main gate");
     expect(result).toHaveTextContent("10 min after the shift start");
+  });
+
+  it("shows an approved punch as recorded", async () => {
+    server.use(
+      http.post(CLOCK_URL, () =>
+        HttpResponse.json({
+          action: "ARRIVED",
+          site_name: "Main gate",
+          attendance: ATTENDANCE,
+          punch: { ...PUNCH, status: "APPROVED" },
+        })
+      )
+    );
+    renderClock("scanned-code-123");
+    fireEvent.click(screen.getByRole("button", BUTTON));
+    const result = await screen.findByRole("region", { name: "Clock result" });
+    expect(result).toHaveTextContent("Arrival recorded");
+    expect(result).not.toHaveTextContent("supervisor needs to approve");
+  });
+
+  it("shows a rejected punch with its reason", async () => {
+    server.use(
+      http.post(CLOCK_URL, () =>
+        HttpResponse.json({
+          action: "DEPARTED",
+          site_name: "Main gate",
+          attendance: ATTENDANCE,
+          punch: {
+            ...PUNCH,
+            kind: "DEPART",
+            status: "REJECTED",
+            review_note: "Wrong site",
+          },
+        })
+      )
+    );
+    renderClock("scanned-code-123");
+    fireEvent.click(screen.getByRole("button", BUTTON));
+    const result = await screen.findByRole("region", { name: "Clock result" });
+    expect(result).toHaveTextContent("Departure rejected");
+    expect(result).toHaveTextContent("Reason: Wrong site");
+  });
+
+  it("falls back to a neutral headline without a punch", async () => {
+    server.use(
+      http.post(CLOCK_URL, () =>
+        HttpResponse.json({
+          action: "ARRIVED",
+          site_name: "Main gate",
+          attendance: ATTENDANCE,
+        })
+      )
+    );
+    renderClock("scanned-code-123");
+    fireEvent.click(screen.getByRole("button", BUTTON));
+    const result = await screen.findByRole("region", { name: "Clock result" });
+    expect(result).toHaveTextContent("Arrival received");
+    expect(result).not.toHaveTextContent("undefined");
+  });
+
+  it("falls back to a neutral headline for an unknown status", async () => {
+    server.use(
+      http.post(CLOCK_URL, () =>
+        HttpResponse.json({
+          action: "DEPARTED",
+          site_name: "Main gate",
+          attendance: ATTENDANCE,
+          punch: { ...PUNCH, status: "ON_HOLD" },
+        })
+      )
+    );
+    renderClock("scanned-code-123");
+    fireEvent.click(screen.getByRole("button", BUTTON));
+    const result = await screen.findByRole("region", { name: "Clock result" });
+    expect(result).toHaveTextContent("Departure received");
   });
 
   it("asks for a typed code when none was scanned and blocks short codes", () => {

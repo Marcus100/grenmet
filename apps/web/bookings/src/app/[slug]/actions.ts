@@ -1,6 +1,10 @@
 "use server";
 
-import { bookingPublicCreateSchema } from "@barrelsgd/api-client";
+import {
+  bookingEmailCodeConfirmSchema,
+  bookingEmailCodeRequestSchema,
+  bookingPublicCreateSchema,
+} from "@barrelsgd/api-client";
 import type {
   Failure,
   Outcome,
@@ -8,17 +12,29 @@ import type {
 import type {
   Booked,
   BookingInput,
+  EmailCodeConfirmInput,
+  EmailCodeRequestInput,
+  EmailCodeSent,
+  EmailProof,
   SlotList,
 } from "@barrelsgd/bookings-web/lib/booking-types";
-import { createBooking, getAvailability } from "@/lib/booking-api";
+import {
+  confirmEmailCode as confirmCode,
+  createBooking,
+  getAvailability,
+  requestEmailCode as requestCode,
+} from "@/lib/booking-api";
 import { failureFrom } from "@/lib/booking-errors";
+import { reportError } from "@/lib/report-error";
+import { getSession } from "@/lib/session";
 import { isBusinessSlug } from "@/lib/slug";
 
 // Server Actions are the only door from the browser to the API: the API
 // address never leaves the server, and the generated client does the calling.
 // The page binds the business slug as the first argument (`action.bind(null,
 // slug)`), so the browser calls the shape the booking package expects. The slug
-// is still untrusted input and is checked here.
+// is still untrusted input (a client can call the action with any value) and
+// is checked here.
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -36,6 +52,23 @@ const unknownBusiness: Failure = {
   code: "not_found",
   message: "Online booking is not available for this business right now.",
 };
+
+// A signed-in account is sent as a bearer so the API can vouch for its verified
+// email. A sign-in fault must not stop a visitor booking: carry on as a visitor.
+async function accessTokenIfSignedIn(): Promise<string | undefined> {
+  try {
+    return (await getSession())?.accessToken;
+  } catch (error) {
+    reportError(error, "bookings-public-session");
+    return undefined;
+  }
+}
+
+// Server Action arguments come from the browser and are not guaranteed to
+// match their TypeScript types: never call a string method on them unchecked.
+function trimmed(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
 
 export async function loadSlots(
   slug: string,
@@ -72,21 +105,25 @@ export async function submitBooking(
   if (!isBusinessSlug(slug)) {
     return unknownBusiness;
   }
-  const phone = input.phone.trim();
-  const notes = input.notes.trim();
-  const website = input.website.trim();
-  const turnstile = input.turnstileToken.trim();
+  if (typeof input !== "object" || input === null) {
+    return invalid;
+  }
+  const phone = trimmed(input.phone);
+  const notes = trimmed(input.notes);
+  const website = trimmed(input.website);
+  const turnstile = trimmed(input.turnstileToken);
   const body = bookingPublicCreateSchema.safeParse({
     service_id: input.serviceId,
     starts_at: input.startsAt,
-    customer_name: input.name.trim(),
-    customer_email: input.email.trim(),
+    customer_name: trimmed(input.name),
+    customer_email: trimmed(input.email),
     marketing_consent: input.marketingConsent,
     ...(phone ? { customer_phone: phone } : {}),
     ...(notes ? { notes } : {}),
     ...(turnstile ? { turnstile_token: turnstile } : {}),
     // The honeypot goes through untouched: a filled one is dropped by the API.
     ...(website ? { website } : {}),
+    ...(input.emailProof ? { email_proof: input.emailProof } : {}),
   });
   if (!(body.success && KEY.test(input.idempotencyKey))) {
     return invalid;
@@ -108,8 +145,12 @@ export async function submitBooking(
           ? { turnstile_token: body.data.turnstile_token }
           : {}),
         ...(body.data.website ? { website: body.data.website } : {}),
+        ...(body.data.email_proof
+          ? { email_proof: body.data.email_proof }
+          : {}),
       },
-      input.idempotencyKey
+      input.idempotencyKey,
+      await accessTokenIfSignedIn()
     );
     return {
       ok: true,
@@ -117,5 +158,80 @@ export async function submitBooking(
     };
   } catch (error) {
     return failureFrom(error, "create");
+  }
+}
+
+export async function requestEmailCode(
+  slug: string,
+  input: EmailCodeRequestInput
+): Promise<Outcome<EmailCodeSent>> {
+  if (!isBusinessSlug(slug)) {
+    return unknownBusiness;
+  }
+  if (typeof input !== "object" || input === null) {
+    return invalid;
+  }
+  const turnstile = trimmed(input.turnstileToken);
+  const body = bookingEmailCodeRequestSchema.safeParse({
+    service_id: input.serviceId,
+    starts_at: input.startsAt,
+    customer_email: trimmed(input.email),
+    ...(turnstile ? { turnstile_token: turnstile } : {}),
+  });
+  if (!body.success) {
+    return invalid;
+  }
+  try {
+    const sent = await requestCode(
+      slug,
+      {
+        service_id: body.data.service_id,
+        starts_at: body.data.starts_at,
+        customer_email: body.data.customer_email,
+        ...(body.data.turnstile_token
+          ? { turnstile_token: body.data.turnstile_token }
+          : {}),
+      },
+      await accessTokenIfSignedIn()
+    );
+    return {
+      ok: true,
+      data: {
+        required: sent.required,
+        expiresInSeconds: sent.expires_in_seconds ?? 0,
+      },
+    };
+  } catch (error) {
+    return failureFrom(error, "email-code");
+  }
+}
+
+export async function confirmEmailCode(
+  slug: string,
+  input: EmailCodeConfirmInput
+): Promise<Outcome<EmailProof>> {
+  if (!isBusinessSlug(slug)) {
+    return unknownBusiness;
+  }
+  if (typeof input !== "object" || input === null) {
+    return invalid;
+  }
+  const body = bookingEmailCodeConfirmSchema.safeParse({
+    service_id: input.serviceId,
+    starts_at: input.startsAt,
+    customer_email: trimmed(input.email),
+    code: trimmed(input.code),
+  });
+  if (!body.success) {
+    return invalid;
+  }
+  try {
+    const proof = await confirmCode(slug, body.data);
+    return {
+      ok: true,
+      data: { proof: proof.proof, expiresInSeconds: proof.expires_in_seconds },
+    };
+  } catch (error) {
+    return failureFrom(error, "email-confirm");
   }
 }

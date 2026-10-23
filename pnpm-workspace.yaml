@@ -57,7 +57,7 @@ catalog:
   # Core
   react: ^19.3.0
   react-dom: ^19.3.0
-  next: 16.4.0
+  next: 16.4.1
   babel-plugin-react-compiler: "^1.0.0"
   server-only: "0.0.1"
   typescript: "^7.0.2"
@@ -175,6 +175,30 @@ overrides:
   # CVE-2026-19534 / CVE-2026-84961: payload@3.90.2 pins undici 7.29.0.
   # Remove once Payload ships a release depending on a fixed undici.
   "payload@3.90.2>undici": "7.29.1"
+  # GHSA-cg2g-xh64-v4q7 (critical) / GHSA-mrv2-3pqr-j5jr (high): dompurify
+  # <= 3.4.16 is affected; 3.4.17 is the first fixed release. monaco-editor
+  # (a peer of @payloadcms/ui) and posthog-js pin or resolve affected copies,
+  # and the CMS migrate image re-resolves them with `pnpm deploy --legacy`,
+  # so the override is global. Remove once no dependant resolves an affected
+  # release without it.
+  dompurify: ">=3.4.17 <4"
+
+# Accepted `pnpm audit --prod --audit-level high` findings, so only a NEW
+# advisory fails the daily CVE watch (issue #563). Review by 2026-11-20 and
+# remove an entry as soon as its package resolves a fixed version.
+# toml 3.0.0 (fixed in 5.0.1): reached by docs, mbia and signal through
+# @content-collections/mdx, which is content build tooling. Next standalone
+# output leaves it out of the container images, which is why image scans pass.
+# source-map-js 1.2.1 (fixed in 1.2.2): reached through @sentry/nextjs's webpack
+# plugin, also build tooling.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-82x6-q7mm-w9cf # toml
+    - GHSA-v5mp-jgw5-2x6j # toml
+    - GHSA-4qx8-w7c3-pj3p # toml
+    - GHSA-9j65-hcg3-gc64 # toml
+    - GHSA-9qmh-m7c6-f92p # toml
+    - GHSA-68fv-2mgg-jv7q # source-map-js
 
 # Payload migration tooling expects the JavaScript compiler API. Keep the
 # application build/type-check catalog on TypeScript 7.

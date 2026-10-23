@@ -43,7 +43,7 @@ async def _org(
 def _body(**overrides: object) -> dict[str, object]:
     body: dict[str, object] = {
         "amount_minor": 5000,
-        "source_type": "bookings.deposit",
+        "source_type": "shop.sale",
         "source_id": "booking-1",
         "idempotency_key": uuid.uuid4().hex,
     }

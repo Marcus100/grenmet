@@ -11,14 +11,16 @@ from urllib.parse import urlencode
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.audit import registry
 from src.audit import service as audit
-from src.auth import modern_service, service, totp
+from src.auth import email_verification, modern_service, service, superuser_mfa, totp
 from src.auth.config import auth_settings
 from src.auth.models import Session as LoginSession
 from src.auth.models import User
 from src.auth.modern_models import AuthChallenge
+from src.auth.modern_schemas import EmailRequest
 from src.auth.onboarding_schemas import (
     AccessBlocker,
     ActivationAccountCreate,
@@ -26,6 +28,7 @@ from src.auth.onboarding_schemas import (
     ActivationLink,
     AppAccessStatus,
     OnboardingStatus,
+    VerificationResend,
 )
 from src.auth.utils import get_password_hash_async
 from src.exceptions import AppException
@@ -155,6 +158,116 @@ async def revoke_activation(
     await session.commit()
 
 
+def _can_admin_activate(user: User) -> bool:
+    # Like can_activate, but the account may already have a password and a pending
+    # email-verification flag (the person cannot receive the link).
+    return bool(user.is_active and not user.is_superuser)
+
+
+async def admin_activate(
+    session: AsyncSession,
+    actor: User,
+    user_id: uuid.UUID,
+    reason: str,
+    expected_email: str,
+) -> OnboardingStatus:
+    """Vouch for an existing account so it may receive roles and memberships.
+
+    Owner decision 2026-10-21: satisfies ``require_verified_or_admin_activated`` only.
+    It never sets ``email_verified_at`` and never clears the strict deposit gate
+    (``require_verified_email``). Idempotent: an account that is already verified
+    or already administrator-activated is left untouched and not re-audited."""
+    require_administrator(actor)
+    superuser_mfa.require_superuser_mfa(actor)
+    user = await target_user(session, user_id)
+    if not _can_admin_activate(user):
+        raise AppException(
+            "Inactive and superuser accounts cannot be activated here", 409
+        )
+    if user.email.strip().lower() != expected_email.strip().lower():
+        raise AppException(
+            "The account's email address is not the one you confirmed", 409
+        )
+    audit.set_actor(session, actor.id)
+    if (
+        user.email_verified_at is not None
+        or await email_verification.is_admin_activated(session, user)
+    ):
+        # Nothing to change, but every use of the power is on the record.
+        await audit.record_change(
+            session,
+            entity_type="account",
+            entity_id=str(user.id),
+            record_type="account_activation",
+            record_id=str(user.id),
+            action="admin_activate_noop",
+            changes={"reason": (None, reason), "email": (None, user.email)},
+        )
+        await session.commit()
+    else:
+        user.email_verification_required = False
+        session.add(user)
+        await audit.record_change(
+            session,
+            entity_type="account",
+            entity_id=str(user.id),
+            record_type="account_activation",
+            record_id=str(user.id),
+            action="activated",
+            changes={
+                "activation": (None, "activated"),
+                "admin_override": (False, True),
+                "reason": (None, reason),
+                "email": (None, user.email),
+            },
+        )
+        await session.commit()
+    return await status(session, actor, user_id)
+
+
+async def resend_verification(
+    request: Request,
+    session: AsyncSession,
+    actor: User,
+    user_id: uuid.UUID,
+    reason: str,
+) -> VerificationResend:
+    """Send the existing-account verification email again and report the outcome."""
+    require_administrator(actor)
+    superuser_mfa.require_superuser_mfa(actor)
+    user = await target_user(session, user_id)
+    if not user.is_active:
+        raise AppException("Inactive accounts cannot be sent a link", 409)
+    audit.set_actor(session, actor.id)
+    try:
+        await modern_service.email_request(
+            request, session, EmailRequest(email=user.email)
+        )
+    except modern_service.VerificationDeliveryError:
+        await session.rollback()
+        delivered = False
+    else:
+        delivered = True
+    await audit.record_change(
+        session,
+        entity_type="account",
+        entity_id=str(user_id),
+        record_type="account_activation",
+        record_id=str(user_id),
+        action="resend_sent" if delivered else "resend_failed",
+        changes={"reason": (None, reason), "admin_override": (False, True)},
+    )
+    await session.commit()
+    return VerificationResend(
+        delivered=delivered,
+        message=(
+            "A verification link has been sent."
+            if delivered
+            else "Delivery is unavailable; the link was not sent."
+        ),
+    )
+
+
 async def confirm_activation(session: AsyncSession, body: ActivationConfirm) -> None:
     # Lock the account before its challenge, matching issuance/revocation lock order.
     user_id = await session.scalar(
@@ -233,6 +346,7 @@ async def status(
         password_setup_pending=user.password_setup_pending,
         activation_pending=pending is not None,
         can_issue_activation=can_activate(user),
+        admin_activated=await email_verification.is_admin_activated(session, user),
         apps=[
             AppAccessStatus(
                 app="gaa-admin",

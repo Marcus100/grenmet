@@ -4,6 +4,8 @@ export * from "./.kubb/standardSchema.js";
 export { auditGetHistory } from "./clients/auditGetHistory.js";
 export { authAccountEmailCodeStart } from "./clients/authAccountEmailCodeStart.js";
 export { authAccountEmailCodeVerify } from "./clients/authAccountEmailCodeVerify.js";
+export { authAdminActivateAccount } from "./clients/authAdminActivateAccount.js";
+export { authAdminResendVerification } from "./clients/authAdminResendVerification.js";
 export { authAppEmailCodeStart } from "./clients/authAppEmailCodeStart.js";
 export { authAppEmailCodeVerify } from "./clients/authAppEmailCodeVerify.js";
 export { authAppGoogleComplete } from "./clients/authAppGoogleComplete.js";
@@ -94,6 +96,7 @@ export { billingVoidInvoice } from "./clients/billingVoidInvoice.js";
 export { bookingsCancelPublicBooking } from "./clients/bookingsCancelPublicBooking.js";
 export { bookingsCancelStudioBooking } from "./clients/bookingsCancelStudioBooking.js";
 export { bookingsCompleteStudioBooking } from "./clients/bookingsCompleteStudioBooking.js";
+export { bookingsConfirmEmailCode } from "./clients/bookingsConfirmEmailCode.js";
 export { bookingsConfirmStudioBooking } from "./clients/bookingsConfirmStudioBooking.js";
 export { bookingsCreateException } from "./clients/bookingsCreateException.js";
 export { bookingsCreateProvider } from "./clients/bookingsCreateProvider.js";
@@ -117,9 +120,11 @@ export { bookingsListProviders } from "./clients/bookingsListProviders.js";
 export { bookingsListServices } from "./clients/bookingsListServices.js";
 export { bookingsListStudioBookings } from "./clients/bookingsListStudioBookings.js";
 export { bookingsNoShowStudioBooking } from "./clients/bookingsNoShowStudioBooking.js";
+export { bookingsRecordManualDeposit } from "./clients/bookingsRecordManualDeposit.js";
 export { bookingsReorderProviders } from "./clients/bookingsReorderProviders.js";
 export { bookingsReorderServices } from "./clients/bookingsReorderServices.js";
 export { bookingsReplaceWorkingHours } from "./clients/bookingsReplaceWorkingHours.js";
+export { bookingsRequestEmailCode } from "./clients/bookingsRequestEmailCode.js";
 export { bookingsReschedulePublicBooking } from "./clients/bookingsReschedulePublicBooking.js";
 export { bookingsUpdateProvider } from "./clients/bookingsUpdateProvider.js";
 export { bookingsUpdateService } from "./clients/bookingsUpdateService.js";
@@ -188,7 +193,10 @@ export { eregisterRejectRegisterObservation } from "./clients/eregisterRejectReg
 export { eregisterReopenRegisterObservation } from "./clients/eregisterReopenRegisterObservation.js";
 export { eregisterValidateSynopObservation } from "./clients/eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./clients/eventsAcceptConnection.js";
+export { eventsAdminListEvents } from "./clients/eventsAdminListEvents.js";
+export { eventsAdminListOrganisers } from "./clients/eventsAdminListOrganisers.js";
 export { eventsAdmitTicket } from "./clients/eventsAdmitTicket.js";
+export { eventsApproveOrganiser } from "./clients/eventsApproveOrganiser.js";
 export { eventsBlockMember } from "./clients/eventsBlockMember.js";
 export { eventsCancelEvent } from "./clients/eventsCancelEvent.js";
 export { eventsCancelListingRsvp } from "./clients/eventsCancelListingRsvp.js";
@@ -217,6 +225,7 @@ export { eventsGetPerson } from "./clients/eventsGetPerson.js";
 export { eventsGetSettlement } from "./clients/eventsGetSettlement.js";
 export { eventsGetSettlementCsv } from "./clients/eventsGetSettlementCsv.js";
 export { eventsGetThread } from "./clients/eventsGetThread.js";
+export { eventsGetVerificationCase } from "./clients/eventsGetVerificationCase.js";
 export { eventsJoinGroup } from "./clients/eventsJoinGroup.js";
 export { eventsLeaveGroup } from "./clients/eventsLeaveGroup.js";
 export { eventsListGroups } from "./clients/eventsListGroups.js";
@@ -226,13 +235,23 @@ export { eventsListPendingOrganisers } from "./clients/eventsListPendingOrganise
 export { eventsListReports } from "./clients/eventsListReports.js";
 export { eventsListSuggestions } from "./clients/eventsListSuggestions.js";
 export { eventsListThreads } from "./clients/eventsListThreads.js";
+export { eventsListVerificationCases } from "./clients/eventsListVerificationCases.js";
 export { eventsOpenThread } from "./clients/eventsOpenThread.js";
 export { eventsOpenTill } from "./clients/eventsOpenTill.js";
+export { eventsOrgCancelEvent } from "./clients/eventsOrgCancelEvent.js";
+export { eventsOrgCancelOrder } from "./clients/eventsOrgCancelOrder.js";
+export { eventsOrgGetOrder } from "./clients/eventsOrgGetOrder.js";
+export { eventsOrgListAttendees } from "./clients/eventsOrgListAttendees.js";
+export { eventsOrgListOrders } from "./clients/eventsOrgListOrders.js";
+export { eventsOrgRecordManualPayment } from "./clients/eventsOrgRecordManualPayment.js";
+export { eventsOrgRefundOrder } from "./clients/eventsOrgRefundOrder.js";
 export { eventsPostponeEvent } from "./clients/eventsPostponeEvent.js";
 export { eventsRefundTicket } from "./clients/eventsRefundTicket.js";
+export { eventsRejectOrganiser } from "./clients/eventsRejectOrganiser.js";
 export { eventsRemoveConnection } from "./clients/eventsRemoveConnection.js";
 export { eventsRequestConnection } from "./clients/eventsRequestConnection.js";
 export { eventsRequestOrganiser } from "./clients/eventsRequestOrganiser.js";
+export { eventsResubmitOrganiser } from "./clients/eventsResubmitOrganiser.js";
 export { eventsReviewOrganiser } from "./clients/eventsReviewOrganiser.js";
 export { eventsRsvpListing } from "./clients/eventsRsvpListing.js";
 export { eventsSaveListing } from "./clients/eventsSaveListing.js";
@@ -445,33 +464,43 @@ export { notificationsMarkNotificationRead } from "./clients/notificationsMarkNo
 export { notificationsUpdateNotificationPreferences } from "./clients/notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./clients/notificationsUpdateNotificationSetting.js";
 export { organisationsAcceptInvitation } from "./clients/organisationsAcceptInvitation.js";
+export { organisationsAddMemberAdmin } from "./clients/organisationsAddMemberAdmin.js";
 export { organisationsCreateAdminSite } from "./clients/organisationsCreateAdminSite.js";
 export { organisationsCreateApiKey } from "./clients/organisationsCreateApiKey.js";
 export { organisationsCreateInvitation } from "./clients/organisationsCreateInvitation.js";
 export { organisationsCreateOne } from "./clients/organisationsCreateOne.js";
 export { organisationsDeleteMember } from "./clients/organisationsDeleteMember.js";
+export { organisationsDeleteMemberAdmin } from "./clients/organisationsDeleteMemberAdmin.js";
 export { organisationsGetCurrent } from "./clients/organisationsGetCurrent.js";
 export { organisationsGetOne } from "./clients/organisationsGetOne.js";
 export { organisationsGetPublicSite } from "./clients/organisationsGetPublicSite.js";
+export { organisationsGrantMemberRole } from "./clients/organisationsGrantMemberRole.js";
 export { organisationsKeyInfo } from "./clients/organisationsKeyInfo.js";
 export { organisationsListAdminApiKeys } from "./clients/organisationsListAdminApiKeys.js";
 export { organisationsListAdminSites } from "./clients/organisationsListAdminSites.js";
 export { organisationsListAll } from "./clients/organisationsListAll.js";
 export { organisationsListApiKeyScopes } from "./clients/organisationsListApiKeyScopes.js";
 export { organisationsListInvitations } from "./clients/organisationsListInvitations.js";
+export { organisationsListIssuedGrants } from "./clients/organisationsListIssuedGrants.js";
+export { organisationsListMemberGrants } from "./clients/organisationsListMemberGrants.js";
 export { organisationsListMembers } from "./clients/organisationsListMembers.js";
 export { organisationsListMembersAdmin } from "./clients/organisationsListMembersAdmin.js";
 export { organisationsListMine } from "./clients/organisationsListMine.js";
 export { organisationsListOrgApiKeys } from "./clients/organisationsListOrgApiKeys.js";
 export { organisationsListOrgSites } from "./clients/organisationsListOrgSites.js";
+export { organisationsListRoleBundles } from "./clients/organisationsListRoleBundles.js";
+export { organisationsListTeamMembers } from "./clients/organisationsListTeamMembers.js";
+export { organisationsMyTeamCapabilities } from "./clients/organisationsMyTeamCapabilities.js";
 export { organisationsRevokeAdminApiKey } from "./clients/organisationsRevokeAdminApiKey.js";
 export { organisationsRevokeInvitation } from "./clients/organisationsRevokeInvitation.js";
+export { organisationsRevokeMemberGrant } from "./clients/organisationsRevokeMemberGrant.js";
 export { organisationsRevokeOrgApiKey } from "./clients/organisationsRevokeOrgApiKey.js";
 export { organisationsRotateApiKey } from "./clients/organisationsRotateApiKey.js";
 export { organisationsSetApp } from "./clients/organisationsSetApp.js";
 export { organisationsUnverifyOne } from "./clients/organisationsUnverifyOne.js";
 export { organisationsUpdateAdminSite } from "./clients/organisationsUpdateAdminSite.js";
 export { organisationsUpdateMember } from "./clients/organisationsUpdateMember.js";
+export { organisationsUpdateMemberAdmin } from "./clients/organisationsUpdateMemberAdmin.js";
 export { organisationsUpdateOne } from "./clients/organisationsUpdateOne.js";
 export { organisationsVerifyOne } from "./clients/organisationsVerifyOne.js";
 export { paymentsAdminCreatePayout } from "./clients/paymentsAdminCreatePayout.js";
@@ -641,6 +670,16 @@ export {
   authAccountEmailCodeVerifyMutationOptions,
   useAuthAccountEmailCodeVerify,
 } from "./hooks/useAuthAccountEmailCodeVerify.js";
+export {
+  authAdminActivateAccountMutationKey,
+  authAdminActivateAccountMutationOptions,
+  useAuthAdminActivateAccount,
+} from "./hooks/useAuthAdminActivateAccount.js";
+export {
+  authAdminResendVerificationMutationKey,
+  authAdminResendVerificationMutationOptions,
+  useAuthAdminResendVerification,
+} from "./hooks/useAuthAdminResendVerification.js";
 export {
   authAppEmailCodeStartMutationKey,
   authAppEmailCodeStartMutationOptions,
@@ -1092,6 +1131,11 @@ export {
   useBookingsCompleteStudioBooking,
 } from "./hooks/useBookingsCompleteStudioBooking.js";
 export {
+  bookingsConfirmEmailCodeMutationKey,
+  bookingsConfirmEmailCodeMutationOptions,
+  useBookingsConfirmEmailCode,
+} from "./hooks/useBookingsConfirmEmailCode.js";
+export {
   bookingsConfirmStudioBookingMutationKey,
   bookingsConfirmStudioBookingMutationOptions,
   useBookingsConfirmStudioBooking,
@@ -1207,6 +1251,11 @@ export {
   useBookingsNoShowStudioBooking,
 } from "./hooks/useBookingsNoShowStudioBooking.js";
 export {
+  bookingsRecordManualDepositMutationKey,
+  bookingsRecordManualDepositMutationOptions,
+  useBookingsRecordManualDeposit,
+} from "./hooks/useBookingsRecordManualDeposit.js";
+export {
   bookingsReorderProvidersMutationKey,
   bookingsReorderProvidersMutationOptions,
   useBookingsReorderProviders,
@@ -1221,6 +1270,11 @@ export {
   bookingsReplaceWorkingHoursMutationOptions,
   useBookingsReplaceWorkingHours,
 } from "./hooks/useBookingsReplaceWorkingHours.js";
+export {
+  bookingsRequestEmailCodeMutationKey,
+  bookingsRequestEmailCodeMutationOptions,
+  useBookingsRequestEmailCode,
+} from "./hooks/useBookingsRequestEmailCode.js";
 export {
   bookingsReschedulePublicBookingMutationKey,
   bookingsReschedulePublicBookingMutationOptions,
@@ -1562,10 +1616,25 @@ export {
   useEventsAcceptConnection,
 } from "./hooks/useEventsAcceptConnection.js";
 export {
+  eventsAdminListEventsQueryKey,
+  eventsAdminListEventsQueryOptions,
+  useEventsAdminListEvents,
+} from "./hooks/useEventsAdminListEvents.js";
+export {
+  eventsAdminListOrganisersQueryKey,
+  eventsAdminListOrganisersQueryOptions,
+  useEventsAdminListOrganisers,
+} from "./hooks/useEventsAdminListOrganisers.js";
+export {
   eventsAdmitTicketMutationKey,
   eventsAdmitTicketMutationOptions,
   useEventsAdmitTicket,
 } from "./hooks/useEventsAdmitTicket.js";
+export {
+  eventsApproveOrganiserMutationKey,
+  eventsApproveOrganiserMutationOptions,
+  useEventsApproveOrganiser,
+} from "./hooks/useEventsApproveOrganiser.js";
 export {
   eventsBlockMemberMutationKey,
   eventsBlockMemberMutationOptions,
@@ -1707,6 +1776,11 @@ export {
   useEventsGetThread,
 } from "./hooks/useEventsGetThread.js";
 export {
+  eventsGetVerificationCaseQueryKey,
+  eventsGetVerificationCaseQueryOptions,
+  useEventsGetVerificationCase,
+} from "./hooks/useEventsGetVerificationCase.js";
+export {
   eventsJoinGroupMutationKey,
   eventsJoinGroupMutationOptions,
   useEventsJoinGroup,
@@ -1752,6 +1826,11 @@ export {
   useEventsListThreads,
 } from "./hooks/useEventsListThreads.js";
 export {
+  eventsListVerificationCasesQueryKey,
+  eventsListVerificationCasesQueryOptions,
+  useEventsListVerificationCases,
+} from "./hooks/useEventsListVerificationCases.js";
+export {
   eventsOpenThreadMutationKey,
   eventsOpenThreadMutationOptions,
   useEventsOpenThread,
@@ -1762,6 +1841,41 @@ export {
   useEventsOpenTill,
 } from "./hooks/useEventsOpenTill.js";
 export {
+  eventsOrgCancelEventMutationKey,
+  eventsOrgCancelEventMutationOptions,
+  useEventsOrgCancelEvent,
+} from "./hooks/useEventsOrgCancelEvent.js";
+export {
+  eventsOrgCancelOrderMutationKey,
+  eventsOrgCancelOrderMutationOptions,
+  useEventsOrgCancelOrder,
+} from "./hooks/useEventsOrgCancelOrder.js";
+export {
+  eventsOrgGetOrderQueryKey,
+  eventsOrgGetOrderQueryOptions,
+  useEventsOrgGetOrder,
+} from "./hooks/useEventsOrgGetOrder.js";
+export {
+  eventsOrgListAttendeesQueryKey,
+  eventsOrgListAttendeesQueryOptions,
+  useEventsOrgListAttendees,
+} from "./hooks/useEventsOrgListAttendees.js";
+export {
+  eventsOrgListOrdersQueryKey,
+  eventsOrgListOrdersQueryOptions,
+  useEventsOrgListOrders,
+} from "./hooks/useEventsOrgListOrders.js";
+export {
+  eventsOrgRecordManualPaymentMutationKey,
+  eventsOrgRecordManualPaymentMutationOptions,
+  useEventsOrgRecordManualPayment,
+} from "./hooks/useEventsOrgRecordManualPayment.js";
+export {
+  eventsOrgRefundOrderMutationKey,
+  eventsOrgRefundOrderMutationOptions,
+  useEventsOrgRefundOrder,
+} from "./hooks/useEventsOrgRefundOrder.js";
+export {
   eventsPostponeEventMutationKey,
   eventsPostponeEventMutationOptions,
   useEventsPostponeEvent,
@@ -1771,6 +1885,11 @@ export {
   eventsRefundTicketMutationOptions,
   useEventsRefundTicket,
 } from "./hooks/useEventsRefundTicket.js";
+export {
+  eventsRejectOrganiserMutationKey,
+  eventsRejectOrganiserMutationOptions,
+  useEventsRejectOrganiser,
+} from "./hooks/useEventsRejectOrganiser.js";
 export {
   eventsRemoveConnectionMutationKey,
   eventsRemoveConnectionMutationOptions,
@@ -1786,6 +1905,11 @@ export {
   eventsRequestOrganiserMutationOptions,
   useEventsRequestOrganiser,
 } from "./hooks/useEventsRequestOrganiser.js";
+export {
+  eventsResubmitOrganiserMutationKey,
+  eventsResubmitOrganiserMutationOptions,
+  useEventsResubmitOrganiser,
+} from "./hooks/useEventsResubmitOrganiser.js";
 export {
   eventsReviewOrganiserMutationKey,
   eventsReviewOrganiserMutationOptions,
@@ -2847,6 +2971,11 @@ export {
   useOrganisationsAcceptInvitation,
 } from "./hooks/useOrganisationsAcceptInvitation.js";
 export {
+  organisationsAddMemberAdminMutationKey,
+  organisationsAddMemberAdminMutationOptions,
+  useOrganisationsAddMemberAdmin,
+} from "./hooks/useOrganisationsAddMemberAdmin.js";
+export {
   organisationsCreateAdminSiteMutationKey,
   organisationsCreateAdminSiteMutationOptions,
   useOrganisationsCreateAdminSite,
@@ -2872,6 +3001,11 @@ export {
   useOrganisationsDeleteMember,
 } from "./hooks/useOrganisationsDeleteMember.js";
 export {
+  organisationsDeleteMemberAdminMutationKey,
+  organisationsDeleteMemberAdminMutationOptions,
+  useOrganisationsDeleteMemberAdmin,
+} from "./hooks/useOrganisationsDeleteMemberAdmin.js";
+export {
   organisationsGetCurrentQueryKey,
   organisationsGetCurrentQueryOptions,
   useOrganisationsGetCurrent,
@@ -2886,6 +3020,11 @@ export {
   organisationsGetPublicSiteQueryOptions,
   useOrganisationsGetPublicSite,
 } from "./hooks/useOrganisationsGetPublicSite.js";
+export {
+  organisationsGrantMemberRoleMutationKey,
+  organisationsGrantMemberRoleMutationOptions,
+  useOrganisationsGrantMemberRole,
+} from "./hooks/useOrganisationsGrantMemberRole.js";
 export {
   organisationsKeyInfoQueryKey,
   organisationsKeyInfoQueryOptions,
@@ -2917,6 +3056,16 @@ export {
   useOrganisationsListInvitations,
 } from "./hooks/useOrganisationsListInvitations.js";
 export {
+  organisationsListIssuedGrantsQueryKey,
+  organisationsListIssuedGrantsQueryOptions,
+  useOrganisationsListIssuedGrants,
+} from "./hooks/useOrganisationsListIssuedGrants.js";
+export {
+  organisationsListMemberGrantsQueryKey,
+  organisationsListMemberGrantsQueryOptions,
+  useOrganisationsListMemberGrants,
+} from "./hooks/useOrganisationsListMemberGrants.js";
+export {
   organisationsListMembersQueryKey,
   organisationsListMembersQueryOptions,
   useOrganisationsListMembers,
@@ -2942,6 +3091,21 @@ export {
   useOrganisationsListOrgSites,
 } from "./hooks/useOrganisationsListOrgSites.js";
 export {
+  organisationsListRoleBundlesQueryKey,
+  organisationsListRoleBundlesQueryOptions,
+  useOrganisationsListRoleBundles,
+} from "./hooks/useOrganisationsListRoleBundles.js";
+export {
+  organisationsListTeamMembersQueryKey,
+  organisationsListTeamMembersQueryOptions,
+  useOrganisationsListTeamMembers,
+} from "./hooks/useOrganisationsListTeamMembers.js";
+export {
+  organisationsMyTeamCapabilitiesQueryKey,
+  organisationsMyTeamCapabilitiesQueryOptions,
+  useOrganisationsMyTeamCapabilities,
+} from "./hooks/useOrganisationsMyTeamCapabilities.js";
+export {
   organisationsRevokeAdminApiKeyMutationKey,
   organisationsRevokeAdminApiKeyMutationOptions,
   useOrganisationsRevokeAdminApiKey,
@@ -2951,6 +3115,11 @@ export {
   organisationsRevokeInvitationMutationOptions,
   useOrganisationsRevokeInvitation,
 } from "./hooks/useOrganisationsRevokeInvitation.js";
+export {
+  organisationsRevokeMemberGrantMutationKey,
+  organisationsRevokeMemberGrantMutationOptions,
+  useOrganisationsRevokeMemberGrant,
+} from "./hooks/useOrganisationsRevokeMemberGrant.js";
 export {
   organisationsRevokeOrgApiKeyMutationKey,
   organisationsRevokeOrgApiKeyMutationOptions,
@@ -2981,6 +3150,11 @@ export {
   organisationsUpdateMemberMutationOptions,
   useOrganisationsUpdateMember,
 } from "./hooks/useOrganisationsUpdateMember.js";
+export {
+  organisationsUpdateMemberAdminMutationKey,
+  organisationsUpdateMemberAdminMutationOptions,
+  useOrganisationsUpdateMemberAdmin,
+} from "./hooks/useOrganisationsUpdateMemberAdmin.js";
 export {
   organisationsUpdateOneMutationKey,
   organisationsUpdateOneMutationOptions,
@@ -3774,9 +3948,12 @@ export type { ActivationConfirm } from "./models/ActivationConfirm.js";
 export type { ActivationIssue } from "./models/ActivationIssue.js";
 export type { ActivationLink } from "./models/ActivationLink.js";
 export type { ActivityEntry } from "./models/ActivityEntry.js";
+export type { ActivityEntryPropertiesActorCapacityEnum } from "./models/ActivityEntryPropertiesActorCapacityEnum.js";
+export { activityEntryPropertiesActorCapacityEnum } from "./models/ActivityEntryPropertiesActorCapacityEnum.js";
 export type { AddressPublic } from "./models/AddressPublic.js";
 export type { AddressUpdate } from "./models/AddressUpdate.js";
 export type { AdjustmentCreate } from "./models/AdjustmentCreate.js";
+export type { AdminActivation } from "./models/AdminActivation.js";
 export type { AdmissionCreate } from "./models/AdmissionCreate.js";
 export type { AdmissionPublic } from "./models/AdmissionPublic.js";
 export type { AgeingBucket } from "./models/AgeingBucket.js";
@@ -3866,6 +4043,30 @@ export type {
   AuthAccountEmailCodeVerifyStatus422,
   AuthAccountEmailCodeVerifyStatus429,
 } from "./models/AuthAccountEmailCodeVerify.js";
+export type {
+  AuthAdminActivateAccountBody,
+  AuthAdminActivateAccountOptions,
+  AuthAdminActivateAccountPath,
+  AuthAdminActivateAccountResponse,
+  AuthAdminActivateAccountResponses,
+  AuthAdminActivateAccountStatus200,
+  AuthAdminActivateAccountStatus403,
+  AuthAdminActivateAccountStatus404,
+  AuthAdminActivateAccountStatus409,
+  AuthAdminActivateAccountStatus422,
+} from "./models/AuthAdminActivateAccount.js";
+export type {
+  AuthAdminResendVerificationBody,
+  AuthAdminResendVerificationOptions,
+  AuthAdminResendVerificationPath,
+  AuthAdminResendVerificationResponse,
+  AuthAdminResendVerificationResponses,
+  AuthAdminResendVerificationStatus200,
+  AuthAdminResendVerificationStatus403,
+  AuthAdminResendVerificationStatus404,
+  AuthAdminResendVerificationStatus409,
+  AuthAdminResendVerificationStatus422,
+} from "./models/AuthAdminResendVerification.js";
 export type {
   AuthAppEmailCodeStartBody,
   AuthAppEmailCodeStartOptions,
@@ -4814,10 +5015,15 @@ export type { BookingAgenda } from "./models/BookingAgenda.js";
 export type { BookingAgendaDay } from "./models/BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./models/BookingAgendaItem.js";
 export type { BookingAvailability } from "./models/BookingAvailability.js";
+export type { BookingEmailCodeConfirm } from "./models/BookingEmailCodeConfirm.js";
+export type { BookingEmailCodeRequest } from "./models/BookingEmailCodeRequest.js";
+export type { BookingEmailCodeSent } from "./models/BookingEmailCodeSent.js";
+export type { BookingEmailProof } from "./models/BookingEmailProof.js";
 export type { BookingExceptionCreate } from "./models/BookingExceptionCreate.js";
 export type { BookingExceptionKind } from "./models/BookingExceptionKind.js";
 export { bookingExceptionKind } from "./models/BookingExceptionKind.js";
 export type { BookingExceptionPublic } from "./models/BookingExceptionPublic.js";
+export type { BookingManualDepositCreate } from "./models/BookingManualDepositCreate.js";
 export type { BookingMyOrganisation } from "./models/BookingMyOrganisation.js";
 export type { BookingOrder } from "./models/BookingOrder.js";
 export type { BookingProfilePublic } from "./models/BookingProfilePublic.js";
@@ -4889,6 +5095,19 @@ export type {
   BookingsCompleteStudioBookingStatus409,
   BookingsCompleteStudioBookingStatus422,
 } from "./models/BookingsCompleteStudioBooking.js";
+export type {
+  BookingsConfirmEmailCodeBody,
+  BookingsConfirmEmailCodeOptions,
+  BookingsConfirmEmailCodePath,
+  BookingsConfirmEmailCodeResponse,
+  BookingsConfirmEmailCodeResponses,
+  BookingsConfirmEmailCodeStatus200,
+  BookingsConfirmEmailCodeStatus400,
+  BookingsConfirmEmailCodeStatus404,
+  BookingsConfirmEmailCodeStatus422,
+  BookingsConfirmEmailCodeStatus429,
+  BookingsConfirmEmailCodeStatus503,
+} from "./models/BookingsConfirmEmailCode.js";
 export type {
   BookingsConfirmStudioBookingHeaders,
   BookingsConfirmStudioBookingOptions,
@@ -5179,6 +5398,21 @@ export type {
   BookingsNoShowStudioBookingStatus422,
 } from "./models/BookingsNoShowStudioBooking.js";
 export type {
+  BookingsRecordManualDepositBody,
+  BookingsRecordManualDepositHeaders,
+  BookingsRecordManualDepositOptions,
+  BookingsRecordManualDepositPath,
+  BookingsRecordManualDepositResponse,
+  BookingsRecordManualDepositResponses,
+  BookingsRecordManualDepositStatus200,
+  BookingsRecordManualDepositStatus400,
+  BookingsRecordManualDepositStatus401,
+  BookingsRecordManualDepositStatus403,
+  BookingsRecordManualDepositStatus404,
+  BookingsRecordManualDepositStatus409,
+  BookingsRecordManualDepositStatus422,
+} from "./models/BookingsRecordManualDeposit.js";
+export type {
   BookingsReorderProvidersBody,
   BookingsReorderProvidersHeaders,
   BookingsReorderProvidersOptions,
@@ -5221,6 +5455,19 @@ export type {
   BookingsReplaceWorkingHoursStatus409,
   BookingsReplaceWorkingHoursStatus422,
 } from "./models/BookingsReplaceWorkingHours.js";
+export type {
+  BookingsRequestEmailCodeBody,
+  BookingsRequestEmailCodeOptions,
+  BookingsRequestEmailCodePath,
+  BookingsRequestEmailCodeResponse,
+  BookingsRequestEmailCodeResponses,
+  BookingsRequestEmailCodeStatus200,
+  BookingsRequestEmailCodeStatus400,
+  BookingsRequestEmailCodeStatus404,
+  BookingsRequestEmailCodeStatus422,
+  BookingsRequestEmailCodeStatus429,
+  BookingsRequestEmailCodeStatus503,
+} from "./models/BookingsRequestEmailCode.js";
 export type {
   BookingsReschedulePublicBookingBody,
   BookingsReschedulePublicBookingOptions,
@@ -5294,6 +5541,8 @@ export type { CalendarEventPublic } from "./models/CalendarEventPublic.js";
 export type { CalendarEventsPublic } from "./models/CalendarEventsPublic.js";
 export type { CalendarEventUpdate } from "./models/CalendarEventUpdate.js";
 export type { CancelEvent } from "./models/CancelEvent.js";
+export type { CancelEventPropertiesRefundEnum } from "./models/CancelEventPropertiesRefundEnum.js";
+export { cancelEventPropertiesRefundEnum } from "./models/CancelEventPropertiesRefundEnum.js";
 export type { CancelResult } from "./models/CancelResult.js";
 export type { CapAlertAction } from "./models/CapAlertAction.js";
 export type { CapAlertCreate } from "./models/CapAlertCreate.js";
@@ -6148,6 +6397,26 @@ export type {
   EventsAcceptConnectionStatus429,
 } from "./models/EventsAcceptConnection.js";
 export type {
+  EventsAdminListEventsOptions,
+  EventsAdminListEventsQuery,
+  EventsAdminListEventsResponse,
+  EventsAdminListEventsResponses,
+  EventsAdminListEventsStatus200,
+  EventsAdminListEventsStatus401,
+  EventsAdminListEventsStatus403,
+  EventsAdminListEventsStatus422,
+} from "./models/EventsAdminListEvents.js";
+export type {
+  EventsAdminListOrganisersOptions,
+  EventsAdminListOrganisersQuery,
+  EventsAdminListOrganisersResponse,
+  EventsAdminListOrganisersResponses,
+  EventsAdminListOrganisersStatus200,
+  EventsAdminListOrganisersStatus401,
+  EventsAdminListOrganisersStatus403,
+  EventsAdminListOrganisersStatus422,
+} from "./models/EventsAdminListOrganisers.js";
+export type {
   EventsAdmitTicketBody,
   EventsAdmitTicketOptions,
   EventsAdmitTicketPath,
@@ -6162,6 +6431,19 @@ export type {
   EventsAdmitTicketStatus422,
   EventsAdmitTicketStatus429,
 } from "./models/EventsAdmitTicket.js";
+export type {
+  EventsApproveOrganiserBody,
+  EventsApproveOrganiserOptions,
+  EventsApproveOrganiserPath,
+  EventsApproveOrganiserResponse,
+  EventsApproveOrganiserResponses,
+  EventsApproveOrganiserStatus200,
+  EventsApproveOrganiserStatus401,
+  EventsApproveOrganiserStatus403,
+  EventsApproveOrganiserStatus404,
+  EventsApproveOrganiserStatus409,
+  EventsApproveOrganiserStatus422,
+} from "./models/EventsApproveOrganiser.js";
 export type {
   EventsBlockMemberOptions,
   EventsBlockMemberPath,
@@ -6496,6 +6778,17 @@ export type {
   EventsGetThreadStatus429,
 } from "./models/EventsGetThread.js";
 export type {
+  EventsGetVerificationCaseOptions,
+  EventsGetVerificationCasePath,
+  EventsGetVerificationCaseResponse,
+  EventsGetVerificationCaseResponses,
+  EventsGetVerificationCaseStatus200,
+  EventsGetVerificationCaseStatus401,
+  EventsGetVerificationCaseStatus403,
+  EventsGetVerificationCaseStatus404,
+  EventsGetVerificationCaseStatus422,
+} from "./models/EventsGetVerificationCase.js";
+export type {
   EventsJoinGroupOptions,
   EventsJoinGroupPath,
   EventsJoinGroupResponse,
@@ -6592,6 +6885,17 @@ export type {
   EventsListThreadsStatus429,
 } from "./models/EventsListThreads.js";
 export type {
+  EventsListVerificationCasesOptions,
+  EventsListVerificationCasesQuery,
+  EventsListVerificationCasesResponse,
+  EventsListVerificationCasesResponses,
+  EventsListVerificationCasesStatus200,
+  EventsListVerificationCasesStatus401,
+  EventsListVerificationCasesStatus403,
+  EventsListVerificationCasesStatus404,
+  EventsListVerificationCasesStatus422,
+} from "./models/EventsListVerificationCases.js";
+export type {
   EventsOpenThreadBody,
   EventsOpenThreadOptions,
   EventsOpenThreadResponse,
@@ -6618,6 +6922,104 @@ export type {
   EventsOpenTillStatus422,
   EventsOpenTillStatus429,
 } from "./models/EventsOpenTill.js";
+export type {
+  EventsOrgCancelEventBody,
+  EventsOrgCancelEventHeaders,
+  EventsOrgCancelEventOptions,
+  EventsOrgCancelEventPath,
+  EventsOrgCancelEventResponse,
+  EventsOrgCancelEventResponses,
+  EventsOrgCancelEventStatus200,
+  EventsOrgCancelEventStatus400,
+  EventsOrgCancelEventStatus401,
+  EventsOrgCancelEventStatus403,
+  EventsOrgCancelEventStatus404,
+  EventsOrgCancelEventStatus409,
+  EventsOrgCancelEventStatus422,
+} from "./models/EventsOrgCancelEvent.js";
+export type {
+  EventsOrgCancelOrderBody,
+  EventsOrgCancelOrderHeaders,
+  EventsOrgCancelOrderOptions,
+  EventsOrgCancelOrderPath,
+  EventsOrgCancelOrderResponse,
+  EventsOrgCancelOrderResponses,
+  EventsOrgCancelOrderStatus200,
+  EventsOrgCancelOrderStatus400,
+  EventsOrgCancelOrderStatus401,
+  EventsOrgCancelOrderStatus403,
+  EventsOrgCancelOrderStatus404,
+  EventsOrgCancelOrderStatus409,
+  EventsOrgCancelOrderStatus422,
+} from "./models/EventsOrgCancelOrder.js";
+export type {
+  EventsOrgGetOrderHeaders,
+  EventsOrgGetOrderOptions,
+  EventsOrgGetOrderPath,
+  EventsOrgGetOrderResponse,
+  EventsOrgGetOrderResponses,
+  EventsOrgGetOrderStatus200,
+  EventsOrgGetOrderStatus401,
+  EventsOrgGetOrderStatus403,
+  EventsOrgGetOrderStatus404,
+  EventsOrgGetOrderStatus422,
+} from "./models/EventsOrgGetOrder.js";
+export type {
+  EventsOrgListAttendeesHeaders,
+  EventsOrgListAttendeesOptions,
+  EventsOrgListAttendeesPath,
+  EventsOrgListAttendeesQuery,
+  EventsOrgListAttendeesResponse,
+  EventsOrgListAttendeesResponses,
+  EventsOrgListAttendeesStatus200,
+  EventsOrgListAttendeesStatus401,
+  EventsOrgListAttendeesStatus403,
+  EventsOrgListAttendeesStatus404,
+  EventsOrgListAttendeesStatus422,
+} from "./models/EventsOrgListAttendees.js";
+export type {
+  EventsOrgListOrdersHeaders,
+  EventsOrgListOrdersOptions,
+  EventsOrgListOrdersPath,
+  EventsOrgListOrdersQuery,
+  EventsOrgListOrdersResponse,
+  EventsOrgListOrdersResponses,
+  EventsOrgListOrdersStatus200,
+  EventsOrgListOrdersStatus401,
+  EventsOrgListOrdersStatus403,
+  EventsOrgListOrdersStatus404,
+  EventsOrgListOrdersStatus422,
+} from "./models/EventsOrgListOrders.js";
+export type {
+  EventsOrgRecordManualPaymentBody,
+  EventsOrgRecordManualPaymentHeaders,
+  EventsOrgRecordManualPaymentOptions,
+  EventsOrgRecordManualPaymentPath,
+  EventsOrgRecordManualPaymentResponse,
+  EventsOrgRecordManualPaymentResponses,
+  EventsOrgRecordManualPaymentStatus201,
+  EventsOrgRecordManualPaymentStatus400,
+  EventsOrgRecordManualPaymentStatus401,
+  EventsOrgRecordManualPaymentStatus403,
+  EventsOrgRecordManualPaymentStatus404,
+  EventsOrgRecordManualPaymentStatus409,
+  EventsOrgRecordManualPaymentStatus422,
+} from "./models/EventsOrgRecordManualPayment.js";
+export type {
+  EventsOrgRefundOrderBody,
+  EventsOrgRefundOrderHeaders,
+  EventsOrgRefundOrderOptions,
+  EventsOrgRefundOrderPath,
+  EventsOrgRefundOrderResponse,
+  EventsOrgRefundOrderResponses,
+  EventsOrgRefundOrderStatus201,
+  EventsOrgRefundOrderStatus400,
+  EventsOrgRefundOrderStatus401,
+  EventsOrgRefundOrderStatus403,
+  EventsOrgRefundOrderStatus404,
+  EventsOrgRefundOrderStatus409,
+  EventsOrgRefundOrderStatus422,
+} from "./models/EventsOrgRefundOrder.js";
 export type {
   EventsPostponeEventBody,
   EventsPostponeEventOptions,
@@ -6648,6 +7050,19 @@ export type {
   EventsRefundTicketStatus422,
   EventsRefundTicketStatus429,
 } from "./models/EventsRefundTicket.js";
+export type {
+  EventsRejectOrganiserBody,
+  EventsRejectOrganiserOptions,
+  EventsRejectOrganiserPath,
+  EventsRejectOrganiserResponse,
+  EventsRejectOrganiserResponses,
+  EventsRejectOrganiserStatus200,
+  EventsRejectOrganiserStatus401,
+  EventsRejectOrganiserStatus403,
+  EventsRejectOrganiserStatus404,
+  EventsRejectOrganiserStatus409,
+  EventsRejectOrganiserStatus422,
+} from "./models/EventsRejectOrganiser.js";
 export type {
   EventsRemoveConnectionOptions,
   EventsRemoveConnectionPath,
@@ -6684,6 +7099,19 @@ export type {
   EventsRequestOrganiserStatus429,
 } from "./models/EventsRequestOrganiser.js";
 export type {
+  EventsResubmitOrganiserOptions,
+  EventsResubmitOrganiserQuery,
+  EventsResubmitOrganiserResponse,
+  EventsResubmitOrganiserResponses,
+  EventsResubmitOrganiserStatus200,
+  EventsResubmitOrganiserStatus401,
+  EventsResubmitOrganiserStatus403,
+  EventsResubmitOrganiserStatus404,
+  EventsResubmitOrganiserStatus409,
+  EventsResubmitOrganiserStatus422,
+  EventsResubmitOrganiserStatus429,
+} from "./models/EventsResubmitOrganiser.js";
+export type {
   EventsReviewOrganiserBody,
   EventsReviewOrganiserOptions,
   EventsReviewOrganiserPath,
@@ -6693,6 +7121,7 @@ export type {
   EventsReviewOrganiserStatus401,
   EventsReviewOrganiserStatus403,
   EventsReviewOrganiserStatus404,
+  EventsReviewOrganiserStatus409,
   EventsReviewOrganiserStatus422,
   EventsReviewOrganiserStatus429,
 } from "./models/EventsReviewOrganiser.js";
@@ -8962,6 +9391,8 @@ export type { MarineRow } from "./models/MarineRow.js";
 export type { MemberListPublic } from "./models/MemberListPublic.js";
 export type { MemberPublic } from "./models/MemberPublic.js";
 export type { MemberRoleUpdate } from "./models/MemberRoleUpdate.js";
+export type { MembershipGrantCreate } from "./models/MembershipGrantCreate.js";
+export type { MembershipGrantPublic } from "./models/MembershipGrantPublic.js";
 export type { MembershipRole } from "./models/MembershipRole.js";
 export { membershipRole } from "./models/MembershipRole.js";
 export type { MembershipStatus } from "./models/MembershipStatus.js";
@@ -9215,6 +9646,9 @@ export type { OrderItemInput } from "./models/OrderItemInput.js";
 export type { OrderPublic } from "./models/OrderPublic.js";
 export type { OrderPublicPropertiesStatusEnum } from "./models/OrderPublicPropertiesStatusEnum.js";
 export { orderPublicPropertiesStatusEnum } from "./models/OrderPublicPropertiesStatusEnum.js";
+export type { OrgAttendee } from "./models/OrgAttendee.js";
+export type { OrgAttendeePropertiesStatusEnum } from "./models/OrgAttendeePropertiesStatusEnum.js";
+export { orgAttendeePropertiesStatusEnum } from "./models/OrgAttendeePropertiesStatusEnum.js";
 export type { OrganisationAdminDetail } from "./models/OrganisationAdminDetail.js";
 export type { OrganisationAdminListPublic } from "./models/OrganisationAdminListPublic.js";
 export type { OrganisationAdminPublic } from "./models/OrganisationAdminPublic.js";
@@ -9239,6 +9673,19 @@ export type {
   OrganisationsAcceptInvitationStatus403,
   OrganisationsAcceptInvitationStatus422,
 } from "./models/OrganisationsAcceptInvitation.js";
+export type {
+  OrganisationsAddMemberAdminBody,
+  OrganisationsAddMemberAdminOptions,
+  OrganisationsAddMemberAdminPath,
+  OrganisationsAddMemberAdminResponse,
+  OrganisationsAddMemberAdminResponses,
+  OrganisationsAddMemberAdminStatus201,
+  OrganisationsAddMemberAdminStatus401,
+  OrganisationsAddMemberAdminStatus403,
+  OrganisationsAddMemberAdminStatus404,
+  OrganisationsAddMemberAdminStatus409,
+  OrganisationsAddMemberAdminStatus422,
+} from "./models/OrganisationsAddMemberAdmin.js";
 export type {
   OrganisationsCreateAdminSiteBody,
   OrganisationsCreateAdminSiteOptions,
@@ -9305,6 +9752,19 @@ export type {
   OrganisationsDeleteMemberStatus422,
 } from "./models/OrganisationsDeleteMember.js";
 export type {
+  OrganisationsDeleteMemberAdminBody,
+  OrganisationsDeleteMemberAdminOptions,
+  OrganisationsDeleteMemberAdminPath,
+  OrganisationsDeleteMemberAdminResponse,
+  OrganisationsDeleteMemberAdminResponses,
+  OrganisationsDeleteMemberAdminStatus204,
+  OrganisationsDeleteMemberAdminStatus401,
+  OrganisationsDeleteMemberAdminStatus403,
+  OrganisationsDeleteMemberAdminStatus404,
+  OrganisationsDeleteMemberAdminStatus409,
+  OrganisationsDeleteMemberAdminStatus422,
+} from "./models/OrganisationsDeleteMemberAdmin.js";
+export type {
   OrganisationsGetCurrentHeaders,
   OrganisationsGetCurrentOptions,
   OrganisationsGetCurrentResponse,
@@ -9336,6 +9796,21 @@ export type {
   OrganisationsGetPublicSiteStatus404,
   OrganisationsGetPublicSiteStatus422,
 } from "./models/OrganisationsGetPublicSite.js";
+export type {
+  OrganisationsGrantMemberRoleBody,
+  OrganisationsGrantMemberRoleHeaders,
+  OrganisationsGrantMemberRoleOptions,
+  OrganisationsGrantMemberRolePath,
+  OrganisationsGrantMemberRoleResponse,
+  OrganisationsGrantMemberRoleResponses,
+  OrganisationsGrantMemberRoleStatus201,
+  OrganisationsGrantMemberRoleStatus400,
+  OrganisationsGrantMemberRoleStatus401,
+  OrganisationsGrantMemberRoleStatus403,
+  OrganisationsGrantMemberRoleStatus404,
+  OrganisationsGrantMemberRoleStatus409,
+  OrganisationsGrantMemberRoleStatus422,
+} from "./models/OrganisationsGrantMemberRole.js";
 export type {
   OrganisationsKeyInfoOptions,
   OrganisationsKeyInfoResponse,
@@ -9402,6 +9877,30 @@ export type {
   OrganisationsListInvitationsStatus422,
 } from "./models/OrganisationsListInvitations.js";
 export type {
+  OrganisationsListIssuedGrantsHeaders,
+  OrganisationsListIssuedGrantsOptions,
+  OrganisationsListIssuedGrantsPath,
+  OrganisationsListIssuedGrantsResponse,
+  OrganisationsListIssuedGrantsResponses,
+  OrganisationsListIssuedGrantsStatus200,
+  OrganisationsListIssuedGrantsStatus401,
+  OrganisationsListIssuedGrantsStatus403,
+  OrganisationsListIssuedGrantsStatus404,
+  OrganisationsListIssuedGrantsStatus422,
+} from "./models/OrganisationsListIssuedGrants.js";
+export type {
+  OrganisationsListMemberGrantsHeaders,
+  OrganisationsListMemberGrantsOptions,
+  OrganisationsListMemberGrantsPath,
+  OrganisationsListMemberGrantsResponse,
+  OrganisationsListMemberGrantsResponses,
+  OrganisationsListMemberGrantsStatus200,
+  OrganisationsListMemberGrantsStatus401,
+  OrganisationsListMemberGrantsStatus403,
+  OrganisationsListMemberGrantsStatus404,
+  OrganisationsListMemberGrantsStatus422,
+} from "./models/OrganisationsListMemberGrants.js";
+export type {
   OrganisationsListMembersHeaders,
   OrganisationsListMembersOptions,
   OrganisationsListMembersPath,
@@ -9463,6 +9962,40 @@ export type {
   OrganisationsListOrgSitesStatus422,
 } from "./models/OrganisationsListOrgSites.js";
 export type {
+  OrganisationsListRoleBundlesHeaders,
+  OrganisationsListRoleBundlesOptions,
+  OrganisationsListRoleBundlesResponse,
+  OrganisationsListRoleBundlesResponses,
+  OrganisationsListRoleBundlesStatus200,
+  OrganisationsListRoleBundlesStatus401,
+  OrganisationsListRoleBundlesStatus403,
+  OrganisationsListRoleBundlesStatus404,
+  OrganisationsListRoleBundlesStatus422,
+} from "./models/OrganisationsListRoleBundles.js";
+export type {
+  OrganisationsListTeamMembersHeaders,
+  OrganisationsListTeamMembersOptions,
+  OrganisationsListTeamMembersQuery,
+  OrganisationsListTeamMembersResponse,
+  OrganisationsListTeamMembersResponses,
+  OrganisationsListTeamMembersStatus200,
+  OrganisationsListTeamMembersStatus401,
+  OrganisationsListTeamMembersStatus403,
+  OrganisationsListTeamMembersStatus404,
+  OrganisationsListTeamMembersStatus422,
+} from "./models/OrganisationsListTeamMembers.js";
+export type {
+  OrganisationsMyTeamCapabilitiesHeaders,
+  OrganisationsMyTeamCapabilitiesOptions,
+  OrganisationsMyTeamCapabilitiesResponse,
+  OrganisationsMyTeamCapabilitiesResponses,
+  OrganisationsMyTeamCapabilitiesStatus200,
+  OrganisationsMyTeamCapabilitiesStatus401,
+  OrganisationsMyTeamCapabilitiesStatus403,
+  OrganisationsMyTeamCapabilitiesStatus404,
+  OrganisationsMyTeamCapabilitiesStatus422,
+} from "./models/OrganisationsMyTeamCapabilities.js";
+export type {
   OrganisationsRevokeAdminApiKeyOptions,
   OrganisationsRevokeAdminApiKeyPath,
   OrganisationsRevokeAdminApiKeyResponse,
@@ -9487,6 +10020,20 @@ export type {
   OrganisationsRevokeInvitationStatus409,
   OrganisationsRevokeInvitationStatus422,
 } from "./models/OrganisationsRevokeInvitation.js";
+export type {
+  OrganisationsRevokeMemberGrantHeaders,
+  OrganisationsRevokeMemberGrantOptions,
+  OrganisationsRevokeMemberGrantPath,
+  OrganisationsRevokeMemberGrantResponse,
+  OrganisationsRevokeMemberGrantResponses,
+  OrganisationsRevokeMemberGrantStatus200,
+  OrganisationsRevokeMemberGrantStatus400,
+  OrganisationsRevokeMemberGrantStatus401,
+  OrganisationsRevokeMemberGrantStatus403,
+  OrganisationsRevokeMemberGrantStatus404,
+  OrganisationsRevokeMemberGrantStatus409,
+  OrganisationsRevokeMemberGrantStatus422,
+} from "./models/OrganisationsRevokeMemberGrant.js";
 export type {
   OrganisationsRevokeOrgApiKeyHeaders,
   OrganisationsRevokeOrgApiKeyOptions,
@@ -9568,6 +10115,19 @@ export type {
   OrganisationsUpdateMemberStatus422,
 } from "./models/OrganisationsUpdateMember.js";
 export type {
+  OrganisationsUpdateMemberAdminBody,
+  OrganisationsUpdateMemberAdminOptions,
+  OrganisationsUpdateMemberAdminPath,
+  OrganisationsUpdateMemberAdminResponse,
+  OrganisationsUpdateMemberAdminResponses,
+  OrganisationsUpdateMemberAdminStatus200,
+  OrganisationsUpdateMemberAdminStatus401,
+  OrganisationsUpdateMemberAdminStatus403,
+  OrganisationsUpdateMemberAdminStatus404,
+  OrganisationsUpdateMemberAdminStatus409,
+  OrganisationsUpdateMemberAdminStatus422,
+} from "./models/OrganisationsUpdateMemberAdmin.js";
+export type {
   OrganisationsUpdateOneBody,
   OrganisationsUpdateOneOptions,
   OrganisationsUpdateOnePath,
@@ -9599,13 +10159,29 @@ export type { OrganiserLogoUpdate } from "./models/OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./models/OrganiserOption.js";
 export type { OrganiserPublic } from "./models/OrganiserPublic.js";
 export type { OrganiserReview } from "./models/OrganiserReview.js";
+export type { OrgEventCancel } from "./models/OrgEventCancel.js";
+export type { OrgManualPaymentCreate } from "./models/OrgManualPaymentCreate.js";
+export type { OrgManualPaymentCreatePropertiesMethodEnum } from "./models/OrgManualPaymentCreatePropertiesMethodEnum.js";
+export { orgManualPaymentCreatePropertiesMethodEnum } from "./models/OrgManualPaymentCreatePropertiesMethodEnum.js";
+export type { OrgOrderCancel } from "./models/OrgOrderCancel.js";
+export type { OrgOrderCancelResult } from "./models/OrgOrderCancelResult.js";
+export type { OrgOrderCancelResultPropertiesRefundOutcomeEnum } from "./models/OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
+export { orgOrderCancelResultPropertiesRefundOutcomeEnum } from "./models/OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
+export type { OrgOrderDetail } from "./models/OrgOrderDetail.js";
+export type { OrgOrderDetailPropertiesPaymentMethodEnum } from "./models/OrgOrderDetailPropertiesPaymentMethodEnum.js";
+export { orgOrderDetailPropertiesPaymentMethodEnum } from "./models/OrgOrderDetailPropertiesPaymentMethodEnum.js";
+export type { OrgOrderDetailPropertiesRefundStatusEnum } from "./models/OrgOrderDetailPropertiesRefundStatusEnum.js";
+export { orgOrderDetailPropertiesRefundStatusEnum } from "./models/OrgOrderDetailPropertiesRefundStatusEnum.js";
+export type { OrgOrderItem } from "./models/OrgOrderItem.js";
+export type { OrgOrderPayment } from "./models/OrgOrderPayment.js";
+export type { OrgOrderRefundCreate } from "./models/OrgOrderRefundCreate.js";
+export type { OrgOrderRow } from "./models/OrgOrderRow.js";
+export type { OrgOrderTicket } from "./models/OrgOrderTicket.js";
 export type { OutletItemInput } from "./models/OutletItemInput.js";
 export type { OutletOverview } from "./models/OutletOverview.js";
 export type { OutletSale } from "./models/OutletSale.js";
 export type { OutletSaleCreate } from "./models/OutletSaleCreate.js";
 export type { OutletTicket } from "./models/OutletTicket.js";
-export type { OutletTicketPropertiesStatusEnum } from "./models/OutletTicketPropertiesStatusEnum.js";
-export { outletTicketPropertiesStatusEnum } from "./models/OutletTicketPropertiesStatusEnum.js";
 export type { OutletTierStock } from "./models/OutletTierStock.js";
 export type { OutlookProductPreview } from "./models/OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./models/OutlookProductPreviewInput.js";
@@ -9616,8 +10192,12 @@ export type { PageFeedbackAccepted } from "./models/PageFeedbackAccepted.js";
 export type { PageFeedbackCreate } from "./models/PageFeedbackCreate.js";
 export type { PaginatedResponseAuditEntryPublic } from "./models/PaginatedResponseAuditEntryPublic.js";
 export type { PaginatedResponseNotificationPublic } from "./models/PaginatedResponseNotificationPublic.js";
+export type { PaginatedResponseOrgAttendee } from "./models/PaginatedResponseOrgAttendee.js";
+export type { PaginatedResponseOrgOrderRow } from "./models/PaginatedResponseOrgOrderRow.js";
 export type { PaginatedResponsePermissionPublic } from "./models/PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./models/PaginatedResponseRolePublic.js";
+export type { PaginatedResponseStaffEventRow } from "./models/PaginatedResponseStaffEventRow.js";
+export type { PaginatedResponseStaffOrganiserRow } from "./models/PaginatedResponseStaffOrganiserRow.js";
 export type { PaginatedResponseUserPublic } from "./models/PaginatedResponseUserPublic.js";
 export type { Parish } from "./models/Parish.js";
 export { parish } from "./models/Parish.js";
@@ -9800,6 +10380,9 @@ export type { PersonnelStatus } from "./models/PersonnelStatus.js";
 export { personnelStatus } from "./models/PersonnelStatus.js";
 export type { PersonSuggestion } from "./models/PersonSuggestion.js";
 export type { PlansPublic } from "./models/PlansPublic.js";
+export type { PlatformMemberAdd } from "./models/PlatformMemberAdd.js";
+export type { PlatformMemberRemove } from "./models/PlatformMemberRemove.js";
+export type { PlatformMemberRoleUpdate } from "./models/PlatformMemberRoleUpdate.js";
 export type { PlatformOrganisationCreate } from "./models/PlatformOrganisationCreate.js";
 export type { PlatformOrganisationUpdate } from "./models/PlatformOrganisationUpdate.js";
 export type { PolicyInput } from "./models/PolicyInput.js";
@@ -9896,6 +10479,7 @@ export type {
   PushVapidPublicKeyStatus422,
 } from "./models/PushVapidPublicKey.js";
 export type { QcDecisionRequest } from "./models/QcDecisionRequest.js";
+export type { ReadinessUnavailable } from "./models/ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./models/ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./models/ReceivablesPublic.js";
 export type { RecoveryCodesPublic } from "./models/RecoveryCodesPublic.js";
@@ -10519,6 +11103,7 @@ export type {
 } from "./models/RewardsWithdrawFromLeaderboard.js";
 export type { RoleAssignmentScope } from "./models/RoleAssignmentScope.js";
 export { roleAssignmentScope } from "./models/RoleAssignmentScope.js";
+export type { RoleBundlePublic } from "./models/RoleBundlePublic.js";
 export type { RoleConfiguration } from "./models/RoleConfiguration.js";
 export type { RoleCreate } from "./models/RoleCreate.js";
 export type { RolePermissionsInput } from "./models/RolePermissionsInput.js";
@@ -10619,7 +11204,9 @@ export type { SignedDocumentPublic } from "./models/SignedDocumentPublic.js";
 export type { SiteSubscribeRequest } from "./models/SiteSubscribeRequest.js";
 export type { StaffCard } from "./models/StaffCard.js";
 export type { StaffCreate } from "./models/StaffCreate.js";
+export type { StaffEventRow } from "./models/StaffEventRow.js";
 export type { StaffInput } from "./models/StaffInput.js";
+export type { StaffOrganiserRow } from "./models/StaffOrganiserRow.js";
 export type { StaffSetup } from "./models/StaffSetup.js";
 export type { StaffUpdate } from "./models/StaffUpdate.js";
 export type { StatusReportCreate } from "./models/StatusReportCreate.js";
@@ -10970,6 +11557,7 @@ export { suggestionPublicPropertiesStatusEnum } from "./models/SuggestionPublicP
 export type { SuggestionUpdate } from "./models/SuggestionUpdate.js";
 export type { SuggestionUpdatePropertiesStatusEnum } from "./models/SuggestionUpdatePropertiesStatusEnum.js";
 export { suggestionUpdatePropertiesStatusEnum } from "./models/SuggestionUpdatePropertiesStatusEnum.js";
+export type { SuperuserActionReason } from "./models/SuperuserActionReason.js";
 export type { SwapType } from "./models/SwapType.js";
 export { swapType } from "./models/SwapType.js";
 export type { SynopDecoded } from "./models/SynopDecoded.js";
@@ -10983,6 +11571,10 @@ export type { SynopWorkbook } from "./models/SynopWorkbook.js";
 export type { TaskCreate } from "./models/TaskCreate.js";
 export type { TaskUpdate } from "./models/TaskUpdate.js";
 export type { TaskView } from "./models/TaskView.js";
+export type { TeamCapabilitiesPublic } from "./models/TeamCapabilitiesPublic.js";
+export type { TeamMemberGrantPublic } from "./models/TeamMemberGrantPublic.js";
+export type { TeamMemberListPublic } from "./models/TeamMemberListPublic.js";
+export type { TeamMemberPublic } from "./models/TeamMemberPublic.js";
 export type { ThreadCreate } from "./models/ThreadCreate.js";
 export type { ThreadDetail } from "./models/ThreadDetail.js";
 export type { ThreadDetailPropertiesKindEnum } from "./models/ThreadDetailPropertiesKindEnum.js";
@@ -11301,7 +11893,19 @@ export type {
 export type { ValidationErrorItem } from "./models/ValidationErrorItem.js";
 export type { ValidationErrorResponse } from "./models/ValidationErrorResponse.js";
 export type { VapidPublicKey } from "./models/VapidPublicKey.js";
+export type { VerificationApproval } from "./models/VerificationApproval.js";
+export type { VerificationCase } from "./models/VerificationCase.js";
+export type { VerificationCaseDetail } from "./models/VerificationCaseDetail.js";
+export type { VerificationCaseEvent } from "./models/VerificationCaseEvent.js";
+export type { VerificationCaseList } from "./models/VerificationCaseList.js";
+export type { VerificationCaseOwner } from "./models/VerificationCaseOwner.js";
+export type { VerificationCaseOwnerPropertiesRoleEnum } from "./models/VerificationCaseOwnerPropertiesRoleEnum.js";
+export { verificationCaseOwnerPropertiesRoleEnum } from "./models/VerificationCaseOwnerPropertiesRoleEnum.js";
 export type { VerificationDecision } from "./models/VerificationDecision.js";
+export type { VerificationRejection } from "./models/VerificationRejection.js";
+export type { VerificationResend } from "./models/VerificationResend.js";
+export type { VerificationStatus } from "./models/VerificationStatus.js";
+export { verificationStatus } from "./models/VerificationStatus.js";
 export type { WeatherImage } from "./models/WeatherImage.js";
 export type { WebhookAdminDisable } from "./models/WebhookAdminDisable.js";
 export type { WebhookDeliveryList } from "./models/WebhookDeliveryList.js";
@@ -11869,10 +12473,12 @@ export { activationAccountCreateSchema } from "./zod/activationAccountCreateSche
 export { activationConfirmSchema } from "./zod/activationConfirmSchema.js";
 export { activationIssueSchema } from "./zod/activationIssueSchema.js";
 export { activationLinkSchema } from "./zod/activationLinkSchema.js";
+export { activityEntryPropertiesActorCapacityEnumSchema } from "./zod/activityEntryPropertiesActorCapacityEnumSchema.js";
 export { activityEntrySchema } from "./zod/activityEntrySchema.js";
 export { addressPublicSchema } from "./zod/addressPublicSchema.js";
 export { addressUpdateSchema } from "./zod/addressUpdateSchema.js";
 export { adjustmentCreateSchema } from "./zod/adjustmentCreateSchema.js";
+export { adminActivationSchema } from "./zod/adminActivationSchema.js";
 export { admissionCreateSchema } from "./zod/admissionCreateSchema.js";
 export { admissionPublicSchema } from "./zod/admissionPublicSchema.js";
 export { ageingBucketPublicSchema } from "./zod/ageingBucketPublicSchema.js";
@@ -11957,6 +12563,28 @@ export {
   authAccountEmailCodeVerifyStatus422Schema,
   authAccountEmailCodeVerifyStatus429Schema,
 } from "./zod/authAccountEmailCodeVerifySchema.js";
+export {
+  authAdminActivateAccountBodySchema,
+  authAdminActivateAccountErrorSchema,
+  authAdminActivateAccountPathUserIdSchema,
+  authAdminActivateAccountResponseSchema,
+  authAdminActivateAccountStatus200Schema,
+  authAdminActivateAccountStatus403Schema,
+  authAdminActivateAccountStatus404Schema,
+  authAdminActivateAccountStatus409Schema,
+  authAdminActivateAccountStatus422Schema,
+} from "./zod/authAdminActivateAccountSchema.js";
+export {
+  authAdminResendVerificationBodySchema,
+  authAdminResendVerificationErrorSchema,
+  authAdminResendVerificationPathUserIdSchema,
+  authAdminResendVerificationResponseSchema,
+  authAdminResendVerificationStatus200Schema,
+  authAdminResendVerificationStatus403Schema,
+  authAdminResendVerificationStatus404Schema,
+  authAdminResendVerificationStatus409Schema,
+  authAdminResendVerificationStatus422Schema,
+} from "./zod/authAdminResendVerificationSchema.js";
 export {
   authAppEmailCodeStartBodySchema,
   authAppEmailCodeStartErrorSchema,
@@ -12825,9 +13453,14 @@ export { bookingAgendaDaySchema } from "./zod/bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./zod/bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./zod/bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./zod/bookingAvailabilitySchema.js";
+export { bookingEmailCodeConfirmSchema } from "./zod/bookingEmailCodeConfirmSchema.js";
+export { bookingEmailCodeRequestSchema } from "./zod/bookingEmailCodeRequestSchema.js";
+export { bookingEmailCodeSentSchema } from "./zod/bookingEmailCodeSentSchema.js";
+export { bookingEmailProofSchema } from "./zod/bookingEmailProofSchema.js";
 export { bookingExceptionCreateSchema } from "./zod/bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./zod/bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./zod/bookingExceptionPublicSchema.js";
+export { bookingManualDepositCreateSchema } from "./zod/bookingManualDepositCreateSchema.js";
 export { bookingMyOrganisationSchema } from "./zod/bookingMyOrganisationSchema.js";
 export { bookingOrderSchema } from "./zod/bookingOrderSchema.js";
 export { bookingProfilePublicSchema } from "./zod/bookingProfilePublicSchema.js";
@@ -12894,6 +13527,18 @@ export {
   bookingsCompleteStudioBookingStatus409Schema,
   bookingsCompleteStudioBookingStatus422Schema,
 } from "./zod/bookingsCompleteStudioBookingSchema.js";
+export {
+  bookingsConfirmEmailCodeBodySchema,
+  bookingsConfirmEmailCodeErrorSchema,
+  bookingsConfirmEmailCodePathSlugSchema,
+  bookingsConfirmEmailCodeResponseSchema,
+  bookingsConfirmEmailCodeStatus200Schema,
+  bookingsConfirmEmailCodeStatus400Schema,
+  bookingsConfirmEmailCodeStatus404Schema,
+  bookingsConfirmEmailCodeStatus422Schema,
+  bookingsConfirmEmailCodeStatus429Schema,
+  bookingsConfirmEmailCodeStatus503Schema,
+} from "./zod/bookingsConfirmEmailCodeSchema.js";
 export {
   bookingsConfirmStudioBookingErrorSchema,
   bookingsConfirmStudioBookingHeaderXBarrelsOrganisationSchema,
@@ -13172,6 +13817,21 @@ export {
   bookingsNoShowStudioBookingStatus422Schema,
 } from "./zod/bookingsNoShowStudioBookingSchema.js";
 export {
+  bookingsRecordManualDepositBodySchema,
+  bookingsRecordManualDepositErrorSchema,
+  bookingsRecordManualDepositHeaderIdempotencyKeySchema,
+  bookingsRecordManualDepositHeaderXBarrelsOrganisationSchema,
+  bookingsRecordManualDepositPathBookingIdSchema,
+  bookingsRecordManualDepositResponseSchema,
+  bookingsRecordManualDepositStatus200Schema,
+  bookingsRecordManualDepositStatus400Schema,
+  bookingsRecordManualDepositStatus401Schema,
+  bookingsRecordManualDepositStatus403Schema,
+  bookingsRecordManualDepositStatus404Schema,
+  bookingsRecordManualDepositStatus409Schema,
+  bookingsRecordManualDepositStatus422Schema,
+} from "./zod/bookingsRecordManualDepositSchema.js";
+export {
   bookingsReorderProvidersBodySchema,
   bookingsReorderProvidersErrorSchema,
   bookingsReorderProvidersHeaderXBarrelsOrganisationSchema,
@@ -13211,6 +13871,18 @@ export {
   bookingsReplaceWorkingHoursStatus409Schema,
   bookingsReplaceWorkingHoursStatus422Schema,
 } from "./zod/bookingsReplaceWorkingHoursSchema.js";
+export {
+  bookingsRequestEmailCodeBodySchema,
+  bookingsRequestEmailCodeErrorSchema,
+  bookingsRequestEmailCodePathSlugSchema,
+  bookingsRequestEmailCodeResponseSchema,
+  bookingsRequestEmailCodeStatus200Schema,
+  bookingsRequestEmailCodeStatus400Schema,
+  bookingsRequestEmailCodeStatus404Schema,
+  bookingsRequestEmailCodeStatus422Schema,
+  bookingsRequestEmailCodeStatus429Schema,
+  bookingsRequestEmailCodeStatus503Schema,
+} from "./zod/bookingsRequestEmailCodeSchema.js";
 export {
   bookingsReschedulePublicBookingBodySchema,
   bookingsReschedulePublicBookingErrorSchema,
@@ -13277,6 +13949,7 @@ export { calendarEventKindSchema } from "./zod/calendarEventKindSchema.js";
 export { calendarEventPublicSchema } from "./zod/calendarEventPublicSchema.js";
 export { calendarEventsPublicSchema } from "./zod/calendarEventsPublicSchema.js";
 export { calendarEventUpdateSchema } from "./zod/calendarEventUpdateSchema.js";
+export { cancelEventPropertiesRefundEnumSchema } from "./zod/cancelEventPropertiesRefundEnumSchema.js";
 export { cancelEventSchema } from "./zod/cancelEventSchema.js";
 export { cancelResultSchema } from "./zod/cancelResultSchema.js";
 export { capAlertActionSchema } from "./zod/capAlertActionSchema.js";
@@ -14047,6 +14720,31 @@ export {
   eventsAcceptConnectionStatus429Schema,
 } from "./zod/eventsAcceptConnectionSchema.js";
 export {
+  eventsAdminListEventsErrorSchema,
+  eventsAdminListEventsQueryFromSchema,
+  eventsAdminListEventsQueryOrganiserIdSchema,
+  eventsAdminListEventsQueryPageSchema,
+  eventsAdminListEventsQueryQSchema,
+  eventsAdminListEventsQuerySizeSchema,
+  eventsAdminListEventsQueryToSchema,
+  eventsAdminListEventsResponseSchema,
+  eventsAdminListEventsStatus200Schema,
+  eventsAdminListEventsStatus401Schema,
+  eventsAdminListEventsStatus403Schema,
+  eventsAdminListEventsStatus422Schema,
+} from "./zod/eventsAdminListEventsSchema.js";
+export {
+  eventsAdminListOrganisersErrorSchema,
+  eventsAdminListOrganisersQueryPageSchema,
+  eventsAdminListOrganisersQueryQSchema,
+  eventsAdminListOrganisersQuerySizeSchema,
+  eventsAdminListOrganisersResponseSchema,
+  eventsAdminListOrganisersStatus200Schema,
+  eventsAdminListOrganisersStatus401Schema,
+  eventsAdminListOrganisersStatus403Schema,
+  eventsAdminListOrganisersStatus422Schema,
+} from "./zod/eventsAdminListOrganisersSchema.js";
+export {
   eventsAdmitTicketBodySchema,
   eventsAdmitTicketErrorSchema,
   eventsAdmitTicketPathListingIdSchema,
@@ -14060,6 +14758,18 @@ export {
   eventsAdmitTicketStatus422Schema,
   eventsAdmitTicketStatus429Schema,
 } from "./zod/eventsAdmitTicketSchema.js";
+export {
+  eventsApproveOrganiserBodySchema,
+  eventsApproveOrganiserErrorSchema,
+  eventsApproveOrganiserPathOrganisationIdSchema,
+  eventsApproveOrganiserResponseSchema,
+  eventsApproveOrganiserStatus200Schema,
+  eventsApproveOrganiserStatus401Schema,
+  eventsApproveOrganiserStatus403Schema,
+  eventsApproveOrganiserStatus404Schema,
+  eventsApproveOrganiserStatus409Schema,
+  eventsApproveOrganiserStatus422Schema,
+} from "./zod/eventsApproveOrganiserSchema.js";
 export {
   eventsBlockMemberErrorSchema,
   eventsBlockMemberPathHandleSchema,
@@ -14368,6 +15078,16 @@ export {
   eventsGetThreadStatus429Schema,
 } from "./zod/eventsGetThreadSchema.js";
 export {
+  eventsGetVerificationCaseErrorSchema,
+  eventsGetVerificationCasePathOrganisationIdSchema,
+  eventsGetVerificationCaseResponseSchema,
+  eventsGetVerificationCaseStatus200Schema,
+  eventsGetVerificationCaseStatus401Schema,
+  eventsGetVerificationCaseStatus403Schema,
+  eventsGetVerificationCaseStatus404Schema,
+  eventsGetVerificationCaseStatus422Schema,
+} from "./zod/eventsGetVerificationCaseSchema.js";
+export {
   eventsJoinGroupErrorSchema,
   eventsJoinGroupPathSlugSchema,
   eventsJoinGroupResponseSchema,
@@ -14462,6 +15182,18 @@ export {
   eventsListThreadsStatus429Schema,
 } from "./zod/eventsListThreadsSchema.js";
 export {
+  eventsListVerificationCasesErrorSchema,
+  eventsListVerificationCasesQueryPageSchema,
+  eventsListVerificationCasesQuerySizeSchema,
+  eventsListVerificationCasesQueryStatusSchema,
+  eventsListVerificationCasesResponseSchema,
+  eventsListVerificationCasesStatus200Schema,
+  eventsListVerificationCasesStatus401Schema,
+  eventsListVerificationCasesStatus403Schema,
+  eventsListVerificationCasesStatus404Schema,
+  eventsListVerificationCasesStatus422Schema,
+} from "./zod/eventsListVerificationCasesSchema.js";
+export {
   eventsOpenThreadBodySchema,
   eventsOpenThreadErrorSchema,
   eventsOpenThreadResponseSchema,
@@ -14486,6 +15218,104 @@ export {
   eventsOpenTillStatus422Schema,
   eventsOpenTillStatus429Schema,
 } from "./zod/eventsOpenTillSchema.js";
+export {
+  eventsOrgCancelEventBodySchema,
+  eventsOrgCancelEventErrorSchema,
+  eventsOrgCancelEventHeaderXBarrelsOrganisationSchema,
+  eventsOrgCancelEventPathListingIdSchema,
+  eventsOrgCancelEventResponseSchema,
+  eventsOrgCancelEventStatus200Schema,
+  eventsOrgCancelEventStatus400Schema,
+  eventsOrgCancelEventStatus401Schema,
+  eventsOrgCancelEventStatus403Schema,
+  eventsOrgCancelEventStatus404Schema,
+  eventsOrgCancelEventStatus409Schema,
+  eventsOrgCancelEventStatus422Schema,
+} from "./zod/eventsOrgCancelEventSchema.js";
+export {
+  eventsOrgCancelOrderBodySchema,
+  eventsOrgCancelOrderErrorSchema,
+  eventsOrgCancelOrderHeaderXBarrelsOrganisationSchema,
+  eventsOrgCancelOrderPathOrderIdSchema,
+  eventsOrgCancelOrderResponseSchema,
+  eventsOrgCancelOrderStatus200Schema,
+  eventsOrgCancelOrderStatus400Schema,
+  eventsOrgCancelOrderStatus401Schema,
+  eventsOrgCancelOrderStatus403Schema,
+  eventsOrgCancelOrderStatus404Schema,
+  eventsOrgCancelOrderStatus409Schema,
+  eventsOrgCancelOrderStatus422Schema,
+} from "./zod/eventsOrgCancelOrderSchema.js";
+export {
+  eventsOrgGetOrderErrorSchema,
+  eventsOrgGetOrderHeaderXBarrelsOrganisationSchema,
+  eventsOrgGetOrderPathOrderIdSchema,
+  eventsOrgGetOrderResponseSchema,
+  eventsOrgGetOrderStatus200Schema,
+  eventsOrgGetOrderStatus401Schema,
+  eventsOrgGetOrderStatus403Schema,
+  eventsOrgGetOrderStatus404Schema,
+  eventsOrgGetOrderStatus422Schema,
+} from "./zod/eventsOrgGetOrderSchema.js";
+export {
+  eventsOrgListAttendeesErrorSchema,
+  eventsOrgListAttendeesHeaderXBarrelsOrganisationSchema,
+  eventsOrgListAttendeesPathListingIdSchema,
+  eventsOrgListAttendeesQueryPageSchema,
+  eventsOrgListAttendeesQuerySizeSchema,
+  eventsOrgListAttendeesQueryStatusSchema,
+  eventsOrgListAttendeesQueryTierIdSchema,
+  eventsOrgListAttendeesResponseSchema,
+  eventsOrgListAttendeesStatus200Schema,
+  eventsOrgListAttendeesStatus401Schema,
+  eventsOrgListAttendeesStatus403Schema,
+  eventsOrgListAttendeesStatus404Schema,
+  eventsOrgListAttendeesStatus422Schema,
+} from "./zod/eventsOrgListAttendeesSchema.js";
+export {
+  eventsOrgListOrdersErrorSchema,
+  eventsOrgListOrdersHeaderXBarrelsOrganisationSchema,
+  eventsOrgListOrdersPathListingIdSchema,
+  eventsOrgListOrdersQueryPageSchema,
+  eventsOrgListOrdersQuerySizeSchema,
+  eventsOrgListOrdersQueryStatusSchema,
+  eventsOrgListOrdersResponseSchema,
+  eventsOrgListOrdersStatus200Schema,
+  eventsOrgListOrdersStatus401Schema,
+  eventsOrgListOrdersStatus403Schema,
+  eventsOrgListOrdersStatus404Schema,
+  eventsOrgListOrdersStatus422Schema,
+} from "./zod/eventsOrgListOrdersSchema.js";
+export {
+  eventsOrgRecordManualPaymentBodySchema,
+  eventsOrgRecordManualPaymentErrorSchema,
+  eventsOrgRecordManualPaymentHeaderIdempotencyKeySchema,
+  eventsOrgRecordManualPaymentHeaderXBarrelsOrganisationSchema,
+  eventsOrgRecordManualPaymentPathOrderIdSchema,
+  eventsOrgRecordManualPaymentResponseSchema,
+  eventsOrgRecordManualPaymentStatus201Schema,
+  eventsOrgRecordManualPaymentStatus400Schema,
+  eventsOrgRecordManualPaymentStatus401Schema,
+  eventsOrgRecordManualPaymentStatus403Schema,
+  eventsOrgRecordManualPaymentStatus404Schema,
+  eventsOrgRecordManualPaymentStatus409Schema,
+  eventsOrgRecordManualPaymentStatus422Schema,
+} from "./zod/eventsOrgRecordManualPaymentSchema.js";
+export {
+  eventsOrgRefundOrderBodySchema,
+  eventsOrgRefundOrderErrorSchema,
+  eventsOrgRefundOrderHeaderIdempotencyKeySchema,
+  eventsOrgRefundOrderHeaderXBarrelsOrganisationSchema,
+  eventsOrgRefundOrderPathOrderIdSchema,
+  eventsOrgRefundOrderResponseSchema,
+  eventsOrgRefundOrderStatus201Schema,
+  eventsOrgRefundOrderStatus400Schema,
+  eventsOrgRefundOrderStatus401Schema,
+  eventsOrgRefundOrderStatus403Schema,
+  eventsOrgRefundOrderStatus404Schema,
+  eventsOrgRefundOrderStatus409Schema,
+  eventsOrgRefundOrderStatus422Schema,
+} from "./zod/eventsOrgRefundOrderSchema.js";
 export {
   eventsPostponeEventBodySchema,
   eventsPostponeEventErrorSchema,
@@ -14515,6 +15345,18 @@ export {
   eventsRefundTicketStatus422Schema,
   eventsRefundTicketStatus429Schema,
 } from "./zod/eventsRefundTicketSchema.js";
+export {
+  eventsRejectOrganiserBodySchema,
+  eventsRejectOrganiserErrorSchema,
+  eventsRejectOrganiserPathOrganisationIdSchema,
+  eventsRejectOrganiserResponseSchema,
+  eventsRejectOrganiserStatus200Schema,
+  eventsRejectOrganiserStatus401Schema,
+  eventsRejectOrganiserStatus403Schema,
+  eventsRejectOrganiserStatus404Schema,
+  eventsRejectOrganiserStatus409Schema,
+  eventsRejectOrganiserStatus422Schema,
+} from "./zod/eventsRejectOrganiserSchema.js";
 export {
   eventsRemoveConnectionErrorSchema,
   eventsRemoveConnectionPathConnectionIdSchema,
@@ -14548,6 +15390,18 @@ export {
   eventsRequestOrganiserStatus429Schema,
 } from "./zod/eventsRequestOrganiserSchema.js";
 export {
+  eventsResubmitOrganiserErrorSchema,
+  eventsResubmitOrganiserQueryOrganiserSchema,
+  eventsResubmitOrganiserResponseSchema,
+  eventsResubmitOrganiserStatus200Schema,
+  eventsResubmitOrganiserStatus401Schema,
+  eventsResubmitOrganiserStatus403Schema,
+  eventsResubmitOrganiserStatus404Schema,
+  eventsResubmitOrganiserStatus409Schema,
+  eventsResubmitOrganiserStatus422Schema,
+  eventsResubmitOrganiserStatus429Schema,
+} from "./zod/eventsResubmitOrganiserSchema.js";
+export {
   eventsReviewOrganiserBodySchema,
   eventsReviewOrganiserErrorSchema,
   eventsReviewOrganiserPathOrganiserIdSchema,
@@ -14556,6 +15410,7 @@ export {
   eventsReviewOrganiserStatus401Schema,
   eventsReviewOrganiserStatus403Schema,
   eventsReviewOrganiserStatus404Schema,
+  eventsReviewOrganiserStatus409Schema,
   eventsReviewOrganiserStatus422Schema,
   eventsReviewOrganiserStatus429Schema,
 } from "./zod/eventsReviewOrganiserSchema.js";
@@ -16648,6 +17503,8 @@ export { marineRowSchema } from "./zod/marineRowSchema.js";
 export { memberListPublicSchema } from "./zod/memberListPublicSchema.js";
 export { memberPublicSchema } from "./zod/memberPublicSchema.js";
 export { memberRoleUpdateSchema } from "./zod/memberRoleUpdateSchema.js";
+export { membershipGrantCreateSchema } from "./zod/membershipGrantCreateSchema.js";
+export { membershipGrantPublicSchema } from "./zod/membershipGrantPublicSchema.js";
 export { membershipRoleSchema } from "./zod/membershipRoleSchema.js";
 export { membershipStatusSchema } from "./zod/membershipStatusSchema.js";
 export { messageCreateSchema } from "./zod/messageCreateSchema.js";
@@ -16870,6 +17727,8 @@ export { orderCreateSchema } from "./zod/orderCreateSchema.js";
 export { orderItemInputSchema } from "./zod/orderItemInputSchema.js";
 export { orderPublicPropertiesStatusEnumSchema } from "./zod/orderPublicPropertiesStatusEnumSchema.js";
 export { orderPublicSchema } from "./zod/orderPublicSchema.js";
+export { orgAttendeePropertiesStatusEnumSchema } from "./zod/orgAttendeePropertiesStatusEnumSchema.js";
+export { orgAttendeeSchema } from "./zod/orgAttendeeSchema.js";
 export { organisationAdminDetailSchema } from "./zod/organisationAdminDetailSchema.js";
 export { organisationAdminListPublicSchema } from "./zod/organisationAdminListPublicSchema.js";
 export { organisationAdminPublicSchema } from "./zod/organisationAdminPublicSchema.js";
@@ -16891,6 +17750,18 @@ export {
   organisationsAcceptInvitationStatus403Schema,
   organisationsAcceptInvitationStatus422Schema,
 } from "./zod/organisationsAcceptInvitationSchema.js";
+export {
+  organisationsAddMemberAdminBodySchema,
+  organisationsAddMemberAdminErrorSchema,
+  organisationsAddMemberAdminPathOrganisationIdSchema,
+  organisationsAddMemberAdminResponseSchema,
+  organisationsAddMemberAdminStatus201Schema,
+  organisationsAddMemberAdminStatus401Schema,
+  organisationsAddMemberAdminStatus403Schema,
+  organisationsAddMemberAdminStatus404Schema,
+  organisationsAddMemberAdminStatus409Schema,
+  organisationsAddMemberAdminStatus422Schema,
+} from "./zod/organisationsAddMemberAdminSchema.js";
 export {
   organisationsCreateAdminSiteBodySchema,
   organisationsCreateAdminSiteErrorSchema,
@@ -16939,6 +17810,19 @@ export {
   organisationsCreateOneStatus422Schema,
 } from "./zod/organisationsCreateOneSchema.js";
 export {
+  organisationsDeleteMemberAdminBodySchema,
+  organisationsDeleteMemberAdminErrorSchema,
+  organisationsDeleteMemberAdminPathMembershipIdSchema,
+  organisationsDeleteMemberAdminPathOrganisationIdSchema,
+  organisationsDeleteMemberAdminResponseSchema,
+  organisationsDeleteMemberAdminStatus204Schema,
+  organisationsDeleteMemberAdminStatus401Schema,
+  organisationsDeleteMemberAdminStatus403Schema,
+  organisationsDeleteMemberAdminStatus404Schema,
+  organisationsDeleteMemberAdminStatus409Schema,
+  organisationsDeleteMemberAdminStatus422Schema,
+} from "./zod/organisationsDeleteMemberAdminSchema.js";
+export {
   organisationsDeleteMemberErrorSchema,
   organisationsDeleteMemberHeaderXBarrelsOrganisationSchema,
   organisationsDeleteMemberPathMembershipIdSchema,
@@ -16981,6 +17865,20 @@ export {
   organisationsGetPublicSiteStatus404Schema,
   organisationsGetPublicSiteStatus422Schema,
 } from "./zod/organisationsGetPublicSiteSchema.js";
+export {
+  organisationsGrantMemberRoleBodySchema,
+  organisationsGrantMemberRoleErrorSchema,
+  organisationsGrantMemberRoleHeaderXBarrelsOrganisationSchema,
+  organisationsGrantMemberRolePathMembershipIdSchema,
+  organisationsGrantMemberRoleResponseSchema,
+  organisationsGrantMemberRoleStatus201Schema,
+  organisationsGrantMemberRoleStatus400Schema,
+  organisationsGrantMemberRoleStatus401Schema,
+  organisationsGrantMemberRoleStatus403Schema,
+  organisationsGrantMemberRoleStatus404Schema,
+  organisationsGrantMemberRoleStatus409Schema,
+  organisationsGrantMemberRoleStatus422Schema,
+} from "./zod/organisationsGrantMemberRoleSchema.js";
 export {
   organisationsKeyInfoErrorSchema,
   organisationsKeyInfoResponseSchema,
@@ -17047,6 +17945,28 @@ export {
   organisationsListInvitationsStatus422Schema,
 } from "./zod/organisationsListInvitationsSchema.js";
 export {
+  organisationsListIssuedGrantsErrorSchema,
+  organisationsListIssuedGrantsHeaderXBarrelsOrganisationSchema,
+  organisationsListIssuedGrantsPathMembershipIdSchema,
+  organisationsListIssuedGrantsResponseSchema,
+  organisationsListIssuedGrantsStatus200Schema,
+  organisationsListIssuedGrantsStatus401Schema,
+  organisationsListIssuedGrantsStatus403Schema,
+  organisationsListIssuedGrantsStatus404Schema,
+  organisationsListIssuedGrantsStatus422Schema,
+} from "./zod/organisationsListIssuedGrantsSchema.js";
+export {
+  organisationsListMemberGrantsErrorSchema,
+  organisationsListMemberGrantsHeaderXBarrelsOrganisationSchema,
+  organisationsListMemberGrantsPathMembershipIdSchema,
+  organisationsListMemberGrantsResponseSchema,
+  organisationsListMemberGrantsStatus200Schema,
+  organisationsListMemberGrantsStatus401Schema,
+  organisationsListMemberGrantsStatus403Schema,
+  organisationsListMemberGrantsStatus404Schema,
+  organisationsListMemberGrantsStatus422Schema,
+} from "./zod/organisationsListMemberGrantsSchema.js";
+export {
   organisationsListMembersAdminErrorSchema,
   organisationsListMembersAdminPathOrganisationIdSchema,
   organisationsListMembersAdminQueryPageSchema,
@@ -17106,6 +18026,38 @@ export {
   organisationsListOrgSitesStatus422Schema,
 } from "./zod/organisationsListOrgSitesSchema.js";
 export {
+  organisationsListRoleBundlesErrorSchema,
+  organisationsListRoleBundlesHeaderXBarrelsOrganisationSchema,
+  organisationsListRoleBundlesResponseSchema,
+  organisationsListRoleBundlesStatus200Schema,
+  organisationsListRoleBundlesStatus401Schema,
+  organisationsListRoleBundlesStatus403Schema,
+  organisationsListRoleBundlesStatus404Schema,
+  organisationsListRoleBundlesStatus422Schema,
+} from "./zod/organisationsListRoleBundlesSchema.js";
+export {
+  organisationsListTeamMembersErrorSchema,
+  organisationsListTeamMembersHeaderXBarrelsOrganisationSchema,
+  organisationsListTeamMembersQueryPageSchema,
+  organisationsListTeamMembersQuerySizeSchema,
+  organisationsListTeamMembersResponseSchema,
+  organisationsListTeamMembersStatus200Schema,
+  organisationsListTeamMembersStatus401Schema,
+  organisationsListTeamMembersStatus403Schema,
+  organisationsListTeamMembersStatus404Schema,
+  organisationsListTeamMembersStatus422Schema,
+} from "./zod/organisationsListTeamMembersSchema.js";
+export {
+  organisationsMyTeamCapabilitiesErrorSchema,
+  organisationsMyTeamCapabilitiesHeaderXBarrelsOrganisationSchema,
+  organisationsMyTeamCapabilitiesResponseSchema,
+  organisationsMyTeamCapabilitiesStatus200Schema,
+  organisationsMyTeamCapabilitiesStatus401Schema,
+  organisationsMyTeamCapabilitiesStatus403Schema,
+  organisationsMyTeamCapabilitiesStatus404Schema,
+  organisationsMyTeamCapabilitiesStatus422Schema,
+} from "./zod/organisationsMyTeamCapabilitiesSchema.js";
+export {
   organisationsRevokeAdminApiKeyErrorSchema,
   organisationsRevokeAdminApiKeyPathKeyIdSchema,
   organisationsRevokeAdminApiKeyResponseSchema,
@@ -17129,6 +18081,19 @@ export {
   organisationsRevokeInvitationStatus409Schema,
   organisationsRevokeInvitationStatus422Schema,
 } from "./zod/organisationsRevokeInvitationSchema.js";
+export {
+  organisationsRevokeMemberGrantErrorSchema,
+  organisationsRevokeMemberGrantHeaderXBarrelsOrganisationSchema,
+  organisationsRevokeMemberGrantPathGrantIdSchema,
+  organisationsRevokeMemberGrantResponseSchema,
+  organisationsRevokeMemberGrantStatus200Schema,
+  organisationsRevokeMemberGrantStatus400Schema,
+  organisationsRevokeMemberGrantStatus401Schema,
+  organisationsRevokeMemberGrantStatus403Schema,
+  organisationsRevokeMemberGrantStatus404Schema,
+  organisationsRevokeMemberGrantStatus409Schema,
+  organisationsRevokeMemberGrantStatus422Schema,
+} from "./zod/organisationsRevokeMemberGrantSchema.js";
 export {
   organisationsRevokeOrgApiKeyErrorSchema,
   organisationsRevokeOrgApiKeyHeaderXBarrelsOrganisationSchema,
@@ -17191,6 +18156,19 @@ export {
   organisationsUpdateAdminSiteStatus422Schema,
 } from "./zod/organisationsUpdateAdminSiteSchema.js";
 export {
+  organisationsUpdateMemberAdminBodySchema,
+  organisationsUpdateMemberAdminErrorSchema,
+  organisationsUpdateMemberAdminPathMembershipIdSchema,
+  organisationsUpdateMemberAdminPathOrganisationIdSchema,
+  organisationsUpdateMemberAdminResponseSchema,
+  organisationsUpdateMemberAdminStatus200Schema,
+  organisationsUpdateMemberAdminStatus401Schema,
+  organisationsUpdateMemberAdminStatus403Schema,
+  organisationsUpdateMemberAdminStatus404Schema,
+  organisationsUpdateMemberAdminStatus409Schema,
+  organisationsUpdateMemberAdminStatus422Schema,
+} from "./zod/organisationsUpdateMemberAdminSchema.js";
+export {
   organisationsUpdateMemberBodySchema,
   organisationsUpdateMemberErrorSchema,
   organisationsUpdateMemberHeaderXBarrelsOrganisationSchema,
@@ -17235,11 +18213,24 @@ export { organiserLogoUpdateSchema } from "./zod/organiserLogoUpdateSchema.js";
 export { organiserOptionSchema } from "./zod/organiserOptionSchema.js";
 export { organiserPublicSchema } from "./zod/organiserPublicSchema.js";
 export { organiserReviewSchema } from "./zod/organiserReviewSchema.js";
+export { orgEventCancelSchema } from "./zod/orgEventCancelSchema.js";
+export { orgManualPaymentCreatePropertiesMethodEnumSchema } from "./zod/orgManualPaymentCreatePropertiesMethodEnumSchema.js";
+export { orgManualPaymentCreateSchema } from "./zod/orgManualPaymentCreateSchema.js";
+export { orgOrderCancelResultPropertiesRefundOutcomeEnumSchema } from "./zod/orgOrderCancelResultPropertiesRefundOutcomeEnumSchema.js";
+export { orgOrderCancelResultSchema } from "./zod/orgOrderCancelResultSchema.js";
+export { orgOrderCancelSchema } from "./zod/orgOrderCancelSchema.js";
+export { orgOrderDetailPropertiesPaymentMethodEnumSchema } from "./zod/orgOrderDetailPropertiesPaymentMethodEnumSchema.js";
+export { orgOrderDetailPropertiesRefundStatusEnumSchema } from "./zod/orgOrderDetailPropertiesRefundStatusEnumSchema.js";
+export { orgOrderDetailSchema } from "./zod/orgOrderDetailSchema.js";
+export { orgOrderItemSchema } from "./zod/orgOrderItemSchema.js";
+export { orgOrderPaymentSchema } from "./zod/orgOrderPaymentSchema.js";
+export { orgOrderRefundCreateSchema } from "./zod/orgOrderRefundCreateSchema.js";
+export { orgOrderRowSchema } from "./zod/orgOrderRowSchema.js";
+export { orgOrderTicketSchema } from "./zod/orgOrderTicketSchema.js";
 export { outletItemInputSchema } from "./zod/outletItemInputSchema.js";
 export { outletOverviewSchema } from "./zod/outletOverviewSchema.js";
 export { outletSaleCreateSchema } from "./zod/outletSaleCreateSchema.js";
 export { outletSaleSchema } from "./zod/outletSaleSchema.js";
-export { outletTicketPropertiesStatusEnumSchema } from "./zod/outletTicketPropertiesStatusEnumSchema.js";
 export { outletTicketSchema } from "./zod/outletTicketSchema.js";
 export { outletTierStockSchema } from "./zod/outletTierStockSchema.js";
 export { outlookProductPreviewInputSchema } from "./zod/outlookProductPreviewInputSchema.js";
@@ -17251,8 +18242,12 @@ export { pageFeedbackAcceptedSchema } from "./zod/pageFeedbackAcceptedSchema.js"
 export { pageFeedbackCreateSchema } from "./zod/pageFeedbackCreateSchema.js";
 export { paginatedResponseAuditEntryPublicSchema } from "./zod/paginatedResponseAuditEntryPublicSchema.js";
 export { paginatedResponseNotificationPublicSchema } from "./zod/paginatedResponseNotificationPublicSchema.js";
+export { paginatedResponseOrgAttendeeSchema } from "./zod/paginatedResponseOrgAttendeeSchema.js";
+export { paginatedResponseOrgOrderRowSchema } from "./zod/paginatedResponseOrgOrderRowSchema.js";
 export { paginatedResponsePermissionPublicSchema } from "./zod/paginatedResponsePermissionPublicSchema.js";
 export { paginatedResponseRolePublicSchema } from "./zod/paginatedResponseRolePublicSchema.js";
+export { paginatedResponseStaffEventRowSchema } from "./zod/paginatedResponseStaffEventRowSchema.js";
+export { paginatedResponseStaffOrganiserRowSchema } from "./zod/paginatedResponseStaffOrganiserRowSchema.js";
 export { paginatedResponseUserPublicSchema } from "./zod/paginatedResponseUserPublicSchema.js";
 export { parishSchema } from "./zod/parishSchema.js";
 export { parkingActionSchema } from "./zod/parkingActionSchema.js";
@@ -17433,6 +18428,9 @@ export { personChipSchema } from "./zod/personChipSchema.js";
 export { personnelStatusSchema } from "./zod/personnelStatusSchema.js";
 export { personSuggestionSchema } from "./zod/personSuggestionSchema.js";
 export { plansPublicSchema } from "./zod/plansPublicSchema.js";
+export { platformMemberAddSchema } from "./zod/platformMemberAddSchema.js";
+export { platformMemberRemoveSchema } from "./zod/platformMemberRemoveSchema.js";
+export { platformMemberRoleUpdateSchema } from "./zod/platformMemberRoleUpdateSchema.js";
 export { platformOrganisationCreateSchema } from "./zod/platformOrganisationCreateSchema.js";
 export { platformOrganisationUpdateSchema } from "./zod/platformOrganisationUpdateSchema.js";
 export { policyInputSchema } from "./zod/policyInputSchema.js";
@@ -17518,6 +18516,7 @@ export {
   pushVapidPublicKeyStatus422Schema,
 } from "./zod/pushVapidPublicKeySchema.js";
 export { qcDecisionRequestSchema } from "./zod/qcDecisionRequestSchema.js";
+export { readinessUnavailableSchema } from "./zod/readinessUnavailableSchema.js";
 export { receivableRowPublicSchema } from "./zod/receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./zod/receivablesPublicSchema.js";
 export { recoveryCodesPublicSchema } from "./zod/recoveryCodesPublicSchema.js";
@@ -18098,6 +19097,7 @@ export {
   rewardsWithdrawFromLeaderboardStatus422Schema,
 } from "./zod/rewardsWithdrawFromLeaderboardSchema.js";
 export { roleAssignmentScopeSchema } from "./zod/roleAssignmentScopeSchema.js";
+export { roleBundlePublicSchema } from "./zod/roleBundlePublicSchema.js";
 export { roleConfigurationSchema } from "./zod/roleConfigurationSchema.js";
 export { roleCreateSchema } from "./zod/roleCreateSchema.js";
 export { rolePermissionsInputSchema } from "./zod/rolePermissionsInputSchema.js";
@@ -18187,7 +19187,9 @@ export { signedDocumentPublicSchema } from "./zod/signedDocumentPublicSchema.js"
 export { siteSubscribeRequestSchema } from "./zod/siteSubscribeRequestSchema.js";
 export { staffCardSchema } from "./zod/staffCardSchema.js";
 export { staffCreateSchema } from "./zod/staffCreateSchema.js";
+export { staffEventRowSchema } from "./zod/staffEventRowSchema.js";
 export { staffInputSchema } from "./zod/staffInputSchema.js";
+export { staffOrganiserRowSchema } from "./zod/staffOrganiserRowSchema.js";
 export { staffSetupSchema } from "./zod/staffSetupSchema.js";
 export { staffUpdateSchema } from "./zod/staffUpdateSchema.js";
 export { statusReportCreateSchema } from "./zod/statusReportCreateSchema.js";
@@ -18522,6 +19524,7 @@ export { suggestionPublicPropertiesStatusEnumSchema } from "./zod/suggestionPubl
 export { suggestionPublicSchema } from "./zod/suggestionPublicSchema.js";
 export { suggestionUpdatePropertiesStatusEnumSchema } from "./zod/suggestionUpdatePropertiesStatusEnumSchema.js";
 export { suggestionUpdateSchema } from "./zod/suggestionUpdateSchema.js";
+export { superuserActionReasonSchema } from "./zod/superuserActionReasonSchema.js";
 export { swapTypeSchema } from "./zod/swapTypeSchema.js";
 export { synopDecodedSchema } from "./zod/synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./zod/synopticImageGroupSchema.js";
@@ -18534,6 +19537,10 @@ export { synopWorkbookSchema } from "./zod/synopWorkbookSchema.js";
 export { taskCreateSchema } from "./zod/taskCreateSchema.js";
 export { taskUpdateSchema } from "./zod/taskUpdateSchema.js";
 export { taskViewSchema } from "./zod/taskViewSchema.js";
+export { teamCapabilitiesPublicSchema } from "./zod/teamCapabilitiesPublicSchema.js";
+export { teamMemberGrantPublicSchema } from "./zod/teamMemberGrantPublicSchema.js";
+export { teamMemberListPublicSchema } from "./zod/teamMemberListPublicSchema.js";
+export { teamMemberPublicSchema } from "./zod/teamMemberPublicSchema.js";
 export { threadCreateSchema } from "./zod/threadCreateSchema.js";
 export { threadDetailPropertiesKindEnumSchema } from "./zod/threadDetailPropertiesKindEnumSchema.js";
 export { threadDetailSchema } from "./zod/threadDetailSchema.js";
@@ -18818,7 +19825,17 @@ export {
 export { validationErrorItemSchema } from "./zod/validationErrorItemSchema.js";
 export { validationErrorResponseSchema } from "./zod/validationErrorResponseSchema.js";
 export { vapidPublicKeySchema } from "./zod/vapidPublicKeySchema.js";
+export { verificationApprovalSchema } from "./zod/verificationApprovalSchema.js";
+export { verificationCaseDetailSchema } from "./zod/verificationCaseDetailSchema.js";
+export { verificationCaseEventSchema } from "./zod/verificationCaseEventSchema.js";
+export { verificationCaseListSchema } from "./zod/verificationCaseListSchema.js";
+export { verificationCaseOwnerPropertiesRoleEnumSchema } from "./zod/verificationCaseOwnerPropertiesRoleEnumSchema.js";
+export { verificationCaseOwnerSchema } from "./zod/verificationCaseOwnerSchema.js";
+export { verificationCaseSchema } from "./zod/verificationCaseSchema.js";
 export { verificationDecisionSchema } from "./zod/verificationDecisionSchema.js";
+export { verificationRejectionSchema } from "./zod/verificationRejectionSchema.js";
+export { verificationResendSchema } from "./zod/verificationResendSchema.js";
+export { verificationStatusSchema } from "./zod/verificationStatusSchema.js";
 export { weatherImageSchema } from "./zod/weatherImageSchema.js";
 export { webhookAdminDisableSchema } from "./zod/webhookAdminDisableSchema.js";
 export { webhookDeliveryListSchema } from "./zod/webhookDeliveryListSchema.js";

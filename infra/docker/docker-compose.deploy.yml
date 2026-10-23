@@ -158,7 +158,7 @@ services:
       RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
       EMAIL_RENDER_URL: ${EMAIL_RENDER_URL:-}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
-      NOTIFICATIONS_WEB_BASE_URL: https://admin.${BASE_DOMAIN}
+      NOTIFICATIONS_WEB_BASE_URL: https://gms.${BASE_DOMAIN}
       NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS: ${NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS?Render notification policy before deployment}
       CAP_SIGNING_CERT: ${CAP_SIGNING_CERT:-}
       CAP_SIGNING_KEY: ${CAP_SIGNING_KEY:-}
@@ -173,8 +173,12 @@ services:
       GMSDASH_SSO_CLIENT_SECRET: ${GMSDASH_SSO_CLIENT_SECRET:-}
       BOOKINGS_APP_URL: https://bookings.${BASE_DOMAIN}
       BOOKINGS_SSO_CLIENT_SECRET: ${BOOKINGS_SSO_CLIENT_SECRET:-}
-      GAA_ADMIN_APP_URL: https://admin.${BASE_DOMAIN}
+      GAA_ADMIN_APP_URL: https://gms.${BASE_DOMAIN}
       GAA_ADMIN_SSO_CLIENT_SECRET: ${GAA_ADMIN_SSO_CLIENT_SECRET:?GAA_ADMIN_SSO_CLIENT_SECRET required}
+      # Barrels staff console (apps/web/admin, registry key barrels-admin,
+      # superusers only). Empty secret keeps its sign-in off.
+      BARRELS_ADMIN_APP_URL: https://admin.${BASE_DOMAIN}
+      BARRELS_ADMIN_SSO_CLIENT_SECRET: ${BARRELS_ADMIN_SSO_CLIENT_SECRET:-}
       CMS_APP_URL: https://cms.${BASE_DOMAIN}
       CMS_SSO_CLIENT_SECRET: ${CMS_SSO_CLIENT_SECRET:?CMS_SSO_CLIENT_SECRET required}
       # Public sites with "Sign in" (optional; empty keeps it off per site).
@@ -337,7 +341,7 @@ services:
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       EMAIL_RENDER_URL: ${EMAIL_RENDER_URL:-}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
-      NOTIFICATIONS_WEB_BASE_URL: https://admin.${BASE_DOMAIN}
+      NOTIFICATIONS_WEB_BASE_URL: https://gms.${BASE_DOMAIN}
       NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS: ${NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS?Render notification policy before deployment}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
@@ -470,14 +474,21 @@ services:
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       AUTH_API_URL: http://api:8000
-      ADMIN_APP_URL: https://admin.${BASE_DOMAIN}
+      ADMIN_APP_URL: https://gms.${BASE_DOMAIN}
+      BARRELS_ADMIN_APP_URL: https://admin.${BASE_DOMAIN}
       DOCS_APP_URL: https://docs.${BASE_DOMAIN}
       GMS_APP_URL: https://weather.${BASE_DOMAIN}
       SIGNAL_APP_URL: https://signal.${BASE_DOMAIN}
       MBIA_APP_URL: https://mbia.${BASE_DOMAIN}
       EVENTS_APP_URL: https://events.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
-      AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
+      # Sign-in returns only to exact origins (ADR-0043 decision 5); a leading-dot
+      # entry such as ".${BASE_DOMAIN}" is ignored. The *_APP_URL values above are
+      # honoured as they are; every other app that signs in here is named, so a user
+      # lands back in it instead of on this app's home page. Each one must match its
+      # entry in the api service. scripts/production/auth-return-origins.test.mjs
+      # checks the two lists agree. EXTRA_RETURN_HOSTS, if set, must start with a comma.
+      AUTH_ALLOWED_RETURN_HOSTS: https://admin.${BASE_DOMAIN},https://bookings.${BASE_DOMAIN},https://cms.${BASE_DOMAIN},https://elections.${BASE_DOMAIN},https://gmsdash.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.rule=Host(`auth.${BASE_DOMAIN}`)"
@@ -487,7 +498,40 @@ services:
     networks:
       - grenmet
 
+  # Router and service labels use new names (web-barrels-admin, web-gms-portal)
+  # that no earlier container defines, so the first rolling deploy never has two
+  # containers defining one router differently (the old web-admin was gaa-admin).
+  # Barrels staff / superuser control plane (apps/web/admin, ADR-0039) at
+  # admin.${BASE_DOMAIN}. Calls FastAPI only; no database credentials.
   web-admin:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-admin:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3012/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    environment:
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
+      AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      AUTH_API_URL: http://api:8000
+      AUTH_API_V1_STR: /api/v1
+      BARRELS_ADMIN_SSO_CLIENT_SECRET: ${BARRELS_ADMIN_SSO_CLIENT_SECRET:-}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-barrels-admin${ROUTER_SUFFIX}.rule=Host(`admin.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-barrels-admin${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-barrels-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-barrels-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3012"
+      - "traefik.http.services.web-barrels-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/health"
+    networks:
+      - grenmet
+
+  # GMS/GAA staff portal (apps/web/gaa-admin) for the Met office, served at
+  # gms.${BASE_DOMAIN} (hostname only: apps/web/gms is the public weather site).
+  web-gmsadmin:
     logging: *bounded-logging
     image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-gaa-admin:${WEB_TAG}
     restart: always
@@ -496,7 +540,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
-      # web-admin's readiness check queries FastAPI and both weather-product
+      # The readiness check queries FastAPI and both weather-product
       # services. Give migrations and API startup time to complete before probing.
       start_period: 120s
     environment:
@@ -516,17 +560,14 @@ services:
       CAP_API_URL: http://api:8000
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.rule=Host(`admin.${BASE_DOMAIN}`)"
-      - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
-      - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
-      # gmsadmin.* is the portal's new host (2026-10-18); a separate router keeps
-      # its certificate independent, so a missing DNS record cannot break admin.*.
-      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.rule=Host(`gmsadmin.${BASE_DOMAIN}`)"
-      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.service=web-admin${ROUTER_SUFFIX}"
+      # Hostname gms.* is the Met office portal; the public weather site is the
+      # separate web-gms service at weather.*.
+      - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.rule=Host(`gms.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.service=web-gms-portal${ROUTER_SUFFIX}"
+      - "traefik.http.services.web-gms-portal${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
+      - "traefik.http.services.web-gms-portal${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
     networks:
       - grenmet
 
@@ -836,6 +877,13 @@ networks:
   # after the first deploy and can be pruned.)
   grenmet:
     driver: bridge
+    # Pinned so uvicorn (--forwarded-allow-ips in apps/api/fastapi/Dockerfile.prod)
+    # can trust X-Forwarded-* from this subnet only. Keep the two in sync;
+    # scripts/production/forwarded-allow-ips.test.mjs enforces it. The last
+    # /16 of Docker's default 172.x pool range is the least likely to collide.
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
 
 volumes:
   nhc-archive:

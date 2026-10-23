@@ -192,10 +192,10 @@ async def test_suspend_blocks_org_context_and_reactivate_restores_it(
 
 
 async def test_verify_and_unverify_need_a_reason_and_record_it(
-    async_client: httpx.AsyncClient, db_async: AsyncSession
+    async_client: httpx.AsyncClient, db_async: AsyncSession, mfa_admin
 ):
-    admin, _, org = await _actors(db_async)
-    headers = headers_for(admin)
+    _, _, org = await _actors(db_async)
+    admin, headers = await mfa_admin()
     assert (
         await async_client.post(f"{URL}/{org.id}/verify", json={}, headers=headers)
     ).status_code == 422

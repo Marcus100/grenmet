@@ -12,5 +12,6 @@ export const onboardingStatusSchema = z.object({
   password_setup_pending: z.boolean(),
   activation_pending: z.boolean(),
   can_issue_activation: z.boolean(),
+  admin_activated: z.boolean().optional().default(false),
   apps: z.array(appAccessStatusSchema),
 });

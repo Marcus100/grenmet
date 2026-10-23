@@ -40,6 +40,7 @@ src/app/
 
 ## Key conventions
 
+- A page-level form that submits only through `onSubmit` (`SignUpForm`, `change-password-form`) disables its submit until `useHydrated()` (`src/lib/use-hydrated.ts`) is true; before hydration a native submit would be a GET that puts passwords and personal data in the URL. Keep typed values after a refusal (rules: `docs/agents/extended-rules.md`, Form patterns).
 - `AUTH_ALLOWED_RETURN_HOSTS` controls which hosts are valid redirect targets after sign-in. Never redirect to an unvalidated host — always go through `getSafeLocalReturnTo()`.
 - `buildSharedSignInUrl()` from `@barrelsgd/auth/server` is what other apps use to redirect here. Do not construct the URL manually.
 - The account session lives in a host-only `AUTH_SESSION_COOKIE_NAME` cookie (`auth_session`). Other apps never read it; they get their own session through `/continue` (ADR-0017). Signing out here signs out of every app.

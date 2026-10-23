@@ -1,13 +1,29 @@
 import { ResponseError } from "@barrelsgd/api-client";
 import type { BookingInput } from "@barrelsgd/bookings-web/lib/booking-types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createBooking, getAvailability } from "@/lib/booking-api";
-import { loadSlots, submitBooking } from "./actions";
+import {
+  confirmEmailCode as confirmCode,
+  createBooking,
+  getAvailability,
+  requestEmailCode as requestCode,
+} from "@/lib/booking-api";
+import { reportError } from "@/lib/report-error";
+import { getSession } from "@/lib/session";
+import {
+  confirmEmailCode,
+  loadSlots,
+  requestEmailCode,
+  submitBooking,
+} from "./actions";
 
 vi.mock("@/lib/booking-api", () => ({
   getAvailability: vi.fn(),
   createBooking: vi.fn(),
+  requestEmailCode: vi.fn(),
+  confirmEmailCode: vi.fn(),
 }));
+vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
+vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 
 const SLUG = "sea-salt-spa";
 
@@ -36,6 +52,7 @@ function apiError(status: number, detail: string) {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(getSession).mockResolvedValue(null);
 });
 
 describe("submitBooking", () => {
@@ -68,7 +85,8 @@ describe("submitBooking", () => {
         customer_email: "ada@example.com",
         marketing_consent: false,
       },
-      input.idempotencyKey
+      input.idempotencyKey,
+      undefined
     );
   });
 
@@ -89,8 +107,43 @@ describe("submitBooking", () => {
         turnstile_token: "cf-token",
         website: "http://spam.example",
       }),
-      input.idempotencyKey
+      input.idempotencyKey,
+      undefined
     );
+  });
+
+  it("sends the email proof and the signed-in bearer, with the same idempotency key", async () => {
+    vi.mocked(getSession).mockResolvedValue({
+      accessToken: "access-1",
+      email: "ada@example.com",
+      name: "Ada",
+    });
+    vi.mocked(createBooking).mockResolvedValue({
+      booking: {} as never,
+      manage_token: "tok",
+      manage_url: null,
+    });
+    await submitBooking(SLUG, { ...input, emailProof: "proof-1" });
+    expect(createBooking).toHaveBeenCalledWith(
+      SLUG,
+      expect.objectContaining({ email_proof: "proof-1" }),
+      input.idempotencyKey,
+      "access-1"
+    );
+  });
+
+  it("books as a visitor and reports it when the session lookup fails", async () => {
+    const fault = new Error("auth api down");
+    vi.mocked(getSession).mockRejectedValue(fault);
+    vi.mocked(createBooking).mockResolvedValue({
+      booking: {} as never,
+      manage_token: "tok",
+      manage_url: null,
+    });
+    const outcome = await submitBooking(SLUG, input);
+    expect(outcome.ok).toBe(true);
+    expect(reportError).toHaveBeenCalledWith(fault, "bookings-public-session");
+    expect(vi.mocked(createBooking).mock.calls[0]?.[3]).toBeUndefined();
   });
 
   it("rejects a bad idempotency key or email before any call", async () => {
@@ -159,6 +212,154 @@ describe("loadSlots", () => {
           },
         ],
       },
+    });
+  });
+});
+
+describe("requestEmailCode", () => {
+  const request = {
+    serviceId: input.serviceId,
+    startsAt: input.startsAt,
+    email: " ada@example.com ",
+    turnstileToken: " cf-token ",
+  };
+
+  it("refuses a malformed slug and bad input before any call", async () => {
+    expect(await requestEmailCode("Not A Slug", request)).toMatchObject({
+      code: "not_found",
+    });
+    expect(
+      await requestEmailCode(SLUG, { ...request, email: "nope" })
+    ).toMatchObject({ code: "invalid" });
+    expect(requestCode).not.toHaveBeenCalled();
+  });
+
+  it("sends the trimmed request with the Turnstile token and the signed-in bearer", async () => {
+    vi.mocked(getSession).mockResolvedValue({
+      accessToken: "access-1",
+      email: "ada@example.com",
+      name: "Ada",
+    });
+    vi.mocked(requestCode).mockResolvedValue({
+      required: true,
+      expires_in_seconds: 600,
+    });
+    const outcome = await requestEmailCode(SLUG, request);
+
+    expect(outcome).toEqual({
+      ok: true,
+      data: { required: true, expiresInSeconds: 600 },
+    });
+    expect(requestCode).toHaveBeenCalledWith(
+      SLUG,
+      {
+        service_id: input.serviceId,
+        starts_at: input.startsAt,
+        customer_email: "ada@example.com",
+        turnstile_token: "cf-token",
+      },
+      "access-1"
+    );
+  });
+
+  it("passes required:false through", async () => {
+    vi.mocked(requestCode).mockResolvedValue({ required: false });
+    expect(await requestEmailCode(SLUG, request)).toEqual({
+      ok: true,
+      data: { required: false, expiresInSeconds: 0 },
+    });
+  });
+
+  it("maps a send limit and an outage to calm failures", async () => {
+    vi.mocked(requestCode).mockRejectedValueOnce(apiError(429, "Too many"));
+    expect(await requestEmailCode(SLUG, request)).toMatchObject({
+      ok: false,
+      code: "code_limited",
+    });
+    vi.mocked(requestCode).mockRejectedValueOnce(apiError(503, "down"));
+    expect(await requestEmailCode(SLUG, request)).toMatchObject({
+      ok: false,
+      code: "code_unavailable",
+    });
+  });
+
+  it("rethrows a non-API fault", async () => {
+    vi.mocked(requestCode).mockRejectedValue(new Error("network down"));
+    await expect(requestEmailCode(SLUG, request)).rejects.toHaveProperty(
+      "message",
+      "network down"
+    );
+  });
+});
+
+describe("confirmEmailCode", () => {
+  const confirm = {
+    code: "123456",
+    serviceId: input.serviceId,
+    startsAt: input.startsAt,
+    email: "ada@example.com",
+  };
+
+  it("rejects a malformed code before any call", async () => {
+    expect(
+      await confirmEmailCode(SLUG, { ...confirm, code: "12ab56" })
+    ).toMatchObject({ code: "invalid" });
+    expect(confirmCode).not.toHaveBeenCalled();
+  });
+
+  it("returns the proof", async () => {
+    vi.mocked(confirmCode).mockResolvedValue({
+      proof: "proof-1",
+      expires_in_seconds: 900,
+    });
+    expect(await confirmEmailCode(SLUG, confirm)).toEqual({
+      ok: true,
+      data: { proof: "proof-1", expiresInSeconds: 900 },
+    });
+    expect(confirmCode).toHaveBeenCalledWith(SLUG, {
+      service_id: input.serviceId,
+      starts_at: input.startsAt,
+      customer_email: "ada@example.com",
+      code: "123456",
+    });
+  });
+
+  it("maps a wrong code and a lockout", async () => {
+    vi.mocked(confirmCode).mockRejectedValueOnce(apiError(400, "not right"));
+    expect(await confirmEmailCode(SLUG, confirm)).toMatchObject({
+      ok: false,
+      code: "code_rejected",
+    });
+    vi.mocked(confirmCode).mockRejectedValueOnce(apiError(429, "locked"));
+    expect(await confirmEmailCode(SLUG, confirm)).toMatchObject({
+      ok: false,
+      code: "code_locked",
+    });
+  });
+});
+
+describe("untyped browser input", () => {
+  // Server Action arguments are whatever the client sends, not their TS types.
+  const bad = {
+    ...input,
+    email: 42,
+    code: {},
+    turnstileToken: ["x"],
+    phone: null,
+  } as never;
+
+  it("answers a non-string field with the normal validation failure", async () => {
+    await expect(submitBooking(SLUG, bad)).resolves.toMatchObject({
+      code: "invalid",
+    });
+    await expect(requestEmailCode(SLUG, bad)).resolves.toMatchObject({
+      code: "invalid",
+    });
+    await expect(confirmEmailCode(SLUG, bad)).resolves.toMatchObject({
+      code: "invalid",
+    });
+    await expect(submitBooking(SLUG, null as never)).resolves.toMatchObject({
+      code: "invalid",
     });
   });
 });

@@ -402,7 +402,7 @@ purpose and take no `X-Barrels-Organisation` header. The detail also lists
 
 Control-plane writes (superuser only, all return the refreshed detail and are
 audited under the `platform_organisation` history subject): `POST /organisations`
-(`name`, `kind` barrels, client or business, optional `slug`; 409 when taken),
+(`name`, `kind` barrels, client or business, optional `slug`; 409 when taken, 422 when it is a platform reserved name from `docs/ports.md`),
 `PATCH /organisations/{id}` (`name`, `slug`, `kind`, `status` active or
 suspended; at least one field), `POST /organisations/{id}/verify` and
 `/unverify` (body `{reason}`, 3 to 500 characters; 409 when already in that
@@ -411,6 +411,22 @@ outside the registry) and `GET /organisations/{id}/admin/members` (roster of any
 organisation). A suspended organisation is refused with 403 by every
 `X-Barrels-Organisation` route. A verified organisation shows its linked Events
 organiser as `verified`.
+
+**Superuser admin powers (owner decision 2026-10-21).** All need an active
+superuser with an enrolled authenticator *and a session that passed MFA* (a
+token without `sid`, or a session with empty `mfa_verified_at`, gets 403) in
+every environment, whatever `AUTH_PRIVILEGED_MFA_MODE` says (403
+`superuser_mfa_required: ...` when not enrolled). Activating 2FA on a privileged
+account revokes its other sessions. They are limited to 30/minute.
+Every call needs a `reason` of 10 to 500 characters that is stored in the audit trail:
+`POST /organisations/{id}/admin/members` (`organisationsAddMemberAdmin`: body
+`{user_id | email, role, reason}`; 409 when already a member; owner/admin need a
+verified or administrator-activated target), `PATCH
+/organisations/{id}/admin/members/{membership_id}` (`{role, reason}`) and
+`DELETE` the same path (body `{reason}`); the last-owner rule applies (409).
+Adding yourself works and is audited (`platform_organisation_member`, actor,
+target, role, reason). This is the only way in: ADR-0022 still gives superusers
+no bypass on `X-Barrels-Organisation` routes.
 
 ### Organisation context
 
@@ -474,6 +490,17 @@ address or a second pending request); moderators verify it through
 `PATCH /events/moderation/organisers/{id}`. Publishing, cancelling or rescheduling a
 listing and approving an organiser also write `outbox` rows (same Events transaction)
 that the worker turns into notifications; no endpoint is involved.
+Admin moderation (zone `admin`, staff session): `GET /admin/moderation/organisers`
+(`?status=pending|approved|rejected`, paginated) and `GET /admin/moderation/organisers/{organisation_id}`
+(case with owners, listing counts and verification history) are open to superusers and
+`events.moderate` holders; `POST .../approve` and `POST .../reject` (reason required)
+need an MFA superuser and go through `organisations.service.admin_set_verified`
+(409 on a repeat decision, audit entry with the actor, `organiser.approved` /
+`organiser.rejected` outbox row). A rejected organiser's owners or admins send
+`POST /events/manage/organiser/resubmit` to return to `pending` (409 otherwise).
+The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{id}/verify|unverify` also need an MFA superuser and use the same path (organiser flag mirror, activity row, notification); the PATCH is 409 for a rejected organiser (resubmit first). Superuser override: an MFA superuser may approve a rejected organisation directly through `POST /admin/moderation/organisers/{id}/approve` or `POST /organisations/{id}/verify`. Approving a suspended organisation is 409.
+`org.organisation` carries `verification_status`, `verification_reason` and
+`verification_decided_at`; `verified_at` stays the single "verified" signal.
 `GET /events/manage/{listing_id}/activity` returns that listing's append-only history
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.
@@ -561,6 +588,56 @@ without a reference, a ticket already refunded or cancelled by its holder, or a 
 the event was cancelled. Ticket `status` can now be `refunded`; refunded tickets are not
 admitted. The settlement report lists `refunds` and per-channel `refunded`/`refunded_minor`.
 
+### Events organiser orders (org zone)
+
+`/events/org/*` acts for the organisation in `X-Barrels-Organisation` (account or Events app
+session, `events` entitlement). Each route needs an organisation-bound Events key (ADR-0044),
+held by owners and admins and by members through a grant: orders `events.settlement.view`,
+attendees `events.door.scan`, manual payment `events.tickets.sell`, refund and order cancel
+`events.refunds.issue`, event cancel `events.listings.manage`. Another organisation's event or
+order is 404. The order detail carries the buyer's account email (owner-approved); lists carry none and use `PaginatedResponse`.
+`GET /events/org/events/{id}/orders` (`status`, `page`, `size`), `GET .../attendees` (`status`,
+`tier_id`) and `GET /events/org/orders/{id}` (with `refund_status`) read the desk.
+`POST /events/org/orders/{id}/manual-payments` (`{method: "cash"|"bank_transfer", reference?}`,
+`Idempotency-Key` required, 201) records money received for a `pending_payment` order on the manual
+rail and issues its tickets at once. `POST .../refunds` (`{amount_minor?, reason}`,
+`Idempotency-Key` required) hands money back through the payments core. Both replay the first
+answer with `Idempotency-Replayed: true`.
+
+Refund choice: cancelling takes `refund`: `full`, `none` or `follow_policy`.
+`POST /events/org/orders/{id}/cancel` (`{reason?, refund}`, default `follow_policy`) cancels one
+order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUTOFF_HOURS`
+(default 48) away; outlet cash orders cancel only with `none`.
+`POST /events/org/events/{id}/cancel` (`{confirm, refund}`, default `follow_policy`: paid online
+orders are refunded in full, unpaid holds released) cancels an event. The legacy
+`POST /events/manage/{id}/cancel` takes the same optional `refund` but defaults to `none`, and
+saving a listing as cancelled never moves money. Event cancel reports `orders_refunded`
+(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`
+and `refunds_failed`.
+
+Provider-rail (card) refunds are never sent inside a request (one may wait per order; a second is 409, and the buyer email is shown to org admins/owners only): they are queued on the outbox topic
+`events.order_refund_requested` and sent with retries; the refund id is derived from the order and
+the request, so a retry cannot refund twice. Follow it on the order's `refund_status`
+(`none`, `queued`, `partial`, `refunded`, `failed`).
+
+### Events staff path (ADR-0050)
+
+The same `/events/org/*` routes also accept Barrels staff who hold a global staff key through a
+role (never implied for a superuser): orders list and detail `events.ops.settlement`, attendees
+`events.ops.door`, manual payment `events.ops.till`, refund and order cancel `events.ops.refunds`,
+event cancel `events.ops.listings`. A member holding the organisation key is a member call;
+otherwise the staff path applies and an unknown organisation or missing staff key gives the member
+path's own answer (404, or 403 for a member without the key). Suspended organisation or `events`
+entitlement off is 403. Every staff key except `events.ops.door` needs a session that passed
+two-step verification (403), whatever `AUTH_PRIVILEGED_MFA_MODE` says. Staff see the buyer email
+(each read is logged with ids only). Staff writes are limited per user and key (refunds, cancels
+20/minute; till 120/minute; 429). `ActivityEntry.actor_capacity` is `member` or `staff`; staff
+rows show as "Barrels staff" with a nil actor id. Staff pick work with
+`GET /events/admin/events` (`from`, `to`, `q`, `organiser_id`, `page`, `size`) and
+`GET /events/admin/organisers` (`q`): ids, names, dates and status only, any `events.ops.*` key,
+two-step verification unless the only key is `events.ops.door`. Staff keys count only from live ALL-scope role assignments or plain role links (SELF/DEPARTMENT give none), and the caller needs `app.events.access`. A staff event cancel with `refund` other than `none` also needs `events.ops.refunds` (403). Staff reads are limited to 120/minute per user and key. The pickers list only active organisations with the `events` entitlement, and draft listings only to holders of `events.ops.listings` or `events.ops.settlement`. Staff end dates are not built yet:
+only permanent staff roles are supported.
+
 ## Platform foundations (PF-series, 2026-10-20)
 
 Shared APIs for every Barrels app. Zones follow ADR-0025.
@@ -581,6 +658,22 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   `POST /rewards/redemptions/confirm` (`rewards.write`). A key acts on its own
   organisation only (the organisation header is ignored), needs the scope and the
   organisation's entitlement (403), and a revoked or expired key is 401.
+- **Membership grants** (ADR-0044 S3, `organisations/team.py`): org-zone routes under
+  `/organisations/org`: `GET /role-bundles` (entitled products; `grantable` for the
+  caller), `GET`/`POST /members/{membership_id}/grants` (live grants; grant with
+  optional UTC `expires_at`), `POST /grants/{grant_id}/revoke`, and admin-only
+  `GET /members/{membership_id}/issued-grants`. Entry needs some entitled product's
+  `team.manage` key (owner and admin implicitly); the grant rules (hold the bundle,
+  no self-grant 403, expiry cap 422, duplicate or lost race 409) live in
+  `grants.py`. Responses carry display names, never emails. Removing a member also
+  revokes live grants they issued (audited with a count); a demotion only lists them.
+  `issued-grants` lists direct grants only: revocation is not transitive. Member grant
+  lists show only products whose `team.manage` the caller holds. Each bundle carries a
+  human `label` and `description` (`role_bundles.BUNDLE_COPY`). `GET /team/members`
+  (team managers) is the paginated roster of active members: membership id, display
+  name, org role and live grants limited to the products the caller manages, no
+  emails. `GET /team/me` (any member) returns the caller's org role, the products
+  whose `team.manage` they hold and `is_admin_or_owner`.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
   which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`
@@ -608,7 +701,9 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   `POST /rewards/me/gifts/{id}/reverse` (passport souvenirs, never ledger entries).
 - **Payments core** (PF4, ADR-0027, Stripe test mode only): organisation routes under
   `/payments/org/...` (intents, manual payments, refunds, balance; `payments`
-  entitlement and organisation admin); signed provider callbacks at
+  entitlement and organisation admin; `POST /payments/org/intents` refuses `source_type`
+  values owned by another domain, `bookings.deposit` and `events.order`, with 422);
+  signed provider callbacks at
   `POST /payments/public/webhooks/{provider}` (idempotent through the ledger, hidden
   from OpenAPI); superuser reconciliation, ledger, balances and payouts under
   `/payments/admin/...`, including `reconciliation.csv`. The ledger is append-only. A payout
@@ -642,7 +737,9 @@ Some older auth endpoints still use `skip` and `limit`. New list endpoints shoul
 | Endpoint | Meaning | Expected response |
 | --- | --- | --- |
 | `GET /api/v1/utils/health-check/` | Liveness | JSON `true` |
-| `GET /api/v1/utils/ready/` | Database readiness | `{"status":"ready"}` or 503 |
+| `GET /api/v1/utils/ready/` | Database readiness | `{"status":"ready"}` or 503 `{"detail":"Database unreachable"}` |
+
+Readiness returns the 503 as a response, not a raised exception, so expected not-ready probes are not reported to Sentry. Only database (SQLAlchemy and asyncpg, including connect-time errors), I/O, timeout and schema-revision failures map to 503; any other exception stays a reported 500 (including a failure to read the migration heads).
 
 Deployment smoke checks currently use liveness. Operational diagnosis should use readiness when database access matters.
 
@@ -669,7 +766,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | Endpoint | Authentication | Contract |
 | --- | --- | --- |
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
-| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409 |
+| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409, a platform reserved name 422 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
 | `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
 | `GET/PUT /api/v1/bookings/org/providers/{id}/hours` | Same | Replace the weekly plan; overlapping periods on one day 422 |
@@ -684,6 +781,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | `GET /api/v1/bookings/org/bookings/{id}` | Same | Studio view with customer contact details, history and deposit state; another organisation's id 404 |
 | `POST /api/v1/bookings/org/bookings` | Admin member or API key `bookings.write`; `Idempotency-Key` required | Staff entry (phone, walk-in, re-entered appointment): `confirmed`, source `studio`, no deposit; ignores lead time, horizon and weekly hours, but an overlap is 409; provider must offer the service (422); optional customer email, emailed only with `send_confirmation` |
 | `POST /api/v1/bookings/org/bookings/{id}/confirm`, `/decline`, `/cancel`, `/no-show`, `/complete` | Admin member or API key `bookings.write` | Studio actions through the status machine; decline and cancel need a `reason`, email the customer and emit `booking.cancelled`; an illegal move 409 |
+| `POST /api/v1/bookings/org/bookings/{id}/manual-deposit` | Owner or admin member only (no API key), organisation must hold `bookings` and `payments`; `Idempotency-Key` required | Records a deposit taken outside Stripe (`method` cash/bank_transfer/cheque, optional `reference`) through the payments manual rail, so `deposit_captured_minor` shows it and a `pending_payment` booking is confirmed; writes an audit entry and a history note with the actor; no deposit, closed booking, deposit already paid, an online payment in flight, or a failed or expired card payment is 409 |
 
 Overlapping active bookings for one provider are refused by the database
 (`booking_no_overlap`).
@@ -694,6 +792,19 @@ entitlement, `POST /bookings/public/{slug}/bookings` answers a booking in
 mode; null when the business records payment itself). Unpaid bookings are cancelled
 and their slot released after `BOOKINGS_DEPOSIT_HOLD_MINUTES` (30). Both receipt
 fields are additive.
+
+Email code before a deposit (#471, ADR-0018): a deposit booking needs `email_proof` in
+the create body unless the caller is a signed-in account (any session, including the
+bookings app's) whose verified or administrator-activated email equals
+`customer_email`. Without it the create answers 403 `email_verification_required` and
+stores nothing. `POST /bookings/public/{slug}/email-code` (`service_id`, `starts_at`,
+`customer_email`, Turnstile; 5/minute and 20/hour per visitor, 5 per email per hour)
+emails a 6-digit code (10 minutes) and answers `{required, expires_in_seconds}`
+(`required: false` and no mail when no step applies). `POST
+/bookings/public/{slug}/email-code/confirm` (same fields plus `code`) answers `{proof,
+expires_in_seconds}`: wrong or expired 400, five wrong answers lock the email for 15
+minutes (429), Redis down 503. The proof is single use, valid 15 minutes and bound to
+organisation, email, service and start time. Both routes and `email_proof` are additive.
 
 ## Billing
 
@@ -1018,7 +1129,7 @@ carries two time bases.
 | Public (an Events token personalises) | `GET /listings` (`when`, `category`, `parish`, `price`, `tag`, `q`, `organiser`, `limit`, `offset`), `GET /listings/{slug}`, `GET /organisers/{slug}`, `GET /groups`, `GET /groups/{slug}`, `GET /people/{handle}`, `POST /suggestions` |
 | Events member | `POST /manage/organiser`, `GET`/`PATCH /me/profile`, `GET /me/plans`, `GET /me/network`, `PUT`/`DELETE /listings/{slug}/rsvp` and `/save`, `PUT`/`DELETE /organisers/{slug}/follow`, `PUT`/`DELETE /groups/{slug}/membership`, `POST /connections`, `POST /connections/{id}/accept`, `DELETE /connections/{id}`, `PUT`/`DELETE /blocks/{handle}`, `POST /reports`, `GET`/`POST /threads`, `GET /threads/{id}`, `POST /threads/{id}/messages` |
 | `events.organiser.manage` + organiser membership | `GET /manage`, `POST /manage/listings`, `PUT /manage/listings/{id}`, `GET /manage/{id}/activity` |
-| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions`, `GET /moderation/organisers`, `PATCH /moderation/organisers/{id}` |
+| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions`, `GET /moderation/organisers` (pending only) |
 
 Prices are integer minor units (`price_from_minor`, tier `price_minor`); datetimes are UTC and
 clients render Grenada time. Direct threads open only between accepted connections or members
@@ -1975,6 +2086,8 @@ system administrators retain full CMS access.
 - `POST /api/v1/auth/onboarding/accounts` (`authCreateOnboardingAccount`): superuser creates an active, staff-approved account with an unusable random password and password setup pending; no roles or CMS grants are assigned. Existing email/username conflicts return 409.
 - `GET /api/v1/auth/onboarding/{user_id}` (`authGetOnboardingStatus`): superuser receives email/activation state and typed GAA Admin/CMS blockers. This is app admission, not HR workflow readiness.
 - `POST /api/v1/auth/onboarding/{user_id}/activation` (`authIssueActivation`): requires explicit `identity_confirmed: true`; returns a private URL and expiry once with `Cache-Control: no-store`. The URL uses a fragment so its secret is not sent in page requests. Valid for 30 minutes; replacement invalidates earlier links.
+- `POST /api/v1/auth/onboarding/{user_id}/admin-activate` (`authAdminActivateAccount`): superuser with an enrolled authenticator vouches for an existing active, non-superuser account (also one with `email_verification_required` true). Body `{reason, expected_email}` (reason 10 to 500 characters; `expected_email` must equal the account's address or the call is refused with 409, and it is stored in the audit entry). Clears `email_verification_required` and writes the `account_activation`/`activated` audit entry (actor, reason, `admin_override`), so `require_verified_or_admin_activated` passes (staff role, owner/admin membership); `email_verified_at` stays empty and the deposit and organiser-request gate (`require_verified_email`) still refuses. Idempotent (a repeat writes an `admin_activate_noop` audit entry); returns the onboarding status (`admin_activated`). 409 for inactive or superuser targets.
+- `POST /api/v1/auth/onboarding/{user_id}/resend-verification` (`authAdminResendVerification`): same caller rule and body; rate limited (5/minute). Sends the existing verification email again and answers `{delivered, message}` (`delivered: false` when mail is unconfigured or fails); audited as `resend_sent` / `resend_failed`.
 - `DELETE /api/v1/auth/onboarding/{user_id}/activation` (`authRevokeActivation`): superuser revokes outstanding links.
 - `POST /api/v1/auth/onboarding/activate` (`authConfirmActivation`): public, rate-limited; takes the one-use token and a 12–128 character password. Requires an active eligible target and an active superuser issuer, unchanged email and credentials. Atomically consumes proof, sets password, clears password setup/email requirement, revokes sessions and outstanding challenges. Does not verify email, approve pending staff, grant roles, change CMS access or reset MFA.
 

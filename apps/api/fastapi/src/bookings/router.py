@@ -32,8 +32,13 @@ from .schemas import (
     BookingAgenda,
     BookingAgendaItem,
     BookingAvailability,
+    BookingEmailCodeConfirm,
+    BookingEmailCodeRequest,
+    BookingEmailCodeSent,
+    BookingEmailProof,
     BookingExceptionCreate,
     BookingExceptionPublic,
+    BookingManualDepositCreate,
     BookingMyOrganisation,
     BookingProfilePublic,
     BookingProfileUpdate,
@@ -119,6 +124,12 @@ BookingsOrgWrite = Annotated[
             session_app="bookings",
         )
     ),
+]
+
+# Money routes also need the organisation's `payments` entitlement.
+PaymentsEntitled = Annotated[
+    OrgContext,
+    Depends(require_org_app("payments", MembershipRole.ADMIN, session_app="bookings")),
 ]
 
 READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
@@ -531,6 +542,53 @@ async def confirm_studio_booking(
 
 
 @router.post(
+    "/org/bookings/{booking_id}/manual-deposit",
+    response_model=BookingStudioDetail,
+    summary="Record a deposit taken outside Stripe",
+    description=(
+        "Owner or admin records a deposit paid in cash, by bank transfer or by "
+        "cheque. Requires an `Idempotency-Key` header (same key and body replays "
+        "the first answer with `Idempotency-Replayed: true`, same key with "
+        "another body is 409). The booking's deposit is captured through the "
+        "payments manual rail, so `deposit_captured_minor` in the detail shows "
+        "it and a `pending_payment` booking is confirmed. 409 when the booking "
+        "has no deposit, is closed, its deposit is already paid, or an online payment is still open. Needs the `payments` entitlement too. API keys "
+        "are not accepted."
+    ),
+    operation_id="bookingsRecordManualDeposit",
+    responses=WRITE_ERRORS,
+)
+async def record_manual_deposit(
+    *,
+    response: Response,
+    session: SessionDep,
+    org: BookingsOrgAdmin,
+    _payments: PaymentsEntitled,
+    booking_id: BookingId,
+    payload: BookingManualDepositCreate,
+    idempotency_key: idempotency.RequiredIdempotencyKey,
+) -> Any:
+    async def record_once() -> tuple[int, dict[str, Any]]:
+        return await studio.record_manual_deposit(
+            session, org.organisation_id, booking_id, payload, actor=org.user
+        )
+
+    result = await idempotency.run_idempotent(
+        session,
+        scope="bookings.manual-deposit",
+        organisation_id=org.organisation_id,
+        key=idempotency_key,
+        request_body={**payload.model_dump(mode="json"), "booking_id": str(booking_id)},
+        handler=record_once,
+    )
+    await session.commit()
+    response.status_code = result.status_code
+    if result.replayed:
+        response.headers["Idempotency-Replayed"] = "true"
+    return result.body
+
+
+@router.post(
     "/org/bookings/{booking_id}/decline",
     response_model=BookingStudioDetail,
     summary="Decline a booking request",
@@ -731,8 +789,9 @@ ManageToken = Annotated[
         **CONFLICT,
         403: {
             "description": (
-                "A deposit is due and the signed-in account has not verified "
-                "its email (`email_verification_required`)"
+                "A deposit is due and the email is not verified: no valid "
+                "`email_proof` and no signed-in account vouching for it "
+                "(`email_verification_required`)"
             )
         },
     },
@@ -760,7 +819,7 @@ async def create_public_booking(
         # its stored receipt instead of failing a second verification. A failed
         # check is not stored and releases the key.
         await require_turnstile(request, payload.turnstile_token, policy)
-        payer = await optional_account(request, session)
+        payer = await optional_account(request, session, app="bookings")
         return await public.create_booking(session, profile, payload, payer=payer)
 
     result = await idempotency.run_idempotent(
@@ -769,7 +828,7 @@ async def create_public_booking(
         organisation_id=profile.organisation_id,
         key=idempotency_key,
         request_body=payload.model_dump(
-            mode="json", exclude={"turnstile_token", "website"}
+            mode="json", exclude={"turnstile_token", "website", "email_proof"}
         ),
         handler=create_once,
     )
@@ -778,6 +837,77 @@ async def create_public_booking(
     if result.replayed:
         response.headers["Idempotency-Replayed"] = "true"
     return result.body
+
+
+@router.post(
+    "/public/{slug}/email-code",
+    response_model=BookingEmailCodeSent,
+    summary="Email a verification code before a deposit booking",
+    description=(
+        "When a deposit is due for the service, emails a 6-digit code (valid 10 "
+        "minutes) to `customer_email`. `required: false` means no step is needed "
+        "(no deposit, or the signed-in account already vouches for the email) and "
+        "nothing was sent. Applies the organisation's Turnstile policy. Limited per "
+        "visitor and to 5 codes per email per hour (429). Unknown, disabled and "
+        "unentitled pages answer 404."
+    ),
+    operation_id="bookingsRequestEmailCode",
+    responses={
+        **BAD_REQUEST,
+        **NOT_FOUND,
+        429: {"description": "Too many codes requested or attempts made"},
+        503: {"description": "Verification is temporarily unavailable"},
+    },
+)
+@limiter.limit("5/minute;20/hour")
+async def request_email_code(
+    *,
+    request: Request,
+    session: SessionDep,
+    slug: Annotated[str, Path(max_length=60)],
+    payload: BookingEmailCodeRequest,
+) -> Any:
+    profile = await service.get_public_profile(session, slug)
+    await require_turnstile(
+        request,
+        payload.turnstile_token,
+        await public.turnstile_policy(session, profile),
+    )
+    payer = await optional_account(request, session, app="bookings")
+    result = await public.request_email_code(session, profile, payload, payer=payer)
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/public/{slug}/email-code/confirm",
+    response_model=BookingEmailProof,
+    summary="Exchange an emailed code for a deposit proof",
+    description=(
+        "Checks the code. A correct code is single use and returns a proof bound "
+        "to the email, service and start time, valid 15 minutes, to send as "
+        "`email_proof` when creating the booking. A wrong or expired code is 400; "
+        "five wrong answers lock the email for 15 minutes (429)."
+    ),
+    operation_id="bookingsConfirmEmailCode",
+    responses={
+        **BAD_REQUEST,
+        **NOT_FOUND,
+        429: {"description": "Too many attempts; locked for a while"},
+        503: {"description": "Verification is temporarily unavailable"},
+    },
+)
+@limiter.limit("10/minute")
+async def confirm_email_code(
+    *,
+    request: Request,
+    session: SessionDep,
+    slug: Annotated[str, Path(max_length=60)],
+    payload: BookingEmailCodeConfirm,
+) -> Any:
+    _ = request
+    profile = await service.get_public_profile(session, slug)
+    return await public.confirm_email_code(profile, payload)
 
 
 @router.get(

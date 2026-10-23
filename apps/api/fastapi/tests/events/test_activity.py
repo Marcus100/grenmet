@@ -2,6 +2,7 @@
 
 import uuid
 
+import httpx
 import pytest
 from sqlalchemy import select, text
 from sqlalchemy.exc import DBAPIError
@@ -126,19 +127,23 @@ async def test_history_needs_organiser_access(
 
 @pytest.mark.asyncio
 async def test_organiser_requests_and_reviews_are_recorded(
-    events_db: SessionFactory, db_async: AsyncSession
+    events_db: SessionFactory,
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    mfa_admin,
 ):
     member = await user_with_role(db_async, None)
     async with client_with_real_roles(member) as client:
         created = (
             await client.post(f"{BASE}/manage/organiser", json={"name": "Island Beats"})
         ).json()
-    moderator = await user_with_role(db_async, "events-moderator")
+    moderator, headers = await mfa_admin()
     url = f"{BASE}/moderation/organisers/{created['id']}"
-    async with client_with_real_roles(moderator) as client:
-        await client.patch(url, json={"verified": True})
-        await client.patch(url, json={"verified": True})  # no change, no row
-        await client.patch(url, json={"verified": False})
+    for verified in (True, True, False):  # the repeat changes nothing, no row
+        done = await async_client.patch(
+            url, json={"verified": verified}, headers=headers
+        )
+        assert done.status_code == 200, done.text
     rows = await _rows(events_db)
     assert [(row.action, row.actor_id) for row in rows] == [
         ("organiser.created", member.id),

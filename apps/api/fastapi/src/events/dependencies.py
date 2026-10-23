@@ -1,13 +1,22 @@
+from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import service as auth_service
 from src.auth.app_dependencies import app_user, optional_app_user
 from src.auth.models import User
-from src.dependencies import SessionDep
+from src.auth.permissions import EVENTS_OPS_KEYS
+from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.organisations import service as organisations
+from src.organisations.dependencies import (
+    STAFF_MFA_KEYS,
+    has_staff_access,
+    require_staff_session_mfa,
+    resolve_org_caller,
+)
 
 from .exceptions import EventsForbidden
 
@@ -59,3 +68,55 @@ async def organiser_scope(user: EventsOrganiser, session: SessionDep) -> list[st
 
 OrganiserScope = Annotated[list[str], Depends(organiser_scope)]
 EventsModerator = Annotated[User, Depends(require_moderator)]
+
+
+async def require_moderation_reader(user: CurrentUser, session: SessionDep) -> User:
+    """Staff session (not an Events app token) of a superuser or an
+    ``events.moderate`` holder: may read the admin verification queue."""
+    if user.is_superuser or await auth_service.has_effective_permission(
+        session=session, user=user, permission_key="events.moderate"
+    ):
+        return user
+    raise EventsForbidden("Moderator access is required")
+
+
+ModerationReader = Annotated[User, Depends(require_moderation_reader)]
+
+
+@dataclass(frozen=True)
+class StaffAccess:
+    """A Barrels staff caller and the ``events.ops.*`` keys held through roles."""
+
+    user: User
+    keys: frozenset[str]
+
+    @property
+    def sees_drafts(self) -> bool:
+        """Draft titles are for staff who help with listings or settlement, not the
+        door."""
+        return bool(self.keys & {"events.ops.listings", "events.ops.settlement"})
+
+
+async def require_events_staff(session: SessionDep, token: TokenDep) -> StaffAccess:
+    """Barrels staff who hold some ``events.ops.*`` key through a role (ADR-0050).
+
+    An account session or an Events app session, with the Events app
+    (``app.events.access``). A superuser holds no key implicitly. Two-step
+    verification is required unless the only key held is ``events.ops.door``
+    (volunteers). 403 for anyone else."""
+    user, token_app = await resolve_org_caller(
+        session,
+        HTTPAuthorizationCredentials(scheme="Bearer", credentials=token),
+        "events",
+    )
+    held = frozenset(
+        [key for key in EVENTS_OPS_KEYS if await has_staff_access(session, user, key)]
+    )
+    if not held:
+        raise EventsForbidden("Events staff access is required")
+    if held & STAFF_MFA_KEYS:
+        await require_staff_session_mfa(session, user, token=token, token_app=token_app)
+    return StaffAccess(user=user, keys=held)
+
+
+EventsStaff = Annotated[StaffAccess, Depends(require_events_staff)]

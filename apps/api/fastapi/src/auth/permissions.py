@@ -12,6 +12,7 @@ Seeders are idempotent and run from ``init_db`` / ``init_db_async`` (prestart pa
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,8 +24,19 @@ from src.baseline.models import BaselineStep
 
 @dataclass(frozen=True)
 class PermissionDef:
+    """One permission key.
+
+    ``binding`` says where the key can be held (ADR-0044): ``global`` keys are
+    granted to staff through roles; ``organisation`` keys only mean something
+    inside one organisation and never appear in the staff role editor.
+    Organisation keys are resolved only through OrgContext and the organisation
+    resolver, never through ``has_permission`` / ``require_permission``, which
+    deny them (a superuser bypass or a staff role must not grant them).
+    """
+
     key: str
     description: str
+    binding: Literal["global", "organisation"] = "global"
 
 
 # --- Permission catalog (grouped by domain) -------------------------------------
@@ -118,16 +130,44 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     ),
     # Platform products — organisation API-key scopes (ADR-0029). One list: a
     # key's scope is a permission key here; the wire format is unchanged.
-    PermissionDef("bookings.read", "API key: read Barrels Bookings data"),
-    PermissionDef("bookings.write", "API key: change Barrels Bookings data"),
-    PermissionDef("rewards.read", "API key: read Barrels Rewards data"),
-    PermissionDef("rewards.write", "API key: change Barrels Rewards data"),
-    PermissionDef("contacts.read", "API key: read Barrels Contacts data"),
-    PermissionDef("contacts.write", "API key: change Barrels Contacts data"),
-    PermissionDef("payments.read", "API key: read Barrels Payments data"),
-    PermissionDef("payments.write", "API key: change Barrels Payments data"),
-    PermissionDef("webhooks.read", "API key: read Barrels Webhooks data"),
-    PermissionDef("webhooks.write", "API key: change Barrels Webhooks data"),
+    PermissionDef(
+        "bookings.read", "API key: read Barrels Bookings data", binding="organisation"
+    ),
+    PermissionDef(
+        "bookings.write",
+        "API key: change Barrels Bookings data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "rewards.read", "API key: read Barrels Rewards data", binding="organisation"
+    ),
+    PermissionDef(
+        "rewards.write", "API key: change Barrels Rewards data", binding="organisation"
+    ),
+    PermissionDef(
+        "contacts.read", "API key: read Barrels Contacts data", binding="organisation"
+    ),
+    PermissionDef(
+        "contacts.write",
+        "API key: change Barrels Contacts data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "payments.read", "API key: read Barrels Payments data", binding="organisation"
+    ),
+    PermissionDef(
+        "payments.write",
+        "API key: change Barrels Payments data",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "webhooks.read", "API key: read Barrels Webhooks data", binding="organisation"
+    ),
+    PermissionDef(
+        "webhooks.write",
+        "API key: change Barrels Webhooks data",
+        binding="organisation",
+    ),
     # Platform — feature flags (ADR-0020)
     PermissionDef(
         "feature_flags.manage",
@@ -191,6 +231,81 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "events.organiser.manage", "Create and manage events as an organiser"
     ),
     PermissionDef("events.moderate", "Review reports and resident event suggestions"),
+    # Barrels staff operations on any organiser's events (ADR-0050). Global keys
+    # held through a role assignment only (``policy.has_role_permission``); a
+    # superuser has none implicitly and there is no staff team-management key.
+    PermissionDef(
+        "events.ops.door",
+        "Staff: admit tickets and see the door list for any organiser's event",
+    ),
+    PermissionDef(
+        "events.ops.till",
+        "Staff: take payments at the till for any organiser's event (needs two-step sign-in)",
+    ),
+    PermissionDef(
+        "events.ops.refunds",
+        "Staff: refund and cancel orders for any organiser's event (needs two-step sign-in)",
+    ),
+    PermissionDef(
+        "events.ops.settlement",
+        "Staff: read orders and settlement for any organiser's event (needs two-step sign-in)",
+    ),
+    PermissionDef(
+        "events.ops.listings",
+        "Staff: cancel any organiser's event (needs two-step sign-in)",
+    ),
+    # Organisation-bound keys (ADR-0044): held inside one organisation through
+    # its membership, never through a staff role. Role bundles arrive in S1.
+    PermissionDef(
+        "events.listings.manage",
+        "Create, edit, publish, cancel and postpone the organisation's events",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "events.door.scan",
+        "Admit tickets at the door and see the door manifest",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "events.tickets.sell",
+        "Sell tickets for cash at the outlet and run your own till",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "events.refunds.issue",
+        "Record manual refunds of outlet tickets",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "events.settlement.view",
+        "View event settlement and download the settlement CSV",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "events.team.manage",
+        "Give organisation members Events roles you hold yourself",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "bookings.agenda.read",
+        "Read the agenda and bookings",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "bookings.bookings.manage",
+        "Confirm, move, cancel and complete bookings",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "bookings.settings.manage",
+        "Change services, staff hours and booking settings",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "bookings.team.manage",
+        "Give organisation members Bookings roles you hold yourself",
+        binding="organisation",
+    ),
     # Public sites with "Sign in" (ADR-0017); joined automatically on first visit
     PermissionDef(
         "app.weather.access", "Sign in to the Grenada Meteorological Service website"
@@ -269,6 +384,12 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
 )
 
 ALL_PERMISSION_KEYS: frozenset[str] = frozenset(p.key for p in PERMISSIONS)
+EVENTS_OPS_KEYS: tuple[str, ...] = tuple(
+    p.key for p in PERMISSIONS if p.key.startswith("events.ops.")
+)
+ORGANISATION_BOUND_KEYS: frozenset[str] = frozenset(
+    p.key for p in PERMISSIONS if p.binding == "organisation"
+)
 
 
 # --- Default roles -> permission bundles -----------------------------------------
@@ -440,6 +561,29 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "events-moderator": (
         "Barrels Events moderator: handles reports and suggestions",
         ("app.events.access", "events.member.write", "events.moderate"),
+    ),
+    "events-staff-door": (
+        "Barrels Events staff: door scanning for any organiser's event",
+        ("app.events.access", "events.member.write", "events.ops.door"),
+    ),
+    "events-staff-till": (
+        "Barrels Events staff: till sales for any organiser's event",
+        ("app.events.access", "events.member.write", "events.ops.till"),
+    ),
+    "events-staff-refunds": (
+        "Barrels Events staff: refunds and order cancels for any organiser's event",
+        ("app.events.access", "events.member.write", "events.ops.refunds"),
+    ),
+    "events-staff-manager": (
+        "Barrels Events staff manager: door, till, settlement and listings for any organiser's event",
+        (
+            "app.events.access",
+            "events.member.write",
+            "events.ops.door",
+            "events.ops.till",
+            "events.ops.settlement",
+            "events.ops.listings",
+        ),
     ),
     "eregister-sender": (
         "eRegister: email observations and queue them for WIS2",

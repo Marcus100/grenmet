@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
   agendaDepositView,
+  availableActions,
+  canManageBookings,
   daysIn,
   depositState,
   eventLabel,
   isDay,
   parseRange,
+  rotatesKey,
+  todayIn,
   weekStart,
+  zonedToUtcIso,
 } from "./studio-view";
 
 describe("agenda ranges", () => {
@@ -73,9 +78,69 @@ describe("deposit state", () => {
   });
 });
 
+describe("booking actions", () => {
+  it("lets owners and admins act, not members", () => {
+    expect(canManageBookings("owner")).toBe(true);
+    expect(canManageBookings("admin")).toBe(true);
+    expect(canManageBookings("member")).toBe(false);
+  });
+
+  it("follows the API's transitions and the start time", () => {
+    expect(availableActions("pending_payment", true)).toEqual(["cancel"]);
+    expect(availableActions("pending", false)).toEqual([
+      "confirm",
+      "decline",
+      "cancel",
+    ]);
+    expect(availableActions("confirmed", false)).toEqual(["cancel"]);
+    expect(availableActions("confirmed", true)).toEqual([
+      "complete",
+      "no_show",
+      "cancel",
+    ]);
+    for (const status of ["cancelled", "no_show", "completed"] as const) {
+      expect(availableActions(status, true)).toEqual([]);
+    }
+  });
+});
+
 describe("eventLabel", () => {
   it("words a transition and a first event", () => {
     expect(eventLabel(null, "pending")).toBe("Created as Pending");
     expect(eventLabel("pending", "cancelled")).toBe("Pending to Cancelled");
+  });
+});
+
+describe("business timezone", () => {
+  const instant = new Date("2026-10-22T02:30:00Z");
+
+  it("reads today on the business's calendar", () => {
+    expect(todayIn("America/Grenada", instant)).toBe("2026-10-21");
+    expect(todayIn("Pacific/Auckland", instant)).toBe("2026-10-22");
+  });
+
+  it("turns a wall-clock time in the zone into UTC", () => {
+    expect(zonedToUtcIso("2026-10-21", "14:00", "America/Grenada")).toBe(
+      "2026-10-21T18:00:00.000Z"
+    );
+    expect(zonedToUtcIso("2026-10-21", "23:30", "America/Grenada")).toBe(
+      "2026-10-22T03:30:00.000Z"
+    );
+    // Daylight saving: New York is UTC-4 in July and UTC-5 in January.
+    expect(zonedToUtcIso("2026-07-01", "09:00", "America/New_York")).toBe(
+      "2026-07-01T13:00:00.000Z"
+    );
+    expect(zonedToUtcIso("2026-01-15", "09:00", "America/New_York")).toBe(
+      "2026-01-15T14:00:00.000Z"
+    );
+  });
+});
+
+describe("idempotency key rotation", () => {
+  it("keeps the key only after a timeout or server fault", () => {
+    expect(rotatesKey("unavailable")).toBe(false);
+    for (const kind of ["invalid", "conflict", "forbidden", "not_found"]) {
+      expect(rotatesKey(kind)).toBe(true);
+    }
   });
 });

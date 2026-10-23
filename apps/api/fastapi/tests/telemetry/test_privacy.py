@@ -73,3 +73,17 @@ class PrivacyTests(unittest.TestCase):
         uuid_like = "11111111-2222-3333-4444-555555555555"
         result = scrub_sentry_event({"tags": {"user_id": uuid_like}}, {})
         self.assertEqual(result["tags"], {"user_id": uuid_like})
+
+    def test_error_events_are_never_dropped_by_scrubber(self):
+        """before_send is the only API drop point and must always return the event."""
+        for event in (
+            {"exception": {"values": [{"type": "RuntimeError", "value": "x"}]}},
+            {"message": "x"},
+            {"logentry": {"message": "x"}},
+            {},
+        ):
+            self.assertIsNotNone(scrub_sentry_event(event, {}))
+
+    def test_transactions_are_intentionally_dropped(self):
+        before_send_transaction = sentry_options()["before_send_transaction"]
+        self.assertIsNone(before_send_transaction({"type": "transaction"}, {}))
