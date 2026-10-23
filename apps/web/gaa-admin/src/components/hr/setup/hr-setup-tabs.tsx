@@ -11,7 +11,7 @@ import {
   TabsTrigger,
 } from "@barrelsgd/ui/components/ui/tabs";
 import { useEffect, useState } from "react";
-import { PageTabsList } from "@/components/ui/page-tabs";
+import { PageTabsList } from "@/components/layout/page-tabs";
 import { reportError } from "@/lib/report-error";
 import { BalanceImport } from "./balance-import";
 import { DepartmentsManager } from "./departments-manager";

@@ -1,7 +1,7 @@
 "use client";
 import type { Route } from "next";
 import { usePathname } from "next/navigation";
-import { PageRouteTabs } from "@/components/ui/page-tabs";
+import { PageRouteTabs } from "@/components/layout/page-tabs";
 
 export const recordsTabs = [
   { href: "/hr/documents", label: "Documents" },

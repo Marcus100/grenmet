@@ -263,22 +263,20 @@ export function ERegister() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        actions={
-          <>
-            <Button
-              onClick={() => setView("archive")}
-              variant={view === "archive" ? "default" : "outline"}
-            >
-              Observation archive
-            </Button>
-            <Button onClick={() => setView("new")} variant="outline">
-              New observation
-            </Button>
-          </>
-        }
-        title="Weather Electronic Register"
-      />
+      <div className="flex flex-col items-start gap-3">
+        <PageHeader title="Weather Electronic Register" />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={() => setView("archive")}
+            variant={view === "archive" ? "default" : "outline"}
+          >
+            Observation archive
+          </Button>
+          <Button onClick={() => setView("new")} variant="outline">
+            New observation
+          </Button>
+        </div>
+      </div>
 
       {liveState === "unavailable" ? (
         <p className="rounded-lg border px-4 py-3 text-sm" role="alert">

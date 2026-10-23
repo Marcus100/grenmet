@@ -5,7 +5,7 @@ import {
 } from "@barrelsgd/ui/components/ui/tabs";
 import type { ReactNode } from "react";
 import { PageHeader } from "@/components/layout/page-header";
-import { PageTabsList } from "@/components/ui/page-tabs";
+import { PageTabsList } from "@/components/layout/page-tabs";
 
 const TABS = [
   { value: "alerts", label: "Alerts" },

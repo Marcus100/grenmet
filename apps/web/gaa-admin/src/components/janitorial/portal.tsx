@@ -21,7 +21,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { PageHeader } from "@/components/layout/page-header";
-import { PageRouteTabs } from "@/components/ui/page-tabs";
+import { PageRouteTabs } from "@/components/layout/page-tabs";
 import {
   APPA_LEVEL_LABELS,
   CADENCE_LABELS,

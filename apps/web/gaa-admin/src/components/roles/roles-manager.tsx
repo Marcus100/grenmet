@@ -39,7 +39,7 @@ import {
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
-import { PageTabsList } from "@/components/ui/page-tabs";
+import { PageTabsList } from "@/components/layout/page-tabs";
 import { AccessReviewsPanel } from "./access-reviews-panel";
 import { OrganisationPanel } from "./organisation-panel";
 import { PermissionSetsPanel } from "./permission-sets-panel";

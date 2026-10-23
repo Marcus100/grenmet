@@ -229,17 +229,15 @@ export function ERegisterWorkbook({
   );
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        actions={
-          <>
-            <Button onClick={() => onBack()} variant="outline">
-              Observation archive
-            </Button>
-            <Button aria-current="page">New observation</Button>
-          </>
-        }
-        title="Weather Electronic Register"
-      />
+      <div className="flex flex-col items-start gap-3">
+        <PageHeader title="Weather Electronic Register" />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={() => onBack()} variant="outline">
+            Observation archive
+          </Button>
+          <Button aria-current="page">New observation</Button>
+        </div>
+      </div>
 
       <form className="flex flex-col gap-6" onSubmit={onSubmit}>
         <div className="flex flex-col gap-4">
