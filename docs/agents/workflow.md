@@ -113,6 +113,24 @@ reviewer appends nothing; the author records the review outcome (`AGENTS.md`).
 If you worked around anything, run the `file-friction` skill. For tool switches,
 follow [tool-usage.md](tool-usage.md).
 
+### Context reset
+
+Long sessions get slower, dearer and forgetful: auto-compaction is lossy, and
+practitioner guides put the quality drop-off well before the window fills (about
+60%; a heuristic, not a measured limit). So:
+
+- **One session, one task.** Start a fresh session after each merged PR and
+  whenever the work changes area. Do not carry a finished task into the next one.
+- **Reset at about 60% context**, or when you notice the signs: forgetting a
+  decision made earlier, contradicting yourself, or rewriting code already
+  validated. Do not start a multi-file change in a session that is already long.
+- **Before resetting, write the handoff** to `SESSION_LOG.md`: at most 10 lines
+  covering state (branch, head SHA, PR), what is done, what is next, and open
+  decisions. Put detail in the PR body or an issue, not the log. The next session
+  reads the tail of the log and the PR, not the old transcript.
+- Anything that must survive every reset goes in `AGENTS.md`, a hook or a test,
+  not in the conversation.
+
 ## Editing agent instructions
 
 - Keep the root `AGENTS.md` a short map (about 10 KB): commands, hard rules,
