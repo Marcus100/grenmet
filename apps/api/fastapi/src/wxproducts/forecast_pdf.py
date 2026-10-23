@@ -230,14 +230,35 @@ def _matrix(items: list[dict[str, str]]) -> list[list[dict[str, Any]]]:
     return rows
 
 
-# Day cards keep to the essentials; tides and sun times stay on the full report.
+# Day cards keep to the essentials; each GMS outlook day shows its own sun
+# times, while tides stay on the full report.
 DAY_CARD_ICONS = {
     "thermometer-sun",
     "thermometer-snowflake",
     "wind",
     "compass",
     "waves",
+    "sunrise",
+    "sunset",
 }
+
+
+def _headline_tiles(kind: str, values: dict[str, str]) -> list[dict[str, str]]:
+    tiles = [
+        {"icon": i, "value": v, "label": label} for i, v, label in _conditions(values)
+    ]
+    # The midday sheet prints the reading taken at the airport at issue.
+    observed = optional_number(values, "observedTemperature")
+    if kind == "midday" and observed is not None:
+        tiles.insert(
+            0,
+            {
+                "icon": "thermometer-sun",
+                "value": f"{units._num(observed)}°C",
+                "label": "Midday temperature at MBIA",
+            },
+        )
+    return tiles
 
 
 def _outlook(values: dict[str, str]) -> list[dict[str, Any]]:
@@ -276,10 +297,7 @@ def forecast_context(
         "period": PERIODS[kind],
         "summary": values.get("summary", ""),
         "condition_icon": CONDITION_ICONS.get(values.get("condition", ""), "cloud-sun"),
-        "tiles": [
-            {"icon": i, "value": v, "label": label}
-            for i, v, label in _conditions(values)
-        ],
+        "tiles": _headline_tiles(kind, values),
         "matrix": _matrix(items),
         "advisories": items,
         "complete": bool(snapshot.get("complete", True)),

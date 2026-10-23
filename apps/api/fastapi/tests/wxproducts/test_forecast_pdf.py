@@ -105,6 +105,30 @@ def test_renders_forecast_sheet(kind, pages):
     )
 
 
+def test_midday_sheet_prints_the_airport_reading_first():
+    values = STRUCTURED | {"observedTemperature": "31.9"}
+    midday = forecast_pdf.forecast_context(
+        "midday", values, status="PUBLISHED ISSUE", revision="r1"
+    )
+    assert midday["tiles"][0] == {
+        "icon": "thermometer-sun",
+        "value": "31.9°C",
+        "label": "Midday temperature at MBIA",
+    }
+    morning = forecast_pdf.forecast_context(
+        "morning", values, status="PUBLISHED ISSUE", revision="r1"
+    )
+    assert all(t["label"] != "Midday temperature at MBIA" for t in morning["tiles"])
+
+
+def test_evening_day_cards_carry_their_own_sun_times():
+    values = {"day1Date": "2026-09-25", "day1Sunrise": "05:56", "day1Sunset": "18:12"}
+    day = forecast_pdf._outlook(values)[0]
+    labels = {tile["label"]: tile["value"] for tile in day["tiles"]}
+    assert labels["Sunrise"] == "05:56"
+    assert labels["Sunset"] == "18:12"
+
+
 def test_context_escapes_and_marks_matrix():
     values = STRUCTURED | {
         "summary": "<b>not markup</b>",

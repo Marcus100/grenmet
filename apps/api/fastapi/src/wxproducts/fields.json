@@ -82,7 +82,8 @@
       "key": "maxTemperature",
       "label": "Maximum temperature (°C)",
       "type": "number",
-      "requiredOnPublish": false
+      "required": true,
+      "requiredOnPublish": true
     },
     {
       "section": "Weather",
@@ -724,7 +725,8 @@
       "key": "maxTemperature",
       "label": "Maximum temperature (°C)",
       "type": "number",
-      "requiredOnPublish": false
+      "required": true,
+      "requiredOnPublish": true
     },
     {
       "section": "Weather",

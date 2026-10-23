@@ -176,6 +176,41 @@ describe("latest synopsis", () => {
     expect(result?.watch).toEqual(["Gusty winds", "Take care"]);
   });
 
+  it("lists the imported alerts and CAP warnings, not typed impacts", () => {
+    const advisories = JSON.stringify({
+      complete: true,
+      items: [
+        {
+          source: "CAP",
+          title: "Small Craft Advisory",
+          impacts: "Choppy seas for small craft.",
+        },
+        { source: "Bulletin", title: "Dust haze", impacts: "" },
+      ],
+    });
+    const result = latestSynopsis([
+      product("morning", "2026-09-14T10:00:00Z", {
+        summary: "Fair.",
+        advisories,
+        windAlert: "Typed before the change",
+      }),
+    ]);
+    expect(result?.watch).toEqual([
+      "Small Craft Advisory: Choppy seas for small craft.",
+      "Dust haze",
+    ]);
+  });
+
+  it("shows nothing to watch when no alerts were in force", () => {
+    const result = latestSynopsis([
+      product("evening", "2026-09-14T22:00:00Z", {
+        summary: "Clear.",
+        advisories: JSON.stringify({ complete: true, items: [] }),
+      }),
+    ]);
+    expect(result?.watch).toEqual([]);
+  });
+
   it("returns null when no forecast carries a summary", () => {
     expect(latestSynopsis([])).toBeNull();
     expect(

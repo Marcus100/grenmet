@@ -273,8 +273,11 @@ function forecastFields(kind: ProductKind): ProductField[] {
     }),
     field("Weather", "rainChance", "Chance of rain (%)", { type: "number" }),
     field("Weather", "weatherAlert", "Weather alert"),
+    // Morning and midday print "Today's Max | Tonight's Min"; the evening
+    // tonight block has no maximum (hidden below, kept for older issues).
     field("Weather", "maxTemperature", "Maximum temperature (°C)", {
       type: "number",
+      ...(kind === "evening" ? {} : { required: true }),
     }),
     field("Weather", "minTemperature", "Minimum temperature (°C)", {
       type: "number",
@@ -677,10 +680,20 @@ export function isForecastAlertField(field: ProductField) {
     DAY_ALERT_FIELD.test(field.key)
   );
 }
-export function displayProductFields(kind: ProductKind) {
-  return productFields(kind).filter(
-    (f) => !(isForecastKind(kind) && isForecastAlertField(f))
+/**
+ * The evening tonight block shows only the minimum, and sun times belong to
+ * each outlook day. The keys stay in the schema so older issues still open.
+ */
+const EVENING_TONIGHT_HIDDEN = new Set(["maxTemperature", "sunrise", "sunset"]);
+export function isHiddenForecastField(kind: ProductKind, field: ProductField) {
+  return (
+    isForecastKind(kind) &&
+    (isForecastAlertField(field) ||
+      (kind === "evening" && EVENING_TONIGHT_HIDDEN.has(field.key)))
   );
+}
+export function displayProductFields(kind: ProductKind) {
+  return productFields(kind).filter((f) => !isHiddenForecastField(kind, f));
 }
 const STRUCTURED_SOURCE_KEY =
   /^(day[1-4])?([Vv]isibility(Min|Max)|[Ww]indDir(From|To)|[Ww]indSpeed(Min|Max)|[Ww]indGust|[Ss]eaState(From|To)|[Ww]aveHeight(Min|Max)|[Ss]well(Dir|Period|Height)|[Tt]ide[1-4](Type|Time|Height))$/;

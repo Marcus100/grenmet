@@ -162,7 +162,8 @@ const KIND_LABELS: Record<string, string> = {
   midday: "Midday Forecast",
   evening: "Evening Forecast",
 };
-const WATCH_KEYS = [
+/** Typed watch text on forecasts issued before alerts were imported. */
+const LEGACY_WATCH_KEYS = [
   "weatherAlert",
   "windAlert",
   "marineAlert",
@@ -175,6 +176,35 @@ const WATCH_KEYS = [
 ] as const;
 
 const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/;
+
+/**
+ * GMS alerts and CAP warnings in force when the forecast was issued (the
+ * `advisories` snapshot FastAPI copies into each forecast). Forecasters no
+ * longer type impacts; alerts and CAP are the source. `null` when the
+ * forecast predates the snapshot or it cannot be read.
+ */
+function importedWatch(raw: string | undefined): string[] | null {
+  if (!raw?.trim()) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  const items =
+    parsed && typeof parsed === "object" && "items" in parsed
+      ? (parsed as { items: unknown }).items
+      : null;
+  if (!Array.isArray(items)) return null;
+  return items.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const { title, impacts } = item as { title?: unknown; impacts?: unknown };
+    const name = typeof title === "string" ? title.trim() : "";
+    const detail = typeof impacts === "string" ? impacts.trim() : "";
+    if (!name) return detail ? [detail] : [];
+    return [detail ? `${name}: ${detail}` : name];
+  });
+}
 
 function paragraphsOf(text: string | undefined) {
   return (text ?? "")
@@ -196,9 +226,11 @@ export function latestSynopsis(
     .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))[0];
   if (!latest) return null;
   const v = latest.values;
-  const watch = WATCH_KEYS.map((key) => v[key]?.trim()).filter(
-    (text): text is string => Boolean(text)
-  );
+  const watch =
+    importedWatch(v.advisories) ??
+    LEGACY_WATCH_KEYS.map((key) => v[key]?.trim()).filter(
+      (text): text is string => Boolean(text)
+    );
   return {
     id: latest.id,
     issuedAt: v.issuedAt ?? latest.publishedAt,

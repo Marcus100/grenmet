@@ -84,11 +84,19 @@ issue-date tab across midnight until 07:00. At 07:00 the date strip advances;
 without a new morning report it says “Awaiting today’s morning forecast”.
 Future date tabs use the latest visible evening outlook, showing full weather
 details and each period’s coverage. An open page refreshes every 30 seconds.
-Forecast warnings and impacts are optional legacy fields, excluded from forecast
-displays; CAP remains the independent warning source. The forecast PDF shows a
-summary of the CAP alerts and GMS bulletins in force when the revision was saved
-(captured by FastAPI, not entered by the forecaster). No missing assessment is
-rendered as “Minimal” or an all-clear.
+Forecasters do not write impact-based content: it is authored only in GMS alerts
+and CAP warnings (owner decision, 23 October 2026). Forecast warnings and impacts
+are legacy fields kept so older issues still open, and excluded from forecast
+forms and displays. The forecast PDF, and weather.gd's "What to watch", show the
+CAP alerts and GMS bulletins in force when the revision was saved (captured by
+FastAPI, not entered by the forecaster); forecasts issued before that capture
+fall back to their typed text. No missing assessment is rendered as “Minimal” or
+an all-clear.
+
+Temperatures follow the GMS sheets: morning and midday require today's maximum
+and tonight's minimum; the evening tonight block has only the minimum, and sun
+times appear on each of the four outlook days rather than on tonight. The
+midday sheet prints the midday temperature at MBIA first.
 
 CAP is independent: these bulletins do not automatically create CAP messages,
 synchronize their statuses, or contribute to CAP warning counts. Per
