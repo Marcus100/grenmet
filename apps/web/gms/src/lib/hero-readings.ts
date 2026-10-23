@@ -164,10 +164,17 @@ function percent(value: string | undefined): number | null {
   return match ? Number(match[0]) : null;
 }
 
-/** The issued chance of rain; null when the day carries none. */
-export function rainChance(day: ForecastDayData): number | null {
+/**
+ * The issued chance of rain as shown: "Low", "Medium" or "High" (since 23
+ * October 2026) or an older issue's percentage such as "40%"; null when the
+ * day carries none.
+ */
+export function rainChance(day: ForecastDayData): string | null {
   if (!isIssued(day)) return null;
-  return percent(find(day.conditions, RAIN_CHANCE)?.value);
+  const value = find(day.conditions, RAIN_CHANCE)?.value?.trim();
+  if (!value) return null;
+  const share = percent(value);
+  return share === null ? value : `${share}%`;
 }
 
 /**
@@ -202,7 +209,7 @@ export function dayReadings(day: ForecastDayData): Reading[] {
   rows.push(
     rain === null
       ? missing("rain", "Chance of rain")
-      : { icon: "rain", label: "Chance of rain", value: `${rain}%` },
+      : { icon: "rain", label: "Chance of rain", value: rain },
     issuedOrMissing("rainfall", "Rainfall", find(c, RAINFALL)?.value),
     issuedOrMissing("humidity", "Humidity", find(c, HUMIDITY)?.value),
     issuedOrMissing("cloud", "Cloud cover", find(c, CLOUD)?.value)

@@ -134,12 +134,15 @@ export const SEA_STATES = [
   { term: "Phenomenal", code: 9, band: "over 14 m" },
 ] as const;
 /** Matches the GMS site's weather icons (`apps/web/gms/src/lib/weather-icons.ts`). */
+/** Sky cover, as in a METAR; showers and thunder go in the forecast text. */
 export const WEATHER_CONDITIONS = [
-  "Sunny",
-  "Sunny intervals",
+  "Clear",
+  "Fair",
+  "Partly cloudy",
   "Cloudy",
-  "Showers",
+  "Overcast",
 ] as const;
+export const RAIN_CHANCES = ["Low", "Medium", "High"] as const;
 export const TIDE_SLOTS = [1, 2, 3, 4] as const;
 const likelihoods = ["Very low", "Low", "Medium", "High"];
 const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/;
@@ -265,13 +268,15 @@ function forecastFields(kind: ProductKind): ProductField[] {
     field(
       "Weather",
       "summary",
-      kind === "evening" ? "Tonight's weather" : "Weather summary",
+      kind === "evening" ? "Tonight's weather forecast" : "Weather forecast",
       { type: "textarea", required: true }
     ),
     field("Weather", "condition", "Conditions", {
       options: WEATHER_CONDITIONS,
     }),
-    field("Weather", "rainChance", "Chance of rain (%)", { type: "number" }),
+    field("Weather", "rainChance", "Chance of rain", {
+      options: RAIN_CHANCES,
+    }),
     field("Weather", "weatherAlert", "Weather alert"),
     // Morning and midday print "Today's Max | Tonight's Min"; the evening
     // tonight block has no maximum (hidden below, kept for older issues).

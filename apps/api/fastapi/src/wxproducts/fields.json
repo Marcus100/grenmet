@@ -47,7 +47,7 @@
     {
       "section": "Weather",
       "key": "summary",
-      "label": "Weather summary",
+      "label": "Weather forecast",
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
@@ -57,18 +57,23 @@
       "key": "condition",
       "label": "Conditions",
       "options": [
-        "Sunny",
-        "Sunny intervals",
+        "Clear",
+        "Fair",
+        "Partly cloudy",
         "Cloudy",
-        "Showers"
+        "Overcast"
       ],
       "requiredOnPublish": false
     },
     {
       "section": "Weather",
       "key": "rainChance",
-      "label": "Chance of rain (%)",
-      "type": "number",
+      "label": "Chance of rain",
+      "options": [
+        "Low",
+        "Medium",
+        "High"
+      ],
       "requiredOnPublish": false
     },
     {
@@ -690,7 +695,7 @@
     {
       "section": "Weather",
       "key": "summary",
-      "label": "Weather summary",
+      "label": "Weather forecast",
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
@@ -700,18 +705,23 @@
       "key": "condition",
       "label": "Conditions",
       "options": [
-        "Sunny",
-        "Sunny intervals",
+        "Clear",
+        "Fair",
+        "Partly cloudy",
         "Cloudy",
-        "Showers"
+        "Overcast"
       ],
       "requiredOnPublish": false
     },
     {
       "section": "Weather",
       "key": "rainChance",
-      "label": "Chance of rain (%)",
-      "type": "number",
+      "label": "Chance of rain",
+      "options": [
+        "Low",
+        "Medium",
+        "High"
+      ],
       "requiredOnPublish": false
     },
     {
@@ -1341,7 +1351,7 @@
     {
       "section": "Weather",
       "key": "summary",
-      "label": "Tonight's weather",
+      "label": "Tonight's weather forecast",
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
@@ -1351,18 +1361,23 @@
       "key": "condition",
       "label": "Conditions",
       "options": [
-        "Sunny",
-        "Sunny intervals",
+        "Clear",
+        "Fair",
+        "Partly cloudy",
         "Cloudy",
-        "Showers"
+        "Overcast"
       ],
       "requiredOnPublish": false
     },
     {
       "section": "Weather",
       "key": "rainChance",
-      "label": "Chance of rain (%)",
-      "type": "number",
+      "label": "Chance of rain",
+      "options": [
+        "Low",
+        "Medium",
+        "High"
+      ],
       "requiredOnPublish": false
     },
     {

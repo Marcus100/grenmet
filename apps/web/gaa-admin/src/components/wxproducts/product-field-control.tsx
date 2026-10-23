@@ -56,6 +56,24 @@ function fieldWidth(f: ProductField) {
   }
   return "w-full max-w-sm";
 }
+const ROW_START =
+  /^(day\d)?(maxTemperature|minTemperature|Max|Min|swellDir|SwellDir)$/;
+const ROW_FOLLOWER = /^(day\d)?(minTemperature|Min)$/;
+/**
+ * Fields that begin their own row in a section: the temperatures (maximum and
+ * minimum together) and swell direction. A minimum right after its maximum
+ * stays on the maximum's row.
+ */
+export function startsRow(f: ProductField, previous?: ProductField) {
+  if (!ROW_START.test(f.key)) return false;
+  return !(
+    ROW_FOLLOWER.test(f.key) &&
+    previous &&
+    ROW_START.test(previous.key) &&
+    !ROW_FOLLOWER.test(previous.key)
+  );
+}
+
 /** "Day 2 · Wind" → group "Wind", key prefix "day2"; "Wind" → "Wind", "". */
 export function sectionParts(section: string) {
   const day = DAY_SECTION_PREFIX.exec(section)?.[1];

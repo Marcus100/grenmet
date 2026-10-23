@@ -93,9 +93,15 @@ PRODUCT_CODES = {
 NEXT_ISSUE = {"morning": "12:00", "midday": "18:00", "evening": "07:00"}
 
 CONDITION_ICONS = {
+    # Sky cover terms (owner, 23 October 2026).
+    "Clear": "sun",
+    "Fair": "sun",
+    "Partly cloudy": "cloud-sun",
+    "Cloudy": "cloud",
+    "Overcast": "cloud",
+    # Older issues.
     "Sunny": "sun",
     "Sunny intervals": "cloud-sun",
-    "Cloudy": "cloud",
     "Showers": "cloud-rain",
 }
 

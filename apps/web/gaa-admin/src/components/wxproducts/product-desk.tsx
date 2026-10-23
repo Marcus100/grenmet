@@ -52,7 +52,11 @@ import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 import { CapForecastPicker } from "./cap-forecast-picker";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
 import { ProductDiscardDialog } from "./product-discard-dialog";
-import { ProductFieldControl, sectionParts } from "./product-field-control";
+import {
+  ProductFieldControl,
+  sectionParts,
+  startsRow,
+} from "./product-field-control";
 import { type HistoryItem, ProductHistoryPanel } from "./product-history-panel";
 import { ProductList } from "./product-list";
 import { ProductWithdrawDialog } from "./product-withdraw-dialog";
@@ -675,7 +679,18 @@ function ProductEditor({
                                       ) : null}
                                     </div>
                                   ) : (
-                                    sectionFields.map(renderField)
+                                    sectionFields.flatMap((f, index) =>
+                                      startsRow(f, sectionFields[index - 1])
+                                        ? [
+                                            <div
+                                              aria-hidden="true"
+                                              className="h-0 basis-full"
+                                              key={`${f.key}-row`}
+                                            />,
+                                            renderField(f),
+                                          ]
+                                        : [renderField(f)]
+                                    )
                                   )}
                                 </div>
                                 <SectionHints
