@@ -6,6 +6,7 @@ Requests only queue work: email rows go to the notifications outbox
 """
 
 import html
+import logging
 from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID
@@ -15,12 +16,13 @@ from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.exceptions import AppException
 from src.notifications import service as notification_service
 from src.notifications.config import notification_settings
 from src.notifications.models import OutboundEmail, OutboundEmailStatus
 from src.utils.datetime import utc_now
 
-from . import encode, gate, rules
+from . import encode, entries, gate, rules
 from .config import eregister_settings, wis2box_settings
 from .models import (
     STATUS_FAILED,
@@ -38,7 +40,12 @@ from .schemas import (
     SynopWorkbook,
 )
 
+logger = logging.getLogger(__name__)
+
 NOT_SENDABLE_STATES = ("rejected", "superseded")
+# Accepted (by the observer or other register staff) is enough to leave the
+# building; the optional review never holds WIS2 or email back.
+SENDABLE_ACCEPTED_STATES = ("accepted",)
 
 
 class SendableObservation:
@@ -80,10 +87,11 @@ async def load_sendable(
         raise HTTPException(409, f"A {state} observation cannot be sent")
     if (
         require_accepted or eregister_settings.SEND_REQUIRE_ACCEPTED
-    ) and state != "accepted":
+    ) and state not in SENDABLE_ACCEPTED_STATES:
         raise HTTPException(409, "Only QC-accepted observations can be sent")
     workbook = encode.workbook_from_body(data["body"] or {})
-    issues, decoded = rules.validate_synop(workbook)
+    _, decoded = rules.validate_synop(workbook)
+    issues = entries.validation_issues(data["body"] or {}, data["observed_at"])
     errors = [issue for issue in issues if issue.severity == "error"]
     if errors:
         detail = "; ".join(f"{issue.field}: {issue.message}" for issue in errors[:3])
@@ -130,6 +138,7 @@ def _to_read(row: ERegisterSend) -> ObservationSend:
         last_error=row.last_error,
         queued_at=row.created_at,
         sent_at=row.sent_at,
+        is_correction=bool(row.detail.get("correction")),
     )
 
 
@@ -138,9 +147,15 @@ def _celsius(kelvin: float | None) -> str:
 
 
 def email_content(item: SendableObservation, tac: str) -> tuple[str, str]:
-    accepted = item.row.get("state") == "accepted"
+    state = item.row.get("state")
+    correction = bool(item.row.get("supersedes_id"))
     observed = item.observed_at.astimezone(UTC)
-    subject = f"SYNOP {item.station_id} {observed:%d %b %Y %H%M}Z"
+    subject = (
+        f"{'CORRECTION ' if correction else ''}SYNOP {item.station_id} "
+        f"{observed:%d %b %Y %H%M}Z"
+    )
+    # CCA marks a corrected report in the bulletin header (WMO-No. 386).
+    tac = f"CCA\n{tac}" if correction else tac
     decoded = item.decoded
     wind = (
         "-"
@@ -175,7 +190,7 @@ def email_content(item: SendableObservation, tac: str) -> tuple[str, str]:
         f"<table>{table}</table>"
         + (f"<p>Notes: {html.escape(note)}</p>" if note else "")
         + "<p style='color:#666'>Sent from the GMS eRegister. "
-        + ("QC-accepted." if accepted else "Provisional until QC-accepted.")
+        + ("Accepted." if state == "accepted" else "Provisional until accepted.")
         + "</p>"
     )
     return subject, body
@@ -212,7 +227,10 @@ async def queue_email(
         target=TARGET_EMAIL,
         status=STATUS_QUEUED,
         recipients=len(recipients),
-        detail={"email_ids": [str(mail.id) for mail in outbox]},
+        detail={
+            "email_ids": [str(mail.id) for mail in outbox],
+            "correction": bool(item.row.get("supersedes_id")),
+        },
         created_by=user.id,
     )
     session.add(log)
@@ -247,12 +265,22 @@ async def queue_wis2(
     # The gate comes first: an hour owned by the automatic source is never
     # queued, and a station-hour is claimed by one observation only. A WIS2
     # file is never queued twice, so `resend` does not apply here.
+    superseded = (
+        await gate.ancestors(register, observation_id)
+        if item.row.get("supersedes_id")
+        else []
+    )
+    holder = await gate.hour_holder(
+        register, station_id=item.station_id, observed_at=item.observed_at
+    )
+    correction = holder is not None and holder in superseded
     claimed = await gate.claim_manual_hour(
         register,
         station_id=item.station_id,
         observed_at=item.observed_at,
         observation_id=observation_id,
         actor=str(user.id),
+        supersedes=superseded,
     )
     try:
         await _claim(session, observation_id, TARGET_WIS2, resend=False)
@@ -275,7 +303,14 @@ async def queue_wis2(
         observed_at=observed.replace(tzinfo=None),
         target=TARGET_WIS2,
         status=STATUS_QUEUED,
-        detail={"key": key, "filename": filename, "content": encode.wis2_csv(row)},
+        detail={
+            "key": key,
+            "filename": filename,
+            "content": encode.wis2_csv(row),
+            # The Surface-RA-IV-100 CSV has no correction column (see the
+            # conformance doc), so the flag lives here and in the email only.
+            "correction": correction,
+        },
         created_by=user.id,
     )
     session.add(log)
@@ -332,3 +367,44 @@ async def _settle_email(session: AsyncSession, log: ERegisterSend) -> bool:
     log.status = STATUS_SENT
     log.sent_at = max(mail.sent_at or utc_now() for mail in mails)
     return True
+
+
+async def dispatch_after_acceptance(
+    *,
+    session: AsyncSession,
+    register: AsyncSession,
+    observation_id: UUID,
+    user: User,
+) -> None:
+    """Queue WIS2 and email once the observer has accepted.
+
+    Best effort: a hand-off that is refused (hour owned by the automatic source,
+    WIS2 or recipients not configured) is logged and never undoes the
+    acceptance. The send history shows what was queued.
+    """
+    for target in (TARGET_WIS2, TARGET_EMAIL):
+        try:
+            item = await load_sendable(register, observation_id, require_accepted=True)
+            if target == TARGET_WIS2:
+                await queue_wis2(
+                    session=session,
+                    register=register,
+                    item=item,
+                    observation_id=observation_id,
+                    user=user,
+                    resend=False,
+                )
+            else:
+                await queue_email(
+                    session=session,
+                    item=item,
+                    observation_id=observation_id,
+                    user=user,
+                    resend=False,
+                )
+        except (HTTPException, AppException) as exc:
+            await session.rollback()
+            detail = getattr(exc, "detail", None) or getattr(exc, "message", "")
+            logger.info(
+                "eRegister %s hand-off skipped after acceptance: %s", target, detail
+            )

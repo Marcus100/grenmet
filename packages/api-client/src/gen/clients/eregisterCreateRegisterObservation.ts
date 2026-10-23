@@ -11,7 +11,7 @@ import type {
 } from "../models/EregisterCreateRegisterObservation.js";
 
 /**
- * @description Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record. Requires `eregister.observe`, `eregister.qc` or `eregister.send`; a saved SYNOP shows on the public weather site as provisional.
+ * @description Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record. A SYNOP is validated first: errors (including a keyed day or hour that does not match `observed_at`) are `422` with the issues in `detail.issues`; warnings are allowed. One live observation exists per station, time and kind: saving again as the observer of an unsent draft updates it in place (`200`); any other existing live observation is `409` (use the correct endpoint). Requires `eregister.observe`, `eregister.qc` or `eregister.send`; a saved SYNOP shows on the public weather site as provisional.
  * @summary Create a register observation
  * {@link /api/v1/eregister/observations}
  */

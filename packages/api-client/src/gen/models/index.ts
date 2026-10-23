@@ -2349,13 +2349,28 @@ export type {
   EregisterAcceptRegisterObservationStatus422,
 } from "./EregisterAcceptRegisterObservation.js";
 export type {
+  EregisterCorrectRegisterObservationBody,
+  EregisterCorrectRegisterObservationOptions,
+  EregisterCorrectRegisterObservationPath,
+  EregisterCorrectRegisterObservationResponse,
+  EregisterCorrectRegisterObservationResponses,
+  EregisterCorrectRegisterObservationStatus201,
+  EregisterCorrectRegisterObservationStatus401,
+  EregisterCorrectRegisterObservationStatus403,
+  EregisterCorrectRegisterObservationStatus404,
+  EregisterCorrectRegisterObservationStatus409,
+  EregisterCorrectRegisterObservationStatus422,
+} from "./EregisterCorrectRegisterObservation.js";
+export type {
   EregisterCreateRegisterObservationBody,
   EregisterCreateRegisterObservationOptions,
   EregisterCreateRegisterObservationResponse,
   EregisterCreateRegisterObservationResponses,
+  EregisterCreateRegisterObservationStatus200,
   EregisterCreateRegisterObservationStatus201,
   EregisterCreateRegisterObservationStatus401,
   EregisterCreateRegisterObservationStatus403,
+  EregisterCreateRegisterObservationStatus409,
   EregisterCreateRegisterObservationStatus422,
 } from "./EregisterCreateRegisterObservation.js";
 export type {
@@ -2448,6 +2463,19 @@ export type {
   EregisterReopenRegisterObservationStatus409,
   EregisterReopenRegisterObservationStatus422,
 } from "./EregisterReopenRegisterObservation.js";
+export type {
+  EregisterReviewRegisterObservationBody,
+  EregisterReviewRegisterObservationOptions,
+  EregisterReviewRegisterObservationPath,
+  EregisterReviewRegisterObservationResponse,
+  EregisterReviewRegisterObservationResponses,
+  EregisterReviewRegisterObservationStatus200,
+  EregisterReviewRegisterObservationStatus401,
+  EregisterReviewRegisterObservationStatus403,
+  EregisterReviewRegisterObservationStatus404,
+  EregisterReviewRegisterObservationStatus409,
+  EregisterReviewRegisterObservationStatus422,
+} from "./EregisterReviewRegisterObservation.js";
 export type {
   EregisterValidateSynopObservationBody,
   EregisterValidateSynopObservationOptions,
@@ -6566,9 +6594,12 @@ export { refundCreatePropertiesMethodEnum } from "./RefundCreatePropertiesMethod
 export type { RefundPublic } from "./RefundPublic.js";
 export type { RefundStatus } from "./RefundStatus.js";
 export { refundStatus } from "./RefundStatus.js";
+export type { RegisterObservationCorrection } from "./RegisterObservationCorrection.js";
 export type { RegisterObservationCreate } from "./RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./RegisterObservationList.js";
 export type { RegisterObservationRead } from "./RegisterObservationRead.js";
+export type { RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum } from "./RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum.js";
+export { registerObservationReadPropertiesReviewOutcomeAnyOfEnum } from "./RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum.js";
 export type { RegisterObservationReadPropertiesStateEnum } from "./RegisterObservationReadPropertiesStateEnum.js";
 export { registerObservationReadPropertiesStateEnum } from "./RegisterObservationReadPropertiesStateEnum.js";
 export type { ReportCreate } from "./ReportCreate.js";
@@ -6598,6 +6629,7 @@ export type { ReviewInput } from "./ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";
 export { reviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";
 export type { ReviewPublic } from "./ReviewPublic.js";
+export type { ReviewRequest } from "./ReviewRequest.js";
 export type { RewardCardPublic } from "./RewardCardPublic.js";
 export type { RewardEntryListPublic } from "./RewardEntryListPublic.js";
 export type { RewardEntryPublic } from "./RewardEntryPublic.js";
