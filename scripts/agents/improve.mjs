@@ -43,6 +43,46 @@ function readJsonl(file) {
     });
 }
 
+// Only the latest result of each eval case counts. Every run appends to the
+// results file, so without this a fixed miss, or a run where the harness
+// detected nothing at all, keeps inflating the count for the whole window.
+export function latestEvals(rows) {
+  const latest = new Map();
+  for (const r of rows) {
+    const id = [r.agent, r.model, r.skill, r.prompt].join("\u0000");
+    const seen = latest.get(id);
+    if (!seen || (r.date ?? "") >= (seen.date ?? "")) latest.set(id, r);
+  }
+  return [...latest.values()];
+}
+
+// The skill an eval result is about, and what went wrong. A "json" case lists
+// skills that should and should not fire, so it is filed under the skill that
+// actually missed (or fired wrongly) instead of one "(json cases)" bucket.
+export function describeEval(r) {
+  if (r.expect === "trigger")
+    return { evidence: `did not trigger on: ${r.prompt}`, key: r.skill };
+  if (r.expect !== "json")
+    return { evidence: `triggered wrongly on: ${r.prompt}`, key: r.skill };
+  const fired = r.fired ?? [];
+  const missed = (r.should_use ?? []).filter((s) => !fired.includes(s));
+  const wrong = (r.should_not_use ?? []).filter((s) => fired.includes(s));
+  if (missed.length > 0)
+    return {
+      evidence: `did not trigger on: ${r.prompt}`,
+      key: missed[0],
+    };
+  if (wrong.length > 0)
+    return {
+      evidence: `triggered wrongly on: ${r.prompt}`,
+      key: wrong[0],
+    };
+  return {
+    evidence: `failed on: ${r.prompt}`,
+    key: r.should_use?.[0] ?? r.skill,
+  };
+}
+
 // Each problem: a source, a key, how often it happened, how often it was
 // checked, and up to EXAMPLES pieces of evidence with suggested fixes.
 export function collectProblems({
@@ -72,19 +112,20 @@ export function collectProblems({
         source: "scorer",
       });
   const bySkill = new Map();
-  for (const r of skillEvals) {
-    const entry = bySkill.get(r.skill) ?? { checked: 0, fails: [] };
+  for (const r of latestEvals(skillEvals)) {
+    const { evidence, key } = describeEval(r);
+    const entry = bySkill.get(key) ?? { checked: 0, fails: [] };
     entry.checked += 1;
-    if (r.passed === false) entry.fails.push(r);
-    bySkill.set(r.skill, entry);
+    if (r.passed === false) entry.fails.push(evidence);
+    bySkill.set(key, entry);
   }
   for (const [skill, { checked, fails }] of bySkill)
     if (fails.length > 0)
       problems.push({
         checked,
         count: fails.length,
-        examples: fails.slice(-EXAMPLES).map((f) => ({
-          evidence: `${f.expect === "trigger" ? "did not trigger" : "triggered wrongly"} on: ${f.prompt}`,
+        examples: fails.slice(-EXAMPLES).map((evidence) => ({
+          evidence,
           suggestion: "tighten the skill description's trigger phrases",
         })),
         key: skill,
