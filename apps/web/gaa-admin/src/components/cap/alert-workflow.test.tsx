@@ -17,7 +17,7 @@ import { AlertWorkflow } from "./alert-workflow";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 const ID = "11111111-1111-4111-8111-111111111111";
 const URL = `http://localhost/api/v1/cap/alerts/${ID}`;
-const DRAFT_HINT = /Draft: request review\. Publishing needs approval/;
+const DRAFT_HINT = /Draft: request review\. Publishing needs an approval/;
 const REVIEW = /I have reviewed this saved alert/;
 const initial: CapAlertPublic = {
   id: ID,
@@ -215,12 +215,12 @@ it("shows validation errors and prevents submission", async () => {
   expect(actions).toEqual([]);
 });
 
-it("shows backend self-approval denial without advancing state", async () => {
+it("shows a backend approval refusal without advancing state", async () => {
   alert.lifecycle_state = "SUBMITTED";
   server.use(
     http.post(`${URL}/approve`, () =>
       HttpResponse.json(
-        { detail: "Another authorised person must approve this alert" },
+        { detail: "Insufficient permission for this operation" },
         { status: 403 }
       )
     )
@@ -228,10 +228,29 @@ it("shows backend self-approval denial without advancing state", async () => {
   show();
   await review();
   fireEvent.click(screen.getByRole("button", { name: "Record approval" }));
-  await screen.findByText("Another authorised person must approve this alert");
+  await screen.findByText("Insufficient permission for this operation");
   expect(
     screen.getByRole("button", { name: "Record approval" })
   ).toBeInTheDocument();
+});
+
+it("records an optional colleague review without changing the state", async () => {
+  alert.lifecycle_state = "SUBMITTED";
+  let body: unknown;
+  server.use(
+    http.post(`${URL}/reviews`, async ({ request }) => {
+      body = await request.json();
+      return HttpResponse.json(alert);
+    })
+  );
+  show();
+  await screen.findByRole("button", { name: "Mark reviewed" });
+  expect(
+    screen.getByRole("button", { name: "Request changes" })
+  ).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Mark reviewed" }));
+  await screen.findByText("Review recorded in the audit history.");
+  expect(body).toEqual({ outcome: "reviewed", note: null });
 });
 
 it("cancels a published alert after confirming, and issuing a Cancel message", async () => {

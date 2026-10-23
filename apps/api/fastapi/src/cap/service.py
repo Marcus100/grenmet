@@ -87,6 +87,7 @@ from src.cap.schemas import (
     CapInfoCreate,
     CapReferenceCreate,
     CapResourceCreate,
+    CapReviewRecord,
     CapSnapshotPublic,
     CapValidationResult,
 )
@@ -463,12 +464,9 @@ async def approve_alert(
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.approve")
     alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
-    # ADR-0023: approval always needs a different person; the legacy
-    # `allow_self_approval` policy flag no longer relaxes this for CAP.
-    if alert.created_by_user_id == current_user.id:
-        from src.exceptions import AppException
-
-        raise AppException("Another authorised person must approve this alert", 403)
+    # Owner decision 2026-10-23 (ADR-0023 amendment): the author may approve
+    # their own alert; an independent review is optional (request_review /
+    # record_review) and always audited.
     return await _transition(
         session=session,
         current_user=current_user,
@@ -481,8 +479,8 @@ async def approve_alert(
     )
 
 
-async def _approved_by_another(*, session: AsyncSession, alert: CapAlert) -> bool:
-    """True when the latest approval was recorded by someone other than the author."""
+async def _has_approval(*, session: AsyncSession, alert: CapAlert) -> bool:
+    """True when an approval is on record (the author may have given it)."""
     actor = (
         await session.execute(
             select(CapAuditEvent.actor_user_id)
@@ -493,7 +491,70 @@ async def _approved_by_another(*, session: AsyncSession, alert: CapAlert) -> boo
             .limit(1)
         )
     ).scalar_one_or_none()
-    return actor is not None and actor != alert.created_by_user_id
+    return actor is not None
+
+
+async def record_review(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    alert_id: uuid.UUID,
+    payload: CapReviewRecord,
+) -> CapAlertPublic:
+    """Record an optional review by someone other than the author.
+
+    Asking for one is the existing submit step ("Request review" in the
+    portal); a review never changes the alert's state or blocks approval.
+    """
+    require_permission(current_user=current_user, permission_key="cap.alert.approve")
+    alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
+    if alert.created_by_user_id == current_user.id:
+        from src.exceptions import AppException
+
+        raise AppException("A review must come from someone other than the author", 403)
+    return await _record_review_event(
+        session=session,
+        current_user=current_user,
+        alert=alert,
+        action=payload.outcome,
+        note=payload.note,
+    )
+
+
+async def _record_review_event(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    alert: CapAlert,
+    action: str,
+    note: str | None,
+) -> CapAlertPublic:
+    if alert.lifecycle_state in {
+        CapLifecycleState.CANCELLED,
+        CapLifecycleState.EXPIRED,
+    }:
+        raise CapStateError("A cancelled or expired alert cannot be reviewed.")
+    state = alert.lifecycle_state.value
+    _record_audit(
+        session=session,
+        alert_id=alert.id,
+        actor=current_user,
+        action=action,
+        previous_state=state,
+        next_state=state,
+        note=note,
+    )
+    await session.commit()
+    await session.refresh(alert)
+    logger.info(
+        "CAP alert review event",
+        extra={
+            "alert_id": str(alert.id),
+            "action": action,
+            "user_id": str(current_user.id),
+        },
+    )
+    return await _to_public(session=session, alert=alert)
 
 
 async def publish_alert(
@@ -503,7 +564,7 @@ async def publish_alert(
     alert_id: uuid.UUID,
     payload: CapAlertAction,
 ) -> tuple[CapAlertPublic, CapSnapshotPublic]:
-    """Normal publish: only an Approved alert (approved by a non-author)."""
+    """Normal publish: only an Approved alert (the author may have approved it)."""
     require_permission(current_user=current_user, permission_key="cap.alert.publish")
     alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
     if alert.lifecycle_state != CapLifecycleState.APPROVED:
@@ -511,10 +572,8 @@ async def publish_alert(
             "Only an approved alert can be published. Submit it for approval, "
             "or use emergency publish if you hold that permission."
         )
-    if not await _approved_by_another(session=session, alert=alert):
-        raise CapStateError(
-            "This alert was not approved by someone other than its author."
-        )
+    if not await _has_approval(session=session, alert=alert):
+        raise CapStateError("This alert has no recorded approval.")
     return await _publish(
         session=session, current_user=current_user, alert=alert, note=payload.note
     )

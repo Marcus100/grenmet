@@ -10,13 +10,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.baseline.models import ApprovalPolicy
 from src.cap import service as cap_service
 from src.cap.exceptions import CapStateError
-from src.cap.models import CapAlert, CapLifecycleState, CapMessageType, CapSnapshot
+from src.cap.models import (
+    CapAlert,
+    CapAuditEvent,
+    CapLifecycleState,
+    CapMessageType,
+    CapSnapshot,
+)
 from src.cap.schemas import (
     CapAlertAction,
     CapAlertCreate,
     CapAlertUpdate,
     CapEmergencyPublish,
     CapReferenceCreate,
+    CapReviewRecord,
 )
 from src.cap.service import (
     approve_alert,
@@ -25,6 +32,7 @@ from src.cap.service import (
     emergency_publish_alert,
     expire_alert,
     publish_alert,
+    record_review,
     submit_alert,
     update_alert,
 )
@@ -202,21 +210,68 @@ async def test_publish_from_submitted_refused(db_async: AsyncSession) -> None:
         )
 
 
-async def test_self_approval_refused_even_with_permissive_policy(
+async def test_author_may_approve_and_publish_their_own_alert(
     db_async: AsyncSession,
 ) -> None:
+    # Owner decision 2026-10-23 (ADR-0023 amendment): self-approval is allowed.
     user = await make_user(db_async, superuser=True)
-    alert = await _create_alert_for_test(db_async, user)  # policy allows self-approval
+    alert = await _create_alert_for_test(db_async, user)
     await submit_alert(
         session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
     )
-    with pytest.raises(AppException, match="Another authorised person"):
-        await approve_alert(
+    approved = await approve_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    assert approved.lifecycle_state == CapLifecycleState.APPROVED
+    published, _ = await publish_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    assert published.lifecycle_state == CapLifecycleState.PUBLISHED
+
+
+async def test_reviews_are_optional_audited_and_never_by_the_author(
+    db_async: AsyncSession,
+) -> None:
+    author = await make_user(db_async, superuser=True)
+    reviewer = await make_user(db_async, superuser=True)
+    alert = await _create_alert_for_test(db_async, author)
+    # Asking for a review is the submit step ("Request review" in the portal).
+    await submit_alert(
+        session=db_async,
+        current_user=author,
+        alert_id=alert.id,
+        payload=CapAlertAction(),
+    )
+    with pytest.raises(AppException, match="someone other than the author"):
+        await record_review(
             session=db_async,
-            current_user=user,
+            current_user=author,
             alert_id=alert.id,
-            payload=CapAlertAction(),
+            payload=CapReviewRecord(outcome="reviewed"),
         )
+    reviewed = await record_review(
+        session=db_async,
+        current_user=reviewer,
+        alert_id=alert.id,
+        payload=CapReviewRecord(outcome="changes_requested", note="Tighten the area"),
+    )
+    # A review never moves the alert; the author can still approve it.
+    assert reviewed.lifecycle_state == CapLifecycleState.SUBMITTED
+    actions = (
+        await db_async.scalars(
+            select(CapAuditEvent.action)
+            .where(CapAuditEvent.alert_id == alert.id)
+            .order_by(CapAuditEvent.created_at)
+        )
+    ).all()
+    assert "changes_requested" in actions
+    approved = await approve_alert(
+        session=db_async,
+        current_user=author,
+        alert_id=alert.id,
+        payload=CapAlertAction(),
+    )
+    assert approved.lifecycle_state == CapLifecycleState.APPROVED
 
 
 async def test_editing_after_approval_returns_alert_to_draft(

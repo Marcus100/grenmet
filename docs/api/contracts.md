@@ -1156,7 +1156,7 @@ these anonymous endpoints:
 | `GET /api/cap/{identifier}.xml` | Latest CAP XML snapshot for an identifier |
 
 CAP management routes are under `/api/v1/cap` and require authenticated users plus permission checks.
-`POST /alerts/{id}/publish` accepts only an `APPROVED` alert whose approver is not its author (409 otherwise); `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
+`POST /alerts/{id}/publish` accepts only an `APPROVED` alert with a recorded approval, which the author may give (409 otherwise; owner decision 2026-10-23, ADR-0023 amendment). `POST /alerts/{id}/reviews` (`{"outcome": "reviewed" | "changes_requested", "note": "..."}`, permission `cap.alert.approve`) records an optional colleague review by someone other than the author (403 for the author, 409 for a cancelled or expired alert); it never changes the alert's state. Asking for a review is the submit step; `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
 
 Only Public alerts with `status=Actual` create CAP publish side-effect jobs. The
 worker also skips previously queued jobs for any other status or scope, so an

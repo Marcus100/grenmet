@@ -10,6 +10,7 @@ import {
   capExpireAlert,
   capGetAlert,
   capPublishAlert,
+  capRecordAlertReview,
   capSubmitAlert,
   capValidateAlert,
 } from "@barrelsgd/api-client";
@@ -48,6 +49,8 @@ type WorkflowAction =
   | "validate"
   | "submit"
   | "approve"
+  | "reviewed"
+  | "changes_requested"
   | "publish"
   | "emergency"
   | "cancel"
@@ -64,6 +67,17 @@ const LIFECYCLE_ACTIONS: Record<
   (options: LifecycleOptions) => Promise<CapAlertPublic>
 > = {
   approve: (options) => capApproveAlert(options).unwrap(),
+  // Optional colleague review (owner, 23 Oct 2026); never changes the state.
+  reviewed: (options) =>
+    capRecordAlertReview({
+      path: options.path,
+      body: { outcome: "reviewed", note: options.body.note },
+    }).unwrap(),
+  changes_requested: (options) =>
+    capRecordAlertReview({
+      path: options.path,
+      body: { outcome: "changes_requested", note: options.body.note },
+    }).unwrap(),
   cancel: (options) => capCancelAlert(options).unwrap(),
   expire: (options) => capExpireAlert(options).unwrap(),
   emergency: async (options) =>
@@ -138,7 +152,11 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
       setNote("");
       setCancelOpen(false);
       setEmergencyOpen(false);
-      setMessage(`CAP state: ${updated.lifecycle_state}.`);
+      setMessage(
+        action === "reviewed" || action === "changes_requested"
+          ? "Review recorded in the audit history."
+          : `CAP state: ${updated.lifecycle_state}.`
+      );
       router.refresh();
     } catch (error) {
       setMessage(errorText(error));
@@ -220,8 +238,9 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
 
 const PUBLISH_STATUS_TEXT: Record<string, string> = {
   DRAFT:
-    "Draft: request review. Publishing needs approval by a different person.",
-  SUBMITTED: "Awaiting approval by a different authorised person.",
+    "Draft: request review. Publishing needs an approval, which you may give yourself.",
+  SUBMITTED:
+    "Awaiting approval. You may approve it yourself; a colleague can review it first.",
   APPROVED:
     "Approved: publishing will issue this alert to the configured distribution channels.",
 };
@@ -260,8 +279,8 @@ function ReviewAndPublishSection({
       <legend className="font-semibold">Review and publication</legend>
       <p className="text-muted-foreground text-sm">
         Validate the saved alert, then review its content, status, scope, areas
-        and validity. A different authorised person must approve the alert
-        before it can be published.
+        and validity. The alert needs an approval before it can be published;
+        the author may give it. A colleague can review it first (optional).
       </p>
       <Button onClick={() => run("validate")} type="button" variant="outline">
         Validate alert
@@ -318,6 +337,26 @@ function ReviewAndPublishSection({
             Record approval
           </Button>
         ) : null}
+        {alert.lifecycle_state === "SUBMITTED" ||
+        alert.lifecycle_state === "APPROVED" ? (
+          <>
+            <Button
+              onClick={() => run("reviewed")}
+              type="button"
+              variant="ghost"
+            >
+              Mark reviewed
+            </Button>
+            <Button
+              disabled={!note.trim()}
+              onClick={() => run("changes_requested")}
+              type="button"
+              variant="ghost"
+            >
+              Request changes
+            </Button>
+          </>
+        ) : null}
         <Button
           disabled={
             !(valid && reviewed && alert.lifecycle_state === "APPROVED")
@@ -354,8 +393,8 @@ function ReviewAndPublishSection({
             Emergency publish without approval?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            This issues the alert to the public without a second person's
-            approval. Your reason is recorded in the audit history.
+            This issues the alert to the public without any approval. Your
+            reason is recorded in the audit history.
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel>Do not publish</AlertDialogCancel>

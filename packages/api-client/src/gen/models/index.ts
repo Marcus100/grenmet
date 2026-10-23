@@ -1976,10 +1976,26 @@ export type {
   CapPublishAlertStatus422,
 } from "./CapPublishAlert.js";
 export type { CapPublishPublic } from "./CapPublishPublic.js";
+export type {
+  CapRecordAlertReviewBody,
+  CapRecordAlertReviewOptions,
+  CapRecordAlertReviewPath,
+  CapRecordAlertReviewResponse,
+  CapRecordAlertReviewResponses,
+  CapRecordAlertReviewStatus200,
+  CapRecordAlertReviewStatus401,
+  CapRecordAlertReviewStatus403,
+  CapRecordAlertReviewStatus404,
+  CapRecordAlertReviewStatus409,
+  CapRecordAlertReviewStatus422,
+} from "./CapRecordAlertReview.js";
 export type { CapReferenceCreate } from "./CapReferenceCreate.js";
 export type { CapReferencePublic } from "./CapReferencePublic.js";
 export type { CapResourceCreate } from "./CapResourceCreate.js";
 export type { CapResourcePublic } from "./CapResourcePublic.js";
+export type { CapReviewRecord } from "./CapReviewRecord.js";
+export type { CapReviewRecordPropertiesOutcomeEnum } from "./CapReviewRecordPropertiesOutcomeEnum.js";
+export { capReviewRecordPropertiesOutcomeEnum } from "./CapReviewRecordPropertiesOutcomeEnum.js";
 export type {
   CapSaveHazardProfileBody,
   CapSaveHazardProfileOptions,

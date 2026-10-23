@@ -24910,13 +24910,84 @@
         }
       }
     },
+    "/api/v1/cap/alerts/{alert_id}/reviews": {
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Record a review of a CAP alert",
+        "description": "Records an optional review by someone other than the author: `reviewed` or `changes_requested`, with a note. Never changes the alert's state. Requires `cap.alert.approve`. Audited.",
+        "operationId": "capRecordAlertReview",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapReviewRecord"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing permission, or the author reviewing their own alert"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "409": {
+            "description": "Alert is cancelled or expired"
+          }
+        }
+      }
+    },
     "/api/v1/cap/alerts/{alert_id}/approve": {
       "post": {
         "tags": [
           "cap"
         ],
         "summary": "Approve a CAP alert",
-        "description": "Approves a submitted CAP alert and advances it toward publication.",
+        "description": "Approves a submitted CAP alert and advances it toward publication. The author may approve their own alert; a colleague review is optional.",
         "operationId": "capApproveAlert",
         "security": [
           {
@@ -53913,6 +53984,31 @@
           "sequence"
         ],
         "title": "CapResourcePublic"
+      },
+      "CapReviewRecord": {
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/CapReviewRecordPropertiesOutcomeEnum"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome"
+        ],
+        "title": "CapReviewRecord",
+        "description": "An optional colleague review (owner decision 2026-10-23); never blocks."
       },
       "CapScope": {
         "type": "string",
@@ -86668,6 +86764,13 @@
           "observed"
         ],
         "default": ">="
+      },
+      "CapReviewRecordPropertiesOutcomeEnum": {
+        "type": "string",
+        "enum": [
+          "reviewed",
+          "changes_requested"
+        ]
       },
       "ClockResultPropertiesActionEnum": {
         "type": "string",

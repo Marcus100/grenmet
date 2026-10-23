@@ -50,3 +50,28 @@ publish must use privileged MFA.
 - Emergency publishes are visible in the audit history and should be reviewed
   after the event. No schema change was needed.
 - Existing Draft or Submitted alerts must be approved before they can be published.
+
+## Amendment 2026-10-23: the author may approve; reviews are optional
+
+Decided by the project owner on 23 October 2026, in conversation with the agent.
+
+- The author of a CAP alert **may approve it themselves**. `approve_alert` no
+  longer refuses the author, and `publish_alert` needs a recorded approval by
+  anyone, not "someone other than the author".
+- An independent check stays available as an **optional review**: after the
+  author submits ("Request review"), another CAP user holding
+  `cap.alert.approve` may record `reviewed` or `changes_requested` with a note
+  (`POST /api/v1/cap/alerts/{id}/reviews`). The author cannot review their own
+  alert. A review never changes the state or blocks approval or publication.
+- Unchanged: the `DRAFT -> SUBMITTED -> APPROVED -> PUBLISHED` lifecycle, the
+  separate `cap.alert.approve` and `cap.alert.publish` permissions, MFA for
+  privileged CAP actions, the audited emergency publish, and editing a
+  Submitted or Approved alert returning it to `DRAFT`. Every approval and review
+  is in the audit history.
+- Consequence: one person can now take an alert from draft to published when
+  they hold both permissions. Reviews and the audit history are the remaining
+  check; GMS decides who holds `cap.alert.approve` and `cap.alert.publish`.
+- Not changed by this amendment: hazard profile versions still need approval by
+  someone other than their author.
+- Follow-up for the owner: `apps/api/fastapi/src/cap/AGENTS.md` still says
+  self-approval is always refused; that file is owner-only.

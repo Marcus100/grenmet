@@ -1816,10 +1816,24 @@ export {
   capPublishAlertStatus422Schema,
 } from "./capPublishAlertSchema.js";
 export { capPublishPublicSchema } from "./capPublishPublicSchema.js";
+export {
+  capRecordAlertReviewBodySchema,
+  capRecordAlertReviewErrorSchema,
+  capRecordAlertReviewPathAlertIdSchema,
+  capRecordAlertReviewResponseSchema,
+  capRecordAlertReviewStatus200Schema,
+  capRecordAlertReviewStatus401Schema,
+  capRecordAlertReviewStatus403Schema,
+  capRecordAlertReviewStatus404Schema,
+  capRecordAlertReviewStatus409Schema,
+  capRecordAlertReviewStatus422Schema,
+} from "./capRecordAlertReviewSchema.js";
 export { capReferenceCreateSchema } from "./capReferenceCreateSchema.js";
 export { capReferencePublicSchema } from "./capReferencePublicSchema.js";
 export { capResourceCreateSchema } from "./capResourceCreateSchema.js";
 export { capResourcePublicSchema } from "./capResourcePublicSchema.js";
+export { capReviewRecordPropertiesOutcomeEnumSchema } from "./capReviewRecordPropertiesOutcomeEnumSchema.js";
+export { capReviewRecordSchema } from "./capReviewRecordSchema.js";
 export {
   capSaveHazardProfileBodySchema,
   capSaveHazardProfileErrorSchema,

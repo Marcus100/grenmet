@@ -25,6 +25,7 @@ from src.cap.schemas import (
     CapPredefinedAreaCreate,
     CapPredefinedAreaPublic,
     CapPublishPublic,
+    CapReviewRecord,
     CapSettingsPublic,
     CapSettingsUpdate,
     CapValidationResult,
@@ -198,10 +199,46 @@ async def submit_alert(
 
 
 @router.post(
+    "/alerts/{alert_id}/reviews",
+    response_model=CapAlertPublic,
+    summary="Record a review of a CAP alert",
+    description=(
+        "Records an optional review by someone other than the author: "
+        "`reviewed` or `changes_requested`, with a note. Never changes the "
+        "alert's state. Requires `cap.alert.approve`. Audited."
+    ),
+    responses={
+        **AUTHENTICATED,
+        **NOT_FOUND,
+        403: {
+            "description": "Missing permission, or the author reviewing their own alert"
+        },
+        409: {"description": "Alert is cancelled or expired"},
+    },
+)
+async def record_alert_review(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    alert_id: uuid.UUID,
+    payload: CapReviewRecord,
+) -> CapAlertPublic:
+    return await service.record_review(
+        session=session,
+        current_user=current_user,
+        alert_id=alert_id,
+        payload=payload,
+    )
+
+
+@router.post(
     "/alerts/{alert_id}/approve",
     response_model=CapAlertPublic,
     summary="Approve a CAP alert",
-    description="Approves a submitted CAP alert and advances it toward publication.",
+    description=(
+        "Approves a submitted CAP alert and advances it toward publication. "
+        "The author may approve their own alert; a colleague review is optional."
+    ),
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def approve_alert(

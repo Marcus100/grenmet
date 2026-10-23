@@ -249,6 +249,13 @@ class CapAlertAction(BaseModel):
     note: str | None = Field(default=None, max_length=2000)
 
 
+class CapReviewRecord(BaseModel):
+    """An optional colleague review (owner decision 2026-10-23); never blocks."""
+
+    outcome: Literal["reviewed", "changes_requested"]
+    note: str | None = Field(default=None, max_length=2000)
+
+
 class CapEmergencyPublish(BaseModel):
     reason: str = Field(min_length=1, max_length=2000)
 
