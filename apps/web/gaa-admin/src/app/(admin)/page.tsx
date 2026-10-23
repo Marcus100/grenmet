@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { AlertsPanel } from "./_components/alerts-panel";
 import { ApprovalsPanel } from "./_components/approvals-panel";
 import { DutyPanel } from "./_components/duty-panel";
@@ -31,15 +32,11 @@ function StripSkeleton() {
 export default function Page() {
   return (
     <div className="@container/main flex flex-col gap-4 md:gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-semibold text-2xl tracking-tight">Operations</h1>
-          <p className="text-muted-foreground text-sm">
-            Live across CAP, the product desk, WxWatch and HR.
-          </p>
-        </div>
-        <LiveRefresh />
-      </div>
+      <PageHeader
+        actions={<LiveRefresh />}
+        description="Live across CAP, the product desk, WxWatch and HR."
+        title="Operations"
+      />
 
       <Suspense fallback={<StripSkeleton />}>
         <StatusStrip />
