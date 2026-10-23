@@ -59,20 +59,32 @@ async def publish_push(
     subscriptions = await push_service.list_subscriptions(
         session=session, list_key=CAP_ALERTS_LIST_KEY
     )
-    for subscription in subscriptions:
-        sub_id = str(subscription.id)
-        if sub_id in already:
-            continue
-        outcome = await push_service.send(subscription, payload)
-        state = await push_service.record_outcome(
-            session=session, subscription=subscription, outcome=outcome
-        )
-        if state == "sent":
-            delivered.append(sub_id)
-        elif state == "removed":
-            removed += 1
-        else:
-            failures.append({"subscription_id": sub_id, "error": outcome.error or ""})
+    try:
+        for subscription in subscriptions:
+            sub_id = str(subscription.id)
+            if sub_id in already:
+                continue
+            outcome = await push_service.send(subscription, payload)
+            state = await push_service.record_outcome(
+                session=session, subscription=subscription, outcome=outcome
+            )
+            if state == "sent":
+                delivered.append(sub_id)
+            elif state == "removed":
+                removed += 1
+            else:
+                failures.append(
+                    {"subscription_id": sub_id, "error": outcome.error or ""}
+                )
+    except Exception as exc:  # noqa: BLE001 - keep the delivered list for the retry
+        raise PublishError(
+            {
+                "delivered": delivered,
+                "removed": removed,
+                "failures": failures,
+                "error": type(exc).__name__,
+            }
+        ) from exc
     if failures:
         raise PublishError(
             {"delivered": delivered, "removed": removed, "failures": failures}

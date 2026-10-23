@@ -9,6 +9,7 @@ without Redis).
 
 from __future__ import annotations
 
+import logging
 from importlib import import_module
 from socket import gethostname
 from typing import Any
@@ -22,6 +23,8 @@ from src.models_guidance.config import guidance_settings
 from src.telemetry import sentry_options
 from src.worker.config import worker_settings
 from src.worker.cron_monitor import monitored
+
+logger = logging.getLogger(__name__)
 
 configure_logging()
 
@@ -368,6 +371,33 @@ async def check_alert_outbox(ctx: dict[str, Any]) -> int:
     return 0
 
 
+async def check_cap_job_failures(ctx: dict[str, Any]) -> int:  # noqa: ARG001
+    """Log an error when a CAP job has failed on every attempt (nothing retries it).
+
+    Counts and job kinds only: no recipients, payloads or error text.
+    """
+    from datetime import timedelta
+
+    from src.database import async_session_factory
+    from src.worker import cap_failure_mail, dispatch
+
+    async with async_session_factory() as session:
+        jobs = await dispatch.exhausted_jobs(
+            session=session,
+            max_attempts=worker_settings.CAP_JOB_MAX_ATTEMPTS,
+            window=timedelta(days=7),
+        )
+        total = len(jobs)
+        if total:
+            logger.error(
+                "CAP jobs failed on every attempt",
+                extra={"count": total, "kinds": sorted({job.kind for job in jobs})},
+            )
+            await cap_failure_mail.queue_failure_emails(session=session, jobs=jobs)
+            await session.commit()
+    return total
+
+
 async def check_outbox_backlog(ctx: dict[str, Any]) -> int:
     """Gauge dead and overdue rows in the platform outbox; warn above the threshold."""
     from datetime import timedelta
@@ -498,6 +528,7 @@ class WorkerSettings:
         purge_expired_data,
         check_nhc_failures,
         check_alert_outbox,
+        check_cap_job_failures,
         check_outbox_backlog,
         poll_flights,
         fetch_marine_environment,
@@ -557,6 +588,8 @@ class WorkerSettings:
         cron(check_nhc_failures, minute=set(range(0, 60, 5)), run_at_startup=False),
         # Is the email outbox draining? Every 15 minutes.
         cron(check_alert_outbox, minute={0, 15, 30, 45}, run_at_startup=False),
+        # CAP jobs that used all their attempts (logged as an error for Sentry).
+        cron(check_cap_job_failures, minute={7, 22, 37, 52}, run_at_startup=False),
         # Dead and overdue rows in the platform outbox, every 15 minutes.
         cron(check_outbox_backlog, minute={2, 17, 32, 47}, run_at_startup=False),
         # OpenSky flight movements every 30 minutes; no-op unless the flag is on.

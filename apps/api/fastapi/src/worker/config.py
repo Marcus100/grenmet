@@ -20,6 +20,9 @@ class WorkerConfig(BaseSettings):
     CAP_JOB_BATCH_SIZE: int = 20
     CAP_JOB_MAX_ATTEMPTS: int = 5
     CAP_JOB_POLL_SECONDS: int = 10
+    # Comma-separated GMS addresses emailed (via the notifications outbox) when a
+    # warning delivery job fails on every attempt. Empty: no email, error log only.
+    CAP_DELIVERY_FAILURE_RECIPIENTS: str = ""
     # check_outbox_backlog: pending rows overdue this long count as stale, dead rows
     # count for this window, and a warning is logged when either exceeds the threshold.
     OUTBOX_STALE_MINUTES: int = Field(default=30, ge=1)

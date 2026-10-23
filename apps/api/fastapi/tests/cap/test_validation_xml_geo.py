@@ -1,7 +1,8 @@
 import re
 from datetime import UTC, datetime, timedelta, timezone
-from xml.etree import ElementTree as ET
 from uuid import uuid4
+
+from defusedxml import ElementTree as DefusedET
 
 from src.cap.geo import alerts_to_feature_collection
 from src.cap.models import (
@@ -61,7 +62,7 @@ def test_every_cap_xml_date_matches_the_cap_12_pattern() -> None:
         )
     ]
 
-    root = ET.fromstring(alert_to_cap_xml(alert))
+    root = DefusedET.fromstring(alert_to_cap_xml(alert))
     ns = {"c": "urn:oasis:names:tc:emergency:cap:1.2"}
     dates = [
         root.findtext("c:sent", namespaces=ns),

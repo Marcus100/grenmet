@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.cap.models import CapAlert, CapJobEvent, CapJobStatus, CapScope, CapStatus
 from src.utils.datetime import utc_now
 from src.worker import cap_email, cap_push, last_known_good, publishers
-from src.worker.publishers import PublishError
+from src.worker.publishers import PublishError, _prior_delivered
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +52,14 @@ async def dispatch_job(
     *, session: AsyncSession, job: CapJobEvent, http_client: httpx.AsyncClient
 ) -> CapJobEvent:
     """Run a single job's handler and persist its outcome (status/attempts/result)."""
+    # Commit RUNNING before anything is sent, so another worker tick no longer
+    # sees the job as due (and the row lock taken at selection is released).
+    previous_result = job.result
     job.status = CapJobStatus.RUNNING
     job.attempts += 1
     job.updated_at = utc_now()
     session.add(job)
-    await session.flush()
+    await session.commit()
 
     handler = KIND_HANDLERS.get(job.kind)
     try:
@@ -71,12 +74,14 @@ async def dispatch_job(
             result = {"skipped": True, "reason": "CAP message is not Public Actual"}
         else:
             result = await handler(session=session, job=job, http_client=http_client)
-        job.status = CapJobStatus.SUCCEEDED
+        job.status = (
+            CapJobStatus.SKIPPED if result.get("skipped") else CapJobStatus.SUCCEEDED
+        )
         job.result = result
         job.next_retry_at = None
     except PublishError as exc:
         job.status = CapJobStatus.FAILED
-        job.result = exc.details
+        job.result = {**exc.details, "error_class": "PublishError"}
         job.next_retry_at = utc_now() + timedelta(
             seconds=_retry_delay_seconds(job.attempts)
         )
@@ -85,7 +90,13 @@ async def dispatch_job(
         )
     except Exception as exc:  # noqa: BLE001 - never let one job kill the batch
         job.status = CapJobStatus.FAILED
-        job.result = {"error": str(exc)}
+        job.result = {"error": str(exc), "error_class": type(exc).__name__}
+        # Keep who already received it so the retry does not send to them again.
+        delivered = sorted(
+            _prior_delivered(previous_result) | _prior_delivered(job.result)
+        )
+        if delivered:
+            job.result = {**job.result, "delivered": delivered}
         job.next_retry_at = utc_now() + timedelta(
             seconds=_retry_delay_seconds(job.attempts)
         )
@@ -97,6 +108,24 @@ async def dispatch_job(
     return job
 
 
+# A RUNNING job whose worker died is picked up again after this long.
+_STALE_RUNNING = timedelta(minutes=15)
+
+
+def _due_clause(*, now: Any, max_attempts: int) -> Any:
+    return or_(
+        CapJobEvent.status == CapJobStatus.QUEUED,
+        (CapJobEvent.status == CapJobStatus.FAILED)
+        & (CapJobEvent.attempts < max_attempts)
+        # Only retry once the backoff window has elapsed.
+        & (CapJobEvent.next_retry_at.is_(None) | (CapJobEvent.next_retry_at <= now)),
+        # A crashed worker leaves RUNNING behind; retry it once it is clearly stale.
+        (CapJobEvent.status == CapJobStatus.RUNNING)
+        & (CapJobEvent.attempts < max_attempts)
+        & (CapJobEvent.updated_at <= now - _STALE_RUNNING),
+    )
+
+
 async def process_due_jobs(
     *,
     session: AsyncSession,
@@ -104,34 +133,48 @@ async def process_due_jobs(
     max_attempts: int = 5,
     http_client: httpx.AsyncClient | None = None,
 ) -> int:
-    """Process QUEUED jobs (and FAILED jobs under the retry limit). Returns count handled."""
+    """Process QUEUED jobs (and FAILED jobs under the retry limit). Returns count handled.
+
+    Jobs are claimed one at a time with ``FOR UPDATE SKIP LOCKED``; ``dispatch_job``
+    commits RUNNING before sending, so two overlapping runs never take the same job.
+    """
     owns_client = http_client is None
     client = http_client or httpx.AsyncClient()
-    now = utc_now()
+    handled = 0
     try:
-        result = await session.execute(
-            select(CapJobEvent)
-            .where(
-                or_(
-                    CapJobEvent.status == CapJobStatus.QUEUED,
-                    (CapJobEvent.status == CapJobStatus.FAILED)
-                    & (CapJobEvent.attempts < max_attempts)
-                    # Only retry once the backoff window has elapsed.
-                    & (
-                        CapJobEvent.next_retry_at.is_(None)
-                        | (CapJobEvent.next_retry_at <= now)
-                    ),
-                )
+        while handled < limit:
+            result = await session.execute(
+                select(CapJobEvent)
+                .where(_due_clause(now=utc_now(), max_attempts=max_attempts))
+                .order_by(CapJobEvent.created_at)
+                .limit(1)
+                .with_for_update(skip_locked=True)
+                .execution_options(populate_existing=True)
             )
-            .order_by(CapJobEvent.created_at)
-            .limit(limit)
-        )
-        jobs = list(result.scalars().all())
-        for job in jobs:
+            job = result.scalars().first()
+            if job is None:
+                break
             await dispatch_job(session=session, job=job, http_client=client)
-        if jobs:
-            logger.info("Processed CAP jobs", extra={"count": len(jobs)})
-        return len(jobs)
+            handled += 1
+        if handled:
+            logger.info("Processed CAP jobs", extra={"count": handled})
+        return handled
     finally:
         if owns_client:
             await client.aclose()
+
+
+async def exhausted_jobs(
+    *, session: AsyncSession, max_attempts: int, window: timedelta
+) -> list[CapJobEvent]:
+    """FAILED jobs that used every attempt: nobody will retry these."""
+    rows = await session.scalars(
+        select(CapJobEvent)
+        .where(
+            CapJobEvent.status == CapJobStatus.FAILED,
+            CapJobEvent.attempts >= max_attempts,
+            CapJobEvent.updated_at >= utc_now() - window,
+        )
+        .order_by(CapJobEvent.created_at)
+    )
+    return list(rows.all())
