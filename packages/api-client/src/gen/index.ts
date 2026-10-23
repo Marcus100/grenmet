@@ -228,6 +228,7 @@ export { eventsGetThread } from "./clients/eventsGetThread.js";
 export { eventsGetVerificationCase } from "./clients/eventsGetVerificationCase.js";
 export { eventsJoinGroup } from "./clients/eventsJoinGroup.js";
 export { eventsLeaveGroup } from "./clients/eventsLeaveGroup.js";
+export { eventsListCategories } from "./clients/eventsListCategories.js";
 export { eventsListGroups } from "./clients/eventsListGroups.js";
 export { eventsListListings } from "./clients/eventsListListings.js";
 export { eventsListMyTickets } from "./clients/eventsListMyTickets.js";
@@ -1790,6 +1791,11 @@ export {
   eventsLeaveGroupMutationOptions,
   useEventsLeaveGroup,
 } from "./hooks/useEventsLeaveGroup.js";
+export {
+  eventsListCategoriesQueryKey,
+  eventsListCategoriesQueryOptions,
+  useEventsListCategories,
+} from "./hooks/useEventsListCategories.js";
 export {
   eventsListGroupsQueryKey,
   eventsListGroupsQueryOptions,
@@ -6385,6 +6391,11 @@ export type {
   EregisterValidateSynopObservationStatus403,
   EregisterValidateSynopObservationStatus422,
 } from "./models/EregisterValidateSynopObservation.js";
+export type { EventCategoryNode } from "./models/EventCategoryNode.js";
+export type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./models/EventCategoryNodePropertiesAppliesToItemsEnum.js";
+export { eventCategoryNodePropertiesAppliesToItemsEnum } from "./models/EventCategoryNodePropertiesAppliesToItemsEnum.js";
+export type { EventCategorySub } from "./models/EventCategorySub.js";
+export type { EventCategoryTree } from "./models/EventCategoryTree.js";
 export type {
   EventsAcceptConnectionOptions,
   EventsAcceptConnectionPath,
@@ -6810,6 +6821,13 @@ export type {
   EventsLeaveGroupStatus422,
   EventsLeaveGroupStatus429,
 } from "./models/EventsLeaveGroup.js";
+export type {
+  EventsListCategoriesOptions,
+  EventsListCategoriesResponse,
+  EventsListCategoriesResponses,
+  EventsListCategoriesStatus200,
+  EventsListCategoriesStatus422,
+} from "./models/EventsListCategories.js";
 export type {
   EventsListGroupsOptions,
   EventsListGroupsResponse,
@@ -9363,10 +9381,16 @@ export { legacyProductWritePropertiesActionEnum } from "./models/LegacyProductWr
 export type { LegacyStoredProduct } from "./models/LegacyStoredProduct.js";
 export type { ListingCard } from "./models/ListingCard.js";
 export type { ListingCardList } from "./models/ListingCardList.js";
+export type { ListingCardPropertiesAccessTypeEnum } from "./models/ListingCardPropertiesAccessTypeEnum.js";
+export { listingCardPropertiesAccessTypeEnum } from "./models/ListingCardPropertiesAccessTypeEnum.js";
 export type { ListingCardPropertiesAdmissionEnum } from "./models/ListingCardPropertiesAdmissionEnum.js";
 export { listingCardPropertiesAdmissionEnum } from "./models/ListingCardPropertiesAdmissionEnum.js";
+export type { ListingCardPropertiesBookingModeEnum } from "./models/ListingCardPropertiesBookingModeEnum.js";
+export { listingCardPropertiesBookingModeEnum } from "./models/ListingCardPropertiesBookingModeEnum.js";
 export type { ListingCardPropertiesCurrencyEnum } from "./models/ListingCardPropertiesCurrencyEnum.js";
 export { listingCardPropertiesCurrencyEnum } from "./models/ListingCardPropertiesCurrencyEnum.js";
+export type { ListingCardPropertiesPricingTypeEnum } from "./models/ListingCardPropertiesPricingTypeEnum.js";
+export { listingCardPropertiesPricingTypeEnum } from "./models/ListingCardPropertiesPricingTypeEnum.js";
 export type { ListingDetail } from "./models/ListingDetail.js";
 export type { ListingUpsert } from "./models/ListingUpsert.js";
 export type { ListingUpsertPropertiesStatusEnum } from "./models/ListingUpsertPropertiesStatusEnum.js";
@@ -14709,6 +14733,10 @@ export {
   eregisterValidateSynopObservationStatus403Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./zod/eregisterValidateSynopObservationSchema.js";
+export { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./zod/eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
+export { eventCategoryNodeSchema } from "./zod/eventCategoryNodeSchema.js";
+export { eventCategorySubSchema } from "./zod/eventCategorySubSchema.js";
+export { eventCategoryTreeSchema } from "./zod/eventCategoryTreeSchema.js";
 export {
   eventsAcceptConnectionErrorSchema,
   eventsAcceptConnectionPathConnectionIdSchema,
@@ -15108,6 +15136,12 @@ export {
   eventsLeaveGroupStatus429Schema,
 } from "./zod/eventsLeaveGroupSchema.js";
 export {
+  eventsListCategoriesErrorSchema,
+  eventsListCategoriesResponseSchema,
+  eventsListCategoriesStatus200Schema,
+  eventsListCategoriesStatus422Schema,
+} from "./zod/eventsListCategoriesSchema.js";
+export {
   eventsListGroupsErrorSchema,
   eventsListGroupsResponseSchema,
   eventsListGroupsStatus200Schema,
@@ -15118,15 +15152,21 @@ export { eventsListListingsParametersSchemaAnyOfEnum2Schema } from "./zod/events
 export { eventsListListingsParametersSchemaAnyOfEnumSchema } from "./zod/eventsListListingsParametersSchemaAnyOfEnumSchema.js";
 export {
   eventsListListingsErrorSchema,
+  eventsListListingsQueryAccessSchema,
+  eventsListListingsQueryBookingModeSchema,
   eventsListListingsQueryCategorySchema,
+  eventsListListingsQueryCategorySlugSchema,
   eventsListListingsQueryIncludePastSchema,
   eventsListListingsQueryLimitSchema,
   eventsListListingsQueryOffsetSchema,
   eventsListListingsQueryOrganiserSchema,
   eventsListListingsQueryParishSchema,
   eventsListListingsQueryPriceSchema,
+  eventsListListingsQueryPricingSchema,
   eventsListListingsQueryQSchema,
+  eventsListListingsQuerySubcategorySlugSchema,
   eventsListListingsQueryTagSchema,
+  eventsListListingsQueryTypeSchema,
   eventsListListingsQueryWhenSchema,
   eventsListListingsResponseSchema,
   eventsListListingsStatus200Schema,
@@ -17480,8 +17520,11 @@ export { legacyProductWritePropertiesActionEnumSchema } from "./zod/legacyProduc
 export { legacyProductWriteSchema } from "./zod/legacyProductWriteSchema.js";
 export { legacyStoredProductSchema } from "./zod/legacyStoredProductSchema.js";
 export { listingCardListSchema } from "./zod/listingCardListSchema.js";
+export { listingCardPropertiesAccessTypeEnumSchema } from "./zod/listingCardPropertiesAccessTypeEnumSchema.js";
 export { listingCardPropertiesAdmissionEnumSchema } from "./zod/listingCardPropertiesAdmissionEnumSchema.js";
+export { listingCardPropertiesBookingModeEnumSchema } from "./zod/listingCardPropertiesBookingModeEnumSchema.js";
 export { listingCardPropertiesCurrencyEnumSchema } from "./zod/listingCardPropertiesCurrencyEnumSchema.js";
+export { listingCardPropertiesPricingTypeEnumSchema } from "./zod/listingCardPropertiesPricingTypeEnumSchema.js";
 export { listingCardSchema } from "./zod/listingCardSchema.js";
 export { listingDetailSchema } from "./zod/listingDetailSchema.js";
 export { listingUpsertPropertiesStatusEnumSchema } from "./zod/listingUpsertPropertiesStatusEnumSchema.js";

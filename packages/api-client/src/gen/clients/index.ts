@@ -225,6 +225,7 @@ export { eventsGetThread } from "./eventsGetThread.js";
 export { eventsGetVerificationCase } from "./eventsGetVerificationCase.js";
 export { eventsJoinGroup } from "./eventsJoinGroup.js";
 export { eventsLeaveGroup } from "./eventsLeaveGroup.js";
+export { eventsListCategories } from "./eventsListCategories.js";
 export { eventsListGroups } from "./eventsListGroups.js";
 export { eventsListListings } from "./eventsListListings.js";
 export { eventsListMyTickets } from "./eventsListMyTickets.js";

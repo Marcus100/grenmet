@@ -4,11 +4,14 @@
  */
 
 import * as z from "zod";
+import { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
 import { eventsListListingsParametersSchemaAnyOfEnum2Schema } from "./eventsListListingsParametersSchemaAnyOfEnum2Schema.js";
 import { eventsListListingsParametersSchemaAnyOfEnumSchema } from "./eventsListListingsParametersSchemaAnyOfEnumSchema.js";
 import { groupDetailPropertiesCategoryEnumSchema } from "./groupDetailPropertiesCategoryEnumSchema.js";
 import { groupDetailPropertiesParishEnumSchema } from "./groupDetailPropertiesParishEnumSchema.js";
 import { listingCardListSchema } from "./listingCardListSchema.js";
+import { listingCardPropertiesBookingModeEnumSchema } from "./listingCardPropertiesBookingModeEnumSchema.js";
+import { listingCardPropertiesPricingTypeEnumSchema } from "./listingCardPropertiesPricingTypeEnumSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eventsListListingsQueryWhenSchema = z
@@ -25,6 +28,30 @@ export const eventsListListingsQueryParishSchema = z
 
 export const eventsListListingsQueryPriceSchema = z
   .union([eventsListListingsParametersSchemaAnyOfEnum2Schema, z.null()])
+  .optional();
+
+export const eventsListListingsQueryTypeSchema = z
+  .union([eventCategoryNodePropertiesAppliesToItemsEnumSchema, z.null()])
+  .optional();
+
+export const eventsListListingsQueryCategorySlugSchema = z
+  .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+  .optional();
+
+export const eventsListListingsQuerySubcategorySlugSchema = z
+  .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+  .optional();
+
+export const eventsListListingsQueryPricingSchema = z
+  .union([listingCardPropertiesPricingTypeEnumSchema, z.null()])
+  .optional();
+
+export const eventsListListingsQueryAccessSchema = z
+  .union([z.enum(["public"]), z.null()])
+  .optional();
+
+export const eventsListListingsQueryBookingModeSchema = z
+  .union([listingCardPropertiesBookingModeEnumSchema, z.null()])
   .optional();
 
 export const eventsListListingsQueryTagSchema = z

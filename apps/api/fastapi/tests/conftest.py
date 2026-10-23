@@ -242,6 +242,10 @@ def weather_engine(request: pytest.FixtureRequest) -> Generator[Engine]:
             )
 
 
+#: Migration-seeded reference data that cleanup must keep (tests never edit it).
+REFERENCE_TABLES = {"events.categories"}
+
+
 async def _clear_database_async(session: AsyncSession) -> None:
     """Clear app tables in dependency order so FK constraints are respected."""
     await session.rollback()
@@ -260,6 +264,8 @@ async def _clear_database_async(session: AsyncSession) -> None:
         text(f"ALTER TABLE {events_activity} DISABLE TRIGGER activity_append_only")
     )
     for table in reversed(Base.metadata.sorted_tables):
+        if table.fullname in REFERENCE_TABLES:
+            continue
         await session.execute(table.delete())
     await session.execute(
         text(f"ALTER TABLE {ledger} ENABLE TRIGGER entry_append_only")
@@ -270,7 +276,62 @@ async def _clear_database_async(session: AsyncSession) -> None:
     await session.execute(
         text(f"ALTER TABLE {events_activity} ENABLE TRIGGER activity_append_only")
     )
+    await _assert_categories_are_the_seed(session)
     await session.commit()
+
+
+def _expected_category_rows() -> set[tuple[object, ...]]:
+    """The migration's seed, as (slug, parent slug, name, applies_to, sort, active, legacy)."""
+    import importlib.util
+    from pathlib import Path
+
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "2026-10-22_events_taxonomy.py"
+    )
+    spec = importlib.util.spec_from_file_location("events_taxonomy_seed", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    rows: set[tuple[object, ...]] = set()
+    for order, (slug, name, applies, legacy, active, subs) in enumerate(
+        module.TAXONOMY, start=1
+    ):
+        rows.add((slug, None, name, tuple(applies), order * 10, active, legacy))
+        for sub_order, (sub_slug, sub_name) in enumerate(subs, start=1):
+            rows.add(
+                (
+                    sub_slug,
+                    slug,
+                    sub_name,
+                    tuple(applies),
+                    sub_order * 10,
+                    active,
+                    legacy,
+                )
+            )
+    return rows
+
+
+async def _assert_categories_are_the_seed(session: AsyncSession) -> None:
+    """Cleanup keeps ``events.categories``; fail closed if a test changed it."""
+    found = {
+        (r[0], r[1], r[2], tuple(r[3]), r[4], r[5], r[6])
+        for r in (
+            await session.execute(
+                text(
+                    "SELECT c.slug, p.slug, c.name, c.applies_to, c.sort_order,"
+                    " c.active, c.legacy_category FROM events.categories c"
+                    " LEFT JOIN events.categories p ON p.id = c.parent_id"
+                )
+            )
+        ).all()
+    }
+    assert found == _expected_category_rows(), (
+        "events.categories no longer equals the migration seed; tests must not edit it"
+    )
 
 
 def _cleanup_test_database() -> None:
