@@ -234,8 +234,18 @@ it("shows a backend approval refusal without advancing state", async () => {
   ).toBeInTheDocument();
 });
 
+it("hides review actions from users without the approve permission", async () => {
+  alert.lifecycle_state = "SUBMITTED";
+  show();
+  await screen.findByRole("button", { name: "Record approval" });
+  expect(
+    screen.queryByRole("button", { name: "Mark reviewed" })
+  ).not.toBeInTheDocument();
+});
+
 it("records an optional colleague review without changing the state", async () => {
   alert.lifecycle_state = "SUBMITTED";
+  permissionKeys = ["cap.alert.approve"];
   let body: unknown;
   server.use(
     http.post(`${URL}/reviews`, async ({ request }) => {

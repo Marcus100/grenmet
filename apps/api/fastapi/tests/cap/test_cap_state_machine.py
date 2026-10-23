@@ -235,6 +235,13 @@ async def test_reviews_are_optional_audited_and_never_by_the_author(
     author = await make_user(db_async, superuser=True)
     reviewer = await make_user(db_async, superuser=True)
     alert = await _create_alert_for_test(db_async, author)
+    with pytest.raises(CapStateError, match="submitted or approved"):
+        await record_review(
+            session=db_async,
+            current_user=reviewer,
+            alert_id=alert.id,
+            payload=CapReviewRecord(outcome="reviewed"),
+        )
     # Asking for a review is the submit step ("Request review" in the portal).
     await submit_alert(
         session=db_async,

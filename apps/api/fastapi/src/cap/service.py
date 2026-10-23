@@ -465,8 +465,8 @@ async def approve_alert(
     require_permission(current_user=current_user, permission_key="cap.alert.approve")
     alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
     # Owner decision 2026-10-23 (ADR-0023 amendment): the author may approve
-    # their own alert; an independent review is optional (request_review /
-    # record_review) and always audited.
+    # their own alert; an independent review is optional (record_review) and
+    # always audited.
     return await _transition(
         session=session,
         current_user=current_user,
@@ -529,11 +529,11 @@ async def _record_review_event(
     action: str,
     note: str | None,
 ) -> CapAlertPublic:
-    if alert.lifecycle_state in {
-        CapLifecycleState.CANCELLED,
-        CapLifecycleState.EXPIRED,
+    if alert.lifecycle_state not in {
+        CapLifecycleState.SUBMITTED,
+        CapLifecycleState.APPROVED,
     }:
-        raise CapStateError("A cancelled or expired alert cannot be reviewed.")
+        raise CapStateError("Only a submitted or approved alert can be reviewed.")
     state = alert.lifecycle_state.value
     _record_audit(
         session=session,

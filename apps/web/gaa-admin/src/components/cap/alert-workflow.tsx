@@ -116,6 +116,10 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
     accessQuery.data?.permission_keys.includes(
       "cap.alert.publish_emergency"
     ) === true;
+  // The API also refuses a review from the alert's author.
+  const canReview =
+    accessQuery.data?.is_superuser === true ||
+    accessQuery.data?.permission_keys.includes("cap.alert.approve") === true;
   const [busy, setBusy] = useState(false);
   const [emergencyOpen, setEmergencyOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -210,6 +214,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
           alert={alert}
           busy={busy || alertQuery.isFetching}
           canEmergencyPublish={canEmergencyPublish}
+          canReview={canReview}
           emergencyOpen={emergencyOpen}
           note={note}
           onEmergencyOpenChange={setEmergencyOpen}
@@ -249,6 +254,7 @@ function ReviewAndPublishSection({
   alert,
   busy,
   canEmergencyPublish,
+  canReview,
   emergencyOpen,
   onEmergencyOpenChange,
   note,
@@ -263,6 +269,7 @@ function ReviewAndPublishSection({
   alert: CapAlertPublic;
   busy: boolean;
   canEmergencyPublish: boolean;
+  canReview: boolean;
   emergencyOpen: boolean;
   onEmergencyOpenChange: (open: boolean) => void;
   note: string;
@@ -280,7 +287,8 @@ function ReviewAndPublishSection({
       <p className="text-muted-foreground text-sm">
         Validate the saved alert, then review its content, status, scope, areas
         and validity. The alert needs an approval before it can be published;
-        the author may give it. A colleague can review it first (optional).
+        the author may give it. A colleague can review it first (optional); a
+        review or a change request is recorded but does not stop publication.
       </p>
       <Button onClick={() => run("validate")} type="button" variant="outline">
         Validate alert
@@ -337,8 +345,9 @@ function ReviewAndPublishSection({
             Record approval
           </Button>
         ) : null}
-        {alert.lifecycle_state === "SUBMITTED" ||
-        alert.lifecycle_state === "APPROVED" ? (
+        {canReview &&
+        (alert.lifecycle_state === "SUBMITTED" ||
+          alert.lifecycle_state === "APPROVED") ? (
           <>
             <Button
               onClick={() => run("reviewed")}
