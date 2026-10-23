@@ -36,10 +36,10 @@ const TREE_LINE = /^Working tree: .*$/m;
 // findPrivateContent tests vault paths against a file path only, so a vault or
 // home path quoted inside the findings text needs its own check here.
 const VAULT_REFERENCE =
-  /(?:\/home\/[^/\s]+\/|~\/)(?:bishop|\.claude|\.codex|backups|grenmet-cleanup-archives)\b|\b(?:wiki|raw)\/(?:0[0-9]|9[89])-[a-z]|\/private\//;
+  /(?:\/home\/[^/\s]+\/|~\/)(?:bishop|\.claude|\.codex|backups|grenmet-cleanup-archives)\b|\bbishop\/|\b(?:wiki|raw)\/(?:0[0-9]|9[89])-[a-z]|\/private\//;
 // Shapes the shared redactor does not cover (this repo uses Stripe keys).
 const EXTRA_SECRET_SHAPE =
-  /sk_(?:live|test)_[A-Za-z0-9]{8,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;
+  /sk_(?:live|test)_[A-Za-z0-9]{8,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;
 const PR_NUMBER = /^\d+$/;
 
 /**

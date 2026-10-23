@@ -148,6 +148,8 @@ test("posting is blocked when the findings quote a vault path or a token", () =>
     "see ~/bishop/notes",
     "from raw/02-atmosphere-aviation/report",
     "reads /private/clients.md",
+    "bishop/notes/client.md",
+    "github_pat_11ABCDEFG0abcdefghijklmnopqrstuvwxyz",
     "token sk-proj-abcdefghijklmnopqrstuvwx leaked",
     "ghs_abcdefghijklmnopqrstuvwxyz0123456789",
     "Authorization: Bearer abcdefghijklmnop1234",
@@ -307,6 +309,14 @@ test("--post refuses findings that quote a vault path", () => {
   });
   const { code } = runQuiet(["--post", "7"], { collect: gather(), spawn });
   assert.equal(code, 1);
+  assert.equal(named(calls, "gh").length, 0);
+});
+
+test("--post posts nothing when codex's findings carry a fine-grained token", () => {
+  const { calls, spawn } = fakeSpawn({
+    findings: "Leaked github_pat_11ABCDEFG0abcdefghijklmnopqrstuvwxyz in a log",
+  });
+  assert.equal(runQuiet(["--post", "7"], { collect: gather(), spawn }).code, 1);
   assert.equal(named(calls, "gh").length, 0);
 });
 
