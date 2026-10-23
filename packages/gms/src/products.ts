@@ -143,6 +143,49 @@ export const WEATHER_CONDITIONS = [
   "Overcast",
 ] as const;
 export const RAIN_CHANCES = ["Low", "Medium", "High"] as const;
+
+/**
+ * SYNOP links (owner, 23 October 2026) so forecasts can later be verified
+ * against the eRegister hourlies at MBIA. Conditions map to total cloud N in
+ * oktas (METAR bands), weather types to present weather ww, and rain chance
+ * to probability bands (%) for scoring. FastAPI mirrors these tables in
+ * `src/wxproducts/synop_codes.py` (a test keeps them equal).
+ */
+export const CONDITION_OKTAS: Record<
+  (typeof WEATHER_CONDITIONS)[number],
+  readonly [number, number]
+> = {
+  Clear: [0, 0],
+  Fair: [1, 2],
+  "Partly cloudy": [3, 4],
+  Cloudy: [5, 7],
+  Overcast: [8, 8],
+};
+export const WEATHER_TYPES = [
+  { label: "Haze", ww: 5 },
+  { label: "Dust haze", ww: 6 },
+  { label: "Mist", ww: 10 },
+  { label: "Thunder (no rain)", ww: 17 },
+  { label: "Fog", ww: 45 },
+  { label: "Drizzle", ww: 51 },
+  { label: "Light rain", ww: 61 },
+  { label: "Moderate rain", ww: 63 },
+  { label: "Heavy rain", ww: 65 },
+  { label: "Light showers", ww: 80 },
+  { label: "Moderate or heavy showers", ww: 81 },
+  { label: "Violent showers", ww: 82 },
+  { label: "Thunderstorms", ww: 95 },
+  { label: "Severe thunderstorms", ww: 97 },
+] as const;
+export const RAIN_CHANCE_BANDS: Record<
+  (typeof RAIN_CHANCES)[number],
+  readonly [number, number]
+> = {
+  Low: [0, 30],
+  Medium: [30, 60],
+  High: [60, 100],
+};
+const WEATHER_TYPE_LABELS = WEATHER_TYPES.map((t) => t.label);
 export const TIDE_SLOTS = [1, 2, 3, 4] as const;
 const likelihoods = ["Very low", "Low", "Medium", "High"];
 const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/;
@@ -274,6 +317,9 @@ function forecastFields(kind: ProductKind): ProductField[] {
     field("Weather", "condition", "Conditions", {
       options: WEATHER_CONDITIONS,
     }),
+    field("Weather", "weatherType", "Weather type", {
+      options: WEATHER_TYPE_LABELS,
+    }),
     field("Weather", "rainChance", "Chance of rain", {
       options: RAIN_CHANCES,
     }),
@@ -344,6 +390,9 @@ function forecastFields(kind: ProductKind): ProductField[] {
             field(section, `${prefix}Weather`, "Weather", {
               type: "textarea",
               required: true,
+            }),
+            field(section, `${prefix}WeatherType`, "Weather type", {
+              options: WEATHER_TYPE_LABELS,
             }),
             field(section, `${prefix}Max`, "Maximum temperature (°C)", {
               type: "number",

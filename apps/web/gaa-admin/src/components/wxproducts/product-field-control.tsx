@@ -24,9 +24,12 @@ import {
 
 const DAY_SECTION_PREFIX = /^Day (\d)/;
 const SUN_TIME_KEY = /(?:sunrise|sunset)$/i;
+const WEATHER_TYPE_KEY = /^(day\d)?[Ww]eatherType$/;
 /** Size inputs to the data they hold; only free prose spans the card. */
 function fieldWidth(f: ProductField) {
   if (f.key === "definition") return "w-full max-w-sm";
+  // "Moderate or heavy showers" is the longest weather type.
+  if (WEATHER_TYPE_KEY.test(f.key)) return "w-60";
   if (f.type === "textarea") return "col-span-full basis-full";
   if (sectionParts(f.section).group === "Tides") {
     if (f.options) return "w-32";

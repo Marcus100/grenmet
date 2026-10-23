@@ -4,16 +4,21 @@ Conversions happen here, once, so the issued PDF and weather.gd show the same
 wind, sea and tide text, in the GMS public units only (mph, feet).
 """
 
-from . import units
+from . import synop_codes, units
 from .validation import optional_number, period_values
 
-RAIN_CHANCES = ("Low", "Medium", "High")
+RAIN_CHANCES = tuple(synop_codes.RAIN_CHANCE_BANDS)
 
 
 def conditions(values: dict[str, str], prefix: str = "") -> list[tuple[str, str, str]]:
     """(icon, value, label) tiles, in reading order."""
     p = period_values(values, prefix)
     tiles: list[tuple[str, str, str]] = []
+    weather_type = p.get("weatherType", "").strip()
+    if weather_type in synop_codes.WEATHER_TYPES:
+        tiles.append(
+            (synop_codes.weather_icon(weather_type), weather_type, "Weather type")
+        )
     # Evening outlook days store temperatures as `dayNMax` / `dayNMin`.
     high, low = (
         optional_number(p, key) if p.get(key) else optional_number(p, fallback)

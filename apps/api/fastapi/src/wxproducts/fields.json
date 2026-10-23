@@ -67,6 +67,28 @@
     },
     {
       "section": "Weather",
+      "key": "weatherType",
+      "label": "Weather type",
+      "options": [
+        "Haze",
+        "Dust haze",
+        "Mist",
+        "Thunder (no rain)",
+        "Fog",
+        "Drizzle",
+        "Light rain",
+        "Moderate rain",
+        "Heavy rain",
+        "Light showers",
+        "Moderate or heavy showers",
+        "Violent showers",
+        "Thunderstorms",
+        "Severe thunderstorms"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
       "key": "rainChance",
       "label": "Chance of rain",
       "options": [
@@ -710,6 +732,28 @@
         "Partly cloudy",
         "Cloudy",
         "Overcast"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "weatherType",
+      "label": "Weather type",
+      "options": [
+        "Haze",
+        "Dust haze",
+        "Mist",
+        "Thunder (no rain)",
+        "Fog",
+        "Drizzle",
+        "Light rain",
+        "Moderate rain",
+        "Heavy rain",
+        "Light showers",
+        "Moderate or heavy showers",
+        "Violent showers",
+        "Thunderstorms",
+        "Severe thunderstorms"
       ],
       "requiredOnPublish": false
     },
@@ -1371,6 +1415,28 @@
     },
     {
       "section": "Weather",
+      "key": "weatherType",
+      "label": "Weather type",
+      "options": [
+        "Haze",
+        "Dust haze",
+        "Mist",
+        "Thunder (no rain)",
+        "Fog",
+        "Drizzle",
+        "Light rain",
+        "Moderate rain",
+        "Heavy rain",
+        "Light showers",
+        "Moderate or heavy showers",
+        "Violent showers",
+        "Thunderstorms",
+        "Severe thunderstorms"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
       "key": "rainChance",
       "label": "Chance of rain",
       "options": [
@@ -1967,6 +2033,28 @@
     },
     {
       "section": "Day 1",
+      "key": "day1WeatherType",
+      "label": "Weather type",
+      "options": [
+        "Haze",
+        "Dust haze",
+        "Mist",
+        "Thunder (no rain)",
+        "Fog",
+        "Drizzle",
+        "Light rain",
+        "Moderate rain",
+        "Heavy rain",
+        "Light showers",
+        "Moderate or heavy showers",
+        "Violent showers",
+        "Thunderstorms",
+        "Severe thunderstorms"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
       "key": "day1Max",
       "label": "Maximum temperature (°C)",
       "type": "number",
@@ -2312,6 +2400,28 @@
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Day 2",
+      "key": "day2WeatherType",
+      "label": "Weather type",
+      "options": [
+        "Haze",
+        "Dust haze",
+        "Mist",
+        "Thunder (no rain)",
+        "Fog",
+        "Drizzle",
+        "Light rain",
+        "Moderate rain",
+        "Heavy rain",
+        "Light showers",
+        "Moderate or heavy showers",
+        "Violent showers",
+        "Thunderstorms",
+        "Severe thunderstorms"
+      ],
+      "requiredOnPublish": false
     },
     {
       "section": "Day 2",
@@ -2663,6 +2773,28 @@
     },
     {
       "section": "Day 3",
+      "key": "day3WeatherType",
+      "label": "Weather type",
+      "options": [
+        "Haze",
+        "Dust haze",
+        "Mist",
+        "Thunder (no rain)",
+        "Fog",
+        "Drizzle",
+        "Light rain",
+        "Moderate rain",
+        "Heavy rain",
+        "Light showers",
+        "Moderate or heavy showers",
+        "Violent showers",
+        "Thunderstorms",
+        "Severe thunderstorms"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
       "key": "day3Max",
       "label": "Maximum temperature (°C)",
       "type": "number",
@@ -3008,6 +3140,28 @@
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Day 4",
+      "key": "day4WeatherType",
+      "label": "Weather type",
+      "options": [
+        "Haze",
+        "Dust haze",
+        "Mist",
+        "Thunder (no rain)",
+        "Fog",
+        "Drizzle",
+        "Light rain",
+        "Moderate rain",
+        "Heavy rain",
+        "Light showers",
+        "Moderate or heavy showers",
+        "Violent showers",
+        "Thunderstorms",
+        "Severe thunderstorms"
+      ],
+      "requiredOnPublish": false
     },
     {
       "section": "Day 4",

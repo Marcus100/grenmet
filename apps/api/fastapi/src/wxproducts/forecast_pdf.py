@@ -239,6 +239,11 @@ def _matrix(items: list[dict[str, str]]) -> list[list[dict[str, Any]]]:
 # Day cards keep to the essentials; each GMS outlook day shows its own sun
 # times, while tides stay on the full report.
 DAY_CARD_ICONS = {
+    # Weather type (synop_codes.weather_icon).
+    "cloud-lightning",
+    "cloud-rain",
+    "haze",
+    "cloud",
     "thermometer-sun",
     "thermometer-snowflake",
     "wind",

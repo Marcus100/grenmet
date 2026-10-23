@@ -98,6 +98,17 @@ and tonight's minimum; the evening tonight block has only the minimum, and sun
 times appear on each of the four outlook days rather than on tonight. The
 midday sheet prints the midday temperature at MBIA first.
 
+Forecast choices carry SYNOP meaning so forecasts can later be verified against
+the eRegister hourlies at MBIA (owner decision, 23 October 2026). Conditions
+(Clear, Fair, Partly cloudy, Cloudy, Overcast) map to total cloud N in oktas
+(0, 1–2, 3–4, 5–7, 8); the Weather type picker on every period maps to present
+weather ww (for example Light showers 80, Thunderstorms 95); chance of rain
+(Low, Medium, High) maps to 0–30, 30–60 and 60–100 % for scoring. The tables are
+`CONDITION_OKTAS`, `WEATHER_TYPES` and `RAIN_CHANCE_BANDS` in
+`packages/gms/src/products.ts`, mirrored by `src/wxproducts/synop_codes.py`
+(kept equal by `tests/wxproducts/test_synop_codes.py`). Which hours count when
+verifying is still to be agreed with GMS.
+
 CAP is independent: these bulletins do not automatically create CAP messages,
 synchronize their statuses, or contribute to CAP warning counts. Per
 [ADR-0013](../adr/0013-cap-alert-self-publish-and-bulletin-linkage.md), an
