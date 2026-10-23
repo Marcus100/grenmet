@@ -13,6 +13,8 @@ vi.mock("@barrelsgd/api-client", () => ({
   eregisterAcceptRegisterObservation: vi.fn(),
   eregisterRejectRegisterObservation: vi.fn(),
   eregisterReopenRegisterObservation: vi.fn(),
+  eregisterReviewRegisterObservation: vi.fn(),
+  eregisterCorrectRegisterObservation: vi.fn(),
 }));
 vi.mock("@barrelsgd/auth", () => ({
   useSessionUser: () => ({
