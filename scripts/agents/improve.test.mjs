@@ -132,6 +132,29 @@ test("a json case is filed under the skill it missed or fired wrongly", () => {
   assert.match(byKey["ci-triage-x"].examples[0].evidence, REBASE_MISS_RE);
 });
 
+test("a json case that misses and wrongly fires counts every skill", () => {
+  const problems = collectProblems({
+    skillEvals: [
+      evalRow("2026-10-21T17:54:00Z", false, {
+        expect: "json",
+        fired: ["ci-triage"],
+        prompt: "Rebase stopped on openapi.json.",
+        should_not_use: ["ci-triage"],
+        should_use: ["resolving-merge-conflicts", "commit"],
+        skill: "(json cases)",
+      }),
+    ],
+  });
+  const summary = problems
+    .map((p) => `${p.key}:${p.count}/${p.checked}`)
+    .sort();
+  assert.deepEqual(summary, [
+    "ci-triage:1/1",
+    "commit:1/1",
+    "resolving-merge-conflicts:1/1",
+  ]);
+});
+
 test("a json case that also fired a forbidden skill is a wrong trigger", () => {
   const problems = collectProblems({
     skillEvals: [
