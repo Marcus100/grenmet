@@ -13,7 +13,7 @@ This guide records the current Barrels Grenada security posture and the rules th
 | Secret storage | Local secrets live in `.env.local` files. Staging and production secrets are read from GitHub Environments and written to a temporary `.env` on the runner during deployment. |
 | Secret validation | FastAPI rejects weak/default deployment secrets for non-local environments in `apps/api/fastapi/src/config.py`. |
 | HTTPS | Traefik terminates TLS with Let's Encrypt on ports 80/443 and redirects HTTP to HTTPS. |
-| Dashboard protection | Traefik and staging Adminer dashboards use basic auth from `USERNAME` and `HASHED_PASSWORD`. |
+| Dashboard protection | The Traefik dashboard has no public route: it is served on an internal entrypoint published on `127.0.0.1:8080` only (SSH tunnel) and still asks for `USERNAME`/`HASHED_PASSWORD`. Staging Adminer uses its own `ADMINER_BASIC_AUTH_USERS`. |
 | CORS | FastAPI only enables CORS when `BACKEND_CORS_ORIGINS` or `FRONTEND_HOST` is configured. Allowed methods and headers are explicit. |
 | Browser session | Web sessions use an opaque token in an `httpOnly`, `SameSite=Lax` cookie. `secure` is enabled when `NODE_ENV=production`. |
 | API auth | FastAPI validates bearer JWTs for API requests. Browser apps exchange the opaque session token for short-lived access tokens server-side. |
@@ -72,8 +72,11 @@ Security-sensitive deployment facts:
 - Staging deployment runs on a self-hosted runner labeled `staging`.
 - The deploy workflows generate a temporary `.env`, sanitize it in logs, and remove it in cleanup.
 - Compose files use private Docker networks per environment.
-- PostgreSQL is not exposed in staging/production compose files; local compose exposes port `5432` for development.
+- PostgreSQL is published on the droplet's private IP only (`${CORE_PRIVATE_IP}:5432` in `docker-compose.deploy.yml`, validated as an RFC1918 address by `render-env.py`), never on the public interface. Anything else on the same DigitalOcean VPC can reach it, so a DigitalOcean Cloud Firewall must restrict inbound 5432 to the hosts that need it. Local compose exposes port `5432` for development.
 - Adminer is included in staging and local development. Production compose currently does not include Adminer.
+- Traefik reads Docker only through `traefik-socket-proxy` (read-only container/event endpoints on an internal network); no internet-facing container mounts the Docker socket. Traefik runs read-only with all capabilities dropped except `NET_BIND_SERVICE`.
+- Staging web hosts require `STAGING_BASIC_AUTH_USERS` basic auth and send `X-Robots-Tag: noindex, nofollow`; the staging API sends only the header. Production is unaffected.
+- Every HTTPS request is capped at 100 concurrent requests per client IP; request bodies are limited to 30 MiB at the edge on the API, CMS and staging Adminer (Traefik `buffering`, which also buffers responses). The Next.js web apps have no edge body limit on purpose, because response buffering would break streaming and loading states: Next.js 16 caps server-action bodies at 1 MB by default (no app raises `serverActions.bodySizeLimit`) and no web route accepts file uploads. Access logs are JSON without request headers or query strings.
 
 ## Security Gaps To Track
 

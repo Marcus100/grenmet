@@ -4,7 +4,13 @@ const authFailure = /auth.staging.example.test/;
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { check, checkCmsSignIn, checkDeployment, validPage } from "./smoke.mjs";
+import {
+  check,
+  checkCmsSignIn,
+  checkDeployment,
+  validPage,
+  withEdgeCredentials,
+} from "./smoke.mjs";
 
 process.env.SMOKE_RETRY_DELAY_MS = "0";
 
@@ -34,11 +40,15 @@ test("deployment probes the real sign-in route and requires its form", async () 
   assert.ok(urls.some((url) => url === "https://auth.staging.example.test/"));
   // The portal host is retried while its certificate is issued (first deploy).
   let portalCalls = 0;
-  await checkDeployment("staging.example.test", (url) =>
-    new URL(url).hostname.startsWith("gms.") && (portalCalls += 1) <= 2
-      ? Promise.reject(new Error("TLS handshake not ready"))
-      : fetcher(url)
-  );
+  await checkDeployment("staging.example.test", (url) => {
+    if (new URL(url).hostname.startsWith("gms.")) {
+      portalCalls += 1;
+      if (portalCalls <= 2) {
+        return Promise.reject(new Error("TLS handshake not ready"));
+      }
+    }
+    return fetcher(url);
+  });
   assert.ok(portalCalls >= 3);
   await assert.rejects(
     checkDeployment("staging.example.test", (url) =>
@@ -220,6 +230,30 @@ test("CMS handoff rejects wrong origin, app, path, missing state and non-redirec
       cmsFailure
     );
   }
+});
+
+test("staging edge credentials reach web hosts of the domain only", async () => {
+  const domain = "staging.example.test";
+  const seen = new Map();
+  const fetcher = (url, init = {}) => {
+    seen.set(url, new Headers(init.headers).get("authorization"));
+    return Promise.resolve(new Response("ok"));
+  };
+  const wrapped = withEdgeCredentials(fetcher, domain, "probe:secret");
+  await wrapped(`https://weather.${domain}/`, {
+    redirect: "follow",
+    headers: { accept: "text/html" },
+  });
+  await wrapped(`https://api.${domain}/api/v1/utils/ready/`);
+  await wrapped("https://auth.example.org/");
+  assert.equal(
+    seen.get(`https://weather.${domain}/`),
+    `Basic ${Buffer.from("probe:secret").toString("base64")}`
+  );
+  assert.equal(seen.get(`https://api.${domain}/api/v1/utils/ready/`), null);
+  assert.equal(seen.get("https://auth.example.org/"), null);
+  assert.equal(withEdgeCredentials(fetcher, domain, ""), fetcher);
+  assert.equal(withEdgeCredentials(fetcher, domain, undefined), fetcher);
 });
 
 test("CMS handoff requires a working auth sign-in form", async () => {
