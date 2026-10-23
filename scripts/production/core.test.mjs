@@ -290,11 +290,12 @@ for (const environment of ["staging", "production"]) {
 const PHASE_GROUP = /::group::\[\d{2}:\d{2}:\d{2}Z\] render-config/;
 const FAILED_START = /failed in phase 'start' \(last completed: grants\)/;
 const FAILED_MIGRATIONS =
-  /failed in phase 'migrations' \(last completed: backup-gate\)/;
+  /failed in phase 'migrations' \(last completed: databases\)/;
 const PARTIAL_RELEASE = /a partial release may be running/;
 const UNHEALTHY_STATE = /test-nhc-worker-1 status=running health=unhealthy/;
 const HEALTH_PROBE = /exit=1 heartbeat missing/;
 const NETWORK_RECREATE = /stopping the project so Compose can recreate it/;
+const PROJECT_STOPPED = /nothing is serving until a deploy succeeds/;
 const DIAGNOSTICS_INCOMPLETE = /Diagnostics incomplete/;
 const SUMMARY_FAILED_START =
   /Core delivery failed[\s\S]*\| start \| \d+s \| failed \|/;
@@ -329,6 +330,37 @@ test("a changed network subnet stops the whole project before the databases star
     false,
     "stopping the project must keep its volumes"
   );
+});
+
+test("a failure after the project was stopped says nothing is serving", () => {
+  const { result } = runDeploy({
+    environment: "production",
+    failure: "migration",
+    extraEnv: {
+      TEST_PINNED_SUBNET: "172.31.250.0/24",
+      TEST_LIVE_SUBNET: "172.18.0.0/16",
+    },
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, PROJECT_STOPPED);
+  assert.equal(result.stdout.includes("are still running"), false);
+});
+
+// The backup gate reads the backup store, not the database, so it runs first: an
+// enforced stale-backup block must leave the previous release serving.
+test("an enforced stale backup blocks before the project is stopped", () => {
+  const { result, calls } = runDeploy({
+    environment: "production",
+    extraEnv: {
+      TEST_GATE: "stale",
+      DEPLOY_BACKUP_GATE: "enforce",
+      TEST_PINNED_SUBNET: "172.31.250.0/24",
+      TEST_LIVE_SUBNET: "172.18.0.0/16",
+    },
+  });
+  assert.notEqual(result.status, 0);
+  assert.equal(calls.includes(" down "), false);
+  assert.equal(calls.includes(" up -d --wait"), false);
 });
 
 test("a matching or missing network, or no pinned subnet, leaves containers running", () => {

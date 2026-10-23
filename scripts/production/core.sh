@@ -37,6 +37,7 @@ completed_phase="none"
 phase_started=$(date +%s)
 phase_timings=""
 migrations_started=false
+project_stopped=false
 end_phase() {
   [[ -n "$current_phase" ]] || return 0
   phase_timings+="| $current_phase | $(($(date +%s) - phase_started))s | $1 |"$'\n'
@@ -85,7 +86,9 @@ finish() {
       docker rm -f "$rollout_new" >/dev/null 2>&1
     fi
     echo "::error::Core delivery failed in phase '$current_phase' (last completed: $completed_phase) for revision $GITHUB_SHA"
-    if [[ "$current_phase" == databases ]]; then
+    if [[ "$project_stopped" == true && "$current_phase" != start && "$current_phase" != smoke ]]; then
+      echo "The whole project was stopped to recreate its network, so nothing is serving until a deploy succeeds."
+    elif [[ "$current_phase" == databases ]]; then
       echo "Database services were starting; migrations did not run."
     elif [[ "$migrations_started" == false ]]; then
       echo "No container was changed; the previous release should still be serving."
@@ -227,26 +230,6 @@ done < runtime/images.txt
 # Images only: the full resolved Compose file contains secrets.
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --images >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
-phase network
-# A changed IPAM block on the project network (the subnet pinned for uvicorn's
-# --forwarded-allow-ips) makes Compose recreate the network on the next `up`. That
-# `up` can only stop the services it names, so every other container keeps the
-# network in use, Docker refuses ("network ... has active endpoints") and db and
-# redis are left stopped. When the live subnet differs from the deployment file,
-# stop the whole project first so the databases phase creates the network fresh.
-# Volumes are kept (no -v). This is a full, one-off outage for that deploy.
-pinned_subnet=$(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --format json | grep -oE '"subnet": *"[^"]+"' | head -n 1 | sed -E 's/.*"([^"]+)"$/\1/' || true)
-live_subnets=$(docker network inspect --format '{{range .IPAM.Config}}{{.Subnet}} {{end}}' "${COMPOSE_PROJECT}_grenmet" 2>/dev/null || true)
-if [[ -n "$pinned_subnet" && -n "$live_subnets" && " $live_subnets " != *" $pinned_subnet "* ]]; then
-  echo "Network ${COMPOSE_PROJECT}_grenmet uses ${live_subnets% } but the deployment pins $pinned_subnet: stopping the project so Compose can recreate it (volumes are kept)."
-  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" down --remove-orphans
-fi
-
-phase databases
-# shellcheck disable=SC2086
-docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --wait $data_services
-docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db bash /docker-entrypoint-initdb.d/init-databases.sh
-
 phase backup-gate
 # Alembic rollback does not undo migrations (release runbook, "Backup gate"). Every
 # deploy that reaches `migrations` runs `alembic upgrade head`, and there is no cheap,
@@ -300,6 +283,27 @@ else
     gate_note "Backup gate override recorded by ${GITHUB_ACTOR}: '$gate_override' (mode is $gate_mode, so it changed nothing)."
   fi
 fi
+
+phase network
+# A changed IPAM block on the project network (the subnet pinned for uvicorn's
+# --forwarded-allow-ips) makes Compose recreate the network on the next `up`. That
+# `up` can only stop the services it names, so every other container keeps the
+# network in use, Docker refuses ("network ... has active endpoints") and db and
+# redis are left stopped. When the live subnet differs from the deployment file,
+# stop the whole project first so the databases phase creates the network fresh.
+# Volumes are kept (no -v). This is a full, one-off outage for that deploy.
+pinned_subnet=$(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --format json | grep -oE '"subnet": *"[^"]+"' | head -n 1 | sed -E 's/.*"([^"]+)"$/\1/' || true)
+live_subnets=$(docker network inspect --format '{{range .IPAM.Config}}{{.Subnet}} {{end}}' "${COMPOSE_PROJECT}_grenmet" 2>/dev/null || true)
+if [[ -n "$pinned_subnet" && -n "$live_subnets" && " $live_subnets " != *" $pinned_subnet "* ]]; then
+  echo "Network ${COMPOSE_PROJECT}_grenmet uses ${live_subnets% } but the deployment pins $pinned_subnet: stopping the project so Compose can recreate it (volumes are kept)."
+  project_stopped=true
+  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" down --remove-orphans --timeout 60
+fi
+
+phase databases
+# shellcheck disable=SC2086
+docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --wait $data_services
+docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db bash /docker-entrypoint-initdb.d/init-databases.sh
 
 phase migrations
 for service in $migration_services; do
