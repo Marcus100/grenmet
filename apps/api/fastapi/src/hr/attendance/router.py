@@ -7,9 +7,11 @@ from fastapi import APIRouter, Response, status
 from fastapi.concurrency import run_in_threadpool
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr.filenames import timesheet_week_filename
 from src.hr.roster import service as roster_service
 from src.hr.roster.models import RosterAvailability
 from src.hr.workflow.models import WorkflowStatus
+from src.utils.filenames import content_disposition
 
 from . import pdf, service
 from .models import AttendanceRecord
@@ -68,7 +70,9 @@ async def read_week_pdf(
         headers={
             "Cache-Control": "private, no-store",
             "X-Content-Type-Options": "nosniff",
-            "Content-Disposition": f'inline; filename="timesheet-{week.period_start}.pdf"',
+            "Content-Disposition": content_disposition(
+                "inline", timesheet_week_filename(week.period_start)
+            ),
         },
     )
 
