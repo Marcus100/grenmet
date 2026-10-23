@@ -1,34 +1,48 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
+import Image from "next/image";
 import { CATEGORY_LABELS } from "@/domain/labels";
 import type { EventCategory } from "@/domain/types";
 import { dateStamp } from "@/lib/datetime";
+import { storedImageUrl } from "@/lib/stored-image";
 import { CATEGORY_STYLE } from "./category-style";
 
 /**
- * Stand-in artwork until organisers upload flyers: a category-toned panel
- * with a date stamp. Decorative; the card carries the accessible text.
+ * The event's cover: the organiser's stored image when there is one (served
+ * from the public `/files/{id}` route, never a bucket address), otherwise a
+ * category-toned panel with a date stamp. The box keeps its aspect ratio
+ * either way so the page does not shift, and the panel sits under the image so
+ * a failed load still shows something. The text on the panel is decorative;
+ * the card carries the accessible text.
  */
 export function EventFlyer({
   category,
   className,
+  imageAlt = "Event cover image",
+  imageFileId,
+  priority = false,
   startsAt,
   title,
 }: {
   category: EventCategory;
   className?: string;
+  /** Alt text for the stored cover image. */
+  imageAlt?: string;
+  /** Stored cover image; the panel shows without it. */
+  imageFileId?: string | null;
+  /** Above-the-fold image: load it eagerly instead of lazily. */
+  priority?: boolean;
   startsAt: string;
   title?: string;
 }) {
   const { icon: Icon, tone } = CATEGORY_STYLE[category];
   const stamp = dateStamp(startsAt);
 
-  return (
+  const panel = (
     <div
       aria-hidden="true"
       className={cn(
-        "relative isolate flex aspect-[4/3] flex-col justify-between overflow-hidden rounded-2xl p-4",
-        tone,
-        className
+        "relative isolate flex size-full flex-col justify-between overflow-hidden p-4",
+        tone
       )}
     >
       <Icon
@@ -55,6 +69,29 @@ export function EventFlyer({
           </span>
         </span>
       </div>
+    </div>
+  );
+
+  return (
+    <div
+      className={cn(
+        "relative aspect-[4/3] overflow-hidden rounded-2xl",
+        className
+      )}
+    >
+      {panel}
+      {imageFileId ? (
+        <Image
+          alt={imageAlt}
+          className="absolute inset-0 size-full object-cover text-transparent"
+          height={480}
+          loading={priority ? "eager" : "lazy"}
+          sizes="(min-width: 1024px) 24rem, 100vw"
+          src={storedImageUrl(imageFileId)}
+          unoptimized
+          width={640}
+        />
+      ) : null}
     </div>
   );
 }
