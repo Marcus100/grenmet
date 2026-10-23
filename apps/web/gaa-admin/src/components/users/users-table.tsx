@@ -59,7 +59,7 @@ export function UsersTable({ table }: { table: LegacyReactTable<UserRow> }) {
   const rowsPerPage = `${table.getState().pagination.pageSize}`;
 
   return (
-    <div className="flex flex-1 flex-col gap-4">
+    <div className="flex flex-1 flex-col gap-4" data-content-width="wide">
       <div>
         <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
           <TableHeader className="[&_tr]:border-t">

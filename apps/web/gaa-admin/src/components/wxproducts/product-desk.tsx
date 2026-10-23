@@ -440,7 +440,8 @@ function ProductEditor({
           }));
         }
         return (
-          <div className="@container">
+          // Editor, preview and archive side by side: always full width.
+          <div className="@container" data-content-width="wide">
             <DeskLayout
               archive={archive}
               editor={
