@@ -1,5 +1,12 @@
 import { Logo } from "@barrelsgd/gms/components/logo";
 import Link from "next/link";
+import {
+  siFacebook,
+  siInstagram,
+  siWhatsapp,
+  siX,
+  siYoutube,
+} from "simple-icons";
 
 const COLUMNS = [
   {
@@ -47,17 +54,33 @@ const COLUMNS = [
 /*
  * Social accounts. PLACEHOLDER URLs: these are generic platform home pages
  * until GMS supplies its own account links. Replace each `href` here (one place)
- * when the owner sends them. lucide-react ships no brand icons, so each network
- * is named in text.
+ * when the owner sends them. Icons are simple-icons marks (CC0), drawn as
+ * inline SVG from their path data. simple-icons has no LinkedIn mark, so that
+ * network keeps its name as text.
  */
-const SOCIAL = [
-  { label: "X", href: "https://x.com" },
-  { label: "Facebook", href: "https://facebook.com" },
-  { label: "Instagram", href: "https://instagram.com" },
-  { label: "YouTube", href: "https://youtube.com" },
+const SOCIAL: readonly { href: string; icon?: string; label: string }[] = [
+  { label: "X", href: "https://x.com", icon: siX.path },
+  { label: "Facebook", href: "https://facebook.com", icon: siFacebook.path },
+  { label: "Instagram", href: "https://instagram.com", icon: siInstagram.path },
+  { label: "YouTube", href: "https://youtube.com", icon: siYoutube.path },
   { label: "LinkedIn", href: "https://linkedin.com" },
-  { label: "WhatsApp", href: "https://whatsapp.com" },
-] as const;
+  { label: "WhatsApp", href: "https://whatsapp.com", icon: siWhatsapp.path },
+];
+
+/** A brand mark as inline SVG; decorative, the link's aria-label names it. */
+function BrandIcon({ path }: { path: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4"
+      fill="currentColor"
+      focusable="false"
+      viewBox="0 0 24 24"
+    >
+      <path d={path} />
+    </svg>
+  );
+}
 
 const LEGAL_LINKS = [
   { label: "Sitemap", href: "/sitemap" },
@@ -100,12 +123,12 @@ export function Footer() {
               <li key={s.label}>
                 <a
                   aria-label={`GMS on ${s.label}`}
-                  className="flex h-9 items-center justify-center rounded-full border border-gm-border px-3 font-semibold text-caption leading-caption hover:bg-gm-text-inverse/10"
+                  className="flex h-9 min-w-9 items-center justify-center gap-2 rounded-full border border-gm-border px-2.5 font-semibold text-caption leading-caption hover:bg-gm-text-inverse/10"
                   href={s.href}
                   rel="noopener noreferrer"
                   target="_blank"
                 >
-                  {s.label}
+                  {s.icon ? <BrandIcon path={s.icon} /> : s.label}
                 </a>
               </li>
             ))}

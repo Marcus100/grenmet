@@ -83,15 +83,29 @@ describe("breadcrumbTrail", () => {
     expect(labels("/weather")).toEqual(["Weather", "Forecasts", "Today"]);
   });
 
+  it("gives the footer's About this site pages a trail under About", () => {
+    expect(breadcrumbTrail("/privacy")).toEqual([
+      { href: "/about", label: "About" },
+      { href: "/sitemap#about--about-this-site", label: "About this site" },
+      { current: true, href: "/privacy", label: "Privacy" },
+    ]);
+    expect(labels("/sitemap")).toEqual(["About", "About this site", "Sitemap"]);
+    expect(labels("/disclaimer")).toEqual([
+      "About",
+      "About this site",
+      "Disclaimer",
+    ]);
+  });
+
   it("gives pages outside the navigation no trail", () => {
-    for (const path of ["/", "/privacy", "/sitemap"]) {
+    for (const path of ["/", "/no-such-page"]) {
       expect(breadcrumbTrail(path)).toEqual([]);
     }
   });
 
   it("gives every standing page on disk a trail unless it sits outside the nav", () => {
-    // Footer-only pages that are not in NAV_SECTIONS.
-    const outside = new Set(["/privacy", "/sitemap", "/disclaimer"]);
+    // Every standing page is in the menu or the footer group; none is exempt.
+    const outside = new Set<string>();
     const standing = routesOnDisk(path.join(APP_DIR, "(pages)")).filter(
       (route) => !route.includes("[")
     );

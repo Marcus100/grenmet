@@ -2,7 +2,13 @@ import { BULLETIN_CATEGORIES } from "@barrelsgd/gms/products";
 import type { Route } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
-import { groupId, NAV_SECTIONS, sectionId } from "@/lib/nav-sections";
+import {
+  FOOTER_GROUP,
+  FOOTER_GROUP_SECTION,
+  groupId,
+  NAV_SECTIONS,
+  sectionId,
+} from "@/lib/nav-sections";
 
 export const metadata = { title: "Sitemap" };
 
@@ -29,7 +35,10 @@ export default function SitemapPage() {
               </Link>
             </h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {section.groups.map((group) => (
+              {(section.href === FOOTER_GROUP_SECTION
+                ? [...section.groups, FOOTER_GROUP]
+                : section.groups
+              ).map((group) => (
                 <div
                   className="scroll-mt-24 space-y-2"
                   id={groupId(section.label, group.heading)}

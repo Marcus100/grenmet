@@ -2,8 +2,10 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Footer } from "@/components/footer";
 
+const PATH_START = /^M/;
+
 describe("Footer", () => {
-  it("names each social network in text, not in typed letters", () => {
+  it("names each social network, with an icon or its name", () => {
     render(<Footer />);
     const list = screen.getByRole("list", { name: "GMS on social media" });
     const links = within(list).getAllByRole("link");
@@ -15,6 +17,22 @@ describe("Footer", () => {
       "GMS on LinkedIn",
       "GMS on WhatsApp",
     ]);
+  });
+
+  it("draws brand marks as hidden inline SVG, and keeps LinkedIn as text", () => {
+    render(<Footer />);
+    const list = screen.getByRole("list", { name: "GMS on social media" });
+    const linkedin = within(list).getByRole("link", {
+      name: "GMS on LinkedIn",
+    });
+    expect(linkedin).toHaveTextContent("LinkedIn");
+    expect(linkedin.querySelector("svg")).toBeNull();
+    const xLink = within(list).getByRole("link", { name: "GMS on X" });
+    const svg = xLink.querySelector("svg");
+    expect(svg).not.toBeNull();
+    expect(svg?.getAttribute("aria-hidden")).toBe("true");
+    expect(svg?.querySelector("path")?.getAttribute("d")).toMatch(PATH_START);
+    expect(xLink).not.toHaveTextContent("X");
   });
 
   it("aligns its rows to the page column like the header", () => {
