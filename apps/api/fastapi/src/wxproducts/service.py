@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 
-from . import guidance, validation
+from . import guidance, tropical_systems, validation
 from .exceptions import ProductValidationError, RevisionConflict
 from .models import (
     AuthoredProduct,
@@ -269,6 +269,16 @@ async def write_product(
             )
         )
         await session.flush()
+        # Derived tracked-system entries commit with the revision they index.
+        await tropical_systems.record_revision(
+            session,
+            kind=body.kind,
+            product_id=body.id,
+            revision=revision,
+            action=body.action,
+            content=content,
+            created_at=now,
+        )
     logger.info(
         "Weather product revision saved",
         extra={"product_id": str(body.id), "revision": revision, "action": body.action},

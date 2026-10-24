@@ -7389,6 +7389,19 @@ export {
 } from "./transportUpdateTimetableDraftSchema.js";
 export { transportWeekdaySchema } from "./transportWeekdaySchema.js";
 export { tripViewSchema } from "./tripViewSchema.js";
+export { tropicalSystemCreateSchema } from "./tropicalSystemCreateSchema.js";
+export { tropicalSystemEntryReadPropertiesActionEnumSchema } from "./tropicalSystemEntryReadPropertiesActionEnumSchema.js";
+export { tropicalSystemEntryReadSchema } from "./tropicalSystemEntryReadSchema.js";
+export { tropicalSystemHistorySchema } from "./tropicalSystemHistorySchema.js";
+export { tropicalSystemListSchema } from "./tropicalSystemListSchema.js";
+export { tropicalSystemPublicEntrySchema } from "./tropicalSystemPublicEntrySchema.js";
+export { tropicalSystemPublicHistorySchema } from "./tropicalSystemPublicHistorySchema.js";
+export { tropicalSystemPublicListSchema } from "./tropicalSystemPublicListSchema.js";
+export { tropicalSystemPublicPropertiesStatusEnumSchema } from "./tropicalSystemPublicPropertiesStatusEnumSchema.js";
+export { tropicalSystemPublicSchema } from "./tropicalSystemPublicSchema.js";
+export { tropicalSystemReadPropertiesClosedReasonAnyOfEnumSchema } from "./tropicalSystemReadPropertiesClosedReasonAnyOfEnumSchema.js";
+export { tropicalSystemReadSchema } from "./tropicalSystemReadSchema.js";
+export { tropicalSystemUpdateSchema } from "./tropicalSystemUpdateSchema.js";
 export { turnstileModeSchema } from "./turnstileModeSchema.js";
 export { twoFactorCodeRequestSchema } from "./twoFactorCodeRequestSchema.js";
 export { twoFactorDisableRequestSchema } from "./twoFactorDisableRequestSchema.js";
@@ -7612,6 +7625,17 @@ export { workingDayHolidaySchema } from "./workingDayHolidaySchema.js";
 export { workingDaysPublicPropertiesMethodEnumSchema } from "./workingDaysPublicPropertiesMethodEnumSchema.js";
 export { workingDaysPublicSchema } from "./workingDaysPublicSchema.js";
 export {
+  wxproductsCreateTropicalSystemBodySchema,
+  wxproductsCreateTropicalSystemErrorSchema,
+  wxproductsCreateTropicalSystemResponseSchema,
+  wxproductsCreateTropicalSystemStatus201Schema,
+  wxproductsCreateTropicalSystemStatus401Schema,
+  wxproductsCreateTropicalSystemStatus403Schema,
+  wxproductsCreateTropicalSystemStatus409Schema,
+  wxproductsCreateTropicalSystemStatus422Schema,
+  wxproductsCreateTropicalSystemStatus503Schema,
+} from "./wxproductsCreateTropicalSystemSchema.js";
+export {
   wxproductsGetPublicProductErrorSchema,
   wxproductsGetPublicProductPathProductIdSchema,
   wxproductsGetPublicProductResponseSchema,
@@ -7621,6 +7645,15 @@ export {
   wxproductsGetPublicProductStatus503Schema,
 } from "./wxproductsGetPublicProductSchema.js";
 export {
+  wxproductsGetPublicTropicalSystemErrorSchema,
+  wxproductsGetPublicTropicalSystemPathSystemIdSchema,
+  wxproductsGetPublicTropicalSystemResponseSchema,
+  wxproductsGetPublicTropicalSystemStatus200Schema,
+  wxproductsGetPublicTropicalSystemStatus404Schema,
+  wxproductsGetPublicTropicalSystemStatus422Schema,
+  wxproductsGetPublicTropicalSystemStatus503Schema,
+} from "./wxproductsGetPublicTropicalSystemSchema.js";
+export {
   wxproductsListPublicProductsErrorSchema,
   wxproductsListPublicProductsQueryKindSchema,
   wxproductsListPublicProductsResponseSchema,
@@ -7629,6 +7662,26 @@ export {
   wxproductsListPublicProductsStatus422Schema,
   wxproductsListPublicProductsStatus503Schema,
 } from "./wxproductsListPublicProductsSchema.js";
+export {
+  wxproductsListPublicTropicalSystemsErrorSchema,
+  wxproductsListPublicTropicalSystemsResponseSchema,
+  wxproductsListPublicTropicalSystemsStatus200Schema,
+  wxproductsListPublicTropicalSystemsStatus422Schema,
+  wxproductsListPublicTropicalSystemsStatus503Schema,
+} from "./wxproductsListPublicTropicalSystemsSchema.js";
+export {
+  wxproductsListTropicalSystemsErrorSchema,
+  wxproductsListTropicalSystemsQueryLimitSchema,
+  wxproductsListTropicalSystemsQueryOffsetSchema,
+  wxproductsListTropicalSystemsQuerySeasonSchema,
+  wxproductsListTropicalSystemsQueryStatusSchema,
+  wxproductsListTropicalSystemsResponseSchema,
+  wxproductsListTropicalSystemsStatus200Schema,
+  wxproductsListTropicalSystemsStatus401Schema,
+  wxproductsListTropicalSystemsStatus403Schema,
+  wxproductsListTropicalSystemsStatus422Schema,
+  wxproductsListTropicalSystemsStatus503Schema,
+} from "./wxproductsListTropicalSystemsSchema.js";
 export {
   wxproductsLoadAviationDraftsErrorSchema,
   wxproductsLoadAviationDraftsQueryKindSchema,
@@ -7684,6 +7737,17 @@ export {
   wxproductsLoadProductsStatus422Schema,
   wxproductsLoadProductsStatus503Schema,
 } from "./wxproductsLoadProductsSchema.js";
+export {
+  wxproductsLoadTropicalSystemHistoryErrorSchema,
+  wxproductsLoadTropicalSystemHistoryPathSystemIdSchema,
+  wxproductsLoadTropicalSystemHistoryResponseSchema,
+  wxproductsLoadTropicalSystemHistoryStatus200Schema,
+  wxproductsLoadTropicalSystemHistoryStatus401Schema,
+  wxproductsLoadTropicalSystemHistoryStatus403Schema,
+  wxproductsLoadTropicalSystemHistoryStatus404Schema,
+  wxproductsLoadTropicalSystemHistoryStatus422Schema,
+  wxproductsLoadTropicalSystemHistoryStatus503Schema,
+} from "./wxproductsLoadTropicalSystemHistorySchema.js";
 export {
   wxproductsPreviewProductPdfBodySchema,
   wxproductsPreviewProductPdfErrorSchema,
@@ -7742,6 +7806,19 @@ export {
   wxproductsSaveProductStatus422Schema,
   wxproductsSaveProductStatus503Schema,
 } from "./wxproductsSaveProductSchema.js";
+export {
+  wxproductsUpdateTropicalSystemBodySchema,
+  wxproductsUpdateTropicalSystemErrorSchema,
+  wxproductsUpdateTropicalSystemPathSystemIdSchema,
+  wxproductsUpdateTropicalSystemResponseSchema,
+  wxproductsUpdateTropicalSystemStatus200Schema,
+  wxproductsUpdateTropicalSystemStatus401Schema,
+  wxproductsUpdateTropicalSystemStatus403Schema,
+  wxproductsUpdateTropicalSystemStatus404Schema,
+  wxproductsUpdateTropicalSystemStatus409Schema,
+  wxproductsUpdateTropicalSystemStatus422Schema,
+  wxproductsUpdateTropicalSystemStatus503Schema,
+} from "./wxproductsUpdateTropicalSystemSchema.js";
 export {
   wxproductsValidateAviationMessageBodySchema,
   wxproductsValidateAviationMessageErrorSchema,

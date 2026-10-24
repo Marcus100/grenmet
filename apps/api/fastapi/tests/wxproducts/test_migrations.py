@@ -56,7 +56,7 @@ def test_fresh_repeat_and_metadata_isolation(fresh_weather_engine: Engine) -> No
             connection.execute(
                 text("SELECT version_num FROM wxproducts_alembic_version")
             ).scalar_one()
-            == "wxproducts_0002"
+            == "wxproducts_0003"
         )
         assert (
             connection.execute(
@@ -72,6 +72,8 @@ def test_fresh_repeat_and_metadata_isolation(fresh_weather_engine: Engine) -> No
         "authored_product_revisions",
         "aviation_drafts",
         "aviation_draft_revisions",
+        "tropical_systems",
+        "tropical_system_entries",
     }
 
 
