@@ -3650,10 +3650,7 @@
       "key": "level",
       "label": "Colour level",
       "options": [
-        "Green",
-        "Yellow",
-        "Amber",
-        "Red"
+        "Green"
       ],
       "required": true,
       "requiredOnPublish": true
@@ -3665,8 +3662,6 @@
       "options": [
         "Information",
         "Advisory",
-        "Watch",
-        "Warning",
         "All clear"
       ],
       "required": true,
@@ -3824,10 +3819,7 @@
       "key": "level",
       "label": "Colour level",
       "options": [
-        "Green",
-        "Yellow",
-        "Amber",
-        "Red"
+        "Green"
       ],
       "required": true,
       "requiredOnPublish": true
@@ -3839,8 +3831,6 @@
       "options": [
         "Information",
         "Advisory",
-        "Watch",
-        "Warning",
         "All clear"
       ],
       "required": true,
@@ -4309,10 +4299,7 @@
       "key": "level",
       "label": "Colour level",
       "options": [
-        "Green",
-        "Yellow",
-        "Amber",
-        "Red"
+        "Green"
       ],
       "required": true,
       "requiredOnPublish": true
@@ -4324,8 +4311,6 @@
       "options": [
         "Information",
         "Advisory",
-        "Watch",
-        "Warning",
         "All clear"
       ],
       "required": true,
@@ -4458,10 +4443,7 @@
       "key": "level",
       "label": "Colour level",
       "options": [
-        "Green",
-        "Yellow",
-        "Amber",
-        "Red"
+        "Green"
       ],
       "required": true,
       "requiredOnPublish": true
@@ -4473,8 +4455,6 @@
       "options": [
         "Information",
         "Advisory",
-        "Watch",
-        "Warning",
         "All clear"
       ],
       "required": true,
@@ -4608,10 +4588,7 @@
       "key": "level",
       "label": "Colour level",
       "options": [
-        "Green",
-        "Yellow",
-        "Amber",
-        "Red"
+        "Green"
       ],
       "required": true,
       "requiredOnPublish": true
@@ -4623,8 +4600,6 @@
       "options": [
         "Information",
         "Advisory",
-        "Watch",
-        "Warning",
         "All clear"
       ],
       "required": true,
@@ -4823,10 +4798,7 @@
       "key": "level",
       "label": "Colour level",
       "options": [
-        "Green",
-        "Yellow",
-        "Orange",
-        "Red"
+        "Green"
       ],
       "required": true,
       "requiredOnPublish": true
@@ -4836,10 +4808,8 @@
       "key": "notice",
       "label": "Notice type",
       "options": [
-        "Outlook",
-        "Watch",
-        "Warning",
         "Information",
+        "Advisory",
         "All clear"
       ],
       "required": true,
@@ -5048,10 +5018,7 @@
       "key": "level",
       "label": "Colour level",
       "options": [
-        "Green",
-        "Yellow",
-        "Amber",
-        "Red"
+        "Green"
       ],
       "required": true,
       "requiredOnPublish": true
@@ -5063,8 +5030,6 @@
       "options": [
         "Information",
         "Advisory",
-        "Watch",
-        "Warning",
         "All clear"
       ],
       "required": true,
@@ -5212,10 +5177,7 @@
       "key": "level",
       "label": "Colour level",
       "options": [
-        "Green",
-        "Yellow",
-        "Amber",
-        "Red"
+        "Green"
       ],
       "required": true,
       "requiredOnPublish": true
@@ -5227,8 +5189,6 @@
       "options": [
         "Information",
         "Advisory",
-        "Watch",
-        "Warning",
         "All clear"
       ],
       "required": true,
@@ -5405,10 +5365,7 @@
       "key": "level",
       "label": "Colour level",
       "options": [
-        "Green",
-        "Yellow",
-        "Amber",
-        "Red"
+        "Green"
       ],
       "required": true,
       "requiredOnPublish": true
@@ -5420,8 +5377,6 @@
       "options": [
         "Information",
         "Advisory",
-        "Watch",
-        "Warning",
         "All clear"
       ],
       "required": true,

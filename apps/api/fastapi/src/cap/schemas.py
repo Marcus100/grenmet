@@ -385,3 +385,30 @@ class PublicWarnings(BaseModel):
     as_of: UtcDateTime
     groups: list[PublicWarningGroup]
     activeCount: int = Field(ge=0)
+
+
+class CapEscalationCreate(BaseModel):
+    """Raise a saved GMS alert revision to a CAP warning (ADR-0051)."""
+
+    product_id: uuid.UUID
+    revision: int = Field(ge=1, le=1_000_000)
+    awareness_level: Literal["yellow", "orange", "red"]
+
+
+class CapEscalationSource(BaseModel):
+    product_id: uuid.UUID
+    revision: int
+    kind: str
+
+
+class CapEscalationLookup(BaseModel):
+    """The CAP warning raised from a GMS alert, if one is open or published."""
+
+    alert_id: uuid.UUID | None = None
+    lifecycle_state: CapLifecycleState | None = None
+
+
+class CapEscalationPublic(BaseModel):
+    alert_id: uuid.UUID
+    created: bool
+    source: CapEscalationSource

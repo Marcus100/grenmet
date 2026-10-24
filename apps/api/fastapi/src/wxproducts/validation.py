@@ -274,7 +274,12 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
         if publish and rule.requiredOnPublish and not value:
             errors.append(f"{rule.section}: {rule.label} is required")
         if value and rule.options and value not in rule.options:
-            errors.append(f"{rule.label}: select a listed option")
+            errors.append(
+                f"{rule.label}: GMS alerts are green only; raise to a warning "
+                "(CAP) or change to green"
+                if rule.key == "level"
+                else f"{rule.label}: select a listed option"
+            )
         if (
             value
             and rule.type == "datetime-local"

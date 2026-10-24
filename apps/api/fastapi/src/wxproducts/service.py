@@ -377,8 +377,13 @@ async def aviation_history(
 
 
 async def pdf_source(
-    session: AsyncSession, product_id: UUID, revision: int, allowed_kinds: list[str]
+    session: AsyncSession,
+    product_id: UUID,
+    revision: int,
+    allowed_kinds: list[str] | None,
 ) -> ProductPdfSource:
+    """One saved revision; ``allowed_kinds=None`` skips the kind filter (the
+    caller then checks product access itself)."""
     from src.exceptions import NotFoundError
 
     statement = (
@@ -387,9 +392,10 @@ async def pdf_source(
         .where(
             ProductRevision.product_id == product_id,
             ProductRevision.revision == revision,
-            AuthoredProduct.kind.in_(allowed_kinds),
         )
     )
+    if allowed_kinds is not None:
+        statement = statement.where(AuthoredProduct.kind.in_(allowed_kinds))
     row = (await session.execute(statement)).first()
     if row is None:
         raise NotFoundError("Saved product revision not found")
