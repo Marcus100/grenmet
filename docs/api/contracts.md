@@ -897,7 +897,9 @@ choose the bell and email per event through `/notifications/preferences`). Eight
 `gms.nhc_product`. Forecast overdue, warning changed and send failed are urgent (always in
 the bell). `review_requested`, `observation_missing`, `send_failed` and `nhc_product` are
 grouped: repeats fold into the recipient's unread notification. Recipients come from the
-published GMS duty roster, else holders of the relevant permission. The warning events are
+published GMS duty roster; when there is no roster, or it names nobody qualified on shift,
+every holder of the relevant permission hears (for a missing hourly observation, all
+register staff who may record observations). The warning events are
 raised inside the CAP lifecycle transaction; the rest are swept every five minutes by the
 worker job `run_gms_notification_sweeps`, each item once (`dedupe_key`).
 

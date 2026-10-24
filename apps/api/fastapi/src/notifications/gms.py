@@ -100,7 +100,9 @@ def register() -> None:
             key=OBSERVATION_MISSING,
             label="Hourly observation missing",
             description="No observation was recorded in the register 15 minutes after the hour.",
-            audience=_AUDIENCE.format("The observer on duty"),
+            audience=_AUDIENCE.format(
+                "The observer on duty; with no roster or nobody on shift, all register staff who record observations"
+            ),
             title="Observation missing for {{ hour }}",
             body="No observation for station {{ station }} at {{ hour }} has been recorded.",
             variables=("station", "hour"),
@@ -248,17 +250,14 @@ async def duty_or_holders(
     permission_keys: Collection[str],
     *,
     now: datetime | None = None,
-    quiet_when_nobody_on_duty: bool = False,
 ) -> set[uuid.UUID]:
     """The qualified people on shift now, else every qualified holder.
 
-    ``quiet_when_nobody_on_duty`` returns nobody when a roster covers today but
-    names no one on shift (nobody is expected to act).
+    Owner decision 2026-10-24: when no roster covers today, or it names nobody
+    qualified on shift, every holder hears, so nothing is missed unseen.
     """
     holders = await permission_holders(session, permission_keys)
-    on_duty, covered = await duty_roster(session, now)
-    if quiet_when_nobody_on_duty and covered and not on_duty:
-        return set()
+    on_duty, _covered = await duty_roster(session, now)
     return (holders & on_duty) or holders
 
 

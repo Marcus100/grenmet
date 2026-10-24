@@ -179,12 +179,9 @@ async def observation_missing(
             missing.append(station)
     if not missing:
         return 0
-    observers = await gms.duty_or_holders(
-        session,
-        gms.OBSERVER_PERMISSIONS,
-        now=moment,
-        quiet_when_nobody_on_duty=True,
-    )
+    # The observer on duty; with no roster, or nobody on shift, all register
+    # staff who may record observations.
+    observers = await gms.duty_or_holders(session, gms.OBSERVER_PERMISSIONS, now=moment)
     told = 0
     for station in missing:
         told += await gms.tell(

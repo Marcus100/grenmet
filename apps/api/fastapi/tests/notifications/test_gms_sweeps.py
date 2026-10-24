@@ -335,7 +335,7 @@ async def test_a_rejected_observation_still_counts_as_missing(
     assert await gms_sweeps.observation_missing(sources, sources, FIFTEEN_PAST) == 1
 
 
-async def test_observer_on_duty_gets_it_and_a_quiet_roster_sends_nothing(
+async def test_observer_on_duty_gets_it_and_nobody_on_shift_tells_all_observers(
     sources: AsyncSession,
 ) -> None:
     on_duty = await _holder(sources, "eregister.observe")
@@ -349,9 +349,11 @@ async def test_observer_on_duty_gets_it_and_a_quiet_roster_sends_nothing(
     assert len(await _told(sources, on_duty, gms.OBSERVATION_MISSING)) == 1
     assert await _told(sources, other, gms.OBSERVATION_MISSING) == []
 
-    # 02:15 in Grenada: the roster covers today but nobody is on shift.
+    # 02:15 in Grenada: the roster covers today but nobody is on shift, so
+    # every holder of the permission to record observations is told.
     night = datetime(2026, 10, 23, 6, 15, tzinfo=UTC)
-    assert await gms_sweeps.observation_missing(sources, sources, night) == 0
+    assert await gms_sweeps.observation_missing(sources, sources, night) == 2
+    assert len(await _told(sources, other, gms.OBSERVATION_MISSING)) == 1
 
 
 # ── Register review requested and query ──────────────────────────────────────
