@@ -63,6 +63,20 @@ describe("page titles", () => {
     }
   );
 
+  it("titles the tropics page as the Tropical Weather Outlook", () => {
+    const source = readFileSync(
+      path.join(APP_DIR, "(pages)", "weather", "tropics", "page.tsx"),
+      "utf8"
+    );
+    const titles = [...source.matchAll(TITLE_VALUE)].map((match) => match[1]);
+    expect(titles[0]).toBe("Tropical Weather Outlook");
+    // Through the root template: the full browser title.
+    expect(`${titles[0]} | ${SITE_NAME}`).toBe(
+      "Tropical Weather Outlook | Grenada Meteorological Service"
+    );
+    expect(source).not.toContain("NHC Products");
+  });
+
   it("gives planned placeholder pages their link name as the title", () => {
     expect(plannedPaths().length).toBeGreaterThan(0);
     const planned = readFileSync(
