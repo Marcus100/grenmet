@@ -1,6 +1,10 @@
 "use client";
 
-import type { GuidanceSystem, ProductGuidance } from "@barrelsgd/api-client";
+import {
+  capCreateEscalation,
+  type GuidanceSystem,
+  type ProductGuidance,
+} from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { ProductContentView } from "@barrelsgd/gms/components/product-content";
 import {
@@ -48,6 +52,7 @@ import { DeskLayout } from "@/components/document/desk-layout";
 import { PageHeader } from "@/components/layout/page-header";
 import type { PdfPreviewRequest } from "@/components/wxproducts/forecast-pdf-frame";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
+import { reportError } from "@/lib/report-error";
 import {
   ABOVE_GREEN_MESSAGE,
   isAboveGreen,
@@ -65,7 +70,12 @@ import {
 import { type HistoryItem, ProductHistoryPanel } from "./product-history-panel";
 import { ProductList } from "./product-list";
 import { ProductWithdrawDialog } from "./product-withdraw-dialog";
+import {
+  RaiseToWarningDialog,
+  type WarningLevel,
+} from "./raise-to-warning-dialog";
 import { SectionHints } from "./section-hints";
+import { WarningRaisedNote } from "./warning-raised-note";
 
 const DAY_KEY_PREFIX = /^(day[1-4])/;
 
@@ -233,6 +243,8 @@ function ProductEditor({
   const [previewGuidance, setPreviewGuidance] = useState<string | null>(null);
   const [baseline, setBaseline] = useState(() => JSON.stringify(start));
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [raiseOpen, setRaiseOpen] = useState(false);
+  const [raisedKey, setRaisedKey] = useState("");
   const [preview, setPreview] = useState<ProductValues | null>(null);
   const [pdfRequest, setPdfRequest] = useState<PdfPreviewRequest | null>(null);
   const [pdfExpanded, setPdfExpanded] = useState(false);
@@ -336,7 +348,7 @@ function ProductEditor({
     });
     if (!result.ok) {
       setMessage(result.error);
-      return;
+      return null;
     }
     setRevision(result.product.revision);
     setPublishedRevision(result.product.publishedRevision);
@@ -363,6 +375,33 @@ function ProductEditor({
       withdraw: "Withdrawn from the public website.",
     } as const;
     setMessage(messageByAction[action]);
+    return result.product;
+  }
+  /** Save the alert as a green draft, then ask FastAPI for the CAP warning draft. */
+  async function raiseToWarning(
+    values: ProductValues,
+    level: WarningLevel
+  ): Promise<{ alertId: string } | { error: string }> {
+    const saved = await save({ ...values, level: "Green" }, "draft");
+    if (!saved)
+      return { error: "Save the alert first: fix the problem shown." };
+    try {
+      const raised = await capCreateEscalation({
+        body: {
+          product_id: id,
+          revision: saved.revision,
+          awareness_level: level,
+        },
+      }).unwrap();
+      setRaisedKey(raised.alert_id);
+      return { alertId: raised.alert_id };
+    } catch (error) {
+      reportError(error, "wxproducts");
+      return {
+        error:
+          "The alert was saved, but the warning draft could not be created. Check your CAP permissions and try again.",
+      };
+    }
   }
   function submit(
     values: ProductValues,
@@ -550,6 +589,9 @@ function ProductEditor({
                       ) : null}
                     </div>
                   </div>
+                  {isBulletin(kind) && revision > 0 ? (
+                    <WarningRaisedNote productId={id} refreshKey={raisedKey} />
+                  ) : null}
                   {isAboveGreen(kind, values.level) ? (
                     <p
                       className="rounded-lg border border-destructive p-3 text-sm"
@@ -796,6 +838,26 @@ function ProductEditor({
                         >
                           Validate and preview
                         </Button>
+                        {isBulletin(kind) ? (
+                          <>
+                            <Button
+                              onClick={() => setRaiseOpen(true)}
+                              type="button"
+                              variant="outline"
+                            >
+                              Raise to warning
+                            </Button>
+                            {raiseOpen ? (
+                              <RaiseToWarningDialog
+                                onOpenChange={setRaiseOpen}
+                                onRaise={(level) =>
+                                  raiseToWarning(values, level)
+                                }
+                                open
+                              />
+                            ) : null}
+                          </>
+                        ) : null}
                         {publishedRevision ? (
                           <Button
                             onClick={() => {
