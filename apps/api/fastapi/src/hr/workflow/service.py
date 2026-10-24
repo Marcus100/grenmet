@@ -782,6 +782,10 @@ async def apply_workflow_action(
         WorkflowAction.CANCEL,
     }:
         raise HRValidationError("Invalid stage action")
+    if action_in.action == WorkflowAction.RETURN and not (
+        action_in.comments and action_in.comments.strip()
+    ):
+        raise HRValidationError("Give the author a reason for returning this form")
     previous_status = workflow_instance.status
     if workflow_instance.entity_type == "shift_swap":
         from src.hr.exchange.models import ShiftSwapRequest
@@ -862,6 +866,7 @@ async def apply_workflow_action(
                 "absentee_report",
                 "status_report",
                 "parking_permit",
+                "timesheet",
             }
         )
     ):
@@ -878,6 +883,7 @@ async def apply_workflow_action(
         actor_id=current_user.id,
         previous_status=previous_status,
         previous_order=current_order,
+        comments=action_in.comments,
     )
     if commit:
         await session.commit()

@@ -191,7 +191,7 @@ async def read_instance(
     "/instances/{instance_id}/actions",
     response_model=WorkflowInstancePublic,
     summary="Perform workflow action",
-    description="Submit, approve, reject, return, or cancel a workflow instance. Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
+    description="Submit, approve, reject, return, or cancel a workflow instance. Return requires comments (the reason shown to the author). Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
     responses={
         status.HTTP_200_OK: {"description": "Action applied"},
         status.HTTP_400_BAD_REQUEST: {
