@@ -890,6 +890,17 @@ caller's transaction; the worker sends email every 30 s (React Email `notificati
 template via web-auth, Jinja fallback, delivered through Resend/SMTP) and runs the daily
 reminder sweep at 10:00 UTC. Emails carry only a summary and a portal link.
 
+**GMS staff notifications** (`src/notifications/gms.py`, no endpoints of their own; people
+choose the bell and email per event through `/notifications/preferences`). Eight events:
+`gms.forecast_overdue`, `gms.review_requested`, `gms.warning_changed`,
+`gms.warning_expiring`, `gms.observation_missing`, `gms.send_failed`, `gms.record_query`,
+`gms.nhc_product`. Forecast overdue, warning changed and send failed are urgent (always in
+the bell). `review_requested`, `observation_missing`, `send_failed` and `nhc_product` are
+grouped: repeats fold into the recipient's unread notification. Recipients come from the
+published GMS duty roster, else holders of the relevant permission. The warning events are
+raised inside the CAP lifecycle transaction; the rest are swept every five minutes by the
+worker job `run_gms_notification_sweeps`, each item once (`dedupe_key`).
+
 | Endpoint | Access and purpose |
 | --- | --- |
 | `GET /api/v1/notifications?unread=` | Own notifications, paginated |
