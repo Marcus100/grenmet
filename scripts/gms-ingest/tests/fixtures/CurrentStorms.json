@@ -1,0 +1,55 @@
+{
+  "activeStorms": [
+    {
+      "id": "al142026",
+      "binNumber": "AT4",
+      "name": "Nadine",
+      "classification": "HU",
+      "intensity": "75",
+      "pressure": "984",
+      "latitude": "13.4N",
+      "longitude": "58.9W",
+      "latitudeNumeric": 13.4,
+      "longitudeNumeric": -58.9,
+      "movementDir": 285,
+      "movementSpeed": 14,
+      "lastUpdate": "2026-10-13T09:00:00.000Z",
+      "publicAdvisory": {
+        "advNum": "012",
+        "issuance": "2026-10-13T09:00:00.000Z",
+        "fileUpdateTime": "2026-10-13T08:42:03.758Z",
+        "url": "https://www.nhc.noaa.gov/text/MIATCPAT4.shtml"
+      }
+    },
+    {
+      "id": "al152026",
+      "binNumber": "AT5",
+      "name": "Fifteen",
+      "classification": "PTC",
+      "intensity": "30",
+      "pressure": "1008",
+      "latitude": "11.2N",
+      "longitude": "50.1W",
+      "latitudeNumeric": 11.2,
+      "longitudeNumeric": -50.1,
+      "movementDir": 270,
+      "movementSpeed": 17,
+      "lastUpdate": "2026-10-13T09:00:00.000Z"
+    },
+    {
+      "id": "ep202026",
+      "binNumber": "EP5",
+      "name": "Simon",
+      "classification": "HU",
+      "intensity": "80",
+      "pressure": "977",
+      "latitude": "20.6N",
+      "longitude": "107.2W",
+      "latitudeNumeric": 20.6,
+      "longitudeNumeric": -107.2,
+      "movementDir": 315,
+      "movementSpeed": 3,
+      "lastUpdate": "2026-10-13T09:00:00.000Z"
+    }
+  ]
+}
