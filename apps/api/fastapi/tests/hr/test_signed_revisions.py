@@ -52,13 +52,15 @@ async def test_return_edit_and_resign_preserves_original_and_approval_cycle(db_a
     )
     await action(db_async, approver, old_workflow, WorkflowAction.RETURN)
     await db_async.refresh(leave)
-    assert leave.status == RequestStatus.DRAFT
+    # A returned form shows as Returned (not Draft) until the author resubmits it.
+    assert leave.status == RequestStatus.RETURNED
     assert (
         await db_async.get(WorkflowInstance, old_workflow)
     ).status == WorkflowStatus.RETURNED
     with pytest.raises(AppException, match="form"):
         await action(db_async, actor, old_workflow, WorkflowAction.SUBMIT)
-    with pytest.raises(AppException, match="history"):
+    # A returned form can be edited and resubmitted but never deleted.
+    with pytest.raises(AppException, match="draft"):
         await leave_service.delete_leave_request(
             session=db_async, current_user=actor, leave_request_id=leave.id
         )
