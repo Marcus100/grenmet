@@ -659,6 +659,11 @@ export {
   useCapCreateAlert,
 } from "./useCapCreateAlert.js";
 export {
+  capCreateEscalationMutationKey,
+  capCreateEscalationMutationOptions,
+  useCapCreateEscalation,
+} from "./useCapCreateEscalation.js";
+export {
   capCreateFeedMutationKey,
   capCreateFeedMutationOptions,
   useCapCreateFeed,
@@ -738,6 +743,11 @@ export {
   capGetCatalogsQueryOptions,
   useCapGetCatalogs,
 } from "./useCapGetCatalogs.js";
+export {
+  capGetEscalationQueryKey,
+  capGetEscalationQueryOptions,
+  useCapGetEscalation,
+} from "./useCapGetEscalation.js";
 export {
   capGetFeedsQueryKey,
   capGetFeedsQueryOptions,
