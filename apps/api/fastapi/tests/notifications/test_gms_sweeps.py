@@ -10,6 +10,7 @@ import json
 import uuid
 from collections.abc import AsyncGenerator
 from datetime import UTC, date, datetime, timedelta
+from typing import cast
 
 import pytest
 from sqlalchemy import select, text
@@ -522,8 +523,8 @@ async def test_one_failing_source_does_not_stop_the_others(
 
     total = await gms_sweeps.run(
         sources,
-        weather=_Broken(),  # type: ignore[arg-type]
-        register=_Broken(),  # type: ignore[arg-type]
+        weather=cast(AsyncSession, _Broken()),
+        register=cast(AsyncSession, _Broken()),
         archive=sources,
         now=now,
     )

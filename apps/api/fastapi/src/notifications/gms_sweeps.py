@@ -14,6 +14,7 @@ from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, time, timedelta
 
 from sqlalchemy import func, select, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap.models import (
@@ -430,7 +431,7 @@ async def run(
         try:
             total += await step()
             await session.commit()
-        except Exception:  # noqa: BLE001 - isolate sources from one another
+        except SQLAlchemyError, OSError, RuntimeError, TimeoutError:
             await session.rollback()
             logger.exception("GMS notification sweep failed", extra={"sweep": name})
     logger.info("GMS notification sweeps finished", extra={"notified": total})

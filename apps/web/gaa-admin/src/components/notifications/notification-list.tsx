@@ -42,7 +42,7 @@ function NotificationRow({
     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
       <span className={cn("text-sm", unread && "font-medium")}>
         {notification.title}
-        {notification.repeat_count > 1 ? (
+        {(notification.repeat_count ?? 1) > 1 ? (
           <span className="ml-2 rounded bg-muted px-1.5 py-0.5 font-normal text-muted-foreground text-xs">
             ×{notification.repeat_count}
           </span>
