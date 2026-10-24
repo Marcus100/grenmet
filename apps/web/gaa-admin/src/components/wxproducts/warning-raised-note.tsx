@@ -5,17 +5,11 @@ import { useEffect, useState } from "react";
 
 /**
  * Shown on a GMS alert once a CAP warning was raised from it. The alert is not
- * withdrawn automatically; the forecaster does that when appropriate.
+ * withdrawn automatically; the forecaster does that when appropriate. The
+ * parent remounts it (a changed `key`) to look again after a raise.
  */
-export function WarningRaisedNote({
-  productId,
-  refreshKey,
-}: {
-  productId: string;
-  refreshKey?: string;
-}) {
+export function WarningRaisedNote({ productId }: { productId: string }) {
   const [alertId, setAlertId] = useState<string | null>(null);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey re-runs the lookup after a raise.
   useEffect(() => {
     let cancelled = false;
     capGetEscalation({ query: { product_id: productId } })
@@ -30,7 +24,7 @@ export function WarningRaisedNote({
     return () => {
       cancelled = true;
     };
-  }, [productId, refreshKey]);
+  }, [productId]);
   if (!alertId) return null;
   return (
     <p className="rounded-lg border p-3 text-sm" role="status">

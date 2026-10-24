@@ -6,6 +6,9 @@ import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { LeaveSubmissions } from "./leave-submissions";
 
+const EDIT = /Edit/;
+const DELETE = /Delete/;
+
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/components/audit/record-history", () => ({
   RecordHistoryButton: () => <button type="button">History</button>,
@@ -59,24 +62,24 @@ it("shows a returned request with its reason and lets the author edit but not de
   show();
   expect(await screen.findByText("Returned")).toBeInTheDocument();
   expect(screen.getByText("Dates clash with the roster")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
+  expect(screen.getByRole("link", { name: EDIT })).toHaveAttribute(
     "href",
     "/hr/leave?draft=r1"
   );
-  expect(screen.queryByRole("button", { name: /Delete/ })).toBeNull();
+  expect(screen.queryByRole("button", { name: DELETE })).toBeNull();
 });
 
 it("keeps a rejected request final: no edit, no reason", async () => {
   rows = [request({ status: "REJECTED", workflow_status: "REJECTED" })];
   show();
   expect(await screen.findByText("Rejected")).toBeInTheDocument();
-  expect(screen.queryByRole("link", { name: /Edit/ })).toBeNull();
+  expect(screen.queryByRole("link", { name: EDIT })).toBeNull();
 });
 
 it("lets the author edit and delete a draft", async () => {
   rows = [request({ status: "DRAFT", submitted_at: null })];
   show();
   expect(await screen.findByText("Draft")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Edit/ })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /Delete/ })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: EDIT })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: DELETE })).toBeInTheDocument();
 });

@@ -22,9 +22,20 @@ AMOUNTS: tuple[PressureAmount, ...] = (
     "sea_level_offset_hpa",
     "qnh_offset_hpa",
 )
-_COLUMNS = "station_id, " + ", ".join(AMOUNTS) + ", updated_at, settings_updated_by"
 _SELECT = text(
-    f"SELECT {_COLUMNS} FROM observations.stations WHERE station_id = :station"  # noqa: S608
+    "SELECT station_id, total_correction_hpa, qfe_offset_hpa,"
+    " sea_level_offset_hpa, qnh_offset_hpa, updated_at, settings_updated_by"
+    " FROM observations.stations WHERE station_id = :station"
+)
+_UPDATE = text(
+    "UPDATE observations.stations SET total_correction_hpa = :total_correction_hpa,"
+    " qfe_offset_hpa = :qfe_offset_hpa,"
+    " sea_level_offset_hpa = :sea_level_offset_hpa,"
+    " qnh_offset_hpa = :qnh_offset_hpa,"
+    " settings_updated_by = :actor, updated_at = now()"
+    " WHERE station_id = :station"
+    " RETURNING station_id, total_correction_hpa, qfe_offset_hpa,"
+    " sea_level_offset_hpa, qnh_offset_hpa, updated_at, settings_updated_by"
 )
 
 
@@ -79,14 +90,8 @@ async def update(
     *,
     actor: str,
 ) -> StationSettings | None:
-    assignments = ", ".join(f"{name} = :{name}" for name in AMOUNTS)
     result = await register.execute(
-        text(
-            f"UPDATE observations.stations SET {assignments},"  # noqa: S608
-            " settings_updated_by = :actor, updated_at = now()"
-            f" WHERE station_id = :station RETURNING {_COLUMNS}"
-        ),
-        {"station": station_id, "actor": actor, **data.model_dump()},
+        _UPDATE, {"station": station_id, "actor": actor, **data.model_dump()}
     )
     row = result.mappings().first()
     await register.commit()

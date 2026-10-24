@@ -590,7 +590,7 @@ function ProductEditor({
                     </div>
                   </div>
                   {isBulletin(kind) && revision > 0 ? (
-                    <WarningRaisedNote productId={id} refreshKey={raisedKey} />
+                    <WarningRaisedNote key={raisedKey} productId={id} />
                   ) : null}
                   {isAboveGreen(kind, values.level) ? (
                     <p

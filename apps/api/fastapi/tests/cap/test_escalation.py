@@ -13,11 +13,7 @@ from src.cap.levels import read_level
 from src.cap.models import CapAlert, CapLifecycleState, CapSeverity
 from src.cap.schemas import CapNameValue
 from src.wxproducts import service
-from tests.wxproducts.test_authoring import (  # noqa: F401
-    actor,
-    current_input,
-    weather_sessions,
-)
+from tests.wxproducts.test_authoring import current_input
 from tests.wxproducts.test_validation import body, complete
 
 pytestmark = pytest.mark.asyncio
@@ -25,7 +21,7 @@ pytestmark = pytest.mark.asyncio
 URL = "/api/v1/cap/escalations"
 
 
-async def saved_alert(weather_sessions, actor, kind="marine") -> UUID:  # noqa: F811
+async def saved_alert(weather_sessions, actor, kind="marine") -> UUID:
     payload = current_input(action="draft")
     if kind != "marine":
         payload = body(kind, action="draft", values=complete(kind))
@@ -48,8 +44,8 @@ def parameters(alert: dict) -> dict[str, str]:
 
 async def test_creates_a_linked_prefilled_draft_and_repeats_idempotently(
     async_client: httpx.AsyncClient,
-    weather_sessions,  # noqa: F811
-    actor,  # noqa: F811
+    weather_sessions,
+    actor,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
     product_id = await saved_alert(weather_sessions, actor)
@@ -102,8 +98,8 @@ async def test_creates_a_linked_prefilled_draft_and_repeats_idempotently(
 async def test_a_closed_warning_does_not_block_a_new_one(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
-    weather_sessions,  # noqa: F811
-    actor,  # noqa: F811
+    weather_sessions,
+    actor,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
     product_id = await saved_alert(weather_sessions, actor)
@@ -125,8 +121,8 @@ async def test_a_closed_warning_does_not_block_a_new_one(
 
 async def test_needs_cap_create_permission(
     async_client: httpx.AsyncClient,
-    weather_sessions,  # noqa: F811
-    actor,  # noqa: F811
+    weather_sessions,
+    actor,
     normal_user_token_headers_async: dict[str, str],
 ) -> None:
     product_id = await saved_alert(weather_sessions, actor)
@@ -138,8 +134,8 @@ async def test_needs_cap_create_permission(
 
 async def test_needs_product_access_to_the_source_kind(
     async_client: httpx.AsyncClient,
-    weather_sessions,  # noqa: F811
-    actor,  # noqa: F811
+    weather_sessions,
+    actor,
     superuser_token_headers_async: dict[str, str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -157,8 +153,8 @@ async def test_needs_product_access_to_the_source_kind(
 
 async def test_refuses_forecasts_unknown_products_and_green(
     async_client: httpx.AsyncClient,
-    weather_sessions,  # noqa: F811
-    actor,  # noqa: F811
+    weather_sessions,
+    actor,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
     forecast = await saved_alert(weather_sessions, actor, kind="morning")
@@ -179,8 +175,8 @@ async def test_refuses_forecasts_unknown_products_and_green(
 
 async def test_lookup_reports_the_raised_warning_and_leaves_the_alert_alone(
     async_client: httpx.AsyncClient,
-    weather_sessions,  # noqa: F811
-    actor,  # noqa: F811
+    weather_sessions,
+    actor,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
     product_id = await saved_alert(weather_sessions, actor)
