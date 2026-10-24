@@ -99,7 +99,8 @@ def vapour_pressure_from_wet_bulb(
 
 def relative_humidity_percent(dry_c: float, vapour_pressure_hpa: float) -> int:
     ratio = vapour_pressure_hpa / saturation_vapour_pressure_hpa(dry_c)
-    return max(0, min(MAX_PERCENT, round(ratio * 100)))
+    # Half rounds up, like the screen's Math.round.
+    return max(0, min(MAX_PERCENT, floor(ratio * 100 + 0.5)))
 
 
 def _tenths(group: str | None) -> float | None:
