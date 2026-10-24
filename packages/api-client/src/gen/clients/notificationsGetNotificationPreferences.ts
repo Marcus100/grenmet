@@ -11,8 +11,8 @@ import type {
 } from "../models/NotificationsGetNotificationPreferences.js";
 
 /**
- * @description Which notifications the signed-in person also receives by email.
- * @summary Read my email preferences
+ * @description Per notification: whether the signed-in person gets it in the bell and by email. Urgent notifications always appear in the bell.
+ * @summary Read my bell and email preferences
  * {@link /api/v1/notifications/preferences}
  */
 export function notificationsGetNotificationPreferences<

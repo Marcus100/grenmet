@@ -62,6 +62,7 @@ from src.cap.models import (
     CapSnapshot,
     CapStatus,
 )
+from src.cap.notifications import notify_review_requested, notify_warning_changed
 from src.cap.public_queries import (
     PUBLIC_HAZARD_GROUPS,
     _attach_public_replacements,
@@ -663,6 +664,7 @@ async def _publish(
         status=alert.status,
         scope=alert.scope,
     )
+    await notify_warning_changed(session=session, alert=alert, actor=current_user)
     audit_payload: dict[str, object] = {"snapshot_id": str(snapshot.id)}
     if emergency_reason is not None:
         audit_payload["emergency"] = True
@@ -792,6 +794,9 @@ async def cancel_alert(
             "snapshot_id": str(snapshot.id),
             "cancellation_identifier": cancellation.identifier,
         },
+    )
+    await notify_warning_changed(
+        session=session, alert=cancellation, actor=current_user, about=alert
     )
     await session.commit()
     await session.refresh(alert)
@@ -930,6 +935,8 @@ async def _transition(
         next_state=next_state.value,
         note=note,
     )
+    if action == "submit":
+        await notify_review_requested(session=session, alert=alert, actor=current_user)
     await session.commit()
     await session.refresh(alert)
     logger.info(

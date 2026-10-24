@@ -50,8 +50,8 @@ export function notificationsUpdateNotificationPreferencesMutationOptions<
 }
 
 /**
- * @description Turn email on or off per notification. In-app notifications are always kept; approval requests cannot be muted.
- * @summary Update my email preferences
+ * @description Turn the bell and email on or off per notification (leave a channel out to keep it). Urgent notifications always appear in the bell; approval requests cannot be muted by email.
+ * @summary Update my bell and email preferences
  * {@link /api/v1/notifications/preferences}
  */
 export function useNotificationsUpdateNotificationPreferences<TContext>(

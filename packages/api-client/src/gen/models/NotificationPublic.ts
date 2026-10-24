@@ -16,6 +16,16 @@ export type NotificationPublic = {
   link_path: string | null;
   entity_type: string | null;
   entity_id: string | null;
+  /**
+   * @default 1
+   * @type integer | undefined
+   */
+  repeat_count?: number;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  urgent?: boolean;
   read_at: string | null;
   /**
    * @description

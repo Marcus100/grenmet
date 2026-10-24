@@ -890,13 +890,26 @@ caller's transaction; the worker sends email every 30 s (React Email `notificati
 template via web-auth, Jinja fallback, delivered through Resend/SMTP) and runs the daily
 reminder sweep at 10:00 UTC. Emails carry only a summary and a portal link.
 
+**GMS staff notifications** (`src/notifications/gms.py`, no endpoints of their own; people
+choose the bell and email per event through `/notifications/preferences`). Eight events:
+`gms.forecast_overdue`, `gms.review_requested`, `gms.warning_changed`,
+`gms.warning_expiring`, `gms.observation_missing`, `gms.send_failed`, `gms.record_query`,
+`gms.nhc_product`. Forecast overdue, warning changed and send failed are urgent (always in
+the bell). `review_requested`, `observation_missing`, `send_failed` and `nhc_product` are
+grouped: repeats fold into the recipient's unread notification. Recipients come from the
+published GMS duty roster; when there is no roster, or it names nobody qualified on shift,
+every holder of the relevant permission hears (for a missing hourly observation, all
+register staff who may record observations). The warning events are
+raised inside the CAP lifecycle transaction; the rest are swept every five minutes by the
+worker job `run_gms_notification_sweeps`, each item once (`dedupe_key`).
+
 | Endpoint | Access and purpose |
 | --- | --- |
 | `GET /api/v1/notifications?unread=` | Own notifications, paginated |
 | `GET /api/v1/notifications/unread-count` | `{count}` for the header badge |
 | `POST /api/v1/notifications/{id}/read` | Mark own notification read; another person's → 404 |
 | `POST /api/v1/notifications/read-all` | Mark all own notifications read |
-| `GET/PUT /api/v1/notifications/preferences` | Own email opt-outs per event; approval events (`email_mutable: false`) cannot be muted → 400 |
+| `GET/PUT /api/v1/notifications/preferences` | Own bell and email choice per event (leave a channel out to keep it); approval events (`email_mutable: false`) cannot be muted by email and urgent events (`urgent: true`, `bell_mutable: false`) cannot leave the bell → 400. Items carry `repeat_count` (grouped events fold into one unread notification) and `urgent`; a notification with the bell off is kept only for its email and never listed or counted |
 | `GET /api/v1/notifications/settings?organisation_id=` | `notifications.manage` in the organisation: every event with effective settings, plus staff whose email domain is outside `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` |
 | `PUT /api/v1/notifications/settings/{event_key}?organisation_id=` | `notifications.manage`: on/off, email on/off, extra recipient roles, title/body Jinja templates (validated), timings (`remind_after_days`, `escalate_after_days`, `expiry_days_before`) |
 | `GET/POST /api/v1/notifications/snoozes?organisation_id=` | `notifications.manage`: list active snoozes / silence an event, or one entity of it (`entity_type` + `entity_id` together), until a future `until`; unknown event → 404 |
