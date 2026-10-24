@@ -125,14 +125,16 @@ it("takes the time marks of the four instrument charts", () => {
   expect(onValueChange).toHaveBeenCalledWith("time_mark_barograph", "1200");
 });
 
-it("keys the barometer as read and the 909 group", () => {
+it("keys the barometer as read and the precipitation timing group", () => {
   const onValueChange = vi.fn();
   renderWorkbook([], { onValueChange });
   fireEvent.change(input("Barometer as Read (Bar.)"), {
     target: { value: "1013.2" },
   });
   expect(onValueChange).toHaveBeenCalledWith("barometer_reading", "1013.2");
-  fireEvent.change(input("909 Group (909)"), { target: { value: "90912" } });
+  fireEvent.change(input("Precipitation Timing & Duration (909Rtdc)"), {
+    target: { value: "90912" },
+  });
   expect(onValueChange).toHaveBeenCalledWith("s3_group_909", "90912");
 });
 

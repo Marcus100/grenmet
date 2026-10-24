@@ -76,7 +76,7 @@ class SynopWorkbook(BaseModel):
     s3_group_909: str | None = Field(
         default=None,
         max_length=8,
-        description="Regional group 909 as printed on the register (five digits starting 909).",
+        description="Precipitation timing and duration (909Rtdc), the Region IV group 9SpSpspsp with SpSp 09, reported with 6RRRtR: five digits starting 909. Rt and dc are not decoded.",
     )
     time_mark_anemograph: str | None = Field(default=None, max_length=16)
     time_mark_barograph: str | None = Field(default=None, max_length=16)

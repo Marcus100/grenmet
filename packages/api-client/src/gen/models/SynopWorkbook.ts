@@ -68,7 +68,7 @@ export type SynopWorkbook = {
   s3_layer4_height?: string | null;
   s3_special_phenomena?: string | null;
   /**
-   * @description Regional group 909 as printed on the register (five digits starting 909).
+   * @description Precipitation timing and duration (909Rtdc), the Region IV group 9SpSpspsp with SpSp 09, reported with 6RRRtR: five digits starting 909. Rt and dc are not decoded.
    */
   s3_group_909?: string | null;
   time_mark_anemograph?: string | null;

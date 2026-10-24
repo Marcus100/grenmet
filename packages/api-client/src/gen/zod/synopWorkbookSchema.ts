@@ -74,7 +74,7 @@ export const synopWorkbookSchema = z
       .union([z.string().max(8), z.null()])
       .optional()
       .describe(
-        "Regional group 909 as printed on the register (five digits starting 909)."
+        "Precipitation timing and duration (909Rtdc), the Region IV group 9SpSpspsp with SpSp 09, reported with 6RRRtR: five digits starting 909. Rt and dc are not decoded."
       ),
     time_mark_anemograph: z.union([z.string().max(16), z.null()]).optional(),
     time_mark_barograph: z.union([z.string().max(16), z.null()]).optional(),

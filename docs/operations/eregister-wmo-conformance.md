@@ -51,7 +51,7 @@ to SI).
 | 7R24 | Four digits, 9999 trace; missing at 12 UTC: warning; keyed at another hour: warning | Covered |
 | 5appp (every 3 hours) | Missing at 00, 03, ... 21 UTC: warning (`missing_pressure_change`) | Covered as advice (owner decision 2026-10-23) |
 | 6RRRtR (every main hour) | Omitted (iR 3 or 4) or missing at 00, 06, 12, 18 UTC: warning | Covered as advice (owner decision 2026-10-23). "Main hour" is read as 00, 06, 12, 18 UTC |
-| 909 | Field `s3_group_909`: five digits starting 909, passed into section 3 | Format only; the group's meaning is not decoded |
+| 909Rtdc | Precipitation timing and duration: Region IV supplementary group 9SpSpspsp with SpSp 09, giving the time of beginning or end of the precipitation (Rt) and its duration (dc), reported with 6RRRtR. Field `s3_group_909`: five digits starting 909, passed into section 3 | Format only. Rt and dc are not decoded or carried in the WIS2 file: the local WMO-No. 306 Vol. I.2 has BUFR Code table 0 13 057 (time of beginning or end of precipitation, a Region I practice) but not the traditional code tables for Rt and dc, and the Region IV template TM 307084 has no precipitation timing element. Confirm the tables from WMO-No. 306 Vol. I.1 or Vol. II (Region IV) before decoding |
 | 8NsChshs | Up to 3 non-Cb layers plus Cb; Ns not above N; Ns 0 invalid; hshs Code table 1677 (51-55 unused, 81-89 in 1500 m steps); ascending order and completeness: warning | Covered |
 | Remarks (`s3_remarks`, `notes`) | Free text, not validated and not encoded | Not covered |
 | NIL report | Identification only becomes a NIL report | Covered |

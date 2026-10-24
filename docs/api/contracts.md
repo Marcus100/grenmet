@@ -1790,7 +1790,9 @@ weather site as provisional, so a signed-in account alone is not enough.
   12, 18 UTC), 24 hour rainfall at 12 UTC, the pressure tendency group `5appp`
   every 3 hours, the rainfall group `6RRRtR` at every main hour. The daily
   sunshine group `55SSS` is not reported (a keyed value is decoded and warned).
-- *Extra fields.* `s3_group_909` (five digits starting 909, passed through into
+- *Extra fields.* `s3_group_909`, precipitation timing and duration (909Rtdc:
+  the Region IV group 9SpSpspsp with SpSp 09, reported with 6RRRtR; five digits
+  starting 909, Rt and dc not decoded, passed through into
   section 3) and the instrument chart time marks `time_mark_anemograph`,
   `time_mark_barograph`, `time_mark_rain_recorder` and
   `time_mark_thermohygrograph` (free text, not observation values).

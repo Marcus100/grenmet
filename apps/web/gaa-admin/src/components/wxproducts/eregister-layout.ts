@@ -252,7 +252,9 @@ export const SECTION_3: RegisterGroup = {
     ...layer(2, 51),
     ...layer(3, 55),
     ...layer(4, 59),
-    field("s3_group_909", "909 Group", "909"),
+    // Region IV 909Rtdc: time of beginning or end (Rt) and duration (dc) of the
+    // precipitation in 6RRRtR. Format checked only; Rt and dc are not decoded.
+    field("s3_group_909", "Precipitation Timing & Duration", "909Rtdc"),
     field("s3_special_phenomena", "Special Phenomena", "9SpSpspsp", {
       no: 63,
     }),

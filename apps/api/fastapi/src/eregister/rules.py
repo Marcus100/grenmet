@@ -446,7 +446,7 @@ def _check_group_909(c: _Checker) -> None:
         c.add(
             "s3_group_909",
             "invalid_format",
-            "Group 909 is five digits starting 909, as printed on the register.",
+            "Precipitation timing and duration (909Rtdc) is five digits starting 909.",
         )
 
 
