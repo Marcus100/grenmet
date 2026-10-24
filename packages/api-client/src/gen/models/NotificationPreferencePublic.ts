@@ -9,4 +9,19 @@ export type NotificationPreferencePublic = {
   description: string;
   email_mutable: boolean;
   email_enabled: boolean;
+  /**
+   * @default true
+   * @type boolean | undefined
+   */
+  bell_mutable?: boolean;
+  /**
+   * @default true
+   * @type boolean | undefined
+   */
+  bell_enabled?: boolean;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  urgent?: boolean;
 };

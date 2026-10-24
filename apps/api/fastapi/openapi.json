@@ -19400,8 +19400,8 @@
         "tags": [
           "notifications"
         ],
-        "summary": "Read my email preferences",
-        "description": "Which notifications the signed-in person also receives by email.",
+        "summary": "Read my bell and email preferences",
+        "description": "Per notification: whether the signed-in person gets it in the bell and by email. Urgent notifications always appear in the bell.",
         "operationId": "notificationsGetNotificationPreferences",
         "responses": {
           "200": {
@@ -19442,8 +19442,8 @@
         "tags": [
           "notifications"
         ],
-        "summary": "Update my email preferences",
-        "description": "Turn email on or off per notification. In-app notifications are always kept; approval requests cannot be muted.",
+        "summary": "Update my bell and email preferences",
+        "description": "Turn the bell and email on or off per notification (leave a channel out to keep it). Urgent notifications always appear in the bell; approval requests cannot be muted by email.",
         "operationId": "notificationsUpdateNotificationPreferences",
         "requestBody": {
           "content": {
@@ -19485,7 +19485,7 @@
             }
           },
           "400": {
-            "description": "Unknown or unmutable notification"
+            "description": "Unknown notification, or an urgent or approval one that cannot be turned off"
           }
         },
         "security": [
@@ -64506,6 +64506,21 @@
           "email_enabled": {
             "type": "boolean",
             "title": "Email Enabled"
+          },
+          "bell_mutable": {
+            "type": "boolean",
+            "title": "Bell Mutable",
+            "default": true
+          },
+          "bell_enabled": {
+            "type": "boolean",
+            "title": "Bell Enabled",
+            "default": true
+          },
+          "urgent": {
+            "type": "boolean",
+            "title": "Urgent",
+            "default": false
           }
         },
         "type": "object",
@@ -64525,16 +64540,34 @@
             "title": "Event Key"
           },
           "email_enabled": {
-            "type": "boolean",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Email Enabled"
+          },
+          "bell_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bell Enabled"
           }
         },
         "type": "object",
         "required": [
-          "event_key",
-          "email_enabled"
+          "event_key"
         ],
-        "title": "NotificationPreferenceUpdate"
+        "title": "NotificationPreferenceUpdate",
+        "description": "Leave a channel out (null) to keep the person's current choice."
       },
       "NotificationPublic": {
         "properties": {
@@ -64587,6 +64620,16 @@
               }
             ],
             "title": "Entity Id"
+          },
+          "repeat_count": {
+            "type": "integer",
+            "title": "Repeat Count",
+            "default": 1
+          },
+          "urgent": {
+            "type": "boolean",
+            "title": "Urgent",
+            "default": false
           },
           "read_at": {
             "anyOf": [
