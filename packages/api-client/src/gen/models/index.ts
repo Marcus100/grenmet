@@ -2403,6 +2403,17 @@ export type {
   EregisterEmailRegisterObservationStatus422,
 } from "./EregisterEmailRegisterObservation.js";
 export type {
+  EregisterGetStationSettingsOptions,
+  EregisterGetStationSettingsPath,
+  EregisterGetStationSettingsResponse,
+  EregisterGetStationSettingsResponses,
+  EregisterGetStationSettingsStatus200,
+  EregisterGetStationSettingsStatus401,
+  EregisterGetStationSettingsStatus403,
+  EregisterGetStationSettingsStatus404,
+  EregisterGetStationSettingsStatus422,
+} from "./EregisterGetStationSettings.js";
+export type {
   EregisterListObservationSendsOptions,
   EregisterListObservationSendsPath,
   EregisterListObservationSendsResponse,
@@ -2453,6 +2464,18 @@ export type {
   EregisterPublishRegisterObservationStatus409,
   EregisterPublishRegisterObservationStatus422,
 } from "./EregisterPublishRegisterObservation.js";
+export type {
+  EregisterPutStationSettingsBody,
+  EregisterPutStationSettingsOptions,
+  EregisterPutStationSettingsPath,
+  EregisterPutStationSettingsResponse,
+  EregisterPutStationSettingsResponses,
+  EregisterPutStationSettingsStatus200,
+  EregisterPutStationSettingsStatus401,
+  EregisterPutStationSettingsStatus403,
+  EregisterPutStationSettingsStatus404,
+  EregisterPutStationSettingsStatus422,
+} from "./EregisterPutStationSettings.js";
 export type {
   EregisterRejectRegisterObservationBody,
   EregisterRejectRegisterObservationOptions,
@@ -7330,6 +7353,10 @@ export type { StaffInput } from "./StaffInput.js";
 export type { StaffOrganiserRow } from "./StaffOrganiserRow.js";
 export type { StaffSetup } from "./StaffSetup.js";
 export type { StaffUpdate } from "./StaffUpdate.js";
+export type { StationSettings } from "./StationSettings.js";
+export type { StationSettingsPropertiesPendingItemsEnum } from "./StationSettingsPropertiesPendingItemsEnum.js";
+export { stationSettingsPropertiesPendingItemsEnum } from "./StationSettingsPropertiesPendingItemsEnum.js";
+export type { StationSettingsUpdate } from "./StationSettingsUpdate.js";
 export type { StatusReportCreate } from "./StatusReportCreate.js";
 export type { StatusReportDetails } from "./StatusReportDetails.js";
 export type { StatusReportEntryInput } from "./StatusReportEntryInput.js";

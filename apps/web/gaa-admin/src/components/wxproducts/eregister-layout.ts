@@ -6,6 +6,12 @@
 
 export interface FieldColumn {
   code: string;
+  /**
+   * The lower cell is calculated from other entries (visibility code from
+   * kilometres, dew point and relative humidity from the wet bulb): shown
+   * greyed and never keyed.
+   */
+  computed?: boolean;
   id: string;
   key: string;
   kind: "field";
@@ -25,8 +31,20 @@ export interface FieldColumn {
     /** Typical keyed digit after the prefix, shown as the sign cell placeholder. */
     example?: string;
   };
-  /** The upper cell is an entry for another field (Gust above Wind Speed). */
-  upper?: { code: string; key: string; label: string };
+  /** A slightly wider cell for longer entries (barometer 1013.2). */
+  size?: "md";
+  /**
+   * The upper cell is an entry for another field (Gust above Wind Speed).
+   * `fallback` shows the reading decoded from the lower code while the entry is
+   * empty (rows saved before kilometres were typed).
+   */
+  upper?: {
+    code: string;
+    fallback?: boolean;
+    key: string;
+    label: string;
+    maxLength?: number;
+  };
   /** Header name of the upper layer when it differs (Wet Bulb over Dew Point). */
   upperLabel?: string;
   wide?: boolean;
@@ -81,6 +99,7 @@ const signedPair = (
   field(key, "Ind. & Sign", signCode, {
     no: numbers[0],
     signed: { prefix, role: "sign", example },
+    ...(extra.computed ? { computed: true } : {}),
   }),
   field(key, label, code, {
     no: numbers[1],
@@ -120,7 +139,18 @@ export const SECTION_1: RegisterGroup = {
     field("precip_indicator", "6-Group Indicator", "iR", { no: 5 }),
     field("station_wx_indicator", "7-Group Indicator", "ix", { no: 6 }),
     field("cloud_base", "Lowest Cloud Height", "h", { no: 7 }),
-    field("visibility", "Visibility", "(VV) VV", { no: 8 }),
+    field("visibility", "Visibility", "(VV) VV", {
+      computed: true,
+      no: 8,
+      upper: {
+        code: "km",
+        fallback: true,
+        key: "visibility_km",
+        label: "Visibility (km)",
+        maxLength: 5,
+      },
+      upperLabel: "Visibility km",
+    }),
     field("total_cloud", "Total Cloud", "N", { no: 9 }),
     field("wind_dir", "Wind Direction", "(ddd) dd", { no: 10 }),
     field("wind_speed", "Wind Speed", "(fmfm) ff", {
@@ -136,13 +166,22 @@ export const SECTION_1: RegisterGroup = {
       "(T'dT'd) TdTdTd",
       [14, 15],
       {
+        computed: true,
         upper: { code: "T'dT'd", key: "wet_bulb", label: "Wet Bulb" },
         upperLabel: "Wet Bulb",
       }
     ),
     field("relative_humidity", "R.H.", "(e) UUU", {
+      computed: true,
       no: 16,
       upperLabel: "V.P.",
+    }),
+    // Barometer as read; the cell above shows the total corrections (a station
+    // setting). QFE and QNH over columns 19 and 21 are calculated from them.
+    field("barometer_reading", "Barometer as Read", "Bar.", {
+      no: 17,
+      size: "md",
+      upperLabel: "Total Corr.",
     }),
     fixed("3", 18),
     field("station_pressure", "Station Pressure", "P0P0P0P0", {
@@ -213,6 +252,9 @@ export const SECTION_3: RegisterGroup = {
     ...layer(2, 51),
     ...layer(3, 55),
     ...layer(4, 59),
+    // Region IV 909Rtdc: time of beginning or end (Rt) and duration (dc) of the
+    // precipitation in 6RRRtR. Format checked only; Rt and dc are not decoded.
+    field("s3_group_909", "Precipitation Timing & Duration", "909Rtdc"),
     field("s3_special_phenomena", "Special Phenomena", "9SpSpspsp", {
       no: 63,
     }),
@@ -223,6 +265,17 @@ export const SECTION_3: RegisterGroup = {
     field("observer_initials", "Observer", "Initial", { no: 65 }),
   ],
 };
+
+/**
+ * The TIME MARKS line of the paper register: the instrument charts marked at
+ * the observation (anemograph, barograph, rain recorder, thermo-hygrograph).
+ */
+export const TIME_MARKS = [
+  { key: "time_mark_anemograph", label: "Anemograph" },
+  { key: "time_mark_barograph", label: "Barograph" },
+  { key: "time_mark_rain_recorder", label: "Rain recorder" },
+  { key: "time_mark_thermohygrograph", label: "Thermo-hygrograph" },
+] as const;
 
 // Stacked top to bottom: Section 0, then Section 1, then Section 3.
 export const REGISTER_SECTIONS: readonly RegisterGroup[] = [
@@ -237,12 +290,13 @@ export const REGISTER_FIELDS = REGISTER_SECTIONS.flatMap((section) =>
 
 /** Stored field keys behind the cells (several cells may share one key). */
 export const REGISTER_KEYS = [
-  ...new Set(
-    REGISTER_FIELDS.flatMap((column) => [
+  ...new Set([
+    ...REGISTER_FIELDS.flatMap((column) => [
       ...(column.parts ? column.parts.keys : [column.key]),
       ...(column.upper ? [column.upper.key] : []),
-    ])
-  ),
+    ]),
+    ...TIME_MARKS.map((mark) => mark.key),
+  ]),
 ];
 
 /** "Wind Direction (dd)": how an issue names its field. */
@@ -266,6 +320,11 @@ export const FIELD_LABELS: Record<string, string> = Object.fromEntries(
     }
   )
 );
+
+FIELD_LABELS.visibility_km = "Visibility in km";
+for (const mark of TIME_MARKS) {
+  FIELD_LABELS[mark.key] = `Time mark: ${mark.label}`;
+}
 
 /** The stored keys a cell edits. */
 export function columnKeys(column: FieldColumn): readonly string[] {
