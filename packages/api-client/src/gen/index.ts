@@ -623,19 +623,25 @@ export { webhooksOutListEventTypes } from "./clients/webhooksOutListEventTypes.j
 export { webhooksOutRotateSecret } from "./clients/webhooksOutRotateSecret.js";
 export { webhooksOutTestEndpoint } from "./clients/webhooksOutTestEndpoint.js";
 export { webhooksOutUpdateEndpoint } from "./clients/webhooksOutUpdateEndpoint.js";
+export { wxproductsCreateTropicalSystem } from "./clients/wxproductsCreateTropicalSystem.js";
 export { wxproductsGetPublicProduct } from "./clients/wxproductsGetPublicProduct.js";
+export { wxproductsGetPublicTropicalSystem } from "./clients/wxproductsGetPublicTropicalSystem.js";
 export { wxproductsListPublicProducts } from "./clients/wxproductsListPublicProducts.js";
+export { wxproductsListPublicTropicalSystems } from "./clients/wxproductsListPublicTropicalSystems.js";
+export { wxproductsListTropicalSystems } from "./clients/wxproductsListTropicalSystems.js";
 export { wxproductsLoadAviationDrafts } from "./clients/wxproductsLoadAviationDrafts.js";
 export { wxproductsLoadAviationHistory } from "./clients/wxproductsLoadAviationHistory.js";
 export { wxproductsLoadHistory } from "./clients/wxproductsLoadHistory.js";
 export { wxproductsLoadObservations } from "./clients/wxproductsLoadObservations.js";
 export { wxproductsLoadProducts } from "./clients/wxproductsLoadProducts.js";
+export { wxproductsLoadTropicalSystemHistory } from "./clients/wxproductsLoadTropicalSystemHistory.js";
 export { wxproductsPreviewProduct } from "./clients/wxproductsPreviewProduct.js";
 export { wxproductsPreviewProductPdf } from "./clients/wxproductsPreviewProductPdf.js";
 export { wxproductsProductRevisionPdf } from "./clients/wxproductsProductRevisionPdf.js";
 export { wxproductsPublicForecast } from "./clients/wxproductsPublicForecast.js";
 export { wxproductsSaveAviationDraft } from "./clients/wxproductsSaveAviationDraft.js";
 export { wxproductsSaveProduct } from "./clients/wxproductsSaveProduct.js";
+export { wxproductsUpdateTropicalSystem } from "./clients/wxproductsUpdateTropicalSystem.js";
 export { wxproductsValidateAviationMessage } from "./clients/wxproductsValidateAviationMessage.js";
 export { wxwatchArchive } from "./clients/wxwatchArchive.js";
 export { wxwatchArchiveAsset } from "./clients/wxwatchArchiveAsset.js";
@@ -3769,15 +3775,35 @@ export {
   webhooksOutUpdateEndpointMutationOptions,
 } from "./hooks/useWebhooksOutUpdateEndpoint.js";
 export {
+  useWxproductsCreateTropicalSystem,
+  wxproductsCreateTropicalSystemMutationKey,
+  wxproductsCreateTropicalSystemMutationOptions,
+} from "./hooks/useWxproductsCreateTropicalSystem.js";
+export {
   useWxproductsGetPublicProduct,
   wxproductsGetPublicProductQueryKey,
   wxproductsGetPublicProductQueryOptions,
 } from "./hooks/useWxproductsGetPublicProduct.js";
 export {
+  useWxproductsGetPublicTropicalSystem,
+  wxproductsGetPublicTropicalSystemQueryKey,
+  wxproductsGetPublicTropicalSystemQueryOptions,
+} from "./hooks/useWxproductsGetPublicTropicalSystem.js";
+export {
   useWxproductsListPublicProducts,
   wxproductsListPublicProductsQueryKey,
   wxproductsListPublicProductsQueryOptions,
 } from "./hooks/useWxproductsListPublicProducts.js";
+export {
+  useWxproductsListPublicTropicalSystems,
+  wxproductsListPublicTropicalSystemsQueryKey,
+  wxproductsListPublicTropicalSystemsQueryOptions,
+} from "./hooks/useWxproductsListPublicTropicalSystems.js";
+export {
+  useWxproductsListTropicalSystems,
+  wxproductsListTropicalSystemsQueryKey,
+  wxproductsListTropicalSystemsQueryOptions,
+} from "./hooks/useWxproductsListTropicalSystems.js";
 export {
   useWxproductsLoadAviationDrafts,
   wxproductsLoadAviationDraftsQueryKey,
@@ -3803,6 +3829,11 @@ export {
   wxproductsLoadProductsQueryKey,
   wxproductsLoadProductsQueryOptions,
 } from "./hooks/useWxproductsLoadProducts.js";
+export {
+  useWxproductsLoadTropicalSystemHistory,
+  wxproductsLoadTropicalSystemHistoryQueryKey,
+  wxproductsLoadTropicalSystemHistoryQueryOptions,
+} from "./hooks/useWxproductsLoadTropicalSystemHistory.js";
 export {
   useWxproductsPreviewProduct,
   wxproductsPreviewProductMutationKey,
@@ -3833,6 +3864,11 @@ export {
   wxproductsSaveProductMutationKey,
   wxproductsSaveProductMutationOptions,
 } from "./hooks/useWxproductsSaveProduct.js";
+export {
+  useWxproductsUpdateTropicalSystem,
+  wxproductsUpdateTropicalSystemMutationKey,
+  wxproductsUpdateTropicalSystemMutationOptions,
+} from "./hooks/useWxproductsUpdateTropicalSystem.js";
 export {
   useWxproductsValidateAviationMessage,
   wxproductsValidateAviationMessageMutationKey,
@@ -11904,6 +11940,22 @@ export type {
 export type { TransportWeekday } from "./models/TransportWeekday.js";
 export { transportWeekday } from "./models/TransportWeekday.js";
 export type { TripView } from "./models/TripView.js";
+export type { TropicalSystemCreate } from "./models/TropicalSystemCreate.js";
+export type { TropicalSystemEntryRead } from "./models/TropicalSystemEntryRead.js";
+export type { TropicalSystemEntryReadPropertiesActionEnum } from "./models/TropicalSystemEntryReadPropertiesActionEnum.js";
+export { tropicalSystemEntryReadPropertiesActionEnum } from "./models/TropicalSystemEntryReadPropertiesActionEnum.js";
+export type { TropicalSystemHistory } from "./models/TropicalSystemHistory.js";
+export type { TropicalSystemList } from "./models/TropicalSystemList.js";
+export type { TropicalSystemPublic } from "./models/TropicalSystemPublic.js";
+export type { TropicalSystemPublicEntry } from "./models/TropicalSystemPublicEntry.js";
+export type { TropicalSystemPublicHistory } from "./models/TropicalSystemPublicHistory.js";
+export type { TropicalSystemPublicList } from "./models/TropicalSystemPublicList.js";
+export type { TropicalSystemPublicPropertiesStatusEnum } from "./models/TropicalSystemPublicPropertiesStatusEnum.js";
+export { tropicalSystemPublicPropertiesStatusEnum } from "./models/TropicalSystemPublicPropertiesStatusEnum.js";
+export type { TropicalSystemRead } from "./models/TropicalSystemRead.js";
+export type { TropicalSystemReadPropertiesClosedReasonAnyOfEnum } from "./models/TropicalSystemReadPropertiesClosedReasonAnyOfEnum.js";
+export { tropicalSystemReadPropertiesClosedReasonAnyOfEnum } from "./models/TropicalSystemReadPropertiesClosedReasonAnyOfEnum.js";
+export type { TropicalSystemUpdate } from "./models/TropicalSystemUpdate.js";
 export type { TurnstileMode } from "./models/TurnstileMode.js";
 export { turnstileMode } from "./models/TurnstileMode.js";
 export type { TwoFactorCodeRequest } from "./models/TwoFactorCodeRequest.js";
@@ -12146,6 +12198,18 @@ export type { WorkingDaysPublic } from "./models/WorkingDaysPublic.js";
 export type { WorkingDaysPublicPropertiesMethodEnum } from "./models/WorkingDaysPublicPropertiesMethodEnum.js";
 export { workingDaysPublicPropertiesMethodEnum } from "./models/WorkingDaysPublicPropertiesMethodEnum.js";
 export type {
+  WxproductsCreateTropicalSystemBody,
+  WxproductsCreateTropicalSystemOptions,
+  WxproductsCreateTropicalSystemResponse,
+  WxproductsCreateTropicalSystemResponses,
+  WxproductsCreateTropicalSystemStatus201,
+  WxproductsCreateTropicalSystemStatus401,
+  WxproductsCreateTropicalSystemStatus403,
+  WxproductsCreateTropicalSystemStatus409,
+  WxproductsCreateTropicalSystemStatus422,
+  WxproductsCreateTropicalSystemStatus503,
+} from "./models/WxproductsCreateTropicalSystem.js";
+export type {
   WxproductsGetPublicProductOptions,
   WxproductsGetPublicProductPath,
   WxproductsGetPublicProductResponse,
@@ -12156,6 +12220,16 @@ export type {
   WxproductsGetPublicProductStatus503,
 } from "./models/WxproductsGetPublicProduct.js";
 export type {
+  WxproductsGetPublicTropicalSystemOptions,
+  WxproductsGetPublicTropicalSystemPath,
+  WxproductsGetPublicTropicalSystemResponse,
+  WxproductsGetPublicTropicalSystemResponses,
+  WxproductsGetPublicTropicalSystemStatus200,
+  WxproductsGetPublicTropicalSystemStatus404,
+  WxproductsGetPublicTropicalSystemStatus422,
+  WxproductsGetPublicTropicalSystemStatus503,
+} from "./models/WxproductsGetPublicTropicalSystem.js";
+export type {
   WxproductsListPublicProductsOptions,
   WxproductsListPublicProductsQuery,
   WxproductsListPublicProductsResponse,
@@ -12165,6 +12239,25 @@ export type {
   WxproductsListPublicProductsStatus422,
   WxproductsListPublicProductsStatus503,
 } from "./models/WxproductsListPublicProducts.js";
+export type {
+  WxproductsListPublicTropicalSystemsOptions,
+  WxproductsListPublicTropicalSystemsResponse,
+  WxproductsListPublicTropicalSystemsResponses,
+  WxproductsListPublicTropicalSystemsStatus200,
+  WxproductsListPublicTropicalSystemsStatus422,
+  WxproductsListPublicTropicalSystemsStatus503,
+} from "./models/WxproductsListPublicTropicalSystems.js";
+export type {
+  WxproductsListTropicalSystemsOptions,
+  WxproductsListTropicalSystemsQuery,
+  WxproductsListTropicalSystemsResponse,
+  WxproductsListTropicalSystemsResponses,
+  WxproductsListTropicalSystemsStatus200,
+  WxproductsListTropicalSystemsStatus401,
+  WxproductsListTropicalSystemsStatus403,
+  WxproductsListTropicalSystemsStatus422,
+  WxproductsListTropicalSystemsStatus503,
+} from "./models/WxproductsListTropicalSystems.js";
 export type {
   WxproductsLoadAviationDraftsOptions,
   WxproductsLoadAviationDraftsQuery,
@@ -12217,6 +12310,18 @@ export type {
   WxproductsLoadProductsStatus422,
   WxproductsLoadProductsStatus503,
 } from "./models/WxproductsLoadProducts.js";
+export type {
+  WxproductsLoadTropicalSystemHistoryOptions,
+  WxproductsLoadTropicalSystemHistoryPath,
+  WxproductsLoadTropicalSystemHistoryResponse,
+  WxproductsLoadTropicalSystemHistoryResponses,
+  WxproductsLoadTropicalSystemHistoryStatus200,
+  WxproductsLoadTropicalSystemHistoryStatus401,
+  WxproductsLoadTropicalSystemHistoryStatus403,
+  WxproductsLoadTropicalSystemHistoryStatus404,
+  WxproductsLoadTropicalSystemHistoryStatus422,
+  WxproductsLoadTropicalSystemHistoryStatus503,
+} from "./models/WxproductsLoadTropicalSystemHistory.js";
 export type {
   WxproductsPreviewProductBody,
   WxproductsPreviewProductOptions,
@@ -12280,6 +12385,20 @@ export type {
   WxproductsSaveProductStatus422,
   WxproductsSaveProductStatus503,
 } from "./models/WxproductsSaveProduct.js";
+export type {
+  WxproductsUpdateTropicalSystemBody,
+  WxproductsUpdateTropicalSystemOptions,
+  WxproductsUpdateTropicalSystemPath,
+  WxproductsUpdateTropicalSystemResponse,
+  WxproductsUpdateTropicalSystemResponses,
+  WxproductsUpdateTropicalSystemStatus200,
+  WxproductsUpdateTropicalSystemStatus401,
+  WxproductsUpdateTropicalSystemStatus403,
+  WxproductsUpdateTropicalSystemStatus404,
+  WxproductsUpdateTropicalSystemStatus409,
+  WxproductsUpdateTropicalSystemStatus422,
+  WxproductsUpdateTropicalSystemStatus503,
+} from "./models/WxproductsUpdateTropicalSystem.js";
 export type {
   WxproductsValidateAviationMessageBody,
   WxproductsValidateAviationMessageOptions,
@@ -19887,6 +20006,19 @@ export {
 } from "./zod/transportUpdateTimetableDraftSchema.js";
 export { transportWeekdaySchema } from "./zod/transportWeekdaySchema.js";
 export { tripViewSchema } from "./zod/tripViewSchema.js";
+export { tropicalSystemCreateSchema } from "./zod/tropicalSystemCreateSchema.js";
+export { tropicalSystemEntryReadPropertiesActionEnumSchema } from "./zod/tropicalSystemEntryReadPropertiesActionEnumSchema.js";
+export { tropicalSystemEntryReadSchema } from "./zod/tropicalSystemEntryReadSchema.js";
+export { tropicalSystemHistorySchema } from "./zod/tropicalSystemHistorySchema.js";
+export { tropicalSystemListSchema } from "./zod/tropicalSystemListSchema.js";
+export { tropicalSystemPublicEntrySchema } from "./zod/tropicalSystemPublicEntrySchema.js";
+export { tropicalSystemPublicHistorySchema } from "./zod/tropicalSystemPublicHistorySchema.js";
+export { tropicalSystemPublicListSchema } from "./zod/tropicalSystemPublicListSchema.js";
+export { tropicalSystemPublicPropertiesStatusEnumSchema } from "./zod/tropicalSystemPublicPropertiesStatusEnumSchema.js";
+export { tropicalSystemPublicSchema } from "./zod/tropicalSystemPublicSchema.js";
+export { tropicalSystemReadPropertiesClosedReasonAnyOfEnumSchema } from "./zod/tropicalSystemReadPropertiesClosedReasonAnyOfEnumSchema.js";
+export { tropicalSystemReadSchema } from "./zod/tropicalSystemReadSchema.js";
+export { tropicalSystemUpdateSchema } from "./zod/tropicalSystemUpdateSchema.js";
 export { turnstileModeSchema } from "./zod/turnstileModeSchema.js";
 export { twoFactorCodeRequestSchema } from "./zod/twoFactorCodeRequestSchema.js";
 export { twoFactorDisableRequestSchema } from "./zod/twoFactorDisableRequestSchema.js";
@@ -20110,6 +20242,17 @@ export { workingDayHolidaySchema } from "./zod/workingDayHolidaySchema.js";
 export { workingDaysPublicPropertiesMethodEnumSchema } from "./zod/workingDaysPublicPropertiesMethodEnumSchema.js";
 export { workingDaysPublicSchema } from "./zod/workingDaysPublicSchema.js";
 export {
+  wxproductsCreateTropicalSystemBodySchema,
+  wxproductsCreateTropicalSystemErrorSchema,
+  wxproductsCreateTropicalSystemResponseSchema,
+  wxproductsCreateTropicalSystemStatus201Schema,
+  wxproductsCreateTropicalSystemStatus401Schema,
+  wxproductsCreateTropicalSystemStatus403Schema,
+  wxproductsCreateTropicalSystemStatus409Schema,
+  wxproductsCreateTropicalSystemStatus422Schema,
+  wxproductsCreateTropicalSystemStatus503Schema,
+} from "./zod/wxproductsCreateTropicalSystemSchema.js";
+export {
   wxproductsGetPublicProductErrorSchema,
   wxproductsGetPublicProductPathProductIdSchema,
   wxproductsGetPublicProductResponseSchema,
@@ -20119,6 +20262,15 @@ export {
   wxproductsGetPublicProductStatus503Schema,
 } from "./zod/wxproductsGetPublicProductSchema.js";
 export {
+  wxproductsGetPublicTropicalSystemErrorSchema,
+  wxproductsGetPublicTropicalSystemPathSystemIdSchema,
+  wxproductsGetPublicTropicalSystemResponseSchema,
+  wxproductsGetPublicTropicalSystemStatus200Schema,
+  wxproductsGetPublicTropicalSystemStatus404Schema,
+  wxproductsGetPublicTropicalSystemStatus422Schema,
+  wxproductsGetPublicTropicalSystemStatus503Schema,
+} from "./zod/wxproductsGetPublicTropicalSystemSchema.js";
+export {
   wxproductsListPublicProductsErrorSchema,
   wxproductsListPublicProductsQueryKindSchema,
   wxproductsListPublicProductsResponseSchema,
@@ -20127,6 +20279,26 @@ export {
   wxproductsListPublicProductsStatus422Schema,
   wxproductsListPublicProductsStatus503Schema,
 } from "./zod/wxproductsListPublicProductsSchema.js";
+export {
+  wxproductsListPublicTropicalSystemsErrorSchema,
+  wxproductsListPublicTropicalSystemsResponseSchema,
+  wxproductsListPublicTropicalSystemsStatus200Schema,
+  wxproductsListPublicTropicalSystemsStatus422Schema,
+  wxproductsListPublicTropicalSystemsStatus503Schema,
+} from "./zod/wxproductsListPublicTropicalSystemsSchema.js";
+export {
+  wxproductsListTropicalSystemsErrorSchema,
+  wxproductsListTropicalSystemsQueryLimitSchema,
+  wxproductsListTropicalSystemsQueryOffsetSchema,
+  wxproductsListTropicalSystemsQuerySeasonSchema,
+  wxproductsListTropicalSystemsQueryStatusSchema,
+  wxproductsListTropicalSystemsResponseSchema,
+  wxproductsListTropicalSystemsStatus200Schema,
+  wxproductsListTropicalSystemsStatus401Schema,
+  wxproductsListTropicalSystemsStatus403Schema,
+  wxproductsListTropicalSystemsStatus422Schema,
+  wxproductsListTropicalSystemsStatus503Schema,
+} from "./zod/wxproductsListTropicalSystemsSchema.js";
 export {
   wxproductsLoadAviationDraftsErrorSchema,
   wxproductsLoadAviationDraftsQueryKindSchema,
@@ -20182,6 +20354,17 @@ export {
   wxproductsLoadProductsStatus422Schema,
   wxproductsLoadProductsStatus503Schema,
 } from "./zod/wxproductsLoadProductsSchema.js";
+export {
+  wxproductsLoadTropicalSystemHistoryErrorSchema,
+  wxproductsLoadTropicalSystemHistoryPathSystemIdSchema,
+  wxproductsLoadTropicalSystemHistoryResponseSchema,
+  wxproductsLoadTropicalSystemHistoryStatus200Schema,
+  wxproductsLoadTropicalSystemHistoryStatus401Schema,
+  wxproductsLoadTropicalSystemHistoryStatus403Schema,
+  wxproductsLoadTropicalSystemHistoryStatus404Schema,
+  wxproductsLoadTropicalSystemHistoryStatus422Schema,
+  wxproductsLoadTropicalSystemHistoryStatus503Schema,
+} from "./zod/wxproductsLoadTropicalSystemHistorySchema.js";
 export {
   wxproductsPreviewProductPdfBodySchema,
   wxproductsPreviewProductPdfErrorSchema,
@@ -20240,6 +20423,19 @@ export {
   wxproductsSaveProductStatus422Schema,
   wxproductsSaveProductStatus503Schema,
 } from "./zod/wxproductsSaveProductSchema.js";
+export {
+  wxproductsUpdateTropicalSystemBodySchema,
+  wxproductsUpdateTropicalSystemErrorSchema,
+  wxproductsUpdateTropicalSystemPathSystemIdSchema,
+  wxproductsUpdateTropicalSystemResponseSchema,
+  wxproductsUpdateTropicalSystemStatus200Schema,
+  wxproductsUpdateTropicalSystemStatus401Schema,
+  wxproductsUpdateTropicalSystemStatus403Schema,
+  wxproductsUpdateTropicalSystemStatus404Schema,
+  wxproductsUpdateTropicalSystemStatus409Schema,
+  wxproductsUpdateTropicalSystemStatus422Schema,
+  wxproductsUpdateTropicalSystemStatus503Schema,
+} from "./zod/wxproductsUpdateTropicalSystemSchema.js";
 export {
   wxproductsValidateAviationMessageBodySchema,
   wxproductsValidateAviationMessageErrorSchema,

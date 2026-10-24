@@ -29997,6 +29997,534 @@
         }
       }
     },
+    "/api/v1/wxproducts/tropical-systems": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "List tracked tropical systems",
+        "description": "Tracked systems newest first, optionally filtered by status and season. Needs product access to the outlook.",
+        "operationId": "wxproductsListTropicalSystems",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TropicalSystemPublicPropertiesStatusEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 2000
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Season"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemList"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outlook product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Weather database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Start tracking a tropical system",
+        "description": "Creates a tracked system by hand and assigns its season label, for example 'GMS 2026-07'.",
+        "operationId": "wxproductsCreateTropicalSystem",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TropicalSystemCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid system",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outlook product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Weather database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "NHC storm identifier in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/tropical-systems/{system_id}": {
+      "patch": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Update a tracked tropical system",
+        "description": "Rename it, link NHC identifiers, close it (dissipated, merged, out of area or duplicate) or reopen it. A merged system names the system it continues as.",
+        "operationId": "wxproductsUpdateTropicalSystem",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TropicalSystemUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid change",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outlook product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Weather database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tracked system not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "NHC storm identifier in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/tropical-systems/{system_id}/history": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Load a tracked system's history",
+        "description": "Every outlook entry for the system, oldest first, drafts included.",
+        "operationId": "wxproductsLoadTropicalSystemHistory",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemHistory"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outlook product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Weather database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tracked system not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/public/tropical-systems": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "List active tropical systems",
+        "description": "Anonymous list of active tracked systems that appear in a published outlook, each with its latest published entry. Drafts are never shown.",
+        "operationId": "wxproductsListPublicTropicalSystems",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemPublicList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/public/tropical-systems/{system_id}": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Get one tropical system's published history",
+        "description": "Anonymous history of positions and formation chances from published outlooks only, oldest first. A system that was never published is 404.",
+        "operationId": "wxproductsGetPublicTropicalSystem",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemPublicHistory"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/eregister/observations": {
       "get": {
         "tags": [
@@ -59140,6 +59668,22 @@
               }
             ],
             "title": "Valid To"
+          },
+          "edited": {
+            "type": "boolean",
+            "title": "Edited",
+            "default": false
+          },
+          "source_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Value"
           }
         },
         "additionalProperties": false,
@@ -59457,6 +60001,18 @@
           },
           "feature_type": {
             "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "tracked_system_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tracked System Id"
           },
           "parent_system_id": {
             "anyOf": [
@@ -83919,6 +84475,665 @@
         ],
         "title": "TripView"
       },
+      "TropicalSystemCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "season": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2100.0,
+                "minimum": 2000.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Season",
+            "description": "Defaults to the current year in Grenada."
+          },
+          "nhc_storm_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Storm Id",
+            "description": "NHC storm identifier such as al072026."
+          },
+          "nhc_invest_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Invest Id",
+            "description": "NHC invest identifier such as al902026."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "feature_type"
+        ],
+        "title": "TropicalSystemCreate",
+        "description": "Start tracking a system by hand. The label (GMS season-sequence) is assigned."
+      },
+      "TropicalSystemEntryRead": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Product Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "movement_direction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Movement Direction"
+          },
+          "movement_speed_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Movement Speed Kt"
+          },
+          "formation_48h": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation 48H"
+          },
+          "formation_7d": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation 7D"
+          },
+          "action": {
+            "$ref": "#/components/schemas/TropicalSystemEntryReadPropertiesActionEnum"
+          },
+          "source_edition_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Source Edition Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "revision",
+          "issued_at",
+          "name",
+          "feature_type",
+          "latitude",
+          "longitude",
+          "movement_direction",
+          "movement_speed_kt",
+          "formation_48h",
+          "formation_7d",
+          "action",
+          "source_edition_ids"
+        ],
+        "title": "TropicalSystemEntryRead",
+        "description": "Staff view of an entry, drafts included."
+      },
+      "TropicalSystemHistory": {
+        "properties": {
+          "system": {
+            "$ref": "#/components/schemas/TropicalSystemRead"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/TropicalSystemEntryRead"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "system",
+          "entries"
+        ],
+        "title": "TropicalSystemHistory"
+      },
+      "TropicalSystemList": {
+        "properties": {
+          "systems": {
+            "items": {
+              "$ref": "#/components/schemas/TropicalSystemRead"
+            },
+            "type": "array",
+            "title": "Systems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "systems"
+        ],
+        "title": "TropicalSystemList"
+      },
+      "TropicalSystemPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "nhc_storm_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Storm Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TropicalSystemPublicPropertiesStatusEnum"
+          },
+          "latest": {
+            "$ref": "#/components/schemas/TropicalSystemPublicEntry"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "name",
+          "feature_type",
+          "nhc_storm_id",
+          "status",
+          "latest"
+        ],
+        "title": "TropicalSystemPublic"
+      },
+      "TropicalSystemPublicEntry": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Product Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "movement_direction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Movement Direction"
+          },
+          "movement_speed_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Movement Speed Kt"
+          },
+          "formation_48h": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation 48H"
+          },
+          "formation_7d": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation 7D"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "revision",
+          "issued_at",
+          "name",
+          "feature_type",
+          "latitude",
+          "longitude",
+          "movement_direction",
+          "movement_speed_kt",
+          "formation_48h",
+          "formation_7d"
+        ],
+        "title": "TropicalSystemPublicEntry",
+        "description": "One published outlook issue's view of a system."
+      },
+      "TropicalSystemPublicHistory": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "nhc_storm_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Storm Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TropicalSystemPublicPropertiesStatusEnum"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/TropicalSystemPublicEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "name",
+          "feature_type",
+          "nhc_storm_id",
+          "status",
+          "entries"
+        ],
+        "title": "TropicalSystemPublicHistory"
+      },
+      "TropicalSystemPublicList": {
+        "properties": {
+          "systems": {
+            "items": {
+              "$ref": "#/components/schemas/TropicalSystemPublic"
+            },
+            "type": "array",
+            "title": "Systems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "systems"
+        ],
+        "title": "TropicalSystemPublicList"
+      },
+      "TropicalSystemRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "nhc_storm_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Storm Id"
+          },
+          "nhc_invest_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Invest Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TropicalSystemPublicPropertiesStatusEnum"
+          },
+          "closed_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TropicalSystemReadPropertiesClosedReasonAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed Reason"
+          },
+          "continued_as_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continued As Id"
+          },
+          "first_issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Issued At"
+          },
+          "last_issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Issued At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "season",
+          "sequence",
+          "name",
+          "feature_type",
+          "nhc_storm_id",
+          "nhc_invest_id",
+          "status",
+          "closed_reason",
+          "continued_as_id",
+          "first_issued_at",
+          "last_issued_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TropicalSystemRead"
+      },
+      "TropicalSystemUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "feature_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature Type"
+          },
+          "nhc_storm_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Storm Id"
+          },
+          "nhc_invest_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Invest Id"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TropicalSystemPublicPropertiesStatusEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "closed_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TropicalSystemReadPropertiesClosedReasonAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed Reason"
+          },
+          "continued_as_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continued As Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TropicalSystemUpdate",
+        "description": "Rename, link NHC identifiers, close or merge. Omitted fields stay unchanged."
+      },
       "TurnstileMode": {
         "type": "string",
         "enum": [
@@ -87755,6 +88970,29 @@
           "completed",
           "attended",
           "failed"
+        ]
+      },
+      "TropicalSystemEntryReadPropertiesActionEnum": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "publish"
+        ]
+      },
+      "TropicalSystemPublicPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "active",
+          "closed"
+        ]
+      },
+      "TropicalSystemReadPropertiesClosedReasonAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "dissipated",
+          "merged",
+          "out_of_area",
+          "duplicate"
         ]
       },
       "UserPublicPropertiesCmsAccessEnum": {
