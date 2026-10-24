@@ -16,9 +16,17 @@ Pure functions only: no I/O. The same formulas run on screen in
   used for vapour pressure). P is the keyed station pressure, so a row without
   it keeps whatever dew point was keyed. The GMS psychrometric table is still to
   be confirmed; over ice (wet bulb below 0 degrees) the water formula is used.
+* Pressures (owner confirmed for 78958, 2026-10-24) use fixed station amounts,
+  not a reduction formula: station pressure = barometer as read + total
+  correction (0.0); QFE = station pressure + 0.3; mean sea level pressure =
+  station pressure + 1.0; QNH = mean sea level pressure + 0.1. Barometer 1012.8
+  gives station 1012.8 (group 3 0128), QFE 1013.1, sea level 1013.8 (group 4
+  0138) and QNH 1013.9. A keyed group 3 or 4 is kept; ``pressure_mismatches``
+  reports one that differs from the rule.
 """
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from math import exp, floor, log
 from typing import Any
@@ -154,13 +162,152 @@ def humidity_from_workbook(
     return dew, vapour, relative_humidity_percent(dry, vapour)
 
 
-def derived_fields(values: Mapping[str, Any]) -> dict[str, str]:
-    """The coded fields the register calculates; only those whose sources are usable."""
+@dataclass(frozen=True)
+class PressureSettings:
+    """A station's fixed pressure amounts in hPa; None while not supplied."""
+
+    total_correction_hpa: float | None = None
+    qfe_offset_hpa: float | None = None
+    sea_level_offset_hpa: float | None = None
+    qnh_offset_hpa: float | None = None
+
+
+@dataclass(frozen=True)
+class Pressures:
+    """Pressures in hPa (exact tenths); None where a source or amount is missing."""
+
+    station_hpa: Decimal | None
+    sea_level_hpa: Decimal | None
+    qfe_hpa: Decimal | None
+    qnh_hpa: Decimal | None
+    # What the rule gives, for comparing with keyed groups.
+    station_from_barometer_hpa: Decimal | None
+    sea_level_from_station_hpa: Decimal | None
+
+
+BAROMETER_MIN_HPA = Decimal(500)
+BAROMETER_MAX_HPA = Decimal(1100)
+TENTH = Decimal("0.1")
+
+
+def _amount(value: float | None) -> Decimal | None:
+    return None if value is None else Decimal(str(value))
+
+
+def parse_barometer(text: str | None) -> Decimal | None:
+    """Barometer as read in hPa (one decimal), or None when blank or not a reading."""
+    value = (text or "").strip()
+    if value == "" or not value.replace(".", "", 1).isdigit():
+        return None
+    hpa = Decimal(value)
+    return hpa if BAROMETER_MIN_HPA <= hpa <= BAROMETER_MAX_HPA else None
+
+
+def _group_hpa(group: str | None) -> Decimal | None:
+    """A four-digit tenths group with the thousands omitted (3P0P0P0P0, 4PPPP)."""
+    value = (group or "").strip()
+    if not value.isdigit() or len(value) != FOUR_DIGITS:
+        return None
+    number = int(value)
+    hpa = Decimal(number) / 10 + (0 if number >= BAROMETER_REFERENCE_CODE else 1000)
+    return hpa
+
+
+def pressure_group(hpa: Decimal) -> str:
+    """Four digits in tenths of hPa with the thousands omitted (1012.8 -> 0128)."""
+    tenths = int((hpa / TENTH).to_integral_value(rounding="ROUND_HALF_UP"))
+    return f"{tenths % 10000:04d}"
+
+
+def _plus(base: Decimal | None, amount: Decimal | None) -> Decimal | None:
+    return None if base is None or amount is None else base + amount
+
+
+def pressures(
+    values: Mapping[str, Any], settings: PressureSettings | None
+) -> Pressures:
+    """Station, sea level, QFE and QNH from the barometer, keyed groups and amounts.
+
+    A keyed group 3 or 4 wins over the rule (the observer's figure is what is
+    sent); the rule fills in a group that is blank.
+    """
+    amounts = settings or PressureSettings()
+    reading = parse_barometer(values.get("barometer_reading"))
+    from_barometer = _plus(reading, _amount(amounts.total_correction_hpa))
+    station = _group_hpa(values.get("station_pressure")) or from_barometer
+    from_station = _plus(station, _amount(amounts.sea_level_offset_hpa))
+    sea_level = _group_hpa(values.get("msl_pressure")) or from_station
+    return Pressures(
+        station_hpa=station,
+        sea_level_hpa=sea_level,
+        qfe_hpa=_plus(station, _amount(amounts.qfe_offset_hpa)),
+        qnh_hpa=_plus(sea_level, _amount(amounts.qnh_offset_hpa)),
+        station_from_barometer_hpa=from_barometer,
+        sea_level_from_station_hpa=from_station,
+    )
+
+
+def pressure_fields(
+    values: Mapping[str, Any], settings: PressureSettings | None
+) -> dict[str, str]:
+    """Groups 3 and 4 the rule fills in, only where the observer left them blank."""
+    found = pressures(values, settings)
     derived: dict[str, str] = {}
-    km = parse_visibility_km(values.get("visibility_km"))
+    blank_station = (values.get("station_pressure") or "").strip() == ""
+    if blank_station and found.station_from_barometer_hpa is not None:
+        derived["station_pressure"] = pressure_group(found.station_from_barometer_hpa)
+    blank_sea = (values.get("msl_pressure") or "").strip() == ""
+    if blank_sea and found.sea_level_from_station_hpa is not None:
+        derived["msl_pressure"] = pressure_group(found.sea_level_from_station_hpa)
+    return derived
+
+
+def pressure_mismatches(
+    values: Mapping[str, Any], settings: PressureSettings | None
+) -> list[tuple[str, str, str]]:
+    """(field, code, message) for a keyed group 3 or 4 that differs from the rule."""
+    if settings is None:
+        return []
+    found = pressures(values, settings)
+    issues: list[tuple[str, str, str]] = []
+    keyed_station = _group_hpa(values.get("station_pressure"))
+    expected = found.station_from_barometer_hpa
+    if keyed_station is not None and expected is not None and keyed_station != expected:
+        issues.append(
+            (
+                "station_pressure",
+                "station_pressure_mismatch",
+                f"Station pressure {keyed_station} hPa differs from the barometer as "
+                f"read plus the total correction ({expected} hPa).",
+            )
+        )
+    keyed_sea = _group_hpa(values.get("msl_pressure"))
+    expected_sea = found.sea_level_from_station_hpa
+    if keyed_sea is not None and expected_sea is not None and keyed_sea != expected_sea:
+        issues.append(
+            (
+                "msl_pressure",
+                "sea_level_mismatch",
+                f"Mean sea level pressure {keyed_sea} hPa differs from the station "
+                f"pressure plus the station's sea level amount ({expected_sea} hPa).",
+            )
+        )
+    return issues
+
+
+def derived_fields(
+    values: Mapping[str, Any], settings: PressureSettings | None = None
+) -> dict[str, str]:
+    """The coded fields the register calculates; only those whose sources are usable.
+
+    Pressures first: the humidity calculation uses the station pressure.
+    """
+    derived = pressure_fields(values, settings)
+    merged = {**values, **derived}
+    km = parse_visibility_km(merged.get("visibility_km"))
     if km is not None:
         derived["visibility"] = visibility_code_from_km(km)
-    humidity = humidity_from_workbook(values)
+    humidity = humidity_from_workbook(merged)
     if humidity is not None:
         dew, _vapour, percent = humidity
         derived["dew_point"] = temperature_group(dew)
@@ -168,17 +315,21 @@ def derived_fields(values: Mapping[str, Any]) -> dict[str, str]:
     return derived
 
 
-def apply_to_workbook(workbook: SynopWorkbook) -> SynopWorkbook:
+def apply_to_workbook(
+    workbook: SynopWorkbook, settings: PressureSettings | None = None
+) -> SynopWorkbook:
     """A copy of the workbook with the calculated fields filled in."""
-    updates = derived_fields(workbook.model_dump())
+    updates = derived_fields(workbook.model_dump(), settings)
     return workbook.model_copy(update=updates) if updates else workbook
 
 
-def apply_to_body(body: dict[str, Any]) -> dict[str, Any]:
+def apply_to_body(
+    body: dict[str, Any], settings: PressureSettings | None = None
+) -> dict[str, Any]:
     """A stored body (flat, or nested under ``workbook``) with the calculated fields."""
     nested = body.get("workbook")
     values = nested if isinstance(nested, dict) else body
-    updates = derived_fields(values)
+    updates = derived_fields(values, settings)
     if not updates:
         return body
     if isinstance(nested, dict):

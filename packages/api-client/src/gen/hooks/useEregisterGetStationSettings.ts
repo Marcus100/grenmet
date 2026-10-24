@@ -63,8 +63,8 @@ export function eregisterGetStationSettingsQueryOptions(
 }
 
 /**
- * @description The station elevation and the total barometer corrections the register needs to compute QFE and QNH. Both are null (listed in `pending`) until staff enter them; the register never assumes a value. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.
- * @summary Station settings for QFE and QNH
+ * @description The fixed amounts (hPa) the register uses to work out the pressures from the barometer as read: station pressure = barometer + `total_correction_hpa`; QFE = station + `qfe_offset_hpa`; mean sea level pressure = station + `sea_level_offset_hpa`; QNH = sea level + `qnh_offset_hpa`. 78958 holds the owner-confirmed 0.0, 0.3, 1.0 and 0.1; an amount not yet supplied is null and listed in `pending`. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.
+ * @summary Station pressure amounts
  * {@link /api/v1/eregister/stations/:station_id/settings}
  */
 export function useEregisterGetStationSettings<

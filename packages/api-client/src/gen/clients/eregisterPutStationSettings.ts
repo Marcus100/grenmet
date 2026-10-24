@@ -11,8 +11,8 @@ import type {
 } from "../models/EregisterPutStationSettings.js";
 
 /**
- * @description Replaces both settings (send null to clear one). Requires `eregister.qc`.
- * @summary Set the station elevation and barometer corrections
+ * @description Replaces all four amounts (send null to clear one). Requires `eregister.qc`.
+ * @summary Set the station pressure amounts
  * {@link /api/v1/eregister/stations/:station_id/settings}
  */
 export function eregisterPutStationSettings<

@@ -129,6 +129,14 @@ class SynopDecoded(BaseModel):
     pressure_change_24h_pa: float | None = None
     sunshine_24h_hours: float | None = None
     ground_state: int | None = None
+    qfe_pa: float | None = Field(
+        default=None,
+        description="QFE from the station pressure and the station's QFE offset.",
+    )
+    qnh_pa: float | None = Field(
+        default=None,
+        description="QNH from the mean sea level pressure and the station's QNH offset.",
+    )
 
 
 class SynopValidationResponse(BaseModel):
@@ -228,31 +236,47 @@ class QcDecisionRequest(BaseModel):
     )
 
 
-class StationSettings(BaseModel):
-    """Station facts the register needs to compute QFE and QNH.
+PressureAmount = Literal[
+    "total_correction_hpa", "qfe_offset_hpa", "sea_level_offset_hpa", "qnh_offset_hpa"
+]
 
-    Both start empty: nobody has supplied the station elevation or the total
-    barometer corrections yet, and the register never assumes them.
+
+class StationSettings(BaseModel):
+    """Fixed amounts (hPa) the register uses to work out the pressures.
+
+    Station pressure = barometer as read + total correction; QFE = station
+    pressure + QFE offset; mean sea level pressure = station pressure + sea level
+    offset; QNH = mean sea level pressure + QNH offset. 78958 is seeded with the
+    owner-confirmed 0.0, 0.3, 1.0 and 0.1; other stations start empty.
     """
 
     station_id: str
-    elevation_m: float | None = Field(
-        default=None, description="Station elevation in metres; null until supplied."
+    total_correction_hpa: float | None = Field(
+        default=None, description="Total barometer correction; null until supplied."
     )
-    barometer_correction_hpa: float | None = Field(
+    qfe_offset_hpa: float | None = Field(
+        default=None, description="QFE minus station pressure; null until supplied."
+    )
+    sea_level_offset_hpa: float | None = Field(
         default=None,
-        description="Total barometer corrections in hPa, added to the reading; null until supplied.",
+        description="Mean sea level pressure minus station pressure; null until supplied.",
     )
-    pending: list[Literal["elevation_m", "barometer_correction_hpa"]] = Field(
-        default_factory=list, description="The settings that are still empty."
+    qnh_offset_hpa: float | None = Field(
+        default=None,
+        description="QNH minus mean sea level pressure; null until supplied.",
+    )
+    pending: list[PressureAmount] = Field(
+        default_factory=list, description="The amounts that are still empty."
     )
     updated_at: UtcDateTime | None = None
     updated_by: str | None = None
 
 
 class StationSettingsUpdate(BaseModel):
-    elevation_m: float | None = Field(default=None, ge=-500, le=9000)
-    barometer_correction_hpa: float | None = Field(default=None, ge=-20, le=20)
+    total_correction_hpa: float | None = Field(default=None, ge=-20, le=20)
+    qfe_offset_hpa: float | None = Field(default=None, ge=-20, le=20)
+    sea_level_offset_hpa: float | None = Field(default=None, ge=-20, le=20)
+    qnh_offset_hpa: float | None = Field(default=None, ge=-20, le=20)
 
 
 PressureTrend = Literal["rising", "steady", "falling"]

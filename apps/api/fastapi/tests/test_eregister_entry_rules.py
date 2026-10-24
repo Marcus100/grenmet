@@ -16,7 +16,7 @@ from alembic import command
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
 from src.eregister import encode, rules
-from src.eregister.dependencies import get_session
+from src.eregister.dependencies import get_public_session, get_session
 from src.eregister.schemas import SynopWorkbook
 from src.main import app
 
@@ -57,6 +57,7 @@ async def staff_client(register_db: Engine) -> AsyncGenerator[httpx.AsyncClient]
             yield value
 
     app.dependency_overrides[get_session] = session
+    app.dependency_overrides[get_public_session] = session
     app.dependency_overrides[get_browser_or_token_user] = lambda: _user(superuser=True)
     try:
         async with httpx.AsyncClient(
@@ -65,6 +66,7 @@ async def staff_client(register_db: Engine) -> AsyncGenerator[httpx.AsyncClient]
             yield client
     finally:
         app.dependency_overrides.pop(get_session, None)
+        app.dependency_overrides.pop(get_public_session, None)
         app.dependency_overrides.pop(get_browser_or_token_user, None)
         await engine.dispose()
 
@@ -83,43 +85,106 @@ def test_78958_is_observed_by_hand_every_hour_after_the_migration(
     assert sorted(row.manual_hours_utc) == list(range(24))
 
 
-async def test_station_settings_start_empty_and_nothing_is_assumed(
+OWNER_AMOUNTS = {
+    "total_correction_hpa": 0.0,
+    "qfe_offset_hpa": 0.3,
+    "sea_level_offset_hpa": 1.0,
+    "qnh_offset_hpa": 0.1,
+}
+
+
+async def test_78958_holds_the_owner_confirmed_pressure_amounts(
     staff_client: httpx.AsyncClient,
 ) -> None:
     response = await staff_client.get(SETTINGS)
     assert response.status_code == 200, response.text
     body = response.json()
-    assert body["elevation_m"] is None
-    assert body["barometer_correction_hpa"] is None
-    assert body["pending"] == ["elevation_m", "barometer_correction_hpa"]
+    assert {key: body[key] for key in OWNER_AMOUNTS} == OWNER_AMOUNTS
+    assert body["pending"] == []
     assert "no-store" in response.headers["cache-control"]
 
 
-async def test_station_settings_can_be_saved_and_cleared(
+async def test_station_amounts_can_be_changed_and_cleared(
     staff_client: httpx.AsyncClient,
 ) -> None:
     saved = await staff_client.put(
-        SETTINGS, json={"elevation_m": 5.5, "barometer_correction_hpa": -0.3}
+        SETTINGS, json={**OWNER_AMOUNTS, "qfe_offset_hpa": 0.4}
     )
     assert saved.status_code == 200, saved.text
-    assert saved.json()["pending"] == []
-    assert saved.json()["elevation_m"] == 5.5
-    assert saved.json()["barometer_correction_hpa"] == -0.3
+    assert saved.json()["qfe_offset_hpa"] == 0.4
     assert saved.json()["updated_by"]
-    assert (await staff_client.get(SETTINGS)).json()["elevation_m"] == 5.5
-    # Only one value: the other is still pending.
-    partial = await staff_client.put(SETTINGS, json={"elevation_m": 12})
-    assert partial.json()["pending"] == ["barometer_correction_hpa"]
+    assert (await staff_client.get(SETTINGS)).json()["qfe_offset_hpa"] == 0.4
+    # An amount left out is cleared and listed as pending: nothing is assumed.
+    partial = await staff_client.put(SETTINGS, json={"total_correction_hpa": 0.0})
+    assert partial.json()["pending"] == [
+        "qfe_offset_hpa",
+        "sea_level_offset_hpa",
+        "qnh_offset_hpa",
+    ]
 
 
 @pytest.mark.parametrize(
     "changes",
-    [{"elevation_m": 20000}, {"barometer_correction_hpa": 50}, {"elevation_m": "x"}],
+    [{"qfe_offset_hpa": 50}, {"sea_level_offset_hpa": -21}, {"qnh_offset_hpa": "x"}],
 )
 async def test_implausible_station_settings_are_refused(
     staff_client: httpx.AsyncClient, changes: dict
 ) -> None:
     assert (await staff_client.put(SETTINGS, json=changes)).status_code == 422
+
+
+async def test_a_saved_barometer_reading_gives_groups_3_and_4(
+    staff_client: httpx.AsyncClient,
+) -> None:
+    row = {
+        **{
+            k: v
+            for k, v in PAPER_ROW.items()
+            if k not in ("station_pressure", "msl_pressure")
+        },
+        "barometer_reading": "1012.8",
+    }
+    checked = await staff_client.post(
+        "/api/v1/eregister/observations/validate-synop", json={"workbook": row}
+    )
+    assert checked.status_code == 200, checked.text
+    result = checked.json()
+    assert result["normalized"]["station_pressure"] == "0128"
+    assert result["normalized"]["msl_pressure"] == "0138"
+    assert result["decoded"]["station_pressure_pa"] == 101280
+    assert result["decoded"]["mean_sea_level_pressure_pa"] == 101380
+    assert result["decoded"]["qfe_pa"] == 101310
+    assert result["decoded"]["qnh_pa"] == 101390
+    saved = await staff_client.post(
+        "/api/v1/eregister/observations",
+        json={
+            "station_id": "78958",
+            "kind": "SYNOP",
+            "observed_at": "2023-03-30T12:00:00Z",
+            "body": row,
+        },
+    )
+    assert saved.status_code == 201, saved.text
+    body = saved.json()["body"]
+    assert (body["station_pressure"], body["msl_pressure"]) == ("0128", "0138")
+
+
+async def test_a_keyed_sea_level_group_that_breaks_the_rule_warns(
+    staff_client: httpx.AsyncClient,
+) -> None:
+    row = {**PAPER_ROW, "station_pressure": "0157", "msl_pressure": "0170"}
+    checked = await staff_client.post(
+        "/api/v1/eregister/observations/validate-synop", json={"workbook": row}
+    )
+    issues = {i["field"]: (i["code"], i["severity"]) for i in checked.json()["issues"]}
+    assert issues["msl_pressure"] == ("sea_level_mismatch", "warning")
+    # The keyed figure is what is sent.
+    assert checked.json()["normalized"]["msl_pressure"] == "0170"
+    ok = {**PAPER_ROW, "station_pressure": "0157", "msl_pressure": "0167"}
+    checked = await staff_client.post(
+        "/api/v1/eregister/observations/validate-synop", json={"workbook": ok}
+    )
+    assert "msl_pressure" not in {i["field"] for i in checked.json()["issues"]}
 
 
 async def test_unknown_station_has_no_settings(

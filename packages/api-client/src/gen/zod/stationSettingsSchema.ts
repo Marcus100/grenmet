@@ -9,23 +9,31 @@ import { stationSettingsPropertiesPendingItemsEnumSchema } from "./stationSettin
 export const stationSettingsSchema = z
   .object({
     station_id: z.string(),
-    elevation_m: z
+    total_correction_hpa: z
       .union([z.number(), z.null()])
       .optional()
-      .describe("Station elevation in metres; null until supplied."),
-    barometer_correction_hpa: z
+      .describe("Total barometer correction; null until supplied."),
+    qfe_offset_hpa: z
+      .union([z.number(), z.null()])
+      .optional()
+      .describe("QFE minus station pressure; null until supplied."),
+    sea_level_offset_hpa: z
       .union([z.number(), z.null()])
       .optional()
       .describe(
-        "Total barometer corrections in hPa, added to the reading; null until supplied."
+        "Mean sea level pressure minus station pressure; null until supplied."
       ),
+    qnh_offset_hpa: z
+      .union([z.number(), z.null()])
+      .optional()
+      .describe("QNH minus mean sea level pressure; null until supplied."),
     pending: z
       .array(stationSettingsPropertiesPendingItemsEnumSchema)
       .optional()
-      .describe("The settings that are still empty."),
+      .describe("The amounts that are still empty."),
     updated_at: z.union([z.iso.datetime(), z.null()]).optional(),
     updated_by: z.union([z.string(), z.null()]).optional(),
   })
   .describe(
-    "Station facts the register needs to compute QFE and QNH.\n\nBoth start empty: nobody has supplied the station elevation or the total\nbarometer corrections yet, and the register never assumes them."
+    "Fixed amounts (hPa) the register uses to work out the pressures.\n\nStation pressure = barometer as read + total correction; QFE = station\npressure + QFE offset; mean sea level pressure = station pressure + sea level\noffset; QNH = mean sea level pressure + QNH offset. 78958 is seeded with the\nowner-confirmed 0.0, 0.3, 1.0 and 0.1; other stations start empty."
   );

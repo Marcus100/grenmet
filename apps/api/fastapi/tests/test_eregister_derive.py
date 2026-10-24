@@ -5,6 +5,7 @@ from decimal import Decimal
 import pytest
 
 from src.eregister import derive, rules
+from src.eregister.derive import PressureSettings
 from src.eregister.schemas import SynopWorkbook
 
 from .test_eregister_validation import PAPER_ROW
@@ -123,3 +124,96 @@ def test_the_stored_body_gets_the_calculated_fields_flat_or_nested() -> None:
     assert nested["source"] == "x"
     unchanged = {"air_temp": "280"}
     assert derive.apply_to_body(unchanged) is unchanged
+
+
+# Owner confirmed for 78958 (2026-10-24).
+STATION_78958 = PressureSettings(
+    total_correction_hpa=0.0,
+    qfe_offset_hpa=0.3,
+    sea_level_offset_hpa=1.0,
+    qnh_offset_hpa=0.1,
+)
+
+
+def test_the_owner_example_barometer_1012_8() -> None:
+    found = derive.pressures({"barometer_reading": "1012.8"}, STATION_78958)
+    assert found.station_hpa == Decimal("1012.8")
+    assert found.qfe_hpa == Decimal("1013.1")
+    assert found.sea_level_hpa == Decimal("1013.8")
+    assert found.qnh_hpa == Decimal("1013.9")
+    assert derive.pressure_fields({"barometer_reading": "1012.8"}, STATION_78958) == {
+        "station_pressure": "0128",
+        "msl_pressure": "0138",
+    }
+
+
+def test_the_excel_register_sea_level_rule_group_3_0157_gives_group_4_0167() -> None:
+    assert derive.pressure_fields({"station_pressure": "0157"}, STATION_78958) == {
+        "msl_pressure": "0167"
+    }
+
+
+@pytest.mark.parametrize(
+    ("reading", "station", "sea"),
+    [("998.5", "9985", "9995"), ("999.5", "9995", "0005"), ("1000.0", "0000", "0010")],
+)
+def test_groups_drop_the_thousands_across_1000_hpa(
+    reading: str, station: str, sea: str
+) -> None:
+    assert derive.pressure_fields({"barometer_reading": reading}, STATION_78958) == {
+        "station_pressure": station,
+        "msl_pressure": sea,
+    }
+
+
+def test_keyed_groups_are_kept_and_a_different_one_warns() -> None:
+    values = {
+        "barometer_reading": "1012.8",
+        "station_pressure": "0130",
+        "msl_pressure": "0150",
+    }
+    assert derive.pressure_fields(values, STATION_78958) == {}
+    assert [
+        code for _f, code, _m in derive.pressure_mismatches(values, STATION_78958)
+    ] == [
+        "station_pressure_mismatch",
+        "sea_level_mismatch",
+    ]
+    agreeing = {
+        "barometer_reading": "1012.8",
+        "station_pressure": "0128",
+        "msl_pressure": "0138",
+    }
+    assert derive.pressure_mismatches(agreeing, STATION_78958) == []
+
+
+def test_without_station_amounts_nothing_is_assumed() -> None:
+    assert derive.pressure_fields({"barometer_reading": "1012.8"}, None) == {}
+    assert derive.pressure_mismatches({"station_pressure": "0128"}, None) == []
+    found = derive.pressures({"barometer_reading": "1012.8"}, PressureSettings())
+    assert (found.station_hpa, found.qfe_hpa, found.qnh_hpa) == (None, None, None)
+
+
+def test_humidity_uses_the_station_pressure_worked_out_from_the_barometer() -> None:
+    values = {"air_temp": "280", "wet_bulb": "240", "barometer_reading": "1015.3"}
+    derived = derive.derived_fields(values, STATION_78958)
+    assert derived["station_pressure"] == "0153"
+    assert derived["dew_point"] == "0224"
+    assert derived["relative_humidity"] == "72"
+
+
+def test_validation_decodes_qfe_and_qnh() -> None:
+    row = {
+        **PAPER_ROW,
+        "station_pressure": "",
+        "msl_pressure": "",
+        "barometer_reading": "1012.8",
+    }
+    issues, decoded = rules.validate_synop(
+        SynopWorkbook.model_validate(row), STATION_78958
+    )
+    assert not [i for i in issues if i.severity == "error"]
+    assert decoded.station_pressure_pa == 101280
+    assert decoded.mean_sea_level_pressure_pa == 101380
+    assert decoded.qfe_pa == 101310
+    assert decoded.qnh_pa == 101390

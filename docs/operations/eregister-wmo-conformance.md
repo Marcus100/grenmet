@@ -36,6 +36,7 @@ to SI).
 | Gust | Same ff/fff rule; gust below mean: warning | Covered |
 | 1snTTT, 2snTdTdTd | Sign 0/1, tenths; dew point above air is an error; "1000" (negative zero): warning | Covered |
 | 3P0P0P0P0, 4PPPP | Four digits, thousands omitted; MSL 870-1085.7 hPa, station 500-1085.7 hPa; station pressure with MSL: warning | Covered |
+| Pressures from the barometer (78958) | Station rule, owner confirmed 2026-10-24: station = barometer as read + 0.0; QFE = station + 0.3; MSL = station + 1.0 (the Excel register, group 3 0157 gives group 4 0167); QNH = MSL + 0.1. Blank groups 3 and 4 are filled from the rule; a keyed group that differs warns (`station_pressure_mismatch`, `sea_level_mismatch`); amounts are station settings (`derive.py`, `stations.py`) | Covered. A fixed station amount, not a WMO reduction formula; other stations need their own amounts |
 | 5appp | a 0-8; a=4 needs ppp 000; a=1,2,3,6,7 need ppp above 000; one without the other: warning | Covered |
 | 6RRRtR | RRR Code table 3590 (990 trace, 991-999 tenths), tR Code table 4019 | Covered |
 | 7wwW1W2 | ww 00-99, W1/W2 0-9; W1 below W2: warning | Covered |

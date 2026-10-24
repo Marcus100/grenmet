@@ -29,8 +29,6 @@ it("calculates the plain readings from the paper register codes", () => {
   expect(read("dew_point")).toBe("21.3");
   // Vapour pressure above the RH cell, from the dew point of 21.3 °C.
   expect(read("relative_humidity")).toBe("25.3");
-  expect(read("station_pressure")).toBe("1015.3");
-  expect(read("msl_pressure")).toBe("1016.3");
   expect(read("s3_max_temp")).toBe("29.5");
   expect(read("s3_min_temp")).toBe("24.0");
   expect(read("s3_rainfall_24h")).toBe("0.4");
@@ -103,36 +101,39 @@ it("writes the word Nil in column 23 where nothing is reported", () => {
   expect(rain({ precip_amount: "990" })).toBe("Trace");
 });
 
-const settings = { barometerCorrectionHpa: 0.3, elevationM: 5 };
-const baro = { ...row, barometer_reading: "1015.0" };
+const STATION_78958 = {
+  qfeOffsetHpa: 0.3,
+  qnhOffsetHpa: 0.1,
+  seaLevelOffsetHpa: 1,
+  totalCorrectionHpa: 0,
+};
+const context = { station: STATION_78958 };
 
-it("calculates QFE and QNH from the barometer, corrections and elevation", () => {
-  const context = { station: settings };
-  expect(READINGS.barometer_reading?.(baro, context)).toBe("+0.3");
-  expect(READINGS.station_pressure?.(baro, context)).toBe("1015.3");
-  // 5 m of standard atmosphere is about 0.6 hPa.
-  expect(READINGS.msl_pressure?.(baro, context)).toBe("1015.9");
+it("shows QFE and QNH from the barometer and the station amounts", () => {
+  const values = { barometer_reading: "1012.8" };
+  expect(READINGS.barometer_reading?.(values, context)).toBe("0.0");
+  expect(READINGS.station_pressure?.(values, context)).toBe("1013.1");
+  expect(READINGS.msl_pressure?.(values, context)).toBe("1013.9");
 });
 
-it("shows a dash, never a guess, while the station settings are pending", () => {
-  const none = { barometerCorrectionHpa: null, elevationM: null };
-  expect(READINGS.barometer_reading?.(baro, { station: none })).toBe("—");
-  expect(READINGS.station_pressure?.(baro, { station: none })).toBe("—");
-  expect(READINGS.msl_pressure?.(baro, { station: none })).toBe("—");
-  // Corrections known, elevation not: QFE is shown, QNH waits.
-  const partial = { barometerCorrectionHpa: 0.3, elevationM: null };
-  expect(READINGS.station_pressure?.(baro, { station: partial })).toBe(
-    "1015.3"
-  );
-  expect(READINGS.msl_pressure?.(baro, { station: partial })).toBe("—");
-  expect(READINGS.barometer_reading?.(baro)).toBe("—");
+it("works QFE and QNH from keyed groups when no barometer was read", () => {
+  // Paper row: group 3 0153, group 4 0163.
+  expect(READINGS.station_pressure?.(row, context)).toBe("1015.6");
+  expect(READINGS.msl_pressure?.(row, context)).toBe("1016.4");
 });
 
-it("keeps decoding the keyed pressure groups when no barometer was read", () => {
-  expect(READINGS.station_pressure?.(row, { station: settings })).toBe(
-    "1015.3"
-  );
-  expect(READINGS.msl_pressure?.(row, { station: settings })).toBe("1016.3");
+it("shows a dash, never a guess, when a station has no amounts", () => {
+  const values = { barometer_reading: "1012.8" };
+  const none = {
+    qfeOffsetHpa: null,
+    qnhOffsetHpa: null,
+    seaLevelOffsetHpa: null,
+    totalCorrectionHpa: null,
+  };
+  expect(READINGS.barometer_reading?.(values, { station: none })).toBe("—");
+  expect(READINGS.station_pressure?.(values, { station: none })).toBe("—");
+  expect(READINGS.msl_pressure?.(values, { station: none })).toBe("—");
+  expect(READINGS.station_pressure?.({}, { station: none })).toBe("");
 });
 
 it("takes vapour pressure from the wet bulb when it is keyed", () => {

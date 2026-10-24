@@ -94,45 +94,50 @@ it("says no observations are saved when the live read is empty", async () => {
   expect(screen.getByText(DAILY_NOTE)).toBeTruthy();
 });
 
-it("says QFE and QNH are pending while the station settings are empty", async () => {
+it("names the missing pressure amounts for a station without them", async () => {
   mocks.list.mockResolvedValue({
     data: { observations: [] },
     error: undefined,
   });
   mocks.settings.mockResolvedValue({
     data: {
-      barometer_correction_hpa: null,
-      elevation_m: null,
-      pending: ["elevation_m", "barometer_correction_hpa"],
+      pending: ["qfe_offset_hpa"],
+      qfe_offset_hpa: null,
+      qnh_offset_hpa: 0.1,
+      sea_level_offset_hpa: 1,
       station_id: "78958",
+      total_correction_hpa: 0,
     },
   });
   render(<ERegister />);
 
   await waitFor(() =>
     expect(screen.getByTestId("pending-settings-note").textContent).toContain(
-      "Pending: the station elevation and the total barometer corrections"
+      "Pending: the QFE amount"
     )
   );
 });
 
-it("drops the pending note once both station settings are known", async () => {
+it("shows no pending note for 78958, whose amounts are all set", async () => {
   mocks.list.mockResolvedValue({
     data: { observations: [] },
     error: undefined,
   });
   mocks.settings.mockResolvedValue({
     data: {
-      barometer_correction_hpa: 0.3,
-      elevation_m: 5,
       pending: [],
+      qfe_offset_hpa: 0.3,
+      qnh_offset_hpa: 0.1,
+      sea_level_offset_hpa: 1,
       station_id: "78958",
+      total_correction_hpa: 0,
     },
   });
   render(<ERegister />);
 
   await waitFor(() => expect(mocks.settings).toHaveBeenCalled());
   await waitFor(() =>
-    expect(screen.queryByTestId("pending-settings-note")).toBeNull()
+    expect(screen.getByText("No saved observations yet")).toBeTruthy()
   );
+  expect(screen.queryByTestId("pending-settings-note")).toBeNull();
 });

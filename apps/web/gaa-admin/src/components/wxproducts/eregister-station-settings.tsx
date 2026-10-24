@@ -20,7 +20,23 @@ const MESSAGES: Record<SettingsSaveResult, string> = {
   saved: "Station settings saved.",
 };
 
-/** A blank box clears the setting; anything else must be a plain number. */
+// The four fixed amounts, in the order the pressures are worked out.
+const FIELDS: { id: string; key: keyof StationSettings; label: string }[] = [
+  {
+    id: "station-total-correction",
+    key: "totalCorrectionHpa",
+    label: "Total barometer correction (hPa)",
+  },
+  { id: "station-qfe-offset", key: "qfeOffsetHpa", label: "QFE amount (hPa)" },
+  {
+    id: "station-sea-level-offset",
+    key: "seaLevelOffsetHpa",
+    label: "Sea level amount (hPa)",
+  },
+  { id: "station-qnh-offset", key: "qnhOffsetHpa", label: "QNH amount (hPa)" },
+];
+
+/** A blank box clears the amount; anything else must be a plain number. */
 function parse(text: string): number | null | "invalid" {
   const value = text.trim();
   if (value === "") return null;
@@ -29,18 +45,17 @@ function parse(text: string): number | null | "invalid" {
 }
 
 function show(value: number | null | undefined): string {
-  return value === null || value === undefined ? "" : String(value);
+  return value === null || value === undefined ? "" : value.toFixed(1);
 }
 
 /**
- * The two facts QFE and QNH need and nobody has supplied yet: the station
- * elevation and the total barometer corrections. Both start empty; nothing is
- * assumed.
+ * The station's fixed pressure amounts: station pressure = barometer as read +
+ * total correction; QFE = station + QFE amount; mean sea level = station + sea
+ * level amount; QNH = sea level + QNH amount.
  */
 export function StationSettingsCard({ onSave, settings }: Props) {
-  const [elevation, setElevation] = useState(show(settings?.elevationM));
-  const [correction, setCorrection] = useState(
-    show(settings?.barometerCorrectionHpa)
+  const [texts, setTexts] = useState<Record<string, string>>(() =>
+    Object.fromEntries(FIELDS.map(({ key }) => [key, show(settings?.[key])]))
   );
   const [status, setStatus] = useState<
     SettingsSaveResult | "invalid" | "saving" | null
@@ -48,18 +63,14 @@ export function StationSettingsCard({ onSave, settings }: Props) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const nextElevation = parse(elevation);
-    const nextCorrection = parse(correction);
-    if (nextElevation === "invalid" || nextCorrection === "invalid") {
+    const parsed = FIELDS.map(({ key }) => [key, parse(texts[key] ?? "")]);
+    if (parsed.some(([, value]) => value === "invalid")) {
       setStatus("invalid");
       return;
     }
     setStatus("saving");
     setStatus(
-      await onSave({
-        barometerCorrectionHpa: nextCorrection,
-        elevationM: nextElevation,
-      })
+      await onSave(Object.fromEntries(parsed) as unknown as StationSettings)
     );
   }
 
@@ -71,36 +82,25 @@ export function StationSettingsCard({ onSave, settings }: Props) {
     <SectionCard className="w-fit max-w-full" title="Station settings">
       <form className="flex flex-col gap-3 p-4 text-sm" onSubmit={submit}>
         <div className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-col gap-1 text-xs">
-            <label
-              className="text-muted-foreground"
-              htmlFor="station-elevation"
-            >
-              Station elevation (metres)
-            </label>
-            <Input
-              className="h-9 w-40 font-mono"
-              id="station-elevation"
-              inputMode="decimal"
-              onChange={(event) => setElevation(event.target.value)}
-              value={elevation}
-            />
-          </div>
-          <div className="flex flex-col gap-1 text-xs">
-            <label
-              className="text-muted-foreground"
-              htmlFor="station-corrections"
-            >
-              Total barometer corrections (hPa)
-            </label>
-            <Input
-              className="h-9 w-40 font-mono"
-              id="station-corrections"
-              inputMode="decimal"
-              onChange={(event) => setCorrection(event.target.value)}
-              value={correction}
-            />
-          </div>
+          {FIELDS.map(({ id, key, label }) => (
+            <div className="flex flex-col gap-1 text-xs" key={key}>
+              <label className="text-muted-foreground" htmlFor={id}>
+                {label}
+              </label>
+              <Input
+                className="h-9 w-32 font-mono"
+                id={id}
+                inputMode="decimal"
+                onChange={(event) =>
+                  setTexts((current) => ({
+                    ...current,
+                    [key]: event.target.value,
+                  }))
+                }
+                value={texts[key] ?? ""}
+              />
+            </div>
+          ))}
           <Button
             disabled={status === "saving"}
             type="submit"

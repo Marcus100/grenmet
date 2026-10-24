@@ -3,6 +3,8 @@ import {
   deriveCoded,
   humidityFromValues,
   hundredsOfFeet,
+  pressureFields,
+  pressures,
   qfe,
   qnh,
   settingsPending,
@@ -90,40 +92,81 @@ it("writes temperatures as snTTT with no negative zero", () => {
   expect(temperatureGroup(-0.04)).toBe("0000");
 });
 
-const settings = { barometerCorrectionHpa: 0.3, elevationM: 5 };
+// Owner confirmed for 78958 (2026-10-24); the same vectors as the API tests.
+const STATION_78958 = {
+  qfeOffsetHpa: 0.3,
+  qnhOffsetHpa: 0.1,
+  seaLevelOffsetHpa: 1,
+  totalCorrectionHpa: 0,
+};
 
-it("adds the corrections to the barometer for QFE and reduces it for QNH", () => {
-  const values = { barometer_reading: "1015.0" };
-  expect(qfe(values, settings)).toEqual({ hpa: 1015.3, state: "value" });
-  const reduced = qnh(values, settings);
-  expect(reduced.state).toBe("value");
-  if (reduced.state === "value") expect(reduced.hpa).toBeCloseTo(1015.9, 1);
+it("works out the owner example: barometer 1012.8", () => {
+  const values = { barometer_reading: "1012.8" };
+  const found = pressures(values, STATION_78958);
+  expect(found.station).toBe(10_128);
+  expect(found.qfe).toBe(10_131);
+  expect(found.seaLevel).toBe(10_138);
+  expect(found.qnh).toBe(10_139);
+  expect(pressureFields(values, STATION_78958)).toEqual({
+    msl_pressure: "0138",
+    station_pressure: "0128",
+  });
+  expect(qfe(values, STATION_78958)).toEqual({ hpa: 1013.1, state: "value" });
+  expect(qnh(values, STATION_78958)).toEqual({ hpa: 1013.9, state: "value" });
 });
 
-it("has nothing to calculate without a reading, and waits for missing settings", () => {
-  expect(qfe({}, settings)).toEqual({ state: "empty" });
-  expect(qfe({ barometer_reading: "abc" }, settings)).toEqual({
-    state: "empty",
+it("follows the Excel register: group 3 0157 gives group 4 0167", () => {
+  expect(pressureFields({ station_pressure: "0157" }, STATION_78958)).toEqual({
+    msl_pressure: "0167",
   });
-  const values = { barometer_reading: "1015.0" };
+});
+
+it.each([
+  ["998.5", "9985", "9995"],
+  ["999.5", "9995", "0005"],
+  ["1000.0", "0000", "0010"],
+])("drops the thousands across 1000 hPa (%s)", (reading, station, sea) => {
+  expect(pressureFields({ barometer_reading: reading }, STATION_78958)).toEqual(
+    { msl_pressure: sea, station_pressure: station }
+  );
+});
+
+it("keeps keyed groups 3 and 4 and works QFE and QNH from them", () => {
+  const values = {
+    barometer_reading: "1012.8",
+    msl_pressure: "0150",
+    station_pressure: "0130",
+  };
+  expect(pressureFields(values, STATION_78958)).toEqual({});
+  expect(qfe(values, STATION_78958)).toEqual({ hpa: 1013.3, state: "value" });
+  expect(qnh(values, STATION_78958)).toEqual({ hpa: 1015.1, state: "value" });
+});
+
+it("works the station pressure out before the humidity", () => {
+  const derived = deriveCoded(
+    { air_temp: "280", barometer_reading: "1015.3", wet_bulb: "240" },
+    STATION_78958
+  );
+  expect(derived.station_pressure).toBe("0153");
+  expect(derived.dew_point).toBe("0224");
+  expect(derived.relative_humidity).toBe("72");
+});
+
+it("has nothing to show without a reading, and waits for missing amounts", () => {
+  expect(qfe({}, STATION_78958)).toEqual({ state: "empty" });
+  const values = { barometer_reading: "1012.8" };
   expect(qfe(values, null)).toEqual({ state: "pending" });
-  expect(qfe(values, { barometerCorrectionHpa: null, elevationM: 5 })).toEqual({
+  expect(pressureFields(values, null)).toEqual({});
+  expect(qnh(values, { ...STATION_78958, qnhOffsetHpa: null })).toEqual({
     state: "pending",
   });
-  expect(
-    qnh(values, { barometerCorrectionHpa: 0.3, elevationM: null })
-  ).toEqual({ state: "pending" });
 });
 
-it("reports settings as pending until both are set", () => {
+it("reports amounts as pending until all four are set", () => {
   expect(settingsPending(null)).toBe(true);
-  expect(settingsPending({ barometerCorrectionHpa: 0, elevationM: null })).toBe(
-    true
-  );
-  // Zero is a real value, not a missing one.
-  expect(settingsPending({ barometerCorrectionHpa: 0, elevationM: 0 })).toBe(
-    false
-  );
+  expect(settingsPending({ ...STATION_78958, qfeOffsetHpa: null })).toBe(true);
+  // Zero is a real amount, not a missing one.
+  expect(settingsPending(STATION_78958)).toBe(false);
 });
 
 it("converts a cloud base in metres to hundreds of feet", () => {

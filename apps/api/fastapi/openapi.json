@@ -30205,7 +30205,7 @@
           "eregister"
         ],
         "summary": "Validate a SYNOP observation",
-        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid.",
+        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns.",
         "operationId": "eregisterValidateSynopObservation",
         "requestBody": {
           "content": {
@@ -30822,8 +30822,8 @@
         "tags": [
           "eregister"
         ],
-        "summary": "Station settings for QFE and QNH",
-        "description": "The station elevation and the total barometer corrections the register needs to compute QFE and QNH. Both are null (listed in `pending`) until staff enter them; the register never assumes a value. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "summary": "Station pressure amounts",
+        "description": "The fixed amounts (hPa) the register uses to work out the pressures from the barometer as read: station pressure = barometer + `total_correction_hpa`; QFE = station + `qfe_offset_hpa`; mean sea level pressure = station + `sea_level_offset_hpa`; QNH = sea level + `qnh_offset_hpa`. 78958 holds the owner-confirmed 0.0, 0.3, 1.0 and 0.1; an amount not yet supplied is null and listed in `pending`. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterGetStationSettings",
         "security": [
           {
@@ -30880,8 +30880,8 @@
         "tags": [
           "eregister"
         ],
-        "summary": "Set the station elevation and barometer corrections",
-        "description": "Replaces both settings (send null to clear one). Requires `eregister.qc`.",
+        "summary": "Set the station pressure amounts",
+        "description": "Replaces all four amounts (send null to clear one). Requires `eregister.qc`.",
         "operationId": "eregisterPutStationSettings",
         "security": [
           {
@@ -78629,7 +78629,7 @@
             "type": "string",
             "title": "Station Id"
           },
-          "elevation_m": {
+          "total_correction_hpa": {
             "anyOf": [
               {
                 "type": "number"
@@ -78638,10 +78638,10 @@
                 "type": "null"
               }
             ],
-            "title": "Elevation M",
-            "description": "Station elevation in metres; null until supplied."
+            "title": "Total Correction Hpa",
+            "description": "Total barometer correction; null until supplied."
           },
-          "barometer_correction_hpa": {
+          "qfe_offset_hpa": {
             "anyOf": [
               {
                 "type": "number"
@@ -78650,8 +78650,32 @@
                 "type": "null"
               }
             ],
-            "title": "Barometer Correction Hpa",
-            "description": "Total barometer corrections in hPa, added to the reading; null until supplied."
+            "title": "Qfe Offset Hpa",
+            "description": "QFE minus station pressure; null until supplied."
+          },
+          "sea_level_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sea Level Offset Hpa",
+            "description": "Mean sea level pressure minus station pressure; null until supplied."
+          },
+          "qnh_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qnh Offset Hpa",
+            "description": "QNH minus mean sea level pressure; null until supplied."
           },
           "pending": {
             "items": {
@@ -78659,7 +78683,7 @@
             },
             "type": "array",
             "title": "Pending",
-            "description": "The settings that are still empty."
+            "description": "The amounts that are still empty."
           },
           "updated_at": {
             "anyOf": [
@@ -78690,24 +78714,11 @@
           "station_id"
         ],
         "title": "StationSettings",
-        "description": "Station facts the register needs to compute QFE and QNH.\n\nBoth start empty: nobody has supplied the station elevation or the total\nbarometer corrections yet, and the register never assumes them."
+        "description": "Fixed amounts (hPa) the register uses to work out the pressures.\n\nStation pressure = barometer as read + total correction; QFE = station\npressure + QFE offset; mean sea level pressure = station pressure + sea level\noffset; QNH = mean sea level pressure + QNH offset. 78958 is seeded with the\nowner-confirmed 0.0, 0.3, 1.0 and 0.1; other stations start empty."
       },
       "StationSettingsUpdate": {
         "properties": {
-          "elevation_m": {
-            "anyOf": [
-              {
-                "type": "number",
-                "maximum": 9000.0,
-                "minimum": -500.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Elevation M"
-          },
-          "barometer_correction_hpa": {
+          "total_correction_hpa": {
             "anyOf": [
               {
                 "type": "number",
@@ -78718,7 +78729,46 @@
                 "type": "null"
               }
             ],
-            "title": "Barometer Correction Hpa"
+            "title": "Total Correction Hpa"
+          },
+          "qfe_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qfe Offset Hpa"
+          },
+          "sea_level_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sea Level Offset Hpa"
+          },
+          "qnh_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qnh Offset Hpa"
           }
         },
         "type": "object",
@@ -80482,6 +80532,30 @@
               }
             ],
             "title": "Ground State"
+          },
+          "qfe_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qfe Pa",
+            "description": "QFE from the station pressure and the station's QFE offset."
+          },
+          "qnh_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qnh Pa",
+            "description": "QNH from the mean sea level pressure and the station's QNH offset."
           }
         },
         "type": "object",
@@ -88032,8 +88106,10 @@
       "StationSettingsPropertiesPendingItemsEnum": {
         "type": "string",
         "enum": [
-          "elevation_m",
-          "barometer_correction_hpa"
+          "total_correction_hpa",
+          "qfe_offset_hpa",
+          "sea_level_offset_hpa",
+          "qnh_offset_hpa"
         ]
       },
       "StoredFilePropertiesStatusEnum": {

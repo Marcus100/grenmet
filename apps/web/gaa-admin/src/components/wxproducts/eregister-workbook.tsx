@@ -72,6 +72,22 @@ interface Props {
   values: Record<string, string>;
 }
 
+// Groups 3 and 4 follow from the barometer as read; while the observer has not
+// keyed them the worked-out group shows greyed in the cell (keying overrides).
+const RULE_FILLED = new Set(["station_pressure", "msl_pressure"]);
+
+function placeholderFor(
+  column: FieldColumn,
+  isUpper: boolean,
+  shown: Record<string, string>
+): string | undefined {
+  if (isUpper) return;
+  if (column.signed?.role === "sign") {
+    return `${column.signed.prefix}${column.signed.example ?? "0"}`;
+  }
+  if (RULE_FILLED.has(column.key)) return shown[column.key] || undefined;
+}
+
 function describedBy(severity: "error" | "warning" | undefined) {
   if (severity === "error") return "eregister-errors";
   if (severity === "warning") return "eregister-warnings";
@@ -168,7 +184,7 @@ export function ERegisterWorkbook({
   // while the digits beside it are still being keyed.
   const [leads, setLeads] = useState<Record<string, string>>({});
   // The grey cells show what the register calculates from the entries.
-  const shown = withDerived(values);
+  const shown = withDerived(values, stationSettings);
   const changed = (keys: readonly string[]) => {
     onValidationIssuesChange((current) =>
       current.filter((issue) => !keys.includes(issue.field))
@@ -251,11 +267,7 @@ export function ERegisterWorkbook({
               );
               onValidationStateChange("idle");
             }}
-            placeholder={
-              !upper && column.signed?.role === "sign"
-                ? `${column.signed.prefix}${column.signed.example ?? "0"}`
-                : undefined
-            }
+            placeholder={placeholderFor(column, upper !== undefined, shown)}
             value={
               upper
                 ? (values[upper.key] ?? "")
@@ -325,7 +337,7 @@ export function ERegisterWorkbook({
             />
             {onSaveStationSettings ? (
               <StationSettingsCard
-                key={`${stationSettings?.elevationM}:${stationSettings?.barometerCorrectionHpa}`}
+                key={JSON.stringify(stationSettings)}
                 onSave={onSaveStationSettings}
                 settings={stationSettings}
               />

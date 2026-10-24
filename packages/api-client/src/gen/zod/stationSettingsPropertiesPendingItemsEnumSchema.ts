@@ -6,6 +6,8 @@
 import * as z from "zod";
 
 export const stationSettingsPropertiesPendingItemsEnumSchema = z.enum([
-  "elevation_m",
-  "barometer_correction_hpa",
+  "total_correction_hpa",
+  "qfe_offset_hpa",
+  "sea_level_offset_hpa",
+  "qnh_offset_hpa",
 ]);

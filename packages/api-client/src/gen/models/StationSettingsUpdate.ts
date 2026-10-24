@@ -4,6 +4,8 @@
  */
 
 export type StationSettingsUpdate = {
-  elevation_m?: number | null;
-  barometer_correction_hpa?: number | null;
+  total_correction_hpa?: number | null;
+  qfe_offset_hpa?: number | null;
+  sea_level_offset_hpa?: number | null;
+  qnh_offset_hpa?: number | null;
 };

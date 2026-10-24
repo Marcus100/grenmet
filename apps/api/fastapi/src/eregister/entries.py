@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 
-from . import derive, encode, rules
+from . import derive, encode, rules, stations
 from .models import STATUS_QUEUED, STATUS_SENT, ERegisterSend
 from .schemas import (
     RegisterObservationCorrection,
@@ -34,16 +34,22 @@ ISSUE_PREVIEW = 3
 
 
 def validation_issues(
-    body: dict[str, Any], observed_at: datetime
+    body: dict[str, Any],
+    observed_at: datetime,
+    station: derive.PressureSettings | None = None,
 ) -> list[SynopValidationIssue]:
     workbook = encode.workbook_from_body(body)
-    issues, _decoded = rules.validate_synop(workbook)
+    issues, _decoded = rules.validate_synop(workbook, station)
     return [*issues, *rules.check_observation_time(workbook, observed_at)]
 
 
-def require_valid_synop(body: dict[str, Any], observed_at: datetime) -> None:
+def require_valid_synop(
+    body: dict[str, Any],
+    observed_at: datetime,
+    station: derive.PressureSettings | None = None,
+) -> None:
     """422 with the issues when the coded workbook has errors; warnings pass."""
-    issues = validation_issues(body, observed_at)
+    issues = validation_issues(body, observed_at, station)
     errors = [issue for issue in issues if issue.severity == "error"]
     if errors:
         summary = "; ".join(f"{i.field}: {i.message}" for i in errors[:ISSUE_PREVIEW])
@@ -150,10 +156,11 @@ async def create(
     user: User,
 ) -> tuple[dict[str, Any], bool]:
     """Save an observation. Returns the row and whether it was newly inserted."""
+    station = await stations.pressure_for(register, data.station_id)
     if data.kind == "SYNOP":
-        require_valid_synop(data.body, data.observed_at)
+        require_valid_synop(data.body, data.observed_at, station)
     values = data.model_dump()
-    values["body"] = derive.apply_to_body(values["body"])
+    values["body"] = derive.apply_to_body(values["body"], station)
     await _lock_key(register, data.station_id, data.observed_at, data.kind)
     existing = await _live_row(register, data.station_id, data.observed_at, data.kind)
     if existing is not None:
@@ -213,8 +220,9 @@ async def correct(
     if old["state"] in ("rejected", "superseded"):
         await register.rollback()
         raise HTTPException(409, f"A {old['state']} observation cannot be corrected")
+    station = await stations.pressure_for(register, old["station_id"])
     if old["kind"] == "SYNOP":
-        require_valid_synop(data.body, old["observed_at"])
+        require_valid_synop(data.body, old["observed_at"], station)
     values: dict[str, Any] = {
         **data.model_dump(exclude={"reason"}),
         "id": str(uuid4()),
@@ -224,7 +232,7 @@ async def correct(
         "actor_id": str(user.id),
         "supersedes_id": str(observation_id),
     }
-    values["body"] = derive.apply_to_body(values["body"])
+    values["body"] = derive.apply_to_body(values["body"], station)
     # The old row leaves the live set first so the unique index admits the new one.
     await register.execute(
         text(
@@ -260,12 +268,16 @@ async def actor_names(app_session: AsyncSession, actor_ids: set[str]) -> dict[st
     return names
 
 
-def listing_row(row: dict[str, Any], names: dict[str, str]) -> RegisterObservationRead:
+def listing_row(
+    row: dict[str, Any],
+    names: dict[str, str],
+    station: derive.PressureSettings | None = None,
+) -> RegisterObservationRead:
     item = RegisterObservationRead.model_validate(row)
     item.actor_name = names.get(str(row["actor_id"]))
     if row["kind"] == "SYNOP":
         body = row["body"] or {}
-        item.issues = validation_issues(body, row["observed_at"])
+        item.issues = validation_issues(body, row["observed_at"], station)
         try:
             item.coded = encode.synop_tac(encode.workbook_from_body(body))
         except ValueError, TypeError:

@@ -6,8 +6,12 @@
 import * as z from "zod";
 
 export const stationSettingsUpdateSchema = z.object({
-  elevation_m: z.union([z.number().min(-500).max(9000), z.null()]).optional(),
-  barometer_correction_hpa: z
+  total_correction_hpa: z
     .union([z.number().min(-20).max(20), z.null()])
     .optional(),
+  qfe_offset_hpa: z.union([z.number().min(-20).max(20), z.null()]).optional(),
+  sea_level_offset_hpa: z
+    .union([z.number().min(-20).max(20), z.null()])
+    .optional(),
+  qnh_offset_hpa: z.union([z.number().min(-20).max(20), z.null()]).optional(),
 });

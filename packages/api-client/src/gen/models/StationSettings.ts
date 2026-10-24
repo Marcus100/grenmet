@@ -6,21 +6,29 @@
 import type { StationSettingsPropertiesPendingItemsEnum } from "./StationSettingsPropertiesPendingItemsEnum.js";
 
 /**
- * @description Station facts the register needs to compute QFE and QNH.\n\nBoth start empty: nobody has supplied the station elevation or the total\nbarometer corrections yet, and the register never assumes them.
+ * @description Fixed amounts (hPa) the register uses to work out the pressures.\n\nStation pressure = barometer as read + total correction; QFE = station\npressure + QFE offset; mean sea level pressure = station pressure + sea level\noffset; QNH = mean sea level pressure + QNH offset. 78958 is seeded with the\nowner-confirmed 0.0, 0.3, 1.0 and 0.1; other stations start empty.
  * @type object
  */
 export type StationSettings = {
   station_id: string;
   /**
-   * @description Station elevation in metres; null until supplied.
+   * @description Total barometer correction; null until supplied.
    */
-  elevation_m?: number | null;
+  total_correction_hpa?: number | null;
   /**
-   * @description Total barometer corrections in hPa, added to the reading; null until supplied.
+   * @description QFE minus station pressure; null until supplied.
    */
-  barometer_correction_hpa?: number | null;
+  qfe_offset_hpa?: number | null;
   /**
-   * @description The settings that are still empty.
+   * @description Mean sea level pressure minus station pressure; null until supplied.
+   */
+  sea_level_offset_hpa?: number | null;
+  /**
+   * @description QNH minus mean sea level pressure; null until supplied.
+   */
+  qnh_offset_hpa?: number | null;
+  /**
+   * @description The amounts that are still empty.
    * @type array | undefined
    */
   pending?: StationSettingsPropertiesPendingItemsEnum[];

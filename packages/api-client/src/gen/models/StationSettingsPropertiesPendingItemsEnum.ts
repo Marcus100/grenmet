@@ -4,8 +4,10 @@
  */
 
 export const stationSettingsPropertiesPendingItemsEnum = {
-  elevation_m: "elevation_m",
-  barometer_correction_hpa: "barometer_correction_hpa",
+  total_correction_hpa: "total_correction_hpa",
+  qfe_offset_hpa: "qfe_offset_hpa",
+  sea_level_offset_hpa: "sea_level_offset_hpa",
+  qnh_offset_hpa: "qnh_offset_hpa",
 } as const;
 
 export type StationSettingsPropertiesPendingItemsEnum =

@@ -7,16 +7,21 @@
 // - Dew point, vapour pressure and relative humidity come from the dry bulb,
 //   the wet bulb and the keyed station pressure (psychrometer equation with the
 //   Magnus formula over water).
-// - QFE is the barometer as read plus the total corrections; QNH reduces QFE to
-//   sea level with the standard atmosphere and the station elevation. Neither
-//   the corrections nor the elevation are known yet, so nothing is assumed:
-//   without them QFE and QNH are unavailable.
+// - Pressures use the station's fixed amounts (owner confirmed for 78958 on
+//   2026-10-24): station pressure = barometer as read + total correction (0.0);
+//   QFE = station + 0.3; mean sea level = station + 1.0; QNH = sea level + 0.1.
+//   Barometer 1012.8 gives station 1012.8 (group 3 0128), QFE 1013.1, sea level
+//   1013.8 (group 4 0138) and QNH 1013.9. A keyed group 3 or 4 is kept. All the
+//   arithmetic is in whole tenths of hPa, so no floating point drift.
 
 type Values = Record<string, string>;
 
+/** A station's fixed pressure amounts in hPa; null while not supplied. */
 export interface StationSettings {
-  barometerCorrectionHpa: number | null;
-  elevationM: number | null;
+  qfeOffsetHpa: number | null;
+  qnhOffsetHpa: number | null;
+  seaLevelOffsetHpa: number | null;
+  totalCorrectionHpa: number | null;
 }
 
 const MAGNUS_A = 6.1094;
@@ -32,10 +37,10 @@ const GROUP_TTT = 3;
 const GROUP_SN_TTT = 4;
 const FLOAT_GUARD = 1e-9;
 
-// Standard atmosphere: QNH = QFE / (1 - L h / T0) ^ (g / (R L)).
-const LAPSE_K_PER_M = 0.0065;
-const SEA_LEVEL_TEMPERATURE_K = 288.15;
-const STANDARD_EXPONENT = 5.255_88;
+const BAROMETER_MAX_HPA = 1100;
+const TENTHS_PER_HPA = 10;
+const GROUP_MODULO = 10_000;
+const PRESSURE_GROUP_DIGITS = 4;
 
 const FEET_PER_METRE = 3.280_84;
 const FEET_PER_HUNDRED = 100;
@@ -134,12 +139,101 @@ export function humidityFromValues(values: Values): Humidity | null {
   };
 }
 
-/** The coded fields the register calculates, when their sources are usable. */
-export function deriveCoded(values: Values): Values {
+function groupTenths(group: string | undefined): number | null {
+  const value = (group ?? "").trim();
+  if (!FOUR_DIGITS.test(value)) return null;
+  const number = Number(value);
+  return number >= PRESSURE_THOUSANDS_BOUNDARY ? number : number + GROUP_MODULO;
+}
+
+function barometerTenths(values: Values): number | null {
+  const text = (values.barometer_reading ?? "").trim();
+  if (!KM_PATTERN.test(text)) return null;
+  const hpa = Number(text);
+  if (hpa < PRESSURE_MIN_HPA || hpa > BAROMETER_MAX_HPA) return null;
+  return Math.round(hpa * TENTHS_PER_HPA);
+}
+
+function amountTenths(value: number | null | undefined): number | null {
+  return value === null || value === undefined
+    ? null
+    : Math.round(value * TENTHS_PER_HPA);
+}
+
+function plus(base: number | null, amount: number | null): number | null {
+  return base === null || amount === null ? null : base + amount;
+}
+
+/** Pressures in whole tenths of hPa; null where a source or amount is missing. */
+export interface Pressures {
+  qfe: number | null;
+  qnh: number | null;
+  seaLevel: number | null;
+  seaLevelFromStation: number | null;
+  station: number | null;
+  stationFromBarometer: number | null;
+}
+
+/** Station, sea level, QFE and QNH; a keyed group 3 or 4 wins over the rule. */
+export function pressures(
+  values: Values,
+  settings: StationSettings | null | undefined
+): Pressures {
+  const fromBarometer = plus(
+    barometerTenths(values),
+    amountTenths(settings?.totalCorrectionHpa)
+  );
+  const station = groupTenths(values.station_pressure) ?? fromBarometer;
+  const fromStation = plus(station, amountTenths(settings?.seaLevelOffsetHpa));
+  const seaLevel = groupTenths(values.msl_pressure) ?? fromStation;
+  return {
+    qfe: plus(station, amountTenths(settings?.qfeOffsetHpa)),
+    qnh: plus(seaLevel, amountTenths(settings?.qnhOffsetHpa)),
+    seaLevel,
+    seaLevelFromStation: fromStation,
+    station,
+    stationFromBarometer: fromBarometer,
+  };
+}
+
+/** Four digits in tenths of hPa with the thousands omitted (10128 -> "0128"). */
+export function pressureGroup(tenths: number): string {
+  return String(tenths % GROUP_MODULO).padStart(PRESSURE_GROUP_DIGITS, "0");
+}
+
+/** Groups 3 and 4 the rule fills in where the observer left them blank. */
+export function pressureFields(
+  values: Values,
+  settings: StationSettings | null | undefined
+): Values {
+  const found = pressures(values, settings);
   const derived: Values = {};
-  const code = visibilityCodeFromKm(values.visibility_km);
+  if (
+    (values.station_pressure ?? "").trim() === "" &&
+    found.stationFromBarometer !== null
+  ) {
+    derived.station_pressure = pressureGroup(found.stationFromBarometer);
+  }
+  if (
+    (values.msl_pressure ?? "").trim() === "" &&
+    found.seaLevelFromStation !== null
+  ) {
+    derived.msl_pressure = pressureGroup(found.seaLevelFromStation);
+  }
+  return derived;
+}
+
+/** The coded fields the register calculates, when their sources are usable. */
+export function deriveCoded(
+  values: Values,
+  settings?: StationSettings | null
+): Values {
+  // Pressures first: the humidity calculation uses the station pressure.
+  const derived: Values = pressureFields(values, settings);
+  const merged = { ...values, ...derived };
+  const code = visibilityCodeFromKm(merged.visibility_km);
   if (code) derived.visibility = code;
-  const humidity = humidityFromValues(values);
+  const humidity = humidityFromValues(merged);
   if (humidity) {
     derived.dew_point = temperatureGroup(humidity.dewPoint);
     derived.relative_humidity = String(humidity.relativeHumidity);
@@ -148,64 +242,60 @@ export function deriveCoded(values: Values): Values {
 }
 
 /** The stored values with the calculated fields filled in (what the grid shows). */
-export function withDerived(values: Values): Values {
-  return { ...values, ...deriveCoded(values) };
-}
-
-function barometer(values: Values): number | null {
-  const text = (values.barometer_reading ?? "").trim();
-  if (!KM_PATTERN.test(text)) return null;
-  const hpa = Number(text);
-  return hpa >= PRESSURE_MIN_HPA && hpa <= PRESSURE_MAX_HPA ? hpa : null;
+export function withDerived(
+  values: Values,
+  settings?: StationSettings | null
+): Values {
+  return { ...values, ...deriveCoded(values, settings) };
 }
 
 export type Computed =
-  /** Barometer not keyed yet: nothing to show. */
+  /** Nothing keyed yet to work from: nothing to show. */
   | { state: "empty" }
-  /** A setting is still missing: show a dash and the pending note. */
+  /** A station amount is still missing: show a dash and the pending note. */
   | { state: "pending" }
   | { hpa: number; state: "value" };
 
-/** QFE: the barometer as read plus the total corrections. */
+function hasPressureSource(values: Values): boolean {
+  return (
+    barometerTenths(values) !== null ||
+    groupTenths(values.station_pressure) !== null ||
+    groupTenths(values.msl_pressure) !== null
+  );
+}
+
+function computed(values: Values, tenths: number | null): Computed {
+  if (tenths !== null) return { hpa: tenths / TENTHS_PER_HPA, state: "value" };
+  return hasPressureSource(values) ? { state: "pending" } : { state: "empty" };
+}
+
+/** QFE: station pressure plus the station's QFE offset. */
 export function qfe(
   values: Values,
   settings: StationSettings | null | undefined
 ): Computed {
-  const reading = barometer(values);
-  if (reading === null) return { state: "empty" };
-  const correction = settings?.barometerCorrectionHpa;
-  if (correction === null || correction === undefined) {
-    return { state: "pending" };
-  }
-  return { hpa: reading + correction, state: "value" };
+  return computed(values, pressures(values, settings).qfe);
 }
 
-/** QNH: QFE reduced to mean sea level with the station elevation. */
+/** QNH: mean sea level pressure plus the station's QNH offset. */
 export function qnh(
   values: Values,
   settings: StationSettings | null | undefined
 ): Computed {
-  const station = qfe(values, settings);
-  if (station.state !== "value") return station;
-  const elevation = settings?.elevationM;
-  if (elevation === null || elevation === undefined) {
-    return { state: "pending" };
-  }
-  const factor =
-    (1 - (LAPSE_K_PER_M * elevation) / SEA_LEVEL_TEMPERATURE_K) **
-    STANDARD_EXPONENT;
-  return { hpa: station.hpa / factor, state: "value" };
+  return computed(values, pressures(values, settings).qnh);
 }
 
-/** True when QFE or QNH cannot be calculated because a station setting is empty. */
+/** True while any of the station's pressure amounts is empty. */
 export function settingsPending(
   settings: StationSettings | null | undefined
 ): boolean {
   return (
     settings === null ||
     settings === undefined ||
-    settings.barometerCorrectionHpa === null ||
-    settings.elevationM === null
+    settings.totalCorrectionHpa === null ||
+    settings.qfeOffsetHpa === null ||
+    settings.seaLevelOffsetHpa === null ||
+    settings.qnhOffsetHpa === null
   );
 }
 

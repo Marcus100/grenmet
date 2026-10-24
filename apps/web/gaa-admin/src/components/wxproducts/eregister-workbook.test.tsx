@@ -136,42 +136,55 @@ it("keys the barometer as read and the 909 group", () => {
   expect(onValueChange).toHaveBeenCalledWith("s3_group_909", "90912");
 });
 
-it("shows QFE and QNH as dashes with a pending note until the settings exist", () => {
-  renderWorkbook([], {
-    stationSettings: { barometerCorrectionHpa: null, elevationM: null },
-    values: { air_temp: "0280", barometer_reading: "1013.2" },
-  });
-  expect(screen.getByTestId("pending-settings-note").textContent).toContain(
-    "Pending: the station elevation and the total barometer corrections"
-  );
-  expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(3);
-});
+const STATION_78958 = {
+  qfeOffsetHpa: 0.3,
+  qnhOffsetHpa: 0.1,
+  seaLevelOffsetHpa: 1,
+  totalCorrectionHpa: 0,
+};
 
-it("calculates QFE and QNH once the settings are entered", () => {
+it("works the pressures out of the barometer for 78958, with no pending note", () => {
   renderWorkbook([], {
-    stationSettings: { barometerCorrectionHpa: 0.3, elevationM: 5 },
-    values: { air_temp: "0280", barometer_reading: "1015.0" },
+    stationSettings: STATION_78958,
+    values: { air_temp: "0280", barometer_reading: "1012.8" },
   });
   expect(screen.queryByTestId("pending-settings-note")).toBeNull();
-  expect(screen.getByText("1015.3")).toBeTruthy();
-  expect(screen.getByText("1015.9")).toBeTruthy();
-  expect(screen.getByText("+0.3")).toBeTruthy();
+  // Groups 3 and 4 show the rule's figure until the observer keys one.
+  expect(input("Station Pressure (P0P0P0P0)").placeholder).toBe("0128");
+  expect(input("MSL Pressure (PPPP)").placeholder).toBe("0138");
+  expect(screen.getByText("1013.1")).toBeTruthy(); // QFE
+  expect(screen.getByText("1013.9")).toBeTruthy(); // QNH
+  expect(screen.getByText("0.0")).toBeTruthy(); // total correction
 });
 
-it("saves the station settings, leaving a blank box empty", async () => {
+it("shows dashes and names the missing amounts for a station without them", () => {
+  renderWorkbook([], {
+    stationSettings: { ...STATION_78958, qnhOffsetHpa: null },
+    values: { air_temp: "0280", barometer_reading: "1012.8" },
+  });
+  expect(screen.getByTestId("pending-settings-note").textContent).toContain(
+    "Pending: the QNH amount"
+  );
+  expect(screen.getByText("1013.1")).toBeTruthy();
+  expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(1);
+});
+
+it("saves the four station amounts, leaving a blank box empty", async () => {
   const onSave = vi.fn().mockResolvedValue("saved");
   renderWorkbook([], {
     onSaveStationSettings: onSave,
-    stationSettings: { barometerCorrectionHpa: null, elevationM: null },
+    stationSettings: STATION_78958,
   });
-  fireEvent.change(screen.getByLabelText("Station elevation (metres)"), {
-    target: { value: "5.5" },
-  });
+  expect(input("QFE amount (hPa)").value).toBe("0.3");
+  fireEvent.change(input("QFE amount (hPa)"), { target: { value: "0.4" } });
+  fireEvent.change(input("QNH amount (hPa)"), { target: { value: "" } });
   fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
   await waitFor(() =>
     expect(onSave).toHaveBeenCalledWith({
-      barometerCorrectionHpa: null,
-      elevationM: 5.5,
+      qfeOffsetHpa: 0.4,
+      qnhOffsetHpa: null,
+      seaLevelOffsetHpa: 1,
+      totalCorrectionHpa: 0,
     })
   );
   await waitFor(() =>
@@ -179,20 +192,16 @@ it("saves the station settings, leaving a blank box empty", async () => {
   );
 });
 
-it("refuses a station setting that is not a number and says who may change it", async () => {
+it("refuses an amount that is not a number and says who may change them", async () => {
   const onSave = vi.fn().mockResolvedValue("forbidden");
   renderWorkbook([], { onSaveStationSettings: onSave, stationSettings: null });
-  fireEvent.change(screen.getByLabelText("Station elevation (metres)"), {
-    target: { value: "high" },
-  });
+  fireEvent.change(input("QFE amount (hPa)"), { target: { value: "high" } });
   fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
   expect((await screen.findByRole("alert")).textContent).toContain(
     "numbers only"
   );
   expect(onSave).not.toHaveBeenCalled();
-  fireEvent.change(screen.getByLabelText("Station elevation (metres)"), {
-    target: { value: "" },
-  });
+  fireEvent.change(input("QFE amount (hPa)"), { target: { value: "" } });
   fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
   expect((await screen.findByRole("alert")).textContent).toContain(
     "quality control staff"

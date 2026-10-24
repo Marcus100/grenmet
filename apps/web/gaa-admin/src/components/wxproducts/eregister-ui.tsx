@@ -332,28 +332,35 @@ export function TimeMarks({
   );
 }
 
-/** Says why QFE and QNH show a dash, until the station settings are entered. */
+const AMOUNT_NAMES: [keyof StationSettings, string][] = [
+  ["totalCorrectionHpa", "the total barometer correction"],
+  ["qfeOffsetHpa", "the QFE amount"],
+  ["seaLevelOffsetHpa", "the sea level amount"],
+  ["qnhOffsetHpa", "the QNH amount"],
+];
+
+/**
+ * Says why pressures show a dash when a station's amounts are missing. Not
+ * shown while the settings load, nor for a station whose amounts are all set
+ * (78958 holds the owner-confirmed amounts).
+ */
 export function PendingSettingsNote({
   settings,
 }: {
   settings: StationSettings | null | undefined;
 }) {
-  if (!settingsPending(settings)) return null;
-  const missing = [
-    settings?.elevationM == null ? "the station elevation" : null,
-    settings?.barometerCorrectionHpa == null
-      ? "the total barometer corrections"
-      : null,
-  ].filter((item) => item !== null);
+  if (!(settings && settingsPending(settings))) return null;
+  const missing = AMOUNT_NAMES.filter(([key]) => settings[key] === null).map(
+    ([, name]) => name
+  );
   return (
     <p
       className="rounded-md border border-border border-l-4 border-l-warning bg-card px-3 py-2 text-muted-foreground text-xs"
       data-testid="pending-settings-note"
     >
-      QFE and QNH are calculated from the barometer as read, the total
-      corrections and the station elevation. Pending:{" "}
-      {missing.length > 0 ? missing.join(" and ") : "station settings"}. Until
-      they are entered the calculated cells show a dash.
+      Station pressure, sea level pressure, QFE and QNH are worked out from the
+      barometer as read with this station's fixed amounts. Pending:{" "}
+      {missing.join(", ")}. Until they are entered those cells show a dash.
     </p>
   );
 }

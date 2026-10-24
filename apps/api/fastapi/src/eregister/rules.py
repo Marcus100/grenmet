@@ -1022,13 +1022,16 @@ def _check_fog_visibility(c: _Checker, visibility_code: int | None) -> None:
 
 def validate_synop(
     workbook: SynopWorkbook,
+    amounts: derive.PressureSettings | None = None,
 ) -> tuple[list[SynopValidationIssue], SynopDecoded]:
     """Check a workbook and decode it to SI values.
 
-    Visibility in kilometres, dew point, vapour pressure and relative humidity
-    are calculated first (``derive``), so everything below sees the coded values.
+    Pressure groups 3 and 4 (from the barometer as read and the station's
+    ``amounts``), visibility in kilometres, dew point, vapour pressure and relative
+    humidity are calculated first (``derive``), so everything below sees the
+    coded values. A keyed group 3 or 4 that differs from the rule warns.
     """
-    workbook = derive.apply_to_workbook(workbook)
+    workbook = derive.apply_to_workbook(workbook, amounts)
     c = _Checker(workbook)
     _, hour = _check_identification(c)
     direction, speed, gust = _check_wind(c)
@@ -1066,6 +1069,11 @@ def validate_synop(
     _check_supplementary(c, _to_int(c.raw("wind_speed")))
     _check_group_909(c)
     _check_barometer_reading(c)
+    for field, code, message in derive.pressure_mismatches(
+        workbook.model_dump(), amounts
+    ):
+        c.add(field, code, message, "warning")
+    found = derive.pressures(workbook.model_dump(), amounts)
 
     is_nil = all(
         not c.present(field)
@@ -1114,6 +1122,8 @@ def validate_synop(
         pressure_change_24h_pa=change_24h,
         sunshine_24h_hours=_tenths_or_none(c.raw("s3_sunshine_24h")),
         ground_state=_to_int(c.raw("s3_ground_state")),
+        qfe_pa=None if found.qfe_hpa is None else float(found.qfe_hpa * 100),
+        qnh_pa=None if found.qnh_hpa is None else float(found.qnh_hpa * 100),
     )
     return c.issues, decoded
 

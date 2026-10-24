@@ -1769,14 +1769,22 @@ weather site as provisional, so a signed-in account alone is not enough.
   `validate-synop` returns them in `normalized` (`dew_point`,
   `relative_humidity`), and a saved observation stores them in its `body`. A row
   without a wet bulb or station pressure keeps whatever dew point was keyed.
-- *Barometer as read.* `barometer_reading` (paper column 17) is the reading in
-  hPa with one decimal. The total barometer corrections and the station
-  elevation are station settings, not part of the observation.
+- *Barometer as read and the pressures.* `barometer_reading` (paper column 17) is
+  the reading in hPa with one decimal. The pressures come from it with the
+  station's fixed amounts (owner confirmed for 78958 on 24 Oct 2026): station
+  pressure = barometer + `total_correction_hpa` (0.0); QFE = station pressure +
+  `qfe_offset_hpa` (0.3); mean sea level pressure = station pressure +
+  `sea_level_offset_hpa` (1.0); QNH = mean sea level pressure + `qnh_offset_hpa`
+  (0.1). Barometer 1012.8 gives group 3 `0128`, QFE 1013.1, group 4 `0138` and
+  QNH 1013.9. The server fills a blank `station_pressure` or `msl_pressure` from
+  this rule (returned in `normalized`, stored in the saved `body`), returns
+  `decoded.qfe_pa` and `decoded.qnh_pa`, and keeps a keyed group 3 or 4 but warns
+  (`station_pressure_mismatch`, `sea_level_mismatch`) when it differs.
 - *Station settings.* `GET` and `PUT /api/v1/eregister/stations/{station_id}/settings`
-  hold `elevation_m` and `barometer_correction_hpa`. Both are `null` (listed in
-  `pending`) until staff enter them: the register never assumes a value, and the
-  screen shows QFE and QNH as a dash until both are set. Reading needs register
-  staff access; `PUT` needs `eregister.qc`.
+  hold the four amounts. 78958 is seeded by migration `eregister_0005`; another
+  station's amounts are `null` (listed in `pending`) until staff enter them, and
+  nothing is assumed for it. Reading needs register staff access; `PUT` (all four
+  amounts, `null` clears one) needs `eregister.qc`.
 - *Reporting hours.* All 24 UTC hours are keyed by hand at station 78958, so no
   hour is "non-synoptic". Advice (warnings only): Tx and Tn every 6 hours (00, 06,
   12, 18 UTC), 24 hour rainfall at 12 UTC, the pressure tendency group `5appp`

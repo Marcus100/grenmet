@@ -135,8 +135,15 @@ async def list_register_observations(
         params,
     )
     names = await entries.actor_names(app_session, {str(r["actor_id"]) for r in rows})
+    amounts = {
+        station: await stations.pressure_for(session, station)
+        for station in {str(r["station_id"]) for r in rows}
+    }
     return RegisterObservationList(
-        observations=[entries.listing_row(row, names) for row in rows],
+        observations=[
+            entries.listing_row(row, names, amounts.get(str(row["station_id"])))
+            for row in rows
+        ],
         total=int(total or 0),
     )
 
@@ -145,15 +152,18 @@ async def list_register_observations(
     "/observations/validate-synop",
     response_model=SynopValidationResponse,
     summary="Validate a SYNOP observation",
-    description="Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid.",
+    description="Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns.",
     responses={**AUTHENTICATED},
 )
 async def validate_synop_observation(
     body: SynopValidationRequest,
     _user: BrowserUser,
+    register: PublicRegisterSession,
 ) -> SynopValidationResponse:
-    workbook = derive.apply_to_workbook(body.workbook)
-    issues, decoded = rules.validate_synop(workbook)
+    # The station's pressure amounts (78958: owner confirmed); none if unknown.
+    station = await stations.pressure_for(register, body.workbook.station_id)
+    workbook = derive.apply_to_workbook(body.workbook, station)
+    issues, decoded = rules.validate_synop(workbook, station)
     if body.observed_at is not None:
         issues = [*issues, *rules.check_observation_time(workbook, body.observed_at)]
     valid = all(issue.severity != "error" for issue in issues)
@@ -476,11 +486,14 @@ async def list_observation_sends(
 @router.get(
     "/stations/{station_id}/settings",
     response_model=StationSettings,
-    summary="Station settings for QFE and QNH",
+    summary="Station pressure amounts",
     description=(
-        "The station elevation and the total barometer corrections the register "
-        "needs to compute QFE and QNH. Both are null (listed in `pending`) until "
-        "staff enter them; the register never assumes a value. Requires "
+        "The fixed amounts (hPa) the register uses to work out the pressures from "
+        "the barometer as read: station pressure = barometer + "
+        "`total_correction_hpa`; QFE = station + `qfe_offset_hpa`; mean sea level "
+        "pressure = station + `sea_level_offset_hpa`; QNH = sea level + "
+        "`qnh_offset_hpa`. 78958 holds the owner-confirmed 0.0, 0.3, 1.0 and 0.1; "
+        "an amount not yet supplied is null and listed in `pending`. Requires "
         "`eregister.observe`, `eregister.qc` or `eregister.send`."
     ),
     responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
@@ -502,9 +515,9 @@ async def get_station_settings(
 @router.put(
     "/stations/{station_id}/settings",
     response_model=StationSettings,
-    summary="Set the station elevation and barometer corrections",
+    summary="Set the station pressure amounts",
     description=(
-        "Replaces both settings (send null to clear one). Requires `eregister.qc`."
+        "Replaces all four amounts (send null to clear one). Requires `eregister.qc`."
     ),
     responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
 )

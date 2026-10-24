@@ -49,8 +49,10 @@ const STATION = {
 
 function toSettings(read: StationSettingsRead): StationSettings {
   return {
-    barometerCorrectionHpa: read.barometer_correction_hpa ?? null,
-    elevationM: read.elevation_m ?? null,
+    qfeOffsetHpa: read.qfe_offset_hpa ?? null,
+    qnhOffsetHpa: read.qnh_offset_hpa ?? null,
+    seaLevelOffsetHpa: read.sea_level_offset_hpa ?? null,
+    totalCorrectionHpa: read.total_correction_hpa ?? null,
   };
 }
 
@@ -116,8 +118,7 @@ export function ERegister() {
     total_cloud: "6",
     air_temp: "0254",
     wet_bulb: "0230",
-    station_pressure: "0135",
-    msl_pressure: "0149",
+    barometer_reading: "1013.5",
   });
   const observationDate = observationTime(
     structuredValues.day,
@@ -134,7 +135,7 @@ export function ERegister() {
     "idle" | "saving" | "saved" | "error"
   >("idle");
   const [liveState, setLiveState] = useState<LiveState>("loading");
-  // Station elevation and barometer corrections: empty until staff enter them.
+  // The station's fixed pressure amounts (78958: owner confirmed, seeded).
   const [stationSettings, setStationSettings] =
     useState<StationSettings | null>(null);
   const [liveAviation, setLiveAviation] = useState<
@@ -192,8 +193,10 @@ export function ERegister() {
   ): Promise<"saved" | "forbidden" | "error"> {
     const result = await eregisterPutStationSettings({
       body: {
-        barometer_correction_hpa: next.barometerCorrectionHpa,
-        elevation_m: next.elevationM,
+        qfe_offset_hpa: next.qfeOffsetHpa,
+        qnh_offset_hpa: next.qnhOffsetHpa,
+        sea_level_offset_hpa: next.seaLevelOffsetHpa,
+        total_correction_hpa: next.totalCorrectionHpa,
       },
       path: { station_id: STATION.number },
       throwOnError: false,
@@ -350,7 +353,10 @@ export function ERegister() {
 
   if (view === "new") {
     const iso = observationDate.toISOString();
-    const metarPreview = metarFromCoded(iso, withDerived(structuredValues));
+    const metarPreview = metarFromCoded(
+      iso,
+      withDerived(structuredValues, stationSettings)
+    );
 
     return (
       <ERegisterWorkbook

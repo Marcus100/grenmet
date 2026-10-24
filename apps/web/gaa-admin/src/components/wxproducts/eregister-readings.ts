@@ -42,7 +42,6 @@ const KM_90_99 = [
 const DRIFT = ["Still", "NE", "E", "SE", "S", "SW", "W", "NW", "N", "Var."];
 // 6-hr period tR: hours the precipitation amount covers.
 const PERIOD_HOURS = [null, 6, 12, 18, 24, 1, 2, 3, 9, 15];
-const PRESSURE_THOUSANDS_BOUNDARY = 5000;
 const TRACE_RRR = 990;
 const TRACE_R24 = 9999;
 const OVER_21KM_CODE = 89;
@@ -85,43 +84,27 @@ function temperature(key: string): Reading {
   };
 }
 
-function pressure(key: string): Reading {
-  return (values) => {
-    const group = digits(values[key], 4);
-    if (group === "" || group === null) return group;
-    const thousands = group >= PRESSURE_THOUSANDS_BOUNDARY ? 0 : 1000;
-    return (group / 10 + thousands).toFixed(1);
-  };
-}
-
 function computedHpa(result: Computed): string | undefined {
   if (result.state === "pending") return PENDING_DASH;
   if (result.state === "value") return result.hpa.toFixed(ONE_DECIMAL);
 }
 
-// QFE over the station pressure group: barometer as read plus corrections.
-// Without a barometer reading the keyed group is decoded, as before.
+// QFE over the station pressure group: station pressure plus the QFE offset.
 function qfeReading(values: Values, context?: ReadingContext): string | null {
-  return (
-    computedHpa(qfe(values, context?.station)) ??
-    pressure("station_pressure")(values)
-  );
+  return computedHpa(qfe(values, context?.station)) ?? "";
 }
 
-// QNH over the MSL pressure group: QFE reduced with the station elevation.
+// QNH over the sea level group: mean sea level pressure plus the QNH offset.
 function qnhReading(values: Values, context?: ReadingContext): string | null {
-  return (
-    computedHpa(qnh(values, context?.station)) ??
-    pressure("msl_pressure")(values)
-  );
+  return computedHpa(qnh(values, context?.station)) ?? "";
 }
 
-// Column 17: the total barometer corrections, from the station settings.
+// Column 17: the total barometer correction, from the station amounts.
 function correctionReading(
   _values: Values,
   context?: ReadingContext
 ): string | null {
-  const correction = context?.station?.barometerCorrectionHpa;
+  const correction = context?.station?.totalCorrectionHpa;
   if (correction === null || correction === undefined) return PENDING_DASH;
   const sign = correction > 0 ? "+" : "";
   return `${sign}${correction.toFixed(ONE_DECIMAL)}`;

@@ -12,7 +12,7 @@ export const eregisterPutStationSettingsPathStationIdSchema = z.string();
 
 export const eregisterPutStationSettingsStatus200Schema =
   stationSettingsSchema.describe(
-    "Station facts the register needs to compute QFE and QNH.\n\nBoth start empty: nobody has supplied the station elevation or the total\nbarometer corrections yet, and the register never assumes them."
+    "Fixed amounts (hPa) the register uses to work out the pressures.\n\nStation pressure = barometer as read + total correction; QFE = station\npressure + QFE offset; mean sea level pressure = station pressure + sea level\noffset; QNH = mean sea level pressure + QNH offset. 78958 is seeded with the\nowner-confirmed 0.0, 0.3, 1.0 and 0.1; other stations start empty."
   );
 
 export const eregisterPutStationSettingsStatus401Schema = z.unknown();
