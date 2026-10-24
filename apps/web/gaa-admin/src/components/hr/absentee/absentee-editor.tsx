@@ -45,6 +45,7 @@ import { FormActionBar } from "@/components/hr/form-action-bar";
 import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
 import { PrefillInput, SourceHint } from "@/components/hr/prefill-field";
+import { editingHint, isEditableStatus } from "@/components/hr/request-status";
 import {
   signedDocumentsKey,
   useSigning,
@@ -173,12 +174,8 @@ export function AbsenteeEditor() {
         { keepDefaultValues: true }
       );
       setDraftId(draftParam);
-      setSubmission(draft.status === "DRAFT" ? null : draft);
-      setStatusHint(
-        draft.status === "DRAFT"
-          ? "Editing saved draft"
-          : "Submitted copy — Reset to start a new form"
-      );
+      setSubmission(isEditableStatus(draft.status) ? null : draft);
+      setStatusHint(editingHint(draft));
       loadedDraftRef.current = draftParam;
     }
   }, [

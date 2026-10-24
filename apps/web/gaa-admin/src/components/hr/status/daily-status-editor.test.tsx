@@ -292,7 +292,7 @@ describe("StatusSubmissions", () => {
     wrap(<StatusSubmissions />);
     expect(await screen.findByText("2026-07-15")).toBeInTheDocument();
     expect(screen.getByText("AM")).toBeInTheDocument();
-    expect(screen.getByText("SUBMITTED")).toBeInTheDocument();
+    expect(screen.getByText("Submitted")).toBeInTheDocument();
   });
 
   it("renders nothing when the list endpoint returns 403", async () => {

@@ -377,6 +377,6 @@ describe("AbsenteeSubmissions", () => {
     expect(await screen.findByText("TIME_OFF")).toBeInTheDocument();
     expect(screen.getByText("2026-07-03")).toBeInTheDocument();
     expect(screen.getByText("Family matter")).toBeInTheDocument();
-    expect(screen.getByText("SUBMITTED")).toBeInTheDocument();
+    expect(screen.getByText("Submitted")).toBeInTheDocument();
   });
 });

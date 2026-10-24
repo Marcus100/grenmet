@@ -21,6 +21,12 @@ import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { grenadaToday } from "@/components/hr/expiry";
 import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
+import {
+  editingHint,
+  isEditableStatus,
+  RequestStatusBadge,
+  ReturnedReason,
+} from "@/components/hr/request-status";
 import { useSigning } from "@/components/hr/signatures/signature-api";
 import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import { hrFormFilename } from "@/lib/pdf-filename";
@@ -73,7 +79,7 @@ export function ParkingApplication() {
   const canIssue = permissions.includes("parking.permit.issue");
   const locked = Boolean(
     selected &&
-      (selected.status !== "DRAFT" ||
+      (!isEditableStatus(selected.status) ||
         selected.submitted_by_user_id !== actor.id)
   );
   const body: ParkingPermitCreate = {
@@ -110,7 +116,9 @@ export function ParkingApplication() {
     setNotice(
       renewal
         ? "New renewal application: confirm current insurance and submit for fresh approval."
-        : ""
+        : permit.status === "RETURNED"
+          ? editingHint(permit)
+          : ""
     );
   }
   function reset() {
@@ -494,8 +502,13 @@ export function ParkingApplication() {
                 key={permit.id}
               >
                 <h3 className="font-medium">
-                  {permit.vehicle_registration_no} · {permit.status}
+                  {permit.vehicle_registration_no} ·{" "}
+                  <RequestStatusBadge status={permit.status} />
                 </h3>
+                <ReturnedReason
+                  reason={permit.returned_reason}
+                  status={permit.status}
+                />
                 <p>
                   {
                     actions.find(
@@ -515,8 +528,10 @@ export function ParkingApplication() {
                 <div className="flex gap-2">
                   {canCreate && (
                     <Button onClick={() => load(permit)} variant="outline">
-                      {permit.status === "DRAFT"
-                        ? "Open draft"
+                      {isEditableStatus(permit.status)
+                        ? permit.status === "RETURNED"
+                          ? "Edit and resubmit"
+                          : "Open draft"
                         : "View application"}
                     </Button>
                   )}
