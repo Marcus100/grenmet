@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ list: vi.fn() }));
+const mocks = vi.hoisted(() => ({ list: vi.fn(), settings: vi.fn() }));
 
 vi.mock("@barrelsgd/api-client", () => ({
   eregisterListRegisterObservations: mocks.list,
@@ -15,6 +15,8 @@ vi.mock("@barrelsgd/api-client", () => ({
   eregisterReopenRegisterObservation: vi.fn(),
   eregisterReviewRegisterObservation: vi.fn(),
   eregisterCorrectRegisterObservation: vi.fn(),
+  eregisterGetStationSettings: mocks.settings,
+  eregisterPutStationSettings: vi.fn(),
 }));
 vi.mock("@barrelsgd/auth", () => ({
   useSessionUser: () => ({
@@ -35,6 +37,8 @@ const SAMPLE_TEXT = /AAXX 07234|AAXX 07224|Sample data|Recorded/;
 
 beforeEach(() => {
   mocks.list.mockReset();
+  mocks.settings.mockReset();
+  mocks.settings.mockReturnValue(new Promise(() => undefined));
 });
 
 it("shows loading placeholders and no sample rows while the read is pending", () => {
@@ -88,4 +92,47 @@ it("says no observations are saved when the live read is empty", async () => {
   expect(screen.getByText("No SYNOP reports recorded.")).toBeTruthy();
   expect(document.body.textContent).not.toMatch(SAMPLE_TEXT);
   expect(screen.getByText(DAILY_NOTE)).toBeTruthy();
+});
+
+it("says QFE and QNH are pending while the station settings are empty", async () => {
+  mocks.list.mockResolvedValue({
+    data: { observations: [] },
+    error: undefined,
+  });
+  mocks.settings.mockResolvedValue({
+    data: {
+      barometer_correction_hpa: null,
+      elevation_m: null,
+      pending: ["elevation_m", "barometer_correction_hpa"],
+      station_id: "78958",
+    },
+  });
+  render(<ERegister />);
+
+  await waitFor(() =>
+    expect(screen.getByTestId("pending-settings-note").textContent).toContain(
+      "Pending: the station elevation and the total barometer corrections"
+    )
+  );
+});
+
+it("drops the pending note once both station settings are known", async () => {
+  mocks.list.mockResolvedValue({
+    data: { observations: [] },
+    error: undefined,
+  });
+  mocks.settings.mockResolvedValue({
+    data: {
+      barometer_correction_hpa: 0.3,
+      elevation_m: 5,
+      pending: [],
+      station_id: "78958",
+    },
+  });
+  render(<ERegister />);
+
+  await waitFor(() => expect(mocks.settings).toHaveBeenCalled());
+  await waitFor(() =>
+    expect(screen.queryByTestId("pending-settings-note")).toBeNull()
+  );
 });
