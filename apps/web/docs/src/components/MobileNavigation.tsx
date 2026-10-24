@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogPanel,
-  TransitionChild,
-} from "@headlessui/react";
+import { Dialog } from "@base-ui/react/dialog";
 import { motion } from "motion/react";
 import { createContext, Suspense, useContext } from "react";
 import { create } from "zustand";
@@ -51,32 +46,31 @@ function MobileNavigationDialog({
   close: () => void;
 }) {
   return (
-    <Dialog
-      className="fixed inset-0 z-50 lg:hidden"
-      onClose={close}
+    <Dialog.Root
+      onOpenChange={(open) => {
+        if (!open) {
+          close();
+        }
+      }}
       open={isOpen}
-      transition
     >
-      <DialogBackdrop
-        className="fixed inset-0 top-14 bg-zinc-400/20 backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-leave:duration-200 data-enter:ease-out data-leave:ease-in dark:bg-black/40"
-        transition
-      />
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 top-14 z-50 bg-zinc-400/20 backdrop-blur-xs transition-opacity duration-300 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-200 data-ending-style:ease-in lg:hidden dark:bg-black/40" />
 
-      <DialogPanel>
-        <TransitionChild>
-          <Header className="data-closed:opacity-0 data-enter:duration-300 data-leave:duration-200 data-enter:ease-out data-leave:ease-in" />
-        </TransitionChild>
+        {/* The popup has no box of its own so the backdrop stays clickable.
+            Its visibility transition keeps it mounted while the panel slides out. */}
+        <Dialog.Popup className="group z-50 transition-[visibility] duration-500 data-ending-style:invisible lg:hidden">
+          <Header className="duration-300 ease-out group-data-ending-style:opacity-0 group-data-starting-style:opacity-0 group-data-ending-style:duration-200 group-data-ending-style:ease-in" />
 
-        <TransitionChild>
           <motion.div
-            className="fixed top-14 bottom-0 left-0 w-full overflow-y-auto bg-white px-4 pt-6 pb-4 shadow-lg shadow-zinc-900/10 ring-1 ring-zinc-900/7.5 duration-500 ease-in-out data-closed:-translate-x-full sm:px-6 sm:pb-10 min-[416px]:max-w-sm dark:bg-zinc-900 dark:ring-zinc-800"
+            className="fixed top-14 bottom-0 left-0 z-50 w-full overflow-y-auto bg-white px-4 pt-6 pb-4 shadow-lg shadow-zinc-900/10 ring-1 ring-zinc-900/7.5 transition-transform duration-500 ease-in-out group-data-ending-style:-translate-x-full group-data-starting-style:-translate-x-full sm:px-6 sm:pb-10 min-[416px]:max-w-sm dark:bg-zinc-900 dark:ring-zinc-800"
             layoutScroll
           >
             <Navigation />
           </motion.div>
-        </TransitionChild>
-      </DialogPanel>
-    </Dialog>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 

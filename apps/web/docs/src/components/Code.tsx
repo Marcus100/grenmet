@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { Tabs } from "@base-ui/react/tabs";
 import {
   Children,
   createContext,
@@ -195,22 +195,23 @@ function CodeGroupHeader({
         </h3>
       )}
       {hasTabs && (
-        <TabList className="-mb-px flex gap-4 font-medium text-xs">
+        <Tabs.List className="-mb-px flex gap-4 font-medium text-xs">
           {Children.map(children, (child, childIndex) => (
-            <Tab
+            <Tabs.Tab
               className={cn(
-                "border-b py-3 transition data-selected:not-data-focus:outline-hidden",
+                "border-b py-3 outline-hidden transition focus-visible:outline-2",
                 childIndex === selectedIndex
                   ? "border-gm-blue text-gm-blue-ink"
                   : "border-transparent text-zinc-400 hover:text-zinc-300"
               )}
+              value={childIndex}
             >
               {getPanelTitle(
                 isValidElement(child) ? (child.props as { title?: string }) : {}
               )}
-            </Tab>
+            </Tabs.Tab>
           ))}
-        </TabList>
+        </Tabs.List>
       )}
     </div>
   );
@@ -224,13 +225,13 @@ function CodeGroupPanels({
 
   if (hasTabs) {
     return (
-      <TabPanels>
-        {Children.map(children, (child) => (
-          <TabPanel>
+      <>
+        {Children.map(children, (child, childIndex) => (
+          <Tabs.Panel value={childIndex}>
             <CodePanel {...props}>{child}</CodePanel>
-          </TabPanel>
+          </Tabs.Panel>
         ))}
-      </TabPanels>
+      </>
     );
   }
 
@@ -238,7 +239,7 @@ function CodeGroupPanels({
 }
 
 function usePreventLayoutShift() {
-  const positionRef = useRef<HTMLElement>(null);
+  const positionRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | undefined>(undefined);
 
   useEffect(
@@ -305,10 +306,9 @@ function useTabGroupProps(availableLanguages: string[]) {
   const { positionRef, preventLayoutShift } = usePreventLayoutShift();
 
   return {
-    as: "div" as const,
     ref: positionRef,
-    selectedIndex,
-    onChange: (newSelectedIndex: number) => {
+    value: selectedIndex,
+    onValueChange: (newSelectedIndex: number) => {
       const language = availableLanguages[newSelectedIndex];
       if (language === undefined) {
         return;
@@ -337,7 +337,7 @@ export function CodeGroup({
   const containerClassName =
     "my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10";
   const header = (
-    <CodeGroupHeader selectedIndex={tabGroupProps.selectedIndex} title={title}>
+    <CodeGroupHeader selectedIndex={tabGroupProps.value} title={title}>
       {children}
     </CodeGroupHeader>
   );
@@ -346,12 +346,12 @@ export function CodeGroup({
   return (
     <CodeGroupContext.Provider value={true}>
       {hasTabs ? (
-        <TabGroup {...tabGroupProps} className={containerClassName}>
+        <Tabs.Root {...tabGroupProps} className={containerClassName}>
           <div className="not-prose">
             {header}
             {panels}
           </div>
-        </TabGroup>
+        </Tabs.Root>
       ) : (
         <div className={containerClassName}>
           <div className="not-prose">

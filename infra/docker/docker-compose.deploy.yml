@@ -115,8 +115,9 @@ services:
       test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:8000/api/v1/utils/ready/"]
       interval: 30s
       timeout: 10s
-      # Cold starts under ddtrace on the shared droplet take about 3 minutes
-      # (staging, 16 October 2026); core.sh waits up to 300s for healthy.
+      # Sized when cold starts ran under ddtrace (about 3 minutes on staging,
+      # 16 October 2026). ddtrace is gone; the margin stays until cold starts
+      # are re-measured. core.sh waits up to 300s for healthy.
       start_period: 180s
       retries: 5
     depends_on:
