@@ -336,13 +336,17 @@ def disable_rate_limiting() -> Generator[None]:
 
 @pytest.fixture
 async def db_async(test_database: None) -> AsyncGenerator[AsyncSession]:
-    """Async database session. Ensures superuser exists; cleans up users on teardown."""
+    """Async database session on a freshly cleared and seeded database.
+
+    The database is cleared before each test, not after: the next test clears it
+    anyway, so a second clear only cost time (about 90 ms a test).
+    """
     assert test_database is None
     async with async_session_factory() as session:
         await _clear_database_async(session)
         await init_db_async(session)
         yield session
-        await _clear_database_async(session)
+        await session.rollback()
 
 
 @pytest.fixture
