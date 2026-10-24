@@ -46,6 +46,12 @@ SEND_FAILED = "gms.send_failed"
 RECORD_QUERY = "gms.record_query"
 NHC_PRODUCT = "gms.nhc_product"
 
+# Permissions that make someone a recipient (on duty first, else every holder).
+REGISTER_REVIEW_PERMISSIONS = ("eregister.qc", "eregister.send")
+OBSERVER_PERMISSIONS = ("eregister.observe",)
+SENDER_PERMISSIONS = ("eregister.send", "cap.alert.publish", "cap.integrations.manage")
+CAP_DUTY_PERMISSIONS = ("cap.alert.publish", "cap.alert.publish_emergency")
+
 _AUDIENCE = "{} by default; each person chooses the bell and email in their profile"
 
 
