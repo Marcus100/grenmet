@@ -10,6 +10,7 @@ RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack 
 
 FROM base AS build-base
 ENV PNPM_HOME="/pnpm"
+ENV npm_config_store_dir="/pnpm/store"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable pnpm
 
@@ -40,7 +41,7 @@ COPY packages/gms/package.json packages/gms/
 COPY packages/theme/package.json packages/theme/
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
-RUN HUSKY=0 pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store HUSKY=0 pnpm install --frozen-lockfile --filter "@barrelsgd/web-gaa-admin..." --filter .
 
 FROM dependencies AS source
 
@@ -75,7 +76,7 @@ COPY packages/ui/ packages/ui/
 COPY apps/web/gaa-admin/ apps/web/gaa-admin/
 
 FROM source AS builder
-RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN RESEND_API_KEY=build-only-placeholder pnpm exec turbo run build --filter=@barrelsgd/web-gaa-admin
+RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN --mount=type=cache,id=next-cache-gaa-admin,target=/app/apps/web/gaa-admin/.next/cache RESEND_API_KEY=build-only-placeholder pnpm exec turbo run build --filter=@barrelsgd/web-gaa-admin
 RUN mkdir -p apps/web/gaa-admin/public
 
 FROM runtime-base AS runner

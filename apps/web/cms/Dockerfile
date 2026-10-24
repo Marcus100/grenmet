@@ -9,6 +9,7 @@ RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack 
 
 FROM base AS build-base
 ENV PNPM_HOME="/pnpm"
+ENV npm_config_store_dir="/pnpm/store"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable pnpm
 
@@ -39,7 +40,7 @@ COPY packages/gms/package.json packages/gms/
 COPY packages/theme/package.json packages/theme/
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
-RUN HUSKY=0 pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store HUSKY=0 pnpm install --frozen-lockfile
 
 ARG SENTRY_PROJECT=""
 ARG NEXT_PUBLIC_RELEASE=""
@@ -61,7 +62,7 @@ RUN pnpm --filter @barrelsgd/api-client build
 
 FROM source AS builder
 # Build-only placeholders; never copied into the runtime environment.
-RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN PAYLOAD_SECRET=build-only-placeholder-not-for-runtime-use DATABASE_URL=postgresql://unused:unused@127.0.0.1:1/gms_cms pnpm exec turbo run build --filter=@barrelsgd/web-cms
+RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN --mount=type=cache,id=next-cache-cms,target=/app/apps/web/cms/.next/cache PAYLOAD_SECRET=build-only-placeholder-not-for-runtime-use DATABASE_URL=postgresql://unused:unused@127.0.0.1:1/gms_cms pnpm exec turbo run build --filter=@barrelsgd/web-cms
 
 # Package the canonical migration config dependencies, excluding the web UI.
 FROM source AS migration-package

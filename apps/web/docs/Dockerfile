@@ -10,6 +10,7 @@ RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack 
 
 FROM base AS build-base
 ENV PNPM_HOME="/pnpm"
+ENV npm_config_store_dir="/pnpm/store"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable pnpm
 
@@ -40,7 +41,7 @@ COPY packages/gms/package.json packages/gms/
 COPY packages/theme/package.json packages/theme/
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
-RUN HUSKY=0 pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store HUSKY=0 pnpm install --frozen-lockfile --filter "@barrelsgd/web-docs..." --filter .
 
 ARG NEXT_PUBLIC_SITE_URL="http://localhost:3002"
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
@@ -71,7 +72,7 @@ COPY packages/gms/ packages/gms/
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/
 COPY apps/web/docs/ apps/web/docs/
-RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN pnpm exec turbo run build --filter=@barrelsgd/web-docs
+RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN --mount=type=cache,id=next-cache-docs,target=/app/apps/web/docs/.next/cache pnpm exec turbo run build --filter=@barrelsgd/web-docs
 RUN mkdir -p apps/web/docs/public
 
 FROM runtime-base AS runner
