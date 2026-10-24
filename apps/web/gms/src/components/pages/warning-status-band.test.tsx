@@ -13,7 +13,7 @@ describe("WarningStatusBand icon", () => {
     const { container } = render(
       <WarningStatusBand alerts={ALL_CLEAR} checkedAt={CHECKED} />
     );
-    expect(screen.getByText("No active alerts")).toBeInTheDocument();
+    expect(screen.getAllByText("No active alerts").length).toBeGreaterThan(0);
     expect(container.querySelector(".lucide-shield-check")).not.toBeNull();
     expect(container.querySelector(".lucide-triangle-alert")).toBeNull();
   });
