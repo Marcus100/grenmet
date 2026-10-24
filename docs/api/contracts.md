@@ -939,6 +939,21 @@ retained corrections. `POST /attendance/{attendance_id}/corrections` requires a
 reason and starts a separate supervisor workflow; original time stays in effect
 until approval atomically advances its revision. See [manual attendance](../hr/manual-attendance.md).
 
+### Returned forms
+
+`POST /workflow/instances/{instance_id}/actions` with `action: "RETURN"` sends a
+submitted form back to its author and requires non-empty `comments` (the reason;
+400 otherwise). The form's `status` becomes `RETURNED` (leave, absentee, shift
+exchange, parking, daily status: `RequestStatus`; timesheet: `TimesheetStatus`),
+the reason is kept in the approval action log, and the author receives the
+`workflow.returned` notification carrying the reason. `RETURNED` is not final,
+unlike `REJECTED`: the author edits the form with its normal update route and
+resubmits it with its normal submit route, which starts a fresh approval chain
+(the returned chain stays as history). `PATCH /hr/leave-requests/{id}/action`
+refuses `RETURNED`; returning goes through the workflow action so a reason is
+always recorded. Deleting a returned form stays blocked because approval history
+is retained.
+
 ### Department calendar
 
 The calendar is the department's own record — meetings, training, inspections, visits,

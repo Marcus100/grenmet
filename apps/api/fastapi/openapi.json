@@ -11252,7 +11252,7 @@
           "hr-workflows"
         ],
         "summary": "Perform workflow action",
-        "description": "Submit, approve, reject, return, or cancel a workflow instance. Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
+        "description": "Submit, approve, reject, return, or cancel a workflow instance. Return requires comments (the reason shown to the author). Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
         "operationId": "hrTakeAction",
         "security": [
           {
@@ -45150,6 +45150,17 @@
               }
             ]
           },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -61695,6 +61706,17 @@
               }
             ]
           },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -67817,6 +67839,17 @@
               }
             ]
           },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -72834,7 +72867,8 @@
           "SUBMITTED",
           "APPROVED",
           "REJECTED",
-          "CANCELLED"
+          "CANCELLED",
+          "RETURNED"
         ],
         "title": "RequestStatus"
       },
@@ -77548,6 +77582,17 @@
               }
             ]
           },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -78965,6 +79010,17 @@
                 "type": "null"
               }
             ]
+          },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
           },
           "id": {
             "type": "string",
@@ -82560,7 +82616,8 @@
           "DRAFT",
           "SUBMITTED",
           "APPROVED",
-          "REJECTED"
+          "REJECTED",
+          "RETURNED"
         ],
         "title": "TimesheetStatus"
       },
