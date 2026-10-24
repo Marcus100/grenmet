@@ -606,18 +606,15 @@ export function productFields(kind: ProductKind): ProductField[] {
   return [
     ...issueFields,
     field("Bulletin", "bulletinNumber", "Bulletin number"),
+    // GMS alerts are green only. Yellow, orange and red are CAP warnings,
+    // started from "Raise to warning" (ADR-0051). Saved older revisions keep
+    // their original level and are never re-validated.
     field("Bulletin", "level", "Colour level", {
-      options:
-        kind === "heat"
-          ? ["Green", "Yellow", "Orange", "Red"]
-          : ["Green", "Yellow", "Amber", "Red"],
+      options: ["Green"],
       required: true,
     }),
     field("Bulletin", "notice", "Notice type", {
-      options:
-        kind === "heat"
-          ? ["Outlook", "Watch", "Warning", "Information", "All clear"]
-          : ["Information", "Advisory", "Watch", "Warning", "All clear"],
+      options: ["Information", "Advisory", "All clear"],
       required: true,
     }),
     field("Bulletin", "synopsis", "Synopsis", {

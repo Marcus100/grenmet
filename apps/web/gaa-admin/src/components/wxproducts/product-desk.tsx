@@ -48,6 +48,10 @@ import { DeskLayout } from "@/components/document/desk-layout";
 import { PageHeader } from "@/components/layout/page-header";
 import type { PdfPreviewRequest } from "@/components/wxproducts/forecast-pdf-frame";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
+import {
+  ABOVE_GREEN_MESSAGE,
+  isAboveGreen,
+} from "@/lib/wxproducts/alert-level";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 import { CapForecastPicker } from "./cap-forecast-picker";
@@ -546,6 +550,14 @@ function ProductEditor({
                       ) : null}
                     </div>
                   </div>
+                  {isAboveGreen(kind, values.level) ? (
+                    <p
+                      className="rounded-lg border border-destructive p-3 text-sm"
+                      role="alert"
+                    >
+                      {ABOVE_GREEN_MESSAGE}
+                    </p>
+                  ) : null}
                   <form
                     className="space-y-4"
                     onSubmit={(event) => {
