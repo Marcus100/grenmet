@@ -14,6 +14,7 @@ from sqlalchemy.pool import NullPool
 from alembic import command
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
+from src.dependencies import get_db
 from src.eregister.dependencies import get_session
 from src.main import app
 
@@ -22,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.fixture
 async def register_client(
-    fresh_weather_engine: Engine,
+    fresh_weather_engine: Engine, db_async: AsyncSession
 ) -> AsyncGenerator[httpx.AsyncClient]:
     # Reuse the empty disposable-database fixture, installing only eRegister.
     config = Config(str(ROOT / "src/eregister/alembic.ini"))
@@ -46,7 +47,13 @@ async def register_client(
         is_superuser=True,
         registration_pending=False,
     )
+
+    async def main_session() -> AsyncGenerator[AsyncSession]:
+        # The listing looks up actor names in the main application database.
+        yield db_async
+
     app.dependency_overrides[get_session] = session
+    app.dependency_overrides[get_db] = main_session
     app.dependency_overrides[get_browser_or_token_user] = lambda: user
     try:
         async with httpx.AsyncClient(
@@ -55,6 +62,7 @@ async def register_client(
             yield client
     finally:
         app.dependency_overrides.pop(get_session, None)
+        app.dependency_overrides.pop(get_db, None)
         app.dependency_overrides.pop(get_browser_or_token_user, None)
         await engine.dispose()
 
