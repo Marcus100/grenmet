@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Query, Request, Response
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -14,7 +14,7 @@ from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED
 from src.rate_limit import limiter
 
-from . import entries, public, qc, rules, sends
+from . import derive, entries, public, qc, rules, sends, stations
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
     ObservationSend,
@@ -28,6 +28,8 @@ from .schemas import (
     RegisterObservationRead,
     ReviewRequest,
     SendObservationRequest,
+    StationSettings,
+    StationSettingsUpdate,
     SynopValidationRequest,
     SynopValidationResponse,
 )
@@ -150,7 +152,7 @@ async def validate_synop_observation(
     body: SynopValidationRequest,
     _user: BrowserUser,
 ) -> SynopValidationResponse:
-    workbook = body.workbook
+    workbook = derive.apply_to_workbook(body.workbook)
     issues, decoded = rules.validate_synop(workbook)
     if body.observed_at is not None:
         issues = [*issues, *rules.check_observation_time(workbook, body.observed_at)]
@@ -469,6 +471,56 @@ async def list_observation_sends(
     _require_register_access(user)
     response.headers["Cache-Control"] = "private, no-store"
     return ObservationSendList(sends=await sends.list_sends(session, observation_id))
+
+
+@router.get(
+    "/stations/{station_id}/settings",
+    response_model=StationSettings,
+    summary="Station settings for QFE and QNH",
+    description=(
+        "The station elevation and the total barometer corrections the register "
+        "needs to compute QFE and QNH. Both are null (listed in `pending`) until "
+        "staff enter them; the register never assumes a value. Requires "
+        "`eregister.observe`, `eregister.qc` or `eregister.send`."
+    ),
+    responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
+)
+async def get_station_settings(
+    station_id: str,
+    user: BrowserUser,
+    session: RegisterSession,
+    response: Response,
+) -> StationSettings:
+    _require_register_access(user)
+    response.headers["Cache-Control"] = "private, no-store"
+    found = await stations.get(session, station_id.strip())
+    if found is None:
+        raise HTTPException(404, "Unknown station")
+    return found
+
+
+@router.put(
+    "/stations/{station_id}/settings",
+    response_model=StationSettings,
+    summary="Set the station elevation and barometer corrections",
+    description=(
+        "Replaces both settings (send null to clear one). Requires `eregister.qc`."
+    ),
+    responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
+)
+async def put_station_settings(
+    station_id: str,
+    body: StationSettingsUpdate,
+    user: BrowserUser,
+    session: RegisterSession,
+    response: Response,
+) -> StationSettings:
+    require_permission(current_user=user, permission_key="eregister.qc")
+    response.headers["Cache-Control"] = "no-store"
+    saved = await stations.update(session, station_id.strip(), body, actor=str(user.id))
+    if saved is None:
+        raise HTTPException(404, "Unknown station")
+    return saved
 
 
 @router.get(

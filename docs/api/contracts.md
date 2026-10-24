@@ -1757,6 +1757,36 @@ Recording and reading the register (`POST` and `GET
 `eregister.send`; anyone else gets `403`. A saved SYNOP shows on the public
 weather site as provisional, so a signed-in account alone is not enough.
 
+#### eRegister entry rules (owner decisions, 23 Oct 2026)
+
+- *Typed visibility.* The workbook field `visibility_km` (kilometres, for example
+  `18` or `0.8`) is what the observer types; the coded `visibility` (VV, Code
+  table 4377) is calculated from it, rounding down. A text that is not a
+  non-negative number is an error (`invalid_km`).
+- *Calculated humidity.* With `air_temp`, `wet_bulb` and the keyed
+  `station_pressure`, the dew point, vapour pressure and relative humidity are
+  calculated (psychrometer equation, Magnus formula over water; `derive.py`).
+  `validate-synop` returns them in `normalized` (`dew_point`,
+  `relative_humidity`), and a saved observation stores them in its `body`. A row
+  without a wet bulb or station pressure keeps whatever dew point was keyed.
+- *Barometer as read.* `barometer_reading` (paper column 17) is the reading in
+  hPa with one decimal. The total barometer corrections and the station
+  elevation are station settings, not part of the observation.
+- *Station settings.* `GET` and `PUT /api/v1/eregister/stations/{station_id}/settings`
+  hold `elevation_m` and `barometer_correction_hpa`. Both are `null` (listed in
+  `pending`) until staff enter them: the register never assumes a value, and the
+  screen shows QFE and QNH as a dash until both are set. Reading needs register
+  staff access; `PUT` needs `eregister.qc`.
+- *Reporting hours.* All 24 UTC hours are keyed by hand at station 78958, so no
+  hour is "non-synoptic". Advice (warnings only): Tx and Tn every 6 hours (00, 06,
+  12, 18 UTC), 24 hour rainfall at 12 UTC, the pressure tendency group `5appp`
+  every 3 hours, the rainfall group `6RRRtR` at every main hour. The daily
+  sunshine group `55SSS` is not reported (a keyed value is decoded and warned).
+- *Extra fields.* `s3_group_909` (five digits starting 909, passed through into
+  section 3) and the instrument chart time marks `time_mark_anemograph`,
+  `time_mark_barograph`, `time_mark_rain_recorder` and
+  `time_mark_thermohygrograph` (free text, not observation values).
+
 #### eRegister send actions
 
 `POST /api/v1/eregister/observations/{id}/email` and `.../publish` (permission

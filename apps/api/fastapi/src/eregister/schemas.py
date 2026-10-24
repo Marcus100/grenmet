@@ -21,6 +21,16 @@ class SynopWorkbook(BaseModel):
     station_wx_indicator: str | None = Field(default=None, max_length=2)
     cloud_base: str | None = Field(default=None, max_length=2)
     visibility: str | None = Field(default=None, max_length=2)
+    barometer_reading: str | None = Field(
+        default=None,
+        max_length=8,
+        description="Barometer as read (paper column 17), in hPa with one decimal, for example 1013.2.",
+    )
+    visibility_km: str | None = Field(
+        default=None,
+        max_length=6,
+        description="Visibility as typed, in kilometres; the coded VV is derived from it.",
+    )
     total_cloud: str | None = Field(default=None, max_length=2)
     wind_dir: str | None = Field(default=None, max_length=3)
     wind_speed: str | None = Field(default=None, max_length=3)
@@ -63,6 +73,15 @@ class SynopWorkbook(BaseModel):
     s3_layer4_form: str | None = Field(default=None, max_length=2)
     s3_layer4_height: str | None = Field(default=None, max_length=4)
     s3_special_phenomena: str | None = Field(default=None, max_length=120)
+    s3_group_909: str | None = Field(
+        default=None,
+        max_length=8,
+        description="Regional group 909 as printed on the register (five digits starting 909).",
+    )
+    time_mark_anemograph: str | None = Field(default=None, max_length=16)
+    time_mark_barograph: str | None = Field(default=None, max_length=16)
+    time_mark_rain_recorder: str | None = Field(default=None, max_length=16)
+    time_mark_thermohygrograph: str | None = Field(default=None, max_length=16)
     s3_sunshine_24h: str | None = Field(default=None, max_length=3)
     s3_ground_state: str | None = Field(default=None, max_length=1)
     s3_ground_jjj: str | None = Field(default=None, max_length=3)
@@ -207,6 +226,33 @@ class QcDecisionRequest(BaseModel):
         max_length=1000,
         description="Required to reject or reopen; optional note when accepting.",
     )
+
+
+class StationSettings(BaseModel):
+    """Station facts the register needs to compute QFE and QNH.
+
+    Both start empty: nobody has supplied the station elevation or the total
+    barometer corrections yet, and the register never assumes them.
+    """
+
+    station_id: str
+    elevation_m: float | None = Field(
+        default=None, description="Station elevation in metres; null until supplied."
+    )
+    barometer_correction_hpa: float | None = Field(
+        default=None,
+        description="Total barometer corrections in hPa, added to the reading; null until supplied.",
+    )
+    pending: list[Literal["elevation_m", "barometer_correction_hpa"]] = Field(
+        default_factory=list, description="The settings that are still empty."
+    )
+    updated_at: UtcDateTime | None = None
+    updated_by: str | None = None
+
+
+class StationSettingsUpdate(BaseModel):
+    elevation_m: float | None = Field(default=None, ge=-500, le=9000)
+    barometer_correction_hpa: float | None = Field(default=None, ge=-20, le=20)
 
 
 PressureTrend = Literal["rising", "steady", "falling"]

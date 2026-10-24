@@ -30817,6 +30817,134 @@
         }
       }
     },
+    "/api/v1/eregister/stations/{station_id}/settings": {
+      "get": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Station settings for QFE and QNH",
+        "description": "The station elevation and the total barometer corrections the register needs to compute QFE and QNH. Both are null (listed in `pending`) until staff enter them; the register never assumes a value. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "operationId": "eregisterGetStationSettings",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "station_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Station Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationSettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Set the station elevation and barometer corrections",
+        "description": "Replaces both settings (send null to clear one). Requires `eregister.qc`.",
+        "operationId": "eregisterPutStationSettings",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "station_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Station Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StationSettingsUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationSettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
+          }
+        }
+      }
+    },
     "/api/v1/eregister/public/current": {
       "get": {
         "tags": [
@@ -78495,6 +78623,107 @@
         ],
         "title": "StaffUpdate"
       },
+      "StationSettings": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "elevation_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elevation M",
+            "description": "Station elevation in metres; null until supplied."
+          },
+          "barometer_correction_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Barometer Correction Hpa",
+            "description": "Total barometer corrections in hPa, added to the reading; null until supplied."
+          },
+          "pending": {
+            "items": {
+              "$ref": "#/components/schemas/StationSettingsPropertiesPendingItemsEnum"
+            },
+            "type": "array",
+            "title": "Pending",
+            "description": "The settings that are still empty."
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id"
+        ],
+        "title": "StationSettings",
+        "description": "Station facts the register needs to compute QFE and QNH.\n\nBoth start empty: nobody has supplied the station elevation or the total\nbarometer corrections yet, and the register never assumes them."
+      },
+      "StationSettingsUpdate": {
+        "properties": {
+          "elevation_m": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 9000.0,
+                "minimum": -500.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elevation M"
+          },
+          "barometer_correction_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Barometer Correction Hpa"
+          }
+        },
+        "type": "object",
+        "title": "StationSettingsUpdate"
+      },
       "StatusReportCreate": {
         "properties": {
           "signature_version": {
@@ -80447,6 +80676,32 @@
             ],
             "title": "Visibility"
           },
+          "barometer_reading": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Barometer Reading",
+            "description": "Barometer as read (paper column 17), in hPa with one decimal, for example 1013.2."
+          },
+          "visibility_km": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility Km",
+            "description": "Visibility as typed, in kilometres; the coded VV is derived from it."
+          },
           "total_cloud": {
             "anyOf": [
               {
@@ -80950,6 +81205,67 @@
               }
             ],
             "title": "S3 Special Phenomena"
+          },
+          "s3_group_909": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Group 909",
+            "description": "Regional group 909 as printed on the register (five digits starting 909)."
+          },
+          "time_mark_anemograph": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Anemograph"
+          },
+          "time_mark_barograph": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Barograph"
+          },
+          "time_mark_rain_recorder": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Rain Recorder"
+          },
+          "time_mark_thermohygrograph": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Thermohygrograph"
           },
           "s3_sunshine_24h": {
             "anyOf": [
@@ -87711,6 +88027,13 @@
           "till_open",
           "refund_without_till",
           "online_ledger_mismatch"
+        ]
+      },
+      "StationSettingsPropertiesPendingItemsEnum": {
+        "type": "string",
+        "enum": [
+          "elevation_m",
+          "barometer_correction_hpa"
         ]
       },
       "StoredFilePropertiesStatusEnum": {

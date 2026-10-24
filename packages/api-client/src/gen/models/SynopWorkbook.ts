@@ -17,6 +17,14 @@ export type SynopWorkbook = {
   station_wx_indicator?: string | null;
   cloud_base?: string | null;
   visibility?: string | null;
+  /**
+   * @description Barometer as read (paper column 17), in hPa with one decimal, for example 1013.2.
+   */
+  barometer_reading?: string | null;
+  /**
+   * @description Visibility as typed, in kilometres; the coded VV is derived from it.
+   */
+  visibility_km?: string | null;
   total_cloud?: string | null;
   wind_dir?: string | null;
   wind_speed?: string | null;
@@ -59,6 +67,14 @@ export type SynopWorkbook = {
   s3_layer4_form?: string | null;
   s3_layer4_height?: string | null;
   s3_special_phenomena?: string | null;
+  /**
+   * @description Regional group 909 as printed on the register (five digits starting 909).
+   */
+  s3_group_909?: string | null;
+  time_mark_anemograph?: string | null;
+  time_mark_barograph?: string | null;
+  time_mark_rain_recorder?: string | null;
+  time_mark_thermohygrograph?: string | null;
   s3_sunshine_24h?: string | null;
   s3_ground_state?: string | null;
   s3_ground_jjj?: string | null;

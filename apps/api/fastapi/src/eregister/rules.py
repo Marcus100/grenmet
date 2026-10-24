@@ -17,6 +17,7 @@ from collections.abc import Collection
 from datetime import UTC, datetime
 from typing import Literal
 
+from . import derive
 from .schemas import SynopDecoded, SynopValidationIssue, SynopWorkbook
 
 Severity = Literal["error", "warning"]
@@ -24,7 +25,14 @@ Severity = Literal["error", "warning"]
 KNOT_MS = 0.514444
 KELVIN = 273.15
 IDENTIFICATION = ("report_type", "day", "time_utc", "station_id", "wind_indicator")
-NOT_DATA = (*IDENTIFICATION, "s3_remarks", "notes", "observer_initials")
+# Time marks on the instrument charts are bookkeeping, not observed values.
+TIME_MARKS = (
+    "time_mark_anemograph",
+    "time_mark_barograph",
+    "time_mark_rain_recorder",
+    "time_mark_thermohygrograph",
+)
+NOT_DATA = (*IDENTIFICATION, "s3_remarks", "notes", "observer_initials", *TIME_MARKS)
 # Cb layers (form 9) are reported in addition to the three non-Cb layers (B/C1.4.5.1.1).
 CUMULONIMBUS = 9
 MAX_NON_CB_LAYERS = 3
@@ -70,14 +78,17 @@ VISIBILITY_100M_MAX = 50
 VISIBILITY_1KM_MAX = 80
 VISIBILITY_5KM_MAX = 88
 VISIBILITY_OVER_70KM_CODE = 89
-# Section 3 hours. Group 1snTxTxTx / 2snTnTnTn covers a regionally set period
-# ending at the report, so it belongs in the main-hour reports (00, 06, 12, 18
-# UTC). The exact RA IV period is unconfirmed (see the conformance document), so
-# a report at another hour only warns.
-TXTN_REPORT_HOURS = (0, 6, 12, 18)
-# The register keys daily totals (24 h rainfall, 55SSS sunshine) in the 12 UTC
-# report. The regionally specified sunshine hour is unconfirmed: warning only.
-SUNSHINE_REPORT_HOURS = (SYNOP_NOON_HOUR,)
+# Reporting hours at station 78958 (owner decisions, 2026-10-23). All 24 hours are
+# observed and keyed by hand. Maximum and minimum temperature (1snTxTxTx,
+# 2snTnTnTn) are reported every 6 hours, 24 h rainfall at 12 UTC, the pressure
+# tendency group 5appp every 3 hours (main and intermediate hours) and the
+# rainfall group 6RRRtR at every main hour. Missing groups advise only.
+MAIN_HOURS = (0, 6, 12, 18)
+TXTN_REPORT_HOURS = MAIN_HOURS
+PRESSURE_CHANGE_HOURS = (0, 3, 6, 9, 12, 15, 18, 21)
+RAINFALL_REPORT_HOURS = MAIN_HOURS
+RAINFALL_24H_REPORT_HOURS = (SYNOP_NOON_HOUR,)
+# The station does not report the daily sunshine group 55SSS (decoded if keyed).
 SUNSHINE_MAX_TENTHS = 240
 SUNSHINE_DIGITS = 3
 # Groups 58P24P24P24 (rise or zero) and 59P24P24P24 (fall), tenths of hPa. The
@@ -99,6 +110,9 @@ GROUND_JJJ_DIGITS = 3
 SUPPLEMENTARY_DIGITS = 5
 SUPPLEMENTARY_GUST_CODES = {"10": "910ff", "11": "911ff"}
 SUPPLEMENTARY_WEATHER_CODE = "60"
+# Paper column 17, barometer as read (hPa): the whole range a barometer can show.
+BAROMETER_READING_MIN_HPA = 500.0
+BAROMETER_READING_MAX_HPA = 1100.0
 
 
 class _Checker:
@@ -318,13 +332,6 @@ def _check_identification(c: _Checker) -> tuple[int | None, int | None]:
     for field, label in (("day", "Day"), ("time_utc", "UTC hour")):
         if c.raw(field) == "":
             c.add(field, "required", f"{label} is required.")
-    if hour is not None and hour % 3:
-        c.add(
-            "time_utc",
-            "non_synoptic_hour",
-            "SYNOP is made at the standard hours 00, 03, 06, 09, 12, 15, 18 and 21 UTC.",
-            "warning",
-        )
     station = c.raw("station_id")
     if station == "":
         c.add("station_id", "required", "Station identifier is required (B/C1.2.1).")
@@ -392,6 +399,55 @@ def _check_wind(c: _Checker) -> tuple[int | None, float | None, float | None]:
         else direction * 10
     )
     return degrees, to_ms(speed), to_ms(gust)
+
+
+def _check_visibility_km(c: _Checker) -> None:
+    if (
+        c.present("visibility_km")
+        and derive.parse_visibility_km(c.raw("visibility_km")) is None
+    ):
+        c.add(
+            "visibility_km",
+            "invalid_km",
+            "Visibility must be a number of kilometres, for example 12 or 0.8.",
+        )
+
+
+def _check_barometer_reading(c: _Checker) -> None:
+    """Paper column 17: the barometer as read, hPa with one decimal (corrections are separate)."""
+    value = c.raw("barometer_reading")
+    if not c.present("barometer_reading"):
+        return
+    try:
+        hpa = float(value)
+    except ValueError:
+        hpa = None
+    if (
+        hpa is None
+        or not value.replace(".", "", 1).isdigit()
+        or not BAROMETER_READING_MIN_HPA <= hpa <= BAROMETER_READING_MAX_HPA
+    ):
+        c.add(
+            "barometer_reading",
+            "invalid_barometer",
+            "Barometer as read is a pressure in hPa between "
+            f"{BAROMETER_READING_MIN_HPA:g} and {BAROMETER_READING_MAX_HPA:g}, "
+            "for example 1013.2.",
+        )
+
+
+def _check_group_909(c: _Checker) -> None:
+    value = c.raw("s3_group_909")
+    if c.present("s3_group_909") and not (
+        value.isdigit()
+        and len(value) == SUPPLEMENTARY_DIGITS
+        and value.startswith("909")
+    ):
+        c.add(
+            "s3_group_909",
+            "invalid_format",
+            "Group 909 is five digits starting 909, as printed on the register.",
+        )
 
 
 def _check_clouds(c: _Checker) -> int | None:
@@ -554,6 +610,22 @@ def _check_precipitation(
             ),
             "warning",
         )
+    if hour in RAINFALL_REPORT_HOURS:
+        if indicator in ("3", "4"):
+            c.add(
+                "precip_indicator",
+                "rainfall_omitted_at_main_hour",
+                "Rainfall (6RRRtR) is reported at every main hour (00, 06, 12, 18 "
+                f"UTC); iR={indicator} omits it. Use iR 0, 1 or 2.",
+                "warning",
+            )
+        elif indicator not in ("0", "1", "2") and c.raw("precip_amount") == "":
+            c.add(
+                "precip_amount",
+                "missing_rainfall",
+                "Rainfall (6RRRtR) is reported at every main hour (00, 06, 12, 18 UTC).",
+                "warning",
+            )
     if indicator in ("3", "4") and c.present("precip_amount"):
         c.add(
             "precip_amount",
@@ -579,11 +651,18 @@ def _check_precipitation(
             )
         else:
             rainfall_24h = -0.1 if int(rain) == RAIN_24H_TRACE else int(rain) / 10
-    elif rain == "" and hour == SYNOP_NOON_HOUR:
+    elif rain == "" and hour in RAINFALL_24H_REPORT_HOURS:
         c.add(
             "s3_rainfall_24h",
             "missing_24h_rainfall",
             "24 h rainfall is expected at the 12 UTC main hour (B/C1.4.3.2.1).",
+            "warning",
+        )
+    if c.present("s3_rainfall_24h") and hour not in (None, *RAINFALL_24H_REPORT_HOURS):
+        c.add(
+            "s3_rainfall_24h",
+            "rainfall_24h_hour",
+            "24 h rainfall is reported once a day, at 12 UTC.",
             "warning",
         )
     precipitation = None
@@ -617,7 +696,7 @@ def _check_section3(
         )
     _check_temperature_extremes(c, hour, air, tmax, tmin)
     change_pa = _check_pressure_change_24h(c)
-    _check_sunshine_and_ground(c, hour, air)
+    _check_sunshine_and_ground(c, air)
     return tmax, tmin, change_pa
 
 
@@ -634,9 +713,16 @@ def _check_temperature_extremes(
             c.add(
                 field,
                 "txtn_hour",
-                "Maximum and minimum temperatures are reported in the main-hour "
-                "reports (00, 06, 12, 18 UTC); the RA IV period is to be confirmed "
-                "with GMS.",
+                "Maximum and minimum temperatures are reported every 6 hours "
+                "(00, 06, 12, 18 UTC).",
+                "warning",
+            )
+        elif value is None and hour in TXTN_REPORT_HOURS and not c.present(field):
+            c.add(
+                field,
+                "missing_txtn",
+                "Maximum and minimum temperatures are reported every 6 hours "
+                "(00, 06, 12, 18 UTC).",
                 "warning",
             )
     if air is not None and tmax is not None and air > tmax:
@@ -708,9 +794,7 @@ def _check_pressure_change_24h(c: _Checker) -> float | None:
     return -magnitude if sign == PRESSURE_24H_FALL_SIGN else magnitude
 
 
-def _check_sunshine_and_ground(
-    c: _Checker, hour: int | None, air: float | None
-) -> None:
+def _check_sunshine_and_ground(c: _Checker, air: float | None) -> None:
     sunshine = c.raw("s3_sunshine_24h")
     if c.present("s3_sunshine_24h"):
         if not sunshine.isdigit() or len(sunshine) != SUNSHINE_DIGITS:
@@ -726,12 +810,11 @@ def _check_sunshine_and_ground(
                 "out_of_range",
                 "Sunshine cannot exceed 24.0 hours in 24 hours (SSS 240).",
             )
-        elif hour is not None and hour not in SUNSHINE_REPORT_HOURS:
+        else:
             c.add(
                 "s3_sunshine_24h",
-                "sunshine_hour",
-                "Daily sunshine 55SSS is reported at the regionally specified hour "
-                "(12 UTC here, to be confirmed with GMS).",
+                "sunshine_not_reported",
+                "This station does not report the daily sunshine group 55SSS.",
                 "warning",
             )
     state = c.integer("s3_ground_state", "State of the ground E", 0, 9, width=1)
@@ -815,7 +898,9 @@ def _check_supplementary(c: _Checker, speed: int | None) -> None:
             )
 
 
-def _check_pressure_and_weather(c: _Checker) -> tuple[float | None, float | None]:
+def _check_pressure_and_weather(
+    c: _Checker, hour: int | None
+) -> tuple[float | None, float | None]:
     # Station pressure may be well below sea level pressure at elevated sites.
     station = c.pressure("station_pressure", "Station pressure", 500, 1085.7)
     sea_level = c.pressure("msl_pressure", "MSL pressure")
@@ -839,6 +924,18 @@ def _check_pressure_and_weather(c: _Checker) -> tuple[float | None, float | None
         else:
             amount = int(change)
     _check_tendency(c, tendency, amount)
+    if (
+        hour in PRESSURE_CHANGE_HOURS
+        and not c.present("pressure_tendency")
+        and not c.present("pressure_change")
+    ):
+        c.add(
+            "pressure_tendency",
+            "missing_pressure_change",
+            "The pressure tendency group 5appp is reported every 3 hours "
+            "(00, 03, 06 ... 21 UTC).",
+            "warning",
+        )
     ww = c.integer("present_wx", "Present weather ww", 0, 99, width=2)
     w1 = c.integer("past_wx_1", "Past weather W1", 0, 9, width=1)
     w2 = c.integer("past_wx_2", "Past weather W2", 0, 9, width=1)
@@ -926,7 +1023,12 @@ def _check_fog_visibility(c: _Checker, visibility_code: int | None) -> None:
 def validate_synop(
     workbook: SynopWorkbook,
 ) -> tuple[list[SynopValidationIssue], SynopDecoded]:
-    """Check a workbook and decode it to SI values."""
+    """Check a workbook and decode it to SI values.
+
+    Visibility in kilometres, dew point, vapour pressure and relative humidity
+    are calculated first (``derive``), so everything below sees the coded values.
+    """
+    workbook = derive.apply_to_workbook(workbook)
     c = _Checker(workbook)
     _, hour = _check_identification(c)
     direction, speed, gust = _check_wind(c)
@@ -950,6 +1052,7 @@ def validate_synop(
             "warning",
         )
     humidity = c.percent("relative_humidity", "Relative humidity")
+    _check_visibility_km(c)
     visibility_code = c.integer("visibility", "Visibility VV", 0, 99, width=2)
     if visibility_code in UNUSED_VISIBILITY_CODES:
         c.add("visibility", "unused_code", "Visibility codes 51 to 55 are not used.")
@@ -957,10 +1060,12 @@ def validate_synop(
     total = _check_clouds(c)
     _check_fog_visibility(c, visibility_code)
     _check_layers(c, total)
-    station, sea_level = _check_pressure_and_weather(c)
+    station, sea_level = _check_pressure_and_weather(c, hour)
     precipitation, rainfall_24h = _check_precipitation(c, hour)
     tmax, tmin, change_24h = _check_section3(c, hour, air)
     _check_supplementary(c, _to_int(c.raw("wind_speed")))
+    _check_group_909(c)
+    _check_barometer_reading(c)
 
     is_nil = all(
         not c.present(field)

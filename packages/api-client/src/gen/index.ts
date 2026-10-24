@@ -186,11 +186,13 @@ export { eregisterAcceptRegisterObservation } from "./clients/eregisterAcceptReg
 export { eregisterCorrectRegisterObservation } from "./clients/eregisterCorrectRegisterObservation.js";
 export { eregisterCreateRegisterObservation } from "./clients/eregisterCreateRegisterObservation.js";
 export { eregisterEmailRegisterObservation } from "./clients/eregisterEmailRegisterObservation.js";
+export { eregisterGetStationSettings } from "./clients/eregisterGetStationSettings.js";
 export { eregisterListObservationSends } from "./clients/eregisterListObservationSends.js";
 export { eregisterListRegisterObservations } from "./clients/eregisterListRegisterObservations.js";
 export { eregisterPublicCurrentConditions } from "./clients/eregisterPublicCurrentConditions.js";
 export { eregisterPublicMonthSummary } from "./clients/eregisterPublicMonthSummary.js";
 export { eregisterPublishRegisterObservation } from "./clients/eregisterPublishRegisterObservation.js";
+export { eregisterPutStationSettings } from "./clients/eregisterPutStationSettings.js";
 export { eregisterRejectRegisterObservation } from "./clients/eregisterRejectRegisterObservation.js";
 export { eregisterReopenRegisterObservation } from "./clients/eregisterReopenRegisterObservation.js";
 export { eregisterReviewRegisterObservation } from "./clients/eregisterReviewRegisterObservation.js";
@@ -1584,6 +1586,11 @@ export {
   useEregisterEmailRegisterObservation,
 } from "./hooks/useEregisterEmailRegisterObservation.js";
 export {
+  eregisterGetStationSettingsQueryKey,
+  eregisterGetStationSettingsQueryOptions,
+  useEregisterGetStationSettings,
+} from "./hooks/useEregisterGetStationSettings.js";
+export {
   eregisterListObservationSendsQueryKey,
   eregisterListObservationSendsQueryOptions,
   useEregisterListObservationSends,
@@ -1608,6 +1615,11 @@ export {
   eregisterPublishRegisterObservationMutationOptions,
   useEregisterPublishRegisterObservation,
 } from "./hooks/useEregisterPublishRegisterObservation.js";
+export {
+  eregisterPutStationSettingsMutationKey,
+  eregisterPutStationSettingsMutationOptions,
+  useEregisterPutStationSettings,
+} from "./hooks/useEregisterPutStationSettings.js";
 export {
   eregisterRejectRegisterObservationMutationKey,
   eregisterRejectRegisterObservationMutationOptions,
@@ -6348,6 +6360,17 @@ export type {
   EregisterEmailRegisterObservationStatus422,
 } from "./models/EregisterEmailRegisterObservation.js";
 export type {
+  EregisterGetStationSettingsOptions,
+  EregisterGetStationSettingsPath,
+  EregisterGetStationSettingsResponse,
+  EregisterGetStationSettingsResponses,
+  EregisterGetStationSettingsStatus200,
+  EregisterGetStationSettingsStatus401,
+  EregisterGetStationSettingsStatus403,
+  EregisterGetStationSettingsStatus404,
+  EregisterGetStationSettingsStatus422,
+} from "./models/EregisterGetStationSettings.js";
+export type {
   EregisterListObservationSendsOptions,
   EregisterListObservationSendsPath,
   EregisterListObservationSendsResponse,
@@ -6398,6 +6421,18 @@ export type {
   EregisterPublishRegisterObservationStatus409,
   EregisterPublishRegisterObservationStatus422,
 } from "./models/EregisterPublishRegisterObservation.js";
+export type {
+  EregisterPutStationSettingsBody,
+  EregisterPutStationSettingsOptions,
+  EregisterPutStationSettingsPath,
+  EregisterPutStationSettingsResponse,
+  EregisterPutStationSettingsResponses,
+  EregisterPutStationSettingsStatus200,
+  EregisterPutStationSettingsStatus401,
+  EregisterPutStationSettingsStatus403,
+  EregisterPutStationSettingsStatus404,
+  EregisterPutStationSettingsStatus422,
+} from "./models/EregisterPutStationSettings.js";
 export type {
   EregisterRejectRegisterObservationBody,
   EregisterRejectRegisterObservationOptions,
@@ -11275,6 +11310,10 @@ export type { StaffInput } from "./models/StaffInput.js";
 export type { StaffOrganiserRow } from "./models/StaffOrganiserRow.js";
 export type { StaffSetup } from "./models/StaffSetup.js";
 export type { StaffUpdate } from "./models/StaffUpdate.js";
+export type { StationSettings } from "./models/StationSettings.js";
+export type { StationSettingsPropertiesPendingItemsEnum } from "./models/StationSettingsPropertiesPendingItemsEnum.js";
+export { stationSettingsPropertiesPendingItemsEnum } from "./models/StationSettingsPropertiesPendingItemsEnum.js";
+export type { StationSettingsUpdate } from "./models/StationSettingsUpdate.js";
 export type { StatusReportCreate } from "./models/StatusReportCreate.js";
 export type { StatusReportDetails } from "./models/StatusReportDetails.js";
 export type { StatusReportEntryInput } from "./models/StatusReportEntryInput.js";
@@ -14722,6 +14761,16 @@ export {
   eregisterEmailRegisterObservationStatus422Schema,
 } from "./zod/eregisterEmailRegisterObservationSchema.js";
 export {
+  eregisterGetStationSettingsErrorSchema,
+  eregisterGetStationSettingsPathStationIdSchema,
+  eregisterGetStationSettingsResponseSchema,
+  eregisterGetStationSettingsStatus200Schema,
+  eregisterGetStationSettingsStatus401Schema,
+  eregisterGetStationSettingsStatus403Schema,
+  eregisterGetStationSettingsStatus404Schema,
+  eregisterGetStationSettingsStatus422Schema,
+} from "./zod/eregisterGetStationSettingsSchema.js";
+export {
   eregisterListObservationSendsErrorSchema,
   eregisterListObservationSendsPathObservationIdSchema,
   eregisterListObservationSendsResponseSchema,
@@ -14772,6 +14821,17 @@ export {
   eregisterPublishRegisterObservationStatus409Schema,
   eregisterPublishRegisterObservationStatus422Schema,
 } from "./zod/eregisterPublishRegisterObservationSchema.js";
+export {
+  eregisterPutStationSettingsBodySchema,
+  eregisterPutStationSettingsErrorSchema,
+  eregisterPutStationSettingsPathStationIdSchema,
+  eregisterPutStationSettingsResponseSchema,
+  eregisterPutStationSettingsStatus200Schema,
+  eregisterPutStationSettingsStatus401Schema,
+  eregisterPutStationSettingsStatus403Schema,
+  eregisterPutStationSettingsStatus404Schema,
+  eregisterPutStationSettingsStatus422Schema,
+} from "./zod/eregisterPutStationSettingsSchema.js";
 export {
   eregisterRejectRegisterObservationBodySchema,
   eregisterRejectRegisterObservationErrorSchema,
@@ -19303,6 +19363,9 @@ export { staffInputSchema } from "./zod/staffInputSchema.js";
 export { staffOrganiserRowSchema } from "./zod/staffOrganiserRowSchema.js";
 export { staffSetupSchema } from "./zod/staffSetupSchema.js";
 export { staffUpdateSchema } from "./zod/staffUpdateSchema.js";
+export { stationSettingsPropertiesPendingItemsEnumSchema } from "./zod/stationSettingsPropertiesPendingItemsEnumSchema.js";
+export { stationSettingsSchema } from "./zod/stationSettingsSchema.js";
+export { stationSettingsUpdateSchema } from "./zod/stationSettingsUpdateSchema.js";
 export { statusReportCreateSchema } from "./zod/statusReportCreateSchema.js";
 export { statusReportDetailsSchema } from "./zod/statusReportDetailsSchema.js";
 export { statusReportEntryInputSchema } from "./zod/statusReportEntryInputSchema.js";

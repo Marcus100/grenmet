@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 
-from . import encode, rules
+from . import derive, encode, rules
 from .models import STATUS_QUEUED, STATUS_SENT, ERegisterSend
 from .schemas import (
     RegisterObservationCorrection,
@@ -153,6 +153,7 @@ async def create(
     if data.kind == "SYNOP":
         require_valid_synop(data.body, data.observed_at)
     values = data.model_dump()
+    values["body"] = derive.apply_to_body(values["body"])
     await _lock_key(register, data.station_id, data.observed_at, data.kind)
     existing = await _live_row(register, data.station_id, data.observed_at, data.kind)
     if existing is not None:
@@ -223,6 +224,7 @@ async def correct(
         "actor_id": str(user.id),
         "supersedes_id": str(observation_id),
     }
+    values["body"] = derive.apply_to_body(values["body"])
     # The old row leaves the live set first so the unique index admits the new one.
     await register.execute(
         text(

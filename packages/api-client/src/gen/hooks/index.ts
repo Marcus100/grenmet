@@ -924,6 +924,11 @@ export {
   useEregisterEmailRegisterObservation,
 } from "./useEregisterEmailRegisterObservation.js";
 export {
+  eregisterGetStationSettingsQueryKey,
+  eregisterGetStationSettingsQueryOptions,
+  useEregisterGetStationSettings,
+} from "./useEregisterGetStationSettings.js";
+export {
   eregisterListObservationSendsQueryKey,
   eregisterListObservationSendsQueryOptions,
   useEregisterListObservationSends,
@@ -948,6 +953,11 @@ export {
   eregisterPublishRegisterObservationMutationOptions,
   useEregisterPublishRegisterObservation,
 } from "./useEregisterPublishRegisterObservation.js";
+export {
+  eregisterPutStationSettingsMutationKey,
+  eregisterPutStationSettingsMutationOptions,
+  useEregisterPutStationSettings,
+} from "./useEregisterPutStationSettings.js";
 export {
   eregisterRejectRegisterObservationMutationKey,
   eregisterRejectRegisterObservationMutationOptions,

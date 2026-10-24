@@ -41,13 +41,16 @@ to SI).
 | 7wwW1W2 | ww 00-99, W1/W2 0-9; W1 below W2: warning | Covered |
 | 8NhCLCMCH | Nh not above N; N=0 or Nh=0 forces CL/CM (and CH when N=0) to 0; N=9 reports Nh 9 | Covered |
 | 333 0CsDLDMDH | Code ranges | Covered |
-| 1snTxTxTx, 2snTnTnTn | Max not below min; air temperature at the report time outside [Tn, Tx]: warning; reported at 00/06/12/18 UTC (`TXTN_REPORT_HOURS`): warning at other hours | Covered as advice. The exact RA IV period and hours are not confirmed (see below) |
+| 1snTxTxTx, 2snTnTnTn | Max not below min; air temperature at the report time outside [Tn, Tx]: warning; expected every 6 hours, 00/06/12/18 UTC (`TXTN_REPORT_HOURS`): warning when missing at those hours and when keyed at others | Covered as advice. Owner decision 2026-10-23 (every 6 hours) |
 | 58P24P24P24, 59P24P24P24 | Keyed as j1 (8 rise or zero, 9 fall) + P24P24P24 in tenths; the TAC emits `58` or `59`; j1 other than 8/9 is an error (legacy 0/1 are read as 8/9 with a `legacy_sign` warning); 9 with 000 and changes above 40 hPa: warning; decoded to Pa with sign | Covered. Confirmed by the paper register and WMO-No. 306 (see below) |
-| 55SSS | Field `s3_sunshine_24h`: three digits, hours and tenths, at most 240 (24.0 h) is an error; reported at 12 UTC (`SUNSHINE_REPORT_HOURS`): warning elsewhere; decoded to hours | Covered. The regional reporting hour is not confirmed |
+| 55SSS | Field `s3_sunshine_24h`: three digits, hours and tenths, at most 240 (24.0 h) is an error; the station does not report it (owner decision 2026-10-23): a keyed value warns (`sunshine_not_reported`) and is still decoded to hours | Accepted for compatibility only |
 | 3Ejjj | Fields `s3_ground_state` (E, Code table 0901, 0-9) and `s3_ground_jjj` (three digits, regional use): jjj without E warns; E 4 (frozen) or 5 (glaze) with air above 5 C warns; E goes to the CSV `ground_state` | Covered. jjj content (for example snTgTg) is passed through, not decoded |
 | 9SpSpspsp | Field `s3_special_phenomena`, space separated: each group is five digits starting with 9 (error otherwise); 910ff and 911ff gusts (both accepted), 960ww accepted; gust below mean, duplicate group and a gust also keyed in the gust field warn; other 9SpSp groups pass through with a warning | Covered for the common groups |
 | 555 national | Field `s5_national`: preserved as keyed and appended after section 3 as `555 ...`; never validated | Covered (passthrough) |
-| 7R24 | Four digits, 9999 trace; missing at 12 UTC: warning | Covered |
+| 7R24 | Four digits, 9999 trace; missing at 12 UTC: warning; keyed at another hour: warning | Covered |
+| 5appp (every 3 hours) | Missing at 00, 03, ... 21 UTC: warning (`missing_pressure_change`) | Covered as advice (owner decision 2026-10-23) |
+| 6RRRtR (every main hour) | Omitted (iR 3 or 4) or missing at 00, 06, 12, 18 UTC: warning | Covered as advice (owner decision 2026-10-23). "Main hour" is read as 00, 06, 12, 18 UTC |
+| 909 | Field `s3_group_909`: five digits starting 909, passed into section 3 | Format only; the group's meaning is not decoded |
 | 8NsChshs | Up to 3 non-Cb layers plus Cb; Ns not above N; Ns 0 invalid; hshs Code table 1677 (51-55 unused, 81-89 in 1500 m steps); ascending order and completeness: warning | Covered |
 | Remarks (`s3_remarks`, `notes`) | Free text, not validated and not encoded | Not covered |
 | NIL report | Identification only becomes a NIL report | Covered |
@@ -67,12 +70,13 @@ observers).** Written from WMO-No. 306 Vol. I.1 FM 12 section 3 as understood
 on 2026-10-18; the local copy holds only Vol. I.2, so none of these were checked
 line by line:
 
-- *Tx/Tn hours (RA IV).* The period covered by 1snTxTxTx / 2snTnTnTn and the
-  report hours RA IV prescribes are not confirmed. The rule only advises that
-  the groups belong in the 00/06/12/18 UTC reports; change `TXTN_REPORT_HOURS`
-  in `rules.py` once GMS states its practice. They are warnings, never errors.
-- *Sunshine hour.* 55SSS is the 24 h total; the register keys it at 12 UTC with
-  the 24 h rainfall (`SUNSHINE_REPORT_HOURS`). Warning only.
+- *Tx/Tn period (RA IV).* The owner confirmed that Tx and Tn are reported
+  every 6 hours (00, 06, 12, 18 UTC). The period each covers is not confirmed.
+  Warnings only; hours are named constants in `rules.py`.
+- *Humidity.* Dew point, vapour pressure and relative humidity are calculated
+  from the dry and wet bulb with the psychrometer equation (`derive.py`). The
+  GMS psychrometric table, and how it treats a wet bulb below 0 degrees, are not
+  confirmed.
 - *Gust group.* The workbook gust field is encoded as `910ff` (past 10 minutes).
   Whether observers mean `910ff` or `911ff` (highest gust since the previous
   main observation) was unconfirmed. The paper register settles it: see
