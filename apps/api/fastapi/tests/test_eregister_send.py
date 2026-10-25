@@ -1630,3 +1630,50 @@ async def test_a_pending_correction_holds_the_replaced_retry(
     assert ",301.15," in delivered[0]
     await db_async.refresh(queued)
     assert queued.status == "sent"
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_rejecting_a_correction_restores_the_original_to_accepted(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    assert (await client.post(qc_url(original, "accept"))).status_code == 200
+    await publisher.process_due_publications(
+        session=db_async, config=sends.wis2box_settings
+    )
+    fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    fixed = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    )
+    assert fixed.status_code == 201, fixed.text
+    correction = fixed.json()["id"]
+
+    await as_staff(db_async)
+    rejected = await client.post(
+        qc_url(correction, "reject"), json={"reason": "Not needed"}
+    )
+    assert rejected.status_code == 200, rejected.text
+    listed = {
+        o["id"]: o["state"] for o in (await client.get(OBS_URL)).json()["observations"]
+    }
+    # The rejected correction stays listed; the original is the live row again.
+    assert listed == {original: "accepted", correction: "rejected"}
+    holders = await register_rows(
+        "SELECT observation_id FROM observations.publish_gate"
+    )
+    assert [str(r["observation_id"]) for r in holders] == [original]
+    # The hour can be corrected again.
+    again = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    )
+    assert again.status_code == 201, again.text
+    # The audit trail records the restore on the original.
+    restores = (
+        await db_async.scalars(
+            select(AuditEntry).where(
+                AuditEntry.entity_id == original, AuditEntry.action == "restore"
+            )
+        )
+    ).all()
+    assert len(restores) == 1

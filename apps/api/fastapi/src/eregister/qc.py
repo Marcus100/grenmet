@@ -146,18 +146,30 @@ async def transition(
     except HTTPException:
         await register.rollback()
         raise
+    restored = False
     try:
+        if action == "reject" and row.get("supersedes_id"):
+            # Same lock as saving, taken after the row lock (see reopen above).
+            await entries.lock_key(
+                register, str(row["station_id"]), row["observed_at"], str(row["kind"])
+            )
         updated = await _set_state(
             register, observation_id, user, target, clean_reason, action
         )
+        saved = dict(updated.mappings().one())
+        if action == "reject" and row.get("supersedes_id"):
+            # The rejected correction has left the live set, so the original can
+            # return to it in the same transaction.
+            restored = await _restore_original(
+                register, UUID(str(row["supersedes_id"]))
+            )
     except IntegrityError as exc:
         await register.rollback()
-        if action != "reopen":
+        if action not in ("reopen", "reject"):
             raise
         raise HTTPException(
             409, "Another observation now holds this hour; correct that one instead"
         ) from exc
-    saved = dict(updated.mappings().one())
     await register.commit()
     if action == "reject" and row.get("supersedes_id"):
         # A rejected correction: the reading it replaced stands, so release its file.
@@ -174,7 +186,39 @@ async def transition(
         action=action,
         changes={"state": (previous, target), "qc_notes": (None, clean_reason)},
     )
+    if restored:
+        await _audit(
+            app_session,
+            user=user,
+            observation_id=UUID(str(row["supersedes_id"])),
+            action="restore",
+            changes={
+                "state": ("superseded", "accepted"),
+                "qc_notes": (None, f"Correction {observation_id} was rejected"),
+            },
+        )
     return RegisterObservationRead.model_validate(saved)
+
+
+async def _restore_original(register: AsyncSession, original_id: UUID) -> bool:
+    """Put the reading a rejected correction replaced back to ``accepted``.
+
+    Only a row that is still ``superseded`` moves; the original was accepted
+    before it could be corrected. Its publish gate claim was never moved (the
+    correction takes the gate only when queued, and reject is refused then).
+    """
+    result = await register.execute(
+        text(
+            """
+            UPDATE register_observations
+            SET state = 'accepted', updated_at = now()
+            WHERE id = :id AND state = 'superseded'
+            RETURNING id
+            """
+        ),
+        {"id": str(original_id)},
+    )
+    return result.first() is not None
 
 
 async def _set_state(

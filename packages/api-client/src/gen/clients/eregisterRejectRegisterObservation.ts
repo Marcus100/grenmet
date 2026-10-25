@@ -11,7 +11,7 @@ import type {
 } from "../models/EregisterRejectRegisterObservation.js";
 
 /**
- * @description Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Requires register staff access. Audited.
+ * @description Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Rejecting a correction releases the held WIS2 file of the observation it replaced and puts that observation back to `accepted` (live and correctable again). Requires register staff access. Audited.
  * @summary Reject a register observation (QC)
  * {@link /api/v1/eregister/observations/:observation_id/reject}
  */
