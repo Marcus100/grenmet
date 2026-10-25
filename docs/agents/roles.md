@@ -1,5 +1,23 @@
 # Agent roles and automated gates
 
+Factory-control changes require independent code and security review with no
+open blocking finding before landing. Agents may merge only when the PR does not
+change owner-only files listed in `AGENTS.md`; the owner merges those. Staging
+and production merges remain owner approved. Use existing subscriptions first
+with $0 extra spending by default; prefer local execution and use cloud as
+fallback. Extra API spending requires owner approval.
+
+The subscription-backed worker runs with
+`node scripts/agents/review-worker.mjs --once --merge` and only takes dev PRs
+labelled `factory-review` in this repository. It publishes `Factory review` and
+`Factory security review` statuses for the exact PR head and reviewed merge-base.
+Factory-control changes and high risk changes receive security review; other
+changes receive an explicit not-required result. A changed head or merge-base
+needs new review. A disjoint advance of `dev` may preserve a review when the
+merge-base and changed-file scope remain the same; overlapping changes trigger
+branch sync and fresh CI. Status trust requires the App ID pinned in
+`Protect dev` and the verified GitHub App bot login that created each status.
+
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-10-20
@@ -10,8 +28,8 @@ for the code it touches. Both tools use them through the shared `team-roles`
 skill (`.claude/skills/team-roles`, which Codex reads as `.agents/skills`):
 
 - **Claude Code** also loads the briefs as native subagents, so it can delegate by name.
-- **Codex** has no native subagent step in this setup. The skill tells it to open a
-  new task, read the role's brief and follow it, which gives the same clean context.
+- **Codex** uses a fresh native subagent when available, otherwise an isolated
+  CLI review session. Capability discovery happens at runtime.
 
 ## The team
 
@@ -37,7 +55,7 @@ request → planner (spec, slices)
         → qa-engineer (failing tests from the acceptance criteria)
         → api-engineer / web-engineer (make them pass, API first)
         → code-reviewer (+ security-reviewer for auth, access, CI, dependencies)
-        → /commit (gates) → PR → AI review comment + CI + fresh-context review
+        → /commit (gates) → PR → subscription-backed review + CI
         → agent merges into dev → dev → staging PR → owner merges into staging
 ```
 
@@ -47,8 +65,8 @@ select it. A role sees only the brief you give it, so name the files, the
 acceptance criteria and what is out of scope.
 
 Mixing tools is encouraged: a diff written in Codex gets its fresh-context
-review in Claude Code, and the reverse. The automatic AI review below adds a
-third, tool-independent pass.
+review in Claude Code, and the reverse. The review worker provides a bounded
+subscription-backed bridge when a manual tool switch is unnecessary.
 
 ### Which tool for what
 
@@ -70,27 +88,54 @@ as the fresh-context one; and a review request carries the handoff block, not th
 author's conclusion, so the reviewer is not anchored on it.
 
 **Automating the Codex review.** `pnpm agents:codex-review -- --task "..." --criteria "..."`
-builds the handoff block from git and runs `codex exec` in a detached checkout
-of that exact head, with a read-only sandbox, an ephemeral session and user
-config ignored (so the private Bishop and Playwright MCP servers are not
-loaded). Read-only stops shell writes, not reads: the reviewer can still read the
-whole disk, which is why `--post` refuses to comment unless the head is pushed,
-the PR's head SHA is the reviewed head (a mistyped PR number cannot receive it),
-and the findings pass the private-content, vault-path and secret-shape checks.
-Those checks fail closed, so a finding that merely mentions a word like "token"
-in a `token: value` form is also held back; read it and post it by hand. It prints the
-findings; add `--post <pr>` to leave them as a PR comment, and `--dry-run` to see
-the command and prompt. It is opt-in per PR because it spends Codex tokens, and
-its comment counts as the fresh-context review only when it reports no blocking
-finding for the head SHA it names. Running it (with `--post`) is the relay the
-section below describes for that one review; every other handoff is still relayed
-by the owner. There is no live link between the tools: the script runs one
-review and exits.
+builds the handoff block from git and runs `codex exec` from a neutral runtime
+directory. It pins the exact head in a detached checkout and passes a bounded,
+host-collected diff to the reviewer because the checkout's shared git metadata
+is outside the sandbox. The subprocess gets a temporary `CODEX_HOME` containing
+only a copy of ChatGPT auth and a minimal config; it loads no user or project
+MCP servers. Its strict, named read-only profile denies the host filesystem,
+temporary directories, network and writes, and permits reads only from the
+pinned checkout and neutral runtime directory (plus the Codex toolchain needed
+to start the CLI; when that toolchain is under home, only its exact install
+directory is readable). This prevents review instructions in a diff from using shell
+access to read unrelated host files. `--post` still refuses to comment unless
+the head is pushed, the PR's head SHA is the reviewed head (a mistyped PR number
+cannot receive it), and the findings pass private-content, vault-path and
+secret-shape checks. Those checks fail closed, so a finding that merely mentions
+a word like "token" in a `token: value` form is also held back; read it and post
+it by hand. It prints the findings; add `--post <pr>` to leave them as a PR
+comment, and `--dry-run` to see the command and prompt. It is opt-in per PR
+because it spends Codex tokens, and its comment counts as the fresh-context
+review only when it reports no blocking finding for the head SHA it names.
+Running it (with `--post`) is the relay the section below describes for that one
+review; every other handoff is still relayed by the owner. There is no live link
+between the tools: the script runs one review and exits.
+
+The runner requires a ChatGPT CLI login and strips inherited API-key variables;
+it refuses API-key login rather than enabling extra billing. Results must match
+the review JSON schema. An incomplete review, requested changes, malformed
+output or a failed CLI exits nonzero. Each attempt first invalidates the previous
+local review receipt, so a failed retry cannot leave an earlier approval active.
+Completed results are stored in the worktree's Git directory, outside commits.
+An exclusive worktree lock prevents overlapping attempts, and a review in
+progress cannot satisfy `--check`. If a runner crashes and leaves
+`agent-review-receipt.json.lock` in that Git directory, confirm the runner has
+stopped before removing the lock and retrying; there is no automatic takeover.
+
+After pushing the reviewed head, run `pnpm agents:codex-review -- --check`.
+This spends no model tokens. It requires a completed approval for the exact
+head, base tip and merge-base, an integrated remote base, a clean worktree,
+the current head verified on the remote, and a passing `verify:changed` receipt.
+Any changed commit or base requires a new review. Check GitHub CI separately
+before merging; a green advisory AI-review job does not establish that a review
+completed. The local receipt is evidence from a trusted runner, not a signed
+attestation or a server-enforced merge rule. Do not accept arbitrary uploaded
+receipt files or comments as proof of independent review.
 
 ### Working with Codex on GitHub
 
-Claude Code and Codex do not talk to each other. The owner relays every handoff
-between them, so each handoff must stand alone. If the two disagree, the
+Claude Code and Codex do not share hidden chat state. Automated review uses the
+worker; other handoffs remain explicit and self-contained. If the two disagree, the
 disagreement first names its evidence and the applicable rule; anything still
 unresolved goes to the owner.
 
@@ -106,18 +151,21 @@ unresolved goes to the owner.
    its own PR into `dev` once CI is green on the PR head and a fresh-context
    review (the other tool, or a `code-reviewer` subagent) has no open blocking
    finding; no agent pushes `dev`. The author never counts its own review as the
-   fresh-context one. This is the attended-session rule in `AGENTS.md` and
-   [workflow.md](workflow.md). `dev` has no ruleset yet, so CI-before-merge is
-   enforced by these documents until the owner adds one (see Rulesets in
-   [workflow.md](workflow.md)).
+   fresh-context one. The owner merges PRs that touch the owner-only files listed
+   in `AGENTS.md`; the hook blocks agent merges of those paths. This is the
+   attended-session rule in `AGENTS.md` and [workflow.md](workflow.md). The
+   `Protect dev` ruleset requires CI and the worker's review contexts; the worker
+   verifies the merge-base and changed-file overlap, syncing only when current
+   branch protection requires an up-to-date branch or the changes overlap.
 3. **Promotion.** Under standing authorization, an agent creates or updates the
    `dev → staging` PR, with a recap of what changed. The owner reviews and merges
    into `staging`; agents do not arm auto-merge, and GitHub merges only once the
    staging ruleset's required checks pass. `staging → main`, releases and
    production deploys need the owner's explicit authorization each time. The
    agent hook allows `gh pr merge` only when the base is `dev`, only in this
-   repository, and never for a PR that changes the files listed in `AGENTS.md`
-   (hooks, settings, skills, guardrails, workflows, rulesets): the owner merges those.
+   repository, with a pinned head, and when the PR does not touch owner-only
+   files. Factory-control changes outside that list require independent code and
+   security review before an agent merges them.
 4. **Review handoff.** Every request includes the block `pnpm agents:handoff`
    prints (`scripts/agents/review-handoff.mjs`), completed by the author:
    - the task and its acceptance criteria;
@@ -160,26 +208,31 @@ changing access settings: the branch may not have been pushed.
 
 | Gate | Where | Behaviour |
 | --- | --- | --- |
-| AI review | `.github/workflows/ai-review.yml`, `scripts/ci/ai-review.mjs` | Posts one updated comment on PRs into `dev`. Advisory, never fails the PR. Skips drafts, forks and Dependabot. |
+| AI review | `scripts/agents/review-worker.mjs` | Subscription-backed review for `factory-review` PRs into `dev`; exact-head code and security statuses, with security review for high risk and factory-control changes. |
 | API breaking changes | `.github/workflows/api-breaking-changes.yml`, `scripts/api/check-api-breaking.mjs` | Fails a PR into `dev` that removes a route or method, adds required input, or removes or retypes output. The `breaking-change` label accepts an intended break. |
 | Rulesets drift | `.github/workflows/rulesets-drift.yml`, `scripts/guardrails/github-rulesets.mjs` | Fails when GitHub's branch rulesets differ from `infra/github/rulesets.json`. Runs on PRs into `dev`, `staging` and `main`, and weekly. |
 | CodeQL | `.github/workflows/codeql.yml` | Static analysis of TypeScript and Python on PRs and `dev` pushes; results go to the Security tab. |
 | Secret scan | `.github/workflows/secret-scan.yml` | gitleaks over only the commits a PR or `dev` push adds. |
 
-**AI review setup.** Add the repository secret `ANTHROPIC_API_KEY`. Without it the
-job logs a skip and passes. Set the repository variable `AI_REVIEW_MODEL` to
-change the model (default `claude-sonnet-5-5`). The workflow uses
-`pull_request_target`, which GitHub runs from the default branch (`main`), so it
-never executes PR code; keep it that way. It runs from the copy on `main`, so a
-change to it takes effect only after promotion.
+**Review setup.** Sign the local Codex CLI into ChatGPT and authenticate `gh`.
+See [the worker runbook](review-worker.md) for scheduling and recovery.
+Run the worker from a reviewed checkout and label eligible PRs `factory-review`.
+The legacy API workflow is disabled and its replacement is only a manual
+retirement notice. A key alone cannot enable the legacy script: it requires a
+separately approved positive API budget. Do not enable extra spending implicitly.
+The worker publishes review statuses through a dedicated GitHub App with only
+`statuses:write` access to this repository. `Protect dev` must pin both review
+contexts to that App's integration ID; the worker fails closed if the App and
+ruleset do not match. A user token cannot satisfy those pinned contexts. Keep
+the App private key outside the repository and every worktree.
 
 **Limits.** The reviewer sees the diff and the `AGENTS.md` rules, not the running
 system, and it can be wrong; treat findings as claims to check. The breaking
 check reads the OpenAPI spec only: it covers removed or changed routes, inputs and
 outputs, not behaviour changes behind the same schema, and it is not the full
 oasdiff rule set. `infra/github/rulesets.json` lists the checks GitHub
-requires; none of these gates is among them yet. Make a gate required in the
-ruleset once you trust its signal, then refresh the snapshot.
+requires, including the factory review contexts on `dev`. Refresh the snapshot
+after changing a ruleset.
 
 ## Changing a role
 
