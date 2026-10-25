@@ -115,45 +115,33 @@ function reviewRow(pr, factory, ownerMerge) {
 /** One PR to one row: its state and who must act next. */
 export function classify(pr, shared = new Set(), required = null) {
   const { failing, advisory, pending, factory } = collect(pr, required);
-  const own = failing.filter((name) => !shared.has(name));
-  const blockers = failing.filter((name) => shared.has(name));
+  // A failing required check always blocks and belongs to the author. When it also
+  // fails on several other PRs the common cause is only a hint, so it is noted but
+  // never turns the PR into "waiting for a shared fix".
+  const failingNames = failing.map((name) =>
+    shared.has(name) ? `${name} (also on ${SHARED_FAILURE_MIN_PRS}+ PRs)` : name
+  );
   const labels = (pr.labels ?? []).map((label) => label.name);
   const ownerMerge = OWNER_MERGE.test(pr.title);
   if (pr.isDraft) return row(pr, "draft", "author");
   if (pr.mergeStateStatus === "DIRTY")
     return row(pr, "merge conflict", "author", "resolve the conflicts");
-  if (own.length) return row(pr, "CI failing", "author", own.join(", "));
+  if (failing.length)
+    return row(pr, "CI failing", "author", failingNames.join(", "));
   if (pr.mergeStateStatus === "BEHIND")
     return row(pr, "behind dev", "author", "sync, one PR at a time");
   if (pending.length)
     return row(pr, "CI running", "nobody", `${pending.length} checks`);
-  // Promotions (dev to staging, staging to main) are never merged by the worker,
-  // but a repo-wide failing required check still holds them back.
-  if (pr.baseRefName && pr.baseRefName !== DEV) {
-    if (blockers.length)
-      return row(
-        pr,
-        "blocked",
-        "nobody",
-        `waiting for a repo-wide fix: ${blockers.join(", ")}`
-      );
+  // Promotions (dev to staging, staging to main) are never merged by the worker.
+  if (pr.baseRefName && pr.baseRefName !== DEV)
     return row(
       pr,
       "promotion ready",
       "owner",
       `you merge into ${pr.baseRefName}`
     );
-  }
   if (!labels.includes(REVIEW_LABEL))
     return row(pr, "needs review label", "author", `add ${REVIEW_LABEL}`);
-  // A repo-wide failure still blocks the merge, whatever the reviews say.
-  if (blockers.length)
-    return row(
-      pr,
-      "blocked",
-      "nobody",
-      `waiting for a repo-wide fix: ${blockers.join(", ")}`
-    );
   const result = reviewRow(pr, factory, ownerMerge);
   if (advisory.length)
     result.detail = `${result.detail}; non-required failing: ${advisory.join(", ")}`;
@@ -185,7 +173,7 @@ export function render({ rows, shared }) {
     const shown = shared.slice(0, SHARED_SHOWN).join(", ");
     const more = shared.length - SHARED_SHOWN;
     lines.push(
-      `Repo-wide blockers (fail on ${SHARED_FAILURE_MIN_PRS}+ PRs): ${shown}${more > 0 ? ` and ${more} more` : ""}`
+      `Failing on several PRs, maybe a shared cause (fail on ${SHARED_FAILURE_MIN_PRS}+ PRs): ${shown}${more > 0 ? ` and ${more} more` : ""}`
     );
   }
   lines.push(`Needs you: ${you.length ? you.join(", ") : "nothing"}`);

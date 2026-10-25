@@ -10,7 +10,6 @@ import {
   render,
   requiredContexts,
   run,
-  sharedFailures,
 } from "./pr-queue.mjs";
 
 const run_ = (name, conclusion = "SUCCESS", status = "COMPLETED") => ({
@@ -89,36 +88,6 @@ test("review statuses decide: waiting, in review, failed, ready", () => {
   assert.deepEqual([ready.state, ready.needs], ["reviewed, ready", "worker"]);
   const owner = classify({ ...withFactory(...both), title: "x (OWNER-MERGE)" });
   assert.equal(owner.needs, "owner");
-});
-
-test("a check failing on several PRs is a repo-wide blocker, not each author's", () => {
-  const broken = () =>
-    pr({ statusCheckRollup: [run_("Rulesets match snapshot", "FAILURE")] });
-  const prs = [1, 2, 3].map((number) => ({ ...broken(), number }));
-  assert.deepEqual([...sharedFailures(prs)], ["Rulesets match snapshot"]);
-  const queue = buildQueue(prs);
-  assert.ok(queue.rows.every((r) => r.state !== "CI failing"));
-  assert.deepEqual(queue.shared, ["Rulesets match snapshot"]);
-});
-
-test("a shared CI failure keeps a reviewed PR blocked, not ready", () => {
-  const reviewed = (number) => ({
-    ...pr({
-      number,
-      statusCheckRollup: [
-        run_("Rulesets match snapshot", "FAILURE"),
-        status("Factory review", "SUCCESS"),
-        status("Factory security review", "SUCCESS"),
-      ],
-    }),
-    mergeStateStatus: "BLOCKED",
-  });
-  const queue = buildQueue([1, 2, 3].map(reviewed));
-  for (const r of queue.rows) {
-    assert.deepEqual([r.state, r.needs], ["blocked", "nobody"]);
-    assert.ok(r.detail.includes("Rulesets match snapshot"));
-  }
-  assert.ok(render(queue).trim().endsWith("Needs you: nothing"));
 });
 
 test("a merge conflict is the author's job even when reviews passed", () => {
@@ -292,20 +261,45 @@ test("promotion PRs are the owner's to merge, whatever their title says", () => 
   assert.notEqual(toDev.needs, "owner");
 });
 
-test("a promotion PR is blocked, not ready, while a shared required check fails", () => {
-  const required = new Set(["CI Success"]);
-  const promotion = (number) =>
+test("independent failures on several PRs stay with each author", () => {
+  const required = new Set(["Type Check", "CI Success"]);
+  const failing = (number) =>
     pr({
       number,
-      baseRefName: "staging",
-      labels: [],
-      statusCheckRollup: [run_("CI Success", "FAILURE")],
+      statusCheckRollup: [
+        run_("Type Check", "FAILURE"),
+        run_("CI Success", "FAILURE"),
+        status("Factory review", "SUCCESS"),
+        status("Factory security review", "SUCCESS"),
+      ],
     });
-  const queue = buildQueue([1, 2, 3].map(promotion), required);
-  assert.deepEqual(queue.shared, ["CI Success"]);
+  const queue = buildQueue([1, 2, 3].map(failing), required);
   for (const r of queue.rows) {
-    assert.deepEqual([r.state, r.needs], ["blocked", "nobody"]);
-    assert.ok(r.detail.includes("CI Success"));
+    assert.deepEqual([r.state, r.needs], ["CI failing", "author"]);
+    assert.ok(r.detail.includes("Type Check (also on 3+ PRs)"));
   }
-  assert.ok(render(queue).trim().endsWith("Needs you: nothing"));
+  assert.deepEqual(queue.shared.sort(), ["CI Success", "Type Check"]);
+});
+
+test("a PR with a failing required check is never ready, shared or not", () => {
+  const reviewed = (number, base) =>
+    pr({
+      number,
+      baseRefName: base,
+      statusCheckRollup: [
+        run_("CI Success", "FAILURE"),
+        status("Factory review", "SUCCESS"),
+        status("Factory security review", "SUCCESS"),
+      ],
+    });
+  const required = new Set(["CI Success"]);
+  for (const base of ["dev", "staging", "main"]) {
+    const queue = buildQueue(
+      [1, 2, 3].map((n) => reviewed(n, base)),
+      required
+    );
+    for (const r of queue.rows)
+      assert.deepEqual([r.state, r.needs], ["CI failing", "author"], base);
+    assert.ok(render(queue).trim().endsWith("Needs you: nothing"));
+  }
 });
