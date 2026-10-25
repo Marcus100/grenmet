@@ -1844,7 +1844,12 @@ person. Accepting validates the workbook (`422`) and then queues the WIS2 file
 and the email at once (best effort: a refused hand-off, for example an hour the
 automatic source owns, never undoes the acceptance; see `GET .../sends`).
 `reject` and `reopen` need a reason; `reopen` (and `reject`) is `409` once a WIS2
-file was queued or sent.
+file was queued or sent. Rejecting a correction (a row with `supersedes_id`)
+releases the held WIS2 file of the observation it replaced and, in the same
+transaction, puts that `superseded` observation back to the state it had before
+(`accepted`, or `draft`/`qc_pending` for a never-accepted one) with its own QC
+notes, and returns the publish gate to it if the correction had taken it, so the
+hour can be sent, reopened or corrected again (audited as `restore`).
 
 `POST .../{id}/review` (body `{"outcome": "reviewed" | "query", "note": "..."}`,
 a note is required for a query) records an optional second look by register staff

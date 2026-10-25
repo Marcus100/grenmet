@@ -29,7 +29,7 @@ from src.audit import service as audit_service
 from src.auth.models import User
 from src.utils.datetime import utc_now
 
-from . import entries, sends
+from . import entries, gate, sends
 from .models import STATUS_QUEUED, STATUS_SENT, TARGET_WIS2, ERegisterSend
 from .schemas import RegisterObservationRead
 
@@ -146,18 +146,27 @@ async def transition(
     except HTTPException:
         await register.rollback()
         raise
+    restored: str | None = None
     try:
         updated = await _set_state(
             register, observation_id, user, target, clean_reason, action
         )
+        saved = dict(updated.mappings().one())
+        if action == "reject" and row.get("supersedes_id"):
+            # The rejected correction has left the live set, so the original returns
+            # to it in the same transaction. No save lock here: row locks are taken
+            # in one order (this row, then the original) and the unique index
+            # decides a race with a concurrent save (409 below).
+            restored = await _restore_original(
+                register, row, observation_id, str(user.id)
+            )
     except IntegrityError as exc:
         await register.rollback()
-        if action != "reopen":
+        if action not in ("reopen", "reject"):
             raise
         raise HTTPException(
             409, "Another observation now holds this hour; correct that one instead"
         ) from exc
-    saved = dict(updated.mappings().one())
     await register.commit()
     if action == "reject" and row.get("supersedes_id"):
         # A rejected correction: the reading it replaced stands, so release its file.
@@ -174,7 +183,77 @@ async def transition(
         action=action,
         changes={"state": (previous, target), "qc_notes": (None, clean_reason)},
     )
+    if restored:
+        await _audit(
+            app_session,
+            user=user,
+            observation_id=UUID(str(row["supersedes_id"])),
+            action="restore",
+            changes={
+                "state": ("superseded", restored),
+                "qc_notes": (None, f"Correction {observation_id} was rejected"),
+            },
+        )
     return RegisterObservationRead.model_validate(saved)
+
+
+async def _restore_original(
+    register: AsyncSession,
+    correction: dict[str, Any],
+    correction_id: UUID,
+    actor: str,
+) -> str | None:
+    """Put the reading a rejected correction replaced back where it was.
+
+    Only a row that is still ``superseded`` and remembers its earlier state
+    (``superseded_from``) moves; it gets that state and its own ``qc_notes`` back,
+    so a never-accepted draft stays a draft. If the correction had taken the
+    publish gate (it was accepted, its WIS2 send failed, then it was reopened),
+    the gate returns to the original. Returns the restored state, or None.
+    """
+    original_id = str(correction["supersedes_id"])
+    result = await register.execute(
+        text(
+            """
+            UPDATE register_observations
+            SET state = superseded_from, qc_notes = superseded_qc_notes,
+                superseded_from = NULL, superseded_qc_notes = NULL,
+                updated_at = now()
+            WHERE id = :id AND state = 'superseded' AND superseded_from IS NOT NULL
+            RETURNING state
+            """
+        ),
+        {"id": original_id},
+    )
+    restored = result.scalar()
+    if restored is None:
+        return None
+    hour = gate.valid_hour(correction["observed_at"])
+    moved = await register.execute(
+        text(
+            "UPDATE observations.publish_gate SET observation_id = :orig,"
+            " claimed_by = :actor, claimed_at = now()"
+            " WHERE station_id = :station AND valid_hour = :hour"
+            " AND observation_id = :corr RETURNING 1"
+        ),
+        {
+            "orig": original_id,
+            "corr": str(correction_id),
+            "actor": actor,
+            "station": str(correction["station_id"]),
+            "hour": hour,
+        },
+    )
+    if moved.first() is not None:
+        await gate.log_decision(
+            register,
+            station_id=str(correction["station_id"]),
+            hour=hour,
+            observation_id=UUID(original_id),
+            actor=actor,
+            reason="Hour returns to the original: its correction was rejected",
+        )
+    return str(restored)
 
 
 async def _set_state(
