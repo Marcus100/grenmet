@@ -6,7 +6,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const require = createRequire(
-  new URL("../../apps/web/gaa-admin/package.json", import.meta.url)
+  new URL("../../packages/cms-migrations/package.json", import.meta.url)
 );
 const { Client } = require("pg");
 const adminUrl = process.env.STORAGE_TEST_POSTGRES_URL;

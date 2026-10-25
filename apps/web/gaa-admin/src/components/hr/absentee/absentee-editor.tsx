@@ -229,7 +229,10 @@ export function AbsenteeEditor() {
         ),
         previewPath: "/api/v1/hr/absentee-reports/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: hrFormFilename("absentee_report", true),
+        filename: hrFormFilename(
+          "absentee_report",
+          Boolean(submission?.signed_document_id)
+        ),
       });
     } catch (error) {
       reportError(error, "hr-absentee-pdf-download");
@@ -618,7 +621,10 @@ export function AbsenteeEditor() {
           label="Absentee Report"
           preview={
             <HrPdfPreview
-              filename={hrFormFilename("absentee_report")}
+              filename={hrFormFilename(
+                "absentee_report",
+                Boolean(submission?.signed_document_id)
+              )}
               payload={buildAbsenteeReportPayload(
                 values,
                 values.employeeId || userId || "",

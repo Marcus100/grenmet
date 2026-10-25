@@ -1,8 +1,14 @@
 {
   "version": 1,
-  "generated": "2026-10-20",
+  "generated": "2026-10-24",
   "source": "benchmark results, 33 runs",
   "areas": {
+    "ci": {
+      "agent": "claude",
+      "evidence": "not measured: 0 ci runs, 3 needed for one row; owner preference kept",
+      "measured": false,
+      "model": "claude-haiku-5-5"
+    },
     "web": {
       "agent": "claude",
       "evidence": "not measured: 0 web runs, 3 needed for one row; owner preference kept",
@@ -22,5 +28,5 @@
       "model": "claude-haiku-5-5"
     }
   },
-  "human_only": ["ci", "infra", "security"]
+  "human_only": ["infra", "security"]
 }

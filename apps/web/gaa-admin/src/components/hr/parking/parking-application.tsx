@@ -437,7 +437,10 @@ export function ParkingApplication() {
                       signedDocumentId: locked
                         ? selected?.signed_document_id
                         : null,
-                      filename: hrFormFilename("parking_permit", true),
+                      filename: hrFormFilename(
+                        "parking_permit",
+                        Boolean(locked && selected?.signed_document_id)
+                      ),
                     }).catch((caught: unknown) => {
                       reportError(caught, "hr-parking-pdf");
                       setError(hrApiErrorMessage(caught));
@@ -455,7 +458,10 @@ export function ParkingApplication() {
           label="Parking application"
           preview={
             <HrPdfPreview
-              filename={hrFormFilename("parking_permit")}
+              filename={hrFormFilename(
+                "parking_permit",
+                Boolean(locked && selected?.signed_document_id)
+              )}
               payload={body}
               previewPath="/api/v1/hr/parking-permits/preview-pdf"
               ready={ready}
