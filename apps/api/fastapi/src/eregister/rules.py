@@ -59,9 +59,29 @@ WIND_FFF_MIN = 99
 DAYS_IN_MONTH_MAX = 31
 BAROMETER_REFERENCE_CODE = 5000
 STEADY_TENDENCY = 4
-CHANGING_TENDENCY = (1, 2, 3, 6, 7)
-FOG_AT_STATION = range(41, 50)
+# Code table 0200: a = 1 to 3 pressure now higher, 6 to 8 now lower than 3 h ago, so
+# ppp cannot be 000; 4 is steady; 0 and 5 allow "the same".
+CHANGING_TENDENCY = (1, 2, 3, 6, 7, 8)
+# ww 42 to 49 is fog at the station (visibility under 1000 m, 12.2.6.4.13); 40 and 41
+# are fog at a distance or in patches, where the visibility at the station can be higher.
+FOG_AT_STATION = range(42, 50)
 FOG_VISIBILITY_M = 1000
+# Code table 4677 ww used by the cross-checks (WMO-No. 306 Vol I.1, 12.2.6.4).
+MIST_WW = 10
+PRECIPITATION_WW = (*range(50, 70), *range(80, 100))
+THUNDERSTORM_WW = (17, *range(95, 100))
+# ww 20 to 27 and 29: precipitation or thunder during the past hour; 50 to 99 now.
+RECENT_PRECIPITATION_WW = (*range(20, 28), 29, *range(50, 100))
+# CL 3 and 9 are cumulonimbus (Code table 0513).
+CUMULONIMBUS_CL = (3, 9)
+# Code table 4561: W1 and W2 5 drizzle, 6 rain, 7 snow, 8 showers, 9 thunderstorm.
+PRECIPITATION_PAST_WEATHER = range(5, 10)
+# Code table 4019: hours covered by the precipitation reference period tR.
+PRECIPITATION_PERIOD_HOURS = {1: 6, 2: 12, 3: 18, 4: 24, 5: 1, 6: 2, 7: 3, 8: 9, 9: 15}
+THREE_HOURLY_REPORTS = (3, 9, 15, 21)
+# 12.4.10.1: the first reported layer any amount (index 0), the second (index 1) three
+# oktas or more, the third (index 2) five or more.
+LAYER_MINIMUM_OKTAS = {1: 3, 2: 5}
 # Fixed digit widths of keyed groups: ff/dd/hh, TTT/fff/ppp, snTTT/PPPP/RRRR.
 TWO_DIGIT_GROUP = 2
 THREE_DIGIT_GROUP = 3
@@ -516,6 +536,7 @@ def _check_clouds(c: _Checker) -> int | None:
 def _check_layers(c: _Checker, total: int | None) -> None:
     forms: list[int] = []
     heights: list[float] = []
+    entries: list[tuple[int, int | None, int | None]] = []
     previous_present = True
     for n in LAYERS:
         amount = c.integer(f"s3_layer{n}_amount", f"Layer {n} amount", 0, 9, width=1)
@@ -567,6 +588,8 @@ def _check_layers(c: _Checker, total: int | None) -> None:
                 f"Layer {n} height codes 51 to 55 are not used (Code table 1677).",
             )
         previous_present = present
+        if present:
+            entries.append((n, amount, form))
         if form is not None:
             forms.append(form)
         metres = None if code is None else layer_height_metres(code)
@@ -585,6 +608,63 @@ def _check_layers(c: _Checker, total: int | None) -> None:
             "s3_layer4_amount",
             "too_many_layers",
             "At most three non-Cumulonimbus layers plus Cumulonimbus (B/C1.4.5.1.1).",
+        )
+    _check_layer_selection(c, total, entries)
+
+
+def _check_layer_selection(
+    c: _Checker, total: int | None, entries: list[tuple[int, int | None, int | None]]
+) -> None:
+    """Which layers are reported (WMO-No. 306 Vol I.1, 12.4.10.1 and 12.4.10.5)."""
+    ordinary = [
+        (n, amount)
+        for n, amount, form in entries
+        if form != CUMULONIMBUS and amount not in (None, OBSCURED)
+    ]
+    for position, (n, amount) in enumerate(ordinary):
+        floor = LAYER_MINIMUM_OKTAS.get(position)
+        if floor is not None and amount is not None and amount < floor:
+            c.add(
+                f"s3_layer{n}_amount",
+                "layer_amount_too_small",
+                f"The {'second' if position == 1 else 'third'} reported layer is "
+                f"reported only when it covers {floor} oktas or more (12.4.10.1).",
+                "warning",
+            )
+    if _to_int(c.raw("low_cloud_type")) in CUMULONIMBUS_CL and not any(
+        form == CUMULONIMBUS for _, _, form in entries
+    ):
+        c.add(
+            f"s3_layer{min(len(entries) + 1, len(LAYERS))}_form",
+            "cumulonimbus_not_reported",
+            "Cumulonimbus is always reported: add a layer of type 9 with its amount "
+            "and base (12.4.10.1).",
+            "warning",
+        )
+    for layer, layer_amount, layer_form in entries:
+        if layer_amount == OBSCURED and layer_form is not None:
+            c.add(
+                f"s3_layer{layer}_form",
+                "obscured_layer_form",
+                "An obscured sky is reported 89/hshs: the cloud type is / and hshs "
+                "is the vertical visibility (12.4.10.5).",
+                "warning",
+            )
+    raw_total = c.raw("total_cloud")
+    if raw_total and set(raw_total) == {"/"} and entries:
+        c.add(
+            "s3_layer1_amount",
+            "cloud_not_observed",
+            "Cloud was not observed (N is /), so no 8-group is reported (12.4.10.5).",
+            "warning",
+        )
+    if total == OBSCURED and not any(amount == OBSCURED for _, amount, _ in entries):
+        c.add(
+            "s3_layer1_amount",
+            "obscured_needs_group",
+            "The sky is obscured (N=9): report the group 89/hshs with the vertical "
+            "visibility (12.4.10.5).",
+            "warning",
         )
 
 
@@ -1003,19 +1083,98 @@ def _check_weather_indicator(
 
 
 def _check_fog_visibility(c: _Checker, visibility_code: int | None) -> None:
-    """ww 41-49 (fog at the station) goes with visibility below 1000 m (Code table 4677)."""
-    ww = c.raw("present_wx")
-    if (
-        visibility_code is not None
-        and ww.isdigit()
-        and int(ww) in FOG_AT_STATION
-        and _visibility_metres(visibility_code) >= FOG_VISIBILITY_M
-    ):
+    """Present weather against the visibility (WMO-No. 306 Vol I.1, 12.2.6.4)."""
+    ww = _to_int(c.raw("present_wx"))
+    if visibility_code is None or ww is None:
+        return
+    metres = _visibility_metres(visibility_code)
+    if ww in FOG_AT_STATION and metres >= FOG_VISIBILITY_M:
         c.add(
             "present_wx",
             "fog_visibility",
-            f"ww={ww} is fog at the station; visibility is normally below 1000 m "
-            "(VV 00 to 10 or 90 to 94).",
+            f"ww={ww:02d} is fog at the station; visibility must be below 1000 m "
+            "(VV 00 to 10 or 90 to 94), 12.2.6.4.13.",
+            "warning",
+        )
+    elif ww == MIST_WW and metres < FOG_VISIBILITY_M:
+        c.add(
+            "present_wx",
+            "mist_visibility",
+            "ww=10 (mist) needs a visibility of 1000 m or more; below that, "
+            "report fog (12.2.6.4.6).",
+            "warning",
+        )
+
+
+def _precipitation_hours(c: _Checker) -> int | None:
+    return PRECIPITATION_PERIOD_HOURS.get(_to_int(c.raw("precip_period")) or 0)
+
+
+def _past_weather_hours(hour: int | None) -> int | None:
+    """Hours covered by W1 and W2 (12.2.6.6.1): 6 at main hours, 3 at 03, 09, 15, 21."""
+    if hour is None:
+        return None
+    if hour in MAIN_HOURS:
+        return 6
+    return 3 if hour in THREE_HOURLY_REPORTS else 1
+
+
+def _check_weather_links(
+    c: _Checker, total: int | None, hour: int | None, precipitation: float | None
+) -> None:
+    """Links between ww, W1W2, cloud and rain that keying slips break (12.2.6.4, 12.2.6.6)."""
+    ww = _to_int(c.raw("present_wx"))
+    w1 = _to_int(c.raw("past_wx_1"))
+    w2 = _to_int(c.raw("past_wx_2"))
+    if ww is not None and ww in PRECIPITATION_WW and total == 0:
+        c.add(
+            "present_wx",
+            "precipitation_without_cloud",
+            f"ww={ww:02d} is precipitation or thunderstorm but total cloud N is 0 "
+            "(clear sky).",
+            "warning",
+        )
+    layer_forms = {_to_int(c.raw(f"s3_layer{n}_form")) for n in LAYERS}
+    cloud_low = _to_int(c.raw("low_cloud_type"))
+    if (
+        ww in THUNDERSTORM_WW
+        and cloud_low is not None
+        and cloud_low not in CUMULONIMBUS_CL
+        and CUMULONIMBUS not in layer_forms
+    ):
+        c.add(
+            "present_wx",
+            "thunderstorm_without_cb",
+            f"ww={ww:02d} is a thunderstorm but no cumulonimbus is reported "
+            "(CL 3 or 9, or a layer of type 9).",
+            "warning",
+        )
+    shown = (ww in RECENT_PRECIPITATION_WW) or any(
+        w in PRECIPITATION_PAST_WEATHER for w in (w1, w2) if w is not None
+    )
+    covered = _past_weather_hours(hour)
+    period = _precipitation_hours(c)
+    if (
+        precipitation is not None
+        and precipitation > 0
+        and not shown
+        and covered is not None
+        and period is not None
+        and period <= covered
+    ):
+        c.add(
+            "present_wx",
+            "rain_without_weather",
+            "Rain is recorded in the last "
+            f"{period} h (6RRRtR) but ww and W1W2 show no precipitation; check them.",
+            "warning",
+        )
+    if w1 is not None and w2 is None and c.present("past_wx_1"):
+        c.add(
+            "past_wx_2",
+            "past_weather_second_missing",
+            "W2 is empty: when only one past-weather type occurred, the same figure is "
+            "reported in both W1 and W2 (12.2.6.6.5).",
             "warning",
         )
 
@@ -1065,6 +1224,7 @@ def validate_synop(
     _check_layers(c, total)
     station, sea_level = _check_pressure_and_weather(c, hour)
     precipitation, rainfall_24h = _check_precipitation(c, hour)
+    _check_weather_links(c, total, hour, precipitation)
     tmax, tmin, change_24h = _check_section3(c, hour, air)
     _check_supplementary(c, _to_int(c.raw("wind_speed")))
     _check_group_909(c)
