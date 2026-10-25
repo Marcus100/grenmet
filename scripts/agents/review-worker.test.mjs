@@ -1,9 +1,17 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { generateKeyPairSync } from "node:crypto";
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { publishReviewStatus } from "./github-app-status.mjs";
 import { createReviewReceipt } from "./review-receipt.mjs";
 import {
   assertReviewStatusApp,
@@ -253,8 +261,18 @@ test("review statuses trust the bot login returned by the pinned GitHub App", ()
   }
 });
 
-test("status publishing strips human GitHub credentials and requires the pinned App", () => {
-  const root = mkdtempSync(join(tmpdir(), "review-status-root-"));
+test("status publishing passes its serialized payload through the App contract", async () => {
+  const parent = mkdtempSync(join(tmpdir(), "review-status-root-"));
+  const root = join(parent, "repo");
+  const privateKeyPath = join(parent, "review-status-app.pem");
+  mkdirSync(root);
+  const pair = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  writeFileSync(
+    privateKeyPath,
+    pair.privateKey.export({ format: "pem", type: "pkcs8" }),
+    { mode: 0o600 }
+  );
+  chmodSync(privateKeyPath, 0o600);
   const snapshotDir = join(root, "infra", "github");
   mkdirSync(snapshotDir, { recursive: true });
   writeFileSync(
@@ -278,6 +296,8 @@ test("status publishing strips human GitHub credentials and requires the pinned 
   );
   const env = {
     GRENMET_REVIEW_STATUS_APP_ID: "42",
+    GRENMET_REVIEW_STATUS_INSTALLATION_ID: "7",
+    GRENMET_REVIEW_STATUS_APP_PRIVATE_KEY_FILE: privateKeyPath,
     GH_TOKEN: "human-token",
     GITHUB_TOKEN: "workflow-token",
     GH_ENTERPRISE_TOKEN: "enterprise-token",
@@ -309,11 +329,44 @@ test("status publishing strips human GitHub credentials and requires the pinned 
     assert.equal(invocation.options.env.GH_TOKEN, undefined);
     assert.equal(invocation.options.env.GITHUB_TOKEN, undefined);
     assert.equal(invocation.options.env.GH_ENTERPRISE_TOKEN, undefined);
-    assert.deepEqual(JSON.parse(invocation.options.input), {
+    const payload = JSON.parse(invocation.options.input);
+    assert.deepEqual(payload, {
       action: "publish",
-      ...status,
+      status,
       expectedAppId: "42",
       repoRoot: root,
+    });
+    const calls = [];
+    await publishReviewStatus({
+      ...payload,
+      env,
+      fetchImpl: (url, options) => {
+        calls.push({ url, options });
+        if (url.endsWith("/app/installations/7/access_tokens")) {
+          return Promise.resolve({
+            ok: true,
+            status: 201,
+            json: async () => ({
+              token: "status-token",
+              expires_at: new Date(Date.now() + 60 * 60_000).toISOString(),
+              permissions: { statuses: "write" },
+            }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 201,
+          json: async () => ({ state: "success" }),
+        });
+      },
+    });
+    assert.equal(calls.length, 2);
+    assert.ok(calls[1].url.endsWith(`/statuses/${status.head}`));
+    assert.deepEqual(JSON.parse(calls[1].options.body), {
+      context: status.context,
+      description: status.description,
+      state: status.state,
+      target_url: "https://github.com/Marcus100/grenmet/pull/588",
     });
     assert.throws(
       () =>
@@ -324,7 +377,7 @@ test("status publishing strips human GitHub credentials and requires the pinned 
       STATUS_APP_MISMATCH
     );
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(parent, { recursive: true, force: true });
   }
 });
 

@@ -287,7 +287,7 @@ export function publishReviewStatusThroughApp(
       encoding: "utf8",
       input: JSON.stringify({
         action: "publish",
-        ...status,
+        status,
         expectedAppId: String(appId),
         repoRoot: root,
       }),
