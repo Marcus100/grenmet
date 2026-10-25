@@ -30,6 +30,18 @@ automatically repeated for the same head/merge-base: push a fix or use an explic
 cannot publish approval. API-key login is refused and inherited API keys are
 stripped. No additional API spending is enabled.
 
+The Codex model process runs through systemd-run --user in a transient Linux
+filesystem namespace. Its home and Windows-mounted files are hidden; only the
+per-review workspace and temporary Codex home are writable, while the pinned
+source checkout and Node toolchain are read-only. Private temp/devices and a
+private user namespace are enabled, and available Docker/DBus sockets are
+hidden. GitHub CLI credentials and the status App key are not passed to the
+model unit. The temporary Codex home contains only the copied ChatGPT login and
+the strict named permission profile. The unit starts Codex through `env -i` with
+an explicit environment allowlist; it does not inherit variables from the
+systemd user manager. If systemd isolation cannot start, the review fails
+closed. Raw model findings are not written to the service log.
+
 The worker publishes `Factory review` and `Factory security review` through a
 dedicated GitHub App with only `statuses:write` permission on this repository.
 `Protect dev` must pin both contexts to that App's integration ID. The worker

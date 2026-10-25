@@ -12,11 +12,12 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, dirname, join } from "node:path";
 import test, { after } from "node:test";
 import { scrubbedEnv } from "./benchmark.mjs";
 import {
   buildArgs,
+  buildIsolatedCodexArgs,
   buildPrompt,
   collectReviewDiff,
   createReviewCodexHome,
@@ -57,7 +58,7 @@ const FINE_GRAINED_PAT = [
 const PEM_HEADER = ["-----BEGIN RSA", "PRIVATE KEY-----"].join(" ");
 const NOT_POSTED = /Not posted to PR/;
 const NO_FINDINGS = /wrote no findings/;
-const BLEW_UP = /codex blew up/;
+const BLEW_UP = /systemd-run blew up/;
 const COULD_NOT_RUN = /could not run codex/;
 const PIN_DIR = /codex-pin-/;
 const NEEDS_VALUE = /needs a value/;
@@ -65,6 +66,7 @@ const PUSH_ORDER = /Push the branch first/;
 const PUSHED_LOCAL = /Pushed: not required/;
 const TREE_PINNED = /Working tree: detached checkout of the head SHA/;
 const HOST_COLLECTED_DIFF = /HOST-COLLECTED DIFF/;
+const SYSTEMD_RUN = "/usr/bin/systemd-run";
 
 function git(cwd, ...args) {
   const run = spawnSync("git", args, { cwd, encoding: "utf8", env: GIT_ENV });
@@ -90,7 +92,7 @@ const INFO = {
   remoteVerified: true,
 };
 
-test("the codex session loads the strict isolated profile and takes stdin", () => {
+test("the Codex session uses the strict read-only profile and takes stdin", () => {
   const args = buildArgs("/run/user/1000/review", "/run/user/1000/out.md");
   assert.deepEqual(args.slice(0, 3), [
     "exec",
@@ -98,11 +100,85 @@ test("the codex session loads the strict isolated profile and takes stdin", () =
     "--ephemeral",
   ]);
   assert.ok(args.includes("--skip-git-repo-check"));
-  assert.equal(args.at(-1), "-");
   assert.ok(!args.includes("--sandbox"));
+  assert.equal(args.at(-1), "-");
   assert.ok(!args.includes("--ignore-user-config"));
   assert.ok(!args.some((arg) => arg.includes("dangerously")));
   assert.ok(!args.includes("--full-auto"));
+});
+
+test("the model process gets a private systemd filesystem namespace", () => {
+  const root = mkdtempSync(join(tmpdir(), "codex-review-isolation-test-"));
+  const runtime = join(root, "runtime");
+  const workspace = join(runtime, "workspace");
+  const pin = join(runtime, "pin");
+  const home = join(runtime, "codex-home");
+  const toolchain = join(root, "node-toolchain");
+  for (const path of [runtime, workspace, pin, home, toolchain])
+    mkdirSync(path, { recursive: true });
+  try {
+    const args = buildIsolatedCodexArgs({
+      codexArgs: ["exec", "--strict-config", "--ephemeral"],
+      runtimeRoot: runtime,
+      workspaceRoot: workspace,
+      pinnedRoot: pin,
+      codexHome: home,
+      toolchainRoot: toolchain,
+      unitName: "grenmet-codex-review-test",
+      hiddenPaths: ["/mnt"],
+      platform: "linux",
+    });
+    for (const setting of [
+      "--property=ProtectSystem=strict",
+      "--property=ProtectHome=tmpfs",
+      "--property=PrivateTmp=yes",
+      "--property=PrivateDevices=yes",
+      "--property=PrivateUsers=yes",
+      "--property=ProtectProc=invisible",
+      "--property=ProcSubset=pid",
+      "--property=NoNewPrivileges=yes",
+      `--property=BindPaths=${workspace}`,
+      `--property=ReadWritePaths=${workspace}`,
+      `--property=BindPaths=${home}`,
+      `--property=ReadWritePaths=${home}`,
+      `--property=BindReadOnlyPaths=${pin}`,
+      `--property=BindReadOnlyPaths=${toolchain}`,
+      "--property=InaccessiblePaths=/mnt",
+    ])
+      assert.ok(args.includes(setting), setting);
+    assert.ok(!args.some((arg) => arg.startsWith("--setenv=")));
+    assert.deepEqual(args.slice(args.indexOf("/usr/bin/env")), [
+      "/usr/bin/env",
+      "-i",
+      `CODEX_HOME=${home}`,
+      "HOME=/nonexistent",
+      `PATH=${[
+        dirname(process.execPath),
+        "/usr/local/bin",
+        "/usr/bin",
+        "/bin",
+      ].join(delimiter)}`,
+      "GIT_TERMINAL_PROMPT=0",
+      "codex",
+      "exec",
+      "--strict-config",
+      "--ephemeral",
+    ]);
+    assert.throws(
+      () =>
+        buildIsolatedCodexArgs({
+          codexArgs: ["exec"],
+          runtimeRoot: runtime,
+          workspaceRoot: workspace,
+          pinnedRoot: root,
+          codexHome: home,
+          platform: "linux",
+        }),
+      (error) => error.message.includes("pinned checkout must stay inside")
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("the prompt names the exact head and base and the author's fields", () => {
@@ -162,6 +238,7 @@ test("the minimal permission profile denies host, temp, network and writes", () 
   });
   assert.ok(config.includes('model = "gpt-6-luna"'));
   assert.ok(config.includes('default_permissions = "grenmet-review-readonly"'));
+  assert.ok(!config.includes("sandbox_mode"));
   assert.ok(config.includes('":root" = "deny"'));
   assert.ok(config.includes('":minimal" = "read"'));
   assert.ok(config.includes('":tmpdir" = "deny"'));
@@ -336,6 +413,8 @@ test("posting is blocked when the findings quote a vault path or a token", () =>
     "token sk-proj-abcdefghijklmnopqrstuvwx leaked",
     "ghs_abcdefghijklmnopqrstuvwxyz0123456789",
     "Authorization: Bearer abcdefghijklmnop1234",
+    'auth {"refresh_token":"not-a-real-token"}',
+    "token eyJhbGciOiJub25l.eyJzdWIiOiJ0ZXN0.signature123 leaked",
     PEM_HEADER,
   ];
   for (const leak of leaks) {
@@ -372,7 +451,10 @@ function fakeSpawn({
   };
   const spawn = (cmd, args, options = {}) => {
     calls.push({ args, cmd, options });
-    if (cmd === throwOn && !(cmd === "codex" && args[0] === "login")) {
+    if (
+      (cmd === throwOn || (throwOn === "codex" && cmd === SYSTEMD_RUN)) &&
+      !(cmd === "codex" && args[0] === "login")
+    ) {
       throw new Error(`${cmd} blew up`);
     }
     if (cmd === "git" && args[0] === "rev-parse") {
@@ -387,17 +469,20 @@ function fakeSpawn({
     if (cmd === "git" && args[0] === "diff") {
       return { status: diffStatus, stdout: diffOutput };
     }
-    if (cmd === "codex") {
-      if (args[0] === "login") {
+    if (cmd === "codex" || cmd === SYSTEMD_RUN) {
+      const codexArgs =
+        cmd === SYSTEMD_RUN ? args.slice(args.indexOf("exec")) : args;
+      if (cmd === "codex" && codexArgs[0] === "login") {
         return { status: authStatus, stdout: authOutput };
       }
+      if (cmd === "codex") return { status: 0, stdout: "", stderr: "" };
       onReview?.();
       if (codexError) {
         return { error: codexError, status: null };
       }
       if (codexStatus === 0 && writesOutput) {
         writeFileSync(
-          args[args.indexOf("--output-last-message") + 1],
+          codexArgs[codexArgs.indexOf("--output-last-message") + 1],
           rawOutput ??
             JSON.stringify({
               status: reviewStatus,
@@ -436,8 +521,11 @@ const reviewTempDirs = () =>
 /** Runs `run`, capturing console.error, and returns code, errors and thrown. */
 function runQuiet(args, deps) {
   const errors = [];
+  const logs = [];
   const original = console.error;
+  const originalLog = console.log;
   console.error = (message) => errors.push(String(message));
+  console.log = (...messages) => logs.push(messages.join(" "));
   let code;
   let thrown;
   try {
@@ -460,8 +548,9 @@ function runQuiet(args, deps) {
     thrown = error;
   } finally {
     console.error = original;
+    console.log = originalLog;
   }
-  return { code, errors, thrown };
+  return { code, errors, logs, thrown };
 }
 
 test("--dry-run starts neither codex nor a worktree nor gh", () => {
@@ -484,9 +573,13 @@ test("codex runs in a neutral directory with pinned source, and nothing is poste
   );
   assert.deepEqual(add.args.slice(0, 3), ["worktree", "add", "--detach"]);
   assert.equal(add.args[4], HEAD);
-  const [codex] = named(calls, "codex");
+  const [codex] = named(calls, SYSTEMD_RUN);
   assert.notEqual(codex.options.cwd, state.pinDir);
-  assert.equal(codex.args[codex.args.indexOf("--cd") + 1], codex.options.cwd);
+  assert.ok(codex.args.includes(`--working-directory=${codex.options.cwd}`));
+  assert.ok(codex.args.includes("--property=ProtectHome=tmpfs"));
+  assert.ok(codex.args.includes("--property=ProtectSystem=strict"));
+  assert.ok(codex.args.includes("-i"));
+  assert.ok(!codex.args.some((arg) => arg.includes("GITHUB_TOKEN")));
   assert.match(
     codex.options.input,
     new RegExp(state.pinDir.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
@@ -657,13 +750,21 @@ test("API login cannot start a review and its output is not disclosed", () => {
   assert.ok(!errors.join("\n").includes("hidden-value"));
 });
 
-test("the review process gets a schema and no inherited API billing variables", () => {
+test("the isolated review unit gets a schema and no API billing variables", () => {
   const { spawn, calls } = fakeSpawn();
   assert.equal(runQuiet([], { collect: gather(), spawn }).code, 0);
-  const [review] = named(calls, "codex");
+  const [review] = named(calls, SYSTEMD_RUN);
   assert.ok(review.args.includes("--output-schema"));
   assert.ok(!Object.hasOwn(review.options.env, "OPENAI_API_KEY"));
   assert.ok(!Object.hasOwn(review.options.env, "ANTHROPIC_API_KEY"));
+});
+
+test("raw model findings are not written to the service log", () => {
+  const { spawn } = fakeSpawn({ findings: "HOST_PRIVATE_OUTPUT_MARKER" });
+  const { code, logs } = runQuiet([], { collect: gather(), spawn });
+  assert.equal(code, 0);
+  assert.ok(logs.join("\n").includes("Codex review completed"));
+  assert.ok(!logs.join("\n").includes("HOST_PRIVATE_OUTPUT_MARKER"));
 });
 
 test("--check is free of model calls and requires current remote and verified commits", () => {
@@ -720,7 +821,7 @@ test("overlapping attempts cannot overwrite a blocking review or accept an in-fl
   assert.equal(runQuiet([], { collect: gather(), spawn }).code, 1);
   assert.equal(secondCode, 1);
   assert.equal(checkCode, 1);
-  assert.equal(named(calls, "codex").length, 1);
+  assert.equal(named(calls, SYSTEMD_RUN).length, 1);
   assert.equal(
     readReviewReceipt(state.receiptPath).review.verdict,
     "changes_requested"

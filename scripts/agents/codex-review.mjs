@@ -22,6 +22,7 @@
 //   pnpm agents:codex-review -- --dry-run     # print the command and prompt
 
 import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import {
   accessSync,
   chmodSync,
@@ -35,7 +36,15 @@ import {
   writeFileSync,
 } from "node:fs";
 import { homedir, tmpdir } from "node:os";
-import { isAbsolute, join, relative, resolve, sep } from "node:path";
+import {
+  delimiter,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+  sep,
+} from "node:path";
 import { fileURLToPath } from "node:url";
 import { redactSecrets } from "../../.claude/hooks/audit-log.mjs";
 import { findPrivateContent } from "../guardrails/check-private-content.mjs";
@@ -59,6 +68,18 @@ const COMMENT_HEADER = "Codex read-only review (fresh context)";
 const CODEX_TIMEOUT_MS = 15 * 60 * 1000;
 const REVIEW_DIFF_MAX_BYTES = 512 * 1024;
 const REVIEW_PERMISSION_PROFILE = "grenmet-review-readonly";
+const SYSTEMD_RUN = "/usr/bin/systemd-run";
+const SYSTEMCTL = "/usr/bin/systemctl";
+const SANDBOX_STOP_GRACE_MS = 30_000;
+const REVIEW_HOST_PATHS = [
+  "/mnt",
+  "/media",
+  "/run/docker.sock",
+  "/var/run/docker.sock",
+  "/run/containerd/containerd.sock",
+  "/run/dbus/system_bus_socket",
+  "/var/run/dbus/system_bus_socket",
+];
 
 const PUSHED_LINE = /^Pushed: .*$/m;
 const TREE_LINE = /^Working tree: .*$/m;
@@ -69,6 +90,10 @@ const VAULT_REFERENCE =
 // Shapes the shared redactor does not cover (this repo uses Stripe keys).
 const EXTRA_SECRET_SHAPE =
   /sk_(?:live|test)_[A-Za-z0-9]{8,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;
+const JWT_SHAPE =
+  /(?:^|[^\w-])eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}(?=$|[^\w-])/;
+const AUTH_TOKEN_FIELD =
+  /["']?(?:access_token|refresh_token|id_token)["']?\s*:/i;
 const PR_NUMBER = /^\d+$/;
 const CHATGPT_LOGIN = /^Logged in using ChatGPT\b/im;
 
@@ -179,6 +204,141 @@ export function reviewConfig({
     "enabled = false",
     "",
   ].join("\n");
+}
+
+function systemdClientEnv(source = process.env) {
+  const env = {};
+  for (const key of [
+    "DBUS_SESSION_BUS_ADDRESS",
+    "SYSTEMD_BUS_ADDRESS",
+    "XDG_RUNTIME_DIR",
+  ]) {
+    if (source[key] !== undefined) env[key] = source[key];
+  }
+  return env;
+}
+
+function reviewHostPaths() {
+  return [
+    ...new Set(
+      REVIEW_HOST_PATHS.filter(existsSync).map((path) => {
+        try {
+          return realpathSync(path);
+        } catch {
+          return path;
+        }
+      })
+    ),
+  ];
+}
+
+function stopReviewUnit(unitName, spawn, cwd) {
+  try {
+    spawn(SYSTEMCTL, ["--user", "stop", unitName], {
+      cwd,
+      encoding: "utf8",
+      env: systemdClientEnv(),
+      timeout: SANDBOX_STOP_GRACE_MS,
+      maxBuffer: 1024 * 1024,
+    });
+  } catch {
+    // RuntimeMaxSec remains the cleanup bound if the client was interrupted.
+  }
+}
+
+/**
+ * Run model-generated shell commands in a transient systemd namespace. The
+ * unit sees only per-review runtime directories, the pinned source checkout,
+ * and the Node toolchain; the host home, Windows mounts, temp files, devices
+ * and common container/DBus sockets stay outside its filesystem view.
+ */
+export function buildIsolatedCodexArgs({
+  codexArgs,
+  runtimeRoot,
+  workspaceRoot,
+  pinnedRoot,
+  codexHome,
+  toolchainRoot,
+  unitName = "grenmet-codex-review-" +
+    process.pid +
+    "-" +
+    randomUUID().replaceAll("-", ""),
+  hiddenPaths = reviewHostPaths(),
+  platform = process.platform,
+} = {}) {
+  if (platform !== "linux") {
+    throw new Error(
+      "Codex review requires Linux systemd-run for filesystem isolation."
+    );
+  }
+  if (!Array.isArray(codexArgs) || codexArgs[0] !== "exec") {
+    throw new Error("The isolated Codex invocation must run exec.");
+  }
+  const runtime = realpathSync(runtimeRoot);
+  for (const [name, path] of [
+    ["workspace", workspaceRoot],
+    ["pinned checkout", pinnedRoot],
+    ["Codex home", codexHome],
+  ]) {
+    if (!(path && isWithin(realpathSync(path), runtime))) {
+      throw new Error(`${name} must stay inside the private review runtime.`);
+    }
+  }
+  const toolchain = toolchainRoot ? realpathSync(toolchainRoot) : undefined;
+  const writable = [workspaceRoot, codexHome];
+  const searchPath = [
+    dirname(process.execPath),
+    "/usr/local/bin",
+    "/usr/bin",
+    "/bin",
+  ].join(delimiter);
+  const args = [
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--quiet",
+    "--service-type=exec",
+    `--unit=${unitName}`,
+    `--working-directory=${workspaceRoot}`,
+    "--property=ProtectSystem=strict",
+    "--property=ProtectHome=tmpfs",
+    "--property=PrivateTmp=yes",
+    "--property=PrivateDevices=yes",
+    "--property=PrivateUsers=yes",
+    "--property=ProtectProc=invisible",
+    "--property=ProcSubset=pid",
+    "--property=NoNewPrivileges=yes",
+    "--property=RestrictSUIDSGID=yes",
+    "--property=ProtectKernelTunables=yes",
+    "--property=ProtectKernelModules=yes",
+    "--property=ProtectKernelLogs=yes",
+    "--property=ProtectControlGroups=yes",
+    "--property=LockPersonality=yes",
+    "--property=RestrictRealtime=yes",
+    `--property=RuntimeMaxSec=${CODEX_TIMEOUT_MS / 1000}s`,
+    "--property=TimeoutStopSec=5s",
+  ];
+  for (const path of writable) {
+    args.push(`--property=BindPaths=${path}`);
+    args.push(`--property=ReadWritePaths=${path}`);
+  }
+  args.push(`--property=BindReadOnlyPaths=${pinnedRoot}`);
+  if (toolchain) args.push(`--property=BindReadOnlyPaths=${toolchain}`);
+  for (const path of hiddenPaths) {
+    args.push(`--property=InaccessiblePaths=${path}`);
+  }
+  args.push(
+    "/usr/bin/env",
+    "-i",
+    `CODEX_HOME=${codexHome}`,
+    "HOME=/nonexistent",
+    `PATH=${searchPath}`,
+    "GIT_TERMINAL_PROMPT=0",
+    "codex",
+    ...codexArgs
+  );
+  return args;
 }
 
 /**
@@ -376,9 +536,11 @@ export function postBlockers(findings, info) {
   // Same redactor the Bash audit log uses, so there is one list of secret shapes.
   if (
     redactSecrets(findings) !== findings ||
-    EXTRA_SECRET_SHAPE.test(findings)
+    EXTRA_SECRET_SHAPE.test(findings) ||
+    JWT_SHAPE.test(findings) ||
+    AUTH_TOKEN_FIELD.test(findings)
   ) {
-    blockers.push("the findings contain a secret-shaped string");
+    blockers.push("the findings contain a secret-shaped string or auth token");
   }
   return blockers;
 }
@@ -419,10 +581,16 @@ function checkReview(root, info, spawn) {
   return 0;
 }
 
-function subscriptionHome({ workspaceRoot, pinnedRoot, spawn, createHome }) {
+function subscriptionHome({
+  workspaceRoot,
+  pinnedRoot,
+  parentDir,
+  spawn,
+  createHome,
+}) {
   let isolated;
   try {
-    isolated = createHome({ workspaceRoot, pinnedRoot });
+    isolated = createHome({ workspaceRoot, pinnedRoot, parentDir });
   } catch {
     console.error(
       "Review not started: could not prepare an isolated Codex review environment."
@@ -620,18 +788,39 @@ function runReview({
     isolated = subscriptionHome({
       workspaceRoot: dir,
       pinnedRoot: pin.dir,
+      parentDir: runtimeRoot,
       spawn,
       createHome,
     });
     if (!isolated) return 1;
-    const codex = spawn("codex", buildArgs(dir, outFile, schemaFile), {
-      cwd: dir,
-      encoding: "utf8",
-      env: isolated.env,
-      input: prompt,
-      stdio: ["pipe", "inherit", "inherit"],
-      timeout: CODEX_TIMEOUT_MS,
-    });
+    const sandboxUnit =
+      "grenmet-codex-review-" +
+      process.pid +
+      "-" +
+      randomUUID().replaceAll("-", "");
+    const codex = spawn(
+      SYSTEMD_RUN,
+      buildIsolatedCodexArgs({
+        codexArgs: buildArgs(dir, outFile, schemaFile),
+        runtimeRoot,
+        workspaceRoot: dir,
+        pinnedRoot: pin.dir,
+        codexHome: isolated.dir,
+        toolchainRoot: reviewToolchainRoot(),
+        unitName: sandboxUnit,
+      }),
+      {
+        cwd: dir,
+        encoding: "utf8",
+        env: systemdClientEnv(),
+        input: prompt,
+        timeout: CODEX_TIMEOUT_MS + SANDBOX_STOP_GRACE_MS,
+        maxBuffer: 16 * 1024 * 1024,
+      }
+    );
+    if (codex.error || codex.status === null) {
+      stopReviewUnit(sandboxUnit, spawn, dir);
+    }
     pin.release();
     pin = undefined;
     if (codex.status !== 0) {
@@ -656,7 +845,15 @@ function runReview({
       return 1;
     }
     const findings = renderReview(review);
-    console.log(findings);
+    console.log(
+      "Codex review " +
+        review.status +
+        " (" +
+        review.verdict +
+        "); " +
+        review.findings.length +
+        " finding(s)."
+    );
     const posted = options.pr
       ? postFindings({ findings, info, pr: options.pr, root, spawn })
       : 0;
