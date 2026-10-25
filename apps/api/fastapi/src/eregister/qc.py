@@ -29,7 +29,7 @@ from src.audit import service as audit_service
 from src.auth.models import User
 from src.utils.datetime import utc_now
 
-from . import entries
+from . import entries, sends
 from .models import STATUS_QUEUED, STATUS_SENT, TARGET_WIS2, ERegisterSend
 from .schemas import RegisterObservationRead
 
@@ -159,6 +159,14 @@ async def transition(
         ) from exc
     saved = dict(updated.mappings().one())
     await register.commit()
+    if action == "reject" and row.get("supersedes_id"):
+        # A rejected correction: the reading it replaced stands, so release its file.
+        await sends.release_held_wis2(
+            app_session,
+            station_id=str(row["station_id"]),
+            observed_at=row["observed_at"],
+            original_id=UUID(str(row["supersedes_id"])),
+        )
     await _audit(
         app_session,
         user=user,

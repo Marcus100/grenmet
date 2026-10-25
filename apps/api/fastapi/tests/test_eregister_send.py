@@ -1573,7 +1573,7 @@ async def test_a_refused_hand_off_survives_the_rollback_that_expires_the_user(
 
 
 @pytest.mark.usefixtures("recipients")
-async def test_a_correction_that_is_never_accepted_still_stops_the_replaced_retry(
+async def test_a_pending_correction_holds_the_replaced_retry(
     send_client: tuple[httpx.AsyncClient, User],
     db_async: AsyncSession,
     incoming: Path,
@@ -1606,12 +1606,27 @@ async def test_a_correction_that_is_never_accepted_still_stops_the_replaced_retr
     def recording(_key: str, content: str) -> None:
         delivered.append(content)
 
-    queued.next_retry_at = None
-    await db_async.commit()
     await publisher.process_due_publications(
         session=db_async, sink=recording, config=config
     )
     assert delivered == []
     await db_async.refresh(queued)
-    assert queued.status == "failed"
+    # Held, not dropped: the correction may still be rejected.
+    assert queued.status == "queued"
     assert "correction" in (queued.last_error or "")
+
+    # Rejecting the correction releases the original, which goes out on the next run.
+    await as_staff(db_async)
+    rejected = await client.post(
+        qc_url(fixed.json()["id"], "reject"), json={"reason": "Not needed"}
+    )
+    assert rejected.status_code == 200, rejected.text
+    await db_async.refresh(queued)
+    assert queued.next_retry_at is None
+    await publisher.process_due_publications(
+        session=db_async, sink=recording, config=config
+    )
+    assert len(delivered) == 1
+    assert ",301.15," in delivered[0]
+    await db_async.refresh(queued)
+    assert queued.status == "sent"

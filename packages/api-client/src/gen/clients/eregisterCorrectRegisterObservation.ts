@@ -11,7 +11,7 @@ import type {
 } from "../models/EregisterCorrectRegisterObservation.js";
 
 /**
- * @description Saves a replacement that supersedes the observation (`supersedes_id`); the old one becomes `superseded` and stays listed. Station, kind and time are kept. `409` when the observation is rejected or already superseded; `422` when the replacement SYNOP has errors. The replacement starts as a draft; saving it stops any queued WIS2 file of the replaced observation, so the old reading is never retried. When its observer accepts it, a station-hour already sent to WIS2 is sent again marked as a correction. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.
+ * @description Saves a replacement that supersedes the observation (`supersedes_id`); the old one becomes `superseded` and stays listed. Station, kind and time are kept. `409` when the observation is rejected or already superseded; `422` when the replacement SYNOP has errors. The replacement starts as a draft; saving it holds any queued WIS2 file of the replaced observation until the correction is accepted (the old file is dropped) or rejected (the old file is released). When its observer accepts it, a station-hour already sent to WIS2 is sent again marked as a correction. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.
  * @summary Correct a register observation
  * {@link /api/v1/eregister/observations/:observation_id/correct}
  */

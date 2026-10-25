@@ -1748,10 +1748,11 @@ draft (validated, see below). `GET /api/v1/eregister/observations` filters by
 `station_id`, `kind`, `state`, `reviewed` and an exact `observed_at` (the record
 occupying an hour), and pages with `limit` and `offset` (`offset` above 10 million is
 `422`). A refused WIS2 or email hand-off after acceptance is stored as a `failed`
-send with the reason in `last_error`. Correcting an observation (`POST .../{id}/correct`)
-immediately stops any queued WIS2 file of the replaced observation (it becomes a `failed`
-send, "Replaced by a correction before it was delivered"), so a correction that is never
-accepted cannot leave the old reading to be retried.
+send with the reason in `last_error`. Correcting an observation (`POST .../{id}/correct`) holds any queued WIS2 file of
+the replaced observation (status stays `queued`, `last_error` "Held while a correction
+is pending"): accepting the correction drops the held file (`failed`, "Replaced by a
+correction before it was delivered"); rejecting the correction releases it so the
+original reading is retried as before.
 
 Recording and reading the register (`POST` and `GET
 /api/v1/eregister/observations`, `GET .../{id}/sends`) need one of
