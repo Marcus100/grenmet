@@ -13,6 +13,9 @@ vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   pushVapidPublicKey,
 }));
 vi.mock("@/lib/env", () => ({ env: { AUTH_API_URL: "http://api.test" } }));
+vi.mock("@/lib/visitor-client", () => ({
+  visitorClient: () => Promise.resolve("visitor-client"),
+}));
 
 import { DELETE, GET, POST } from "./route";
 
@@ -74,7 +77,7 @@ describe("/api/alerts/push", () => {
     const response = await POST(request("POST", subscription));
     expect(response.status).toBe(201);
     expect(pushSubscribe).toHaveBeenCalledWith({
-      baseURL: "http://api.test",
+      client: "visitor-client",
       body: { list_key: "gms-alerts", ...subscription },
     });
   });
@@ -97,7 +100,7 @@ describe("/api/alerts/push", () => {
     );
     expect(response.status).toBe(200);
     expect(pushUnsubscribe).toHaveBeenCalledWith({
-      baseURL: "http://api.test",
+      client: "visitor-client",
       body: { endpoint: subscription.endpoint },
     });
   });

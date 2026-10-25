@@ -161,6 +161,7 @@ export { capGetPublicWarnings } from "./clients/capGetPublicWarnings.js";
 export { capGetRss } from "./clients/capGetRss.js";
 export { capImportAlert } from "./clients/capImportAlert.js";
 export { capPublishAlert } from "./clients/capPublishAlert.js";
+export { capRecordAlertReview } from "./clients/capRecordAlertReview.js";
 export { capSaveHazardProfile } from "./clients/capSaveHazardProfile.js";
 export { capSubmitAlert } from "./clients/capSubmitAlert.js";
 export { capUpdateAlert } from "./clients/capUpdateAlert.js";
@@ -1455,6 +1456,11 @@ export {
   capPublishAlertMutationOptions,
   useCapPublishAlert,
 } from "./hooks/useCapPublishAlert.js";
+export {
+  capRecordAlertReviewMutationKey,
+  capRecordAlertReviewMutationOptions,
+  useCapRecordAlertReview,
+} from "./hooks/useCapRecordAlertReview.js";
 export {
   capSaveHazardProfileMutationKey,
   capSaveHazardProfileMutationOptions,
@@ -5903,10 +5909,26 @@ export type {
   CapPublishAlertStatus422,
 } from "./models/CapPublishAlert.js";
 export type { CapPublishPublic } from "./models/CapPublishPublic.js";
+export type {
+  CapRecordAlertReviewBody,
+  CapRecordAlertReviewOptions,
+  CapRecordAlertReviewPath,
+  CapRecordAlertReviewResponse,
+  CapRecordAlertReviewResponses,
+  CapRecordAlertReviewStatus200,
+  CapRecordAlertReviewStatus401,
+  CapRecordAlertReviewStatus403,
+  CapRecordAlertReviewStatus404,
+  CapRecordAlertReviewStatus409,
+  CapRecordAlertReviewStatus422,
+} from "./models/CapRecordAlertReview.js";
 export type { CapReferenceCreate } from "./models/CapReferenceCreate.js";
 export type { CapReferencePublic } from "./models/CapReferencePublic.js";
 export type { CapResourceCreate } from "./models/CapResourceCreate.js";
 export type { CapResourcePublic } from "./models/CapResourcePublic.js";
+export type { CapReviewRecord } from "./models/CapReviewRecord.js";
+export type { CapReviewRecordPropertiesOutcomeEnum } from "./models/CapReviewRecordPropertiesOutcomeEnum.js";
+export { capReviewRecordPropertiesOutcomeEnum } from "./models/CapReviewRecordPropertiesOutcomeEnum.js";
 export type {
   CapSaveHazardProfileBody,
   CapSaveHazardProfileOptions,
@@ -14272,10 +14294,24 @@ export {
   capPublishAlertStatus422Schema,
 } from "./zod/capPublishAlertSchema.js";
 export { capPublishPublicSchema } from "./zod/capPublishPublicSchema.js";
+export {
+  capRecordAlertReviewBodySchema,
+  capRecordAlertReviewErrorSchema,
+  capRecordAlertReviewPathAlertIdSchema,
+  capRecordAlertReviewResponseSchema,
+  capRecordAlertReviewStatus200Schema,
+  capRecordAlertReviewStatus401Schema,
+  capRecordAlertReviewStatus403Schema,
+  capRecordAlertReviewStatus404Schema,
+  capRecordAlertReviewStatus409Schema,
+  capRecordAlertReviewStatus422Schema,
+} from "./zod/capRecordAlertReviewSchema.js";
 export { capReferenceCreateSchema } from "./zod/capReferenceCreateSchema.js";
 export { capReferencePublicSchema } from "./zod/capReferencePublicSchema.js";
 export { capResourceCreateSchema } from "./zod/capResourceCreateSchema.js";
 export { capResourcePublicSchema } from "./zod/capResourcePublicSchema.js";
+export { capReviewRecordPropertiesOutcomeEnumSchema } from "./zod/capReviewRecordPropertiesOutcomeEnumSchema.js";
+export { capReviewRecordSchema } from "./zod/capReviewRecordSchema.js";
 export {
   capSaveHazardProfileBodySchema,
   capSaveHazardProfileErrorSchema,

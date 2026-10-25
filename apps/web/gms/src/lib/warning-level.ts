@@ -32,7 +32,7 @@ export const WARNING_LEVEL_SURFACE: Record<WarningLevel, string> = {
 
 /** One line of public guidance per level, for legends and status bands. */
 export const WARNING_LEVEL_GUIDANCE: Record<WarningLevel, string> = {
-  none: "No significant weather is expected.",
+  none: "No active alerts",
   "be-aware": "Weather could affect some activities. Stay informed.",
   "be-prepared": "Disruption is likely. Plan ahead and prepare.",
   "take-action": "Dangerous weather. Act now to protect life and property.",
