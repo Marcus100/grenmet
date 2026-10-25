@@ -4,6 +4,8 @@
 // navigation link has a route behind it.
 import { describe, expect, it } from "vitest";
 import {
+  FOOTER_GROUP,
+  FOOTER_GROUP_SECTION,
   NAV_SECTIONS,
   type NavSection,
   plannedPaths,
@@ -38,6 +40,27 @@ describe("NAV_SECTIONS", () => {
       expect(routes.filter((route) => serves(route, href))).toEqual([]);
     }
   );
+
+  // The footer's About this site group is not in the menu, but its pages must
+  // have a route and appear in the sitemap, which is where breadcrumbs point.
+  it.each(FOOTER_GROUP.links.map((link) => link.href))(
+    "footer %s has a page behind it",
+    (href) => {
+      expect(routes.some((route) => serves(route, href))).toBe(true);
+    }
+  );
+
+  it("lists the footer group in the About section on the sitemap", () => {
+    const about = NAV_SECTIONS.find(
+      (section) => section.href === FOOTER_GROUP_SECTION
+    );
+    expect(about).toBeDefined();
+    expect(FOOTER_GROUP.links.map((link) => link.href)).toEqual([
+      "/privacy",
+      "/sitemap",
+      "/disclaimer",
+    ]);
+  });
 
   it("has no duplicate hrefs across the whole menu", () => {
     const hrefs = NAV_SECTIONS.flatMap((section) =>

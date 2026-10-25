@@ -5,7 +5,7 @@ import { Prose } from "@/components/pages/prose";
 import { StatTiles } from "@/components/pages/stat-tiles";
 
 export const metadata = {
-  title: "About the Grenada Meteorological Service",
+  title: "About GMS",
   description:
     "Who we are, what we do, and how the national meteorological service of Grenada, Carriacou and Petite Martinique works.",
 };

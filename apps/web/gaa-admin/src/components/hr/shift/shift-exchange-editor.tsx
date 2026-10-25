@@ -195,7 +195,10 @@ export function ShiftExchangeEditor() {
         payload: buildPayload(form.state.values, departmentId ?? ""),
         previewPath: "/api/v1/hr/shift-swaps/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: hrFormFilename("shift_swap", true),
+        filename: hrFormFilename(
+          "shift_swap",
+          Boolean(submission?.signed_document_id)
+        ),
       });
     } catch (error) {
       reportError(error, "hr-exchange-pdf");
@@ -578,7 +581,10 @@ export function ShiftExchangeEditor() {
                 selected={values.sourceShiftCode}
               />
               <HrPdfPreview
-                filename={hrFormFilename("shift_swap")}
+                filename={hrFormFilename(
+                  "shift_swap",
+                  Boolean(submission?.signed_document_id)
+                )}
                 payload={buildPayload(values, departmentId ?? "")}
                 previewPath="/api/v1/hr/shift-swaps/preview-pdf"
                 ready={Boolean(
