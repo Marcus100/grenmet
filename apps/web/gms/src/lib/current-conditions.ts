@@ -126,6 +126,34 @@ export function localDateTime(iso: string): string {
   return `${parts}, ${localTime(iso)} AST`;
 }
 
+/** "18 Oct": the calendar day of an ISO time, in Grenada time. */
+export function localDay(iso: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Grenada",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(parseGrenadaTime(iso)));
+}
+
+const GRENADA_DAY = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Grenada",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** True when `iso` falls on a different Grenada calendar day than `now`. */
+export function isOtherGrenadaDay(
+  iso: string,
+  now: Date = new Date()
+): boolean {
+  const time = parseGrenadaTime(iso);
+  if (Number.isNaN(time)) {
+    return true;
+  }
+  return GRENADA_DAY.format(time) !== GRENADA_DAY.format(now);
+}
+
 const HAS_ZONE = /(?:Z|[+-]\d{2}:?\d{2})$/i;
 
 function olderThan(iso: string, limitMs: number, now: Date): boolean {

@@ -1,5 +1,6 @@
 import { HomeSections } from "@/components/home/home-sections";
 import { WeatherSurface } from "@/components/home/weather-surface";
+import { forecastDayTitle } from "@/lib/forecast-days";
 import { defaultLocation } from "@/lib/locations";
 
 interface Props {
@@ -7,7 +8,7 @@ interface Props {
 }
 export async function generateMetadata({ params }: Props) {
   const { year, month, day } = await params;
-  return { title: `Forecast for ${year}-${month}-${day}` };
+  return { title: forecastDayTitle(`${year}-${month}-${day}`) };
 }
 /** A dated day: the hero with that day's tab and panel selected, then the home sections. */
 export default async function ForecastDayPage({ params }: Props) {

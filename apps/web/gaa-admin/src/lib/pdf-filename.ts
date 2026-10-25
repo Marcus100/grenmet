@@ -113,7 +113,12 @@ export function signedDocumentFilename(
  * Download name for a form's own PDF: a draft is labelled "Preview"; once the
  * form is signed the file is the real document. No person's name; Grenada date.
  */
-export function hrFormFilename(entity: HrFormTitleKey, signed = false) {
+export function hrFormFilename(
+  entity: HrFormTitleKey,
+  signed = false,
+  day?: string
+) {
   const title = HR_FORM_TITLES[entity];
-  return pdfFilename([signed ? title : `${title} Preview`, grenadaDate()]);
+  const date = day && ISO_DAY.test(day) ? day : grenadaDate();
+  return pdfFilename([signed ? title : `${title} Preview`, date]);
 }
