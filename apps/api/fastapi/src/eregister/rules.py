@@ -14,6 +14,7 @@ observed" and decodes to missing. Pure functions only: no I/O.
 """
 
 from collections.abc import Collection
+from datetime import UTC, datetime
 from typing import Literal
 
 from .schemas import SynopDecoded, SynopValidationIssue, SynopWorkbook
@@ -1010,3 +1011,34 @@ def validate_synop(
         ground_state=_to_int(c.raw("s3_ground_state")),
     )
     return c.issues, decoded
+
+
+def check_observation_time(
+    workbook: SynopWorkbook, observed_at: datetime
+) -> list[SynopValidationIssue]:
+    """The keyed YYGG must be the UTC day and hour of the observation time.
+
+    Errors, because a report whose group says one hour and whose record says
+    another would be published under the wrong time. Blank or malformed entries
+    are left to ``validate_synop``.
+    """
+    moment = observed_at.astimezone(UTC)
+    issues: list[SynopValidationIssue] = []
+    for field, label, expected in (
+        ("day", "Day", moment.day),
+        ("time_utc", "UTC hour", moment.hour),
+    ):
+        value = (getattr(workbook, field) or "").strip()
+        if value.isdigit() and int(value) != expected:
+            issues.append(
+                SynopValidationIssue(
+                    field=field,
+                    code="time_mismatch",
+                    message=(
+                        f"{label} {value} does not match the observation time "
+                        f"{moment:%Y-%m-%d %H:%M} UTC ({expected:02d})."
+                    ),
+                    severity="error",
+                )
+            )
+    return issues

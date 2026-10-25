@@ -13,6 +13,8 @@ vi.mock("@barrelsgd/api-client", () => ({
   eregisterAcceptRegisterObservation: vi.fn(),
   eregisterRejectRegisterObservation: vi.fn(),
   eregisterReopenRegisterObservation: vi.fn(),
+  eregisterReviewRegisterObservation: vi.fn(),
+  eregisterCorrectRegisterObservation: vi.fn(),
 }));
 vi.mock("@barrelsgd/auth", () => ({
   useSessionUser: () => ({
@@ -25,6 +27,7 @@ vi.mock("@barrelsgd/auth", () => ({
 import { ERegister } from "./eregister";
 
 const UNAVAILABLE_NOTE = /The eRegister service is unavailable/;
+const NO_ACCESS_NOTE = /Ask an administrator for the eRegister observer role/;
 const DAILY_NOTE = /Daily summaries are not connected/;
 
 // Sample rows the page used to show as if they were recorded.
@@ -55,6 +58,20 @@ it("shows an error state, never sample observations, when the register is unavai
       { exact: false }
     )
   ).toBeTruthy();
+  expect(document.body.textContent).not.toMatch(SAMPLE_TEXT);
+});
+
+it("says to ask for the observer role when the register refuses the user", async () => {
+  mocks.list.mockResolvedValue({
+    data: undefined,
+    error: { detail: "Insufficient permission for this operation" },
+    response: { status: 403 },
+  });
+  render(<ERegister />);
+
+  await waitFor(() => expect(screen.getByText(NO_ACCESS_NOTE)).toBeTruthy());
+  expect(screen.getByText("No register access")).toBeTruthy();
+  expect(screen.queryByText(UNAVAILABLE_NOTE)).toBeNull();
   expect(document.body.textContent).not.toMatch(SAMPLE_TEXT);
 });
 

@@ -57,8 +57,8 @@ export function eregisterAcceptRegisterObservationMutationOptions<
 }
 
 /**
- * @description Moves a draft or qc_pending SYNOP to accepted. Requires `eregister.qc`. Four-eyes: always a different person from the observer who saved it, superusers included. The observation must pass validation. Audited.
- * @summary Accept a register observation (QC)
+ * @description Moves a draft or qc_pending SYNOP to accepted after validation. The observer who keyed it may accept it alone; other register staff may too. Acceptance queues the WIS2 file and the email at once (a refused hand-off never undoes the acceptance; see the send history). Requires `eregister.observe`, `eregister.qc` or `eregister.send`. Audited.
+ * @summary Accept a register observation
  * {@link /api/v1/eregister/observations/:observation_id/accept}
  */
 export function useEregisterAcceptRegisterObservation<TContext>(
