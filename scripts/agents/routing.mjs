@@ -35,8 +35,8 @@ export const MIN_RUNS = 3;
 export const MARGIN = 0.05;
 const EPSILON = 1e-9;
 const PERCENT = 100;
-export const ROUTED_AREAS = ["web", "api", "docs"];
-export const HUMAN_ONLY = ["ci", "infra", "security"];
+export const ROUTED_AREAS = ["web", "api", "docs", "ci"];
+export const HUMAN_ONLY = ["infra", "security"];
 const AREAS = [...ROUTED_AREAS, "all"];
 
 // The owner's stated preference, used whenever the benchmark has not measured an area.
@@ -45,6 +45,7 @@ export const PREFERENCES = {
   api: { agent: "codex", model: "gpt-6-luna" },
   // Docs are "either, cheapest first"; Haiku is the cheap Claude tier.
   docs: { agent: "claude", model: "claude-haiku-5-5" },
+  ci: { agent: "claude", model: "claude-haiku-5-5" },
 };
 
 const AREA_PATHS = [
@@ -196,8 +197,6 @@ export function chooseRoute(
 
 // The runner for a set of issue labels, or { human: true } when a person must do it.
 export function routeFor(labels, routing) {
-  if (labels.includes("risk:high"))
-    return { human: true, reason: "risk:high needs a human" };
   const areas = labels
     .filter((label) => label.startsWith("area:"))
     .map((label) => label.slice("area:".length));
@@ -211,6 +210,14 @@ export function routeFor(labels, routing) {
   const humanOnly = routing.human_only ?? HUMAN_ONLY;
   if (humanOnly.includes(area))
     return { human: true, reason: `area:${area} is human only` };
+  // CI and factory changes may proceed to independent code and security review.
+  // Routing never authorizes bypassing those gates or human-only areas.
+  if (
+    labels.includes("risk:high") &&
+    area !== "ci" &&
+    !labels.includes("factory")
+  )
+    return { human: true, reason: "risk:high needs a human" };
   const route = routing.areas?.[area];
   if (!route) return { human: true, reason: `no route for area:${area}` };
   return { agent: route.agent, measured: route.measured, model: route.model };

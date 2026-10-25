@@ -5,6 +5,7 @@ httpx.MockTransport stands in for webhook endpoints so no real HTTP is made.
 
 import asyncio
 import uuid
+from datetime import timedelta
 
 import httpx
 import pytest
@@ -30,7 +31,8 @@ from src.cap.models import (
 from src.cap.tasks import enqueue_publish_side_effects
 from src.config import settings
 from src.storage.service import storage_service
-from src.worker.dispatch import process_due_jobs
+from src.utils.datetime import utc_now
+from src.worker.dispatch import exhausted_jobs, process_due_jobs
 
 
 def _client(handler) -> httpx.AsyncClient:
@@ -521,3 +523,39 @@ async def test_no_failure_email_when_no_recipients_are_configured(
         select(OutboundEmail).where(OutboundEmail.dedupe_key.like("cap-job-failed:%"))
     )
     assert list(count.all()) == []
+
+
+async def test_job_abandoned_on_the_final_attempt_is_failed_and_reported(
+    db_async: AsyncSession,
+) -> None:
+    """A worker that dies on the last attempt must not strand the job in RUNNING."""
+    abandoned = await _add_job(db_async, "publish.webhooks")
+    live = await _add_job(db_async, "publish.webhooks")
+    abandoned.status = CapJobStatus.RUNNING
+    abandoned.attempts = 5
+    abandoned.updated_at = utc_now() - timedelta(minutes=30)
+    abandoned.result = {"delivered": ["hook-b", "hook-a"]}
+    live.status = CapJobStatus.RUNNING
+    live.attempts = 5
+    live.updated_at = utc_now() - timedelta(minutes=1)
+    db_async.add_all([abandoned, live])
+    await db_async.commit()
+
+    async with _client(lambda _request: httpx.Response(200)) as client:
+        handled = await process_due_jobs(
+            session=db_async, http_client=client, max_attempts=5
+        )
+
+    assert handled == 0
+    await db_async.refresh(abandoned)
+    await db_async.refresh(live)
+    assert abandoned.status == CapJobStatus.FAILED
+    assert abandoned.attempts == 5
+    assert abandoned.result is not None
+    assert abandoned.result["error_class"] == "WorkerStopped"
+    assert abandoned.result["delivered"] == ["hook-a", "hook-b"]
+    assert live.status == CapJobStatus.RUNNING
+    reported = await exhausted_jobs(
+        session=db_async, max_attempts=5, window=timedelta(hours=1)
+    )
+    assert [job.id for job in reported] == [abandoned.id]

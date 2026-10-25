@@ -211,6 +211,18 @@ describe("latest synopsis", () => {
     expect(result?.watch).toEqual([]);
   });
 
+  it("says alerts could not be confirmed when the capture was incomplete", () => {
+    const result = latestSynopsis([
+      product("evening", "2026-09-14T22:00:00Z", {
+        summary: "Clear.",
+        advisories: JSON.stringify({ complete: false, items: [] }),
+      }),
+    ]);
+    expect(result?.watch).toEqual([
+      "Weather alerts could not be fully confirmed when this forecast was issued.",
+    ]);
+  });
+
   it("returns null when no forecast carries a summary", () => {
     expect(latestSynopsis([])).toBeNull();
     expect(

@@ -1,6 +1,5 @@
 import { AccountButton } from "@barrelsgd/ui/components/account-button";
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { CloseButton } from "@headlessui/react";
 import { motion, useScroll, useTransform } from "motion/react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -44,7 +43,8 @@ export function Header({
   catalogue?: boolean;
   accountLabel?: string;
 }) {
-  const { isOpen: mobileNavIsOpen } = useMobileNavigationStore();
+  const { isOpen: mobileNavIsOpen, close: closeMobileNav } =
+    useMobileNavigationStore();
   const isInsideMobileNavigation = useIsInsideMobileNavigation();
   const showEmergencyContacts =
     getNavigationSection(usePathname()) === "hurricane";
@@ -79,9 +79,9 @@ export function Header({
       <Search />
       <div className={cn("flex items-center gap-5", !catalogue && "lg:hidden")}>
         <MobileNavigation />
-        <CloseButton aria-label="Home" as={Link} href={"/" as Route}>
+        <Link aria-label="Home" href={"/" as Route} onClick={closeMobileNav}>
           <Logo className="h-7 w-auto" variant="monogram" />
-        </CloseButton>
+        </Link>
       </div>
       <div className="flex items-center gap-5">
         <nav className="hidden md:block">
