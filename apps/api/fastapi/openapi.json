@@ -13646,7 +13646,7 @@
           "hr-attendance"
         ],
         "summary": "List phone clock punches awaiting approval",
-        "description": "Pending phone punches of employees the caller supervises or reviews (named supervisor, or timesheet.approve in the department scope). Never includes the caller's own punches.",
+        "description": "Pending phone punches the caller may decide. Callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Approve and reject use the same rule.",
         "operationId": "hrListPendingClockPunches",
         "security": [
           {
@@ -13712,7 +13712,7 @@
           "hr-attendance"
         ],
         "summary": "Approve a phone clock punch",
-        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Only the employee's named supervisor or a timesheet.approve holder in scope; never the punching employee. Idempotent.",
+        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Allowed for: callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Idempotent.",
         "operationId": "hrApproveClockPunch",
         "security": [
           {
@@ -13770,7 +13770,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+            "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
           },
           "404": {
             "description": "Clock punch not found"
@@ -13838,7 +13838,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+            "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
           },
           "404": {
             "description": "Clock punch not found"

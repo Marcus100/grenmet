@@ -88,8 +88,21 @@ async def _require_subject(
     employment = await session.scalar(
         select(EmploymentRecord).where(EmploymentRecord.user_id == target)
     )
-    if employment is None or employment.department_id != department_id:
+    if employment is None:
         raise AppException("Employee does not belong to this roster department", 400)
+    if employment.department_id != department_id:
+        # After a transfer, the employee still records and submits their own
+        # shifts rostered under the old department, but only inside their
+        # organisation. Acting for someone else stays strictly department-bound.
+        roster_department = await session.get(Department, department_id)
+        if (
+            actor.id != target
+            or roster_department is None
+            or roster_department.organisation_id != employment.organisation_id
+        ):
+            raise AppException(
+                "Employee does not belong to this roster department", 400
+            )
     if actor.id != target and not await can_act_on_user(
         session=session, current_user=actor, target_user_id=target, permission_key=key
     ):
