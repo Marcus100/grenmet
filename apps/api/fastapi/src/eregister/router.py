@@ -226,7 +226,8 @@ async def create_register_observation(
         "superseded; `422` when the replacement SYNOP has errors. The "
         "replacement starts as a draft; saving it holds any queued WIS2 file of the "
         "replaced observation until the correction is accepted (the old file is "
-        "dropped) or rejected (the old file is released and the old observation returns to `accepted`). When its observer accepts it, a "
+        "dropped) or rejected (the old file is released and the old observation "
+        "returns to the state it had before). When its observer accepts it, a "
         "station-hour already sent to WIS2 is sent again marked as a correction. "
         "Requires `eregister.observe`, `eregister.qc` or `eregister.send`."
     ),
@@ -439,8 +440,8 @@ async def review_register_observation(
         "Moves a draft or qc_pending observation to rejected; a reason is "
         "required. Rejected observations are never sent or shown publicly. "
         "Rejecting a correction releases the held WIS2 file of the observation it "
-        "replaced and puts that observation back to `accepted` (live and "
-        "correctable again). Requires register staff access. Audited."
+        "replaced and puts that observation back to the state it had before the "
+        "correction (for example `accepted`), live and correctable again. Requires register staff access. Audited."
     ),
     responses=QC_RESPONSES,
 )
