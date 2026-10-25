@@ -211,6 +211,20 @@ async def test_a_read_group_starts_again(db_async: AsyncSession) -> None:
     assert len(await _rows(db_async, user, GROUPED)) == 2
 
 
+async def test_bell_off_grouped_repeats_still_email_each_time(
+    db_async: AsyncSession,
+) -> None:
+    # A hidden (bell off) row is never read, so folding into it would stop
+    # every later email for the group.
+    user = await make_user(db_async)
+    await _prefer(db_async, user, GROUPED, bell_enabled=False)
+    await _send(db_async, user, GROUPED, 1)
+    await _send(db_async, user, GROUPED, 2)
+
+    assert len(await _rows(db_async, user, GROUPED)) == 2
+    assert await _emails(db_async, user) == 2
+
+
 async def test_grouped_dedupe_key_counts_each_item_once(db_async: AsyncSession) -> None:
     user = await make_user(db_async)
     assert await _send(db_async, user, GROUPED, 1, dedupe_key="item:1") == 1

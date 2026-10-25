@@ -294,6 +294,9 @@ async def notify(
                     Notification.recipient_user_id.in_(active),
                     Notification.event_key == event_key,
                     Notification.read_at.is_(None),
+                    # A bell-off row is never seen or read; folding into it
+                    # would stop every later email for the group.
+                    Notification.in_bell.is_(True),
                     Notification.group_key.is_(None)
                     if group_key is None
                     else Notification.group_key == group_key,
