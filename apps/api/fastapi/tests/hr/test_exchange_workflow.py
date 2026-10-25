@@ -105,7 +105,7 @@ async def action(session, user, request, value):
         session=session,
         current_user=user,
         workflow_instance_id=request.workflow_instance_id,
-        action_in=WorkflowActionRequest(action=value),
+        action_in=WorkflowActionRequest(action=value, comments="Reviewed"),
     )
 
 

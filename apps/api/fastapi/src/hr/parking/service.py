@@ -15,7 +15,7 @@ from src.hr.exceptions import (
     HRValidationError,
     ParkingPermitNotFoundError,
 )
-from src.hr.models import EmploymentRecord, RequestStatus
+from src.hr.models import EDITABLE_STATUSES, EmploymentRecord, RequestStatus
 from src.hr.signatures import service as signature_service
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
@@ -128,7 +128,7 @@ async def editable_permit(
         raise ParkingPermitNotFoundError()
     if permit.submitted_by_user_id != actor.id:
         raise HRPermissionDeniedError("Only the reporter can edit this application")
-    if permit.status != RequestStatus.DRAFT:
+    if permit.status not in EDITABLE_STATUSES:
         raise HRValidationError("Only a draft application can be edited or submitted")
     return permit
 
