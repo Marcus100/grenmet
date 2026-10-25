@@ -127,14 +127,23 @@ export function classify(pr, shared = new Set(), required = null) {
     return row(pr, "behind dev", "author", "sync, one PR at a time");
   if (pending.length)
     return row(pr, "CI running", "nobody", `${pending.length} checks`);
-  // Promotions (dev to staging, staging to main) are never merged by the worker.
-  if (pr.baseRefName && pr.baseRefName !== DEV)
+  // Promotions (dev to staging, staging to main) are never merged by the worker,
+  // but a repo-wide failing required check still holds them back.
+  if (pr.baseRefName && pr.baseRefName !== DEV) {
+    if (blockers.length)
+      return row(
+        pr,
+        "blocked",
+        "nobody",
+        `waiting for a repo-wide fix: ${blockers.join(", ")}`
+      );
     return row(
       pr,
       "promotion ready",
       "owner",
       `you merge into ${pr.baseRefName}`
     );
+  }
   if (!labels.includes(REVIEW_LABEL))
     return row(pr, "needs review label", "author", `add ${REVIEW_LABEL}`);
   // A repo-wide failure still blocks the merge, whatever the reviews say.

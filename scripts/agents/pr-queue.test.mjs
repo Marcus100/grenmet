@@ -291,3 +291,21 @@ test("promotion PRs are the owner's to merge, whatever their title says", () => 
   const toDev = classify(pr({ baseRefName: "dev" }));
   assert.notEqual(toDev.needs, "owner");
 });
+
+test("a promotion PR is blocked, not ready, while a shared required check fails", () => {
+  const required = new Set(["CI Success"]);
+  const promotion = (number) =>
+    pr({
+      number,
+      baseRefName: "staging",
+      labels: [],
+      statusCheckRollup: [run_("CI Success", "FAILURE")],
+    });
+  const queue = buildQueue([1, 2, 3].map(promotion), required);
+  assert.deepEqual(queue.shared, ["CI Success"]);
+  for (const r of queue.rows) {
+    assert.deepEqual([r.state, r.needs], ["blocked", "nobody"]);
+    assert.ok(r.detail.includes("CI Success"));
+  }
+  assert.ok(render(queue).trim().endsWith("Needs you: nothing"));
+});
