@@ -257,6 +257,8 @@ function performReview(api, pr, kind, info, login) {
     api.publish(pr.head.sha, context, "success", description, pr.number);
   } catch (error) {
     api.publish(pr.head.sha, context, "failure", description, pr.number);
+    // The failure status is published, so the next run skips this revision.
+    if (error && typeof error === "object") error.reviewAttempted = true;
     throw error;
   }
 }
@@ -315,9 +317,10 @@ function reviewAndMerge(api, pr, options, requiredCi) {
   if (files.length === 0) throw new Error("Cannot review an empty file list.");
   const mergeBase = api.prepare(pr.head.sha, pr.base.sha);
   if (mergeBase !== pr.base.sha)
-    throw new Error(
-      "Integrate current dev and rerun verification before review."
-    );
+    return {
+      outcome: "waiting",
+      reason: "Integrate current dev and rerun verification before review.",
+    };
   const info = currentInfo(pr, files, mergeBase);
   performReview(api, pr, "code", info, login);
   const security = securityRequired(files);
@@ -349,6 +352,33 @@ function reviewAndMerge(api, pr, options, requiredCi) {
     reason:
       "Independent review and CI are current for the exact head and base.",
   };
+}
+
+/**
+ * Walks the candidates until one review task ran. One review per invocation
+ * bounds subscription use; wait for the next scheduled run rather than starting
+ * unbounded reviews or retries. A candidate that cannot be processed (stale
+ * base, API error) must not stop the PRs behind it, so errors are recorded and
+ * the walk continues, unless a review was already attempted for that revision.
+ * Returns the number of candidates that errored.
+ */
+export function processQueue(candidates, options, api, requiredCi, log) {
+  let errors = 0;
+  for (const candidate of candidates) {
+    let result;
+    try {
+      result = processPull(candidate, options, api, requiredCi);
+    } catch (error) {
+      errors++;
+      const reason = error instanceof Error ? error.message : String(error);
+      log(JSON.stringify({ pr: candidate, outcome: "error", reason }));
+      if (error && typeof error === "object" && error.reviewAttempted) break;
+      continue;
+    }
+    log(JSON.stringify({ pr: candidate, ...result }));
+    if (["merged", "reviewed", "ready"].includes(result.outcome)) break;
+  }
+  return errors;
 }
 
 export function requiredChecks(root) {
@@ -406,14 +436,14 @@ export function run(argv, root = ROOT, api = services(root)) {
     return 0;
   }
   try {
-    // One candidate per invocation bounds subscription use; wait for the next
-    // scheduled run rather than starting unbounded reviews or retries.
-    for (const candidate of candidates) {
-      const result = processPull(candidate, options, api, requiredChecks(root));
-      console.log(JSON.stringify({ pr: candidate, ...result }));
-      if (["merged", "reviewed", "ready"].includes(result.outcome)) break;
-    }
-    return 0;
+    const errors = processQueue(
+      candidates,
+      options,
+      api,
+      requiredChecks(root),
+      (line) => console.log(line)
+    );
+    return errors > 0 ? 1 : 0;
   } finally {
     release();
   }

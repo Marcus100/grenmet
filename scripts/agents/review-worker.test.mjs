@@ -6,6 +6,7 @@ import {
   ciBlockers,
   eligible,
   processPull,
+  processQueue,
   reviewPaths,
   securityRequired,
   statusMatches,
@@ -176,8 +177,78 @@ test("unintegrated base, another owner's claim and dry-run make no model calls",
   assert.equal(processPull(588, {}, api, CI).outcome, "waiting");
   api.claim = () => ({ claimed: true });
   api.prepare = () => "c".repeat(40);
-  assert.throws(() => processPull(588, {}, api, CI));
+  const stale = processPull(588, {}, api, CI);
+  assert.equal(stale.outcome, "waiting");
+  assert.ok(stale.reason.includes("Integrate current dev"));
   assert.ok(!calls.some((call) => call.startsWith("review:")));
+  assert.equal(calls.at(-1), "release");
+});
+
+const headOf = (number) => String(number).padStart(40, "1");
+
+function queueApi({ stale = [], broken = [], code = 0 } = {}) {
+  const store = [];
+  const reviewed = [];
+  const api = {
+    login: () => "reviewer",
+    pull: (number) => {
+      if (broken.includes(number)) throw new Error(`pull ${number} failed`);
+      return { ...PR, number, head: { ...PR.head, sha: headOf(number) } };
+    },
+    files: () => ["docs/example.md"],
+    checks: () => CHECKS,
+    statuses: (head) => store.filter((status) => status.head === head),
+    claim: () => ({ claimed: true }),
+    release: () => ({ released: true }),
+    prepare: (head) =>
+      stale.some((number) => head === headOf(number)) ? "c".repeat(40) : BASE,
+    review: (number, kind, info) => {
+      reviewed.push(`${number}:${kind}`);
+      return { code, receipt: createReviewReceipt(info, CLEAN) };
+    },
+    publish: (head, context, state, description) =>
+      store.unshift({
+        head,
+        context,
+        state,
+        description,
+        creator: { login: "reviewer" },
+      }),
+    merge: () => undefined,
+  };
+  return { api, reviewed };
+}
+
+test("a stale PR at the front of the queue cannot starve the ready PR behind it", () => {
+  const { api, reviewed } = queueApi({ stale: [1] });
+  const lines = [];
+  const errors = processQueue([1, 2], {}, api, CI, (line) => lines.push(line));
+  assert.equal(errors, 0);
+  assert.deepEqual(reviewed, ["2:code"]);
+  const [first, second] = lines.map((line) => JSON.parse(line));
+  assert.deepEqual([first.pr, first.outcome], [1, "waiting"]);
+  assert.deepEqual([second.pr, second.outcome], [2, "reviewed"]);
+});
+
+test("a candidate that errors before any review does not stop the queue", () => {
+  const { api, reviewed } = queueApi({ broken: [1] });
+  const lines = [];
+  const errors = processQueue([1, 2], {}, api, CI, (line) => lines.push(line));
+  assert.equal(errors, 1);
+  assert.deepEqual(reviewed, ["2:code"]);
+  const [first, second] = lines.map((line) => JSON.parse(line));
+  assert.deepEqual([first.pr, first.outcome], [1, "error"]);
+  assert.ok(first.reason.includes("pull 1 failed"));
+  assert.deepEqual([second.pr, second.outcome], [2, "reviewed"]);
+});
+
+test("after a failed review the queue stops: one review per invocation", () => {
+  const { api, reviewed } = queueApi({ code: 1 });
+  const lines = [];
+  const errors = processQueue([1, 2], {}, api, CI, (line) => lines.push(line));
+  assert.equal(errors, 1);
+  assert.deepEqual(reviewed, ["1:code"]);
+  assert.equal(lines.length, 1);
 });
 
 test("a cached success must come from the trusted issuer and exact base; latest failure wins", () => {
