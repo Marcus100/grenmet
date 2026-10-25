@@ -370,6 +370,7 @@ function reviewAndMerge(api, pr, options, requiredCi, state) {
     outcome: options.merge && !latest.draft ? "merged" : "reviewed",
     reason:
       "Independent review and CI are current for the exact head and base.",
+    reviewAttempted: state.reviewStarted,
   };
 }
 
@@ -394,8 +395,9 @@ export function processQueue(candidates, options, api, requiredCi, log) {
       if (error && typeof error === "object" && error.reviewAttempted) break;
       continue;
     }
-    log(JSON.stringify({ pr: candidate, ...result }));
-    if (["merged", "reviewed", "ready"].includes(result.outcome)) break;
+    const { reviewAttempted, ...loggedResult } = result;
+    log(JSON.stringify({ pr: candidate, ...loggedResult }));
+    if (["merged", "ready"].includes(result.outcome) || reviewAttempted) break;
   }
   return errors;
 }
