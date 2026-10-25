@@ -92,12 +92,8 @@ const VAULT_REFERENCE =
 // Shapes the shared redactor does not cover (this repo uses Stripe keys).
 const EXTRA_SECRET_SHAPE =
   /sk_(?:live|test)_[A-Za-z0-9]{8,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;
-const EXTRA_SECRET_SHAPES =
-  /sk_(?:live|test)_[A-Za-z0-9]{8,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/g;
 const JWT_SHAPE =
   /(?:^|[^\w-])eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}(?=$|[^\w-])/;
-const JWT_SHAPES =
-  /(?:^|[^\w-])eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}(?=$|[^\w-])/g;
 const AUTH_TOKEN_FIELD =
   /["']?(?:access_token|refresh_token|id_token)["']?\s*:/i;
 const PR_NUMBER = /^\d+$/;
@@ -105,9 +101,16 @@ const CHATGPT_LOGIN = /^Logged in using ChatGPT\b/im;
 const CODEX_DIAGNOSTIC_LINE =
   /^\s*(?:ERROR(?:\s|:)|WARN(?:ING)?(?:\s|:)|warning:)/i;
 const STDERR_LINE_BREAK = /\r?\n/;
-const CODEX_STDERR_URL = /https?:\/\/[^\s?#]+[^\s]*/gi;
-const URL_QUERY_OR_FRAGMENT = /[?#].*$/;
-const HOME_PATH = /\/home\/[^/\s]+/g;
+const CODEX_DIAGNOSTIC_CATEGORIES = [
+  ["workspace routing failure", /workspace routing|routing discovery/i],
+  ["model refresh failure", /model.{0,40}refresh|refresh.{0,40}model/i],
+  ["timeout", /\btimeout\b|\btimed out\b/i],
+  [
+    "network failure",
+    /connection refused|connect(?:ion)? failed|network unreachable|dns|resolve host/i,
+  ],
+  ["sandbox failure", /sandbox|seccomp|namespace/i],
+];
 
 function isWithin(child, parent) {
   const path = relative(resolve(parent), resolve(child));
@@ -117,32 +120,19 @@ function isWithin(child, parent) {
   );
 }
 
-/** Keep useful Codex failure diagnostics out of the journal without logging prompts or raw output. */
+/** Report fixed diagnostic categories without copying arbitrary stderr payloads to the journal. */
 export function codexDiagnosticStderr(stderr) {
   if (typeof stderr !== "string") return "";
   const lines = stderr
-    .replaceAll(String.fromCharCode(27), "")
     .split(STDERR_LINE_BREAK)
-    .filter((line) => CODEX_DIAGNOSTIC_LINE.test(line))
-    .map((line) => {
-      let safe = redactSecrets(line)
-        .replace(EXTRA_SECRET_SHAPES, "[REDACTED_SECRET]")
-        .replace(JWT_SHAPES, "[REDACTED_SECRET]")
-        .replace(CODEX_STDERR_URL, (url) =>
-          url.replace(URL_QUERY_OR_FRAGMENT, "")
-        )
-        .replace(HOME_PATH, "[home]");
-      safe = [...safe]
-        .map((character) => {
-          const code = character.codePointAt(0);
-          return code < 32 || code === 127 ? " " : character;
-        })
-        .join("");
-      return safe.trim().slice(0, 500);
-    })
-    .filter(Boolean)
-    .slice(-MAX_CODEX_DIAGNOSTIC_LINES);
-  return lines.join("\n").slice(-MAX_CODEX_DIAGNOSTIC_CHARS);
+    .filter((line) => CODEX_DIAGNOSTIC_LINE.test(line));
+  const categories = CODEX_DIAGNOSTIC_CATEGORIES.filter(([, pattern]) =>
+    lines.some((line) => pattern.test(line))
+  ).map(([category]) => category);
+  return categories
+    .slice(0, MAX_CODEX_DIAGNOSTIC_LINES)
+    .join(", ")
+    .slice(0, MAX_CODEX_DIAGNOSTIC_CHARS);
 }
 
 /** Prefer a writable runtime directory outside the user's home. */
@@ -356,6 +346,8 @@ export function buildIsolatedCodexArgs({
     "--property=ProtectControlGroups=yes",
     "--property=LockPersonality=yes",
     // RestrictRealtime=yes breaks Codex workspace routing under WSL systemd.
+    // Keep RT scheduling unavailable through its per-user resource limit.
+    "--property=LimitRTPRIO=0",
     `--property=RuntimeMaxSec=${CODEX_TIMEOUT_MS / 1000}s`,
     "--property=TimeoutStopSec=5s",
   ];

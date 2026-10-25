@@ -143,6 +143,7 @@ test("the model process gets a private systemd filesystem namespace", () => {
       "--property=ProtectKernelLogs=yes",
       "--property=ProtectControlGroups=yes",
       "--property=LockPersonality=yes",
+      "--property=LimitRTPRIO=0",
       `--property=BindPaths=${workspace}`,
       `--property=ReadWritePaths=${workspace}`,
       `--property=BindPaths=${home}`,
@@ -665,12 +666,13 @@ test("the worktree and temp dir are released when codex fails", () => {
   assert.deepEqual(reviewTempDirs(), before);
 });
 
-test("Codex failures log bounded, redacted stderr diagnostics only", () => {
+test("Codex failures log safe diagnostic categories without stderr payloads", () => {
   const promptMarker = "PRIVATE_PROMPT_MARKER";
   const stderr = [
     `Read-only review prompt: ${promptMarker}`,
     `ERROR codex_models_manager: refresh failed Bearer ${FINE_GRAINED_PAT}`,
     "warning: workspace routing discovery failed at https://chatgpt.com/backend-api/ps/mcp?access_token=hidden-query-value",
+    "ERROR arbitrary-diagnostic-payload=DO_NOT_LOG timeout",
     `WARN ${"x".repeat(3000)}`,
   ].join("\n");
   const { spawn } = fakeSpawn({ codexStatus: 3, codexStderr: stderr });
@@ -678,10 +680,13 @@ test("Codex failures log bounded, redacted stderr diagnostics only", () => {
   const logged = errors.join("\n");
   assert.equal(code, 3);
   assert.ok(logged.includes("Codex stderr diagnostics:"));
-  assert.ok(logged.includes("workspace routing discovery failed"));
+  assert.ok(logged.includes("workspace routing failure"));
+  assert.ok(logged.includes("model refresh failure"));
+  assert.ok(logged.includes("timeout"));
   assert.ok(!logged.includes(promptMarker));
   assert.ok(!logged.includes("github_pat_"));
   assert.ok(!logged.includes("hidden-query-value"));
+  assert.ok(!logged.includes("DO_NOT_LOG"));
   assert.ok(Buffer.byteLength(logged, "utf8") < 2500);
   assert.ok(Buffer.byteLength(codexDiagnosticStderr(stderr), "utf8") <= 2000);
 });
