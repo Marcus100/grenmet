@@ -8,7 +8,7 @@ supersedes the old one (``supersedes_id``; the old row becomes ``superseded``
 and stays visible).
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -75,7 +75,8 @@ async def lock_key(
         select(
             func.pg_advisory_xact_lock(
                 func.hashtextextended(
-                    f"eregister-obs:{station_id}:{observed_at.isoformat()}:{kind}", 0
+                    f"eregister-obs:{station_id}:{observed_at.astimezone(UTC).isoformat()}:{kind}",
+                    0,
                 )
             )
         )

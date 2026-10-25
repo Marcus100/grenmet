@@ -268,6 +268,7 @@ async def _retire_superseded_wis2(
             ERegisterSend.target == TARGET_WIS2,
             ERegisterSend.status == STATUS_QUEUED,
         )
+        .order_by(ERegisterSend.id)
         .with_for_update()
     )
     for row in stale:

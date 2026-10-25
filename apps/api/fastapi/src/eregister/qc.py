@@ -152,6 +152,8 @@ async def transition(
         )
     except IntegrityError as exc:
         await register.rollback()
+        if action != "reopen":
+            raise
         raise HTTPException(
             409, "Another observation now holds this hour; correct that one instead"
         ) from exc
