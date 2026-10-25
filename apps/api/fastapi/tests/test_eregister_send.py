@@ -1412,3 +1412,55 @@ async def test_editing_a_reviewed_draft_clears_the_review(
     assert [o["id"] for o in (await client.get(unreviewed)).json()["observations"]] == [
         observation
     ]
+
+
+def test_migration_keeps_the_publish_gate_holder_when_resolving_duplicate_rows(
+    fresh_weather_engine: Engine,
+) -> None:
+    config = Config(str(ROOT / "src/eregister/alembic.ini"))
+    config.attributes["expected_database"] = fresh_weather_engine.url.database
+    older, newer = uuid4(), uuid4()
+    with fresh_weather_engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "eregister_0003")
+        for row, created in ((older, "2026-03-30 12:05"), (newer, "2026-03-30 12:30")):
+            connection.execute(
+                text(
+                    "INSERT INTO register_observations (id, station_id, kind,"
+                    " observed_at, body, state, actor_id, created_at) VALUES (:i,"
+                    " '78958', 'SYNOP', :at, '{}', 'accepted', 'x', :c)"
+                ),
+                {"i": row, "at": OBSERVED, "c": created + "+00"},
+            )
+        # The older row already published the hour.
+        connection.execute(
+            text(
+                "INSERT INTO observations.publish_gate (station_id, valid_hour,"
+                " source, observation_id) VALUES ('78958', :at, 'manual', :i)"
+            ),
+            {"at": OBSERVED, "i": older},
+        )
+        command.upgrade(config, "head")
+        states = dict(
+            connection.execute(
+                text("SELECT id, state FROM register_observations")
+            ).all()
+        )
+    assert states == {older: "accepted", newer: "superseded"}
+
+
+async def test_a_refused_hand_off_after_acceptance_is_explained_in_the_history(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    # No WIS2 sink and no recipients are configured here.
+    observation = await save(client)
+    assert (await client.post(qc_url(observation, "accept"))).status_code == 200
+    sends_ = (await client.get(qc_url(observation, "sends"))).json()["sends"]
+    by_target = {s["target"]: s for s in sends_}
+    assert {t: s["status"] for t, s in by_target.items()} == {
+        "wis2": "failed",
+        "email": "failed",
+    }
+    assert "not configured" in by_target["wis2"]["last_error"]
+    assert by_target["email"]["last_error"]

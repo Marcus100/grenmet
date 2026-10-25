@@ -409,10 +409,11 @@ async def dispatch_after_acceptance(
     """Queue WIS2 and email once the observer has accepted.
 
     Best effort: a hand-off that is refused (hour owned by the automatic source,
-    WIS2 or recipients not configured) is logged and never undoes the
-    acceptance. The send history shows what was queued.
+    WIS2 or recipients not configured) never undoes the acceptance. It is recorded
+    as a failed send with the reason, so the send history explains why nothing went.
     """
     for target in (TARGET_WIS2, TARGET_EMAIL):
+        item: SendableObservation | None = None
         try:
             item = await load_sendable(register, observation_id, require_accepted=True)
             if target == TARGET_WIS2:
@@ -434,7 +435,36 @@ async def dispatch_after_acceptance(
                 )
         except (HTTPException, AppException) as exc:
             await session.rollback()
-            detail = getattr(exc, "detail", None) or getattr(exc, "message", "")
+            detail = str(getattr(exc, "detail", None) or getattr(exc, "message", ""))
             logger.info(
                 "eRegister %s hand-off skipped after acceptance: %s", target, detail
             )
+            if item is not None and "already" not in detail:
+                await _record_refused(
+                    session, item, observation_id, target, detail, user
+                )
+
+
+async def _record_refused(
+    session: AsyncSession,
+    item: SendableObservation,
+    observation_id: UUID,
+    target: str,
+    reason: str,
+    user: User,
+) -> None:
+    """Keep a refused automatic hand-off visible in the send history."""
+    session.add(
+        ERegisterSend(
+            observation_id=observation_id,
+            station_id=item.station_id,
+            observed_at=item.observed_at.astimezone(UTC).replace(tzinfo=None),
+            target=target,
+            status=STATUS_FAILED,
+            attempts=0,
+            last_error=reason[:1000],
+            detail={"refused": True},
+            created_by=user.id,
+        )
+    )
+    await session.commit()
