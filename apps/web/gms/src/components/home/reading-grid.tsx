@@ -21,6 +21,7 @@ import {
   WindArrowDownIcon,
   WindIcon,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import type { PressureTrend, Reading, ReadingIcon } from "@/lib/hero-readings";
 import { cn } from "@/lib/utils";
 
@@ -80,6 +81,22 @@ function Trend({ trend }: { trend: PressureTrend }) {
 }
 
 /**
+ * A reading the register does not carry yet shows a dash; screen readers
+ * still hear "Not available yet" (sr-only), so the gap is announced in words.
+ */
+function valueText(reading: Reading): ReactNode {
+  if (!reading.unavailable) {
+    return reading.value;
+  }
+  return (
+    <>
+      <span aria-hidden="true">—</span>
+      <span className="sr-only">{reading.value}</span>
+    </>
+  );
+}
+
+/**
  * The sky hero's reading grid: each item is an icon, the value (with an
  * optional small qualifier), then its label. Two columns on phones, more as
  * the panel widens. Air quality spans the row on phones, its level as the
@@ -127,7 +144,7 @@ export function ReadingGrid({
                   "font-normal text-body-sm text-gm-text-inverse/85 leading-body-sm lg:text-body-base lg:leading-body-base"
               )}
             >
-              {quality ? reading.tag : reading.value}
+              {quality ? reading.tag : valueText(reading)}
               {reading.trend && <Trend trend={reading.trend} />}
             </dd>
             {reading.detail && (
