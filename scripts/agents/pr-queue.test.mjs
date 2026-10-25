@@ -10,6 +10,8 @@ import {
   render,
   requiredContexts,
   run,
+  statusIssuers,
+  TRUSTED_STATUS_LOGIN,
 } from "./pr-queue.mjs";
 
 const run_ = (name, conclusion = "SUCCESS", status = "COMPLETED") => ({
@@ -32,7 +34,13 @@ function pr(overrides = {}) {
     isDraft: false,
     mergeStateStatus: "CLEAN",
     labels: LABEL,
+    files: [{ path: "apps/web/gms/src/example.ts" }],
+    changedFiles: 1,
     statusCheckRollup: [run_("CI Success")],
+    factoryIssuers: {
+      "Factory review": TRUSTED_STATUS_LOGIN,
+      "Factory security review": TRUSTED_STATUS_LOGIN,
+    },
     ...overrides,
   };
 }
@@ -45,6 +53,48 @@ test("check runs and commit statuses map to pass, fail, pending or skip", () => 
   assert.equal(checkResult(status("a", "SUCCESS")), "pass");
   assert.equal(checkResult(status("a", "PENDING")), "pending");
   assert.equal(checkResult(status("a", "FAILURE")), "fail");
+});
+
+test("spoofed pending and failed Factory statuses never decide who must fix a PR", () => {
+  for (const state of ["PENDING", "FAILURE"]) {
+    const result = classify(
+      pr({
+        factoryIssuers: { "Factory review": "intruder" },
+        statusCheckRollup: [
+          run_("CI Success"),
+          status("Factory review", state),
+        ],
+      })
+    );
+    assert.equal(result.state, "review not verified");
+  }
+});
+
+test("owner routing uses complete changed files even without a title marker", () => {
+  const statusCheckRollup = [
+    run_("CI Success"),
+    status("Factory review", "SUCCESS"),
+    status("Factory security review", "SUCCESS"),
+  ];
+  for (const path of [
+    "package.json",
+    ".github/workflows/check.yml",
+    ".husky/pre-push",
+    "apps/api/fastapi/src/auth/permissions.py",
+  ]) {
+    const result = classify(pr({ files: [{ path }], statusCheckRollup }));
+    assert.deepEqual(
+      [result.state, result.needs],
+      ["reviewed, ready", "owner"]
+    );
+  }
+  for (const files of [undefined, [], [{ path: "apps/web/gms/src/a.ts" }]]) {
+    const result = classify(pr({ files, changedFiles: 2, statusCheckRollup }));
+    assert.deepEqual(
+      [result.state, result.needs],
+      ["ownership unknown", "owner"]
+    );
+  }
 });
 
 test("a draft, a failing check and a stale branch each name who must act", () => {
@@ -302,4 +352,146 @@ test("a PR with a failing required check is never ready, shared or not", () => {
       assert.deepEqual([r.state, r.needs], ["CI failing", "author"], base);
     assert.ok(render(queue).trim().endsWith("Needs you: nothing"));
   }
+});
+
+test("a passing Factory status from anyone but the review App is not trusted", () => {
+  const both = [
+    status("Factory review", "SUCCESS"),
+    status("Factory security review", "SUCCESS"),
+  ];
+  const forged = classify(
+    pr({
+      statusCheckRollup: [run_("CI Success"), ...both],
+      factoryIssuers: {
+        "Factory review": "someone-else",
+        "Factory security review": TRUSTED_STATUS_LOGIN,
+      },
+    })
+  );
+  assert.deepEqual(
+    [forged.state, forged.needs],
+    ["review not verified", "owner"]
+  );
+  assert.ok(forged.detail.includes("do not merge on it"));
+  // Unknown issuers (not fetched) are never trusted either.
+  const unknown = classify(
+    pr({
+      statusCheckRollup: [run_("CI Success"), ...both],
+      factoryIssuers: undefined,
+    })
+  );
+  assert.equal(unknown.state, "review not verified");
+});
+
+test("the newest status per context decides who created it", () => {
+  assert.deepEqual(
+    statusIssuers([
+      { context: "Factory review", creator: { login: TRUSTED_STATUS_LOGIN } },
+      { context: "Factory review", creator: { login: "old-user" } },
+      { context: "Factory security review", creator: null },
+    ]),
+    { "Factory review": TRUSTED_STATUS_LOGIN, "Factory security review": "" }
+  );
+});
+
+test("run looks up who created the Factory statuses of each PR", () => {
+  const out = [];
+  const calls = [];
+  const rows = [
+    pr({
+      number: 7,
+      headRefOid: "abc123",
+      factoryIssuers: undefined,
+      statusCheckRollup: [
+        run_("CI Success"),
+        status("Factory review", "SUCCESS"),
+        status("Factory security review", "SUCCESS"),
+      ],
+    }),
+  ];
+  run(
+    ["--json"],
+    () => rows,
+    (text) => out.push(text),
+    null,
+    (repo, sha) => {
+      calls.push([repo, sha]);
+      return [
+        {
+          context: "Factory review",
+          state: "success",
+          creator: { login: TRUSTED_STATUS_LOGIN },
+        },
+        {
+          context: "Factory security review",
+          state: "success",
+          creator: { login: "intruder" },
+        },
+      ];
+    }
+  );
+  assert.deepEqual(calls, [["Marcus100/grenmet", "abc123"]]);
+  assert.equal(JSON.parse(out[0]).rows[0].state, "review not verified");
+});
+
+test("run uses the same newest snapshot for status state and issuer", () => {
+  const out = [];
+  run(
+    ["--json"],
+    () => [
+      pr({
+        headRefOid: "abc123",
+        statusCheckRollup: [
+          run_("CI Success"),
+          status("Factory review", "SUCCESS"),
+          status("Factory security review", "SUCCESS"),
+        ],
+      }),
+    ],
+    (text) => out.push(text),
+    null,
+    () => [
+      {
+        context: "Factory review",
+        state: "failure",
+        creator: { login: TRUSTED_STATUS_LOGIN },
+      },
+      {
+        context: "Factory review",
+        state: "success",
+        creator: { login: TRUSTED_STATUS_LOGIN },
+      },
+      {
+        context: "Factory security review",
+        state: "success",
+        creator: { login: TRUSTED_STATUS_LOGIN },
+      },
+    ]
+  );
+  assert.equal(JSON.parse(out[0]).rows[0].state, "review failed");
+});
+
+test("a failed status lookup is reported as unverified rather than waiting for review", () => {
+  const out = [];
+  run(
+    ["--json"],
+    () => [
+      pr({
+        headRefOid: "abc123",
+        statusCheckRollup: [
+          run_("CI Success"),
+          status("Factory review", "SUCCESS"),
+          status("Factory security review", "SUCCESS"),
+        ],
+      }),
+    ],
+    (text) => out.push(text),
+    null,
+    () => null
+  );
+  const result = JSON.parse(out[0]).rows[0];
+  assert.deepEqual(
+    [result.state, result.needs],
+    ["review not verified", "owner"]
+  );
 });

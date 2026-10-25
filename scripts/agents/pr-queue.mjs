@@ -8,6 +8,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { ownerMergeRequired } from "./review-worker.mjs";
 
 const DEFAULT_REPO = "Marcus100/grenmet";
 const RULESETS_PATH = fileURLToPath(
@@ -19,12 +20,15 @@ const OWNER_MERGE = /OWNER-MERGE/;
 const FACTORY_CODE = "Factory review";
 const FACTORY_SECURITY = "Factory security review";
 const FACTORY = new Set([FACTORY_CODE, FACTORY_SECURITY]);
+// Only statuses created by the dedicated review App count: a status with the same
+// name from any other user or integration is not trusted (AGENTS.md).
+export const TRUSTED_STATUS_LOGIN = "grenmet-factory-review-status[bot]";
 // A failing check seen on this many open PRs is a repo-wide blocker, not
 // something each PR's author should chase separately.
 const SHARED_FAILURE_MIN_PRS = 3;
 const SHARED_SHOWN = 4;
 const FIELDS =
-  "number,title,isDraft,mergeStateStatus,labels,statusCheckRollup,headRefName,baseRefName";
+  "number,title,isDraft,mergeStateStatus,labels,statusCheckRollup,headRefName,baseRefName,headRefOid,files,changedFiles";
 
 function checkName(check) {
   return check.name ?? check.context;
@@ -61,7 +65,12 @@ function collect(pr, required = null) {
     const result = checkResult(check);
     seen.add(name);
     if (FACTORY.has(name)) {
-      factory[name] = result;
+      // A pass only counts when the creator is verified to be the review App;
+      // `factoryIssuers` maps each status name to its creator's login.
+      factory[name] =
+        pr.factoryIssuers?.[name] === TRUSTED_STATUS_LOGIN
+          ? result
+          : "untrusted";
       continue;
     }
     const counts = required === null || required.has(name);
@@ -98,15 +107,35 @@ function row(pr, state, needs, detail = "") {
   return { number: pr.number, title: pr.title, state, needs, detail };
 }
 
-function reviewRow(pr, factory, ownerMerge) {
+function reviewRow(pr, factory, ownerMerge, filesKnown) {
   const code = factory[FACTORY_CODE];
   const security = factory[FACTORY_SECURITY];
+  if (code === "untrusted" || security === "untrusted")
+    return row(
+      pr,
+      "review not verified",
+      "owner",
+      `a Factory status was not created by ${TRUSTED_STATUS_LOGIN}; do not merge on it`
+    );
   if (code === "fail" || security === "fail")
     return row(pr, "review failed", "author", "read the review comment");
-  if (code === "pass" && security === "pass")
+  if (code === "pass" && security === "pass") {
+    if (!(ownerMerge || filesKnown))
+      return row(
+        pr,
+        "ownership unknown",
+        "owner",
+        "complete changed-file list unavailable"
+      );
     return ownerMerge
       ? row(pr, "reviewed, ready", "owner", "owner-only files: you merge")
-      : row(pr, "reviewed, ready", "worker", "the worker merges it");
+      : row(
+          pr,
+          "reviewed, ready",
+          "worker",
+          "the worker rechecks scope before merging"
+        );
+  }
   if (code === "pending" || security === "pending")
     return row(pr, "in review", "nobody", "the review worker is on it");
   return row(pr, "waiting for review", "nobody", "the worker picks it up");
@@ -122,7 +151,18 @@ export function classify(pr, shared = new Set(), required = null) {
     shared.has(name) ? `${name} (also on ${SHARED_FAILURE_MIN_PRS}+ PRs)` : name
   );
   const labels = (pr.labels ?? []).map((label) => label.name);
-  const ownerMerge = OWNER_MERGE.test(pr.title);
+  const paths = Array.isArray(pr.files)
+    ? pr.files
+        .map((file) => file?.path)
+        .filter((path) => typeof path === "string" && path.length > 0)
+    : [];
+  const filesKnown =
+    Number.isSafeInteger(pr.changedFiles) &&
+    pr.changedFiles >= 0 &&
+    paths.length === pr.changedFiles &&
+    paths.length === pr.files?.length &&
+    new Set(paths).size === paths.length;
+  const ownerMerge = OWNER_MERGE.test(pr.title) || ownerMergeRequired(paths);
   if (pr.isDraft) return row(pr, "draft", "author");
   if (pr.mergeStateStatus === "DIRTY")
     return row(pr, "merge conflict", "author", "resolve the conflicts");
@@ -142,7 +182,7 @@ export function classify(pr, shared = new Set(), required = null) {
     );
   if (!labels.includes(REVIEW_LABEL))
     return row(pr, "needs review label", "author", `add ${REVIEW_LABEL}`);
-  const result = reviewRow(pr, factory, ownerMerge);
+  const result = reviewRow(pr, factory, ownerMerge, filesKnown);
   if (advisory.length)
     result.detail = `${result.detail}; non-required failing: ${advisory.join(", ")}`;
   return result;
@@ -198,6 +238,31 @@ export function requiredContexts(path = RULESETS_PATH) {
   }
 }
 
+/** The creator login of the newest status per context on a commit. */
+export function statusIssuers(statuses) {
+  const issuers = {};
+  for (const item of statuses) {
+    // GitHub lists the newest status first for each context.
+    if (!(item.context in issuers))
+      issuers[item.context] = item.creator?.login ?? "";
+  }
+  return issuers;
+}
+
+function fetchStatuses(repo, sha) {
+  const result = spawnSync(
+    "gh",
+    ["api", `repos/${repo}/commits/${sha}/statuses`, "--paginate", "--slurp"],
+    { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 }
+  );
+  if (result.status !== 0) return null;
+  try {
+    return JSON.parse(result.stdout).flat();
+  } catch {
+    return null;
+  }
+}
+
 function fetchPulls(repo) {
   const result = spawnSync(
     "gh",
@@ -216,11 +281,43 @@ export function run(
   argv,
   fetch = fetchPulls,
   log = console.log,
-  required = requiredContexts()
+  required = requiredContexts(),
+  statuses = fetchStatuses
 ) {
   const repoFlag = argv.indexOf("--repo");
   const repo = repoFlag === -1 ? DEFAULT_REPO : argv[repoFlag + 1];
-  const queue = buildQueue(fetch(repo), required);
+  const prs = fetch(repo);
+  for (const pr of prs) {
+    const hasFactory = (pr.statusCheckRollup ?? []).some((check) =>
+      FACTORY.has(checkName(check))
+    );
+    if (hasFactory && pr.headRefOid) {
+      const snapshot = statuses(repo, pr.headRefOid);
+      if (!Array.isArray(snapshot)) {
+        // Preserve the rollup only as unverified evidence, never as approval.
+        pr.factoryIssuers = {};
+        continue;
+      }
+      pr.factoryIssuers = statusIssuers(snapshot);
+      const latest = new Map();
+      for (const check of snapshot)
+        if (FACTORY.has(check.context) && !latest.has(check.context))
+          latest.set(check.context, {
+            ...check,
+            __typename: "StatusContext",
+            state: check.state.toUpperCase(),
+          });
+      // State and issuer must come from the same read. A newer trusted pending
+      // status must not validate an older success from the GraphQL rollup.
+      pr.statusCheckRollup = [
+        ...(pr.statusCheckRollup ?? []).filter(
+          (check) => !FACTORY.has(checkName(check))
+        ),
+        ...latest.values(),
+      ];
+    }
+  }
+  const queue = buildQueue(prs, required);
   log(argv.includes("--json") ? JSON.stringify(queue, null, 2) : render(queue));
   return 0;
 }
