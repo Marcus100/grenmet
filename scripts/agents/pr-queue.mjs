@@ -97,6 +97,8 @@ export function classify(pr, shared = new Set()) {
   const labels = (pr.labels ?? []).map((label) => label.name);
   const ownerMerge = OWNER_MERGE.test(pr.title);
   if (pr.isDraft) return row(pr, "draft", "author");
+  if (pr.mergeStateStatus === "DIRTY")
+    return row(pr, "merge conflict", "author", "resolve the conflicts");
   if (own.length) return row(pr, "CI failing", "author", own.join(", "));
   if (pr.mergeStateStatus === "BEHIND")
     return row(pr, "behind dev", "author", "sync, one PR at a time");
@@ -104,10 +106,15 @@ export function classify(pr, shared = new Set()) {
     return row(pr, "CI running", "nobody", `${pending.length} checks`);
   if (!labels.includes(REVIEW_LABEL))
     return row(pr, "needs review label", "author", `add ${REVIEW_LABEL}`);
-  const result = reviewRow(pr, factory, ownerMerge);
+  // A repo-wide failure still blocks the merge, whatever the reviews say.
   if (blockers.length)
-    result.detail = `${result.detail}; repo-wide blocker: ${blockers.join(", ")}`;
-  return result;
+    return row(
+      pr,
+      "blocked",
+      "nobody",
+      `waiting for a repo-wide fix: ${blockers.join(", ")}`
+    );
+  return reviewRow(pr, factory, ownerMerge);
 }
 
 export function buildQueue(prs) {

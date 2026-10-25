@@ -97,6 +97,43 @@ test("a check failing on several PRs is a repo-wide blocker, not each author's",
   assert.deepEqual(queue.shared, ["Rulesets match snapshot"]);
 });
 
+test("a shared CI failure keeps a reviewed PR blocked, not ready", () => {
+  const reviewed = (number) => ({
+    ...pr({
+      number,
+      statusCheckRollup: [
+        run_("Rulesets match snapshot", "FAILURE"),
+        status("Factory review", "SUCCESS"),
+        status("Factory security review", "SUCCESS"),
+      ],
+    }),
+    mergeStateStatus: "BLOCKED",
+  });
+  const queue = buildQueue([1, 2, 3].map(reviewed));
+  for (const r of queue.rows) {
+    assert.deepEqual([r.state, r.needs], ["blocked", "nobody"]);
+    assert.ok(r.detail.includes("Rulesets match snapshot"));
+  }
+  assert.ok(render(queue).trim().endsWith("Needs you: nothing"));
+});
+
+test("a merge conflict is the author's job even when reviews passed", () => {
+  const conflicted = classify({
+    ...pr({
+      statusCheckRollup: [
+        run_("CI Success"),
+        status("Factory review", "SUCCESS"),
+        status("Factory security review", "SUCCESS"),
+      ],
+    }),
+    mergeStateStatus: "DIRTY",
+  });
+  assert.deepEqual(
+    [conflicted.state, conflicted.needs],
+    ["merge conflict", "author"]
+  );
+});
+
 test("owner items sort first and the footer says what needs you", () => {
   const ready = {
     ...pr({
