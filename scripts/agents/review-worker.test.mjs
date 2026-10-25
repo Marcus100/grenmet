@@ -186,7 +186,14 @@ test("unintegrated base, another owner's claim and dry-run make no model calls",
 
 const headOf = (number) => String(number).padStart(40, "1");
 
-function queueApi({ stale = [], broken = [], code = 0 } = {}) {
+function queueApi({
+  stale = [],
+  broken = [],
+  code = 0,
+  mergeThrows = [],
+  releaseThrows = [],
+  ciFailsAfterReview = false,
+} = {}) {
   const store = [];
   const reviewed = [];
   const api = {
@@ -196,10 +203,16 @@ function queueApi({ stale = [], broken = [], code = 0 } = {}) {
       return { ...PR, number, head: { ...PR.head, sha: headOf(number) } };
     },
     files: () => ["docs/example.md"],
-    checks: () => CHECKS,
+    checks: () =>
+      ciFailsAfterReview && reviewed.length > 0
+        ? CHECKS.map((check) => ({ ...check, conclusion: "FAILURE" }))
+        : CHECKS,
     statuses: (head) => store.filter((status) => status.head === head),
     claim: () => ({ claimed: true }),
-    release: () => ({ released: true }),
+    release: (number) => {
+      if (releaseThrows.includes(number)) throw new Error("release failed");
+      return { released: true };
+    },
     prepare: (head) =>
       stale.some((number) => head === headOf(number)) ? "c".repeat(40) : BASE,
     review: (number, kind, info) => {
@@ -214,7 +227,9 @@ function queueApi({ stale = [], broken = [], code = 0 } = {}) {
         description,
         creator: { login: "reviewer" },
       }),
-    merge: () => undefined,
+    merge: (number) => {
+      if (mergeThrows.includes(number)) throw new Error("merge failed");
+    },
   };
   return { api, reviewed };
 }
@@ -303,4 +318,39 @@ test("a successful explicit retry supersedes failure for later automatic merging
   assert.equal(processPull(588, { retry: true }, api, CI).outcome, "reviewed");
   assert.equal(processPull(588, { merge: true }, api, CI).outcome, "merged");
   assert.equal(calls.filter((call) => call.startsWith("review:")).length, 2);
+});
+
+test("an error after a review started stops the queue: merge, post-review check or release", () => {
+  for (const [name, setup] of [
+    ["merge throws", { mergeThrows: [1] }],
+    ["CI turns red after the review", { ciFailsAfterReview: true }],
+    ["releasing the claim throws", { releaseThrows: [1] }],
+  ]) {
+    const { api, reviewed } = queueApi(setup);
+    const lines = [];
+    const errors = processQueue([1, 2], { merge: true }, api, CI, (line) =>
+      lines.push(line)
+    );
+    assert.equal(errors, 1, name);
+    assert.deepEqual(
+      reviewed,
+      ["1:code"],
+      `${name}: PR 2 must not be reviewed`
+    );
+    assert.equal(lines.length, 1, name);
+    assert.equal(JSON.parse(lines[0]).outcome, "error", name);
+  }
+});
+
+test("an error before any review still lets the next PR be reviewed", () => {
+  const { api, reviewed } = queueApi({ broken: [1] });
+  const errors = processQueue(
+    [1, 2],
+    { merge: true },
+    api,
+    CI,
+    () => undefined
+  );
+  assert.equal(errors, 1);
+  assert.deepEqual(reviewed, ["2:code"]);
 });

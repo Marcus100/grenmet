@@ -299,18 +299,36 @@ export function processPull(number, options, api, requiredCi) {
     };
   if (!api.claim(number).claimed)
     return { outcome: "waiting", reason: "Another worker owns this PR." };
+  // Set once a review begins, so every later failure (post-review checks, the
+  // merge call, releasing the claim) stops the queue, not only a failed review.
+  const state = { reviewStarted: false };
+  let outcome;
+  let failure;
   try {
-    return reviewAndMerge(api, pr, options, requiredCi);
-  } finally {
+    outcome = reviewAndMerge(api, pr, options, requiredCi, state);
+  } catch (error) {
+    failure = markReviewAttempted(error, state);
+  }
+  try {
     const release = api.release(number);
     if (release.reason === "refused")
       console.error(
         `Claim for PR ${number} could not be released; maintainer recovery is required.`
       );
+  } catch (error) {
+    failure ??= markReviewAttempted(error, state);
   }
+  if (failure) throw failure;
+  return outcome;
 }
 
-function reviewAndMerge(api, pr, options, requiredCi) {
+function markReviewAttempted(error, state) {
+  const failure = error instanceof Error ? error : new Error(String(error));
+  if (state.reviewStarted) failure.reviewAttempted = true;
+  return failure;
+}
+
+function reviewAndMerge(api, pr, options, requiredCi, state) {
   const login = api.login();
   if (!login) throw new Error("Cannot establish the trusted status issuer.");
   const files = api.files(pr.number);
@@ -322,6 +340,7 @@ function reviewAndMerge(api, pr, options, requiredCi) {
       reason: "Integrate current dev and rerun verification before review.",
     };
   const info = currentInfo(pr, files, mergeBase);
+  state.reviewStarted = true;
   performReview(api, pr, "code", info, login);
   const security = securityRequired(files);
   if (security) performReview(api, pr, "security", info, login);
