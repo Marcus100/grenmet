@@ -688,7 +688,7 @@ export function DailyStatusEditor() {
               filename={hrFormFilename(
                 "status_report",
                 Boolean(submission?.signed_document_id),
-                String(form.getFieldValue("date") ?? "")
+                values.date
               )}
               payload={
                 departmentId
