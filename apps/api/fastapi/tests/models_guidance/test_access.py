@@ -82,7 +82,7 @@ async def test_entitled_member_reads_the_meteogram_with_attribution(
     )
     assert response.status_code == 200, response.text
     body = response.json()
-    assert body["run_time"].startswith("2026-10-18T00:00:00")
+    assert body["run_time"].startswith(RUN.isoformat())
     assert body["series"]["temperature_c"] == [27.0, 28.0]
     assert body["series"]["precipitation_mm"] == [None, 2.0]
     assert body["units"]["temperature_c"] == "degC"
@@ -232,7 +232,7 @@ async def test_catalogue_lists_points_and_latest_runs(
     body = response.json()
     assert [p["key"] for p in body["points"]] == ["mbia"]
     latest = {m["key"]: m["latest_run_time"] for m in body["models"]}
-    assert latest["ifs"].startswith("2026-10-18T00:00:00")
+    assert latest["ifs"].startswith(RUN.isoformat())
     assert latest["gfs"] is None
 
 

@@ -89,13 +89,13 @@ async def load_sendable(
         require_accepted or eregister_settings.SEND_REQUIRE_ACCEPTED
     ) and state not in SENDABLE_ACCEPTED_STATES:
         raise HTTPException(409, "Only QC-accepted observations can be sent")
-    workbook = encode.workbook_from_body(data["body"] or {})
-    _, decoded = rules.validate_synop(workbook)
     issues = entries.validation_issues(data["body"] or {}, data["observed_at"])
     errors = [issue for issue in issues if issue.severity == "error"]
     if errors:
         detail = "; ".join(f"{issue.field}: {issue.message}" for issue in errors[:3])
         raise HTTPException(422, f"Observation does not pass validation: {detail}")
+    workbook = encode.workbook_from_body(data["body"] or {})
+    _, decoded = rules.validate_synop(workbook)
     return SendableObservation(data, workbook, decoded)
 
 
@@ -123,7 +123,7 @@ async def _claim(
         label = "emailed" if target == TARGET_EMAIL else "queued for WIS2"
         raise HTTPException(
             409,
-            f"This observation was already {label}. Send again with resend=true.",
+            f"{REPEAT_SEND_PREFIX}{label}. Send again with resend=true.",
         )
 
 
@@ -249,6 +249,122 @@ def wis2_unavailable_reason(item: SendableObservation) -> str | None:
     return None
 
 
+async def retire_queued_wis2(session: AsyncSession, superseded: list[UUID]) -> None:
+    """Stop queued WIS2 files of observations a correction replaces.
+
+    The original and its correction go to one filename, so a retry of the original
+    after the correction was delivered would overwrite the corrected data. The row
+    lock waits for a delivery already in progress; that file then goes out first and
+    the correction follows it. Same transaction as the correction's own row.
+    """
+    if not superseded:
+        return
+    stale = await session.scalars(
+        select(ERegisterSend)
+        .where(
+            ERegisterSend.observation_id.in_(superseded),
+            ERegisterSend.target == TARGET_WIS2,
+            ERegisterSend.status == STATUS_QUEUED,
+        )
+        .order_by(ERegisterSend.id)
+        .with_for_update()
+    )
+    for row in stale:
+        row.status = STATUS_FAILED
+        row.next_retry_at = None
+        row.last_error = "Replaced by a correction before it was delivered"
+        row.detail = {k: v for k, v in (row.detail or {}).items() if k != "content"}
+
+
+async def lock_wis2_hour(
+    session: AsyncSession, station_id: str, observed_at: datetime
+) -> None:
+    """Serialise WIS2 queueing for one station-hour across a correction chain.
+
+    An original and its correction write one filename, so they must not interleave:
+    without this an original paused after claiming the gate could commit its send row
+    after the correction retired the originals, and be delivered over it. Held to the
+    commit of the send row.
+    """
+    hour = observed_at.astimezone(UTC).replace(minute=0, second=0, microsecond=0)
+    await session.execute(
+        select(
+            func.pg_advisory_xact_lock(
+                func.hashtextextended(
+                    f"eregister-wis2:{station_id}:{hour.isoformat()}", 0
+                )
+            )
+        )
+    )
+
+
+REPEAT_SEND_PREFIX = "This observation was already "
+HELD_UNTIL = datetime(9999, 12, 31)  # next_retry_at is a naive UTC column
+HELD_NOTE = "Held while a correction is pending"
+
+
+async def hold_after_correction(
+    session: AsyncSession,
+    *,
+    station_id: str,
+    observed_at: datetime,
+    superseded_id: UUID,
+) -> None:
+    """Hold the queued WIS2 file of an observation a correction has replaced.
+
+    The correction may never be accepted; until it is decided, the replaced reading
+    must not go out on a retry. Accepting the correction retires the held file
+    (``retire_queued_wis2``); rejecting it releases the file (``release_held_wis2``).
+    Takes the same per-hour lock as queueing, so a file being delivered finishes
+    first and one being queued is seen. Idempotent.
+    """
+    await lock_wis2_hour(session, station_id, observed_at)
+    held = await session.scalars(
+        select(ERegisterSend)
+        .where(
+            ERegisterSend.observation_id == superseded_id,
+            ERegisterSend.target == TARGET_WIS2,
+            ERegisterSend.status == STATUS_QUEUED,
+        )
+        .order_by(ERegisterSend.id)
+        .with_for_update()
+    )
+    for row in held:
+        row.next_retry_at = HELD_UNTIL
+        row.last_error = HELD_NOTE
+        row.detail = {**(row.detail or {}), "held_for_correction": True}
+    await session.commit()
+
+
+async def release_held_wis2(
+    session: AsyncSession,
+    *,
+    station_id: str,
+    observed_at: datetime,
+    original_id: UUID,
+) -> None:
+    """Let a held file go out again because its correction was rejected."""
+    await lock_wis2_hour(session, station_id, observed_at)
+    held = await session.scalars(
+        select(ERegisterSend)
+        .where(
+            ERegisterSend.observation_id == original_id,
+            ERegisterSend.target == TARGET_WIS2,
+            ERegisterSend.status == STATUS_QUEUED,
+        )
+        .order_by(ERegisterSend.id)
+        .with_for_update()
+    )
+    for row in held:
+        if (row.detail or {}).get("held_for_correction"):
+            row.next_retry_at = None
+            row.last_error = None
+            row.detail = {
+                k: v for k, v in row.detail.items() if k != "held_for_correction"
+            }
+    await session.commit()
+
+
 async def queue_wis2(
     *,
     session: AsyncSession,
@@ -262,6 +378,15 @@ async def queue_wis2(
     reason = wis2_unavailable_reason(item)
     if reason:
         raise HTTPException(409, reason)
+    await lock_wis2_hour(session, item.station_id, item.observed_at)
+    # Recheck under the lock: a correction may have replaced this observation while
+    # this request waited.
+    current = await register.scalar(
+        text("SELECT state FROM register_observations WHERE id = :id"),
+        {"id": str(observation_id)},
+    )
+    if current in NOT_SENDABLE_STATES:
+        raise HTTPException(409, f"A {current} observation cannot be sent")
     # The gate comes first: an hour owned by the automatic source is never
     # queued, and a station-hour is claimed by one observation only. A WIS2
     # file is never queued twice, so `resend` does not apply here.
@@ -284,6 +409,7 @@ async def queue_wis2(
     )
     try:
         await _claim(session, observation_id, TARGET_WIS2, resend=False)
+        await retire_queued_wis2(session, superseded)
     except BaseException:
         if claimed:
             await gate.release_hour(
@@ -379,10 +505,14 @@ async def dispatch_after_acceptance(
     """Queue WIS2 and email once the observer has accepted.
 
     Best effort: a hand-off that is refused (hour owned by the automatic source,
-    WIS2 or recipients not configured) is logged and never undoes the
-    acceptance. The send history shows what was queued.
+    WIS2 or recipients not configured) never undoes the acceptance. It is recorded
+    as a failed send with the reason, so the send history explains why nothing went.
     """
+    # A refused hand-off rolls the session back, which expires the user object; keep
+    # the id so the failed-send record and the next hand-off do not touch it.
+    actor_id = user.id
     for target in (TARGET_WIS2, TARGET_EMAIL):
+        item: SendableObservation | None = None
         try:
             item = await load_sendable(register, observation_id, require_accepted=True)
             if target == TARGET_WIS2:
@@ -404,7 +534,43 @@ async def dispatch_after_acceptance(
                 )
         except (HTTPException, AppException) as exc:
             await session.rollback()
-            detail = getattr(exc, "detail", None) or getattr(exc, "message", "")
+            detail = str(getattr(exc, "detail", None) or getattr(exc, "message", ""))
             logger.info(
                 "eRegister %s hand-off skipped after acceptance: %s", target, detail
             )
+            if user in session:
+                await session.refresh(user)
+            if item is not None and not detail.startswith(REPEAT_SEND_PREFIX):
+                try:
+                    await _record_refused(
+                        session, item, observation_id, target, detail, actor_id
+                    )
+                except Exception:
+                    # The acceptance is already committed; never turn it into a 500.
+                    await session.rollback()
+                    logger.exception("Could not record the refused %s hand-off", target)
+
+
+async def _record_refused(
+    session: AsyncSession,
+    item: SendableObservation,
+    observation_id: UUID,
+    target: str,
+    reason: str,
+    actor_id: UUID,
+) -> None:
+    """Keep a refused automatic hand-off visible in the send history."""
+    session.add(
+        ERegisterSend(
+            observation_id=observation_id,
+            station_id=item.station_id,
+            observed_at=item.observed_at.astimezone(UTC).replace(tzinfo=None),
+            target=target,
+            status=STATUS_FAILED,
+            attempts=0,
+            last_error=reason[:1000],
+            detail={"refused": True},
+            created_by=actor_id,
+        )
+    )
+    await session.commit()

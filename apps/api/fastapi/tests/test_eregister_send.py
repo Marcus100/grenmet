@@ -1319,3 +1319,314 @@ async def test_upsert_is_idempotent_and_flags_non_hourly_rows() -> None:
         {"source": "sutron", "value": 22.5, "is_hourly": True},
         {"source": "sutron", "value": 23.0, "is_hourly": False},
     ]
+
+
+@pytest.mark.usefixtures("recipients")
+async def test_a_failed_original_cannot_overwrite_its_correction_on_retry(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    assert (await client.post(qc_url(original, "accept"))).status_code == 200
+    delivered: list[str] = []
+
+    def unreachable(_key: str, _content: str) -> None:
+        raise OSError("wis2box unreachable")
+
+    config = Wis2boxConfig(WIS2BOX_INCOMING_DIR=str(incoming), WIS2BOX_MAX_ATTEMPTS=5)
+    await publisher.process_due_publications(
+        session=db_async, sink=unreachable, config=config
+    )
+    fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    fixed = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    )
+    replacement = fixed.json()["id"]
+    assert (await client.post(qc_url(replacement, "accept"))).status_code == 200
+
+    def recording(_key: str, content: str) -> None:
+        delivered.append(content)
+
+    # Both retries are now due; only the correction may still be delivered.
+    for log in await db_async.scalars(select(ERegisterSend)):
+        log.next_retry_at = None
+    await db_async.commit()
+    await publisher.process_due_publications(
+        session=db_async, sink=recording, config=config
+    )
+    assert len(delivered) == 1
+    assert "290" in delivered[0] or "302.15" in delivered[0]
+    old = (await client.get(qc_url(original, "sends"))).json()["sends"]
+    wis2 = [s for s in old if s["target"] == "wis2"]
+    assert [s["status"] for s in wis2] == ["failed"]
+    assert "correction" in (wis2[0]["last_error"] or "")
+
+
+async def test_reopening_a_rejected_hour_that_was_keyed_again_is_a_conflict(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    first = await save(client)
+    await as_staff(db_async)
+    rejected = await client.post(
+        qc_url(first, "reject"), json={"reason": "Wrong station"}
+    )
+    assert rejected.status_code == 200
+    second = await client.post(OBS_URL, json=record())
+    assert second.status_code == 201
+    # The hour is occupied again: reopening the first would break the one-live-row rule.
+    reopen = await client.post(
+        qc_url(first, "reopen"), json={"reason": "Observer corrected it"}
+    )
+    assert reopen.status_code == 409, reopen.text
+    assert "holds this hour" in reopen.json()["detail"]
+    state = {
+        o["id"]: o["state"] for o in (await client.get(OBS_URL)).json()["observations"]
+    }
+    assert state[first] == "rejected"
+
+
+async def test_editing_a_reviewed_draft_clears_the_review(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, observer = send_client
+    first = await client.post(OBS_URL, json=record())
+    observation = first.json()["id"]
+    await as_staff(db_async, "eregister.send")
+    reviewed = await client.post(
+        qc_url(observation, "review"), json={"outcome": "reviewed"}
+    )
+    assert reviewed.json()["review_outcome"] == "reviewed"
+    # The observer changes the reading after the review.
+    app.dependency_overrides[get_browser_or_token_user] = lambda: observer
+    edited = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    again = await client.post(OBS_URL, json=record(body=edited))
+    assert again.status_code == 200, again.text
+    body = again.json()
+    assert body["review_outcome"] is None
+    assert body["reviewed_by"] is None
+    assert body["reviewed_at"] is None
+    unreviewed = "/api/v1/eregister/observations?reviewed=false"
+    assert [o["id"] for o in (await client.get(unreviewed)).json()["observations"]] == [
+        observation
+    ]
+
+
+def test_migration_keeps_the_publish_gate_holder_when_resolving_duplicate_rows(
+    fresh_weather_engine: Engine,
+) -> None:
+    config = Config(str(ROOT / "src/eregister/alembic.ini"))
+    config.attributes["expected_database"] = fresh_weather_engine.url.database
+    older, newer = uuid4(), uuid4()
+    with fresh_weather_engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "eregister_0003")
+        for row, created in ((older, "2026-03-30 12:05"), (newer, "2026-03-30 12:30")):
+            connection.execute(
+                text(
+                    "INSERT INTO register_observations (id, station_id, kind,"
+                    " observed_at, body, state, actor_id, created_at) VALUES (:i,"
+                    " '78958', 'SYNOP', :at, '{}', 'accepted', 'x', :c)"
+                ),
+                {"i": row, "at": OBSERVED, "c": created + "+00"},
+            )
+        # The older row already published the hour.
+        connection.execute(
+            text(
+                "INSERT INTO observations.publish_gate (station_id, valid_hour,"
+                " source, observation_id) VALUES ('78958', :at, 'manual', :i)"
+            ),
+            {"at": OBSERVED, "i": older},
+        )
+        command.upgrade(config, "head")
+        states = dict(
+            connection.execute(
+                text("SELECT id, state FROM register_observations")
+            ).all()
+        )
+    assert states == {older: "accepted", newer: "superseded"}
+
+
+async def test_a_refused_hand_off_after_acceptance_is_explained_in_the_history(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    # No WIS2 sink and no recipients are configured here.
+    observation = await save(client)
+    assert (await client.post(qc_url(observation, "accept"))).status_code == 200
+    sends_ = (await client.get(qc_url(observation, "sends"))).json()["sends"]
+    by_target = {s["target"]: s for s in sends_}
+    assert {t: s["status"] for t, s in by_target.items()} == {
+        "wis2": "failed",
+        "email": "failed",
+    }
+    assert "not configured" in by_target["wis2"]["last_error"]
+    assert by_target["email"]["last_error"]
+
+
+@pytest.mark.usefixtures("recipients")
+async def test_an_original_paused_after_claiming_the_hour_cannot_overtake_its_correction(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    claimed, proceed = asyncio.Event(), asyncio.Event()
+    real_claim = gate.claim_manual_hour
+    calls = 0
+
+    async def paused_claim(*args: Any, **kwargs: Any) -> Any:
+        nonlocal calls
+        calls += 1
+        result = await real_claim(*args, **kwargs)
+        if calls == 1:
+            claimed.set()
+            await proceed.wait()
+        return result
+
+    monkeypatch.setattr(gate, "claim_manual_hour", paused_claim)
+    accepting = asyncio.create_task(client.post(qc_url(original, "accept")))
+    await asyncio.wait_for(claimed.wait(), 10)
+    fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    # The correction waits for the original's queueing (same station-hour lock).
+    fixing = asyncio.create_task(
+        client.post(
+            qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+        )
+    )
+    await asyncio.sleep(0.5)
+    assert not fixing.done()
+    proceed.set()
+    assert (await asyncio.wait_for(accepting, 20)).status_code == 200
+    fixed = await asyncio.wait_for(fixing, 20)
+    replacement = fixed.json()["id"]
+    accepted = await client.post(qc_url(replacement, "accept"))
+    assert accepted.status_code == 200
+
+    config = Wis2boxConfig(WIS2BOX_INCOMING_DIR=str(incoming), WIS2BOX_MAX_ATTEMPTS=5)
+    delivered: list[str] = []
+
+    def recording(_key: str, content: str) -> None:
+        delivered.append(content)
+
+    await publisher.process_due_publications(
+        session=db_async, sink=recording, config=config
+    )
+    # Only the correction goes out; the original never lands over it.
+    assert len(delivered) == 1
+    assert ",301.15," not in delivered[0]
+
+
+async def test_list_can_find_the_record_for_one_hour_and_bounds_the_offset(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    observation = await save(client)
+    exact = await client.get(OBS_URL, params={"observed_at": OBSERVED.isoformat()})
+    assert [o["id"] for o in exact.json()["observations"]] == [observation]
+    other = await client.get(
+        OBS_URL, params={"observed_at": (OBSERVED + timedelta(hours=1)).isoformat()}
+    )
+    assert other.json()["observations"] == []
+    too_far = await client.get(OBS_URL, params={"offset": 9223372036854775808})
+    assert too_far.status_code == 422
+
+
+async def test_an_overlong_workbook_value_is_a_422_with_the_field_named(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    response = await client.post(
+        OBS_URL,
+        json=record(body={**FULL_ROW, "day": "123", "source": "eregister-workbook"}),
+    )
+    assert response.status_code == 422, response.text
+    issues = response.json()["detail"]["issues"]
+    assert [(i["field"], i["code"]) for i in issues] == [("day", "invalid_value")]
+
+
+async def test_a_refused_hand_off_survives_the_rollback_that_expires_the_user(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, user = send_client
+    observation = await save(client)
+    await set_state(observation, "accepted")
+    # The user object belongs to the session that is rolled back after a refusal.
+    db_async.add(user)
+    async with asynccontextmanager(app.dependency_overrides[get_session])() as register:
+        await sends.dispatch_after_acceptance(
+            session=db_async,
+            register=register,
+            observation_id=UUID(observation),
+            user=user,
+        )
+    logs = (await db_async.scalars(select(ERegisterSend))).all()
+    assert {(log.target, log.status) for log in logs} == {
+        ("wis2", "failed"),
+        ("email", "failed"),
+    }
+    assert {log.created_by for log in logs} == {user.id}
+
+
+@pytest.mark.usefixtures("recipients")
+async def test_a_pending_correction_holds_the_replaced_retry(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    assert (await client.post(qc_url(original, "accept"))).status_code == 200
+
+    def unreachable(_key: str, _content: str) -> None:
+        raise OSError("wis2box unreachable")
+
+    config = Wis2boxConfig(WIS2BOX_INCOMING_DIR=str(incoming), WIS2BOX_MAX_ATTEMPTS=5)
+    await publisher.process_due_publications(
+        session=db_async, sink=unreachable, config=config
+    )
+    queued = (
+        await db_async.scalars(
+            select(ERegisterSend).where(ERegisterSend.target == "wis2")
+        )
+    ).one()
+    assert (queued.status, queued.attempts) == ("queued", 1)
+    # A correction is saved but its observer never accepts it.
+    fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    fixed = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    )
+    assert fixed.status_code == 201, fixed.text
+    delivered: list[str] = []
+
+    def recording(_key: str, content: str) -> None:
+        delivered.append(content)
+
+    await publisher.process_due_publications(
+        session=db_async, sink=recording, config=config
+    )
+    assert delivered == []
+    await db_async.refresh(queued)
+    # Held, not dropped: the correction may still be rejected.
+    assert queued.status == "queued"
+    assert "correction" in (queued.last_error or "")
+
+    # Rejecting the correction releases the original, which goes out on the next run.
+    await as_staff(db_async)
+    rejected = await client.post(
+        qc_url(fixed.json()["id"], "reject"), json={"reason": "Not needed"}
+    )
+    assert rejected.status_code == 200, rejected.text
+    await db_async.refresh(queued)
+    assert queued.next_retry_at is None
+    await publisher.process_due_publications(
+        session=db_async, sink=recording, config=config
+    )
+    assert len(delivered) == 1
+    assert ",301.15," in delivered[0]
+    await db_async.refresh(queued)
+    assert queued.status == "sent"
