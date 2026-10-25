@@ -174,14 +174,16 @@ async def test_refresh_all_isolates_failures_and_prunes(
     def fetcher_for(model: str):
         if model == "ifs":
             raise RuntimeError("ECMWF unreachable")
-        return FakeFetcher(RUN, tmp_path)
+        return FakeFetcher(recent, tmp_path)
 
+    # Relative to now: a fixed date ages past the retention window and is pruned.
+    recent = datetime.now(UTC).replace(tzinfo=None, minute=0, second=0, microsecond=0)
     monkeypatch.setattr(providers, "fetcher_for", fetcher_for)
     outcomes = await ingest.refresh_all(async_session_factory)
     assert outcomes == {"ifs": "error", "gfs": "stored"}
     db_async.expire_all()
     runs = (await db_async.scalars(select(ModelGuidanceRun))).all()
-    assert [r.run_time for r in runs] == [RUN]  # the 30-day-old run was pruned
+    assert [r.run_time for r in runs] == [recent]  # the 30-day-old run was pruned
 
 
 async def test_store_run_ignores_runs_without_data(db_async: AsyncSession):
