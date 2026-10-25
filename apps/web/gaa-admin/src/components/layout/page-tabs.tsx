@@ -57,6 +57,9 @@ export function PageRouteTabs({
             <TabsTrigger
               aria-current={active ? "page" : undefined}
               key={item.value}
+              // A link, not a button: Enter and Space follow Base UI's link
+              // handling and no native-button warning is logged.
+              nativeButton={false}
               render={<Link href={item.href} />}
               value={item.value}
             >
