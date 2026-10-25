@@ -1,19 +1,30 @@
-"""Render a CAP alert to a simple PDF (pure-python via fpdf2).
+"""Render a CAP alert to a simple PDF with WeasyPrint.
 
-fpdf2 is chosen over weasyprint to avoid system library dependencies (pango/cairo)
-in the container image. fpdf is imported lazily so the module is importable even if
-the optional dependency is absent.
+Every PDF in the API goes through WeasyPrint (see ``src/hr/signatures`` for the
+shared font). WeasyPrint is imported lazily so importing this module stays cheap.
 """
 
 from __future__ import annotations
 
 from datetime import datetime
+from html import escape
+from pathlib import Path
 from typing import Any
 
+_FONT = (
+    Path(__file__).parents[1] / "hr" / "signatures" / "fonts" / "NotoSans-Regular.ttf"
+)
 
-def _latin1(text: str) -> str:
-    """Core PDF fonts are latin-1 only; replace unmappable characters."""
-    return text.encode("latin-1", "replace").decode("latin-1")
+_STYLE = f"""
+@font-face {{ font-family: Document; src: url('{_FONT.as_uri()}'); }}
+@page {{ size: A4; margin: 16mm; }}
+body {{ font-family: Document, sans-serif; font-size: 10pt; line-height: 1.4; color: #111827; }}
+h1 {{ font-size: 18pt; margin: 0 0 3mm; }}
+h2 {{ font-size: 13pt; margin: 6mm 0 1mm; }}
+p {{ margin: 0 0 1.5mm; overflow-wrap: anywhere; white-space: pre-wrap; }}
+.meta {{ font-size: 9pt; color: #4b5563; }}
+.instruction {{ font-style: italic; }}
+"""
 
 
 def render_alert_pdf(
@@ -21,31 +32,12 @@ def render_alert_pdf(
 ) -> bytes:
     """Render an alert summary PDF. ``info_blocks`` items use keys:
     headline, event, severity, urgency, certainty, description, instruction."""
-    from fpdf import FPDF  # lazy import (optional dependency)
+    from weasyprint import HTML
 
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
-
-    pdf.set_font("Helvetica", style="B", size=18)
-    pdf.cell(0, 10, _latin1("CAP Alert"), new_x="LMARGIN", new_y="NEXT")
-
-    pdf.set_font("Helvetica", size=10)
-    pdf.cell(0, 6, _latin1(f"Identifier: {identifier}"), new_x="LMARGIN", new_y="NEXT")
-    pdf.cell(
-        0,
-        6,
-        _latin1(f"Sent: {sent.isoformat()}"),
-        new_x="LMARGIN",
-        new_y="NEXT",
-    )
-    pdf.ln(4)
-
+    sections: list[str] = []
     for block in info_blocks:
-        pdf.set_font("Helvetica", style="B", size=13)
         headline = block.get("headline") or block.get("event") or "Alert"
-        pdf.multi_cell(0, 7, _latin1(str(headline)), new_x="LMARGIN", new_y="NEXT")
-        pdf.set_font("Helvetica", size=9)
+        parts = [f"<h2>{escape(str(headline))}</h2>"]
         meta = " | ".join(
             f"{label}: {block[key]}"
             for label, key in (
@@ -56,25 +48,24 @@ def render_alert_pdf(
             if block.get(key)
         )
         if meta:
-            pdf.multi_cell(0, 6, _latin1(meta), new_x="LMARGIN", new_y="NEXT")
+            parts.append(f'<p class="meta">{escape(meta)}</p>')
         if block.get("description"):
-            pdf.set_font("Helvetica", size=10)
-            pdf.multi_cell(
-                0,
-                6,
-                _latin1(str(block["description"])),
-                new_x="LMARGIN",
-                new_y="NEXT",
-            )
+            parts.append(f"<p>{escape(str(block['description']))}</p>")
         if block.get("instruction"):
-            pdf.set_font("Helvetica", style="I", size=10)
-            pdf.multi_cell(
-                0,
-                6,
-                _latin1(f"Instruction: {block['instruction']}"),
-                new_x="LMARGIN",
-                new_y="NEXT",
+            parts.append(
+                f'<p class="instruction">Instruction: {escape(str(block["instruction"]))}</p>'
             )
-        pdf.ln(3)
+        sections.append("".join(parts))
 
-    return bytes(pdf.output())
+    html = (
+        '<!doctype html><html><head><meta charset="utf-8">'
+        f"<style>{_STYLE}</style></head><body>"
+        "<h1>CAP Alert</h1>"
+        f'<p class="meta">Identifier: {escape(identifier)}</p>'
+        f'<p class="meta">Sent: {escape(sent.isoformat())}</p>'
+        f"{''.join(sections)}</body></html>"
+    )
+    pdf = HTML(string=html).write_pdf()
+    if not isinstance(pdf, bytes):
+        raise TypeError("WeasyPrint returned no PDF bytes")
+    return pdf
