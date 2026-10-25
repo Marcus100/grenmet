@@ -2,8 +2,7 @@
 // checkout, never from a PR checkout. Only labelled, same-repository PRs into
 // dev are polled; --pr selects one explicitly. At most one new candidate gets
 // model review per invocation; cached approvals may be merged before that.
-// GitHub status publishing trusts the authenticated gh identity. Anyone with
-// that credential can publish statuses: this is not a separate signing service.
+// Review statuses are published by a dedicated App and matched to its bot login.
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -26,8 +25,9 @@ export const CONTEXTS = {
   security: "Factory security review",
 };
 const SHA = /^[a-f0-9]{40}$/;
+const APP_BOT_LOGIN = /^[a-z0-9-]+\[bot\]$/;
 const FACTORY_PATH =
-  /^(?:\.(?:claude|codex|agents|github|husky)\/|scripts\/(?:agents|guardrails|verification|ci|production)\/|infra\/github\/)|(?:^|\/)AGENTS\.md$/;
+  /^(?:\.(?:claude|codex|agents|github|husky)\/|docs\/agents\/|scripts\/(?:agents|guardrails|verification|ci|production)\/|infra\/github\/)|(?:^|\/)AGENTS\.md$/;
 const OWNER_MERGE_PATHS = [
   /^\.claude\//,
   /^\.codex\//,
@@ -42,7 +42,6 @@ const OWNER_MERGE_PATHS = [
   /(?:^|\/)AGENTS\.md$/,
 ];
 const ROOT = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
-const PUBLIC_URL = "https://github.com/Marcus100/grenmet/pull/";
 const COMMAND_TIMEOUT_MS = 60_000;
 const MERGE_CONFLICT = /conflict|not mergeable/i;
 const MAX_TRUSTED_INSTRUCTIONS = 128 * 1024;
@@ -193,6 +192,40 @@ export function statusMatches(statuses, context, base, scope, login) {
   );
 }
 
+export function reviewStatusAppLogin(
+  root = ROOT,
+  spawn = spawnSync,
+  env = process.env
+) {
+  const appId = assertReviewStatusApp(root, env);
+  const statusEnv = { ...env };
+  for (const key of ["GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN"])
+    delete statusEnv[key];
+  const result = spawn(
+    process.execPath,
+    [join(root, "scripts/agents/github-app-status.mjs")],
+    {
+      cwd: root,
+      encoding: "utf8",
+      input: JSON.stringify({
+        action: "identity",
+        expectedAppId: String(appId),
+        repoRoot: root,
+      }),
+      env: statusEnv,
+      timeout: COMMAND_TIMEOUT_MS,
+      maxBuffer: 16 * 1024 * 1024,
+    }
+  );
+  const login = result.stdout?.trim();
+  if (
+    result.status !== 0 ||
+    !(typeof login === "string" && APP_BOT_LOGIN.test(login))
+  )
+    throw new Error("Could not establish the configured GitHub App identity.");
+  return login;
+}
+
 export function ciBlockers(checks, required) {
   return required.filter((name) => {
     const matches = checks.filter(
@@ -236,11 +269,48 @@ function command(spawn, name, args, root, input) {
   return result.stdout?.trim() ?? "";
 }
 
-export function services(root = ROOT, spawn = spawnSync) {
+export function publishReviewStatusThroughApp(
+  root,
+  status,
+  spawn = spawnSync,
+  env = process.env
+) {
+  const appId = assertReviewStatusApp(root, env);
+  const statusEnv = { ...env };
+  for (const key of ["GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN"])
+    delete statusEnv[key];
+  const result = spawn(
+    process.execPath,
+    [join(root, "scripts/agents/github-app-status.mjs")],
+    {
+      cwd: root,
+      encoding: "utf8",
+      input: JSON.stringify({
+        action: "publish",
+        ...status,
+        expectedAppId: String(appId),
+        repoRoot: root,
+      }),
+      env: statusEnv,
+      timeout: COMMAND_TIMEOUT_MS,
+      maxBuffer: 16 * 1024 * 1024,
+    }
+  );
+  if (result.status !== 0)
+    throw new Error(
+      "GitHub App status publishing failed; no trusted review status was recorded."
+    );
+}
+
+export function services(root = ROOT, spawn = spawnSync, env = process.env) {
   const gh = (args, input) => command(spawn, "gh", args, root, input);
   const api = (path) => JSON.parse(gh(["api", `repos/${REPO}/${path}`]));
+  let trustedStatusLogin;
   return {
-    login: () => JSON.parse(gh(["api", "user"])).login,
+    login: () => {
+      trustedStatusLogin ??= reviewStatusAppLogin(root, spawn, env);
+      return trustedStatusLogin;
+    },
     list: () => {
       const pages = JSON.parse(
         gh([
@@ -290,17 +360,54 @@ export function services(root = ROOT, spawn = spawnSync) {
       return dependencyFirst(candidates, isAncestor);
     },
     pull: (number) => api(`pulls/${number}`),
-    files: (number) =>
-      reviewPaths(
-        JSON.parse(
-          gh([
-            "api",
-            "--paginate",
-            "--slurp",
-            `repos/${REPO}/pulls/${number}/files?per_page=100`,
-          ])
-        ).flat()
-      ),
+    files: (number) => {
+      const pages = JSON.parse(
+        gh([
+          "api",
+          "--paginate",
+          "--slurp",
+          `repos/${REPO}/pulls/${number}/files?per_page=100`,
+        ])
+      );
+      if (!Array.isArray(pages) || pages.some((page) => !Array.isArray(page)))
+        throw new Error(
+          "Could not verify the complete pull request file list; no review or merge attempted."
+        );
+      const files = pages.flat();
+      if (
+        files.some((file) => {
+          const previousFilename = file?.previous_filename;
+          const hasPreviousFilename = Object.hasOwn(
+            file ?? {},
+            "previous_filename"
+          );
+          return !(
+            file &&
+            typeof file.filename === "string" &&
+            file.filename.length > 0 &&
+            (!hasPreviousFilename ||
+              (typeof previousFilename === "string" &&
+                previousFilename.length > 0)) &&
+            (file.status !== "renamed" ||
+              (typeof previousFilename === "string" &&
+                previousFilename.length > 0))
+          );
+        })
+      )
+        throw new Error(
+          "Could not verify the complete pull request file list; no review or merge attempted."
+        );
+      return { count: files.length, paths: reviewPaths(files) };
+    },
+    diffFiles: (head, mergeBase) =>
+      command(
+        spawn,
+        "git",
+        ["diff", "--no-renames", "--name-only", "-z", mergeBase, head],
+        root
+      )
+        .split("\0")
+        .filter(Boolean),
     checks: (number) =>
       JSON.parse(
         gh([
@@ -379,21 +486,10 @@ export function services(root = ROOT, spawn = spawnSync) {
       return { code, receipt: readReviewReceipt(receiptPath(root, spawn)) };
     },
     publish: (head, context, state, description, number) =>
-      gh(
-        [
-          "api",
-          "--method",
-          "POST",
-          `repos/${REPO}/statuses/${head}`,
-          "--input",
-          "-",
-        ],
-        JSON.stringify({
-          state,
-          context,
-          description,
-          target_url: `${PUBLIC_URL}${number}`,
-        })
+      publishReviewStatusThroughApp(
+        root,
+        { head, context, state, description, number },
+        spawn
       ),
     merge: (number, head) =>
       gh([
@@ -589,13 +685,14 @@ function updateBranch(api, number) {
   }
 }
 
-function hasFailedReview(api, pr, info, options) {
+function hasFailedReview(api, pr, info, options, login) {
   if (options.retry) return false;
   const previous = api.statuses(pr.head.sha);
   return Object.entries(CONTEXTS).some(([kind, context]) => {
     const latest = previous.find((status) => status.context === context);
     return (
       latest?.state === "failure" &&
+      latest.creator?.login === login &&
       latest.description === statusDescription(info.mergeBase, kind)
     );
   });
@@ -635,10 +732,32 @@ function assertMergeScope(api, pr, info, requiredCi, login, security, strict) {
 function reviewAndMerge(api, pr, options, requiredCi, state) {
   const strict = options.strictStatusChecks ?? true;
   const login = api.login();
-  if (!login) throw new Error("Cannot establish the trusted status issuer.");
-  const files = api.files(pr.number);
-  if (files.length === 0) throw new Error("Cannot review an empty file list.");
+  if (!login) throw new Error("Cannot establish the trusted status App.");
   const mergeBase = api.prepare(pr.head.sha, pr.base.sha);
+  const fileList = api.files(pr.number);
+  if (
+    !(
+      Number.isSafeInteger(pr.changed_files) &&
+      Number.isSafeInteger(fileList?.count) &&
+      Array.isArray(fileList.paths)
+    ) ||
+    pr.changed_files !== fileList.count
+  )
+    throw new Error(
+      "Could not verify the complete pull request file list; no review or merge attempted."
+    );
+  const listedFiles = new Set(fileList.paths);
+  const pinnedFiles = api.diffFiles(pr.head.sha, mergeBase);
+  if (
+    !Array.isArray(pinnedFiles) ||
+    pinnedFiles.length !== listedFiles.size ||
+    pinnedFiles.some((file) => !listedFiles.has(file))
+  )
+    throw new Error(
+      "The pull request file list does not match the pinned head; no review or merge attempted."
+    );
+  const files = pinnedFiles;
+  if (files.length === 0) throw new Error("Cannot review an empty file list.");
   const impact = baseImpact(files, api.baseChanges(mergeBase, pr.base.sha));
   const stale = staleBaseOutcome(
     api,
@@ -651,7 +770,7 @@ function reviewAndMerge(api, pr, options, requiredCi, state) {
   );
   if (stale) return stale;
   const info = currentInfo(pr, files, mergeBase, impact);
-  if (hasFailedReview(api, pr, info, options))
+  if (hasFailedReview(api, pr, info, options, login))
     return {
       outcome: "waiting",
       reason:
@@ -792,6 +911,38 @@ export function strictStatusChecksRequired(root) {
   return required;
 }
 
+export function reviewStatusIntegrationId(checks) {
+  const reviewChecks = Object.values(CONTEXTS).map((context) =>
+    checks.find((check) => check.context === context)
+  );
+  if (
+    reviewChecks.some((check) => !Number.isSafeInteger(check?.integration_id))
+  )
+    throw new Error(
+      "Protect dev must pin both review status contexts to a GitHub App."
+    );
+  const ids = new Set(reviewChecks.map((check) => check.integration_id));
+  if (ids.size !== 1)
+    throw new Error(
+      "Protect dev must use one GitHub App for both review status contexts."
+    );
+  return reviewChecks[0].integration_id;
+}
+
+export function assertReviewStatusApp(root, env = process.env) {
+  const checks = devRuleset(root)?.rules.find(
+    (rule) => rule.type === "required_status_checks"
+  )?.parameters.required_status_checks;
+  if (!Array.isArray(checks))
+    throw new Error("Could not establish the required review status contexts.");
+  const integrationId = reviewStatusIntegrationId(checks);
+  if (env.GRENMET_REVIEW_STATUS_APP_ID !== String(integrationId))
+    throw new Error(
+      "Review-status GitHub App ID does not match the Protect dev ruleset."
+    );
+  return integrationId;
+}
+
 export function requiredChecks(root) {
   const contexts = devRuleset(root)
     ?.rules.find((rule) => rule.type === "required_status_checks")
@@ -828,6 +979,7 @@ export function run(argv, root = ROOT, api = services(root)) {
     includeDraft: values["include-draft"],
     dryRun: values["dry-run"],
   };
+  if (!options.dryRun) assertReviewStatusApp(root);
   const candidates = number === undefined ? api.list() : [number];
   if (!candidates.length) {
     console.log(
@@ -840,6 +992,7 @@ export function run(argv, root = ROOT, api = services(root)) {
     );
     return 0;
   }
+  if (!options.dryRun) api.login();
   const release = options.dryRun
     ? () => undefined
     : acquireReviewLock(`${receiptPath(root)}.worker`);

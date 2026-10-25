@@ -6,6 +6,7 @@ After=network-online.target
 Type=oneshot
 WorkingDirectory=%h/.local/share/grenmet-factory/runner
 ExecStart=/usr/bin/bash -lc 'exec node scripts/agents/review-worker.mjs --once --merge'
+EnvironmentFile=%h/.config/grenmet-factory/review-status-app.conf
 TimeoutStartSec=35min
 UMask=0077
 Restart=no

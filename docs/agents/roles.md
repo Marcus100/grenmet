@@ -15,9 +15,8 @@ Factory-control changes and high risk changes receive security review; other
 changes receive an explicit not-required result. A changed head or merge-base
 needs new review. A disjoint advance of `dev` may preserve a review when the
 merge-base and changed-file scope remain the same; overlapping changes trigger
-branch sync and fresh CI. Status trust rests on the authenticated GitHub
-identity running the worker; it is not cryptographic proof of a reviewer
-distinct from the author.
+branch sync and fresh CI. Status trust requires the App ID pinned in
+`Protect dev` and the verified GitHub App bot login that created each status.
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
@@ -221,9 +220,11 @@ Run the worker from a reviewed checkout and label eligible PRs `factory-review`.
 The legacy API workflow is disabled and its replacement is only a manual
 retirement notice. A key alone cannot enable the legacy script: it requires a
 separately approved positive API budget. Do not enable extra spending implicitly.
-Worker statuses use the local GitHub credential; anyone holding a repository
-write credential can publish statuses. A dedicated GitHub App can isolate that
-authority later. Never describe these statuses as cryptographic proof.
+The worker publishes review statuses through a dedicated GitHub App with only
+`statuses:write` access to this repository. `Protect dev` must pin both review
+contexts to that App's integration ID; the worker fails closed if the App and
+ruleset do not match. A user token cannot satisfy those pinned contexts. Keep
+the App private key outside the repository and every worktree.
 
 **Limits.** The reviewer sees the diff and the `AGENTS.md` rules, not the running
 system, and it can be wrong; treat findings as claims to check. The breaking

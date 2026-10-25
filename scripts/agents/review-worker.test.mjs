@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { createReviewReceipt } from "./review-receipt.mjs";
 import {
+  assertReviewStatusApp,
   CONTEXTS,
   ciBlockers,
   dependencyFirst,
@@ -10,9 +14,13 @@ import {
   ownerMergeRequired,
   processPull,
   processQueue,
+  publishReviewStatusThroughApp,
   reviewPaths,
+  reviewStatusAppLogin,
+  reviewStatusIntegrationId,
   securityRequired,
   services,
+  statusDescription,
   statusMatches,
   strictStatusChecksRequired,
   trustedReviewInstructions,
@@ -25,11 +33,19 @@ const PR = {
   number: 588,
   state: "open",
   draft: false,
+  changed_files: 1,
   head: { sha: HEAD, ref: "factory/example", repo: REPO },
   base: { sha: BASE, ref: "dev", repo: REPO },
   labels: [],
 };
 const CI = ["CI Success", "Build Web Apps"];
+const PIN_REVIEW_CONTEXTS = /pin both review status contexts/;
+const ONE_REVIEW_APP = /one GitHub App/;
+const STATUS_APP_MISMATCH = /does not match the Protect dev ruleset/;
+const INCOMPLETE_FILE_LIST = /complete pull request file list/;
+const FILE_LIST_HEAD_MISMATCH = /file list does not match the pinned head/;
+const APP_IDENTITY_UNAVAILABLE =
+  /Could not establish the configured GitHub App identity/;
 const CHECKS = CI.map((name) => ({
   name,
   status: "COMPLETED",
@@ -44,9 +60,11 @@ const CLEAN = {
 
 function fake({
   files = ["docs/example.md"],
+  pinnedFiles = files,
   code = 0,
   result = CLEAN,
   checks = CHECKS,
+  changedFiles = files.length,
   changed = false,
   baseTip = BASE,
   mergeBase = BASE,
@@ -61,11 +79,12 @@ function fake({
   const statuses = [];
   let pulls = 0;
   const api = {
-    login: () => "reviewer",
+    login: () => "review-status-app[bot]",
     pull: () => {
       pulls++;
       return {
         ...PR,
+        changed_files: changedFiles,
         labels: pulls >= labelsAfterPull ? labelsAfter : labels,
         base: {
           ...PR.base,
@@ -73,7 +92,8 @@ function fake({
         },
       };
     },
-    files: () => files,
+    files: () => ({ count: files.length, paths: files }),
+    diffFiles: () => pinnedFiles,
     checks: () => checks,
     statuses: () => statuses,
     claim: () => {
@@ -105,7 +125,7 @@ function fake({
         context,
         state,
         description,
-        creator: { login: "reviewer" },
+        creator: { login: "review-status-app[bot]" },
       });
     },
     merge: (number, head) => {
@@ -148,6 +168,166 @@ test("the worker reads strict branch policy from Protect dev snapshot", () => {
   assert.equal(strictStatusChecksRequired(root), true);
 });
 
+test("review statuses require both contexts pinned to the same GitHub App", () => {
+  const checks = [
+    { context: CONTEXTS.code, integration_id: 42 },
+    { context: CONTEXTS.security, integration_id: 42 },
+  ];
+  assert.equal(reviewStatusIntegrationId(checks), 42);
+  assert.throws(
+    () =>
+      reviewStatusIntegrationId([
+        { ...checks[0] },
+        { context: CONTEXTS.security },
+      ]),
+    PIN_REVIEW_CONTEXTS
+  );
+  assert.throws(
+    () =>
+      reviewStatusIntegrationId([
+        { ...checks[0] },
+        { ...checks[1], integration_id: 43 },
+      ]),
+    ONE_REVIEW_APP
+  );
+});
+
+test("review statuses trust the bot login returned by the pinned GitHub App", () => {
+  const root = mkdtempSync(join(tmpdir(), "review-status-login-root-"));
+  const snapshotDir = join(root, "infra", "github");
+  mkdirSync(snapshotDir, { recursive: true });
+  writeFileSync(
+    join(snapshotDir, "rulesets.json"),
+    JSON.stringify([
+      {
+        name: "Protect dev",
+        rules: [
+          {
+            type: "required_status_checks",
+            parameters: {
+              required_status_checks: [
+                { context: CONTEXTS.code, integration_id: 42 },
+                { context: CONTEXTS.security, integration_id: 42 },
+              ],
+            },
+          },
+        ],
+      },
+    ])
+  );
+  const env = { GRENMET_REVIEW_STATUS_APP_ID: "42", GH_TOKEN: "user-token" };
+  let invocation;
+  try {
+    assert.equal(
+      reviewStatusAppLogin(
+        root,
+        (command, args, options) => {
+          invocation = { command, args, options };
+          return { status: 0, stdout: "grenmet-review-status[bot]\n" };
+        },
+        env
+      ),
+      "grenmet-review-status[bot]"
+    );
+    assert.equal(invocation.command, process.execPath);
+    assert.ok(
+      invocation.args[0].endsWith("scripts/agents/github-app-status.mjs")
+    );
+    assert.deepEqual(JSON.parse(invocation.options.input), {
+      action: "identity",
+      expectedAppId: "42",
+      repoRoot: root,
+    });
+    assert.equal(invocation.options.env.GH_TOKEN, undefined);
+    assert.throws(
+      () =>
+        reviewStatusAppLogin(
+          root,
+          () => ({ status: 0, stdout: "human-user\n" }),
+          env
+        ),
+      APP_IDENTITY_UNAVAILABLE
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("status publishing strips human GitHub credentials and requires the pinned App", () => {
+  const root = mkdtempSync(join(tmpdir(), "review-status-root-"));
+  const snapshotDir = join(root, "infra", "github");
+  mkdirSync(snapshotDir, { recursive: true });
+  writeFileSync(
+    join(snapshotDir, "rulesets.json"),
+    JSON.stringify([
+      {
+        name: "Protect dev",
+        rules: [
+          {
+            type: "required_status_checks",
+            parameters: {
+              required_status_checks: [
+                { context: CONTEXTS.code, integration_id: 42 },
+                { context: CONTEXTS.security, integration_id: 42 },
+              ],
+            },
+          },
+        ],
+      },
+    ])
+  );
+  const env = {
+    GRENMET_REVIEW_STATUS_APP_ID: "42",
+    GH_TOKEN: "human-token",
+    GITHUB_TOKEN: "workflow-token",
+    GH_ENTERPRISE_TOKEN: "enterprise-token",
+    PATH: "/usr/bin",
+  };
+  const status = {
+    head: "a".repeat(40),
+    context: CONTEXTS.code,
+    state: "success",
+    description: "base=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;scope=code",
+    number: 588,
+  };
+  let invocation;
+  try {
+    assert.equal(assertReviewStatusApp(root, env), 42);
+    publishReviewStatusThroughApp(
+      root,
+      status,
+      (command, args, options) => {
+        invocation = { command, args, options };
+        return { status: 0, stdout: "" };
+      },
+      env
+    );
+    assert.equal(invocation.command, process.execPath);
+    assert.ok(
+      invocation.args[0].endsWith("scripts/agents/github-app-status.mjs")
+    );
+    assert.equal(invocation.options.env.GH_TOKEN, undefined);
+    assert.equal(invocation.options.env.GITHUB_TOKEN, undefined);
+    assert.equal(invocation.options.env.GH_ENTERPRISE_TOKEN, undefined);
+    assert.deepEqual(JSON.parse(invocation.options.input), {
+      action: "publish",
+      ...status,
+      expectedAppId: "42",
+      repoRoot: root,
+    });
+    assert.throws(
+      () =>
+        publishReviewStatusThroughApp(root, status, () => ({ status: 0 }), {
+          ...env,
+          GRENMET_REVIEW_STATUS_APP_ID: "43",
+        }),
+      STATUS_APP_MISMATCH
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("PR listing paginates beyond 30 and filters drafts and labels", () => {
   const candidate = (number) => ({
     number,
@@ -186,6 +366,20 @@ test("PR listing paginates beyond 30 and filters drafts and labels", () => {
   );
 });
 
+test("worker file lookup rejects malformed entries before path classification", () => {
+  for (const file of [
+    { previous_filename: "hidden-owner-file" },
+    { filename: "docs/new.md", previous_filename: 42 },
+    { filename: "docs/new.md", status: "renamed" },
+  ]) {
+    const api = services("/repo", (name) => {
+      if (name === "gh") return { status: 0, stdout: JSON.stringify([[file]]) };
+      throw new Error(`Unexpected command: ${name}`);
+    });
+    assert.throws(() => api.files(588), INCOMPLETE_FILE_LIST);
+  }
+});
+
 test("ordinary work gets one independent review and can merge the pinned head", () => {
   const { api, calls } = fake();
   assert.equal(processPull(588, { merge: true }, api, CI).outcome, "merged");
@@ -222,6 +416,29 @@ test("owner-only files are reviewed but never auto-merged", () => {
   assert.ok(!calls.includes("merge"));
 });
 
+test("an incomplete GitHub file list cannot be reviewed or merged", () => {
+  const { api, calls } = fake({ changedFiles: 3001 });
+  assert.throws(
+    () => processPull(588, { merge: true }, api, CI),
+    INCOMPLETE_FILE_LIST
+  );
+  assert.equal(calls.filter((call) => call.startsWith("review:")).length, 0);
+  assert.ok(!calls.includes("merge"));
+});
+
+test("a file list read from a different PR head cannot be reviewed or merged", () => {
+  const { api, calls } = fake({
+    files: ["docs/ordinary.md"],
+    pinnedFiles: ["infra/github/rulesets.json"],
+  });
+  assert.throws(
+    () => processPull(588, { merge: true }, api, CI),
+    FILE_LIST_HEAD_MISMATCH
+  );
+  assert.equal(calls.filter((call) => call.startsWith("review:")).length, 0);
+  assert.ok(!calls.includes("merge"));
+});
+
 test("factory controls and high-risk application changes require a security review", () => {
   for (const file of [
     ".claude/hooks/example.mjs",
@@ -229,6 +446,8 @@ test("factory controls and high-risk application changes require a security revi
     "scripts/agents/worker.mjs",
     "scripts/ci/ai-review.mjs",
     "scripts/production/deploy.py",
+    "docs/agents/workflow.md",
+    "docs/agents/routing.json",
     "apps/api/fastapi/src/auth/service.py",
   ]) {
     assert.equal(securityRequired([file]), true);
@@ -421,12 +640,13 @@ function queueApi({
   const reviewed = [];
   const synced = [];
   const api = {
-    login: () => "reviewer",
+    login: () => "review-status-app[bot]",
     pull: (number) => {
       if (broken.includes(number)) throw new Error(`pull ${number} failed`);
       return { ...PR, number, head: { ...PR.head, sha: headOf(number) } };
     },
-    files: () => ["docs/example.md"],
+    files: () => ({ count: 1, paths: ["docs/example.md"] }),
+    diffFiles: () => ["docs/example.md"],
     checks: () =>
       ciFailsAfterReview && reviewed.length > 0
         ? CHECKS.map((check) => ({ ...check, conclusion: "FAILURE" }))
@@ -455,7 +675,7 @@ function queueApi({
         context,
         state,
         description,
-        creator: { login: "reviewer" },
+        creator: { login: "review-status-app[bot]" },
       }),
     merge: (number) => {
       if (mergeThrows.includes(number)) throw new Error("merge failed");
@@ -569,7 +789,13 @@ test("a cached success must come from the trusted issuer and exact base; latest 
     false
   );
   assert.equal(
-    statusMatches(statuses, CONTEXTS.code, "c".repeat(40), "code", "reviewer"),
+    statusMatches(
+      statuses,
+      CONTEXTS.code,
+      "c".repeat(40),
+      "code",
+      "review-status-app[bot]"
+    ),
     false
   );
   statuses.unshift({
@@ -577,9 +803,27 @@ test("a cached success must come from the trusted issuer and exact base; latest 
     state: "failure",
   });
   assert.equal(
-    statusMatches(statuses, CONTEXTS.code, BASE, "code", "reviewer"),
+    statusMatches(
+      statuses,
+      CONTEXTS.code,
+      BASE,
+      "code",
+      "review-status-app[bot]"
+    ),
     false
   );
+});
+
+test("an untrusted failure status cannot suppress a fresh review", () => {
+  const { api, calls, statuses } = fake();
+  statuses.push({
+    context: CONTEXTS.code,
+    state: "failure",
+    description: statusDescription(BASE, "code"),
+    creator: { login: "repository-writer" },
+  });
+  assert.equal(processPull(588, {}, api, CI).outcome, "reviewed");
+  assert.ok(calls.includes("review:code"));
 });
 
 test("explicit draft review publishes evidence but never merges the draft", () => {

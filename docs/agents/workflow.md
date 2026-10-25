@@ -85,8 +85,10 @@ advancing between check and merge. A `dev` merge makes other PR branches stale;
 the worker syncs only the next eligible PR and waits for fresh CI and review. This
 is slower than loose checks, but this personal-account repo has no GitHub merge
 queue to provide the equivalent server-side guarantee. No bypass actors are
-configured. Status publishing trusts the worker's GitHub credential; it is not
-an independent signing service.
+configured. The review contexts must be pinned to the dedicated status App's
+integration ID in both GitHub and the snapshot. The worker refuses to publish
+review statuses unless its App ID matches that pin; until this setup is
+complete, do not treat user-created review statuses as trusted.
 After changing a ruleset, run `node scripts/guardrails/github-rulesets.mjs
 --snapshot` and commit the result.
 

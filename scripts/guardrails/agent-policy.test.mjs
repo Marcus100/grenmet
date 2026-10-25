@@ -91,6 +91,7 @@ test("factory-control dev merges preserve the owner-only path exception", () => 
     "docs/agents/workflow.md",
     "docs/agents/roles.md",
     "docs/agents/routines.md",
+    "docs/agents/factory.md",
     ".claude/skills/commit/SKILL.md",
     ".claude/skills/factory-improve/SKILL.md",
   ];

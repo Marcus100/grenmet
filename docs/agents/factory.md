@@ -89,8 +89,9 @@ Once a week, in an attended session:
    change to a skill, an `AGENTS.md` rule, a scorer or a check, with a
    regression case.
 3. Agents may implement and merge factory-control changes into dev after
-   independent code and security review and all checks pass. Staging and
-   production merges remain owner approved.
+   independent code and security review and all checks pass, except for the
+   owner-only paths listed in `AGENTS.md`; only the owner merges those. Staging
+   and production merges remain owner approved.
 4. Next week's `agents:score report` shows whether that scorer's pass rate
    moved.
 
