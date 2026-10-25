@@ -37,10 +37,11 @@ For other paths the security context records a deterministic `not-required`
 decision. Statuses are attached to the exact commit and PR merge-base. Cached
 results must match the current authenticated issuer and merge-base. The worker
 rechecks the PR head, merge-base, changed-file overlap, CI and statuses before
-merging. When Protect dev requires an up-to-date branch, stale PRs are synced
-and wait for CI. With that policy off, a disjoint dev advance preserves the
-review; if dev changed any file touched by the PR, the worker syncs and waits
-for CI or reports a merge conflict.
+merging. `Protect dev` currently requires an up-to-date branch. The worker syncs one stale
+PR and waits for fresh CI and review before another merge can proceed. That
+server-side requirement closes the race where `dev` could change after the
+worker's final scope check and before GitHub merges the PR. The worker's
+loose-policy support remains covered by tests, but is not active for `dev`.
 
 ## Local scheduling
 

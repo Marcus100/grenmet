@@ -79,10 +79,12 @@ rulesets, which are what make "PR required" and "required checks" true.
 `.github/workflows/rulesets-drift.yml` does the same on every PR into a
 long-lived branch and weekly. Today `main` and `staging` each require a PR and
 six checks with no bypass actors. `Protect dev` adds the factory code/security
-review contexts to those checks, currently allows PR branches to lag behind
-`dev`, and blocks force updates and deletion. When dev advances, the review
-worker keeps a receipt only for the same merge-base and a disjoint changed-file
-set; overlapping changes trigger branch sync and fresh CI. No bypass actors are
+review contexts and requires branches to be current with `dev` before merge.
+This protects the worker's merge-base and changed-file overlap check from `dev`
+advancing between check and merge. A `dev` merge makes other PR branches stale;
+the worker syncs only the next eligible PR and waits for fresh CI and review. This
+is slower than loose checks, but this personal-account repo has no GitHub merge
+queue to provide the equivalent server-side guarantee. No bypass actors are
 configured. Status publishing trusts the worker's GitHub credential; it is not
 an independent signing service.
 After changing a ruleset, run `node scripts/guardrails/github-rulesets.mjs

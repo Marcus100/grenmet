@@ -145,7 +145,7 @@ test("missing, pending, failed or skipped required CI blocks review", () => {
 
 test("the worker reads strict branch policy from Protect dev snapshot", () => {
   const root = fileURLToPath(new URL("../..", import.meta.url));
-  assert.equal(strictStatusChecksRequired(root), false);
+  assert.equal(strictStatusChecksRequired(root), true);
 });
 
 test("PR listing paginates beyond 30 and filters drafts and labels", () => {
