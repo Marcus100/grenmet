@@ -10,7 +10,7 @@ import {
   createAutocomplete,
 } from "@algolia/autocomplete-core";
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
+import { Dialog } from "@base-ui/react/dialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Fragment,
@@ -357,55 +357,65 @@ function SearchDialog({
   }, [open, setOpen]);
 
   return (
-    <Dialog
-      className={cn("fixed inset-0 z-50", className)}
-      onClose={() => {
-        setOpen(false);
-        autocomplete.setQuery("");
+    <Dialog.Root
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          setOpen(false);
+          autocomplete.setQuery("");
+        }
       }}
       open={open}
     >
-      <DialogBackdrop
-        className="fixed inset-0 bg-zinc-400/25 backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-leave:duration-200 data-enter:ease-out data-leave:ease-in dark:bg-black/40"
-        transition
-      />
+      <Dialog.Portal>
+        <Dialog.Backdrop
+          className={cn(
+            "fixed inset-0 z-50 bg-zinc-400/25 backdrop-blur-xs transition-opacity duration-300 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-200 data-ending-style:ease-in dark:bg-black/40",
+            className
+          )}
+        />
 
-      <div className="fixed inset-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-20 md:py-32 lg:px-8 lg:py-[15vh]">
-        <DialogPanel
-          className="mx-auto transform-gpu overflow-hidden rounded-lg bg-zinc-50 shadow-xl ring-1 ring-zinc-900/7.5 data-closed:scale-95 data-closed:opacity-0 data-enter:duration-300 data-leave:duration-200 data-enter:ease-out data-leave:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
-          transition
+        <Dialog.Viewport
+          className={cn(
+            "fixed inset-0 z-50 overflow-y-auto px-4 py-4 sm:px-6 sm:py-20 md:py-32 lg:px-8 lg:py-[15vh]",
+            className
+          )}
         >
-          <div {...autocomplete.getRootProps({})}>
-            <form
-              ref={formRef}
-              {...autocomplete.getFormProps({
-                inputElement: inputRef.current,
-              })}
-            >
-              <SearchInput
-                autocomplete={autocomplete}
-                autocompleteState={autocompleteState}
-                onClose={() => setOpen(false)}
-                ref={inputRef}
-              />
-              <div
-                className="border-zinc-200 border-t bg-white empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5"
-                ref={panelRef}
-                {...autocomplete.getPanelProps({})}
+          <Dialog.Popup
+            aria-label="Search"
+            className="mx-auto transform-gpu overflow-hidden rounded-lg bg-zinc-50 shadow-xl ring-1 ring-zinc-900/7.5 transition duration-300 ease-out data-ending-style:scale-95 data-starting-style:scale-95 data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-200 data-ending-style:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
+          >
+            <div {...autocomplete.getRootProps({})}>
+              <form
+                ref={formRef}
+                {...autocomplete.getFormProps({
+                  inputElement: inputRef.current,
+                })}
               >
-                {autocompleteState.isOpen && (
-                  <SearchResults
-                    autocomplete={autocomplete}
-                    collection={autocompleteState.collections[0]}
-                    query={autocompleteState.query}
-                  />
-                )}
-              </div>
-            </form>
-          </div>
-        </DialogPanel>
-      </div>
-    </Dialog>
+                <SearchInput
+                  autocomplete={autocomplete}
+                  autocompleteState={autocompleteState}
+                  onClose={() => setOpen(false)}
+                  ref={inputRef}
+                />
+                <div
+                  className="border-zinc-200 border-t bg-white empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5"
+                  ref={panelRef}
+                  {...autocomplete.getPanelProps({})}
+                >
+                  {autocompleteState.isOpen && (
+                    <SearchResults
+                      autocomplete={autocomplete}
+                      collection={autocompleteState.collections[0]}
+                      query={autocompleteState.query}
+                    />
+                  )}
+                </div>
+              </form>
+            </div>
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
