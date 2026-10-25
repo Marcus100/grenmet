@@ -1,15 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import { createReviewReceipt } from "./review-receipt.mjs";
 import {
   CONTEXTS,
   ciBlockers,
+  dependencyFirst,
   eligible,
+  ownerMergeRequired,
   processPull,
   processQueue,
   reviewPaths,
   securityRequired,
+  services,
   statusMatches,
+  strictStatusChecksRequired,
+  trustedReviewInstructions,
 } from "./review-worker.mjs";
 
 const HEAD = "a".repeat(40);
@@ -21,6 +27,7 @@ const PR = {
   draft: false,
   head: { sha: HEAD, ref: "factory/example", repo: REPO },
   base: { sha: BASE, ref: "dev", repo: REPO },
+  labels: [],
 };
 const CI = ["CI Success", "Build Web Apps"];
 const CHECKS = CI.map((name) => ({
@@ -41,6 +48,14 @@ function fake({
   result = CLEAN,
   checks = CHECKS,
   changed = false,
+  baseTip = BASE,
+  mergeBase = BASE,
+  labels = [],
+  labelsAfterPull = Number.POSITIVE_INFINITY,
+  labelsAfter = [],
+  baseFiles = [],
+  baseFilesAfterReview,
+  updateResult = { updated: true },
 } = {}) {
   const calls = [];
   const statuses = [];
@@ -49,9 +64,14 @@ function fake({
     login: () => "reviewer",
     pull: () => {
       pulls++;
-      return changed && pulls > 1
-        ? { ...PR, base: { ...PR.base, sha: "c".repeat(40) } }
-        : PR;
+      return {
+        ...PR,
+        labels: pulls >= labelsAfterPull ? labelsAfter : labels,
+        base: {
+          ...PR.base,
+          sha: changed && pulls > 1 ? "c".repeat(40) : baseTip,
+        },
+      };
     },
     files: () => files,
     checks: () => checks,
@@ -64,7 +84,15 @@ function fake({
       calls.push("release");
       return { released: true };
     },
-    prepare: () => BASE,
+    prepare: () => mergeBase,
+    baseChanges: (_mergeBase, currentBase) =>
+      currentBase !== baseTip && baseFilesAfterReview !== undefined
+        ? baseFilesAfterReview
+        : baseFiles,
+    updateBranch: (number) => {
+      calls.push(`update:${number}`);
+      return updateResult;
+    },
     review: (number, kind, info) => {
       assert.equal(number, PR.number);
       calls.push(`review:${kind}`);
@@ -115,12 +143,83 @@ test("missing, pending, failed or skipped required CI blocks review", () => {
   assert.deepEqual(calls, []);
 });
 
+test("the worker reads strict branch policy from Protect dev snapshot", () => {
+  const root = fileURLToPath(new URL("../..", import.meta.url));
+  assert.equal(strictStatusChecksRequired(root), false);
+});
+
+test("PR listing paginates beyond 30 and filters drafts and labels", () => {
+  const candidate = (number) => ({
+    number,
+    draft: false,
+    created_at: new Date(Date.UTC(2026, 0, number)).toISOString(),
+    labels: [{ name: "factory-review" }],
+    head: { sha: number.toString(16).padStart(40, "0") },
+  });
+  const pages = [
+    Array.from({ length: 30 }, (_, index) => candidate(index + 1)).concat([
+      { ...candidate(31), draft: true },
+      { ...candidate(32), labels: [{ name: "documentation" }] },
+    ]),
+    [candidate(33)],
+  ];
+  const calls = [];
+  const api = services("/repo", (name, args) => {
+    calls.push({ name, args });
+    if (name === "gh") return { status: 0, stdout: JSON.stringify(pages) };
+    if (name === "git" && args[0] === "fetch") return { status: 0, stdout: "" };
+    if (name === "git" && args[0] === "merge-base")
+      return { status: 1, stdout: "" };
+    throw new Error(`Unexpected command: ${name} ${args.join(" ")}`);
+  });
+  assert.deepEqual(
+    api.list(),
+    Array.from({ length: 30 }, (_, i) => i + 1).concat(33)
+  );
+  const listCall = calls.find((call) => call.name === "gh");
+  assert.ok(listCall.args.includes("--paginate"));
+  assert.ok(listCall.args.includes("--slurp"));
+  assert.ok(
+    listCall.args.includes(
+      "repos/Marcus100/grenmet/pulls?state=open&base=dev&per_page=100"
+    )
+  );
+});
+
 test("ordinary work gets one independent review and can merge the pinned head", () => {
   const { api, calls } = fake();
   assert.equal(processPull(588, { merge: true }, api, CI).outcome, "merged");
   assert.equal(calls.filter((call) => call.startsWith("review:")).length, 1);
   assert.ok(calls.includes("merge"));
   assert.equal(calls.at(-1), "release");
+});
+
+test("owner-only files are reviewed but never auto-merged", () => {
+  for (const file of [
+    ".claude/hooks/example.mjs",
+    ".claude/settings.json",
+    ".claude/agents/code-reviewer.md",
+    ".codex/config.toml",
+    ".agents/skills/example/SKILL.md",
+    ".github/workflows/ci.yml",
+    ".github/CODEOWNERS",
+    "apps/example/AGENTS.md",
+    "scripts/guardrails/example.mjs",
+    "scripts/verification/changed.mjs",
+    "package.json",
+    "docs/agents/routines.md",
+    "apps/api/fastapi/src/auth/permissions.py",
+    "infra/github/rulesets.json",
+  ])
+    assert.equal(ownerMergeRequired([file]), true, file);
+  assert.equal(ownerMergeRequired(["scripts/agents/review-worker.mjs"]), false);
+
+  const { api, calls } = fake({ files: ["infra/github/rulesets.json"] });
+  const result = processPull(588, { merge: true }, api, CI);
+  assert.equal(result.outcome, "reviewed");
+  assert.ok(result.reason.includes("owner-only files"));
+  assert.ok(calls.includes("review:security"));
+  assert.ok(!calls.includes("merge"));
 });
 
 test("factory controls and high-risk application changes require a security review", () => {
@@ -140,6 +239,45 @@ test("factory controls and high-risk application changes require a security revi
   assert.ok(calls.includes("review:security"));
 });
 
+test("the risk:high label forces a security review even on ordinary paths", () => {
+  const { api, calls } = fake({ labels: [{ name: "risk:high" }] });
+  processPull(588, {}, api, CI);
+  assert.ok(calls.includes("review:security"));
+});
+
+test("a risk:high label added during code review triggers the security review", () => {
+  const { api, calls } = fake({
+    labelsAfterPull: 2,
+    labelsAfter: [{ name: "risk:high" }],
+  });
+  processPull(588, {}, api, CI);
+  assert.ok(calls.includes("review:security"));
+});
+
+test("a risk:high label added after the security decision prevents merge", () => {
+  const { api, calls } = fake({
+    labelsAfterPull: 4,
+    labelsAfter: [{ name: "risk:high" }],
+  });
+  assert.throws(() => processPull(588, { merge: true }, api, CI));
+  assert.ok(!calls.includes("merge"));
+  assert.ok(!calls.includes("review:security"));
+});
+
+test("review context uses trusted worker instructions rather than PR files", () => {
+  const root = fileURLToPath(new URL("../..", import.meta.url));
+  const instructions = trustedReviewInstructions(root, "code-reviewer", [
+    ".claude/agents/code-reviewer.md",
+    "scripts/agents/review-worker.mjs",
+  ]);
+  assert.ok(
+    instructions.includes("Canonical instructions for every coding agent")
+  );
+  assert.ok(instructions.includes("Fresh-context code reviewer"));
+  assert.ok(instructions.includes("blast-radius table"));
+  assert.ok(instructions.includes("same-named files in the PR"));
+});
+
 test("renaming a sensitive file cannot erase the security-review requirement", () => {
   const files = reviewPaths([
     {
@@ -154,7 +292,7 @@ test("renaming a sensitive file cannot erase the security-review requirement", (
   assert.equal(securityRequired(files), true);
 });
 
-test("review failure, incompletion, missing receipt or changed base cannot approve or merge", () => {
+test("review failure, incompletion, missing receipt or strict base advance cannot approve or merge", () => {
   for (const options of [
     { code: 1 },
     { result: { ...CLEAN, status: "incomplete" } },
@@ -169,6 +307,90 @@ test("review failure, incompletion, missing receipt or changed base cannot appro
   }
 });
 
+test("disjoint dev advances preserve review scope and allow merge when strict checks are off", () => {
+  const { api, calls, statuses } = fake({
+    baseTip: "c".repeat(40),
+    mergeBase: BASE,
+    baseFiles: ["apps/web/gms/page.tsx"],
+  });
+  assert.equal(
+    processPull(588, { merge: true, strictStatusChecks: false }, api, CI)
+      .outcome,
+    "merged"
+  );
+  assert.ok(calls.includes("merge"));
+  assert.ok(
+    statuses.some(
+      (status) =>
+        status.context === CONTEXTS.code &&
+        status.description === `base=${BASE};scope=code`
+    )
+  );
+});
+
+test("overlapping dev changes sync the PR and wait for new CI", () => {
+  const { api, calls } = fake({
+    baseTip: "c".repeat(40),
+    mergeBase: BASE,
+    baseFiles: ["docs/example.md"],
+  });
+  const result = processPull(
+    588,
+    { merge: true, strictStatusChecks: false },
+    api,
+    CI
+  );
+  assert.equal(result.outcome, "waiting");
+  assert.ok(result.reason.includes("updated from dev"));
+  assert.ok(calls.includes("update:588"));
+  assert.ok(!calls.some((call) => call.startsWith("review:")));
+});
+
+test("overlap conflict waits for conflict resolution without review", () => {
+  const { api, calls } = fake({
+    baseTip: "c".repeat(40),
+    mergeBase: BASE,
+    baseFiles: ["docs/example.md"],
+    updateResult: { updated: false, conflict: true },
+  });
+  const result = processPull(
+    588,
+    { merge: true, strictStatusChecks: false },
+    api,
+    CI
+  );
+  assert.equal(result.outcome, "waiting");
+  assert.ok(result.reason.includes("conflicts"));
+  assert.ok(!calls.some((call) => call.startsWith("review:")));
+});
+
+test("strict branch protection syncs stale PRs before review", () => {
+  const { api, calls } = fake({ baseTip: "c".repeat(40), mergeBase: BASE });
+  const result = processPull(588, { merge: true }, api, CI);
+  assert.equal(result.outcome, "waiting");
+  assert.ok(calls.includes("update:588"));
+  assert.ok(!calls.some((call) => call.startsWith("review:")));
+});
+
+test("a disjoint dev advance during review does not invalidate the exact PR diff", () => {
+  const { api, calls } = fake({ changed: true });
+  assert.equal(
+    processPull(588, { strictStatusChecks: false }, api, CI).outcome,
+    "reviewed"
+  );
+  assert.ok(calls.includes("publish:Factory review:success"));
+});
+
+test("a newly overlapping dev change during review prevents approval", () => {
+  const { api, calls, statuses } = fake({
+    changed: true,
+    baseFilesAfterReview: ["docs/example.md"],
+  });
+  assert.throws(() => processPull(588, { strictStatusChecks: false }, api, CI));
+  assert.ok(!calls.includes("merge"));
+  assert.equal(statuses[0].state, "failure");
+});
+
 test("unintegrated base, another owner's claim and dry-run make no model calls", () => {
   const { api, calls } = fake();
   assert.equal(processPull(588, { dryRun: true }, api, CI).outcome, "ready");
@@ -179,7 +401,7 @@ test("unintegrated base, another owner's claim and dry-run make no model calls",
   api.prepare = () => "c".repeat(40);
   const stale = processPull(588, {}, api, CI);
   assert.equal(stale.outcome, "waiting");
-  assert.ok(stale.reason.includes("Integrate current dev"));
+  assert.ok(stale.reason.includes("--merge"));
   assert.ok(!calls.some((call) => call.startsWith("review:")));
   assert.equal(calls.at(-1), "release");
 });
@@ -193,9 +415,11 @@ function queueApi({
   mergeThrows = [],
   releaseThrows = [],
   ciFailsAfterReview = false,
+  syncThrows = false,
 } = {}) {
   const store = [];
   const reviewed = [];
+  const synced = [];
   const api = {
     login: () => "reviewer",
     pull: (number) => {
@@ -215,6 +439,12 @@ function queueApi({
     },
     prepare: (head) =>
       stale.some((number) => head === headOf(number)) ? "c".repeat(40) : BASE,
+    baseChanges: () => [],
+    updateBranch: (number) => {
+      synced.push(number);
+      if (syncThrows) throw new Error("update branch failed");
+      return { updated: true };
+    },
     review: (number, kind, info) => {
       reviewed.push(`${number}:${kind}`);
       return { code, receipt: createReviewReceipt(info, CLEAN) };
@@ -231,7 +461,7 @@ function queueApi({
       if (mergeThrows.includes(number)) throw new Error("merge failed");
     },
   };
-  return { api, reviewed };
+  return { api, reviewed, synced };
 }
 
 test("a stale PR at the front of the queue cannot starve the ready PR behind it", () => {
@@ -240,9 +470,70 @@ test("a stale PR at the front of the queue cannot starve the ready PR behind it"
   const errors = processQueue([1, 2], {}, api, CI, (line) => lines.push(line));
   assert.equal(errors, 0);
   assert.deepEqual(reviewed, ["2:code"]);
-  const [first, second] = lines.map((line) => JSON.parse(line));
+  const [first, second] = lines.slice(0, -1).map((line) => JSON.parse(line));
   assert.deepEqual([first.pr, first.outcome], [1, "waiting"]);
   assert.deepEqual([second.pr, second.outcome], [2, "reviewed"]);
+  assert.deepEqual(JSON.parse(lines.at(-1)), {
+    queueSummary: true,
+    candidates: 2,
+    processed: 2,
+    errors: 0,
+    reviewed: 1,
+    reviewAttempts: 1,
+    branchSyncAttempts: 0,
+    merged: 0,
+    waiting: 1,
+    skipped: 0,
+    ready: 0,
+  });
+});
+
+test("one queue run syncs at most one stale PR and waits for its new CI", () => {
+  const { api, reviewed, synced } = queueApi({ stale: [1, 2] });
+  const lines = [];
+  const errors = processQueue([1, 2], { merge: true }, api, CI, (line) =>
+    lines.push(line)
+  );
+  assert.equal(errors, 0);
+  assert.deepEqual(synced, [1]);
+  assert.deepEqual(reviewed, []);
+  assert.equal(JSON.parse(lines[0]).branchSynced, true);
+  assert.equal(JSON.parse(lines.at(-1)).branchSyncAttempts, 1);
+  assert.equal(JSON.parse(lines.at(-1)).processed, 1);
+});
+
+test("a failed branch-sync attempt stops before syncing another candidate", () => {
+  const { api, reviewed, synced } = queueApi({
+    stale: [1, 2],
+    syncThrows: true,
+  });
+  const lines = [];
+  const errors = processQueue([1, 2], { merge: true }, api, CI, (line) =>
+    lines.push(line)
+  );
+  assert.equal(errors, 1);
+  assert.deepEqual(synced, [1]);
+  assert.deepEqual(reviewed, []);
+  assert.equal(JSON.parse(lines[0]).branchSyncAttempted, true);
+  assert.equal(JSON.parse(lines.at(-1)).branchSyncAttempts, 1);
+  assert.equal(JSON.parse(lines.at(-1)).processed, 1);
+});
+
+test("a release failure after branch sync preserves the one-sync limit", () => {
+  const { api, reviewed, synced } = queueApi({
+    stale: [1, 2],
+    releaseThrows: [1],
+  });
+  const lines = [];
+  const errors = processQueue([1, 2], { merge: true }, api, CI, (line) =>
+    lines.push(line)
+  );
+  assert.equal(errors, 1);
+  assert.deepEqual(synced, [1]);
+  assert.deepEqual(reviewed, []);
+  assert.equal(JSON.parse(lines[0]).branchSyncAttempted, true);
+  assert.equal(JSON.parse(lines.at(-1)).branchSyncAttempts, 1);
+  assert.equal(JSON.parse(lines.at(-1)).processed, 1);
 });
 
 test("a candidate that errors before any review does not stop the queue", () => {
@@ -251,10 +542,11 @@ test("a candidate that errors before any review does not stop the queue", () => 
   const errors = processQueue([1, 2], {}, api, CI, (line) => lines.push(line));
   assert.equal(errors, 1);
   assert.deepEqual(reviewed, ["2:code"]);
-  const [first, second] = lines.map((line) => JSON.parse(line));
+  const [first, second] = lines.slice(0, -1).map((line) => JSON.parse(line));
   assert.deepEqual([first.pr, first.outcome], [1, "error"]);
   assert.ok(first.reason.includes("pull 1 failed"));
   assert.deepEqual([second.pr, second.outcome], [2, "reviewed"]);
+  assert.equal(JSON.parse(lines.at(-1)).errors, 1);
 });
 
 test("after a failed review the queue stops: one review per invocation", () => {
@@ -263,7 +555,8 @@ test("after a failed review the queue stops: one review per invocation", () => {
   const errors = processQueue([1, 2], {}, api, CI, (line) => lines.push(line));
   assert.equal(errors, 1);
   assert.deepEqual(reviewed, ["1:code"]);
-  assert.equal(lines.length, 1);
+  assert.equal(lines.length, 2);
+  assert.equal(JSON.parse(lines.at(-1)).processed, 1);
 });
 
 test("a cached success must come from the trusted issuer and exact base; latest failure wins", () => {
@@ -337,8 +630,9 @@ test("an error after a review started stops the queue: merge, post-review check 
       ["1:code"],
       `${name}: PR 2 must not be reviewed`
     );
-    assert.equal(lines.length, 1, name);
+    assert.equal(lines.length, 2, name);
     assert.equal(JSON.parse(lines[0]).outcome, "error", name);
+    assert.equal(JSON.parse(lines.at(-1)).reviewAttempts, 1, name);
   }
 });
 
@@ -383,4 +677,43 @@ test("cached review continues to the next PR when merging is disabled", () => {
   const errors = processQueue([1, 2], {}, api, CI, () => undefined);
   assert.equal(errors, 0);
   assert.deepEqual(reviewed, ["2:code"]);
+});
+
+test("dependency-first queue order puts a stacked PR before its descendant", () => {
+  const candidates = [
+    {
+      number: 10,
+      headRefOid: "a".repeat(40),
+      createdAt: "2026-10-03T00:00:00Z",
+    },
+    {
+      number: 11,
+      headRefOid: "b".repeat(40),
+      createdAt: "2026-10-01T00:00:00Z",
+    },
+    {
+      number: 12,
+      headRefOid: "c".repeat(40),
+      createdAt: "2026-10-02T00:00:00Z",
+    },
+  ];
+  assert.deepEqual(
+    dependencyFirst(
+      candidates,
+      (parent, child) => parent === "a".repeat(40) && child === "c".repeat(40)
+    ),
+    [11, 10, 12]
+  );
+});
+
+test("dry-run reports every candidate and performs no claims or model calls", () => {
+  const { api, reviewed } = queueApi();
+  const lines = [];
+  processQueue([1, 2], { dryRun: true }, api, CI, (line) => lines.push(line));
+  assert.deepEqual(reviewed, []);
+  assert.deepEqual(
+    lines.slice(0, -1).map((line) => JSON.parse(line).outcome),
+    ["ready", "ready"]
+  );
+  assert.equal(JSON.parse(lines.at(-1)).ready, 2);
 });

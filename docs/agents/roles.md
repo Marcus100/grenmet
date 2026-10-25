@@ -1,19 +1,23 @@
 # Agent roles and automated gates
 
-Factory-control changes may be implemented and merged into dev by agents after
-independent code and security review with no open blocking finding and all checks
-passing. Staging and production merges remain owner approved. Use existing
-subscriptions first with $0 extra spending by default; prefer local execution
-and use cloud as fallback. Extra API spending requires owner approval.
+Factory-control changes require independent code and security review with no
+open blocking finding before landing. Agents may merge only when the PR does not
+change owner-only files listed in `AGENTS.md`; the owner merges those. Staging
+and production merges remain owner approved. Use existing subscriptions first
+with $0 extra spending by default; prefer local execution and use cloud as
+fallback. Extra API spending requires owner approval.
 
 The subscription-backed worker runs with
 `node scripts/agents/review-worker.mjs --once --merge` and only takes dev PRs
 labelled `factory-review` in this repository. It publishes `Factory review` and
-`Factory security review` statuses for the exact PR head and current base tip.
+`Factory security review` statuses for the exact PR head and reviewed merge-base.
 Factory-control changes and high risk changes receive security review; other
-changes receive an explicit not-required result. A changed head or base needs
-new review. Status trust rests on the authenticated GitHub identity running the
-worker; it is not cryptographic proof of a reviewer distinct from the author.
+changes receive an explicit not-required result. A changed head or merge-base
+needs new review. A disjoint advance of `dev` may preserve a review when the
+merge-base and changed-file scope remain the same; overlapping changes trigger
+branch sync and fresh CI. Status trust rests on the authenticated GitHub
+identity running the worker; it is not cryptographic proof of a reviewer
+distinct from the author.
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
@@ -148,17 +152,21 @@ unresolved goes to the owner.
    its own PR into `dev` once CI is green on the PR head and a fresh-context
    review (the other tool, or a `code-reviewer` subagent) has no open blocking
    finding; no agent pushes `dev`. The author never counts its own review as the
-   fresh-context one. This is the attended-session rule in `AGENTS.md` and
-   [workflow.md](workflow.md). The `Protect dev` ruleset requires CI and the
-   worker's review contexts; the worker also verifies exact base freshness.
+   fresh-context one. The owner merges PRs that touch the owner-only files listed
+   in `AGENTS.md`; the hook blocks agent merges of those paths. This is the
+   attended-session rule in `AGENTS.md` and [workflow.md](workflow.md). The
+   `Protect dev` ruleset requires CI and the worker's review contexts; the worker
+   verifies the merge-base and changed-file overlap, syncing only when current
+   branch protection requires an up-to-date branch or the changes overlap.
 3. **Promotion.** Under standing authorization, an agent creates or updates the
    `dev → staging` PR, with a recap of what changed. The owner reviews and merges
    into `staging`; agents do not arm auto-merge, and GitHub merges only once the
    staging ruleset's required checks pass. `staging → main`, releases and
    production deploys need the owner's explicit authorization each time. The
    agent hook allows `gh pr merge` only when the base is `dev`, only in this
-   repository, with a pinned head. Factory-control changes require independent
-   code and security review and may then merge under the same policy.
+   repository, with a pinned head, and when the PR does not touch owner-only
+   files. Factory-control changes outside that list require independent code and
+   security review before an agent merges them.
 4. **Review handoff.** Every request includes the block `pnpm agents:handoff`
    prints (`scripts/agents/review-handoff.mjs`), completed by the author:
    - the task and its acceptance criteria;

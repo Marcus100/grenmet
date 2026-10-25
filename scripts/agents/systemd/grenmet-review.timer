@@ -3,7 +3,7 @@ Description=Check the Grenmet review queue while this host is available
 
 [Timer]
 OnBootSec=2min
-OnUnitInactiveSec=10min
+OnUnitInactiveSec=2min
 Unit=grenmet-review.service
 
 [Install]

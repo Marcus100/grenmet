@@ -36,7 +36,7 @@ Edit the prompt here first, then update the live routine to match.
   `gh pr checks <num> --watch --fail-fast` exits 0 on that head and the independent review
   has no open blocking finding; a `risk:high` PR also needs a `security-reviewer`
   pass with no open finding, named in the PR body. Never merge into `staging` or
-  `main`. Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before agents merge into dev.
+  `main`. Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before an agent merges into dev. PRs that touch owner-only paths listed in `AGENTS.md` are left for the owner to merge.
 - Failure budget: if the same check fails twice on the same error, stop. Do not
   push a third attempt. Record the raw error in the run record, set the outcome to
   `blocked`, label the issue `needs-info` and release the claim.
@@ -90,9 +90,9 @@ without one, and never takes a human-only area.
 | `area:infra` | Dockerfiles, compose, deploy and host config | **human only** | Touches staging and production |
 | `area:security` | Auth, permissions, migrations, dependencies, secrets | **human only** | Ask First in `AGENTS.md` |
 
-Agents may implement and merge factory-control changes through the
+Agents may implement factory-control changes through the
 `factory-improve` skill on a `factory/<slug>` branch labelled `risk:high` and
-`factory`. Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before agents merge into dev. A routine that must lower a baseline for its own fix says so in the
+`factory`. Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before an agent merges into dev. PRs that touch owner-only paths listed in `AGENTS.md` are left for the owner to merge. A routine that must lower a baseline for its own fix says so in the
 PR and the PR is high risk.
 
 The source of truth is [routing.json](routing.json), written by

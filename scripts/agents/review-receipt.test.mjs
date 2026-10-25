@@ -75,6 +75,30 @@ test("only completed approval for the exact remote and verified checkout is elig
   }
 });
 
+test("worker approvals survive disjoint base advances but not overlapping changes", () => {
+  const receipt = createReviewReceipt(INFO, APPROVED);
+  const advanced = {
+    ...INFO,
+    baseTip: "c".repeat(40),
+    baseImpact: "none",
+  };
+  assert.deepEqual(
+    reviewBlockers(receipt, advanced, {
+      allowBaseAdvances: true,
+      requireLocalVerification: false,
+    }),
+    []
+  );
+  assert.ok(
+    reviewBlockers(
+      receipt,
+      { ...advanced, baseImpact: "overlap" },
+      { allowBaseAdvances: true, requireLocalVerification: false }
+    ).length
+  );
+  assert.ok(reviewBlockers(receipt, advanced).length);
+});
+
 test("missing, malformed, incomplete or changes-requested receipts never approve", () => {
   const receipt = createReviewReceipt(INFO, APPROVED);
   for (const candidate of [

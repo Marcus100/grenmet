@@ -42,7 +42,7 @@ Claude Code fills these in; in Codex, run the commands.
    head and post the fresh-context review as a PR comment naming the reviewer;
    then `gh pr merge <num> --merge --match-head-commit <sha>`. A `risk:high` PR
    also needs a `security-reviewer` pass with no open finding first.
-   Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before agents merge into dev. If
+   Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before agents merge into dev. PRs that change owner-only paths listed in `AGENTS.md` are left for the owner to merge. If
    remote dev advances, integrate and revalidate before updating the PR; never
    force-push. Unattended scheduled runs (`docs/agents/routines.md`) do the same
    from their `agent/<n>-<slug>` branch. For a cross-tool review first, hand the

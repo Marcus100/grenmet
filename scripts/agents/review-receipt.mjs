@@ -109,6 +109,7 @@ export function createReviewReceipt(info, review) {
     base: info.base,
     baseTip: info.baseTip,
     mergeBase: info.mergeBase,
+    baseImpact: info.baseImpact ?? "none",
     review,
   };
 }
@@ -164,7 +165,7 @@ export function readReviewReceipt(path) {
 export function reviewBlockers(
   receipt,
   info,
-  { requireLocalVerification = true } = {}
+  { requireLocalVerification = true, allowBaseAdvances = false } = {}
 ) {
   const blockers = [];
   if (
@@ -172,6 +173,8 @@ export function reviewBlockers(
     receipt.version !== 1 ||
     receipt.reviewer !== "codex" ||
     receipt.isolation !== "ephemeral-read-only" ||
+    (receipt.baseImpact !== undefined &&
+      !["none", "overlap"].includes(receipt.baseImpact)) ||
     typeof receipt.runId !== "string" ||
     !receipt.runId ||
     !Number.isFinite(Date.parse(receipt.completedAt)) ||
@@ -197,9 +200,10 @@ export function reviewBlockers(
     blockers.push("The review is stale: HEAD changed.");
   if (
     receipt.base !== info.base ||
-    receipt.baseTip !== info.baseTip ||
     receipt.mergeBase !== info.mergeBase ||
-    info.mergeBase !== info.baseTip
+    (allowBaseAdvances
+      ? (receipt.baseImpact ?? "none") !== (info.baseImpact ?? "none")
+      : receipt.baseTip !== info.baseTip || info.mergeBase !== info.baseTip)
   )
     blockers.push(
       "The review is stale: the base changed or has not been integrated."

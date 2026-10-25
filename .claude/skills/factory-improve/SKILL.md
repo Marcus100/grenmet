@@ -47,7 +47,7 @@ Use `docs/agents/skill-standard.md` → "Choose the right layer":
 | A scorer is noisy | Its rubric |
 
 Agents may implement factory scripts, hooks, skills, agent configuration and CI.
-Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before agents merge into dev. Done when one file (or
+Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before an agent merges into dev. A PR that touches owner-only paths listed in `AGENTS.md` is left for the owner to merge. Done when one file (or
 one file plus its test) is chosen.
 
 ## 4. Change and verify

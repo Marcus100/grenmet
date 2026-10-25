@@ -80,23 +80,28 @@ const DRIFT_WORKFLOW_RUNS_CHECK =
 const DRIFT_WORKFLOW_BRANCHES = /branches: \[main, staging, dev\]/;
 const SNAPSHOT_MENTION = /infra\/github\/rulesets\.json/;
 const INDEPENDENT_FACTORY_REVIEW = /independent code and security review/;
-const RETIRED_FACTORY_RESTRICTION =
-  /human-merged|human-written|A human merges every factory change|owner-only files/;
+const OWNER_ONLY_PATH_POLICY = /owner-only (?:files|paths)/i;
+const OWNER_MERGES_OWNER_ONLY = /the owner merges those/i;
+const HIGH_RISK_SECURITY_REVIEW = /risk:high[^.]*security-reviewer/i;
 const NEVER_MERGE_ANYTHING = /or merge anything/;
 const NO_EXTRA_SPENDING = /\$0 extra spending/;
 
-test("factory-control dev merges require independent review", () => {
-  for (const file of [
-    "AGENTS.md",
+test("factory-control dev merges preserve the owner-only path exception", () => {
+  const reviewPolicyFiles = [
     "docs/agents/workflow.md",
+    "docs/agents/roles.md",
     "docs/agents/routines.md",
     ".claude/skills/commit/SKILL.md",
     ".claude/skills/factory-improve/SKILL.md",
-  ]) {
+  ];
+  for (const file of reviewPolicyFiles) {
     const text = read(file);
     assert.match(text, INDEPENDENT_FACTORY_REVIEW, file);
-    assert.doesNotMatch(text, RETIRED_FACTORY_RESTRICTION, file);
   }
+  assert.match(read("AGENTS.md"), OWNER_MERGES_OWNER_ONLY);
+  assert.match(read("AGENTS.md"), HIGH_RISK_SECURITY_REVIEW);
+  for (const file of reviewPolicyFiles.slice(1))
+    assert.match(read(file), OWNER_ONLY_PATH_POLICY, file);
   assert.doesNotMatch(read("docs/agents/workflow.md"), NEVER_MERGE_ANYTHING);
   assert.match(read("docs/agents/factory.md"), NO_EXTRA_SPENDING);
 });

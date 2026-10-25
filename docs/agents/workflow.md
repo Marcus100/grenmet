@@ -53,7 +53,10 @@ agent instructions. Nothing here relaxes a root rule.
   exits 0 on that head, and leave the fresh-context review as a PR comment that
   names the reviewer. A `risk:high` PR also gets a `security-reviewer` pass with
   no open finding first. Unattended routines do the same from their own branch.
-  Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before agents merge into dev. If `origin/dev` advances, integrate it and revalidate.
+  A PR that changes owner-only files listed in `AGENTS.md` is merged by the
+  owner; the hook refuses an agent merge. Other factory-control changes require
+  independent code and security review with no open blocking finding before an
+  agent merges into dev. If `origin/dev` advances, integrate it and revalidate.
 - Standing authorization: once PRs are merged into `dev`,
   create or update the `dev → staging` PR with a recap, review the promotion diff
   and verify `dev` has not advanced. The owner reviews and merges into `staging`;
@@ -67,7 +70,8 @@ agent instructions. Nothing here relaxes a root rule.
 
 **Unattended routines** follow [routines.md](routines.md): they push only
 their own `agent/<n>-<slug>` branch, open a PR to `dev`, and never push `dev`,
-`staging` or `main`. They merge reviewed PRs into dev under the same checks as attended sessions.
+`staging` or `main`. They merge reviewed PRs into dev under the same checks as
+attended sessions, except the owner merges PRs that touch owner-only files.
 
 **Rulesets.** `infra/github/rulesets.json` is the committed copy of the branch
 rulesets, which are what make "PR required" and "required checks" true.
@@ -75,9 +79,12 @@ rulesets, which are what make "PR required" and "required checks" true.
 `.github/workflows/rulesets-drift.yml` does the same on every PR into a
 long-lived branch and weekly. Today `main` and `staging` each require a PR and
 six checks with no bypass actors. `Protect dev` adds the factory code/security
-review contexts to those checks, requires an up-to-date PR branch, and blocks
-force updates and deletion. No bypass actors are configured. Status publishing
-trusts the worker's GitHub credential; it is not an independent signing service.
+review contexts to those checks, currently allows PR branches to lag behind
+`dev`, and blocks force updates and deletion. When dev advances, the review
+worker keeps a receipt only for the same merge-base and a disjoint changed-file
+set; overlapping changes trigger branch sync and fresh CI. No bypass actors are
+configured. Status publishing trusts the worker's GitHub credential; it is not
+an independent signing service.
 After changing a ruleset, run `node scripts/guardrails/github-rulesets.mjs
 --snapshot` and commit the result.
 
@@ -162,8 +169,9 @@ looked through): `gh pr merge <number|url> [--repo Marcus100/grenmet] [--merge]
 [--delete-branch] --match-head-commit <sha>`. Anything else blocks: `--admin`,
 `--auto`, `--squash`, `--body`, another repository (`-R`, `--repo`, a PR URL,
 `GH_REPO`), a chained `gh pr edit --base`, a `cd`, a PR not named in the
-command, or no pinned head. The PR's base must be `dev`; an unknown base or file
-list blocks, and `staging` and `main` always block. `gh alias`, GraphQL
+command, or no pinned head. The PR's base must be `dev`; a PR that changes
+owner-only paths listed in `AGENTS.md`, an unknown base or file list blocks,
+and `staging` and `main` always block. `gh alias`, GraphQL
 merge mutations, `gh api …/merges` and the REST merge endpoint block too. This
 is a best-effort filter, not a sandbox: the real controls are the rulesets, the
 owner's merge into `staging`, and the permission rule in the user's settings.

@@ -2,14 +2,14 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-24
+**Last updated:** 2026-10-25
 
 The trusted worker reviews same-repository PRs into `dev` carrying the
-`factory-review` label. Each invocation handles at most one review task. It
-requires green CI before spending subscription allowance, uses the existing
-Codex wrapper with ChatGPT login, and claims the PR through the shared lock-ref
-mechanism so local and cloud workers cannot both take it. Stale claims are not
-automatically taken over.
+`factory-review` label. Each invocation may merge cached approvals, then starts
+at most one new PR review or branch sync. It requires green CI before spending
+subscription allowance, uses the existing Codex wrapper with ChatGPT login, and
+claims the PR through the shared lock-ref mechanism so local and cloud workers
+cannot both take it. Stale claims are not automatically taken over.
 
 ## Run and recover
 
@@ -20,20 +20,27 @@ node scripts/agents/review-worker.mjs --pr 588 --include-draft --dry-run
 node scripts/agents/review-worker.mjs --pr 588 --retry
 ```
 
-Only `--merge` permits merging, and only an open, non-draft PR into `dev` with
-green CI and current code/security review statuses can merge. Draft review must
-be explicitly selected and never merges the draft. A failed review is not
-automatically repeated for the same head/base: push a fix or use an explicit
+Only `--merge` permits worker merging, and only an open, non-draft PR into `dev`
+with green CI and current code/security review statuses can merge. The worker
+applies the same owner-only path policy as the merge hook: those PRs are reviewed
+but left for the owner to merge. Draft review must be explicitly selected and
+never merges the draft. A failed review is not
+automatically repeated for the same head/merge-base: push a fix or use an explicit
 `--pr` and `--retry`. An unavailable login, malformed result or requested change
 cannot publish approval. API-key login is refused and inherited API keys are
 stripped. No additional API spending is enabled.
 
-`Factory review` always represents a completed independent review. High-risk
-and factory-control files additionally require an independent security review.
+`Factory review` always represents a completed independent review. The
+`risk:high` label, high-risk files and factory-control files require an
+independent security review.
 For other paths the security context records a deterministic `not-required`
-decision. Statuses are attached to the exact commit and include the complete
-reviewed base SHA. Cached results must match the current authenticated issuer
-and base. The worker rechecks PR identity, base, CI and statuses before merging.
+decision. Statuses are attached to the exact commit and PR merge-base. Cached
+results must match the current authenticated issuer and merge-base. The worker
+rechecks the PR head, merge-base, changed-file overlap, CI and statuses before
+merging. When Protect dev requires an up-to-date branch, stale PRs are synced
+and wait for CI. With that policy off, a disjoint dev advance preserves the
+review; if dev changed any file touched by the PR, the worker syncs and waits
+for CI or reports a merge conflict.
 
 ## Local scheduling
 
@@ -53,7 +60,7 @@ systemctl --user status grenmet-review.timer
 journalctl --user -u grenmet-review.service -n 40 --no-pager
 ```
 
-The timer runs while WSL is available, checks again ten minutes after a run
+The timer runs while WSL is available, checks again two minutes after a run
 finishes, and does not overlap an active service. There are no automatic repair
 loops. Confirm a crashed worker has stopped before releasing a remaining PR
 claim or deleting its local worker/review lock. Do not delete another live
@@ -70,7 +77,9 @@ is off.
 
 The GitHub statuses trust the runner's authenticated GitHub identity. Repository
 writers can also publish commit statuses; this is not a separate signing
-service. GitHub's `Protect dev` ruleset requires the review contexts and CI,
-with an up-to-date branch, while the worker checks issuer and exact base.
+service. GitHub's `Protect dev` ruleset requires the review contexts and CI.
+Its up-to-date-branch policy is read from the committed ruleset snapshot; the
+worker uses the same policy and checks the issuer, merge-base and changed-file
+overlap.
 Staging and production remain owner-approved. A dedicated GitHub App can later
 isolate status publishing without changing the review contract.
