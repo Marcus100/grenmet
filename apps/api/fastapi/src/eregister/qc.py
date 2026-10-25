@@ -22,13 +22,14 @@ from uuid import UUID
 
 from fastapi import HTTPException
 from sqlalchemy import func, select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
 from src.auth.models import User
 from src.utils.datetime import utc_now
 
-from . import entries
+from . import entries, sends
 from .models import STATUS_QUEUED, STATUS_SENT, TARGET_WIS2, ERegisterSend
 from .schemas import RegisterObservationRead
 
@@ -128,10 +129,63 @@ async def transition(
             raise HTTPException(
                 409, "Already queued or sent to WIS2; correct it with a new observation"
             )
+        elif action == "reopen" and previous == "rejected":
+            # A rejected row left the live set, so the hour may have been keyed again.
+            # Same lock as saving; a rejected row is never row-locked by a save, so
+            # taking it after the row lock cannot deadlock.
+            await entries.lock_key(
+                register, str(row["station_id"]), row["observed_at"], str(row["kind"])
+            )
+            if await entries.live_row(
+                register, str(row["station_id"]), row["observed_at"], str(row["kind"])
+            ):
+                raise HTTPException(
+                    409,
+                    "Another observation now holds this hour; correct that one instead",
+                )
     except HTTPException:
         await register.rollback()
         raise
-    updated = await register.execute(
+    try:
+        updated = await _set_state(
+            register, observation_id, user, target, clean_reason, action
+        )
+    except IntegrityError as exc:
+        await register.rollback()
+        if action != "reopen":
+            raise
+        raise HTTPException(
+            409, "Another observation now holds this hour; correct that one instead"
+        ) from exc
+    saved = dict(updated.mappings().one())
+    await register.commit()
+    if action == "reject" and row.get("supersedes_id"):
+        # A rejected correction: the reading it replaced stands, so release its file.
+        await sends.release_held_wis2(
+            app_session,
+            station_id=str(row["station_id"]),
+            observed_at=row["observed_at"],
+            original_id=UUID(str(row["supersedes_id"])),
+        )
+    await _audit(
+        app_session,
+        user=user,
+        observation_id=observation_id,
+        action=action,
+        changes={"state": (previous, target), "qc_notes": (None, clean_reason)},
+    )
+    return RegisterObservationRead.model_validate(saved)
+
+
+async def _set_state(
+    register: AsyncSession,
+    observation_id: UUID,
+    user: User,
+    target: str,
+    clean_reason: str | None,
+    action: QcAction,
+) -> Any:
+    return await register.execute(
         text(
             """
             UPDATE register_observations
@@ -154,16 +208,6 @@ async def transition(
             "clear": action == "reopen",
         },
     )
-    saved = dict(updated.mappings().one())
-    await register.commit()
-    await _audit(
-        app_session,
-        user=user,
-        observation_id=observation_id,
-        action=action,
-        changes={"state": (previous, target), "qc_notes": (None, clean_reason)},
-    )
-    return RegisterObservationRead.model_validate(saved)
 
 
 async def review(

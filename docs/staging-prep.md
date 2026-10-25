@@ -13,13 +13,13 @@ remaining manual steps. Companion to `docs/fastapi-cap-audit.md`.
 |---|---|---|
 | Permissions | Declarative catalog (`src/auth/permissions.py`) + default roles + idempotent seeder + governance guard test | Seeded in `scripts/initial_data.py` (prestart), not in test fixtures |
 | Storage | `src/storage/` DO Spaces (S3-compatible) service: presigned upload/download, public URL, put/delete | Set `STORAGE_*` env to enable; `boto3` added |
-| Worker | `src/worker/` arq + Redis; consumes `cap.job_event` outbox; **webhooks publisher** (HMAC) + **PDF publisher** (fpdf2 → Spaces) | `redis`+`worker` compose services; MQTT/WIS2 = skipped (separate wis2box) |
+| Worker | `src/worker/` arq + Redis; consumes `cap.job_event` outbox; **webhooks publisher** (HMAC) + **PDF publisher** (WeasyPrint → Spaces) | `redis`+`worker` compose services; MQTT/WIS2 = skipped (separate wis2box) |
 | Rate limiting | slowapi now uses Redis store when `REDIS_URL` set (multi-instance safe) | in-memory fallback when unset |
 | CAP drift | Reconciled FK `ondelete=CASCADE` + TEXT types on the **model** side; consolidated `alert.identifier` to a unique index | `alembic check` → "No new upgrade operations detected" |
 | Auth | Redis-backed **account lockout** (fail-open) on both login endpoints | `LOGIN_*` settings; disabled when `REDIS_URL` unset |
 | Auth | **2FA (TOTP)**: `/auth/users/me/security/2fa` (GET status; `/setup`, `/activate`, `/disable`); enforced at both login endpoints (`totp_code` in session body, `X-TOTP-Code` header for OAuth2) | `pyotp`; `User.totp_secret`/`totp_enabled` (migration `b2d4f6a8c1e3`) |
 | Auth | **Token TTL cutover**: legacy bearer default 8 days → **60 min**; session access 15 min | ⚠ `.env.local` pins `ACCESS_TOKEN_EXPIRE_MINUTES=11520` — lower it for the new default to take effect |
-| CAP publishers | **PDF** (fpdf2), **social image** + **static map** (Pillow, no tiles) → Spaces | MQTT/WIS2 still out of scope (separate wis2box) |
+| CAP publishers | **PDF** (WeasyPrint), **social image** + **static map** (Pillow, no tiles) → Spaces | MQTT/WIS2 still out of scope (separate wis2box) |
 | Contract | `openapi.json` regenerated with 2FA routes | Run `pnpm generate:api-client` to sync the TS client |
 
 ## Required env vars for staging/prod (set in deploy env, not committed)

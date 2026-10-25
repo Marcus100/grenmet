@@ -332,6 +332,8 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/eRegister/janitorial/
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
 
+**Local production builds.** `next build` validates this env schema, so without `RESEND_API_KEY` a local `turbo run build --filter=@barrelsgd/web-gaa-admin` fails with `Invalid environment variables`. Export a placeholder in the shell for that one build (for example `RESEND_API_KEY=re_placeholder pnpm turbo run build --filter=@barrelsgd/web-gaa-admin`). Do not write it to any `.env*` file.
+
 ### admin (`apps/web/admin/.env.local`)
 
 The Barrels control plane. It holds no database credentials and calls FastAPI only.

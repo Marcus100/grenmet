@@ -16,7 +16,11 @@ from src.models_guidance.models import ModelGuidanceRun, ModelGuidanceSeries
 from .grib import write_grib
 
 POINTS = [GuidancePoint(key="mbia", name="MBIA", latitude=12.004, longitude=-61.786)]
-RUN = datetime(2026, 10, 18, 0)
+# Yesterday's 00:00 UTC cycle: always inside the retention window, so the
+# prune test does not start failing as the calendar moves on.
+RUN = (datetime.now(UTC) - timedelta(days=1)).replace(
+    hour=0, minute=0, second=0, microsecond=0, tzinfo=None
+)
 
 
 def test_ecmwf_steps_follow_published_cadence():
@@ -101,7 +105,7 @@ async def test_gfs_fetch_requests_a_small_filtered_box_per_step(
         f"gfs.t00z.pgrb2.0p25.f{h:03d}" for h in range(0, 25, 3)
     ]
     first = requested[0]
-    assert first["dir"] == "/gfs.20261018/00/atmos"
+    assert first["dir"] == f"/gfs.{RUN:%Y%m%d}/00/atmos"
     assert first["var_TMP"] == "on"
     assert first["lev_2_m_above_ground"] == "on"
     assert float(first["toplat"]) - float(first["bottomlat"]) < 2

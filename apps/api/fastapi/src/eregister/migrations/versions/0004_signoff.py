@@ -7,8 +7,9 @@ accepts alone). A second register staff member may record an optional review
 ``supersedes_id`` (0001) carries the correction chain.
 
 Before the partial unique index is built, duplicate live rows for one station,
-time and kind are resolved by marking all but one ``superseded`` (an accepted
-row wins, then the newest), so the migration cannot fail on old data.
+time and kind are resolved by marking all but one ``superseded``: the row that holds
+the publish gate for the hour wins (so a sent hour stays correctable), then an
+accepted row, then the newest. The migration cannot fail on old data.
 """
 
 from alembic import op
@@ -41,9 +42,11 @@ def upgrade() -> None:
               AND n.id <> o.id
               AND n.state NOT IN ('rejected', 'superseded')
               AND (
-                (n.state = 'accepted') > (o.state = 'accepted')
-                OR ((n.state = 'accepted') = (o.state = 'accepted')
-                    AND (n.created_at, n.id::text) > (o.created_at, o.id::text))
+                EXISTS (SELECT 1 FROM observations.publish_gate g WHERE g.observation_id = n.id),
+                n.state = 'accepted', n.created_at, n.id::text
+              ) > (
+                EXISTS (SELECT 1 FROM observations.publish_gate g WHERE g.observation_id = o.id),
+                o.state = 'accepted', o.created_at, o.id::text
               )
           )
         """
