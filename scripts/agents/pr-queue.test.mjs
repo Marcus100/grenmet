@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import {
   buildQueue,
   checkResult,
   classify,
   render,
+  requiredContexts,
   run,
   sharedFailures,
 } from "./pr-queue.mjs";
@@ -174,4 +178,66 @@ test("run prints the table, or JSON with --json, from whatever gh returns", () =
     (line) => json.push(line)
   );
   assert.equal(JSON.parse(json[0]).rows[0].number, 1);
+});
+
+test("a failing check the ruleset does not require is advisory, not a blocker", () => {
+  const required = new Set(["CI Success"]);
+  const reviewed = (number) =>
+    pr({
+      number,
+      statusCheckRollup: [
+        run_("CI Success"),
+        run_("Rulesets match snapshot", "FAILURE"),
+        status("Factory review", "SUCCESS"),
+        status("Factory security review", "SUCCESS"),
+      ],
+    });
+  const queue = buildQueue([1, 2, 3].map(reviewed), required);
+  assert.deepEqual(queue.shared, []);
+  for (const r of queue.rows) {
+    assert.deepEqual([r.state, r.needs], ["reviewed, ready", "worker"]);
+    assert.ok(
+      r.detail.includes("non-required failing: Rulesets match snapshot")
+    );
+  }
+  // The same failure on a required check still blocks.
+  const blocked = classify(
+    pr({ statusCheckRollup: [run_("CI Success", "FAILURE")] }),
+    new Set(),
+    required
+  );
+  assert.equal(blocked.state, "CI failing");
+});
+
+test("required checks come from Protect dev, falling back to Protect staging", () => {
+  const dir = mkdtempSync(join(tmpdir(), "pr-queue-"));
+  const write = (rulesets) => {
+    const path = join(dir, "rulesets.json");
+    writeFileSync(path, JSON.stringify(rulesets));
+    return path;
+  };
+  const rule = (name, ...contexts) => ({
+    name,
+    rules: [
+      {
+        type: "required_status_checks",
+        parameters: {
+          required_status_checks: contexts.map((context) => ({ context })),
+        },
+      },
+    ],
+  });
+  assert.deepEqual(
+    [...requiredContexts(write([rule("Protect staging", "A")]))],
+    ["A"]
+  );
+  assert.deepEqual(
+    [
+      ...requiredContexts(
+        write([rule("Protect staging", "A"), rule("Protect dev", "B", "C")])
+      ),
+    ],
+    ["B", "C"]
+  );
+  assert.equal(requiredContexts(join(dir, "missing.json")), null);
 });

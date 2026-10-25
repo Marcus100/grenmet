@@ -6,9 +6,13 @@
 // Reads only from GitHub through `gh`; it never changes anything.
 
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const DEFAULT_REPO = "Marcus100/grenmet";
+const RULESETS_PATH = fileURLToPath(
+  new URL("../../infra/github/rulesets.json", import.meta.url)
+);
 const REVIEW_LABEL = "factory-review";
 const OWNER_MERGE = /OWNER-MERGE/;
 const FACTORY_CODE = "Factory review";
@@ -40,8 +44,14 @@ export function checkResult(check) {
   return "fail";
 }
 
-function collect(pr) {
+/**
+ * `required` is the set of check names the ruleset demands (null = unknown, so
+ * every check counts). A failing check outside it does not stop a merge, so it is
+ * reported as advisory instead of blocking.
+ */
+function collect(pr, required = null) {
   const failing = [];
+  const advisory = [];
   const pending = [];
   const factory = {};
   for (const check of pr.statusCheckRollup ?? []) {
@@ -51,17 +61,23 @@ function collect(pr) {
       factory[name] = result;
       continue;
     }
-    if (result === "fail") failing.push(name);
-    if (result === "pending") pending.push(name);
+    const counts = required === null || required.has(name);
+    if (result === "fail") (counts ? failing : advisory).push(name);
+    if (result === "pending" && counts) pending.push(name);
   }
-  return { failing: [...new Set(failing)], pending, factory };
+  return {
+    failing: [...new Set(failing)],
+    advisory: [...new Set(advisory)],
+    pending,
+    factory,
+  };
 }
 
 /** Names of failing checks that fail on several open PRs at once. */
-export function sharedFailures(prs) {
+export function sharedFailures(prs, required = null) {
   const counts = new Map();
   for (const pr of prs)
-    for (const name of collect(pr).failing)
+    for (const name of collect(pr, required).failing)
       counts.set(name, (counts.get(name) ?? 0) + 1);
   return new Set(
     [...counts]
@@ -90,8 +106,8 @@ function reviewRow(pr, factory, ownerMerge) {
 }
 
 /** One PR to one row: its state and who must act next. */
-export function classify(pr, shared = new Set()) {
-  const { failing, pending, factory } = collect(pr);
+export function classify(pr, shared = new Set(), required = null) {
+  const { failing, advisory, pending, factory } = collect(pr, required);
   const own = failing.filter((name) => !shared.has(name));
   const blockers = failing.filter((name) => shared.has(name));
   const labels = (pr.labels ?? []).map((label) => label.name);
@@ -114,12 +130,15 @@ export function classify(pr, shared = new Set()) {
       "nobody",
       `waiting for a repo-wide fix: ${blockers.join(", ")}`
     );
-  return reviewRow(pr, factory, ownerMerge);
+  const result = reviewRow(pr, factory, ownerMerge);
+  if (advisory.length)
+    result.detail = `${result.detail}; non-required failing: ${advisory.join(", ")}`;
+  return result;
 }
 
-export function buildQueue(prs) {
-  const shared = sharedFailures(prs);
-  const rows = prs.map((pr) => classify(pr, shared));
+export function buildQueue(prs, required = null) {
+  const shared = sharedFailures(prs, required);
+  const rows = prs.map((pr) => classify(pr, shared, required));
   const order = { owner: 0, author: 1, worker: 2, nobody: 3 };
   rows.sort((a, b) => order[a.needs] - order[b.needs] || a.number - b.number);
   return { rows, shared: [...shared] };
@@ -149,6 +168,24 @@ export function render({ rows, shared }) {
   return lines.join("\n");
 }
 
+/** Check names the `Protect dev` ruleset requires, or null if the file is unreadable. */
+export function requiredContexts(path = RULESETS_PATH) {
+  try {
+    const rulesets = JSON.parse(readFileSync(path, "utf8"));
+    // Same fallback as the review worker: until the snapshot lists `Protect dev`,
+    // `Protect staging` carries the same required checks.
+    const ruleset =
+      rulesets.find((rule) => rule.name === "Protect dev") ??
+      rulesets.find((rule) => rule.name === "Protect staging");
+    const checks = ruleset?.rules.find(
+      (rule) => rule.type === "required_status_checks"
+    )?.parameters.required_status_checks;
+    return checks ? new Set(checks.map((check) => check.context)) : null;
+  } catch {
+    return null;
+  }
+}
+
 function fetchPulls(repo) {
   const result = spawnSync(
     "gh",
@@ -163,10 +200,15 @@ function fetchPulls(repo) {
   return JSON.parse(result.stdout);
 }
 
-export function run(argv, fetch = fetchPulls, log = console.log) {
+export function run(
+  argv,
+  fetch = fetchPulls,
+  log = console.log,
+  required = requiredContexts()
+) {
   const repoFlag = argv.indexOf("--repo");
   const repo = repoFlag === -1 ? DEFAULT_REPO : argv[repoFlag + 1];
-  const queue = buildQueue(fetch(repo));
+  const queue = buildQueue(fetch(repo), required);
   log(argv.includes("--json") ? JSON.stringify(queue, null, 2) : render(queue));
   return 0;
 }
