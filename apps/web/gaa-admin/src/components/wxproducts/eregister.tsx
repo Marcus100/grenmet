@@ -258,16 +258,26 @@ export function ERegister() {
     // The hour already has a live observation that cannot be edited in place
     // (accepted, or recorded by someone else): save a correction. Paper practice
     // is strike through and re-enter, so the old one stays listed, struck out.
-    const earlier =
-      result.response?.status === 409
-        ? liveObservations.find(
-            (item) =>
-              item.observed_at.slice(0, 16) === observedAt &&
-              (item.state === "draft" ||
-                item.state === "qc_pending" ||
-                item.state === "accepted")
-          )
-        : undefined;
+    // Ask the server which observation holds this hour: the recent-record list
+    // holds only the latest 24, so an older hour would not be found there.
+    let earlier: RegisterObservationRead | undefined;
+    if (result.response?.status === 409) {
+      const holders = await eregisterListRegisterObservations({
+        query: {
+          kind: "SYNOP",
+          station_id: STATION.number,
+          observed_at: record.observed_at,
+          limit: 10,
+        },
+        throwOnError: false,
+      });
+      earlier = holders.data?.observations.find(
+        (item) =>
+          item.state === "draft" ||
+          item.state === "qc_pending" ||
+          item.state === "accepted"
+      );
+    }
     if (earlier) {
       const corrected = await eregisterCorrectRegisterObservation({
         body: { body: record.body },
