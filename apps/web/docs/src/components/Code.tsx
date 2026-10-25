@@ -195,7 +195,10 @@ function CodeGroupHeader({
         </h3>
       )}
       {hasTabs && (
-        <Tabs.List className="-mb-px flex gap-4 font-medium text-xs">
+        <Tabs.List
+          activateOnFocus
+          className="-mb-px flex gap-4 font-medium text-xs"
+        >
           {Children.map(children, (child, childIndex) => (
             <Tabs.Tab
               className={cn(

@@ -59,7 +59,10 @@ function MobileNavigationDialog({
 
         {/* The popup has no box of its own so the backdrop stays clickable.
             Its visibility transition keeps it mounted while the panel slides out. */}
-        <Dialog.Popup className="group z-50 transition-[visibility] duration-500 data-ending-style:invisible lg:hidden">
+        <Dialog.Popup
+          aria-label="Navigation"
+          className="group z-50 transition-[visibility] duration-500 data-ending-style:invisible lg:hidden"
+        >
           <Header className="duration-300 ease-out group-data-ending-style:opacity-0 group-data-starting-style:opacity-0 group-data-ending-style:duration-200 group-data-ending-style:ease-in" />
 
           <motion.div

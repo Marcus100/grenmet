@@ -380,7 +380,10 @@ function SearchDialog({
             className
           )}
         >
-          <Dialog.Popup className="mx-auto transform-gpu overflow-hidden rounded-lg bg-zinc-50 shadow-xl ring-1 ring-zinc-900/7.5 transition duration-300 ease-out data-ending-style:scale-95 data-starting-style:scale-95 data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-200 data-ending-style:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800">
+          <Dialog.Popup
+            aria-label="Search"
+            className="mx-auto transform-gpu overflow-hidden rounded-lg bg-zinc-50 shadow-xl ring-1 ring-zinc-900/7.5 transition duration-300 ease-out data-ending-style:scale-95 data-starting-style:scale-95 data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-200 data-ending-style:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
+          >
             <div {...autocomplete.getRootProps({})}>
               <form
                 ref={formRef}
