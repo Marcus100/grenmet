@@ -14,6 +14,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -30,7 +31,10 @@ import {
   appendAuditLine,
   redactSecrets,
 } from "../../.claude/hooks/audit-log.mjs";
-import { findBlockedPattern } from "../../.claude/hooks/block-dangerous-git.mjs";
+import {
+  findBlockedPattern,
+  lookupMergeFiles,
+} from "../../.claude/hooks/block-dangerous-git.mjs";
 import { isInsideRepo } from "../../.claude/hooks/format-changed-file.mjs";
 import { mainCheckoutRoot } from "../../.claude/hooks/main-checkout.mjs";
 import {
@@ -435,6 +439,77 @@ test("block-dangerous-git: the owner merges changes to the files that limit the 
   );
 });
 
+test("block-dangerous-git rejects PR file lists beyond GitHub's 3,000-file cap", () => {
+  const overLimitCalls = [];
+  assert.equal(
+    lookupMergeFiles(["42"], (command, args) => {
+      overLimitCalls.push({ command, args });
+      return { status: 0, stdout: "3001\n" };
+    }),
+    null
+  );
+  assert.equal(overLimitCalls.length, 1);
+  assert.equal(
+    lookupMergeFiles(["42"], () => ({ status: 0, stdout: "" })),
+    null
+  );
+
+  const calls = [];
+  assert.equal(
+    lookupMergeFiles(["42"], (command, args) => {
+      calls.push({ command, args });
+      if (args[1] === "repos/{owner}/{repo}/pulls/42")
+        return { status: 0, stdout: "2\n" };
+      return {
+        status: 0,
+        stdout: JSON.stringify([[{ filename: "one" }]]),
+      };
+    }),
+    null
+  );
+  assert.equal(
+    lookupMergeFiles(["42"], (_command, args) => ({
+      status: 0,
+      stdout:
+        args[1] === "repos/{owner}/{repo}/pulls/42"
+          ? "1\n"
+          : JSON.stringify([[{}]]),
+    })),
+    null
+  );
+  for (const file of [
+    { filename: "docs/new.md", previous_filename: 42 },
+    { filename: "docs/new.md", status: "renamed" },
+  ]) {
+    assert.equal(
+      lookupMergeFiles(["42"], (_command, args) => ({
+        status: 0,
+        stdout:
+          args[1] === "repos/{owner}/{repo}/pulls/42"
+            ? "1\n"
+            : JSON.stringify([[file]]),
+      })),
+      null
+    );
+  }
+
+  assert.deepEqual(
+    lookupMergeFiles(["42"], (_command, args) => ({
+      status: 0,
+      stdout:
+        args[1] === "repos/{owner}/{repo}/pulls/42"
+          ? "2\n"
+          : JSON.stringify([
+              [
+                { filename: "new-name", previous_filename: "old-name" },
+                { filename: "another-file" },
+              ],
+            ]),
+    })),
+    ["new-name", "old-name", "another-file"]
+  );
+});
+
 test("block-dangerous-git: looks up the merge base for the PR and repo named", () => {
   const seen = [];
   findBlockedPattern(
@@ -733,6 +808,61 @@ test("session-handoff: splits bullet entries that have no blank line between the
   const body = output.split("\n\n").slice(1);
   assert.match(body[0], SECOND_BULLET);
   assert.match(body[1], FIRST_BULLET);
+});
+
+test("session-handoff: runs from encoded paths and reads only the main checkout log", () => {
+  const dir = mkdtempSync(join(tmpdir(), "handoff-path-"));
+  try {
+    const main = join(dir, "main checkout # % é");
+    const linked = join(dir, "linked checkout # % é");
+    mkdirSync(join(main, ".git", "worktrees", "task"), { recursive: true });
+    const files = [
+      ".claude/hooks/session-handoff.mjs",
+      ".claude/hooks/main-checkout.mjs",
+      "scripts/agents/archive-session-log.mjs",
+    ];
+    for (const checkout of [main, linked]) {
+      for (const relative of files) {
+        const target = join(checkout, relative);
+        mkdirSync(dirname(target), { recursive: true });
+        copyFileSync(join(hooksDir, "../..", relative), target);
+      }
+    }
+    writeFileSync(
+      join(linked, ".git"),
+      `gitdir: ${join(main, ".git", "worktrees", "task")}\n`
+    );
+    const mainLog = "2026-10-24 | Test | encoded path handoff\n";
+    const linkedLog = "WRONG_WORKTREE_LOG\n";
+    writeFileSync(join(main, "SESSION_LOG.md"), mainLog);
+    writeFileSync(join(linked, "SESSION_LOG.md"), linkedLog);
+    for (const checkout of [main, linked]) {
+      const result = spawnSync(
+        process.execPath,
+        [join(checkout, ".claude/hooks/session-handoff.mjs")],
+        { cwd: checkout, encoding: "utf8" }
+      );
+      assert.equal(result.status, 0, result.stderr);
+      assert.ok(result.stdout.includes(mainLog.trim()));
+      assert.ok(!result.stdout.includes(linkedLog.trim()));
+      assert.equal(readFileSync(join(main, "SESSION_LOG.md"), "utf8"), mainLog);
+      assert.equal(
+        readFileSync(join(linked, "SESSION_LOG.md"), "utf8"),
+        linkedLog
+      );
+    }
+    rmSync(join(main, "SESSION_LOG.md"));
+    const missing = spawnSync(
+      process.execPath,
+      [join(linked, ".claude/hooks/session-handoff.mjs")],
+      { cwd: linked, encoding: "utf8" }
+    );
+    assert.equal(missing.status, 0, missing.stderr);
+    assert.equal(missing.stdout, "");
+    assert.ok(!existsSync(join(main, "SESSION_LOG.md")));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("main-checkout: resolves a worktree's .git file to the owning checkout", () => {

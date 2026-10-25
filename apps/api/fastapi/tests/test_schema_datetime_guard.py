@@ -110,6 +110,7 @@ def test_json_routes_declare_response_models_and_metadata() -> None:
 
 MAP_TYPE_EXEMPTIONS = {
     "src.cap.schemas.CapAuditEventPublic.payload": "audit payload is versioned opaque event data",
+    "src.eregister.schemas.RegisterObservationCorrection.body": "WMO observation body is format-specific opaque data",
     "src.eregister.schemas.RegisterObservationCreate.body": "WMO observation body is format-specific opaque data",
     "src.eregister.schemas.RegisterObservationRead.body": "WMO observation body is format-specific opaque data",
     "src.eregister.schemas.RegisterObservationWrite.body": "WMO observation body is format-specific opaque data",

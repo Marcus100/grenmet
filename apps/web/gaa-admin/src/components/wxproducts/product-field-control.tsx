@@ -87,6 +87,9 @@ export function sectionParts(section: string) {
 }
 
 /** One labelled entry cell of a product form: select, textarea, number or input. */
+/** Stands for "no value" in an optional list: an empty item value is not allowed. */
+const CLEAR_OPTION = "__none__";
+
 export function ProductFieldControl({
   field: f,
   kind,
@@ -106,7 +109,12 @@ export function ProductFieldControl({
   let control: ReactNode;
   if (f.options) {
     control = (
-      <Select onValueChange={(next) => onChange(next ?? "")} value={value}>
+      <Select
+        onValueChange={(next) =>
+          onChange(next === CLEAR_OPTION ? "" : (next ?? ""))
+        }
+        value={value}
+      >
         <SelectTrigger
           aria-label={accessibleLabel}
           className={cn(
@@ -120,6 +128,9 @@ export function ProductFieldControl({
           <SelectValue placeholder={productFieldCaption(f)} />
         </SelectTrigger>
         <SelectContent>
+          {f.required ? null : (
+            <SelectItem value={CLEAR_OPTION}>None</SelectItem>
+          )}
           {f.options.map((option) => (
             <SelectItem key={option} value={option}>
               {option}
