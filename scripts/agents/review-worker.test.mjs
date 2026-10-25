@@ -354,3 +354,21 @@ test("an error before any review still lets the next PR be reviewed", () => {
   assert.equal(errors, 1);
   assert.deepEqual(reviewed, ["2:code"]);
 });
+
+test("a cached review does not consume this invocation's review allowance", () => {
+  const { api, reviewed } = queueApi({ mergeThrows: [1] });
+  const initialErrors = processQueue([1], {}, api, CI, () => undefined);
+  assert.equal(initialErrors, 0);
+  assert.deepEqual(reviewed, ["1:code"]);
+
+  reviewed.length = 0;
+  const errors = processQueue(
+    [1, 2],
+    { merge: true },
+    api,
+    CI,
+    () => undefined
+  );
+  assert.equal(errors, 1);
+  assert.deepEqual(reviewed, ["2:code"]);
+});

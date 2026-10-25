@@ -237,7 +237,7 @@ function currentInfo(pr, files, mergeBase) {
   };
 }
 
-function performReview(api, pr, kind, info, login) {
+function performReview(api, pr, kind, info, login, state) {
   const context = CONTEXTS[kind];
   const description = statusDescription(pr.base.sha, kind);
   if (
@@ -246,6 +246,7 @@ function performReview(api, pr, kind, info, login) {
     return;
   api.publish(pr.head.sha, context, "pending", description, pr.number);
   try {
+    state.reviewStarted = true;
     const result = api.review(pr.number, kind, info);
     const blockers = reviewBlockers(result.receipt, info, {
       requireLocalVerification: false,
@@ -340,10 +341,9 @@ function reviewAndMerge(api, pr, options, requiredCi, state) {
       reason: "Integrate current dev and rerun verification before review.",
     };
   const info = currentInfo(pr, files, mergeBase);
-  state.reviewStarted = true;
-  performReview(api, pr, "code", info, login);
+  performReview(api, pr, "code", info, login, state);
   const security = securityRequired(files);
-  if (security) performReview(api, pr, "security", info, login);
+  if (security) performReview(api, pr, "security", info, login, state);
   else
     api.publish(
       pr.head.sha,
