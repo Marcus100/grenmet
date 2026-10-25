@@ -166,7 +166,8 @@ test("run prints the table, or JSON with --json, from whatever gh returns", () =
     run(
       [],
       () => [pr()],
-      (line) => lines.push(line)
+      (line) => lines.push(line),
+      null
     ),
     0
   );
@@ -175,7 +176,8 @@ test("run prints the table, or JSON with --json, from whatever gh returns", () =
   run(
     ["--json"],
     () => [pr()],
-    (line) => json.push(line)
+    (line) => json.push(line),
+    null
   );
   assert.equal(JSON.parse(json[0]).rows[0].number, 1);
 });
@@ -240,4 +242,52 @@ test("required checks come from Protect dev, falling back to Protect staging", (
     ["B", "C"]
   );
   assert.equal(requiredContexts(join(dir, "missing.json")), null);
+});
+
+test("a required check that has not reported keeps the PR out of 'ready'", () => {
+  const required = new Set(["CI Success", "Type Check", "Factory review"]);
+  const reviewed = pr({
+    mergeStateStatus: "BLOCKED",
+    statusCheckRollup: [
+      run_("CI Success"),
+      status("Factory review", "SUCCESS"),
+      status("Factory security review", "SUCCESS"),
+    ],
+  });
+  const result = classify(reviewed, new Set(), required);
+  assert.deepEqual([result.state, result.needs], ["CI running", "nobody"]);
+  const complete = classify(
+    {
+      ...reviewed,
+      statusCheckRollup: [...reviewed.statusCheckRollup, run_("Type Check")],
+    },
+    new Set(),
+    required
+  );
+  assert.equal(complete.state, "reviewed, ready");
+});
+
+test("promotion PRs are the owner's to merge, whatever their title says", () => {
+  for (const base of ["staging", "main"]) {
+    const promotion = classify(
+      pr({
+        title: `Promote dev to ${base}`,
+        baseRefName: base,
+        labels: [],
+        statusCheckRollup: [
+          run_("CI Success"),
+          status("Factory review", "SUCCESS"),
+          status("Factory security review", "SUCCESS"),
+        ],
+      })
+    );
+    assert.deepEqual(
+      [promotion.state, promotion.needs],
+      ["promotion ready", "owner"],
+      base
+    );
+    assert.ok(promotion.detail.includes(base));
+  }
+  const toDev = classify(pr({ baseRefName: "dev" }));
+  assert.notEqual(toDev.needs, "owner");
 });

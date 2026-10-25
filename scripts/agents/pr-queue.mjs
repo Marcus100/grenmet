@@ -14,6 +14,7 @@ const RULESETS_PATH = fileURLToPath(
   new URL("../../infra/github/rulesets.json", import.meta.url)
 );
 const REVIEW_LABEL = "factory-review";
+const DEV = "dev";
 const OWNER_MERGE = /OWNER-MERGE/;
 const FACTORY_CODE = "Factory review";
 const FACTORY_SECURITY = "Factory security review";
@@ -23,7 +24,7 @@ const FACTORY = new Set([FACTORY_CODE, FACTORY_SECURITY]);
 const SHARED_FAILURE_MIN_PRS = 3;
 const SHARED_SHOWN = 4;
 const FIELDS =
-  "number,title,isDraft,mergeStateStatus,labels,statusCheckRollup,headRefName";
+  "number,title,isDraft,mergeStateStatus,labels,statusCheckRollup,headRefName,baseRefName";
 
 function checkName(check) {
   return check.name ?? check.context;
@@ -54,9 +55,11 @@ function collect(pr, required = null) {
   const advisory = [];
   const pending = [];
   const factory = {};
+  const seen = new Set();
   for (const check of pr.statusCheckRollup ?? []) {
     const name = checkName(check);
     const result = checkResult(check);
+    seen.add(name);
     if (FACTORY.has(name)) {
       factory[name] = result;
       continue;
@@ -65,10 +68,14 @@ function collect(pr, required = null) {
     if (result === "fail") (counts ? failing : advisory).push(name);
     if (result === "pending" && counts) pending.push(name);
   }
+  // A required check that has not reported yet is not green: treat it as pending.
+  const missing = [...(required ?? [])].filter(
+    (name) => !(FACTORY.has(name) || seen.has(name))
+  );
   return {
     failing: [...new Set(failing)],
     advisory: [...new Set(advisory)],
-    pending,
+    pending: [...pending, ...missing],
     factory,
   };
 }
@@ -120,6 +127,14 @@ export function classify(pr, shared = new Set(), required = null) {
     return row(pr, "behind dev", "author", "sync, one PR at a time");
   if (pending.length)
     return row(pr, "CI running", "nobody", `${pending.length} checks`);
+  // Promotions (dev to staging, staging to main) are never merged by the worker.
+  if (pr.baseRefName && pr.baseRefName !== DEV)
+    return row(
+      pr,
+      "promotion ready",
+      "owner",
+      `you merge into ${pr.baseRefName}`
+    );
   if (!labels.includes(REVIEW_LABEL))
     return row(pr, "needs review label", "author", `add ${REVIEW_LABEL}`);
   // A repo-wide failure still blocks the merge, whatever the reviews say.
