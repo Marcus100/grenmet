@@ -11,4 +11,8 @@ export type SynopValidationRequest = {
    * @type object
    */
   workbook: SynopWorkbook;
+  /**
+   * @description When given, the keyed day and hour must match this UTC time.
+   */
+  observed_at?: string | null;
 };
