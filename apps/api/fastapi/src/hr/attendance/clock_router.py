@@ -157,7 +157,7 @@ async def set_clock_site_active(
 
 PUNCH_ERRORS: dict[int | str, dict[str, Any]] = {
     403: {
-        "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+        "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
     },
     404: {"description": "Clock punch not found"},
     409: {"description": "Punch already decided, or its arrival is not approved"},
@@ -168,7 +168,7 @@ PUNCH_ERRORS: dict[int | str, dict[str, Any]] = {
     "/clock-punches/pending",
     response_model=ClockPunchesPublic,
     summary="List phone clock punches awaiting approval",
-    description="Pending phone punches of employees the caller supervises or reviews (named supervisor, or timesheet.approve in the department scope). Never includes the caller's own punches.",
+    description="Pending phone punches the caller may decide: any holder of timesheet.approve who is the organisation-wide (ALL scope) timesheet.approve holder, the department manager of the department recorded on the punch, the manager of the employee's current department, or the employee's named supervisor. Approve and reject use the same rule. Never includes the caller's own punches.",
     operation_id="hrListPendingClockPunches",
     responses={403: {"description": "Requires timesheet.approve"}},
 )
@@ -203,7 +203,7 @@ async def list_pending_clock_punches(
     "/clock-punches/{punch_id}/approve",
     response_model=ClockPunchPublic,
     summary="Approve a phone clock punch",
-    description="Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Only the employee's named supervisor or a timesheet.approve holder in scope; never the punching employee. Idempotent.",
+    description="Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Allowed for a timesheet.approve holder who is the organisation-wide (ALL scope) timesheet.approve holder, the department manager of the department recorded on the punch, the manager of the employee's current department, or the employee's named supervisor; never the punching employee. Idempotent.",
     operation_id="hrApproveClockPunch",
     responses=PUNCH_ERRORS,
 )

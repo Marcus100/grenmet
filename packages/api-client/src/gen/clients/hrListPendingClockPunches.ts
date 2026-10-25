@@ -11,7 +11,7 @@ import type {
 } from "../models/HrListPendingClockPunches.js";
 
 /**
- * @description Pending phone punches of employees the caller supervises or reviews (named supervisor, or timesheet.approve in the department scope). Never includes the caller's own punches.
+ * @description Pending phone punches the caller may decide: any holder of timesheet.approve who is the organisation-wide (ALL scope) timesheet.approve holder, the department manager of the department recorded on the punch, the manager of the employee's current department, or the employee's named supervisor. Approve and reject use the same rule. Never includes the caller's own punches.
  * @summary List phone clock punches awaiting approval
  * {@link /api/v1/hr/attendance/clock-punches/pending}
  */

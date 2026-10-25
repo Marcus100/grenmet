@@ -9,13 +9,13 @@ timesheet rules are the manual ones); a rejected or pending punch never reaches
 import uuid
 from datetime import UTC, date, datetime
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import ColumnElement, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.audit import service as audit_service
 from src.auth.models import Role, RoleAssignmentScope, User
-from src.auth.policy import can_act_on_user, require_permission
+from src.auth.policy import require_permission
 from src.exceptions import AppException
 from src.hr import organisations
 from src.hr.models import Department, EmploymentRecord
@@ -39,29 +39,94 @@ def _aware(value: datetime) -> datetime:
     return value.replace(tzinfo=UTC)
 
 
+async def _review_scope(
+    session: AsyncSession, actor: User
+) -> tuple[set[str], set[str]]:
+    """(organisations with ALL scope, departments with DEPARTMENT scope) in which
+    the actor holds the review permission. SELF scope covers one's own records,
+    which are never reviewable, so it grants nothing here."""
+    role_ids = {
+        role.id
+        for role in actor.roles
+        if any(p.key.lower() == REVIEW_PERMISSION for p in role.permissions)
+    }
+    organisation_ids: set[str] = set()
+    department_ids: set[str] = set()
+    for assignment in await organisations.active_assignments(session, actor.id):
+        if assignment.role_id not in role_ids:
+            continue
+        if assignment.scope == RoleAssignmentScope.ALL:
+            organisation_ids.add(assignment.organisation_id)
+        elif (
+            assignment.scope == RoleAssignmentScope.DEPARTMENT
+            and assignment.department_id
+        ):
+            department_ids.add(assignment.department_id)
+    return organisation_ids, department_ids
+
+
+async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]:
+    """The one rule for who may decide a phone punch (owner decision 2026-10-25),
+    shared by the pending list and by approve/reject so that anyone who sees a
+    punch can act on it and the reverse.
+
+    A punch is reviewable by a holder of the review permission who is any of:
+    an ALL-scope holder in the organisation (or a superuser); the DEPARTMENT-scope
+    manager of the department recorded on the punch; the DEPARTMENT-scope manager
+    of the employee's current department; or the employee's named supervisor.
+    Never the employee. The punch department matters because a transfer must not
+    strand a punch its original manager was shown.
+    """
+    never_own = ClockPunch.user_id != actor.id
+    if actor.is_superuser:
+        return never_own
+    organisation_ids, department_ids = await _review_scope(session, actor)
+    employed = EmploymentRecord.user_id
+    grants: list[ColumnElement[bool]] = [
+        ClockPunch.user_id.in_(
+            select(employed).where(EmploymentRecord.supervisor_id == actor.id)
+        )
+    ]
+    if department_ids:
+        grants.append(ClockPunch.department_id.in_(department_ids))
+        grants.append(
+            ClockPunch.user_id.in_(
+                select(employed).where(
+                    EmploymentRecord.department_id.in_(department_ids)
+                )
+            )
+        )
+    if organisation_ids:
+        grants.append(
+            ClockPunch.department_id.in_(
+                select(Department.id).where(
+                    Department.organisation_id.in_(organisation_ids)
+                )
+            )
+        )
+        grants.append(
+            ClockPunch.user_id.in_(
+                select(employed).where(
+                    EmploymentRecord.organisation_id.in_(organisation_ids)
+                )
+            )
+        )
+    return and_(never_own, or_(*grants))
+
+
 async def _require_reviewer(
     session: AsyncSession, actor: User, punch: ClockPunch
 ) -> None:
-    """Only a supervisor holding timesheet.approve, and never the punching person.
-
-    The employee's named supervisor (ADR-0008) qualifies, as does anyone whose
-    timesheet.approve role assignment covers the employee's organisation and
-    department (``can_act_on_user``).
-    """
+    """Refuse unless the shared review rule (``_reviewable``) covers this punch."""
     require_permission(current_user=actor, permission_key=REVIEW_PERMISSION)
     if actor.id == punch.user_id:
         raise AppException("You cannot review your own clock punch", 403)
-    employment = await session.scalar(
-        select(EmploymentRecord).where(EmploymentRecord.user_id == punch.user_id)
+    allowed = await session.scalar(
+        select(ClockPunch.id).where(
+            ClockPunch.id == punch.id, await _reviewable(session, actor)
+        )
     )
-    if employment is not None and employment.supervisor_id == actor.id:
-        return
-    if not await can_act_on_user(
-        session=session,
-        current_user=actor,
-        target_user_id=punch.user_id,
-        permission_key=REVIEW_PERMISSION,
-    ):
+    if allowed is None:
         raise AppException("Not allowed to review this employee's clock punch", 403)
 
 
@@ -203,61 +268,16 @@ async def reject_punch(
     return punch
 
 
-async def _reviewable_departments(session: AsyncSession, actor: User) -> set[str]:
-    """Departments whose punches the actor may decide: DEPARTMENT and ALL scopes
-    only, matching ``can_act_on_user`` (a SELF scope covers one's own records,
-    which are never reviewable)."""
-    role_ids = {
-        role.id
-        for role in actor.roles
-        if any(p.key.lower() == REVIEW_PERMISSION for p in role.permissions)
-    }
-    departments: set[str] = set()
-    for assignment in await organisations.active_assignments(session, actor.id):
-        if assignment.role_id not in role_ids:
-            continue
-        if assignment.scope == RoleAssignmentScope.ALL:
-            departments |= set(
-                (
-                    await session.scalars(
-                        select(Department.id).where(
-                            Department.organisation_id == assignment.organisation_id
-                        )
-                    )
-                ).all()
-            )
-        elif (
-            assignment.scope == RoleAssignmentScope.DEPARTMENT
-            and assignment.department_id
-        ):
-            departments.add(assignment.department_id)
-    return departments
-
-
 async def list_pending(
     *, session: AsyncSession, current_user: User, limit: int, offset: int
 ) -> tuple[list[tuple[ClockPunch, str, str, date, str]], int]:
-    """Pending phone punches the caller may review, never their own.
+    """Pending phone punches the caller may review (``_reviewable``), never their own.
 
     Rows are (punch, employee_name, site_name, shift_date, shift_code).
     """
     require_permission(current_user=current_user, permission_key=REVIEW_PERMISSION)
-    conditions = [
-        ClockPunch.status == ClockPunchStatus.PENDING.value,
-        ClockPunch.user_id != current_user.id,
-    ]
-    if not current_user.is_superuser:
-        departments = await _reviewable_departments(session, current_user)
-        conditions.append(
-            or_(
-                ClockPunch.department_id.in_(departments),
-                ClockPunch.user_id.in_(
-                    select(EmploymentRecord.user_id).where(
-                        EmploymentRecord.supervisor_id == current_user.id
-                    )
-                ),
-            )
-        )
+    conditions = [ClockPunch.status == ClockPunchStatus.PENDING.value]
+    conditions.append(await _reviewable(session, current_user))
     total = await session.scalar(
         select(func.count()).select_from(ClockPunch).where(*conditions)
     )
