@@ -9,6 +9,7 @@ import {
   readFileSync,
   rmSync,
   statSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -115,8 +116,11 @@ test("the model process gets a private systemd filesystem namespace", () => {
   const pin = join(runtime, "pin");
   const home = join(runtime, "codex-home");
   const toolchain = join(root, "node-toolchain");
+  const resolverPath = join(root, "etc", "resolv.conf");
   for (const path of [runtime, workspace, pin, home, toolchain])
     mkdirSync(path, { recursive: true });
+  mkdirSync(dirname(resolverPath), { recursive: true });
+  writeFileSync(resolverPath, "nameserver 192.0.2.1\n");
   try {
     const args = buildIsolatedCodexArgs({
       codexArgs: ["exec", "--strict-config", "--ephemeral"],
@@ -127,6 +131,7 @@ test("the model process gets a private systemd filesystem namespace", () => {
       toolchainRoot: toolchain,
       unitName: "grenmet-codex-review-test",
       hiddenPaths: ["/mnt"],
+      resolverPath,
       platform: "linux",
     });
     for (const setting of [
@@ -184,6 +189,55 @@ test("the model process gets a private systemd filesystem namespace", () => {
         }),
       (error) => error.message.includes("pinned checkout must stay inside")
     );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("a hidden resolver target is rebound read-only without exposing its mount", () => {
+  const root = mkdtempSync(join(tmpdir(), "codex-review-resolver-test-"));
+  const runtime = join(root, "runtime");
+  const workspace = join(runtime, "workspace");
+  const pin = join(runtime, "pin");
+  const home = join(runtime, "codex-home");
+  const hiddenMount = join(root, "mnt");
+  const otherHiddenMount = join(root, "media");
+  const resolverTarget = join(hiddenMount, "wsl", "resolv.conf");
+  const resolverLink = join(root, "etc", "resolv.conf");
+  for (const path of [
+    runtime,
+    workspace,
+    pin,
+    home,
+    join(hiddenMount, "wsl"),
+    otherHiddenMount,
+    dirname(resolverLink),
+  ])
+    mkdirSync(path, { recursive: true });
+  writeFileSync(resolverTarget, "nameserver 192.0.2.1\n");
+  symlinkSync(resolverTarget, resolverLink);
+
+  try {
+    const args = buildIsolatedCodexArgs({
+      codexArgs: ["exec"],
+      runtimeRoot: runtime,
+      workspaceRoot: workspace,
+      pinnedRoot: pin,
+      codexHome: home,
+      hiddenPaths: [hiddenMount, otherHiddenMount],
+      resolverPath: resolverLink,
+      platform: "linux",
+    });
+
+    assert.ok(
+      args.includes(`--property=TemporaryFileSystem=${hiddenMount}:ro`)
+    );
+    assert.ok(args.includes(`--property=BindReadOnlyPaths=${resolverTarget}`));
+    assert.ok(
+      args.includes(`--property=InaccessiblePaths=${otherHiddenMount}`)
+    );
+    assert.ok(!args.includes(`--property=InaccessiblePaths=${hiddenMount}`));
+    assert.ok(!args.includes(`--property=BindReadOnlyPaths=${hiddenMount}/c`));
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
