@@ -445,6 +445,8 @@ def render_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
                     out.append(f"<p>Entry {index}</p>")
                     if isinstance(entry, dict):
                         out.append(f'<div class="nested">{rows(entry)}</div>')
+                    elif entry is not None:
+                        out.append(f'<p class="nested">{escape(str(entry))}</p>')
             else:
                 out.append(f"<p>{label}: {escape(str(value))}</p>")
         return "".join(out)
@@ -462,7 +464,7 @@ def render_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
     @page {{ size: A4; margin: 18mm; }}
     body {{ font-family: Document, sans-serif; font-size: 10pt; line-height: 1.4; color: #111827; }}
     h1 {{ font-size: 16pt; margin: 0 0 3mm; }} h2 {{ font-size: 13pt; margin: 0 0 3mm; }}
-    p {{ margin: 0 0 1.5mm; overflow-wrap: anywhere; }} .meta {{ font-size: 9pt; }}
+    p {{ margin: 0 0 1.5mm; overflow-wrap: anywhere; white-space: pre-wrap; }} .meta {{ font-size: 9pt; }}
     hr {{ border: 0; border-top: 1px solid #111827; margin: 4mm 0; }}
     .nested {{ margin-left: 5mm; }} .signed {{ margin-top: 5mm; break-inside: avoid; }}
     .signature {{ max-width: 65mm; max-height: 25mm; }}
