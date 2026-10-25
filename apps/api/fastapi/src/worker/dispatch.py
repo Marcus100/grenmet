@@ -35,6 +35,12 @@ def _retry_delay_seconds(attempts: int) -> int:
     return min(_RETRY_BASE_SECONDS << exponent, _RETRY_MAX_SECONDS)
 
 
+def _keep_delivered(previous: object) -> dict[str, Any]:
+    """Recipients already served on earlier attempts, kept when a job is failed."""
+    delivered = sorted(_prior_delivered(previous))
+    return {"delivered": delivered} if delivered else {}
+
+
 KIND_HANDLERS: dict[str, Handler] = {
     "publish.webhooks": publishers.publish_webhooks,
     "publish.mqtt": publishers.publish_mqtt,
@@ -126,6 +132,44 @@ def _due_clause(*, now: Any, max_attempts: int) -> Any:
     )
 
 
+async def fail_abandoned_jobs(*, session: AsyncSession, max_attempts: int) -> int:
+    """Mark RUNNING jobs whose worker died on the last attempt as FAILED.
+
+    A job stuck RUNNING with every attempt used is neither due (it has no attempt
+    left) nor reported (``exhausted_jobs`` only looks at FAILED rows), so delivery
+    would stop without anyone being told. Failing it keeps who already received it
+    and lets the exhausted-job check report it.
+    """
+    now = utc_now()
+    rows = await session.scalars(
+        select(CapJobEvent)
+        .where(
+            CapJobEvent.status == CapJobStatus.RUNNING,
+            CapJobEvent.attempts >= max_attempts,
+            CapJobEvent.updated_at <= now - _STALE_RUNNING,
+        )
+        .with_for_update(skip_locked=True)
+        .execution_options(populate_existing=True)
+    )
+    jobs = list(rows.all())
+    for job in jobs:
+        job.status = CapJobStatus.FAILED
+        job.next_retry_at = None
+        job.updated_at = now
+        job.result = {
+            "error": "worker stopped during the final attempt",
+            "error_class": "WorkerStopped",
+            **_keep_delivered(job.result),
+        }
+        session.add(job)
+    if jobs:
+        await session.commit()
+        logger.warning(
+            "CAP jobs abandoned on the final attempt", extra={"count": len(jobs)}
+        )
+    return len(jobs)
+
+
 async def process_due_jobs(
     *,
     session: AsyncSession,
@@ -142,6 +186,7 @@ async def process_due_jobs(
     client = http_client or httpx.AsyncClient()
     handled = 0
     try:
+        await fail_abandoned_jobs(session=session, max_attempts=max_attempts)
         while handled < limit:
             result = await session.execute(
                 select(CapJobEvent)

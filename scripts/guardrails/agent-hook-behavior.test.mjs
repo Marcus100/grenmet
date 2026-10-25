@@ -14,6 +14,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -733,6 +734,61 @@ test("session-handoff: splits bullet entries that have no blank line between the
   const body = output.split("\n\n").slice(1);
   assert.match(body[0], SECOND_BULLET);
   assert.match(body[1], FIRST_BULLET);
+});
+
+test("session-handoff: runs from encoded paths and reads only the main checkout log", () => {
+  const dir = mkdtempSync(join(tmpdir(), "handoff-path-"));
+  try {
+    const main = join(dir, "main checkout # % é");
+    const linked = join(dir, "linked checkout # % é");
+    mkdirSync(join(main, ".git", "worktrees", "task"), { recursive: true });
+    const files = [
+      ".claude/hooks/session-handoff.mjs",
+      ".claude/hooks/main-checkout.mjs",
+      "scripts/agents/archive-session-log.mjs",
+    ];
+    for (const checkout of [main, linked]) {
+      for (const relative of files) {
+        const target = join(checkout, relative);
+        mkdirSync(dirname(target), { recursive: true });
+        copyFileSync(join(hooksDir, "../..", relative), target);
+      }
+    }
+    writeFileSync(
+      join(linked, ".git"),
+      `gitdir: ${join(main, ".git", "worktrees", "task")}\n`
+    );
+    const mainLog = "2026-10-24 | Test | encoded path handoff\n";
+    const linkedLog = "WRONG_WORKTREE_LOG\n";
+    writeFileSync(join(main, "SESSION_LOG.md"), mainLog);
+    writeFileSync(join(linked, "SESSION_LOG.md"), linkedLog);
+    for (const checkout of [main, linked]) {
+      const result = spawnSync(
+        process.execPath,
+        [join(checkout, ".claude/hooks/session-handoff.mjs")],
+        { cwd: checkout, encoding: "utf8" }
+      );
+      assert.equal(result.status, 0, result.stderr);
+      assert.ok(result.stdout.includes(mainLog.trim()));
+      assert.ok(!result.stdout.includes(linkedLog.trim()));
+      assert.equal(readFileSync(join(main, "SESSION_LOG.md"), "utf8"), mainLog);
+      assert.equal(
+        readFileSync(join(linked, "SESSION_LOG.md"), "utf8"),
+        linkedLog
+      );
+    }
+    rmSync(join(main, "SESSION_LOG.md"));
+    const missing = spawnSync(
+      process.execPath,
+      [join(linked, ".claude/hooks/session-handoff.mjs")],
+      { cwd: linked, encoding: "utf8" }
+    );
+    assert.equal(missing.status, 0, missing.stderr);
+    assert.equal(missing.stdout, "");
+    assert.ok(!existsSync(join(main, "SESSION_LOG.md")));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("main-checkout: resolves a worktree's .git file to the owning checkout", () => {
