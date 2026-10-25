@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
 import { RecordsTabs } from "@/components/hr/records-tabs";
 import { TrainingWorkspace } from "@/components/hr/training/training-workspace";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = { title: "Employee training | GAA" };
 export default function TrainingPage() {
   return (
     <div className="space-y-6">
       <RecordsTabs />
-      <div className="space-y-2">
-        <h1 className="font-medium text-3xl">Employee training</h1>
-        <p className="text-muted-foreground">
-          Record training outcomes and review employee training history.
-        </p>
-      </div>
+      <PageHeader
+        description="Record training outcomes and review employee training history."
+        title="Employee training"
+      />
       <TrainingWorkspace />
     </div>
   );

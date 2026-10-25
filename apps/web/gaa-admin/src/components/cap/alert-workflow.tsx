@@ -30,6 +30,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { readSourceBulletinLink } from "@/lib/cap-bulletin-link";
 
 function errorText(error: unknown): string {
@@ -191,9 +192,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
       <Link className="underline" href="/cap">
         Back to CAP Composer
       </Link>
-      <h1 className="font-semibold text-2xl">
-        {alert.info?.[0]?.headline ?? alert.identifier}
-      </h1>
+      <PageHeader title={alert.info?.[0]?.headline ?? alert.identifier} />
       <Link
         className="underline"
         href={`/cap/audit?alert_id=${encodeURIComponent(alertId)}`}

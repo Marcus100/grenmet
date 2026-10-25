@@ -42,7 +42,7 @@ export function NotificationPreferences() {
     );
   }
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border p-6">
+    <div className="flex flex-col gap-4 rounded-xl border border-border p-6">
       <div className="flex flex-col gap-1">
         <h2 className="font-medium text-lg">Email notifications</h2>
         <p className="text-muted-foreground text-sm">

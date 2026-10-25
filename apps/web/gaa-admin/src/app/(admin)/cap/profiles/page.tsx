@@ -2,6 +2,7 @@ import type { CapProfilePublic } from "@barrelsgd/api-client";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProfileEditor } from "@/components/cap/profile-editor";
+import { PageHeader } from "@/components/layout/page-header";
 import { getAuthApiPrefix, getCapApiBaseUrl } from "@/lib/auth-config";
 import { reportError } from "@/lib/report-error";
 import {
@@ -31,7 +32,7 @@ export default async function HazardProfilesPage() {
   return (
     <div className="space-y-6">
       <Link href="/cap">Back to CAP</Link>
-      <h1 className="font-semibold text-2xl">Hazard profiles</h1>
+      <PageHeader title="Hazard profiles" />
       <ProfileEditor initialVersions={versions} />
     </div>
   );
