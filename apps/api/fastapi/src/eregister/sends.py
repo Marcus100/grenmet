@@ -249,6 +249,34 @@ def wis2_unavailable_reason(item: SendableObservation) -> str | None:
     return None
 
 
+async def _retire_superseded_wis2(
+    session: AsyncSession, superseded: list[UUID]
+) -> None:
+    """Stop queued WIS2 files of observations a correction replaces.
+
+    The original and its correction go to one filename, so a retry of the original
+    after the correction was delivered would overwrite the corrected data. The row
+    lock waits for a delivery already in progress; that file then goes out first and
+    the correction follows it. Same transaction as the correction's own row.
+    """
+    if not superseded:
+        return
+    stale = await session.scalars(
+        select(ERegisterSend)
+        .where(
+            ERegisterSend.observation_id.in_(superseded),
+            ERegisterSend.target == TARGET_WIS2,
+            ERegisterSend.status == STATUS_QUEUED,
+        )
+        .with_for_update()
+    )
+    for row in stale:
+        row.status = STATUS_FAILED
+        row.next_retry_at = None
+        row.last_error = "Replaced by a correction before it was delivered"
+        row.detail = {k: v for k, v in (row.detail or {}).items() if k != "content"}
+
+
 async def queue_wis2(
     *,
     session: AsyncSession,
@@ -284,6 +312,7 @@ async def queue_wis2(
     )
     try:
         await _claim(session, observation_id, TARGET_WIS2, resend=False)
+        await _retire_superseded_wis2(session, superseded)
     except BaseException:
         if claimed:
             await gate.release_hour(

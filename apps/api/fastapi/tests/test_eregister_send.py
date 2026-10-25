@@ -1319,3 +1319,96 @@ async def test_upsert_is_idempotent_and_flags_non_hourly_rows() -> None:
         {"source": "sutron", "value": 22.5, "is_hourly": True},
         {"source": "sutron", "value": 23.0, "is_hourly": False},
     ]
+
+
+@pytest.mark.usefixtures("recipients")
+async def test_a_failed_original_cannot_overwrite_its_correction_on_retry(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    assert (await client.post(qc_url(original, "accept"))).status_code == 200
+    delivered: list[str] = []
+
+    def unreachable(_key: str, _content: str) -> None:
+        raise OSError("wis2box unreachable")
+
+    config = Wis2boxConfig(WIS2BOX_INCOMING_DIR=str(incoming), WIS2BOX_MAX_ATTEMPTS=5)
+    await publisher.process_due_publications(
+        session=db_async, sink=unreachable, config=config
+    )
+    fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    fixed = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    )
+    replacement = fixed.json()["id"]
+    assert (await client.post(qc_url(replacement, "accept"))).status_code == 200
+
+    def recording(_key: str, content: str) -> None:
+        delivered.append(content)
+
+    # Both retries are now due; only the correction may still be delivered.
+    for log in await db_async.scalars(select(ERegisterSend)):
+        log.next_retry_at = None
+    await db_async.commit()
+    await publisher.process_due_publications(
+        session=db_async, sink=recording, config=config
+    )
+    assert len(delivered) == 1
+    assert "290" in delivered[0] or "302.15" in delivered[0]
+    old = (await client.get(qc_url(original, "sends"))).json()["sends"]
+    wis2 = [s for s in old if s["target"] == "wis2"]
+    assert [s["status"] for s in wis2] == ["failed"]
+    assert "correction" in (wis2[0]["last_error"] or "")
+
+
+async def test_reopening_a_rejected_hour_that_was_keyed_again_is_a_conflict(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    first = await save(client)
+    await as_staff(db_async)
+    rejected = await client.post(
+        qc_url(first, "reject"), json={"reason": "Wrong station"}
+    )
+    assert rejected.status_code == 200
+    second = await client.post(OBS_URL, json=record())
+    assert second.status_code == 201
+    # The hour is occupied again: reopening the first would break the one-live-row rule.
+    reopen = await client.post(
+        qc_url(first, "reopen"), json={"reason": "Observer corrected it"}
+    )
+    assert reopen.status_code == 409, reopen.text
+    assert "holds this hour" in reopen.json()["detail"]
+    state = {
+        o["id"]: o["state"] for o in (await client.get(OBS_URL)).json()["observations"]
+    }
+    assert state[first] == "rejected"
+
+
+async def test_editing_a_reviewed_draft_clears_the_review(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, observer = send_client
+    first = await client.post(OBS_URL, json=record())
+    observation = first.json()["id"]
+    await as_staff(db_async, "eregister.send")
+    reviewed = await client.post(
+        qc_url(observation, "review"), json={"outcome": "reviewed"}
+    )
+    assert reviewed.json()["review_outcome"] == "reviewed"
+    # The observer changes the reading after the review.
+    app.dependency_overrides[get_browser_or_token_user] = lambda: observer
+    edited = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    again = await client.post(OBS_URL, json=record(body=edited))
+    assert again.status_code == 200, again.text
+    body = again.json()
+    assert body["review_outcome"] is None
+    assert body["reviewed_by"] is None
+    assert body["reviewed_at"] is None
+    unreviewed = "/api/v1/eregister/observations?reviewed=false"
+    assert [o["id"] for o in (await client.get(unreviewed)).json()["observations"]] == [
+        observation
+    ]

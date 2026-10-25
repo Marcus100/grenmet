@@ -68,7 +68,7 @@ async def _has_sends(app_session: AsyncSession, observation_id: UUID) -> bool:
     return bool(count)
 
 
-async def _lock_key(
+async def lock_key(
     register: AsyncSession, station_id: str, observed_at: datetime, kind: str
 ) -> None:
     await register.execute(
@@ -82,7 +82,7 @@ async def _lock_key(
     )
 
 
-async def _live_row(
+async def live_row(
     register: AsyncSession, station_id: str, observed_at: datetime, kind: str
 ) -> dict[str, Any] | None:
     result = await register.execute(
@@ -131,7 +131,9 @@ _UPDATE = text(
     SET station_name = :station_name, aerodrome_icao = :aerodrome_icao,
         issued_at = :issued_at, body = CAST(:body AS jsonb), raw_tac = :raw_tac,
         bufr = CAST(:bufr AS jsonb), iwxxm = CAST(:iwxxm AS jsonb),
-        state = 'draft', updated_at = now()
+        state = 'draft', updated_at = now(),
+        review_outcome = NULL, review_note = NULL,
+        reviewed_by = NULL, reviewed_at = NULL
     WHERE id = :id
     RETURNING *
     """
@@ -153,8 +155,8 @@ async def create(
     if data.kind == "SYNOP":
         require_valid_synop(data.body, data.observed_at)
     values = data.model_dump()
-    await _lock_key(register, data.station_id, data.observed_at, data.kind)
-    existing = await _live_row(register, data.station_id, data.observed_at, data.kind)
+    await lock_key(register, data.station_id, data.observed_at, data.kind)
+    existing = await live_row(register, data.station_id, data.observed_at, data.kind)
     if existing is not None:
         own_draft = str(existing["actor_id"]) == str(user.id) and (
             existing["state"] in UNSENT_EDITABLE
