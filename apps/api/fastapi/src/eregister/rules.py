@@ -66,6 +66,8 @@ CHANGING_TENDENCY = (1, 2, 3, 6, 7, 8)
 # are fog at a distance or in patches, where the visibility at the station can be higher.
 FOG_AT_STATION = range(42, 50)
 FOG_VISIBILITY_M = 1000
+# Code table 3845 sign digit 9: group 2 carries relative humidity (2 9UUU).
+HUMIDITY_SIGN = "9"
 # Code table 4677 ww used by the cross-checks (WMO-No. 306 Vol I.1, 12.2.6.4).
 MIST_WW = 10
 PRECIPITATION_WW = (*range(50, 70), *range(80, 100))
@@ -1082,6 +1084,37 @@ def _check_weather_indicator(
         )
 
 
+def _decode_dew_point(
+    c: _Checker, air: float | None
+) -> tuple[float | None, int | None]:
+    """Group 2: dew point snTTT, or sign 9 for relative humidity (2 9UUU).
+
+    A station that reports humidity instead of a dew point keys 9UUU (Code table 3845
+    sign 9). The humidity is returned as it is, and the dew point is calculated from it
+    and the air temperature, so the report still validates and decodes.
+    """
+    value = c.raw("dew_point")
+    if not (
+        c.present("dew_point")
+        and value.isdigit()
+        and len(value) == FOUR_DIGIT_GROUP
+        and value[0] == HUMIDITY_SIGN
+    ):
+        return c.signed_tenths("dew_point", "Dew point"), None
+    percent = int(value[1:])
+    if percent > MAX_PERCENT:
+        c.add(
+            "dew_point",
+            "out_of_range",
+            "Relative humidity in group 2 (sign 9) must be 0 to 100 per cent.",
+        )
+        return None, None
+    if air is None or percent == 0:
+        return None, percent
+    vapour = derive.saturation_vapour_pressure_hpa(air) * percent / MAX_PERCENT
+    return round(min(derive.dew_point_from_vapour_pressure(vapour), air), 1), percent
+
+
 def _check_fog_visibility(c: _Checker, visibility_code: int | None) -> None:
     """Present weather against the visibility (WMO-No. 306 Vol I.1, 12.2.6.4)."""
     ww = _to_int(c.raw("present_wx"))
@@ -1195,7 +1228,7 @@ def validate_synop(
     _, hour = _check_identification(c)
     direction, speed, gust = _check_wind(c)
     air = c.signed_tenths("air_temp", "Air temperature")
-    dew = c.signed_tenths("dew_point", "Dew point")
+    dew, humidity_group = _decode_dew_point(c, air)
     wet = c.signed_tenths("wet_bulb", "Wet bulb")
     if air is not None and dew is not None and dew > air:
         c.add("dew_point", "dew_above_air", "Dew point cannot exceed air temperature.")
@@ -1214,6 +1247,8 @@ def validate_synop(
             "warning",
         )
     humidity = c.percent("relative_humidity", "Relative humidity")
+    if humidity is None:
+        humidity = humidity_group
     _check_visibility_km(c)
     visibility_code = c.integer("visibility", "Visibility VV", 0, 99, width=2)
     if visibility_code in UNUSED_VISIBILITY_CODES:

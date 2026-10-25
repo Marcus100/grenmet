@@ -320,3 +320,57 @@ def test_no_8_group_when_cloud_was_not_observed() -> None:
     assert not has(
         found(**layers(("2", "5", "20"))), "s3_layer1_amount", "cloud_not_observed"
     )
+
+
+# ---- group 2 with sign 9: relative humidity instead of dew point (Code table 3845) ----
+
+
+def test_sign_9_in_the_dew_point_group_is_relative_humidity() -> None:
+    workbook = SynopWorkbook.model_validate({**PAPER_ROW, "dew_point": "9075"})
+    issues, decoded = rules.validate_synop(workbook)
+    assert not [i for i in issues if i.field == "dew_point"]
+    assert decoded.relative_humidity_percent == 75
+    # 28.0 C and 75 per cent: the dew point is about 23.15 C by the Magnus formula.
+    assert decoded.dew_point_k == pytest.approx(296.3, abs=0.15)
+
+
+def test_100_per_cent_humidity_has_the_air_temperature_as_dew_point() -> None:
+    workbook = SynopWorkbook.model_validate({**PAPER_ROW, "dew_point": "9100"})
+    issues, decoded = rules.validate_synop(workbook)
+    assert not [i for i in issues if i.field == "dew_point"]
+    assert decoded.relative_humidity_percent == 100
+    assert decoded.dew_point_k == pytest.approx(decoded.air_temperature_k, abs=0.05)
+
+
+def test_zero_humidity_is_accepted_but_has_no_dew_point() -> None:
+    workbook = SynopWorkbook.model_validate({**PAPER_ROW, "dew_point": "9000"})
+    issues, decoded = rules.validate_synop(workbook)
+    assert not [i for i in issues if i.field == "dew_point"]
+    assert decoded.relative_humidity_percent == 0
+    assert decoded.dew_point_k is None
+
+
+@pytest.mark.parametrize("group", ["9101", "9999"])
+def test_humidity_over_100_per_cent_is_an_error(group: str) -> None:
+    assert ("error", "dew_point", "out_of_range") in found(dew_point=group)
+
+
+@pytest.mark.parametrize("sign", ["2", "5", "8"])
+def test_other_sign_digits_are_still_rejected(sign: str) -> None:
+    assert ("error", "dew_point", "invalid_sign") in found(dew_point=f"{sign}123")
+
+
+def test_a_typed_humidity_cell_wins_over_the_group() -> None:
+    workbook = SynopWorkbook.model_validate(
+        {**PAPER_ROW, "dew_point": "9075", "relative_humidity": "80"}
+    )
+    _, decoded = rules.validate_synop(workbook)
+    assert decoded.relative_humidity_percent == 80
+
+
+def test_sign_9_group_goes_into_the_message_unchanged() -> None:
+    # FM 12 group 2 9UUU is valid as keyed; the TAC encoder passes it through.
+    from src.eregister import encode
+
+    workbook = SynopWorkbook.model_validate({**PAPER_ROW, "dew_point": "9075"})
+    assert " 29075 " in f" {encode.synop_tac(workbook)} "
