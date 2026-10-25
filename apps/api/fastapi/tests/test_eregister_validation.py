@@ -623,3 +623,24 @@ def test_tac_orders_the_new_section_3_groups() -> None:
         s3_special_phenomena="91125 96017",
     )
     assert "333 10310 32012 55087 59015 91125 96017=" in message
+
+
+def test_workbook_day_and_hour_must_match_the_observation_time() -> None:
+    from datetime import UTC, datetime, timedelta, timezone
+
+    book = SynopWorkbook.model_validate({**PAPER_ROW})
+    day = int(PAPER_ROW["day"])
+    hour = int(PAPER_ROW["time_utc"])
+    at = datetime(2023, 3, day, hour, 0, tzinfo=UTC)
+    assert rules.check_observation_time(book, at) == []
+    # The same instant written in another zone is still the same UTC time.
+    local = at.astimezone(timezone(timedelta(hours=-4)))
+    assert rules.check_observation_time(book, local) == []
+    wrong = rules.check_observation_time(book, at + timedelta(hours=3))
+    assert [(i.field, i.code, i.severity) for i in wrong] == [
+        ("time_utc", "time_mismatch", "error")
+    ]
+    both = rules.check_observation_time(book, at + timedelta(days=1, hours=3))
+    assert [i.field for i in both] == ["day", "time_utc"]
+    blank = SynopWorkbook.model_validate({"day": "", "time_utc": ""})
+    assert rules.check_observation_time(blank, at) == []

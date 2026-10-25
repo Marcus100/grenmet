@@ -118,7 +118,11 @@ export function LayoutControls() {
 
   return (
     <Popover>
-      <PopoverTrigger render={<Button size="icon" />}>
+      <PopoverTrigger
+        render={
+          <Button aria-label="Layout preferences" size="icon" variant="ghost" />
+        }
+      >
         <Settings />
       </PopoverTrigger>
       <PopoverContent align="end">

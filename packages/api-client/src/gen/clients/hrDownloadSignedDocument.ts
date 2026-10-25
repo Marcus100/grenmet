@@ -11,7 +11,7 @@ import type {
 } from "../models/HrDownloadSignedDocument.js";
 
 /**
- * @description Returns the original PDF to its signer, subject, or an HR document reader with scope over the subject.
+ * @description Returns the original PDF to its signer, subject, or an HR document reader with scope over the subject. The download file name is human and dated, for example 'Leave Application - Ana Smith - 2026-10-23.pdf'.
  * @summary Download a signed HR document
  * {@link /api/v1/hr/signed-documents/:document_id/pdf}
  */

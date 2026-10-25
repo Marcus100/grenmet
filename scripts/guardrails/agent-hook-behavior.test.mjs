@@ -31,7 +31,10 @@ import {
   appendAuditLine,
   redactSecrets,
 } from "../../.claude/hooks/audit-log.mjs";
-import { findBlockedPattern } from "../../.claude/hooks/block-dangerous-git.mjs";
+import {
+  findBlockedPattern,
+  lookupMergeFiles,
+} from "../../.claude/hooks/block-dangerous-git.mjs";
 import { isInsideRepo } from "../../.claude/hooks/format-changed-file.mjs";
 import { mainCheckoutRoot } from "../../.claude/hooks/main-checkout.mjs";
 import {
@@ -433,6 +436,77 @@ test("block-dangerous-git: the owner merges changes to the files that limit the 
       })
     ),
     UNKNOWN_FILES
+  );
+});
+
+test("block-dangerous-git rejects PR file lists beyond GitHub's 3,000-file cap", () => {
+  const overLimitCalls = [];
+  assert.equal(
+    lookupMergeFiles(["42"], (command, args) => {
+      overLimitCalls.push({ command, args });
+      return { status: 0, stdout: "3001\n" };
+    }),
+    null
+  );
+  assert.equal(overLimitCalls.length, 1);
+  assert.equal(
+    lookupMergeFiles(["42"], () => ({ status: 0, stdout: "" })),
+    null
+  );
+
+  const calls = [];
+  assert.equal(
+    lookupMergeFiles(["42"], (command, args) => {
+      calls.push({ command, args });
+      if (args[1] === "repos/{owner}/{repo}/pulls/42")
+        return { status: 0, stdout: "2\n" };
+      return {
+        status: 0,
+        stdout: JSON.stringify([[{ filename: "one" }]]),
+      };
+    }),
+    null
+  );
+  assert.equal(
+    lookupMergeFiles(["42"], (_command, args) => ({
+      status: 0,
+      stdout:
+        args[1] === "repos/{owner}/{repo}/pulls/42"
+          ? "1\n"
+          : JSON.stringify([[{}]]),
+    })),
+    null
+  );
+  for (const file of [
+    { filename: "docs/new.md", previous_filename: 42 },
+    { filename: "docs/new.md", status: "renamed" },
+  ]) {
+    assert.equal(
+      lookupMergeFiles(["42"], (_command, args) => ({
+        status: 0,
+        stdout:
+          args[1] === "repos/{owner}/{repo}/pulls/42"
+            ? "1\n"
+            : JSON.stringify([[file]]),
+      })),
+      null
+    );
+  }
+
+  assert.deepEqual(
+    lookupMergeFiles(["42"], (_command, args) => ({
+      status: 0,
+      stdout:
+        args[1] === "repos/{owner}/{repo}/pulls/42"
+          ? "2\n"
+          : JSON.stringify([
+              [
+                { filename: "new-name", previous_filename: "old-name" },
+                { filename: "another-file" },
+              ],
+            ]),
+    })),
+    ["new-name", "old-name", "another-file"]
   );
 });
 

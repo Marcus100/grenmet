@@ -49,6 +49,7 @@ import {
   useEditorPrefill,
   useProfileReference,
 } from "@/components/hr/use-editor-prefill";
+import { hrFormFilename } from "@/lib/pdf-filename";
 import { displayName } from "@/lib/people";
 import { reportError } from "@/lib/report-error";
 import { EMPTY_SHIFT } from "./shift-exchange-document";
@@ -194,7 +195,7 @@ export function ShiftExchangeEditor() {
         payload: buildPayload(form.state.values, departmentId ?? ""),
         previewPath: "/api/v1/hr/shift-swaps/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: "shift-exchange.pdf",
+        filename: hrFormFilename("shift_swap", true),
       });
     } catch (error) {
       reportError(error, "hr-exchange-pdf");
@@ -577,7 +578,7 @@ export function ShiftExchangeEditor() {
                 selected={values.sourceShiftCode}
               />
               <HrPdfPreview
-                filename="shift-exchange.pdf"
+                filename={hrFormFilename("shift_swap")}
                 payload={buildPayload(values, departmentId ?? "")}
                 previewPath="/api/v1/hr/shift-swaps/preview-pdf"
                 ready={Boolean(

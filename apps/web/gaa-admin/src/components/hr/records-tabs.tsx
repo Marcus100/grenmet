@@ -1,7 +1,7 @@
 "use client";
-import { cn } from "@barrelsgd/ui/lib/utils";
-import Link from "next/link";
+import type { Route } from "next";
 import { usePathname } from "next/navigation";
+import { PageRouteTabs } from "@/components/layout/page-tabs";
 
 export const recordsTabs = [
   { href: "/hr/documents", label: "Documents" },
@@ -12,29 +12,17 @@ export const recordsTabs = [
 /** Section switcher shared by the Records pages (documents, training, parking). */
 export function RecordsTabs() {
   const pathname = usePathname();
+  const active =
+    recordsTabs.find((tab) => pathname.startsWith(tab.href))?.href ?? "";
   return (
-    <nav
+    <PageRouteTabs
       aria-label="Records"
-      className="inline-flex items-center rounded-full border bg-muted p-0.5"
-    >
-      {recordsTabs.map((tab) => {
-        const active = pathname.startsWith(tab.href);
-        return (
-          <Link
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "rounded-full px-3 py-1 font-medium text-sm transition-colors",
-              active
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-            href={tab.href}
-            key={tab.href}
-          >
-            {tab.label}
-          </Link>
-        );
-      })}
-    </nav>
+      items={recordsTabs.map((tab) => ({
+        href: tab.href as Route,
+        label: tab.label,
+        value: tab.href,
+      }))}
+      value={active}
+    />
   );
 }

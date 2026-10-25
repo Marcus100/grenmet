@@ -23,6 +23,7 @@ import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
 import { useSigning } from "@/components/hr/signatures/signature-api";
 import { SigningPanel } from "@/components/hr/signatures/signing-panel";
+import { hrFormFilename } from "@/lib/pdf-filename";
 import { reportError } from "@/lib/report-error";
 
 const actions = [
@@ -428,7 +429,7 @@ export function ParkingApplication() {
                       signedDocumentId: locked
                         ? selected?.signed_document_id
                         : null,
-                      filename: "parking-application.pdf",
+                      filename: hrFormFilename("parking_permit", true),
                     }).catch((caught: unknown) => {
                       reportError(caught, "hr-parking-pdf");
                       setError(hrApiErrorMessage(caught));
@@ -446,7 +447,7 @@ export function ParkingApplication() {
           label="Parking application"
           preview={
             <HrPdfPreview
-              filename="parking-application.pdf"
+              filename={hrFormFilename("parking_permit")}
               payload={body}
               previewPath="/api/v1/hr/parking-permits/preview-pdf"
               ready={ready}

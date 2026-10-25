@@ -11,7 +11,7 @@ import type {
 } from "../models/EregisterRejectRegisterObservation.js";
 
 /**
- * @description Moves a draft or qc_pending observation to rejected; a reason is required. Requires `eregister.qc`. Rejected observations are never sent or shown publicly. Audited.
+ * @description Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Requires register staff access. Audited.
  * @summary Reject a register observation (QC)
  * {@link /api/v1/eregister/observations/:observation_id/reject}
  */

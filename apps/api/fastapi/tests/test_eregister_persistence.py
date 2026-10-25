@@ -64,7 +64,7 @@ async def test_observation_save_and_reopen_preserves_structured_values(
 ) -> None:
     record = {
         "station_id": " 78958 ",
-        "kind": "SYNOP",
+        "kind": "METAR",
         "observed_at": "2026-09-23T08:00:00-04:00",
         "issued_at": "2026-09-23T12:05:00Z",
         "body": {"workbook": {"air_temp": "28.5", "notes": "Test only"}},

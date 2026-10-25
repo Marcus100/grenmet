@@ -9,6 +9,9 @@ vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   subscriptionsSubscribe,
 }));
 vi.mock("@/lib/env", () => ({ env: { AUTH_API_URL: "http://api.test" } }));
+vi.mock("@/lib/visitor-client", () => ({
+  visitorClient: () => Promise.resolve("visitor-client"),
+}));
 
 import { POST } from "./route";
 
@@ -42,7 +45,7 @@ describe("POST /api/alerts/subscribe", () => {
     const response = await POST(request({ email: "ada@example.test" }));
     expect(response.status).toBe(202);
     expect(subscriptionsSubscribe).toHaveBeenCalledWith({
-      baseURL: "http://api.test",
+      client: "visitor-client",
       body: { list_key: "gms-alerts", email: "ada@example.test" },
     });
   });

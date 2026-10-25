@@ -5,8 +5,8 @@ import { type WeatherCondition, weatherIcon } from "@/lib/weather-icons";
 
 export interface StripDay extends ForecastDay {
   href: string;
-  /** Chance of rain, %; null when nothing is issued for the day. */
-  rain: number | null;
+  /** Chance of rain as shown ("Low" … "High", or an older "40%"); null when nothing is issued. */
+  rain: string | null;
 }
 
 /** The compact Now column, shown in the strip on phones only. */
@@ -126,7 +126,7 @@ export function SkyDayStrip({
                     " "
                   ) : (
                     <>
-                      {day.rain}%
+                      {day.rain}
                       <span className="sr-only"> chance of rain</span>
                     </>
                   )}

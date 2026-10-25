@@ -1,5 +1,6 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { PageHeader } from "@/components/layout/page-header";
 export function OperationsHub({
   title,
   description,
@@ -15,10 +16,7 @@ export function OperationsHub({
 }) {
   return (
     <div className="space-y-6">
-      <header className="space-y-2">
-        <h1 className="font-semibold text-2xl">{title}</h1>
-        <p className="max-w-3xl text-muted-foreground">{description}</p>
-      </header>
+      <PageHeader description={description} title={title} />
       <div className="grid gap-5 md:grid-cols-2">
         {sections.map((section) => (
           <section

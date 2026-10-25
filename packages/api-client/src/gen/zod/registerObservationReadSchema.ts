@@ -5,7 +5,9 @@
 
 import * as z from "zod";
 import { observationRecordPropertiesKindEnumSchema } from "./observationRecordPropertiesKindEnumSchema.js";
+import { registerObservationReadPropertiesReviewOutcomeAnyOfEnumSchema } from "./registerObservationReadPropertiesReviewOutcomeAnyOfEnumSchema.js";
 import { registerObservationReadPropertiesStateEnumSchema } from "./registerObservationReadPropertiesStateEnumSchema.js";
+import { synopValidationIssueSchema } from "./synopValidationIssueSchema.js";
 
 export const registerObservationReadSchema = z.object({
   station_id: z.string().min(1).max(64),
@@ -23,11 +25,32 @@ export const registerObservationReadSchema = z.object({
   qc_notes: z.union([z.string(), z.null()]).optional(),
   qc_by: z.union([z.string(), z.null()]).optional(),
   qc_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  review_outcome: z
+    .union([
+      registerObservationReadPropertiesReviewOutcomeAnyOfEnumSchema,
+      z.null(),
+    ])
+    .optional(),
+  review_note: z.union([z.string(), z.null()]).optional(),
+  reviewed_by: z.union([z.string(), z.null()]).optional(),
+  reviewed_at: z.union([z.iso.datetime(), z.null()]).optional(),
   wis2_topic: z.union([z.string(), z.null()]).optional(),
   wis2_message_id: z.union([z.string(), z.null()]).optional(),
   wis2_published_at: z.union([z.iso.datetime(), z.null()]).optional(),
   supersedes_id: z.union([z.uuid(), z.null()]).optional(),
   actor_id: z.string(),
+  actor_name: z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe("Who recorded it (listing only)."),
+  coded: z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe("The coded FM 12 row (SYNOP, listing only)."),
+  issues: z
+    .array(synopValidationIssueSchema)
+    .optional()
+    .describe("Validation findings, warnings included (SYNOP, listing only)."),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
 });

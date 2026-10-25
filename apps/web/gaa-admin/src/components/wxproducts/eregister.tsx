@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  eregisterCorrectRegisterObservation,
   eregisterCreateRegisterObservation,
   eregisterListRegisterObservations,
   eregisterValidateSynopObservation,
@@ -9,6 +10,7 @@ import {
 import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { REGISTER_KEYS, REGISTER_SECTIONS } from "./eregister-layout";
 import { metarFromCoded } from "./eregister-metar";
 import { observerInitials } from "./eregister-observer";
@@ -36,6 +38,12 @@ const STATION = {
   position: "12.0°N · 61.47°W",
 };
 
+interface SaveResult {
+  data?: RegisterObservationRead;
+  error?: unknown;
+  response?: Response;
+}
+
 function toReportRows(
   observations: readonly RegisterObservationRead[]
 ): ReportRow[] {
@@ -58,6 +66,7 @@ function lastObservedLabel(
 ): string {
   if (state === "loading") return "Loading…";
   if (state === "unavailable") return "Unavailable";
+  if (state === "forbidden") return "No register access";
   if (!latest?.observed_at) return "No saved observations yet";
   return `${new Date(latest.observed_at).toISOString().slice(0, 16).replace("T", " ")} UTC`;
 }
@@ -124,7 +133,9 @@ export function ERegister() {
       .then(([synop, metar, speci]) => {
         if (!active) return;
         if (synop.error || !synop.data) {
-          setLiveState("unavailable");
+          setLiveState(
+            synop.response?.status === 403 ? "forbidden" : "unavailable"
+          );
           return;
         }
         setLiveObservations(synop.data.observations);
@@ -172,34 +183,97 @@ export function ERegister() {
       setSaveState("idle");
       return null;
     }
-    const result = await eregisterCreateRegisterObservation({
+    const record = {
+      station_id: STATION.number,
+      station_name: STATION.name,
+      aerodrome_icao: STATION.icao,
+      kind: "SYNOP" as const,
+      observed_at: observationDate.toISOString(),
       body: {
-        station_id: STATION.number,
-        station_name: STATION.name,
-        aerodrome_icao: STATION.icao,
-        kind: "SYNOP",
-        observed_at: observationDate.toISOString(),
-        body: {
-          ...structuredValues,
-          source: "eregister-workbook",
-          validation: "pending_wmo_encoder",
-        },
-        raw_tac: null,
+        ...structuredValues,
+        source: "eregister-workbook",
+        validation: "pending_wmo_encoder",
       },
+      raw_tac: null,
+    };
+    let result: SaveResult = await eregisterCreateRegisterObservation({
+      body: record,
       throwOnError: false,
     });
+    // The hour already has a live observation that cannot be edited in place
+    // (accepted, or recorded by someone else): save a correction. Paper practice
+    // is strike through and re-enter, so the old one stays listed, struck out.
+    // Ask the server which observation holds this hour: the recent-record list
+    // holds only the latest 24, so an older hour would not be found there.
+    let earlier: RegisterObservationRead | undefined;
+    if (result.response?.status === 409) {
+      const holders = await eregisterListRegisterObservations({
+        query: {
+          kind: "SYNOP",
+          station_id: STATION.number,
+          observed_at: record.observed_at,
+          limit: 10,
+        },
+        throwOnError: false,
+      });
+      earlier = holders.data?.observations.find(
+        (item) =>
+          item.state === "draft" ||
+          item.state === "qc_pending" ||
+          item.state === "accepted"
+      );
+    }
+    if (earlier) {
+      const corrected = await eregisterCorrectRegisterObservation({
+        body: { body: record.body },
+        path: { observation_id: earlier.id },
+        throwOnError: false,
+      });
+      if (corrected.data) {
+        setLiveObservations((current) =>
+          current.map((item) =>
+            item.id === earlier.id
+              ? { ...item, state: "superseded" as const }
+              : item
+          )
+        );
+      }
+      result = corrected;
+    }
     if (result.error || !result.data) {
+      const failure = result.error as
+        | { detail?: { issues?: unknown } }
+        | undefined;
+      if (
+        result.response?.status === 422 &&
+        Array.isArray(failure?.detail?.issues)
+      ) {
+        setValidationIssues(
+          failure.detail.issues as {
+            field: string;
+            message: string;
+            severity?: "error" | "warning";
+          }[]
+        );
+        setValidationState("invalid");
+        setSaveState("idle");
+        return null;
+      }
       setSaveState("error");
       return null;
     }
+    const saved = result.data;
     setSaveState("saved");
     savedRef.current = {
-      id: result.data.id,
+      id: saved.id,
       key: JSON.stringify(structuredValues),
     };
-    setLiveObservations((current) => [result.data, ...current].slice(0, 24));
+    // An in-place update of the observer's own draft keeps its id.
+    setLiveObservations((current) =>
+      [saved, ...current.filter((item) => item.id !== saved.id)].slice(0, 24)
+    );
     setLiveState("ready");
-    return result.data.id;
+    return saved.id;
   }
 
   async function saveDraft(event: FormEvent<HTMLFormElement>) {
@@ -262,22 +336,16 @@ export function ERegister() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Station header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-semibold text-2xl tracking-tight">
-            Weather Electronic Register
-          </h1>
-        </div>
+      <div className="flex flex-col items-start gap-3">
+        <PageHeader title="Weather Electronic Register" />
         <div className="flex flex-wrap items-center gap-2">
           <Button
             onClick={() => setView("archive")}
-            size="lg"
             variant={view === "archive" ? "default" : "outline"}
           >
             Observation archive
           </Button>
-          <Button onClick={() => setView("new")} size="lg" variant="outline">
+          <Button onClick={() => setView("new")} variant="outline">
             New observation
           </Button>
         </div>
@@ -287,6 +355,13 @@ export function ERegister() {
         <p className="rounded-lg border px-4 py-3 text-sm" role="alert">
           The eRegister service is unavailable. No observations are shown until
           it responds.
+        </p>
+      ) : null}
+
+      {liveState === "forbidden" ? (
+        <p className="rounded-lg border px-4 py-3 text-sm" role="alert">
+          You don't have access to the observation register. Ask an
+          administrator for the eRegister observer role.
         </p>
       ) : null}
 
@@ -326,7 +401,6 @@ export function ERegister() {
 
       {live ? (
         <QcQueue
-          observations={liveObservations}
           onDecided={(updated) =>
             setLiveObservations((current) =>
               current.map((item) => (item.id === updated.id ? updated : item))
@@ -353,9 +427,10 @@ export function ERegister() {
       </div>
 
       <p className="text-muted-foreground text-xs">
-        Latest saved records appear once the register service responds. A
-        different person from the observer accepts each observation, and only
-        accepted observations go to WIS2.
+        Latest saved records appear once the register service responds. The
+        observer accepts each observation, and only accepted observations go to
+        WIS2. Another person may review an accepted observation. A correction
+        keeps the old observation, struck out.
       </p>
     </div>
   );

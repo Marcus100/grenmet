@@ -4,8 +4,10 @@ from typing import Any
 from fastapi import APIRouter, Response, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr.filenames import preview_filename
 from src.hr.submission import submission_list, submission_public
 from src.pagination import PaginationDep
+from src.utils.filenames import content_disposition
 
 from . import service
 from .schemas import (
@@ -44,7 +46,9 @@ async def preview_absentee_report_pdf(
         headers={
             "Cache-Control": "private, no-store",
             "X-Content-Type-Options": "nosniff",
-            "Content-Disposition": 'inline; filename="absentee-preview.pdf"',
+            "Content-Disposition": content_disposition(
+                "inline", preview_filename("absentee_report")
+            ),
         },
     )
 

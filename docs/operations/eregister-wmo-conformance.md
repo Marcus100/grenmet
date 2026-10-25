@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-10-18 (QC accept step; section 3 and 5 groups; SPECI and TAF change criteria)
+**Last updated:** 2026-10-23 (observer accepts alone, optional review, corrections, time check on save)
 
 What the eRegister (SYNOP workbook) and the aviation composer (METAR, SPECI,
 TAF) check against WMO-No. 306 (Manual on Codes, Vol. I.1 and I.2) and ICAO
@@ -51,6 +51,11 @@ to SI).
 | 8NsChshs | Up to 3 non-Cb layers plus Cb; Ns not above N; Ns 0 invalid; hshs Code table 1677 (51-55 unused, 81-89 in 1500 m steps); ascending order and completeness: warning | Covered |
 | Remarks (`s3_remarks`, `notes`) | Free text, not validated and not encoded | Not covered |
 | NIL report | Identification only becomes a NIL report | Covered |
+
+Save-time checks (`POST /observations`, `.../correct`, accept): a SYNOP with
+errors is refused with `422`; the keyed day (YY) and hour (GG) must equal the
+UTC day and hour of `observed_at` (`time_mismatch`, an error). Warnings never
+block saving.
 
 Not covered: the dd rounding rule for directions ending in 5 degrees
 (fff + 500), 4E'sss (ground with snow), 5EEEiE evaporation and the other
@@ -108,6 +113,34 @@ The paper-register layout (`eregister-layout.ts`) does not have columns for the
 new fields yet (`s3_sunshine_24h`, `s3_ground_state`, `s3_ground_jjj`,
 `s5_national`); the API accepts them and the workbook UI passes unknown keys
 through unchanged.
+
+### Acceptance, review and corrections (owner decisions, 23 Oct 2026)
+
+- The observer accepts their own observation alone; WIS2 and email go out at
+  that acceptance, on time every hour. Another register staff member may record
+  an optional review (`reviewed` or `query` with a note); it never holds the
+  report back. The publish gate rules (ADR-0032) are unchanged.
+- A mistake after sending is corrected, not edited: `POST /observations/{id}/correct`
+  saves a new observation that supersedes the old one. The old row stays visible,
+  struck through, as on the paper register (strike through and re-enter).
+- When the superseded observation was already queued or sent to WIS2, accepting
+  the correction queues the corrected file: the publish gate hands the station
+  hour over to the correction, the send row is flagged `correction` and the
+  email is marked `CORRECTION` with a `CCA` line (the TAC correction indicator
+  of the bulletin header).
+- **Gap (open).** The csv2bufr template `Surface-RA-IV-100` has no correction
+  or update-sequence column, so the CSV itself cannot carry the flag and the
+  corrected file reuses the original file name. TODO: confirm with GMS and
+  wis2box how a corrected BUFR must be marked (BUFR section 1 update sequence
+  number, or a `CCA` bulletin header) and whether wis2box overwrites or
+  republishes a file with the same name; until then the correction is flagged
+  only in the send log and the email.
+- One live observation exists per station, time and kind; re-keying the same
+  hour updates the observer's own unsent draft instead of adding a row.
+- Open point for GMS: WMO-No. 306 rounds a wind direction ending in 5 degrees to
+  the next ten degrees; the workbook keys dd in tens of degrees, so such an
+  entry cannot be typed and no rule was added. The `fff + 500` rule above is
+  still not covered.
 
 ### Public current conditions (`eregister/public.py`)
 

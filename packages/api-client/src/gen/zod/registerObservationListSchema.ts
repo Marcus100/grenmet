@@ -8,4 +8,5 @@ import { registerObservationReadSchema } from "./registerObservationReadSchema.j
 
 export const registerObservationListSchema = z.object({
   observations: z.array(registerObservationReadSchema),
+  total: z.int().optional().default(0).describe("Matching rows before paging."),
 });

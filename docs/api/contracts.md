@@ -1156,7 +1156,7 @@ these anonymous endpoints:
 | `GET /api/cap/{identifier}.xml` | Latest CAP XML snapshot for an identifier |
 
 CAP management routes are under `/api/v1/cap` and require authenticated users plus permission checks.
-`POST /alerts/{id}/publish` accepts only an `APPROVED` alert whose approver is not its author (409 otherwise); `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
+`POST /alerts/{id}/publish` accepts only an `APPROVED` alert with a recorded approval, which the author may give (409 otherwise; owner decision 2026-10-23, ADR-0023 amendment). `POST /alerts/{id}/reviews` (`{"outcome": "reviewed" | "changes_requested", "note": "..."}`, permission `cap.alert.approve`) records an optional colleague review by someone other than the author (403 for the author, 409 unless the alert is Submitted or Approved); it never changes the alert's state. Asking for a review is the submit step; `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
 
 Only Public alerts with `status=Actual` create CAP publish side-effect jobs. The
 worker also skips previously queued jobs for any other status or scope, so an
@@ -1353,6 +1353,11 @@ Sign & submit action. Proxy submitters sign as themselves, never as the employee
 `GET /api/v1/hr/signed-documents/{id}/pdf` returns the original PDF to the signer,
 subject, or an HR document reader scoped over the subject and organisation.
 Authorized HR form responses include `signed_document_id` when a signed copy exists.
+PDF download names are human and dated in Grenada time, never UUIDs (headers only;
+routes are unchanged), e.g. `GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf` or
+`Leave Application - <signer> - 2026-10-23.pdf`. Every PDF response sends an ASCII
+`filename` plus `filename*=UTF-8''...` (RFC 6266) from `src/utils/filenames.py`; the
+signer's name appears only on signed documents, where it is already printed.
 All signature and PDF responses use private, no-store caching. Signed PDFs, signer
 identity, signature version, timestamp, canonical form snapshot and SHA-256 are
 committed with submission and remain unchanged when the saved signature changes.
@@ -1743,8 +1748,22 @@ NIL report (`decoded.is_nil_report`). Optional entries beyond the original
 workbook are the wet bulb (`wet_bulb`), wind gust (`wind_gust`), relative
 humidity (`relative_humidity`) and observer initials (`observer_initials`, not
 an observation value). The endpoint does not save, publish, or
-transmit an observation; `POST /api/v1/eregister/observations` still stores a
-draft.
+transmit an observation; `POST /api/v1/eregister/observations` stores a
+draft (validated, see below). `GET /api/v1/eregister/observations` filters by
+`station_id`, `kind`, `state`, `reviewed` and an exact `observed_at` (the record
+occupying an hour), and pages with `limit` and `offset` (`offset` above 10 million is
+`422`). A refused WIS2 or email hand-off after acceptance is stored as a `failed`
+send with the reason in `last_error`. Correcting an observation (`POST .../{id}/correct`) holds any queued WIS2 file of
+the replaced observation (status stays `queued`, `last_error` "Held while a correction
+is pending"): accepting the correction drops the held file (`failed`, "Replaced by a
+correction before it was delivered"); rejecting the correction releases it so the
+original reading is retried as before.
+
+Recording and reading the register (`POST` and `GET
+/api/v1/eregister/observations`, `GET .../{id}/sends`) need one of
+`eregister.observe` (role `eregister-observer`), `eregister.qc` or
+`eregister.send`; anyone else gets `403`. A saved SYNOP shows on the public
+weather site as provisional, so a signed-in account alone is not enough.
 
 #### eRegister send actions
 
@@ -1759,20 +1778,44 @@ observation, `409` no recipients or WIS2 not configured, rejected or superseded
 or non-SYNOP observation, or already sent without `resend`, `422` the stored
 workbook fails validation. Details: `docs/operations/eregister-wmo-conformance.md`.
 
-#### eRegister QC
+#### eRegister QC, review and corrections
 
 `POST /api/v1/eregister/observations/{id}/accept`, `.../reject` and `.../reopen`
-(permission `eregister.qc`, body `{"reason": "..."}`, `200` with the
-`RegisterObservationRead`) move a SYNOP between `draft`/`qc_pending`,
-`accepted` and `rejected`. `reject` and `reopen` need a reason. The observer who
-saved an observation can never accept it (`403`, superusers included).
-`409` wrong state or non-SYNOP, or reopen after a WIS2 send; `422` missing
-reason or the workbook fails validation. `GET /api/v1/eregister/observations`
-takes `state=` (the QC queue is `draft` and `qc_pending`). `.../publish` (WIS2)
-now answers `409` unless the observation is `accepted`; `.../email` still
-accepts a validated draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set.
-`RegisterObservationRead` gains `qc_by` and `qc_at`. Every decision is audited
-(`eregister_observation`).
+(body `{"reason": "..."}`, `200` with the `RegisterObservationRead`) move a SYNOP
+between `draft`/`qc_pending`, `accepted` and `rejected`. Any register staff
+member (`eregister.observe`, `eregister.qc` or `eregister.send`) may use them;
+the observer accepts their own observation alone, there is no required second
+person. Accepting validates the workbook (`422`) and then queues the WIS2 file
+and the email at once (best effort: a refused hand-off, for example an hour the
+automatic source owns, never undoes the acceptance; see `GET .../sends`).
+`reject` and `reopen` need a reason; `reopen` (and `reject`) is `409` once a WIS2
+file was queued or sent.
+
+`POST .../{id}/review` (body `{"outcome": "reviewed" | "query", "note": "..."}`,
+a note is required for a query) records an optional second look by register staff
+other than the observer. It sets `review_outcome`, `review_note`, `reviewed_by`
+and `reviewed_at` on the record, is audited, changes no state and never holds
+back WIS2 or email. `GET /observations` takes `state=` (comma separated, for
+example `draft,qc_pending`), `reviewed=true|false` (the review queue is
+`state=accepted&reviewed=false`), `limit` and `offset`, and returns `total`.
+SYNOP rows carry `coded` (the FM 12 row), `issues` (validation findings,
+warnings included) and `actor_name` (who recorded it).
+
+`POST /observations` validates a SYNOP: errors (including a keyed day or hour that
+differs from `observed_at` in UTC) are `422` with `detail.message` and
+`detail.issues`; warnings pass. There is one live observation per station, time
+and kind (partial unique index): saving again as the observer of an unsent draft
+updates it in place (`200`, same `id`); otherwise `409`.
+`POST .../{id}/correct` (body `{"body": {...}, "reason": "..."}`, `201`) saves a
+replacement that supersedes the observation (`supersedes_id`); the old row
+becomes `superseded` and stays listed (the UI shows it struck through). `409` when
+it is rejected or already superseded. Accepting a replacement of an hour already
+sent to WIS2 sends a correction (`ObservationSend.is_correction`; the email is
+marked `CORRECTION` with a `CCA` line). `POST .../validate-synop` also takes an
+optional `observed_at` to run the same time check. `.../publish` (WIS2) answers
+`409` unless the observation is `accepted`; `.../email` still accepts a validated
+draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set. Every decision and review
+is audited (`eregister_observation`).
 
 ### GAA operational catalogues
 
