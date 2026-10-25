@@ -66,6 +66,8 @@ import {
 
 const COMMENT_HEADER = "Codex read-only review (fresh context)";
 const CODEX_TIMEOUT_MS = 15 * 60 * 1000;
+const MAX_CODEX_DIAGNOSTIC_LINES = 8;
+const MAX_CODEX_DIAGNOSTIC_CHARS = 2000;
 const REVIEW_DIFF_MAX_BYTES = 512 * 1024;
 const REVIEW_PERMISSION_PROFILE = "grenmet-review-readonly";
 const SYSTEMD_RUN = "/usr/bin/systemd-run";
@@ -90,12 +92,22 @@ const VAULT_REFERENCE =
 // Shapes the shared redactor does not cover (this repo uses Stripe keys).
 const EXTRA_SECRET_SHAPE =
   /sk_(?:live|test)_[A-Za-z0-9]{8,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;
+const EXTRA_SECRET_SHAPES =
+  /sk_(?:live|test)_[A-Za-z0-9]{8,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/g;
 const JWT_SHAPE =
   /(?:^|[^\w-])eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}(?=$|[^\w-])/;
+const JWT_SHAPES =
+  /(?:^|[^\w-])eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}(?=$|[^\w-])/g;
 const AUTH_TOKEN_FIELD =
   /["']?(?:access_token|refresh_token|id_token)["']?\s*:/i;
 const PR_NUMBER = /^\d+$/;
 const CHATGPT_LOGIN = /^Logged in using ChatGPT\b/im;
+const CODEX_DIAGNOSTIC_LINE =
+  /^\s*(?:ERROR(?:\s|:)|WARN(?:ING)?(?:\s|:)|warning:)/i;
+const STDERR_LINE_BREAK = /\r?\n/;
+const CODEX_STDERR_URL = /https?:\/\/[^\s?#]+[^\s]*/gi;
+const URL_QUERY_OR_FRAGMENT = /[?#].*$/;
+const HOME_PATH = /\/home\/[^/\s]+/g;
 
 function isWithin(child, parent) {
   const path = relative(resolve(parent), resolve(child));
@@ -103,6 +115,34 @@ function isWithin(child, parent) {
     path === "" ||
     (!isAbsolute(path) && path !== ".." && !path.startsWith(`..${sep}`))
   );
+}
+
+/** Keep useful Codex failure diagnostics out of the journal without logging prompts or raw output. */
+export function codexDiagnosticStderr(stderr) {
+  if (typeof stderr !== "string") return "";
+  const lines = stderr
+    .replaceAll(String.fromCharCode(27), "")
+    .split(STDERR_LINE_BREAK)
+    .filter((line) => CODEX_DIAGNOSTIC_LINE.test(line))
+    .map((line) => {
+      let safe = redactSecrets(line)
+        .replace(EXTRA_SECRET_SHAPES, "[REDACTED_SECRET]")
+        .replace(JWT_SHAPES, "[REDACTED_SECRET]")
+        .replace(CODEX_STDERR_URL, (url) =>
+          url.replace(URL_QUERY_OR_FRAGMENT, "")
+        )
+        .replace(HOME_PATH, "[home]");
+      safe = [...safe]
+        .map((character) => {
+          const code = character.codePointAt(0);
+          return code < 32 || code === 127 ? " " : character;
+        })
+        .join("");
+      return safe.trim().slice(0, 500);
+    })
+    .filter(Boolean)
+    .slice(-MAX_CODEX_DIAGNOSTIC_LINES);
+  return lines.join("\n").slice(-MAX_CODEX_DIAGNOSTIC_CHARS);
 }
 
 /** Prefer a writable runtime directory outside the user's home. */
@@ -315,7 +355,7 @@ export function buildIsolatedCodexArgs({
     "--property=ProtectKernelLogs=yes",
     "--property=ProtectControlGroups=yes",
     "--property=LockPersonality=yes",
-    "--property=RestrictRealtime=yes",
+    // RestrictRealtime=yes breaks Codex workspace routing under WSL systemd.
     `--property=RuntimeMaxSec=${CODEX_TIMEOUT_MS / 1000}s`,
     "--property=TimeoutStopSec=5s",
   ];
@@ -824,10 +864,16 @@ function runReview({
     pin.release();
     pin = undefined;
     if (codex.status !== 0) {
+      const diagnostics = codexDiagnosticStderr(codex.stderr);
       console.error(
-        codex.error
-          ? `could not run codex: ${codex.error.message}`
-          : "codex exited with an error; no findings were produced."
+        [
+          codex.error
+            ? `could not run codex: ${codex.error.message}`
+            : "codex exited with an error; no findings were produced.",
+          diagnostics ? `Codex stderr diagnostics:\n${diagnostics}` : null,
+        ]
+          .filter(Boolean)
+          .join("\n")
       );
       return codex.status ?? 1;
     }
