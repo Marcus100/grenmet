@@ -37,6 +37,8 @@ router = APIRouter(prefix="/eregister", tags=["eregister"])
 # Saved readings show on the public weather site at once (``public.py``), so only
 # register staff may record or read them. QC and senders already work the
 # register, and their roles predate ``eregister.observe``, so they keep access.
+# Far inside PostgreSQL's int64 OFFSET range; larger values reached the database and 500ed.
+MAX_OFFSET = 10_000_000
 REGISTER_ACCESS_KEYS = ("eregister.observe", "eregister.qc", "eregister.send")
 
 REGISTER_RESPONSES = {
@@ -91,8 +93,14 @@ async def list_register_observations(
             description="true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false)."
         ),
     ] = None,
+    observed_at: Annotated[
+        datetime | None,
+        Query(
+            description="Only observations for exactly this UTC time (to find the record occupying an hour)."
+        ),
+    ] = None,
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
-    offset: Annotated[int, Query(ge=0)] = 0,
+    offset: Annotated[int, Query(ge=0, le=MAX_OFFSET)] = 0,
 ) -> RegisterObservationList:
     _require_register_access(user)
     response.headers["Cache-Control"] = "private, no-store"
@@ -102,6 +110,7 @@ async def list_register_observations(
         "kind": kind,
         "states": states,
         "reviewed": reviewed,
+        "observed_at": observed_at,
     }
     result = await session.execute(
         text(
@@ -112,6 +121,7 @@ async def list_register_observations(
               AND (CAST(:states AS text[]) IS NULL OR state::text = ANY(CAST(:states AS text[])))
               AND (CAST(:reviewed AS boolean) IS NULL
                    OR (reviewed_at IS NOT NULL) = CAST(:reviewed AS boolean))
+              AND (CAST(:observed_at AS timestamptz) IS NULL OR observed_at = :observed_at)
             ORDER BY observed_at DESC, created_at DESC
             LIMIT :limit OFFSET :offset
             """
@@ -128,6 +138,7 @@ async def list_register_observations(
               AND (CAST(:states AS text[]) IS NULL OR state::text = ANY(CAST(:states AS text[])))
               AND (CAST(:reviewed AS boolean) IS NULL
                    OR (reviewed_at IS NOT NULL) = CAST(:reviewed AS boolean))
+              AND (CAST(:observed_at AS timestamptz) IS NULL OR observed_at = :observed_at)
             """
         ),
         params,

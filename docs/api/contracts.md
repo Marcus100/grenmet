@@ -1744,7 +1744,11 @@ workbook are the wet bulb (`wet_bulb`), wind gust (`wind_gust`), relative
 humidity (`relative_humidity`) and observer initials (`observer_initials`, not
 an observation value). The endpoint does not save, publish, or
 transmit an observation; `POST /api/v1/eregister/observations` stores a
-draft (validated, see below).
+draft (validated, see below). `GET /api/v1/eregister/observations` filters by
+`station_id`, `kind`, `state`, `reviewed` and an exact `observed_at` (the record
+occupying an hour), and pages with `limit` and `offset` (`offset` above 10 million is
+`422`). A refused WIS2 or email hand-off after acceptance is stored as a `failed`
+send with the reason in `last_error`.
 
 Recording and reading the register (`POST` and `GET
 /api/v1/eregister/observations`, `GET .../{id}/sends`) need one of

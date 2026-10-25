@@ -1464,3 +1464,68 @@ async def test_a_refused_hand_off_after_acceptance_is_explained_in_the_history(
     }
     assert "not configured" in by_target["wis2"]["last_error"]
     assert by_target["email"]["last_error"]
+
+
+@pytest.mark.usefixtures("recipients")
+async def test_an_original_paused_after_claiming_the_hour_cannot_overtake_its_correction(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    claimed, proceed = asyncio.Event(), asyncio.Event()
+    real_claim = gate.claim_manual_hour
+    calls = 0
+
+    async def paused_claim(*args: Any, **kwargs: Any) -> Any:
+        nonlocal calls
+        calls += 1
+        result = await real_claim(*args, **kwargs)
+        if calls == 1:
+            claimed.set()
+            await proceed.wait()
+        return result
+
+    monkeypatch.setattr(gate, "claim_manual_hour", paused_claim)
+    accepting = asyncio.create_task(client.post(qc_url(original, "accept")))
+    await asyncio.wait_for(claimed.wait(), 10)
+    fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    fixed = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    )
+    replacement = fixed.json()["id"]
+    correcting = asyncio.create_task(client.post(qc_url(replacement, "accept")))
+    await asyncio.sleep(0.5)
+    proceed.set()
+    assert (await asyncio.wait_for(accepting, 20)).status_code == 200
+    assert (await asyncio.wait_for(correcting, 20)).status_code == 200
+
+    config = Wis2boxConfig(WIS2BOX_INCOMING_DIR=str(incoming), WIS2BOX_MAX_ATTEMPTS=5)
+    delivered: list[str] = []
+
+    def recording(_key: str, content: str) -> None:
+        delivered.append(content)
+
+    await publisher.process_due_publications(
+        session=db_async, sink=recording, config=config
+    )
+    # Only the correction goes out; the original never lands over it.
+    assert len(delivered) == 1
+    assert ",301.15," not in delivered[0]
+
+
+async def test_list_can_find_the_record_for_one_hour_and_bounds_the_offset(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    observation = await save(client)
+    exact = await client.get(OBS_URL, params={"observed_at": OBSERVED.isoformat()})
+    assert [o["id"] for o in exact.json()["observations"]] == [observation]
+    other = await client.get(
+        OBS_URL, params={"observed_at": (OBSERVED + timedelta(hours=1)).isoformat()}
+    )
+    assert other.json()["observations"] == []
+    too_far = await client.get(OBS_URL, params={"offset": 9223372036854775808})
+    assert too_far.status_code == 422

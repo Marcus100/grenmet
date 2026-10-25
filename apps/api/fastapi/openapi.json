@@ -30070,6 +30070,25 @@
             "description": "true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false)."
           },
           {
+            "name": "observed_at",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only observations for exactly this UTC time (to find the record occupying an hour).",
+              "title": "Observed At"
+            },
+            "description": "Only observations for exactly this UTC time (to find the record occupying an hour)."
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -30087,6 +30106,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 10000000,
               "minimum": 0,
               "default": 0,
               "title": "Offset"

@@ -278,6 +278,28 @@ async def _retire_superseded_wis2(
         row.detail = {k: v for k, v in (row.detail or {}).items() if k != "content"}
 
 
+async def lock_wis2_hour(
+    session: AsyncSession, station_id: str, observed_at: datetime
+) -> None:
+    """Serialise WIS2 queueing for one station-hour across a correction chain.
+
+    An original and its correction write one filename, so they must not interleave:
+    without this an original paused after claiming the gate could commit its send row
+    after the correction retired the originals, and be delivered over it. Held to the
+    commit of the send row.
+    """
+    hour = observed_at.astimezone(UTC).replace(minute=0, second=0, microsecond=0)
+    await session.execute(
+        select(
+            func.pg_advisory_xact_lock(
+                func.hashtextextended(
+                    f"eregister-wis2:{station_id}:{hour.isoformat()}", 0
+                )
+            )
+        )
+    )
+
+
 async def queue_wis2(
     *,
     session: AsyncSession,
@@ -291,6 +313,15 @@ async def queue_wis2(
     reason = wis2_unavailable_reason(item)
     if reason:
         raise HTTPException(409, reason)
+    await lock_wis2_hour(session, item.station_id, item.observed_at)
+    # Recheck under the lock: a correction may have replaced this observation while
+    # this request waited.
+    current = await register.scalar(
+        text("SELECT state FROM register_observations WHERE id = :id"),
+        {"id": str(observation_id)},
+    )
+    if current in NOT_SENDABLE_STATES:
+        raise HTTPException(409, f"A {current} observation cannot be sent")
     # The gate comes first: an hour owned by the automatic source is never
     # queued, and a station-hour is claimed by one observation only. A WIS2
     # file is never queued twice, so `resend` does not apply here.
