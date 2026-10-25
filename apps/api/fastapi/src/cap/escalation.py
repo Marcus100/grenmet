@@ -16,7 +16,7 @@ The green alert is not changed: it stays in force until a forecaster withdraws i
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import String, cast, select
+from sqlalchemy import String, cast, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -201,6 +201,11 @@ async def escalate(
         )
     public_source = CapEscalationSource(
         product_id=body.product_id, revision=body.revision, kind=kind
+    )
+    # Serialise raises of one product so two clicks cannot make two drafts.
+    await cap_session.execute(
+        text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"),
+        {"key": f"cap-escalation:{body.product_id}"},
     )
     existing = await find_open_alert(cap_session, body.product_id)
     if existing is not None:
