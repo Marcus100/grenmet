@@ -949,7 +949,9 @@ the reason is kept in the approval action log, and the author receives the
 `workflow.returned` notification carrying the reason. `RETURNED` is not final,
 unlike `REJECTED`: the author edits the form with its normal update route and
 resubmits it with its normal submit route, which starts a fresh approval chain
-(the returned chain stays as history). `PATCH /hr/leave-requests/{id}/action`
+(the returned chain stays as history). A returned timesheet can be resubmitted
+unchanged only; there is no timesheet edit route yet, and the generic workflow
+route refuses SUBMIT on a returned timesheet instance. `PATCH /hr/leave-requests/{id}/action`
 refuses `RETURNED`; returning goes through the workflow action so a reason is
 always recorded. Deleting a returned form stays blocked because approval history
 is retained.
@@ -1804,7 +1806,7 @@ weather site as provisional, so a signed-in account alone is not enough.
   `decoded.qfe_pa` and `decoded.qnh_pa`, and keeps a keyed group 3 or 4 but warns
   (`station_pressure_mismatch`, `sea_level_mismatch`) when it differs.
 - *Station settings.* `GET` and `PUT /api/v1/eregister/stations/{station_id}/settings`
-  hold the four amounts. 78958 is seeded by migration `eregister_0005`; another
+  hold the four amounts. 78958 is seeded by migration `eregister_0006`; another
   station's amounts are `null` (listed in `pending`) until staff enter them, and
   nothing is assumed for it. Reading needs register staff access; `PUT` (all four
   amounts, `null` clears one) needs `eregister.qc`.

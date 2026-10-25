@@ -3,7 +3,7 @@
 The register works the pressures out of the barometer as read with four fixed
 amounts per station: the total barometer correction (station pressure), and the
 QFE, mean sea level and QNH offsets. 78958 is seeded by migration
-``eregister_0005``; any other station stays empty until staff enter its amounts.
+``eregister_0006``; any other station stays empty until staff enter its amounts.
 Reading is open to register staff; changing them needs ``eregister.qc``.
 """
 
@@ -69,6 +69,9 @@ async def pressure_for(
     try:
         return pressure_settings(await get(register, (station_id or "").strip()))
     except SQLAlchemyError, OSError:
+        # A failed statement leaves the transaction aborted: clear it so the caller's
+        # next statement (the save lock) does not fail on a dead transaction.
+        await register.rollback()
         return None
 
 

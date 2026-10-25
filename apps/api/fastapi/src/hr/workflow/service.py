@@ -617,6 +617,7 @@ async def apply_workflow_action(
                 "parking_permit",
                 "attendance",
                 "attendance_correction",
+                "timesheet",
             }
         ):
             raise HRValidationError(
@@ -811,7 +812,7 @@ async def apply_workflow_action(
         request.updated_at = utc_now()
     target_step.approver_user_id = current_user.id
     target_step.action = action_in.action
-    target_step.comments = action_in.comments
+    target_step.comments = (action_in.comments or "").strip() or None
     target_step.acted_at = utc_now()
     target_step.updated_at = utc_now()
     session.add(target_step)
