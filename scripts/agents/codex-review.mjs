@@ -120,6 +120,20 @@ function isWithin(child, parent) {
   );
 }
 
+function hiddenResolverMounts(resolverPath, hiddenPaths) {
+  try {
+    const resolvedResolverPath = realpathSync(resolverPath);
+    return {
+      resolvedResolverPath,
+      hiddenPaths: hiddenPaths.filter((path) =>
+        isWithin(resolvedResolverPath, path)
+      ),
+    };
+  } catch {
+    return { resolvedResolverPath: undefined, hiddenPaths: [] };
+  }
+}
+
 /** Report fixed diagnostic categories without copying arbitrary stderr payloads to the journal. */
 export function codexDiagnosticStderr(stderr) {
   if (typeof stderr !== "string") return "";
@@ -294,6 +308,7 @@ export function buildIsolatedCodexArgs({
     "-" +
     randomUUID().replaceAll("-", ""),
   hiddenPaths = reviewHostPaths(),
+  resolverPath = "/etc/resolv.conf",
   platform = process.platform,
 } = {}) {
   if (platform !== "linux") {
@@ -316,6 +331,7 @@ export function buildIsolatedCodexArgs({
   }
   const toolchain = toolchainRoot ? realpathSync(toolchainRoot) : undefined;
   const writable = [workspaceRoot, codexHome];
+  const resolverMount = hiddenResolverMounts(resolverPath, hiddenPaths);
   const searchPath = [
     dirname(process.execPath),
     "/usr/local/bin",
@@ -358,8 +374,16 @@ export function buildIsolatedCodexArgs({
   args.push(`--property=BindReadOnlyPaths=${pinnedRoot}`);
   if (toolchain) args.push(`--property=BindReadOnlyPaths=${toolchain}`);
   for (const path of hiddenPaths) {
-    args.push(`--property=InaccessiblePaths=${path}`);
+    if (resolverMount.hiddenPaths.includes(path)) {
+      args.push(`--property=TemporaryFileSystem=${path}:ro`);
+    } else {
+      args.push(`--property=InaccessiblePaths=${path}`);
+    }
   }
+  if (resolverMount.hiddenPaths.length > 0)
+    args.push(
+      `--property=BindReadOnlyPaths=${resolverMount.resolvedResolverPath}`
+    );
   args.push(
     "/usr/bin/env",
     "-i",
