@@ -224,7 +224,8 @@ async def create_register_observation(
         "the old one becomes `superseded` and stays listed. Station, kind and "
         "time are kept. `409` when the observation is rejected or already "
         "superseded; `422` when the replacement SYNOP has errors. The "
-        "replacement starts as a draft: when its observer accepts it, a "
+        "replacement starts as a draft; saving it stops any queued WIS2 file of the "
+        "replaced observation, so the old reading is never retried. When its observer accepts it, a "
         "station-hour already sent to WIS2 is sent again marked as a correction. "
         "Requires `eregister.observe`, `eregister.qc` or `eregister.send`."
     ),
@@ -240,15 +241,22 @@ async def correct_register_observation(
     body: RegisterObservationCorrection,
     user: BrowserUser,
     session: RegisterSession,
+    app_session: SessionDep,
     response: Response,
 ) -> RegisterObservationRead:
     _require_register_access(user)
     response.headers["Cache-Control"] = "no-store"
-    return _read(
-        await entries.correct(
-            register=session, observation_id=observation_id, data=body, user=user
-        )
+    saved = await entries.correct(
+        register=session, observation_id=observation_id, data=body, user=user
     )
+    # The replaced reading must not be retried to WIS2 while the correction waits.
+    await sends.retire_after_correction(
+        app_session,
+        station_id=str(saved["station_id"]),
+        observed_at=saved["observed_at"],
+        superseded_id=observation_id,
+    )
+    return _read(saved)
 
 
 SEND_RESPONSES = {

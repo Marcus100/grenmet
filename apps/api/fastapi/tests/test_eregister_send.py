@@ -1492,15 +1492,20 @@ async def test_an_original_paused_after_claiming_the_hour_cannot_overtake_its_co
     accepting = asyncio.create_task(client.post(qc_url(original, "accept")))
     await asyncio.wait_for(claimed.wait(), 10)
     fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
-    fixed = await client.post(
-        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    # The correction waits for the original's queueing (same station-hour lock).
+    fixing = asyncio.create_task(
+        client.post(
+            qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+        )
     )
-    replacement = fixed.json()["id"]
-    correcting = asyncio.create_task(client.post(qc_url(replacement, "accept")))
     await asyncio.sleep(0.5)
+    assert not fixing.done()
     proceed.set()
     assert (await asyncio.wait_for(accepting, 20)).status_code == 200
-    assert (await asyncio.wait_for(correcting, 20)).status_code == 200
+    fixed = await asyncio.wait_for(fixing, 20)
+    replacement = fixed.json()["id"]
+    accepted = await client.post(qc_url(replacement, "accept"))
+    assert accepted.status_code == 200
 
     config = Wis2boxConfig(WIS2BOX_INCOMING_DIR=str(incoming), WIS2BOX_MAX_ATTEMPTS=5)
     delivered: list[str] = []
@@ -1565,3 +1570,48 @@ async def test_a_refused_hand_off_survives_the_rollback_that_expires_the_user(
         ("email", "failed"),
     }
     assert {log.created_by for log in logs} == {user.id}
+
+
+@pytest.mark.usefixtures("recipients")
+async def test_a_correction_that_is_never_accepted_still_stops_the_replaced_retry(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    assert (await client.post(qc_url(original, "accept"))).status_code == 200
+
+    def unreachable(_key: str, _content: str) -> None:
+        raise OSError("wis2box unreachable")
+
+    config = Wis2boxConfig(WIS2BOX_INCOMING_DIR=str(incoming), WIS2BOX_MAX_ATTEMPTS=5)
+    await publisher.process_due_publications(
+        session=db_async, sink=unreachable, config=config
+    )
+    queued = (
+        await db_async.scalars(
+            select(ERegisterSend).where(ERegisterSend.target == "wis2")
+        )
+    ).one()
+    assert (queued.status, queued.attempts) == ("queued", 1)
+    # A correction is saved but its observer never accepts it.
+    fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    fixed = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    )
+    assert fixed.status_code == 201, fixed.text
+    delivered: list[str] = []
+
+    def recording(_key: str, content: str) -> None:
+        delivered.append(content)
+
+    queued.next_retry_at = None
+    await db_async.commit()
+    await publisher.process_due_publications(
+        session=db_async, sink=recording, config=config
+    )
+    assert delivered == []
+    await db_async.refresh(queued)
+    assert queued.status == "failed"
+    assert "correction" in (queued.last_error or "")

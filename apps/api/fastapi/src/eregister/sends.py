@@ -249,9 +249,7 @@ def wis2_unavailable_reason(item: SendableObservation) -> str | None:
     return None
 
 
-async def _retire_superseded_wis2(
-    session: AsyncSession, superseded: list[UUID]
-) -> None:
+async def retire_queued_wis2(session: AsyncSession, superseded: list[UUID]) -> None:
     """Stop queued WIS2 files of observations a correction replaces.
 
     The original and its correction go to one filename, so a retry of the original
@@ -300,6 +298,24 @@ async def lock_wis2_hour(
     )
 
 
+async def retire_after_correction(
+    session: AsyncSession,
+    *,
+    station_id: str,
+    observed_at: datetime,
+    superseded_id: UUID,
+) -> None:
+    """Stop the queued WIS2 file of an observation the moment a correction replaces it.
+
+    The correction may never be accepted; until it is, the replaced reading must not go
+    out on a retry. Takes the same per-hour lock as queueing, so a file being delivered
+    finishes first and one being queued is seen. Idempotent.
+    """
+    await lock_wis2_hour(session, station_id, observed_at)
+    await retire_queued_wis2(session, [superseded_id])
+    await session.commit()
+
+
 async def queue_wis2(
     *,
     session: AsyncSession,
@@ -344,7 +360,7 @@ async def queue_wis2(
     )
     try:
         await _claim(session, observation_id, TARGET_WIS2, resend=False)
-        await _retire_superseded_wis2(session, superseded)
+        await retire_queued_wis2(session, superseded)
     except BaseException:
         if claimed:
             await gate.release_hour(
