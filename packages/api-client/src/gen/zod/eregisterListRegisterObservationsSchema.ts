@@ -36,6 +36,13 @@ export const eregisterListRegisterObservationsQueryReviewedSchema = z
     "true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false)."
   );
 
+export const eregisterListRegisterObservationsQueryObservedAtSchema = z
+  .union([z.iso.datetime(), z.null()])
+  .optional()
+  .describe(
+    "Only observations for exactly this UTC time (to find the record occupying an hour)."
+  );
+
 export const eregisterListRegisterObservationsQueryLimitSchema = z
   .int()
   .min(1)
@@ -46,6 +53,7 @@ export const eregisterListRegisterObservationsQueryLimitSchema = z
 export const eregisterListRegisterObservationsQueryOffsetSchema = z
   .int()
   .min(0)
+  .max(10000000)
   .optional()
   .default(0);
 

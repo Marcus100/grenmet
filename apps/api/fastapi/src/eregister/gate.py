@@ -72,6 +72,28 @@ async def _log(
     )
 
 
+async def log_decision(
+    register: AsyncSession,
+    *,
+    station_id: str,
+    hour: datetime,
+    observation_id: UUID,
+    actor: str | None,
+    reason: str,
+) -> None:
+    """Record a gate hand-back (a rejected correction); the caller commits."""
+    await _log(
+        register,
+        station_id=station_id,
+        hour=hour,
+        official=None,
+        observation_id=observation_id,
+        outcome="claimed",
+        reason=reason,
+        actor=actor,
+    )
+
+
 async def hour_holder(
     register: AsyncSession, *, station_id: str, observed_at: datetime
 ) -> UUID | None:

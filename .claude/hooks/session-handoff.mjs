@@ -10,6 +10,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseEntries } from "../../scripts/agents/archive-session-log.mjs";
 import { mainCheckoutRoot } from "./main-checkout.mjs";
 
@@ -41,7 +42,7 @@ export function renderHandoff(logText, logPath, budget = MAX_OUTPUT_CHARS) {
 }
 
 /* c8 ignore start -- exercised via scripts/guardrails/agent-hook-behavior.test.mjs, not by running this file directly */
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
   const logPath = join(mainCheckoutRoot(), LOG_NAME);
   if (existsSync(logPath)) {
     process.stdout.write(renderHandoff(readFileSync(logPath, "utf8"), logPath));

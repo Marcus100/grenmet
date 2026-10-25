@@ -20,6 +20,22 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const ZERO_SHA = /^0+$/;
 const WHITESPACE = /\s+/;
+const SHA = /^[a-f0-9]{40}$/i;
+const AGENT_LOCK_REF = /^refs\/heads\/agent-lock\/[1-9]\d*$/;
+
+// Only coordination refs are exempt: a mixed push still sends application code.
+export function onlyAgentLockRefs(input) {
+  const lines = input.trim().split("\n");
+  return lines.every((line) => {
+    const fields = line.trim().split(WHITESPACE);
+    return (
+      fields.length === 4 &&
+      SHA.test(fields[1]) &&
+      AGENT_LOCK_REF.test(fields[2]) &&
+      SHA.test(fields[3])
+    );
+  });
+}
 // Inputs every package depends on: a change can break any test.
 const WORKSPACE_WIDE = new Set([
   "pnpm-lock.yaml",
@@ -77,10 +93,14 @@ function filesIn(range) {
 
 function main() {
   const args = process.argv.slice(2);
+  const stdin = process.stdin.isTTY ? "" : readFileSync(0, "utf8");
+  if (args.includes("--only-agent-locks")) {
+    process.exitCode = onlyAgentLockRefs(stdin) ? 0 : 1;
+    return;
+  }
   const base = args.includes("--base")
     ? args[args.indexOf("--base") + 1]
     : "origin/dev";
-  const stdin = process.stdin.isTTY ? "" : readFileSync(0, "utf8");
   const lines = stdin.split("\n").filter(Boolean);
   // Run by hand (no refs on stdin): treat HEAD as the pushed ref.
   const refs =
@@ -110,6 +130,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     main();
   } catch (error) {
     console.error(error instanceof Error ? error.message : error);
-    console.log("ALL");
+    if (process.argv.includes("--only-agent-locks")) process.exitCode = 1;
+    else console.log("ALL");
   }
 }

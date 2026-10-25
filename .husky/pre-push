@@ -8,6 +8,11 @@
 refs=""
 [ -t 0 ] || refs=$(cat)
 
+if printf '%s\n' "$refs" | node scripts/verification/pre-push-scope.mjs --only-agent-locks; then
+  echo "pre-push: agent-lock refs only; skipping workspace gates."
+  exit 0
+fi
+
 if [ -n "${PRE_PUSH_SCOPE+x}" ]; then
   pnpm exec turbo run check:ci $PRE_PUSH_SCOPE
   pnpm exec turbo run type-check $PRE_PUSH_SCOPE

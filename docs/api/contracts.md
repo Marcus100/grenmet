@@ -962,7 +962,9 @@ the reason is kept in the approval action log, and the author receives the
 `workflow.returned` notification carrying the reason. `RETURNED` is not final,
 unlike `REJECTED`: the author edits the form with its normal update route and
 resubmits it with its normal submit route, which starts a fresh approval chain
-(the returned chain stays as history). `PATCH /hr/leave-requests/{id}/action`
+(the returned chain stays as history). A returned timesheet can be resubmitted
+unchanged only; there is no timesheet edit route yet, and the generic workflow
+route refuses SUBMIT on a returned timesheet instance. `PATCH /hr/leave-requests/{id}/action`
 refuses `RETURNED`; returning goes through the workflow action so a reason is
 always recorded. Deleting a returned form stays blocked because approval history
 is retained.
@@ -1777,7 +1779,15 @@ workbook are the wet bulb (`wet_bulb`), wind gust (`wind_gust`), relative
 humidity (`relative_humidity`) and observer initials (`observer_initials`, not
 an observation value). The endpoint does not save, publish, or
 transmit an observation; `POST /api/v1/eregister/observations` stores a
-draft (validated, see below).
+draft (validated, see below). `GET /api/v1/eregister/observations` filters by
+`station_id`, `kind`, `state`, `reviewed` and an exact `observed_at` (the record
+occupying an hour), and pages with `limit` and `offset` (`offset` above 10 million is
+`422`). A refused WIS2 or email hand-off after acceptance is stored as a `failed`
+send with the reason in `last_error`. Correcting an observation (`POST .../{id}/correct`) holds any queued WIS2 file of
+the replaced observation (status stays `queued`, `last_error` "Held while a correction
+is pending"): accepting the correction drops the held file (`failed`, "Replaced by a
+correction before it was delivered"); rejecting the correction releases it so the
+original reading is retried as before.
 
 Recording and reading the register (`POST` and `GET
 /api/v1/eregister/observations`, `GET .../{id}/sends`) need one of
@@ -1809,7 +1819,7 @@ weather site as provisional, so a signed-in account alone is not enough.
   `decoded.qfe_pa` and `decoded.qnh_pa`, and keeps a keyed group 3 or 4 but warns
   (`station_pressure_mismatch`, `sea_level_mismatch`) when it differs.
 - *Station settings.* `GET` and `PUT /api/v1/eregister/stations/{station_id}/settings`
-  hold the four amounts. 78958 is seeded by migration `eregister_0005`; another
+  hold the four amounts. 78958 is seeded by migration `eregister_0006`; another
   station's amounts are `null` (listed in `pending`) until staff enter them, and
   nothing is assumed for it. Reading needs register staff access; `PUT` (all four
   amounts, `null` clears one) needs `eregister.qc`.
@@ -1849,7 +1859,12 @@ person. Accepting validates the workbook (`422`) and then queues the WIS2 file
 and the email at once (best effort: a refused hand-off, for example an hour the
 automatic source owns, never undoes the acceptance; see `GET .../sends`).
 `reject` and `reopen` need a reason; `reopen` (and `reject`) is `409` once a WIS2
-file was queued or sent.
+file was queued or sent. Rejecting a correction (a row with `supersedes_id`)
+releases the held WIS2 file of the observation it replaced and, in the same
+transaction, puts that `superseded` observation back to the state it had before
+(`accepted`, or `draft`/`qc_pending` for a never-accepted one) with its own QC
+notes, and returns the publish gate to it if the correction had taken it, so the
+hour can be sent, reopened or corrected again (audited as `restore`).
 
 `POST .../{id}/review` (body `{"outcome": "reviewed" | "query", "note": "..."}`,
 a note is required for a query) records an optional second look by register staff

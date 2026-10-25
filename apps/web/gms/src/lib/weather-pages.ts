@@ -9,6 +9,7 @@ import {
 } from "@/lib/current-conditions";
 import type { ForecastDayData } from "@/lib/forecast-data";
 import { UNAVAILABLE_SOURCE } from "@/lib/forecast-selection";
+import { reportError } from "@/lib/report-error";
 
 /** Placeholder for a value the source did not supply. */
 export const NOT_SUPPLIED = "Not supplied";
@@ -175,6 +176,9 @@ const LEGACY_WATCH_KEYS = [
   "response",
 ] as const;
 
+const ALERTS_UNCONFIRMED =
+  "Weather alerts could not be fully confirmed when this forecast was issued.";
+
 const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/;
 
 /**
@@ -188,7 +192,8 @@ function importedWatch(raw: string | undefined): string[] | null {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
-  } catch {
+  } catch (error) {
+    reportError(error, "weather-synopsis");
     return null;
   }
   const items =
@@ -196,7 +201,11 @@ function importedWatch(raw: string | undefined): string[] | null {
       ? (parsed as { items: unknown }).items
       : null;
   if (!Array.isArray(items)) return null;
-  return items.flatMap((item) => {
+  const complete =
+    !!parsed &&
+    typeof parsed === "object" &&
+    (parsed as { complete?: unknown }).complete !== false;
+  const listed = items.flatMap((item) => {
     if (!item || typeof item !== "object") return [];
     const { title, impacts } = item as { title?: unknown; impacts?: unknown };
     const name = typeof title === "string" ? title.trim() : "";
@@ -204,6 +213,8 @@ function importedWatch(raw: string | undefined): string[] | null {
     if (!name) return detail ? [detail] : [];
     return [detail ? `${name}: ${detail}` : name];
   });
+  // A source that could not be read is not "nothing in force": say so.
+  return complete ? listed : [...listed, ALERTS_UNCONFIRMED];
 }
 
 function paragraphsOf(text: string | undefined) {
