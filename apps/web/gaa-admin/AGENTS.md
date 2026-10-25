@@ -16,6 +16,7 @@ Port **3001**. The heaviest app in the monorepo.
 | `react-error-boundary` | Error boundaries around data-heavy sections |
 | `sonner` | Toast notifications |
 | `date-fns` | Date formatting |
+| `resend` | Email (server-side) |
 | `msw` | API mocking in tests |
 
 ## Auth
