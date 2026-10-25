@@ -76,6 +76,10 @@ async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]
     of the employee's current department; or the employee's named supervisor.
     Never the employee. The punch department matters because a transfer must not
     strand a punch its original manager was shown.
+
+    The employee-keyed clauses (current department, organisation, supervisor)
+    rely on the write-path guard that refuses cross-organisation transfers, so
+    an employee's current organisation is the one their punches were made in.
     """
     never_own = ClockPunch.user_id != actor.id
     if actor.is_superuser:

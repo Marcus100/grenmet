@@ -17,7 +17,12 @@ from src.hr.attendance import service as attendance_service
 from src.hr.attendance.models import AttendanceRecord, ClockPunch
 from src.hr.attendance.schemas import AttendanceSave
 from src.hr.models import Department, EmploymentRecord, Organisation
-from src.hr.roster.models import RosterAssignment, ShiftCatalog, ShiftCategory
+from src.hr.roster.models import (
+    RosterAssignment,
+    RosterPeriod,
+    ShiftCatalog,
+    ShiftCategory,
+)
 from src.hr.roster.schemas import (
     RosterAssignmentBulkCreate,
     RosterAssignmentInput,
@@ -740,3 +745,89 @@ async def test_all_scope_holder_in_the_organisation_decides_and_employee_cannot(
         )
     assert raised.value.status_code == 403
     await punch_service._require_reviewer(db_async, hr, arrive)
+
+
+async def test_approval_after_a_transfer_writes_attendance_for_the_old_roster(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    old_manager = await _supervisor(db_async, department=DEPT)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    depart = await _punch(db_async, employee, token, 18, 0)
+    await _transfer(db_async, employee, OTHER)
+
+    await punch_service.approve_punch(
+        session=db_async, current_user=old_manager, punch_id=arrive.id
+    )
+    await punch_service.approve_punch(
+        session=db_async, current_user=old_manager, punch_id=depart.id
+    )
+    (record,) = await _records(db_async)
+    assert record.department_id == DEPT
+    assert record.arrived_at is not None
+    assert record.departed_at is not None
+
+
+async def test_other_departments_proxy_is_refused_on_an_old_department_shift(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    await _transfer(db_async, employee, OTHER)
+    proxy = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, "timesheet.submit.proxy")
+    await make_employee(db_async, user=proxy, department_id=OTHER)
+    await assign_role(
+        db_async,
+        user=proxy,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=OTHER,
+    )
+    with pytest.raises(AppException) as raised:
+        await attendance_service.save_attendance(
+            session=db_async,
+            current_user=proxy,
+            payload=AttendanceSave(
+                roster_assignment_id=arrive.roster_assignment_id,
+                expected_revision=0,
+                arrived_at=arrive.punched_at.replace(tzinfo=UTC),
+            ),
+        )
+    assert raised.value.status_code == 400
+
+
+async def test_roster_department_in_another_organisation_is_still_refused(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    if not await db_async.get(Organisation, "other_org"):
+        db_async.add(
+            Organisation(id="other_org", code="other_org", name="Other organisation")
+        )
+        await db_async.flush()
+    foreign = Department(
+        organisation_id="other_org", code="FRN", id="dept_foreign", name="Foreign"
+    )
+    db_async.add(foreign)
+    await db_async.commit()
+    # Corrupt state a transfer guard should prevent: the roster's department
+    # now belongs to a different organisation than the employee's employment.
+    assignment = await db_async.get(RosterAssignment, arrive.roster_assignment_id)
+    assert assignment is not None
+    period = await db_async.get(RosterPeriod, assignment.roster_period_id)
+    assert period is not None
+    period.department_id = foreign.id
+    await db_async.commit()
+    with pytest.raises(AppException) as raised:
+        await attendance_service.save_attendance(
+            session=db_async,
+            current_user=employee,
+            payload=AttendanceSave(
+                roster_assignment_id=arrive.roster_assignment_id,
+                expected_revision=0,
+                arrived_at=arrive.punched_at.replace(tzinfo=UTC),
+            ),
+        )
+    assert raised.value.status_code == 400
