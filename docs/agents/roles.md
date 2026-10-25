@@ -34,11 +34,11 @@ skill (`.claude/skills/team-roles`, which Codex reads as `.agents/skills`):
 | --- | --- | --- | --- |
 | `planner` | Product manager and analyst: spec, acceptance criteria, thin slices, open questions | No | opus |
 | `architect` | Design options, trade-offs, blast radius, ADR advice | No | opus |
-| `api-engineer` | FastAPI routes, services, migrations, OpenAPI and client sync, with tests | Yes | sonnet |
-| `web-engineer` | Next.js pages and components against the design lane spec and generated client | Yes | sonnet |
-| `qa-engineer` | Failing tests first, edge cases, regression and contract tests | Test files only | sonnet |
-| `code-reviewer` | Fresh-context review of a diff: correctness, contract, tests, rules | No | opus |
-| `security-reviewer` | Auth, permissions, data exposure, supply chain, migrations | No | opus |
+| `api-engineer` | FastAPI routes, services, migrations, OpenAPI and client sync, with tests | Yes | haiku |
+| `web-engineer` | Next.js pages and components against the design lane spec and generated client | Yes | haiku |
+| `qa-engineer` | Failing tests first, edge cases, regression and contract tests | Test files only | haiku |
+| `code-reviewer` | Fresh-context review of a diff: correctness, contract, tests, rules | No | sonnet |
+| `security-reviewer` | Auth, permissions, data exposure, supply chain, migrations | No | sonnet |
 
 The model column is a cost and quality preference, not a benchmark result.
 Planning and review use the stronger model because a wrong plan or a missed
