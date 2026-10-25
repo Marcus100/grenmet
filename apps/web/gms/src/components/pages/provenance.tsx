@@ -45,6 +45,7 @@ export function Provenance({
   now = new Date(),
   source,
   status,
+  showTime = true,
   time,
   tone = "default",
 }: {
@@ -53,6 +54,11 @@ export function Provenance({
   now?: Date;
   source: string;
   status: ProvenanceStatus;
+  /**
+   * Set false when the surrounding block already states the time (the sky
+   * hero's top line). The stale warning still shows when the time is old.
+   */
+  showTime?: boolean;
   /** Observation, issue or image time; ISO, or a Grenada wall-clock time. */
   time: string;
   /** "inverse" for text on the dark sky hero. */
@@ -74,9 +80,13 @@ export function Provenance({
     >
       <p>
         <span className="font-semibold">Source:</span> {source}
-        {" · "}
-        <span className="font-semibold">{timeLabel}:</span>{" "}
-        {known ? localDateTime(time) : "time unknown"}
+        {showTime && (
+          <>
+            {" · "}
+            <span className="font-semibold">{timeLabel}:</span>{" "}
+            {known ? localDateTime(time) : "time unknown"}
+          </>
+        )}
         {" · "}
         <span className="font-semibold">Status:</span> {STATUS_LABEL[status]}
         {status === "external" && " · Not a GMS product"}
