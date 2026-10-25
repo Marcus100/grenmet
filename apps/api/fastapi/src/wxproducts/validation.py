@@ -149,7 +149,9 @@ def compose_legacy_text(values: dict[str, str]) -> dict[str, str]:
                     continue
                 height = optional_number(values, f"tide{n}Height")
                 entries.append(
-                    time if height is None else f"{time} ({units._num(height)} m)"
+                    time
+                    if height is None
+                    else f"{time} ({units._num(units.feet(height))} ft)"
                 )
             composed[key] = ", ".join(entries)
     return composed

@@ -64,6 +64,22 @@ def test_drafts_can_be_incomplete_but_not_invalid() -> None:
         )
 
 
+@pytest.mark.parametrize("kind", ["morning", "midday"])
+def test_day_forecasts_need_todays_maximum(kind: ProductKind) -> None:
+    # The GMS sheet prints "Today's Max | Tonight's Min" for both issues.
+    values = complete(kind)
+    values.pop("maxTemperature")
+    assert "Weather: Maximum temperature (°C) is required" in validation.validate(
+        body(kind, values=values), now=NOW
+    )
+
+
+def test_evening_tonight_needs_no_maximum() -> None:
+    values = complete("evening")
+    values.pop("maxTemperature", None)
+    assert validation.validate(body("evening", values=values), now=NOW) == []
+
+
 @pytest.mark.parametrize("day", range(1, 5))
 @pytest.mark.parametrize("action", ["draft", "publish"])
 def test_evening_temperature_order_is_checked_for_every_period(day, action) -> None:

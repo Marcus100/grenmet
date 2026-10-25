@@ -26,6 +26,27 @@ describe("visibleProductFields", () => {
     }
   });
 
+  it("shows only tonight's minimum and no sun times on the evening form", () => {
+    const keys = visibleProductFields("evening").map((f) => f.key);
+    expect(keys).toContain("minTemperature");
+    for (const hidden of ["maxTemperature", "sunrise", "sunset"]) {
+      expect(keys).not.toContain(hidden);
+    }
+    // Each outlook day keeps its own sun times.
+    expect(keys).toContain("day1Sunrise");
+    expect(keys).toContain("day4Sunset");
+  });
+
+  it.each(["morning", "midday"] as const)(
+    "requires today's maximum on the %s form",
+    (kind) => {
+      const max = visibleProductFields(kind).find(
+        (f) => f.key === "maxTemperature"
+      );
+      expect(max?.required).toBe(true);
+    }
+  );
+
   it.each(KINDS)("keeps the substantive forecast fields for %s", (kind) => {
     const keys = visibleProductFields(kind).map((f) => f.key);
 

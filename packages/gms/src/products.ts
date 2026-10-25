@@ -134,12 +134,58 @@ export const SEA_STATES = [
   { term: "Phenomenal", code: 9, band: "over 14 m" },
 ] as const;
 /** Matches the GMS site's weather icons (`apps/web/gms/src/lib/weather-icons.ts`). */
+/** Sky cover, as in a METAR; showers and thunder go in the forecast text. */
 export const WEATHER_CONDITIONS = [
-  "Sunny",
-  "Sunny intervals",
+  "Clear",
+  "Fair",
+  "Partly cloudy",
   "Cloudy",
-  "Showers",
+  "Overcast",
 ] as const;
+export const RAIN_CHANCES = ["Low", "Medium", "High"] as const;
+
+/**
+ * SYNOP links (owner, 23 October 2026) so forecasts can later be verified
+ * against the eRegister hourlies at MBIA. Conditions map to total cloud N in
+ * oktas (METAR bands), weather types to present weather ww, and rain chance
+ * to probability bands (%) for scoring. FastAPI mirrors these tables in
+ * `src/wxproducts/synop_codes.py` (a test keeps them equal).
+ */
+export const CONDITION_OKTAS: Record<
+  (typeof WEATHER_CONDITIONS)[number],
+  readonly [number, number]
+> = {
+  Clear: [0, 0],
+  Fair: [1, 2],
+  "Partly cloudy": [3, 4],
+  Cloudy: [5, 7],
+  Overcast: [8, 8],
+};
+export const WEATHER_TYPES = [
+  { label: "Haze", ww: 5 },
+  { label: "Dust haze", ww: 6 },
+  { label: "Mist", ww: 10 },
+  { label: "Thunder (no rain)", ww: 17 },
+  { label: "Fog", ww: 45 },
+  { label: "Drizzle", ww: 51 },
+  { label: "Light rain", ww: 61 },
+  { label: "Moderate rain", ww: 63 },
+  { label: "Heavy rain", ww: 65 },
+  { label: "Light showers", ww: 80 },
+  { label: "Moderate or heavy showers", ww: 81 },
+  { label: "Violent showers", ww: 82 },
+  { label: "Thunderstorms", ww: 95 },
+  { label: "Severe thunderstorms", ww: 97 },
+] as const;
+export const RAIN_CHANCE_BANDS: Record<
+  (typeof RAIN_CHANCES)[number],
+  readonly [number, number]
+> = {
+  Low: [0, 30],
+  Medium: [30, 60],
+  High: [60, 100],
+};
+const WEATHER_TYPE_LABELS = WEATHER_TYPES.map((t) => t.label);
 export const TIDE_SLOTS = [1, 2, 3, 4] as const;
 const likelihoods = ["Very low", "Low", "Medium", "High"];
 const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/;
@@ -265,16 +311,24 @@ function forecastFields(kind: ProductKind): ProductField[] {
     field(
       "Weather",
       "summary",
-      kind === "evening" ? "Tonight's weather" : "Weather summary",
+      kind === "evening" ? "Tonight's weather forecast" : "Weather forecast",
       { type: "textarea", required: true }
     ),
     field("Weather", "condition", "Conditions", {
       options: WEATHER_CONDITIONS,
     }),
-    field("Weather", "rainChance", "Chance of rain (%)", { type: "number" }),
+    field("Weather", "weatherType", "Weather type", {
+      options: WEATHER_TYPE_LABELS,
+    }),
+    field("Weather", "rainChance", "Chance of rain", {
+      options: RAIN_CHANCES,
+    }),
     field("Weather", "weatherAlert", "Weather alert"),
+    // Morning and midday print "Today's Max | Tonight's Min"; the evening
+    // tonight block has no maximum (hidden below, kept for older issues).
     field("Weather", "maxTemperature", "Maximum temperature (°C)", {
       type: "number",
+      ...(kind === "evening" ? {} : { required: true }),
     }),
     field("Weather", "minTemperature", "Minimum temperature (°C)", {
       type: "number",
@@ -336,6 +390,9 @@ function forecastFields(kind: ProductKind): ProductField[] {
             field(section, `${prefix}Weather`, "Weather", {
               type: "textarea",
               required: true,
+            }),
+            field(section, `${prefix}WeatherType`, "Weather type", {
+              options: WEATHER_TYPE_LABELS,
             }),
             field(section, `${prefix}Max`, "Maximum temperature (°C)", {
               type: "number",
@@ -677,10 +734,20 @@ export function isForecastAlertField(field: ProductField) {
     DAY_ALERT_FIELD.test(field.key)
   );
 }
-export function displayProductFields(kind: ProductKind) {
-  return productFields(kind).filter(
-    (f) => !(isForecastKind(kind) && isForecastAlertField(f))
+/**
+ * The evening tonight block shows only the minimum, and sun times belong to
+ * each outlook day. The keys stay in the schema so older issues still open.
+ */
+const EVENING_TONIGHT_HIDDEN = new Set(["maxTemperature", "sunrise", "sunset"]);
+export function isHiddenForecastField(kind: ProductKind, field: ProductField) {
+  return (
+    isForecastKind(kind) &&
+    (isForecastAlertField(field) ||
+      (kind === "evening" && EVENING_TONIGHT_HIDDEN.has(field.key)))
   );
+}
+export function displayProductFields(kind: ProductKind) {
+  return productFields(kind).filter((f) => !isHiddenForecastField(kind, f));
 }
 const STRUCTURED_SOURCE_KEY =
   /^(day[1-4])?([Vv]isibility(Min|Max)|[Ww]indDir(From|To)|[Ww]indSpeed(Min|Max)|[Ww]indGust|[Ss]eaState(From|To)|[Ww]aveHeight(Min|Max)|[Ss]well(Dir|Period|Height)|[Tt]ide[1-4](Type|Time|Height))$/;

@@ -2,7 +2,9 @@
 
 Stored values follow WMO reporting units: wind in knots (SYNOP permits knots or
 m/s; knots are the regional operational norm), heights in metres and periods in
-seconds. Public display units are a presentation choice and live here too.
+seconds. Public display units are a presentation choice and live here too: GMS
+shows wind in mph only and heights in feet only (owner, 23 October 2026), and
+storage stays in WMO units so a later unit switch is display-only.
 
 Sources:
 - WMO-No. 306, Manual on Codes, code table 3700 (state of the sea).
@@ -110,24 +112,17 @@ def wind_text(
     gust: float | None,
     unit: WindUnit = PUBLIC_WIND_UNIT,
 ) -> str:
-    """e.g. "NE to E 12–23 mph (10–20 kt), gusts 35 mph (30 kt)"."""
+    """Stored knots shown in one unit only, e.g. "NE to E 12–23 mph, gusts 35 mph"."""
     parts = [direction_text(start, end)]
     if low is not None or high is not None:
         speeds = _span(
             None if low is None else convert_wind(low, unit),
             None if high is None else convert_wind(high, unit),
         )
-        if unit == "kt":
-            parts.append(f"{_span(low, high)} kt")
-        else:
-            parts.append(f"{speeds} {unit} ({_span(low, high)} kt)")
+        parts.append(f"{speeds} {unit}")
     text = " ".join(p for p in parts if p)
     if gust is not None:
-        gusts = (
-            f"{round(gust)} kt"
-            if unit == "kt"
-            else f"{round(convert_wind(gust, unit))} {unit} ({round(gust)} kt)"
-        )
+        gusts = f"{round(convert_wind(gust, unit))} {unit}"
         text = f"{text}, gusts {gusts}" if text else f"Gusts {gusts}"
     return text
 
@@ -155,14 +150,11 @@ def visibility_text(low: float | None, high: float | None) -> str:
 
 
 def height_text(low: float | None, high: float | None) -> str:
-    """Metres first, feet in brackets: "1.8–2.7 m (6–9 ft)"."""
-    metres = _span(low, high, places=1)
-    if not metres:
-        return ""
-    return (
-        f"{metres} m "
-        f"({_span(None if low is None else feet(low), None if high is None else feet(high))} ft)"
+    """Stored metres shown in feet only (GMS public unit): "6–9 ft"."""
+    span = _span(
+        None if low is None else feet(low), None if high is None else feet(high)
     )
+    return f"{span} ft" if span else ""
 
 
 def sea_state_text(start: str, end: str = "") -> str:
