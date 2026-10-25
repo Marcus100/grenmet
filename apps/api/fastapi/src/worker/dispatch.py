@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.cap.models import CapAlert, CapJobEvent, CapJobStatus, CapScope, CapStatus
 from src.utils.datetime import utc_now
 from src.worker import cap_email, cap_push, last_known_good, publishers
-from src.worker.publishers import PublishError
+from src.worker.publishers import PublishError, _prior_delivered
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,12 @@ Handler = Callable[..., Awaitable[dict[str, Any]]]
 # Exponential backoff for FAILED-job retries: base * 2**(attempts-1), capped.
 _RETRY_BASE_SECONDS = 10
 _RETRY_MAX_SECONDS = 3600
+
+# A job is marked RUNNING and committed before its handler sends anything, so a
+# worker that crashes mid-delivery leaves it RUNNING. The arq job timeout is 300 s;
+# past this window the job is treated as abandoned and is retried (the handlers skip
+# recipients already recorded in ``result["delivered"]``).
+_STALE_RUNNING = timedelta(minutes=15)
 
 
 def _retry_delay_seconds(attempts: int) -> int:
@@ -48,15 +54,30 @@ KIND_HANDLERS: dict[str, Handler] = {
 }
 
 
+def _keep_delivered(previous: object) -> dict[str, Any]:
+    """Recipients already served on earlier attempts, to survive an unexpected error."""
+    delivered = sorted(_prior_delivered(previous))
+    return {"delivered": delivered} if delivered else {}
+
+
 async def dispatch_job(
-    *, session: AsyncSession, job: CapJobEvent, http_client: httpx.AsyncClient
+    *,
+    session: AsyncSession,
+    job: CapJobEvent,
+    http_client: httpx.AsyncClient,
+    claimed: bool = False,
 ) -> CapJobEvent:
-    """Run a single job's handler and persist its outcome (status/attempts/result)."""
-    job.status = CapJobStatus.RUNNING
-    job.attempts += 1
-    job.updated_at = utc_now()
-    session.add(job)
-    await session.flush()
+    """Run a single job's handler and persist its outcome (status/attempts/result).
+
+    ``claimed`` means ``process_due_jobs`` already marked the job RUNNING, counted the
+    attempt and committed it, so no other worker will pick it up.
+    """
+    if not claimed:
+        job.status = CapJobStatus.RUNNING
+        job.attempts += 1
+        job.updated_at = utc_now()
+        session.add(job)
+        await session.flush()
 
     handler = KIND_HANDLERS.get(job.kind)
     try:
@@ -85,7 +106,8 @@ async def dispatch_job(
         )
     except Exception as exc:  # noqa: BLE001 - never let one job kill the batch
         job.status = CapJobStatus.FAILED
-        job.result = {"error": str(exc)}
+        # Keep who already received it, or the retry would send to everyone again.
+        job.result = {"error": str(exc), **_keep_delivered(job.result)}
         job.next_retry_at = utc_now() + timedelta(
             seconds=_retry_delay_seconds(job.attempts)
         )
@@ -121,14 +143,31 @@ async def process_due_jobs(
                         CapJobEvent.next_retry_at.is_(None)
                         | (CapJobEvent.next_retry_at <= now)
                     ),
+                    # Abandoned by a crashed worker.
+                    (CapJobEvent.status == CapJobStatus.RUNNING)
+                    & (CapJobEvent.attempts < max_attempts)
+                    & (CapJobEvent.updated_at <= now - _STALE_RUNNING),
                 )
             )
             .order_by(CapJobEvent.created_at)
             .limit(limit)
+            # Overlapping polls and parallel workers must not take the same job.
+            .with_for_update(skip_locked=True)
         )
         jobs = list(result.scalars().all())
+        # Claim first: commit RUNNING before anything is sent, so another worker
+        # selecting after this commit no longer sees the jobs as due.
+        claimed_at = utc_now()
         for job in jobs:
-            await dispatch_job(session=session, job=job, http_client=client)
+            job.status = CapJobStatus.RUNNING
+            job.attempts += 1
+            job.updated_at = claimed_at
+            session.add(job)
+        await session.commit()
+        for job in jobs:
+            await dispatch_job(
+                session=session, job=job, http_client=client, claimed=True
+            )
         if jobs:
             logger.info("Processed CAP jobs", extra={"count": len(jobs)})
         return len(jobs)

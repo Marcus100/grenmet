@@ -3,7 +3,9 @@
 httpx.MockTransport stands in for webhook endpoints so no real HTTP is made.
 """
 
+import asyncio
 import uuid
+from datetime import timedelta
 
 import httpx
 import pytest
@@ -28,7 +30,10 @@ from src.cap.models import (
 )
 from src.cap.tasks import enqueue_publish_side_effects
 from src.config import settings
+from src.database import async_session_factory
 from src.storage.service import storage_service
+from src.utils.datetime import utc_now
+from src.worker import dispatch
 from src.worker.dispatch import process_due_jobs
 
 
@@ -359,3 +364,106 @@ async def test_publish_batch_runs_every_side_effect_for_an_alert(
         outcomes
     )
     assert len(stored) == 5
+
+
+async def test_job_is_marked_running_in_the_database_before_it_is_sent(
+    db_async: AsyncSession,
+) -> None:
+    """The claim is committed first, so another worker cannot see the job as due."""
+    await _add_webhook(db_async, "https://example.test/hook")
+    job = await _add_job(db_async, "publish.webhooks")
+    seen: list[CapJobStatus] = []
+
+    async def handler(_request: httpx.Request) -> httpx.Response:
+        async with async_session_factory() as other:
+            row = await other.get(CapJobEvent, job.id)
+            assert row is not None
+            seen.append(row.status)
+        return httpx.Response(200)
+
+    async with _client(handler) as client:
+        await process_due_jobs(session=db_async, http_client=client)
+
+    assert seen == [CapJobStatus.RUNNING]
+
+
+async def test_two_workers_polling_at_once_send_a_job_only_once(
+    db_async: AsyncSession,
+) -> None:
+    await _add_webhook(db_async, "https://example.test/hook")
+    job = await _add_job(db_async, "publish.webhooks")
+    posts = 0
+
+    async def handler(_request: httpx.Request) -> httpx.Response:
+        nonlocal posts
+        posts += 1
+        await asyncio.sleep(0.3)
+        return httpx.Response(200)
+
+    async def poll() -> int:
+        async with async_session_factory() as session, _client(handler) as client:
+            return await process_due_jobs(session=session, http_client=client)
+
+    handled = await asyncio.gather(poll(), poll())
+
+    assert posts == 1
+    assert sorted(handled) == [0, 1]
+    await db_async.refresh(job)
+    assert job.status == CapJobStatus.SUCCEEDED
+    assert job.attempts == 1
+
+
+async def test_job_abandoned_in_running_is_recovered_but_a_live_one_is_not(
+    db_async: AsyncSession,
+) -> None:
+    await _add_webhook(db_async, "https://example.test/hook")
+    abandoned = await _add_job(db_async, "publish.webhooks")
+    live = await _add_job(db_async, "publish.webhooks")
+    abandoned.status = CapJobStatus.RUNNING
+    abandoned.attempts = 1
+    abandoned.updated_at = utc_now() - timedelta(minutes=30)
+    live.status = CapJobStatus.RUNNING
+    live.attempts = 1
+    live.updated_at = utc_now() - timedelta(minutes=1)
+    db_async.add_all([abandoned, live])
+    await db_async.commit()
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200)
+
+    async with _client(handler) as client:
+        handled = await process_due_jobs(session=db_async, http_client=client)
+
+    assert handled == 1
+    await db_async.refresh(abandoned)
+    await db_async.refresh(live)
+    assert abandoned.status == CapJobStatus.SUCCEEDED
+    assert abandoned.attempts == 2
+    assert live.status == CapJobStatus.RUNNING
+    assert live.attempts == 1
+
+
+async def test_unexpected_error_keeps_who_already_received_the_alert(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    job = await _add_job(db_async, "publish.webhooks")
+    job.status = CapJobStatus.FAILED
+    job.attempts = 1
+    job.result = {"delivered": ["hook-b", "hook-a"], "failures": []}
+    job.next_retry_at = utc_now() - timedelta(seconds=1)
+    db_async.add(job)
+    await db_async.commit()
+
+    async def explode(**_kwargs: object) -> dict[str, object]:
+        raise RuntimeError("database went away")
+
+    monkeypatch.setitem(dispatch.KIND_HANDLERS, "publish.webhooks", explode)
+
+    async with _client(lambda _request: httpx.Response(200)) as client:
+        await process_due_jobs(session=db_async, http_client=client)
+
+    await db_async.refresh(job)
+    assert job.status == CapJobStatus.FAILED
+    assert job.result is not None
+    assert job.result["error"] == "database went away"
+    assert job.result["delivered"] == ["hook-a", "hook-b"]
