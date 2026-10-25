@@ -233,7 +233,11 @@ export function DailyStatusEditor() {
         payload: buildStatusReportPayload(form.state.values, departmentId),
         previewPath: "/api/v1/hr/status-reports/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: hrFormFilename("status_report", true),
+        filename: hrFormFilename(
+          "status_report",
+          Boolean(submission?.signed_document_id),
+          String(form.getFieldValue("date") ?? "")
+        ),
       });
     } catch (error) {
       reportError(error, "hr-status-download");
@@ -684,7 +688,11 @@ export function DailyStatusEditor() {
           label="Daily Airport Status Report"
           preview={
             <HrPdfPreview
-              filename={hrFormFilename("status_report")}
+              filename={hrFormFilename(
+                "status_report",
+                Boolean(submission?.signed_document_id),
+                String(form.getFieldValue("date") ?? "")
+              )}
               payload={
                 departmentId
                   ? buildStatusReportPayload(values, departmentId)
