@@ -1529,3 +1529,39 @@ async def test_list_can_find_the_record_for_one_hour_and_bounds_the_offset(
     assert other.json()["observations"] == []
     too_far = await client.get(OBS_URL, params={"offset": 9223372036854775808})
     assert too_far.status_code == 422
+
+
+async def test_an_overlong_workbook_value_is_a_422_with_the_field_named(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    response = await client.post(
+        OBS_URL,
+        json=record(body={**FULL_ROW, "day": "123", "source": "eregister-workbook"}),
+    )
+    assert response.status_code == 422, response.text
+    issues = response.json()["detail"]["issues"]
+    assert [(i["field"], i["code"]) for i in issues] == [("day", "invalid_value")]
+
+
+async def test_a_refused_hand_off_survives_the_rollback_that_expires_the_user(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, user = send_client
+    observation = await save(client)
+    await set_state(observation, "accepted")
+    # The user object belongs to the session that is rolled back after a refusal.
+    db_async.add(user)
+    async with asynccontextmanager(app.dependency_overrides[get_session])() as register:
+        await sends.dispatch_after_acceptance(
+            session=db_async,
+            register=register,
+            observation_id=UUID(observation),
+            user=user,
+        )
+    logs = (await db_async.scalars(select(ERegisterSend))).all()
+    assert {(log.target, log.status) for log in logs} == {
+        ("wis2", "failed"),
+        ("email", "failed"),
+    }
+    assert {log.created_by for log in logs} == {user.id}

@@ -443,6 +443,9 @@ async def dispatch_after_acceptance(
     WIS2 or recipients not configured) never undoes the acceptance. It is recorded
     as a failed send with the reason, so the send history explains why nothing went.
     """
+    # A refused hand-off rolls the session back, which expires the user object; keep
+    # the id so the failed-send record and the next hand-off do not touch it.
+    actor_id = user.id
     for target in (TARGET_WIS2, TARGET_EMAIL):
         item: SendableObservation | None = None
         try:
@@ -470,9 +473,11 @@ async def dispatch_after_acceptance(
             logger.info(
                 "eRegister %s hand-off skipped after acceptance: %s", target, detail
             )
+            if user in session:
+                await session.refresh(user)
             if item is not None and "already" not in detail:
                 await _record_refused(
-                    session, item, observation_id, target, detail, user
+                    session, item, observation_id, target, detail, actor_id
                 )
 
 
@@ -482,7 +487,7 @@ async def _record_refused(
     observation_id: UUID,
     target: str,
     reason: str,
-    user: User,
+    actor_id: UUID,
 ) -> None:
     """Keep a refused automatic hand-off visible in the send history."""
     session.add(
@@ -495,7 +500,7 @@ async def _record_refused(
             attempts=0,
             last_error=reason[:1000],
             detail={"refused": True},
-            created_by=user.id,
+            created_by=actor_id,
         )
     )
     await session.commit()

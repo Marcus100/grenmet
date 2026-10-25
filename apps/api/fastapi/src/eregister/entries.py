@@ -13,6 +13,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
+from pydantic import ValidationError
 from sqlalchemy import bindparam, func, select, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import IntegrityError
@@ -36,7 +37,20 @@ ISSUE_PREVIEW = 3
 def validation_issues(
     body: dict[str, Any], observed_at: datetime
 ) -> list[SynopValidationIssue]:
-    workbook = encode.workbook_from_body(body)
+    try:
+        workbook = encode.workbook_from_body(body)
+    except ValidationError as exc:
+        # The body is free-form JSON: a value over a field's length is the client's
+        # mistake (422 with the field), not a server error.
+        return [
+            SynopValidationIssue(
+                field=str(error["loc"][0]) if error["loc"] else "body",
+                code="invalid_value",
+                message=str(error["msg"]),
+                severity="error",
+            )
+            for error in exc.errors()
+        ]
     issues, _decoded = rules.validate_synop(workbook)
     return [*issues, *rules.check_observation_time(workbook, observed_at)]
 
