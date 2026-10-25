@@ -59,6 +59,7 @@ import {
   useEditorPrefill,
   useProfileReference,
 } from "@/components/hr/use-editor-prefill";
+import { hrFormFilename } from "@/lib/pdf-filename";
 import { reportError } from "@/lib/report-error";
 import { EMPTY_LEAVE, JURY_DUTY_LABEL, LEAVE_TYPES } from "./leave-document";
 
@@ -454,7 +455,7 @@ export function LeaveApplicationEditor() {
         ),
         previewPath: "/api/v1/hr/leave-requests/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: "leave-application.pdf",
+        filename: hrFormFilename("leave_request", true),
       });
     } catch (error) {
       reportError(error, "hr-leave-pdf-download");
@@ -915,7 +916,7 @@ export function LeaveApplicationEditor() {
           label="Leave Application"
           preview={
             <HrPdfPreview
-              filename="leave-application.pdf"
+              filename={hrFormFilename("leave_request")}
               payload={buildLeaveRequestPayload(values, departmentId ?? "")}
               previewPath="/api/v1/hr/leave-requests/preview-pdf"
               ready={Boolean(

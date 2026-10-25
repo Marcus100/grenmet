@@ -14,6 +14,7 @@ import {
   ForecastPdfFrame,
   type PdfPreviewRequest,
 } from "@/components/wxproducts/forecast-pdf-frame";
+import { productPdfFilename } from "@/lib/pdf-filename";
 import { productFieldLabel, productFieldValue } from "@/lib/wxproducts/units";
 
 const DAY_SUBSECTION = /^Day [1-4] · /;
@@ -56,7 +57,11 @@ export function ProductPdfPreview({
       const url = URL.createObjectURL(result.blob);
       const anchor = window.document.createElement("a");
       anchor.href = url;
-      anchor.download = `gms-${content.kind}-${saved.id}-r${revision}.pdf`;
+      anchor.download = productPdfFilename(
+        content.kind,
+        content.values,
+        revision
+      );
       anchor.click();
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
     } catch {

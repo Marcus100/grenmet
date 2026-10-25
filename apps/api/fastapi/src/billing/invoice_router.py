@@ -12,6 +12,7 @@ from fastapi import APIRouter, Query, Response, status
 from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED, CONFLICT, NOT_FOUND
 from src.pagination import PaginationDep
+from src.utils.filenames import content_disposition
 
 from . import customers, invoices
 from .dependencies import BillingManager
@@ -298,7 +299,7 @@ async def download_invoice_pdf(
     return Response(
         content=data,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": content_disposition("attachment", filename)},
     )
 
 

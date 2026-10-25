@@ -4,10 +4,12 @@ from fastapi import APIRouter, Response, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import ShiftSwapDep
+from src.hr.filenames import preview_filename
 from src.hr.roster.schemas import RosterRulesPublic, RuleViolationPublic
 from src.hr.submission import submission_list, submission_public
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
+from src.utils.filenames import content_disposition
 
 from . import service, swap_rules
 from .schemas import (
@@ -47,7 +49,9 @@ async def preview_shift_swap(
         headers={
             "Cache-Control": "private, no-store",
             "X-Content-Type-Options": "nosniff",
-            "Content-Disposition": 'inline; filename="shift-exchange-preview.pdf"',
+            "Content-Disposition": content_disposition(
+                "inline", preview_filename("shift_swap")
+            ),
         },
     )
 

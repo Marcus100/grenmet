@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { DocumentPreview } from "@/components/document/document-preview";
+import { pdfFilename } from "@/lib/pdf-filename";
 import { hrApiErrorMessage } from "./api-error";
 
 export async function fetchHrPdf({
@@ -98,7 +99,7 @@ export function HrPdfPreview({
   const key = JSON.stringify(payload);
   const pdf = useMemo(
     () => ({
-      filename: filename ?? `${title.toLowerCase().replaceAll(" ", "-")}.pdf`,
+      filename: filename ?? pdfFilename([title]),
       render: (signal: AbortSignal) =>
         fetchHrPdf({ payload: key, previewPath, signedDocumentId, signal }),
     }),

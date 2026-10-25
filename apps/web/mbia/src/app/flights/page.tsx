@@ -28,7 +28,7 @@ export default async function FlightsPage() {
       <SectionHero
         dek={
           isSample
-            ? "Sample arrivals and departures for Maurice Bishop International Airport (GND) and Lauriston Airport, Carriacou (CRU)."
+            ? "Sample schedule, not live flights: example arrivals and departures for Maurice Bishop International Airport (GND) and Lauriston Airport, Carriacou (CRU)."
             : "Recent aircraft movements at Maurice Bishop International Airport (GND), from OpenSky Network research data."
         }
         eyebrow="Flight Information"
