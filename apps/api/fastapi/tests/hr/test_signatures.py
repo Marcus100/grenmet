@@ -345,3 +345,27 @@ async def test_pdf_failure_cannot_commit_a_submission(db_async, monkeypatch):
         )
     ).first() is None
     assert (await db_async.execute(select(SignedDocument))).first() is None
+
+
+def test_fallback_pdf_renders_timesheet_with_and_without_signature() -> None:
+    snapshot = service.DocumentSnapshot(
+        organisation="Grenada Airports Authority",
+        entity_type="timesheet",
+        entity_id=str(uuid.uuid4()),
+        signer_name="Test <Signer>",
+        signed_at="2026-10-24T12:00:00+00:00",
+        form={
+            "period": "2026-10",
+            "notes": "Café & <b>bold</b>",
+            "workflow_instance_id": "hidden",
+            "entries": [{"day": "2026-10-01", "hours": 8}],
+        },
+    )
+    image = base64.b64decode(signature_data().split(",", 1)[1])
+
+    unsigned = service.render_pdf(snapshot, None)
+    signed = service.render_pdf(snapshot, image)
+
+    assert unsigned.startswith(b"%PDF-")
+    assert signed.startswith(b"%PDF-")
+    assert len(signed) > len(unsigned)

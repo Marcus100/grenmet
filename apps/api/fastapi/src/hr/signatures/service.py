@@ -427,33 +427,10 @@ def render_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
         return render_leave_pdf(snapshot, image)
     if snapshot["entity_type"] == "absentee_report":
         return render_absentee_pdf(snapshot, image)
-    from fpdf import FPDF
+    from weasyprint import HTML
 
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=18)
-    pdf.add_page()
-    pdf.add_font(
-        "Document", fname=str(Path(__file__).parent / "fonts" / "NotoSans-Regular.ttf")
-    )
-    pdf.set_font("Document", size=10)
-
-    def line(text: str) -> None:
-        pdf.multi_cell(0, 6, text, new_x="LMARGIN", new_y="NEXT")
-
-    pdf.set_font("Document", size=16)
-    line(snapshot["organisation"])
-    pdf.ln(3)
-    pdf.set_font("Document", size=13)
-    line(TITLES[snapshot["entity_type"]])
-    pdf.ln(3)
-    pdf.set_font("Document", size=9)
-    line(f"Document reference: {snapshot['entity_id']}")
-    pdf.ln(4)
-    pdf.line(pdf.l_margin, pdf.get_y(), pdf.w - pdf.r_margin, pdf.get_y())
-    pdf.ln(4)
-    pdf.set_font("Document", size=10)
-
-    def fields(values: dict[str, JsonValue]) -> None:
+    def rows(values: dict[str, JsonValue]) -> str:
+        out: list[str] = []
         for key, value in values.items():
             if value is None or key in {
                 "workflow_instance_id",
@@ -461,34 +438,48 @@ def render_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
                 "updated_at",
             }:
                 continue
-            label = key.replace("_", " ").capitalize()
+            label = escape(key.replace("_", " ").capitalize())
             if isinstance(value, list):
-                line(label)
+                out.append(f"<p><b>{label}</b></p>")
                 for index, entry in enumerate(value, 1):
-                    line(f"Entry {index}")
+                    out.append(f"<p>Entry {index}</p>")
                     if isinstance(entry, dict):
-                        fields(entry)
+                        out.append(f'<div class="nested">{rows(entry)}</div>')
             else:
-                line(f"{label}: {value}")
+                out.append(f"<p>{label}: {escape(str(value))}</p>")
+        return "".join(out)
 
-    fields(snapshot["form"])
-    pdf.ln(5)
-    if pdf.get_y() > 235:
-        pdf.add_page()
-    line(f"Signed and submitted by: {snapshot['signer_name']}")
-    line(f"Signed at (UTC): {snapshot['signed_at']}")
-    if image:
-        pdf.image(
-            io.BytesIO(image),
-            x=pdf.l_margin,
-            y=pdf.get_y(),
-            w=65,
-            h=25,
-            keep_aspect_ratio=True,
-        )
-        pdf.ln(28)
-        line("I confirm this submission and apply my saved signature.")
-    return bytes(pdf.output())
+    signature = (
+        '<img class="signature" alt="Signature" src="data:image/png;base64,'
+        + base64.b64encode(image).decode()
+        + '"><p>I confirm this submission and apply my saved signature.</p>'
+        if image
+        else ""
+    )
+    font_url = (Path(__file__).parent / "fonts" / "NotoSans-Regular.ttf").as_uri()
+    html = f"""<!doctype html><html><head><meta charset="utf-8"><style>
+    @font-face {{ font-family: Document; src: url('{font_url}'); }}
+    @page {{ size: A4; margin: 18mm; }}
+    body {{ font-family: Document, sans-serif; font-size: 10pt; line-height: 1.4; color: #111827; }}
+    h1 {{ font-size: 16pt; margin: 0 0 3mm; }} h2 {{ font-size: 13pt; margin: 0 0 3mm; }}
+    p {{ margin: 0 0 1.5mm; overflow-wrap: anywhere; }} .meta {{ font-size: 9pt; }}
+    hr {{ border: 0; border-top: 1px solid #111827; margin: 4mm 0; }}
+    .nested {{ margin-left: 5mm; }} .signed {{ margin-top: 5mm; break-inside: avoid; }}
+    .signature {{ max-width: 65mm; max-height: 25mm; }}
+    </style></head><body>
+    <h1>{escape(snapshot["organisation"])}</h1>
+    <h2>{escape(TITLES[snapshot["entity_type"]])}</h2>
+    <p class="meta">Document reference: {escape(str(snapshot["entity_id"]))}</p><hr>
+    {rows(snapshot["form"])}
+    <div class="signed">
+    <p>Signed and submitted by: {escape(snapshot["signer_name"])}</p>
+    <p>Signed at (UTC): {escape(str(snapshot["signed_at"]))}</p>
+    {signature}</div>
+    </body></html>"""
+    pdf = HTML(string=html, base_url=str(Path(__file__).parent)).write_pdf()
+    if not isinstance(pdf, bytes):
+        raise TypeError("WeasyPrint returned no PDF bytes")
+    return pdf
 
 
 async def capture(
