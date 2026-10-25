@@ -85,22 +85,28 @@ as the fresh-context one; and a review request carries the handoff block, not th
 author's conclusion, so the reviewer is not anchored on it.
 
 **Automating the Codex review.** `pnpm agents:codex-review -- --task "..." --criteria "..."`
-builds the handoff block from git and runs `codex exec` in a detached checkout
-of that exact head, with a read-only sandbox, an ephemeral session and user
-config ignored (so the private Bishop and Playwright MCP servers are not
-loaded). Read-only stops shell writes, not reads: the reviewer can still read the
-whole disk, which is why `--post` refuses to comment unless the head is pushed,
-the PR's head SHA is the reviewed head (a mistyped PR number cannot receive it),
-and the findings pass the private-content, vault-path and secret-shape checks.
-Those checks fail closed, so a finding that merely mentions a word like "token"
-in a `token: value` form is also held back; read it and post it by hand. It prints the
-findings; add `--post <pr>` to leave them as a PR comment, and `--dry-run` to see
-the command and prompt. It is opt-in per PR because it spends Codex tokens, and
-its comment counts as the fresh-context review only when it reports no blocking
-finding for the head SHA it names. Running it (with `--post`) is the relay the
-section below describes for that one review; every other handoff is still relayed
-by the owner. There is no live link between the tools: the script runs one
-review and exits.
+builds the handoff block from git and runs `codex exec` from a neutral runtime
+directory. It pins the exact head in a detached checkout and passes a bounded,
+host-collected diff to the reviewer because the checkout's shared git metadata
+is outside the sandbox. The subprocess gets a temporary `CODEX_HOME` containing
+only a copy of ChatGPT auth and a minimal config; it loads no user or project
+MCP servers. Its strict, named read-only profile denies the host filesystem,
+temporary directories, network and writes, and permits reads only from the
+pinned checkout and neutral runtime directory (plus the Codex toolchain needed
+to start the CLI; when that toolchain is under home, only its exact install
+directory is readable). This prevents review instructions in a diff from using shell
+access to read unrelated host files. `--post` still refuses to comment unless
+the head is pushed, the PR's head SHA is the reviewed head (a mistyped PR number
+cannot receive it), and the findings pass private-content, vault-path and
+secret-shape checks. Those checks fail closed, so a finding that merely mentions
+a word like "token" in a `token: value` form is also held back; read it and post
+it by hand. It prints the findings; add `--post <pr>` to leave them as a PR
+comment, and `--dry-run` to see the command and prompt. It is opt-in per PR
+because it spends Codex tokens, and its comment counts as the fresh-context
+review only when it reports no blocking finding for the head SHA it names.
+Running it (with `--post`) is the relay the section below describes for that one
+review; every other handoff is still relayed by the owner. There is no live link
+between the tools: the script runs one review and exits.
 
 The runner requires a ChatGPT CLI login and strips inherited API-key variables;
 it refuses API-key login rather than enabling extra billing. Results must match

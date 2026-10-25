@@ -1,22 +1,31 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
+  chmodSync,
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test, { after } from "node:test";
+import { scrubbedEnv } from "./benchmark.mjs";
 import {
   buildArgs,
   buildPrompt,
+  collectReviewDiff,
+  createReviewCodexHome,
   flag,
   pinHead,
   postBlockers,
+  reviewConfig,
+  reviewRuntimeRoot,
+  reviewToolchainRoot,
   run,
 } from "./codex-review.mjs";
 import {
@@ -55,6 +64,7 @@ const NEEDS_VALUE = /needs a value/;
 const PUSH_ORDER = /Push the branch first/;
 const PUSHED_LOCAL = /Pushed: not required/;
 const TREE_PINNED = /Working tree: detached checkout of the head SHA/;
+const HOST_COLLECTED_DIFF = /HOST-COLLECTED DIFF/;
 
 function git(cwd, ...args) {
   const run = spawnSync("git", args, { cwd, encoding: "utf8", env: GIT_ENV });
@@ -80,15 +90,17 @@ const INFO = {
   remoteVerified: true,
 };
 
-test("the codex session is read-only, ephemeral and takes the prompt on stdin", () => {
-  const args = buildArgs("/repo", "/tmp/out.md");
-  assert.deepEqual(args.slice(0, 4), [
+test("the codex session loads the strict isolated profile and takes stdin", () => {
+  const args = buildArgs("/run/user/1000/review", "/run/user/1000/out.md");
+  assert.deepEqual(args.slice(0, 3), [
     "exec",
-    "--sandbox",
-    "read-only",
+    "--strict-config",
     "--ephemeral",
   ]);
+  assert.ok(args.includes("--skip-git-repo-check"));
   assert.equal(args.at(-1), "-");
+  assert.ok(!args.includes("--sandbox"));
+  assert.ok(!args.includes("--ignore-user-config"));
   assert.ok(!args.some((arg) => arg.includes("dangerously")));
   assert.ok(!args.includes("--full-auto"));
 });
@@ -97,11 +109,16 @@ test("the prompt names the exact head and base and the author's fields", () => {
   const prompt = buildPrompt(INFO, {
     task: "Add the thing",
     criteria: "It does the thing",
+    workspaceRoot: "/run/user/1000/pin",
+    diffText: `diff --git a/docs/a.md b/docs/a.md\n+${BASE} ${HEAD}`,
   });
   assert.match(prompt, HEADER);
   assert.match(prompt, TASK_LINE);
   assert.match(prompt, CRITERIA_LINE);
-  assert.match(prompt, new RegExp(`git diff ${BASE}\\.\\.${HEAD}`));
+  assert.match(prompt, new RegExp(`${BASE}\\.\\.${HEAD}`));
+  assert.ok(prompt.includes("do not run git commands"));
+  assert.ok(prompt.includes("diff --git a/docs/a.md b/docs/a.md"));
+  assert.ok(prompt.includes("/run/user/1000/pin"));
   assert.ok(!prompt.includes("<fill in>"));
 });
 
@@ -132,8 +149,146 @@ test("the pinned checkout holds the committed bytes, not later edits", () => {
   }
 });
 
-test("user config, and so the private MCP servers, is ignored", () => {
-  assert.ok(buildArgs("/repo", "/tmp/out.md").includes("--ignore-user-config"));
+test("the minimal permission profile denies host, temp, network and writes", () => {
+  const config = reviewConfig({
+    workspaceRoot: "/run/user/1000/review",
+    pinnedRoot: "/run/user/1000/pin",
+    toolchainRoot: "/opt/node",
+  });
+  assert.ok(config.includes('model = "gpt-6-luna"'));
+  assert.ok(config.includes('default_permissions = "grenmet-review-readonly"'));
+  assert.ok(config.includes('":root" = "deny"'));
+  assert.ok(config.includes('":minimal" = "read"'));
+  assert.ok(config.includes('":tmpdir" = "deny"'));
+  assert.ok(config.includes('":slash_tmp" = "deny"'));
+  assert.ok(config.includes('"/opt/node" = "read"'));
+  assert.ok(config.includes('"/run/user/1000/pin" = true'));
+  assert.ok(config.includes('"." = "read"'));
+  assert.ok(config.includes("enabled = false"));
+  assert.ok(!config.includes("mcp_servers"));
+  assert.ok(!config.includes("api_key"));
+});
+
+test("runtime selection refuses locations under home or the sandbox temp root", () => {
+  assert.throws(() =>
+    reviewRuntimeRoot({
+      runtimeDir: undefined,
+      uid: undefined,
+      home: "/home/test",
+      temporaryDir: "/tmp",
+    })
+  );
+});
+
+test("the Codex toolchain exception cannot expand to all of home", () => {
+  const home = mkdtempSync(join(tmpdir(), "codex-node-home-test-"));
+  try {
+    const directNodeDir = join(home, "bin");
+    const localNodeDir = join(home, ".local", "bin");
+    const versionedNodeDir = join(
+      home,
+      ".nvm",
+      "versions",
+      "node",
+      "v24",
+      "bin"
+    );
+    mkdirSync(directNodeDir, { recursive: true });
+    mkdirSync(localNodeDir, { recursive: true });
+    mkdirSync(versionedNodeDir, { recursive: true });
+    const directNode = join(directNodeDir, "node");
+    const localNode = join(localNodeDir, "node");
+    const versionedNode = join(versionedNodeDir, "node");
+    writeFileSync(directNode, "");
+    writeFileSync(localNode, "");
+    writeFileSync(versionedNode, "");
+    assert.equal(
+      reviewToolchainRoot({ nodePath: directNode, home }),
+      undefined
+    );
+    assert.equal(reviewToolchainRoot({ nodePath: localNode, home }), undefined);
+    assert.equal(
+      reviewToolchainRoot({ nodePath: versionedNode, home }),
+      join(home, ".nvm", "versions", "node", "v24")
+    );
+    assert.equal(
+      reviewToolchainRoot({ nodePath: process.execPath, home }),
+      undefined
+    );
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("isolated CODEX_HOME copies only auth and its read-only config", () => {
+  const parentDir = mkdtempSync(join(tmpdir(), "codex-home-parent-"));
+  const sourceHome = join(parentDir, "source");
+  mkdirSync(sourceHome);
+  const auth = join(sourceHome, "auth.json");
+  writeFileSync(auth, "fixture-auth");
+  chmodSync(auth, 0o600);
+  const isolated = createReviewCodexHome({
+    sourceHome,
+    parentDir,
+    workspaceRoot: "/run/user/1000/review",
+    pinnedRoot: "/run/user/1000/pin",
+    toolchainRoot: null,
+  });
+  try {
+    assert.equal(
+      readFileSync(join(isolated.dir, "auth.json"), "utf8"),
+      "fixture-auth"
+    );
+    assert.equal(
+      Number.parseInt(
+        statSync(join(isolated.dir, "auth.json")).mode.toString(8).slice(-3),
+        8
+      ),
+      0o600
+    );
+    assert.equal(
+      Number.parseInt(
+        statSync(join(isolated.dir, "config.toml")).mode.toString(8).slice(-3),
+        8
+      ),
+      0o600
+    );
+    assert.deepEqual(readdirSync(isolated.dir).sort(), [
+      "auth.json",
+      "config.toml",
+    ]);
+    assert.equal(isolated.env.CODEX_HOME, isolated.dir);
+    assert.ok(
+      readFileSync(join(isolated.dir, "config.toml"), "utf8").includes(
+        "enabled = false"
+      )
+    );
+  } finally {
+    isolated.release();
+    rmSync(parentDir, { recursive: true, force: true });
+  }
+  assert.equal(existsSync(isolated.dir), false);
+});
+
+test("the host-collected review diff is bounded, nonempty and shell-error aware", () => {
+  let invocation;
+  const spawn = (cmd, args, options) => {
+    invocation = { cmd, args, options };
+    return { status: 0, stdout: "diff --git a/a b/a\n+line\n" };
+  };
+  assert.ok(collectReviewDiff("/repo", INFO, spawn).includes("diff --git"));
+  assert.equal(invocation.cmd, "git");
+  assert.ok(invocation.args.includes("--no-ext-diff"));
+  assert.ok(invocation.args.includes("--no-textconv"));
+  assert.ok(invocation.args.includes("--no-renames"));
+  assert.ok(invocation.args.includes(BASE));
+  assert.ok(invocation.args.includes(HEAD));
+  assert.throws(() =>
+    collectReviewDiff("/repo", INFO, () => ({ status: 0, stdout: "" }))
+  );
+  assert.throws(() =>
+    collectReviewDiff("/repo", INFO, () => ({ status: 1, stdout: "partial" }))
+  );
 });
 
 test("$ patterns and quoted placeholders in the author's text are copied verbatim", () => {
@@ -190,6 +345,8 @@ test("posting is blocked when the findings quote a vault path or a token", () =>
 function fakeSpawn({
   codexStatus = 0,
   codexError,
+  diffStatus = 0,
+  diffOutput = "diff --git a/docs/a.md b/docs/a.md\n+reviewable change\n",
   findings = "No findings.",
   rawOutput,
   authStatus = 0,
@@ -222,6 +379,9 @@ function fakeSpawn({
     if (cmd === "git" && args[0] === "worktree" && args[1] === "add") {
       state.pinDir = args[3];
     }
+    if (cmd === "git" && args[0] === "diff") {
+      return { status: diffStatus, stdout: diffOutput };
+    }
     if (cmd === "codex") {
       if (args[0] === "login") {
         return { status: authStatus, stdout: authOutput };
@@ -243,6 +403,8 @@ function fakeSpawn({
         );
       }
       assert.equal(options.input.startsWith("Read-only review."), true);
+      assert.match(options.input, HOST_COLLECTED_DIFF);
+      assert.ok(options.input.includes("reviewable change"));
       return { status: codexStatus };
     }
     if (cmd === "gh" && args[1] === "view") {
@@ -274,7 +436,21 @@ function runQuiet(args, deps) {
   let code;
   let thrown;
   try {
-    code = run(args, deps);
+    code = run(args, {
+      runtimeRoot: tmpdir(),
+      createReviewCodexHome: () => {
+        const dir = mkdtempSync(join(tmpdir(), "codex-review-home-test-"));
+        receiptDirs.push(dir);
+        return {
+          dir,
+          env: { ...scrubbedEnv(), CODEX_HOME: dir },
+          release() {
+            rmSync(dir, { recursive: true, force: true });
+          },
+        };
+      },
+      ...deps,
+    });
   } catch (error) {
     thrown = error;
   } finally {
@@ -294,7 +470,7 @@ test("--dry-run starts neither codex nor a worktree nor gh", () => {
   );
 });
 
-test("codex runs in a pinned checkout of the head, and nothing is posted without --post", () => {
+test("codex runs in a neutral directory with pinned source, and nothing is posted without --post", () => {
   const before = reviewTempDirs();
   const { calls, spawn, state } = fakeSpawn();
   assert.equal(runQuiet([], { collect: gather(), spawn }).code, 0);
@@ -304,9 +480,13 @@ test("codex runs in a pinned checkout of the head, and nothing is posted without
   assert.deepEqual(add.args.slice(0, 3), ["worktree", "add", "--detach"]);
   assert.equal(add.args[4], HEAD);
   const [codex] = named(calls, "codex");
-  assert.equal(codex.options.cwd, state.pinDir);
-  assert.equal(codex.args[codex.args.indexOf("--cd") + 1], state.pinDir);
-  assert.notEqual(state.pinDir, process.cwd());
+  assert.notEqual(codex.options.cwd, state.pinDir);
+  assert.equal(codex.args[codex.args.indexOf("--cd") + 1], codex.options.cwd);
+  assert.match(
+    codex.options.input,
+    new RegExp(state.pinDir.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+  );
+  assert.notEqual(codex.options.cwd, process.cwd());
   assert.equal(named(calls, "gh").length, 0);
   assert.equal(existsSync(state.pinDir), false);
   assert.deepEqual(reviewTempDirs(), before);
@@ -379,6 +559,17 @@ test("the worktree and temp dir are released when codex fails", () => {
   assert.deepEqual(reviewTempDirs(), before);
 });
 
+test("the review lock is released if runtime setup fails", () => {
+  const { spawn, state } = fakeSpawn();
+  const { thrown } = runQuiet([], {
+    collect: gather(),
+    runtimeRoot: join(tmpdir(), "codex-review-runtime-missing"),
+    spawn,
+  });
+  assert.ok(thrown);
+  assert.equal(existsSync(`${state.receiptPath}.lock`), false);
+});
+
 test("codex exiting 0 without an output file is an error, not a crash", () => {
   const before = reviewTempDirs();
   const { spawn, state } = fakeSpawn({ writesOutput: false });
@@ -431,6 +622,7 @@ test("failed or invalid reruns invalidate a previous approval", () => {
     { rawOutput: "No findings." },
     { rawOutput: '{"status":"completed"}' },
     { authStatus: 1 },
+    { diffStatus: 1 },
   ]) {
     const { spawn, state } = fakeSpawn(options);
     writeReviewReceipt(state.receiptPath, { oldApproval: true });
