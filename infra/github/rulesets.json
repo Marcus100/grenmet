@@ -1,11 +1,10 @@
 [
   {
+    "bypass_actors": [],
     "conditions": {
       "ref_name": {
         "exclude": [],
-        "include": [
-          "refs/heads/dev"
-        ]
+        "include": ["refs/heads/dev"]
       }
     },
     "enforcement": "active",
@@ -19,11 +18,7 @@
       },
       {
         "parameters": {
-          "allowed_merge_methods": [
-            "merge",
-            "squash",
-            "rebase"
-          ],
+          "allowed_merge_methods": ["merge", "squash", "rebase"],
           "dismiss_stale_reviews_on_push": false,
           "require_code_owner_review": false,
           "require_extra_approval_for_unattributed_changes": true,
@@ -69,21 +64,19 @@
               "integration_id": 15368
             }
           ],
-          "strict_required_status_checks_policy": false
+          "strict_required_status_checks_policy": true
         },
         "type": "required_status_checks"
       }
     ],
-    "target": "branch",
-    "bypass_actors": []
+    "target": "branch"
   },
   {
+    "bypass_actors": [],
     "conditions": {
       "ref_name": {
         "exclude": [],
-        "include": [
-          "refs/heads/main"
-        ]
+        "include": ["refs/heads/main"]
       }
     },
     "enforcement": "active",
@@ -97,11 +90,7 @@
       },
       {
         "parameters": {
-          "allowed_merge_methods": [
-            "merge",
-            "squash",
-            "rebase"
-          ],
+          "allowed_merge_methods": ["merge", "squash", "rebase"],
           "dismiss_stale_reviews_on_push": false,
           "require_code_owner_review": false,
           "require_extra_approval_for_unattributed_changes": true,
@@ -146,16 +135,14 @@
         "type": "required_status_checks"
       }
     ],
-    "target": "branch",
-    "bypass_actors": []
+    "target": "branch"
   },
   {
+    "bypass_actors": [],
     "conditions": {
       "ref_name": {
         "exclude": [],
-        "include": [
-          "refs/heads/staging"
-        ]
+        "include": ["refs/heads/staging"]
       }
     },
     "enforcement": "active",
@@ -169,11 +156,7 @@
       },
       {
         "parameters": {
-          "allowed_merge_methods": [
-            "merge",
-            "squash",
-            "rebase"
-          ],
+          "allowed_merge_methods": ["merge", "squash", "rebase"],
           "dismiss_stale_reviews_on_push": false,
           "require_code_owner_review": false,
           "require_extra_approval_for_unattributed_changes": true,
@@ -218,7 +201,6 @@
         "type": "required_status_checks"
       }
     ],
-    "target": "branch",
-    "bypass_actors": []
+    "target": "branch"
   }
 ]
