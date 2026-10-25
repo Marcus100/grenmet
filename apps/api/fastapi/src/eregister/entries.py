@@ -243,8 +243,9 @@ async def correct(
     # The old row leaves the live set first so the unique index admits the new one.
     await register.execute(
         text(
-            "UPDATE register_observations SET state = 'superseded', updated_at = now(),"
-            " qc_notes = :notes WHERE id = :id"
+            "UPDATE register_observations SET superseded_from = state,"
+            " superseded_qc_notes = qc_notes, state = 'superseded',"
+            " updated_at = now(), qc_notes = :notes WHERE id = :id"
         ),
         {"id": str(observation_id), "notes": (data.reason or "").strip() or None},
     )
