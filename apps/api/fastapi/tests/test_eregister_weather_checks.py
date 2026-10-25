@@ -374,3 +374,110 @@ def test_sign_9_group_goes_into_the_message_unchanged() -> None:
 
     workbook = SynopWorkbook.model_validate({**PAPER_ROW, "dew_point": "9075"})
     assert " 29075 " in f" {encode.synop_tac(workbook)} "
+
+
+# ---- supplementary groups 9SpSpspsp (Code table 3778) ------------------------------
+
+
+def special(groups: str, **extra: str) -> set[tuple[str, str, str]]:
+    return found(s3_special_phenomena=groups, **extra)
+
+
+def flagged(issues: set[tuple[str, str, str]], code: str) -> bool:
+    return has(issues, "s3_special_phenomena", code)
+
+
+@pytest.mark.parametrize("group", ["90005", "90105", "90505"])
+def test_time_groups_for_ww_need_a_present_weather_group(group: str) -> None:
+    # 900tt, 901tt and 905tt describe the weather reported by ww in 7wwW1W2.
+    assert not flagged(special(group), "time_group_without_weather")
+    assert flagged(special(group, present_wx=""), "time_group_without_weather")
+
+
+@pytest.mark.parametrize("group", ["90206", "90406", "90606", "90706"])
+def test_time_groups_describe_the_group_that_follows(group: str) -> None:
+    assert flagged(special(group), "time_group_without_target")
+    assert not flagged(special(f"{group} 91015"), "time_group_without_target")
+
+
+def test_903tt_describes_the_group_that_precedes() -> None:
+    assert flagged(special("90305"), "time_group_without_target")
+    assert not flagged(special("91015 90305"), "time_group_without_target")
+
+
+def test_group_908_is_not_used() -> None:
+    assert ("error", "s3_special_phenomena", "unused_supplementary") in special("90899")
+
+
+def test_a_gust_of_99_or_more_is_followed_by_a_00fff_group() -> None:
+    # Note 1: a gust of 135 knots is coded 91099 00135.
+    assert flagged(special("91099"), "speed_needs_fff")
+    assert flagged(special("91099 91312"), "speed_needs_fff")
+    ok = special("91099 00135")
+    assert not flagged(ok, "speed_needs_fff")
+    assert not flagged(ok, "invalid_supplementary")
+    # A 00fff group on its own is not a 9-group.
+    assert flagged(special("00135"), "invalid_supplementary")
+
+
+def test_the_highest_mean_wind_is_not_below_the_lowest() -> None:
+    assert flagged(special("91210 91420"), "mean_wind_order")
+    assert not flagged(special("91220 91410"), "mean_wind_order")
+    # Wide speeds compare as three digits: 912 with 00110 is above 914 with 00105.
+    assert not flagged(special("91299 00110 91499 00105"), "mean_wind_order")
+
+
+def test_repeating_a_wind_change_pair_is_not_a_duplicate() -> None:
+    # Note 3: a significant change is two 913ff and two 915dd groups with 906tt between.
+    change = "91312 91509 90605 91320 91527"
+    assert not flagged(special(change), "duplicate_supplementary")
+    assert flagged(special("91012 91012"), "duplicate_supplementary")
+
+
+@pytest.mark.parametrize(
+    ("group", "bad"),
+    [("91536", False), ("91599", False), ("91537", True), ("91550", True)],
+)
+def test_wind_direction_group_is_tens_of_degrees(group: str, bad: bool) -> None:
+    assert (("error", "s3_special_phenomena", "out_of_range") in special(group)) is bad
+
+
+@pytest.mark.parametrize(
+    ("group", "ok"),
+    [
+        ("90911", True),  # Rt 1: under an hour ago, dc 1: lasted 1 to 3 hours
+        ("90929", True),
+        ("90999", True),  # both unknown
+        ("90901", False),  # Rt 0 does not exist
+        ("90918", False),  # dc 8 is not used
+    ],
+)
+def test_group_909_codes_follow_the_code_tables(group: str, ok: bool) -> None:
+    issues = found(
+        s3_group_909=group, precip_indicator="1", precip_amount="005", precip_period="1"
+    )
+    assert (("error", "s3_group_909", "invalid_909") in issues) is not ok
+
+
+def test_group_909_needs_a_rainfall_group() -> None:
+    assert has(
+        found(s3_group_909="90911"), "s3_group_909", "group_909_without_rainfall"
+    )
+    with_rain = found(
+        s3_group_909="90911",
+        precip_indicator="1",
+        precip_amount="005",
+        precip_period="1",
+    )
+    assert not has(with_rain, "s3_group_909", "group_909_without_rainfall")
+    omitted = found(
+        s3_group_909="90911",
+        precip_indicator="4",
+        precip_amount="005",
+        precip_period="1",
+    )
+    assert has(omitted, "s3_group_909", "group_909_without_rainfall")
+
+
+def test_group_909_inside_the_special_phenomena_field_is_checked_too() -> None:
+    assert ("error", "s3_special_phenomena", "invalid_909") in special("90901")

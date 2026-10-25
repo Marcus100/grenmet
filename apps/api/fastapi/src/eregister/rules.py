@@ -132,6 +132,27 @@ GROUND_JJJ_DIGITS = 3
 SUPPLEMENTARY_DIGITS = 5
 SUPPLEMENTARY_GUST_CODES = {"10": "910ff", "11": "911ff"}
 SUPPLEMENTARY_WEATHER_CODE = "60"
+# Code table 3778, deciles 00 to 19 (WMO-No. 306 Vol I.1). Time groups point at the
+# weather group they describe: 900, 901 and 905 at ww in 7wwW1W2, 902, 904, 906 and 907
+# at the 9-group that follows, 903 at the 9-group that precedes.
+TIME_GROUPS_FOR_WW = ("00", "01", "05")
+TIME_GROUPS_FOR_NEXT = ("02", "04", "06", "07")
+TIME_GROUP_FOR_PREVIOUS = "03"
+SUPPLEMENTARY_NOT_USED = "08"
+SUPPLEMENTARY_PRECIPITATION = "09"
+# 910 to 914 give a wind speed ff; at 99 or more a 00fff group follows (note 1).
+WIND_SPEED_GROUPS = ("10", "11", "12", "13", "14")
+SUPPLEMENTARY_MAX_MEAN = "12"
+SUPPLEMENTARY_MIN_MEAN = "14"
+SUPPLEMENTARY_DIRECTION = "15"
+# Repeating these makes no sense; 913 and 915 are repeated to report a wind change
+# (note 3) and time groups repeat before each phenomenon.
+NON_REPEATING_SUPPLEMENTARY = ("09", "10", "11", "12", "14")
+# Code table 3552 Rt 1 to 9 and Code table 0833 dc 0 to 7 or 9 (8 is not used).
+PRECIPITATION_TIME_CODES = "123456789"
+PRECIPITATION_DURATION_CODES = "01234567" + "9"
+WIDE_SPEED_PREFIX = "00"
+WIND_DIRECTION_MAX_TENS = 36
 # Paper column 17, barometer as read (hPa): the whole range a barometer can show.
 BAROMETER_READING_MIN_HPA = 500.0
 BAROMETER_READING_MAX_HPA = 1100.0
@@ -460,7 +481,9 @@ def _check_barometer_reading(c: _Checker) -> None:
 
 def _check_group_909(c: _Checker) -> None:
     value = c.raw("s3_group_909")
-    if c.present("s3_group_909") and not (
+    if not c.present("s3_group_909"):
+        return
+    if not (
         value.isdigit()
         and len(value) == SUPPLEMENTARY_DIGITS
         and value.startswith("909")
@@ -469,6 +492,35 @@ def _check_group_909(c: _Checker) -> None:
             "s3_group_909",
             "invalid_format",
             "Precipitation timing and duration (909Rtdc) is five digits starting 909.",
+        )
+        return
+    _check_precipitation_timing(c, "s3_group_909", value)
+
+
+def _check_precipitation_timing(c: _Checker, field: str, token: str) -> None:
+    """909Rtdc: when the rain began or ended (Code table 3552) and how long (0833)."""
+    time_code, duration = token[3], token[4]
+    if time_code not in PRECIPITATION_TIME_CODES:
+        c.add(
+            field,
+            "invalid_909",
+            f"{token}: Rt is 1 to 9 (Code table 3552): the time the rain began or "
+            "ended, from less than 1 hour to more than 12 hours before the report, "
+            "or 9 for unknown.",
+        )
+    if duration not in PRECIPITATION_DURATION_CODES:
+        c.add(
+            field,
+            "invalid_909",
+            f"{token}: dc is 0 to 7 or 9 (Code table 0833); 8 is not used.",
+        )
+    if not c.present("precip_amount") or c.raw("precip_indicator") in ("3", "4"):
+        c.add(
+            field,
+            "group_909_without_rainfall",
+            f"{token}: group 909 describes the precipitation given by 6RRRtR, so key "
+            "the rainfall group too (Code table 3778).",
+            "warning",
         )
 
 
@@ -930,35 +982,57 @@ def _check_sunshine_and_ground(c: _Checker, air: float | None) -> None:
         )
 
 
+def _supplementary_group(token: str) -> bool:
+    return (
+        token.isdigit() and len(token) == SUPPLEMENTARY_DIGITS and token.startswith("9")
+    )
+
+
 def _check_supplementary(c: _Checker, speed: int | None) -> None:
-    """Groups 9SpSpspsp: format, then 910ff/911ff gust and 960ww checks."""
+    """Groups 9SpSpspsp of Code table 3778: format, order, ranges and wind groups."""
+    tokens = c.raw("s3_special_phenomena").split()
+    field = "s3_special_phenomena"
     seen: set[str] = set()
-    for token in c.raw("s3_special_phenomena").split():
-        if not (
-            token.isdigit()
-            and len(token) == SUPPLEMENTARY_DIGITS
-            and token.startswith("9")
-        ):
+    wide_after: str | None = None
+    for index, token in enumerate(tokens):
+        if wide_after is not None:
+            owner, wide_after = wide_after, None
+            if (
+                token.isdigit()
+                and len(token) == SUPPLEMENTARY_DIGITS
+                and token.startswith(WIDE_SPEED_PREFIX)
+            ):
+                continue  # the 00fff group that follows ff = 99
             c.add(
-                "s3_special_phenomena",
+                field,
+                "speed_needs_fff",
+                f"{owner}: ff 99 means 99 or more, so the next group is 00fff "
+                "(for example 91099 00135).",
+                "warning",
+            )
+        if not _supplementary_group(token):
+            c.add(
+                field,
                 "invalid_supplementary",
                 f"{token}: supplementary groups are 9SpSpspsp, five digits "
                 "starting with 9.",
             )
             continue
         code, value = token[1:3], token[3:]
-        if code in seen:
+        if code in seen and code in NON_REPEATING_SUPPLEMENTARY:
             c.add(
-                "s3_special_phenomena",
+                field,
                 "duplicate_supplementary",
                 f"{token}: 9{code} appears more than once.",
                 "warning",
             )
         seen.add(code)
+        if code in WIND_SPEED_GROUPS and value[:2] == "99":
+            wide_after = token
         if code in SUPPLEMENTARY_GUST_CODES:
             if c.present("wind_gust"):
                 c.add(
-                    "s3_special_phenomena",
+                    field,
                     "duplicate_gust",
                     "The gust is keyed in the wind gust field and again as "
                     f"{SUPPLEMENTARY_GUST_CODES[code]}.",
@@ -966,18 +1040,94 @@ def _check_supplementary(c: _Checker, speed: int | None) -> None:
                 )
             if speed is not None and int(value) < speed:
                 c.add(
-                    "s3_special_phenomena",
+                    field,
                     "gust_below_mean",
                     f"{token}: gust speed is normally not below the mean wind speed.",
                     "warning",
                 )
-        elif code != SUPPLEMENTARY_WEATHER_CODE:
+        elif code == SUPPLEMENTARY_WEATHER_CODE:
+            continue
+        elif code in TIME_GROUPS_FOR_WW:
+            if not c.present("present_wx"):
+                c.add(
+                    field,
+                    "time_group_without_weather",
+                    f"{token}: 9{code}tt gives the time of the weather reported by ww, "
+                    "but ww is empty.",
+                    "warning",
+                )
+        elif code in TIME_GROUPS_FOR_NEXT:
+            following = tokens[index + 1] if index + 1 < len(tokens) else ""
+            if not _supplementary_group(following):
+                c.add(
+                    field,
+                    "time_group_without_target",
+                    f"{token}: 9{code}tt describes the 9-group that follows it, "
+                    "but none follows.",
+                    "warning",
+                )
+        elif code == TIME_GROUP_FOR_PREVIOUS:
+            before = tokens[index - 1] if index else ""
+            if not _supplementary_group(before):
+                c.add(
+                    field,
+                    "time_group_without_target",
+                    f"{token}: 903tt gives the time the phenomenon in the preceding "
+                    "9-group ended, but none precedes it.",
+                    "warning",
+                )
+        elif code == SUPPLEMENTARY_NOT_USED:
+            c.add(field, "unused_supplementary", f"{token}: group 908 is not used.")
+        elif code == SUPPLEMENTARY_PRECIPITATION:
+            _check_precipitation_timing(c, field, token)
+        elif code == SUPPLEMENTARY_DIRECTION:
+            direction = int(value)
+            if direction > WIND_DIRECTION_MAX_TENS and direction != WIND_VARIABLE:
+                c.add(
+                    field,
+                    "out_of_range",
+                    f"{token}: wind direction dd is 00 to 36 (tens of degrees), 99 variable.",
+                )
+        elif code not in WIND_SPEED_GROUPS and code not in (
+            "16",
+            "17",
+        ):
             c.add(
-                "s3_special_phenomena",
+                field,
                 "unchecked_supplementary",
                 f"{token}: 9{code}.. is passed through without checking.",
                 "warning",
             )
+    if wide_after is not None:
+        c.add(
+            field,
+            "speed_needs_fff",
+            f"{wide_after}: ff 99 means 99 or more, so the next group is 00fff "
+            "(for example 91099 00135).",
+            "warning",
+        )
+    maximum = _supplementary_speed(tokens, SUPPLEMENTARY_MAX_MEAN)
+    minimum = _supplementary_speed(tokens, SUPPLEMENTARY_MIN_MEAN)
+    if maximum is not None and minimum is not None and maximum < minimum:
+        c.add(
+            field,
+            "mean_wind_order",
+            "The highest mean wind (912ff) is below the lowest mean wind (914ff).",
+            "warning",
+        )
+
+
+def _supplementary_speed(tokens: list[str], code: str) -> int | None:
+    """ff of the first 9<code>ff group, or the three digits of its 00fff group."""
+    for index, token in enumerate(tokens):
+        if _supplementary_group(token) and token[1:3] == code:
+            ff = int(token[3:])
+            if ff == WIND_FFF_MIN:
+                after = tokens[index + 1] if index + 1 < len(tokens) else ""
+                if after.isdigit() and after.startswith(WIDE_SPEED_PREFIX):
+                    return int(after[2:])
+            return ff
+    return None
 
 
 def _check_pressure_and_weather(
