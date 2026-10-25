@@ -170,8 +170,16 @@ overrides:
   "@esbuild-kit/core-utils@3.3.2>esbuild": "0.28.2"
   "drizzle-kit@0.31.7>esbuild": "0.28.2"
   # CVE-2026-19534 / CVE-2026-84961: payload@3.90.2 pins undici 7.29.0.
-  # Remove once Payload ships a release depending on a fixed undici.
-  "payload@3.90.2>undici": "7.29.1"
+  # CVE-2026-109869: undici < 6.29.1, < 7.30.1 and < 8.12.2 are affected. The
+  # CMS migrate image re-resolves with `pnpm deploy --legacy`, so the pins are
+  # global, one per major. Remove once no dependant resolves an affected copy.
+  "undici@^6": "6.29.1"
+  "undici@^7": "7.30.1"
+  "undici@^8": "8.12.2"
+  # CVE-2026-115895: happy-dom < 21.0.4 is affected. Only @lexical/headless
+  # (a Payload dependency) pulls it in, asking for ^20.9.0, and uses just
+  # `Window`. Remove once Lexical depends on a fixed happy-dom.
+  "happy-dom": "21.0.4"
   # GHSA-cg2g-xh64-v4q7 (critical) / GHSA-mrv2-3pqr-j5jr (high): dompurify
   # <= 3.4.16 is affected; 3.4.17 is the first fixed release. monaco-editor
   # (a peer of @payloadcms/ui) and posthog-js pin or resolve affected copies,
