@@ -19,6 +19,7 @@ import {
   buildArgs,
   buildIsolatedCodexArgs,
   buildPrompt,
+  codexDiagnosticStderr,
   collectReviewDiff,
   createReviewCodexHome,
   flag,
@@ -137,6 +138,12 @@ test("the model process gets a private systemd filesystem namespace", () => {
       "--property=ProtectProc=invisible",
       "--property=ProcSubset=pid",
       "--property=NoNewPrivileges=yes",
+      "--property=ProtectKernelTunables=yes",
+      "--property=ProtectKernelModules=yes",
+      "--property=ProtectKernelLogs=yes",
+      "--property=ProtectControlGroups=yes",
+      "--property=LockPersonality=yes",
+      "--property=LimitRTPRIO=0",
       `--property=BindPaths=${workspace}`,
       `--property=ReadWritePaths=${workspace}`,
       `--property=BindPaths=${home}`,
@@ -146,6 +153,7 @@ test("the model process gets a private systemd filesystem namespace", () => {
       "--property=InaccessiblePaths=/mnt",
     ])
       assert.ok(args.includes(setting), setting);
+    assert.ok(!args.includes("--property=RestrictRealtime=yes"));
     assert.ok(!args.some((arg) => arg.startsWith("--setenv=")));
     assert.deepEqual(args.slice(args.indexOf("/usr/bin/env")), [
       "/usr/bin/env",
@@ -428,6 +436,7 @@ test("posting is blocked when the findings quote a vault path or a token", () =>
  */
 function fakeSpawn({
   codexStatus = 0,
+  codexStderr = "",
   codexError,
   diffStatus = 0,
   diffOutput = "diff --git a/docs/a.md b/docs/a.md\n+reviewable change\n",
@@ -495,7 +504,7 @@ function fakeSpawn({
       assert.equal(options.input.startsWith("Read-only review."), true);
       assert.match(options.input, HOST_COLLECTED_DIFF);
       assert.ok(options.input.includes("reviewable change"));
-      return { status: codexStatus };
+      return { status: codexStatus, stderr: codexStderr };
     }
     if (cmd === "gh" && args[1] === "view") {
       return { status: 0, stdout: `${prHead}\n` };
@@ -655,6 +664,31 @@ test("the worktree and temp dir are released when codex fails", () => {
   assert.equal(removed(calls).length >= 1, true);
   assert.equal(existsSync(state.pinDir), false);
   assert.deepEqual(reviewTempDirs(), before);
+});
+
+test("Codex failures log safe diagnostic categories without stderr payloads", () => {
+  const promptMarker = "PRIVATE_PROMPT_MARKER";
+  const stderr = [
+    `Read-only review prompt: ${promptMarker}`,
+    `ERROR codex_models_manager: refresh failed Bearer ${FINE_GRAINED_PAT}`,
+    "warning: workspace routing discovery failed at https://chatgpt.com/backend-api/ps/mcp?access_token=hidden-query-value",
+    "ERROR arbitrary-diagnostic-payload=DO_NOT_LOG timeout",
+    `WARN ${"x".repeat(3000)}`,
+  ].join("\n");
+  const { spawn } = fakeSpawn({ codexStatus: 3, codexStderr: stderr });
+  const { code, errors } = runQuiet([], { collect: gather(), spawn });
+  const logged = errors.join("\n");
+  assert.equal(code, 3);
+  assert.ok(logged.includes("Codex stderr diagnostics:"));
+  assert.ok(logged.includes("workspace routing failure"));
+  assert.ok(logged.includes("model refresh failure"));
+  assert.ok(logged.includes("timeout"));
+  assert.ok(!logged.includes(promptMarker));
+  assert.ok(!logged.includes("github_pat_"));
+  assert.ok(!logged.includes("hidden-query-value"));
+  assert.ok(!logged.includes("DO_NOT_LOG"));
+  assert.ok(Buffer.byteLength(logged, "utf8") < 2500);
+  assert.ok(Buffer.byteLength(codexDiagnosticStderr(stderr), "utf8") <= 2000);
 });
 
 test("the review lock is released if runtime setup fails", () => {
