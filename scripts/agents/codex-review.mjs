@@ -66,6 +66,8 @@ import {
 
 const COMMENT_HEADER = "Codex read-only review (fresh context)";
 const CODEX_TIMEOUT_MS = 15 * 60 * 1000;
+const MAX_CODEX_DIAGNOSTIC_LINES = 8;
+const MAX_CODEX_DIAGNOSTIC_CHARS = 2000;
 const REVIEW_DIFF_MAX_BYTES = 512 * 1024;
 const REVIEW_PERMISSION_PROFILE = "grenmet-review-readonly";
 const SYSTEMD_RUN = "/usr/bin/systemd-run";
@@ -96,6 +98,19 @@ const AUTH_TOKEN_FIELD =
   /["']?(?:access_token|refresh_token|id_token)["']?\s*:/i;
 const PR_NUMBER = /^\d+$/;
 const CHATGPT_LOGIN = /^Logged in using ChatGPT\b/im;
+const CODEX_DIAGNOSTIC_LINE =
+  /^\s*(?:ERROR(?:\s|:)|WARN(?:ING)?(?:\s|:)|warning:)/i;
+const STDERR_LINE_BREAK = /\r?\n/;
+const CODEX_DIAGNOSTIC_CATEGORIES = [
+  ["workspace routing failure", /workspace routing|routing discovery/i],
+  ["model refresh failure", /model.{0,40}refresh|refresh.{0,40}model/i],
+  ["timeout", /\btimeout\b|\btimed out\b/i],
+  [
+    "network failure",
+    /connection refused|connect(?:ion)? failed|network unreachable|dns|resolve host/i,
+  ],
+  ["sandbox failure", /sandbox|seccomp|namespace/i],
+];
 
 function isWithin(child, parent) {
   const path = relative(resolve(parent), resolve(child));
@@ -103,6 +118,21 @@ function isWithin(child, parent) {
     path === "" ||
     (!isAbsolute(path) && path !== ".." && !path.startsWith(`..${sep}`))
   );
+}
+
+/** Report fixed diagnostic categories without copying arbitrary stderr payloads to the journal. */
+export function codexDiagnosticStderr(stderr) {
+  if (typeof stderr !== "string") return "";
+  const lines = stderr
+    .split(STDERR_LINE_BREAK)
+    .filter((line) => CODEX_DIAGNOSTIC_LINE.test(line));
+  const categories = CODEX_DIAGNOSTIC_CATEGORIES.filter(([, pattern]) =>
+    lines.some((line) => pattern.test(line))
+  ).map(([category]) => category);
+  return categories
+    .slice(0, MAX_CODEX_DIAGNOSTIC_LINES)
+    .join(", ")
+    .slice(0, MAX_CODEX_DIAGNOSTIC_CHARS);
 }
 
 /** Prefer a writable runtime directory outside the user's home. */
@@ -315,7 +345,9 @@ export function buildIsolatedCodexArgs({
     "--property=ProtectKernelLogs=yes",
     "--property=ProtectControlGroups=yes",
     "--property=LockPersonality=yes",
-    "--property=RestrictRealtime=yes",
+    // RestrictRealtime=yes breaks Codex workspace routing under WSL systemd.
+    // Keep RT scheduling unavailable through its per-user resource limit.
+    "--property=LimitRTPRIO=0",
     `--property=RuntimeMaxSec=${CODEX_TIMEOUT_MS / 1000}s`,
     "--property=TimeoutStopSec=5s",
   ];
@@ -824,10 +856,16 @@ function runReview({
     pin.release();
     pin = undefined;
     if (codex.status !== 0) {
+      const diagnostics = codexDiagnosticStderr(codex.stderr);
       console.error(
-        codex.error
-          ? `could not run codex: ${codex.error.message}`
-          : "codex exited with an error; no findings were produced."
+        [
+          codex.error
+            ? `could not run codex: ${codex.error.message}`
+            : "codex exited with an error; no findings were produced.",
+          diagnostics ? `Codex stderr diagnostics:\n${diagnostics}` : null,
+        ]
+          .filter(Boolean)
+          .join("\n")
       );
       return codex.status ?? 1;
     }
