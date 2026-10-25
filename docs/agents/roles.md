@@ -87,6 +87,27 @@ section below describes for that one review; every other handoff is still relaye
 by the owner. There is no live link between the tools: the script runs one
 review and exits.
 
+The runner requires a ChatGPT CLI login and strips inherited API-key variables;
+it refuses API-key login rather than enabling extra billing. Results must match
+the review JSON schema. An incomplete review, requested changes, malformed
+output or a failed CLI exits nonzero. Each attempt first invalidates the previous
+local review receipt, so a failed retry cannot leave an earlier approval active.
+Completed results are stored in the worktree's Git directory, outside commits.
+An exclusive worktree lock prevents overlapping attempts, and a review in
+progress cannot satisfy `--check`. If a runner crashes and leaves
+`agent-review-receipt.json.lock` in that Git directory, confirm the runner has
+stopped before removing the lock and retrying; there is no automatic takeover.
+
+After pushing the reviewed head, run `pnpm agents:codex-review -- --check`.
+This spends no model tokens. It requires a completed approval for the exact
+head, base tip and merge-base, an integrated remote base, a clean worktree,
+the current head verified on the remote, and a passing `verify:changed` receipt.
+Any changed commit or base requires a new review. Check GitHub CI separately
+before merging; a green advisory AI-review job does not establish that a review
+completed. The local receipt is evidence from a trusted runner, not a signed
+attestation or a server-enforced merge rule. Do not accept arbitrary uploaded
+receipt files or comments as proof of independent review.
+
 ### Working with Codex on GitHub
 
 Claude Code and Codex do not talk to each other. The owner relays every handoff

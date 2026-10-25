@@ -10,7 +10,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import test from "node:test";
+import test, { after } from "node:test";
 import {
   buildArgs,
   buildPrompt,
@@ -19,6 +19,16 @@ import {
   postBlockers,
   run,
 } from "./codex-review.mjs";
+import {
+  createReviewReceipt,
+  readReviewReceipt,
+  writeReviewReceipt,
+} from "./review-receipt.mjs";
+
+const receiptDirs = [];
+after(() => {
+  for (const dir of receiptDirs) rmSync(dir, { recursive: true, force: true });
+});
 
 const GIT_ENV = {
   ...process.env,
@@ -181,31 +191,55 @@ function fakeSpawn({
   codexStatus = 0,
   codexError,
   findings = "No findings.",
+  rawOutput,
+  authStatus = 0,
+  authOutput = "Logged in using ChatGPT",
+  reviewStatus = "completed",
+  verdict = "approve",
+  onReview,
   prHead = HEAD,
   throwOn,
   writesOutput = true,
 } = {}) {
   const calls = [];
-  const state = { pinDir: undefined };
+  const gitDir = mkdtempSync(join(tmpdir(), "codex-receipt-test-"));
+  receiptDirs.push(gitDir);
+  const state = {
+    pinDir: undefined,
+    receiptPath: join(gitDir, "agent-review-receipt.json"),
+  };
   const spawn = (cmd, args, options = {}) => {
     calls.push({ args, cmd, options });
-    if (cmd === throwOn) {
+    if (cmd === throwOn && !(cmd === "codex" && args[0] === "login")) {
       throw new Error(`${cmd} blew up`);
     }
     if (cmd === "git" && args[0] === "rev-parse") {
-      return { status: 0, stdout: process.cwd() };
+      return {
+        status: 0,
+        stdout: args[1] === "--git-dir" ? gitDir : process.cwd(),
+      };
     }
     if (cmd === "git" && args[0] === "worktree" && args[1] === "add") {
       state.pinDir = args[3];
     }
     if (cmd === "codex") {
+      if (args[0] === "login") {
+        return { status: authStatus, stdout: authOutput };
+      }
+      onReview?.();
       if (codexError) {
         return { error: codexError, status: null };
       }
       if (codexStatus === 0 && writesOutput) {
         writeFileSync(
           args[args.indexOf("--output-last-message") + 1],
-          findings
+          rawOutput ??
+            JSON.stringify({
+              status: reviewStatus,
+              verdict,
+              summary: findings,
+              findings: [],
+            })
         );
       }
       assert.equal(options.input.startsWith("Read-only review."), true);
@@ -222,7 +256,10 @@ function fakeSpawn({
 const gather =
   (overrides = {}) =>
   () => ({ ...INFO, ...overrides });
-const named = (calls, cmd) => calls.filter((call) => call.cmd === cmd);
+const named = (calls, cmd) =>
+  calls.filter(
+    (call) => call.cmd === cmd && (cmd !== "codex" || call.args[0] === "exec")
+  );
 const removed = (calls) =>
   calls.filter((c) => c.cmd === "git" && c.args[1] === "remove");
 const REVIEW_TMP = /^codex-review-(?!test-)/;
@@ -375,4 +412,121 @@ test("a missing or malformed flag value exits 2 before any codex run", () => {
     assert.equal(runQuiet(args, { collect: gather(), spawn }).code, 2);
     assert.equal(named(calls, "codex").length, 0);
   }
+});
+
+test("a successful structured review records exact commits in this worktree", () => {
+  const { spawn, state } = fakeSpawn();
+  assert.equal(runQuiet([], { collect: gather(), spawn }).code, 0);
+  const receipt = readReviewReceipt(state.receiptPath);
+  assert.equal(receipt.head, HEAD);
+  assert.equal(receipt.mergeBase, BASE);
+  assert.equal(receipt.baseTip, BASE);
+  assert.equal(receipt.review.status, "completed");
+});
+
+test("failed or invalid reruns invalidate a previous approval", () => {
+  for (const options of [
+    { codexStatus: 3 },
+    { rawOutput: "" },
+    { rawOutput: "No findings." },
+    { rawOutput: '{"status":"completed"}' },
+    { authStatus: 1 },
+  ]) {
+    const { spawn, state } = fakeSpawn(options);
+    writeReviewReceipt(state.receiptPath, { oldApproval: true });
+    assert.notEqual(runQuiet([], { collect: gather(), spawn }).code, 0);
+    assert.equal(readReviewReceipt(state.receiptPath), null);
+  }
+});
+
+test("incomplete and changes-requested reviews fail despite a successful CLI exit", () => {
+  for (const options of [
+    { reviewStatus: "incomplete" },
+    { verdict: "changes_requested" },
+  ]) {
+    const { spawn, state } = fakeSpawn(options);
+    assert.equal(runQuiet([], { collect: gather(), spawn }).code, 1);
+    assert.ok(readReviewReceipt(state.receiptPath));
+  }
+});
+
+test("API login cannot start a review and its output is not disclosed", () => {
+  const { spawn, calls } = fakeSpawn({
+    authOutput: "Logged in using an API key: hidden-value",
+  });
+  const { code, errors } = runQuiet([], { collect: gather(), spawn });
+  assert.equal(code, 1);
+  assert.equal(named(calls, "codex").length, 0);
+  assert.ok(!errors.join("\n").includes("hidden-value"));
+});
+
+test("the review process gets a schema and no inherited API billing variables", () => {
+  const { spawn, calls } = fakeSpawn();
+  assert.equal(runQuiet([], { collect: gather(), spawn }).code, 0);
+  const [review] = named(calls, "codex");
+  assert.ok(review.args.includes("--output-schema"));
+  assert.ok(!Object.hasOwn(review.options.env, "OPENAI_API_KEY"));
+  assert.ok(!Object.hasOwn(review.options.env, "ANTHROPIC_API_KEY"));
+});
+
+test("--check is free of model calls and requires current remote and verified commits", () => {
+  const { spawn, calls, state } = fakeSpawn();
+  const approved = {
+    status: "completed",
+    verdict: "approve",
+    summary: "Reviewed the full diff.",
+    findings: [],
+  };
+  writeReviewReceipt(state.receiptPath, createReviewReceipt(INFO, approved));
+  assert.equal(
+    runQuiet(["--check"], { collect: gather({ receipt: {} }), spawn }).code,
+    0
+  );
+  assert.equal(named(calls, "codex").length, 0);
+  for (const overrides of [
+    { head: "c".repeat(40) },
+    { baseTip: "c".repeat(40) },
+    { remoteVerified: false },
+    { pushed: false },
+    { dirtyCount: 1 },
+    { receipt: null },
+  ]) {
+    assert.equal(
+      runQuiet(["--check"], { collect: gather(overrides), spawn }).code,
+      1
+    );
+  }
+});
+
+test("overlapping attempts cannot overwrite a blocking review or accept an in-flight result", () => {
+  let secondCode;
+  let checkCode;
+  const { spawn, calls, state } = fakeSpawn({
+    verdict: "changes_requested",
+    onReview() {
+      secondCode = runQuiet([], { collect: gather(), spawn }).code;
+      checkCode = runQuiet(["--check"], {
+        collect: gather({ receipt: {} }),
+        spawn,
+      }).code;
+    },
+  });
+  writeReviewReceipt(
+    state.receiptPath,
+    createReviewReceipt(INFO, {
+      status: "completed",
+      verdict: "approve",
+      summary: "Prior approval.",
+      findings: [],
+    })
+  );
+  assert.equal(runQuiet([], { collect: gather(), spawn }).code, 1);
+  assert.equal(secondCode, 1);
+  assert.equal(checkCode, 1);
+  assert.equal(named(calls, "codex").length, 1);
+  assert.equal(
+    readReviewReceipt(state.receiptPath).review.verdict,
+    "changes_requested"
+  );
+  assert.equal(existsSync(`${state.receiptPath}.lock`), false);
 });
