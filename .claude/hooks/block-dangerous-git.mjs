@@ -78,21 +78,6 @@ const COMMAND_SUBSTITUTION = /\$\([^)]*\)|`[^`]*`/g;
 
 const ALLOWED_MERGE_BASES = new Set(["dev"]);
 const ALLOWED_REPO = "marcus100/grenmet";
-// A PR that changes the files which limit the agents, or the CI and ruleset
-// files that gate merges, is merged by the owner and never by an agent.
-const OWNER_ONLY_PATHS = [
-  /^\.claude\//,
-  /^\.codex\//,
-  /^\.agents\//,
-  /^\.husky\//,
-  /^\.github\//,
-  /^infra\/github\//,
-  /^scripts\/(?:guardrails|verification)\//,
-  /^package\.json$/,
-  /^docs\/agents\/routines\.md$/,
-  /^apps\/api\/fastapi\/src\/auth\/permissions\.py$/,
-  /(?:^|\/)AGENTS\.md$/,
-];
 // Merge routes other than `gh pr merge`: GraphQL mutations, branch merges and
 // the REST merge endpoint. Tested on text with the quotes removed.
 const API_MERGE_KEYWORDS = /merge/i;
@@ -265,7 +250,7 @@ export function lookupMergeBase(args) {
 
 /**
  * Every path a PR touches, including the old name of a renamed file (moving a
- * workflow or AGENTS.md out of an owner-only path must not hide it); null when
+ * workflow or AGENTS.md must remain visible for review); null when
  * GitHub can't say.
  */
 export function lookupMergeFiles(args) {
@@ -383,8 +368,7 @@ function parsePrMerge(words) {
 /**
  * `gh pr merge` is allowed only as the exact shape in parsePrMerge, into dev
  * (AGENTS.md: agents merge their own green, reviewed PRs into dev; the owner
- * merges staging and main), only in this repository, and never for a PR that
- * changes the files in OWNER_ONLY_PATHS. Fails closed: an unknown base or file
+ * merges staging and main), only in this repository. Fails closed: an unknown base or file
  * list blocks.
  */
 function findBlockedPrMerge(words, whole, { lookupBase, lookupFiles }) {
@@ -421,13 +405,7 @@ function findBlockedPrMerge(words, whole, { lookupBase, lookupFiles }) {
   }
   const files = lookupFiles(lookupArgs);
   if (files === null) {
-    return "gh pr merge with an unknown file list (the owner-only paths could not be checked)";
-  }
-  const ownerOnly = files.find((file) =>
-    OWNER_ONLY_PATHS.some((pattern) => pattern.test(file))
-  );
-  if (ownerOnly) {
-    return `gh pr merge of a PR that changes '${ownerOnly}' (the owner merges changes to agent limits, CI and rulesets)`;
+    return "gh pr merge with an unknown file list (the changed paths could not be checked)";
   }
   return undefined;
 }

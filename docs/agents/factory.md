@@ -88,10 +88,15 @@ Once a week, in an attended session:
 2. It picks the top problem with a cause in the repository and makes one small
    change to a skill, an `AGENTS.md` rule, a scorer or a check, with a
    regression case.
-3. You review the diff before it lands. Hooks, settings, `.codex/` and CI stay
-   human-only.
+3. Agents may implement and merge factory-control changes into dev after
+   independent code and security review and all checks pass. Staging and
+   production merges remain owner approved.
 4. Next week's `agents:score report` shows whether that scorer's pass rate
    moved.
 
-Benchmarks and skill evals spend more tokens; rerun them when a model, skill or
+Benchmarks and skill evals require approval for extra API spending; rerun them when a model, skill or
 `AGENTS.md` changes a lot, then `pnpm agents:routing write` to refresh routing.
+
+Execution uses existing subscriptions first with $0 extra spending by default.
+Prefer local execution; use cloud as fallback. Extra API spending requires owner
+approval, including scorer, benchmark and skill-eval runs that incur charges.

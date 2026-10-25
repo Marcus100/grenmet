@@ -79,6 +79,27 @@ const DRIFT_WORKFLOW_RUNS_CHECK =
   /scripts\/guardrails\/github-rulesets\.mjs --check/;
 const DRIFT_WORKFLOW_BRANCHES = /branches: \[main, staging, dev\]/;
 const SNAPSHOT_MENTION = /infra\/github\/rulesets\.json/;
+const INDEPENDENT_FACTORY_REVIEW = /independent code and security review/;
+const RETIRED_FACTORY_RESTRICTION =
+  /human-merged|human-written|A human merges every factory change|owner-only files/;
+const NEVER_MERGE_ANYTHING = /or merge anything/;
+const NO_EXTRA_SPENDING = /\$0 extra spending/;
+
+test("factory-control dev merges require independent review", () => {
+  for (const file of [
+    "AGENTS.md",
+    "docs/agents/workflow.md",
+    "docs/agents/routines.md",
+    ".claude/skills/commit/SKILL.md",
+    ".claude/skills/factory-improve/SKILL.md",
+  ]) {
+    const text = read(file);
+    assert.match(text, INDEPENDENT_FACTORY_REVIEW, file);
+    assert.doesNotMatch(text, RETIRED_FACTORY_RESTRICTION, file);
+  }
+  assert.doesNotMatch(read("docs/agents/workflow.md"), NEVER_MERGE_ANYTHING);
+  assert.match(read("docs/agents/factory.md"), NO_EXTRA_SPENDING);
+});
 
 test("no policy file still states retired git policy", () => {
   for (const file of POLICY_FILES) {

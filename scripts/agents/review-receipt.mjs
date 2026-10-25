@@ -161,7 +161,11 @@ export function readReviewReceipt(path) {
 }
 
 /** Eligibility for the current local checkout; callers must check CI too. */
-export function reviewBlockers(receipt, info) {
+export function reviewBlockers(
+  receipt,
+  info,
+  { requireLocalVerification = true } = {}
+) {
   const blockers = [];
   if (
     !isObject(receipt) ||
@@ -205,7 +209,7 @@ export function reviewBlockers(receipt, info) {
   }
   if (info.dirtyCount !== 0)
     blockers.push("The worktree has uncommitted changes.");
-  if (!info.receipt)
+  if (requireLocalVerification && !info.receipt)
     blockers.push("The current changes have no passing verification receipt.");
   return blockers;
 }

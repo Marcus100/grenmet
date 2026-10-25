@@ -26,7 +26,7 @@ Use only the roles the task needs. A small fix needs one role or none.
 1. Write a brief: the task, the files, the acceptance criteria and what is out of scope. A role sees only its brief.
 2. Start the role with a clean context:
    - **Claude Code:** delegate to the subagent with the role's name.
-   - **Codex:** open a new task or session, tell it to read `.claude/agents/<role>.md` and follow it, then give it the brief.
+   - **Codex:** use a fresh native subagent when available, or an isolated CLI session. Tell it to read `.claude/agents/<role>.md` and follow the brief. Create a user-visible chat only when the user explicitly requests one.
 3. Read the role's result. It must list the commands it ran with pass or fail, the files changed and known risks. Send it back if any of those is missing.
 
 ## Order

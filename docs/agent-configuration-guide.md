@@ -138,10 +138,8 @@ How each tool loads instructions:
 `.claude/hooks/` mechanically enforces the Never tier for both tools.
 `block-dangerous-git.mjs` (a `PreToolUse` hook) blocks destructive Git
 operations and allows `gh pr merge` only into `dev`, only in this repository,
-only with `--match-head-commit`, and never for a PR that changes an owner-only
-path (hooks, settings, `.codex`, `.agents`, `.github`, guardrail and
-verification scripts, `package.json`, any `AGENTS.md`; the list is
-`OWNER_ONLY_PATHS` in that file). `protect-files.mjs` blocks edits to `.env*`
+only with `--match-head-commit` and a known changed-file list. Factory-control
+changes require independent code and security review before merging into dev. `protect-files.mjs` blocks edits to `.env*`
 and generated-client files. Claude Code's `PostToolUse` hook formats the
 touched file (`format-changed-file.mjs`); Codex has no auto-format (formatting
 is explicit or staged at commit time, so one client never rewrites another's

@@ -1,5 +1,20 @@
 # Agent roles and automated gates
 
+Factory-control changes may be implemented and merged into dev by agents after
+independent code and security review with no open blocking finding and all checks
+passing. Staging and production merges remain owner approved. Use existing
+subscriptions first with $0 extra spending by default; prefer local execution
+and use cloud as fallback. Extra API spending requires owner approval.
+
+The subscription-backed worker runs with
+`node scripts/agents/review-worker.mjs --once --merge` and only takes dev PRs
+labelled `factory-review` in this repository. It publishes `Factory review` and
+`Factory security review` statuses for the exact PR head and current base tip.
+Factory-control changes and high risk changes receive security review; other
+changes receive an explicit not-required result. A changed head or base needs
+new review. Status trust rests on the authenticated GitHub identity running the
+worker; it is not cryptographic proof of a reviewer distinct from the author.
+
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-10-20
@@ -10,8 +25,8 @@ for the code it touches. Both tools use them through the shared `team-roles`
 skill (`.claude/skills/team-roles`, which Codex reads as `.agents/skills`):
 
 - **Claude Code** also loads the briefs as native subagents, so it can delegate by name.
-- **Codex** has no native subagent step in this setup. The skill tells it to open a
-  new task, read the role's brief and follow it, which gives the same clean context.
+- **Codex** uses a fresh native subagent when available, otherwise an isolated
+  CLI review session. Capability discovery happens at runtime.
 
 ## The team
 
@@ -37,7 +52,7 @@ request → planner (spec, slices)
         → qa-engineer (failing tests from the acceptance criteria)
         → api-engineer / web-engineer (make them pass, API first)
         → code-reviewer (+ security-reviewer for auth, access, CI, dependencies)
-        → /commit (gates) → PR → AI review comment + CI + fresh-context review
+        → /commit (gates) → PR → subscription-backed review + CI
         → agent merges into dev → dev → staging PR → owner merges into staging
 ```
 
@@ -47,8 +62,8 @@ select it. A role sees only the brief you give it, so name the files, the
 acceptance criteria and what is out of scope.
 
 Mixing tools is encouraged: a diff written in Codex gets its fresh-context
-review in Claude Code, and the reverse. The automatic AI review below adds a
-third, tool-independent pass.
+review in Claude Code, and the reverse. The review worker provides a bounded
+subscription-backed bridge when a manual tool switch is unnecessary.
 
 ### Which tool for what
 
@@ -110,8 +125,8 @@ receipt files or comments as proof of independent review.
 
 ### Working with Codex on GitHub
 
-Claude Code and Codex do not talk to each other. The owner relays every handoff
-between them, so each handoff must stand alone. If the two disagree, the
+Claude Code and Codex do not share hidden chat state. Automated review uses the
+worker; other handoffs remain explicit and self-contained. If the two disagree, the
 disagreement first names its evidence and the applicable rule; anything still
 unresolved goes to the owner.
 
@@ -128,17 +143,16 @@ unresolved goes to the owner.
    review (the other tool, or a `code-reviewer` subagent) has no open blocking
    finding; no agent pushes `dev`. The author never counts its own review as the
    fresh-context one. This is the attended-session rule in `AGENTS.md` and
-   [workflow.md](workflow.md). `dev` has no ruleset yet, so CI-before-merge is
-   enforced by these documents until the owner adds one (see Rulesets in
-   [workflow.md](workflow.md)).
+   [workflow.md](workflow.md). The `Protect dev` ruleset requires CI and the
+   worker's review contexts; the worker also verifies exact base freshness.
 3. **Promotion.** Under standing authorization, an agent creates or updates the
    `dev → staging` PR, with a recap of what changed. The owner reviews and merges
    into `staging`; agents do not arm auto-merge, and GitHub merges only once the
    staging ruleset's required checks pass. `staging → main`, releases and
    production deploys need the owner's explicit authorization each time. The
    agent hook allows `gh pr merge` only when the base is `dev`, only in this
-   repository, and never for a PR that changes the files listed in `AGENTS.md`
-   (hooks, settings, skills, guardrails, workflows, rulesets): the owner merges those.
+   repository, with a pinned head. Factory-control changes require independent
+   code and security review and may then merge under the same policy.
 4. **Review handoff.** Every request includes the block `pnpm agents:handoff`
    prints (`scripts/agents/review-handoff.mjs`), completed by the author:
    - the task and its acceptance criteria;
@@ -181,26 +195,29 @@ changing access settings: the branch may not have been pushed.
 
 | Gate | Where | Behaviour |
 | --- | --- | --- |
-| AI review | `.github/workflows/ai-review.yml`, `scripts/ci/ai-review.mjs` | Posts one updated comment on PRs into `dev`. Advisory, never fails the PR. Skips drafts, forks and Dependabot. |
+| AI review | `scripts/agents/review-worker.mjs` | Subscription-backed review for `factory-review` PRs into `dev`; exact-head code and security statuses, with security review for high risk and factory-control changes. |
 | API breaking changes | `.github/workflows/api-breaking-changes.yml`, `scripts/api/check-api-breaking.mjs` | Fails a PR into `dev` that removes a route or method, adds required input, or removes or retypes output. The `breaking-change` label accepts an intended break. |
 | Rulesets drift | `.github/workflows/rulesets-drift.yml`, `scripts/guardrails/github-rulesets.mjs` | Fails when GitHub's branch rulesets differ from `infra/github/rulesets.json`. Runs on PRs into `dev`, `staging` and `main`, and weekly. |
 | CodeQL | `.github/workflows/codeql.yml` | Static analysis of TypeScript and Python on PRs and `dev` pushes; results go to the Security tab. |
 | Secret scan | `.github/workflows/secret-scan.yml` | gitleaks over only the commits a PR or `dev` push adds. |
 
-**AI review setup.** Add the repository secret `ANTHROPIC_API_KEY`. Without it the
-job logs a skip and passes. Set the repository variable `AI_REVIEW_MODEL` to
-change the model (default `claude-sonnet-5-5`). The workflow uses
-`pull_request_target`, which GitHub runs from the default branch (`main`), so it
-never executes PR code; keep it that way. It runs from the copy on `main`, so a
-change to it takes effect only after promotion.
+**Review setup.** Sign the local Codex CLI into ChatGPT and authenticate `gh`.
+See [the worker runbook](review-worker.md) for scheduling and recovery.
+Run the worker from a reviewed checkout and label eligible PRs `factory-review`.
+The legacy API workflow is disabled and its replacement is only a manual
+retirement notice. A key alone cannot enable the legacy script: it requires a
+separately approved positive API budget. Do not enable extra spending implicitly.
+Worker statuses use the local GitHub credential; anyone holding a repository
+write credential can publish statuses. A dedicated GitHub App can isolate that
+authority later. Never describe these statuses as cryptographic proof.
 
 **Limits.** The reviewer sees the diff and the `AGENTS.md` rules, not the running
 system, and it can be wrong; treat findings as claims to check. The breaking
 check reads the OpenAPI spec only: it covers removed or changed routes, inputs and
 outputs, not behaviour changes behind the same schema, and it is not the full
 oasdiff rule set. `infra/github/rulesets.json` lists the checks GitHub
-requires; none of these gates is among them yet. Make a gate required in the
-ruleset once you trust its signal, then refresh the snapshot.
+requires, including the factory review contexts on `dev`. Refresh the snapshot
+after changing a ruleset.
 
 ## Changing a role
 

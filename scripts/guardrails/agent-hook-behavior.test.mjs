@@ -62,7 +62,6 @@ const OTHER_REPO = /only marcus100\/grenmet/;
 const GH_REPO_SET = /GH_REPO/;
 const RETARGETS = /retargets/;
 const API_MERGE = /gh api merge/;
-const OWNER_ONLY_FILE = /owner merges changes to agent limits/;
 const UNKNOWN_FILES = /unknown file list/;
 const MAIN_BASE = /main/;
 const UNKNOWN_BASE = /unknown base/;
@@ -247,11 +246,8 @@ test("block-dangerous-git: a quoted or indirect merge is checked like a plain on
   // The PR named after a flag must be read as the PR, not as that flag's value.
   assert.ok(findBlockedPattern(`gh pr merge --body "x" 5 ${sha}`, main));
   assert.ok(findBlockedPattern(`gh pr merge -b"x" 5 ${sha}`, main));
-  // The owner-only file check still applies to a quoted command.
-  assert.match(
-    String(findBlockedPattern(`gh pr "merge" 123 ${sha}`, dev)),
-    OWNER_ONLY_FILE
-  );
+  // Quoted commands retain the reviewed dev merge authorization.
+  assert.equal(findBlockedPattern(`gh pr "merge" 123 ${sha}`, dev), undefined);
   // Only the exact shape is accepted: merge method, auto-merge, no pinned head.
   for (const command of [
     "gh pr merge 5 --merge",
@@ -388,7 +384,7 @@ test("block-dangerous-git: no retargeting the base, no other merge routes", () =
   );
 });
 
-test("block-dangerous-git: the owner merges changes to the files that limit the agents", () => {
+test("block-dangerous-git: reviewed dev merges may change factory-control files", () => {
   const merge = "gh pr merge 42 --merge --match-head-commit abc1234";
   for (const file of [
     ".claude/hooks/block-dangerous-git.mjs",
@@ -411,9 +407,9 @@ test("block-dangerous-git: the owner merges changes to the files that limit the 
     ".github/CODEOWNERS",
     "infra/github/rulesets.json",
   ]) {
-    assert.match(
-      String(findBlockedPattern(merge, baseIs("dev", ["README.md", file]))),
-      OWNER_ONLY_FILE,
+    assert.equal(
+      findBlockedPattern(merge, baseIs("dev", ["README.md", file])),
+      undefined,
       file
     );
   }

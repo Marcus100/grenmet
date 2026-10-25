@@ -286,7 +286,8 @@ function postFindings({ findings, info, pr, root, spawn }) {
 export function run(args, deps = {}) {
   const spawn = deps.spawn ?? spawnSync;
   const gather = deps.collect ?? collect;
-  const root = gitOut(spawn, process.cwd(), ["rev-parse", "--show-toplevel"]);
+  const root =
+    deps.root ?? gitOut(spawn, process.cwd(), ["rev-parse", "--show-toplevel"]);
   if (!root) {
     console.error("Not inside a git repository.");
     return 1;
