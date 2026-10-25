@@ -4,7 +4,8 @@
 // model review per invocation; cached approvals may be merged before that.
 // Review statuses are published by a dedicated App and matched to its bot login.
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+import { readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -24,6 +25,7 @@ export const CONTEXTS = {
   code: "Factory review",
   security: "Factory security review",
 };
+const BRANCH_SYNC_CONFLICTS_FILE = "agent-branch-sync-conflicts.json";
 const SHA = /^[a-f0-9]{40}$/;
 const APP_BOT_LOGIN = /^[a-z0-9-]+\[bot\]$/;
 const FACTORY_PATH =
@@ -74,6 +76,53 @@ export function reviewPaths(files) {
         .filter((path) => typeof path === "string" && path.length > 0)
     ),
   ];
+}
+
+export function branchSyncConflictsPath(root, spawn = spawnSync) {
+  return join(dirname(receiptPath(root, spawn)), BRANCH_SYNC_CONFLICTS_FILE);
+}
+
+export function readBranchSyncConflicts(path) {
+  let records;
+  try {
+    records = JSON.parse(readFileSync(path, "utf8"));
+  } catch (error) {
+    if (error?.code === "ENOENT") return new Map();
+    throw new Error("Could not read the local branch-conflict state.");
+  }
+  if (!records || typeof records !== "object" || Array.isArray(records))
+    throw new Error("Local branch-conflict state is malformed.");
+  return new Map(
+    Object.entries(records).flatMap(([number, conflict]) => {
+      const pr = Number(number);
+      if (
+        !Number.isSafeInteger(pr) ||
+        pr < 1 ||
+        !conflict ||
+        typeof conflict !== "object" ||
+        !SHA.test(conflict.head ?? "") ||
+        !SHA.test(conflict.base ?? "")
+      )
+        return [];
+      return [[pr, { head: conflict.head, base: conflict.base }]];
+    })
+  );
+}
+
+export function writeBranchSyncConflicts(path, conflicts) {
+  const records = Object.fromEntries(
+    [...conflicts.entries()].sort(([left], [right]) => left - right)
+  );
+  const temporaryPath = `${path}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    writeFileSync(temporaryPath, `${JSON.stringify(records, null, 2)}\n`, {
+      mode: 0o600,
+    });
+    renameSync(temporaryPath, path);
+  } catch (error) {
+    rmSync(temporaryPath, { force: true });
+    throw error;
+  }
 }
 
 function reviewerInstructionPaths(role, files) {
@@ -646,6 +695,14 @@ function staleBaseOutcome(
   impact,
   state
 ) {
+  const conflicts = options.branchSyncConflicts;
+  const previousConflict = conflicts?.get(pr.number);
+  if (
+    previousConflict &&
+    (previousConflict.head !== pr.head.sha ||
+      previousConflict.base !== pr.base.sha)
+  )
+    conflicts.delete(pr.number);
   if (
     mergeBase === pr.base.sha ||
     (!strictStatusChecks && impact !== "overlap")
@@ -659,8 +716,27 @@ function staleBaseOutcome(
         : "dev changed files touched by this PR; update the branch before review.",
     };
   }
+  if (
+    previousConflict?.head === pr.head.sha &&
+    previousConflict.base === pr.base.sha
+  )
+    return {
+      outcome: "waiting",
+      reason:
+        "The same PR head and dev base previously conflicted; retry after either revision changes.",
+      branchSyncConflict: true,
+    };
+  if (options.allowBranchSync === false)
+    return {
+      outcome: "waiting",
+      reason: "A branch sync was already attempted during this queue run.",
+    };
   state.branchSyncAttempted = true;
   const sync = updateBranch(api, pr.number);
+  if (sync.conflict) {
+    conflicts?.set(pr.number, { head: pr.head.sha, base: pr.base.sha });
+    options.persistBranchSyncConflicts?.();
+  } else conflicts?.delete(pr.number);
   let reason = "Integrate current dev and rerun verification before review.";
   if (sync.conflict)
     reason =
@@ -672,6 +748,7 @@ function staleBaseOutcome(
     reason,
     branchSyncAttempted: true,
     branchSynced: Boolean(sync.updated),
+    branchSyncConflict: Boolean(sync.conflict),
   };
 }
 
@@ -830,6 +907,7 @@ export function processQueue(
     skipped: 0,
     ready: 0,
   };
+  let branchSyncUsed = false;
   for (const candidate of candidates) {
     stats.processed++;
     let record;
@@ -837,7 +915,12 @@ export function processQueue(
       record = {
         result: processPull(
           candidate,
-          { ...options, ...policy },
+          {
+            ...options,
+            ...policy,
+            allowBranchSync:
+              policy.allowBranchSync !== false && !branchSyncUsed,
+          },
           api,
           requiredCi
         ),
@@ -846,8 +929,12 @@ export function processQueue(
       record = { error };
     }
     if (record.error) {
+      branchSyncUsed ||= Boolean(record.error.branchSyncAttempted);
       if (recordQueueError(candidate, record.error, stats, log)) break;
-    } else if (recordQueueResult(candidate, record.result, stats, log)) break;
+    } else {
+      branchSyncUsed ||= Boolean(record.result.branchSyncAttempted);
+      if (recordQueueResult(candidate, record.result, stats, log)) break;
+    }
   }
   logQueueSummary(candidates.length, stats, log);
   return stats.errors;
@@ -881,7 +968,10 @@ function recordQueueResult(candidate, result, stats, log) {
   else if (result.outcome === "waiting") stats.waiting++;
   else if (result.outcome === "skipped") stats.skipped++;
   else if (result.outcome === "ready") stats.ready++;
-  return Boolean(reviewAttempted || result.branchSyncAttempted);
+  return Boolean(
+    reviewAttempted ||
+      (result.branchSyncAttempted && !result.branchSyncConflict)
+  );
 }
 
 function logQueueSummary(candidateCount, stats, log) {
@@ -1001,14 +1091,27 @@ export function run(argv, root = ROOT, api = services(root)) {
     return 0;
   }
   try {
+    const conflictPath = options.dryRun
+      ? undefined
+      : branchSyncConflictsPath(root);
+    const branchSyncConflicts = conflictPath
+      ? readBranchSyncConflicts(conflictPath)
+      : new Map();
     const errors = processQueue(
       candidates,
       options,
       api,
       requiredChecks(root),
       (line) => console.log(line),
-      { strictStatusChecks: strictStatusChecksRequired(root) }
+      {
+        strictStatusChecks: strictStatusChecksRequired(root),
+        branchSyncConflicts,
+        persistBranchSyncConflicts: () =>
+          writeBranchSyncConflicts(conflictPath, branchSyncConflicts),
+      }
     );
+    if (conflictPath)
+      writeBranchSyncConflicts(conflictPath, branchSyncConflicts);
     return errors > 0 ? 1 : 0;
   } finally {
     release();

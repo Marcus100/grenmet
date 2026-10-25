@@ -1,7 +1,7 @@
-// Runs a Codex review of the current branch and prints the findings, so the
-// owner no longer relays the handoff block by hand. It reuses the block from
-// review-handoff.mjs (head SHA, base SHA, changed files, receipt), so the
-// reviewer examines exactly the commits the author names.
+// Runs a Codex review of the current branch and prints the verdict and local
+// receipt path, so the owner can inspect findings without relaying the block.
+// It reuses the review-handoff.mjs block (head SHA, base SHA, changed files,
+// receipt), so the reviewer examines exactly the commits the author names.
 //
 // Isolation, in the order it matters:
 // - Codex reviews a detached checkout of the exact head SHA.
@@ -845,6 +845,11 @@ function runReview({
       return 1;
     }
     const findings = renderReview(review);
+    const posted = options.pr
+      ? postFindings({ findings, info, pr: options.pr, root, spawn })
+      : 0;
+    if (posted !== 0) return posted;
+    writeReviewReceipt(reviewPath, createReviewReceipt(info, review));
     console.log(
       "Codex review " +
         review.status +
@@ -854,11 +859,8 @@ function runReview({
         review.findings.length +
         " finding(s)."
     );
-    const posted = options.pr
-      ? postFindings({ findings, info, pr: options.pr, root, spawn })
-      : 0;
-    if (posted !== 0) return posted;
-    writeReviewReceipt(reviewPath, createReviewReceipt(info, review));
+    if (!options.pr)
+      console.log(`Detailed findings are saved in ${reviewPath}.`);
     return review.status === "completed" && review.verdict === "approve"
       ? 0
       : 1;

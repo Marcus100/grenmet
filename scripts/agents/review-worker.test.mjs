@@ -15,6 +15,7 @@ import { publishReviewStatus } from "./github-app-status.mjs";
 import { createReviewReceipt } from "./review-receipt.mjs";
 import {
   assertReviewStatusApp,
+  branchSyncConflictsPath,
   CONTEXTS,
   ciBlockers,
   dependencyFirst,
@@ -23,6 +24,7 @@ import {
   processPull,
   processQueue,
   publishReviewStatusThroughApp,
+  readBranchSyncConflicts,
   reviewPaths,
   reviewStatusAppLogin,
   reviewStatusIntegrationId,
@@ -32,6 +34,7 @@ import {
   statusMatches,
   strictStatusChecksRequired,
   trustedReviewInstructions,
+  writeBranchSyncConflicts,
 } from "./review-worker.mjs";
 
 const HEAD = "a".repeat(40);
@@ -564,6 +567,18 @@ test("renaming a sensitive file cannot erase the security-review requirement", (
   assert.equal(securityRequired(files), true);
 });
 
+test("branch-conflict state is kept beside review receipts in Git metadata", () => {
+  const root = mkdtempSync(join(tmpdir(), "review-branch-conflict-path-"));
+  try {
+    assert.equal(
+      branchSyncConflictsPath(root, () => ({ status: 0, stdout: ".git\n" })),
+      join(root, ".git", "agent-branch-sync-conflicts.json")
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("review failure, incompletion, missing receipt or strict base advance cannot approve or merge", () => {
   for (const options of [
     { code: 1 },
@@ -688,6 +703,9 @@ function queueApi({
   releaseThrows = [],
   ciFailsAfterReview = false,
   syncThrows = false,
+  syncConflicts = [],
+  baseSha = BASE,
+  headShas = {},
 } = {}) {
   const store = [];
   const reviewed = [];
@@ -696,7 +714,12 @@ function queueApi({
     login: () => "review-status-app[bot]",
     pull: (number) => {
       if (broken.includes(number)) throw new Error(`pull ${number} failed`);
-      return { ...PR, number, head: { ...PR.head, sha: headOf(number) } };
+      return {
+        ...PR,
+        number,
+        head: { ...PR.head, sha: headShas[number] ?? headOf(number) },
+        base: { ...PR.base, sha: baseSha },
+      };
     },
     files: () => ({ count: 1, paths: ["docs/example.md"] }),
     diffFiles: () => ["docs/example.md"],
@@ -716,6 +739,8 @@ function queueApi({
     updateBranch: (number) => {
       synced.push(number);
       if (syncThrows) throw new Error("update branch failed");
+      if (syncConflicts.includes(number))
+        return { updated: false, conflict: true };
       return { updated: true };
     },
     review: (number, kind, info) => {
@@ -790,6 +815,75 @@ test("a failed branch-sync attempt stops before syncing another candidate", () =
   assert.equal(JSON.parse(lines[0]).branchSyncAttempted, true);
   assert.equal(JSON.parse(lines.at(-1)).branchSyncAttempts, 1);
   assert.equal(JSON.parse(lines.at(-1)).processed, 1);
+});
+
+test("branch conflicts persist by head and base without starving ready PRs", () => {
+  const parent = mkdtempSync(join(tmpdir(), "review-branch-conflicts-"));
+  const path = join(parent, "branch-sync-conflicts.json");
+  let conflicts = new Map();
+  try {
+    const first = queueApi({ stale: [1, 2], syncConflicts: [1] });
+    const firstLines = [];
+    assert.equal(
+      processQueue(
+        [1, 2, 3],
+        { merge: true },
+        first.api,
+        CI,
+        (line) => firstLines.push(line),
+        {
+          branchSyncConflicts: conflicts,
+          persistBranchSyncConflicts: () =>
+            writeBranchSyncConflicts(path, conflicts),
+        }
+      ),
+      0
+    );
+    assert.deepEqual(first.synced, [1]);
+    assert.deepEqual(first.reviewed, ["3:code"]);
+    assert.deepEqual(conflicts.get(1), { head: headOf(1), base: BASE });
+    assert.equal(JSON.parse(firstLines.at(-1)).branchSyncAttempts, 1);
+
+    conflicts = readBranchSyncConflicts(path);
+    const retry = queueApi({ stale: [1], syncConflicts: [1] });
+    const retryLines = [];
+    assert.equal(
+      processQueue(
+        [1, 4],
+        { merge: true },
+        retry.api,
+        CI,
+        (line) => retryLines.push(line),
+        { branchSyncConflicts: conflicts }
+      ),
+      0
+    );
+    assert.deepEqual(retry.synced, []);
+    assert.deepEqual(retry.reviewed, ["4:code"]);
+    assert.ok(
+      JSON.parse(retryLines[0]).reason.includes("previously conflicted")
+    );
+
+    const changedBase = "d".repeat(40);
+    const changed = queueApi({
+      stale: [1],
+      syncConflicts: [1],
+      baseSha: changedBase,
+    });
+    assert.equal(
+      processQueue([1], { merge: true }, changed.api, CI, () => undefined, {
+        branchSyncConflicts: conflicts,
+      }),
+      0
+    );
+    assert.deepEqual(changed.synced, [1]);
+    assert.deepEqual(conflicts.get(1), {
+      head: headOf(1),
+      base: changedBase,
+    });
+  } finally {
+    rmSync(parent, { recursive: true, force: true });
+  }
 });
 
 test("a release failure after branch sync preserves the one-sync limit", () => {

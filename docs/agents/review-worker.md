@@ -50,6 +50,11 @@ App ID does not match the ruleset. A human GitHub token is never passed to the
 status publisher. The worker verifies the App's bot login using a signed App
 JWT and matches App-authored statuses to that identity, not the human CLI login.
 
+Branch-sync conflicts are stored locally beside the review receipt in the
+runner's Git metadata, keyed by PR head and dev base. The worker skips retries
+until either revision changes and continues through other queued PRs after a
+conflict while preserving the one-sync-per-run limit.
+
 `Factory review` always represents a completed independent review. The
 `risk:high` label, high-risk files and factory-control files require an
 independent security review.

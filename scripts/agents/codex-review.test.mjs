@@ -759,11 +759,18 @@ test("the isolated review unit gets a schema and no API billing variables", () =
   assert.ok(!Object.hasOwn(review.options.env, "ANTHROPIC_API_KEY"));
 });
 
-test("raw model findings are not written to the service log", () => {
-  const { spawn } = fakeSpawn({ findings: "HOST_PRIVATE_OUTPUT_MARKER" });
+test("local review prints its receipt path without raw findings", () => {
+  const { spawn, state } = fakeSpawn({
+    findings: "HOST_PRIVATE_OUTPUT_MARKER",
+  });
   const { code, logs } = runQuiet([], { collect: gather(), spawn });
   assert.equal(code, 0);
   assert.ok(logs.join("\n").includes("Codex review completed"));
+  assert.ok(
+    logs
+      .join("\n")
+      .includes(`Detailed findings are saved in ${state.receiptPath}.`)
+  );
   assert.ok(!logs.join("\n").includes("HOST_PRIVATE_OUTPUT_MARKER"));
 });
 
