@@ -30,13 +30,20 @@ test("web change formats its files and runs affected turbo tasks", () => {
   assert.deepEqual(find(checks, "format+lint").args.slice(-1), [
     "apps/web/gms/src/app/page.tsx",
   ]);
-  for (const task of ["type-check", "test"])
-    assert.deepEqual(find(checks, task).args, [
-      "turbo",
-      "run",
-      task,
-      "--affected",
-    ]);
+  assert.deepEqual(find(checks, "type-check").args, [
+    "turbo",
+    "run",
+    "type-check",
+    "--affected",
+  ]);
+  // Two test tasks at once: each Vitest config takes half the cores.
+  assert.deepEqual(find(checks, "test").args, [
+    "turbo",
+    "run",
+    "test",
+    "--affected",
+    "--concurrency=2",
+  ]);
 });
 
 test("API domain change runs lint and only that domain's tests", () => {
