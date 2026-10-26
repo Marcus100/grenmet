@@ -2,9 +2,11 @@
 # the file (env must be set before any `src` import), so E402 is disabled here.
 # ruff: noqa: E402
 import os
+import smtplib
+import sys
 from collections.abc import AsyncGenerator, Awaitable, Callable, Generator
 from datetime import timedelta
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol, TypedDict
 from uuid import uuid4
 
 if TYPE_CHECKING:
@@ -111,10 +113,12 @@ _test_database_bootstrapped = False
 
 import httpx
 import pytest
+import resend
 from sqlalchemy import text
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email as email_module
 from src.auth import service as auth_service
 from src.auth.config import auth_settings
 from src.auth.models import User
@@ -451,6 +455,61 @@ def code_store() -> Generator[MemoryCodeStore]:
     previous = email_code.set_store(store)
     yield store
     email_code.set_store(previous)
+
+
+class EmailSendCall(TypedDict):
+    email_to: str
+    subject: str
+    html_content: str
+
+
+class EmailSender(Protocol):
+    def __call__(
+        self, *, email_to: str, subject: str = "", html_content: str = ""
+    ) -> None: ...
+
+
+@pytest.fixture(autouse=True)
+def outbound_email_calls() -> list[EmailSendCall]:
+    return []
+
+
+@pytest.fixture(autouse=True)
+def stub_email_sender(
+    monkeypatch: pytest.MonkeyPatch,
+    outbound_email_calls: list[EmailSendCall],
+) -> EmailSender:
+    """Record provider sends so test runs never contact a real email service."""
+    original_sender = email_module.send_email
+
+    def record_send(
+        *, email_to: str, subject: str = "", html_content: str = ""
+    ) -> None:
+        outbound_email_calls.append(
+            {"email_to": email_to, "subject": subject, "html_content": html_content}
+        )
+
+    def block_provider(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError(
+            "Real email transport called in tests; mock the provider explicitly."
+        )
+
+    # Patch the canonical sender first so any module imported later gets the stub.
+    monkeypatch.setattr(email_module, "send_email", record_send)
+    # Patch modules already holding ``from src.email import send_email`` aliases.
+    for module in tuple(sys.modules.values()):
+        if (
+            module is not None
+            and getattr(module, "__name__", "").startswith("src.")
+            and getattr(module, "send_email", None) is original_sender
+        ):
+            monkeypatch.setattr(module, "send_email", record_send)
+
+    # Guard transport entry points too, so an unpatched alias fails closed.
+    monkeypatch.setattr(resend.Emails, "send", block_provider)
+    monkeypatch.setattr(smtplib, "SMTP", block_provider)
+    monkeypatch.setattr(smtplib, "SMTP_SSL", block_provider)
+    return record_send
 
 
 @pytest.fixture
