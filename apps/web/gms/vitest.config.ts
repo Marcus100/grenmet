@@ -31,7 +31,7 @@ export default defineConfig({
     // Playwright specs live in e2e/ and run through `pnpm e2e`, not Vitest.
     exclude: [...configDefaults.exclude, "e2e/**"],
     globals: true,
-    maxWorkers: 2,
+    maxWorkers: "50%",
     setupFiles: ["./src/test/setup.ts"],
     coverage: {
       provider: "v8",

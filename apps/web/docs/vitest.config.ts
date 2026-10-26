@@ -6,7 +6,7 @@ export default defineConfig({
     // Cold workers are slow under a full parallel run; the 5 s default flakes.
     testTimeout: 30_000,
     hookTimeout: 30_000,
-    maxWorkers: 2,
+    maxWorkers: "50%",
     environment: "node",
     globals: true,
     include: ["src/**/*.test.{ts,tsx}"],
