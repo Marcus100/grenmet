@@ -403,12 +403,10 @@ test("block-dangerous-git: the owner merges changes to the files that limit the 
     ".agents/rules/project.md",
     ".husky/pre-push",
     "AGENTS.md",
-    "apps/api/fastapi/AGENTS.md",
     "scripts/guardrails/agent-policy.test.mjs",
     "scripts/verification/changed.mjs",
     "package.json",
     "docs/agents/routines.md",
-    "apps/api/fastapi/src/auth/permissions.py",
     ".github/workflows/deploy.yml",
     ".github/actions/setup/action.yml",
     ".github/dependabot.yml",
@@ -428,6 +426,19 @@ test("block-dangerous-git: the owner merges changes to the files that limit the 
     ),
     undefined
   );
+  // Per-area AGENTS.md notes and the permission catalogue are ordinary code.
+  for (const file of [
+    "apps/api/fastapi/AGENTS.md",
+    "apps/api/fastapi/src/auth/AGENTS.md",
+    "apps/web/gaa-admin/AGENTS.md",
+    "apps/api/fastapi/src/auth/permissions.py",
+  ]) {
+    assert.equal(
+      findBlockedPattern(merge, baseIs("dev", ["README.md", file])),
+      undefined,
+      file
+    );
+  }
   assert.match(
     String(
       findBlockedPattern(merge, {
