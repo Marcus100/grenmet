@@ -327,6 +327,44 @@ async def run_notification_sweeps(ctx: dict[str, Any]) -> int:
         return result
 
 
+async def run_gms_notification_sweeps(ctx: dict[str, Any]) -> int:
+    """Time-based GMS notifications (overdue forecast, expiring warning, missing hour...)."""
+    from contextlib import AsyncExitStack
+
+    from src.database import async_session_factory
+    from src.eregister import database as register_database
+    from src.notifications import gms_sweeps
+    from src.wxproducts import database as weather_database
+    from src.wxwatch import database as archive_database
+
+    async with AsyncExitStack() as stack, async_session_factory() as session:
+        weather = weather_database.create_session()
+        register = register_database.create_session()
+        archive = archive_database.create_session()
+        for source in (weather, register, archive):
+            if source is not None:
+                await stack.enter_async_context(source)
+        try:
+            result = await gms_sweeps.run(
+                session, weather=weather, register=register, archive=archive
+            )
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "run_gms_notification_sweeps",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"),
+            "run_gms_notification_sweeps",
+            str(ctx.get("job_id", "")),
+            True,
+        )
+        return result
+
+
 async def check_nhc_failures(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.wxwatch import alerts, database
@@ -526,6 +564,7 @@ class WorkerSettings:
         expire_unpaid_event_orders,
         send_wis2_publications,
         run_notification_sweeps,
+        run_gms_notification_sweeps,
         send_invoice_reminders,
         purge_expired_data,
         check_nhc_failures,
@@ -582,6 +621,14 @@ class WorkerSettings:
         cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
         cron(run_notification_sweeps, hour=10, minute=0, run_at_startup=False),
+        # GMS time-based notifications every 5 minutes: forecast overdue (15 minutes
+        # late), warning expiring, missing hourly observation (from 15 minutes past),
+        # failed sends, queries and new NHC products. Idempotent per item.
+        cron(
+            run_gms_notification_sweeps,
+            minute=set(range(0, 60, 5)),
+            run_at_startup=False,
+        ),
         # Invoice payment reminders at 07:00 Grenada (UTC-4); idempotent per stage.
         cron(send_invoice_reminders, hour=11, minute=0, run_at_startup=False),
         # Retention purge, 03:30 UTC (23:30 Grenada); idempotent and batched.

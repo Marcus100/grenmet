@@ -8,8 +8,12 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { NotificationBell } from "./notification-bell";
 import { NotificationPreferences } from "./notification-preferences";
 
-const APPROVAL_WAITING = /Approval waiting for you/;
-const REQUEST_APPROVED = /Your request was approved/;
+const APPROVAL_EMAIL = "Approval waiting for you, email";
+const REQUEST_APPROVED_EMAIL = "Your request was approved, email";
+const REQUEST_APPROVED_BELL = "Your request was approved, bell";
+const FORECAST_BELL = "Forecast overdue, bell";
+const GROUPED_COUNT = "×3";
+const REPEATED_WORDS = /repeated 3 times/;
 
 const BASE = "http://localhost";
 const BELL_UNREAD = /Notifications, 2 unread/;
@@ -22,6 +26,8 @@ const unreadItem = {
   link_path: null,
   entity_type: "leave_request",
   entity_id: "l1",
+  repeat_count: 1,
+  urgent: false,
   read_at: null,
   created_at: new Date().toISOString(),
 };
@@ -80,6 +86,31 @@ describe("NotificationBell", () => {
   });
 });
 
+describe("NotificationBell grouping", () => {
+  it("shows how many repeats a grouped notification stands for", async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/notifications`, () =>
+        HttpResponse.json({
+          data: [{ ...unreadItem, repeat_count: 3 }],
+          count: 1,
+          page: 1,
+          size: 8,
+          total_pages: 1,
+        })
+      )
+    );
+    wrap(<NotificationBell />);
+
+    fireEvent.click(await screen.findByRole("button", { name: BELL_UNREAD }));
+
+    const badge = await screen.findByText(GROUPED_COUNT);
+    expect(badge).toBeInTheDocument();
+    // Screen readers skip the symbol and hear the plain-words version.
+    expect(badge).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByText(REPEATED_WORDS)).toHaveClass("sr-only");
+  });
+});
+
 describe("NotificationPreferences", () => {
   it("saves an email opt-out and locks approval requests on", async () => {
     const saved: unknown[] = [];
@@ -90,6 +121,9 @@ describe("NotificationPreferences", () => {
         description: "A request has reached a step you can approve.",
         email_mutable: false,
         email_enabled: true,
+        bell_mutable: true,
+        bell_enabled: true,
+        urgent: false,
       },
       {
         event_key: "workflow.approved",
@@ -97,6 +131,19 @@ describe("NotificationPreferences", () => {
         description: "Your request completed its approval chain.",
         email_mutable: true,
         email_enabled: true,
+        bell_mutable: true,
+        bell_enabled: true,
+        urgent: false,
+      },
+      {
+        event_key: "gms.forecast_overdue",
+        label: "Forecast overdue",
+        description: "A scheduled forecast has not been issued.",
+        email_mutable: true,
+        email_enabled: true,
+        bell_mutable: false,
+        bell_enabled: true,
+        urgent: true,
       },
     ];
     server.use(
@@ -110,6 +157,7 @@ describe("NotificationPreferences", () => {
           return HttpResponse.json([
             prefs[0],
             { ...prefs[1], email_enabled: false },
+            prefs[2],
           ]);
         }
       )
@@ -117,14 +165,60 @@ describe("NotificationPreferences", () => {
     wrap(<NotificationPreferences />);
 
     const locked = await screen.findByRole("switch", {
-      name: APPROVAL_WAITING,
+      name: APPROVAL_EMAIL,
     });
     expect(locked).toHaveAttribute("aria-disabled", "true");
-    fireEvent.click(screen.getByRole("switch", { name: REQUEST_APPROVED }));
+    expect(screen.getByRole("switch", { name: FORECAST_BELL })).toHaveAttribute(
+      "aria-disabled",
+      "true"
+    );
+    expect(screen.getByText("Urgent")).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("switch", { name: REQUEST_APPROVED_EMAIL })
+    );
 
     await waitFor(() =>
       expect(saved).toEqual([
         [{ event_key: "workflow.approved", email_enabled: false }],
+      ])
+    );
+  });
+
+  it("saves a bell choice on its own", async () => {
+    const saved: unknown[] = [];
+    const prefs = [
+      {
+        event_key: "workflow.approved",
+        label: "Your request was approved",
+        description: "Your request completed its approval chain.",
+        email_mutable: true,
+        email_enabled: true,
+        bell_mutable: true,
+        bell_enabled: true,
+        urgent: false,
+      },
+    ];
+    server.use(
+      http.get(`${BASE}/api/v1/notifications/preferences`, () =>
+        HttpResponse.json(prefs)
+      ),
+      http.put(
+        `${BASE}/api/v1/notifications/preferences`,
+        async ({ request }) => {
+          saved.push(await request.json());
+          return HttpResponse.json([{ ...prefs[0], bell_enabled: false }]);
+        }
+      )
+    );
+    wrap(<NotificationPreferences />);
+
+    fireEvent.click(
+      await screen.findByRole("switch", { name: REQUEST_APPROVED_BELL })
+    );
+
+    await waitFor(() =>
+      expect(saved).toEqual([
+        [{ event_key: "workflow.approved", bell_enabled: false }],
       ])
     );
   });
