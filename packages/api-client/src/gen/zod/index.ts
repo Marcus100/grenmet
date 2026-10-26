@@ -2222,6 +2222,7 @@ export {
   eregisterListRegisterObservationsErrorSchema,
   eregisterListRegisterObservationsQueryKindSchema,
   eregisterListRegisterObservationsQueryLimitSchema,
+  eregisterListRegisterObservationsQueryObservedAtSchema,
   eregisterListRegisterObservationsQueryOffsetSchema,
   eregisterListRegisterObservationsQueryReviewedSchema,
   eregisterListRegisterObservationsQueryStateSchema,

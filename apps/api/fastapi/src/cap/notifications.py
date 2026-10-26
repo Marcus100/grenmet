@@ -46,13 +46,17 @@ async def notify_warning_changed(
     """
     if alert.status != CapStatus.ACTUAL:
         return 0
+    action = ACTIONS.get(alert.msg_type)
+    if action is None:
+        # Ack and Error messages are protocol traffic, not a warning change.
+        return 0
     staff = await gms.gms_staff(session)
     return await gms.tell(
         session,
         gms.WARNING_CHANGED,
         staff,
         {
-            "action": ACTIONS[alert.msg_type],
+            "action": action,
             "headline": await headline(session, about or alert),
             "identifier": alert.identifier,
         },

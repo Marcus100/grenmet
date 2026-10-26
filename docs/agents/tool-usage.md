@@ -72,6 +72,21 @@ The SessionStart hooks read recent log entries; they do not create the handoff
 or share hidden chat history. Claude also reloads the log after compaction and
 forking. Runtime hook trust and client permissions remain separate checks.
 
+## Worktree sessions
+
+A Claude Code session started in a git worktree refuses some shell forms it cannot
+verify stay inside the worktree ("too complex to verify"). Those are heredocs, `;`
+or `&&` chains, `for` loops, process substitution (`<(...)`), and `gh` commands with a
+long quoted `--body`. In a worktree session:
+
+- Put long text in a file (scratchpad, or the Write tool) and pass it with
+  `--body-file` (`gh issue comment`, `gh issue create`, `gh pr create`).
+- Run one plain command per Bash call.
+- Edit files with Edit or Write, not `cat <<EOF`.
+
+The skills that show inline `--body "$(cat <<'EOF' ...)"` examples need the same
+change; they live under `.claude/`, so that edit goes through the owner.
+
 ## Keeping the session log short
 
 `SESSION_LOG.md` is shared by every checkout and grows by about 10 KB a day.

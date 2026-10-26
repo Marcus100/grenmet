@@ -14,7 +14,6 @@ from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, time, timedelta
 
 from sqlalchemy import func, select, text
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap.models import (
@@ -428,8 +427,13 @@ async def run(
         try:
             total += await step()
             await session.commit()
-        except SQLAlchemyError, OSError, RuntimeError, TimeoutError:
-            await session.rollback()
+        except Exception:
             logger.exception("GMS notification sweep failed", extra={"sweep": name})
+            used = (session, weather, register, archive)
+            for each in {id(s): s for s in used if s is not None}.values():
+                try:
+                    await each.rollback()
+                except Exception:
+                    logger.exception("GMS sweep rollback failed", extra={"sweep": name})
     logger.info("GMS notification sweeps finished", extra={"notified": total})
     return total

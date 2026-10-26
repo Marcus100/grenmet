@@ -185,6 +185,9 @@ test("an area with too few runs keeps its preference and says it is unmeasured",
   });
   assert.equal(routes.api.measured, false);
   assert.equal(routes.api.model, PREFERENCES.api.model);
+  assert.equal(routes.ci.measured, false);
+  assert.equal(routes.ci.agent, "claude");
+  assert.equal(routes.ci.model, PREFERENCES.ci.model);
 });
 
 test("a measured route that matches the preference says so", () => {
@@ -217,6 +220,7 @@ test("the report marks frontier rows with a star", () => {
 const ROUTING = {
   areas: {
     web: { agent: "claude", measured: false, model: CLAUDE_HAIKU },
+    ci: { agent: "claude", measured: false, model: CLAUDE_HAIKU },
   },
   human_only: HUMAN_ONLY,
 };
@@ -229,11 +233,26 @@ test("a labelled issue routes to its area's runner", () => {
   });
 });
 
-test("human-only areas, high risk and missing or doubled area labels go to a human", () => {
+test("CI and factory high risk work routes to independent review", () => {
   for (const labels of [
     ["area:ci"],
+    ["area:ci", "risk:high"],
+    ["area:web", "risk:high", "factory"],
+  ]) {
+    assert.deepEqual(routeFor(labels, ROUTING), {
+      agent: "claude",
+      measured: false,
+      model: CLAUDE_HAIKU,
+    });
+  }
+});
+
+test("human-only areas, other high risk and invalid areas go to a human", () => {
+  for (const labels of [
     ["area:infra", "risk:low"],
     ["area:security"],
+    ["area:infra", "risk:high", "factory"],
+    ["area:security", "risk:high", "factory"],
     ["area:web", "risk:high"],
     ["risk:low"],
     ["area:web", "area:api"],
@@ -247,7 +266,7 @@ test("the checked-in routing.json is a complete, parseable route table", () => {
     readFileSync(join(root, "docs/agents/routing.json"), "utf8")
   );
   assert.equal(routing.version, 1);
-  for (const area of ["web", "api", "docs"]) {
+  for (const area of ["web", "api", "docs", "ci"]) {
     const route = routing.areas[area];
     assert.ok(route, `${area} route`);
     assert.ok(["claude", "codex"].includes(route.agent), `${area} agent`);
@@ -255,6 +274,7 @@ test("the checked-in routing.json is a complete, parseable route table", () => {
     assert.equal(typeof route.measured, "boolean", `${area} measured`);
     assert.equal(typeof route.evidence, "string", `${area} evidence`);
   }
-  for (const area of ["ci", "infra", "security"])
+  assert.equal(routing.human_only.includes("ci"), false);
+  for (const area of ["infra", "security"])
     assert.ok(routing.human_only.includes(area), `${area} is human only`);
 });

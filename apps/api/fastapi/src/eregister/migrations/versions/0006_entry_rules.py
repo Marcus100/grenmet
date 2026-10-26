@@ -19,8 +19,8 @@ Additive on the eRegister chain only.
 
 from alembic import op
 
-revision = "eregister_0005"
-down_revision = "eregister_0004"
+revision = "eregister_0006"
+down_revision = "eregister_0005"
 branch_labels = None
 depends_on = None
 

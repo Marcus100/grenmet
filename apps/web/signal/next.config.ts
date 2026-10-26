@@ -19,18 +19,17 @@ const nextConfig: NextConfig = {
   }),
   pageExtensions: ["js", "jsx", "ts", "tsx"],
   // CSP is Report-Only until a clean 7-day report window (docs/security.md).
+  // Outside production the helper returns no headers, and Next rejects an empty rule.
   headers() {
-    return Promise.resolve([
-      {
-        source: "/:path*",
-        headers: contentSecurityPolicyHeaders({
-          app: "signal",
-          dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-          environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
-          isProduction: process.env.NODE_ENV === "production",
-        }),
-      },
-    ]);
+    const headers = contentSecurityPolicyHeaders({
+      app: "signal",
+      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+      environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+      isProduction: process.env.NODE_ENV === "production",
+    });
+    return Promise.resolve(
+      headers.length > 0 ? [{ source: "/:path*", headers }] : []
+    );
   },
 };
 

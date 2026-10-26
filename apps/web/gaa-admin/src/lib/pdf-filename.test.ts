@@ -70,3 +70,23 @@ describe("pdf filenames", () => {
     expect(hrFormFilename("leave_request", true)).toMatch(SIGNED_NAME);
   });
 });
+
+describe("hrFormFilename for drafts and signed copies", () => {
+  it("labels an unsigned download as a preview and a signed one as the document", () => {
+    expect(hrFormFilename("leave_request", false, "2026-10-20")).toBe(
+      "Leave Application Preview - 2026-10-20.pdf"
+    );
+    expect(hrFormFilename("leave_request", true, "2026-10-20")).toBe(
+      "Leave Application - 2026-10-20.pdf"
+    );
+  });
+
+  it("uses the report's own day when given one", () => {
+    expect(hrFormFilename("status_report", false, "2026-10-19")).toContain(
+      "2026-10-19"
+    );
+    expect(hrFormFilename("status_report", false, "not a day")).not.toContain(
+      "not a day"
+    );
+  });
+});

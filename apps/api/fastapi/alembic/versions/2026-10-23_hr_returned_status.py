@@ -21,6 +21,24 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    # PostgreSQL cannot safely remove a value while records may reference it.
-    # Retain the additive values and all form evidence during rollback.
-    pass
+    # PostgreSQL cannot safely remove an enum value while old code could still read
+    # it, so the values stay; rows already RETURNED go back to what the previous
+    # code showed (forms: DRAFT, timesheets: SUBMITTED) so old code can load them.
+    op.execute(
+        "UPDATE hr.leave_request SET status = 'DRAFT' WHERE status::text = 'RETURNED'"
+    )
+    op.execute(
+        "UPDATE hr.absentee_report SET status = 'DRAFT' WHERE status::text = 'RETURNED'"
+    )
+    op.execute(
+        "UPDATE hr.shift_swap_request SET status = 'DRAFT' WHERE status::text = 'RETURNED'"
+    )
+    op.execute(
+        "UPDATE hr.status_report SET status = 'DRAFT' WHERE status::text = 'RETURNED'"
+    )
+    op.execute(
+        "UPDATE hr.parking_permit SET status = 'DRAFT' WHERE status::text = 'RETURNED'"
+    )
+    op.execute(
+        "UPDATE hr.timesheet SET status = 'SUBMITTED' WHERE status::text = 'RETURNED'"
+    )
