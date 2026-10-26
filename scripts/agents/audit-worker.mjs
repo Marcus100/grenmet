@@ -195,7 +195,18 @@ export async function audit({
   const commit = await run(["git", "rev-parse", "refs/remotes/origin/dev"]);
   if (!COMMIT.test(commit)) throw new Error("Invalid development commit");
   let observations;
-  if (mode === "hourly") observations = await hourly({ gh, commit });
+  if (mode === "hourly")
+    observations = await hourly({
+      gh,
+      commit,
+      readDevFile: async (manifest) => {
+        const result = await execute(["git", "show", `${commit}:${manifest}`], {
+          cwd: root,
+          captureLimit: 16_000_000,
+        });
+        return result.code === 0 ? result.stdout : "";
+      },
+    });
   else if (mode === "daily") {
     const dailyConfig = { ...config, receipts: { ...config.receipts } };
     if (config.operationsConfig) {
