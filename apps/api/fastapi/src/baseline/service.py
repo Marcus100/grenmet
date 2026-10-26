@@ -463,12 +463,32 @@ async def offboard(session: AsyncSession, actor: User, user_id: uuid.UUID) -> No
 
 
 async def require_ready(
-    session: AsyncSession, user_id: uuid.UUID, department_id: str
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    department_id: str,
+    *,
+    own_prior_department: bool = False,
 ) -> None:
+    """Refuse unless the employee is set up and active in ``department_id``.
+
+    ``own_prior_department`` is only for an employee acting on their own record of
+    attendance rostered under a department they were transferred out of: the
+    department may then differ from the employment one if both belong to the same
+    organisation, and the grade check follows the current employment department.
+    """
     credential = await session.get(StaffCredential, user_id)
     if credential is None:
         raise AppException("Complete staff onboarding before using HR workflows", 409)
     employment = await employment_for(session, user_id)
+    expected_department = department_id
+    if (
+        own_prior_department
+        and employment is not None
+        and employment.department_id != department_id
+    ):
+        prior = await session.get(Department, department_id)
+        if prior is not None and prior.organisation_id == employment.organisation_id:
+            expected_department = employment.department_id
     grade = (
         await session.get(Grade, employment.grade_id)
         if employment and employment.grade_id
@@ -477,12 +497,12 @@ async def require_ready(
     if (
         grade is None
         or not grade.is_active
-        or grade.department_id != department_id
+        or grade.department_id != expected_department
         or credential.revoked_at
         or not employment
         or not employment_complete(employment)
         or employment.status != EmploymentStatus.ACTIVE
-        or employment.department_id != department_id
+        or employment.department_id != expected_department
     ):
         raise AppException(
             "Complete active employment setup in this department before using HR workflows",

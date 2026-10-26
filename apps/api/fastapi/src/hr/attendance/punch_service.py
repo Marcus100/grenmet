@@ -78,28 +78,32 @@ async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]
     strand a punch its original manager was shown.
 
     The employee-keyed clauses (current department, organisation, supervisor)
-    rely on the write-path guard that refuses cross-organisation transfers, so
-    an employee's current organisation is the one their punches were made in.
+    also require the employee's organisation to be that of the punch's department,
+    so a stale or cross-organisation employment record can never widen access.
     """
     never_own = ClockPunch.user_id != actor.id
     if actor.is_superuser:
         return never_own
     organisation_ids, department_ids = await _review_scope(session, actor)
-    employed = EmploymentRecord.user_id
-    grants: list[ColumnElement[bool]] = [
-        ClockPunch.user_id.in_(
-            select(employed).where(EmploymentRecord.supervisor_id == actor.id)
+
+    def employees(*conditions: ColumnElement[bool]) -> ColumnElement[bool]:
+        """Punches by employees matching ``conditions`` whose employment is in the
+        organisation of the punch's own department (defence in depth)."""
+        return ClockPunch.user_id.in_(
+            select(EmploymentRecord.user_id)
+            .join(
+                Department,
+                Department.organisation_id == EmploymentRecord.organisation_id,
+            )
+            .where(Department.id == ClockPunch.department_id, *conditions)
         )
+
+    grants: list[ColumnElement[bool]] = [
+        employees(EmploymentRecord.supervisor_id == actor.id)
     ]
     if department_ids:
         grants.append(ClockPunch.department_id.in_(department_ids))
-        grants.append(
-            ClockPunch.user_id.in_(
-                select(employed).where(
-                    EmploymentRecord.department_id.in_(department_ids)
-                )
-            )
-        )
+        grants.append(employees(EmploymentRecord.department_id.in_(department_ids)))
     if organisation_ids:
         grants.append(
             ClockPunch.department_id.in_(
@@ -108,13 +112,7 @@ async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]
                 )
             )
         )
-        grants.append(
-            ClockPunch.user_id.in_(
-                select(employed).where(
-                    EmploymentRecord.organisation_id.in_(organisation_ids)
-                )
-            )
-        )
+        grants.append(employees(EmploymentRecord.organisation_id.in_(organisation_ids)))
     return and_(never_own, or_(*grants))
 
 

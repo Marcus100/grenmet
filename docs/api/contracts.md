@@ -1108,10 +1108,14 @@ holding `timesheet.approve` with organisation-wide scope, with department scope 
 the punch's department or the employee's current department, or who are the
 employee's named supervisor may decide. After a department transfer the employee may
 still record their own attendance for shifts rostered under the old department
-(same organisation only). Submitting that attendance for review still requires active
-employment in the workflow's department (`require_ready`) and is refused after a
-transfer. Acting for someone else stays bound to the roster
-department. Nobody may decide their
+(same organisation only). The employee may also submit that attendance, and propose
+corrections to it, for review: the approval is the old department's workflow and
+approvers (`require_ready` accepts the roster department only for attendance and
+attendance-correction reviews, only for the employee's own record and only within
+the same organisation; leave and other forms stay bound to the current department).
+Acting for someone else stays bound to the roster department. A scan only attaches
+to a published shift of the department whose clock point was scanned, so the punch
+department, the roster department and the reviewers agree. Nobody may decide their
 own punch (superusers included). Approve and reject are idempotent for the same
 outcome and return 409 for the opposite one. Arrival needs a published work shift that
 started at most two hours ago or ends within the next hour; with none, the call
