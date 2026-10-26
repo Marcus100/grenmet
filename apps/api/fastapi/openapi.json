@@ -26529,7 +26529,7 @@
           "weather-images"
         ],
         "summary": "Weather Image",
-        "description": "Issue a short-lived download redirect scoped to the environment's wxwatch prefix.",
+        "description": "Issue a short-lived download redirect scoped to the environment's wxwatch prefix.\n\nOnly PNG, JPEG, GIF and WebP names are accepted; anything else is a 400.",
         "operationId": "wxwatchWeatherImage",
         "security": [
           {

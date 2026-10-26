@@ -1332,7 +1332,7 @@ Creating a leave request, absentee report, daily status report, shift swap, or t
 
 ### Private weather images
 
-`GET /api/v1/wxwatch/images/{storage_path}` accepts an active browser session or bearer identity. It returns private/no-store local image bytes when `WXWATCH_LOCAL_IMAGES_DIR` is configured, or a 60-second signed object-storage redirect otherwise. Raster paths are validated; local paths and symlinks must remain inside the configured root. Missing files return 404, invalid paths 400, and missing storage configuration 503. Gaa-admin uses a same-origin `/_backend/wxwatch/` rewrite and disables image optimization so browser credentials reach FastAPI.
+`GET /api/v1/wxwatch/images/{storage_path}` accepts an active browser session or bearer identity. It returns private/no-store local image bytes when `WXWATCH_LOCAL_IMAGES_DIR` is configured, or a 60-second signed object-storage redirect otherwise. Raster paths are validated (PNG, JPEG, GIF and WebP names only, checked in linear time); local paths and symlinks must remain inside the configured root. Missing files return 404, invalid paths 400, and missing storage configuration 503. Gaa-admin uses a same-origin `/_backend/wxwatch/` rewrite and disables image optimization so browser credentials reach FastAPI.
 
 ### Authored product grade policies
 
