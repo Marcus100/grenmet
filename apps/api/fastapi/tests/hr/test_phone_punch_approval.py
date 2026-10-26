@@ -750,6 +750,47 @@ async def test_named_supervisor_whose_review_role_has_ended_is_refused(
     assert raised.value.status_code == 403
 
 
+@pytest.mark.parametrize("scope", [RoleAssignmentScope.ALL, RoleAssignmentScope.SELF])
+async def test_named_supervisor_with_a_review_role_only_elsewhere_is_refused(
+    db_async: AsyncSession, scope: RoleAssignmentScope
+) -> None:
+    """#677: a review role held in another organisation does not let a named
+    supervisor decide punches in this one (for example after losing the role here)."""
+    employee, _, token = await _world(db_async)
+    if not await db_async.get(Organisation, "other_org"):
+        db_async.add(Organisation(id="other_org", code="other_org", name="Other"))
+        await db_async.commit()
+    named = await make_user(db_async)
+    await make_employee(db_async, user=named, department_id=DEPT)
+    role, _ = await make_role_with_permission(db_async, "timesheet.approve")
+    await assign_role(
+        db_async, user=named, role=role, scope=scope, organisation_id="other_org"
+    )
+    record = await db_async.scalar(
+        select(EmploymentRecord).where(EmploymentRecord.user_id == employee.id)
+    )
+    assert record is not None
+    record.supervisor_id = named.id
+    await db_async.commit()
+    arrive = await _punch(db_async, employee, token, 9, 30)
+
+    assert await _pending_ids(db_async, named) == []
+    with pytest.raises(AppException) as raised:
+        await punch_service.approve_punch(
+            session=db_async, current_user=named, punch_id=arrive.id
+        )
+    assert raised.value.status_code == 403
+    with pytest.raises(AppException) as rejected:
+        await punch_service.reject_punch(
+            session=db_async,
+            current_user=named,
+            punch_id=arrive.id,
+            reason="not mine to decide",
+        )
+    assert rejected.value.status_code == 403
+    assert await _records(db_async) == []
+
+
 async def test_all_scope_holder_in_the_organisation_decides_and_employee_cannot(
     db_async: AsyncSession,
 ) -> None:
