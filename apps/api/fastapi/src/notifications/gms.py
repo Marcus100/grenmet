@@ -275,7 +275,11 @@ async def duty_forecasters(
             session, user
         ):
             allowed.add(user_id)
-    candidates = allowed or staff
+    # Nobody may author this kind: do not page every GMS employee. Ask the
+    # people who already hear other GMS events (senior forecasters, approvers).
+    candidates = allowed or await permission_holders(
+        session, (*REGISTER_REVIEW_PERMISSIONS, "cap.alert.approve")
+    )
     on_duty, _covered = await duty_roster(session, now)
     return (candidates & on_duty) or candidates
 
