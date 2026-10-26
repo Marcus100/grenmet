@@ -212,7 +212,10 @@ export function ERegister() {
   async function runValidation(): Promise<boolean> {
     setValidationState("checking");
     const result = await eregisterValidateSynopObservation({
-      body: { workbook: structuredValues },
+      body: {
+        workbook: structuredValues,
+        observed_at: observationDate.toISOString(),
+      },
       throwOnError: false,
     });
     if (result.error || !result.data) {
@@ -382,9 +385,12 @@ export function ERegister() {
         onValidate={validateDraft}
         onValidationIssuesChange={setValidationIssues}
         onValidationStateChange={setValidationState}
-        onValueChange={(key, value) =>
-          setStructuredValues((current) => ({ ...current, [key]: value }))
-        }
+        onValueChange={(key, value) => {
+          // The checked METAR belongs to the values it was built from: editing
+          // them falls back to the local preview until the next check.
+          if (key !== "metar_text") setExpectedMetar(null);
+          setStructuredValues((current) => ({ ...current, [key]: value }));
+        }}
         saveStatus={saveState}
         send={sends}
         station={station}

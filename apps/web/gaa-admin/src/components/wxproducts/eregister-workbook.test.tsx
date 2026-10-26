@@ -240,3 +240,29 @@ it("shows the checked METAR, keeps the typed one and lists its warnings", () => 
   fireEvent.change(box, { target: { value: "x" } });
   expect(onValueChange).toHaveBeenCalledWith("metar_text", "x");
 });
+
+it("limits the typed METAR to 400 characters", () => {
+  renderWorkbook([]);
+  const box = screen.getByLabelText(
+    "METAR or SPECI as sent"
+  ) as HTMLInputElement;
+  expect(box.maxLength).toBe(400);
+});
+
+it("tells the observer whether the METAR was copied", async () => {
+  const writeText = vi.fn().mockResolvedValueOnce(undefined);
+  Object.assign(navigator, { clipboard: { writeText } });
+  renderWorkbook([], { expectedMetar: "METAR TGPY 301200Z" });
+  fireEvent.click(screen.getByRole("button", { name: "Copy" }));
+  expect(
+    (await screen.findByRole("button", { name: "Copied" })).textContent
+  ).toBe("Copied");
+  expect(writeText).toHaveBeenCalledWith("METAR TGPY 301200Z");
+  expect(screen.getByTestId("copy-status").textContent).toBe("Copied");
+
+  writeText.mockRejectedValueOnce(new Error("denied"));
+  fireEvent.click(screen.getByRole("button", { name: "Copied" }));
+  expect(
+    await screen.findByRole("button", { name: "Copy failed" })
+  ).toBeTruthy();
+});
