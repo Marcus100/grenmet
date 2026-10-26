@@ -73,6 +73,33 @@ test("the SessionStart hook runs it for cloud sessions only", () => {
   assert.match(hook, REMOTE_GUARD);
 });
 
+const SETUP = fileURLToPath(new URL("./cloud-setup.sh", import.meta.url));
+const setupSource = readFileSync(SETUP, "utf8");
+const BUDGET_DEFAULT = /GRENMET_SETUP_SECONDS:-(\d+)/;
+const RUNS_BOOTSTRAP =
+  /timeout "\$BUDGET" bash "\$WORK\/repo\/scripts\/agents\/cloud-bootstrap\.sh"/;
+const REMOVES_WORK = /rm -rf "\$WORK"/;
+const CLONE_WARNING = /WARN could not clone/;
+
+test("the environment setup script parses and runs the bootstrap within budget", () => {
+  assert.equal(spawnSync("bash", ["-n", SETUP]).status, 0);
+  assert.match(setupSource, RUNS_BOOTSTRAP);
+  assert.match(setupSource, REMOVES_WORK);
+  // The cloud only snapshots setup scripts that finish within about five minutes.
+  assert.ok(Number(setupSource.match(BUDGET_DEFAULT)[1]) < 300);
+  assert.doesNotMatch(setupSource, NO_REPO_GIT_WRITES);
+  assert.match(setupSource.trimEnd(), ENDS_WITH_EXIT_ZERO);
+});
+
+test("a failed clone still lets the session start", () => {
+  const result = spawnSync("bash", [SETUP], {
+    encoding: "utf8",
+    env: { ...process.env, GRENMET_REPO_URL: "/nonexistent/grenmet.git" },
+  });
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, CLONE_WARNING);
+});
+
 test("dump.rdb is ignored", () => {
   assert.match(readFileSync(`${ROOT}.gitignore`, "utf8"), DUMP_IGNORED);
 });

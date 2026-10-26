@@ -46,6 +46,10 @@ Claude Code cloud containers ship a toolchain older than the repo's pins. `scrip
 | `uv sync --package fast-back` misses `gms-ingest` | syncs both packages |
 | no Postgres or Redis for API tests | starts both on `localhost`, creates the `app` role and database; Redis runs with `--dir /tmp --save ""` so no `dump.rdb` lands in the repo |
 
+### Fast cloud starts: the environment setup script
+
+Paste `scripts/agents/cloud-setup.sh` into the cloud environment's **Setup script** (claude.ai → environment settings), or load the file there. The cloud runs it once, as root, then snapshots the filesystem and starts every later session from that snapshot; it rebuilds the snapshot about every seven days or when the script changes ([cloud environments](https://code.claude.com/docs/en/cloud-environments#environment-caching)). The script makes a shallow copy of the public repo in `/tmp`, runs `cloud-bootstrap.sh` once to fill the caches (uv Python, Node, pnpm, the pnpm store, the uv cache), deletes the copy and always exits 0. It stops after 270 s so it stays under the platform's five-minute snapshot limit. The `SessionStart` hook still runs the bootstrap every session, but each step then links from the warm caches instead of downloading. Running servers are not snapshotted, so the hook still starts Postgres and Redis.
+
 Hooks still run (never bypass them): with the bootstrap done, `git push` runs lint, type-check and the changed packages' tests. If `pnpm-lock.yaml` shows as modified after a gate, the bootstrap did not run in that shell; restore it with `git checkout -- pnpm-lock.yaml` before committing and do not commit it.
 
 ## Switching between Codex and Claude Code
