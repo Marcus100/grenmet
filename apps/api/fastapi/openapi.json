@@ -30531,7 +30531,7 @@
           "eregister"
         ],
         "summary": "List register observations",
-        "description": "Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "description": "Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings (each stored row is checked as saved, without the station's current pressure amounts) and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterListRegisterObservations",
         "security": [
           {
@@ -31429,7 +31429,7 @@
           "eregister"
         ],
         "summary": "Set the station pressure amounts",
-        "description": "Replaces all four amounts (send null to clear one). Requires `eregister.qc`.",
+        "description": "Replaces all four amounts; every key is required and an explicit null clears one. The change is recorded in the change history (entity `eregister_station_settings`) with the amounts before and after and the actor. Requires `eregister.qc`.",
         "operationId": "eregisterPutStationSettings",
         "security": [
           {
@@ -79436,7 +79436,14 @@
           }
         },
         "type": "object",
-        "title": "StationSettingsUpdate"
+        "required": [
+          "total_correction_hpa",
+          "qfe_offset_hpa",
+          "sea_level_offset_hpa",
+          "qnh_offset_hpa"
+        ],
+        "title": "StationSettingsUpdate",
+        "description": "All four amounts are required: send an explicit null to clear one."
       },
       "StatusReportCreate": {
         "properties": {

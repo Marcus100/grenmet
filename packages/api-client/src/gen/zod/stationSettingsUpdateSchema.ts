@@ -5,13 +5,13 @@
 
 import * as z from "zod";
 
-export const stationSettingsUpdateSchema = z.object({
-  total_correction_hpa: z
-    .union([z.number().min(-20).max(20), z.null()])
-    .optional(),
-  qfe_offset_hpa: z.union([z.number().min(-20).max(20), z.null()]).optional(),
-  sea_level_offset_hpa: z
-    .union([z.number().min(-20).max(20), z.null()])
-    .optional(),
-  qnh_offset_hpa: z.union([z.number().min(-20).max(20), z.null()]).optional(),
-});
+export const stationSettingsUpdateSchema = z
+  .object({
+    total_correction_hpa: z.union([z.number().min(-20).max(20), z.null()]),
+    qfe_offset_hpa: z.union([z.number().min(-20).max(20), z.null()]),
+    sea_level_offset_hpa: z.union([z.number().min(-20).max(20), z.null()]),
+    qnh_offset_hpa: z.union([z.number().min(-20).max(20), z.null()]),
+  })
+  .describe(
+    "All four amounts are required: send an explicit null to clear one."
+  );

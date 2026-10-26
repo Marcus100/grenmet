@@ -3,9 +3,13 @@
  * Do not edit manually.
  */
 
+/**
+ * @description All four amounts are required: send an explicit null to clear one.
+ * @type object
+ */
 export type StationSettingsUpdate = {
-  total_correction_hpa?: number | null;
-  qfe_offset_hpa?: number | null;
-  sea_level_offset_hpa?: number | null;
-  qnh_offset_hpa?: number | null;
+  total_correction_hpa: number | null;
+  qfe_offset_hpa: number | null;
+  sea_level_offset_hpa: number | null;
+  qnh_offset_hpa: number | null;
 };

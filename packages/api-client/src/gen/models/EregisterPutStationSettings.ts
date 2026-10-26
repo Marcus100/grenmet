@@ -29,6 +29,10 @@ export type EregisterPutStationSettingsStatus404 = unknown;
  */
 export type EregisterPutStationSettingsStatus422 = ValidationErrorResponse;
 
+/**
+ * @description All four amounts are required: send an explicit null to clear one.
+ * @type object
+ */
 export type EregisterPutStationSettingsBody = StationSettingsUpdate;
 
 export type EregisterPutStationSettingsOptions = {

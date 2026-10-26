@@ -1883,8 +1883,21 @@ weather site as provisional, so a signed-in account alone is not enough.
 - *Station settings.* `GET` and `PUT /api/v1/eregister/stations/{station_id}/settings`
   hold the four amounts. 78958 is seeded by migration `eregister_0006`; another
   station's amounts are `null` (listed in `pending`) until staff enter them, and
-  nothing is assumed for it. Reading needs register staff access; `PUT` (all four
-  amounts, `null` clears one) needs `eregister.qc`.
+  nothing is assumed for it. Reading needs register staff access; `PUT` needs
+  `eregister.qc` and all four keys (an explicit `null` clears one; a missing key is
+  `422`, so `{}` can no longer clear everything). Each change writes a change-history
+  entry (`eregister_station_settings`, readable by `eregister.qc` or
+  `eregister.send`) with the amounts before and after and the actor.
+- *Special groups and listings.* Typed `s3_special_phenomena` groups are sent in the
+  order keyed, after the gust and `s3_group_909` built from their own fields; a typed
+  group with the same 9SpSp prefix as one of those is dropped and warns
+  (`duplicate_special_group`). `GET /observations` checks each stored row as saved,
+  without the station's current pressure amounts.
+- *Stored body is the record.* Calculated fields (visibility code, dew point,
+  relative humidity, groups 3 and 4) are filled in when a body is written (validate,
+  create, correct) and never on read, accept or send, so what QC accepted is what the
+  TAC and the WIS2 CSV carry. `barometer_reading` is `^\d{3,4}(\.\d)?$` (ASCII digits,
+  500 to 1100 hPa) and `visibility_km` is `^\d+(\.\d+)?$` (no sign or exponent).
 - *Reporting hours.* All 24 UTC hours are keyed by hand at station 78958, so no
   hour is "non-synoptic". Advice (warnings only): Tx and Tn every 6 hours (00, 06,
   12, 18 UTC), 24 hour rainfall at 12 UTC, the pressure tendency group `5appp`

@@ -74,7 +74,7 @@ STATE_PATTERN = (
     "/observations",
     response_model=RegisterObservationList,
     summary="List register observations",
-    description="Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+    description="Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings (each stored row is checked as saved, without the station's current pressure amounts) and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
     responses=REGISTER_RESPONSES,
 )
 async def list_register_observations(
@@ -146,15 +146,8 @@ async def list_register_observations(
         params,
     )
     names = await entries.actor_names(app_session, {str(r["actor_id"]) for r in rows})
-    amounts = {
-        station: await stations.pressure_for(session, station)
-        for station in {str(r["station_id"]) for r in rows}
-    }
     return RegisterObservationList(
-        observations=[
-            entries.listing_row(row, names, amounts.get(str(row["station_id"])))
-            for row in rows
-        ],
+        observations=[entries.listing_row(row, names) for row in rows],
         total=int(total or 0),
     )
 
@@ -552,7 +545,10 @@ async def get_station_settings(
     response_model=StationSettings,
     summary="Set the station pressure amounts",
     description=(
-        "Replaces all four amounts (send null to clear one). Requires `eregister.qc`."
+        "Replaces all four amounts; every key is required and an explicit null "
+        "clears one. The change is recorded in the change history (entity "
+        "`eregister_station_settings`) with the amounts before and after and the "
+        "actor. Requires `eregister.qc`."
     ),
     responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
 )
@@ -561,13 +557,18 @@ async def put_station_settings(
     body: StationSettingsUpdate,
     user: BrowserUser,
     session: RegisterSession,
+    app_session: SessionDep,
     response: Response,
 ) -> StationSettings:
     require_permission(current_user=user, permission_key="eregister.qc")
     response.headers["Cache-Control"] = "no-store"
-    saved = await stations.update(session, station_id.strip(), body, actor=str(user.id))
-    if saved is None:
+    station = station_id.strip()
+    before, saved = await stations.update(session, station, body, actor=str(user.id))
+    if before is None or saved is None:
         raise HTTPException(404, "Unknown station")
+    await stations.record_change(
+        app_session, user=user, station_id=station, before=before, after=saved
+    )
     return saved
 
 
