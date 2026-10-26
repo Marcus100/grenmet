@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -32,7 +42,7 @@ test("dry run lists every step, exits 0 and changes nothing", () => {
   const steps = result.stdout
     .split("\n")
     .filter((line) => line.startsWith("bootstrap: would: "));
-  assert.equal(steps.length, 8, result.stdout);
+  assert.equal(steps.length, 9, result.stdout);
   assert.match(result.stdout, INSTALL_STEP);
   assert.match(result.stdout, BOTH_PACKAGES);
 });
@@ -76,28 +86,97 @@ test("the SessionStart hook runs it for cloud sessions only", () => {
 const SETUP = fileURLToPath(new URL("./cloud-setup.sh", import.meta.url));
 const setupSource = readFileSync(SETUP, "utf8");
 const BUDGET_DEFAULT = /GRENMET_SETUP_SECONDS:-(\d+)/;
-const RUNS_BOOTSTRAP =
-  /timeout "\$BUDGET" bash "\$WORK\/repo\/scripts\/agents\/cloud-bootstrap\.sh"/;
-const REMOVES_WORK = /rm -rf "\$WORK"/;
+const CLONE_HAS_TIMEOUT = /timeout "\$CLONE_SECONDS" git clone/;
 const CLONE_WARNING = /WARN could not clone/;
+const WARMED = /ok caches warmed/;
+const STORE_KEPT = /ok pnpm store kept/;
+const STOPPED_EARLY = /WARN bootstrap stopped after/;
 
-test("the environment setup script parses and runs the bootstrap within budget", () => {
+// A throwaway local repo whose bootstrap is `body`, on a "dev" branch.
+function fixture(body) {
+  const dir = mkdtempSync(join(tmpdir(), "cloud-setup-test-"));
+  const repo = join(dir, "repo");
+  mkdirSync(join(repo, "scripts", "agents"), { recursive: true });
+  writeFileSync(join(repo, "scripts", "agents", "cloud-bootstrap.sh"), body);
+  const git = (...args) =>
+    spawnSync("git", ["-C", repo, ...args], { encoding: "utf8" });
+  git("init", "-q", "-b", "dev");
+  git("add", ".");
+  git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "fixture");
+  return { dir, repo, cache: join(dir, "cache") };
+}
+
+function runSetup(env) {
+  return spawnSync("bash", [SETUP], {
+    encoding: "utf8",
+    env: { ...process.env, ...env },
+  });
+}
+
+function leftovers(cache) {
+  return existsSync(cache)
+    ? readdirSync(cache).filter((name) => name.startsWith("setup."))
+    : [];
+}
+
+test("the setup script stays under the snapshot limit and never fails a session", () => {
   assert.equal(spawnSync("bash", ["-n", SETUP]).status, 0);
-  assert.match(setupSource, RUNS_BOOTSTRAP);
-  assert.match(setupSource, REMOVES_WORK);
   // The cloud only snapshots setup scripts that finish within about five minutes.
   assert.ok(Number(setupSource.match(BUDGET_DEFAULT)[1]) < 300);
+  assert.match(setupSource, CLONE_HAS_TIMEOUT);
   assert.doesNotMatch(setupSource, NO_REPO_GIT_WRITES);
   assert.match(setupSource.trimEnd(), ENDS_WITH_EXIT_ZERO);
 });
 
-test("a failed clone still lets the session start", () => {
-  const result = spawnSync("bash", [SETUP], {
-    encoding: "utf8",
-    env: { ...process.env, GRENMET_REPO_URL: "/nonexistent/grenmet.git" },
-  });
-  assert.equal(result.status, 0);
-  assert.match(result.stdout, CLONE_WARNING);
+test("a failed clone still lets the session start and leaves nothing behind", () => {
+  const { dir, cache } = fixture("");
+  try {
+    const result = runSetup({
+      GRENMET_REPO_URL: join(dir, "missing.git"),
+      BOOTSTRAP_CACHE_DIR: cache,
+    });
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, CLONE_WARNING);
+    assert.deepEqual(leftovers(cache), []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("a clean run keeps the filled pnpm store in the cache", () => {
+  const { dir, repo, cache } = fixture(
+    'mkdir -p "$(dirname "$0")/../../.pnpm-store" && echo x > "$(dirname "$0")/../../.pnpm-store/marker"\necho "bootstrap: done (0 warning(s))"\n'
+  );
+  try {
+    const result = runSetup({
+      GRENMET_REPO_URL: repo,
+      BOOTSTRAP_CACHE_DIR: cache,
+    });
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.match(result.stdout, WARMED);
+    assert.match(result.stdout, STORE_KEPT);
+    assert.ok(existsSync(join(cache, "pnpm-store", "marker")));
+    assert.deepEqual(leftovers(cache), []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("a bootstrap over budget is stopped and the session still starts", () => {
+  const { dir, repo, cache } = fixture("sleep 10\n");
+  try {
+    const result = runSetup({
+      GRENMET_REPO_URL: repo,
+      BOOTSTRAP_CACHE_DIR: cache,
+      GRENMET_SETUP_SECONDS: "1",
+      GRENMET_MIN_BOOTSTRAP_SECONDS: "1",
+    });
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, STOPPED_EARLY);
+    assert.deepEqual(leftovers(cache), []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("dump.rdb is ignored", () => {

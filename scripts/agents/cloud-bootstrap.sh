@@ -85,12 +85,17 @@ ensure_node() {
     return 0
   fi
   local dir="$CACHE/node-$NODE_MAJOR" version
-  if [ ! -x "$dir/bin/node" ]; then
+  # Both binaries, so a download killed half way (the setup script's time
+  # budget) is redone instead of trusted.
+  if [ ! -x "$dir/bin/node" ] || [ ! -x "$dir/bin/npm" ]; then
     version="$(curl -fsSL https://nodejs.org/dist/index.json | python3 -c "
 import json, sys
 print(next(r['version'] for r in json.load(sys.stdin) if r['version'].startswith('v$NODE_MAJOR.')))")" || return 1
-    mkdir -p "$dir" && curl -fsSL "https://nodejs.org/dist/$version/node-$version-linux-x64.tar.xz" \
-      | tar -xJ -C "$dir" --strip-components=1 || return 1
+    # Unpack beside the target and move it into place only when complete.
+    rm -rf "$dir.partial" && mkdir -p "$dir.partial" \
+      && curl -fsSL "https://nodejs.org/dist/$version/node-$version-linux-x64.tar.xz" \
+        | tar -xJ -C "$dir.partial" --strip-components=1 || return 1
+    rm -rf "$dir" && mv "$dir.partial" "$dir" || return 1
   fi
   ln -sfn "$dir/bin/node" "$BIN/node"
   ln -sfn "$dir/bin/npm" "$BIN/npm"
@@ -123,6 +128,25 @@ ensure_pnpm() {
   ln -sfn "$exe" "$BIN/pnpm"
   hash -r
   say "ok pnpm: $(pnpm --version)"
+}
+
+# The workspace keeps its pnpm store at <repo>/.pnpm-store (pnpm-workspace.yaml).
+# The environment setup script (cloud-setup.sh) leaves a filled copy in the
+# cache; hard-linking it in first lets pnpm install without downloading, and the
+# store stays where every later pnpm command expects it.
+seed_pnpm_store() {
+  local seed="$CACHE/pnpm-store"
+  if [ -d "$ROOT/.pnpm-store" ]; then
+    say "skip pnpm store: checkout already has one"
+    return 0
+  fi
+  if [ ! -d "$seed" ]; then
+    say "skip pnpm store: no cached store to seed from"
+    return 0
+  fi
+  cp -al "$seed" "$ROOT/.pnpm-store" 2>/dev/null \
+    || cp -a "$seed" "$ROOT/.pnpm-store" || return 1
+  say "ok pnpm store seeded from $seed"
 }
 
 install_node_deps() {
@@ -187,6 +211,7 @@ EOF
 step "uv: install Python $PY_VERSION (upgrade uv if it is too old)" ensure_uv
 step "node: provide v$NODE_MAJOR (engines.node $NODE_RANGE)" ensure_node
 step "pnpm: provide @pnpm/exe $PNPM_VERSION; turn off pnpm version switching" ensure_pnpm
+step "pnpm store: seed <repo>/.pnpm-store from the cache" seed_pnpm_store
 step "pnpm install --frozen-lockfile" install_node_deps
 step "uv sync --package fast-back --package gms-ingest" sync_python
 step "postgres: start the cluster; create role and database 'app'" ensure_postgres
