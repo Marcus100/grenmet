@@ -78,6 +78,10 @@ catalog:
 
   # UI
   lucide-react: ^1.56.0
+
+  # Brand marks for the GMS footer social links (CC0). Pinned exactly: the
+  # release-age exclusion above names this version.
+  simple-icons: 16.30.0
   "@base-ui/react": "^1.9.0"
   class-variance-authority: "^0.7.1"
   cn: ^0.4.0
@@ -129,9 +133,6 @@ catalog:
   husky: "^9.1.7"
   knip: "^6.41.0"
   lint-staged: ^17.6.0
-
-  # Headless UI — used in gms and docs (migrate to Base UI eventually)
-  "@headlessui/react": "^2.2.10"
 
   # MDX — content-collections stack (docs, signal)
   "@content-collections/core": "^0.15.3"

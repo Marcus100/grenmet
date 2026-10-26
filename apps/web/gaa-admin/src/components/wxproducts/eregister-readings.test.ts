@@ -29,12 +29,11 @@ it("calculates the plain readings from the paper register codes", () => {
   expect(read("dew_point")).toBe("21.3");
   // Vapour pressure above the RH cell, from the dew point of 21.3 °C.
   expect(read("relative_humidity")).toBe("25.3");
-  expect(read("station_pressure")).toBe("1015.3");
-  expect(read("msl_pressure")).toBe("1016.3");
   expect(read("s3_max_temp")).toBe("29.5");
   expect(read("s3_min_temp")).toBe("24.0");
   expect(read("s3_rainfall_24h")).toBe("0.4");
-  expect(read("s3_layer1_height")).toBe("540");
+  // Cloud base in hundreds of feet (hshshs): code 18 is 540 m, 1772 ft.
+  expect(read("s3_layer1_height")).toBe("018");
 });
 
 it("reads negative temperatures, variable wind and trace amounts", () => {
@@ -54,9 +53,9 @@ it("is blank while empty and a dash-worthy null for an invalid code", () => {
 it("rejects a sign digit other than 0 or 1 and decodes high layer heights", () => {
   expect(tenthsToCelsius("2254")).toBeNull();
   expect(tenthsToCelsius("1034")).toBe(-3.4);
-  expect(read("s3_layer1_height", { s3_layer1_height: "81" })).toBe("10500");
-  expect(read("s3_layer1_height", { s3_layer1_height: "88" })).toBe("21000");
-  expect(read("s3_layer1_height", { s3_layer1_height: "89" })).toBe(">21000");
+  expect(read("s3_layer1_height", { s3_layer1_height: "81" })).toBe("344");
+  expect(read("s3_layer1_height", { s3_layer1_height: "88" })).toBe("689");
+  expect(read("s3_layer1_height", { s3_layer1_height: "89" })).toBe(">689");
   expect(read("s3_layer1_height", { s3_layer1_height: "53" })).toBeNull();
 });
 
@@ -75,4 +74,70 @@ it("reads the 24 h pressure change keyed as j1 8 (rise) or 9 (fall)", () => {
   expect(read24("5011")).toBeNull();
   expect(read24("011")).toBeNull();
   expect(read24("")).toBe("");
+});
+
+it("shows cloud layer amounts in oktas and heights in hundreds of feet", () => {
+  expect(read("s3_layer1_amount", { s3_layer1_amount: "5" })).toBe("5");
+  expect(read("s3_layer2_amount", { s3_layer2_amount: "9" })).toBe("Obs");
+  expect(read("s3_layer1_amount", {})).toBe("");
+  const height = (code: string) =>
+    read("s3_layer1_height", { s3_layer1_height: code });
+  expect(height("00")).toBe("000");
+  expect(height("10")).toBe("010"); // 300 m
+  expect(height("50")).toBe("049"); // 1500 m
+  expect(height("56")).toBe("059"); // 1800 m
+  expect(height("80")).toBe("295"); // 9000 m
+});
+
+it("writes the word Nil in column 23 where nothing is reported", () => {
+  const rain = (values: Record<string, string>) =>
+    read("precip_amount", values);
+  // An empty form shows nothing; a row that holds an observation shows Nil.
+  expect(rain({})).toBe("");
+  expect(rain({ air_temp: "0254" })).toBe("Nil");
+  expect(rain({ air_temp: "0254", precip_amount: "000" })).toBe("Nil");
+  expect(rain({ precip_amount: "005" })).toBe("5");
+  expect(rain({ precip_amount: "993" })).toBe("0.3");
+  expect(rain({ precip_amount: "990" })).toBe("Trace");
+});
+
+const STATION_78958 = {
+  qfeOffsetHpa: 0.3,
+  qnhOffsetHpa: 0.1,
+  seaLevelOffsetHpa: 1,
+  totalCorrectionHpa: 0,
+};
+const context = { station: STATION_78958 };
+
+it("shows QFE and QNH from the barometer and the station amounts", () => {
+  const values = { barometer_reading: "1012.8" };
+  expect(READINGS.barometer_reading?.(values, context)).toBe("0.0");
+  expect(READINGS.station_pressure?.(values, context)).toBe("1013.1");
+  expect(READINGS.msl_pressure?.(values, context)).toBe("1013.9");
+});
+
+it("works QFE and QNH from keyed groups when no barometer was read", () => {
+  // Paper row: group 3 0153, group 4 0163.
+  expect(READINGS.station_pressure?.(row, context)).toBe("1015.6");
+  expect(READINGS.msl_pressure?.(row, context)).toBe("1016.4");
+});
+
+it("shows a dash, never a guess, when a station has no amounts", () => {
+  const values = { barometer_reading: "1012.8" };
+  const none = {
+    qfeOffsetHpa: null,
+    qnhOffsetHpa: null,
+    seaLevelOffsetHpa: null,
+    totalCorrectionHpa: null,
+  };
+  expect(READINGS.barometer_reading?.(values, { station: none })).toBe("—");
+  expect(READINGS.station_pressure?.(values, { station: none })).toBe("—");
+  expect(READINGS.msl_pressure?.(values, { station: none })).toBe("—");
+  expect(READINGS.station_pressure?.({}, { station: none })).toBe("");
+});
+
+it("takes vapour pressure from the wet bulb when it is keyed", () => {
+  const wet = { ...row, wet_bulb: "0240" };
+  // Dry 28.0, wet 24.0 at 1015.3 hPa: about 27.0 hPa.
+  expect(Number(read("relative_humidity", wet))).toBeCloseTo(27, 0);
 });

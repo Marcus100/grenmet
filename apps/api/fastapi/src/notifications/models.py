@@ -48,7 +48,26 @@ class Notification(Base):
     dedupe_key: Mapped[str | None] = mapped_column(
         String(300), nullable=True, unique=True
     )
+    # False when the person turned the bell off for this event but still wants
+    # the email (the email needs a row). Never listed or counted in the bell.
+    in_bell: Mapped[bool] = mapped_column(default=True, server_default=sa.true())
+    # Grouped events: how many occurrences this one row stands for.
+    repeat_count: Mapped[int] = mapped_column(default=1, server_default="1")
+    group_key: Mapped[str | None] = mapped_column(String(200), nullable=True)
     read_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class NotificationOccurrence(Base):
+    """Remembers an item a grouped notification already counted (sweep idempotency)."""
+
+    __tablename__ = "notification_occurrence"
+
+    dedupe_key: Mapped[str] = mapped_column(String(300), primary_key=True)
+    # None: the person had both channels off, so no notification row exists.
+    notification_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("notification.id", ondelete="CASCADE"), index=True
+    )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
@@ -104,7 +123,7 @@ class NotificationSetting(Base):
 
 
 class NotificationPreference(Base):
-    """A person's email opt-out for one event. In-app is always kept."""
+    """A person's bell and email choice for one event (urgent events keep the bell)."""
 
     __tablename__ = "notification_preference"
 
@@ -113,6 +132,7 @@ class NotificationPreference(Base):
     )
     event_key: Mapped[str] = mapped_column(String(80), primary_key=True)
     email_enabled: Mapped[bool] = mapped_column(default=True)
+    bell_enabled: Mapped[bool] = mapped_column(default=True, server_default=sa.true())
     updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 

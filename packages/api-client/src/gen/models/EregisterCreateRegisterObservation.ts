@@ -5,7 +5,9 @@
 
 import type { RegisterObservationCreate } from "./RegisterObservationCreate.js";
 import type { RegisterObservationRead } from "./RegisterObservationRead.js";
-import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
+
+export type EregisterCreateRegisterObservationStatus200 =
+  RegisterObservationRead;
 
 export type EregisterCreateRegisterObservationStatus201 =
   RegisterObservationRead;
@@ -14,12 +16,9 @@ export type EregisterCreateRegisterObservationStatus401 = unknown;
 
 export type EregisterCreateRegisterObservationStatus403 = unknown;
 
-/**
- * @description Validation error envelope returned for malformed requests.
- * @type object
- */
-export type EregisterCreateRegisterObservationStatus422 =
-  ValidationErrorResponse;
+export type EregisterCreateRegisterObservationStatus409 = unknown;
+
+export type EregisterCreateRegisterObservationStatus422 = unknown;
 
 export type EregisterCreateRegisterObservationBody = RegisterObservationCreate;
 
@@ -31,9 +30,11 @@ export type EregisterCreateRegisterObservationOptions = {
 };
 
 export type EregisterCreateRegisterObservationResponses = {
+  "200": EregisterCreateRegisterObservationStatus200;
   "201": EregisterCreateRegisterObservationStatus201;
   "401": EregisterCreateRegisterObservationStatus401;
   "403": EregisterCreateRegisterObservationStatus403;
+  "409": EregisterCreateRegisterObservationStatus409;
   "422": EregisterCreateRegisterObservationStatus422;
 };
 
@@ -41,4 +42,5 @@ export type EregisterCreateRegisterObservationResponses = {
  * @description Union of all possible responses
  */
 export type EregisterCreateRegisterObservationResponse =
-  EregisterCreateRegisterObservationStatus201;
+  | EregisterCreateRegisterObservationStatus200
+  | EregisterCreateRegisterObservationStatus201;

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { apiTestTargets, apiWorkers, planChecks } from "./changed.mjs";
+import {
+  apiTestTargets,
+  apiWorkers,
+  formatSeconds,
+  planChecks,
+} from "./changed.mjs";
 
 const HR_TESTS = /pytest -q tests\/hr$/;
 const FULL_SUITE = /pytest -q$/;
@@ -260,4 +265,10 @@ test("editing the fuzz test opts it back in", () => {
     testFiles: TEST_FILES,
   });
   assert.match(find(checks, "api tests").args.at(-1), FUZZ_FILE);
+});
+
+test("the summary shows how long each check took", () => {
+  assert.equal(formatSeconds(42), "42s");
+  assert.equal(formatSeconds(65), "1m 05s");
+  assert.equal(formatSeconds(1625), "27m 05s");
 });

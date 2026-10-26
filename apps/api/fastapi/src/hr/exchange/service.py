@@ -16,7 +16,7 @@ from src.hr.exceptions import (
     HRPermissionDeniedError,
     HRValidationError,
 )
-from src.hr.models import RequestStatus
+from src.hr.models import EDITABLE_STATUSES, RequestStatus
 from src.hr.signatures import service as signature_service
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
@@ -187,7 +187,7 @@ async def submit_shift_swap_request(
     )
     if request.requesting_user_id != current_user.id:
         raise HRPermissionDeniedError(ERROR_SHIFT_SWAP_ACTION_NOT_ALLOWED)
-    if request.status != RequestStatus.DRAFT:
+    if request.status not in EDITABLE_STATUSES:
         raise HRValidationError(ERROR_SHIFT_SWAP_NOT_DRAFT)
 
     await validate_request(session, request, submitting=True)
@@ -256,7 +256,7 @@ async def update_shift_swap_request(
     )
     if request.requesting_user_id != current_user.id:
         raise HRPermissionDeniedError(ERROR_SHIFT_SWAP_ACTION_NOT_ALLOWED)
-    if request.status != RequestStatus.DRAFT:
+    if request.status not in EDITABLE_STATUSES:
         raise HRValidationError(ERROR_SHIFT_SWAP_NOT_DRAFT)
 
     if request.department_id != payload.department_id:

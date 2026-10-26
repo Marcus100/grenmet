@@ -16,6 +16,18 @@ export const synopWorkbookSchema = z
     station_wx_indicator: z.union([z.string().max(2), z.null()]).optional(),
     cloud_base: z.union([z.string().max(2), z.null()]).optional(),
     visibility: z.union([z.string().max(2), z.null()]).optional(),
+    barometer_reading: z
+      .union([z.string().max(8), z.null()])
+      .optional()
+      .describe(
+        "Barometer as read (paper column 17), in hPa with one decimal, for example 1013.2."
+      ),
+    visibility_km: z
+      .union([z.string().max(6), z.null()])
+      .optional()
+      .describe(
+        "Visibility as typed, in kilometres; the coded VV is derived from it."
+      ),
     total_cloud: z.union([z.string().max(2), z.null()]).optional(),
     wind_dir: z.union([z.string().max(3), z.null()]).optional(),
     wind_speed: z.union([z.string().max(3), z.null()]).optional(),
@@ -58,11 +70,29 @@ export const synopWorkbookSchema = z
     s3_layer4_form: z.union([z.string().max(2), z.null()]).optional(),
     s3_layer4_height: z.union([z.string().max(4), z.null()]).optional(),
     s3_special_phenomena: z.union([z.string().max(120), z.null()]).optional(),
+    s3_group_909: z
+      .union([z.string().max(8), z.null()])
+      .optional()
+      .describe(
+        "Precipitation timing and duration (909Rtdc), the Region IV group 9SpSpspsp with SpSp 09, reported with 6RRRtR: five digits starting 909. Rt and dc are not decoded."
+      ),
+    time_mark_anemograph: z.union([z.string().max(16), z.null()]).optional(),
+    time_mark_barograph: z.union([z.string().max(16), z.null()]).optional(),
+    time_mark_rain_recorder: z.union([z.string().max(16), z.null()]).optional(),
+    time_mark_thermohygrograph: z
+      .union([z.string().max(16), z.null()])
+      .optional(),
     s3_sunshine_24h: z.union([z.string().max(3), z.null()]).optional(),
     s3_ground_state: z.union([z.string().max(1), z.null()]).optional(),
     s3_ground_jjj: z.union([z.string().max(3), z.null()]).optional(),
     s5_national: z.union([z.string().max(400), z.null()]).optional(),
     s3_remarks: z.union([z.string().max(4000), z.null()]).optional(),
+    metar_text: z
+      .union([z.string().max(400), z.null()])
+      .optional()
+      .describe(
+        "The METAR typed or copied by the observer; each element is compared with the observation (warnings only)."
+      ),
     observer_initials: z.union([z.string().max(4), z.null()]).optional(),
     notes: z.union([z.string().max(4000), z.null()]).optional(),
   })

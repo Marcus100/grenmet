@@ -289,7 +289,10 @@ async def test_signature_routes_are_self_only_and_download_is_private(
     assert pdf.status_code == 200 and pdf.content.startswith(b"%PDF-")
     assert pdf.headers["content-type"] == "application/pdf"
     assert "no-store" in pdf.headers["cache-control"]
-    assert "attachment" in pdf.headers["content-disposition"]
+    disposition = pdf.headers["content-disposition"]
+    assert disposition.startswith("attachment")
+    assert "filename*=UTF-8''" in disposition
+    assert str(document_id) not in disposition
 
     assert (
         await async_client.delete("/api/v1/hr/signature/me", headers=headers)
@@ -345,3 +348,68 @@ async def test_pdf_failure_cannot_commit_a_submission(db_async, monkeypatch):
         )
     ).first() is None
     assert (await db_async.execute(select(SignedDocument))).first() is None
+
+
+def _capture_weasyprint_html(monkeypatch) -> list[str]:
+    """Replace WeasyPrint's HTML so a test can read the markup that would be rendered."""
+    import weasyprint
+
+    captured: list[str] = []
+
+    class CapturingHTML:
+        def __init__(self, *, string: str, **_: object) -> None:
+            captured.append(string)
+
+        def write_pdf(self) -> bytes:
+            return b"%PDF-captured"
+
+    monkeypatch.setattr(weasyprint, "HTML", CapturingHTML)
+    return captured
+
+
+def test_fallback_pdf_escapes_values_and_embeds_signature_only_when_signed(
+    monkeypatch,
+) -> None:
+    captured = _capture_weasyprint_html(monkeypatch)
+    snapshot = service.DocumentSnapshot(
+        organisation="Grenada <Airports>",
+        entity_type="timesheet",
+        entity_id=str(uuid.uuid4()),
+        signer_name="Test <Signer>",
+        signed_at="2026-10-24T12:00:00+00:00",
+        form={
+            "period": "2026-10",
+            "notes": "Café & <b>bold</b>\nsecond line",
+            "workflow_instance_id": "hidden-value",
+            "entries": [{"day": "2026-10-01", "hours": 8}, "<i>loose</i>"],
+        },
+    )
+    image = base64.b64decode(signature_data().split(",", 1)[1])
+
+    service.render_pdf(snapshot, None)
+    service.render_pdf(snapshot, image)
+    unsigned, signed = captured
+
+    for html in (unsigned, signed):
+        assert "Test &lt;Signer&gt;" in html
+        assert "Grenada &lt;Airports&gt;" in html
+        assert "Café &amp; &lt;b&gt;bold&lt;/b&gt;\nsecond line" in html
+        assert "&lt;i&gt;loose&lt;/i&gt;" in html
+        assert "<b>bold</b>" not in html and "<i>loose</i>" not in html
+        assert "hidden-value" not in html
+        assert "white-space: pre-wrap" in html
+    assert "data:image/png;base64," not in unsigned
+    assert "data:image/png;base64," in signed
+
+
+def test_fallback_pdf_renders_a_real_pdf() -> None:
+    snapshot = service.DocumentSnapshot(
+        organisation="Grenada Airports Authority",
+        entity_type="timesheet",
+        entity_id=str(uuid.uuid4()),
+        signer_name="Test Signer",
+        signed_at=None,
+        form={"period": "2026-10", "entries": [{"day": "2026-10-01", "hours": 8}]},
+    )
+
+    assert service.render_pdf(snapshot, None).startswith(b"%PDF-")

@@ -7,4 +7,10 @@ import type { RegisterObservationRead } from "./RegisterObservationRead.js";
 
 export type RegisterObservationList = {
   observations: RegisterObservationRead[];
+  /**
+   * @description Matching rows before paging.
+   * @default 0
+   * @type integer | undefined
+   */
+  total?: number;
 };

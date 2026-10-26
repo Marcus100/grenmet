@@ -95,9 +95,12 @@ export function getAllPublicAlerts(): Promise<CapAlertList> {
 export async function getAlertByIdentifier(
   identifier: string
 ): Promise<CapAlert> {
-  const response = await fetch(capPublicUrl(`/api/cap/alerts/${identifier}`), {
-    cache: "no-store",
-  });
+  const response = await fetch(
+    capPublicUrl(`/api/cap/alerts/${encodeURIComponent(identifier)}`),
+    {
+      cache: "no-store",
+    }
+  );
   if (response.status === 404) {
     notFound();
   }

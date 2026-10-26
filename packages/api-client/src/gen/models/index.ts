@@ -1682,6 +1682,17 @@ export type {
   CapCreateAlertStatus422,
 } from "./CapCreateAlert.js";
 export type {
+  CapCreateEscalationBody,
+  CapCreateEscalationOptions,
+  CapCreateEscalationResponse,
+  CapCreateEscalationResponses,
+  CapCreateEscalationStatus201,
+  CapCreateEscalationStatus401,
+  CapCreateEscalationStatus403,
+  CapCreateEscalationStatus404,
+  CapCreateEscalationStatus422,
+} from "./CapCreateEscalation.js";
+export type {
   CapCreateFeedBody,
   CapCreateFeedOptions,
   CapCreateFeedResponse,
@@ -1759,6 +1770,12 @@ export type {
   CapEmergencyPublishAlertStatus404,
   CapEmergencyPublishAlertStatus422,
 } from "./CapEmergencyPublishAlert.js";
+export type { CapEscalationCreate } from "./CapEscalationCreate.js";
+export type { CapEscalationCreatePropertiesAwarenessLevelEnum } from "./CapEscalationCreatePropertiesAwarenessLevelEnum.js";
+export { capEscalationCreatePropertiesAwarenessLevelEnum } from "./CapEscalationCreatePropertiesAwarenessLevelEnum.js";
+export type { CapEscalationLookup } from "./CapEscalationLookup.js";
+export type { CapEscalationPublic } from "./CapEscalationPublic.js";
+export type { CapEscalationSource } from "./CapEscalationSource.js";
 export type {
   CapExpireAlertBody,
   CapExpireAlertOptions,
@@ -1846,6 +1863,16 @@ export type {
   CapGetCatalogsStatus403,
   CapGetCatalogsStatus422,
 } from "./CapGetCatalogs.js";
+export type {
+  CapGetEscalationOptions,
+  CapGetEscalationQuery,
+  CapGetEscalationResponse,
+  CapGetEscalationResponses,
+  CapGetEscalationStatus200,
+  CapGetEscalationStatus401,
+  CapGetEscalationStatus403,
+  CapGetEscalationStatus422,
+} from "./CapGetEscalation.js";
 export type {
   CapGetFeedsOptions,
   CapGetFeedsResponse,
@@ -1976,10 +2003,26 @@ export type {
   CapPublishAlertStatus422,
 } from "./CapPublishAlert.js";
 export type { CapPublishPublic } from "./CapPublishPublic.js";
+export type {
+  CapRecordAlertReviewBody,
+  CapRecordAlertReviewOptions,
+  CapRecordAlertReviewPath,
+  CapRecordAlertReviewResponse,
+  CapRecordAlertReviewResponses,
+  CapRecordAlertReviewStatus200,
+  CapRecordAlertReviewStatus401,
+  CapRecordAlertReviewStatus403,
+  CapRecordAlertReviewStatus404,
+  CapRecordAlertReviewStatus409,
+  CapRecordAlertReviewStatus422,
+} from "./CapRecordAlertReview.js";
 export type { CapReferenceCreate } from "./CapReferenceCreate.js";
 export type { CapReferencePublic } from "./CapReferencePublic.js";
 export type { CapResourceCreate } from "./CapResourceCreate.js";
 export type { CapResourcePublic } from "./CapResourcePublic.js";
+export type { CapReviewRecord } from "./CapReviewRecord.js";
+export type { CapReviewRecordPropertiesOutcomeEnum } from "./CapReviewRecordPropertiesOutcomeEnum.js";
+export { capReviewRecordPropertiesOutcomeEnum } from "./CapReviewRecordPropertiesOutcomeEnum.js";
 export type {
   CapSaveHazardProfileBody,
   CapSaveHazardProfileOptions,
@@ -2349,13 +2392,28 @@ export type {
   EregisterAcceptRegisterObservationStatus422,
 } from "./EregisterAcceptRegisterObservation.js";
 export type {
+  EregisterCorrectRegisterObservationBody,
+  EregisterCorrectRegisterObservationOptions,
+  EregisterCorrectRegisterObservationPath,
+  EregisterCorrectRegisterObservationResponse,
+  EregisterCorrectRegisterObservationResponses,
+  EregisterCorrectRegisterObservationStatus201,
+  EregisterCorrectRegisterObservationStatus401,
+  EregisterCorrectRegisterObservationStatus403,
+  EregisterCorrectRegisterObservationStatus404,
+  EregisterCorrectRegisterObservationStatus409,
+  EregisterCorrectRegisterObservationStatus422,
+} from "./EregisterCorrectRegisterObservation.js";
+export type {
   EregisterCreateRegisterObservationBody,
   EregisterCreateRegisterObservationOptions,
   EregisterCreateRegisterObservationResponse,
   EregisterCreateRegisterObservationResponses,
+  EregisterCreateRegisterObservationStatus200,
   EregisterCreateRegisterObservationStatus201,
   EregisterCreateRegisterObservationStatus401,
   EregisterCreateRegisterObservationStatus403,
+  EregisterCreateRegisterObservationStatus409,
   EregisterCreateRegisterObservationStatus422,
 } from "./EregisterCreateRegisterObservation.js";
 export type {
@@ -2371,6 +2429,17 @@ export type {
   EregisterEmailRegisterObservationStatus409,
   EregisterEmailRegisterObservationStatus422,
 } from "./EregisterEmailRegisterObservation.js";
+export type {
+  EregisterGetStationSettingsOptions,
+  EregisterGetStationSettingsPath,
+  EregisterGetStationSettingsResponse,
+  EregisterGetStationSettingsResponses,
+  EregisterGetStationSettingsStatus200,
+  EregisterGetStationSettingsStatus401,
+  EregisterGetStationSettingsStatus403,
+  EregisterGetStationSettingsStatus404,
+  EregisterGetStationSettingsStatus422,
+} from "./EregisterGetStationSettings.js";
 export type {
   EregisterListObservationSendsOptions,
   EregisterListObservationSendsPath,
@@ -2423,6 +2492,18 @@ export type {
   EregisterPublishRegisterObservationStatus422,
 } from "./EregisterPublishRegisterObservation.js";
 export type {
+  EregisterPutStationSettingsBody,
+  EregisterPutStationSettingsOptions,
+  EregisterPutStationSettingsPath,
+  EregisterPutStationSettingsResponse,
+  EregisterPutStationSettingsResponses,
+  EregisterPutStationSettingsStatus200,
+  EregisterPutStationSettingsStatus401,
+  EregisterPutStationSettingsStatus403,
+  EregisterPutStationSettingsStatus404,
+  EregisterPutStationSettingsStatus422,
+} from "./EregisterPutStationSettings.js";
+export type {
   EregisterRejectRegisterObservationBody,
   EregisterRejectRegisterObservationOptions,
   EregisterRejectRegisterObservationPath,
@@ -2448,6 +2529,19 @@ export type {
   EregisterReopenRegisterObservationStatus409,
   EregisterReopenRegisterObservationStatus422,
 } from "./EregisterReopenRegisterObservation.js";
+export type {
+  EregisterReviewRegisterObservationBody,
+  EregisterReviewRegisterObservationOptions,
+  EregisterReviewRegisterObservationPath,
+  EregisterReviewRegisterObservationResponse,
+  EregisterReviewRegisterObservationResponses,
+  EregisterReviewRegisterObservationStatus200,
+  EregisterReviewRegisterObservationStatus401,
+  EregisterReviewRegisterObservationStatus403,
+  EregisterReviewRegisterObservationStatus404,
+  EregisterReviewRegisterObservationStatus409,
+  EregisterReviewRegisterObservationStatus422,
+} from "./EregisterReviewRegisterObservation.js";
 export type {
   EregisterValidateSynopObservationBody,
   EregisterValidateSynopObservationOptions,
@@ -6566,9 +6660,12 @@ export { refundCreatePropertiesMethodEnum } from "./RefundCreatePropertiesMethod
 export type { RefundPublic } from "./RefundPublic.js";
 export type { RefundStatus } from "./RefundStatus.js";
 export { refundStatus } from "./RefundStatus.js";
+export type { RegisterObservationCorrection } from "./RegisterObservationCorrection.js";
 export type { RegisterObservationCreate } from "./RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./RegisterObservationList.js";
 export type { RegisterObservationRead } from "./RegisterObservationRead.js";
+export type { RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum } from "./RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum.js";
+export { registerObservationReadPropertiesReviewOutcomeAnyOfEnum } from "./RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum.js";
 export type { RegisterObservationReadPropertiesStateEnum } from "./RegisterObservationReadPropertiesStateEnum.js";
 export { registerObservationReadPropertiesStateEnum } from "./RegisterObservationReadPropertiesStateEnum.js";
 export type { ReportCreate } from "./ReportCreate.js";
@@ -6598,6 +6695,7 @@ export type { ReviewInput } from "./ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";
 export { reviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";
 export type { ReviewPublic } from "./ReviewPublic.js";
+export type { ReviewRequest } from "./ReviewRequest.js";
 export type { RewardCardPublic } from "./RewardCardPublic.js";
 export type { RewardEntryListPublic } from "./RewardEntryListPublic.js";
 export type { RewardEntryPublic } from "./RewardEntryPublic.js";
@@ -7282,6 +7380,10 @@ export type { StaffInput } from "./StaffInput.js";
 export type { StaffOrganiserRow } from "./StaffOrganiserRow.js";
 export type { StaffSetup } from "./StaffSetup.js";
 export type { StaffUpdate } from "./StaffUpdate.js";
+export type { StationSettings } from "./StationSettings.js";
+export type { StationSettingsPropertiesPendingItemsEnum } from "./StationSettingsPropertiesPendingItemsEnum.js";
+export { stationSettingsPropertiesPendingItemsEnum } from "./StationSettingsPropertiesPendingItemsEnum.js";
+export type { StationSettingsUpdate } from "./StationSettingsUpdate.js";
 export type { StatusReportCreate } from "./StatusReportCreate.js";
 export type { StatusReportDetails } from "./StatusReportDetails.js";
 export type { StatusReportEntryInput } from "./StatusReportEntryInput.js";
@@ -7911,6 +8013,22 @@ export type {
 export type { TransportWeekday } from "./TransportWeekday.js";
 export { transportWeekday } from "./TransportWeekday.js";
 export type { TripView } from "./TripView.js";
+export type { TropicalSystemCreate } from "./TropicalSystemCreate.js";
+export type { TropicalSystemEntryRead } from "./TropicalSystemEntryRead.js";
+export type { TropicalSystemEntryReadPropertiesActionEnum } from "./TropicalSystemEntryReadPropertiesActionEnum.js";
+export { tropicalSystemEntryReadPropertiesActionEnum } from "./TropicalSystemEntryReadPropertiesActionEnum.js";
+export type { TropicalSystemHistory } from "./TropicalSystemHistory.js";
+export type { TropicalSystemList } from "./TropicalSystemList.js";
+export type { TropicalSystemPublic } from "./TropicalSystemPublic.js";
+export type { TropicalSystemPublicEntry } from "./TropicalSystemPublicEntry.js";
+export type { TropicalSystemPublicHistory } from "./TropicalSystemPublicHistory.js";
+export type { TropicalSystemPublicList } from "./TropicalSystemPublicList.js";
+export type { TropicalSystemPublicPropertiesStatusEnum } from "./TropicalSystemPublicPropertiesStatusEnum.js";
+export { tropicalSystemPublicPropertiesStatusEnum } from "./TropicalSystemPublicPropertiesStatusEnum.js";
+export type { TropicalSystemRead } from "./TropicalSystemRead.js";
+export type { TropicalSystemReadPropertiesClosedReasonAnyOfEnum } from "./TropicalSystemReadPropertiesClosedReasonAnyOfEnum.js";
+export { tropicalSystemReadPropertiesClosedReasonAnyOfEnum } from "./TropicalSystemReadPropertiesClosedReasonAnyOfEnum.js";
+export type { TropicalSystemUpdate } from "./TropicalSystemUpdate.js";
 export type { TurnstileMode } from "./TurnstileMode.js";
 export { turnstileMode } from "./TurnstileMode.js";
 export type { TwoFactorCodeRequest } from "./TwoFactorCodeRequest.js";
@@ -8153,6 +8271,18 @@ export type { WorkingDaysPublic } from "./WorkingDaysPublic.js";
 export type { WorkingDaysPublicPropertiesMethodEnum } from "./WorkingDaysPublicPropertiesMethodEnum.js";
 export { workingDaysPublicPropertiesMethodEnum } from "./WorkingDaysPublicPropertiesMethodEnum.js";
 export type {
+  WxproductsCreateTropicalSystemBody,
+  WxproductsCreateTropicalSystemOptions,
+  WxproductsCreateTropicalSystemResponse,
+  WxproductsCreateTropicalSystemResponses,
+  WxproductsCreateTropicalSystemStatus201,
+  WxproductsCreateTropicalSystemStatus401,
+  WxproductsCreateTropicalSystemStatus403,
+  WxproductsCreateTropicalSystemStatus409,
+  WxproductsCreateTropicalSystemStatus422,
+  WxproductsCreateTropicalSystemStatus503,
+} from "./WxproductsCreateTropicalSystem.js";
+export type {
   WxproductsGetPublicProductOptions,
   WxproductsGetPublicProductPath,
   WxproductsGetPublicProductResponse,
@@ -8163,6 +8293,16 @@ export type {
   WxproductsGetPublicProductStatus503,
 } from "./WxproductsGetPublicProduct.js";
 export type {
+  WxproductsGetPublicTropicalSystemOptions,
+  WxproductsGetPublicTropicalSystemPath,
+  WxproductsGetPublicTropicalSystemResponse,
+  WxproductsGetPublicTropicalSystemResponses,
+  WxproductsGetPublicTropicalSystemStatus200,
+  WxproductsGetPublicTropicalSystemStatus404,
+  WxproductsGetPublicTropicalSystemStatus422,
+  WxproductsGetPublicTropicalSystemStatus503,
+} from "./WxproductsGetPublicTropicalSystem.js";
+export type {
   WxproductsListPublicProductsOptions,
   WxproductsListPublicProductsQuery,
   WxproductsListPublicProductsResponse,
@@ -8172,6 +8312,25 @@ export type {
   WxproductsListPublicProductsStatus422,
   WxproductsListPublicProductsStatus503,
 } from "./WxproductsListPublicProducts.js";
+export type {
+  WxproductsListPublicTropicalSystemsOptions,
+  WxproductsListPublicTropicalSystemsResponse,
+  WxproductsListPublicTropicalSystemsResponses,
+  WxproductsListPublicTropicalSystemsStatus200,
+  WxproductsListPublicTropicalSystemsStatus422,
+  WxproductsListPublicTropicalSystemsStatus503,
+} from "./WxproductsListPublicTropicalSystems.js";
+export type {
+  WxproductsListTropicalSystemsOptions,
+  WxproductsListTropicalSystemsQuery,
+  WxproductsListTropicalSystemsResponse,
+  WxproductsListTropicalSystemsResponses,
+  WxproductsListTropicalSystemsStatus200,
+  WxproductsListTropicalSystemsStatus401,
+  WxproductsListTropicalSystemsStatus403,
+  WxproductsListTropicalSystemsStatus422,
+  WxproductsListTropicalSystemsStatus503,
+} from "./WxproductsListTropicalSystems.js";
 export type {
   WxproductsLoadAviationDraftsOptions,
   WxproductsLoadAviationDraftsQuery,
@@ -8224,6 +8383,18 @@ export type {
   WxproductsLoadProductsStatus422,
   WxproductsLoadProductsStatus503,
 } from "./WxproductsLoadProducts.js";
+export type {
+  WxproductsLoadTropicalSystemHistoryOptions,
+  WxproductsLoadTropicalSystemHistoryPath,
+  WxproductsLoadTropicalSystemHistoryResponse,
+  WxproductsLoadTropicalSystemHistoryResponses,
+  WxproductsLoadTropicalSystemHistoryStatus200,
+  WxproductsLoadTropicalSystemHistoryStatus401,
+  WxproductsLoadTropicalSystemHistoryStatus403,
+  WxproductsLoadTropicalSystemHistoryStatus404,
+  WxproductsLoadTropicalSystemHistoryStatus422,
+  WxproductsLoadTropicalSystemHistoryStatus503,
+} from "./WxproductsLoadTropicalSystemHistory.js";
 export type {
   WxproductsPreviewProductBody,
   WxproductsPreviewProductOptions,
@@ -8287,6 +8458,20 @@ export type {
   WxproductsSaveProductStatus422,
   WxproductsSaveProductStatus503,
 } from "./WxproductsSaveProduct.js";
+export type {
+  WxproductsUpdateTropicalSystemBody,
+  WxproductsUpdateTropicalSystemOptions,
+  WxproductsUpdateTropicalSystemPath,
+  WxproductsUpdateTropicalSystemResponse,
+  WxproductsUpdateTropicalSystemResponses,
+  WxproductsUpdateTropicalSystemStatus200,
+  WxproductsUpdateTropicalSystemStatus401,
+  WxproductsUpdateTropicalSystemStatus403,
+  WxproductsUpdateTropicalSystemStatus404,
+  WxproductsUpdateTropicalSystemStatus409,
+  WxproductsUpdateTropicalSystemStatus422,
+  WxproductsUpdateTropicalSystemStatus503,
+} from "./WxproductsUpdateTropicalSystem.js";
 export type {
   WxproductsValidateAviationMessageBody,
   WxproductsValidateAviationMessageOptions,

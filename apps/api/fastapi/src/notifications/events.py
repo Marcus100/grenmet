@@ -30,6 +30,14 @@ class EventDef:
     default_roles: tuple[str, ...] = ()
     # Tunable numbers shown in HR Setup, e.g. {"remind_after_days": 2}.
     default_params: dict[str, Any] = field(default_factory=dict)
+    # Urgent events always reach the bell, whatever a person chose.
+    urgent: bool = False
+    # Repeats of a grouped event fold into the recipient's unread notification
+    # (a count goes up) instead of adding another row or email.
+    grouped: bool = False
+    # What a person gets before they choose: the bell and the email.
+    default_bell: bool = True
+    default_email: bool = True
 
 
 Sweep = Callable[[AsyncSession], Awaitable[int]]

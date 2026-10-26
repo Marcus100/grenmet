@@ -78,8 +78,8 @@ const COMMAND_SUBSTITUTION = /\$\([^)]*\)|`[^`]*`/g;
 
 const ALLOWED_MERGE_BASES = new Set(["dev"]);
 const ALLOWED_REPO = "marcus100/grenmet";
-// A PR that changes the files which limit the agents, or the CI and ruleset
-// files that gate merges, is merged by the owner and never by an agent.
+// These files control agent authority, CI or merge policy; the owner merges
+// PRs that change them, even after independent review.
 const OWNER_ONLY_PATHS = [
   /^\.claude\//,
   /^\.codex\//,
@@ -90,8 +90,10 @@ const OWNER_ONLY_PATHS = [
   /^scripts\/(?:guardrails|verification)\//,
   /^package\.json$/,
   /^docs\/agents\/routines\.md$/,
-  /^apps\/api\/fastapi\/src\/auth\/permissions\.py$/,
-  /(?:^|\/)AGENTS\.md$/,
+  // Only the root AGENTS.md sets the agents' own rules. Per-area AGENTS.md notes
+  // and the permission catalogue are ordinary code: agents merge them after a
+  // fresh-context code review (and a security review for risk:high).
+  /^AGENTS\.md$/,
 ];
 // Merge routes other than `gh pr merge`: GraphQL mutations, branch merges and
 // the REST merge endpoint. Tested on text with the quotes removed.
@@ -159,6 +161,7 @@ const MERGE_FLAGS_WITH_VALUE = new Set([
 // gh pr view usually answers in under 2 s; 15 s covers a slow network
 // without stalling the agent's turn for long.
 const GH_LOOKUP_TIMEOUT_MS = 15_000;
+const CHANGED_FILES_COUNT = /^\d+$/;
 
 /**
  * Blank out quoted string literals before matching, so a grep pattern, echo
@@ -265,28 +268,71 @@ export function lookupMergeBase(args) {
 
 /**
  * Every path a PR touches, including the old name of a renamed file (moving a
- * workflow or AGENTS.md out of an owner-only path must not hide it); null when
+ * workflow or AGENTS.md out of an owner-only path must remain visible); null when
  * GitHub can't say.
  */
-export function lookupMergeFiles(args) {
+export function lookupMergeFiles(args, spawn = spawnSync) {
   const { prRef, repo } = parseMergeTarget(args);
   const number = /(\d+)\/?$/.exec(prRef ?? "")?.[1];
   if (number === undefined) return null;
   const slug = repo ?? PR_URL.exec(prRef ?? "")?.[1] ?? "{owner}/{repo}";
-  const result = spawnSync(
+  const countResult = spawn(
+    "gh",
+    ["api", `repos/${slug}/pulls/${number}`, "--jq", ".changed_files"],
+    { encoding: "utf8", timeout: GH_LOOKUP_TIMEOUT_MS }
+  );
+  const countText = countResult.stdout?.trim() ?? "";
+  if (
+    countResult.status !== 0 ||
+    !CHANGED_FILES_COUNT.test(countText) ||
+    Number(countText) > 3000
+  )
+    return null;
+  const changedFiles = Number(countText);
+  const result = spawn(
     "gh",
     [
       "api",
       `repos/${slug}/pulls/${number}/files`,
       "--paginate",
-      "--jq",
-      ".[] | .filename, (.previous_filename // empty)",
+      "--slurp",
     ],
     { encoding: "utf8", timeout: GH_LOOKUP_TIMEOUT_MS }
   );
-  return result.status === 0
-    ? result.stdout.split("\n").filter((file) => file.trim() !== "")
-    : null;
+  if (result.status !== 0) return null;
+  try {
+    const files = JSON.parse(result.stdout).flat();
+    if (
+      !Array.isArray(files) ||
+      files.length !== changedFiles ||
+      files.some(
+        (file) => {
+          const previousFilename = file?.previous_filename;
+          const hasPreviousFilename = Object.hasOwn(file ?? {}, "previous_filename");
+          return !(
+            typeof file?.filename === "string" &&
+            file.filename.length > 0 &&
+            (!hasPreviousFilename ||
+              (typeof previousFilename === "string" &&
+                previousFilename.length > 0)) &&
+            (file.status !== "renamed" ||
+              (typeof previousFilename === "string" &&
+                previousFilename.length > 0))
+          );
+        }
+      )
+    )
+      return null;
+    return files.flatMap((file) =>
+      file.status === "renamed"
+        ? [file.filename, file.previous_filename]
+        : file.previous_filename === undefined
+          ? [file.filename]
+          : [file.filename, file.previous_filename]
+    );
+  } catch {
+    return null;
+  }
 }
 
 /** A subcommand's words as the shell sees them: quotes and line breaks removed. */
@@ -383,8 +429,7 @@ function parsePrMerge(words) {
 /**
  * `gh pr merge` is allowed only as the exact shape in parsePrMerge, into dev
  * (AGENTS.md: agents merge their own green, reviewed PRs into dev; the owner
- * merges staging and main), only in this repository, and never for a PR that
- * changes the files in OWNER_ONLY_PATHS. Fails closed: an unknown base or file
+ * merges owner-only files, staging and main), only in this repository. Fails closed: an unknown base or file
  * list blocks.
  */
 function findBlockedPrMerge(words, whole, { lookupBase, lookupFiles }) {

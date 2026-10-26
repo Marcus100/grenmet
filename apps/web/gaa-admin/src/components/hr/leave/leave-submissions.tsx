@@ -5,7 +5,6 @@ import {
   useHrDeleteLeaveRequest,
   useHrGetMyLeaveRequests,
 } from "@barrelsgd/api-client";
-import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
@@ -13,15 +12,12 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { RecordHistoryButton } from "@/components/audit/record-history";
+import {
+  isEditableStatus,
+  RequestStatusBadge,
+  ReturnedReason,
+} from "@/components/hr/request-status";
 import { formatSubmissionDate } from "@/components/hr/submission-date";
-
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  DRAFT: "outline",
-  SUBMITTED: "outline",
-  APPROVED: "default",
-  REJECTED: "secondary",
-  CANCELLED: "secondary",
-};
 
 export function LeaveSubmissions() {
   const query = useHrGetMyLeaveRequests({});
@@ -70,6 +66,7 @@ export function LeaveSubmissions() {
           <tbody>
             {requests.map((request) => {
               const isDraft = request.status === "DRAFT";
+              const canEdit = isEditableStatus(request.status);
               return (
                 <tr className="border-border border-t" key={request.id}>
                   <td className="py-1.5 pr-3">{request.leave_type}</td>
@@ -82,14 +79,14 @@ export function LeaveSubmissions() {
                     {formatSubmissionDate(request)}
                   </td>
                   <td className="py-1.5 pr-3">
-                    <Badge
-                      variant={STATUS_VARIANT[request.status] ?? "outline"}
-                    >
-                      {request.status}
-                    </Badge>
+                    <RequestStatusBadge status={request.status} />
+                    <ReturnedReason
+                      reason={request.returned_reason}
+                      status={request.status}
+                    />
                   </td>
                   <td className="py-1.5 text-right">
-                    {isDraft ? (
+                    {canEdit ? (
                       <div className="flex justify-end gap-1">
                         <Button
                           render={
@@ -101,16 +98,18 @@ export function LeaveSubmissions() {
                           <Pencil data-icon="inline-start" />
                           Edit
                         </Button>
-                        <Button
-                          disabled={pendingId === request.id}
-                          onClick={() => remove(request.id)}
-                          size="sm"
-                          type="button"
-                          variant="ghost"
-                        >
-                          <Trash2 data-icon="inline-start" />
-                          Delete
-                        </Button>
+                        {isDraft && (
+                          <Button
+                            disabled={pendingId === request.id}
+                            onClick={() => remove(request.id)}
+                            size="sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            <Trash2 data-icon="inline-start" />
+                            Delete
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <RecordHistoryButton

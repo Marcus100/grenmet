@@ -5,7 +5,7 @@ from xml.etree import ElementTree as ET
 from fastapi import APIRouter, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 
-from src.cap import attachments, cache, service
+from src.cap import attachments, cache, escalation, service
 from src.cap.geo import alerts_to_feature_collection
 from src.cap.models import CapLifecycleState, CapMessageType, CapStatus
 from src.cap.profile_router import router as profile_router
@@ -19,12 +19,16 @@ from src.cap.schemas import (
     CapAuditEventListPublic,
     CapCatalogsPublic,
     CapEmergencyPublish,
+    CapEscalationCreate,
+    CapEscalationLookup,
+    CapEscalationPublic,
     CapFeedImportCreate,
     CapFeedImportPublic,
     CapFeedImportUpdate,
     CapPredefinedAreaCreate,
     CapPredefinedAreaPublic,
     CapPublishPublic,
+    CapReviewRecord,
     CapSettingsPublic,
     CapSettingsUpdate,
     CapValidationResult,
@@ -34,6 +38,7 @@ from src.dependencies import CurrentUser, SessionDep
 from src.openapi_responses import AUTHENTICATED, NOT_FOUND
 from src.pagination import PaginationDep
 from src.rate_limit import limiter
+from src.wxproducts.dependencies import AuthoringSessionDep
 
 router = APIRouter(prefix="/cap", tags=["cap"])
 router.include_router(profile_router)
@@ -80,6 +85,57 @@ async def create_alert(
     return await service.create_alert(
         session=session, current_user=current_user, payload=payload
     )
+
+
+@router.get(
+    "/escalations",
+    response_model=CapEscalationLookup,
+    summary="Find the warning raised from a GMS alert",
+    description=(
+        "Returns the open or published CAP alert linked to a GMS alert product, "
+        "or nulls when none was raised. Needs cap.alert.read."
+    ),
+    responses={**AUTHENTICATED},
+)
+async def read_escalation(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    product_id: uuid.UUID,
+) -> CapEscalationLookup:
+    return await escalation.lookup(session, current_user, product_id)
+
+
+@router.post(
+    "/escalations",
+    response_model=CapEscalationPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Raise a saved GMS alert to a CAP warning draft",
+    description=(
+        "Creates a pre-filled CAP draft from one saved GMS alert revision, linked to it "
+        "through the GMS source parameters. Returns 200 with the existing draft when an "
+        "open (draft, submitted or approved) CAP alert already links the product. "
+        "Needs cap.alert.create and product access to the alert's kind."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def create_escalation(
+    *,
+    session: SessionDep,
+    weather_session: AuthoringSessionDep,
+    current_user: CurrentUser,
+    payload: CapEscalationCreate,
+    response: Response,
+) -> CapEscalationPublic:
+    result = await escalation.escalate(
+        cap_session=session,
+        weather_session=weather_session,
+        current_user=current_user,
+        body=payload,
+    )
+    if not result.created:
+        response.status_code = status.HTTP_200_OK
+    return result
 
 
 @router.post(
@@ -198,10 +254,46 @@ async def submit_alert(
 
 
 @router.post(
+    "/alerts/{alert_id}/reviews",
+    response_model=CapAlertPublic,
+    summary="Record a review of a CAP alert",
+    description=(
+        "Records an optional review by someone other than the author: "
+        "`reviewed` or `changes_requested`, with a note. Never changes the "
+        "alert's state. Requires `cap.alert.approve`. Audited."
+    ),
+    responses={
+        **AUTHENTICATED,
+        **NOT_FOUND,
+        403: {
+            "description": "Missing permission, or the author reviewing their own alert"
+        },
+        409: {"description": "Alert is cancelled or expired"},
+    },
+)
+async def record_alert_review(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    alert_id: uuid.UUID,
+    payload: CapReviewRecord,
+) -> CapAlertPublic:
+    return await service.record_review(
+        session=session,
+        current_user=current_user,
+        alert_id=alert_id,
+        payload=payload,
+    )
+
+
+@router.post(
     "/alerts/{alert_id}/approve",
     response_model=CapAlertPublic,
     summary="Approve a CAP alert",
-    description="Approves a submitted CAP alert and advances it toward publication.",
+    description=(
+        "Approves a submitted CAP alert and advances it toward publication. "
+        "The author may approve their own alert; a colleague review is optional."
+    ),
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def approve_alert(

@@ -47,7 +47,7 @@ describe("JanitorPage (overview)", () => {
     await renderPage({ site: "cru" });
 
     expect(queries.getJanitorialCatalogue).toHaveBeenCalledWith("CRU");
-    expect(screen.getByRole("link", { name: LAURISTON })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: LAURISTON })).toHaveAttribute(
       "aria-current",
       "page"
     );

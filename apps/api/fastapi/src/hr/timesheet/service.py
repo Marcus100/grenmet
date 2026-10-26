@@ -271,7 +271,7 @@ async def submit_timesheet(
         select(Timesheet).where(Timesheet.id == timesheet_id).with_for_update()
     )
     timesheet = await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
-    if timesheet.status != TimesheetStatus.DRAFT:
+    if timesheet.status not in {TimesheetStatus.DRAFT, TimesheetStatus.RETURNED}:
         raise HRValidationError(ERROR_TIMESHEET_ALREADY_SUBMITTED)
 
     if submission_mode == SubmissionMode.SELF and current_user.id != timesheet.user_id:

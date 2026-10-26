@@ -6,9 +6,10 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import service as auth_service
-from src.auth.app_dependencies import app_user, optional_app_user
+from src.auth.app_dependencies import OptionalBearer, app_user, optional_app_user
 from src.auth.models import User
 from src.auth.permissions import EVENTS_OPS_KEYS
+from src.auth.privileged_mfa import require_privileged_mfa
 from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.organisations import service as organisations
 from src.organisations.dependencies import (
@@ -38,9 +39,27 @@ EventsMember = Annotated[User, Depends(require_member)]
 EventsViewer = Annotated[User | None, Depends(optional_member)]
 
 
-async def require_organiser(user: EventsMember, session: SessionDep) -> User:
+async def _require_superuser_mfa(
+    session: AsyncSession, user: User, credentials: OptionalBearer
+) -> None:
+    """A superuser holds Events powers implicitly, so the staff MFA gate applies
+    to them here (under ``AUTH_PRIVILEGED_MFA_MODE=enforce``); ordinary
+    organisers and moderators are not privileged and are untouched."""
+    if user.is_superuser:
+        await require_privileged_mfa(
+            session,
+            user,
+            token=credentials.credentials if credentials else None,
+            app_key="events",
+        )
+
+
+async def require_organiser(
+    user: EventsMember, session: SessionDep, credentials: OptionalBearer
+) -> User:
     """Organiser access: the ``events.organiser.manage`` permission (legacy
     ``organiser_members`` rows) or an active admin/owner platform membership."""
+    await _require_superuser_mfa(session, user, credentials)
     if await auth_service.has_effective_permission(
         session=session, user=user, permission_key="events.organiser.manage"
     ):
@@ -50,7 +69,10 @@ async def require_organiser(user: EventsMember, session: SessionDep) -> User:
     raise EventsForbidden("Organiser access is required")
 
 
-async def require_moderator(user: EventsMember, session: SessionDep) -> User:
+async def require_moderator(
+    user: EventsMember, session: SessionDep, credentials: OptionalBearer
+) -> User:
+    await _require_superuser_mfa(session, user, credentials)
     if not await auth_service.has_effective_permission(
         session=session, user=user, permission_key="events.moderate"
     ):

@@ -2,7 +2,12 @@ import { MapPinIcon } from "lucide-react";
 import { ReadingGrid } from "@/components/home/reading-grid";
 import { SkyScene } from "@/components/home/sky-scene";
 import { Provenance } from "@/components/pages/provenance";
-import { isStale, localTime } from "@/lib/current-conditions";
+import {
+  isOtherGrenadaDay,
+  isStale,
+  localDay,
+  localTime,
+} from "@/lib/current-conditions";
 import { feelsLike } from "@/lib/feels-like";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { nowReadings, skyFromWords } from "@/lib/hero-readings";
@@ -30,7 +35,10 @@ function Numeral({
   );
 }
 
-/** When and where the reading was taken; an old reading says "Last observed". */
+/**
+ * When and where the reading was taken; an old reading says "Last observed".
+ * A reading from another day carries its date here, on the top line.
+ */
 function sourceLine(
   weather: WeatherSnapshot,
   station: string,
@@ -38,7 +46,9 @@ function sourceLine(
 ): string {
   const current = weather.current;
   if (current) {
-    const time = localTime(current.observedAt);
+    const time = isOtherGrenadaDay(current.observedAt, now)
+      ? `${localDay(current.observedAt)}, ${localTime(current.observedAt)}`
+      : localTime(current.observedAt);
     return isStale(current.observedAt, now)
       ? `Last observed ${time} · ${station}`
       : `Observed ${time} · ${station}`;
@@ -109,9 +119,11 @@ export function NowSummary({
       />
       {current && (isStale(current.observedAt, now) || current.provisional) && (
         <div className="col-span-2">
+          {/* The top line already says when and "Last observed"; not twice. */}
           <Provenance
             kind="observation"
             now={now}
+            showTime={false}
             source={`GMS observation register, ${station}`}
             status={current.provisional ? "provisional" : "verified"}
             time={current.observedAt}

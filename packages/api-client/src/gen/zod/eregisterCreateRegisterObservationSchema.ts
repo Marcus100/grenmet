@@ -6,7 +6,9 @@
 import * as z from "zod";
 import { registerObservationCreateSchema } from "./registerObservationCreateSchema.js";
 import { registerObservationReadSchema } from "./registerObservationReadSchema.js";
-import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
+
+export const eregisterCreateRegisterObservationStatus200Schema =
+  registerObservationReadSchema;
 
 export const eregisterCreateRegisterObservationStatus201Schema =
   registerObservationReadSchema;
@@ -15,17 +17,19 @@ export const eregisterCreateRegisterObservationStatus401Schema = z.unknown();
 
 export const eregisterCreateRegisterObservationStatus403Schema = z.unknown();
 
-export const eregisterCreateRegisterObservationStatus422Schema =
-  validationErrorResponseSchema.describe(
-    "Validation error envelope returned for malformed requests."
-  );
+export const eregisterCreateRegisterObservationStatus409Schema = z.unknown();
 
-export const eregisterCreateRegisterObservationResponseSchema =
-  eregisterCreateRegisterObservationStatus201Schema;
+export const eregisterCreateRegisterObservationStatus422Schema = z.unknown();
+
+export const eregisterCreateRegisterObservationResponseSchema = z.union([
+  eregisterCreateRegisterObservationStatus200Schema,
+  eregisterCreateRegisterObservationStatus201Schema,
+]);
 
 export const eregisterCreateRegisterObservationErrorSchema = z.union([
   eregisterCreateRegisterObservationStatus401Schema,
   eregisterCreateRegisterObservationStatus403Schema,
+  eregisterCreateRegisterObservationStatus409Schema,
   eregisterCreateRegisterObservationStatus422Schema,
 ]);
 
