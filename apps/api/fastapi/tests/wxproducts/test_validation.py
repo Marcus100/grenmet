@@ -227,7 +227,8 @@ def test_alerts_offer_green_and_only_information_advisory_all_clear(kind) -> Non
     for notice in ("Watch", "Warning"):
         payload = body(kind, action="draft")
         payload.values["notice"] = notice
-        assert validation.validate(payload, now=NOW)
+        errors = validation.validate(payload, now=NOW)
+        assert any("green only" in error for error in errors)
 
 
 def test_old_alert_can_still_be_withdrawn() -> None:

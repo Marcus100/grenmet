@@ -28,21 +28,26 @@ export function RaiseToWarningDialog({
   onOpenChange: (open: boolean) => void;
   onRaise: (
     level: WarningLevel
-  ) => Promise<{ alertId: string } | { error: string }>;
+  ) => Promise<
+    { alertId: string } | { error: string; existingAlertId?: string }
+  >;
   open: boolean;
 }) {
   const router = useRouter();
   const [level, setLevel] = useState<WarningLevel>("yellow");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [existingAlertId, setExistingAlertId] = useState("");
 
   async function confirm() {
     setPending(true);
     setError("");
+    setExistingAlertId("");
     try {
       const result = await onRaise(level);
       if ("error" in result) {
         setError(result.error);
+        setExistingAlertId(result.existingAlertId ?? "");
         return;
       }
       onOpenChange(false);
@@ -81,6 +86,18 @@ export function RaiseToWarningDialog({
           <p className="text-destructive text-sm" role="alert">
             {error}
           </p>
+        ) : null}
+        {existingAlertId ? (
+          <button
+            className="text-left text-sm underline"
+            onClick={() => {
+              onOpenChange(false);
+              router.push(`/cap/admin/${existingAlertId}`);
+            }}
+            type="button"
+          >
+            Open the existing warning draft
+          </button>
         ) : null}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>

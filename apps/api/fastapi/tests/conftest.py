@@ -391,7 +391,13 @@ def mfa_admin(
 
 @pytest.fixture
 async def async_client(test_database: None) -> AsyncGenerator[httpx.AsyncClient]:
-    """Preferred client for new tests: async HTTP client with ASGI transport (avoids event loop issues)."""
+    """Preferred client for new tests: async HTTP client with ASGI transport (avoids event loop issues).
+
+    Only ``db_async`` clears and seeds the database, and it does so before its test.
+    A test that uses this client without ``db_async`` sees what the previous test on
+    the worker left behind, so add ``db_async`` (or
+    ``@pytest.mark.usefixtures("db_async")``) when the test reads or counts shared rows.
+    """
     assert test_database is None
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app),
