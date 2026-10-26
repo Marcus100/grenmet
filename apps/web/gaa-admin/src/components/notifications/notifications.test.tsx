@@ -13,6 +13,7 @@ const REQUEST_APPROVED_EMAIL = "Your request was approved, email";
 const REQUEST_APPROVED_BELL = "Your request was approved, bell";
 const FORECAST_BELL = "Forecast overdue, bell";
 const GROUPED_COUNT = "×3";
+const REPEATED_WORDS = /repeated 3 times/;
 
 const BASE = "http://localhost";
 const BELL_UNREAD = /Notifications, 2 unread/;
@@ -102,7 +103,11 @@ describe("NotificationBell grouping", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: BELL_UNREAD }));
 
-    expect(await screen.findByText(GROUPED_COUNT)).toBeInTheDocument();
+    const badge = await screen.findByText(GROUPED_COUNT);
+    expect(badge).toBeInTheDocument();
+    // Screen readers skip the symbol and hear the plain-words version.
+    expect(badge).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByText(REPEATED_WORDS)).toHaveClass("sr-only");
   });
 });
 
