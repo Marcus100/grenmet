@@ -277,6 +277,7 @@ _DATA_FIELDS = tuple(
         "station_id",
         "wind_indicator",
         "s3_remarks",
+        "metar_text",
         "notes",
         "observer_initials",
     )

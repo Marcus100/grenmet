@@ -30862,7 +30862,7 @@
           "eregister"
         ],
         "summary": "Validate a SYNOP observation",
-        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns.",
+        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns. With `observed_at`, the station's saved SYNOP of the previous hour and of 3 hours earlier are compared (hour-to-hour warnings). `expected_metar` is the METAR the observation implies; a METAR typed in `metar_text` is compared with it (warnings on that field).",
         "operationId": "eregisterValidateSynopObservation",
         "requestBody": {
           "content": {
@@ -81517,6 +81517,18 @@
           },
           "decoded": {
             "$ref": "#/components/schemas/SynopDecoded"
+          },
+          "expected_metar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Metar",
+            "description": "The METAR the observation implies, for the observer to copy and edit."
           }
         },
         "type": "object",
@@ -82286,6 +82298,19 @@
               }
             ],
             "title": "S3 Remarks"
+          },
+          "metar_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metar Text",
+            "description": "The METAR typed or copied by the observer; each element is compared with the observation (warnings only)."
           },
           "observer_initials": {
             "anyOf": [
@@ -85225,7 +85250,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+                "pattern": "^[A-Za-z]{2}(0[1-9]|[1-8]\\d)\\d{4}$"
               },
               {
                 "type": "null"
@@ -85238,7 +85263,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+                "pattern": "^[A-Za-z]{2}9\\d\\d{4}$"
               },
               {
                 "type": "null"
@@ -85795,7 +85820,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+                "pattern": "^[A-Za-z]{2}(0[1-9]|[1-8]\\d)\\d{4}$"
               },
               {
                 "type": "null"
@@ -85807,7 +85832,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+                "pattern": "^[A-Za-z]{2}9\\d\\d{4}$"
               },
               {
                 "type": "null"
@@ -85848,6 +85873,20 @@
               }
             ],
             "title": "Continued As Id"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Why the change was made (audit trail)."
           }
         },
         "additionalProperties": false,

@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-10-23 (observer accepts alone, optional review, corrections, time check on save)
+**Last updated:** 2026-10-25 (weather links, hour-to-hour warnings, METAR cross-check, 908 and 909 unconfirmed)
 
 What the eRegister (SYNOP workbook) and the aviation composer (METAR, SPECI,
 TAF) check against WMO-No. 306 (Manual on Codes, Vol. I.1 and I.2) and ICAO
@@ -51,10 +51,15 @@ to SI).
 | 7R24 | Four digits, 9999 trace; missing at 12 UTC: warning; keyed at another hour: warning | Covered |
 | 5appp (every 3 hours) | Missing at 00, 03, ... 21 UTC: warning (`missing_pressure_change`) | Covered as advice (owner decision 2026-10-23) |
 | 6RRRtR (every main hour) | Omitted (iR 3 or 4) or missing at 00, 06, 12, 18 UTC: warning | Covered as advice (owner decision 2026-10-23). "Main hour" is read as 00, 06, 12, 18 UTC |
-| 909Rtdc | Precipitation timing and duration: Region IV supplementary group 9SpSpspsp with SpSp 09, giving the time of beginning or end of the precipitation (Rt) and its duration (dc), reported with 6RRRtR. Field `s3_group_909`: five digits starting 909, passed into section 3 | Format only. Rt and dc are not decoded or carried in the WIS2 file: the local WMO-No. 306 Vol. I.2 has BUFR Code table 0 13 057 (time of beginning or end of precipitation, a Region I practice) but not the traditional code tables for Rt and dc, and the Region IV template TM 307084 has no precipitation timing element. Confirm the tables from WMO-No. 306 Vol. I.1 or Vol. II (Region IV) before decoding |
+| 909Rtdc | Precipitation timing and duration: Region IV supplementary group 9SpSpspsp with SpSp 09, giving the time of beginning or end of the precipitation (Rt) and its duration (dc), reported with 6RRRtR. Field `s3_group_909`: five digits starting 909, passed into section 3 | Format only. Rt and dc are not decoded or carried in the WIS2 file: the local WMO-No. 306 Vol. I.2 has BUFR Code table 0 13 057 (time of beginning or end of precipitation, a Region I practice) but not the traditional code tables for Rt and dc, and the Region IV template TM 307084 has no precipitation timing element. Rt (Code table 3552) and dc (Code table 0833) are validated as format and range only. They could not be confirmed against Vol. I.1 (not on file); confirm them from Vol. I.1 or Vol. II (Region IV) before decoding |
 | 8NsChshs | Up to 3 non-Cb layers plus Cb; Ns not above N; Ns 0 invalid; hshs Code table 1677 (51-55 unused, 81-89 in 1500 m steps); ascending order and completeness: warning | Covered |
 | Remarks (`s3_remarks`, `notes`) | Free text, not validated and not encoded | Not covered |
 | NIL report | Identification only becomes a NIL report | Covered |
+| ww, N, W1W2, 6RRRtR links (12.2.6.4, 12.2.6.6) | Precipitation or thunderstorm ww with N=0, a thunderstorm without a cumulonimbus (CL 3 or 9, or a layer of type 9), and rain in 6RRRtR with no precipitation in ww or W1W2 within the past-weather period: warnings. W2 empty while W1 is keyed: warning | Covered as advice (`precipitation_without_cloud`, `thunderstorm_without_cb`, `rain_without_weather`, `past_weather_second_missing`) |
+| Cloud links (12.4.10) | A second reported layer needs at least 3 oktas and a third at least 5, a Cb in CL must appear as a layer of type 9, N not observed (`/`) means no 8-group, N=9 needs the 89/hshs group: warnings | Covered as advice (`layer_amount_too_small`, `cumulonimbus_not_reported`, `cloud_not_observed`, `obscured_needs_group`) |
+| Humidity, 2 9UUU (Code table 3845 sign 9) | Group 2 may carry relative humidity (0-100) instead of the dew point. The dew point is calculated from the humidity and the air temperature (Magnus), so the report validates, decodes and feeds the METAR check | Covered. The public current-conditions page does not decode this form yet |
+| 9SpSpspsp (Code table 3778) | Time groups 900, 901, 905 point at the ww in 7wwW1W2; 902, 904, 906, 907 at the 9-group that follows; 903 at the one that precedes (`time_group_without_weather`, `time_group_without_target`, warnings); 910-914 wind speed groups with 00fff from 99, 913/915 repeat for a wind change, others do not repeat; 915 direction 00-36 or 99; highest mean wind below the lowest (`mean_wind_order`, warning) | Covered as advice. Code table 3778 is read from the local Vol. I.2 extract |
+| 908 | Reported as not used (`unused_supplementary`) | **Unconfirmed, warning only.** Vol. I.1 is not on file, so "908 is not used" could not be confirmed; it is a warning until the table is checked |
 
 Save-time checks (`POST /observations`, `.../correct`, accept): a SYNOP with
 errors is refused with `422`; the keyed day (YY) and hour (GG) must equal the
@@ -154,6 +159,33 @@ The public page decodes the same workbook. Fixed: coded temperatures (`0254`,
 temperature, and the 24 h rainfall (tenths of mm, four digits) was decoded with
 the three-digit RRR table, overstating it tenfold or more. Plain degrees with a
 decimal point are still accepted for older records.
+
+## Hour-to-hour warnings, `src/eregister/hourly.py`
+
+Every hour of station 78958 is keyed by hand, so the saved SYNOP of the previous hour (and of 3 hours earlier) is compared with the one being checked. The server reads them when the request carries `observed_at`, from observations that are not rejected or superseded. All are warnings and never block saving. The limits are one object (`HourlyLimits`); `DEFAULT_LIMITS` applies to every station until they are stored per station. They are standard quality-control step tests (WMO Guide to Instruments and Methods of Observation), not WMO code rules, and the values are defaults to tune with GMS.
+
+| Check (code) | Default limit |
+| --- | --- |
+| Air temperature step (`temperature_jump`) | 5.0 C against the previous hour |
+| Dew point step (`dew_point_jump`) | 5.0 C against the previous hour |
+| Wind speed step (`wind_speed_jump`) | 8 m/s against the previous hour |
+| Wind direction step (`wind_direction_jump`) | 90 degrees, only when both hours have at least 5 m/s and neither hour is variable (dd 99) |
+| Visibility drop (`visibility_drop`) | From 10 km or more to under 1 km with no ww that explains it (haze, mist, fog, precipitation, thunderstorm) |
+| Pressure change against 5appp (`tendency_vs_pressure`) | Station pressure change over 3 h differs from the keyed a and ppp by more than 0.5 hPa |
+
+## METAR cross-check, `src/eregister/metar.py`
+
+The register builds the METAR the observation implies (`expected_metar` in the validate response, shown on the register screen) and compares a METAR typed in `metar_text` with it. Every disagreement is a warning on the field `metar_text` (`metar_wind`, `metar_gust`, `metar_visibility`, `metar_cloud_missing`, `metar_cloud_extra`, `metar_cavok`, `metar_temperature`, `metar_dew_point`, `metar_qnh`). A NIL report is not compared. Rounding follows ICAO Annex 3 Appendix 3 as carried in WMO-No. 49 Vol. II (2018, updated 2021, the edition on file); Amendment 82 (applicable from 27 November 2025) is not on file and the steps need re-checking against it.
+
+| Element | Rule used |
+| --- | --- |
+| Wind | Direction to 10 degrees, speed to 1 kt (m/s converted, one knot either way accepted); gust only at 10 kt or more over the mean (also for VRB); under 1 kt is calm |
+| Visibility | 50 m steps under 800 m, 100 m to 5 km, 1 km to 10 km, 9999 from 10 km, rounded down; any value inside the SYNOP VV range is accepted |
+| Cloud | FEW 1-2, SCT 3-4, BKN 5-7, OVC 8 oktas; base from hshs (Code table 1677) in 100 ft steps to 10 000 ft and 1000 ft steps above, rounded down; non-Cb layers above 1500 m may be typed but are not required; Cb at any height; obscured sky needs VV (VV/// when the height is unusable); N above 0 with no layer keyed is not compared and is never read as clear; trend and remark groups (TEMPO, BECMG, NOSIG, RMK onward) are not part of the main body |
+| Temperature, dew point | Whole degrees, 0.5 rounds up; observed below zero but rounded to zero is written M00 (00 also accepted). The dew point is the decoded value, so a 2 9UUU humidity group gives the calculated dew point |
+| QNH | Whole hPa, rounded down |
+
+The token parser here duplicates some of `wxproducts/aviation_rules.py` (wind, visibility, cloud and temperature groups); it is kept separate because it compares values with the observation rather than checking coding grammar, and the two should be merged later. The aerodrome identifier is fixed to TGPY.
 
 ## METAR / SPECI (FM 15/16), `POST /api/v1/wxproducts/aviation/drafts/validate`
 

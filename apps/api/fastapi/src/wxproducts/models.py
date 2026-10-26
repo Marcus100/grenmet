@@ -179,3 +179,24 @@ class TropicalSystemEntry(WeatherModel):
     source_edition_ids: Mapped[list[UUID]] = mapped_column(
         ARRAY(PgUUID(as_uuid=True)), nullable=False, default=list
     )
+
+
+class TropicalSystemChange(WeatherModel):
+    """Append-only record of one edit to a system's identity (migration 0004)."""
+
+    __tablename__ = "tropical_system_changes"
+    __table_args__ = (
+        Index("tropical_system_changes_system_idx", "system_id", "created_at"),
+    )
+    id: Mapped[int] = mapped_column(Integer, Identity(always=True), primary_key=True)
+    system_id: Mapped[UUID] = mapped_column(
+        ForeignKey("tropical_systems.id"), nullable=False
+    )
+    actor_id: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_name: Mapped[str] = mapped_column(Text, nullable=False)
+    before: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    after: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    reason: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
