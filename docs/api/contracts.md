@@ -191,6 +191,38 @@ access policy on every request. Account activation alone grants no authoring acc
 | `POST /api/v1/wxproducts/products` | Body: `id`, `expectedRevision`, `kind`, `values`, `action` (`draft`, `publish`, `withdraw`), `changeSummary`, `reviewed`; returns `StoredProduct` |
 | `GET /api/v1/wxproducts/products/{id}/history` | `{ history: [...] }`; up to 100 newest permitted revisions, exposing action, revision, actor name, note and timestamp, never revision content or actor IDs |
 
+### Tracked tropical systems (added 24 Oct 2026)
+
+A tracked system is the GMS identity of one tropical system across outlook issues,
+labelled by season and sequence (`GMS 2026-07`, assigned at creation). It lives in
+the wxproducts database (`tropical_systems`, migration `wxproducts_0003`). Each
+outlook system in a revision may name it in `guidance.systems[].tracked_system_id`;
+saving an outlook draft or publication then writes one row per linked system into
+`tropical_system_entries` in the same transaction (name, type, position, movement in
+knots, 48-hour and 7-day formation chances, source NHC edition IDs). The entries are
+a derived index: `tropical_systems.rebuild_entries` recreates them from revisions.
+A save is refused (422) when a linked system is unknown, closed, or linked twice.
+`GuidanceFact` also gained `edited` (default false) and `source_value`, so an edited
+pre-filled value keeps the NHC original. All new fields are optional and additive.
+
+Staff routes need product access to the `outlook` kind (403 otherwise):
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET /api/v1/wxproducts/tropical-systems` | `TropicalSystemList`; optional `status` (`active`, `closed`), `season` (2000–2100), `limit` (1–200, default 100), `offset` (0–10000); newest season and sequence first |
+| `POST /api/v1/wxproducts/tropical-systems` | Body `TropicalSystemCreate` (`name`, `feature_type`, optional `season`, `nhc_storm_id`, `nhc_invest_id`); 201 `TropicalSystemRead`; 409 when the NHC storm identifier is already linked |
+| `PATCH /api/v1/wxproducts/tropical-systems/{system_id}` | Body `TropicalSystemUpdate`; rename, link identifiers, close with `closed_reason` (`dissipated`, `merged`, `out_of_area`, `duplicate`; `merged` needs `continued_as_id`) or reopen with `status: active` |
+| `GET /api/v1/wxproducts/tropical-systems/{system_id}/history` | `TropicalSystemHistory`; every entry oldest first, drafts included |
+
+Public routes are anonymous and `no-store`, and only ever show published issues:
+an entry is public when its product's current published snapshot has the entry's
+revision, so a withdrawn outlook disappears from both.
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET /api/v1/wxproducts/public/tropical-systems` | `TropicalSystemPublicList`; active systems that appear in a published outlook, each with its `latest` published entry |
+| `GET /api/v1/wxproducts/public/tropical-systems/{system_id}` | `TropicalSystemPublicHistory`; published entries oldest first; 404 when the system was never published |
+
 `StoredProduct` preserves the editor shape: `id`, `kind`, `values`, `revision`,
 `publishedRevision` (nullable), and `updatedAt`. Errors use `detail`: a string for
 application errors, or an array for request-schema errors. Statuses include 401

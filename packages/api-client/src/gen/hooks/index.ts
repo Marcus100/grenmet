@@ -3119,15 +3119,35 @@ export {
   webhooksOutUpdateEndpointMutationOptions,
 } from "./useWebhooksOutUpdateEndpoint.js";
 export {
+  useWxproductsCreateTropicalSystem,
+  wxproductsCreateTropicalSystemMutationKey,
+  wxproductsCreateTropicalSystemMutationOptions,
+} from "./useWxproductsCreateTropicalSystem.js";
+export {
   useWxproductsGetPublicProduct,
   wxproductsGetPublicProductQueryKey,
   wxproductsGetPublicProductQueryOptions,
 } from "./useWxproductsGetPublicProduct.js";
 export {
+  useWxproductsGetPublicTropicalSystem,
+  wxproductsGetPublicTropicalSystemQueryKey,
+  wxproductsGetPublicTropicalSystemQueryOptions,
+} from "./useWxproductsGetPublicTropicalSystem.js";
+export {
   useWxproductsListPublicProducts,
   wxproductsListPublicProductsQueryKey,
   wxproductsListPublicProductsQueryOptions,
 } from "./useWxproductsListPublicProducts.js";
+export {
+  useWxproductsListPublicTropicalSystems,
+  wxproductsListPublicTropicalSystemsQueryKey,
+  wxproductsListPublicTropicalSystemsQueryOptions,
+} from "./useWxproductsListPublicTropicalSystems.js";
+export {
+  useWxproductsListTropicalSystems,
+  wxproductsListTropicalSystemsQueryKey,
+  wxproductsListTropicalSystemsQueryOptions,
+} from "./useWxproductsListTropicalSystems.js";
 export {
   useWxproductsLoadAviationDrafts,
   wxproductsLoadAviationDraftsQueryKey,
@@ -3153,6 +3173,11 @@ export {
   wxproductsLoadProductsQueryKey,
   wxproductsLoadProductsQueryOptions,
 } from "./useWxproductsLoadProducts.js";
+export {
+  useWxproductsLoadTropicalSystemHistory,
+  wxproductsLoadTropicalSystemHistoryQueryKey,
+  wxproductsLoadTropicalSystemHistoryQueryOptions,
+} from "./useWxproductsLoadTropicalSystemHistory.js";
 export {
   useWxproductsPreviewProduct,
   wxproductsPreviewProductMutationKey,
@@ -3183,6 +3208,11 @@ export {
   wxproductsSaveProductMutationKey,
   wxproductsSaveProductMutationOptions,
 } from "./useWxproductsSaveProduct.js";
+export {
+  useWxproductsUpdateTropicalSystem,
+  wxproductsUpdateTropicalSystemMutationKey,
+  wxproductsUpdateTropicalSystemMutationOptions,
+} from "./useWxproductsUpdateTropicalSystem.js";
 export {
   useWxproductsValidateAviationMessage,
   wxproductsValidateAviationMessageMutationKey,
