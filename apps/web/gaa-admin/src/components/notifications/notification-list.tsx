@@ -41,6 +41,12 @@ function NotificationRow({
   const content = (
     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
       <span className={cn("text-sm", unread && "font-medium")}>
+        {notification.urgent ? (
+          <span className="mr-2 rounded bg-destructive/10 px-1.5 py-0.5 font-normal text-destructive text-xs">
+            Urgent
+          </span>
+        ) : null}
+        {notification.urgent ? <span className="sr-only">: </span> : null}
         {notification.title}
         {(notification.repeat_count ?? 1) > 1 ? (
           <>

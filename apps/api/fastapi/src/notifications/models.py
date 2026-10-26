@@ -64,7 +64,8 @@ class NotificationOccurrence(Base):
     __tablename__ = "notification_occurrence"
 
     dedupe_key: Mapped[str] = mapped_column(String(300), primary_key=True)
-    notification_id: Mapped[uuid.UUID] = mapped_column(
+    # None: the person had both channels off, so no notification row exists.
+    notification_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("notification.id", ondelete="CASCADE"), index=True
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)

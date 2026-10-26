@@ -13,6 +13,7 @@ const REQUEST_APPROVED_EMAIL = "Your request was approved, email";
 const REQUEST_APPROVED_BELL = "Your request was approved, bell";
 const FORECAST_BELL = "Forecast overdue, bell";
 const GROUPED_COUNT = "×3";
+const URGENT_LABEL = /^Urgent: Forecast is overdue/;
 const REPEATED_WORDS = /repeated 3 times/;
 
 const BASE = "http://localhost";
@@ -108,6 +109,35 @@ describe("NotificationBell grouping", () => {
     // Screen readers skip the symbol and hear the plain-words version.
     expect(badge).toHaveAttribute("aria-hidden", "true");
     expect(screen.getByText(REPEATED_WORDS)).toHaveClass("sr-only");
+  });
+});
+
+describe("NotificationBell urgency", () => {
+  it("marks an urgent notification with the word Urgent, not only colour", async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/notifications`, () =>
+        HttpResponse.json({
+          data: [
+            { ...unreadItem, id: "n2", title: "Calm one" },
+            { ...unreadItem, urgent: true, title: "Forecast is overdue" },
+          ],
+          count: 2,
+          page: 1,
+          size: 8,
+          total_pages: 1,
+        })
+      )
+    );
+    wrap(<NotificationBell />);
+
+    fireEvent.click(await screen.findByRole("button", { name: BELL_UNREAD }));
+
+    await screen.findByText("Forecast is overdue", { exact: false });
+    expect(screen.getAllByText("Urgent")).toHaveLength(1);
+    // The link name reads "Urgent: Forecast is overdue", not "UrgentForecast...".
+    expect(screen.getByText("Urgent").parentElement?.textContent).toMatch(
+      URGENT_LABEL
+    );
   });
 });
 

@@ -1,6 +1,6 @@
 import logging
 import uuid
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any
@@ -108,21 +108,25 @@ async def users_with_roles(
     *,
     organisation_id: str | None,
     department_id: str | None = None,
+    department_ids: Collection[str] = (),
 ) -> set[uuid.UUID]:
     """Active holders of any of ``role_names`` whose grant covers the department.
 
     An ALL-scope grant covers the whole organisation; a DEPARTMENT grant only its
-    department. SELF grants never make someone a recipient for other people.
+    department (``department_id``, or any of ``department_ids`` for an audience
+    spread over several departments). SELF grants never make someone a recipient
+    for other people.
     """
     names = list(role_names)
     if not names or organisation_id is None:
         return set()
     now = utc_now()
     scope = UserRoleAssignment.scope == RoleAssignmentScope.ALL
-    if department_id:
+    covered = {*department_ids, *([department_id] if department_id else [])}
+    if covered:
         scope = scope | (
             (UserRoleAssignment.scope == RoleAssignmentScope.DEPARTMENT)
-            & (UserRoleAssignment.department_id == department_id)
+            & UserRoleAssignment.department_id.in_(covered)
         )
     result = await session.execute(
         select(UserRoleAssignment)
@@ -308,7 +312,7 @@ async def notify(
             folded.setdefault(row.recipient_user_id, row)
     refresh: list[Notification] = []
     deliveries: list[NotificationDelivery] = []
-    occurrences: list[tuple[str, uuid.UUID]] = []
+    occurrences: list[tuple[str, uuid.UUID | None]] = []
     queued = 0
     now = utc_now()
     for user_id in active:
@@ -321,6 +325,10 @@ async def notify(
         )
         email = setting.email_enabled and wants_email
         if not in_bell and not email:
+            # Both channels off: nothing to show or send, but remember the item so
+            # turning a channel back on does not re-announce it.
+            if event.grouped and keys.get(user_id):
+                occurrences.append((keys[user_id], None))
             continue
         queued += 1
         existing = folded.get(user_id)
