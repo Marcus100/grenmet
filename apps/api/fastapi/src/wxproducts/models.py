@@ -6,7 +6,6 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
-    CheckConstraint,
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
@@ -159,10 +158,6 @@ class TropicalSystemEntry(WeatherModel):
             name="tropical_system_entries_revision_system_key",
         ),
         Index("tropical_system_entries_system_issued_idx", "system_id", "issued_at"),
-        CheckConstraint(
-            "action IN ('draft', 'publish')",
-            name="tropical_system_entries_action_check",
-        ),
     )
     id: Mapped[int] = mapped_column(Integer, Identity(always=True), primary_key=True)
     system_id: Mapped[UUID] = mapped_column(

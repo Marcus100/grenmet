@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import ValidationError
 from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -116,8 +117,20 @@ async def latest_current_outlook(
     ``list_published_products`` without loading every published outlook.
     """
     instant = now if now is not None else datetime.now(UTC)
-    rows = await session.execute(text(CURRENT_OUTLOOK_SQL), {"now": instant})
-    for row in rows.scalars():
+    try:
+        # A savepoint, so a stored value Postgres cannot cast (2026-02-30T10:00
+        # passes the shape check) fails this statement and nothing else.
+        async with session.begin_nested():
+            rows = list(
+                (
+                    await session.execute(text(CURRENT_OUTLOOK_SQL), {"now": instant})
+                ).scalars()
+            )
+    except DBAPIError:
+        logger.warning("Unreadable outlook validity; using the full current check")
+        current = await list_published_products(session, "outlook", now=instant)
+        return current[0] if current else None
+    for row in rows:
         try:
             product = PublishedProductAdapter.validate_python(row)
         except ValidationError:

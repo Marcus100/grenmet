@@ -830,3 +830,43 @@ async def test_latest_current_outlook_is_one_bounded_query(weather_sessions, act
     async with weather_sessions() as session:
         later = datetime.now(UTC) + timedelta(days=30)
         assert await service.latest_current_outlook(session, now=later) is None
+
+
+async def test_an_impossible_stored_date_does_not_break_the_public_list(
+    async_client: httpx.AsyncClient, weather_sessions, actor
+):
+    tracked = await track(weather_sessions, actor)
+    await publish(weather_sessions, actor, system(tracked))
+    async with weather_sessions() as session:
+        await session.execute(
+            text(
+                "INSERT INTO authored_products (id, kind, draft, revision, published) "
+                "SELECT gen_random_uuid(), kind, draft, revision, "
+                "jsonb_set(published, '{values,validFrom}', '\"2026-02-30T10:00\"') "
+                "FROM authored_products WHERE kind = 'outlook' LIMIT 1"
+            )
+        )
+        await session.commit()
+    response = await async_client.get(f"{BASE}/public/tropical-systems")
+    assert response.status_code == 200
+    assert [row["id"] for row in response.json()["systems"]] == [str(tracked)]
+
+
+async def test_a_legacy_nhc_id_stored_in_capitals_can_be_echoed_back(
+    weather_sessions, actor
+):
+    tracked = await track(weather_sessions, actor)
+    async with weather_sessions() as session:
+        await session.execute(
+            text("UPDATE tropical_systems SET nhc_storm_id = 'AL07' WHERE id = :id"),
+            {"id": tracked},
+        )
+        await session.commit()
+    async with weather_sessions() as session:
+        updated = await tropical_systems.update_system(
+            session,
+            tracked,
+            TropicalSystemUpdate(name="Renamed", nhc_storm_id="al07"),
+            actor,
+        )
+    assert updated.name == "Renamed"

@@ -1,8 +1,9 @@
 """Snapshot the NHC storm id on each tropical system entry.
 
 Public routes show the identity as published, so a staff edit of the live
-system cannot change them before an outlook is published. Existing entries
-are backfilled from the live system. Objects created here are named explicitly.
+system cannot change them before an outlook is published. Each existing entry
+is stamped once with its system's current storm id, so no unpublished id edit
+should be pending when this runs.
 """
 
 import sqlalchemy as sa
@@ -23,17 +24,7 @@ def upgrade() -> None:
         "UPDATE tropical_system_entries AS e SET nhc_storm_id = s.nhc_storm_id "
         "FROM tropical_systems AS s WHERE s.id = e.system_id"
     )
-    op.create_check_constraint(
-        "tropical_system_entries_action_check",
-        "tropical_system_entries",
-        "action IN ('draft', 'publish')",
-    )
 
 
 def downgrade() -> None:
-    op.drop_constraint(
-        "tropical_system_entries_action_check",
-        "tropical_system_entries",
-        type_="check",
-    )
     op.drop_column("tropical_system_entries", "nhc_storm_id")

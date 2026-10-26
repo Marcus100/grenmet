@@ -575,7 +575,7 @@ def _identifier(new: str | None, current: str | None, shape: Any) -> str | None:
     Rows saved before the season-year format (``al07``) can be echoed back in a
     PATCH unchanged; anything new or different must match the current format.
     """
-    if new is None or new == current:
+    if new is None or (current is not None and new.lower() == current.lower()):
         return new
     try:
         return str(TypeAdapter(shape).validate_python(new))
