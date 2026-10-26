@@ -181,11 +181,13 @@ async def test_rejection_and_return_notify_requester(db_async: AsyncSession) -> 
         session=db_async,
         current_user=approver,
         workflow_instance_id=leave.workflow_instance_id,
-        action_in=WorkflowActionRequest(action=WorkflowAction.RETURN),
+        action_in=WorkflowActionRequest(
+            action=WorkflowAction.RETURN, comments="Attach the form"
+        ),
     )
-    assert [n.event_key for n in await _inbox(db_async, requester)] == [
-        "workflow.returned"
-    ]
+    inbox = await _inbox(db_async, requester)
+    assert [n.event_key for n in inbox] == ["workflow.returned"]
+    assert "Attach the form" in inbox[0].body
 
 
 async def test_muted_email_keeps_in_app(db_async: AsyncSession) -> None:

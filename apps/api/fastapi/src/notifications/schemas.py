@@ -13,6 +13,10 @@ class NotificationPublic(BaseModel):
     link_path: str | None
     entity_type: str | None
     entity_id: str | None
+    # How many occurrences a grouped notification stands for.
+    repeat_count: int = 1
+    # Urgent events always show in the bell.
+    urgent: bool = False
     read_at: UtcDateTime | None
     created_at: UtcDateTime
 
@@ -28,11 +32,18 @@ class NotificationPreferencePublic(BaseModel):
     # False for notifications a person must receive by email (e.g. approvals).
     email_mutable: bool
     email_enabled: bool
+    # False for urgent events: they always appear in the bell.
+    bell_mutable: bool = True
+    bell_enabled: bool = True
+    urgent: bool = False
 
 
 class NotificationPreferenceUpdate(BaseModel):
+    """Leave a channel out (null) to keep the person's current choice."""
+
     event_key: str
-    email_enabled: bool
+    email_enabled: bool | None = None
+    bell_enabled: bool | None = None
 
 
 class NotificationParams(BaseModel):

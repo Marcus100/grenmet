@@ -11,7 +11,7 @@ import type {
 } from "../models/WxproductsProductRevisionPdf.js";
 
 /**
- * @description Staff-only saved revision export; drafts and historical publications are explicitly labelled. Does not publish or change records.
+ * @description Staff-only saved revision export; drafts and historical publications are explicitly labelled. Does not publish or change records. The download file name is human and dated, for example 'GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf'.
  * @summary Download a saved weather revision PDF
  * {@link /api/v1/wxproducts/products/:product_id/revisions/:revision/pdf}
  */

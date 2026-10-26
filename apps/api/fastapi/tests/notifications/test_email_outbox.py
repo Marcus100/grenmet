@@ -5,6 +5,7 @@ tests never send other tests' queued mail.
 """
 
 import uuid
+from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
 
@@ -32,14 +33,15 @@ def _address() -> str:
 
 
 @pytest.fixture
-def configured(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, Any]]:
-    """Email is configured; returns the list the fake sender appends to."""
+def configured(
+    monkeypatch: pytest.MonkeyPatch,
+    outbound_email_calls: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    """Enable outbound delivery in tests; sends are captured by the shared stub."""
     monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", "noreply@example.com")
     monkeypatch.setattr(email_settings, "RESEND_API_KEY", "re_test")
     monkeypatch.setattr(email_settings, "EMAIL_RENDER_URL", None)
-    sent: list[dict[str, Any]] = []
-    monkeypatch.setattr(email_module, "send_email", lambda **kw: sent.append(kw))
-    return sent
+    return outbound_email_calls
 
 
 def _fail_sends(monkeypatch: pytest.MonkeyPatch, calls: list[int]) -> None:
@@ -198,7 +200,10 @@ async def test_failures_back_off_then_dead_letter_the_email(
 
 @pytest.mark.usefixtures("configured")
 async def test_a_transient_failure_then_success_sends_exactly_once(
-    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+    outbound_email_calls: list[dict[str, str]],
+    stub_email_sender: Callable[..., None],
 ) -> None:
     row = await _queue(db_async)
     topic = await _private_topic(db_async, monkeypatch, row)
@@ -206,12 +211,11 @@ async def test_a_transient_failure_then_success_sends_exactly_once(
     _fail_sends(monkeypatch, calls)
     moment = utc_now() + timedelta(seconds=1)
     await outbox.drain(db_async, now=moment, only_topics=[topic])
-    sent: list[dict[str, Any]] = []
-    monkeypatch.setattr(email_module, "send_email", lambda **kw: sent.append(kw))
+    monkeypatch.setattr(email_module, "send_email", stub_email_sender)
     later = moment + timedelta(seconds=61)
     await outbox.drain(db_async, now=later, only_topics=[topic])
     await outbox.drain(db_async, now=later + timedelta(days=1), only_topics=[topic])
-    assert (len(calls), len(sent)) == (1, 1)
+    assert (len(calls), len(outbound_email_calls)) == (1, 1)
     assert (await _email(db_async, row.id)).status == OutboundEmailStatus.SENT.value
     assert (await _outbox_row(db_async, topic)).status == OutboxStatus.DONE.value
 

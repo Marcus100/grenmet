@@ -233,7 +233,7 @@ describe("LeaveSubmissions", () => {
     wrap(<LeaveSubmissions />);
     expect(await screen.findByText("VACATION")).toBeInTheDocument();
     expect(screen.getByText("2026-08-03")).toBeInTheDocument();
-    expect(screen.getByText("SUBMITTED")).toBeInTheDocument();
+    expect(screen.getByText("Submitted")).toBeInTheDocument();
   });
 });
 

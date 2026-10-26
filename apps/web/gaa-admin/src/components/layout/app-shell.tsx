@@ -55,6 +55,8 @@ export async function AppShell({
             "[html[data-content-layout=centered]_&>*]:mx-auto",
             "[html[data-content-layout=centered]_&>*]:w-full",
             "[html[data-content-layout=centered]_&>*]:max-w-screen-2xl",
+            // Data pages (WideContent) always use the full width.
+            "[html[data-content-layout=centered]_&>*:has([data-content-width=wide])]:max-w-none",
             "peer-data-[variant=inset]:border",
             "[--dashboard-header-height:--spacing(12)]",
             "min-w-0 overflow-x-hidden"

@@ -11,4 +11,5 @@ export const requestStatusSchema = z.enum([
   "APPROVED",
   "REJECTED",
   "CANCELLED",
+  "RETURNED",
 ]);

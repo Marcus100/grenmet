@@ -27,6 +27,16 @@ export const synopDecodedSchema = z
     pressure_change_24h_pa: z.union([z.number(), z.null()]).optional(),
     sunshine_24h_hours: z.union([z.number(), z.null()]).optional(),
     ground_state: z.union([z.int(), z.null()]).optional(),
+    qfe_pa: z
+      .union([z.number(), z.null()])
+      .optional()
+      .describe("QFE from the station pressure and the station's QFE offset."),
+    qnh_pa: z
+      .union([z.number(), z.null()])
+      .optional()
+      .describe(
+        "QNH from the mean sea level pressure and the station's QNH offset."
+      ),
   })
   .describe(
     "SI values decoded from the coded groups; missing or unobserved is null."

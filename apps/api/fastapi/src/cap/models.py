@@ -159,6 +159,8 @@ class CapJobStatus(str, Enum):
     RUNNING = "RUNNING"
     SUCCEEDED = "SUCCEEDED"
     FAILED = "FAILED"
+    # The handler ran but intentionally did nothing (channel off or out of scope).
+    SKIPPED = "SKIPPED"
 
 
 class CapAlert(Base):

@@ -45,8 +45,15 @@ def check(**changes: str) -> tuple[dict[str, str], SynopDecoded]:
 def test_paper_register_row_is_valid_and_decodes_to_si() -> None:
     issues, decoded = check()
     assert [key for key in issues if key.startswith("error")] == []
-    # The 12 UTC main hour expects the 24 h rainfall (advice only).
-    assert issues == {"warning:s3_rainfall_24h": "missing_24h_rainfall"}
+    # The 12 UTC main hour expects 24 h rainfall, Tx/Tn, 5appp and the rainfall
+    # group (advice only; this 2023 paper row predates those practices).
+    assert issues == {
+        "warning:s3_rainfall_24h": "missing_24h_rainfall",
+        "warning:s3_max_temp": "missing_txtn",
+        "warning:s3_min_temp": "missing_txtn",
+        "warning:pressure_tendency": "missing_pressure_change",
+        "warning:precip_indicator": "rainfall_omitted_at_main_hour",
+    }
     assert decoded.international_data_subcategory == 2
     assert decoded.air_temperature_k == 301.15
     assert decoded.dew_point_k == 294.45
@@ -133,7 +140,9 @@ def test_layers_must_rise_and_be_complete() -> None:
         s3_layer2_amount="3",
         s3_layer2_form="6",
         s3_layer2_height="10",
-        s3_layer3_amount="1",
+        # Five oktas meets the third-layer threshold (12.4.10.1), so the only advice
+        # about this group is that its form and height are missing.
+        s3_layer3_amount="5",
     )
     assert issues["warning:s3_layer2_height"] == "layer_order"
     assert issues["warning:s3_layer3_amount"] == "incomplete_layer"
@@ -245,7 +254,9 @@ def test_wet_bulb_is_checked_against_air_and_dew_point() -> None:
     assert decoded.wet_bulb_k == 296.45
     issues, _ = check(wet_bulb="0300")
     assert issues["warning:wet_bulb"] == "wet_above_air"
-    issues, _ = check(wet_bulb="0200")
+    # With a station pressure the dew point is calculated from the wet bulb; the
+    # keyed dew point is only checked when it cannot be (no station pressure).
+    issues, _ = check(wet_bulb="0200", station_pressure="", msl_pressure="")
     assert issues["warning:dew_point"] == "dew_above_wet"
     issues, _ = check(wet_bulb="2x3")
     assert issues["error:wet_bulb"] == "invalid_format"
@@ -452,11 +463,12 @@ def test_fog_at_station_needs_low_visibility() -> None:
     assert "warning:present_wx" not in issues
 
 
-def test_non_synoptic_hour_is_advised() -> None:
-    issues, _ = check(time_utc="07")
-    assert issues["warning:time_utc"] == "non_synoptic_hour"
-    issues, _ = check(time_utc="09")
+@pytest.mark.parametrize("hour", [f"{n:02d}" for n in range(24)])
+def test_every_hour_of_the_day_is_a_register_hour(hour: str) -> None:
+    # All 24 hours are keyed by hand at 78958, so no hour is "non-synoptic".
+    issues, _ = check(time_utc=hour)
     assert "warning:time_utc" not in issues
+    assert "error:time_utc" not in issues
 
 
 def test_24h_pressure_change_group_is_j1_and_three_digits() -> None:
@@ -544,10 +556,12 @@ def test_sunshine_is_hours_and_tenths_up_to_24() -> None:
     assert "error:s3_sunshine_24h" not in issues
 
 
-def test_sunshine_is_reported_at_the_daily_summary_hour() -> None:
-    issues, _ = check(time_utc="15", s3_sunshine_24h="087")
-    assert issues["warning:s3_sunshine_24h"] == "sunshine_hour"
-    issues, _ = check(time_utc="12", s3_sunshine_24h="087")
+def test_the_station_does_not_report_sunshine() -> None:
+    for hour in ("12", "15"):
+        issues, decoded = check(time_utc=hour, s3_sunshine_24h="087")
+        assert issues["warning:s3_sunshine_24h"] == "sunshine_not_reported"
+        assert decoded.sunshine_24h_hours == 8.7  # still decoded if keyed
+    issues, _ = check(time_utc="12")
     assert "warning:s3_sunshine_24h" not in issues
 
 
@@ -623,3 +637,66 @@ def test_tac_orders_the_new_section_3_groups() -> None:
         s3_special_phenomena="91125 96017",
     )
     assert "333 10310 32012 55087 59015 91125 96017=" in message
+
+
+def test_workbook_day_and_hour_must_match_the_observation_time() -> None:
+    from datetime import UTC, datetime, timedelta, timezone
+
+    book = SynopWorkbook.model_validate({**PAPER_ROW})
+    day = int(PAPER_ROW["day"])
+    hour = int(PAPER_ROW["time_utc"])
+    at = datetime(2023, 3, day, hour, 0, tzinfo=UTC)
+    assert rules.check_observation_time(book, at) == []
+    # The same instant written in another zone is still the same UTC time.
+    local = at.astimezone(timezone(timedelta(hours=-4)))
+    assert rules.check_observation_time(book, local) == []
+    wrong = rules.check_observation_time(book, at + timedelta(hours=3))
+    assert [(i.field, i.code, i.severity) for i in wrong] == [
+        ("time_utc", "time_mismatch", "error")
+    ]
+    both = rules.check_observation_time(book, at + timedelta(days=1, hours=3))
+    assert [i.field for i in both] == ["day", "time_utc"]
+    blank = SynopWorkbook.model_validate({"day": "", "time_utc": ""})
+    assert rules.check_observation_time(blank, at) == []
+
+
+def _hours_with(code_key: str, **changes: str) -> list[str]:
+    """UTC hours at which the named issue key is raised for these entries."""
+    return [
+        f"{hour:02d}"
+        for hour in range(24)
+        if code_key in check(time_utc=f"{hour:02d}", **changes)[0]
+    ]
+
+
+def test_max_and_min_temperature_are_expected_every_six_hours() -> None:
+    assert _hours_with("warning:s3_max_temp") == ["00", "06", "12", "18"]
+    assert _hours_with("warning:s3_min_temp") == ["00", "06", "12", "18"]
+    entered = {"s3_max_temp": "0310", "s3_min_temp": "0240"}
+    assert _hours_with("warning:s3_max_temp", **entered) == [
+        f"{h:02d}" for h in range(24) if h % 6
+    ]
+
+
+def test_pressure_change_is_expected_every_three_hours() -> None:
+    assert _hours_with("warning:pressure_tendency") == [
+        f"{h:02d}" for h in range(0, 24, 3)
+    ]
+    keyed = {"pressure_tendency": "2", "pressure_change": "012"}
+    assert _hours_with("warning:pressure_tendency", **keyed) == []
+
+
+def test_rainfall_is_expected_at_every_main_hour() -> None:
+    assert _hours_with("warning:precip_indicator") == ["00", "06", "12", "18"]
+    group = {"precip_indicator": "1", "precip_amount": "005", "precip_period": "1"}
+    assert _hours_with("warning:precip_indicator", **group) == []
+    # iR still unset: the amount is what is missing.
+    unset = {"precip_indicator": ""}
+    assert _hours_with("warning:precip_amount", **unset) == ["00", "06", "12", "18"]
+
+
+def test_24_hour_rainfall_belongs_to_12_utc() -> None:
+    assert _hours_with("warning:s3_rainfall_24h") == ["12"]
+    assert _hours_with("warning:s3_rainfall_24h", s3_rainfall_24h="0123") == [
+        f"{h:02d}" for h in range(24) if h != 12
+    ]

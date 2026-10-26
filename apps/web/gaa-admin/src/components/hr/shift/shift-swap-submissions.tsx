@@ -8,23 +8,19 @@ import {
   useHrListMyShiftSwaps,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
-import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  isEditableStatus,
+  RequestStatusBadge,
+  ReturnedReason,
+} from "@/components/hr/request-status";
 import { formatSubmissionDate } from "@/components/hr/submission-date";
 import { nameByUserId } from "@/lib/people";
-
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  DRAFT: "outline",
-  SUBMITTED: "outline",
-  APPROVED: "default",
-  REJECTED: "secondary",
-  CANCELLED: "secondary",
-};
 
 export function ShiftSwapSubmissions() {
   const query = useHrListMyShiftSwaps({});
@@ -80,7 +76,7 @@ export function ShiftSwapSubmissions() {
           <tbody>
             {swaps.map((swap) => {
               const isOwnedDraft =
-                swap.status === "DRAFT" &&
+                isEditableStatus(swap.status) &&
                 swap.requesting_user_id === sessionUser.id;
               return (
                 <tr className="border-border border-t" key={swap.id}>
@@ -96,9 +92,11 @@ export function ShiftSwapSubmissions() {
                   </td>
                   <td className="py-1.5 pr-3">{formatSubmissionDate(swap)}</td>
                   <td className="py-1.5 pr-3">
-                    <Badge variant={STATUS_VARIANT[swap.status] ?? "outline"}>
-                      {swap.status}
-                    </Badge>
+                    <RequestStatusBadge status={swap.status} />
+                    <ReturnedReason
+                      reason={swap.returned_reason}
+                      status={swap.status}
+                    />
                   </td>
                   <td className="py-1.5 text-right">
                     {isOwnedDraft ? (
@@ -111,16 +109,18 @@ export function ShiftSwapSubmissions() {
                           <Pencil data-icon="inline-start" />
                           Edit
                         </Button>
-                        <Button
-                          disabled={pendingId === swap.id}
-                          onClick={() => remove(swap.id)}
-                          size="sm"
-                          type="button"
-                          variant="ghost"
-                        >
-                          <Trash2 data-icon="inline-start" />
-                          Delete
-                        </Button>
+                        {swap.status === "DRAFT" && (
+                          <Button
+                            disabled={pendingId === swap.id}
+                            onClick={() => remove(swap.id)}
+                            size="sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            <Trash2 data-icon="inline-start" />
+                            Delete
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <span className="text-muted-foreground">—</span>

@@ -20,6 +20,7 @@ export type GuidanceSystem = {
    */
   name: string;
   feature_type: GuidanceSystemPropertiesFeatureTypeEnum;
+  tracked_system_id?: string | null;
   parent_system_id?: string | null;
   suggested_parent_system_id?: string | null;
   /**

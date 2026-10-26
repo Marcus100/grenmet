@@ -1,15 +1,8 @@
 "use client";
 
 import { useHrGetMyTimesheets } from "@barrelsgd/api-client";
-import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { RequestStatusBadge } from "@/components/hr/request-status";
 import { formatSubmissionDate } from "@/components/hr/submission-date";
-
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  DRAFT: "outline",
-  SUBMITTED: "outline",
-  APPROVED: "default",
-  REJECTED: "secondary",
-};
 
 export function TimesheetSubmissions() {
   const query = useHrGetMyTimesheets({});
@@ -41,11 +34,7 @@ export function TimesheetSubmissions() {
                   {formatSubmissionDate(timesheet)}
                 </td>
                 <td className="py-1.5">
-                  <Badge
-                    variant={STATUS_VARIANT[timesheet.status] ?? "outline"}
-                  >
-                    {timesheet.status}
-                  </Badge>
+                  <RequestStatusBadge status={timesheet.status} />
                 </td>
               </tr>
             ))}

@@ -21,6 +21,16 @@ class SynopWorkbook(BaseModel):
     station_wx_indicator: str | None = Field(default=None, max_length=2)
     cloud_base: str | None = Field(default=None, max_length=2)
     visibility: str | None = Field(default=None, max_length=2)
+    barometer_reading: str | None = Field(
+        default=None,
+        max_length=8,
+        description="Barometer as read (paper column 17), in hPa with one decimal, for example 1013.2.",
+    )
+    visibility_km: str | None = Field(
+        default=None,
+        max_length=6,
+        description="Visibility as typed, in kilometres; the coded VV is derived from it.",
+    )
     total_cloud: str | None = Field(default=None, max_length=2)
     wind_dir: str | None = Field(default=None, max_length=3)
     wind_speed: str | None = Field(default=None, max_length=3)
@@ -63,17 +73,35 @@ class SynopWorkbook(BaseModel):
     s3_layer4_form: str | None = Field(default=None, max_length=2)
     s3_layer4_height: str | None = Field(default=None, max_length=4)
     s3_special_phenomena: str | None = Field(default=None, max_length=120)
+    s3_group_909: str | None = Field(
+        default=None,
+        max_length=8,
+        description="Precipitation timing and duration (909Rtdc), the Region IV group 9SpSpspsp with SpSp 09, reported with 6RRRtR: five digits starting 909. Rt and dc are not decoded.",
+    )
+    time_mark_anemograph: str | None = Field(default=None, max_length=16)
+    time_mark_barograph: str | None = Field(default=None, max_length=16)
+    time_mark_rain_recorder: str | None = Field(default=None, max_length=16)
+    time_mark_thermohygrograph: str | None = Field(default=None, max_length=16)
     s3_sunshine_24h: str | None = Field(default=None, max_length=3)
     s3_ground_state: str | None = Field(default=None, max_length=1)
     s3_ground_jjj: str | None = Field(default=None, max_length=3)
     s5_national: str | None = Field(default=None, max_length=400)
     s3_remarks: str | None = Field(default=None, max_length=4000)
+    metar_text: str | None = Field(
+        default=None,
+        max_length=400,
+        description="The METAR typed or copied by the observer; each element is compared with the observation (warnings only).",
+    )
     observer_initials: str | None = Field(default=None, max_length=4)
     notes: str | None = Field(default=None, max_length=4000)
 
 
 class SynopValidationRequest(BaseModel):
     workbook: SynopWorkbook
+    observed_at: UtcDateTime | None = Field(
+        default=None,
+        description="When given, the keyed day and hour must match this UTC time.",
+    )
 
 
 class SynopValidationIssue(BaseModel):
@@ -106,6 +134,14 @@ class SynopDecoded(BaseModel):
     pressure_change_24h_pa: float | None = None
     sunshine_24h_hours: float | None = None
     ground_state: int | None = None
+    qfe_pa: float | None = Field(
+        default=None,
+        description="QFE from the station pressure and the station's QFE offset.",
+    )
+    qnh_pa: float | None = Field(
+        default=None,
+        description="QNH from the mean sea level pressure and the station's QNH offset.",
+    )
 
 
 class SynopValidationResponse(BaseModel):
@@ -113,6 +149,10 @@ class SynopValidationResponse(BaseModel):
     issues: list[SynopValidationIssue] = Field(default_factory=list)
     normalized: SynopWorkbook
     decoded: SynopDecoded = Field(default_factory=SynopDecoded)
+    expected_metar: str | None = Field(
+        default=None,
+        description="The METAR the observation implies, for the observer to copy and edit.",
+    )
 
 
 class RegisterObservationWrite(BaseModel):
@@ -134,17 +174,47 @@ class RegisterObservationRead(RegisterObservationWrite):
     qc_notes: str | None = None
     qc_by: str | None = None
     qc_at: UtcDateTime | None = None
+    review_outcome: Literal["reviewed", "query"] | None = None
+    review_note: str | None = None
+    reviewed_by: str | None = None
+    reviewed_at: UtcDateTime | None = None
     wis2_topic: str | None = None
     wis2_message_id: str | None = None
     wis2_published_at: UtcDateTime | None = None
     supersedes_id: UUID | None = None
     actor_id: str
+    actor_name: str | None = Field(
+        default=None, description="Who recorded it (listing only)."
+    )
+    coded: str | None = Field(
+        default=None, description="The coded FM 12 row (SYNOP, listing only)."
+    )
+    issues: list[SynopValidationIssue] = Field(
+        default_factory=list,
+        description="Validation findings, warnings included (SYNOP, listing only).",
+    )
     created_at: UtcDateTime
     updated_at: UtcDateTime
 
 
 class RegisterObservationList(BaseModel):
     observations: list[RegisterObservationRead]
+    total: int = Field(default=0, description="Matching rows before paging.")
+
+
+class RegisterObservationCorrection(BaseModel):
+    """The replacement for an observation; station, kind and time are kept."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    body: dict[str, Any]
+    station_name: str | None = Field(default=None, max_length=200)
+    aerodrome_icao: str | None = Field(default=None, min_length=4, max_length=4)
+    issued_at: Annotated[UtcDateTime, AwareDatetime()] | None = None
+    raw_tac: str | None = Field(default=None, max_length=12000)
+    bufr: dict[str, Any] | None = None
+    iwxxm: dict[str, Any] | None = None
+    reason: str | None = Field(default=None, max_length=1000)
 
 
 class RegisterObservationCreate(RegisterObservationWrite):
@@ -158,12 +228,66 @@ class RegisterObservationCreate(RegisterObservationWrite):
     id: UUID = Field(default_factory=uuid4)
 
 
+class ReviewRequest(BaseModel):
+    outcome: Literal["reviewed", "query"]
+    note: str | None = Field(
+        default=None,
+        max_length=1000,
+        description="Required for a query; optional for reviewed.",
+    )
+
+
 class QcDecisionRequest(BaseModel):
     reason: str | None = Field(
         default=None,
         max_length=1000,
         description="Required to reject or reopen; optional note when accepting.",
     )
+
+
+PressureAmount = Literal[
+    "total_correction_hpa", "qfe_offset_hpa", "sea_level_offset_hpa", "qnh_offset_hpa"
+]
+
+
+class StationSettings(BaseModel):
+    """Fixed amounts (hPa) the register uses to work out the pressures.
+
+    Station pressure = barometer as read + total correction; QFE = station
+    pressure + QFE offset; mean sea level pressure = station pressure + sea level
+    offset; QNH = mean sea level pressure + QNH offset. 78958 is seeded with the
+    owner-confirmed 0.0, 0.3, 1.0 and 0.1; other stations start empty.
+    """
+
+    station_id: str
+    total_correction_hpa: float | None = Field(
+        default=None, description="Total barometer correction; null until supplied."
+    )
+    qfe_offset_hpa: float | None = Field(
+        default=None, description="QFE minus station pressure; null until supplied."
+    )
+    sea_level_offset_hpa: float | None = Field(
+        default=None,
+        description="Mean sea level pressure minus station pressure; null until supplied.",
+    )
+    qnh_offset_hpa: float | None = Field(
+        default=None,
+        description="QNH minus mean sea level pressure; null until supplied.",
+    )
+    pending: list[PressureAmount] = Field(
+        default_factory=list, description="The amounts that are still empty."
+    )
+    updated_at: UtcDateTime | None = None
+    updated_by: str | None = None
+
+
+class StationSettingsUpdate(BaseModel):
+    """All four amounts are required: send an explicit null to clear one."""
+
+    total_correction_hpa: float | None = Field(ge=-20, le=20)
+    qfe_offset_hpa: float | None = Field(ge=-20, le=20)
+    sea_level_offset_hpa: float | None = Field(ge=-20, le=20)
+    qnh_offset_hpa: float | None = Field(ge=-20, le=20)
 
 
 PressureTrend = Literal["rising", "steady", "falling"]
@@ -249,6 +373,7 @@ class ObservationSend(BaseModel):
     last_error: str | None = None
     queued_at: UtcDateTime
     sent_at: UtcDateTime | None = None
+    is_correction: bool = False
 
 
 class ObservationSendList(BaseModel):

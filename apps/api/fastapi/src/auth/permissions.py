@@ -198,6 +198,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cms.article.manage", "Manage CMS editorial settings"),
     # eRegister
     PermissionDef(
+        "eregister.observe",
+        "Record register observations and read the register (the observer)",
+    ),
+    PermissionDef(
         "eregister.send",
         "Email a register observation and queue it for WIS2 publication",
     ),
@@ -584,6 +588,10 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "events.ops.settlement",
             "events.ops.listings",
         ),
+    ),
+    "eregister-observer": (
+        "eRegister observer: records the hourly observations",
+        ("eregister.observe",),
     ),
     "eregister-sender": (
         "eRegister: email observations and queue them for WIS2",

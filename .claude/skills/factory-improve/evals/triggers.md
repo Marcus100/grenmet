@@ -14,4 +14,4 @@ Checked by `pnpm agents:skill-evals` and by hand in fresh Claude Code and Codex 
 
 ## Expected behaviour
 
-Runs agents:flow, agents:score and agents:improve, picks the most repeated problem with a repository cause, makes one small change to a skill, AGENTS.md rule, scorer or check with a regression case, passes guardrails, and hands it over for human review without pasting session evidence.
+Runs agents:flow, agents:score and agents:improve, picks the most repeated problem with a repository cause, makes one small change to a skill, AGENTS.md rule, scorer or check with a regression case, passes guardrails, uses subscriptions first with $0 extra spending by default and local execution preferred, and lands through independent code and security review without pasting session evidence. Extra API spending and staging/production merges require owner approval.

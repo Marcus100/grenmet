@@ -25,6 +25,10 @@ export interface MediaItem {
   title: string;
 }
 
+/** A short notice for a tab with nothing to play or show yet: one line, not a tall box. */
+const EMPTY_NOTICE =
+  "rounded-gm-card border border-gm-border bg-gm-navy px-4 py-3 text-body-sm leading-body-sm";
+
 type TabKey = "satellite" | "radar" | "wind" | "seas" | "audio" | "video";
 
 interface TabDef {
@@ -95,7 +99,7 @@ export function WeatherNowPanel({
   const current = items.find((item) => item.id === selected) ?? items[0];
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-gm-card bg-gm-navy text-gm-text-inverse">
+    <div className="flex flex-col overflow-hidden rounded-gm-card border border-gm-border bg-gm-navy text-gm-text-inverse">
       <div
         aria-label="Weather now"
         className="grid grid-cols-6 gap-0.5 p-1 sm:flex sm:gap-1 sm:p-2"
@@ -131,14 +135,10 @@ export function WeatherNowPanel({
         id={`${baseId}-panel`}
         role="tabpanel"
       >
-        {active.pending && (
-          <p className="flex aspect-16/10 items-center justify-center p-6 text-center text-body-base leading-body-base">
-            {active.pending}
-          </p>
-        )}
+        {active.pending && <p className={EMPTY_NOTICE}>{active.pending}</p>}
 
         {!(active.pending || current) && (
-          <p className="flex aspect-16/10 items-center justify-center p-6 text-center text-body-base leading-body-base">
+          <p className={EMPTY_NOTICE}>
             No {tab === "video" ? "videos" : "audio"} posted yet.
           </p>
         )}

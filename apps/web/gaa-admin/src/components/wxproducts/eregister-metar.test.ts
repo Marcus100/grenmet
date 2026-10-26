@@ -109,6 +109,7 @@ it("keeps the sign of cold temperatures and the thousands of pressure", () => {
   expect(temperatureGroup("1034")).toBe("M03");
   expect(temperatureGroup("1004")).toBe("M00");
   expect(temperatureGroup("0254")).toBe("25");
-  expect(pressureGroup("9985")).toBe("Q0999");
-  expect(pressureGroup("0149")).toBe("Q1015");
+  expect(pressureGroup("9985")).toBe("Q0998");
+  // QNH is rounded down to a whole hPa (ICAO Annex 3), not to the nearest.
+  expect(pressureGroup("0149")).toBe("Q1014");
 });

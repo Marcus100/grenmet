@@ -1,5 +1,6 @@
 """CAP service state machine tests — invalid transitions raise CapStateError."""
 
+import asyncio
 from datetime import UTC, timedelta
 
 import pytest
@@ -9,13 +10,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.baseline.models import ApprovalPolicy
 from src.cap import service as cap_service
 from src.cap.exceptions import CapStateError
-from src.cap.models import CapAlert, CapLifecycleState, CapMessageType, CapSnapshot
+from src.cap.models import (
+    CapAlert,
+    CapAuditEvent,
+    CapLifecycleState,
+    CapMessageType,
+    CapSnapshot,
+)
 from src.cap.schemas import (
     CapAlertAction,
     CapAlertCreate,
     CapAlertUpdate,
     CapEmergencyPublish,
     CapReferenceCreate,
+    CapReviewRecord,
 )
 from src.cap.service import (
     approve_alert,
@@ -24,6 +32,7 @@ from src.cap.service import (
     emergency_publish_alert,
     expire_alert,
     publish_alert,
+    record_review,
     submit_alert,
     update_alert,
 )
@@ -201,21 +210,75 @@ async def test_publish_from_submitted_refused(db_async: AsyncSession) -> None:
         )
 
 
-async def test_self_approval_refused_even_with_permissive_policy(
+async def test_author_may_approve_and_publish_their_own_alert(
     db_async: AsyncSession,
 ) -> None:
+    # Owner decision 2026-10-23 (ADR-0023 amendment): self-approval is allowed.
     user = await make_user(db_async, superuser=True)
-    alert = await _create_alert_for_test(db_async, user)  # policy allows self-approval
+    alert = await _create_alert_for_test(db_async, user)
     await submit_alert(
         session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
     )
-    with pytest.raises(AppException, match="Another authorised person"):
-        await approve_alert(
+    approved = await approve_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    assert approved.lifecycle_state == CapLifecycleState.APPROVED
+    published, _ = await publish_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    assert published.lifecycle_state == CapLifecycleState.PUBLISHED
+
+
+async def test_reviews_are_optional_audited_and_never_by_the_author(
+    db_async: AsyncSession,
+) -> None:
+    author = await make_user(db_async, superuser=True)
+    reviewer = await make_user(db_async, superuser=True)
+    alert = await _create_alert_for_test(db_async, author)
+    with pytest.raises(CapStateError, match="submitted or approved"):
+        await record_review(
             session=db_async,
-            current_user=user,
+            current_user=reviewer,
             alert_id=alert.id,
-            payload=CapAlertAction(),
+            payload=CapReviewRecord(outcome="reviewed"),
         )
+    # Asking for a review is the submit step ("Request review" in the portal).
+    await submit_alert(
+        session=db_async,
+        current_user=author,
+        alert_id=alert.id,
+        payload=CapAlertAction(),
+    )
+    with pytest.raises(AppException, match="someone other than the author"):
+        await record_review(
+            session=db_async,
+            current_user=author,
+            alert_id=alert.id,
+            payload=CapReviewRecord(outcome="reviewed"),
+        )
+    reviewed = await record_review(
+        session=db_async,
+        current_user=reviewer,
+        alert_id=alert.id,
+        payload=CapReviewRecord(outcome="changes_requested", note="Tighten the area"),
+    )
+    # A review never moves the alert; the author can still approve it.
+    assert reviewed.lifecycle_state == CapLifecycleState.SUBMITTED
+    actions = (
+        await db_async.scalars(
+            select(CapAuditEvent.action)
+            .where(CapAuditEvent.alert_id == alert.id)
+            .order_by(CapAuditEvent.created_at)
+        )
+    ).all()
+    assert "changes_requested" in actions
+    approved = await approve_alert(
+        session=db_async,
+        current_user=author,
+        alert_id=alert.id,
+        payload=CapAlertAction(),
+    )
+    assert approved.lifecycle_state == CapLifecycleState.APPROVED
 
 
 async def test_editing_after_approval_returns_alert_to_draft(
@@ -401,6 +464,7 @@ async def test_cancel_from_published_succeeds(db_async: AsyncSession) -> None:
     assert cancellation.sender == alert.sender
     assert cancellation.lifecycle_state == CapLifecycleState.PUBLISHED
     assert cancellation.note == "Hazard has ended"
+    assert cancellation.sent.microsecond == 0
     assert (
         await cap_service._to_public(session=db_async, alert=cancellation)
     ).references[0].identifier == alert.identifier
@@ -667,3 +731,47 @@ async def test_submit_without_policy_preserves_draft(db_async: AsyncSession) -> 
         )
     stored = await db_async.get(CapAlert, alert.id)
     assert stored.lifecycle_state == CapLifecycleState.DRAFT
+
+
+async def test_edit_waits_for_a_publish_in_progress_and_is_then_refused(
+    db_async: AsyncSession,
+) -> None:
+    """An edit that starts while a publish holds the row lock must not slip in."""
+    from src.database import async_session_factory
+
+    user = await make_user(db_async, superuser=True)
+    alert = await _create_alert_for_test(db_async, user)
+    await submit_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    await approve_alert(
+        session=db_async,
+        current_user=await make_user(db_async, superuser=True),
+        alert_id=alert.id,
+        payload=CapAlertAction(),
+    )
+
+    async def edit() -> None:
+        async with async_session_factory() as other:
+            await update_alert(
+                session=other,
+                current_user=user,
+                alert_id=alert.id,
+                payload=CapAlertUpdate(note="late edit"),
+            )
+
+    # The publisher's transaction takes the lock first (as publish_alert now does).
+    await cap_service.get_alert_or_404(
+        session=db_async, alert_id=alert.id, for_update=True
+    )
+    editor = asyncio.create_task(edit())
+    await asyncio.sleep(0.5)
+    assert not editor.done(), "the edit must wait for the row lock"
+
+    await _publish_approved(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    with pytest.raises(CapStateError):
+        await asyncio.wait_for(editor, timeout=10)
+    row = await db_async.get(CapAlert, alert.id, populate_existing=True)
+    assert row is not None and row.note != "late edit"

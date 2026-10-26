@@ -13,6 +13,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { reportError } from "@/lib/report-error";
 import { NHC_FAMILIES, nhcRequest } from "@/lib/wxproducts/nhc-api";
 import { NhcContentView, RecordTable } from "./nhc-content";
@@ -128,12 +129,10 @@ export function NhcWorkspace({
   }
   return (
     <div className="space-y-5">
-      <header>
-        <h1 className="font-semibold text-2xl">NHC guidance</h1>
-        <p className="text-muted-foreground">
-          Pull guidance when needed and inspect collected NHC source editions.
-        </p>
-      </header>
+      <PageHeader
+        description="Pull guidance when needed and inspect collected NHC source editions."
+        title="NHC guidance"
+      />
       <section
         aria-label="Pull NHC guidance"
         className="space-y-3 rounded-lg border p-4"

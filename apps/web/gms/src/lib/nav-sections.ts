@@ -240,6 +240,11 @@ export const NAV_SECTIONS: NavSection[] = [
             "/weather/issued",
             "Morning, midday and evening reports"
           ),
+          link(
+            "Tropical Weather Outlook",
+            "/weather/tropics",
+            "Systems that could affect us in the next seven days"
+          ),
         ],
       },
       {
@@ -281,11 +286,6 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Tropical weather",
         links: [
-          link(
-            "Tropical weather outlook",
-            "/weather/tropics",
-            "NHC outlook for the Atlantic and Caribbean"
-          ),
           link(
             "Tropical waves",
             "/weather/tropics/waves",
@@ -913,6 +913,31 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
 ];
+
+/**
+ * Site-wide pages linked from the footer rather than the menu. They belong to
+ * the About section (`FOOTER_GROUP_SECTION`) for breadcrumbs and the sitemap,
+ * so the trail reads About › About this site › Privacy.
+ */
+export const FOOTER_GROUP: NavGroup = {
+  heading: "About this site",
+  links: [
+    link(
+      "Privacy",
+      "/privacy",
+      "How we handle your data and the controls on this site"
+    ),
+    link("Sitemap", "/sitemap", "Every page on the site, by section"),
+    link(
+      "Disclaimer",
+      "/disclaimer",
+      "What the information on this site is for"
+    ),
+  ],
+};
+
+/** The section the footer group's pages sit under. */
+export const FOOTER_GROUP_SECTION = "/about";
 
 /** Every link in a section, in order — what the mobile drawer lists. */
 export function sectionLinks(section: NavSection): NavLink[] {

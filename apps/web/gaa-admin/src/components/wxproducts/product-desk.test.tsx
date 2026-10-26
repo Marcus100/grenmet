@@ -22,7 +22,7 @@ const ISSUE_DATE_LABEL = /Issue date and time/;
 const FORECASTER_LABEL = /Forecaster on duty/;
 const AREA_LABEL = /Area covered/;
 const SPEED_FROM_LABEL = /Speed from \(mph\)/;
-const WEATHER_SUMMARY_LABEL = /^Weather summary \*$/;
+const WEATHER_SUMMARY_LABEL = /^Weather forecast \*$/;
 const SPEED_TO_LABEL = /Speed to \(mph\)/;
 const WAVES_FROM_LABEL = /Waves from \(ft\)/;
 const WAVES_METRES_HINT = /Waves ≈ 0.55 m/;
@@ -267,9 +267,12 @@ it("keeps evening periods in subtabs without losing edits or rendering PDFs", as
   expect(
     periodTabs.compareDocumentPosition(screen.getByText("New draft"))
   ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-  fireEvent.change(within(tonight).getByLabelText("Tonight's weather *"), {
-    target: { value: "Tonight draft" },
-  });
+  fireEvent.change(
+    within(tonight).getByLabelText("Tonight's weather forecast *"),
+    {
+      target: { value: "Tonight draft" },
+    }
+  );
   fireEvent.click(screen.getByRole("tab", { name: "Day 1" }));
   const day1 = screen.getByRole("tabpanel", { name: "Day 1" });
   expect(
@@ -303,7 +306,7 @@ it("keeps evening periods in subtabs without losing edits or rendering PDFs", as
     )
   ).toHaveValue(10);
   fireEvent.click(screen.getByRole("tab", { name: "Tonight" }));
-  expect(screen.getByLabelText("Tonight's weather *")).toHaveValue(
+  expect(screen.getByLabelText("Tonight's weather forecast *")).toHaveValue(
     "Tonight draft"
   );
   expect(actions.previewProductPdfAction).not.toHaveBeenCalled();
@@ -927,5 +930,26 @@ it("loads the revision history on request, lists each revision and reports a fai
   ).toBeNull();
   expect(actions.loadProductHistoryAction).toHaveBeenCalledWith(
     "7d517fe0-a25b-4f12-a2b4-eaaed8116010"
+  );
+});
+
+it("tells the forecaster to raise or lower an old draft above green", async () => {
+  actions.loadProductsAction.mockResolvedValue({
+    ok: true,
+    products: [
+      {
+        id: "7d517fe0-a25b-4f12-a2b4-eaaed8116011",
+        kind: "marine",
+        values: { ...emptyProduct("marine", grenadaDate()), level: "Yellow" },
+        revision: 1,
+        publishedRevision: null,
+        updatedAt: "2026-10-07T12:00:00Z",
+      },
+    ],
+  });
+  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "raise it to a warning (a CAP alert) or change it to green"
   );
 });

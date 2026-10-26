@@ -107,8 +107,11 @@ function SourceBanner({
   if (source === "sample") {
     return (
       <p className="border-white/10 border-b px-5 py-3 text-sm sm:px-6">
-        Demo flight board. Times and statuses are sample data. Confirm your
-        flight with your airline.
+        <strong className="font-semibold text-gaa-gold">
+          Sample schedule, not live flights.
+        </strong>{" "}
+        Times and statuses are sample data. Confirm your flight with your
+        airline.
       </p>
     );
   }
@@ -159,7 +162,8 @@ export function FlightBoard({
           <AirportToggle airport={airport} onChange={setAirport} />
         )}
       </div>
-      <div className="overflow-x-auto">
+      {/* Scrolls sideways inside its own box if a row is ever wider than the phone. */}
+      <div className="overflow-x-auto" data-testid="flight-table-scroll">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-white/10 border-t text-white/50 text-xs uppercase tracking-wider">
@@ -179,7 +183,7 @@ export function FlightBoard({
                 Airline
               </th>
               <th
-                className="px-5 py-3 text-right font-medium sm:px-6"
+                className="hidden px-5 py-3 text-right font-medium sm:table-cell sm:px-6"
                 scope="col"
               >
                 Status
@@ -197,9 +201,21 @@ export function FlightBoard({
                 </td>
                 <td className="tabular px-3 py-3.5 text-white/85">
                   {flight.flightNumber}
+                  {/* Phones: status sits under the flight number so it is never clipped. */}
+                  <span
+                    className={cn(
+                      "mt-1 block w-fit rounded-full px-2 py-0.5 font-medium text-xs sm:hidden",
+                      STATUS_STYLES[flight.status]
+                    )}
+                    data-testid="status-inline"
+                  >
+                    {STATUS_LABELS[flight.status]}
+                  </span>
                 </td>
                 <td className="px-3 py-3.5">
-                  <span className="text-white/90">{flight.city}</span>{" "}
+                  <span className="break-words text-white/90">
+                    {flight.city}
+                  </span>{" "}
                   <span className="text-white/45 text-xs">
                     {flight.cityCode}
                   </span>
@@ -207,7 +223,7 @@ export function FlightBoard({
                 <td className="hidden px-3 py-3.5 text-white/70 md:table-cell">
                   {flight.airline}
                 </td>
-                <td className="px-5 py-3.5 text-right sm:px-6">
+                <td className="hidden px-5 py-3.5 text-right sm:table-cell sm:px-6">
                   <span
                     className={cn(
                       "inline-block rounded-full px-2.5 py-1 font-medium text-xs",

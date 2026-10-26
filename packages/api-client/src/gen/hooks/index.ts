@@ -659,6 +659,11 @@ export {
   useCapCreateAlert,
 } from "./useCapCreateAlert.js";
 export {
+  capCreateEscalationMutationKey,
+  capCreateEscalationMutationOptions,
+  useCapCreateEscalation,
+} from "./useCapCreateEscalation.js";
+export {
   capCreateFeedMutationKey,
   capCreateFeedMutationOptions,
   useCapCreateFeed,
@@ -739,6 +744,11 @@ export {
   useCapGetCatalogs,
 } from "./useCapGetCatalogs.js";
 export {
+  capGetEscalationQueryKey,
+  capGetEscalationQueryOptions,
+  useCapGetEscalation,
+} from "./useCapGetEscalation.js";
+export {
   capGetFeedsQueryKey,
   capGetFeedsQueryOptions,
   useCapGetFeeds,
@@ -798,6 +808,11 @@ export {
   capPublishAlertMutationOptions,
   useCapPublishAlert,
 } from "./useCapPublishAlert.js";
+export {
+  capRecordAlertReviewMutationKey,
+  capRecordAlertReviewMutationOptions,
+  useCapRecordAlertReview,
+} from "./useCapRecordAlertReview.js";
 export {
   capSaveHazardProfileMutationKey,
   capSaveHazardProfileMutationOptions,
@@ -904,6 +919,11 @@ export {
   useEregisterAcceptRegisterObservation,
 } from "./useEregisterAcceptRegisterObservation.js";
 export {
+  eregisterCorrectRegisterObservationMutationKey,
+  eregisterCorrectRegisterObservationMutationOptions,
+  useEregisterCorrectRegisterObservation,
+} from "./useEregisterCorrectRegisterObservation.js";
+export {
   eregisterCreateRegisterObservationMutationKey,
   eregisterCreateRegisterObservationMutationOptions,
   useEregisterCreateRegisterObservation,
@@ -913,6 +933,11 @@ export {
   eregisterEmailRegisterObservationMutationOptions,
   useEregisterEmailRegisterObservation,
 } from "./useEregisterEmailRegisterObservation.js";
+export {
+  eregisterGetStationSettingsQueryKey,
+  eregisterGetStationSettingsQueryOptions,
+  useEregisterGetStationSettings,
+} from "./useEregisterGetStationSettings.js";
 export {
   eregisterListObservationSendsQueryKey,
   eregisterListObservationSendsQueryOptions,
@@ -939,6 +964,11 @@ export {
   useEregisterPublishRegisterObservation,
 } from "./useEregisterPublishRegisterObservation.js";
 export {
+  eregisterPutStationSettingsMutationKey,
+  eregisterPutStationSettingsMutationOptions,
+  useEregisterPutStationSettings,
+} from "./useEregisterPutStationSettings.js";
+export {
   eregisterRejectRegisterObservationMutationKey,
   eregisterRejectRegisterObservationMutationOptions,
   useEregisterRejectRegisterObservation,
@@ -948,6 +978,11 @@ export {
   eregisterReopenRegisterObservationMutationOptions,
   useEregisterReopenRegisterObservation,
 } from "./useEregisterReopenRegisterObservation.js";
+export {
+  eregisterReviewRegisterObservationMutationKey,
+  eregisterReviewRegisterObservationMutationOptions,
+  useEregisterReviewRegisterObservation,
+} from "./useEregisterReviewRegisterObservation.js";
 export {
   eregisterValidateSynopObservationMutationKey,
   eregisterValidateSynopObservationMutationOptions,
@@ -3094,15 +3129,35 @@ export {
   webhooksOutUpdateEndpointMutationOptions,
 } from "./useWebhooksOutUpdateEndpoint.js";
 export {
+  useWxproductsCreateTropicalSystem,
+  wxproductsCreateTropicalSystemMutationKey,
+  wxproductsCreateTropicalSystemMutationOptions,
+} from "./useWxproductsCreateTropicalSystem.js";
+export {
   useWxproductsGetPublicProduct,
   wxproductsGetPublicProductQueryKey,
   wxproductsGetPublicProductQueryOptions,
 } from "./useWxproductsGetPublicProduct.js";
 export {
+  useWxproductsGetPublicTropicalSystem,
+  wxproductsGetPublicTropicalSystemQueryKey,
+  wxproductsGetPublicTropicalSystemQueryOptions,
+} from "./useWxproductsGetPublicTropicalSystem.js";
+export {
   useWxproductsListPublicProducts,
   wxproductsListPublicProductsQueryKey,
   wxproductsListPublicProductsQueryOptions,
 } from "./useWxproductsListPublicProducts.js";
+export {
+  useWxproductsListPublicTropicalSystems,
+  wxproductsListPublicTropicalSystemsQueryKey,
+  wxproductsListPublicTropicalSystemsQueryOptions,
+} from "./useWxproductsListPublicTropicalSystems.js";
+export {
+  useWxproductsListTropicalSystems,
+  wxproductsListTropicalSystemsQueryKey,
+  wxproductsListTropicalSystemsQueryOptions,
+} from "./useWxproductsListTropicalSystems.js";
 export {
   useWxproductsLoadAviationDrafts,
   wxproductsLoadAviationDraftsQueryKey,
@@ -3128,6 +3183,11 @@ export {
   wxproductsLoadProductsQueryKey,
   wxproductsLoadProductsQueryOptions,
 } from "./useWxproductsLoadProducts.js";
+export {
+  useWxproductsLoadTropicalSystemHistory,
+  wxproductsLoadTropicalSystemHistoryQueryKey,
+  wxproductsLoadTropicalSystemHistoryQueryOptions,
+} from "./useWxproductsLoadTropicalSystemHistory.js";
 export {
   useWxproductsPreviewProduct,
   wxproductsPreviewProductMutationKey,
@@ -3158,6 +3218,11 @@ export {
   wxproductsSaveProductMutationKey,
   wxproductsSaveProductMutationOptions,
 } from "./useWxproductsSaveProduct.js";
+export {
+  useWxproductsUpdateTropicalSystem,
+  wxproductsUpdateTropicalSystemMutationKey,
+  wxproductsUpdateTropicalSystemMutationOptions,
+} from "./useWxproductsUpdateTropicalSystem.js";
 export {
   useWxproductsValidateAviationMessage,
   wxproductsValidateAviationMessageMutationKey,

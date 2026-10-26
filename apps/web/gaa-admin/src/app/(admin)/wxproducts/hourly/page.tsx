@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { WideContent } from "@/components/layout/wide-content";
 import { ERegister } from "@/components/wxproducts/eregister";
 
 export const metadata: Metadata = {
@@ -9,8 +10,8 @@ export const metadata: Metadata = {
 
 export default function HourlyPage() {
   return (
-    <div className="space-y-5">
+    <WideContent className="space-y-5">
       <ERegister />
-    </div>
+    </WideContent>
   );
 }
