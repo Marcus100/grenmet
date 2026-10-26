@@ -16,6 +16,13 @@ class RequestStatus(str, Enum):
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
     CANCELLED = "CANCELLED"
+    # An approver sent the form back to its author with a reason. Unlike
+    # REJECTED it is not final: the author edits and resubmits it.
+    RETURNED = "RETURNED"
+
+
+# Statuses in which the author may edit a form and submit it for approval.
+EDITABLE_STATUSES = frozenset({RequestStatus.DRAFT, RequestStatus.RETURNED})
 
 
 class UserStatus(str, Enum):

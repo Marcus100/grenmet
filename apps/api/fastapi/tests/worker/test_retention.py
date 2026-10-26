@@ -223,3 +223,37 @@ async def test_purge_runs_in_batches(
         .where(ContactMessage.subject.like(f"b%{tag}"))
     )
     assert left == 0
+
+
+async def test_old_notification_occurrences_are_purged_including_orphans(
+    db_async: AsyncSession,
+) -> None:
+    from src.notifications.models import NotificationOccurrence
+
+    tag = _tag()
+    old = NOW - timedelta(days=retention.NOTIFICATION_OCCURRENCE_RETENTION_DAYS + 1)
+    db_async.add_all(
+        [
+            NotificationOccurrence(
+                dedupe_key=f"old-{tag}", notification_id=None, created_at=old
+            ),
+            NotificationOccurrence(
+                dedupe_key=f"new-{tag}",
+                notification_id=None,
+                created_at=NOW - timedelta(days=1),
+            ),
+        ]
+    )
+    await db_async.commit()
+
+    result = await retention.purge_expired(session=db_async, now=NOW)
+
+    assert result.notification_occurrences >= 1
+    kept = (
+        await db_async.scalars(
+            select(NotificationOccurrence.dedupe_key).where(
+                NotificationOccurrence.dedupe_key.like(f"%-{tag}")
+            )
+        )
+    ).all()
+    assert list(kept) == [f"new-{tag}"]

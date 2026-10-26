@@ -16,8 +16,13 @@ from src.hr.attendance import clock_service, punch_service
 from src.hr.attendance import service as attendance_service
 from src.hr.attendance.models import AttendanceRecord, ClockPunch
 from src.hr.attendance.schemas import AttendanceSave
-from src.hr.models import Department, Organisation
-from src.hr.roster.models import RosterAssignment, ShiftCatalog, ShiftCategory
+from src.hr.models import Department, EmploymentRecord, Organisation
+from src.hr.roster.models import (
+    RosterAssignment,
+    RosterPeriod,
+    ShiftCatalog,
+    ShiftCategory,
+)
 from src.hr.roster.schemas import (
     RosterAssignmentBulkCreate,
     RosterAssignmentInput,
@@ -524,7 +529,7 @@ def _current_for(
     assignment_id: object,
 ) -> Callable[..., Awaitable[tuple[RosterAssignment, ShiftCatalog]]]:
     async def found(
-        session: AsyncSession, _user_id: object, _now: object
+        session: AsyncSession, _user_id: object, _now: object, _department_id: object
     ) -> tuple[RosterAssignment, ShiftCatalog]:
         row = (
             await session.execute(
@@ -642,3 +647,187 @@ async def test_all_scope_approver_from_another_organisation_sees_nothing(
         session=db_async, current_user=outsider, limit=50, offset=0
     )
     assert total == 0
+
+
+async def _transfer(db: AsyncSession, employee: User, department: str) -> None:
+    record = await db.scalar(
+        select(EmploymentRecord).where(EmploymentRecord.user_id == employee.id)
+    )
+    assert record is not None
+    record.department_id = department
+    await db.commit()
+
+
+async def _pending_ids(db: AsyncSession, user: User) -> list[object]:
+    rows, _ = await punch_service.list_pending(
+        session=db, current_user=user, limit=50, offset=0
+    )
+    return [row[0].id for row in rows]
+
+
+async def test_after_a_transfer_old_and_new_manager_both_see_and_decide(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    old_manager = await _supervisor(db_async, department=DEPT)
+    new_manager = await _supervisor(db_async, department=OTHER)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    depart = await _punch(db_async, employee, token, 18, 0)
+    await _transfer(db_async, employee, OTHER)
+
+    for manager in (old_manager, new_manager):
+        assert set(await _pending_ids(db_async, manager)) == {arrive.id, depart.id}
+
+    # Authority for approval is the same rule (the roster-department check in
+    # save_attendance is a separate, later step), and either may reject.
+    for manager in (old_manager, new_manager):
+        await punch_service._require_reviewer(db_async, manager, arrive)
+    rejected = await punch_service.reject_punch(
+        session=db_async, current_user=new_manager, punch_id=depart.id, reason="no"
+    )
+    assert rejected.status == "REJECTED"
+    assert await _pending_ids(db_async, old_manager) == [arrive.id]
+
+
+async def test_named_supervisor_and_unrelated_manager_after_transfer(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    third = "ZZZ"
+    if not await db_async.get(Department, third):
+        db_async.add(
+            Department(organisation_id="gaa", code=third, id=third, name=third)
+        )
+        await db_async.commit()
+    named = await _supervisor(db_async, department=third)
+    unrelated = await _supervisor(db_async, department=third)
+    record = await db_async.scalar(
+        select(EmploymentRecord).where(EmploymentRecord.user_id == employee.id)
+    )
+    assert record is not None
+    record.supervisor_id = named.id
+    await db_async.commit()
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    await _transfer(db_async, employee, OTHER)
+
+    assert await _pending_ids(db_async, named) == [arrive.id]
+    # A manager of neither the punch's nor the current department sees nothing.
+    assert await _pending_ids(db_async, unrelated) == []
+    with pytest.raises(AppException) as raised:
+        await punch_service.approve_punch(
+            session=db_async, current_user=unrelated, punch_id=arrive.id
+        )
+    assert raised.value.status_code == 403
+    await punch_service._require_reviewer(db_async, named, arrive)
+
+
+async def test_all_scope_holder_in_the_organisation_decides_and_employee_cannot(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    hr = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, "timesheet.approve")
+    await assign_role(db_async, user=hr, role=role, scope=RoleAssignmentScope.ALL)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    await _transfer(db_async, employee, OTHER)
+    assert await _pending_ids(db_async, hr) == [arrive.id]
+    # Even holding the permission at organisation scope, the employee is refused.
+    await assign_role(
+        db_async,
+        user=employee,
+        role=role,
+        scope=RoleAssignmentScope.ALL,
+    )
+    assert await _pending_ids(db_async, employee) == []
+    with pytest.raises(AppException) as raised:
+        await punch_service.approve_punch(
+            session=db_async, current_user=employee, punch_id=arrive.id
+        )
+    assert raised.value.status_code == 403
+    await punch_service._require_reviewer(db_async, hr, arrive)
+
+
+async def test_approval_after_a_transfer_writes_attendance_for_the_old_roster(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    old_manager = await _supervisor(db_async, department=DEPT)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    depart = await _punch(db_async, employee, token, 18, 0)
+    await _transfer(db_async, employee, OTHER)
+
+    await punch_service.approve_punch(
+        session=db_async, current_user=old_manager, punch_id=arrive.id
+    )
+    await punch_service.approve_punch(
+        session=db_async, current_user=old_manager, punch_id=depart.id
+    )
+    (record,) = await _records(db_async)
+    assert record.department_id == DEPT
+    assert record.arrived_at is not None
+    assert record.departed_at is not None
+
+
+async def test_other_departments_proxy_is_refused_on_an_old_department_shift(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    await _transfer(db_async, employee, OTHER)
+    proxy = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, "timesheet.submit.proxy")
+    await make_employee(db_async, user=proxy, department_id=OTHER)
+    await assign_role(
+        db_async,
+        user=proxy,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=OTHER,
+    )
+    with pytest.raises(AppException) as raised:
+        await attendance_service.save_attendance(
+            session=db_async,
+            current_user=proxy,
+            payload=AttendanceSave(
+                roster_assignment_id=arrive.roster_assignment_id,
+                expected_revision=0,
+                arrived_at=arrive.punched_at.replace(tzinfo=UTC),
+            ),
+        )
+    assert raised.value.status_code == 400
+
+
+async def test_roster_department_in_another_organisation_is_still_refused(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    if not await db_async.get(Organisation, "other_org"):
+        db_async.add(
+            Organisation(id="other_org", code="other_org", name="Other organisation")
+        )
+        await db_async.flush()
+    foreign = Department(
+        organisation_id="other_org", code="FRN", id="dept_foreign", name="Foreign"
+    )
+    db_async.add(foreign)
+    await db_async.commit()
+    # Corrupt state a transfer guard should prevent: the roster's department
+    # now belongs to a different organisation than the employee's employment.
+    assignment = await db_async.get(RosterAssignment, arrive.roster_assignment_id)
+    assert assignment is not None
+    period = await db_async.get(RosterPeriod, assignment.roster_period_id)
+    assert period is not None
+    period.department_id = foreign.id
+    await db_async.commit()
+    with pytest.raises(AppException) as raised:
+        await attendance_service.save_attendance(
+            session=db_async,
+            current_user=employee,
+            payload=AttendanceSave(
+                roster_assignment_id=arrive.roster_assignment_id,
+                expected_revision=0,
+                arrived_at=arrive.punched_at.replace(tzinfo=UTC),
+            ),
+        )
+    assert raised.value.status_code == 400

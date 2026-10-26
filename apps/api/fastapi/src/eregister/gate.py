@@ -72,6 +72,28 @@ async def _log(
     )
 
 
+async def log_decision(
+    register: AsyncSession,
+    *,
+    station_id: str,
+    hour: datetime,
+    observation_id: UUID,
+    actor: str | None,
+    reason: str,
+) -> None:
+    """Record a gate hand-back (a rejected correction); the caller commits."""
+    await _log(
+        register,
+        station_id=station_id,
+        hour=hour,
+        official=None,
+        observation_id=observation_id,
+        outcome="claimed",
+        reason=reason,
+        actor=actor,
+    )
+
+
 async def hour_holder(
     register: AsyncSession, *, station_id: str, observed_at: datetime
 ) -> UUID | None:
@@ -234,8 +256,12 @@ async def release_hour(
     station_id: str,
     observed_at: datetime,
     observation_id: UUID,
+    commit: bool = True,
 ) -> None:
-    """Undo a fresh claim when the publish could not be queued."""
+    """Undo a claim (a publish that could not be queued, a restored draft).
+
+    ``commit=False`` leaves the delete in the caller's transaction.
+    """
     await register.execute(
         text(
             "DELETE FROM observations.publish_gate WHERE station_id = :station"
@@ -243,4 +269,5 @@ async def release_hour(
         ),
         {"station": station_id, "hour": valid_hour(observed_at), "obs": observation_id},
     )
-    await register.commit()
+    if commit:
+        await register.commit()

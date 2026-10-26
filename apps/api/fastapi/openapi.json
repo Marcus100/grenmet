@@ -11252,7 +11252,7 @@
           "hr-workflows"
         ],
         "summary": "Perform workflow action",
-        "description": "Submit, approve, reject, return, or cancel a workflow instance. Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
+        "description": "Submit, approve, reject, return, or cancel a workflow instance. Return requires comments (the reason shown to the author). Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
         "operationId": "hrTakeAction",
         "security": [
           {
@@ -13646,7 +13646,7 @@
           "hr-attendance"
         ],
         "summary": "List phone clock punches awaiting approval",
-        "description": "Pending phone punches of employees the caller supervises or reviews (named supervisor, or timesheet.approve in the department scope). Never includes the caller's own punches.",
+        "description": "Pending phone punches the caller may decide. Callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Approve and reject use the same rule.",
         "operationId": "hrListPendingClockPunches",
         "security": [
           {
@@ -13712,7 +13712,7 @@
           "hr-attendance"
         ],
         "summary": "Approve a phone clock punch",
-        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Only the employee's named supervisor or a timesheet.approve holder in scope; never the punching employee. Idempotent.",
+        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Allowed for: callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Idempotent.",
         "operationId": "hrApproveClockPunch",
         "security": [
           {
@@ -13770,7 +13770,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+            "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
           },
           "404": {
             "description": "Clock punch not found"
@@ -13838,7 +13838,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+            "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
           },
           "404": {
             "description": "Clock punch not found"
@@ -19400,8 +19400,8 @@
         "tags": [
           "notifications"
         ],
-        "summary": "Read my email preferences",
-        "description": "Which notifications the signed-in person also receives by email.",
+        "summary": "Read my bell and email preferences",
+        "description": "Per notification: whether the signed-in person gets it in the bell and by email. Urgent notifications always appear in the bell.",
         "operationId": "notificationsGetNotificationPreferences",
         "responses": {
           "200": {
@@ -19442,8 +19442,8 @@
         "tags": [
           "notifications"
         ],
-        "summary": "Update my email preferences",
-        "description": "Turn email on or off per notification. In-app notifications are always kept; approval requests cannot be muted.",
+        "summary": "Update my bell and email preferences",
+        "description": "Turn the bell and email on or off per notification (leave a channel out to keep it). Urgent notifications always appear in the bell; approval requests cannot be muted by email.",
         "operationId": "notificationsUpdateNotificationPreferences",
         "requestBody": {
           "content": {
@@ -19485,7 +19485,7 @@
             }
           },
           "400": {
-            "description": "Unknown or unmutable notification"
+            "description": "Unknown notification, or an urgent or approval one that cannot be turned off"
           }
         },
         "security": [
@@ -24553,6 +24553,115 @@
           },
           "403": {
             "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/cap/escalations": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Find the warning raised from a GMS alert",
+        "description": "Returns the open or published CAP alert linked to a GMS alert product, or nulls when none was raised. Needs cap.alert.read.",
+        "operationId": "capGetEscalation",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Product Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapEscalationLookup"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Raise a saved GMS alert to a CAP warning draft",
+        "description": "Creates a pre-filled CAP draft from one saved GMS alert revision, linked to it through the GMS source parameters. Returns 200 with the existing draft when an open (draft, submitted or approved) CAP alert already links the product. Needs cap.alert.create and product access to the alert's kind.",
+        "operationId": "capCreateEscalation",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapEscalationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapEscalationPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -29997,13 +30106,541 @@
         }
       }
     },
+    "/api/v1/wxproducts/tropical-systems": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "List tracked tropical systems",
+        "description": "Tracked systems newest first, optionally filtered by status and season. Needs product access to the outlook.",
+        "operationId": "wxproductsListTropicalSystems",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TropicalSystemPublicPropertiesStatusEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 2000
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Season"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemList"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outlook product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Weather database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Start tracking a tropical system",
+        "description": "Creates a tracked system by hand and assigns its season label, for example 'GMS 2026-07'.",
+        "operationId": "wxproductsCreateTropicalSystem",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TropicalSystemCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid system",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outlook product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Weather database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "NHC storm identifier in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/tropical-systems/{system_id}": {
+      "patch": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Update a tracked tropical system",
+        "description": "Rename it, link NHC identifiers, close it (dissipated, merged, out of area or duplicate) or reopen it. A merged system names the system it continues as.",
+        "operationId": "wxproductsUpdateTropicalSystem",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TropicalSystemUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid change",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outlook product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Weather database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tracked system not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "NHC storm identifier in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/tropical-systems/{system_id}/history": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Load a tracked system's history",
+        "description": "Every outlook entry for the system, oldest first, drafts included.",
+        "operationId": "wxproductsLoadTropicalSystemHistory",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemHistory"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Outlook product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Weather database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tracked system not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/public/tropical-systems": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "List active tropical systems",
+        "description": "Anonymous list of active tracked systems that appear in a published outlook, each with its latest published entry. Drafts are never shown.",
+        "operationId": "wxproductsListPublicTropicalSystems",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemPublicList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/public/tropical-systems/{system_id}": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Get one tropical system's published history",
+        "description": "Anonymous history of positions and formation chances from published outlooks only, oldest first. A system that was never published is 404.",
+        "operationId": "wxproductsGetPublicTropicalSystem",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TropicalSystemPublicHistory"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/eregister/observations": {
       "get": {
         "tags": [
           "eregister"
         ],
         "summary": "List register observations",
-        "description": "Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "description": "Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings (each stored row is checked as saved, without the station's current pressure amounts) and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterListRegisterObservations",
         "security": [
           {
@@ -30225,7 +30862,7 @@
           "eregister"
         ],
         "summary": "Validate a SYNOP observation",
-        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid.",
+        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns. With `observed_at`, the station's saved SYNOP of the previous hour and of 3 hours earlier are compared (hour-to-hour warnings). `expected_metar` is the METAR the observation implies; a METAR typed in `metar_text` is compared with it (warnings on that field).",
         "operationId": "eregisterValidateSynopObservation",
         "requestBody": {
           "content": {
@@ -30281,7 +30918,7 @@
           "eregister"
         ],
         "summary": "Correct a register observation",
-        "description": "Saves a replacement that supersedes the observation (`supersedes_id`); the old one becomes `superseded` and stays listed. Station, kind and time are kept. `409` when the observation is rejected or already superseded; `422` when the replacement SYNOP has errors. The replacement starts as a draft; saving it holds any queued WIS2 file of the replaced observation until the correction is accepted (the old file is dropped) or rejected (the old file is released). When its observer accepts it, a station-hour already sent to WIS2 is sent again marked as a correction. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "description": "Saves a replacement that supersedes the observation (`supersedes_id`); the old one becomes `superseded` and stays listed. Station, kind and time are kept. `409` when the observation is rejected or already superseded; `422` when the replacement SYNOP has errors. The replacement starts as a draft; saving it holds any queued WIS2 file of the replaced observation until the correction is accepted (the old file is dropped) or rejected (the old file is released and the old observation returns to the state it had before). When its observer accepts it, a station-hour already sent to WIS2 is sent again marked as a correction. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterCorrectRegisterObservation",
         "security": [
           {
@@ -30637,7 +31274,7 @@
           "eregister"
         ],
         "summary": "Reject a register observation (QC)",
-        "description": "Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Requires register staff access. Audited.",
+        "description": "Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Rejecting a correction releases the held WIS2 file of the observation it replaced and puts that observation back to the state it had before the correction (for example `accepted`), live and correctable again. Requires register staff access. Audited.",
         "operationId": "eregisterRejectRegisterObservation",
         "security": [
           {
@@ -30833,6 +31470,134 @@
           },
           "403": {
             "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/stations/{station_id}/settings": {
+      "get": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Station pressure amounts",
+        "description": "The fixed amounts (hPa) the register uses to work out the pressures from the barometer as read: station pressure = barometer + `total_correction_hpa`; QFE = station + `qfe_offset_hpa`; mean sea level pressure = station + `sea_level_offset_hpa`; QNH = sea level + `qnh_offset_hpa`. 78958 holds the owner-confirmed 0.0, 0.3, 1.0 and 0.1; an amount not yet supplied is null and listed in `pending`. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "operationId": "eregisterGetStationSettings",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "station_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Station Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationSettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Set the station pressure amounts",
+        "description": "Replaces all four amounts; every key is required and an explicit null clears one. The change is recorded in the change history (entity `eregister_station_settings`) with the amounts before and after and the actor. Requires `eregister.qc`.",
+        "operationId": "eregisterPutStationSettings",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "station_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Station Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StationSettingsUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationSettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
           }
         }
       }
@@ -45170,6 +45935,17 @@
               }
             ]
           },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -52858,6 +53634,108 @@
         ],
         "title": "CapEmergencyPublish"
       },
+      "CapEscalationCreate": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Product Id"
+          },
+          "revision": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Revision"
+          },
+          "awareness_level": {
+            "$ref": "#/components/schemas/CapEscalationCreatePropertiesAwarenessLevelEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "revision",
+          "awareness_level"
+        ],
+        "title": "CapEscalationCreate",
+        "description": "Raise a saved GMS alert revision to a CAP warning (ADR-0051)."
+      },
+      "CapEscalationLookup": {
+        "properties": {
+          "alert_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alert Id"
+          },
+          "lifecycle_state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapLifecycleState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "CapEscalationLookup",
+        "description": "The CAP warning raised from a GMS alert, if one is open or published."
+      },
+      "CapEscalationPublic": {
+        "properties": {
+          "alert_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Alert Id"
+          },
+          "created": {
+            "type": "boolean",
+            "title": "Created"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CapEscalationSource"
+          }
+        },
+        "type": "object",
+        "required": [
+          "alert_id",
+          "created",
+          "source"
+        ],
+        "title": "CapEscalationPublic"
+      },
+      "CapEscalationSource": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Product Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "revision",
+          "kind"
+        ],
+        "title": "CapEscalationSource"
+      },
       "CapFeedImportCreate": {
         "properties": {
           "name": {
@@ -59160,6 +60038,22 @@
               }
             ],
             "title": "Valid To"
+          },
+          "edited": {
+            "type": "boolean",
+            "title": "Edited",
+            "default": false
+          },
+          "source_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Value"
           }
         },
         "additionalProperties": false,
@@ -59477,6 +60371,18 @@
           },
           "feature_type": {
             "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "tracked_system_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tracked System Id"
           },
           "parent_system_id": {
             "anyOf": [
@@ -61714,6 +62620,17 @@
                 "type": "null"
               }
             ]
+          },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
           },
           "id": {
             "type": "string",
@@ -64526,6 +65443,21 @@
           "email_enabled": {
             "type": "boolean",
             "title": "Email Enabled"
+          },
+          "bell_mutable": {
+            "type": "boolean",
+            "title": "Bell Mutable",
+            "default": true
+          },
+          "bell_enabled": {
+            "type": "boolean",
+            "title": "Bell Enabled",
+            "default": true
+          },
+          "urgent": {
+            "type": "boolean",
+            "title": "Urgent",
+            "default": false
           }
         },
         "type": "object",
@@ -64545,16 +65477,34 @@
             "title": "Event Key"
           },
           "email_enabled": {
-            "type": "boolean",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Email Enabled"
+          },
+          "bell_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bell Enabled"
           }
         },
         "type": "object",
         "required": [
-          "event_key",
-          "email_enabled"
+          "event_key"
         ],
-        "title": "NotificationPreferenceUpdate"
+        "title": "NotificationPreferenceUpdate",
+        "description": "Leave a channel out (null) to keep the person's current choice."
       },
       "NotificationPublic": {
         "properties": {
@@ -64607,6 +65557,16 @@
               }
             ],
             "title": "Entity Id"
+          },
+          "repeat_count": {
+            "type": "integer",
+            "title": "Repeat Count",
+            "default": 1
+          },
+          "urgent": {
+            "type": "boolean",
+            "title": "Urgent",
+            "default": false
           },
           "read_at": {
             "anyOf": [
@@ -67836,6 +68796,17 @@
                 "type": "null"
               }
             ]
+          },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
           },
           "id": {
             "type": "string",
@@ -72854,7 +73825,8 @@
           "SUBMITTED",
           "APPROVED",
           "REJECTED",
-          "CANCELLED"
+          "CANCELLED",
+          "RETURNED"
         ],
         "title": "RequestStatus"
       },
@@ -77568,6 +78540,17 @@
               }
             ]
           },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -78515,6 +79498,164 @@
         ],
         "title": "StaffUpdate"
       },
+      "StationSettings": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "total_correction_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Correction Hpa",
+            "description": "Total barometer correction; null until supplied."
+          },
+          "qfe_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qfe Offset Hpa",
+            "description": "QFE minus station pressure; null until supplied."
+          },
+          "sea_level_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sea Level Offset Hpa",
+            "description": "Mean sea level pressure minus station pressure; null until supplied."
+          },
+          "qnh_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qnh Offset Hpa",
+            "description": "QNH minus mean sea level pressure; null until supplied."
+          },
+          "pending": {
+            "items": {
+              "$ref": "#/components/schemas/StationSettingsPropertiesPendingItemsEnum"
+            },
+            "type": "array",
+            "title": "Pending",
+            "description": "The amounts that are still empty."
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id"
+        ],
+        "title": "StationSettings",
+        "description": "Fixed amounts (hPa) the register uses to work out the pressures.\n\nStation pressure = barometer as read + total correction; QFE = station\npressure + QFE offset; mean sea level pressure = station pressure + sea level\noffset; QNH = mean sea level pressure + QNH offset. 78958 is seeded with the\nowner-confirmed 0.0, 0.3, 1.0 and 0.1; other stations start empty."
+      },
+      "StationSettingsUpdate": {
+        "properties": {
+          "total_correction_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Correction Hpa"
+          },
+          "qfe_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qfe Offset Hpa"
+          },
+          "sea_level_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sea Level Offset Hpa"
+          },
+          "qnh_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qnh Offset Hpa"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_correction_hpa",
+          "qfe_offset_hpa",
+          "sea_level_offset_hpa",
+          "qnh_offset_hpa"
+        ],
+        "title": "StationSettingsUpdate",
+        "description": "All four amounts are required: send an explicit null to clear one."
+      },
       "StatusReportCreate": {
         "properties": {
           "signature_version": {
@@ -78985,6 +80126,17 @@
                 "type": "null"
               }
             ]
+          },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
           },
           "id": {
             "type": "string",
@@ -80273,6 +81425,30 @@
               }
             ],
             "title": "Ground State"
+          },
+          "qfe_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qfe Pa",
+            "description": "QFE from the station pressure and the station's QFE offset."
+          },
+          "qnh_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qnh Pa",
+            "description": "QNH from the mean sea level pressure and the station's QNH offset."
           }
         },
         "type": "object",
@@ -80348,6 +81524,18 @@
           },
           "decoded": {
             "$ref": "#/components/schemas/SynopDecoded"
+          },
+          "expected_metar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Metar",
+            "description": "The METAR the observation implies, for the observer to copy and edit."
           }
         },
         "type": "object",
@@ -80466,6 +81654,32 @@
               }
             ],
             "title": "Visibility"
+          },
+          "barometer_reading": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Barometer Reading",
+            "description": "Barometer as read (paper column 17), in hPa with one decimal, for example 1013.2."
+          },
+          "visibility_km": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility Km",
+            "description": "Visibility as typed, in kilometres; the coded VV is derived from it."
           },
           "total_cloud": {
             "anyOf": [
@@ -80971,6 +82185,67 @@
             ],
             "title": "S3 Special Phenomena"
           },
+          "s3_group_909": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Group 909",
+            "description": "Precipitation timing and duration (909Rtdc), the Region IV group 9SpSpspsp with SpSp 09, reported with 6RRRtR: five digits starting 909. Rt and dc are not decoded."
+          },
+          "time_mark_anemograph": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Anemograph"
+          },
+          "time_mark_barograph": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Barograph"
+          },
+          "time_mark_rain_recorder": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Rain Recorder"
+          },
+          "time_mark_thermohygrograph": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Thermohygrograph"
+          },
           "s3_sunshine_24h": {
             "anyOf": [
               {
@@ -81030,6 +82305,19 @@
               }
             ],
             "title": "S3 Remarks"
+          },
+          "metar_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metar Text",
+            "description": "The METAR typed or copied by the observer; each element is compared with the observation (warnings only)."
           },
           "observer_initials": {
             "anyOf": [
@@ -82580,7 +83868,8 @@
           "DRAFT",
           "SUBMITTED",
           "APPROVED",
-          "REJECTED"
+          "REJECTED",
+          "RETURNED"
         ],
         "title": "TimesheetStatus"
       },
@@ -83938,6 +85227,681 @@
           "stops"
         ],
         "title": "TripView"
+      },
+      "TropicalSystemCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "season": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2100.0,
+                "minimum": 2000.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Season",
+            "description": "Defaults to the current year in Grenada."
+          },
+          "nhc_storm_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}(0[1-9]|[1-8]\\d)\\d{4}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Storm Id",
+            "description": "NHC storm identifier such as al072026."
+          },
+          "nhc_invest_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}9\\d\\d{4}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Invest Id",
+            "description": "NHC invest identifier such as al902026."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "feature_type"
+        ],
+        "title": "TropicalSystemCreate",
+        "description": "Start tracking a system by hand. The label (GMS season-sequence) is assigned."
+      },
+      "TropicalSystemEntryRead": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Product Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "movement_direction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Movement Direction"
+          },
+          "movement_speed_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Movement Speed Kt"
+          },
+          "formation_48h": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation 48H"
+          },
+          "formation_7d": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation 7D"
+          },
+          "action": {
+            "$ref": "#/components/schemas/TropicalSystemEntryReadPropertiesActionEnum"
+          },
+          "source_edition_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Source Edition Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "revision",
+          "issued_at",
+          "name",
+          "feature_type",
+          "latitude",
+          "longitude",
+          "movement_direction",
+          "movement_speed_kt",
+          "formation_48h",
+          "formation_7d",
+          "action",
+          "source_edition_ids"
+        ],
+        "title": "TropicalSystemEntryRead",
+        "description": "Staff view of an entry, drafts included."
+      },
+      "TropicalSystemHistory": {
+        "properties": {
+          "system": {
+            "$ref": "#/components/schemas/TropicalSystemRead"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/TropicalSystemEntryRead"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "system",
+          "entries"
+        ],
+        "title": "TropicalSystemHistory"
+      },
+      "TropicalSystemList": {
+        "properties": {
+          "systems": {
+            "items": {
+              "$ref": "#/components/schemas/TropicalSystemRead"
+            },
+            "type": "array",
+            "title": "Systems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "systems"
+        ],
+        "title": "TropicalSystemList"
+      },
+      "TropicalSystemPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "nhc_storm_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Storm Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TropicalSystemPublicPropertiesStatusEnum"
+          },
+          "latest": {
+            "$ref": "#/components/schemas/TropicalSystemPublicEntry"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "name",
+          "feature_type",
+          "nhc_storm_id",
+          "status",
+          "latest"
+        ],
+        "title": "TropicalSystemPublic"
+      },
+      "TropicalSystemPublicEntry": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Product Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "movement_direction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Movement Direction"
+          },
+          "movement_speed_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Movement Speed Kt"
+          },
+          "formation_48h": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation 48H"
+          },
+          "formation_7d": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation 7D"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "revision",
+          "issued_at",
+          "name",
+          "feature_type",
+          "latitude",
+          "longitude",
+          "movement_direction",
+          "movement_speed_kt",
+          "formation_48h",
+          "formation_7d"
+        ],
+        "title": "TropicalSystemPublicEntry",
+        "description": "One published outlook issue's view of a system."
+      },
+      "TropicalSystemPublicHistory": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "nhc_storm_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Storm Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TropicalSystemPublicPropertiesStatusEnum"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/TropicalSystemPublicEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "name",
+          "feature_type",
+          "nhc_storm_id",
+          "status",
+          "entries"
+        ],
+        "title": "TropicalSystemPublicHistory"
+      },
+      "TropicalSystemPublicList": {
+        "properties": {
+          "systems": {
+            "items": {
+              "$ref": "#/components/schemas/TropicalSystemPublic"
+            },
+            "type": "array",
+            "title": "Systems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "systems"
+        ],
+        "title": "TropicalSystemPublicList"
+      },
+      "TropicalSystemRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "nhc_storm_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Storm Id"
+          },
+          "nhc_invest_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Invest Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TropicalSystemPublicPropertiesStatusEnum"
+          },
+          "closed_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TropicalSystemReadPropertiesClosedReasonAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed Reason"
+          },
+          "continued_as_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continued As Id"
+          },
+          "first_issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Issued At"
+          },
+          "last_issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Issued At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "season",
+          "sequence",
+          "name",
+          "feature_type",
+          "nhc_storm_id",
+          "nhc_invest_id",
+          "status",
+          "closed_reason",
+          "continued_as_id",
+          "first_issued_at",
+          "last_issued_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TropicalSystemRead"
+      },
+      "TropicalSystemUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "feature_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature Type"
+          },
+          "nhc_storm_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Storm Id",
+            "description": "Must match al072026 when it changes; an unchanged older id is accepted."
+          },
+          "nhc_invest_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nhc Invest Id",
+            "description": "Must match al942026 when it changes; an unchanged older id is accepted."
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TropicalSystemPublicPropertiesStatusEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "closed_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TropicalSystemReadPropertiesClosedReasonAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed Reason"
+          },
+          "continued_as_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continued As Id"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Why the change was made (audit trail)."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TropicalSystemUpdate",
+        "description": "Rename, link NHC identifiers, close or merge. Omitted fields stay unchanged."
       },
       "TurnstileMode": {
         "type": "string",
@@ -87160,6 +89124,14 @@
         ],
         "default": "xml"
       },
+      "CapEscalationCreatePropertiesAwarenessLevelEnum": {
+        "type": "string",
+        "enum": [
+          "yellow",
+          "orange",
+          "red"
+        ]
+      },
       "CapProfileDefinitionPropertiesChannelsItemsEnum": {
         "type": "string",
         "enum": [
@@ -87733,6 +89705,15 @@
           "online_ledger_mismatch"
         ]
       },
+      "StationSettingsPropertiesPendingItemsEnum": {
+        "type": "string",
+        "enum": [
+          "total_correction_hpa",
+          "qfe_offset_hpa",
+          "sea_level_offset_hpa",
+          "qnh_offset_hpa"
+        ]
+      },
       "StoredFilePropertiesStatusEnum": {
         "type": "string",
         "enum": [
@@ -87775,6 +89756,29 @@
           "completed",
           "attended",
           "failed"
+        ]
+      },
+      "TropicalSystemEntryReadPropertiesActionEnum": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "publish"
+        ]
+      },
+      "TropicalSystemPublicPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "active",
+          "closed"
+        ]
+      },
+      "TropicalSystemReadPropertiesClosedReasonAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "dissipated",
+          "merged",
+          "out_of_area",
+          "duplicate"
         ]
       },
       "UserPublicPropertiesCmsAccessEnum": {

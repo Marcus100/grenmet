@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Query, Request, Response
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -14,7 +14,7 @@ from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED
 from src.rate_limit import limiter
 
-from . import entries, public, qc, rules, sends
+from . import derive, entries, metar, public, qc, rules, sends, stations
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
     ObservationSend,
@@ -28,6 +28,8 @@ from .schemas import (
     RegisterObservationRead,
     ReviewRequest,
     SendObservationRequest,
+    StationSettings,
+    StationSettingsUpdate,
     SynopValidationRequest,
     SynopValidationResponse,
 )
@@ -72,7 +74,7 @@ STATE_PATTERN = (
     "/observations",
     response_model=RegisterObservationList,
     summary="List register observations",
-    description="Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+    description="Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings (each stored row is checked as saved, without the station's current pressure amounts) and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
     responses=REGISTER_RESPONSES,
 )
 async def list_register_observations(
@@ -154,20 +156,35 @@ async def list_register_observations(
     "/observations/validate-synop",
     response_model=SynopValidationResponse,
     summary="Validate a SYNOP observation",
-    description="Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid.",
+    description="Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns. With `observed_at`, the station's saved SYNOP of the previous hour and of 3 hours earlier are compared (hour-to-hour warnings). `expected_metar` is the METAR the observation implies; a METAR typed in `metar_text` is compared with it (warnings on that field).",
     responses={**AUTHENTICATED},
 )
 async def validate_synop_observation(
     body: SynopValidationRequest,
     _user: BrowserUser,
+    register: PublicRegisterSession,
 ) -> SynopValidationResponse:
-    workbook = body.workbook
-    issues, decoded = rules.validate_synop(workbook)
+    # The station's pressure amounts (78958: owner confirmed); none if unknown.
+    station = await stations.pressure_for(register, body.workbook.station_id)
+    workbook = derive.apply_to_workbook(body.workbook, station)
+    # The saved observations of the previous hours, for the hour-to-hour warnings.
+    history = (
+        {}
+        if body.observed_at is None
+        else await entries.history_for(
+            register, body.workbook.station_id, body.observed_at
+        )
+    )
+    issues, decoded = rules.validate_synop(workbook, station, history)
     if body.observed_at is not None:
         issues = [*issues, *rules.check_observation_time(workbook, body.observed_at)]
     valid = all(issue.severity != "error" for issue in issues)
     return SynopValidationResponse(
-        valid=valid, issues=issues, normalized=workbook, decoded=decoded
+        valid=valid,
+        issues=issues,
+        normalized=workbook,
+        decoded=decoded,
+        expected_metar=None if decoded.is_nil_report else metar.text(workbook, decoded),
     )
 
 
@@ -226,7 +243,8 @@ async def create_register_observation(
         "superseded; `422` when the replacement SYNOP has errors. The "
         "replacement starts as a draft; saving it holds any queued WIS2 file of the "
         "replaced observation until the correction is accepted (the old file is "
-        "dropped) or rejected (the old file is released). When its observer accepts it, a "
+        "dropped) or rejected (the old file is released and the old observation "
+        "returns to the state it had before). When its observer accepts it, a "
         "station-hour already sent to WIS2 is sent again marked as a correction. "
         "Requires `eregister.observe`, `eregister.qc` or `eregister.send`."
     ),
@@ -438,7 +456,9 @@ async def review_register_observation(
     description=(
         "Moves a draft or qc_pending observation to rejected; a reason is "
         "required. Rejected observations are never sent or shown publicly. "
-        "Requires register staff access. Audited."
+        "Rejecting a correction releases the held WIS2 file of the observation it "
+        "replaced and puts that observation back to the state it had before the "
+        "correction (for example `accepted`), live and correctable again. Requires register staff access. Audited."
     ),
     responses=QC_RESPONSES,
 )
@@ -489,6 +509,67 @@ async def list_observation_sends(
     _require_register_access(user)
     response.headers["Cache-Control"] = "private, no-store"
     return ObservationSendList(sends=await sends.list_sends(session, observation_id))
+
+
+@router.get(
+    "/stations/{station_id}/settings",
+    response_model=StationSettings,
+    summary="Station pressure amounts",
+    description=(
+        "The fixed amounts (hPa) the register uses to work out the pressures from "
+        "the barometer as read: station pressure = barometer + "
+        "`total_correction_hpa`; QFE = station + `qfe_offset_hpa`; mean sea level "
+        "pressure = station + `sea_level_offset_hpa`; QNH = sea level + "
+        "`qnh_offset_hpa`. 78958 holds the owner-confirmed 0.0, 0.3, 1.0 and 0.1; "
+        "an amount not yet supplied is null and listed in `pending`. Requires "
+        "`eregister.observe`, `eregister.qc` or `eregister.send`."
+    ),
+    responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
+)
+async def get_station_settings(
+    station_id: str,
+    user: BrowserUser,
+    session: RegisterSession,
+    response: Response,
+) -> StationSettings:
+    _require_register_access(user)
+    response.headers["Cache-Control"] = "private, no-store"
+    found = await stations.get(session, station_id.strip())
+    if found is None:
+        raise HTTPException(404, "Unknown station")
+    return found
+
+
+@router.put(
+    "/stations/{station_id}/settings",
+    response_model=StationSettings,
+    summary="Set the station pressure amounts",
+    description=(
+        "Replaces all four amounts; every key is required and an explicit null "
+        "clears one. The change is recorded in the change history (entity "
+        "`eregister_station_settings`) with the amounts before and after and the "
+        "actor. Requires `eregister.qc`."
+    ),
+    responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
+)
+async def put_station_settings(
+    station_id: str,
+    body: StationSettingsUpdate,
+    user: BrowserUser,
+    session: RegisterSession,
+    app_session: SessionDep,
+    response: Response,
+) -> StationSettings:
+    require_permission(current_user=user, permission_key="eregister.qc")
+    response.headers["Cache-Control"] = "no-store"
+    station = station_id.strip()
+    before, saved = await stations.update(session, station, body, actor=str(user.id))
+    if before is None or saved is None:
+        raise HTTPException(404, "Unknown station")
+    await stations.record_change(
+        app_session, user=user, station_id=station, before=before, after=saved
+    )
+    return saved
 
 
 @router.get(

@@ -54,7 +54,9 @@ export function getUpcomingDaySlugs(): string[] {
 /** Browser title for a dated forecast: "Forecast for Friday 23 October 2026". */
 export function forecastDayTitle(slug: string): string {
   const day = new Date(`${slug}T12:00:00Z`);
-  if (Number.isNaN(day.getTime())) {
+  // The date parser rolls impossible days forward (2026-02-31 becomes 3 March):
+  // only a slug that round-trips is a real day.
+  if (Number.isNaN(day.getTime()) || day.toISOString().slice(0, 10) !== slug) {
     return "Forecast";
   }
   const date = new Intl.DateTimeFormat("en-GB", {

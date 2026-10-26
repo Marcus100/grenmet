@@ -89,13 +89,15 @@ async def load_sendable(
         require_accepted or eregister_settings.SEND_REQUIRE_ACCEPTED
     ) and state not in SENDABLE_ACCEPTED_STATES:
         raise HTTPException(409, "Only QC-accepted observations can be sent")
-    issues = entries.validation_issues(data["body"] or {}, data["observed_at"])
+    issues = entries.validation_issues(
+        data["body"] or {}, data["observed_at"], stored=True
+    )
     errors = [issue for issue in issues if issue.severity == "error"]
     if errors:
         detail = "; ".join(f"{issue.field}: {issue.message}" for issue in errors[:3])
         raise HTTPException(422, f"Observation does not pass validation: {detail}")
     workbook = encode.workbook_from_body(data["body"] or {})
-    _, decoded = rules.validate_synop(workbook)
+    _, decoded = rules.validate_synop(workbook, recompute=False)
     return SendableObservation(data, workbook, decoded)
 
 
@@ -334,6 +336,18 @@ async def hold_after_correction(
         row.last_error = HELD_NOTE
         row.detail = {**(row.detail or {}), "held_for_correction": True}
     await session.commit()
+
+
+async def has_held_wis2(session: AsyncSession, original_id: UUID) -> bool:
+    """True when a queued WIS2 file of ``original_id`` waits on a correction."""
+    rows = await session.scalars(
+        select(ERegisterSend).where(
+            ERegisterSend.observation_id == original_id,
+            ERegisterSend.target == TARGET_WIS2,
+            ERegisterSend.status == STATUS_QUEUED,
+        )
+    )
+    return any((row.detail or {}).get("held_for_correction") for row in rows)
 
 
 async def release_held_wis2(

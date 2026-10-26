@@ -240,6 +240,11 @@ export const NAV_SECTIONS: NavSection[] = [
             "/weather/issued",
             "Morning, midday and evening reports"
           ),
+          link(
+            "Tropical Weather Outlook",
+            "/weather/tropics",
+            "Systems that could affect us in the next seven days"
+          ),
         ],
       },
       {
@@ -281,11 +286,6 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Tropical weather",
         links: [
-          link(
-            "Tropical weather outlook",
-            "/weather/tropics",
-            "NHC outlook for the Atlantic and Caribbean"
-          ),
           link(
             "Tropical waves",
             "/weather/tropics/waves",

@@ -80,6 +80,20 @@ describe("NAV_SECTIONS", () => {
     }
   });
 
+  it("lists the Tropical Weather Outlook with the Weather forecasts", () => {
+    const weather = NAV_SECTIONS.find((section) => section.href === "/weather");
+    const group = (heading: string) =>
+      weather?.groups
+        .find((entry) => entry.heading === heading)
+        ?.links.map((link) => link.href) ?? [];
+    expect(group("Forecasts")).toContain("/weather/tropics");
+    expect(group("Tropical weather")).not.toContain("/weather/tropics");
+    expect(group("Tropical weather")).toEqual([
+      "/weather/tropics/waves",
+      "/weather/tropics/season",
+    ]);
+  });
+
   it("gives every link a name and a description", () => {
     for (const section of NAV_SECTIONS) {
       for (const link of sectionLinks(section)) {

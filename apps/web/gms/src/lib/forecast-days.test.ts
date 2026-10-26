@@ -10,6 +10,10 @@ import {
 } from "@/lib/forecast-days";
 
 describe("forecastDayTitle", () => {
+  it("does not title an impossible date as a later real one", () => {
+    expect(forecastDayTitle("2026-02-31")).toBe("Forecast");
+  });
+
   it("names the day in full, in Grenada's calendar", () => {
     expect(forecastDayTitle("2026-10-23")).toBe(
       "Forecast for Friday, 23 October 2026"

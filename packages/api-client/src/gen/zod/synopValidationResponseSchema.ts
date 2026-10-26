@@ -19,4 +19,10 @@ export const synopValidationResponseSchema = z.object({
     .describe(
       "SI values decoded from the coded groups; missing or unobserved is null."
     ),
+  expected_metar: z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "The METAR the observation implies, for the observer to copy and edit."
+    ),
 });

@@ -3,14 +3,18 @@
 import {
   eregisterCorrectRegisterObservation,
   eregisterCreateRegisterObservation,
+  eregisterGetStationSettings,
   eregisterListRegisterObservations,
+  eregisterPutStationSettings,
   eregisterValidateSynopObservation,
   type RegisterObservationRead,
+  type StationSettings as StationSettingsRead,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
+import { type StationSettings, withDerived } from "./eregister-derived";
 import { REGISTER_KEYS, REGISTER_SECTIONS } from "./eregister-layout";
 import { metarFromCoded } from "./eregister-metar";
 import { observerInitials } from "./eregister-observer";
@@ -23,7 +27,12 @@ import {
 } from "./eregister-reports";
 import { useObservationSends } from "./eregister-send";
 import { observationTime } from "./eregister-time";
-import { RegisterTable, SectionCard } from "./eregister-ui";
+import {
+  PendingSettingsNote,
+  RegisterTable,
+  SectionCard,
+  TimeMarks,
+} from "./eregister-ui";
 import { ERegisterWorkbook } from "./eregister-workbook";
 
 // Modernised Meteorological Observations eRegister (station 78958, MBIA).
@@ -37,6 +46,15 @@ const STATION = {
   icao: "TGPY",
   position: "12.0°N · 61.47°W",
 };
+
+function toSettings(read: StationSettingsRead): StationSettings {
+  return {
+    qfeOffsetHpa: read.qfe_offset_hpa ?? null,
+    qnhOffsetHpa: read.qnh_offset_hpa ?? null,
+    seaLevelOffsetHpa: read.sea_level_offset_hpa ?? null,
+    totalCorrectionHpa: read.total_correction_hpa ?? null,
+  };
+}
 
 interface SaveResult {
   data?: RegisterObservationRead;
@@ -96,12 +114,11 @@ export function ERegister() {
     wind_indicator: "4",
     wind_dir: "07",
     wind_speed: "10",
-    visibility: "60",
+    visibility_km: "10",
     total_cloud: "6",
     air_temp: "0254",
-    dew_point: "0230",
-    station_pressure: "0135",
-    msl_pressure: "0149",
+    wet_bulb: "0230",
+    barometer_reading: "1013.5",
   });
   const observationDate = observationTime(
     structuredValues.day,
@@ -111,6 +128,7 @@ export function ERegister() {
   const [validationIssues, setValidationIssues] = useState<
     { field: string; message: string; severity?: "error" | "warning" }[]
   >([]);
+  const [expectedMetar, setExpectedMetar] = useState<string | null>(null);
   const [validationState, setValidationState] = useState<
     "idle" | "checking" | "valid" | "invalid" | "error"
   >("idle");
@@ -118,6 +136,9 @@ export function ERegister() {
     "idle" | "saving" | "saved" | "error"
   >("idle");
   const [liveState, setLiveState] = useState<LiveState>("loading");
+  // The station's fixed pressure amounts (78958: owner confirmed, seeded).
+  const [stationSettings, setStationSettings] =
+    useState<StationSettings | null>(null);
   const [liveAviation, setLiveAviation] = useState<
     Record<"METAR" | "SPECI", RegisterObservationRead[]>
   >({ METAR: [], SPECI: [] });
@@ -153,10 +174,48 @@ export function ERegister() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    eregisterGetStationSettings({
+      path: { station_id: STATION.number },
+      throwOnError: false,
+    })
+      .then((result) => {
+        if (active && result.data) setStationSettings(toSettings(result.data));
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function saveStationSettings(
+    next: StationSettings
+  ): Promise<"saved" | "forbidden" | "error"> {
+    const result = await eregisterPutStationSettings({
+      body: {
+        qfe_offset_hpa: next.qfeOffsetHpa,
+        qnh_offset_hpa: next.qnhOffsetHpa,
+        sea_level_offset_hpa: next.seaLevelOffsetHpa,
+        total_correction_hpa: next.totalCorrectionHpa,
+      },
+      path: { station_id: STATION.number },
+      throwOnError: false,
+    });
+    if (result.data) {
+      setStationSettings(toSettings(result.data));
+      return "saved";
+    }
+    return result.response?.status === 403 ? "forbidden" : "error";
+  }
+
   async function runValidation(): Promise<boolean> {
     setValidationState("checking");
     const result = await eregisterValidateSynopObservation({
-      body: { workbook: structuredValues },
+      body: {
+        workbook: structuredValues,
+        observed_at: observationDate.toISOString(),
+      },
       throwOnError: false,
     });
     if (result.error || !result.data) {
@@ -164,6 +223,7 @@ export function ERegister() {
       return false;
     }
     setValidationIssues(result.data.issues ?? []);
+    setExpectedMetar(result.data.expected_metar ?? null);
     setValidationState(result.data.valid ? "valid" : "invalid");
     return result.data.valid;
   }
@@ -308,24 +368,33 @@ export function ERegister() {
 
   if (view === "new") {
     const iso = observationDate.toISOString();
-    const metarPreview = metarFromCoded(iso, structuredValues);
+    const metarPreview = metarFromCoded(
+      iso,
+      withDerived(structuredValues, stationSettings)
+    );
 
     return (
       <ERegisterWorkbook
+        expectedMetar={expectedMetar}
         issues={validationIssues}
         metarPreview={metarPreview}
         observedAt={observedAt}
         onBack={() => setView("archive")}
+        onSaveStationSettings={saveStationSettings}
         onSubmit={saveDraft}
         onValidate={validateDraft}
         onValidationIssuesChange={setValidationIssues}
         onValidationStateChange={setValidationState}
-        onValueChange={(key, value) =>
-          setStructuredValues((current) => ({ ...current, [key]: value }))
-        }
+        onValueChange={(key, value) => {
+          // The checked METAR belongs to the values it was built from: editing
+          // them falls back to the local preview until the next check.
+          if (key !== "metar_text") setExpectedMetar(null);
+          setStructuredValues((current) => ({ ...current, [key]: value }));
+        }}
         saveStatus={saveState}
         send={sends}
         station={station}
+        stationSettings={stationSettings}
         validationStatus={validationState}
         values={structuredValues}
       />
@@ -370,6 +439,7 @@ export function ERegister() {
         <div className="flex flex-wrap items-stretch gap-4">
           {REGISTER_SECTIONS.slice(0, 1).map((section) => (
             <RegisterTable
+              context={{ station: stationSettings }}
               key={section.title}
               section={section}
               values={latestValues}
@@ -392,11 +462,14 @@ export function ERegister() {
         </div>
         {REGISTER_SECTIONS.slice(1).map((section) => (
           <RegisterTable
+            context={{ station: stationSettings }}
             key={section.title}
             section={section}
             values={latestValues}
           />
         ))}
+        <TimeMarks values={latestValues} />
+        <PendingSettingsNote settings={stationSettings} />
       </div>
 
       {live ? (

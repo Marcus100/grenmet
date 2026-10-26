@@ -8,7 +8,8 @@ supersedes the old one (``supersedes_id``; the old row becomes ``superseded``
 and stays visible).
 """
 
-from datetime import UTC, datetime
+import logging
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -16,27 +17,36 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy import bindparam, func, select, text
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 
-from . import encode, rules
+from . import derive, encode, rules, stations
 from .models import STATUS_QUEUED, STATUS_SENT, ERegisterSend
 from .schemas import (
     RegisterObservationCorrection,
     RegisterObservationCreate,
     RegisterObservationRead,
     SynopValidationIssue,
+    SynopWorkbook,
 )
+
+logger = logging.getLogger(__name__)
 
 UNSENT_EDITABLE = ("draft", "qc_pending")
 ISSUE_PREVIEW = 3
 
 
 def validation_issues(
-    body: dict[str, Any], observed_at: datetime
+    body: dict[str, Any],
+    observed_at: datetime,
+    station: derive.PressureSettings | None = None,
+    history: dict[int, SynopWorkbook] | None = None,
+    *,
+    stored: bool = False,
 ) -> list[SynopValidationIssue]:
+    """Issues for a body. ``stored`` checks a saved body as it is (the record)."""
     try:
         workbook = encode.workbook_from_body(body)
     except ValidationError as exc:
@@ -51,13 +61,71 @@ def validation_issues(
             )
             for error in exc.errors()
         ]
-    issues, _decoded = rules.validate_synop(workbook)
+    issues, _decoded = rules.validate_synop(
+        workbook, station, history, recompute=not stored
+    )
     return [*issues, *rules.check_observation_time(workbook, observed_at)]
 
 
-def require_valid_synop(body: dict[str, Any], observed_at: datetime) -> None:
+# Hours before the observation whose saved SYNOP the hour-to-hour checks compare with.
+HISTORY_HOURS = (1, 3)
+
+
+async def history_for(
+    register: AsyncSession | None, station_id: str | None, observed_at: datetime
+) -> dict[int, SynopWorkbook]:
+    """The station's saved SYNOP of the previous hour and of 3 hours earlier.
+
+    Rejected and superseded observations do not count. Missing hours are left out; a
+    register that cannot be read gives no history (the checks are advice only).
+    """
+    if register is None or not (station_id or "").strip():
+        return {}
+    found: dict[int, SynopWorkbook] = {}
+    for hours in HISTORY_HOURS:
+        try:
+            # A savepoint: a failed query must not abort the caller's transaction
+            # (correct() holds a row lock and still has to write).
+            async with register.begin_nested():
+                result = await register.execute(
+                    text(
+                        """
+                        SELECT body FROM register_observations
+                        WHERE station_id = :station
+                          AND kind = CAST('SYNOP' AS observation_kind)
+                          AND observed_at = :at
+                          AND state NOT IN ('rejected', 'superseded')
+                        ORDER BY created_at DESC LIMIT 1
+                        """
+                    ),
+                    {
+                        "station": (station_id or "").strip(),
+                        "at": observed_at - timedelta(hours=hours),
+                    },
+                )
+                row = result.mappings().first()
+            if row is not None:
+                found[hours] = encode.workbook_from_body(row["body"])
+        except SQLAlchemyError, OSError, ValueError:
+            # One unreadable hour (or a bad stored body) leaves the other hour usable.
+            logger.warning(
+                "eRegister hour-to-hour history unavailable for -%s h",
+                hours,
+                exc_info=True,
+            )
+    return found
+
+
+def require_valid_synop(
+    body: dict[str, Any],
+    observed_at: datetime,
+    station: derive.PressureSettings | None = None,
+    history: dict[int, SynopWorkbook] | None = None,
+    *,
+    stored: bool = False,
+) -> None:
     """422 with the issues when the coded workbook has errors; warnings pass."""
-    issues = validation_issues(body, observed_at)
+    issues = validation_issues(body, observed_at, station, history, stored=stored)
     errors = [issue for issue in issues if issue.severity == "error"]
     if errors:
         summary = "; ".join(f"{i.field}: {i.message}" for i in errors[:ISSUE_PREVIEW])
@@ -167,9 +235,12 @@ async def create(
     user: User,
 ) -> tuple[dict[str, Any], bool]:
     """Save an observation. Returns the row and whether it was newly inserted."""
+    station = await stations.pressure_for(register, data.station_id)
     if data.kind == "SYNOP":
-        require_valid_synop(data.body, data.observed_at)
+        history = await history_for(register, data.station_id, data.observed_at)
+        require_valid_synop(data.body, data.observed_at, station, history)
     values = data.model_dump()
+    values["body"] = derive.apply_to_body(values["body"], station)
     await lock_key(register, data.station_id, data.observed_at, data.kind)
     existing = await live_row(register, data.station_id, data.observed_at, data.kind)
     if existing is not None:
@@ -229,8 +300,10 @@ async def correct(
     if old["state"] in ("rejected", "superseded"):
         await register.rollback()
         raise HTTPException(409, f"A {old['state']} observation cannot be corrected")
+    station = await stations.pressure_for(register, old["station_id"])
     if old["kind"] == "SYNOP":
-        require_valid_synop(data.body, old["observed_at"])
+        history = await history_for(register, old["station_id"], old["observed_at"])
+        require_valid_synop(data.body, old["observed_at"], station, history)
     values: dict[str, Any] = {
         **data.model_dump(exclude={"reason"}),
         "id": str(uuid4()),
@@ -240,11 +313,13 @@ async def correct(
         "actor_id": str(user.id),
         "supersedes_id": str(observation_id),
     }
+    values["body"] = derive.apply_to_body(values["body"], station)
     # The old row leaves the live set first so the unique index admits the new one.
     await register.execute(
         text(
-            "UPDATE register_observations SET state = 'superseded', updated_at = now(),"
-            " qc_notes = :notes WHERE id = :id"
+            "UPDATE register_observations SET superseded_from = state,"
+            " superseded_qc_notes = qc_notes, state = 'superseded',"
+            " updated_at = now(), qc_notes = :notes WHERE id = :id"
         ),
         {"id": str(observation_id), "notes": (data.reason or "").strip() or None},
     )
@@ -275,12 +350,16 @@ async def actor_names(app_session: AsyncSession, actor_ids: set[str]) -> dict[st
     return names
 
 
-def listing_row(row: dict[str, Any], names: dict[str, str]) -> RegisterObservationRead:
+def listing_row(
+    row: dict[str, Any],
+    names: dict[str, str],
+) -> RegisterObservationRead:
+    """A listing row. Stored rows are checked as saved, without today's station amounts."""
     item = RegisterObservationRead.model_validate(row)
     item.actor_name = names.get(str(row["actor_id"]))
     if row["kind"] == "SYNOP":
         body = row["body"] or {}
-        item.issues = validation_issues(body, row["observed_at"])
+        item.issues = validation_issues(body, row["observed_at"], None, stored=True)
         try:
             item.coded = encode.synop_tac(encode.workbook_from_body(body))
         except ValueError, TypeError:

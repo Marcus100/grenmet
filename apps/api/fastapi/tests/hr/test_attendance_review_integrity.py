@@ -286,7 +286,9 @@ async def test_identical_terminal_attendance_opens_fresh_review(
     assert record.workflow_instance_id == latest
 
 
-@pytest.mark.parametrize("entity_type", ["attendance", "attendance_correction"])
+@pytest.mark.parametrize(
+    "entity_type", ["attendance", "attendance_correction", "timesheet"]
+)
 async def test_generic_submit_preserves_terminal_review(
     db_async: AsyncSession, entity_type: str
 ) -> None:
