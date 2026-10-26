@@ -14,9 +14,19 @@ from src.wxwatch.config import wxwatch_settings
 from src.wxwatch.dependencies import ImageSession
 
 router = APIRouter(prefix="/wxwatch", tags=["weather-images"])
-_SAFE_PATH = re.compile(
-    r"[A-Za-z0-9_./() +%-]+\.(?:png|jpg|jpeg|gif|webp)", re.IGNORECASE
-)
+_SAFE_CHARS = re.compile(r"[A-Za-z0-9_./() +%-]+")
+_IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".webp")
+
+
+def _is_safe_image_path(path: str) -> bool:
+    # A character class plus a trailing extension in one regex backtracks
+    # quadratically on long non-matching input; check the two parts separately.
+    suffix = next((s for s in _IMAGE_SUFFIXES if path.lower().endswith(s)), None)
+    return (
+        suffix is not None
+        and len(path) > len(suffix)
+        and _SAFE_CHARS.fullmatch(path) is not None
+    )
 
 
 @router.get(
@@ -27,7 +37,7 @@ _SAFE_PATH = re.compile(
 )
 async def weather_image(storage_path: str, _current_user: BrowserUser) -> Response:
     """Issue a short-lived download redirect scoped to the environment's wxwatch prefix."""
-    if not _SAFE_PATH.fullmatch(storage_path) or any(
+    if not _is_safe_image_path(storage_path) or any(
         part in {"", ".", ".."} for part in storage_path.split("/")
     ):
         raise HTTPException(status_code=400, detail="Invalid image path")
