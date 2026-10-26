@@ -1027,6 +1027,17 @@ def _check_supplementary(c: _Checker, speed: int | None) -> None:
                 "warning",
             )
         seen.add(code)
+        if (code == "09" and c.present("s3_group_909")) or (
+            code == "10" and c.present("wind_gust")
+        ):
+            c.add(
+                field,
+                "duplicate_special_group",
+                f"{token}: 9{code}ff is already sent from its own field "
+                f"({'s3_group_909' if code == '09' else 'wind_gust'}); the "
+                "dedicated field wins and this group is not sent.",
+                "warning",
+            )
         if code in WIND_SPEED_GROUPS and value[:2] == "99":
             wide_after = token
         if code in SUPPLEMENTARY_GUST_CODES:

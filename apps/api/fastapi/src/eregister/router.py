@@ -74,7 +74,7 @@ STATE_PATTERN = (
     "/observations",
     response_model=RegisterObservationList,
     summary="List register observations",
-    description="Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+    description="Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings (each stored row is checked as saved, without the station's current pressure amounts) and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
     responses=REGISTER_RESPONSES,
 )
 async def list_register_observations(
@@ -146,15 +146,8 @@ async def list_register_observations(
         params,
     )
     names = await entries.actor_names(app_session, {str(r["actor_id"]) for r in rows})
-    amounts = {
-        station: await stations.pressure_for(session, station)
-        for station in {str(r["station_id"]) for r in rows}
-    }
     return RegisterObservationList(
-        observations=[
-            entries.listing_row(row, names, amounts.get(str(row["station_id"])))
-            for row in rows
-        ],
+        observations=[entries.listing_row(row, names) for row in rows],
         total=int(total or 0),
     )
 

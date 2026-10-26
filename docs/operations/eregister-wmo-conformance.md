@@ -90,10 +90,16 @@ line by line:
 - *Entry formats.* Barometer as read: 3 or 4 digits with at most one decimal
   (`1013.2`). Visibility: kilometres as plain digits with an optional decimal part;
   signs, exponents and other digits are refused.
-- *9SpSpspsp order.* Section 3 sends the 909, 910 and typed 9SpSpspsp groups in
-  ascending SpSp order, each once (a 909 typed in both fields, or a gust also typed
-  in `s3_special_phenomena`, is not repeated); a 00fff group stays with the group it
-  follows.
+- *9SpSpspsp order.* Section 3 sends the gust (`910ff`, with `00fff` for 99 and
+  over) and `s3_group_909` built from their own fields first, then the groups typed
+  in `s3_special_phenomena` in the order the observer keyed them. Typed groups are
+  never sorted, so a time group (902 to 907) stays next to the group it qualifies
+  (`90403 93205 90710 91130` is sent unchanged). A typed group with the same
+  9SpSp prefix as a field-built one (a typed 910 with the gust field set, a typed
+  909 with `s3_group_909` set), and the `00fff` group after it, is not sent; the
+  dedicated field wins and validation warns (`duplicate_special_group`). Whether
+  FM 12 requires the 9-groups in ascending order could not be confirmed against
+  the Manual on Codes, so no order is imposed.
 - *Gust group.* The workbook gust field is encoded as `910ff` (past 10 minutes).
   Whether observers mean `910ff` or `911ff` (highest gust since the previous
   main observation) was unconfirmed. The paper register settles it: see

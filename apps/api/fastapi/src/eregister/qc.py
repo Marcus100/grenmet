@@ -164,9 +164,7 @@ async def transition(
                 row,
                 observation_id,
                 str(user.id),
-                held_file=await sends.has_held_wis2(
-                    app_session, UUID(str(row["supersedes_id"]))
-                ),
+                app_session=app_session,
             )
     except IntegrityError as exc:
         await register.rollback()
@@ -220,16 +218,16 @@ async def _restore_original(
     correction_id: UUID,
     actor: str,
     *,
-    held_file: bool,
+    app_session: AsyncSession,
 ) -> Restored | None:
     """Put the reading a rejected correction replaced back where it was.
 
     Only a row that is still ``superseded`` moves; it gets its earlier state
     (``superseded_from``) and its own ``qc_notes`` back, so a never-accepted draft
     stays a draft. A row superseded before migration ``eregister_0005`` remembers
-    nothing: when its WIS2 file is held (``held_file``) it was accepted, so it
+    nothing: when it has a held WIS2 file it was accepted, so it
     returns as ``accepted`` (its earlier notes are not recoverable); otherwise it
-    stays superseded. If the correction had taken the publish gate (it was
+    stays superseded (the file is only looked up for such a row). If the correction had taken the publish gate (it was
     accepted, its WIS2 send failed, then it was reopened), the gate returns to an
     original that is accepted again; for any other restored state the correction's
     claim is simply released. Returns what changed, or None when nothing was
@@ -251,7 +249,11 @@ async def _restore_original(
     )
     if found is None or found["state"] != "superseded":
         return None
-    earlier = found["superseded_from"] or ("accepted" if held_file else None)
+    earlier = found["superseded_from"]
+    if earlier is None and await sends.has_held_wis2(
+        app_session, UUID(str(correction["supersedes_id"]))
+    ):
+        earlier = "accepted"
     if earlier is None:
         return None
     await register.execute(

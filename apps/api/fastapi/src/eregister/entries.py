@@ -353,13 +353,13 @@ async def actor_names(app_session: AsyncSession, actor_ids: set[str]) -> dict[st
 def listing_row(
     row: dict[str, Any],
     names: dict[str, str],
-    station: derive.PressureSettings | None = None,
 ) -> RegisterObservationRead:
+    """A listing row. Stored rows are checked as saved, without today's station amounts."""
     item = RegisterObservationRead.model_validate(row)
     item.actor_name = names.get(str(row["actor_id"]))
     if row["kind"] == "SYNOP":
         body = row["body"] or {}
-        item.issues = validation_issues(body, row["observed_at"], station, stored=True)
+        item.issues = validation_issues(body, row["observed_at"], None, stored=True)
         try:
             item.coded = encode.synop_tac(encode.workbook_from_body(body))
         except ValueError, TypeError:

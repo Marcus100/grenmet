@@ -1882,6 +1882,11 @@ weather site as provisional, so a signed-in account alone is not enough.
   `422`, so `{}` can no longer clear everything). Each change writes a change-history
   entry (`eregister_station_settings`, readable by `eregister.qc` or
   `eregister.send`) with the amounts before and after and the actor.
+- *Special groups and listings.* Typed `s3_special_phenomena` groups are sent in the
+  order keyed, after the gust and `s3_group_909` built from their own fields; a typed
+  group with the same 9SpSp prefix as one of those is dropped and warns
+  (`duplicate_special_group`). `GET /observations` checks each stored row as saved,
+  without the station's current pressure amounts.
 - *Stored body is the record.* Calculated fields (visibility code, dew point,
   relative humidity, groups 3 and 4) are filled in when a body is written (validate,
   create, correct) and never on read, accept or send, so what QC accepted is what the

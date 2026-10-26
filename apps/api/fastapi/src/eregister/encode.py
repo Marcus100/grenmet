@@ -228,38 +228,40 @@ def _section3(workbook: SynopWorkbook) -> list[str]:
 
 
 def _special_phenomena(workbook: SynopWorkbook) -> list[str]:
-    """The 9SpSpspsp groups in ascending SpSp order, each exactly once.
+    """The 9SpSpspsp groups: field-built first, then the typed ones as keyed.
 
-    The gust (910ff, with 00fff after it for 99 and over), the 909 group and the
-    typed groups are merged: 909 comes before 910 and a group typed twice, or typed
-    as well as built from its own field, is sent once. A 00fff group typed after a
-    9SpSpspsp group stays with it. Anything that is not a 9SpSpspsp group follows,
-    as keyed.
+    The gust (910ff, with 00fff after it for 99 and over) and the 909 group built
+    from their own fields keep their fixed place. The typed groups follow in the
+    order the observer keyed them: they are never sorted, so a time group (902 to
+    907) stays next to the group it qualifies. A typed group whose 9SpSp prefix is
+    already built from its own field is dropped (with a 00fff group attached to it):
+    the dedicated field wins (validation warns, ``duplicate_special_group``). The
+    rule for the order of 9-groups could not be confirmed against the Manual on
+    Codes, so none is imposed.
     """
-    units: list[list[str]] = []
-    other: list[str] = []
+    built: list[str] = []
     gust = _v(workbook, "wind_gust")
     if _present(gust):
-        units.append([f"910{'99' if len(gust) == THREE_DIGIT_GROUP else gust}"])
+        built.append(f"910{'99' if len(gust) == THREE_DIGIT_GROUP else gust}")
         if len(gust) == THREE_DIGIT_GROUP:
-            units[-1].append(f"00{gust}")
+            built.append(f"00{gust}")
     group_909 = _v(workbook, "s3_group_909")
-    typed = [group_909] if _present(group_909) else []
-    typed.extend(_v(workbook, "s3_special_phenomena").split())
-    for token in typed:
-        if len(token) == FIVE_DIGIT_GROUP and token.isdigit() and token[0] == "9":
-            units.append([token])
-        elif units and token.startswith("00") and not other:
-            units[-1].append(token)
-        else:
-            other.append(token)
-    ordered: list[str] = []
-    seen: set[str] = set()
-    for unit in sorted(units, key=lambda item: item[0][:3]):
-        if unit[0] not in seen:
-            seen.add(unit[0])
-            ordered.extend(unit)
-    return [*ordered, *other]
+    if _present(group_909):
+        built.append(group_909)
+    prefixes = {group[:3] for group in built if group.startswith("9")}
+    typed: list[str] = []
+    dropping = False
+    for token in _v(workbook, "s3_special_phenomena").split():
+        is_group = (
+            len(token) == FIVE_DIGIT_GROUP and token.isdigit() and token[0] == "9"
+        )
+        if is_group:
+            dropping = token[:3] in prefixes
+        elif not (dropping and token.startswith("00")):
+            dropping = False
+        if not dropping:
+            typed.append(token)
+    return [*built, *typed]
 
 
 def _pressure_change_group(value: str) -> str | None:

@@ -1816,24 +1816,57 @@ async def test_rejecting_a_correction_that_took_the_gate_gives_it_back(
 # --- follow-ups: stored body is the record, group order, restore edge cases ---
 
 
-def test_group_909_comes_before_910_and_is_sent_once() -> None:
+def test_field_built_909_and_910_are_sent_once_as_before() -> None:
     tac = encode.synop_tac(
         workbook(wind_gust="25", s3_group_909="90912", s3_special_phenomena="90912")
     )
-    section3 = tac.split(" 333 ")[1]
-    assert section3.endswith(" 90912 91025=")
+    assert tac.endswith(" 91025 90912=")
     assert tac.count("90912") == 1
 
 
-def test_special_phenomena_groups_are_sent_in_ascending_order() -> None:
+def test_typed_special_groups_keep_the_order_keyed_with_their_time_groups() -> None:
+    typed = "90403 93205 90710 91130"
+    tac = encode.synop_tac(workbook(wind_gust="", s3_special_phenomena=typed))
+    assert tac.endswith(f" {typed}=")
+
+
+def test_typed_groups_follow_the_field_built_ones_in_the_old_order() -> None:
     tac = encode.synop_tac(
         workbook(
-            wind_gust="25",
-            s3_group_909="90912",
-            s3_special_phenomena="91125 91025 90912",
+            wind_gust="25", s3_group_909="90912", s3_special_phenomena="90403 93205"
         )
     )
-    assert tac.endswith(" 90912 91025 91125=")
+    assert tac.endswith(" 91025 90912 90403 93205=")
+
+
+def test_a_typed_group_with_a_built_prefix_is_dropped_whatever_its_value() -> None:
+    tac = encode.synop_tac(
+        workbook(wind_gust="25", s3_special_phenomena="91030 90403 93205")
+    )
+    assert tac.endswith(" 91025 90403 93205=")
+    assert "91030" not in tac
+
+
+def test_a_typed_910_with_its_00fff_is_dropped_with_it() -> None:
+    tac = encode.synop_tac(
+        workbook(wind_gust="110", s3_special_phenomena="91099 00120 93205")
+    )
+    assert tac.endswith(" 91099 00110 93205=")
+    assert "00120" not in tac
+
+
+def test_a_duplicate_of_a_dedicated_field_warns() -> None:
+    for changes, group in (
+        ({"wind_gust": "25", "s3_special_phenomena": "91030"}, "91030"),
+        ({"s3_group_909": "90912", "s3_special_phenomena": "90934"}, "90934"),
+    ):
+        issues, _ = rules.validate_synop(workbook(**changes))
+        found = [i for i in issues if i.code == "duplicate_special_group"]
+        assert [(i.field, i.severity) for i in found] == [
+            ("s3_special_phenomena", "warning")
+        ]
+        assert group in found[0].message
+        assert "dedicated field wins" in found[0].message
 
 
 def test_a_three_digit_gust_keeps_its_00fff_group_and_is_not_repeated() -> None:
@@ -1842,7 +1875,7 @@ def test_a_three_digit_gust_keeps_its_00fff_group_and_is_not_repeated() -> None:
             wind_gust="110", s3_group_909="90912", s3_special_phenomena="91099 00110"
         )
     )
-    assert tac.endswith(" 90912 91099 00110=")
+    assert tac.endswith(" 91099 00110 90912=")
     assert tac.count("91099") == 1
     assert tac.count("00110") == 1
 
@@ -2038,6 +2071,28 @@ def test_the_0005_downgrade_drops_its_columns(fresh_weather_engine: Engine) -> N
         assert connection.execute(columns).all() == []
         command.upgrade(config, "head")
         assert len(connection.execute(columns).all()) == 2
+
+
+async def test_a_stored_row_is_not_judged_by_later_station_amounts(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    await save(client, {**FULL_ROW, "barometer_reading": "1015.3"})
+    settings = "/api/v1/eregister/stations/78958/settings"
+    amounts = (await client.get(settings)).json()
+    changed = {
+        key: amounts[key]
+        for key in (
+            "total_correction_hpa",
+            "qfe_offset_hpa",
+            "sea_level_offset_hpa",
+            "qnh_offset_hpa",
+        )
+    }
+    changed["sea_level_offset_hpa"] = 2.0
+    assert (await client.put(settings, json=changed)).status_code == 200
+    [row] = (await client.get(OBS_URL)).json()["observations"]
+    assert not [i for i in row["issues"] if i["code"].endswith("_mismatch")]
 
 
 def test_the_register_migrations_form_one_chain_with_a_single_head() -> None:
