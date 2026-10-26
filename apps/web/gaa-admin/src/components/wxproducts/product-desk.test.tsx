@@ -932,3 +932,24 @@ it("loads the revision history on request, lists each revision and reports a fai
     "7d517fe0-a25b-4f12-a2b4-eaaed8116010"
   );
 });
+
+it("tells the forecaster to raise or lower an old draft above green", async () => {
+  actions.loadProductsAction.mockResolvedValue({
+    ok: true,
+    products: [
+      {
+        id: "7d517fe0-a25b-4f12-a2b4-eaaed8116011",
+        kind: "marine",
+        values: { ...emptyProduct("marine", grenadaDate()), level: "Yellow" },
+        revision: 1,
+        publishedRevision: null,
+        updatedAt: "2026-10-07T12:00:00Z",
+      },
+    ],
+  });
+  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "raise it to a warning (a CAP alert) or change it to green"
+  );
+});

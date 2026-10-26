@@ -24557,6 +24557,115 @@
         }
       }
     },
+    "/api/v1/cap/escalations": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Find the warning raised from a GMS alert",
+        "description": "Returns the open or published CAP alert linked to a GMS alert product, or nulls when none was raised. Needs cap.alert.read.",
+        "operationId": "capGetEscalation",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Product Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapEscalationLookup"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Raise a saved GMS alert to a CAP warning draft",
+        "description": "Creates a pre-filled CAP draft from one saved GMS alert revision, linked to it through the GMS source parameters. Returns 200 with the existing draft when an open (draft, submitted or approved) CAP alert already links the product. Needs cap.alert.create and product access to the alert's kind.",
+        "operationId": "capCreateEscalation",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapEscalationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapEscalationPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        }
+      }
+    },
     "/api/v1/cap/alerts/import": {
       "post": {
         "tags": [
@@ -53524,6 +53633,108 @@
           "reason"
         ],
         "title": "CapEmergencyPublish"
+      },
+      "CapEscalationCreate": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Product Id"
+          },
+          "revision": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Revision"
+          },
+          "awareness_level": {
+            "$ref": "#/components/schemas/CapEscalationCreatePropertiesAwarenessLevelEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "revision",
+          "awareness_level"
+        ],
+        "title": "CapEscalationCreate",
+        "description": "Raise a saved GMS alert revision to a CAP warning (ADR-0051)."
+      },
+      "CapEscalationLookup": {
+        "properties": {
+          "alert_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alert Id"
+          },
+          "lifecycle_state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapLifecycleState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "CapEscalationLookup",
+        "description": "The CAP warning raised from a GMS alert, if one is open or published."
+      },
+      "CapEscalationPublic": {
+        "properties": {
+          "alert_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Alert Id"
+          },
+          "created": {
+            "type": "boolean",
+            "title": "Created"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CapEscalationSource"
+          }
+        },
+        "type": "object",
+        "required": [
+          "alert_id",
+          "created",
+          "source"
+        ],
+        "title": "CapEscalationPublic"
+      },
+      "CapEscalationSource": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Product Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "revision",
+          "kind"
+        ],
+        "title": "CapEscalationSource"
       },
       "CapFeedImportCreate": {
         "properties": {
@@ -88912,6 +89123,14 @@
           "xml"
         ],
         "default": "xml"
+      },
+      "CapEscalationCreatePropertiesAwarenessLevelEnum": {
+        "type": "string",
+        "enum": [
+          "yellow",
+          "orange",
+          "red"
+        ]
       },
       "CapProfileDefinitionPropertiesChannelsItemsEnum": {
         "type": "string",

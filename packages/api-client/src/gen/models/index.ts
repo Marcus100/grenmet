@@ -1682,6 +1682,17 @@ export type {
   CapCreateAlertStatus422,
 } from "./CapCreateAlert.js";
 export type {
+  CapCreateEscalationBody,
+  CapCreateEscalationOptions,
+  CapCreateEscalationResponse,
+  CapCreateEscalationResponses,
+  CapCreateEscalationStatus201,
+  CapCreateEscalationStatus401,
+  CapCreateEscalationStatus403,
+  CapCreateEscalationStatus404,
+  CapCreateEscalationStatus422,
+} from "./CapCreateEscalation.js";
+export type {
   CapCreateFeedBody,
   CapCreateFeedOptions,
   CapCreateFeedResponse,
@@ -1759,6 +1770,12 @@ export type {
   CapEmergencyPublishAlertStatus404,
   CapEmergencyPublishAlertStatus422,
 } from "./CapEmergencyPublishAlert.js";
+export type { CapEscalationCreate } from "./CapEscalationCreate.js";
+export type { CapEscalationCreatePropertiesAwarenessLevelEnum } from "./CapEscalationCreatePropertiesAwarenessLevelEnum.js";
+export { capEscalationCreatePropertiesAwarenessLevelEnum } from "./CapEscalationCreatePropertiesAwarenessLevelEnum.js";
+export type { CapEscalationLookup } from "./CapEscalationLookup.js";
+export type { CapEscalationPublic } from "./CapEscalationPublic.js";
+export type { CapEscalationSource } from "./CapEscalationSource.js";
 export type {
   CapExpireAlertBody,
   CapExpireAlertOptions,
@@ -1846,6 +1863,16 @@ export type {
   CapGetCatalogsStatus403,
   CapGetCatalogsStatus422,
 } from "./CapGetCatalogs.js";
+export type {
+  CapGetEscalationOptions,
+  CapGetEscalationQuery,
+  CapGetEscalationResponse,
+  CapGetEscalationResponses,
+  CapGetEscalationStatus200,
+  CapGetEscalationStatus401,
+  CapGetEscalationStatus403,
+  CapGetEscalationStatus422,
+} from "./CapGetEscalation.js";
 export type {
   CapGetFeedsOptions,
   CapGetFeedsResponse,

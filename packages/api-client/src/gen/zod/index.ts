@@ -1553,6 +1553,16 @@ export {
   capCreateAlertStatus422Schema,
 } from "./capCreateAlertSchema.js";
 export {
+  capCreateEscalationBodySchema,
+  capCreateEscalationErrorSchema,
+  capCreateEscalationResponseSchema,
+  capCreateEscalationStatus201Schema,
+  capCreateEscalationStatus401Schema,
+  capCreateEscalationStatus403Schema,
+  capCreateEscalationStatus404Schema,
+  capCreateEscalationStatus422Schema,
+} from "./capCreateEscalationSchema.js";
+export {
   capCreateFeedBodySchema,
   capCreateFeedErrorSchema,
   capCreateFeedResponseSchema,
@@ -1623,6 +1633,11 @@ export {
   capEmergencyPublishAlertStatus422Schema,
 } from "./capEmergencyPublishAlertSchema.js";
 export { capEmergencyPublishSchema } from "./capEmergencyPublishSchema.js";
+export { capEscalationCreatePropertiesAwarenessLevelEnumSchema } from "./capEscalationCreatePropertiesAwarenessLevelEnumSchema.js";
+export { capEscalationCreateSchema } from "./capEscalationCreateSchema.js";
+export { capEscalationLookupSchema } from "./capEscalationLookupSchema.js";
+export { capEscalationPublicSchema } from "./capEscalationPublicSchema.js";
+export { capEscalationSourceSchema } from "./capEscalationSourceSchema.js";
 export {
   capExpireAlertBodySchema,
   capExpireAlertErrorSchema,
@@ -1705,6 +1720,15 @@ export {
   capGetCatalogsStatus403Schema,
   capGetCatalogsStatus422Schema,
 } from "./capGetCatalogsSchema.js";
+export {
+  capGetEscalationErrorSchema,
+  capGetEscalationQueryProductIdSchema,
+  capGetEscalationResponseSchema,
+  capGetEscalationStatus200Schema,
+  capGetEscalationStatus401Schema,
+  capGetEscalationStatus403Schema,
+  capGetEscalationStatus422Schema,
+} from "./capGetEscalationSchema.js";
 export {
   capGetFeedsErrorSchema,
   capGetFeedsResponseSchema,

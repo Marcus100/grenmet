@@ -5,7 +5,7 @@ from xml.etree import ElementTree as ET
 from fastapi import APIRouter, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 
-from src.cap import attachments, cache, service
+from src.cap import attachments, cache, escalation, service
 from src.cap.geo import alerts_to_feature_collection
 from src.cap.models import CapLifecycleState, CapMessageType, CapStatus
 from src.cap.profile_router import router as profile_router
@@ -19,6 +19,9 @@ from src.cap.schemas import (
     CapAuditEventListPublic,
     CapCatalogsPublic,
     CapEmergencyPublish,
+    CapEscalationCreate,
+    CapEscalationLookup,
+    CapEscalationPublic,
     CapFeedImportCreate,
     CapFeedImportPublic,
     CapFeedImportUpdate,
@@ -35,6 +38,7 @@ from src.dependencies import CurrentUser, SessionDep
 from src.openapi_responses import AUTHENTICATED, NOT_FOUND
 from src.pagination import PaginationDep
 from src.rate_limit import limiter
+from src.wxproducts.dependencies import AuthoringSessionDep
 
 router = APIRouter(prefix="/cap", tags=["cap"])
 router.include_router(profile_router)
@@ -81,6 +85,57 @@ async def create_alert(
     return await service.create_alert(
         session=session, current_user=current_user, payload=payload
     )
+
+
+@router.get(
+    "/escalations",
+    response_model=CapEscalationLookup,
+    summary="Find the warning raised from a GMS alert",
+    description=(
+        "Returns the open or published CAP alert linked to a GMS alert product, "
+        "or nulls when none was raised. Needs cap.alert.read."
+    ),
+    responses={**AUTHENTICATED},
+)
+async def read_escalation(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    product_id: uuid.UUID,
+) -> CapEscalationLookup:
+    return await escalation.lookup(session, current_user, product_id)
+
+
+@router.post(
+    "/escalations",
+    response_model=CapEscalationPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Raise a saved GMS alert to a CAP warning draft",
+    description=(
+        "Creates a pre-filled CAP draft from one saved GMS alert revision, linked to it "
+        "through the GMS source parameters. Returns 200 with the existing draft when an "
+        "open (draft, submitted or approved) CAP alert already links the product. "
+        "Needs cap.alert.create and product access to the alert's kind."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def create_escalation(
+    *,
+    session: SessionDep,
+    weather_session: AuthoringSessionDep,
+    current_user: CurrentUser,
+    payload: CapEscalationCreate,
+    response: Response,
+) -> CapEscalationPublic:
+    result = await escalation.escalate(
+        cap_session=session,
+        weather_session=weather_session,
+        current_user=current_user,
+        body=payload,
+    )
+    if not result.created:
+        response.status_code = status.HTTP_200_OK
+    return result
 
 
 @router.post(
