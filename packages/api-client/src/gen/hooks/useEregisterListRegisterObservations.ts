@@ -62,7 +62,7 @@ export function eregisterListRegisterObservationsQueryOptions(
 }
 
 /**
- * @description Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.
+ * @description Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings (each stored row is checked as saved, without the station's current pressure amounts) and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.
  * @summary List register observations
  * {@link /api/v1/eregister/observations}
  */

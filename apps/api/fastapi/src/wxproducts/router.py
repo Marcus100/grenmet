@@ -31,7 +31,7 @@ from .dependencies import (
 )
 from .exceptions import ProductValidationError, WeatherUnavailable
 from .filenames import product_pdf_filename
-from .models import AviationDraft, TropicalSystem
+from .models import AviationDraft, TropicalSystem, TropicalSystemEntry
 from .observation_service import list_observations
 from .observations import ObservationKind, ObservationList
 from .schemas import (
@@ -623,6 +623,22 @@ def system_view(system: TropicalSystem) -> TropicalSystemRead:
     return TropicalSystemRead.model_validate(system)
 
 
+def public_identity(
+    system: TropicalSystem, entry: TropicalSystemEntry
+) -> dict[str, object]:
+    """Public identity comes from the published issue, not the live row.
+
+    Name, type and NHC storm id are as saved with that issue; only the status is
+    live (a closed system stays listed until the outlook stops listing it).
+    """
+    return {
+        **system_view(system).model_dump(),
+        "name": entry.name,
+        "feature_type": entry.feature_type,
+        "nhc_storm_id": entry.nhc_storm_id,
+    }
+
+
 @router.get(
     "/wxproducts/tropical-systems",
     response_model=TropicalSystemList,
@@ -763,14 +779,21 @@ async def list_public_tropical_systems(
 ) -> TropicalSystemPublicList:
     response.headers.update(NO_STORE)
     try:
-        rows = await tropical_systems.public_active(session)
+        # The public tracker agrees with the published product: it lists the
+        # systems in the most recent current outlook and nothing else.
+        current = await service.latest_current_outlook(session)
+        rows = (
+            await tropical_systems.public_active(session, current.id, current.revision)
+            if current
+            else []
+        )
     except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
     return TropicalSystemPublicList(
         systems=[
             TropicalSystemPublic.model_validate(
                 {
-                    **system_view(system).model_dump(),
+                    **public_identity(system, entry),
                     "latest": TropicalSystemPublicEntry.model_validate(entry),
                 }
             )
@@ -803,7 +826,7 @@ async def get_public_tropical_system(
         raise NotFoundError("Tracked system not found")
     return TropicalSystemPublicHistory.model_validate(
         {
-            **system_view(system).model_dump(),
+            **public_identity(system, entries[-1]),
             "entries": [
                 TropicalSystemPublicEntry.model_validate(entry) for entry in entries
             ],

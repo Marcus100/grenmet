@@ -21,9 +21,18 @@ fi
 uv sync --frozen --package fast-back --package gms-ingest
 # The Schemathesis fuzz suite is deselected by pyproject addopts; pass `-m fuzz`
 # (CI's fuzz job) or `-m 'fuzz or not fuzz'` to include it.
-# One worker per CPU by default: GitHub's standard runners have 4, and each
-# worker owns its database, so they do not share state. TEST_WORKERS overrides.
+# Workers: TEST_WORKERS overrides. In CI one per CPU (GitHub's standard runners
+# have 4; each worker owns its database, so they share no state). On a shared
+# developer machine leave two CPUs free so several agents can test at once.
+if [ -z "${TEST_WORKERS:-}" ]; then
+  cpus=$(nproc)
+  if [ "${CI:-}" = "true" ]; then
+    TEST_WORKERS=$cpus
+  else
+    TEST_WORKERS=$((cpus > 2 ? cpus - 2 : 1))
+  fi
+fi
 uv run --no-sync --package fast-back pytest \
-  -n "${TEST_WORKERS:-$(nproc)}" --dist load \
+  -n "$TEST_WORKERS" --dist load \
   --cov=src --cov-context=test "${coverage_reports[@]}" --junitxml=reports/pytest.xml \
   --tb=short --durations=20 --durations-min=0.1 "$@"

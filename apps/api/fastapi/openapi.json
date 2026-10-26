@@ -13646,7 +13646,7 @@
           "hr-attendance"
         ],
         "summary": "List phone clock punches awaiting approval",
-        "description": "Pending phone punches of employees the caller supervises or reviews (named supervisor, or timesheet.approve in the department scope). Never includes the caller's own punches.",
+        "description": "Pending phone punches the caller may decide. Callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Approve and reject use the same rule.",
         "operationId": "hrListPendingClockPunches",
         "security": [
           {
@@ -13712,7 +13712,7 @@
           "hr-attendance"
         ],
         "summary": "Approve a phone clock punch",
-        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Only the employee's named supervisor or a timesheet.approve holder in scope; never the punching employee. Idempotent.",
+        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Allowed for: callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Idempotent.",
         "operationId": "hrApproveClockPunch",
         "security": [
           {
@@ -13770,7 +13770,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+            "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
           },
           "404": {
             "description": "Clock punch not found"
@@ -13838,7 +13838,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+            "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
           },
           "404": {
             "description": "Clock punch not found"
@@ -30640,7 +30640,7 @@
           "eregister"
         ],
         "summary": "List register observations",
-        "description": "Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "description": "Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings (each stored row is checked as saved, without the station's current pressure amounts) and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterListRegisterObservations",
         "security": [
           {
@@ -30723,6 +30723,25 @@
             "description": "true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false)."
           },
           {
+            "name": "observed_at",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only observations for exactly this UTC time (to find the record occupying an hour).",
+              "title": "Observed At"
+            },
+            "description": "Only observations for exactly this UTC time (to find the record occupying an hour)."
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -30740,6 +30759,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 10000000,
               "minimum": 0,
               "default": 0,
               "title": "Offset"
@@ -30842,7 +30862,7 @@
           "eregister"
         ],
         "summary": "Validate a SYNOP observation",
-        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns.",
+        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns. With `observed_at`, the station's saved SYNOP of the previous hour and of 3 hours earlier are compared (hour-to-hour warnings). `expected_metar` is the METAR the observation implies; a METAR typed in `metar_text` is compared with it (warnings on that field).",
         "operationId": "eregisterValidateSynopObservation",
         "requestBody": {
           "content": {
@@ -30898,7 +30918,7 @@
           "eregister"
         ],
         "summary": "Correct a register observation",
-        "description": "Saves a replacement that supersedes the observation (`supersedes_id`); the old one becomes `superseded` and stays listed. Station, kind and time are kept. `409` when the observation is rejected or already superseded; `422` when the replacement SYNOP has errors. The replacement starts as a draft: when its observer accepts it, a station-hour already sent to WIS2 is sent again marked as a correction. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "description": "Saves a replacement that supersedes the observation (`supersedes_id`); the old one becomes `superseded` and stays listed. Station, kind and time are kept. `409` when the observation is rejected or already superseded; `422` when the replacement SYNOP has errors. The replacement starts as a draft; saving it holds any queued WIS2 file of the replaced observation until the correction is accepted (the old file is dropped) or rejected (the old file is released and the old observation returns to the state it had before). When its observer accepts it, a station-hour already sent to WIS2 is sent again marked as a correction. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterCorrectRegisterObservation",
         "security": [
           {
@@ -31254,7 +31274,7 @@
           "eregister"
         ],
         "summary": "Reject a register observation (QC)",
-        "description": "Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Requires register staff access. Audited.",
+        "description": "Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Rejecting a correction releases the held WIS2 file of the observation it replaced and puts that observation back to the state it had before the correction (for example `accepted`), live and correctable again. Requires register staff access. Audited.",
         "operationId": "eregisterRejectRegisterObservation",
         "security": [
           {
@@ -31518,7 +31538,7 @@
           "eregister"
         ],
         "summary": "Set the station pressure amounts",
-        "description": "Replaces all four amounts (send null to clear one). Requires `eregister.qc`.",
+        "description": "Replaces all four amounts; every key is required and an explicit null clears one. The change is recorded in the change history (entity `eregister_station_settings`) with the amounts before and after and the actor. Requires `eregister.qc`.",
         "operationId": "eregisterPutStationSettings",
         "security": [
           {
@@ -79627,7 +79647,14 @@
           }
         },
         "type": "object",
-        "title": "StationSettingsUpdate"
+        "required": [
+          "total_correction_hpa",
+          "qfe_offset_hpa",
+          "sea_level_offset_hpa",
+          "qnh_offset_hpa"
+        ],
+        "title": "StationSettingsUpdate",
+        "description": "All four amounts are required: send an explicit null to clear one."
       },
       "StatusReportCreate": {
         "properties": {
@@ -81497,6 +81524,18 @@
           },
           "decoded": {
             "$ref": "#/components/schemas/SynopDecoded"
+          },
+          "expected_metar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Metar",
+            "description": "The METAR the observation implies, for the observer to copy and edit."
           }
         },
         "type": "object",
@@ -82266,6 +82305,19 @@
               }
             ],
             "title": "S3 Remarks"
+          },
+          "metar_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metar Text",
+            "description": "The METAR typed or copied by the observer; each element is compared with the observation (warnings only)."
           },
           "observer_initials": {
             "anyOf": [
@@ -85205,7 +85257,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+                "pattern": "^[A-Za-z]{2}(0[1-9]|[1-8]\\d)\\d{4}$"
               },
               {
                 "type": "null"
@@ -85218,7 +85270,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+                "pattern": "^[A-Za-z]{2}9\\d\\d{4}$"
               },
               {
                 "type": "null"
@@ -85775,25 +85827,27 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+                "maxLength": 20
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Nhc Storm Id"
+            "title": "Nhc Storm Id",
+            "description": "Must match al072026 when it changes; an unchanged older id is accepted."
           },
           "nhc_invest_id": {
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^[A-Za-z]{2}\\d{2}(\\d{4})?$"
+                "maxLength": 20
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Nhc Invest Id"
+            "title": "Nhc Invest Id",
+            "description": "Must match al942026 when it changes; an unchanged older id is accepted."
           },
           "status": {
             "anyOf": [
@@ -85828,6 +85882,20 @@
               }
             ],
             "title": "Continued As Id"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Why the change was made (audit trail)."
           }
         },
         "additionalProperties": false,

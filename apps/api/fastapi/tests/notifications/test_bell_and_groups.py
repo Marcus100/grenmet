@@ -1,7 +1,7 @@
 """Bell choice, urgent events and grouping in notify()."""
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -239,3 +239,63 @@ async def test_grouped_dedupe_key_counts_each_item_once(db_async: AsyncSession) 
         select(func.count()).select_from(NotificationOccurrence)
     )
     assert occurrences == 2
+
+
+async def test_bell_off_recipient_gets_an_email_for_every_grouped_occurrence(
+    db_async: AsyncSession,
+) -> None:
+    user = await make_user(db_async)
+    await _prefer(db_async, user, GROUPED, bell_enabled=False, email_enabled=True)
+    assert await _send(db_async, user, GROUPED, 1, dedupe_key="hour:1") == 1
+    assert await _send(db_async, user, GROUPED, 2, dedupe_key="hour:2") == 1
+
+    rows = await _rows(db_async, user, GROUPED)
+    assert len(rows) == 2
+    assert not any(row.in_bell for row in rows)
+    assert await _emails(db_async, user) == 2
+
+
+async def test_fold_adds_one_in_sql_rather_than_overwriting_the_count(
+    db_async: AsyncSession,
+) -> None:
+    user = await make_user(db_async)
+    await _send(db_async, user, GROUPED, 1)
+    (row,) = await _rows(db_async, user, GROUPED)
+    # Another worker folded four more repeats after this session loaded the row.
+    await db_async.execute(
+        text("UPDATE notification SET repeat_count = 5 WHERE id = :id"),
+        {"id": row.id},
+    )
+
+    await notification_service.notify(
+        db_async,
+        event_key=GROUPED,
+        organisation_id="gaa",
+        recipients=(user.id,),
+        context={"n": 2},
+    )
+
+    assert row.repeat_count == 6
+
+
+async def test_both_channels_off_still_remembers_each_grouped_item(
+    db_async: AsyncSession,
+) -> None:
+    user = await make_user(db_async)
+    await _prefer(db_async, user, GROUPED, bell_enabled=False, email_enabled=False)
+    assert await _send(db_async, user, GROUPED, 1, dedupe_key="hour:1") == 0
+
+    # No notification and no email, but the item is on record.
+    assert await _rows(db_async, user, GROUPED) == []
+    assert await _emails(db_async, user) == 0
+    assert (
+        await db_async.scalar(select(func.count()).select_from(NotificationOccurrence))
+        == 1
+    )
+
+    # The person turns email back on while the sweep still sees the same item.
+    await _prefer(db_async, user, GROUPED, bell_enabled=True, email_enabled=True)
+    assert await _send(db_async, user, GROUPED, 1, dedupe_key="hour:1") == 0
+    assert await _rows(db_async, user, GROUPED) == []
+    # A genuinely new item does notify.
+    assert await _send(db_async, user, GROUPED, 2, dedupe_key="hour:2") == 1

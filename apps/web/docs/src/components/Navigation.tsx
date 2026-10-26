@@ -1,14 +1,16 @@
 "use client";
 
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { CloseButton } from "@headlessui/react";
 import { AnimatePresence, motion, useIsPresent } from "motion/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
 import { Button } from "@/components/Button";
-import { useIsInsideMobileNavigation } from "@/components/MobileNavigation";
+import {
+  useIsInsideMobileNavigation,
+  useMobileNavigationStore,
+} from "@/components/MobileNavigation";
 import { useSectionStore } from "@/components/SectionProvider";
 import { Tag } from "@/components/Tag";
 import { remToPx } from "@/lib/remToPx";
@@ -33,16 +35,18 @@ function TopLevelNavItem({
   href: string;
   children: React.ReactNode;
 }) {
+  const close = useMobileNavigationStore((state) => state.close);
+
   return (
     <li className="md:hidden">
-      <CloseButton
-        as={Link}
+      <Link
         className="block py-1 text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
         data-analytics-event="navigation_category_selected"
         href={href as Route}
+        onClick={close}
       >
         {children}
-      </CloseButton>
+      </Link>
     </li>
   );
 }
@@ -60,10 +64,11 @@ function NavLink({
   active?: boolean;
   isAnchorLink?: boolean;
 }) {
+  const close = useMobileNavigationStore((state) => state.close);
+
   return (
-    <CloseButton
+    <Link
       aria-current={active ? "page" : undefined}
-      as={Link}
       className={cn(
         "flex justify-between gap-2 py-1 pr-3 text-sm transition",
         isAnchorLink ? "pl-7" : "pl-4",
@@ -73,6 +78,7 @@ function NavLink({
       )}
       data-analytics-event="navigation_category_selected"
       href={href as Route}
+      onClick={close}
     >
       <span className="truncate">{children}</span>
       {tag && (
@@ -80,7 +86,7 @@ function NavLink({
           {tag}
         </Tag>
       )}
-    </CloseButton>
+    </Link>
   );
 }
 

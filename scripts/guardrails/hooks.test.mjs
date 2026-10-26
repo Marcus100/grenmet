@@ -22,6 +22,7 @@ const run = (command, args, options = {}) =>
     cwd: options.cwd,
     encoding: "utf8",
     env: { ...process.env, ...options.env },
+    input: options.input,
   });
 
 const git = (repository, ...args) => {
@@ -33,6 +34,78 @@ const git = (repository, ...args) => {
   );
   return result.stdout;
 };
+
+test("pre-push skips gates only when every remote ref is an agent lock", (t) => {
+  const fixture = mkdtempSync(join(tmpdir(), "grenmet-lock-push-"));
+  t.after(() => rmSync(fixture, { recursive: true, force: true }));
+  const bin = join(fixture, "bin");
+  mkdirSync(bin);
+  writeFileSync(join(bin, "pnpm"), "#!/bin/sh\nexit 73\n", { mode: 0o755 });
+  const sha = "a".repeat(40);
+  const zero = "0".repeat(40);
+  const lock = `${sha} ${sha} refs/heads/agent-lock/594 ${zero}`;
+  const deletion = `(delete) ${zero} refs/heads/agent-lock/431 ${sha}`;
+  const branch = `refs/heads/dev ${sha} refs/heads/dev ${sha}`;
+  const cases = [
+    [lock, 0],
+    [`${lock}\n${deletion}`, 0],
+    [deletion, 0],
+    [`${lock}\n${branch}`, 73],
+    [branch, 73],
+    ["", 73],
+    [`${sha} ${sha} refs/heads/agent-lock/ ${zero}`, 73],
+    [`${sha} ${sha} refs/heads/agent-lock/594/nested ${zero}`, 73],
+    [`${lock} unexpected`, 73],
+    [`${sha} invalid refs/heads/agent-lock/594 ${zero}`, 73],
+  ];
+  for (const [input, expected] of cases) {
+    const result = run("sh", ["-e", prePushHook], {
+      cwd: workspace,
+      input: `${input}\n`,
+      env: { PATH: `${bin}:${process.env.PATH}`, PRE_PUSH_SCOPE: "" },
+    });
+    assert.equal(result.status, expected, input);
+  }
+});
+
+test("real Git lock creation and deletion skip gates while mixed pushes stay gated", (t) => {
+  const fixture = mkdtempSync(join(tmpdir(), "grenmet-real-lock-push-"));
+  t.after(() => rmSync(fixture, { recursive: true, force: true }));
+  const remote = join(fixture, "remote.git");
+  const repository = join(fixture, "local");
+  const bin = join(fixture, "bin");
+  mkdirSync(repository);
+  mkdirSync(bin);
+  git(fixture, "init", "--bare", "--quiet", remote);
+  git(repository, "init", "--quiet", "--initial-branch=main");
+  git(repository, "config", "user.email", "hooks@example.com");
+  git(repository, "config", "user.name", "Hook Tests");
+  git(repository, "commit", "--quiet", "--allow-empty", "-m", "fixture");
+  const scripts = join(repository, "scripts", "verification");
+  mkdirSync(scripts, { recursive: true });
+  writeFileSync(
+    join(scripts, "pre-push-scope.mjs"),
+    readFileSync(join(workspace, "scripts/verification/pre-push-scope.mjs"))
+  );
+  writeFileSync(
+    join(repository, ".git/hooks/pre-push"),
+    `#!/bin/sh\nset -e\n${readFileSync(prePushHook, "utf8")}`,
+    { mode: 0o755 }
+  );
+  writeFileSync(join(bin, "pnpm"), "#!/bin/sh\nexit 73\n", { mode: 0o755 });
+  const push = (...refs) =>
+    run("git", ["push", remote, ...refs], {
+      cwd: repository,
+      env: { PATH: `${bin}:${process.env.PATH}`, PRE_PUSH_SCOPE: "" },
+    });
+  assert.equal(push("HEAD:refs/heads/agent-lock/594").status, 0);
+  assert.equal(push("--delete", "refs/heads/agent-lock/594").status, 0);
+  assert.notEqual(
+    push("HEAD:refs/heads/agent-lock/594", "HEAD:refs/heads/feature").status,
+    0
+  );
+  assert.equal(git(repository, "ls-remote", remote, "refs/heads/*"), "");
+});
 
 test("lint-staged formats only staged files and preserves unstaged edits", (t) => {
   const repository = mkdtempSync(join(workspace, ".lint-staged-test-"));

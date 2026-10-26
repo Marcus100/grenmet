@@ -12,13 +12,29 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.notifications import gms
 
-from .models import CapAlert, CapInfo, CapMessageType, CapStatus
+from .models import (
+    CapAlert,
+    CapInfo,
+    CapLifecycleState,
+    CapMessageType,
+    CapScope,
+    CapStatus,
+)
 
 ACTIONS = {
     CapMessageType.ALERT: "issued",
     CapMessageType.UPDATE: "updated",
     CapMessageType.CANCEL: "cancelled",
 }
+
+
+def is_public(alert: CapAlert) -> bool:
+    """Whether the anonymous public lookup finds this alert."""
+    return alert.scope == CapScope.PUBLIC and alert.lifecycle_state in {
+        CapLifecycleState.PUBLISHED,
+        CapLifecycleState.EXPIRED,
+        CapLifecycleState.CANCELLED,
+    }
 
 
 async def headline(session: AsyncSession, alert: CapAlert) -> str:
@@ -46,17 +62,21 @@ async def notify_warning_changed(
     """
     if alert.status != CapStatus.ACTUAL:
         return 0
+    action = ACTIONS.get(alert.msg_type)
+    if action is None:
+        # Ack and Error messages are protocol traffic, not a warning change.
+        return 0
     staff = await gms.gms_staff(session)
     return await gms.tell(
         session,
         gms.WARNING_CHANGED,
         staff,
         {
-            "action": ACTIONS[alert.msg_type],
+            "action": action,
             "headline": await headline(session, about or alert),
             "identifier": alert.identifier,
         },
-        link_path=f"/cap/alerts/{alert.identifier}",
+        link_path=gms.alert_link(alert.identifier, alert.id, public=is_public(alert)),
         entity_type="cap_alert",
         entity_id=str(alert.id),
         dedupe_key=f"{gms.WARNING_CHANGED}:{alert.id}",
@@ -79,7 +99,7 @@ async def notify_review_requested(
             "subject": await headline(session, alert),
             "detail": f"Warning {alert.identifier} was submitted for review.",
         },
-        link_path=f"/cap/alerts/{alert.identifier}",
+        link_path=gms.alert_link(alert.identifier, alert.id, public=False),
         entity_type="cap_alert",
         entity_id=str(alert.id),
         exclude=(actor.id,),

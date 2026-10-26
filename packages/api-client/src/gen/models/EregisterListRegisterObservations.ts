@@ -18,6 +18,10 @@ export type EregisterListRegisterObservationsQuery = {
    */
   reviewed?: boolean | null;
   /**
+   * @description Only observations for exactly this UTC time (to find the record occupying an hour).
+   */
+  observed_at?: string | null;
+  /**
    * @minLength 1
    * @maxLength 500
    * @default 100
@@ -26,6 +30,7 @@ export type EregisterListRegisterObservationsQuery = {
   limit?: number;
   /**
    * @minLength 0
+   * @maxLength 10000000
    * @default 0
    * @type integer | undefined
    */

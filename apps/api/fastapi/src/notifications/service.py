@@ -1,6 +1,6 @@
 import logging
 import uuid
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any
@@ -108,21 +108,25 @@ async def users_with_roles(
     *,
     organisation_id: str | None,
     department_id: str | None = None,
+    department_ids: Collection[str] = (),
 ) -> set[uuid.UUID]:
     """Active holders of any of ``role_names`` whose grant covers the department.
 
     An ALL-scope grant covers the whole organisation; a DEPARTMENT grant only its
-    department. SELF grants never make someone a recipient for other people.
+    department (``department_id``, or any of ``department_ids`` for an audience
+    spread over several departments). SELF grants never make someone a recipient
+    for other people.
     """
     names = list(role_names)
     if not names or organisation_id is None:
         return set()
     now = utc_now()
     scope = UserRoleAssignment.scope == RoleAssignmentScope.ALL
-    if department_id:
+    covered = {*department_ids, *([department_id] if department_id else [])}
+    if covered:
         scope = scope | (
             (UserRoleAssignment.scope == RoleAssignmentScope.DEPARTMENT)
-            & (UserRoleAssignment.department_id == department_id)
+            & UserRoleAssignment.department_id.in_(covered)
         )
     result = await session.execute(
         select(UserRoleAssignment)
@@ -294,8 +298,9 @@ async def notify(
                     Notification.recipient_user_id.in_(active),
                     Notification.event_key == event_key,
                     Notification.read_at.is_(None),
-                    # A bell-off row is never seen or read; folding into it
-                    # would stop every later email for the group.
+                    # A hidden (bell-off) row is never read, so folding into it
+                    # would silence every later email: those recipients get a
+                    # fresh row and an email each time.
                     Notification.in_bell.is_(True),
                     Notification.group_key.is_(None)
                     if group_key is None
@@ -305,8 +310,9 @@ async def notify(
         ).scalars()
         for row in open_rows:
             folded.setdefault(row.recipient_user_id, row)
+    refresh: list[Notification] = []
     deliveries: list[NotificationDelivery] = []
-    occurrences: list[tuple[str, uuid.UUID]] = []
+    occurrences: list[tuple[str, uuid.UUID | None]] = []
     queued = 0
     now = utc_now()
     for user_id in active:
@@ -319,11 +325,18 @@ async def notify(
         )
         email = setting.email_enabled and wants_email
         if not in_bell and not email:
+            # Both channels off: nothing to show or send, but remember the item so
+            # turning a channel back on does not re-announce it.
+            if event.grouped and keys.get(user_id):
+                occurrences.append((keys[user_id], None))
             continue
         queued += 1
         existing = folded.get(user_id)
         if existing is not None:
-            existing.repeat_count += 1
+            # SQL expression: concurrent folds each add one instead of
+            # overwriting each other's count.
+            existing.repeat_count = Notification.repeat_count + 1
+            refresh.append(existing)
             existing.title, existing.body = title, body
             existing.link_path = link_path
             existing.entity_type, existing.entity_id = entity_type, entity_id
@@ -358,6 +371,8 @@ async def notify(
             )
     # No ORM relationship orders the inserts, so land parents before the outbox.
     await session.flush()
+    for row in refresh:
+        await session.refresh(row, ["repeat_count"])
     session.add_all(deliveries)
     session.add_all(
         NotificationOccurrence(dedupe_key=key, notification_id=notification_id)

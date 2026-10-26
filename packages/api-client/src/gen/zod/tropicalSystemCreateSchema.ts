@@ -15,11 +15,11 @@ export const tropicalSystemCreateSchema = z
       .optional()
       .describe("Defaults to the current year in Grenada."),
     nhc_storm_id: z
-      .union([z.string().regex(/^[A-Za-z]{2}\d{2}(\d{4})?$/), z.null()])
+      .union([z.string().regex(/^[A-Za-z]{2}(0[1-9]|[1-8]\d)\d{4}$/), z.null()])
       .optional()
       .describe("NHC storm identifier such as al072026."),
     nhc_invest_id: z
-      .union([z.string().regex(/^[A-Za-z]{2}\d{2}(\d{4})?$/), z.null()])
+      .union([z.string().regex(/^[A-Za-z]{2}9\d\d{4}$/), z.null()])
       .optional()
       .describe("NHC invest identifier such as al902026."),
   })

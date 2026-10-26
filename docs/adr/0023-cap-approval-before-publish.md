@@ -75,3 +75,13 @@ Decided by the project owner on 23 October 2026, in conversation with the agent.
   someone other than their author.
 - Follow-up for the owner: `apps/api/fastapi/src/cap/AGENTS.md` still says
   self-approval is always refused; that file is owner-only.
+
+## Amendment (2026-10-25): the author may approve their own alert
+
+The owner confirmed that for GMS a single forecaster can issue an alert, so the
+requirement that approval comes from someone other than the author is removed.
+Approval is still an explicit, audited step before publish; colleague reviews stay
+available and are recorded; the audited emergency publish and the privileged-MFA
+requirement for anyone who can approve or publish are unchanged. This supersedes
+decision 1's "different person" rule only. Recorded on 2026-10-23 as an owner
+decision and confirmed here for the split landing PR (part 1 of the GMS/GAA work).

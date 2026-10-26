@@ -169,6 +169,8 @@ class TropicalSystemEntry(WeatherModel):
     issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     feature_type: Mapped[str] = mapped_column(Text, nullable=False)
+    # As linked when this revision was saved (migration 0005); public routes show it.
+    nhc_storm_id: Mapped[str | None] = mapped_column(Text)
     latitude: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
     longitude: Mapped[Decimal | None] = mapped_column(Numeric(6, 2))
     movement_direction: Mapped[str | None] = mapped_column(Text)
@@ -178,4 +180,25 @@ class TropicalSystemEntry(WeatherModel):
     # Logical links into WxWatch editions; no cross-database foreign key.
     source_edition_ids: Mapped[list[UUID]] = mapped_column(
         ARRAY(PgUUID(as_uuid=True)), nullable=False, default=list
+    )
+
+
+class TropicalSystemChange(WeatherModel):
+    """Append-only record of one edit to a system's identity (migration 0004)."""
+
+    __tablename__ = "tropical_system_changes"
+    __table_args__ = (
+        Index("tropical_system_changes_system_idx", "system_id", "created_at"),
+    )
+    id: Mapped[int] = mapped_column(Integer, Identity(always=True), primary_key=True)
+    system_id: Mapped[UUID] = mapped_column(
+        ForeignKey("tropical_systems.id"), nullable=False
+    )
+    actor_id: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_name: Mapped[str] = mapped_column(Text, nullable=False)
+    before: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    after: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    reason: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )

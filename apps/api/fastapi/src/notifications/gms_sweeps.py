@@ -14,7 +14,6 @@ from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, time, timedelta
 
 from sqlalchemy import func, select, text
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap.models import (
@@ -24,6 +23,7 @@ from src.cap.models import (
     CapMessageType,
     CapStatus,
 )
+from src.eregister.gate import SOURCE_MANUAL, official_source
 from src.eregister.models import ERegisterSend
 from src.utils.timezones import GRENADA
 from src.worker.config import worker_settings
@@ -138,7 +138,7 @@ async def warning_expiring(session: AsyncSession, now: datetime | None = None) -
                 .astimezone(GRENADA)
                 .strftime("%H:%M"),
             },
-            link_path=f"/cap/alerts/{alert.identifier}",
+            link_path=gms.alert_link(alert.identifier, alert.id, public=False),
             entity_type="cap_alert",
             entity_id=str(alert.id),
             dedupe_key=f"{gms.WARNING_EXPIRING}:{alert.id}",
@@ -158,14 +158,24 @@ async def observation_missing(
     stations = (
         (
             await register.execute(
-                text("SELECT station_id FROM observations.stations ORDER BY 1")
+                text(
+                    "SELECT station_id, schedule, manual_hours_utc"
+                    " FROM observations.stations ORDER BY 1"
+                )
             )
         )
-        .scalars()
+        .mappings()
         .all()
     )
     missing: list[str] = []
-    for station in stations:
+    for row in stations:
+        station = row["station_id"]
+        # Only hours a person must record; automatic hours arrive by themselves.
+        if (
+            official_source(row["schedule"], list(row["manual_hours_utc"]), hour)
+            != SOURCE_MANUAL
+        ):
+            continue
         recorded = await register.scalar(
             text(
                 "SELECT 1 FROM register_observations WHERE station_id = :station"
@@ -428,8 +438,13 @@ async def run(
         try:
             total += await step()
             await session.commit()
-        except SQLAlchemyError, OSError, RuntimeError, TimeoutError:
-            await session.rollback()
+        except Exception:
             logger.exception("GMS notification sweep failed", extra={"sweep": name})
+            used = (session, weather, register, archive)
+            for each in {id(s): s for s in used if s is not None}.values():
+                try:
+                    await each.rollback()
+                except Exception:
+                    logger.exception("GMS sweep rollback failed", extra={"sweep": name})
     logger.info("GMS notification sweeps finished", extra={"notified": total})
     return total

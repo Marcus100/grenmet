@@ -177,11 +177,32 @@ function fakeFetch({ comments = [], modelText, anthropicStatus = 200, diff }) {
 }
 
 const env = {
+  AI_REVIEW_API_BUDGET_USD: "1",
   ANTHROPIC_API_KEY: "k",
   GITHUB_TOKEN: "t",
   GITHUB_REPOSITORY: "o/r",
   PR_NUMBER: "7",
 };
+
+test("API keys alone never enable spending without an explicit approved budget", async () => {
+  for (const budget of [undefined, "0", "-1", "invalid"]) {
+    let called = false;
+    const code = await run(
+      { ...env, AI_REVIEW_API_BUDGET_USD: budget },
+      {
+        fetchImpl() {
+          called = true;
+          throw new Error("must not call the API");
+        },
+        log() {
+          /* Deliberately silence the expected disabled notice. */
+        },
+      }
+    );
+    assert.equal(code, 0);
+    assert.equal(called, false);
+  }
+});
 const goodModel = JSON.stringify({
   summary: "ok",
   verdict: "approve",

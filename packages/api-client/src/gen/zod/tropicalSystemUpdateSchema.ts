@@ -15,11 +15,17 @@ export const tropicalSystemUpdateSchema = z
       .union([guidanceSystemPropertiesFeatureTypeEnumSchema, z.null()])
       .optional(),
     nhc_storm_id: z
-      .union([z.string().regex(/^[A-Za-z]{2}\d{2}(\d{4})?$/), z.null()])
-      .optional(),
+      .union([z.string().max(20), z.null()])
+      .optional()
+      .describe(
+        "Must match al072026 when it changes; an unchanged older id is accepted."
+      ),
     nhc_invest_id: z
-      .union([z.string().regex(/^[A-Za-z]{2}\d{2}(\d{4})?$/), z.null()])
-      .optional(),
+      .union([z.string().max(20), z.null()])
+      .optional()
+      .describe(
+        "Must match al942026 when it changes; an unchanged older id is accepted."
+      ),
     status: z
       .union([tropicalSystemPublicPropertiesStatusEnumSchema, z.null()])
       .optional(),
@@ -30,6 +36,10 @@ export const tropicalSystemUpdateSchema = z
       ])
       .optional(),
     continued_as_id: z.union([z.uuid(), z.null()]).optional(),
+    reason: z
+      .union([z.string().min(1).max(500), z.null()])
+      .optional()
+      .describe("Why the change was made (audit trail)."),
   })
   .describe(
     "Rename, link NHC identifiers, close or merge. Omitted fields stay unchanged."

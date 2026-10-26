@@ -59,8 +59,15 @@ async def activate_totp(
         if keep_session_id is not None:
             statement = statement.where(AuthSession.id != keep_session_id)
         await session.execute(statement.values(revoked_at=utc_now()))
+        privileged = True
+    else:
+        privileged = False
     await session.commit()
     await session.refresh(user)
+    if privileged:
+        from src.auth import devices
+
+        devices.schedule_authenticator_added_alert(email_to=user.email)
     return True
 
 

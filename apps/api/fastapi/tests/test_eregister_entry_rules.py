@@ -7,18 +7,20 @@ from uuid import uuid4
 import httpx
 import pytest
 from alembic.config import Config
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from alembic import command
+from src.audit.models import AuditEntry
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
 from src.eregister import encode, rules
 from src.eregister.dependencies import get_public_session, get_session
 from src.eregister.schemas import SynopWorkbook
 from src.main import app
+from tests.factories import make_user
 
 from .test_eregister_validation import PAPER_ROW
 
@@ -47,7 +49,9 @@ async def register_db(fresh_weather_engine: Engine) -> AsyncGenerator[Engine]:
 
 
 @pytest.fixture
-async def staff_client(register_db: Engine) -> AsyncGenerator[httpx.AsyncClient]:
+async def staff_client(
+    register_db: Engine, db_async: AsyncSession
+) -> AsyncGenerator[httpx.AsyncClient]:
     engine = create_async_engine(
         register_db.url.set(drivername="postgresql+asyncpg"), poolclass=NullPool
     )
@@ -58,7 +62,8 @@ async def staff_client(register_db: Engine) -> AsyncGenerator[httpx.AsyncClient]
 
     app.dependency_overrides[get_session] = session
     app.dependency_overrides[get_public_session] = session
-    app.dependency_overrides[get_browser_or_token_user] = lambda: _user(superuser=True)
+    staff = await make_user(db_async, superuser=True)
+    app.dependency_overrides[get_browser_or_token_user] = lambda: staff
     try:
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://test"
@@ -114,8 +119,16 @@ async def test_station_amounts_can_be_changed_and_cleared(
     assert saved.json()["qfe_offset_hpa"] == 0.4
     assert saved.json()["updated_by"]
     assert (await staff_client.get(SETTINGS)).json()["qfe_offset_hpa"] == 0.4
-    # An amount left out is cleared and listed as pending: nothing is assumed.
-    partial = await staff_client.put(SETTINGS, json={"total_correction_hpa": 0.0})
+    # An explicit null clears an amount and lists it as pending: nothing is assumed.
+    partial = await staff_client.put(
+        SETTINGS,
+        json={
+            "total_correction_hpa": 0.0,
+            "qfe_offset_hpa": None,
+            "sea_level_offset_hpa": None,
+            "qnh_offset_hpa": None,
+        },
+    )
     assert partial.json()["pending"] == [
         "qfe_offset_hpa",
         "sea_level_offset_hpa",
@@ -130,7 +143,42 @@ async def test_station_amounts_can_be_changed_and_cleared(
 async def test_implausible_station_settings_are_refused(
     staff_client: httpx.AsyncClient, changes: dict
 ) -> None:
-    assert (await staff_client.put(SETTINGS, json=changes)).status_code == 422
+    body = {**OWNER_AMOUNTS, **changes}
+    assert (await staff_client.put(SETTINGS, json=body)).status_code == 422
+
+
+@pytest.mark.parametrize("missing", list(OWNER_AMOUNTS))
+async def test_station_settings_need_all_four_keys(
+    staff_client: httpx.AsyncClient, missing: str
+) -> None:
+    """A key left out is refused; it can no longer clear the amounts by accident."""
+    body = {k: v for k, v in OWNER_AMOUNTS.items() if k != missing}
+    assert (await staff_client.put(SETTINGS, json=body)).status_code == 422
+    assert (await staff_client.put(SETTINGS, json={})).status_code == 422
+    assert (await staff_client.get(SETTINGS)).json()["pending"] == []
+
+
+async def test_changing_station_settings_is_audited_with_before_and_after(
+    staff_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    response = await staff_client.put(
+        SETTINGS, json={**OWNER_AMOUNTS, "qfe_offset_hpa": None, "qnh_offset_hpa": 0.2}
+    )
+    assert response.status_code == 200, response.text
+    entry = (
+        await db_async.scalars(
+            select(AuditEntry).where(
+                AuditEntry.entity_type == "eregister_station_settings",
+                AuditEntry.entity_id == "78958",
+            )
+        )
+    ).one()
+    assert entry.action == "update"
+    assert entry.actor_user_id is not None
+    changes = {c["field"]: (c["old"], c["new"]) for c in entry.changes}
+    assert changes["qfe_offset_hpa"] == (0.3, None)
+    assert changes["qnh_offset_hpa"] == (0.1, 0.2)
+    assert changes["total_correction_hpa"] == (0.0, 0.0)
 
 
 async def test_a_saved_barometer_reading_gives_groups_3_and_4(
@@ -192,7 +240,7 @@ async def test_unknown_station_has_no_settings(
 ) -> None:
     url = "/api/v1/eregister/stations/00000/settings"
     assert (await staff_client.get(url)).status_code == 404
-    assert (await staff_client.put(url, json={})).status_code == 404
+    assert (await staff_client.put(url, json=OWNER_AMOUNTS)).status_code == 404
 
 
 async def test_settings_need_register_access_and_changing_them_needs_qc(
@@ -200,7 +248,7 @@ async def test_settings_need_register_access_and_changing_them_needs_qc(
 ) -> None:
     app.dependency_overrides[get_browser_or_token_user] = lambda: _user(superuser=False)
     assert (await staff_client.get(SETTINGS)).status_code == 403
-    assert (await staff_client.put(SETTINGS, json={})).status_code == 403
+    assert (await staff_client.put(SETTINGS, json=OWNER_AMOUNTS)).status_code == 403
 
 
 def _check(**changes: str) -> dict[str, str]:
@@ -214,11 +262,26 @@ def test_barometer_as_read_accepts_hpa(reading: str) -> None:
     assert "error:barometer_reading" not in _check(barometer_reading=reading)
 
 
-@pytest.mark.parametrize("reading", ["abc", "1,013", "-5", "200", "2000", "1013.2.1"])
+@pytest.mark.parametrize(
+    "reading",
+    ["abc", "1,013", "-5", "200", "2000", "1013.2.1", "1012.85", "1e3", "1013.", "٣٣٣"],
+)
 def test_barometer_as_read_rejects_other_text(reading: str) -> None:
     assert _check(barometer_reading=reading)["error:barometer_reading"] == (
         "invalid_barometer"
     )
+
+
+@pytest.mark.parametrize("km", ["12", "0.8", "30", "0.05", "10.50"])
+def test_visibility_accepts_plain_kilometres(km: str) -> None:
+    assert "error:visibility_km" not in _check(visibility_km=km)
+
+
+@pytest.mark.parametrize(
+    "km", ["1e1", "1E2", "+5", "-5", ".5", "5.", "1_0", "inf", "NaN", "٥"]
+)
+def test_visibility_rejects_exponents_and_other_forms(km: str) -> None:
+    assert _check(visibility_km=km)["error:visibility_km"] == "invalid_km"
 
 
 def test_group_909_is_five_digits_starting_909() -> None:

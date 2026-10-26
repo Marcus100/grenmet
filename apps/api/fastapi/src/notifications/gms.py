@@ -16,6 +16,7 @@ time-based events are swept by ``gms_sweeps`` from an ARQ cron.
 import uuid
 from collections.abc import Collection
 from datetime import UTC, datetime, time, timedelta
+from urllib.parse import quote
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -183,8 +184,23 @@ async def permission_holders(
         .all()
     )
     return await notification_service.users_with_roles(
-        session, set(names), organisation_id=organisation_id()
+        session,
+        set(names),
+        organisation_id=organisation_id(),
+        department_ids=GMS_DEPARTMENT_IDS,
     )
+
+
+def alert_link(identifier: str, alert_id: uuid.UUID, *, public: bool) -> str:
+    """Where a warning notice opens.
+
+    The public page (``/cap/alerts/{identifier}``) only finds published,
+    public-scope alerts, so every other notice goes to the staff page
+    (``/cap/admin/{id}``). Identifiers may hold reserved URL characters.
+    """
+    if public:
+        return f"/cap/alerts/{quote(identifier, safe='')}"
+    return f"/cap/admin/{alert_id}"
 
 
 def _clock(value: str | None) -> time | None:
@@ -268,14 +284,12 @@ async def duty_forecasters(
     from src.baseline import product_access
 
     staff = await gms_staff(session)
-    allowed: set[uuid.UUID] = set()
-    for user_id in staff:
-        user = await session.get(User, user_id)
-        if user is not None and kind in await product_access.allowed_kinds(
-            session, user
-        ):
-            allowed.add(user_id)
-    candidates = allowed or staff
+    allowed = await product_access.users_who_may_author(session, kind, staff)
+    # Nobody may author this kind: do not page every GMS employee. Ask the
+    # people who already hear other GMS events (senior forecasters, approvers).
+    candidates = allowed or await permission_holders(
+        session, (*REGISTER_REVIEW_PERMISSIONS, "cap.alert.approve")
+    )
     on_duty, _covered = await duty_roster(session, now)
     return (candidates & on_duty) or candidates
 

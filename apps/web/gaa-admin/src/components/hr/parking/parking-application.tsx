@@ -40,10 +40,15 @@ const actions = [
   ["OTHER", "Other"],
 ] satisfies [ParkingAction, string][];
 
-/** The label on the button that opens a permit, by its status. */
-function openLabel(status: ParkingPermitPublic["status"]): string {
-  if (!isEditableStatus(status)) return "View application";
-  return status === "RETURNED" ? "Edit and resubmit" : "Open draft";
+function openNotice(permit: ParkingPermitPublic, renewal: boolean): string {
+  if (renewal)
+    return "New renewal application: confirm current insurance and submit for fresh approval.";
+  return permit.status === "RETURNED" ? editingHint(permit) : "";
+}
+
+function openLabel(permit: ParkingPermitPublic): string {
+  if (!isEditableStatus(permit.status)) return "View application";
+  return permit.status === "RETURNED" ? "Edit and resubmit" : "Open draft";
 }
 
 export function ParkingApplication() {
@@ -119,13 +124,7 @@ export function ParkingApplication() {
     });
     setCoApprovers([]);
     setError("");
-    if (renewal) {
-      setNotice(
-        "New renewal application: confirm current insurance and submit for fresh approval."
-      );
-    } else {
-      setNotice(permit.status === "RETURNED" ? editingHint(permit) : "");
-    }
+    setNotice(openNotice(permit, renewal));
   }
   function reset() {
     setSelected(null);
@@ -443,7 +442,10 @@ export function ParkingApplication() {
                       signedDocumentId: locked
                         ? selected?.signed_document_id
                         : null,
-                      filename: hrFormFilename("parking_permit", true),
+                      filename: hrFormFilename(
+                        "parking_permit",
+                        Boolean(locked && selected?.signed_document_id)
+                      ),
                     }).catch((caught: unknown) => {
                       reportError(caught, "hr-parking-pdf");
                       setError(hrApiErrorMessage(caught));
@@ -461,7 +463,10 @@ export function ParkingApplication() {
           label="Parking application"
           preview={
             <HrPdfPreview
-              filename={hrFormFilename("parking_permit")}
+              filename={hrFormFilename(
+                "parking_permit",
+                Boolean(locked && selected?.signed_document_id)
+              )}
               payload={body}
               previewPath="/api/v1/hr/parking-permits/preview-pdf"
               ready={ready}
@@ -534,7 +539,7 @@ export function ParkingApplication() {
                 <div className="flex gap-2">
                   {canCreate && (
                     <Button onClick={() => load(permit)} variant="outline">
-                      {openLabel(permit.status)}
+                      {openLabel(permit)}
                     </Button>
                   )}
                   {canCreate && permit.user_id === actor.id && (

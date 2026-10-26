@@ -452,7 +452,10 @@ export function LeaveApplicationEditor() {
         ),
         previewPath: "/api/v1/hr/leave-requests/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: hrFormFilename("leave_request", true),
+        filename: hrFormFilename(
+          "leave_request",
+          Boolean(submission?.signed_document_id)
+        ),
       });
     } catch (error) {
       reportError(error, "hr-leave-pdf-download");
@@ -913,7 +916,10 @@ export function LeaveApplicationEditor() {
           label="Leave Application"
           preview={
             <HrPdfPreview
-              filename={hrFormFilename("leave_request")}
+              filename={hrFormFilename(
+                "leave_request",
+                Boolean(submission?.signed_document_id)
+              )}
               payload={buildLeaveRequestPayload(values, departmentId ?? "")}
               previewPath="/api/v1/hr/leave-requests/preview-pdf"
               ready={Boolean(

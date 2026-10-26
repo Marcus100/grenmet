@@ -140,7 +140,9 @@ def test_layers_must_rise_and_be_complete() -> None:
         s3_layer2_amount="3",
         s3_layer2_form="6",
         s3_layer2_height="10",
-        s3_layer3_amount="1",
+        # Five oktas meets the third-layer threshold (12.4.10.1), so the only advice
+        # about this group is that its form and height are missing.
+        s3_layer3_amount="5",
     )
     assert issues["warning:s3_layer2_height"] == "layer_order"
     assert issues["warning:s3_layer3_amount"] == "incomplete_layer"

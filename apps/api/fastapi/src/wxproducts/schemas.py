@@ -448,11 +448,28 @@ class AviationValidationResponse(BaseModel):
 
 TropicalSystemStatus = Literal["active", "closed"]
 TropicalSystemClosedReason = Literal["dissipated", "merged", "out_of_area", "duplicate"]
+# NHC ids carry the season year so they never collide across seasons. Storms are
+# numbered 01-89; invests 90-99.
 NhcSystemId = Annotated[
     str,
     StringConstraints(
-        strip_whitespace=True, to_lower=True, pattern=r"^[A-Za-z]{2}\d{2}(\d{4})?$"
+        strip_whitespace=True,
+        to_lower=True,
+        pattern=r"^[A-Za-z]{2}(0[1-9]|[1-8]\d)\d{4}$",
     ),
+]
+NhcInvestId = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True, to_lower=True, pattern=r"^[A-Za-z]{2}9\d\d{4}$"
+    ),
+]
+
+
+# On update the shape is checked in the service, only when the value changes, so a
+# system saved with an older short id (al07) can still be sent back unchanged.
+NhcStoredId = Annotated[
+    str, StringConstraints(strip_whitespace=True, to_lower=True, max_length=20)
 ]
 
 
@@ -471,7 +488,7 @@ class TropicalSystemCreate(BaseModel):
     nhc_storm_id: NhcSystemId | None = Field(
         default=None, description="NHC storm identifier such as al072026."
     )
-    nhc_invest_id: NhcSystemId | None = Field(
+    nhc_invest_id: NhcInvestId | None = Field(
         default=None, description="NHC invest identifier such as al902026."
     )
 
@@ -488,11 +505,23 @@ class TropicalSystemUpdate(BaseModel):
         | None
     ) = None
     feature_type: GuidanceFeatureType | None = None
-    nhc_storm_id: NhcSystemId | None = None
-    nhc_invest_id: NhcSystemId | None = None
+    nhc_storm_id: NhcStoredId | None = Field(
+        default=None,
+        description="Must match al072026 when it changes; an unchanged older id is accepted.",
+    )
+    nhc_invest_id: NhcStoredId | None = Field(
+        default=None,
+        description="Must match al942026 when it changes; an unchanged older id is accepted.",
+    )
     status: TropicalSystemStatus | None = None
     closed_reason: TropicalSystemClosedReason | None = None
     continued_as_id: UUID | None = None
+    reason: (
+        Annotated[
+            str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)
+        ]
+        | None
+    ) = Field(default=None, description="Why the change was made (audit trail).")
 
 
 class TropicalSystemRead(BaseModel):
