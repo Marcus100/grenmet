@@ -1775,6 +1775,9 @@ observation with the saved ones 1 and 3 hours earlier (hour-to-hour warnings).
 It returns `expected_metar`, the METAR the observation implies, and when the
 workbook carries a typed `metar_text` it warns (field `metar_text`, codes
 `metar_*`) on every element that disagrees; these never change `valid`. The
+METAR dew point is the decoded one (so a `2 9UUU` humidity group works), and
+cloud is not compared when N is above 0 but no layer group is keyed. Group 908
+is a warning (`unused_supplementary`) until it is confirmed against Vol. I.1. The
 endpoint does not save, publish, or
 transmit an observation; `POST /api/v1/eregister/observations` stores a
 draft (validated, see below). `GET /api/v1/eregister/observations` filters by
