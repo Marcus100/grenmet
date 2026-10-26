@@ -1,11 +1,19 @@
 // Trusted, subscription-backed PR review dispatcher. Run from a reviewed local
-// checkout, never from a PR checkout. Only labelled, same-repository PRs into
-// dev are polled; --pr selects one explicitly. At most one new candidate gets
-// model review per invocation; cached approvals may be merged before that.
+// checkout, never from a PR checkout. Legacy mode queues labelled same-repository
+// PRs into dev; --advisory reviews same-repository non-draft PRs into dev,
+// staging, and main without publishing statuses, syncing branches, or merging.
 // Review statuses are published by a dedicated App and matched to its bot login.
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  lstatSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -14,6 +22,7 @@ import { claimLock, releaseLock } from "./claim-issue.mjs";
 import { run as runReview } from "./codex-review.mjs";
 import {
   acquireReviewLock,
+  parseReview,
   readReviewReceipt,
   receiptPath,
   reviewBlockers,
@@ -26,6 +35,9 @@ export const CONTEXTS = {
   security: "Factory security review",
 };
 const BRANCH_SYNC_CONFLICTS_FILE = "agent-branch-sync-conflicts.json";
+const ADVISORY_CACHE_FILE = "advisory-review-cache.json";
+const ADVISORY_BASES = new Set(["dev", "staging", "main"]);
+const ADVISORY_CACHE_KEY = /^\d+:[a-f0-9]{40}:(?:code|security)$/;
 const SHA = /^[a-f0-9]{40}$/;
 const APP_BOT_LOGIN = /^[a-z0-9-]+\[bot\]$/;
 const FACTORY_PATH =
@@ -80,6 +92,81 @@ export function reviewPaths(files) {
 
 export function branchSyncConflictsPath(root, spawn = spawnSync) {
   return join(dirname(receiptPath(root, spawn)), BRANCH_SYNC_CONFLICTS_FILE);
+}
+
+export function advisoryReviewCachePath(root, spawn = spawnSync) {
+  return join(
+    dirname(receiptPath(root, spawn)),
+    "agent-review-state",
+    ADVISORY_CACHE_FILE
+  );
+}
+
+export const advisoryReviewCacheKey = (number, head, role) =>
+  `${number}:${head}:${role}`;
+
+export function readAdvisoryReviewCache(path) {
+  let records;
+  try {
+    const metadata = lstatSync(path);
+    const directory = lstatSync(dirname(path));
+    if (
+      !metadata.isFile() ||
+      metadata.isSymbolicLink() ||
+      metadata.size > 4_000_000 ||
+      metadata.mode % 64 ||
+      !directory.isDirectory() ||
+      directory.isSymbolicLink() ||
+      directory.mode % 64
+    )
+      throw new Error("Advisory review cache permissions are unsafe.");
+    records = JSON.parse(readFileSync(path, "utf8"));
+  } catch (error) {
+    if (error?.code === "ENOENT") return new Map();
+    throw new Error("Could not read the local advisory review cache.");
+  }
+  if (
+    !records ||
+    typeof records !== "object" ||
+    Array.isArray(records) ||
+    records.version !== 1 ||
+    !records.completed ||
+    typeof records.completed !== "object" ||
+    Array.isArray(records.completed)
+  )
+    throw new Error("Local advisory review cache is malformed.");
+  return new Map(
+    Object.entries(records.completed).filter(
+      ([key, entry]) =>
+        ADVISORY_CACHE_KEY.test(key) &&
+        entry &&
+        typeof entry === "object" &&
+        entry.status === "completed" &&
+        ["approve", "changes_requested"].includes(entry.verdict) &&
+        Number.isFinite(Date.parse(entry.completedAt))
+    )
+  );
+}
+
+export function writeAdvisoryReviewCache(path, cache) {
+  const completed = Object.fromEntries(
+    [...cache.entries()].sort(([left], [right]) => left.localeCompare(right))
+  );
+  const directory = dirname(path);
+  mkdirSync(directory, { recursive: true, mode: 0o700 });
+  chmodSync(directory, 0o700);
+  const temporaryPath = `${path}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    writeFileSync(
+      temporaryPath,
+      `${JSON.stringify({ version: 1, completed }, null, 2)}\n`,
+      { mode: 0o600 }
+    );
+    renameSync(temporaryPath, path);
+  } catch (error) {
+    rmSync(temporaryPath, { force: true });
+    throw error;
+  }
 }
 
 export function readBranchSyncConflicts(path) {
@@ -291,11 +378,12 @@ export function ciBlockers(checks, required) {
   });
 }
 
-export function eligible(pr, includeDraft = false) {
+export function eligible(pr, includeDraft = false, advisory = false) {
   return (
     pr.state === "open" &&
     (!pr.draft || includeDraft) &&
-    pr.base?.ref === "dev" &&
+    (pr.base?.ref === "dev" ||
+      (advisory && ADVISORY_BASES.has(pr.base?.ref))) &&
     pr.base.repo?.full_name === REPO &&
     pr.head?.repo?.full_name === REPO &&
     SHA.test(pr.head.sha) &&
@@ -360,20 +448,30 @@ export function services(root = ROOT, spawn = spawnSync, env = process.env) {
       trustedStatusLogin ??= reviewStatusAppLogin(root, spawn, env);
       return trustedStatusLogin;
     },
-    list: () => {
-      const pages = JSON.parse(
-        gh([
-          "api",
-          "--paginate",
-          "--slurp",
-          `repos/${REPO}/pulls?state=open&base=dev&per_page=100`,
-        ])
-      );
-      const candidates = pages
-        .flat()
+    list: ({ advisory = false } = {}) => {
+      const bases = advisory ? [...ADVISORY_BASES] : ["dev"];
+      const pulls = [
+        ...new Map(
+          bases
+            .flatMap((base) =>
+              JSON.parse(
+                gh([
+                  "api",
+                  "--paginate",
+                  "--slurp",
+                  `repos/${REPO}/pulls?state=open&base=${base}&per_page=100`,
+                ])
+              ).flat()
+            )
+            .map((pr) => [pr.number, pr])
+        ).values(),
+      ];
+      const candidates = pulls
         .filter(
           (pr) =>
-            !pr.draft && pr.labels?.some((label) => label.name === REVIEW_LABEL)
+            !pr.draft &&
+            (advisory ||
+              pr.labels?.some((label) => label.name === REVIEW_LABEL))
         )
         .map((pr) => ({
           number: pr.number,
@@ -554,8 +652,8 @@ export function services(root = ROOT, spawn = spawnSync, env = process.env) {
   };
 }
 
-function sameRevision(left, right) {
-  return eligible(right, true) && left.head.sha === right.head.sha;
+function sameRevision(left, right, advisory = false) {
+  return eligible(right, true, advisory) && left.head.sha === right.head.sha;
 }
 
 function baseImpact(files, baseFiles) {
@@ -565,7 +663,7 @@ function baseImpact(files, baseFiles) {
 
 function currentInfo(pr, files, mergeBase, impact) {
   return {
-    base: "origin/dev",
+    base: `origin/${pr.base.ref}`,
     baseTip: pr.base.sha,
     mergeBase,
     baseImpact: impact,
@@ -579,45 +677,121 @@ function currentInfo(pr, files, mergeBase, impact) {
   };
 }
 
-function performReview(api, pr, kind, info, login, state, strictStatusChecks) {
+function completedAdvisoryReview(result, info, head, blockers) {
+  const verdict = result.receipt?.review?.verdict;
+  if (
+    result.receipt?.review?.status !== "completed" ||
+    !["approve", "changes_requested"].includes(verdict) ||
+    (result.code === 0) !== (verdict === "approve") ||
+    !Number.isFinite(Date.parse(result.receipt.completedAt)) ||
+    result.receipt.head !== head ||
+    result.receipt.mergeBase !== info.mergeBase ||
+    !blockers.every((blocker) => blocker === "The review requests changes.")
+  )
+    return null;
+  try {
+    return parseReview(JSON.stringify(result.receipt.review));
+  } catch {
+    return null;
+  }
+}
+
+function cachedReviewExists(api, pr, kind, info, login, options, cacheKey) {
+  if (options.advisory)
+    return !options.retry && options.advisoryReviewCache?.has(cacheKey);
+  return statusMatches(
+    api.statuses(pr.head.sha),
+    CONTEXTS[kind],
+    info.mergeBase,
+    kind,
+    login
+  );
+}
+
+function executeReview(api, pr, kind, info, advisory) {
+  const result = api.review(pr.number, kind, info);
+  const blockers = reviewBlockers(result.receipt, info, {
+    requireLocalVerification: false,
+    allowBaseAdvances: true,
+  });
+  const completed = advisory
+    ? completedAdvisoryReview(result, info, pr.head.sha, blockers)
+    : null;
+  const failed = advisory
+    ? !completed
+    : result.code !== 0 || blockers.length > 0;
+  if (failed) throw new Error(`${kind} review failed or requested changes.`);
+  return { result, completed };
+}
+
+function recordAdvisoryReview(cache, pr, kind, completed, receipt) {
+  const key = advisoryReviewCacheKey(pr.number, pr.head.sha, kind);
+  for (const existing of cache?.keys() ?? []) {
+    if (
+      existing.startsWith(`${pr.number}:`) &&
+      !existing.startsWith(`${pr.number}:${pr.head.sha}:`)
+    )
+      cache.delete(existing);
+  }
+  cache?.set(key, {
+    status: "completed",
+    verdict: completed.verdict,
+    completedAt: receipt.completedAt,
+  });
+}
+
+function performReview(
+  api,
+  pr,
+  kind,
+  info,
+  login,
+  state,
+  strictStatusChecks,
+  options
+) {
+  const advisory = Boolean(options.advisory);
+  const cacheKey = advisoryReviewCacheKey(pr.number, pr.head.sha, kind);
+  if (cachedReviewExists(api, pr, kind, info, login, options, cacheKey)) return;
   const context = CONTEXTS[kind];
   const description = statusDescription(info.mergeBase, kind);
-  if (
-    statusMatches(
-      api.statuses(pr.head.sha),
-      context,
-      info.mergeBase,
-      kind,
-      login
-    )
-  )
-    return;
-  api.publish(pr.head.sha, context, "pending", description, pr.number);
+  if (!advisory)
+    api.publish(pr.head.sha, context, "pending", description, pr.number);
   try {
     state.reviewStarted = true;
-    const result = api.review(pr.number, kind, info);
-    const blockers = reviewBlockers(result.receipt, info, {
-      requireLocalVerification: false,
-      allowBaseAdvances: true,
-    });
-    if (result.code !== 0 || blockers.length > 0)
-      throw new Error(`${kind} review failed or requested changes.`);
-    if (!currentReviewScope(api, pr, info, strictStatusChecks))
+    const { result, completed } = executeReview(api, pr, kind, info, advisory);
+    if (!currentReviewScope(api, pr, info, strictStatusChecks, advisory))
       throw new Error(
         "The PR head or review scope changed during review; requeue it."
       );
-    api.publish(pr.head.sha, context, "success", description, pr.number);
+    if (advisory)
+      recordAdvisoryReview(
+        options.advisoryReviewCache,
+        pr,
+        kind,
+        completed,
+        result.receipt
+      );
+    else api.publish(pr.head.sha, context, "success", description, pr.number);
   } catch (error) {
-    api.publish(pr.head.sha, context, "failure", description, pr.number);
+    if (!advisory)
+      api.publish(pr.head.sha, context, "failure", description, pr.number);
     // The failure status is published, so the next run skips this revision.
     if (error && typeof error === "object") error.reviewAttempted = true;
     throw error;
   }
 }
 
-function inspectReviewScope(api, original, info, strictStatusChecks) {
+function inspectReviewScope(
+  api,
+  original,
+  info,
+  strictStatusChecks,
+  advisory = false
+) {
   const latest = api.pull(original.number);
-  if (!sameRevision(original, latest)) return { latest, valid: false };
+  if (!sameRevision(original, latest, advisory))
+    return { latest, valid: false };
   const mergeBase = api.prepare(latest.head.sha, latest.base.sha);
   const impact = baseImpact(
     info.files,
@@ -632,18 +806,27 @@ function inspectReviewScope(api, original, info, strictStatusChecks) {
   };
 }
 
-function currentReviewScope(api, original, info, strictStatusChecks) {
-  return inspectReviewScope(api, original, info, strictStatusChecks).valid;
+function currentReviewScope(
+  api,
+  original,
+  info,
+  strictStatusChecks,
+  advisory = false
+) {
+  return inspectReviewScope(api, original, info, strictStatusChecks, advisory)
+    .valid;
 }
 
 export function processPull(number, options, api, requiredCi) {
   const pr = api.pull(number);
-  if (!eligible(pr, options.includeDraft))
+  if (!eligible(pr, options.includeDraft, options.advisory))
     return {
       outcome: "skipped",
       reason: "PR is draft, closed, external or not targeting dev.",
     };
-  const blockedCi = ciBlockers(api.checks(number), requiredCi);
+  const blockedCi = options.advisory
+    ? []
+    : ciBlockers(api.checks(number), requiredCi);
   if (blockedCi.length)
     return {
       outcome: "waiting",
@@ -806,10 +989,7 @@ function assertMergeScope(api, pr, info, requiredCi, login, security, strict) {
   return scope.latest;
 }
 
-function reviewAndMerge(api, pr, options, requiredCi, state) {
-  const strict = options.strictStatusChecks ?? true;
-  const login = api.login();
-  if (!login) throw new Error("Cannot establish the trusted status App.");
+function verifiedReviewInfo(api, pr) {
   const mergeBase = api.prepare(pr.head.sha, pr.base.sha);
   const fileList = api.files(pr.number);
   if (
@@ -824,60 +1004,102 @@ function reviewAndMerge(api, pr, options, requiredCi, state) {
       "Could not verify the complete pull request file list; no review or merge attempted."
     );
   const listedFiles = new Set(fileList.paths);
-  const pinnedFiles = api.diffFiles(pr.head.sha, mergeBase);
+  const files = api.diffFiles(pr.head.sha, mergeBase);
   if (
-    !Array.isArray(pinnedFiles) ||
-    pinnedFiles.length !== listedFiles.size ||
-    pinnedFiles.some((file) => !listedFiles.has(file))
+    !Array.isArray(files) ||
+    files.length !== listedFiles.size ||
+    files.some((file) => !listedFiles.has(file))
   )
     throw new Error(
       "The pull request file list does not match the pinned head; no review or merge attempted."
     );
-  const files = pinnedFiles;
   if (files.length === 0) throw new Error("Cannot review an empty file list.");
   const impact = baseImpact(files, api.baseChanges(mergeBase, pr.base.sha));
-  const stale = staleBaseOutcome(
-    api,
-    pr,
-    options,
-    strict,
-    mergeBase,
-    impact,
-    state
-  );
+  return currentInfo(pr, files, mergeBase, impact);
+}
+
+function verifyAdvisoryReviewScope(api, pr, info, security) {
+  const scope = inspectReviewScope(api, pr, info, false, true);
+  if (!scope.valid)
+    throw new Error(
+      "The PR head or review scope changed; no comment is considered current."
+    );
+  if (securityRequired(info.files, scope.latest.labels ?? []) && !security)
+    throw new Error(
+      "The PR now requires a security review; no advisory result is current."
+    );
+  return scope.latest;
+}
+
+function performRequiredReviews(api, pr, info, login, state, strict, options) {
+  const advisory = Boolean(options.advisory);
+  const securityAtStart = securityRequired(info.files, pr.labels ?? []);
+  performReview(api, pr, "code", info, login, state, strict, options);
+  const afterCode = api.pull(pr.number);
+  const security =
+    securityAtStart || securityRequired(info.files, afterCode.labels ?? []);
+  if (security)
+    performReview(api, pr, "security", info, login, state, strict, options);
+  else if (!advisory) publishSecurityNotRequired(api, pr, info);
+  return security;
+}
+
+function reviewResultReason(advisory, ownerMustMerge) {
+  if (advisory)
+    return "Independent review comment is current for the exact PR head and diff scope.";
+  if (ownerMustMerge)
+    return "Independent review and CI are current; owner-only files require the owner to merge this PR.";
+  return "Independent review and CI are current for the exact head and PR diff scope.";
+}
+
+function reviewAndMerge(api, pr, options, requiredCi, state) {
+  const advisory = Boolean(options.advisory);
+  const strict = advisory ? false : (options.strictStatusChecks ?? true);
+  const login = advisory ? null : api.login();
+  if (!(advisory || login))
+    throw new Error("Cannot establish the trusted status App.");
+
+  const info = verifiedReviewInfo(api, pr);
+  const stale = advisory
+    ? null
+    : staleBaseOutcome(
+        api,
+        pr,
+        options,
+        strict,
+        info.mergeBase,
+        info.baseImpact,
+        state
+      );
   if (stale) return stale;
-  const info = currentInfo(pr, files, mergeBase, impact);
-  if (hasFailedReview(api, pr, info, options, login))
+  if (!advisory && hasFailedReview(api, pr, info, options, login))
     return {
       outcome: "waiting",
       reason:
         "This revision already failed review. Push a fix or explicitly select --pr with --retry.",
     };
-  const securityAtStart = securityRequired(files, pr.labels ?? []);
-  performReview(api, pr, "code", info, login, state, strict);
-  const afterCode = api.pull(pr.number);
-  const security =
-    securityAtStart || securityRequired(files, afterCode.labels ?? []);
-  if (security) performReview(api, pr, "security", info, login, state, strict);
-  else publishSecurityNotRequired(api, pr, info);
-  const latest = assertMergeScope(
+
+  const security = performRequiredReviews(
     api,
     pr,
     info,
-    requiredCi,
     login,
-    security,
-    strict
+    state,
+    strict,
+    options
   );
-  const ownerMustMerge = ownerMergeRequired(files);
-  if (options.merge && !latest.draft && !ownerMustMerge)
-    api.merge(pr.number, pr.head.sha);
+
+  const latest = advisory
+    ? verifyAdvisoryReviewScope(api, pr, info, security)
+    : assertMergeScope(api, pr, info, requiredCi, login, security, strict);
+  if (advisory) options.persistAdvisoryReviewCache?.();
+  const ownerMustMerge = ownerMergeRequired(info.files);
+  const shouldMerge =
+    !advisory && options.merge && !latest.draft && !ownerMustMerge;
+  if (shouldMerge) api.merge(pr.number, pr.head.sha);
   return {
-    outcome:
-      options.merge && !latest.draft && !ownerMustMerge ? "merged" : "reviewed",
-    reason: ownerMustMerge
-      ? "Independent review and CI are current; owner-only files require the owner to merge this PR."
-      : "Independent review and CI are current for the exact head and PR diff scope.",
+    outcome: shouldMerge ? "merged" : "reviewed",
+    reason: reviewResultReason(advisory, ownerMustMerge),
     reviewAttempted: state.reviewStarted,
   };
 }
@@ -990,7 +1212,8 @@ function devRuleset(root) {
   return rulesetSnapshot(root).find((rule) => rule.name === "Protect dev");
 }
 
-export function strictStatusChecksRequired(root) {
+export function strictStatusChecksRequired(root, advisory = false) {
+  if (advisory) return false;
   const required = devRuleset(root)?.rules.find(
     (rule) => rule.type === "required_status_checks"
   )?.parameters.strict_required_status_checks_policy;
@@ -1033,7 +1256,8 @@ export function assertReviewStatusApp(root, env = process.env) {
   return integrationId;
 }
 
-export function requiredChecks(root) {
+export function requiredChecks(root, advisory = false) {
+  if (advisory) return [];
   const contexts = devRuleset(root)
     ?.rules.find((rule) => rule.type === "required_status_checks")
     ?.parameters.required_status_checks.map((check) => check.context)
@@ -1043,18 +1267,21 @@ export function requiredChecks(root) {
   return contexts;
 }
 
-export function run(argv, root = ROOT, api = services(root)) {
+function parseWorkerOptions(argv) {
   const { values } = parseArgs({
     args: argv.filter((arg) => arg !== "--"),
     options: {
       once: { type: "boolean" },
       merge: { type: "boolean" },
+      advisory: { type: "boolean" },
       pr: { type: "string" },
       retry: { type: "boolean" },
       "include-draft": { type: "boolean" },
       "dry-run": { type: "boolean" },
     },
   });
+  if (values.advisory && values.merge)
+    throw new Error("--advisory cannot be combined with --merge.");
   const number = values.pr === undefined ? undefined : Number(values.pr);
   if (
     (number !== undefined && (!Number.isInteger(number) || number < 1)) ||
@@ -1063,14 +1290,21 @@ export function run(argv, root = ROOT, api = services(root)) {
     throw new Error(
       "Use --pr <positive number> with --include-draft or --retry."
     );
+  return { values, number };
+}
+
+export function run(argv, root = ROOT, api = services(root)) {
+  const { values, number } = parseWorkerOptions(argv);
   const options = {
     merge: values.merge,
+    advisory: values.advisory,
     retry: values.retry,
     includeDraft: values["include-draft"],
     dryRun: values["dry-run"],
   };
-  if (!options.dryRun) assertReviewStatusApp(root);
-  const candidates = number === undefined ? api.list() : [number];
+  if (!(options.dryRun || options.advisory)) assertReviewStatusApp(root);
+  const candidates =
+    number === undefined ? api.list({ advisory: options.advisory }) : [number];
   if (!candidates.length) {
     console.log(
       JSON.stringify({
@@ -1082,7 +1316,7 @@ export function run(argv, root = ROOT, api = services(root)) {
     );
     return 0;
   }
-  if (!options.dryRun) api.login();
+  if (!(options.dryRun || options.advisory)) api.login();
   const release = options.dryRun
     ? () => undefined
     : acquireReviewLock(`${receiptPath(root)}.worker`);
@@ -1091,9 +1325,16 @@ export function run(argv, root = ROOT, api = services(root)) {
     return 0;
   }
   try {
-    const conflictPath = options.dryRun
-      ? undefined
-      : branchSyncConflictsPath(root);
+    const conflictPath =
+      options.dryRun || options.advisory
+        ? undefined
+        : branchSyncConflictsPath(root);
+    const advisoryCachePath = options.advisory
+      ? advisoryReviewCachePath(root)
+      : undefined;
+    const advisoryReviewCache = advisoryCachePath
+      ? readAdvisoryReviewCache(advisoryCachePath)
+      : new Map();
     const branchSyncConflicts = conflictPath
       ? readBranchSyncConflicts(conflictPath)
       : new Map();
@@ -1101,11 +1342,14 @@ export function run(argv, root = ROOT, api = services(root)) {
       candidates,
       options,
       api,
-      requiredChecks(root),
+      requiredChecks(root, options.advisory),
       (line) => console.log(line),
       {
-        strictStatusChecks: strictStatusChecksRequired(root),
+        strictStatusChecks: strictStatusChecksRequired(root, options.advisory),
         branchSyncConflicts,
+        advisoryReviewCache,
+        persistAdvisoryReviewCache: () =>
+          writeAdvisoryReviewCache(advisoryCachePath, advisoryReviewCache),
         persistBranchSyncConflicts: () =>
           writeBranchSyncConflicts(conflictPath, branchSyncConflicts),
       }
