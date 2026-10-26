@@ -780,6 +780,7 @@ async def test_named_supervisor_with_a_review_role_only_elsewhere_is_refused(
             session=db_async, current_user=named, punch_id=arrive.id
         )
     assert raised.value.status_code == 403
+    assert "Not allowed to review" in str(raised.value.message)
     with pytest.raises(AppException) as rejected:
         await punch_service.reject_punch(
             session=db_async,
@@ -788,6 +789,7 @@ async def test_named_supervisor_with_a_review_role_only_elsewhere_is_refused(
             reason="not mine to decide",
         )
     assert rejected.value.status_code == 403
+    assert "Not allowed to review" in str(rejected.value.message)
     assert await _records(db_async) == []
 
 
