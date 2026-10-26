@@ -5,6 +5,7 @@ import {
   mkdirSync,
   mkdtempSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -14,6 +15,8 @@ import { fileURLToPath } from "node:url";
 import { publishReviewStatus } from "./github-app-status.mjs";
 import { createReviewReceipt } from "./review-receipt.mjs";
 import {
+  advisoryReviewCacheKey,
+  advisoryReviewCachePath,
   assertReviewStatusApp,
   branchSyncConflictsPath,
   CONTEXTS,
@@ -24,16 +27,20 @@ import {
   processPull,
   processQueue,
   publishReviewStatusThroughApp,
+  readAdvisoryReviewCache,
   readBranchSyncConflicts,
+  requiredChecks,
   reviewPaths,
   reviewStatusAppLogin,
   reviewStatusIntegrationId,
+  run,
   securityRequired,
   services,
   statusDescription,
   statusMatches,
   strictStatusChecksRequired,
   trustedReviewInstructions,
+  writeAdvisoryReviewCache,
   writeBranchSyncConflicts,
 } from "./review-worker.mjs";
 
@@ -50,6 +57,8 @@ const PR = {
   labels: [],
 };
 const CI = ["CI Success", "Build Web Apps"];
+const ADVISORY_MERGE_CONFLICT = /cannot be combined/;
+const BASE_QUERY = /base=([^&]+)/;
 const PIN_REVIEW_CONTEXTS = /pin both review status contexts/;
 const ONE_REVIEW_APP = /one GitHub App/;
 const STATUS_APP_MISMATCH = /does not match the Protect dev ruleset/;
@@ -158,6 +167,11 @@ test("only same-repository open dev PRs are eligible; drafts require explicit se
   ])
     assert.equal(eligible(pr), false);
   assert.equal(eligible({ ...PR, draft: true }, true), true);
+  for (const base of ["staging", "main"]) {
+    const promoted = { ...PR, base: { ...PR.base, ref: base } };
+    assert.equal(eligible(promoted), false);
+    assert.equal(eligible(promoted, false, true), true);
+  }
 });
 
 test("missing, pending, failed or skipped required CI blocks review", () => {
@@ -174,9 +188,262 @@ test("missing, pending, failed or skipped required CI blocks review", () => {
   assert.deepEqual(calls, []);
 });
 
-test("the worker reads strict branch policy from Protect dev snapshot", () => {
+test("advisory mode reviews unlabelled PRs with pending CI while behind and never mutates branches or statuses", () => {
+  const { api, calls } = fake({
+    checks: [
+      { name: CI[0], status: "IN_PROGRESS" },
+      { name: CI[1], status: "COMPLETED", conclusion: "FAILURE" },
+    ],
+    baseTip: "c".repeat(40),
+    baseFiles: ["docs/example.md"],
+  });
+  api.login = () => {
+    throw new Error("advisory must not verify or mint App status identity");
+  };
+  api.statuses = () => {
+    throw new Error("advisory must not read statuses");
+  };
+  api.publish = () => {
+    throw new Error("advisory must not publish statuses");
+  };
+  api.updateBranch = () => {
+    throw new Error("advisory must not sync branches");
+  };
+  api.merge = () => {
+    throw new Error("advisory must never merge");
+  };
+
+  assert.equal(
+    processPull(588, { advisory: true, merge: true }, api, CI).outcome,
+    "reviewed"
+  );
+  assert.ok(calls.includes("review:code"));
+  assert.ok(!calls.some((call) => call.startsWith("update:")));
+  assert.ok(!calls.includes("merge"));
+});
+
+test("advisory mode lists unlabelled same-repository PRs and avoids ruleset requirements", () => {
+  const queries = [];
+  const service = services("/worker", (_name, args) => {
+    assert.equal(args[0], "api");
+    queries.push(args.at(-1));
+    return { status: 0, stdout: JSON.stringify([[{ ...PR, labels: [] }]]) };
+  });
+  assert.deepEqual(service.list({ advisory: true }), [588]);
+  assert.deepEqual(
+    new Set(queries.slice(0, 3).map((query) => query.match(BASE_QUERY)?.[1])),
+    new Set(["dev", "staging", "main"])
+  );
+  assert.deepEqual(service.list(), []);
+  assert.deepEqual(requiredChecks("/missing", true), []);
+  assert.equal(strictStatusChecksRequired("/missing", true), false);
+  assert.equal(
+    run(["--once", "--advisory"], "/missing", {
+      list: ({ advisory }) => {
+        assert.equal(advisory, true);
+        return [];
+      },
+    }),
+    0
+  );
+});
+
+test("advisory cache lets a completed first PR yield to the next unreviewed PR", () => {
+  const { api, reviewed } = queueApi();
+  const cache = new Map([
+    [
+      advisoryReviewCacheKey(1, headOf(1), "code"),
+      {
+        status: "completed",
+        verdict: "approve",
+        completedAt: new Date().toISOString(),
+      },
+    ],
+  ]);
+  const errors = processQueue(
+    [1, 2],
+    { advisory: true, advisoryReviewCache: cache },
+    api,
+    [],
+    () => undefined
+  );
+  assert.equal(errors, 0);
+  assert.deepEqual(reviewed, ["2:code"]);
+});
+
+test("advisory cache records a completed changes-requested verdict", () => {
+  const { api, reviewed } = queueApi({ code: 1 });
+  const cache = new Map();
+  api.review = (number, kind, info) => {
+    reviewed.push(`${number}:${kind}`);
+    return {
+      code: 1,
+      receipt: createReviewReceipt(info, {
+        ...CLEAN,
+        verdict: "changes_requested",
+      }),
+    };
+  };
+  assert.equal(
+    processPull(1, { advisory: true, advisoryReviewCache: cache }, api, [])
+      .outcome,
+    "reviewed"
+  );
+  assert.equal(
+    cache.get(advisoryReviewCacheKey(1, headOf(1), "code")).verdict,
+    "changes_requested"
+  );
+});
+
+test("failed advisory reviews are not cached, and explicit retry bypasses completed cache", () => {
+  const failed = queueApi();
+  const failedCache = new Map();
+  failed.api.review = (_number, _kind, info) => ({
+    code: 1,
+    receipt: createReviewReceipt(info, { ...CLEAN, status: "incomplete" }),
+  });
+  assert.throws(() =>
+    processPull(
+      1,
+      { advisory: true, advisoryReviewCache: failedCache },
+      failed.api,
+      []
+    )
+  );
+  assert.equal(failedCache.size, 0);
+
+  const retried = queueApi();
+  const retryCache = new Map([
+    [
+      advisoryReviewCacheKey(1, headOf(1), "code"),
+      {
+        status: "completed",
+        verdict: "approve",
+        completedAt: new Date().toISOString(),
+      },
+    ],
+  ]);
+  processPull(
+    1,
+    { advisory: true, retry: true, advisoryReviewCache: retryCache },
+    retried.api,
+    []
+  );
+  assert.deepEqual(retried.reviewed, ["1:code"]);
+
+  const changedHead = queueApi({ headShas: { 1: "c".repeat(40) } });
+  processPull(
+    1,
+    { advisory: true, advisoryReviewCache: retryCache },
+    changedHead.api,
+    []
+  );
+  assert.deepEqual(changedHead.reviewed, ["1:code"]);
+});
+
+test("advisory cache waits for both code and security comments before persisting", () => {
+  const { api } = fake({ files: [".github/workflows/check.yml"] });
+  const cache = new Map();
+  let persisted = false;
+  api.review = (_number, kind, info) => ({
+    code: kind === "security" ? 1 : 0,
+    receipt: createReviewReceipt(
+      info,
+      kind === "security" ? { ...CLEAN, status: "incomplete" } : CLEAN
+    ),
+  });
+  assert.throws(() =>
+    processPull(
+      588,
+      {
+        advisory: true,
+        advisoryReviewCache: cache,
+        persistAdvisoryReviewCache: () => {
+          persisted = true;
+        },
+      },
+      api,
+      []
+    )
+  );
+  assert.equal(persisted, false);
+  assert.equal(cache.has(advisoryReviewCacheKey(588, HEAD, "code")), true);
+});
+
+test("advisory cache is private, atomic, and stored in git metadata", () => {
   const root = fileURLToPath(new URL("../..", import.meta.url));
-  assert.equal(strictStatusChecksRequired(root), true);
+  const path = advisoryReviewCachePath(root, (_command, _args) => ({
+    status: 0,
+    stdout: ".git\n",
+  }));
+  assert.ok(path.includes("agent-review-state"));
+  const directory = mkdtempSync(join(tmpdir(), "advisory-cache-"));
+  const cachePath = join(directory, "private", "cache.json");
+  const cache = new Map([
+    [
+      advisoryReviewCacheKey(588, HEAD, "code"),
+      {
+        status: "completed",
+        verdict: "approve",
+        completedAt: new Date().toISOString(),
+      },
+    ],
+  ]);
+  try {
+    writeAdvisoryReviewCache(cachePath, cache);
+    assert.equal(readAdvisoryReviewCache(cachePath).size, 1);
+    chmodSync(cachePath, 0o644);
+    assert.throws(() => readAdvisoryReviewCache(cachePath), Error);
+    chmodSync(cachePath, 0o600);
+    chmodSync(join(directory, "private"), 0o755);
+    assert.throws(() => readAdvisoryReviewCache(cachePath), Error);
+    chmodSync(join(directory, "private"), 0o700);
+    assert.equal(statSync(cachePath).mode.toString(8).slice(-3), "600");
+    assert.equal(
+      statSync(join(directory, "private")).mode.toString(8).slice(-3),
+      "700"
+    );
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("CLI refuses to combine advisory mode with merge mode", () => {
+  assert.throws(
+    () => run(["--once", "--advisory", "--merge"], "/missing"),
+    ADVISORY_MERGE_CONFLICT
+  );
+});
+
+test("the worker reads either strict branch policy without assuming live rules", () => {
+  const root = mkdtempSync(join(tmpdir(), "review-policy-"));
+  const directory = join(root, "infra/github");
+  mkdirSync(directory, { recursive: true });
+  try {
+    for (const strict of [true, false]) {
+      writeFileSync(
+        join(directory, "rulesets.json"),
+        JSON.stringify([
+          {
+            name: "Protect dev",
+            rules: [
+              {
+                type: "required_status_checks",
+                parameters: {
+                  strict_required_status_checks_policy: strict,
+                  required_status_checks: [],
+                },
+              },
+            ],
+          },
+        ])
+      );
+      assert.equal(strictStatusChecksRequired(root), strict);
+      assert.equal(strictStatusChecksRequired(root, true), false);
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("review statuses require both contexts pinned to the same GitHub App", () => {
