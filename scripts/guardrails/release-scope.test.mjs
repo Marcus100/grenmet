@@ -22,6 +22,8 @@ const CHECK_SCRIPT = fileURLToPath(
   new URL("../ci/check-release-scope.mjs", import.meta.url)
 );
 
+const MORE_THAN_ONE_SERVICE = /more than one service/;
+
 test("release includes thirteen core images and rejects contradictory weather configuration", () => {
   assert.equal(releaseScope.web.length, 13);
   assert.equal(releaseScope.api, true);
@@ -263,7 +265,7 @@ test("no other router or service may use the console or portal host", () => {
             "traefik.http.routers.extra.rule": `Host(\`${host}\`) && PathPrefix(\`/x\`)`,
           })
         ),
-      /more than one service/
+      MORE_THAN_ONE_SERVICE
     );
   // A second router on the console itself would make it answer another host.
   assert.throws(() =>
