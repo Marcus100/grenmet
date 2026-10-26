@@ -129,7 +129,7 @@ export async function hourly({
             `dev-workflow:${run.workflow_id}`,
             `Development workflow ${run.workflow_id} failed`,
             failed ? "fail" : run.conclusion === "success" ? "pass" : "unknown",
-            `gh api actions/runs/${run.id}/jobs`,
+            `gh api repos/${REPO}/actions/runs/${run.id}/jobs`,
             failed
               ? failedCount +
                   " failing checks: " +
@@ -262,7 +262,7 @@ export async function hourly({
               `security:${source}:${identity}`,
               `Open ${source} alert ${number}`,
               alert.state === "open" ? "fail" : "pass",
-              `gh api ${source}/alerts/${number}`,
+              `gh api repos/${REPO}/${source}/alerts/${number}`,
               "An open alert needs investigation. Inspect it in the repository Security page; secret values and alert payloads are excluded.",
               source === "secret-scanning" && alert.validity === "active"
                 ? "blocker"
