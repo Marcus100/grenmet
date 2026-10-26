@@ -4,6 +4,11 @@
 // output, stderr, repository contents, and private session data are never read.
 
 import { createHash } from "node:crypto";
+import {
+  consolidateLegacy,
+  updateTrackers,
+  validateSecurityMetadata,
+} from "./audit-security-report.mjs";
 
 const EXPECTED_REPO = "Marcus100/grenmet";
 const LABEL = "codex-audit";
@@ -99,6 +104,7 @@ function issueBody(observation, commit, observedAt) {
     `- Evidence command: \`${safeText(observation.command).replace(/`/g, "'")}\``,
     "",
     `Summary: ${safeText(observation.summary)}`,
+    ...(observation.details ?? []).map((line) => `- ${safeText(line)}`),
     "",
     marker,
   ];
@@ -463,6 +469,14 @@ function validateRequest({ observations, repo, commit, runGh, maxNewIssues }) {
   if (!Array.isArray(observations))
     throw new Error("observations must be an array");
   observations.forEach(validateObservation);
+  observations.forEach(validateSecurityMetadata);
+  for (const item of observations)
+    if (
+      item.details !== undefined &&
+      (!Array.isArray(item.details) ||
+        item.details.some((line) => typeof line !== "string"))
+    )
+      throw new Error("Invalid report details");
   const keys = observations.map((item) => item.key);
   if (new Set(keys).size !== keys.length)
     throw new Error("observation keys must be unique");
@@ -496,12 +510,40 @@ export async function publishObservations(options) {
   const login = await authenticatedLogin(runGh);
   const issues = await listAuditIssues({ repo, runGh });
   const result = createResult();
+  const targets = await updateTrackers({
+    observations,
+    runGh,
+    repo,
+    login,
+    observedAt,
+    dryRun,
+    safeText,
+  });
   const planned = limitNewIssues(
-    planObservations(observations, issues, login, commit, observedAt, result),
+    planObservations(
+      observations.filter((i) => !targets.has(i.key)),
+      issues,
+      login,
+      commit,
+      observedAt,
+      result
+    ),
     maxNewIssues,
     result
   );
-  return dryRun
-    ? reportDryRun(planned, result)
-    : applyPlan(planned, repo, runGh, result);
+  if (dryRun) reportDryRun(planned, result);
+  else await applyPlan(planned, repo, runGh, result);
+  if (observations.some((i) => i.alertNumbers))
+    await consolidateLegacy({
+      observations,
+      issues: dryRun ? issues : await listAuditIssues({ repo, runGh }),
+      targets,
+      matchingIssues,
+      runGh,
+      repo,
+      login,
+      dryRun,
+      result,
+    });
+  return result;
 }

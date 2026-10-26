@@ -139,3 +139,26 @@ test("retention removes only recognized owned evidence and preserves unfamiliar 
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("pnpm uses login runtime corepack despite a hidden HOME-dependent wrapper", () => {
+  const args = buildAuditSandboxArgs(["pnpm", "install", "--frozen-lockfile"], {
+    root: "/tmp/owned",
+    home: "/tmp/owned/home",
+    env: { PATH: "/home/user/.local/bin:/usr/bin" },
+    nodeRuntime: "/home/user/.nvm/versions/node/v24",
+    uv: { real: "/opt/uv", path: "/usr/bin/uv" },
+    resolver: "/etc/resolv.conf",
+  });
+  assert.deepEqual(args.slice(-4), [
+    "/home/user/.nvm/versions/node/v24/bin/corepack",
+    "pnpm",
+    "install",
+    "--frozen-lockfile",
+  ]);
+  assert.ok(
+    args.includes(
+      "PATH=/home/user/.nvm/versions/node/v24/bin:/home/user/.local/bin:/usr/bin"
+    )
+  );
+  assert.ok(args.includes("HOME=/tmp/owned/home"));
+});

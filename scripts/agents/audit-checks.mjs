@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { dependencyObservations, trivyObservation } from "./audit-security.mjs";
 
 export const REPO = "Marcus100/grenmet";
 const CHECK_NAME = /^[a-zA-Z0-9 ()/_.:-]{1,100}$/;
@@ -37,6 +38,7 @@ export async function hourly({
   commit,
   now = Date.now(),
   staleHours = 24,
+  readDevFile,
 }) {
   const observations = [];
   const collect = async (key, title, args, inspect) => {
@@ -244,37 +246,53 @@ export async function hourly({
       ],
       (pages) => {
         const alerts = pages.flat();
-        return alerts
-          .map((alert) => {
-            const number = alert.number;
-            if (!Number.isSafeInteger(number)) return null;
-            const severity =
-              alert.security_advisory?.severity ??
-              alert.rule?.security_severity_level;
-            const location = alert.most_recent_instance?.location?.path;
-            let identity = alert.security_advisory?.ghsa_id ?? number;
-            if (source === "code-scanning" && alert.rule?.id && location)
-              identity = createHash("sha256")
-                .update(`${alert.rule.id}:${location}`)
-                .digest("hex")
-                .slice(0, 20);
-            return observation(
-              `security:${source}:${identity}`,
-              `Open ${source} alert ${number}`,
-              alert.state === "open" ? "fail" : "pass",
-              `gh api repos/${REPO}/${source}/alerts/${number}`,
-              "An open alert needs investigation. Inspect it in the repository Security page; secret values and alert payloads are excluded.",
-              source === "secret-scanning" && alert.validity === "active"
-                ? "blocker"
-                : severity === "critical" ||
-                    severity === "high" ||
-                    source === "secret-scanning"
-                  ? "high"
-                  : "normal",
-              source === "secret-scanning" ? "owner" : "Claude"
-            );
-          })
-          .filter(Boolean);
+        if (source === "dependabot")
+          return dependencyObservations(alerts, readDevFile);
+        const trivy =
+          source === "code-scanning"
+            ? alerts.filter(
+                (a) =>
+                  a.tool?.name === "Trivy" &&
+                  a.most_recent_instance?.ref === "refs/heads/main" &&
+                  a.most_recent_instance?.analysis_key ===
+                    ".github/workflows/ci-api.yml:docker"
+              )
+            : [];
+        const others = alerts.filter((a) => !trivy.includes(a));
+        return [
+          ...(trivy.length ? [trivyObservation(trivy)] : []),
+          ...others
+            .map((alert) => {
+              const number = alert.number;
+              if (!Number.isSafeInteger(number)) return null;
+              const severity =
+                alert.security_advisory?.severity ??
+                alert.rule?.security_severity_level;
+              const location = alert.most_recent_instance?.location?.path;
+              let identity = alert.security_advisory?.ghsa_id ?? number;
+              if (source === "code-scanning" && alert.rule?.id && location)
+                identity = createHash("sha256")
+                  .update(`${alert.rule.id}:${location}`)
+                  .digest("hex")
+                  .slice(0, 20);
+              return observation(
+                `security:${source}:${identity}`,
+                `Open ${source} alert ${number}`,
+                alert.state === "open" ? "fail" : "pass",
+                `gh api repos/${REPO}/${source}/alerts/${number}`,
+                "An open alert needs investigation. Inspect it in the repository Security page; secret values and alert payloads are excluded.",
+                source === "secret-scanning" && alert.validity === "active"
+                  ? "blocker"
+                  : severity === "critical" ||
+                      severity === "high" ||
+                      source === "secret-scanning"
+                    ? "high"
+                    : "normal",
+                source === "secret-scanning" ? "owner" : "Claude"
+              );
+            })
+            .filter(Boolean),
+        ];
       }
     );
   }

@@ -85,6 +85,7 @@ export function buildAuditSandboxArgs(
   const isolated = {
     ...env,
     HOME: home,
+    PATH: `${join(nodeRuntime, "bin")}:${env?.PATH ?? "/usr/bin:/bin"}`,
     HUSKY: "0",
     XDG_CACHE_HOME: join(home, ".cache"),
     XDG_CONFIG_HOME: join(home, ".config"),
@@ -96,7 +97,9 @@ export function buildAuditSandboxArgs(
     "/usr/bin/env",
     "-i",
     ...Object.entries(isolated).map(([key, value]) => `${key}=${value}`),
-    ...argv
+    ...(argv[0] === "pnpm"
+      ? [join(nodeRuntime, "bin/corepack"), "pnpm", ...argv.slice(1)]
+      : argv)
   );
   return args;
 }

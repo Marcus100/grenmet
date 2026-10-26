@@ -143,3 +143,30 @@ credential values belong in the example, issues or repository.
 Existing telemetry currently declares only partial coverage, so job and sweep
 collectors deliberately emit no complete receipt. Missing Sentry connectivity,
 operational access and incomplete telemetry are owner coverage findings.
+## Security issue consolidation
+
+Detection reads every Dependabot, code-scanning and secret-scanning alert.
+Dependabot reporting uses one stable package-plus-manifest identity and lists all
+alert numbers. Exact resolved versions from pinned `origin/dev` are compared
+conservatively with the patched release and vulnerable range. Unknown syntax,
+prereleases, missing versions and mixed vulnerable resolutions remain actionable.
+Main-only alerts already fixed on dev await release instead of creating work.
+
+Existing coverage takes precedence: #721 tracks fixes awaiting release, #722
+tracks `surface/api/requirements.txt`, and #733 tracks brotlicffi, filelock,
+Twisted and gdal in `uv.lock`. Changed alert sets get at most one comment per
+UTC day per tracker. Comments persist fingerprints across runner restarts.
+An empty successful scan can clear a previous tracker snapshot. A closed tracker
+with assigned groups stops publication until coverage is reviewed.
+The publisher closes its own generated per-alert issues only after a replacement
+exists and links it in the closure comment. Deferred groups stay open.
+
+Trivy's main `ci-api.yml:docker` findings share one Debian 12 summary, grouped by
+severity and package with CVEs and unavailable fixed versions. Main scan results
+do not establish whether dev is affected. Other scanners keep their existing
+reporting. New-issue intake remains capped at ten per run.
+
+Systemd starts a WSL login shell to select the host Node runtime. Isolated checks
+invoke pnpm through corepack in that runtime, avoiding a home-dependent wrapper
+hidden by `ProtectHome`. Separate HOME/cache and credential isolation remain.
+Runner changes require owner merge; host validation does not merge the PR.
