@@ -362,7 +362,8 @@ async def review(
 
     ``seen_updated_at`` is the version the reviewer opened; a record saved since
     then is a 409, so the mark never lands on a reading nobody looked at. The
-    comparison is to the whole second, the precision the API returns.
+    comparison is to the whole second, the precision the API returns, so a change
+    within the same second as the version the reviewer saw is not detected.
     """
     clean = (note or "").strip() or None
     if outcome == "query" and (clean is None or len(clean) < MIN_REASON):
@@ -377,7 +378,8 @@ async def review(
             row["updated_at"]
         ) != _whole_seconds(seen_updated_at):
             raise HTTPException(
-                409, "The observation changed since you opened it; open it again"
+                409,
+                "The observation was saved or decided since you opened it; open it again",
             )
         if row["state"] not in REVIEWABLE_STATES:
             raise HTTPException(

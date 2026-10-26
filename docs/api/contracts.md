@@ -1869,8 +1869,9 @@ correction before it was delivered"); rejecting the correction releases it so th
 original reading is retried as before.
 
 `POST .../{id}/review` takes an optional `updated_at`, the value the reviewer saw
-when opening the record (to the second). If the record was saved since, the review is
-refused with `409`; omitting it keeps the earlier behaviour.
+when opening the record (to the second). If the record was saved or decided since (accept, reject and reopen also move
+`updated_at`), the review is refused with `409`; a change within the same second is
+not detected; omitting it keeps the earlier behaviour.
 
 Recording and reading the register (`POST` and `GET
 /api/v1/eregister/observations`, `GET .../{id}/sends`) need one of

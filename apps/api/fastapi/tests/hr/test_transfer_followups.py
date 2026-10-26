@@ -54,8 +54,8 @@ from tests.hr.test_phone_punch_approval import (
     _pending_ids,
     _punch,
     _staff,
-    _transfer,
     _supervisor,
+    _transfer,
     _world,
 )
 

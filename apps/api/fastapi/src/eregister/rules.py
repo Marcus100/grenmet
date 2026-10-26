@@ -1278,8 +1278,7 @@ def _decode_dew_point(
         return None, None
     if air is None or percent == 0:
         return None, percent
-    vapour = derive.saturation_vapour_pressure_hpa(air) * percent / MAX_PERCENT
-    return round(min(derive.dew_point_from_vapour_pressure(vapour), air), 1), percent
+    return derive.dew_point_from_humidity(air, percent), percent
 
 
 def _check_fog_visibility(c: _Checker, visibility_code: int | None) -> None:

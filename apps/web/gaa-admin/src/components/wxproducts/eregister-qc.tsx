@@ -113,13 +113,14 @@ function decide(
   action: QcAction,
   id: string,
   reason: string,
-  outcome: ReviewOutcome
+  outcome: ReviewOutcome,
+  seenUpdatedAt: string
 ) {
   const path = { observation_id: id };
   const text = reason.trim() || null;
   if (action === "review") {
     return eregisterReviewRegisterObservation({
-      body: { note: text, outcome },
+      body: { note: text, outcome, updated_at: seenUpdatedAt },
       path,
       throwOnError: false as const,
     });
@@ -157,7 +158,7 @@ function DecisionDialog({
   const submit = () => {
     setPending(true);
     setError(null);
-    decide(action, observation.id, reason, outcome)
+    decide(action, observation.id, reason, outcome, observation.updated_at)
       .then((result) => {
         if (result.error || !result.data) {
           setError(decisionError(result.error, result.response?.status));

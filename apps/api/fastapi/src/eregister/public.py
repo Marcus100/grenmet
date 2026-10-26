@@ -134,9 +134,7 @@ def dew_point_and_humidity(
         return None, None
     if air is None or percent == 0:
         return None, percent
-    vapour = derive.saturation_vapour_pressure_hpa(air) * percent / MAX_PERCENT
-    dew = round(min(derive.dew_point_from_vapour_pressure(vapour), air), 1)
-    return dew, percent
+    return derive.dew_point_from_humidity(air, percent), percent
 
 
 def wind(workbook: dict[str, Any]) -> tuple[bool, int | None, int | None]:
