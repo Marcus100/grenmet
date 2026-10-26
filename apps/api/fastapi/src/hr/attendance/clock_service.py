@@ -310,9 +310,23 @@ async def clock(
         arrived_at = None
         late, early, overtime = _minutes(now - start), 0, 0
 
+    # An arrival is in the site's department by construction. A departure closes
+    # the open shift wherever it was rostered, so after a mid-shift transfer it
+    # keeps that shift's department rather than the new site's: the reviewers who
+    # saw the arrival then see the departure, and punch and roster agree.
+    punch_department = site.department_id
+    if kind == ClockPunchKind.DEPART:
+        punch_department = (
+            await session.scalar(
+                select(RosterPeriod.department_id).where(
+                    RosterPeriod.id == assignment.roster_period_id
+                )
+            )
+            or site.department_id
+        )
     punch = ClockPunch(
         user_id=current_user.id,
-        department_id=site.department_id,
+        department_id=punch_department,
         clock_site_id=site.id,
         roster_assignment_id=assignment.id,
         kind=kind.value,

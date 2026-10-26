@@ -389,3 +389,21 @@ async def test_submission_still_needs_the_old_departments_workflow(
             expected_revision=saved.revision,
         )
     assert raised.value.status_code == 409
+    assert "Configure an active approval workflow" in raised.value.message
+
+
+async def test_departure_after_a_mid_shift_transfer_keeps_the_open_shifts_department(
+    db_async: AsyncSession,
+) -> None:
+    employee, tokens = await _two_department_world(
+        db_async, employed_in=DEPT, shifts={DEPT: (6, "CKM")}
+    )
+    old_manager = await _supervisor(db_async, department=DEPT)
+    arrive = await _punch(db_async, employee, tokens[DEPT], 9, 30)
+    await _transfer(db_async, employee, OTHER)
+    depart = await _punch(db_async, employee, tokens[OTHER], 18, 0)
+    assert depart.kind == "DEPART"
+    assert depart.roster_assignment_id == arrive.roster_assignment_id
+    assert depart.department_id == DEPT
+    assert await _shift_department(db_async, depart) == DEPT
+    assert set(await _pending_ids(db_async, old_manager)) == {arrive.id, depart.id}

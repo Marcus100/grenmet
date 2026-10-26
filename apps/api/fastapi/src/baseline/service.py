@@ -475,6 +475,8 @@ async def require_ready(
     attendance rostered under a department they were transferred out of: the
     department may then differ from the employment one if both belong to the same
     organisation, and the grade check follows the current employment department.
+    Callers only: with this flag ``department_id`` MUST come from a roster-backed
+    attendance record or its workflow, never from client input.
     """
     credential = await session.get(StaffCredential, user_id)
     if credential is None:

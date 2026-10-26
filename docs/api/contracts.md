@@ -1113,9 +1113,11 @@ corrections to it, for review: the approval is the old department's workflow and
 approvers (`require_ready` accepts the roster department only for attendance and
 attendance-correction reviews, only for the employee's own record and only within
 the same organisation; leave and other forms stay bound to the current department).
-Acting for someone else stays bound to the roster department. A scan only attaches
-to a published shift of the department whose clock point was scanned, so the punch
-department, the roster department and the reviewers agree. Nobody may decide their
+Acting for someone else stays bound to the roster department. An arrival only attaches
+to a published shift of the department whose clock point was scanned. A departure
+closes the employee's open shift wherever it was rostered (so a mid-shift transfer
+does not strand it) and is stored with that shift's department, not the scanned
+point's; either way the punch department equals the roster department. Nobody may decide their
 own punch (superusers included). Approve and reject are idempotent for the same
 outcome and return 409 for the opposite one. Arrival needs a published work shift that
 started at most two hours ago or ends within the next hour; with none, the call

@@ -96,6 +96,7 @@ async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]
                 Department.organisation_id == EmploymentRecord.organisation_id,
             )
             .where(Department.id == ClockPunch.department_id, *conditions)
+            .correlate(ClockPunch)
         )
 
     grants: list[ColumnElement[bool]] = [
