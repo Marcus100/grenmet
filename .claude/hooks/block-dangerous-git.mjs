@@ -90,8 +90,10 @@ const OWNER_ONLY_PATHS = [
   /^scripts\/(?:guardrails|verification)\//,
   /^package\.json$/,
   /^docs\/agents\/routines\.md$/,
-  /^apps\/api\/fastapi\/src\/auth\/permissions\.py$/,
-  /(?:^|\/)AGENTS\.md$/,
+  // Only the root AGENTS.md sets the agents' own rules. Per-area AGENTS.md notes
+  // and the permission catalogue are ordinary code: agents merge them after a
+  // fresh-context code review (and a security review for risk:high).
+  /^AGENTS\.md$/,
 ];
 // Merge routes other than `gh pr merge`: GraphQL mutations, branch merges and
 // the REST merge endpoint. Tested on text with the quotes removed.
