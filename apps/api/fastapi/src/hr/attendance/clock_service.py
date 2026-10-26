@@ -147,10 +147,17 @@ async def _open_record(
 
 
 async def _current_assignment(
-    session: AsyncSession, user_id: uuid.UUID, now: datetime
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    now: datetime,
+    department_id: str,
 ) -> tuple[RosterAssignment, ShiftCatalog] | None:
     """Rostered work shift to arrive at: the one starting closest to ``now`` among
-    those whose window (two hours early to one hour after the end) contains it."""
+    those whose window (two hours early to one hour after the end) contains it.
+
+    Only shifts of the department whose clock point was scanned qualify, so the
+    punch department, the roster department and the reviewers always agree (a
+    transferred employee's old-department shift is never claimed at the new site)."""
     local: date = _aware(now).astimezone(GRENADA).date()
     rows = (
         await session.execute(
@@ -166,6 +173,7 @@ async def _current_assignment(
                 RosterAssignment.assignment_date >= local - timedelta(days=1),
                 RosterAssignment.assignment_date <= local + timedelta(days=1),
                 RosterPeriod.status == RosterPeriodStatus.PUBLISHED,
+                RosterPeriod.department_id == department_id,
                 ShiftCatalog.category == ShiftCategory.WORK,
                 AttendanceRecord.id.is_(None),
                 ~exists().where(
@@ -291,7 +299,9 @@ async def clock(
             _minutes(now - end),
         )
     else:
-        found = await _current_assignment(session, current_user.id, now)
+        found = await _current_assignment(
+            session, current_user.id, now, site.department_id
+        )
         if found is None:
             raise AppException("No rostered shift to clock in to at this time", 409)
         assignment, shift = found
@@ -300,9 +310,23 @@ async def clock(
         arrived_at = None
         late, early, overtime = _minutes(now - start), 0, 0
 
+    # An arrival is in the site's department by construction. A departure closes
+    # the open shift wherever it was rostered, so after a mid-shift transfer it
+    # keeps that shift's department rather than the new site's: the reviewers who
+    # saw the arrival then see the departure, and punch and roster agree.
+    punch_department = site.department_id
+    if kind == ClockPunchKind.DEPART:
+        punch_department = (
+            await session.scalar(
+                select(RosterPeriod.department_id).where(
+                    RosterPeriod.id == assignment.roster_period_id
+                )
+            )
+            or site.department_id
+        )
     punch = ClockPunch(
         user_id=current_user.id,
-        department_id=site.department_id,
+        department_id=punch_department,
         clock_site_id=site.id,
         roster_assignment_id=assignment.id,
         kind=kind.value,

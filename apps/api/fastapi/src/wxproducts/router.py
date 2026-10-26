@@ -626,11 +626,16 @@ def system_view(system: TropicalSystem) -> TropicalSystemRead:
 def public_identity(
     system: TropicalSystem, entry: TropicalSystemEntry
 ) -> dict[str, object]:
-    """Public identity: name and type come from the published issue, not the live row."""
+    """Public identity comes from the published issue, not the live row.
+
+    Name, type and NHC storm id are as saved with that issue; only the status is
+    live (a closed system stays listed until the outlook stops listing it).
+    """
     return {
         **system_view(system).model_dump(),
         "name": entry.name,
         "feature_type": entry.feature_type,
+        "nhc_storm_id": entry.nhc_storm_id,
     }
 
 
@@ -776,11 +781,9 @@ async def list_public_tropical_systems(
     try:
         # The public tracker agrees with the published product: it lists the
         # systems in the most recent current outlook and nothing else.
-        current = await service.list_published_products(session, "outlook")
+        current = await service.latest_current_outlook(session)
         rows = (
-            await tropical_systems.public_active(
-                session, current[0].id, current[0].revision
-            )
+            await tropical_systems.public_active(session, current.id, current.revision)
             if current
             else []
         )

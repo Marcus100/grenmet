@@ -48,6 +48,7 @@ const FEET_PER_HUNDRED = 100;
 const DIGITS_ONLY = /^\d+$/;
 const FOUR_DIGITS = /^\d{4}$/;
 const KM_PATTERN = /^\d+(\.\d+)?$/;
+const BAROMETER_PATTERN = /^\d{3,4}(\.\d)?$/;
 const FINE_MAX_KM = 5;
 const FINE_MAX_CODE = 50;
 const WHOLE_KM_MAX = 30;
@@ -148,7 +149,7 @@ function groupTenths(group: string | undefined): number | null {
 
 function barometerTenths(values: Values): number | null {
   const text = (values.barometer_reading ?? "").trim();
-  if (!KM_PATTERN.test(text)) return null;
+  if (!BAROMETER_PATTERN.test(text)) return null;
   const hpa = Number(text);
   if (hpa < PRESSURE_MIN_HPA || hpa > BAROMETER_MAX_HPA) return null;
   return Math.round(hpa * TENTHS_PER_HPA);

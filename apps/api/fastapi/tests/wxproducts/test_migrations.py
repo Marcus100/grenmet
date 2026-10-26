@@ -56,7 +56,7 @@ def test_fresh_repeat_and_metadata_isolation(fresh_weather_engine: Engine) -> No
             connection.execute(
                 text("SELECT version_num FROM wxproducts_alembic_version")
             ).scalar_one()
-            == "wxproducts_0004"
+            == "wxproducts_0005"
         )
         assert (
             connection.execute(
@@ -144,7 +144,7 @@ def test_wxproducts_migrations_form_one_chain_with_a_single_head() -> None:
     script = ScriptDirectory.from_config(
         Config(str(ROOT / "src/wxproducts/alembic.ini"))
     )
-    assert script.get_heads() == ["wxproducts_0004"]
+    assert script.get_heads() == ["wxproducts_0005"]
 
 
 def test_tropical_system_changes_downgrade_drops_only_its_table(
@@ -166,6 +166,55 @@ def test_tropical_system_changes_downgrade_drops_only_its_table(
         assert connection.execute(
             text("SELECT to_regclass('tropical_systems')")
         ).scalar_one()
+
+
+def test_0005_stamps_existing_entries_with_the_current_storm_id(
+    fresh_weather_engine: Engine,
+) -> None:
+    config = Config(str(ROOT / "src/wxproducts/alembic.ini"))
+    config.attributes["expected_database"] = fresh_weather_engine.url.database
+    with fresh_weather_engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "wxproducts_0004")
+        product, system = uuid4(), uuid4()
+        connection.execute(
+            text(
+                "INSERT INTO authored_products (id, kind, draft, revision, published) "
+                "VALUES (:p, 'outlook', '{}', 1, '{}')"
+            ),
+            {"p": product},
+        )
+        connection.execute(
+            text(
+                "INSERT INTO authored_product_revisions (product_id, revision, "
+                "action, content, actor_id, actor_name, change_summary) "
+                "VALUES (:p, 1, 'publish', '{}', 'a', 'A', 'x')"
+            ),
+            {"p": product},
+        )
+        connection.execute(
+            text(
+                "INSERT INTO tropical_systems (id, season, sequence, name, "
+                "feature_type, nhc_storm_id, created_by, updated_by) "
+                "VALUES (:s, 2026, 1, 'X', 'disturbance', 'al072026', 'a', 'a')"
+            ),
+            {"s": system},
+        )
+        connection.execute(
+            text(
+                "INSERT INTO tropical_system_entries (system_id, product_id, "
+                "revision, action, issued_at, name, feature_type) "
+                "VALUES (:s, :p, 1, 'publish', now(), 'X', 'disturbance')"
+            ),
+            {"s": system, "p": product},
+        )
+        command.upgrade(config, "head")
+        assert (
+            connection.execute(
+                text("SELECT nhc_storm_id FROM tropical_system_entries")
+            ).scalar_one()
+            == "al072026"
+        )
 
 
 def test_concurrent_migrations_serialize(fresh_weather_engine: Engine) -> None:

@@ -25,6 +25,7 @@ Pure functions only: no I/O. The same formulas run on screen in
   reports one that differs from the rule.
 """
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
@@ -53,12 +54,15 @@ COARSE_MAX_KM = Decimal(70)
 OVER_70KM_CODE = 89
 KM_CODE_OFFSET = 50
 VISIBILITY_KM_LIMIT = Decimal(1000)
+# Plain ASCII digits only: no exponent, sign, spaces or extra decimals.
+KILOMETRES_FORMAT = re.compile(r"[0-9]+(\.[0-9]+)?")
+BAROMETER_FORMAT = re.compile(r"[0-9]{3,4}(\.[0-9])?")
 
 
 def parse_visibility_km(text: str | None) -> Decimal | None:
     """The typed kilometres, or None when blank or not a plain non-negative number."""
     value = (text or "").strip()
-    if value == "":
+    if KILOMETRES_FORMAT.fullmatch(value) is None:
         return None
     try:
         km = Decimal(value)
@@ -197,7 +201,7 @@ def _amount(value: float | None) -> Decimal | None:
 def parse_barometer(text: str | None) -> Decimal | None:
     """Barometer as read in hPa (one decimal), or None when blank or not a reading."""
     value = (text or "").strip()
-    if value == "" or not value.replace(".", "", 1).isdigit():
+    if BAROMETER_FORMAT.fullmatch(value) is None:
         return None
     hpa = Decimal(value)
     return hpa if BAROMETER_MIN_HPA <= hpa <= BAROMETER_MAX_HPA else None

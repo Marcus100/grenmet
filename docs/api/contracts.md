@@ -201,7 +201,7 @@ saving an outlook draft or publication then writes one row per linked system int
 `tropical_system_entries` in the same transaction (name, type, position, movement in
 knots, 48-hour and 7-day formation chances, source NHC edition IDs). The entries are
 a derived index: `tropical_systems.rebuild_entries` recreates them from revisions.
-A save is refused (422) when a linked system is unknown, closed, or linked twice, or when a movement speed has an unknown unit (kt/knots, mph, km/h spellings are normalised) or exceeds 500 kt. NHC identifiers must carry the season year: storms `al072026` (numbers 01-89), invests `al942026` (90-99).
+A save is refused (422) when a linked system is unknown, closed, or linked twice, or when a movement speed has an unknown unit (kt/kn/knots, mph, km/h, m/s spellings are normalised) or exceeds 500 kt. NHC identifiers must carry the season year: storms `al072026` (numbers 01-89), invests `al942026` (90-99). On `PATCH` the format is checked only when the value changes (422), so a system saved with an older short id (`al07`) can send it back unchanged. Each entry also stores the NHC storm id the system had when the revision was saved (`wxproducts_0005`, which stamps each existing entry once with its system's current id, so check no unpublished id edits are pending at deploy). Concurrent saves lock the linked systems `FOR NO KEY UPDATE` in id order, and system edits (including merges) queue on one advisory lock, so opposite merges cannot form a loop.
 Every change to a system's identity (name, type, NHC ids, close, merge, reopen) is also written, with before/after values, actor and optional `reason`, to the append-only `tropical_system_changes` table (migration `wxproducts_0004`); it is not exposed by any route. A merge is refused (422) when it would create a continuation loop or target a system closed as a duplicate.
 `GuidanceFact` also gained `edited` (default false) and `source_value`, so an edited
 pre-filled value keeps the NHC original. All new fields are optional and additive.
@@ -215,14 +215,14 @@ Staff routes need product access to the `outlook` kind (403 otherwise):
 | `PATCH /api/v1/wxproducts/tropical-systems/{system_id}` | Body `TropicalSystemUpdate`; rename, link identifiers, close with `closed_reason` (`dissipated`, `merged`, `out_of_area`, `duplicate`; `merged` needs `continued_as_id`) or reopen with `status: active` |
 | `GET /api/v1/wxproducts/tropical-systems/{system_id}/history` | `TropicalSystemHistory`; every entry oldest first, drafts included |
 
-Public routes are anonymous and `no-store`, and only ever show published issues:
+Public routes are anonymous and `no-store` (like every wxproducts public route), and only ever show published issues:
 an entry is public when its product's current published snapshot has the entry's
 revision, so a withdrawn outlook disappears from both.
 
 | Endpoint | Contract |
 | --- | --- |
-| `GET /api/v1/wxproducts/public/tropical-systems` | `TropicalSystemPublicList`; the systems listed in the most recent current published outlook, each with its `latest` entry from that issue. `name` and `feature_type` come from the published entry, so staff renames show only after the next publish; a closed system stays listed until the current outlook stops listing it (its `status` shows the live state) |
-| `GET /api/v1/wxproducts/public/tropical-systems/{system_id}` | `TropicalSystemPublicHistory`; published entries oldest first; `name` and `feature_type` from the latest published entry; 404 when the system was never published |
+| `GET /api/v1/wxproducts/public/tropical-systems` | `TropicalSystemPublicList`; the systems listed in the most recent current published outlook, each with its `latest` entry from that issue. `name`, `feature_type` and `nhc_storm_id` come from the published entry, so staff renames and NHC id edits show only after the next publish; `status` is the live state, so a closed system stays listed (as closed) until the current outlook stops listing it. The current outlook is chosen in SQL (`latest_current_outlook`) |
+| `GET /api/v1/wxproducts/public/tropical-systems/{system_id}` | `TropicalSystemPublicHistory`; published entries oldest first; `name`, `feature_type` and `nhc_storm_id` from the latest published entry, `status` live; 404 when the system was never published |
 
 `StoredProduct` preserves the editor shape: `id`, `kind`, `values`, `revision`,
 `publishedRevision` (nullable), and `updatedAt`. Errors use `detail`: a string for
@@ -1108,10 +1108,16 @@ holding `timesheet.approve` with organisation-wide scope, with department scope 
 the punch's department or the employee's current department, or who are the
 employee's named supervisor may decide. After a department transfer the employee may
 still record their own attendance for shifts rostered under the old department
-(same organisation only). Submitting that attendance for review still requires active
-employment in the workflow's department (`require_ready`) and is refused after a
-transfer. Acting for someone else stays bound to the roster
-department. Nobody may decide their
+(same organisation only). The employee may also submit that attendance, and propose
+corrections to it, for review: the approval is the old department's workflow and
+approvers (`require_ready` accepts the roster department only for attendance and
+attendance-correction reviews, only for the employee's own record and only within
+the same organisation; leave and other forms stay bound to the current department).
+Acting for someone else stays bound to the roster department. An arrival only attaches
+to a published shift of the department whose clock point was scanned. A departure
+closes the employee's open shift wherever it was rostered (so a mid-shift transfer
+does not strand it) and is stored with that shift's department, not the scanned
+point's; either way the punch department equals the roster department. Nobody may decide their
 own punch (superusers included). Approve and reject are idempotent for the same
 outcome and return 409 for the opposite one. Arrival needs a published work shift that
 started at most two hours ago or ends within the next hour; with none, the call
@@ -1877,8 +1883,21 @@ weather site as provisional, so a signed-in account alone is not enough.
 - *Station settings.* `GET` and `PUT /api/v1/eregister/stations/{station_id}/settings`
   hold the four amounts. 78958 is seeded by migration `eregister_0006`; another
   station's amounts are `null` (listed in `pending`) until staff enter them, and
-  nothing is assumed for it. Reading needs register staff access; `PUT` (all four
-  amounts, `null` clears one) needs `eregister.qc`.
+  nothing is assumed for it. Reading needs register staff access; `PUT` needs
+  `eregister.qc` and all four keys (an explicit `null` clears one; a missing key is
+  `422`, so `{}` can no longer clear everything). Each change writes a change-history
+  entry (`eregister_station_settings`, readable by `eregister.qc` or
+  `eregister.send`) with the amounts before and after and the actor.
+- *Special groups and listings.* Typed `s3_special_phenomena` groups are sent in the
+  order keyed, after the gust and `s3_group_909` built from their own fields; a typed
+  group with the same 9SpSp prefix as one of those is dropped and warns
+  (`duplicate_special_group`). `GET /observations` checks each stored row as saved,
+  without the station's current pressure amounts.
+- *Stored body is the record.* Calculated fields (visibility code, dew point,
+  relative humidity, groups 3 and 4) are filled in when a body is written (validate,
+  create, correct) and never on read, accept or send, so what QC accepted is what the
+  TAC and the WIS2 CSV carry. `barometer_reading` is `^\d{3,4}(\.\d)?$` (ASCII digits,
+  500 to 1100 hPa) and `visibility_km` is `^\d+(\.\d+)?$` (no sign or exponent).
 - *Reporting hours.* All 24 UTC hours are keyed by hand at station 78958, so no
   hour is "non-synoptic". Advice (warnings only): Tx and Tn every 6 hours (00, 06,
   12, 18 UTC), 24 hour rainfall at 12 UTC, the pressure tendency group `5appp`

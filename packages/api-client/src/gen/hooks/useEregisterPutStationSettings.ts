@@ -53,7 +53,7 @@ export function eregisterPutStationSettingsMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Replaces all four amounts (send null to clear one). Requires `eregister.qc`.
+ * @description Replaces all four amounts; every key is required and an explicit null clears one. The change is recorded in the change history (entity `eregister_station_settings`) with the amounts before and after and the actor. Requires `eregister.qc`.
  * @summary Set the station pressure amounts
  * {@link /api/v1/eregister/stations/:station_id/settings}
  */

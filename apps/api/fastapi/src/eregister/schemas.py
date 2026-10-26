@@ -282,10 +282,12 @@ class StationSettings(BaseModel):
 
 
 class StationSettingsUpdate(BaseModel):
-    total_correction_hpa: float | None = Field(default=None, ge=-20, le=20)
-    qfe_offset_hpa: float | None = Field(default=None, ge=-20, le=20)
-    sea_level_offset_hpa: float | None = Field(default=None, ge=-20, le=20)
-    qnh_offset_hpa: float | None = Field(default=None, ge=-20, le=20)
+    """All four amounts are required: send an explicit null to clear one."""
+
+    total_correction_hpa: float | None = Field(ge=-20, le=20)
+    qfe_offset_hpa: float | None = Field(ge=-20, le=20)
+    sea_level_offset_hpa: float | None = Field(ge=-20, le=20)
+    qnh_offset_hpa: float | None = Field(ge=-20, le=20)
 
 
 PressureTrend = Literal["rising", "steady", "falling"]
