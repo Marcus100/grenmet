@@ -529,7 +529,7 @@ def _current_for(
     assignment_id: object,
 ) -> Callable[..., Awaitable[tuple[RosterAssignment, ShiftCatalog]]]:
     async def found(
-        session: AsyncSession, _user_id: object, _now: object
+        session: AsyncSession, _user_id: object, _now: object, _department_id: object
     ) -> tuple[RosterAssignment, ShiftCatalog]:
         row = (
             await session.execute(
