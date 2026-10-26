@@ -201,7 +201,8 @@ saving an outlook draft or publication then writes one row per linked system int
 `tropical_system_entries` in the same transaction (name, type, position, movement in
 knots, 48-hour and 7-day formation chances, source NHC edition IDs). The entries are
 a derived index: `tropical_systems.rebuild_entries` recreates them from revisions.
-A save is refused (422) when a linked system is unknown, closed, or linked twice.
+A save is refused (422) when a linked system is unknown, closed, or linked twice, or when a movement speed has an unknown unit (kt/knots, mph, km/h spellings are normalised) or exceeds 500 kt. NHC identifiers must carry the season year: storms `al072026` (numbers 01-89), invests `al942026` (90-99).
+Every change to a system's identity (name, type, NHC ids, close, merge, reopen) is also written, with before/after values, actor and optional `reason`, to the append-only `tropical_system_changes` table (migration `wxproducts_0004`); it is not exposed by any route. A merge is refused (422) when it would create a continuation loop or target a system closed as a duplicate.
 `GuidanceFact` also gained `edited` (default false) and `source_value`, so an edited
 pre-filled value keeps the NHC original. All new fields are optional and additive.
 
@@ -220,8 +221,8 @@ revision, so a withdrawn outlook disappears from both.
 
 | Endpoint | Contract |
 | --- | --- |
-| `GET /api/v1/wxproducts/public/tropical-systems` | `TropicalSystemPublicList`; active systems that appear in a published outlook, each with its `latest` published entry |
-| `GET /api/v1/wxproducts/public/tropical-systems/{system_id}` | `TropicalSystemPublicHistory`; published entries oldest first; 404 when the system was never published |
+| `GET /api/v1/wxproducts/public/tropical-systems` | `TropicalSystemPublicList`; the systems listed in the most recent current published outlook, each with its `latest` entry from that issue. `name` and `feature_type` come from the published entry, so staff renames show only after the next publish; a closed system stays listed until the current outlook stops listing it (its `status` shows the live state) |
+| `GET /api/v1/wxproducts/public/tropical-systems/{system_id}` | `TropicalSystemPublicHistory`; published entries oldest first; `name` and `feature_type` from the latest published entry; 404 when the system was never published |
 
 `StoredProduct` preserves the editor shape: `id`, `kind`, `values`, `revision`,
 `publishedRevision` (nullable), and `updatedAt`. Errors use `detail`: a string for

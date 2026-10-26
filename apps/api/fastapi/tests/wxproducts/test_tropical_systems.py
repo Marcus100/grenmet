@@ -5,13 +5,13 @@ from uuid import UUID, uuid4
 
 import httpx
 import pytest
-from sqlalchemy import select, text
+from sqlalchemy import event, select, text
 
 from src.auth.models import User
 from src.baseline import product_access
 from src.wxproducts import service, tropical_systems, validation
 from src.wxproducts.exceptions import ProductValidationError
-from src.wxproducts.models import TropicalSystemEntry
+from src.wxproducts.models import TropicalSystemChange, TropicalSystemEntry
 from src.wxproducts.schemas import TropicalSystemCreate, TropicalSystemUpdate
 from src.wxwatch.nhc_schemas import (
     GuidanceFact,
@@ -62,7 +62,7 @@ def system(tracked: UUID | None, *, chance48: float = 20, chance7d: float = 40):
     )
 
 
-def outlook(*systems: GuidanceSystem, action: str = "publish", **changes):
+def outlook(*systems: GuidanceSystem, action: str = "publish", ago: int = 1, **changes):
     guidance = ProductGuidance(
         sources=[
             GuidanceSource(
@@ -77,8 +77,8 @@ def outlook(*systems: GuidanceSystem, action: str = "publish", **changes):
     values = complete("outlook")
     now = datetime.now(validation.GRENADA)
     values.update(
-        issuedAt=(now - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M"),
-        validFrom=(now - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M"),
+        issuedAt=(now - timedelta(hours=ago)).strftime("%Y-%m-%dT%H:%M"),
+        validFrom=(now - timedelta(hours=ago)).strftime("%Y-%m-%dT%H:%M"),
         validTo=(now + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M"),
         nextUpdate=(now + timedelta(hours=5)).strftime("%Y-%m-%dT%H:%M"),
     )
@@ -102,6 +102,16 @@ async def track(sessions, user: User, **changes) -> UUID:
             user,
         )
         return created.id
+
+
+async def listed(session) -> list[tuple]:
+    """What the public list shows: the most recent current published outlook."""
+    current = await service.list_published_products(session, "outlook")
+    if not current:
+        return []
+    return await tropical_systems.public_active(
+        session, current[0].id, current[0].revision
+    )
 
 
 async def entries(sessions) -> list[tuple]:
@@ -184,7 +194,7 @@ async def test_live_entries_publish_withdraw_and_rebuild(weather_sessions, actor
     async with weather_sessions() as session:
         await service.write_product(session, draft, actor)
     async with weather_sessions() as session:
-        assert await tropical_systems.public_active(session) == []
+        assert await listed(session) == []
         staff = await tropical_systems.history(session, tracked, published_only=False)
         assert [row.action for row in staff] == ["draft"]
         assert (
@@ -196,7 +206,7 @@ async def test_live_entries_publish_withdraw_and_rebuild(weather_sessions, actor
     async with weather_sessions() as session:
         await service.write_product(session, published, actor)
     async with weather_sessions() as session:
-        [(found, latest)] = await tropical_systems.public_active(session)
+        [(found, latest)] = await listed(session)
         assert found.id == tracked and latest.revision == 2
         assert (latest.formation_48h, latest.formation_7d) == (30, 40)
         assert float(latest.latitude) == 12.4 and float(latest.longitude) == -45.25
@@ -218,7 +228,7 @@ async def test_live_entries_publish_withdraw_and_rebuild(weather_sessions, actor
     async with weather_sessions() as session:
         await service.write_product(session, withdrawn, actor)
     async with weather_sessions() as session:
-        assert await tropical_systems.public_active(session) == []
+        assert await listed(session) == []
         assert (
             await tropical_systems.history(session, tracked, published_only=True) == []
         )
@@ -311,20 +321,20 @@ async def test_routes_enforce_outlook_access_and_publish_only_history(
             "name": "Invest 94L",
             "feature_type": "disturbance",
             "season": 2026,
-            "nhc_storm_id": "AL942026",
+            "nhc_storm_id": "AL072026",
         },
     )
     assert created.status_code == 201, created.text
     system_id = created.json()["id"]
     assert created.json()["label"] == "GMS 2026-01"
-    assert created.json()["nhc_storm_id"] == "al942026"
+    assert created.json()["nhc_storm_id"] == "al072026"
     duplicate = await async_client.post(
         f"{BASE}/tropical-systems",
         headers=headers,
         json={
             "name": "Copy",
             "feature_type": "disturbance",
-            "nhc_storm_id": "al942026",
+            "nhc_storm_id": "al072026",
         },
     )
     assert duplicate.status_code == 409
@@ -386,3 +396,285 @@ async def test_routes_enforce_outlook_access_and_publish_only_history(
         kwargs = {"json": {"name": "Denied"}} if method == "patch" else {}
         denied = await getattr(async_client, method)(path, headers=headers, **kwargs)
         assert denied.status_code == 403, path
+
+
+async def publish(sessions, actor, *systems: GuidanceSystem, ago: int = 1):
+    payload = outlook(*systems, ago=ago)
+    async with sessions() as session:
+        await service.write_product(session, payload, actor)
+    return payload
+
+
+async def public_list(client) -> list[dict]:
+    return (await client.get(f"{BASE}/public/tropical-systems")).json()["systems"]
+
+
+async def test_public_identity_comes_from_the_published_issue(
+    async_client: httpx.AsyncClient, weather_sessions, actor
+):
+    tracked = await track(weather_sessions, actor)
+    first = await publish(weather_sessions, actor, system(tracked))
+    async with weather_sessions() as session:
+        await tropical_systems.update_system(
+            session,
+            tracked,
+            TropicalSystemUpdate(
+                name="Tropical Storm Kirk", feature_type="tropical_cyclone"
+            ),
+            actor,
+        )
+    [shown] = await public_list(async_client)
+    assert (shown["name"], shown["feature_type"]) == ("Disturbance 1", "disturbance")
+    detail = (
+        await async_client.get(f"{BASE}/public/tropical-systems/{tracked}")
+    ).json()
+    assert (detail["name"], detail["feature_type"]) == ("Disturbance 1", "disturbance")
+
+    # A closure stays invisible to the list until the current outlook drops it.
+    async with weather_sessions() as session:
+        await tropical_systems.update_system(
+            session,
+            tracked,
+            TropicalSystemUpdate(status="closed", closed_reason="dissipated"),
+            actor,
+        )
+    assert [row["id"] for row in await public_list(async_client)] == [str(tracked)]
+
+    follow_up = first.model_copy(update={"expectedRevision": 1})
+    follow_up.guidance = outlook(system(None)).guidance
+    async with weather_sessions() as session:
+        await service.write_product(session, follow_up, actor)
+    assert await public_list(async_client) == []
+
+
+async def test_public_list_follows_the_most_recent_current_outlook(
+    async_client: httpx.AsyncClient, weather_sessions, actor
+):
+    kept = await track(weather_sessions, actor)
+    dropped = await track(weather_sessions, actor)
+    await publish(weather_sessions, actor, system(kept), system(dropped), ago=3)
+    assert len(await public_list(async_client)) == 2
+    await publish(weather_sessions, actor, system(kept), ago=1)
+    assert [row["id"] for row in await public_list(async_client)] == [str(kept)]
+
+
+async def test_identity_edits_leave_an_append_only_trail(weather_sessions, actor):
+    tracked = await track(weather_sessions, actor)
+    async with weather_sessions() as session:
+        await tropical_systems.update_system(
+            session,
+            tracked,
+            TropicalSystemUpdate(name="Kirk", reason="Named by NHC"),
+            actor,
+        )
+    async with weather_sessions() as session:
+        await tropical_systems.update_system(
+            session,
+            tracked,
+            TropicalSystemUpdate(status="closed", closed_reason="dissipated"),
+            actor,
+        )
+    async with weather_sessions() as session:
+        # An edit that changes nothing writes nothing.
+        await tropical_systems.update_system(
+            session, tracked, TropicalSystemUpdate(name="Kirk"), actor
+        )
+        changes = (
+            (
+                await session.execute(
+                    select(TropicalSystemChange)
+                    .where(TropicalSystemChange.system_id == tracked)
+                    .order_by(TropicalSystemChange.id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+    assert len(changes) == 2
+    rename, close = changes
+    assert (rename.before["name"], rename.after["name"]) == ("Invest 94L", "Kirk")
+    assert rename.reason == "Named by NHC"
+    assert rename.actor_id == str(actor.id) and rename.actor_name
+    assert (close.before["status"], close.after["status"]) == ("active", "closed")
+    assert close.after["closed_reason"] == "dissipated"
+
+
+async def test_issue_times_ignore_withdrawn_and_superseded_issues(
+    weather_sessions, actor
+):
+    tracked = await track(weather_sessions, actor)
+    first = await publish(weather_sessions, actor, system(tracked), ago=5)
+    second = first.model_copy(update={"expectedRevision": 1})
+    second.values = outlook(system(tracked), ago=2).values
+    async with weather_sessions() as session:
+        await service.write_product(session, second, actor)
+    async with weather_sessions() as session:
+        row = await tropical_systems.get_system(session, tracked)
+        # Revision 1 is superseded, so only revision 2 counts.
+        assert row.first_issued_at == row.last_issued_at
+    withdrawn = second.model_copy(update={"action": "withdraw", "expectedRevision": 2})
+    async with weather_sessions() as session:
+        await service.write_product(session, withdrawn, actor)
+    async with weather_sessions() as session:
+        row = await tropical_systems.get_system(session, tracked)
+        assert (row.first_issued_at, row.last_issued_at) == (None, None)
+
+
+def test_nhc_ids_need_a_year_and_the_right_number_range():
+    def storm(value: str):
+        return TropicalSystemCreate(
+            name="X", feature_type="disturbance", nhc_storm_id=value
+        )
+
+    def invest(value: str):
+        return TropicalSystemCreate(
+            name="X", feature_type="disturbance", nhc_invest_id=value
+        )
+
+    assert storm("AL072026").nhc_storm_id == "al072026"
+    assert invest("al942026").nhc_invest_id == "al942026"
+    for bad in ("al07", "al942026", "al002026", "al07202"):
+        with pytest.raises(ValueError):
+            storm(bad)
+    for bad in ("al94", "al072026"):
+        with pytest.raises(ValueError):
+            invest(bad)
+
+
+async def test_merge_loops_and_duplicate_targets_are_rejected(weather_sessions, actor):
+    a = await track(weather_sessions, actor)
+    b = await track(weather_sessions, actor)
+    c = await track(weather_sessions, actor)
+
+    async def merge(source: UUID, target: UUID):
+        async with weather_sessions() as session:
+            return await tropical_systems.update_system(
+                session,
+                source,
+                TropicalSystemUpdate(
+                    status="closed", closed_reason="merged", continued_as_id=target
+                ),
+                actor,
+            )
+
+    await merge(a, b)
+    await merge(b, c)
+    with pytest.raises(ProductValidationError, match="loop"):
+        await merge(c, a)
+    async with weather_sessions() as session:
+        assert (await tropical_systems.get_system(session, c)).status == "active"
+
+    other = await track(weather_sessions, actor)
+    async with weather_sessions() as session:
+        await tropical_systems.update_system(
+            session,
+            other,
+            TropicalSystemUpdate(status="closed", closed_reason="duplicate"),
+            actor,
+        )
+    with pytest.raises(ProductValidationError, match="duplicate"):
+        await merge(c, other)
+
+
+def speed_content(tracked: UUID, **fact_values) -> dict:
+    wave = GuidanceSystem(
+        id=uuid4(),
+        tracked_system_id=tracked,
+        name="Wave",
+        feature_type="tropical_wave",
+        facts=[fact("movement_speed", **fact_values)],
+    )
+    return {
+        "values": {"issuedAt": "2026-09-08T08:00"},
+        "guidance": outlook(wave).guidance.model_dump(mode="json"),
+    }
+
+
+@pytest.mark.parametrize(
+    ("unit", "expected"),
+    [("knots", 20.0), ("KT", 20.0), ("MPH", 17.4), ("mph", 17.4), ("km/h", 10.8)],
+)
+def test_speed_unit_spellings_are_normalised(unit, expected):
+    [row] = tropical_systems.entries_for(
+        speed_content(uuid4(), value=20, unit=unit),
+        product_id=uuid4(),
+        revision=1,
+        action="draft",
+        created_at=datetime(2026, 9, 8, tzinfo=UTC),
+    )
+    assert row["movement_speed_kt"] == expected
+
+
+@pytest.mark.parametrize(
+    "values", [{"value": 20, "unit": "furlongs"}, {"value": 90000, "unit": "kt"}]
+)
+async def test_bad_speeds_are_a_validation_error_not_a_server_error(
+    weather_sessions, actor, values
+):
+    tracked = await track(weather_sessions, actor)
+    content = speed_content(tracked, **values)
+    async with weather_sessions() as session:
+        with pytest.raises(ProductValidationError):
+            await tropical_systems.record_revision(
+                session,
+                kind="outlook",
+                product_id=uuid4(),
+                revision=1,
+                action="draft",
+                content=content,
+                created_at=datetime(2026, 9, 8, tzinfo=UTC),
+            )
+
+
+async def test_linked_systems_are_read_locked_while_recording(weather_sessions, actor):
+    tracked = await track(weather_sessions, actor)
+    statements: list[str] = []
+
+    def capture(_conn, _cursor, statement, *_rest):
+        statements.append(statement)
+
+    async with weather_sessions() as session:
+        engine = session.bind.sync_engine
+        event.listen(engine, "before_cursor_execute", capture)
+        try:
+            await service.write_product(
+                session, outlook(system(tracked), action="draft"), actor
+            )
+        finally:
+            event.remove(engine, "before_cursor_execute", capture)
+    assert any(
+        "FROM tropical_systems" in sql and "FOR SHARE" in sql for sql in statements
+    )
+
+
+async def test_route_rejects_an_outlook_that_links_a_closed_system(
+    async_client: httpx.AsyncClient,
+    weather_sessions,
+    superuser_token_headers_async: dict[str, str],
+    actor,
+):
+    tracked = await track(weather_sessions, actor)
+    async with weather_sessions() as session:
+        await tropical_systems.update_system(
+            session,
+            tracked,
+            TropicalSystemUpdate(status="closed", closed_reason="dissipated"),
+            actor,
+        )
+    linked = GuidanceSystem(
+        id=uuid4(),
+        tracked_system_id=tracked,
+        name="Old system",
+        feature_type="disturbance",
+        narrative="Dissipating.",
+        facts=[fact("latitude", value=12.4)],
+    )
+    unsourced = outlook(linked)
+    # Sourced guidance is checked against WxWatch; this test is about the link.
+    unsourced.guidance = ProductGuidance(sources=[], systems=[linked])
+    payload = unsourced.model_dump(mode="json")
+    response = await async_client.post(
+        f"{BASE}/products", headers=superuser_token_headers_async, json=payload
+    )
+    assert response.status_code == 422, response.text
+    assert "closed tracked system" in response.text
