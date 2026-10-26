@@ -175,8 +175,8 @@ def test_past_weather_covers_6_3_or_1_hours_by_report_time(
     hour: int, hours: int
 ) -> None:
     # 12.2.6.6.1 (a), (b) and (d); hourly reports cover 1 hour.
-    assert rules._past_weather_hours(hour) == hours  # noqa: SLF001
-    assert rules._past_weather_hours(None) is None  # noqa: SLF001
+    assert rules.past_weather_hours(hour) == hours
+    assert rules.past_weather_hours(None) is None
 
 
 # ---- past weather W1W2 (12.2.6.6) ----------------------------------------------

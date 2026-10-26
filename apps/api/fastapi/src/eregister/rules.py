@@ -1306,7 +1306,7 @@ def _precipitation_hours(c: _Checker) -> int | None:
     return PRECIPITATION_PERIOD_HOURS.get(_to_int(c.raw("precip_period")) or 0)
 
 
-def _past_weather_hours(hour: int | None) -> int | None:
+def past_weather_hours(hour: int | None) -> int | None:
     """Hours covered by W1 and W2 (12.2.6.6.1): 6 at main hours, 3 at 03, 09, 15, 21."""
     if hour is None:
         return None
@@ -1348,7 +1348,7 @@ def _check_weather_links(
     shown = (ww in RECENT_PRECIPITATION_WW) or any(
         w in PRECIPITATION_PAST_WEATHER for w in (w1, w2) if w is not None
     )
-    covered = _past_weather_hours(hour)
+    covered = past_weather_hours(hour)
     period = _precipitation_hours(c)
     if (
         precipitation is not None
