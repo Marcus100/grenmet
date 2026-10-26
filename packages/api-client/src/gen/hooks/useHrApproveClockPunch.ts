@@ -53,7 +53,7 @@ export function hrApproveClockPunchMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Allowed for: callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Idempotent.
+ * @description Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Allowed for: callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor and hold a live timesheet.approve assignment in the punch's organisation. Never the employee. Idempotent.
  * @summary Approve a phone clock punch
  * {@link /api/v1/hr/attendance/clock-punches/:punch_id/approve}
  */

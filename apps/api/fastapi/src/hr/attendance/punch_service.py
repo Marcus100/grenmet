@@ -41,11 +41,12 @@ def _aware(value: datetime) -> datetime:
 
 async def _review_scope(
     session: AsyncSession, actor: User
-) -> tuple[set[str], set[str], bool]:
-    """(organisations with ALL scope, departments with DEPARTMENT scope, whether any
-    live assignment carries the review permission) for the actor. SELF scope covers
-    one's own records, which are never reviewable, so it grants no scope here; a
-    lapsed or revoked assignment counts for nothing, including for a named supervisor."""
+) -> tuple[set[str], set[str], set[str]]:
+    """(organisations with ALL scope, departments with DEPARTMENT scope, organisations
+    where any live assignment carries the review permission) for the actor. SELF
+    scope covers one's own records, which are never reviewable, so it grants no
+    scope here; a lapsed or revoked assignment counts for nothing, including for a
+    named supervisor."""
     role_ids = {
         role.id
         for role in actor.roles
@@ -53,11 +54,11 @@ async def _review_scope(
     }
     organisation_ids: set[str] = set()
     department_ids: set[str] = set()
-    holds_role = False
+    review_organisation_ids: set[str] = set()
     for assignment in await organisations.active_assignments(session, actor.id):
         if assignment.role_id not in role_ids:
             continue
-        holds_role = True
+        review_organisation_ids.add(assignment.organisation_id)
         if assignment.scope == RoleAssignmentScope.ALL:
             organisation_ids.add(assignment.organisation_id)
         elif (
@@ -65,7 +66,7 @@ async def _review_scope(
             and assignment.department_id
         ):
             department_ids.add(assignment.department_id)
-    return organisation_ids, department_ids, holds_role
+    return organisation_ids, department_ids, review_organisation_ids
 
 
 async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]:
@@ -76,7 +77,9 @@ async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]
     A punch is reviewable by a holder of the review permission who is any of:
     an ALL-scope holder in the organisation (or a superuser); the DEPARTMENT-scope
     manager of the department recorded on the punch; the DEPARTMENT-scope manager
-    of the employee's current department; or the employee's named supervisor.
+    of the employee's current department; or the employee's named supervisor, whose
+    live review assignment must be in the organisation of the punch's department
+    (a role held only in another organisation grants nothing here, #677).
     Never the employee. The punch department matters because a transfer must not
     strand a punch its original manager was shown.
 
@@ -87,8 +90,10 @@ async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]
     never_own = ClockPunch.user_id != actor.id
     if actor.is_superuser:
         return never_own
-    organisation_ids, department_ids, holds_role = await _review_scope(session, actor)
-    if not holds_role:
+    organisation_ids, department_ids, review_organisation_ids = await _review_scope(
+        session, actor
+    )
+    if not review_organisation_ids:
         return false()
 
     def employees(*conditions: ColumnElement[bool]) -> ColumnElement[bool]:
@@ -105,7 +110,10 @@ async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]
         )
 
     grants: list[ColumnElement[bool]] = [
-        employees(EmploymentRecord.supervisor_id == actor.id)
+        employees(
+            EmploymentRecord.supervisor_id == actor.id,
+            Department.organisation_id.in_(review_organisation_ids),
+        )
     ]
     if department_ids:
         grants.append(ClockPunch.department_id.in_(department_ids))

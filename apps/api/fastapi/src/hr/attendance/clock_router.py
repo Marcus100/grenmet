@@ -168,7 +168,7 @@ PUNCH_ERRORS: dict[int | str, dict[str, Any]] = {
     "/clock-punches/pending",
     response_model=ClockPunchesPublic,
     summary="List phone clock punches awaiting approval",
-    description="Pending phone punches the caller may decide. Callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Approve and reject use the same rule.",
+    description="Pending phone punches the caller may decide. Callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor and hold a live timesheet.approve assignment in the punch's organisation. Never the employee. Approve and reject use the same rule.",
     operation_id="hrListPendingClockPunches",
     responses={403: {"description": "Requires timesheet.approve"}},
 )
@@ -203,7 +203,7 @@ async def list_pending_clock_punches(
     "/clock-punches/{punch_id}/approve",
     response_model=ClockPunchPublic,
     summary="Approve a phone clock punch",
-    description="Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Allowed for: callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Idempotent.",
+    description="Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Allowed for: callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor and hold a live timesheet.approve assignment in the punch's organisation. Never the employee. Idempotent.",
     operation_id="hrApproveClockPunch",
     responses=PUNCH_ERRORS,
 )
