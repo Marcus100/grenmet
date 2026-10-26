@@ -191,9 +191,16 @@ async def permission_holders(
     )
 
 
-def alert_link(identifier: str) -> str:
-    """Portal path of a warning; identifiers may hold reserved URL characters."""
-    return f"/cap/alerts/{quote(identifier, safe='')}"
+def alert_link(identifier: str, alert_id: uuid.UUID, *, public: bool) -> str:
+    """Where a warning notice opens.
+
+    The public page (``/cap/alerts/{identifier}``) only finds published,
+    public-scope alerts, so every other notice goes to the staff page
+    (``/cap/admin/{id}``). Identifiers may hold reserved URL characters.
+    """
+    if public:
+        return f"/cap/alerts/{quote(identifier, safe='')}"
+    return f"/cap/admin/{alert_id}"
 
 
 def _clock(value: str | None) -> time | None:

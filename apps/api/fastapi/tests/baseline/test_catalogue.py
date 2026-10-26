@@ -9,7 +9,7 @@ from src.baseline import catalogue, product_access, service
 from src.baseline.models import ApprovalPolicy, BaselineAudit, StaffCredential
 from src.baseline.schemas import StaffInput
 from src.exceptions import AppException
-from src.hr.models import Department, Grade
+from src.hr.models import Department, EmploymentStatus, Grade
 from src.utils.datetime import utc_now
 
 
@@ -249,3 +249,76 @@ async def test_group_authoring_check_matches_the_single_user_rule(db_async):
         await product_access.users_who_may_author(db_async, "morning", [actor.id])
         == set()
     )
+
+
+async def _staffed_actor(db_async):
+    actor = await setup(db_async)
+    await catalogue.apply(db_async, actor, "meteorological_department")
+    await service.save_staff(
+        db_async,
+        actor,
+        actor.id,
+        StaffInput(
+            department_id="meteorological_department",
+            grade_id="GMS_SENIOR_TECH",
+            employee_number="MET-EDGE",
+            employment_type="FULL_TIME",
+            mailbox_ready=True,
+        ),
+    )
+    actor.is_superuser = False
+    db_async.add(Department(organisation_id="gaa", code="other", id="other", name="O"))
+    await db_async.commit()
+    return actor
+
+
+async def _agree(db_async, user, expected: bool) -> None:
+    await db_async.commit()
+    single = "morning" in await product_access.allowed_kinds(db_async, user)
+    group = bool(
+        await product_access.users_who_may_author(db_async, "morning", [user.id])
+    )
+    assert single == group == expected
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "case",
+    [
+        "employment_inactive",
+        "non_gms_department",
+        "inactive_grade",
+        "grade_of_another_department",
+        "pending_registration",
+    ],
+)
+async def test_group_authoring_check_refuses_what_the_single_rule_refuses(
+    db_async, case
+):
+    actor = await _staffed_actor(db_async)
+    await _agree(db_async, actor, True)
+    employment = await service.employment_for(db_async, actor.id)
+    if case == "employment_inactive":
+        employment.status = EmploymentStatus.INACTIVE
+    elif case == "non_gms_department":
+        employment.department_id = "other"
+    elif case == "inactive_grade":
+        (await db_async.get(Grade, employment.grade_id)).is_active = False
+    elif case == "grade_of_another_department":
+        db_async.add(
+            Grade(id="OTHER_G", department_id="other", code="G", label="G", rank=1)
+        )
+        await db_async.flush()
+        employment.grade_id = "OTHER_G"
+    else:
+        actor.registration_pending = True
+    await _agree(db_async, actor, False)
+
+
+@pytest.mark.asyncio
+async def test_group_authoring_check_lets_a_superuser_without_employment_author(
+    db_async,
+):
+    admin = await setup(db_async)
+    assert admin.is_superuser
+    await _agree(db_async, admin, True)

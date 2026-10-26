@@ -138,7 +138,7 @@ async def warning_expiring(session: AsyncSession, now: datetime | None = None) -
                 .astimezone(GRENADA)
                 .strftime("%H:%M"),
             },
-            link_path=gms.alert_link(alert.identifier),
+            link_path=gms.alert_link(alert.identifier, alert.id, public=False),
             entity_type="cap_alert",
             entity_id=str(alert.id),
             dedupe_key=f"{gms.WARNING_EXPIRING}:{alert.id}",

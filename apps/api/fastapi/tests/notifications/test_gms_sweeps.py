@@ -250,7 +250,8 @@ async def test_warning_expiring_in_an_hour_tells_the_author_and_duty_staff_once(
     assert await gms_sweeps.warning_expiring(sources, half_hour_before) == 0
 
     (told,) = await _told(sources, author, gms.WARNING_EXPIRING)
-    assert told.link_path == gms.alert_link(alert.identifier)
+    # An expiring warning is a staff matter: open the workflow page, not the public one.
+    assert told.link_path == f"/cap/admin/{alert.id}"
     assert len(await _told(sources, publisher, gms.WARNING_EXPIRING)) == 1
     assert await _told(sources, bystander, gms.WARNING_EXPIRING) == []
 
@@ -269,7 +270,6 @@ async def test_warning_more_than_an_hour_from_expiry_is_left_alone(
 async def test_a_replaced_warning_does_not_expire_unannounced(
     sources: AsyncSession,
 ) -> None:
-    from src.cap.models import CapAlert
 
     author = await make_user(sources, superuser=True)
     expires = datetime.now(UTC) + timedelta(hours=3)
@@ -691,20 +691,3 @@ async def test_finding_the_duty_forecasters_does_not_query_per_staff_member(
     for _ in range(5):
         await _staff(sources)
     assert await count_statements() == few
-
-
-async def test_expiring_warning_link_encodes_a_reserved_character(
-    sources: AsyncSession,
-) -> None:
-    author = await make_user(sources, superuser=True)
-    expires = datetime.now(UTC) + timedelta(hours=3)
-    alert = await _published_warning(sources, author, expires)
-    stored = await sources.get(CapAlert, alert.id)
-    assert stored is not None
-    stored.identifier = "GD/2026#10?x y"
-    await sources.commit()
-
-    await gms_sweeps.warning_expiring(sources, expires - timedelta(minutes=30))
-
-    (told,) = await _told(sources, author, gms.WARNING_EXPIRING)
-    assert told.link_path == "/cap/alerts/GD%2F2026%2310%3Fx%20y"

@@ -46,6 +46,7 @@ function NotificationRow({
             Urgent
           </span>
         ) : null}
+        {notification.urgent ? <span className="sr-only">: </span> : null}
         {notification.title}
         {(notification.repeat_count ?? 1) > 1 ? (
           <>

@@ -13,6 +13,7 @@ const REQUEST_APPROVED_EMAIL = "Your request was approved, email";
 const REQUEST_APPROVED_BELL = "Your request was approved, bell";
 const FORECAST_BELL = "Forecast overdue, bell";
 const GROUPED_COUNT = "×3";
+const URGENT_LABEL = /^Urgent: Forecast is overdue/;
 const REPEATED_WORDS = /repeated 3 times/;
 
 const BASE = "http://localhost";
@@ -133,6 +134,10 @@ describe("NotificationBell urgency", () => {
 
     await screen.findByText("Forecast is overdue", { exact: false });
     expect(screen.getAllByText("Urgent")).toHaveLength(1);
+    // The link name reads "Urgent: Forecast is overdue", not "UrgentForecast...".
+    expect(screen.getByText("Urgent").parentElement?.textContent).toMatch(
+      URGENT_LABEL
+    );
   });
 });
 
