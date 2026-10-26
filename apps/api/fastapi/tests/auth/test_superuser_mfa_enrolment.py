@@ -4,9 +4,9 @@ import pyotp
 import pytest
 from cryptography.fernet import Fernet
 
+from src.auth import devices, service
 from src.auth.config import AuthConfig, auth_settings
 from tests.auth.test_config import STRONG_SECRET
-from src.auth import devices, service
 from tests.factories import assign_role, make_role_with_permission, make_user
 
 CODE = "mfa_enrolment_required"
@@ -170,7 +170,6 @@ async def test_enrolling_an_ordinary_account_sends_no_alert(db_async, monkeypatc
 
 
 async def test_alert_email_names_no_secret(monkeypatch, auth_emails):
-    import asyncio
 
     from src.email_config import email_settings
 
@@ -178,7 +177,7 @@ async def test_alert_email_names_no_secret(monkeypatch, auth_emails):
         type(email_settings), "emails_enabled", property(lambda _self: True)
     )
     devices.schedule_authenticator_added_alert(email_to="owner@example.com")
-    await asyncio.gather(*devices._pending_alerts)  # noqa: SLF001
+    await devices.wait_for_pending_alerts()
     [message] = auth_emails
     assert message["email_to"] == "owner@example.com"
     assert message["subject"] == "An authenticator was added to your account"

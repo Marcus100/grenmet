@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+from collections.abc import Awaitable, Callable
 from datetime import datetime
 
 from src.auth.models import User
@@ -117,21 +118,37 @@ async def _new_sign_in_email(
     return EmailData(html_content=html, subject=title)
 
 
-async def _send_new_sign_in_alert(
-    *, email_to: str, device: str, ip_address: str | None, signed_in_at: datetime
+async def _deliver_alert(
+    build: Callable[[], Awaitable[EmailData]], *, email_to: str, what: str
 ) -> None:
+    """Build and send one alert email; a failure is logged and never raised."""
     try:
-        message = await _new_sign_in_email(
-            device=device, ip_address=ip_address, signed_in_at=signed_in_at
-        )
+        message = await build()
         await asyncio.to_thread(
             send_email,
             email_to=email_to,
             subject=message.subject,
             html_content=message.html_content,
         )
-    except Exception:  # noqa: BLE001 - an alert must never break sign-in
-        logger.exception("New sign-in alert could not be sent")
+    except Exception:  # noqa: BLE001 - an alert must never break the action it reports
+        logger.exception("%s could not be sent", what)
+
+
+async def wait_for_pending_alerts() -> None:
+    """Wait for alerts already scheduled (used by tests to drain the background work)."""
+    await asyncio.gather(*_pending_alerts)
+
+
+async def _send_new_sign_in_alert(
+    *, email_to: str, device: str, ip_address: str | None, signed_in_at: datetime
+) -> None:
+    await _deliver_alert(
+        lambda: _new_sign_in_email(
+            device=device, ip_address=ip_address, signed_in_at=signed_in_at
+        ),
+        email_to=email_to,
+        what="New sign-in alert",
+    )
 
 
 def schedule_new_sign_in_alert(
@@ -172,16 +189,11 @@ async def _authenticator_added_email() -> EmailData:
 
 
 async def _send_authenticator_added_alert(*, email_to: str) -> None:
-    try:
-        message = await _authenticator_added_email()
-        await asyncio.to_thread(
-            send_email,
-            email_to=email_to,
-            subject=message.subject,
-            html_content=message.html_content,
-        )
-    except Exception:  # noqa: BLE001 - an alert must never break enrolment
-        logger.exception("Authenticator-added alert could not be sent")
+    await _deliver_alert(
+        _authenticator_added_email,
+        email_to=email_to,
+        what="Authenticator-added alert",
+    )
 
 
 def schedule_authenticator_added_alert(*, email_to: str) -> None:
