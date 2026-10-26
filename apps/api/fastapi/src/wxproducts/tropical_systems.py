@@ -30,6 +30,7 @@ from .models import (
     AuthoredProduct,
     ProductRevision,
     TropicalSystem,
+    TropicalSystemChange,
     TropicalSystemEntry,
 )
 from .schemas import (
@@ -47,6 +48,27 @@ TRACKED_ACTIONS = ("draft", "publish")
 HISTORY_LIMIT = 2000
 # Speeds are stored in knots; NHC decoders already report kt.
 TO_KNOTS = {None: 1.0, "kt": 1.0, "mph": 0.868976, "km/h": 1 / 1.852}
+UNIT_SPELLINGS = {
+    "kt": "kt",
+    "kts": "kt",
+    "knot": "kt",
+    "knots": "kt",
+    "mph": "mph",
+    "mi/h": "mph",
+    "km/h": "km/h",
+    "kph": "km/h",
+    "kmh": "km/h",
+    "km/hr": "km/h",
+}
+# Nothing moves faster than this; it also keeps the value inside numeric(5,1).
+MAX_SPEED_KT = 500.0
+
+
+def _unit(unit: str | None) -> str | None:
+    """Canonical speed unit, or "?" for a spelling nobody has defined."""
+    if unit is None or not unit.strip():
+        return None
+    return UNIT_SPELLINGS.get(unit.strip().lower(), "?")
 
 
 def _number(facts: list[GuidanceFact], *keys: str) -> float | None:
@@ -59,15 +81,36 @@ def _number(facts: list[GuidanceFact], *keys: str) -> float | None:
 
 def _speed(facts: list[GuidanceFact]) -> float | None:
     for fact in facts:
-        if fact.key != "movement_speed" or fact.unit not in TO_KNOTS:
+        unit = _unit(fact.unit)
+        if fact.key != "movement_speed" or unit == "?":
             continue
         value = next(
             (v for v in (fact.value, fact.maximum, fact.minimum) if v is not None),
             None,
         )
         if value is not None and value >= 0:
-            return round(value * TO_KNOTS[fact.unit], 1)
+            return round(value * TO_KNOTS[unit], 1)
     return None
+
+
+def check_speeds(content: dict[str, Any]) -> None:
+    """Reject speeds in an unknown unit or too large to be real (422)."""
+    for system in tracked_systems(content):
+        for fact in system.facts:
+            if fact.key != "movement_speed":
+                continue
+            if _unit(fact.unit) == "?":
+                raise ProductValidationError(
+                    [
+                        f"Unknown movement speed unit '{fact.unit}' for "
+                        f"{system.name}; use kt, mph or km/h"
+                    ]
+                )
+        speed = _speed(system.facts)
+        if speed is not None and speed > MAX_SPEED_KT:
+            raise ProductValidationError(
+                [f"Movement speed for {system.name} is above {MAX_SPEED_KT:g} kt"]
+            )
 
 
 def _chance(facts: list[GuidanceFact], horizon: int) -> int | None:
@@ -158,25 +201,58 @@ def entries_for(
     return rows
 
 
+def _published() -> Select[tuple[TropicalSystemEntry]]:
+    """Entries whose revision is the product's current published snapshot."""
+    return (
+        select(TropicalSystemEntry)
+        .join(AuthoredProduct, AuthoredProduct.id == TropicalSystemEntry.product_id)
+        .where(
+            TropicalSystemEntry.action == "publish",
+            AuthoredProduct.published.is_not(None),
+            cast(AuthoredProduct.published["revision"].astext, Integer)
+            == TropicalSystemEntry.revision,
+        )
+    )
+
+
 def _span(aggregate: Any) -> Any:
     return (
-        select(aggregate(TropicalSystemEntry.issued_at))
-        .where(
-            TropicalSystemEntry.system_id == TropicalSystem.id,
-            TropicalSystemEntry.action == "publish",
-        )
+        _published()
+        .with_only_columns(aggregate(TropicalSystemEntry.issued_at))
+        .where(TropicalSystemEntry.system_id == TropicalSystem.id)
         .scalar_subquery()
     )
 
 
 async def _refresh_issue_times(session: AsyncSession, ids: set[UUID]) -> None:
-    """first/last issued times are the span of each system's published entries."""
+    """first/last issued times span each system's entries still published.
+
+    Withdrawn and superseded issues no longer count.
+    """
     statement = update(TropicalSystem).values(
         first_issued_at=_span(func.min), last_issued_at=_span(func.max)
     )
     if ids:
         statement = statement.where(TropicalSystem.id.in_(ids))
     await session.execute(statement)
+
+
+async def _refresh_product(
+    session: AsyncSession, product_id: UUID, extra: set[UUID]
+) -> None:
+    """Refresh issue times for a product's systems; a publish or withdraw moves them."""
+    earlier = set(
+        (
+            await session.execute(
+                select(TropicalSystemEntry.system_id)
+                .where(TropicalSystemEntry.product_id == product_id)
+                .distinct()
+            )
+        ).scalars()
+    )
+    ids = earlier | extra
+    if ids:
+        await _refresh_issue_times(session, ids)
 
 
 async def record_revision(
@@ -190,10 +266,19 @@ async def record_revision(
     created_at: datetime,
 ) -> None:
     """Write entries for an outlook revision inside the caller's transaction."""
-    if kind != TRACKED_KIND or action not in TRACKED_ACTIONS:
+    if kind != TRACKED_KIND:
         return
+    if action == "withdraw":
+        # The product is no longer published, so its systems' issue times move.
+        await _refresh_product(session, product_id, set())
+        return
+    if action not in TRACKED_ACTIONS:
+        return
+    check_speeds(content)
     linked = [system.tracked_system_id for system in tracked_systems(content)]
     if not linked:
+        if action == "publish":
+            await _refresh_product(session, product_id, set())
         return
     if len(set(linked)) != len(linked):
         raise ProductValidationError(
@@ -203,7 +288,9 @@ async def record_revision(
         row.id: row
         for row in (
             await session.execute(
-                select(TropicalSystem).where(TropicalSystem.id.in_(linked))
+                select(TropicalSystem)
+                .where(TropicalSystem.id.in_(linked))
+                .with_for_update(read=True)
             )
         ).scalars()
     }
@@ -230,7 +317,7 @@ async def record_revision(
     session.add_all(TropicalSystemEntry(**row) for row in rows)
     await session.flush()
     if action == "publish":
-        await _refresh_issue_times(session, set(found))
+        await _refresh_product(session, product_id, set(found))
 
 
 async def rebuild_entries(session: AsyncSession) -> int:
@@ -370,6 +457,47 @@ def _closure(
     return "closed", reason, continued
 
 
+def _identity(system: TropicalSystem) -> dict[str, Any]:
+    """The editable identity of a system, as stored in the change trail."""
+    return {
+        "name": system.name,
+        "feature_type": system.feature_type,
+        "nhc_storm_id": system.nhc_storm_id,
+        "nhc_invest_id": system.nhc_invest_id,
+        "status": system.status,
+        "closed_reason": system.closed_reason,
+        "continued_as_id": str(system.continued_as_id)
+        if system.continued_as_id
+        else None,
+    }
+
+
+async def _check_merge_target(
+    session: AsyncSession, system: TropicalSystem, continued: UUID
+) -> None:
+    """Reject a missing target, a duplicate-closed one, or any continuation loop."""
+    target = await session.get(TropicalSystem, continued)
+    if target is None:
+        raise ProductValidationError(["The merged-into system was not found"])
+    if target.status == "closed" and target.closed_reason == "duplicate":
+        raise ProductValidationError(
+            ["Cannot merge into a system closed as a duplicate"]
+        )
+    seen = {system.id}
+    step: TropicalSystem | None = target
+    while step is not None:
+        if step.id in seen:
+            raise ProductValidationError(
+                ["That merge would make systems continue as each other in a loop"]
+            )
+        seen.add(step.id)
+        step = (
+            await session.get(TropicalSystem, step.continued_as_id)
+            if step.continued_as_id
+            else None
+        )
+
+
 async def update_system(
     session: AsyncSession, system_id: UUID, body: TropicalSystemUpdate, actor: User
 ) -> TropicalSystem:
@@ -387,15 +515,8 @@ async def update_system(
                 raise NotFoundError("Tracked system not found")
             status, reason, continued = _closure(system, body)
             if continued is not None and continued != system.continued_as_id:
-                target = await session.get(TropicalSystem, continued)
-                if target is None:
-                    raise ProductValidationError(
-                        ["The merged-into system was not found"]
-                    )
-                if target.continued_as_id == system.id:
-                    raise ProductValidationError(
-                        ["Two systems cannot continue as each other"]
-                    )
+                await _check_merge_target(session, system, continued)
+            before = _identity(system)
             if body.name is not None:
                 system.name = body.name
             if body.feature_type is not None:
@@ -411,6 +532,18 @@ async def update_system(
             )
             system.updated_by = _actor(actor)
             system.updated_at = func.now()
+            after = _identity(system)
+            if after != before:
+                session.add(
+                    TropicalSystemChange(
+                        system_id=system.id,
+                        actor_id=_actor(actor),
+                        actor_name=actor.full_name or actor.email,
+                        before=before,
+                        after=after,
+                        reason=body.reason,
+                    )
+                )
             await session.flush()
     except IntegrityError as error:
         raise _storm_conflict(error) from error
@@ -450,20 +583,6 @@ async def get_system(session: AsyncSession, system_id: UUID) -> TropicalSystem:
     return system
 
 
-def _published() -> Select[tuple[TropicalSystemEntry]]:
-    """Entries whose revision is the product's current published snapshot."""
-    return (
-        select(TropicalSystemEntry)
-        .join(AuthoredProduct, AuthoredProduct.id == TropicalSystemEntry.product_id)
-        .where(
-            TropicalSystemEntry.action == "publish",
-            AuthoredProduct.published.is_not(None),
-            cast(AuthoredProduct.published["revision"].astext, Integer)
-            == TropicalSystemEntry.revision,
-        )
-    )
-
-
 async def history(
     session: AsyncSession, system_id: UUID, *, published_only: bool
 ) -> list[TropicalSystemEntry]:
@@ -486,24 +605,22 @@ async def history(
 
 
 async def public_active(
-    session: AsyncSession,
+    session: AsyncSession, product_id: UUID, revision: int
 ) -> list[tuple[TropicalSystem, TropicalSystemEntry]]:
-    latest = (
-        _published()
-        .join(TropicalSystem, TropicalSystem.id == TropicalSystemEntry.system_id)
-        .where(TropicalSystem.status == "active")
-        .distinct(TropicalSystemEntry.system_id)
-        .order_by(
-            TropicalSystemEntry.system_id,
-            TropicalSystemEntry.issued_at.desc(),
-            TropicalSystemEntry.revision.desc(),
-        )
-        .subquery()
-    )
+    """Systems listed in one published outlook issue, with that issue's entry.
+
+    The caller passes the most recent current published outlook, so the public
+    tracker lists exactly what the published product lists: renames and closures
+    appear only once an outlook that reflects them is published.
+    """
     rows = await session.execute(
         select(TropicalSystem, TropicalSystemEntry)
-        .join(latest, latest.c.system_id == TropicalSystem.id)
-        .join(TropicalSystemEntry, TropicalSystemEntry.id == latest.c.id)
+        .join(TropicalSystemEntry, TropicalSystemEntry.system_id == TropicalSystem.id)
+        .where(
+            TropicalSystemEntry.product_id == product_id,
+            TropicalSystemEntry.revision == revision,
+            TropicalSystemEntry.action == "publish",
+        )
         .order_by(TropicalSystem.season.desc(), TropicalSystem.sequence.desc())
     )
     return [(row[0], row[1]) for row in rows]

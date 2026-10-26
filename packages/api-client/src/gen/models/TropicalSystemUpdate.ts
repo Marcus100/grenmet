@@ -19,4 +19,8 @@ export type TropicalSystemUpdate = {
   status?: TropicalSystemPublicPropertiesStatusEnum | null;
   closed_reason?: TropicalSystemReadPropertiesClosedReasonAnyOfEnum | null;
   continued_as_id?: string | null;
+  /**
+   * @description Why the change was made (audit trail).
+   */
+  reason?: string | null;
 };

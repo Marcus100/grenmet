@@ -56,7 +56,7 @@ def test_fresh_repeat_and_metadata_isolation(fresh_weather_engine: Engine) -> No
             connection.execute(
                 text("SELECT version_num FROM wxproducts_alembic_version")
             ).scalar_one()
-            == "wxproducts_0003"
+            == "wxproducts_0004"
         )
         assert (
             connection.execute(
@@ -74,6 +74,7 @@ def test_fresh_repeat_and_metadata_isolation(fresh_weather_engine: Engine) -> No
         "aviation_draft_revisions",
         "tropical_systems",
         "tropical_system_entries",
+        "tropical_system_changes",
     }
 
 
@@ -135,6 +136,36 @@ def test_refuses_unverified_database(
             ).scalar_one()
             is None
         )
+
+
+def test_wxproducts_migrations_form_one_chain_with_a_single_head() -> None:
+    from alembic.script import ScriptDirectory
+
+    script = ScriptDirectory.from_config(
+        Config(str(ROOT / "src/wxproducts/alembic.ini"))
+    )
+    assert script.get_heads() == ["wxproducts_0004"]
+
+
+def test_tropical_system_changes_downgrade_drops_only_its_table(
+    fresh_weather_engine: Engine,
+) -> None:
+    migrate(fresh_weather_engine)
+    config = Config(str(ROOT / "src/wxproducts/alembic.ini"))
+    config.attributes["expected_database"] = fresh_weather_engine.url.database
+    with fresh_weather_engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.downgrade(config, "wxproducts_0003")
+    with fresh_weather_engine.connect() as connection:
+        assert (
+            connection.execute(
+                text("SELECT to_regclass('tropical_system_changes')")
+            ).scalar_one()
+            is None
+        )
+        assert connection.execute(
+            text("SELECT to_regclass('tropical_systems')")
+        ).scalar_one()
 
 
 def test_concurrent_migrations_serialize(fresh_weather_engine: Engine) -> None:
