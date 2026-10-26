@@ -1825,7 +1825,15 @@ blocks the save on errors only. A workbook with only identification fields is a
 NIL report (`decoded.is_nil_report`). Optional entries beyond the original
 workbook are the wet bulb (`wet_bulb`), wind gust (`wind_gust`), relative
 humidity (`relative_humidity`) and observer initials (`observer_initials`, not
-an observation value). The endpoint does not save, publish, or
+an observation value). With `observed_at` the endpoint also compares the
+observation with the saved ones 1 and 3 hours earlier (hour-to-hour warnings).
+It returns `expected_metar`, the METAR the observation implies, and when the
+workbook carries a typed `metar_text` it warns (field `metar_text`, codes
+`metar_*`) on every element that disagrees; these never change `valid`. The
+METAR dew point is the decoded one (so a `2 9UUU` humidity group works), and
+cloud is not compared when N is above 0 but no layer group is keyed. Group 908
+is a warning (`unused_supplementary`) until it is confirmed against Vol. I.1. The
+endpoint does not save, publish, or
 transmit an observation; `POST /api/v1/eregister/observations` stores a
 draft (validated, see below). `GET /api/v1/eregister/observations` filters by
 `station_id`, `kind`, `state`, `reviewed` and an exact `observed_at` (the record

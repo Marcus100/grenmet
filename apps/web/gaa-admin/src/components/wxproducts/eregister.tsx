@@ -128,6 +128,7 @@ export function ERegister() {
   const [validationIssues, setValidationIssues] = useState<
     { field: string; message: string; severity?: "error" | "warning" }[]
   >([]);
+  const [expectedMetar, setExpectedMetar] = useState<string | null>(null);
   const [validationState, setValidationState] = useState<
     "idle" | "checking" | "valid" | "invalid" | "error"
   >("idle");
@@ -211,7 +212,10 @@ export function ERegister() {
   async function runValidation(): Promise<boolean> {
     setValidationState("checking");
     const result = await eregisterValidateSynopObservation({
-      body: { workbook: structuredValues },
+      body: {
+        workbook: structuredValues,
+        observed_at: observationDate.toISOString(),
+      },
       throwOnError: false,
     });
     if (result.error || !result.data) {
@@ -219,6 +223,7 @@ export function ERegister() {
       return false;
     }
     setValidationIssues(result.data.issues ?? []);
+    setExpectedMetar(result.data.expected_metar ?? null);
     setValidationState(result.data.valid ? "valid" : "invalid");
     return result.data.valid;
   }
@@ -370,6 +375,7 @@ export function ERegister() {
 
     return (
       <ERegisterWorkbook
+        expectedMetar={expectedMetar}
         issues={validationIssues}
         metarPreview={metarPreview}
         observedAt={observedAt}
@@ -379,9 +385,12 @@ export function ERegister() {
         onValidate={validateDraft}
         onValidationIssuesChange={setValidationIssues}
         onValidationStateChange={setValidationState}
-        onValueChange={(key, value) =>
-          setStructuredValues((current) => ({ ...current, [key]: value }))
-        }
+        onValueChange={(key, value) => {
+          // The checked METAR belongs to the values it was built from: editing
+          // them falls back to the local preview until the next check.
+          if (key !== "metar_text") setExpectedMetar(null);
+          setStructuredValues((current) => ({ ...current, [key]: value }));
+        }}
         saveStatus={saveState}
         send={sends}
         station={station}

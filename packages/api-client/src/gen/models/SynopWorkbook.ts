@@ -80,6 +80,10 @@ export type SynopWorkbook = {
   s3_ground_jjj?: string | null;
   s5_national?: string | null;
   s3_remarks?: string | null;
+  /**
+   * @description The METAR typed or copied by the observer; each element is compared with the observation (warnings only).
+   */
+  metar_text?: string | null;
   observer_initials?: string | null;
   notes?: string | null;
 };

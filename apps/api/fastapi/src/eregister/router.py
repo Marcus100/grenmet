@@ -14,7 +14,7 @@ from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED
 from src.rate_limit import limiter
 
-from . import derive, entries, public, qc, rules, sends, stations
+from . import derive, entries, metar, public, qc, rules, sends, stations
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
     ObservationSend,
@@ -163,7 +163,7 @@ async def list_register_observations(
     "/observations/validate-synop",
     response_model=SynopValidationResponse,
     summary="Validate a SYNOP observation",
-    description="Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns.",
+    description="Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns. With `observed_at`, the station's saved SYNOP of the previous hour and of 3 hours earlier are compared (hour-to-hour warnings). `expected_metar` is the METAR the observation implies; a METAR typed in `metar_text` is compared with it (warnings on that field).",
     responses={**AUTHENTICATED},
 )
 async def validate_synop_observation(
@@ -174,12 +174,24 @@ async def validate_synop_observation(
     # The station's pressure amounts (78958: owner confirmed); none if unknown.
     station = await stations.pressure_for(register, body.workbook.station_id)
     workbook = derive.apply_to_workbook(body.workbook, station)
-    issues, decoded = rules.validate_synop(workbook, station)
+    # The saved observations of the previous hours, for the hour-to-hour warnings.
+    history = (
+        {}
+        if body.observed_at is None
+        else await entries.history_for(
+            register, body.workbook.station_id, body.observed_at
+        )
+    )
+    issues, decoded = rules.validate_synop(workbook, station, history)
     if body.observed_at is not None:
         issues = [*issues, *rules.check_observation_time(workbook, body.observed_at)]
     valid = all(issue.severity != "error" for issue in issues)
     return SynopValidationResponse(
-        valid=valid, issues=issues, normalized=workbook, decoded=decoded
+        valid=valid,
+        issues=issues,
+        normalized=workbook,
+        decoded=decoded,
+        expected_metar=None if decoded.is_nil_report else metar.text(workbook, decoded),
     )
 
 

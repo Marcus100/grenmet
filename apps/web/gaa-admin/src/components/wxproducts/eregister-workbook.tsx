@@ -8,6 +8,8 @@ import { CircleAlert, Mail, Save, Send, TriangleAlert } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 
+const COPY_FEEDBACK_MS = 2000;
+
 interface Station {
   icao: string;
   name: string;
@@ -50,6 +52,7 @@ import {
 } from "./eregister-ui";
 
 interface Props {
+  expectedMetar?: string | null;
   issues: ValidationIssue[];
   metarPreview: string;
   observedAt: string;
@@ -167,6 +170,7 @@ export function ERegisterWorkbook({
   saveStatus,
   send,
   metarPreview,
+  expectedMetar,
   onBack,
   onValueChange,
   onValidationIssuesChange,
@@ -183,8 +187,31 @@ export function ERegisterWorkbook({
   // The sign digit of a signed value ("0254" = sign 0, 280 tenths) is remembered
   // while the digits beside it are still being keyed.
   const [leads, setLeads] = useState<Record<string, string>>({});
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">(
+    "idle"
+  );
   // The grey cells show what the register calculates from the entries.
   const shown = withDerived(values, stationSettings);
+  // Stable keys: the message plus how many identical messages come before it.
+  const metarIssues = issues
+    .filter((issue) => issue.field === "metar_text")
+    .map((issue, position, all) => ({
+      key: `${issue.message}-${all.slice(0, position).filter((earlier) => earlier.message === issue.message).length}`,
+      message: issue.message,
+    }));
+  const copyLabel = { idle: "Copy", copied: "Copied", failed: "Copy failed" }[
+    copyState
+  ];
+  const copyStatus = copyState === "idle" ? "" : copyLabel;
+  async function copyMetar() {
+    try {
+      await navigator.clipboard.writeText(expectedMetar ?? metarPreview);
+      setCopyState("copied");
+    } catch {
+      setCopyState("failed");
+    }
+    setTimeout(() => setCopyState("idle"), COPY_FEEDBACK_MS);
+  }
   const changed = (keys: readonly string[]) => {
     onValidationIssuesChange((current) =>
       current.filter((issue) => !keys.includes(issue.field))
@@ -452,17 +479,52 @@ export function ERegisterWorkbook({
           </div>
         </SectionCard>
         <SectionCard
-          action={<Badge variant="secondary">Preview</Badge>}
+          action={
+            <Badge variant="secondary">
+              {expectedMetar ? "Checked" : "Preview"}
+            </Badge>
+          }
           title="METAR / SPECI"
         >
           <div className="space-y-3 p-4">
             <p className="text-muted-foreground text-xs">
-              SPECI appears only when a configured special-report trigger
-              applies.
+              Built from the observation (SPECI is a special report: the same
+              elements are checked). Copy it, or type the report you send; each
+              element that differs from the observation is flagged.
             </p>
             <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-3 font-mono text-xs">
-              {metarPreview}
+              {expectedMetar ?? metarPreview}
             </code>
+            <div className="flex gap-2">
+              <Input
+                aria-label="METAR or SPECI as sent"
+                className="font-mono text-xs"
+                maxLength={400}
+                onChange={(event) =>
+                  onValueChange("metar_text", event.target.value)
+                }
+                placeholder="METAR TGPY 071200Z 07015KT 9999 FEW018 28/21 Q1016="
+                value={values.metar_text ?? ""}
+              />
+              <Button onClick={copyMetar} type="button" variant="outline">
+                {copyLabel}
+              </Button>
+              <span
+                aria-live="polite"
+                className="sr-only"
+                data-testid="copy-status"
+              >
+                {copyStatus}
+              </span>
+            </div>
+            {metarIssues.map(({ key, message }) => (
+              <p
+                className="text-amber-700 text-xs dark:text-amber-400"
+                key={key}
+              >
+                {message}
+              </p>
+            ))}
           </div>
         </SectionCard>
       </div>
