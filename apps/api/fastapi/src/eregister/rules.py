@@ -468,15 +468,8 @@ def _check_barometer_reading(c: _Checker) -> None:
     value = c.raw("barometer_reading")
     if not c.present("barometer_reading"):
         return
-    try:
-        hpa = float(value)
-    except ValueError:
-        hpa = None
-    if (
-        hpa is None
-        or not value.replace(".", "", 1).isdigit()
-        or not BAROMETER_READING_MIN_HPA <= hpa <= BAROMETER_READING_MAX_HPA
-    ):
+    hpa = float(value) if derive.BAROMETER_FORMAT.fullmatch(value) is not None else None
+    if hpa is None or not BAROMETER_READING_MIN_HPA <= hpa <= BAROMETER_READING_MAX_HPA:
         c.add(
             "barometer_reading",
             "invalid_barometer",
@@ -1380,6 +1373,8 @@ def validate_synop(
     amounts: derive.PressureSettings | None = None,
     history: Mapping[int, SynopWorkbook] | None = None,
     limits: hourly.HourlyLimits | None = None,
+    *,
+    recompute: bool = True,
 ) -> tuple[list[SynopValidationIssue], SynopDecoded]:
     """Check a workbook and decode it to SI values.
 
@@ -1390,9 +1385,11 @@ def validate_synop(
     Pressure groups 3 and 4 (from the barometer as read and the station's
     ``amounts``), visibility in kilometres, dew point, vapour pressure and relative
     humidity are calculated first (``derive``), so everything below sees the
-    coded values. A keyed group 3 or 4 that differs from the rule warns.
+    coded values. A keyed group 3 or 4 that differs from the rule warns. A stored
+    observation is the record: pass ``recompute=False`` to check it as saved.
     """
-    workbook = derive.apply_to_workbook(workbook, amounts)
+    if recompute:
+        workbook = derive.apply_to_workbook(workbook, amounts)
     c = _Checker(workbook)
     _, hour = _check_identification(c)
     direction, speed, gust = _check_wind(c)
@@ -1491,7 +1488,8 @@ def validate_synop(
     )
     if history and not is_nil:
         past = {
-            hours: validate_synop(old, amounts)[1] for hours, old in history.items()
+            hours: validate_synop(old, amounts, recompute=False)[1]
+            for hours, old in history.items()
         }
         c.issues.extend(
             hourly.check(

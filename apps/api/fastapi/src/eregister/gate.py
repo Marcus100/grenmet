@@ -256,8 +256,12 @@ async def release_hour(
     station_id: str,
     observed_at: datetime,
     observation_id: UUID,
+    commit: bool = True,
 ) -> None:
-    """Undo a fresh claim when the publish could not be queued."""
+    """Undo a claim (a publish that could not be queued, a restored draft).
+
+    ``commit=False`` leaves the delete in the caller's transaction.
+    """
     await register.execute(
         text(
             "DELETE FROM observations.publish_gate WHERE station_id = :station"
@@ -265,4 +269,5 @@ async def release_hour(
         ),
         {"station": station_id, "hour": valid_hour(observed_at), "obs": observation_id},
     )
-    await register.commit()
+    if commit:
+        await register.commit()

@@ -12,7 +12,6 @@ import io
 from datetime import UTC, datetime
 from typing import Any
 
-from . import derive
 from .config import Wis2boxConfig
 from .public import RAIN_PERIOD_HOURS
 from .rules import (
@@ -26,6 +25,7 @@ from .schemas import SynopDecoded, SynopWorkbook
 # Code table 1600 (h): lower bound in metres of each class of lowest cloud base.
 LOWEST_CLOUD_BASE_M = (0, 50, 100, 200, 300, 600, 1000, 1500, 2000, 2500)
 FFF_MIN = 99
+FIVE_DIGIT_GROUP = 5
 STATION_TYPE_MANNED = 1
 # 24 h pressure change j1: 8 rise or zero (58), 9 fall (59); validation warns on
 # the legacy 0 / 1 keying, which is still encoded the same way.
@@ -62,17 +62,21 @@ WIS2_COLUMNS = (
 
 
 def workbook_from_body(body: dict[str, Any]) -> SynopWorkbook:
-    """Read a stored observation body (flat, or nested under ``workbook``)."""
+    """Read a stored observation body (flat, or nested under ``workbook``).
+
+    The stored body is the record: calculated fields are filled in when a body is
+    written (create, correct, validate), never on read, so what QC accepted is what
+    is encoded and sent even if the formulas change later.
+    """
     source = body.get("workbook")
     values = source if isinstance(source, dict) else body
-    workbook = SynopWorkbook.model_validate(
+    return SynopWorkbook.model_validate(
         {
             key: value
             for key, value in values.items()
             if key in SynopWorkbook.model_fields and isinstance(value, str)
         }
     )
-    return derive.apply_to_workbook(workbook)
 
 
 def _v(workbook: SynopWorkbook, field: str) -> str:
@@ -219,16 +223,43 @@ def _section3(workbook: SynopWorkbook) -> list[str]:
                 + _slashes(layer[1], 1)
                 + _slashes(layer[2], 2)
             )
+    groups.extend(_special_phenomena(workbook))
+    return groups
+
+
+def _special_phenomena(workbook: SynopWorkbook) -> list[str]:
+    """The 9SpSpspsp groups in ascending SpSp order, each exactly once.
+
+    The gust (910ff, with 00fff after it for 99 and over), the 909 group and the
+    typed groups are merged: 909 comes before 910 and a group typed twice, or typed
+    as well as built from its own field, is sent once. A 00fff group typed after a
+    9SpSpspsp group stays with it. Anything that is not a 9SpSpspsp group follows,
+    as keyed.
+    """
+    units: list[list[str]] = []
+    other: list[str] = []
     gust = _v(workbook, "wind_gust")
     if _present(gust):
-        groups.append(f"910{'99' if len(gust) == THREE_DIGIT_GROUP else gust}")
+        units.append([f"910{'99' if len(gust) == THREE_DIGIT_GROUP else gust}"])
         if len(gust) == THREE_DIGIT_GROUP:
-            groups.append(f"00{gust}")
+            units[-1].append(f"00{gust}")
     group_909 = _v(workbook, "s3_group_909")
-    if _present(group_909):
-        groups.append(group_909)
-    groups.extend(_v(workbook, "s3_special_phenomena").split())
-    return groups
+    typed = [group_909] if _present(group_909) else []
+    typed.extend(_v(workbook, "s3_special_phenomena").split())
+    for token in typed:
+        if len(token) == FIVE_DIGIT_GROUP and token.isdigit() and token[0] == "9":
+            units.append([token])
+        elif units and token.startswith("00") and not other:
+            units[-1].append(token)
+        else:
+            other.append(token)
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for unit in sorted(units, key=lambda item: item[0][:3]):
+        if unit[0] not in seen:
+            seen.add(unit[0])
+            ordered.extend(unit)
+    return [*ordered, *other]
 
 
 def _pressure_change_group(value: str) -> str | None:

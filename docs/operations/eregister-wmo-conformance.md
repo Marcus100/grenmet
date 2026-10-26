@@ -83,6 +83,17 @@ line by line:
   from the dry and wet bulb with the psychrometer equation (`derive.py`). The
   GMS psychrometric table, and how it treats a wet bulb below 0 degrees, are not
   confirmed.
+- *Stored body is the record.* The calculated fields are written into the body
+  when it is saved (validate, create, correct) and are not recomputed when an
+  observation is read, accepted or sent: an accepted keyed dew point stays in the
+  TAC and the WIS2 CSV even if the formulas change later.
+- *Entry formats.* Barometer as read: 3 or 4 digits with at most one decimal
+  (`1013.2`). Visibility: kilometres as plain digits with an optional decimal part;
+  signs, exponents and other digits are refused.
+- *9SpSpspsp order.* Section 3 sends the 909, 910 and typed 9SpSpspsp groups in
+  ascending SpSp order, each once (a 909 typed in both fields, or a gust also typed
+  in `s3_special_phenomena`, is not repeated); a 00fff group stays with the group it
+  follows.
 - *Gust group.* The workbook gust field is encoded as `910ff` (past 10 minutes).
   Whether observers mean `910ff` or `911ff` (highest gust since the previous
   main observation) was unconfirmed. The paper register settles it: see

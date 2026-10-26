@@ -43,7 +43,10 @@ def validation_issues(
     observed_at: datetime,
     station: derive.PressureSettings | None = None,
     history: dict[int, SynopWorkbook] | None = None,
+    *,
+    stored: bool = False,
 ) -> list[SynopValidationIssue]:
+    """Issues for a body. ``stored`` checks a saved body as it is (the record)."""
     try:
         workbook = encode.workbook_from_body(body)
     except ValidationError as exc:
@@ -58,7 +61,9 @@ def validation_issues(
             )
             for error in exc.errors()
         ]
-    issues, _decoded = rules.validate_synop(workbook, station, history)
+    issues, _decoded = rules.validate_synop(
+        workbook, station, history, recompute=not stored
+    )
     return [*issues, *rules.check_observation_time(workbook, observed_at)]
 
 
@@ -116,9 +121,11 @@ def require_valid_synop(
     observed_at: datetime,
     station: derive.PressureSettings | None = None,
     history: dict[int, SynopWorkbook] | None = None,
+    *,
+    stored: bool = False,
 ) -> None:
     """422 with the issues when the coded workbook has errors; warnings pass."""
-    issues = validation_issues(body, observed_at, station, history)
+    issues = validation_issues(body, observed_at, station, history, stored=stored)
     errors = [issue for issue in issues if issue.severity == "error"]
     if errors:
         summary = "; ".join(f"{i.field}: {i.message}" for i in errors[:ISSUE_PREVIEW])
@@ -352,7 +359,7 @@ def listing_row(
     item.actor_name = names.get(str(row["actor_id"]))
     if row["kind"] == "SYNOP":
         body = row["body"] or {}
-        item.issues = validation_issues(body, row["observed_at"], station)
+        item.issues = validation_issues(body, row["observed_at"], station, stored=True)
         try:
             item.coded = encode.synop_tac(encode.workbook_from_body(body))
         except ValueError, TypeError:

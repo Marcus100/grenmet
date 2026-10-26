@@ -552,7 +552,10 @@ async def get_station_settings(
     response_model=StationSettings,
     summary="Set the station pressure amounts",
     description=(
-        "Replaces all four amounts (send null to clear one). Requires `eregister.qc`."
+        "Replaces all four amounts; every key is required and an explicit null "
+        "clears one. The change is recorded in the change history (entity "
+        "`eregister_station_settings`) with the amounts before and after and the "
+        "actor. Requires `eregister.qc`."
     ),
     responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
 )
@@ -561,13 +564,18 @@ async def put_station_settings(
     body: StationSettingsUpdate,
     user: BrowserUser,
     session: RegisterSession,
+    app_session: SessionDep,
     response: Response,
 ) -> StationSettings:
     require_permission(current_user=user, permission_key="eregister.qc")
     response.headers["Cache-Control"] = "no-store"
-    saved = await stations.update(session, station_id.strip(), body, actor=str(user.id))
-    if saved is None:
+    station = station_id.strip()
+    before, saved = await stations.update(session, station, body, actor=str(user.id))
+    if before is None or saved is None:
         raise HTTPException(404, "Unknown station")
+    await stations.record_change(
+        app_session, user=user, station_id=station, before=before, after=saved
+    )
     return saved
 
 
