@@ -115,6 +115,7 @@ import httpx
 import pytest
 import resend
 from sqlalchemy import text
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -246,34 +247,41 @@ def weather_engine(request: pytest.FixtureRequest) -> Generator[Engine]:
             )
 
 
+# Ledgers that refuse DELETE by a row trigger; cleanup lifts it inside the same
+# transaction (DDL is transactional) and restores it before commit.
+_APPEND_ONLY = (
+    ("rewards.entry", "entry_append_only"),
+    ("payments.ledger_entry", "ledger_entry_append_only"),
+    ("events.activity", "activity_append_only"),
+)
+_clear_sql: str | None = None
+
+
+def _clear_statement() -> str:
+    """One server-side block that empties every table in dependency order.
+
+    Sending it as a single statement replaces 175 separate DELETE round trips.
+    Row deletes are kept on purpose: TRUNCATE recreates each table's files, and
+    with several workers the resulting checkpoint backlog stalled DROP DATABASE
+    for minutes.
+    """
+    global _clear_sql
+    if _clear_sql is None:
+        off = [f"ALTER TABLE {t} DISABLE TRIGGER {g};" for t, g in _APPEND_ONLY]
+        on = [f"ALTER TABLE {t} ENABLE TRIGGER {g};" for t, g in _APPEND_ONLY]
+        dialect = postgresql.dialect()
+        deletes = [
+            f"{table.delete().compile(dialect=dialect)};"
+            for table in reversed(Base.metadata.sorted_tables)
+        ]
+        _clear_sql = "DO $$ BEGIN\n" + "\n".join([*off, *deletes, *on]) + "\nEND $$;"
+    return _clear_sql
+
+
 async def _clear_database_async(session: AsyncSession) -> None:
     """Clear app tables in dependency order so FK constraints are respected."""
     await session.rollback()
-    # The rewards ledger refuses DELETE by trigger; test cleanup lifts it inside
-    # this one transaction (DDL is transactional) and restores it before commit.
-    ledger = "rewards.entry"
-    await session.execute(
-        text(f"ALTER TABLE {ledger} DISABLE TRIGGER entry_append_only")
-    )
-    payments_ledger = "payments.ledger_entry"
-    await session.execute(
-        text(f"ALTER TABLE {payments_ledger} DISABLE TRIGGER ledger_entry_append_only")
-    )
-    events_activity = "events.activity"
-    await session.execute(
-        text(f"ALTER TABLE {events_activity} DISABLE TRIGGER activity_append_only")
-    )
-    for table in reversed(Base.metadata.sorted_tables):
-        await session.execute(table.delete())
-    await session.execute(
-        text(f"ALTER TABLE {ledger} ENABLE TRIGGER entry_append_only")
-    )
-    await session.execute(
-        text(f"ALTER TABLE {payments_ledger} ENABLE TRIGGER ledger_entry_append_only")
-    )
-    await session.execute(
-        text(f"ALTER TABLE {events_activity} ENABLE TRIGGER activity_append_only")
-    )
+    await session.execute(text(_clear_statement()))
     await session.commit()
 
 
@@ -332,13 +340,17 @@ def disable_rate_limiting() -> Generator[None]:
 
 @pytest.fixture
 async def db_async(test_database: None) -> AsyncGenerator[AsyncSession]:
-    """Async database session. Ensures superuser exists; cleans up users on teardown."""
+    """Async database session on a freshly cleared and seeded database.
+
+    The database is cleared before each test, not after: the next test clears it
+    anyway, so a second clear only cost time (about 90 ms a test).
+    """
     assert test_database is None
     async with async_session_factory() as session:
         await _clear_database_async(session)
         await init_db_async(session)
         yield session
-        await _clear_database_async(session)
+        await session.rollback()
 
 
 @pytest.fixture
@@ -379,7 +391,13 @@ def mfa_admin(
 
 @pytest.fixture
 async def async_client(test_database: None) -> AsyncGenerator[httpx.AsyncClient]:
-    """Preferred client for new tests: async HTTP client with ASGI transport (avoids event loop issues)."""
+    """Preferred client for new tests: async HTTP client with ASGI transport (avoids event loop issues).
+
+    Only ``db_async`` clears and seeds the database, and it does so before its test.
+    A test that uses this client without ``db_async`` sees what the previous test on
+    the worker left behind, so add ``db_async`` (or
+    ``@pytest.mark.usefixtures("db_async")``) when the test reads or counts shared rows.
+    """
     assert test_database is None
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app),

@@ -221,6 +221,16 @@ async def _create_step_instances_for_workflow(
         session.add(step_instance)
 
 
+def _is_attendance_review(entity_type: str, workflow_type: WorkflowType) -> bool:
+    """Attendance and its corrections are the only reviews an employee may submit
+    for a department they were transferred out of (same organisation); leave and
+    every other form stay bound to the current employment department."""
+    return workflow_type == WorkflowType.TIMESHEET and entity_type in {
+        "attendance",
+        "attendance_correction",
+    }
+
+
 async def create_workflow_instance(
     *,
     session: AsyncSession,
@@ -260,7 +270,14 @@ async def create_workflow_instance(
     from src.baseline.models import ApprovalPolicy
     from src.baseline.service import require_ready
 
-    await require_ready(session, current_user.id, workflow_template.department_id)
+    await require_ready(
+        session,
+        current_user.id,
+        workflow_template.department_id,
+        own_prior_department=_is_attendance_review(
+            instance_in.entity_type, workflow_template.workflow_type
+        ),
+    )
     policy = await session.get(
         ApprovalPolicy,
         f"hr:{workflow_template.department_id}:{workflow_template.workflow_type.value}",
@@ -630,6 +647,9 @@ async def apply_workflow_action(
             session,
             workflow_instance.requested_by_user_id,
             workflow_instance.department_id,
+            own_prior_department=_is_attendance_review(
+                workflow_instance.entity_type, workflow_instance.workflow_type
+            ),
         )
         if workflow_instance.entity_type == "leave_request":
             from src.hr.leave.models import LeaveRequest

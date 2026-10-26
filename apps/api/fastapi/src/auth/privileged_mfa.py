@@ -12,6 +12,12 @@ from src.auth.models import Session as LoginSession
 from src.auth.models import User
 from src.auth.utils import ALGORITHM
 
+# Stable machine-readable suffix of the 403 detail (the detail still starts with
+# "Set up two-step verification", which GAA Admin and the auth app match to send
+# the person to account security) for a privileged account that
+# has not enrolled an authenticator. Account security stays reachable to enrol.
+ENROLMENT_REQUIRED_CODE = "mfa_enrolment_required"
+
 # Anyone who can manage users or approve/publish CAP warnings is privileged.
 PRIVILEGED_PERMISSION_KEYS = (
     "user.manage",
@@ -65,7 +71,9 @@ async def require_mfa_session(
     if not user.totp_enabled or not totp.is_encrypted(user.totp_secret):
         raise HTTPException(
             403,
-            "Set up two-step verification and save recovery codes in account security before using privileged staff tools",
+            "Set up two-step verification and save recovery codes in account "
+            "security before using privileged staff tools "
+            f"({ENROLMENT_REQUIRED_CODE})",
         )
     if (
         login_session is None

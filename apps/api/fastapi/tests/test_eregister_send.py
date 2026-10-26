@@ -24,7 +24,17 @@ from alembic import command
 from src.audit.models import AuditEntry
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
-from src.eregister import encode, gate, publisher, rules, sends, store
+from src.eregister import (
+    derive,
+    encode,
+    entries,
+    gate,
+    publisher,
+    qc,
+    rules,
+    sends,
+    store,
+)
 from src.eregister.config import Wis2boxConfig
 from src.eregister.dependencies import get_session
 from src.eregister.models import ERegisterSend
@@ -95,6 +105,14 @@ def test_tac_assembles_the_keyed_groups_in_section_order() -> None:
 
 def test_tac_nil_report_is_identification_only() -> None:
     assert encode.synop_tac(SynopWorkbook.model_validate(NIL_ROW)) == (
+        "AAXX 30124 78958 NIL="
+    )
+
+
+def test_tac_a_typed_metar_alone_does_not_make_a_data_report() -> None:
+    # metar_text is not SYNOP data: validation calls this NIL, so the TAC must too.
+    row = {**NIL_ROW, "metar_text": "METAR TGPY 301200Z 07015KT 9999 NSC 28/21 Q1013="}
+    assert encode.synop_tac(SynopWorkbook.model_validate(row)) == (
         "AAXX 30124 78958 NIL="
     )
 
@@ -792,6 +810,44 @@ async def test_review_is_optional_recorded_and_never_blocks_sending(
     del observer
 
 
+async def updated_at_of(client: httpx.AsyncClient, observation: str) -> str:
+    listed = (await client.get("/api/v1/eregister/observations")).json()
+    return next(o for o in listed["observations"] if o["id"] == observation)[
+        "updated_at"
+    ]
+
+
+async def test_review_of_a_reading_changed_after_it_was_opened_is_a_conflict(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    observation = await save(client)
+    # Saved a minute ago, so the re-save below moves the second the API reports.
+    await register_exec(
+        "UPDATE register_observations SET updated_at = now() - interval '1 minute'"
+        " WHERE id = :i",
+        i=observation,
+    )
+    seen = await updated_at_of(client, observation)
+    # The observer re-saves after the reviewer opened the record.
+    edited = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    again = await client.post(OBS_URL, json=record(body=edited))
+    assert again.status_code == 200, again.text
+    await as_staff(db_async, "eregister.send")
+    stale = await client.post(
+        qc_url(observation, "review"),
+        json={"outcome": "reviewed", "updated_at": seen},
+    )
+    assert stale.status_code == 409, stale.text
+    current = await updated_at_of(client, observation)
+    assert current != seen
+    fresh = await client.post(
+        qc_url(observation, "review"),
+        json={"outcome": "reviewed", "updated_at": current},
+    )
+    assert fresh.status_code == 200, fresh.text
+
+
 async def test_review_is_refused_for_rejected_observations(
     send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
 ) -> None:
@@ -986,6 +1042,29 @@ async def test_save_allows_warnings_and_does_not_validate_aviation_text(
     assert ok.status_code == 201, ok.text
     metar = await client.post(OBS_URL, json=record(kind="METAR", body={"x": "y"}))
     assert metar.status_code == 201
+
+
+async def test_a_failing_history_query_does_not_break_saving_or_correcting(
+    send_client: tuple[httpx.AsyncClient, User], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    client, _ = send_client
+    real_text = entries.text
+
+    def broken_history(sql: str) -> Any:
+        # Only the hour-to-hour history query fails; the transaction goes on.
+        if "ORDER BY created_at DESC LIMIT 1" in sql:
+            return real_text("SELECT body FROM no_such_history_table")
+        return real_text(sql)
+
+    monkeypatch.setattr(entries, "text", broken_history)
+    first = await client.post(OBS_URL, json=record())
+    assert first.status_code == 201, first.text
+    edited = {**FULL_ROW, "air_temp": "0291", "source": "eregister-workbook"}
+    corrected = await client.post(
+        f"{OBS_URL}/{first.json()['id']}/correct",
+        json={"body": edited, "reason": "typo in the air temperature"},
+    )
+    assert corrected.status_code == 201, corrected.text
 
 
 async def test_resaving_the_same_hour_updates_the_observers_own_draft(
@@ -1780,6 +1859,314 @@ async def test_rejecting_a_correction_that_took_the_gate_gives_it_back(
     await as_staff(db_async, "eregister.send")
     published = await client.post(f"/api/v1/eregister/observations/{original}/publish")
     assert published.status_code == 202, published.text
+
+
+# --- follow-ups: stored body is the record, group order, restore edge cases ---
+
+
+def test_field_built_909_and_910_are_sent_once_as_before() -> None:
+    tac = encode.synop_tac(
+        workbook(wind_gust="25", s3_group_909="90912", s3_special_phenomena="90912")
+    )
+    assert tac.endswith(" 91025 90912=")
+    assert tac.count("90912") == 1
+
+
+def test_typed_special_groups_keep_the_order_keyed_with_their_time_groups() -> None:
+    typed = "90403 93205 90710 91130"
+    tac = encode.synop_tac(workbook(wind_gust="", s3_special_phenomena=typed))
+    assert tac.endswith(f" {typed}=")
+
+
+def test_typed_groups_follow_the_field_built_ones_in_the_old_order() -> None:
+    tac = encode.synop_tac(
+        workbook(
+            wind_gust="25", s3_group_909="90912", s3_special_phenomena="90403 93205"
+        )
+    )
+    assert tac.endswith(" 91025 90912 90403 93205=")
+
+
+def test_a_typed_group_with_a_built_prefix_is_dropped_whatever_its_value() -> None:
+    tac = encode.synop_tac(
+        workbook(wind_gust="25", s3_special_phenomena="91030 90403 93205")
+    )
+    assert tac.endswith(" 91025 90403 93205=")
+    assert "91030" not in tac
+
+
+def test_a_typed_910_with_its_00fff_is_dropped_with_it() -> None:
+    tac = encode.synop_tac(
+        workbook(wind_gust="110", s3_special_phenomena="91099 00120 93205")
+    )
+    assert tac.endswith(" 91099 00110 93205=")
+    assert "00120" not in tac
+
+
+def test_a_duplicate_of_a_dedicated_field_warns() -> None:
+    for changes, group in (
+        ({"wind_gust": "25", "s3_special_phenomena": "91030"}, "91030"),
+        ({"s3_group_909": "90912", "s3_special_phenomena": "90934"}, "90934"),
+    ):
+        issues, _ = rules.validate_synop(workbook(**changes))
+        found = [i for i in issues if i.code == "duplicate_special_group"]
+        assert [(i.field, i.severity) for i in found] == [
+            ("s3_special_phenomena", "warning")
+        ]
+        assert group in found[0].message
+        assert "dedicated field wins" in found[0].message
+
+
+def test_a_three_digit_gust_keeps_its_00fff_group_and_is_not_repeated() -> None:
+    tac = encode.synop_tac(
+        workbook(
+            wind_gust="110", s3_group_909="90912", s3_special_phenomena="91099 00110"
+        )
+    )
+    assert tac.endswith(" 91099 00110 90912=")
+    assert tac.count("91099") == 1
+    assert tac.count("00110") == 1
+
+
+@pytest.mark.usefixtures("incoming")
+async def test_an_accepted_dew_point_is_sent_as_stored(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,
+) -> None:
+    """Reading a stored body never recomputes it: what QC accepted is what is sent."""
+    client, _ = send_client
+    observation = await save(client, accepted=True)
+    # The wet bulb would give another dew point than the keyed 21.3.
+    keyed = {**FULL_ROW, "wet_bulb": "250", "source": "eregister-workbook"}
+    assert derive.derived_fields(keyed)["dew_point"] != "213"
+    await set_body(observation, keyed)
+    assert " 20213 " in encode.synop_tac(encode.workbook_from_body(keyed))
+    listed = (await client.get(OBS_URL)).json()["observations"]
+    assert " 20213 " in listed[0]["coded"]
+    assert (await client.post(publish_url(observation))).status_code == 202
+    await publisher.process_due_publications(
+        session=db_async, config=sends.wis2box_settings
+    )
+    [csv_file] = found(incoming, "wmo_data_*.csv")
+    row = next(csv.DictReader(io.StringIO(csv_file.read_text())))
+    assert row["dewpoint_temperature"] == "294.45"
+
+
+async def _correction_of(
+    client: httpx.AsyncClient, original: str, reason: str = "typo"
+) -> str:
+    fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    fixed = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": reason}
+    )
+    assert fixed.status_code == 201, fixed.text
+    return str(fixed.json()["id"])
+
+
+async def _state_and_notes(observation: str) -> dict[str, Any]:
+    [row] = await register_rows(
+        "SELECT state, qc_notes, superseded_from FROM register_observations"
+        " WHERE id = :i",
+        i=observation,
+    )
+    return row
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_restored_original_gets_its_exact_notes_back(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    assert (
+        await client.post(
+            qc_url(original, "accept"), json={"reason": "Checked against the chart"}
+        )
+    ).status_code == 200
+    correction = await _correction_of(client, original)
+    await as_staff(db_async)
+    rejected = await client.post(
+        qc_url(correction, "reject"), json={"reason": "Not needed"}
+    )
+    assert rejected.status_code == 200, rejected.text
+    assert await _state_and_notes(original) == {
+        "state": "accepted",
+        "qc_notes": "Checked against the chart",
+        "superseded_from": None,
+    }
+    # The restore entry records the real change: the correction reason out, the
+    # restored notes in.
+    restore = (
+        await db_async.scalars(
+            select(AuditEntry).where(
+                AuditEntry.entity_id == original, AuditEntry.action == "restore"
+            )
+        )
+    ).one()
+    changes = {c["field"]: (c["old"], c["new"]) for c in restore.changes}
+    assert changes["qc_notes"] == ("typo", "Checked against the chart")
+    assert changes["state"] == ("superseded", "accepted")
+    # The original holds the hour again, so the rejected correction stays rejected.
+    reopened = await client.post(
+        qc_url(correction, "reopen"), json={"reason": "Second thoughts"}
+    )
+    assert reopened.status_code == 409, reopened.text
+    assert (await _state_and_notes(correction))["state"] == "rejected"
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_save_that_wins_the_hour_during_a_reject_is_a_conflict(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    correction = await _correction_of(client, original)
+    await as_staff(db_async)
+
+    async def lost_race(*_args: Any, **_kwargs: Any) -> None:
+        # What the unique index raises when a save took the hour first.
+        raise IntegrityError("INSERT", {}, Exception("one live row per hour"))
+
+    monkeypatch.setattr(qc, "_restore_original", lost_race)
+    refused = await client.post(
+        qc_url(correction, "reject"), json={"reason": "Wrong again"}
+    )
+    assert refused.status_code == 409, refused.text
+    assert "holds this hour" in refused.json()["detail"]
+    # Nothing moved: the correction is still pending and the original superseded.
+    assert (await _state_and_notes(correction))["state"] == "draft"
+    assert (await _state_and_notes(original))["state"] == "superseded"
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_row_superseded_before_0005_with_a_held_file_is_restored(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    assert (await client.post(qc_url(original, "accept"))).status_code == 200
+    correction = await _correction_of(client, original)
+    # What a row superseded before migration 0005 looks like: it remembers nothing.
+    await register_exec(
+        "UPDATE register_observations SET superseded_from = NULL,"
+        " superseded_qc_notes = NULL WHERE id = :i",
+        i=original,
+    )
+    held = (
+        await db_async.scalars(
+            select(ERegisterSend).where(ERegisterSend.target == "wis2")
+        )
+    ).one()
+    await db_async.refresh(held)
+    assert (held.detail or {}).get("held_for_correction")
+    await as_staff(db_async)
+    assert (
+        await client.post(qc_url(correction, "reject"), json={"reason": "Not needed"})
+    ).status_code == 200
+    # It held a WIS2 file, so it was accepted; the file is released with the restore.
+    assert (await _state_and_notes(original))["state"] == "accepted"
+    await db_async.refresh(held)
+    assert not (held.detail or {}).get("held_for_correction")
+    holders = await register_rows(
+        "SELECT observation_id FROM observations.publish_gate"
+    )
+    assert [str(r["observation_id"]) for r in holders] == [original]
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_row_superseded_before_0005_without_a_file_is_not_guessed(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    correction = await _correction_of(client, original)
+    await register_exec(
+        "UPDATE register_observations SET superseded_from = NULL WHERE id = :i",
+        i=original,
+    )
+    await as_staff(db_async)
+    assert (
+        await client.post(qc_url(correction, "reject"), json={"reason": "Not needed"})
+    ).status_code == 200
+    # No way to know its earlier state: it stays superseded, and no restore is audited.
+    assert (await _state_and_notes(original))["state"] == "superseded"
+    restores = (
+        await db_async.scalars(
+            select(AuditEntry).where(
+                AuditEntry.entity_id == original, AuditEntry.action == "restore"
+            )
+        )
+    ).all()
+    assert restores == []
+
+
+async def test_a_gate_held_by_a_correction_is_released_for_a_draft_original(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    correction = await _correction_of(client, original)
+    # The correction had the hour (it was accepted, then reopened).
+    await register_exec(
+        "INSERT INTO observations.publish_gate"
+        " (station_id, valid_hour, source, observation_id)"
+        " VALUES ('78958', :hour, 'manual', :obs)",
+        hour=OBSERVED,
+        obs=correction,
+    )
+    await as_staff(db_async)
+    assert (
+        await client.post(qc_url(correction, "reject"), json={"reason": "Not needed"})
+    ).status_code == 200
+    assert (await _state_and_notes(original))["state"] == "draft"
+    # A draft was never published, so it must not hold the hour.
+    assert (
+        await register_rows("SELECT observation_id FROM observations.publish_gate")
+        == []
+    )
+
+
+def test_the_0005_downgrade_drops_its_columns(fresh_weather_engine: Engine) -> None:
+    config = Config(str(ROOT / "src/eregister/alembic.ini"))
+    config.attributes["expected_database"] = fresh_weather_engine.url.database
+    columns = text(
+        "SELECT column_name FROM information_schema.columns"
+        " WHERE table_name = 'register_observations'"
+        " AND column_name IN ('superseded_from', 'superseded_qc_notes')"
+    )
+    with fresh_weather_engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "head")
+        assert len(connection.execute(columns).all()) == 2
+        command.downgrade(config, "eregister_0004")
+        assert connection.execute(columns).all() == []
+        command.upgrade(config, "head")
+        assert len(connection.execute(columns).all()) == 2
+
+
+async def test_a_stored_row_is_not_judged_by_later_station_amounts(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    await save(client, {**FULL_ROW, "barometer_reading": "1015.3"})
+    settings = "/api/v1/eregister/stations/78958/settings"
+    amounts = (await client.get(settings)).json()
+    changed = {
+        key: amounts[key]
+        for key in (
+            "total_correction_hpa",
+            "qfe_offset_hpa",
+            "sea_level_offset_hpa",
+            "qnh_offset_hpa",
+        )
+    }
+    changed["sea_level_offset_hpa"] = 2.0
+    assert (await client.put(settings, json=changed)).status_code == 200
+    [row] = (await client.get(OBS_URL)).json()["observations"]
+    assert not [i for i in row["issues"] if i["code"].endswith("_mismatch")]
 
 
 def test_the_register_migrations_form_one_chain_with_a_single_head() -> None:

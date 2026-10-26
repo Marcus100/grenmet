@@ -293,7 +293,7 @@ def main() -> None:
         session.commit()
 
     logger.info("HR leave demo seed complete.")
-    logger.info("All demo users share the password: %s", PASSWORD)
+    logger.info("All demo users share the PASSWORD set in this script.")
     logger.info(
         "Log in as demo.requester@barrels.gd, submit a leave request picking "
         "demo.peer1/peer2 as co-approvers, then approve as each peer, then "

@@ -87,6 +87,11 @@ class SynopWorkbook(BaseModel):
     s3_ground_jjj: str | None = Field(default=None, max_length=3)
     s5_national: str | None = Field(default=None, max_length=400)
     s3_remarks: str | None = Field(default=None, max_length=4000)
+    metar_text: str | None = Field(
+        default=None,
+        max_length=400,
+        description="The METAR typed or copied by the observer; each element is compared with the observation (warnings only).",
+    )
     observer_initials: str | None = Field(default=None, max_length=4)
     notes: str | None = Field(default=None, max_length=4000)
 
@@ -144,6 +149,10 @@ class SynopValidationResponse(BaseModel):
     issues: list[SynopValidationIssue] = Field(default_factory=list)
     normalized: SynopWorkbook
     decoded: SynopDecoded = Field(default_factory=SynopDecoded)
+    expected_metar: str | None = Field(
+        default=None,
+        description="The METAR the observation implies, for the observer to copy and edit.",
+    )
 
 
 class RegisterObservationWrite(BaseModel):
@@ -226,6 +235,13 @@ class ReviewRequest(BaseModel):
         max_length=1000,
         description="Required for a query; optional for reviewed.",
     )
+    updated_at: Annotated[UtcDateTime, AwareDatetime()] | None = Field(
+        default=None,
+        description=(
+            "`updated_at` of the record the reviewer opened. When sent and the "
+            "record changed since, the review is refused with 409."
+        ),
+    )
 
 
 class QcDecisionRequest(BaseModel):
@@ -273,10 +289,12 @@ class StationSettings(BaseModel):
 
 
 class StationSettingsUpdate(BaseModel):
-    total_correction_hpa: float | None = Field(default=None, ge=-20, le=20)
-    qfe_offset_hpa: float | None = Field(default=None, ge=-20, le=20)
-    sea_level_offset_hpa: float | None = Field(default=None, ge=-20, le=20)
-    qnh_offset_hpa: float | None = Field(default=None, ge=-20, le=20)
+    """All four amounts are required: send an explicit null to clear one."""
+
+    total_correction_hpa: float | None = Field(ge=-20, le=20)
+    qfe_offset_hpa: float | None = Field(ge=-20, le=20)
+    sea_level_offset_hpa: float | None = Field(ge=-20, le=20)
+    qnh_offset_hpa: float | None = Field(ge=-20, le=20)
 
 
 PressureTrend = Literal["rising", "steady", "falling"]

@@ -34,11 +34,15 @@ test("deployment probes the real sign-in route and requires its form", async () 
   assert.ok(urls.some((url) => url === "https://auth.staging.example.test/"));
   // The portal host is retried while its certificate is issued (first deploy).
   let portalCalls = 0;
-  await checkDeployment("staging.example.test", (url) =>
-    new URL(url).hostname.startsWith("gms.") && (portalCalls += 1) <= 2
-      ? Promise.reject(new Error("TLS handshake not ready"))
-      : fetcher(url)
-  );
+  await checkDeployment("staging.example.test", (url) => {
+    if (new URL(url).hostname.startsWith("gms.")) {
+      portalCalls += 1;
+      if (portalCalls <= 2) {
+        return Promise.reject(new Error("TLS handshake not ready"));
+      }
+    }
+    return fetcher(url);
+  });
   assert.ok(portalCalls >= 3);
   await assert.rejects(
     checkDeployment("staging.example.test", (url) =>

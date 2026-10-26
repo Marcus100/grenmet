@@ -200,3 +200,43 @@ def test_outlook_draft_shape_is_strict(values: dict[str, str]) -> None:
             )
             == {}
         )
+
+
+ALERT_KINDS = [
+    kind
+    for kind in get_args(ProductKind)
+    if "level" in {f.key for f in validation.FIELDS[kind]}
+]
+
+
+@pytest.mark.parametrize("kind", ALERT_KINDS)
+@pytest.mark.parametrize("level", ["Yellow", "Amber", "Orange", "Red"])
+@pytest.mark.parametrize("action", ["draft", "publish"])
+def test_alerts_refuse_levels_above_green_on_write(kind, level, action) -> None:
+    payload = body(kind, action=action)
+    payload.values["level"] = level
+    errors = validation.validate(payload, now=NOW)
+    assert any("green only" in error for error in errors)
+
+
+@pytest.mark.parametrize("kind", ALERT_KINDS)
+def test_alerts_offer_green_and_only_information_advisory_all_clear(kind) -> None:
+    rules = {f.key: f for f in validation.FIELDS[kind]}
+    assert rules["level"].options == ["Green"]
+    assert rules["notice"].options == ["Information", "Advisory", "All clear"]
+    for notice in ("Watch", "Warning"):
+        payload = body(kind, action="draft")
+        payload.values["notice"] = notice
+        errors = validation.validate(payload, now=NOW)
+        assert any("green only" in error for error in errors)
+
+
+def test_old_alert_can_still_be_withdrawn() -> None:
+    # Saved revisions are never re-validated: withdrawing checks only the reason.
+    payload = body(
+        "marine",
+        action="withdraw",
+        values={"level": "Red", "notice": "Warning"},
+        changeSummary="Raised to a CAP warning",
+    )
+    assert validation.validate(payload, now=NOW) == []

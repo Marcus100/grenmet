@@ -9,7 +9,7 @@ timesheet rules are the manual ones); a rejected or pending punch never reaches
 import uuid
 from datetime import UTC, date, datetime
 
-from sqlalchemy import ColumnElement, and_, func, or_, select
+from sqlalchemy import ColumnElement, and_, false, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -41,10 +41,11 @@ def _aware(value: datetime) -> datetime:
 
 async def _review_scope(
     session: AsyncSession, actor: User
-) -> tuple[set[str], set[str]]:
-    """(organisations with ALL scope, departments with DEPARTMENT scope) in which
-    the actor holds the review permission. SELF scope covers one's own records,
-    which are never reviewable, so it grants nothing here."""
+) -> tuple[set[str], set[str], bool]:
+    """(organisations with ALL scope, departments with DEPARTMENT scope, whether any
+    live assignment carries the review permission) for the actor. SELF scope covers
+    one's own records, which are never reviewable, so it grants no scope here; a
+    lapsed or revoked assignment counts for nothing, including for a named supervisor."""
     role_ids = {
         role.id
         for role in actor.roles
@@ -52,9 +53,11 @@ async def _review_scope(
     }
     organisation_ids: set[str] = set()
     department_ids: set[str] = set()
+    holds_role = False
     for assignment in await organisations.active_assignments(session, actor.id):
         if assignment.role_id not in role_ids:
             continue
+        holds_role = True
         if assignment.scope == RoleAssignmentScope.ALL:
             organisation_ids.add(assignment.organisation_id)
         elif (
@@ -62,7 +65,7 @@ async def _review_scope(
             and assignment.department_id
         ):
             department_ids.add(assignment.department_id)
-    return organisation_ids, department_ids
+    return organisation_ids, department_ids, holds_role
 
 
 async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]:
@@ -78,28 +81,35 @@ async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]
     strand a punch its original manager was shown.
 
     The employee-keyed clauses (current department, organisation, supervisor)
-    rely on the write-path guard that refuses cross-organisation transfers, so
-    an employee's current organisation is the one their punches were made in.
+    also require the employee's organisation to be that of the punch's department,
+    so a stale or cross-organisation employment record can never widen access.
     """
     never_own = ClockPunch.user_id != actor.id
     if actor.is_superuser:
         return never_own
-    organisation_ids, department_ids = await _review_scope(session, actor)
-    employed = EmploymentRecord.user_id
-    grants: list[ColumnElement[bool]] = [
-        ClockPunch.user_id.in_(
-            select(employed).where(EmploymentRecord.supervisor_id == actor.id)
+    organisation_ids, department_ids, holds_role = await _review_scope(session, actor)
+    if not holds_role:
+        return false()
+
+    def employees(*conditions: ColumnElement[bool]) -> ColumnElement[bool]:
+        """Punches by employees matching ``conditions`` whose employment is in the
+        organisation of the punch's own department (defence in depth)."""
+        return ClockPunch.user_id.in_(
+            select(EmploymentRecord.user_id)
+            .join(
+                Department,
+                Department.organisation_id == EmploymentRecord.organisation_id,
+            )
+            .where(Department.id == ClockPunch.department_id, *conditions)
+            .correlate(ClockPunch)
         )
+
+    grants: list[ColumnElement[bool]] = [
+        employees(EmploymentRecord.supervisor_id == actor.id)
     ]
     if department_ids:
         grants.append(ClockPunch.department_id.in_(department_ids))
-        grants.append(
-            ClockPunch.user_id.in_(
-                select(employed).where(
-                    EmploymentRecord.department_id.in_(department_ids)
-                )
-            )
-        )
+        grants.append(employees(EmploymentRecord.department_id.in_(department_ids)))
     if organisation_ids:
         grants.append(
             ClockPunch.department_id.in_(
@@ -108,13 +118,7 @@ async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]
                 )
             )
         )
-        grants.append(
-            ClockPunch.user_id.in_(
-                select(employed).where(
-                    EmploymentRecord.organisation_id.in_(organisation_ids)
-                )
-            )
-        )
+        grants.append(employees(EmploymentRecord.organisation_id.in_(organisation_ids)))
     return and_(never_own, or_(*grants))
 
 

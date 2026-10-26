@@ -131,6 +131,15 @@ it.each([
   );
 });
 
+it.each(["1013.25", "1e3", "+1013", "1013."])(
+  "works out no pressure groups from %s (not a plain reading)",
+  (reading) => {
+    expect(
+      pressureFields({ barometer_reading: reading }, STATION_78958)
+    ).toEqual({});
+  }
+);
+
 it("keeps keyed groups 3 and 4 and works QFE and QNH from them", () => {
   const values = {
     barometer_reading: "1012.8",

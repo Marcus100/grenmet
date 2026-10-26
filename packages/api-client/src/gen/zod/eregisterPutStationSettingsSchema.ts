@@ -37,4 +37,6 @@ export const eregisterPutStationSettingsErrorSchema = z.union([
 ]);
 
 export const eregisterPutStationSettingsBodySchema =
-  stationSettingsUpdateSchema;
+  stationSettingsUpdateSchema.describe(
+    "All four amounts are required: send an explicit null to clear one."
+  );

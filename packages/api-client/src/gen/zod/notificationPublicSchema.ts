@@ -13,6 +13,8 @@ export const notificationPublicSchema = z.object({
   link_path: z.union([z.string(), z.null()]),
   entity_type: z.union([z.string(), z.null()]),
   entity_id: z.union([z.string(), z.null()]),
+  repeat_count: z.int().optional().default(1),
+  urgent: z.boolean().optional().default(false),
   read_at: z.union([z.iso.datetime(), z.null()]),
   created_at: z.iso.datetime(),
 });

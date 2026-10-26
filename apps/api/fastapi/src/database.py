@@ -83,6 +83,7 @@ from src.hr.workflow.models import (
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
+from src.notifications import gms as _gms_notifications
 from src.notifications.models import (
     Notification,
     NotificationDelivery,
@@ -109,6 +110,7 @@ from src.wxwatch import alerts as _wxwatch_alerts
 _hr_audit.register()
 _hr_notifications.register()
 _wxwatch_alerts.register()
+_gms_notifications.register()
 _events_notifications.register()
 _stores_audit.register()
 _stores_notifications.register()
