@@ -11,7 +11,7 @@ import type {
 } from "../models/EregisterReviewRegisterObservation.js";
 
 /**
- * @description Optional second look by register staff other than the observer: `reviewed` or `query` with a note (required for a query). Shown on the record and audited; it changes no state and never holds back WIS2 or email. Allowed on draft, qc_pending and accepted observations; a new review replaces the previous one on the record (every one is audited). Requires `eregister.observe`, `eregister.qc` or `eregister.send`.
+ * @description Optional second look by register staff other than the observer: `reviewed` or `query` with a note (required for a query). Shown on the record and audited; it changes no state and never holds back WIS2 or email. Send the `updated_at` of the record you opened: if it changed since, the review is refused with 409. Allowed on draft, qc_pending and accepted observations; a new review replaces the previous one on the record (every one is audited). Requires `eregister.observe`, `eregister.qc` or `eregister.send`.
  * @summary Record a review of a register observation
  * {@link /api/v1/eregister/observations/:observation_id/review}
  */

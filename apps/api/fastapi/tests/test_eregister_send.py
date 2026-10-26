@@ -24,7 +24,17 @@ from alembic import command
 from src.audit.models import AuditEntry
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
-from src.eregister import derive, encode, entries, gate, publisher, rules, sends, store
+from src.eregister import (
+    derive,
+    encode,
+    entries,
+    gate,
+    publisher,
+    qc,
+    rules,
+    sends,
+    store,
+)
 from src.eregister.config import Wis2boxConfig
 from src.eregister.dependencies import get_session
 from src.eregister.models import ERegisterSend
@@ -798,6 +808,44 @@ async def test_review_is_optional_recorded_and_never_blocks_sending(
     ).all()
     assert list(actions) == ["accept", "review", "review"]
     del observer
+
+
+async def updated_at_of(client: httpx.AsyncClient, observation: str) -> str:
+    listed = (await client.get("/api/v1/eregister/observations")).json()
+    return next(o for o in listed["observations"] if o["id"] == observation)[
+        "updated_at"
+    ]
+
+
+async def test_review_of_a_reading_changed_after_it_was_opened_is_a_conflict(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    observation = await save(client)
+    # Saved a minute ago, so the re-save below moves the second the API reports.
+    await register_exec(
+        "UPDATE register_observations SET updated_at = now() - interval '1 minute'"
+        " WHERE id = :i",
+        i=observation,
+    )
+    seen = await updated_at_of(client, observation)
+    # The observer re-saves after the reviewer opened the record.
+    edited = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    again = await client.post(OBS_URL, json=record(body=edited))
+    assert again.status_code == 200, again.text
+    await as_staff(db_async, "eregister.send")
+    stale = await client.post(
+        qc_url(observation, "review"),
+        json={"outcome": "reviewed", "updated_at": seen},
+    )
+    assert stale.status_code == 409, stale.text
+    current = await updated_at_of(client, observation)
+    assert current != seen
+    fresh = await client.post(
+        qc_url(observation, "review"),
+        json={"outcome": "reviewed", "updated_at": current},
+    )
+    assert fresh.status_code == 200, fresh.text
 
 
 async def test_review_is_refused_for_rejected_observations(
@@ -1965,6 +2013,32 @@ async def test_a_restored_original_gets_its_exact_notes_back(
     )
     assert reopened.status_code == 409, reopened.text
     assert (await _state_and_notes(correction))["state"] == "rejected"
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_save_that_wins_the_hour_during_a_reject_is_a_conflict(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    correction = await _correction_of(client, original)
+    await as_staff(db_async)
+
+    async def lost_race(*_args: Any, **_kwargs: Any) -> None:
+        # What the unique index raises when a save took the hour first.
+        raise IntegrityError("INSERT", {}, Exception("one live row per hour"))
+
+    monkeypatch.setattr(qc, "_restore_original", lost_race)
+    refused = await client.post(
+        qc_url(correction, "reject"), json={"reason": "Wrong again"}
+    )
+    assert refused.status_code == 409, refused.text
+    assert "holds this hour" in refused.json()["detail"]
+    # Nothing moved: the correction is still pending and the original superseded.
+    assert (await _state_and_notes(correction))["state"] == "draft"
+    assert (await _state_and_notes(original))["state"] == "superseded"
 
 
 @pytest.mark.usefixtures("incoming", "recipients")

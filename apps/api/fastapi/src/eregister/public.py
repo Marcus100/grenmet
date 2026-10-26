@@ -14,7 +14,8 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .rules import FOUR_DIGIT_GROUP, THREE_DIGIT_GROUP
+from . import derive
+from .rules import FOUR_DIGIT_GROUP, HUMIDITY_SIGN, MAX_PERCENT, THREE_DIGIT_GROUP
 from .schemas import PressureTrend, PublicMonthSummary, PublicObservation
 
 MBIA_STATION = "78958"
@@ -112,6 +113,32 @@ def humidity(temp: float | None, dew: float | None) -> int | None:
     return min(100, round(100 * vapour(dew) / vapour(temp)))
 
 
+def dew_point_and_humidity(
+    text_value: str, air: float | None
+) -> tuple[float | None, int | None]:
+    """Group 2 as the register keys it: snTTT dew point, or 9UUU relative humidity.
+
+    Sign digit 9 (Code table 3845) carries the humidity; the dew point is then worked
+    out from it and the air temperature, as ``rules._decode_dew_point`` does. Humidity
+    over 100 per cent is left out.
+    """
+    if not (
+        text_value.isdigit()
+        and len(text_value) == FOUR_DIGIT_GROUP
+        and text_value[0] == HUMIDITY_SIGN
+    ):
+        dew = temperature(text_value)
+        return dew, humidity(air, dew)
+    percent = int(text_value[1:])
+    if percent > MAX_PERCENT:
+        return None, None
+    if air is None or percent == 0:
+        return None, percent
+    vapour = derive.saturation_vapour_pressure_hpa(air) * percent / MAX_PERCENT
+    dew = round(min(derive.dew_point_from_vapour_pressure(vapour), air), 1)
+    return dew, percent
+
+
 def wind(workbook: dict[str, Any]) -> tuple[bool, int | None, int | None]:
     """(calm, direction in degrees, speed in knots)."""
     raw_dir, raw_speed = _value(workbook, "wind_dir"), _value(workbook, "wind_speed")
@@ -185,7 +212,7 @@ def decode(row: dict[str, Any]) -> PublicObservation:
     nested = body.get("workbook")
     workbook: dict[str, Any] = nested if isinstance(nested, dict) else body
     temp = temperature(_value(workbook, "air_temp"))
-    dew = temperature(_value(workbook, "dew_point"))
+    dew, relative_humidity = dew_point_and_humidity(_value(workbook, "dew_point"), temp)
     calm, direction, speed_kt = wind(workbook)
     change = _code(_value(workbook, "pressure_change"))
     amount, trace = rain(_value(workbook, "precip_amount"))
@@ -198,7 +225,7 @@ def decode(row: dict[str, Any]) -> PublicObservation:
         status="accepted" if row["state"] == "accepted" else "provisional",
         temperature_c=temp,
         dew_point_c=dew,
-        relative_humidity=humidity(temp, dew),
+        relative_humidity=relative_humidity,
         wind_calm=calm,
         wind_direction_deg=direction,
         wind_direction=compass(direction),

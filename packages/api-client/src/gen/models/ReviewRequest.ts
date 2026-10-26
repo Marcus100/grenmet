@@ -11,4 +11,8 @@ export type ReviewRequest = {
    * @description Required for a query; optional for reviewed.
    */
   note?: string | null;
+  /**
+   * @description `updated_at` of the record the reviewer opened. When sent and the record changed since, the review is refused with 409.
+   */
+  updated_at?: string | null;
 };
