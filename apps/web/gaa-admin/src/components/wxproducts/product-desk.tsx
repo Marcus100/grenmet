@@ -381,7 +381,9 @@ function ProductEditor({
   async function raiseToWarning(
     values: ProductValues,
     level: WarningLevel
-  ): Promise<{ alertId: string } | { error: string }> {
+  ): Promise<
+    { alertId: string } | { error: string; existingAlertId?: string }
+  > {
     const saved = await save({ ...values, level: "Green" }, "draft");
     if (!saved)
       return { error: "Save the alert first: fix the problem shown." };
@@ -394,6 +396,13 @@ function ProductEditor({
         },
       }).unwrap();
       setRaisedKey(raised.alert_id);
+      if (!raised.created) {
+        return {
+          error:
+            "An open warning already exists for this alert; change its colour in CAP.",
+          existingAlertId: raised.alert_id,
+        };
+      }
       return { alertId: raised.alert_id };
     } catch (error) {
       reportError(error, "wxproducts");

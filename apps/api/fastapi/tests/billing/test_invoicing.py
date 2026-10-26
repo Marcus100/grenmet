@@ -23,6 +23,13 @@ API = "/api/v1/billing"
 TODAY = invoices.today_grenada()
 
 
+@pytest.fixture(autouse=True)
+def _frozen_grenada_today(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Pin the API's notion of today to TODAY so a run crossing Grenada midnight stays consistent."""
+    monkeypatch.setattr(invoices, "today_grenada", lambda: TODAY)
+    monkeypatch.setattr(reminders, "today_grenada", lambda: TODAY)
+
+
 async def _customer(
     client: httpx.AsyncClient, headers: dict[str, str], db: AsyncSession, name: str
 ) -> dict:
@@ -820,3 +827,8 @@ def test_money_formatting_and_invoice_draft_defaults() -> None:
 def test_line_rate_validation(rate: float) -> None:
     with pytest.raises(ValueError, match="tax_rate|decimal|less|greater"):
         InvoiceLineInput(description="x", quantity=1, unit_price_minor=1, tax_rate=rate)
+
+
+def test_clock_is_frozen_for_the_module() -> None:
+    assert invoices.today_grenada() == TODAY
+    assert reminders.today_grenada() == TODAY

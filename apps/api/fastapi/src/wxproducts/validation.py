@@ -256,6 +256,9 @@ def parameter_errors(values: dict[str, str]) -> list[str]:
     return errors
 
 
+_ABOVE_GREEN_NOTICES = ("Watch", "Warning")
+
+
 def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
     values, kind = values_as_dict(body.values), body.kind
     rules = FIELDS[kind]
@@ -278,6 +281,7 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
                 f"{rule.label}: GMS alerts are green only; raise to a warning "
                 "(CAP) or change to green"
                 if rule.key == "level"
+                or (rule.key == "notice" and value in _ABOVE_GREEN_NOTICES)
                 else f"{rule.label}: select a listed option"
             )
         if (
