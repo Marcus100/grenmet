@@ -14,7 +14,7 @@ from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED
 from src.rate_limit import limiter
 
-from . import derive, entries, public, qc, rules, sends, stations
+from . import derive, entries, metar, public, qc, rules, sends, stations
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
     ObservationSend,
@@ -174,12 +174,24 @@ async def validate_synop_observation(
     # The station's pressure amounts (78958: owner confirmed); none if unknown.
     station = await stations.pressure_for(register, body.workbook.station_id)
     workbook = derive.apply_to_workbook(body.workbook, station)
-    issues, decoded = rules.validate_synop(workbook, station)
+    # The saved observations of the previous hours, for the hour-to-hour warnings.
+    history = (
+        {}
+        if body.observed_at is None
+        else await entries.history_for(
+            register, body.workbook.station_id, body.observed_at
+        )
+    )
+    issues, decoded = rules.validate_synop(workbook, station, history)
     if body.observed_at is not None:
         issues = [*issues, *rules.check_observation_time(workbook, body.observed_at)]
     valid = all(issue.severity != "error" for issue in issues)
     return SynopValidationResponse(
-        valid=valid, issues=issues, normalized=workbook, decoded=decoded
+        valid=valid,
+        issues=issues,
+        normalized=workbook,
+        decoded=decoded,
+        expected_metar=None if decoded.is_nil_report else metar.text(workbook, decoded),
     )
 
 

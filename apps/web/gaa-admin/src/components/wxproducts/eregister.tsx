@@ -128,6 +128,7 @@ export function ERegister() {
   const [validationIssues, setValidationIssues] = useState<
     { field: string; message: string; severity?: "error" | "warning" }[]
   >([]);
+  const [expectedMetar, setExpectedMetar] = useState<string | null>(null);
   const [validationState, setValidationState] = useState<
     "idle" | "checking" | "valid" | "invalid" | "error"
   >("idle");
@@ -219,6 +220,7 @@ export function ERegister() {
       return false;
     }
     setValidationIssues(result.data.issues ?? []);
+    setExpectedMetar(result.data.expected_metar ?? null);
     setValidationState(result.data.valid ? "valid" : "invalid");
     return result.data.valid;
   }
@@ -370,6 +372,7 @@ export function ERegister() {
 
     return (
       <ERegisterWorkbook
+        expectedMetar={expectedMetar}
         issues={validationIssues}
         metarPreview={metarPreview}
         observedAt={observedAt}

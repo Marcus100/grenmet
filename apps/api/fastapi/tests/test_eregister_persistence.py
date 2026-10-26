@@ -14,7 +14,7 @@ from sqlalchemy.pool import NullPool
 from alembic import command
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
-from src.eregister.dependencies import get_session
+from src.eregister.dependencies import get_public_session, get_session
 from src.main import app
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +47,8 @@ async def register_client(
         registration_pending=False,
     )
     app.dependency_overrides[get_session] = session
+    # The validate endpoint reads the register through the public session.
+    app.dependency_overrides[get_public_session] = session
     app.dependency_overrides[get_browser_or_token_user] = lambda: user
     try:
         async with httpx.AsyncClient(
@@ -55,6 +57,7 @@ async def register_client(
             yield client
     finally:
         app.dependency_overrides.pop(get_session, None)
+        app.dependency_overrides.pop(get_public_session, None)
         app.dependency_overrides.pop(get_browser_or_token_user, None)
         await engine.dispose()
 
@@ -127,3 +130,42 @@ async def test_invalid_observation_is_not_persisted(
     assert response.status_code == 422, response.text
     records = await register_client.get("/api/v1/eregister/observations")
     assert records.json()["observations"] == []
+
+
+async def test_validate_compares_with_the_saved_previous_hour(
+    register_client: httpx.AsyncClient,
+) -> None:
+    from tests.test_eregister_validation import PAPER_ROW
+
+    # 11 UTC was saved at 20.0 C; the 12 UTC report says 28.0 C: an 8 degree jump.
+    previous = {**PAPER_ROW, "time_utc": "11", "air_temp": "200", "dew_point": "150"}
+    saved = await register_client.post(
+        "/api/v1/eregister/observations",
+        json={
+            "station_id": "78958",
+            "kind": "SYNOP",
+            "observed_at": "2023-03-30T11:00:00Z",
+            "body": {"workbook": previous},
+        },
+    )
+    assert saved.status_code == 201, saved.text
+    url = "/api/v1/eregister/observations/validate-synop"
+    with_time = await register_client.post(
+        url, json={"workbook": PAPER_ROW, "observed_at": "2023-03-30T12:00:00Z"}
+    )
+    assert with_time.status_code == 200, with_time.text
+    issues = {(i["severity"], i["code"]) for i in with_time.json()["issues"]}
+    assert ("warning", "temperature_jump") in issues
+    assert with_time.json()["valid"] is True
+    # Without a time the register is not asked for the previous hour.
+    bare = await register_client.post(url, json={"workbook": PAPER_ROW})
+    assert "temperature_jump" not in {i["code"] for i in bare.json()["issues"]}
+    # Another station has no history to compare with.
+    other = await register_client.post(
+        url,
+        json={
+            "workbook": {**PAPER_ROW, "station_id": "78959"},
+            "observed_at": "2023-03-30T12:00:00Z",
+        },
+    )
+    assert "temperature_jump" not in {i["code"] for i in other.json()["issues"]}

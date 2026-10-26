@@ -80707,6 +80707,18 @@
           },
           "decoded": {
             "$ref": "#/components/schemas/SynopDecoded"
+          },
+          "expected_metar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Metar",
+            "description": "The METAR the observation implies, for the observer to copy and edit."
           }
         },
         "type": "object",
@@ -81476,6 +81488,19 @@
               }
             ],
             "title": "S3 Remarks"
+          },
+          "metar_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metar Text",
+            "description": "The METAR typed or copied by the observer; each element is compared with the observation (warnings only)."
           },
           "observer_initials": {
             "anyOf": [

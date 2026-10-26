@@ -8,7 +8,8 @@ supersedes the old one (``supersedes_id``; the old row becomes ``superseded``
 and stays visible).
 """
 
-from datetime import UTC, datetime
+import logging
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -16,7 +17,7 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy import bindparam, func, select, text
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -28,7 +29,10 @@ from .schemas import (
     RegisterObservationCreate,
     RegisterObservationRead,
     SynopValidationIssue,
+    SynopWorkbook,
 )
+
+logger = logging.getLogger(__name__)
 
 UNSENT_EDITABLE = ("draft", "qc_pending")
 ISSUE_PREVIEW = 3
@@ -38,6 +42,7 @@ def validation_issues(
     body: dict[str, Any],
     observed_at: datetime,
     station: derive.PressureSettings | None = None,
+    history: dict[int, SynopWorkbook] | None = None,
 ) -> list[SynopValidationIssue]:
     try:
         workbook = encode.workbook_from_body(body)
@@ -53,17 +58,58 @@ def validation_issues(
             )
             for error in exc.errors()
         ]
-    issues, _decoded = rules.validate_synop(workbook, station)
+    issues, _decoded = rules.validate_synop(workbook, station, history)
     return [*issues, *rules.check_observation_time(workbook, observed_at)]
+
+
+# Hours before the observation whose saved SYNOP the hour-to-hour checks compare with.
+HISTORY_HOURS = (1, 3)
+
+
+async def history_for(
+    register: AsyncSession | None, station_id: str | None, observed_at: datetime
+) -> dict[int, SynopWorkbook]:
+    """The station's saved SYNOP of the previous hour and of 3 hours earlier.
+
+    Rejected and superseded observations do not count. Missing hours are left out; a
+    register that cannot be read gives no history (the checks are advice only).
+    """
+    if register is None or not (station_id or "").strip():
+        return {}
+    found: dict[int, SynopWorkbook] = {}
+    try:
+        for hours in HISTORY_HOURS:
+            result = await register.execute(
+                text(
+                    """
+                    SELECT body FROM register_observations
+                    WHERE station_id = :station AND kind = CAST('SYNOP' AS observation_kind)
+                      AND observed_at = :at AND state NOT IN ('rejected', 'superseded')
+                    ORDER BY created_at DESC LIMIT 1
+                    """
+                ),
+                {
+                    "station": (station_id or "").strip(),
+                    "at": observed_at - timedelta(hours=hours),
+                },
+            )
+            row = result.mappings().first()
+            if row is not None:
+                found[hours] = encode.workbook_from_body(row["body"])
+    except SQLAlchemyError, OSError, ValueError:
+        logger.warning("eRegister hour-to-hour history unavailable", exc_info=True)
+        return {}
+    return found
 
 
 def require_valid_synop(
     body: dict[str, Any],
     observed_at: datetime,
     station: derive.PressureSettings | None = None,
+    history: dict[int, SynopWorkbook] | None = None,
 ) -> None:
     """422 with the issues when the coded workbook has errors; warnings pass."""
-    issues = validation_issues(body, observed_at, station)
+    issues = validation_issues(body, observed_at, station, history)
     errors = [issue for issue in issues if issue.severity == "error"]
     if errors:
         summary = "; ".join(f"{i.field}: {i.message}" for i in errors[:ISSUE_PREVIEW])
@@ -175,7 +221,8 @@ async def create(
     """Save an observation. Returns the row and whether it was newly inserted."""
     station = await stations.pressure_for(register, data.station_id)
     if data.kind == "SYNOP":
-        require_valid_synop(data.body, data.observed_at, station)
+        history = await history_for(register, data.station_id, data.observed_at)
+        require_valid_synop(data.body, data.observed_at, station, history)
     values = data.model_dump()
     values["body"] = derive.apply_to_body(values["body"], station)
     await lock_key(register, data.station_id, data.observed_at, data.kind)
@@ -239,7 +286,8 @@ async def correct(
         raise HTTPException(409, f"A {old['state']} observation cannot be corrected")
     station = await stations.pressure_for(register, old["station_id"])
     if old["kind"] == "SYNOP":
-        require_valid_synop(data.body, old["observed_at"], station)
+        history = await history_for(register, old["station_id"], old["observed_at"])
+        require_valid_synop(data.body, old["observed_at"], station, history)
     values: dict[str, Any] = {
         **data.model_dump(exclude={"reason"}),
         "id": str(uuid4()),

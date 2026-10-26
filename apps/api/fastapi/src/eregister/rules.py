@@ -13,11 +13,11 @@ only advise. A blank field is "not yet entered"; a field of slashes is "not
 observed" and decodes to missing. Pure functions only: no I/O.
 """
 
-from collections.abc import Collection
+from collections.abc import Collection, Mapping
 from datetime import UTC, datetime
 from typing import Literal
 
-from . import derive
+from . import derive, hourly, metar
 from .schemas import SynopDecoded, SynopValidationIssue, SynopWorkbook
 
 Severity = Literal["error", "warning"]
@@ -32,7 +32,14 @@ TIME_MARKS = (
     "time_mark_rain_recorder",
     "time_mark_thermohygrograph",
 )
-NOT_DATA = (*IDENTIFICATION, "s3_remarks", "notes", "observer_initials", *TIME_MARKS)
+NOT_DATA = (
+    *IDENTIFICATION,
+    "s3_remarks",
+    "metar_text",
+    "notes",
+    "observer_initials",
+    *TIME_MARKS,
+)
 # Cb layers (form 9) are reported in addition to the three non-Cb layers (B/C1.4.5.1.1).
 CUMULONIMBUS = 9
 MAX_NON_CB_LAYERS = 3
@@ -1365,8 +1372,14 @@ def _check_weather_links(
 def validate_synop(
     workbook: SynopWorkbook,
     amounts: derive.PressureSettings | None = None,
+    history: Mapping[int, SynopWorkbook] | None = None,
+    limits: hourly.HourlyLimits | None = None,
 ) -> tuple[list[SynopValidationIssue], SynopDecoded]:
     """Check a workbook and decode it to SI values.
+
+    ``history`` maps hours-before (1 and 3) to the saved observation of that hour; when
+    given, the hour-to-hour warnings of ``hourly`` are added (``limits`` overrides the
+    defaults). They never make the workbook invalid.
 
     Pressure groups 3 and 4 (from the barometer as read and the station's
     ``amounts``), visibility in kilometres, dew point, vapour pressure and relative
@@ -1470,6 +1483,15 @@ def validate_synop(
         qfe_pa=None if found.qfe_hpa is None else float(found.qfe_hpa * 100),
         qnh_pa=None if found.qnh_hpa is None else float(found.qnh_hpa * 100),
     )
+    if history and not is_nil:
+        past = {
+            hours: validate_synop(old, amounts)[1] for hours, old in history.items()
+        }
+        c.issues.extend(
+            hourly.check(workbook, decoded, past, limits or hourly.DEFAULT_LIMITS)
+        )
+    if not is_nil:
+        c.issues.extend(metar.compare(workbook, decoded))
     return c.issues, decoded
 
 

@@ -4,6 +4,9 @@ import { expect, it, vi } from "vitest";
 import type { StationSettings } from "./eregister-derived";
 import { ERegisterWorkbook } from "./eregister-workbook";
 
+const EXPECTED_TEXT = /NSC 28\/21 Q1013=/;
+const WARNING_TEXT = /Q1014 differs/;
+
 function renderWorkbook(
   issues: { field: string; message: string; severity?: "error" | "warning" }[],
   extra: {
@@ -11,12 +14,14 @@ function renderWorkbook(
       typeof ERegisterWorkbook
     >["onSaveStationSettings"];
     onValueChange?: (key: string, value: string) => void;
+    expectedMetar?: string | null;
     stationSettings?: StationSettings | null;
     values?: Record<string, string>;
   } = {}
 ) {
   render(
     <ERegisterWorkbook
+      expectedMetar={extra.expectedMetar}
       issues={issues}
       metarPreview="TGPY"
       observedAt="2026-07-07T23:00"
@@ -208,4 +213,30 @@ it("refuses an amount that is not a number and says who may change them", async 
   expect((await screen.findByRole("alert")).textContent).toContain(
     "quality control staff"
   );
+});
+
+it("shows the checked METAR, keeps the typed one and lists its warnings", () => {
+  const onValueChange = vi.fn();
+  renderWorkbook(
+    [
+      {
+        field: "metar_text",
+        message: "METAR QNH Q1014 differs from the observation (Q1013).",
+        severity: "warning",
+      },
+    ],
+    {
+      expectedMetar: "METAR TGPY 301200Z 07015KT 9999 NSC 28/21 Q1013=",
+      onValueChange,
+      values: { metar_text: "07015KT Q1014" },
+    }
+  );
+  expect(screen.getByText(EXPECTED_TEXT)).toBeTruthy();
+  expect(screen.getAllByText(WARNING_TEXT).length).toBeGreaterThan(0);
+  const box = screen.getByLabelText(
+    "METAR or SPECI as sent"
+  ) as HTMLInputElement;
+  expect(box.value).toBe("07015KT Q1014");
+  fireEvent.change(box, { target: { value: "x" } });
+  expect(onValueChange).toHaveBeenCalledWith("metar_text", "x");
 });

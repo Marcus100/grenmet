@@ -50,6 +50,7 @@ import {
 } from "./eregister-ui";
 
 interface Props {
+  expectedMetar?: string | null;
   issues: ValidationIssue[];
   metarPreview: string;
   observedAt: string;
@@ -167,6 +168,7 @@ export function ERegisterWorkbook({
   saveStatus,
   send,
   metarPreview,
+  expectedMetar,
   onBack,
   onValueChange,
   onValidationIssuesChange,
@@ -452,17 +454,54 @@ export function ERegisterWorkbook({
           </div>
         </SectionCard>
         <SectionCard
-          action={<Badge variant="secondary">Preview</Badge>}
+          action={
+            <Badge variant="secondary">
+              {expectedMetar ? "Checked" : "Preview"}
+            </Badge>
+          }
           title="METAR / SPECI"
         >
           <div className="space-y-3 p-4">
             <p className="text-muted-foreground text-xs">
-              SPECI appears only when a configured special-report trigger
-              applies.
+              Built from the observation (SPECI is a special report: the same
+              elements are checked). Copy it, or type the report you send; each
+              element that differs from the observation is flagged.
             </p>
             <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-3 font-mono text-xs">
-              {metarPreview}
+              {expectedMetar ?? metarPreview}
             </code>
+            <div className="flex gap-2">
+              <Input
+                aria-label="METAR or SPECI as sent"
+                className="font-mono text-xs"
+                onChange={(event) =>
+                  onValueChange("metar_text", event.target.value)
+                }
+                placeholder="METAR TGPY 071200Z 07015KT 9999 FEW018 28/21 Q1016="
+                value={values.metar_text ?? ""}
+              />
+              <Button
+                onClick={() =>
+                  navigator.clipboard
+                    ?.writeText(expectedMetar ?? metarPreview)
+                    .catch(() => undefined)
+                }
+                type="button"
+                variant="outline"
+              >
+                Copy
+              </Button>
+            </div>
+            {issues
+              .filter((issue) => issue.field === "metar_text")
+              .map((issue) => (
+                <p
+                  className="text-amber-700 text-xs dark:text-amber-400"
+                  key={issue.message}
+                >
+                  {issue.message}
+                </p>
+              ))}
           </div>
         </SectionCard>
       </div>

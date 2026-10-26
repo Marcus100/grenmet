@@ -87,6 +87,12 @@ export const synopWorkbookSchema = z
     s3_ground_jjj: z.union([z.string().max(3), z.null()]).optional(),
     s5_national: z.union([z.string().max(400), z.null()]).optional(),
     s3_remarks: z.union([z.string().max(4000), z.null()]).optional(),
+    metar_text: z
+      .union([z.string().max(400), z.null()])
+      .optional()
+      .describe(
+        "The METAR typed or copied by the observer; each element is compared with the observation (warnings only)."
+      ),
     observer_initials: z.union([z.string().max(4), z.null()]).optional(),
     notes: z.union([z.string().max(4000), z.null()]).optional(),
   })
