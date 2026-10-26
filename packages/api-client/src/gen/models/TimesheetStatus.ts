@@ -8,6 +8,7 @@ export const timesheetStatus = {
   SUBMITTED: "SUBMITTED",
   APPROVED: "APPROVED",
   REJECTED: "REJECTED",
+  RETURNED: "RETURNED",
 } as const;
 
 export type TimesheetStatus =

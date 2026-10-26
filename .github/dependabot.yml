@@ -38,9 +38,26 @@ updates:
     commit-message:
       prefix: ⬆
     groups:
+      # aiobotocore pins botocore to a narrow window; resolve its AWS stack together.
+      python-aws:
+        patterns:
+          - boto3
+          - botocore
+          - aiobotocore
+          - s3fs
+        update-types:
+          - minor
+          - patch
       python-minor-patch:
         patterns:
           - "*"
+        exclude-patterns:
+          - boto3
+          - botocore
+          - aiobotocore
+          - s3fs
+          # Isolate the netCDF coverage-combine issue from unrelated updates.
+          - netcdf4
         update-types:
           - minor
           - patch
@@ -49,6 +66,10 @@ updates:
       # upstream PyPI. Bumping it independently breaks the build. Change it by hand,
       # in lockstep with the devcontainer image, never by bot.
       - dependency-name: gdal
+      # arq 0.28 requires redis<6; lift when ARQ supports the next Redis major.
+      - dependency-name: redis
+        update-types:
+          - version-update:semver-major
 
   # Docker (API)
   - package-ecosystem: docker

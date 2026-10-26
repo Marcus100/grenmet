@@ -5,11 +5,20 @@ import {
   useHrGetInbox,
   useHrTakeAction,
   type WorkflowAction,
+  type WorkflowInboxItem,
   type WorkflowType,
 } from "@barrelsgd/api-client";
-
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from "@barrelsgd/ui/components/ui/alert-dialog";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Spinner } from "@barrelsgd/ui/components/ui/spinner";
 import {
   Table,
@@ -19,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
+import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, CornerUpLeft, X } from "lucide-react";
 import { useState } from "react";
@@ -60,19 +70,23 @@ export function ApprovalsInbox() {
   const inboxQuery = useHrGetInbox();
   const actionMutation = useHrTakeAction();
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [returning, setReturning] = useState<WorkflowInboxItem | undefined>();
+  const [reason, setReason] = useState("");
+  const [reasonError, setReasonError] = useState<string | undefined>();
 
   const items = inboxQuery.data?.data ?? [];
 
   async function act(
     instanceId: string,
     action: WorkflowAction,
-    stepId?: string | null
-  ) {
+    stepId?: string | null,
+    comments?: string
+  ): Promise<boolean> {
     setPendingId(instanceId);
     try {
       await actionMutation.mutateAsync({
         path: { instance_id: instanceId },
-        body: { action, step_id: stepId },
+        body: { action, step_id: stepId, comments },
       });
       await queryClient.invalidateQueries({
         queryKey: hrGetInboxQueryKey(),
@@ -83,12 +97,40 @@ export function ApprovalsInbox() {
         RETURN: "Returned",
       };
       toast.success(doneLabel[action] ?? "Done");
+      return true;
     } catch (error) {
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
       toast.error(`Action failed: ${detail}`);
+      return false;
     } finally {
       setPendingId(null);
+    }
+  }
+
+  function closeReturnDialog() {
+    setReturning(undefined);
+    setReason("");
+    setReasonError(undefined);
+  }
+
+  async function confirmReturn() {
+    if (!returning) {
+      return;
+    }
+    const trimmed = reason.trim();
+    if (!trimmed) {
+      setReasonError("Give a reason so the author knows what to change.");
+      return;
+    }
+    const settled = await act(
+      returning.instance_id,
+      "RETURN",
+      returning.step_id,
+      trimmed
+    );
+    if (settled) {
+      closeReturnDialog();
     }
   }
 
@@ -164,9 +206,7 @@ export function ApprovalsInbox() {
                         <>
                           <Button
                             disabled={busy}
-                            onClick={() =>
-                              act(item.instance_id, "RETURN", item.step_id)
-                            }
+                            onClick={() => setReturning(item)}
                             size="sm"
                             type="button"
                             variant="ghost"
@@ -210,6 +250,54 @@ export function ApprovalsInbox() {
           })}
         </TableBody>
       </Table>
+      <AlertDialog
+        onOpenChange={(open) => {
+          if (!open) {
+            closeReturnDialog();
+          }
+        }}
+        open={Boolean(returning)}
+      >
+        <AlertDialogContent>
+          <AlertDialogTitle>Return this request?</AlertDialogTitle>
+          <AlertDialogDescription>
+            {returning
+              ? `${WORKFLOW_TYPE_LABELS[returning.workflow_type] ?? returning.workflow_type} from ${returning.requester_name ?? "the requester"} goes back to its author to edit and submit again. Approval then starts over. It is not rejected.`
+              : ""}
+          </AlertDialogDescription>
+          <Field data-invalid={reasonError ? true : undefined}>
+            <FieldLabel htmlFor="return-reason">
+              Reason for returning
+            </FieldLabel>
+            <Textarea
+              aria-invalid={reasonError ? true : undefined}
+              autoFocus
+              id="return-reason"
+              maxLength={1000}
+              onChange={(event) => {
+                setReason(event.target.value);
+                setReasonError(undefined);
+              }}
+              value={reason}
+            />
+            {reasonError ? (
+              <p className="text-destructive text-sm" role="alert">
+                {reasonError}
+              </p>
+            ) : null}
+          </Field>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button
+              disabled={returning ? pendingId === returning.instance_id : false}
+              onClick={confirmReturn}
+              type="button"
+            >
+              Return to author
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

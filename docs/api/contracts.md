@@ -939,6 +939,21 @@ retained corrections. `POST /attendance/{attendance_id}/corrections` requires a
 reason and starts a separate supervisor workflow; original time stays in effect
 until approval atomically advances its revision. See [manual attendance](../hr/manual-attendance.md).
 
+### Returned forms
+
+`POST /workflow/instances/{instance_id}/actions` with `action: "RETURN"` sends a
+submitted form back to its author and requires non-empty `comments` (the reason;
+400 otherwise). The form's `status` becomes `RETURNED` (leave, absentee, shift
+exchange, parking, daily status: `RequestStatus`; timesheet: `TimesheetStatus`),
+the reason is kept in the approval action log, and the author receives the
+`workflow.returned` notification carrying the reason. `RETURNED` is not final,
+unlike `REJECTED`: the author edits the form with its normal update route and
+resubmits it with its normal submit route, which starts a fresh approval chain
+(the returned chain stays as history). `PATCH /hr/leave-requests/{id}/action`
+refuses `RETURNED`; returning goes through the workflow action so a reason is
+always recorded. Deleting a returned form stays blocked because approval history
+is retained.
+
 ### Department calendar
 
 The calendar is the department's own record — meetings, training, inspections, visits,
@@ -1031,9 +1046,15 @@ hours and timesheets ignore pending and rejected punches. Approval calls
 `save_attendance` as the employee (an arrival creates the record, a departure closes
 it), so roster, revision and the supervisor workflow are those of manual attendance.
 A departure can be approved only after its arrival; rejecting an arrival also
-rejects its pending departure, and the employee may then punch again. Only the
-employee's named supervisor (`supervisor_id`) or a `timesheet.approve` holder whose
-assignment covers the employee's department may decide, and nobody may decide their
+rejects its pending departure, and the employee may then punch again. Callers
+holding `timesheet.approve` with organisation-wide scope, with department scope for
+the punch's department or the employee's current department, or who are the
+employee's named supervisor may decide. After a department transfer the employee may
+still record their own attendance for shifts rostered under the old department
+(same organisation only). Submitting that attendance for review still requires active
+employment in the workflow's department (`require_ready`) and is refused after a
+transfer. Acting for someone else stays bound to the roster
+department. Nobody may decide their
 own punch (superusers included). Approve and reject are idempotent for the same
 outcome and return 409 for the opposite one. Arrival needs a published work shift that
 started at most two hours ago or ends within the next hour; with none, the call
@@ -1789,7 +1810,12 @@ person. Accepting validates the workbook (`422`) and then queues the WIS2 file
 and the email at once (best effort: a refused hand-off, for example an hour the
 automatic source owns, never undoes the acceptance; see `GET .../sends`).
 `reject` and `reopen` need a reason; `reopen` (and `reject`) is `409` once a WIS2
-file was queued or sent.
+file was queued or sent. Rejecting a correction (a row with `supersedes_id`)
+releases the held WIS2 file of the observation it replaced and, in the same
+transaction, puts that `superseded` observation back to the state it had before
+(`accepted`, or `draft`/`qc_pending` for a never-accepted one) with its own QC
+notes, and returns the publish gate to it if the correction had taken it, so the
+hour can be sent, reopened or corrected again (audited as `restore`).
 
 `POST .../{id}/review` (body `{"outcome": "reviewed" | "query", "note": "..."}`,
 a note is required for a query) records an optional second look by register staff
