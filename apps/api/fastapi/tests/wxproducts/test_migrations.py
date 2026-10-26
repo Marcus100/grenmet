@@ -56,7 +56,7 @@ def test_fresh_repeat_and_metadata_isolation(fresh_weather_engine: Engine) -> No
             connection.execute(
                 text("SELECT version_num FROM wxproducts_alembic_version")
             ).scalar_one()
-            == "wxproducts_0004"
+            == "wxproducts_0005"
         )
         assert (
             connection.execute(
@@ -144,7 +144,7 @@ def test_wxproducts_migrations_form_one_chain_with_a_single_head() -> None:
     script = ScriptDirectory.from_config(
         Config(str(ROOT / "src/wxproducts/alembic.ini"))
     )
-    assert script.get_heads() == ["wxproducts_0004"]
+    assert script.get_heads() == ["wxproducts_0005"]
 
 
 def test_tropical_system_changes_downgrade_drops_only_its_table(

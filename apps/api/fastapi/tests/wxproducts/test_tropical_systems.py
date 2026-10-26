@@ -1,5 +1,6 @@
 """Tracked tropical systems: identity, derived entries, rebuild and public history."""
 
+import asyncio
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
@@ -134,6 +135,7 @@ async def entries(sessions) -> list[tuple]:
                 row.issued_at,
                 row.name,
                 row.feature_type,
+                row.nhc_storm_id,
                 row.latitude,
                 row.longitude,
                 row.movement_direction,
@@ -592,7 +594,16 @@ def speed_content(tracked: UUID, **fact_values) -> dict:
 
 @pytest.mark.parametrize(
     ("unit", "expected"),
-    [("knots", 20.0), ("KT", 20.0), ("MPH", 17.4), ("mph", 17.4), ("km/h", 10.8)],
+    [
+        ("knots", 20.0),
+        ("KT", 20.0),
+        ("kn", 20.0),
+        ("MPH", 17.4),
+        ("mph", 17.4),
+        ("km/h", 10.8),
+        ("m/s", 38.9),
+        ("M/S", 38.9),
+    ],
 )
 def test_speed_unit_spellings_are_normalised(unit, expected):
     [row] = tropical_systems.entries_for(
@@ -626,7 +637,9 @@ async def test_bad_speeds_are_a_validation_error_not_a_server_error(
             )
 
 
-async def test_linked_systems_are_read_locked_while_recording(weather_sessions, actor):
+async def test_linked_systems_are_locked_in_order_without_upgrade(
+    weather_sessions, actor
+):
     tracked = await track(weather_sessions, actor)
     statements: list[str] = []
 
@@ -642,9 +655,15 @@ async def test_linked_systems_are_read_locked_while_recording(weather_sessions, 
             )
         finally:
             event.remove(engine, "before_cursor_execute", capture)
-    assert any(
-        "FROM tropical_systems" in sql and "FOR SHARE" in sql for sql in statements
-    )
+    locks = [
+        sql for sql in statements if "FROM tropical_systems" in sql and "FOR " in sql
+    ]
+    assert locks
+    # NO KEY UPDATE is what the issue-time UPDATE needs, so a share lock is never
+    # upgraded; the id order keeps concurrent publishes from waiting in a cycle.
+    assert all("FOR NO KEY UPDATE" in sql for sql in locks)
+    assert all("ORDER BY tropical_systems.id" in sql for sql in locks)
+    assert not any("FOR SHARE" in sql for sql in statements)
 
 
 async def test_route_rejects_an_outlook_that_links_a_closed_system(
@@ -678,3 +697,136 @@ async def test_route_rejects_an_outlook_that_links_a_closed_system(
     )
     assert response.status_code == 422, response.text
     assert "closed tracked system" in response.text
+
+
+@pytest.mark.parametrize("unit", ["m/s", "mps", "kn", "kns"])
+def test_speed_units_m_per_s_and_kn_do_not_block_a_draft_save(unit):
+    tropical_systems.check_speeds(speed_content(uuid4(), value=10, unit=unit))
+
+
+def test_oversize_speed_is_refused_live_but_rebuilds_as_null():
+    with pytest.raises(ProductValidationError):
+        tropical_systems.check_speeds(speed_content(uuid4(), value=90000, unit="kt"))
+    # A revision saved before the 500 kt limit existed must rebuild, not overflow.
+    [row] = tropical_systems.entries_for(
+        speed_content(uuid4(), value=90000, unit="kt"),
+        product_id=uuid4(),
+        revision=1,
+        action="draft",
+        created_at=datetime(2026, 9, 8, tzinfo=UTC),
+    )
+    assert row["movement_speed_kt"] is None
+
+
+async def test_public_nhc_id_is_the_published_one_until_the_next_publish(
+    async_client: httpx.AsyncClient, weather_sessions, actor
+):
+    tracked = await track(weather_sessions, actor, nhc_storm_id="al072026")
+    first = await publish(weather_sessions, actor, system(tracked))
+    async with weather_sessions() as session:
+        await tropical_systems.update_system(
+            session, tracked, TropicalSystemUpdate(nhc_storm_id="al082026"), actor
+        )
+    [shown] = await public_list(async_client)
+    assert shown["nhc_storm_id"] == "al072026"
+    detail = (
+        await async_client.get(f"{BASE}/public/tropical-systems/{tracked}")
+    ).json()
+    assert detail["nhc_storm_id"] == "al072026"
+    live = await entries(weather_sessions)
+    async with weather_sessions() as session:
+        await tropical_systems.rebuild_entries(session)
+        await session.commit()
+    assert await entries(weather_sessions) == live
+
+    follow_up = first.model_copy(update={"expectedRevision": 1})
+    follow_up.guidance = outlook(system(tracked)).guidance
+    async with weather_sessions() as session:
+        await service.write_product(session, follow_up, actor)
+    [shown] = await public_list(async_client)
+    assert shown["nhc_storm_id"] == "al082026"
+
+
+async def test_an_unchanged_legacy_nhc_id_passes_but_a_new_bad_one_does_not(
+    weather_sessions, actor
+):
+    tracked = await track(weather_sessions, actor)
+    async with weather_sessions() as session:
+        await session.execute(
+            text("UPDATE tropical_systems SET nhc_storm_id = 'al07' WHERE id = :id"),
+            {"id": tracked},
+        )
+        await session.commit()
+    echoed = TropicalSystemUpdate(name="Renamed", nhc_storm_id="al07")
+    async with weather_sessions() as session:
+        updated = await tropical_systems.update_system(session, tracked, echoed, actor)
+    assert (updated.name, updated.nhc_storm_id) == ("Renamed", "al07")
+    for bad in ("al08", "", "al942026"):
+        async with weather_sessions() as session:
+            with pytest.raises(ProductValidationError):
+                await tropical_systems.update_system(
+                    session, tracked, TropicalSystemUpdate(nhc_storm_id=bad), actor
+                )
+    async with weather_sessions() as session:
+        fixed = await tropical_systems.update_system(
+            session, tracked, TropicalSystemUpdate(nhc_storm_id="AL082026"), actor
+        )
+    assert fixed.nhc_storm_id == "al082026"
+
+
+async def test_opposite_merges_queue_on_the_chain_lock_and_one_wins(
+    weather_sessions, actor
+):
+    a = await track(weather_sessions, actor)
+    b = await track(weather_sessions, actor)
+
+    async def merge(source: UUID, target: UUID):
+        async with weather_sessions() as session:
+            return await tropical_systems.update_system(
+                session,
+                source,
+                TropicalSystemUpdate(
+                    status="closed", closed_reason="merged", continued_as_id=target
+                ),
+                actor,
+            )
+
+    async with weather_sessions() as holder:
+        await holder.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext('tropical_systems'), :k)"),
+            {"k": tropical_systems.CHAIN_LOCK},
+        )
+        tasks = [asyncio.create_task(merge(a, b)), asyncio.create_task(merge(b, a))]
+        await asyncio.sleep(0.5)
+        # Both are waiting for the chain lock, so neither has read the chain yet.
+        assert not any(task.done() for task in tasks)
+        await holder.rollback()
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    failures = [r for r in results if isinstance(r, ProductValidationError)]
+    assert len(failures) == 1 and "loop" in str(failures[0])
+    assert sum(not isinstance(r, BaseException) for r in results) == 1
+
+
+async def test_latest_current_outlook_is_one_bounded_query(weather_sessions, actor):
+    tracked = await track(weather_sessions, actor)
+    await publish(weather_sessions, actor, system(tracked), ago=3)
+    await publish(weather_sessions, actor, system(tracked), ago=1)
+    statements: list[str] = []
+
+    def capture(_conn, _cursor, statement, *_rest):
+        statements.append(statement)
+
+    async with weather_sessions() as session:
+        engine = session.bind.sync_engine
+        event.listen(engine, "before_cursor_execute", capture)
+        try:
+            current = await service.latest_current_outlook(session)
+        finally:
+            event.remove(engine, "before_cursor_execute", capture)
+        everything = await service.list_published_products(session, "outlook")
+    assert current is not None and current.id == everything[0].id
+    [sql] = [s for s in statements if "authored_products" in s]
+    assert "LIMIT" in sql
+    async with weather_sessions() as session:
+        later = datetime.now(UTC) + timedelta(days=30)
+        assert await service.latest_current_outlook(session, now=later) is None

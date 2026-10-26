@@ -6,6 +6,7 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
+    CheckConstraint,
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
@@ -158,6 +159,10 @@ class TropicalSystemEntry(WeatherModel):
             name="tropical_system_entries_revision_system_key",
         ),
         Index("tropical_system_entries_system_issued_idx", "system_id", "issued_at"),
+        CheckConstraint(
+            "action IN ('draft', 'publish')",
+            name="tropical_system_entries_action_check",
+        ),
     )
     id: Mapped[int] = mapped_column(Integer, Identity(always=True), primary_key=True)
     system_id: Mapped[UUID] = mapped_column(
@@ -169,6 +174,8 @@ class TropicalSystemEntry(WeatherModel):
     issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     feature_type: Mapped[str] = mapped_column(Text, nullable=False)
+    # As linked when this revision was saved (migration 0005); public routes show it.
+    nhc_storm_id: Mapped[str | None] = mapped_column(Text)
     latitude: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
     longitude: Mapped[Decimal | None] = mapped_column(Numeric(6, 2))
     movement_direction: Mapped[str | None] = mapped_column(Text)

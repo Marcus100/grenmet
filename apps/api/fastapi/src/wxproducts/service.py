@@ -90,6 +90,44 @@ async def list_published_products(
     )
 
 
+# Outlook validity is Grenada wall-clock text; anything that is not exactly
+# YYYY-MM-DDTHH:MM never casts (NULL, so the outlook is not selected).
+CURRENT_OUTLOOK_SQL = """
+SELECT published FROM authored_products
+WHERE kind = 'outlook' AND published IS NOT NULL
+  AND CASE WHEN published #>> '{values,validFrom}' ~ '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$'
+      THEN (published #>> '{values,validFrom}')::timestamp AT TIME ZONE 'America/Grenada'
+      END <= :now
+  AND CASE WHEN published #>> '{values,validTo}' ~ '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$'
+      THEN (published #>> '{values,validTo}')::timestamp AT TIME ZONE 'America/Grenada'
+      END > :now
+ORDER BY published #>> '{values,issuedAt}' DESC, id
+LIMIT 5
+"""
+
+
+async def latest_current_outlook(
+    session: AsyncSession, *, now: datetime | None = None
+) -> PublishedProduct | None:
+    """The most recently issued current published outlook, chosen in SQL.
+
+    The query only narrows to outlooks whose validity window contains now and
+    returns a handful; ``is_current`` stays the rule, so this agrees with
+    ``list_published_products`` without loading every published outlook.
+    """
+    instant = now if now is not None else datetime.now(UTC)
+    rows = await session.execute(text(CURRENT_OUTLOOK_SQL), {"now": instant})
+    for row in rows.scalars():
+        try:
+            product = PublishedProductAdapter.validate_python(row)
+        except ValidationError:
+            logger.warning("Ignoring invalid published weather product row")
+            continue
+        if is_current(product, instant):
+            return product
+    return None
+
+
 async def get_published_product(
     session: AsyncSession, product_id: UUID, *, now: datetime | None = None
 ) -> tuple[PublishedProduct, bool] | None:
