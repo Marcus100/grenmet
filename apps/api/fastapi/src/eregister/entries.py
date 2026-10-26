@@ -77,28 +77,37 @@ async def history_for(
     if register is None or not (station_id or "").strip():
         return {}
     found: dict[int, SynopWorkbook] = {}
-    try:
-        for hours in HISTORY_HOURS:
-            result = await register.execute(
-                text(
-                    """
-                    SELECT body FROM register_observations
-                    WHERE station_id = :station AND kind = CAST('SYNOP' AS observation_kind)
-                      AND observed_at = :at AND state NOT IN ('rejected', 'superseded')
-                    ORDER BY created_at DESC LIMIT 1
-                    """
-                ),
-                {
-                    "station": (station_id or "").strip(),
-                    "at": observed_at - timedelta(hours=hours),
-                },
-            )
-            row = result.mappings().first()
+    for hours in HISTORY_HOURS:
+        try:
+            # A savepoint: a failed query must not abort the caller's transaction
+            # (correct() holds a row lock and still has to write).
+            async with register.begin_nested():
+                result = await register.execute(
+                    text(
+                        """
+                        SELECT body FROM register_observations
+                        WHERE station_id = :station
+                          AND kind = CAST('SYNOP' AS observation_kind)
+                          AND observed_at = :at
+                          AND state NOT IN ('rejected', 'superseded')
+                        ORDER BY created_at DESC LIMIT 1
+                        """
+                    ),
+                    {
+                        "station": (station_id or "").strip(),
+                        "at": observed_at - timedelta(hours=hours),
+                    },
+                )
+                row = result.mappings().first()
             if row is not None:
                 found[hours] = encode.workbook_from_body(row["body"])
-    except SQLAlchemyError, OSError, ValueError:
-        logger.warning("eRegister hour-to-hour history unavailable", exc_info=True)
-        return {}
+        except SQLAlchemyError, OSError, ValueError:
+            # One unreadable hour (or a bad stored body) leaves the other hour usable.
+            logger.warning(
+                "eRegister hour-to-hour history unavailable for -%s h",
+                hours,
+                exc_info=True,
+            )
     return found
 
 

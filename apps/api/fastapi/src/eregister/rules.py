@@ -1084,7 +1084,13 @@ def _check_supplementary(c: _Checker, speed: int | None) -> None:
                     "warning",
                 )
         elif code == SUPPLEMENTARY_NOT_USED:
-            c.add(field, "unused_supplementary", f"{token}: group 908 is not used.")
+            # Not confirmed against WMO-No. 306 Vol. I.1 (not on file): advice only.
+            c.add(
+                field,
+                "unused_supplementary",
+                f"{token}: group 908 is reported as not used (unconfirmed); check it.",
+                "warning",
+            )
         elif code == SUPPLEMENTARY_PRECIPITATION:
             _check_precipitation_timing(c, field, token)
         elif code == SUPPLEMENTARY_DIRECTION:
@@ -1488,7 +1494,13 @@ def validate_synop(
             hours: validate_synop(old, amounts)[1] for hours, old in history.items()
         }
         c.issues.extend(
-            hourly.check(workbook, decoded, past, limits or hourly.DEFAULT_LIMITS)
+            hourly.check(
+                workbook,
+                decoded,
+                past,
+                limits or hourly.DEFAULT_LIMITS,
+                history.get(1),
+            )
         )
     if not is_nil:
         c.issues.extend(metar.compare(workbook, decoded))

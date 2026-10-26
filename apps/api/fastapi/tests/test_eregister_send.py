@@ -24,7 +24,7 @@ from alembic import command
 from src.audit.models import AuditEntry
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
-from src.eregister import encode, gate, publisher, rules, sends, store
+from src.eregister import encode, entries, gate, publisher, rules, sends, store
 from src.eregister.config import Wis2boxConfig
 from src.eregister.dependencies import get_session
 from src.eregister.models import ERegisterSend
@@ -994,6 +994,29 @@ async def test_save_allows_warnings_and_does_not_validate_aviation_text(
     assert ok.status_code == 201, ok.text
     metar = await client.post(OBS_URL, json=record(kind="METAR", body={"x": "y"}))
     assert metar.status_code == 201
+
+
+async def test_a_failing_history_query_does_not_break_saving_or_correcting(
+    send_client: tuple[httpx.AsyncClient, User], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    client, _ = send_client
+    real_text = entries.text
+
+    def broken_history(sql: str) -> Any:
+        # Only the hour-to-hour history query fails; the transaction goes on.
+        if "ORDER BY created_at DESC LIMIT 1" in sql:
+            return real_text("SELECT body FROM no_such_history_table")
+        return real_text(sql)
+
+    monkeypatch.setattr(entries, "text", broken_history)
+    first = await client.post(OBS_URL, json=record())
+    assert first.status_code == 201, first.text
+    edited = {**FULL_ROW, "air_temp": "0291", "source": "eregister-workbook"}
+    corrected = await client.post(
+        f"{OBS_URL}/{first.json()['id']}/correct",
+        json={"body": edited, "reason": "typo in the air temperature"},
+    )
+    assert corrected.status_code == 201, corrected.text
 
 
 async def test_resaving_the_same_hour_updates_the_observers_own_draft(

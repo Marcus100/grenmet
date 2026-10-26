@@ -406,7 +406,10 @@ def test_903tt_describes_the_group_that_precedes() -> None:
 
 
 def test_group_908_is_not_used() -> None:
-    assert ("error", "s3_special_phenomena", "unused_supplementary") in special("90899")
+    # Unconfirmed against Vol. I.1, so a warning until the table is on file.
+    assert ("warning", "s3_special_phenomena", "unused_supplementary") in special(
+        "90899"
+    )
 
 
 def test_a_gust_of_99_or_more_is_followed_by_a_00fff_group() -> None:

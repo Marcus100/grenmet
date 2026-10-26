@@ -95,10 +95,16 @@ def _temperature_checks(
     return found
 
 
+def _variable(workbook: SynopWorkbook | None) -> bool:
+    """Variable wind (dd 99) decodes as direction 0, so it has no direction to compare."""
+    return workbook is not None and (workbook.wind_dir or "").strip() == "99"
+
+
 def _wind_checks(
     now: SynopDecoded,
     before: SynopDecoded,
     workbook: SynopWorkbook,
+    previous_workbook: SynopWorkbook | None,
     limits: HourlyLimits,
 ) -> list[SynopValidationIssue]:
     found: list[SynopValidationIssue] = []
@@ -119,7 +125,8 @@ def _wind_checks(
         and before_speed is not None
         and now_direction is not None
         and before_direction is not None
-        and (workbook.wind_dir or "").strip() != "99"
+        and not _variable(workbook)
+        and not _variable(previous_workbook)
         and min(now_speed, before_speed) >= limits.wind_direction_min_speed_ms
     ):
         turned = _direction_change(now_direction, before_direction)
@@ -201,13 +208,18 @@ def check(
     decoded: SynopDecoded,
     history: Mapping[int, SynopDecoded],
     limits: HourlyLimits = DEFAULT_LIMITS,
+    previous_workbook: SynopWorkbook | None = None,
 ) -> list[SynopValidationIssue]:
-    """Warnings comparing this observation with the saved ones 1 and 3 hours earlier."""
+    """Warnings comparing this observation with the saved ones 1 and 3 hours earlier.
+
+    ``previous_workbook`` is the keyed workbook of the previous hour; it tells whether
+    that hour's wind was variable.
+    """
     found: list[SynopValidationIssue] = []
     previous = history.get(1)
     if previous is not None:
         found += _temperature_checks(decoded, previous, limits)
-        found += _wind_checks(decoded, previous, workbook, limits)
+        found += _wind_checks(decoded, previous, workbook, previous_workbook, limits)
         found += _visibility_check(decoded, previous, workbook, limits)
     earlier = history.get(3)
     if earlier is not None:

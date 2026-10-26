@@ -83,6 +83,14 @@ def test_wind_direction_step(before_dir: str, before_speed: str, warns: bool) ->
     assert ("wind_direction_jump" in issues) is warns
 
 
+def test_a_variable_wind_in_the_previous_hour_has_no_direction_to_compare() -> None:
+    # dd 99 decodes as direction 0; 270 against that would read as a 90 degree turn.
+    issues = codes(
+        previous={"wind_dir": "99", "wind_speed": "15"}, wind_dir="27", wind_speed="15"
+    )
+    assert "wind_direction_jump" not in issues
+
+
 def test_wind_direction_steps_wrap_around_north() -> None:
     # 350 and 030 are 40 degrees apart, not 320.
     issues = codes(
