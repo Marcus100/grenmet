@@ -7,6 +7,7 @@ import {
   REGISTER_FIELDS,
   REGISTER_KEYS,
   REGISTER_SECTIONS,
+  TIME_MARKS,
 } from "./eregister-layout";
 
 const find = (id: string): FieldColumn => {
@@ -70,11 +71,46 @@ it("numbers the columns like the paper register, 1 to 65", () => {
   );
   expect(Math.max(...numbers)).toBe(65);
   expect(new Set(numbers).size).toBe(numbers.length);
-  // Paper column 17 (barometer as read / total corrections) is not built yet.
+  // Every paper column is built, including 17 (barometer as read).
   const missing = Array.from({ length: 65 }, (_, i) => i + 1).filter(
     (n) => !numbers.includes(n)
   );
-  expect(missing).toEqual([17]);
+  expect(missing).toEqual([]);
+});
+
+it("keys the barometer as read in column 17 and the 909 group and time marks", () => {
+  expect(find("barometer_reading").no).toBe(17);
+  expect(REGISTER_KEYS).toContain("barometer_reading");
+  expect(REGISTER_KEYS).toContain("s3_group_909");
+  expect(TIME_MARKS.map((mark) => mark.key)).toEqual([
+    "time_mark_anemograph",
+    "time_mark_barograph",
+    "time_mark_rain_recorder",
+    "time_mark_thermohygrograph",
+  ]);
+  for (const mark of TIME_MARKS) expect(REGISTER_KEYS).toContain(mark.key);
+});
+
+it("types visibility in kilometres above a calculated VV cell", () => {
+  const visibility = find("visibility");
+  expect(visibility.upper?.key).toBe("visibility_km");
+  expect(visibility.computed).toBe(true);
+  expect(REGISTER_KEYS).toContain("visibility_km");
+  expect(FIELD_LABELS.visibility_km).toBe("Visibility in km");
+});
+
+it("calculates dew point (both cells) and relative humidity, never keying them", () => {
+  const calculated = REGISTER_FIELDS.filter((column) => column.computed).map(
+    (column) => column.id
+  );
+  expect(calculated).toEqual([
+    "visibility",
+    "dew_point:sign",
+    "dew_point:digits",
+    "relative_humidity",
+  ]);
+  // The wet bulb stays an entry above the dew point.
+  expect(find("dew_point:digits").upper?.key).toBe("wet_bulb");
 });
 
 it("hints the 24 h pressure change j1 as 8 in the sign cell placeholder", () => {

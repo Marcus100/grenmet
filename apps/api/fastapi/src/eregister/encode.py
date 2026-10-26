@@ -12,6 +12,7 @@ import io
 from datetime import UTC, datetime
 from typing import Any
 
+from . import derive
 from .config import Wis2boxConfig
 from .public import RAIN_PERIOD_HOURS
 from .rules import (
@@ -64,13 +65,14 @@ def workbook_from_body(body: dict[str, Any]) -> SynopWorkbook:
     """Read a stored observation body (flat, or nested under ``workbook``)."""
     source = body.get("workbook")
     values = source if isinstance(source, dict) else body
-    return SynopWorkbook.model_validate(
+    workbook = SynopWorkbook.model_validate(
         {
             key: value
             for key, value in values.items()
             if key in SynopWorkbook.model_fields and isinstance(value, str)
         }
     )
+    return derive.apply_to_workbook(workbook)
 
 
 def _v(workbook: SynopWorkbook, field: str) -> str:
@@ -222,6 +224,9 @@ def _section3(workbook: SynopWorkbook) -> list[str]:
         groups.append(f"910{'99' if len(gust) == THREE_DIGIT_GROUP else gust}")
         if len(gust) == THREE_DIGIT_GROUP:
             groups.append(f"00{gust}")
+    group_909 = _v(workbook, "s3_group_909")
+    if _present(group_909):
+        groups.append(group_909)
     groups.extend(_v(workbook, "s3_special_phenomena").split())
     return groups
 

@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Query, Request, Response
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -14,7 +14,7 @@ from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED
 from src.rate_limit import limiter
 
-from . import entries, public, qc, rules, sends
+from . import derive, entries, public, qc, rules, sends, stations
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
     ObservationSend,
@@ -28,6 +28,8 @@ from .schemas import (
     RegisterObservationRead,
     ReviewRequest,
     SendObservationRequest,
+    StationSettings,
+    StationSettingsUpdate,
     SynopValidationRequest,
     SynopValidationResponse,
 )
@@ -144,8 +146,15 @@ async def list_register_observations(
         params,
     )
     names = await entries.actor_names(app_session, {str(r["actor_id"]) for r in rows})
+    amounts = {
+        station: await stations.pressure_for(session, station)
+        for station in {str(r["station_id"]) for r in rows}
+    }
     return RegisterObservationList(
-        observations=[entries.listing_row(row, names) for row in rows],
+        observations=[
+            entries.listing_row(row, names, amounts.get(str(row["station_id"])))
+            for row in rows
+        ],
         total=int(total or 0),
     )
 
@@ -154,15 +163,18 @@ async def list_register_observations(
     "/observations/validate-synop",
     response_model=SynopValidationResponse,
     summary="Validate a SYNOP observation",
-    description="Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid.",
+    description="Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns.",
     responses={**AUTHENTICATED},
 )
 async def validate_synop_observation(
     body: SynopValidationRequest,
     _user: BrowserUser,
+    register: PublicRegisterSession,
 ) -> SynopValidationResponse:
-    workbook = body.workbook
-    issues, decoded = rules.validate_synop(workbook)
+    # The station's pressure amounts (78958: owner confirmed); none if unknown.
+    station = await stations.pressure_for(register, body.workbook.station_id)
+    workbook = derive.apply_to_workbook(body.workbook, station)
+    issues, decoded = rules.validate_synop(workbook, station)
     if body.observed_at is not None:
         issues = [*issues, *rules.check_observation_time(workbook, body.observed_at)]
     valid = all(issue.severity != "error" for issue in issues)
@@ -492,6 +504,59 @@ async def list_observation_sends(
     _require_register_access(user)
     response.headers["Cache-Control"] = "private, no-store"
     return ObservationSendList(sends=await sends.list_sends(session, observation_id))
+
+
+@router.get(
+    "/stations/{station_id}/settings",
+    response_model=StationSettings,
+    summary="Station pressure amounts",
+    description=(
+        "The fixed amounts (hPa) the register uses to work out the pressures from "
+        "the barometer as read: station pressure = barometer + "
+        "`total_correction_hpa`; QFE = station + `qfe_offset_hpa`; mean sea level "
+        "pressure = station + `sea_level_offset_hpa`; QNH = sea level + "
+        "`qnh_offset_hpa`. 78958 holds the owner-confirmed 0.0, 0.3, 1.0 and 0.1; "
+        "an amount not yet supplied is null and listed in `pending`. Requires "
+        "`eregister.observe`, `eregister.qc` or `eregister.send`."
+    ),
+    responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
+)
+async def get_station_settings(
+    station_id: str,
+    user: BrowserUser,
+    session: RegisterSession,
+    response: Response,
+) -> StationSettings:
+    _require_register_access(user)
+    response.headers["Cache-Control"] = "private, no-store"
+    found = await stations.get(session, station_id.strip())
+    if found is None:
+        raise HTTPException(404, "Unknown station")
+    return found
+
+
+@router.put(
+    "/stations/{station_id}/settings",
+    response_model=StationSettings,
+    summary="Set the station pressure amounts",
+    description=(
+        "Replaces all four amounts (send null to clear one). Requires `eregister.qc`."
+    ),
+    responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
+)
+async def put_station_settings(
+    station_id: str,
+    body: StationSettingsUpdate,
+    user: BrowserUser,
+    session: RegisterSession,
+    response: Response,
+) -> StationSettings:
+    require_permission(current_user=user, permission_key="eregister.qc")
+    response.headers["Cache-Control"] = "no-store"
+    saved = await stations.update(session, station_id.strip(), body, actor=str(user.id))
+    if saved is None:
+        raise HTTPException(404, "Unknown station")
+    return saved
 
 
 @router.get(

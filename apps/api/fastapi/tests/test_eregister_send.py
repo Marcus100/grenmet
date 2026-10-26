@@ -1780,3 +1780,14 @@ async def test_rejecting_a_correction_that_took_the_gate_gives_it_back(
     await as_staff(db_async, "eregister.send")
     published = await client.post(f"/api/v1/eregister/observations/{original}/publish")
     assert published.status_code == 202, published.text
+
+
+def test_the_register_migrations_form_one_chain_with_a_single_head() -> None:
+    from alembic.script import ScriptDirectory
+
+    script = ScriptDirectory.from_config(
+        Config(str(ROOT / "src/eregister/alembic.ini"))
+    )
+    assert script.get_heads() == ["eregister_0006"]
+    revisions = [item.revision for item in script.walk_revisions()]
+    assert revisions == [f"eregister_000{n}" for n in range(6, 0, -1)]

@@ -22,6 +22,24 @@ describe("breadcrumbTrail", () => {
     ]);
   });
 
+  it("files the Tropical Weather Outlook under Weather › Forecasts", () => {
+    expect(breadcrumbTrail("/weather/tropics")).toEqual([
+      { href: "/weather", label: "Weather" },
+      { href: "/sitemap#weather--forecasts", label: "Forecasts" },
+      {
+        current: true,
+        href: "/weather/tropics",
+        label: "Tropical Weather Outlook",
+      },
+    ]);
+    // Pages below it keep their own Tropical weather group.
+    expect(labels("/weather/tropics/waves")).toEqual([
+      "Weather",
+      "Tropical weather",
+      "Tropical waves",
+    ]);
+  });
+
   it("gives every nav page exactly three crumbs, ending on itself", () => {
     for (const section of NAV_SECTIONS) {
       for (const group of section.groups) {
