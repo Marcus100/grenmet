@@ -1283,7 +1283,7 @@ def _check_fog_visibility(c: _Checker, visibility_code: int | None) -> None:
             "present_wx",
             "fog_visibility",
             f"ww={ww:02d} is fog at the station; visibility must be below 1000 m "
-            "(VV 00 to 10 or 90 to 94), 12.2.6.4.13.",
+            "(VV 00 to 09 or 90 to 93), 12.2.6.4.13.",
             "warning",
         )
     elif ww == MIST_WW and metres < FOG_VISIBILITY_M:

@@ -30,13 +30,14 @@ from math import floor
 
 from .schemas import SynopDecoded, SynopValidationIssue, SynopWorkbook
 
+# Grenada (Maurice Bishop International). No per-station aerodrome setting exists in the
+# register config yet (only the observation row carries one), so the identifier is fixed.
 ICAO = "TGPY"
 FIELD = "metar_text"
 KNOTS_PER_MS = 1.943_84
 FEET_PER_METRE = 3.280_84
 METRES_PER_HUNDRED_FEET = 30.48
 OPERATIONAL_CLOUD_M = 1500.0  # 5000 ft; GMS may use the higher minimum sector altitude
-CLOUD_STEP_LIMIT_M = 3000.0  # 100 ft steps are defined up to 10 000 ft
 GUST_EXCESS_KT = 10
 CALM_BELOW_KT = 1
 OBSCURED = 9
@@ -54,7 +55,9 @@ VISIBILITY_FINE_LAST = 50
 VISIBILITY_KM_FIRST = 56
 VISIBILITY_KM_30 = 80
 AMOUNT_WORDS = (("FEW", 1, 2), ("SCT", 3, 4), ("BKN", 5, 7), ("OVC", 8, 8))
-CLEAR_WORDS = frozenset({"NSC", "SKC", "NCD", "CLR"})
+CLOUD_OVER_21KM = 89
+HUNDREDS_TO_THOUSAND_STEP = 100  # above 10 000 ft bases are in 1000 ft steps
+TREND_WORDS = frozenset({"TEMPO", "BECMG", "NOSIG", "RMK"})
 
 _WIND = re.compile(r"^(VRB|\d{3})(\d{2,3})(?:G(\d{2,3}))?KT$")
 _VISIBILITY = re.compile(r"^\d{4}$")
@@ -62,15 +65,15 @@ _LAYER = re.compile(r"^(FEW|SCT|BKN|OVC)(\d{3}|///)(CB|TCU)?$")
 _VERTICAL = re.compile(r"^VV(\d{3}|///)$")
 _TEMPERATURE = re.compile(r"^(M?\d{2})/(M?\d{2}|//)?$")
 _QNH = re.compile(r"^Q(\d{4})$")
-_LAYER_TOKEN = re.compile(r"^(FEW|SCT|BKN|OVC)\d{3}")
 
 
 @dataclass(frozen=True)
 class Layer:
     word: str
     allowed: tuple[int, ...]  # hundreds of feet the observation allows
-    shown: int
+    shown: int | None  # None: the base cannot be decoded, shown as ///
     cumulonimbus: bool
+    optional: bool = False  # not of operational significance: accepted, not required
 
 
 @dataclass(frozen=True)
@@ -84,6 +87,7 @@ class Expected:
     visibility: tuple[int, ...] | None
     clear_sky: bool
     layers: tuple[Layer, ...]
+    cloud_placeholder: str | None  # N > 0 but no layer keyed: cloud is not compared
     obscured: tuple[int, ...] | None
     temperature: frozenset[str] | None
     dew_point: frozenset[str] | None
@@ -146,14 +150,19 @@ def visibility_values(code: int) -> tuple[int, ...] | None:
 
 
 def _height_metres(code: int) -> tuple[float, float] | None:
-    """Metres a cloud height code stands for (Code table 1677), up to 3000 m."""
+    """Metres a cloud height code stands for (Code table 1677); None for unused codes."""
     if code == 0:
         return 0.0, 30.0
     if 1 <= code <= 50:
         return code * 30.0, code * 30.0 + 30.0
-    if 56 <= code <= 60:  # 300 m steps up to 3000 m
+    if 56 <= code <= 80:  # 300 m steps from 1800 m
         low = (code - 50) * 300.0
         return low, low + 300.0
+    if 81 <= code <= 88:  # 10 500 m upward in 1500 m steps
+        low = 10_500.0 + (code - 81) * 1500.0
+        return low, low + 1500.0
+    if code == CLOUD_OVER_21KM:
+        return 21_000.0, float("inf")
     return None
 
 
@@ -164,11 +173,25 @@ def cloud_hundreds(code: int) -> tuple[tuple[int, ...], int] | None:
         return None
     low, high = span
     lowest = floor(low * FEET_PER_METRE / 100 + SAFE_FLOAT_MARGIN)
-    highest = floor(high * FEET_PER_METRE / 100 - SAFE_FLOAT_MARGIN)
-    allowed = tuple(range(lowest, highest + 1))
+    # Open-ended top class (over 21 000 m): the base is only bounded below.
+    highest = (
+        lowest
+        if high == float("inf")
+        else floor(high * FEET_PER_METRE / 100 - SAFE_FLOAT_MARGIN)
+    )
     # The step whose 100 ft (30.48 m) lies inside the range: 600 m is 020, not 019.
     shown = -(-int(low * 100) // int(METRES_PER_HUNDRED_FEET * 100))
-    return allowed, shown if shown in allowed else allowed[-1]
+    if shown > highest:
+        shown = highest
+
+    def step(hundreds: int) -> int:
+        # Above 10 000 ft a base is reported in 1000 ft steps, rounded down.
+        if hundreds < HUNDREDS_TO_THOUSAND_STEP:
+            return hundreds
+        return hundreds // 10 * 10
+
+    allowed = tuple(sorted({step(h) for h in range(lowest, highest + 1)}))
+    return allowed, step(shown)
 
 
 def _round_half_up(value: float) -> int:
@@ -180,7 +203,15 @@ def _temperature_tokens(tenths: str | None) -> frozenset[str] | None:
     if not group.isdigit() or len(group) not in (3, 4):
         return None
     negative = len(group) == 4 and group[0] == "1"
-    degrees = (-1 if negative else 1) * int(group[-3:]) / 10
+    return _degree_tokens((-1 if negative else 1) * int(group[-3:]) / 10)
+
+
+def _decoded_tokens(kelvin: float | None) -> frozenset[str] | None:
+    """METAR tokens for a decoded temperature (the value after any 2 9UUU conversion)."""
+    return None if kelvin is None else _degree_tokens(round(kelvin - 273.15, 1))
+
+
+def _degree_tokens(degrees: float) -> frozenset[str]:
     rounded = _round_half_up(degrees)
     if rounded == 0:
         # Observed below zero but rounded to zero is identified as negative (4.6.2.2).
@@ -208,19 +239,35 @@ def _wind(
         gust = gust_knots if gust_knots - knots >= GUST_EXCESS_KT else None
     if knots < CALM_BELOW_KT:
         return "00000KT", 0, False, 0, 0, None
+    gust_text = f"G{gust:02d}" if gust else ""
     if direction == WIND_NO_DIRECTION:
-        return f"VRB{knots:02d}KT", None, True, knots, tolerance, gust
-    group = f"{direction * 10:03d}{knots:02d}{f'G{gust:02d}' if gust else ''}KT"
+        return f"VRB{knots:02d}{gust_text}KT", None, True, knots, tolerance, gust
+    group = f"{direction * 10:03d}{knots:02d}{gust_text}KT"
     return group, direction * 10, False, knots, tolerance, gust
+
+
+def _placeholder(total: int | None) -> str | None:
+    """A cloud group with an unknown base, for N > 0 when no layer was keyed."""
+    if total is None or total == 0:
+        return None
+    if total == OBSCURED:
+        return "VV///"
+    word = next((w for w, low, high in AMOUNT_WORDS if low <= total <= high), None)
+    return None if word is None else f"{word}///"
 
 
 def _layers(
     workbook: SynopWorkbook,
-) -> tuple[bool, tuple[Layer, ...], tuple[int, ...] | None]:
-    """(clear sky, the layers a METAR reports, vertical visibility hundreds if obscured)."""
+) -> tuple[bool, tuple[Layer, ...], tuple[int, ...] | None, str | None]:
+    """(clear sky, layers, vertical visibility hundreds if obscured, placeholder).
+
+    Layers of no operational significance (non-Cb above 1500 m) are kept as optional so
+    an observer who types them is not warned. With N > 0 but no layer keyed (the paper
+    row has only N) the cloud cannot be compared: the placeholder is the group to show.
+    """
     total = _digits(workbook.total_cloud, 1)
     if total == 0:
-        return True, (), None
+        return True, (), None, None
     obscured: tuple[int, ...] | None = None
     layers: list[Layer] = []
     for n in (1, 2, 3, 4):
@@ -240,19 +287,21 @@ def _layers(
         is_cb = form == CUMULONIMBUS
         if height is None:
             if is_cb:
-                layers.append(Layer(word, (), 0, True))
+                layers.append(Layer(word, (), None, True))
             continue
-        if height[0] > OPERATIONAL_CLOUD_M and not is_cb:
-            continue  # not of operational significance
         allowed, shown = cloud_hundreds(code) or ((), 0)
-        layers.append(Layer(word, allowed, shown, is_cb))
-    return False, tuple(layers), obscured
+        quiet = height[0] > OPERATIONAL_CLOUD_M and not is_cb
+        layers.append(Layer(word, allowed, shown, is_cb, optional=quiet))
+    if obscured is None and total == OBSCURED and not layers:
+        obscured = ()
+    placeholder = None if obscured is not None or layers else _placeholder(total)
+    return False, tuple(layers), obscured, placeholder
 
 
 def expected(workbook: SynopWorkbook, decoded: SynopDecoded) -> Expected:
     wind, direction, variable, knots, tolerance, gust = _wind(workbook)
     code = _digits(workbook.visibility, 2)
-    clear, layers, obscured = _layers(workbook)
+    clear, layers, obscured, placeholder = _layers(workbook)
     qnh = None if decoded.qnh_pa is None else int(decoded.qnh_pa) // 100
     return Expected(
         wind=wind,
@@ -264,11 +313,24 @@ def expected(workbook: SynopWorkbook, decoded: SynopDecoded) -> Expected:
         visibility=None if code is None else visibility_values(code),
         clear_sky=clear,
         layers=layers,
+        cloud_placeholder=placeholder,
         obscured=obscured,
         temperature=_temperature_tokens(workbook.air_temp),
-        dew_point=_temperature_tokens(workbook.dew_point),
+        dew_point=_decoded_tokens(decoded.dew_point_k),
         qnh=qnh,
     )
+
+
+def _layer_text(layer: Layer) -> str:
+    base = "///" if layer.shown is None else f"{layer.shown:03d}"
+    return f"{layer.word}{base}{'CB' if layer.cumulonimbus else ''}"
+
+
+def _choice(tokens: frozenset[str] | None) -> str:
+    if not tokens:
+        return "//"
+    # Observed below zero but rounded to zero is reported M00 (4.6.2.2).
+    return "M00" if "M00" in tokens else min(tokens)
 
 
 def text(workbook: SynopWorkbook, decoded: SynopDecoded) -> str | None:
@@ -280,17 +342,16 @@ def text(workbook: SynopWorkbook, decoded: SynopDecoded) -> str | None:
         return None
     parts = [f"METAR {ICAO} {day}{hour}00Z", want.wind]
     parts.append(f"{want.visibility[0]:04d}" if want.visibility else "////")
-    if want.obscured:
-        parts.append(f"VV{want.obscured[-1]:03d}")
+    if want.obscured is not None:
+        parts.append(f"VV{want.obscured[-1]:03d}" if want.obscured else "VV///")
     elif want.clear_sky:
         parts.append("NSC")
+    elif want.cloud_placeholder:
+        parts.append(want.cloud_placeholder)
     else:
-        parts += [
-            f"{layer.word}{layer.shown:03d}{'CB' if layer.cumulonimbus else ''}"
-            for layer in want.layers
-        ]
-    temperature = min(want.temperature) if want.temperature else "//"
-    dew = min(want.dew_point) if want.dew_point else "//"
+        parts += [_layer_text(layer) for layer in want.layers if not layer.optional]
+    temperature = _choice(want.temperature)
+    dew = _choice(want.dew_point)
     parts.append(f"{temperature}/{dew}")
     parts.append(f"Q{want.qnh:04d}=" if want.qnh is not None else "Q////=")
     return " ".join(parts)
@@ -369,7 +430,7 @@ def _visibility_issues(
     if cavok:
         unsupported = (
             want.visibility[0] < VISIBILITY_METAR_TOP
-            or want.layers
+            or any(not layer.optional for layer in want.layers)
             or want.obscured is not None
         )
         return (
@@ -408,7 +469,6 @@ def _cloud_issues(
 ) -> list[SynopValidationIssue]:
     layers = [m for t in tokens if (m := _LAYER.match(t))]
     vertical = next((m for t in tokens if (m := _VERTICAL.match(t))), None)
-    clear = any(t in CLEAR_WORDS for t in tokens)
     found: list[SynopValidationIssue] = []
     if cavok:
         return found
@@ -430,8 +490,11 @@ def _cloud_issues(
                 )
             )
         return found
+    if not want.layers:
+        # N > 0 with no layer keyed: nothing to compare with, and no claim of clear sky.
+        return found
     remaining = list(layers)
-    for layer in want.layers:
+    for layer in sorted(want.layers, key=lambda item: item.optional):
         match = next(
             (
                 m
@@ -446,16 +509,15 @@ def _cloud_issues(
             ),
             None,
         )
-        if match is None:
-            shown = f"{layer.word}{layer.shown:03d}{'CB' if layer.cumulonimbus else ''}"
+        if match is not None:
+            remaining.remove(match)
+        elif not layer.optional:
             found.append(
                 _warn(
                     "metar_cloud_missing",
-                    f"The observation has {shown} but the METAR has no matching layer.",
+                    f"The observation has {_layer_text(layer)} but the METAR has no matching layer.",
                 )
             )
-        else:
-            remaining.remove(match)
     for extra in remaining:
         found.append(
             _warn(
@@ -463,8 +525,6 @@ def _cloud_issues(
                 f"METAR layer {extra.group(0)} is not in the observation.",
             )
         )
-    if not want.layers and not layers and not clear and want.clear_sky is False:
-        return found
     return found
 
 
@@ -525,6 +585,12 @@ def _pressure_issues(want: Expected, tokens: list[str]) -> list[SynopValidationI
     return []
 
 
+def _main_body(tokens: list[str]) -> list[str]:
+    """The tokens before any trend or remark, whose cloud groups are not the main body."""
+    end = next((i for i, t in enumerate(tokens) if t in TREND_WORDS), len(tokens))
+    return tokens[:end]
+
+
 def compare(
     workbook: SynopWorkbook, decoded: SynopDecoded
 ) -> list[SynopValidationIssue]:
@@ -532,7 +598,7 @@ def compare(
     typed_text = (workbook.metar_text or "").strip().upper()
     if not typed_text:
         return []
-    tokens = [t for t in re.split(r"[\s=]+", typed_text) if t]
+    tokens = _main_body([t for t in re.split(r"[\s=]+", typed_text) if t])
     want = expected(workbook, decoded)
     cavok = "CAVOK" in tokens
     return [

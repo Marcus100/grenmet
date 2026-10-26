@@ -99,6 +99,14 @@ def test_tac_nil_report_is_identification_only() -> None:
     )
 
 
+def test_tac_a_typed_metar_alone_does_not_make_a_data_report() -> None:
+    # metar_text is not SYNOP data: validation calls this NIL, so the TAC must too.
+    row = {**NIL_ROW, "metar_text": "METAR TGPY 301200Z 07015KT 9999 NSC 28/21 Q1013="}
+    assert encode.synop_tac(SynopWorkbook.model_validate(row)) == (
+        "AAXX 30124 78958 NIL="
+    )
+
+
 def test_tac_sign_digit_and_three_digit_wind() -> None:
     tac = encode.synop_tac(workbook(air_temp="1034", wind_speed="105", wind_gust="110"))
     assert " 11034 " in tac
