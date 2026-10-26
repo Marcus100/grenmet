@@ -50,7 +50,7 @@ to SI).
 | 555 national | Field `s5_national`: preserved as keyed and appended after section 3 as `555 ...`; never validated | Covered (passthrough) |
 | 7R24 | Four digits, 9999 trace; missing at 12 UTC: warning; keyed at another hour: warning | Covered |
 | 5appp (every 3 hours) | Missing at 00, 03, ... 21 UTC: warning (`missing_pressure_change`) | Covered as advice (owner decision 2026-10-23) |
-| 6RRRtR (every main hour) | Omitted (iR 3 or 4) or missing at 00, 06, 12, 18 UTC: warning | Covered as advice (owner decision 2026-10-23). "Main hour" is read as 00, 06, 12, 18 UTC |
+| 6RRRtR (every main hour) | Omitted (iR 3 or 4) or missing at 00, 06, 12, 18 UTC: warning | Covered as advice (owner decision 2026-10-23). "Main hour" is read as 00, 06, 12, 18 UTC. Zero rainfall at a main hour is keyed as `6000x` with iR 0 or 1, not left out |
 | 909Rtdc | Precipitation timing and duration: Region IV supplementary group 9SpSpspsp with SpSp 09, giving the time of beginning or end of the precipitation (Rt) and its duration (dc), reported with 6RRRtR. Field `s3_group_909`: five digits starting 909, passed into section 3 | Format only. Rt and dc are not decoded or carried in the WIS2 file: the local WMO-No. 306 Vol. I.2 has BUFR Code table 0 13 057 (time of beginning or end of precipitation, a Region I practice) but not the traditional code tables for Rt and dc, and the Region IV template TM 307084 has no precipitation timing element. Rt (Code table 3552) and dc (Code table 0833) are validated as format and range only. They could not be confirmed against Vol. I.1 (not on file); confirm them from Vol. I.1 or Vol. II (Region IV) before decoding |
 | 8NsChshs | Up to 3 non-Cb layers plus Cb; Ns not above N; Ns 0 invalid; hshs Code table 1677 (51-55 unused, 81-89 in 1500 m steps); ascending order and completeness: warning | Covered |
 | Remarks (`s3_remarks`, `notes`) | Free text, not validated and not encoded | Not covered |
@@ -123,6 +123,12 @@ line by line:
   column (column 63 is `9SpSpspsp` special phenomena). So the SYNOP gust goes
   out as `910ff`: 910ff is confirmed by the register. 911ff stays accepted
   when keyed in special phenomena.
+- *Station scope.* The owner decisions of 2026-10-23 and 24 were made for station
+  78958 and are applied to every station today: sunshine not reported
+  (`sunshine_not_reported`), the missing-group advice at main hours and every 3
+  hours, the main-hour 6RRRtR rule and the fixed pressure amounts (those are
+  station settings and need their own amounts per station). Per-station switches
+  are not built; a second manual station needs them first.
 - *Groups the register does not carry.* There are no 55SSS (sunshine) and no
   3Ejjj (ground state) columns, so those optional groups are unused by GMS
   today; the API still accepts `s3_sunshine_24h`, `s3_ground_state` and

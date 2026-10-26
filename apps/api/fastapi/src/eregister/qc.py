@@ -17,6 +17,7 @@ trail in the application database, so the two cannot share a transaction. The
 state change commits first; the audit entry follows in its own commit.
 """
 
+from datetime import datetime
 from typing import Any, Literal, NamedTuple
 from uuid import UUID
 
@@ -342,6 +343,11 @@ async def _set_state(
     )
 
 
+def _whole_seconds(moment: datetime) -> datetime:
+    """The API shows ``updated_at`` to the second, so compare at that precision."""
+    return moment.replace(microsecond=0)
+
+
 async def review(
     *,
     register: AsyncSession,
@@ -350,8 +356,15 @@ async def review(
     user: User,
     outcome: str,
     note: str | None,
+    seen_updated_at: datetime | None = None,
 ) -> RegisterObservationRead:
-    """Record an optional review; the state and any sending are untouched."""
+    """Record an optional review; the state and any sending are untouched.
+
+    ``seen_updated_at`` is the version the reviewer opened; a record saved since
+    then is a 409, so the mark never lands on a reading nobody looked at. The
+    comparison is to the whole second, the precision the API returns, so a change
+    within the same second as the version the reviewer saw is not detected.
+    """
     clean = (note or "").strip() or None
     if outcome == "query" and (clean is None or len(clean) < MIN_REASON):
         raise HTTPException(422, "A note is required to raise a query")
@@ -360,6 +373,13 @@ async def review(
         if str(row["actor_id"]) == str(user.id):
             raise HTTPException(
                 403, "A different person from the observer records the review"
+            )
+        if seen_updated_at is not None and _whole_seconds(
+            row["updated_at"]
+        ) != _whole_seconds(seen_updated_at):
+            raise HTTPException(
+                409,
+                "The observation was saved or decided since you opened it; open it again",
             )
         if row["state"] not in REVIEWABLE_STATES:
             raise HTTPException(

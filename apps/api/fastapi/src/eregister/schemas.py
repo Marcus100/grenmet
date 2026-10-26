@@ -235,6 +235,13 @@ class ReviewRequest(BaseModel):
         max_length=1000,
         description="Required for a query; optional for reviewed.",
     )
+    updated_at: Annotated[UtcDateTime, AwareDatetime()] | None = Field(
+        default=None,
+        description=(
+            "`updated_at` of the record the reviewer opened. When sent and the "
+            "record changed since, the review is refused with 409."
+        ),
+    )
 
 
 class QcDecisionRequest(BaseModel):

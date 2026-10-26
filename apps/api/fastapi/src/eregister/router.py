@@ -422,8 +422,11 @@ async def accept_register_observation(
         "Optional second look by register staff other than the observer: "
         "`reviewed` or `query` with a note (required for a query). Shown on the "
         "record and audited; it changes no state and never holds back WIS2 or "
-        "email. Allowed on draft, qc_pending and accepted observations; a new "
-        "review replaces the previous one on the record (every one is audited). "
+        "email. Send the `updated_at` of the record you opened: if it was saved or "
+        "decided since, the review is refused with 409 (changes within the same "
+        "second are not detected). Allowed on draft, qc_pending and accepted "
+        "observations; a new review replaces the previous one on the record (every "
+        "one is audited). "
         "Requires `eregister.observe`, `eregister.qc` or `eregister.send`."
     ),
     responses={
@@ -446,6 +449,7 @@ async def review_register_observation(
         user=user,
         outcome=body.outcome,
         note=body.note,
+        seen_updated_at=body.updated_at,
     )
 
 

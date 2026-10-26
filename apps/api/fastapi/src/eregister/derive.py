@@ -109,6 +109,12 @@ def vapour_pressure_from_wet_bulb(
     )
 
 
+def dew_point_from_humidity(air_c: float, percent: int) -> float:
+    """Dew point (tenths of a degree) for a relative humidity, never above the air."""
+    vapour = saturation_vapour_pressure_hpa(air_c) * percent / MAX_PERCENT
+    return round(min(dew_point_from_vapour_pressure(vapour), air_c), 1)
+
+
 def relative_humidity_percent(dry_c: float, vapour_pressure_hpa: float) -> int:
     ratio = vapour_pressure_hpa / saturation_vapour_pressure_hpa(dry_c)
     # Half rounds up, like the screen's Math.round.

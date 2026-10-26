@@ -1868,6 +1868,11 @@ is pending"): accepting the correction drops the held file (`failed`, "Replaced 
 correction before it was delivered"); rejecting the correction releases it so the
 original reading is retried as before.
 
+`POST .../{id}/review` takes an optional `updated_at`, the value the reviewer saw
+when opening the record (to the second). If the record was saved or decided since (accept, reject and reopen also move
+`updated_at`), the review is refused with `409`; a change within the same second is
+not detected; omitting it keeps the earlier behaviour.
+
 Recording and reading the register (`POST` and `GET
 /api/v1/eregister/observations`, `GET .../{id}/sends`) need one of
 `eregister.observe` (role `eregister-observer`), `eregister.qc` or

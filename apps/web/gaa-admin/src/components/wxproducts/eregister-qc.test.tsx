@@ -50,6 +50,7 @@ const NOTE_LABEL = /Note \(optional\)/;
 const RECORDED_BY = /Recorded by Pat Observer/;
 const STANDARD_HOURS = /standard hours/;
 const ERROR_NOT_LISTED = /error is not listed/;
+const CHANGED_MESSAGE = /saved or decided since you opened it/;
 const OWN_HINT = /another person reviews it/;
 
 /** Answer each queue by the filter the panel sends. */
@@ -205,9 +206,28 @@ describe("QcQueue", () => {
     fireEvent.click(save);
     await waitFor(() => expect(mocks.review).toHaveBeenCalledTimes(1));
     expect(mocks.review.mock.calls[0]?.[0]).toMatchObject({
-      body: { note: "Pressure looks high", outcome: "query" },
+      body: {
+        note: "Pressure looks high",
+        outcome: "query",
+        updated_at: "2026-10-18T12:01:00",
+      },
       path: { observation_id: THEIRS },
     });
+  });
+
+  it("shows the conflict message when the record changed since it was opened", async () => {
+    mocks.review.mockResolvedValue({
+      data: undefined,
+      error: {
+        detail: "The observation was saved or decided since you opened it",
+      },
+      response: { status: 409 },
+    });
+    serve({ review: [observation({ state: "accepted" })] });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Review" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save review" }));
+    expect(await screen.findByText(CHANGED_MESSAGE)).toBeTruthy();
   });
 
   it("needs a reason before rejecting", async () => {

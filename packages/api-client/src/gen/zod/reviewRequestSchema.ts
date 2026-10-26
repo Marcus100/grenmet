@@ -12,4 +12,10 @@ export const reviewRequestSchema = z.object({
     .union([z.string().max(1000), z.null()])
     .optional()
     .describe("Required for a query; optional for reviewed."),
+  updated_at: z
+    .union([z.iso.datetime(), z.null()])
+    .optional()
+    .describe(
+      "`updated_at` of the record the reviewer opened. When sent and the record changed since, the review is refused with 409."
+    ),
 });
