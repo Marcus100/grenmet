@@ -14,7 +14,13 @@ import type { TropicalSystemReadPropertiesClosedReasonAnyOfEnum } from "./Tropic
 export type TropicalSystemUpdate = {
   name?: string | null;
   feature_type?: GuidanceSystemPropertiesFeatureTypeEnum | null;
+  /**
+   * @description Must match al072026 when it changes; an unchanged older id is accepted.
+   */
   nhc_storm_id?: string | null;
+  /**
+   * @description Must match al942026 when it changes; an unchanged older id is accepted.
+   */
   nhc_invest_id?: string | null;
   status?: TropicalSystemPublicPropertiesStatusEnum | null;
   closed_reason?: TropicalSystemReadPropertiesClosedReasonAnyOfEnum | null;

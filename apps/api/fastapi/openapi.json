@@ -85609,25 +85609,27 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^[A-Za-z]{2}(0[1-9]|[1-8]\\d)\\d{4}$"
+                "maxLength": 20
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Nhc Storm Id"
+            "title": "Nhc Storm Id",
+            "description": "Must match al072026 when it changes; an unchanged older id is accepted."
           },
           "nhc_invest_id": {
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^[A-Za-z]{2}9\\d\\d{4}$"
+                "maxLength": 20
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Nhc Invest Id"
+            "title": "Nhc Invest Id",
+            "description": "Must match al942026 when it changes; an unchanged older id is accepted."
           },
           "status": {
             "anyOf": [

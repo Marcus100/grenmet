@@ -34,6 +34,8 @@ from .models import (
     TropicalSystemEntry,
 )
 from .schemas import (
+    NhcInvestId,
+    NhcSystemId,
     TropicalSystemClosedReason,
     TropicalSystemCreate,
     TropicalSystemStatus,
@@ -47,21 +49,35 @@ TRACKED_KIND = "outlook"
 TRACKED_ACTIONS = ("draft", "publish")
 HISTORY_LIMIT = 2000
 # Speeds are stored in knots; NHC decoders already report kt.
-TO_KNOTS = {None: 1.0, "kt": 1.0, "mph": 0.868976, "km/h": 1 / 1.852}
+TO_KNOTS = {
+    None: 1.0,
+    "kt": 1.0,
+    "mph": 0.868976,
+    "km/h": 1 / 1.852,
+    "m/s": 1.943844,
+}
 UNIT_SPELLINGS = {
     "kt": "kt",
     "kts": "kt",
     "knot": "kt",
     "knots": "kt",
+    "kn": "kt",
+    "kns": "kt",
     "mph": "mph",
     "mi/h": "mph",
     "km/h": "km/h",
     "kph": "km/h",
     "kmh": "km/h",
     "km/hr": "km/h",
+    "m/s": "m/s",
+    "mps": "m/s",
+    "m s-1": "m/s",
+    "m s^-1": "m/s",
 }
 # Nothing moves faster than this; it also keeps the value inside numeric(5,1).
 MAX_SPEED_KT = 500.0
+# Advisory lock key for continuation edits; seasons (2000-2100) use their own key.
+CHAIN_LOCK = -1
 
 
 def _unit(unit: str | None) -> str | None:
@@ -79,7 +95,8 @@ def _number(facts: list[GuidanceFact], *keys: str) -> float | None:
     return None
 
 
-def _speed(facts: list[GuidanceFact]) -> float | None:
+def _speed_kt(facts: list[GuidanceFact]) -> float | None:
+    """Speed in knots, whatever its size. Live writes and rebuild share this."""
     for fact in facts:
         unit = _unit(fact.unit)
         if fact.key != "movement_speed" or unit == "?":
@@ -93,6 +110,13 @@ def _speed(facts: list[GuidanceFact]) -> float | None:
     return None
 
 
+def _speed(facts: list[GuidanceFact]) -> float | None:
+    """The stored speed. Live writes refuse an absurd one (``check_speeds``), so a
+    rebuild of an older revision stores none instead of failing on it."""
+    speed = _speed_kt(facts)
+    return speed if speed is not None and speed <= MAX_SPEED_KT else None
+
+
 def check_speeds(content: dict[str, Any]) -> None:
     """Reject speeds in an unknown unit or too large to be real (422)."""
     for system in tracked_systems(content):
@@ -103,10 +127,10 @@ def check_speeds(content: dict[str, Any]) -> None:
                 raise ProductValidationError(
                     [
                         f"Unknown movement speed unit '{fact.unit}' for "
-                        f"{system.name}; use kt, mph or km/h"
+                        f"{system.name}; use kt, mph, km/h or m/s"
                     ]
                 )
-        speed = _speed(system.facts)
+        speed = _speed_kt(system.facts)
         if speed is not None and speed > MAX_SPEED_KT:
             raise ProductValidationError(
                 [f"Movement speed for {system.name} is above {MAX_SPEED_KT:g} kt"]
@@ -168,8 +192,13 @@ def entries_for(
     revision: int,
     action: str,
     created_at: datetime,
+    storm_ids: dict[UUID | None, str | None] | None = None,
 ) -> list[dict[str, Any]]:
-    """Entry rows for one outlook revision. Pure: rebuild and live writes share it."""
+    """Entry rows for one outlook revision. Pure: rebuild and live writes share it.
+
+    ``storm_ids`` is the NHC storm identifier each system had when the revision
+    was saved; it is what the public routes show until a later outlook is saved.
+    """
     issued_at = _issued_at(content, created_at)
     rows = []
     for system in tracked_systems(content):
@@ -183,6 +212,7 @@ def entries_for(
                 "issued_at": issued_at,
                 "name": system.name,
                 "feature_type": system.feature_type,
+                "nhc_storm_id": (storm_ids or {}).get(system.tracked_system_id),
                 "latitude": _number(facts, "latitude"),
                 "longitude": _number(facts, "longitude", "axis_longitude"),
                 "movement_direction": _direction(facts),
@@ -224,11 +254,32 @@ def _span(aggregate: Any) -> Any:
     )
 
 
+async def _lock_systems(
+    session: AsyncSession, ids: set[UUID]
+) -> dict[UUID, TropicalSystem]:
+    """Lock systems FOR NO KEY UPDATE in id order and return them by id.
+
+    This is the same strength the issue-time UPDATE needs, so nothing is ever
+    upgraded, and the fixed order stops two publishes that link the same systems
+    from waiting on each other.
+    """
+    if not ids:
+        return {}
+    rows = await session.execute(
+        select(TropicalSystem)
+        .where(TropicalSystem.id.in_(ids))
+        .order_by(TropicalSystem.id)
+        .with_for_update(key_share=True)
+    )
+    return {row.id: row for row in rows.scalars()}
+
+
 async def _refresh_issue_times(session: AsyncSession, ids: set[UUID]) -> None:
     """first/last issued times span each system's entries still published.
 
     Withdrawn and superseded issues no longer count.
     """
+    await _lock_systems(session, ids)
     statement = update(TropicalSystem).values(
         first_issued_at=_span(func.min), last_issued_at=_span(func.max)
     )
@@ -237,11 +288,9 @@ async def _refresh_issue_times(session: AsyncSession, ids: set[UUID]) -> None:
     await session.execute(statement)
 
 
-async def _refresh_product(
-    session: AsyncSession, product_id: UUID, extra: set[UUID]
-) -> None:
-    """Refresh issue times for a product's systems; a publish or withdraw moves them."""
-    earlier = set(
+async def _product_systems(session: AsyncSession, product_id: UUID) -> set[UUID]:
+    """Systems any earlier revision of this product listed."""
+    return set(
         (
             await session.execute(
                 select(TropicalSystemEntry.system_id)
@@ -250,7 +299,13 @@ async def _refresh_product(
             )
         ).scalars()
     )
-    ids = earlier | extra
+
+
+async def _refresh_product(
+    session: AsyncSession, product_id: UUID, extra: set[UUID]
+) -> None:
+    """Refresh issue times for a product's systems; a publish or withdraw moves them."""
+    ids = await _product_systems(session, product_id) | extra
     if ids:
         await _refresh_issue_times(session, ids)
 
@@ -275,7 +330,11 @@ async def record_revision(
     if action not in TRACKED_ACTIONS:
         return
     check_speeds(content)
-    linked = [system.tracked_system_id for system in tracked_systems(content)]
+    linked = [
+        system.tracked_system_id
+        for system in tracked_systems(content)
+        if system.tracked_system_id
+    ]
     if not linked:
         if action == "publish":
             await _refresh_product(session, product_id, set())
@@ -284,15 +343,13 @@ async def record_revision(
         raise ProductValidationError(
             ["Each tracked system can appear only once in an outlook"]
         )
+    # Lock everything this save will touch in one ordered statement, including the
+    # systems the issue-time refresh updates, so concurrent saves queue in id order.
+    locked = await _lock_systems(
+        session, set(linked) | await _product_systems(session, product_id)
+    )
     found = {
-        row.id: row
-        for row in (
-            await session.execute(
-                select(TropicalSystem)
-                .where(TropicalSystem.id.in_(linked))
-                .with_for_update(read=True)
-            )
-        ).scalars()
+        system_id: locked[system_id] for system_id in linked if system_id in locked
     }
     missing = [str(system_id) for system_id in linked if system_id not in found]
     if missing:
@@ -313,6 +370,7 @@ async def record_revision(
         revision=revision,
         action=action,
         created_at=created_at,
+        storm_ids={system_id: row.nhc_storm_id for system_id, row in found.items()},
     )
     session.add_all(TropicalSystemEntry(**row) for row in rows)
     await session.flush()
@@ -322,8 +380,16 @@ async def record_revision(
 
 async def rebuild_entries(session: AsyncSession) -> int:
     """Recreate every entry from outlook revisions. The caller commits."""
+    # The storm id each entry was saved with is not in the revision; keep it.
+    kept = {
+        (row.product_id, row.revision, row.system_id): row.nhc_storm_id
+        for row in (await session.execute(select(TropicalSystemEntry))).scalars()
+    }
     await session.execute(delete(TropicalSystemEntry))
-    known = set((await session.execute(select(TropicalSystem.id))).scalars())
+    known = {
+        row.id: row.nhc_storm_id
+        for row in (await session.execute(select(TropicalSystem))).scalars()
+    }
     revisions = await session.execute(
         select(
             ProductRevision.product_id,
@@ -352,6 +418,11 @@ async def rebuild_entries(session: AsyncSession) -> int:
             )
             if entry["system_id"] in known
         ]
+        for entry in entries:
+            entry["nhc_storm_id"] = kept.get(
+                (entry["product_id"], entry["revision"], entry["system_id"]),
+                known[entry["system_id"]],
+            )
         session.add_all(TropicalSystemEntry(**entry) for entry in entries)
         count += len(entries)
     await session.flush()
@@ -498,12 +569,38 @@ async def _check_merge_target(
         )
 
 
+def _identifier(new: str | None, current: str | None, shape: Any) -> str | None:
+    """Check an NHC identifier only when it changes.
+
+    Rows saved before the season-year format (``al07``) can be echoed back in a
+    PATCH unchanged; anything new or different must match the current format.
+    """
+    if new is None or (current is not None and new.lower() == current.lower()):
+        return new
+    try:
+        return str(TypeAdapter(shape).validate_python(new))
+    except ValidationError:
+        raise ProductValidationError(
+            [
+                "NHC identifiers carry the season year, such as al072026 for a "
+                "storm or al942026 for an invest"
+            ]
+        ) from None
+
+
 async def update_system(
     session: AsyncSession, system_id: UUID, body: TropicalSystemUpdate, actor: User
 ) -> TropicalSystem:
     fields = body.model_fields_set
     try:
         async with session.begin():
+            # Continuations are one chain across rows, so edits queue on one lock
+            # before any row lock: two opposite merges cannot both pass the loop
+            # check, and no lock order can deadlock (row locks come second).
+            await session.execute(
+                text("SELECT pg_advisory_xact_lock(hashtext('tropical_systems'), :k)"),
+                {"k": CHAIN_LOCK},
+            )
             system = (
                 await session.execute(
                     select(TropicalSystem)
@@ -522,9 +619,13 @@ async def update_system(
             if body.feature_type is not None:
                 system.feature_type = body.feature_type
             if "nhc_storm_id" in fields:
-                system.nhc_storm_id = body.nhc_storm_id
+                system.nhc_storm_id = _identifier(
+                    body.nhc_storm_id, system.nhc_storm_id, NhcSystemId
+                )
             if "nhc_invest_id" in fields:
-                system.nhc_invest_id = body.nhc_invest_id
+                system.nhc_invest_id = _identifier(
+                    body.nhc_invest_id, system.nhc_invest_id, NhcInvestId
+                )
             system.status, system.closed_reason, system.continued_as_id = (
                 status,
                 reason,

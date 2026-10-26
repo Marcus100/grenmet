@@ -466,6 +466,13 @@ NhcInvestId = Annotated[
 ]
 
 
+# On update the shape is checked in the service, only when the value changes, so a
+# system saved with an older short id (al07) can still be sent back unchanged.
+NhcStoredId = Annotated[
+    str, StringConstraints(strip_whitespace=True, to_lower=True, max_length=20)
+]
+
+
 class TropicalSystemCreate(BaseModel):
     """Start tracking a system by hand. The label (GMS season-sequence) is assigned."""
 
@@ -498,8 +505,14 @@ class TropicalSystemUpdate(BaseModel):
         | None
     ) = None
     feature_type: GuidanceFeatureType | None = None
-    nhc_storm_id: NhcSystemId | None = None
-    nhc_invest_id: NhcInvestId | None = None
+    nhc_storm_id: NhcStoredId | None = Field(
+        default=None,
+        description="Must match al072026 when it changes; an unchanged older id is accepted.",
+    )
+    nhc_invest_id: NhcStoredId | None = Field(
+        default=None,
+        description="Must match al942026 when it changes; an unchanged older id is accepted.",
+    )
     status: TropicalSystemStatus | None = None
     closed_reason: TropicalSystemClosedReason | None = None
     continued_as_id: UUID | None = None

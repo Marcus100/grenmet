@@ -15,11 +15,17 @@ export const tropicalSystemUpdateSchema = z
       .union([guidanceSystemPropertiesFeatureTypeEnumSchema, z.null()])
       .optional(),
     nhc_storm_id: z
-      .union([z.string().regex(/^[A-Za-z]{2}(0[1-9]|[1-8]\d)\d{4}$/), z.null()])
-      .optional(),
+      .union([z.string().max(20), z.null()])
+      .optional()
+      .describe(
+        "Must match al072026 when it changes; an unchanged older id is accepted."
+      ),
     nhc_invest_id: z
-      .union([z.string().regex(/^[A-Za-z]{2}9\d\d{4}$/), z.null()])
-      .optional(),
+      .union([z.string().max(20), z.null()])
+      .optional()
+      .describe(
+        "Must match al942026 when it changes; an unchanged older id is accepted."
+      ),
     status: z
       .union([tropicalSystemPublicPropertiesStatusEnumSchema, z.null()])
       .optional(),
