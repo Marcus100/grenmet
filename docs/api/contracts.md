@@ -412,6 +412,15 @@ organisation). A suspended organisation is refused with 403 by every
 `X-Barrels-Organisation` route. A verified organisation shows its linked Events
 organiser as `verified`.
 
+**Privileged MFA enrolment (issue #501).** With `AUTH_PRIVILEGED_MFA_MODE=enforce`
+(the default outside `ENVIRONMENT=local`), a superuser or privileged-permission
+holder (superuser, `user.manage`, or a CAP approve/publish key) without an enrolled
+authenticator gets 403 on every `CurrentUser` route, the cookie routes, GAA Admin and CMS
+admission, and (superusers only) the Events moderator and organiser routes, with a `detail` that starts `Set up two-step verification` and ends
+`(mfa_enrolment_required)`. Account security (`/auth/users/me/security*`), sign-in
+and sessions stay reachable so the person can enrol. Clients match the stable
+suffix `mfa_enrolment_required`.
+
 **Superuser admin powers (owner decision 2026-10-21).** All need an active
 superuser with an enrolled authenticator *and a session that passed MFA* (a
 token without `sid`, or a session with empty `mfa_verified_at`, gets 403) in
