@@ -9,7 +9,7 @@ timesheet rules are the manual ones); a rejected or pending punch never reaches
 import uuid
 from datetime import UTC, date, datetime
 
-from sqlalchemy import ColumnElement, and_, func, or_, select
+from sqlalchemy import ColumnElement, and_, false, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -41,10 +41,11 @@ def _aware(value: datetime) -> datetime:
 
 async def _review_scope(
     session: AsyncSession, actor: User
-) -> tuple[set[str], set[str]]:
-    """(organisations with ALL scope, departments with DEPARTMENT scope) in which
-    the actor holds the review permission. SELF scope covers one's own records,
-    which are never reviewable, so it grants nothing here."""
+) -> tuple[set[str], set[str], bool]:
+    """(organisations with ALL scope, departments with DEPARTMENT scope, whether any
+    live assignment carries the review permission) for the actor. SELF scope covers
+    one's own records, which are never reviewable, so it grants no scope here; a
+    lapsed or revoked assignment counts for nothing, including for a named supervisor."""
     role_ids = {
         role.id
         for role in actor.roles
@@ -52,9 +53,11 @@ async def _review_scope(
     }
     organisation_ids: set[str] = set()
     department_ids: set[str] = set()
+    holds_role = False
     for assignment in await organisations.active_assignments(session, actor.id):
         if assignment.role_id not in role_ids:
             continue
+        holds_role = True
         if assignment.scope == RoleAssignmentScope.ALL:
             organisation_ids.add(assignment.organisation_id)
         elif (
@@ -62,7 +65,7 @@ async def _review_scope(
             and assignment.department_id
         ):
             department_ids.add(assignment.department_id)
-    return organisation_ids, department_ids
+    return organisation_ids, department_ids, holds_role
 
 
 async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]:
@@ -84,7 +87,9 @@ async def _reviewable(session: AsyncSession, actor: User) -> ColumnElement[bool]
     never_own = ClockPunch.user_id != actor.id
     if actor.is_superuser:
         return never_own
-    organisation_ids, department_ids = await _review_scope(session, actor)
+    organisation_ids, department_ids, holds_role = await _review_scope(session, actor)
+    if not holds_role:
+        return false()
 
     def employees(*conditions: ColumnElement[bool]) -> ColumnElement[bool]:
         """Punches by employees matching ``conditions`` whose employment is in the

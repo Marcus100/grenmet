@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import RoleAssignmentScope, User
+from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.utils import create_access_token
 from src.exceptions import AppException, AuthorizationError
 from src.hr.attendance import clock_service, punch_service
@@ -33,6 +33,7 @@ from src.hr.roster.service import (
     create_roster_period,
     publish_roster_period,
 )
+from src.utils.datetime import utc_now
 from tests.factories import (
     assign_role,
     make_employee,
@@ -719,6 +720,34 @@ async def test_named_supervisor_and_unrelated_manager_after_transfer(
         )
     assert raised.value.status_code == 403
     await punch_service._require_reviewer(db_async, named, arrive)
+
+
+async def test_named_supervisor_whose_review_role_has_ended_is_refused(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    named = await _supervisor(db_async, department=OTHER)
+    record = await db_async.scalar(
+        select(EmploymentRecord).where(EmploymentRecord.user_id == employee.id)
+    )
+    assert record is not None
+    record.supervisor_id = named.id
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    assert await _pending_ids(db_async, named) == [arrive.id]
+    # The role assignment lapsed: being named supervisor alone grants nothing.
+    for assignment in (
+        await db_async.scalars(
+            select(UserRoleAssignment).where(UserRoleAssignment.user_id == named.id)
+        )
+    ).all():
+        assignment.effective_to = utc_now() - timedelta(days=1)
+    await db_async.commit()
+    assert await _pending_ids(db_async, named) == []
+    with pytest.raises(AppException) as raised:
+        await punch_service.approve_punch(
+            session=db_async, current_user=named, punch_id=arrive.id
+        )
+    assert raised.value.status_code == 403
 
 
 async def test_all_scope_holder_in_the_organisation_decides_and_employee_cannot(
