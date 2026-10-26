@@ -24,17 +24,21 @@ def downgrade() -> None:
     # PostgreSQL cannot safely remove an enum value while old code could still read
     # it, so the values stay; rows already RETURNED go back to what the previous
     # code showed (forms: DRAFT, timesheets: SUBMITTED) so old code can load them.
-    for table in (
-        "leave_request",
-        "absentee_report",
-        "shift_swap_request",
-        "status_report",
-        "parking_permit",
-    ):
-        # Fixed table names from the tuple above, never user input.
-        op.execute(
-            f"UPDATE {table} SET status = 'DRAFT' WHERE status::text = 'RETURNED'"  # noqa: S608
-        )
     op.execute(
-        "UPDATE timesheet SET status = 'SUBMITTED' WHERE status::text = 'RETURNED'"
+        "UPDATE hr.leave_request SET status = 'DRAFT' WHERE status::text = 'RETURNED'"
+    )
+    op.execute(
+        "UPDATE hr.absentee_report SET status = 'DRAFT' WHERE status::text = 'RETURNED'"
+    )
+    op.execute(
+        "UPDATE hr.shift_swap_request SET status = 'DRAFT' WHERE status::text = 'RETURNED'"
+    )
+    op.execute(
+        "UPDATE hr.status_report SET status = 'DRAFT' WHERE status::text = 'RETURNED'"
+    )
+    op.execute(
+        "UPDATE hr.parking_permit SET status = 'DRAFT' WHERE status::text = 'RETURNED'"
+    )
+    op.execute(
+        "UPDATE hr.timesheet SET status = 'SUBMITTED' WHERE status::text = 'RETURNED'"
     )
