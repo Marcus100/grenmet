@@ -8,17 +8,18 @@ in the test database, so the sweeps' SQL runs against a real PostgreSQL.
 import copy
 import json
 import uuid
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Collection
 from datetime import UTC, date, datetime, timedelta
 from typing import cast
 
 import pytest
-from sqlalchemy import select, text
+from sqlalchemy import event, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import RoleAssignmentScope, User
+from src.baseline import product_access
 from src.baseline.models import ApprovalPolicy
-from src.cap.models import CapLifecycleState
+from src.cap.models import CapAlert, CapLifecycleState
 from src.cap.schemas import CapAlertAction, CapAlertCreate
 from src.cap.service import approve_alert, create_alert, publish_alert, submit_alert
 from src.eregister.models import ERegisterSend
@@ -52,7 +53,9 @@ TABLES = [
     " observed_at timestamptz NOT NULL, state text NOT NULL DEFAULT 'draft',"
     " actor_id text NOT NULL, review_outcome text, reviewed_at timestamptz)",
     "CREATE SCHEMA observations",
-    "CREATE TABLE observations.stations (station_id text PRIMARY KEY)",
+    "CREATE TABLE observations.stations (station_id text PRIMARY KEY,"
+    " schedule text NOT NULL DEFAULT 'manual',"
+    " manual_hours_utc smallint[] NOT NULL DEFAULT '{}')",
     "CREATE TABLE archive_nhc_events (id text PRIMARY KEY, product_key text NOT NULL,"
     " outcome text NOT NULL, retrieved_at timestamptz)",
 ]
@@ -86,15 +89,19 @@ async def _staff(db: AsyncSession) -> User:
     return user
 
 
+_REAL_AUTHOR_CHECK = product_access.users_who_may_author
+
+
 @pytest.fixture(autouse=True)
 def _staff_may_author(monkeypatch: pytest.MonkeyPatch) -> None:
     """Grades are tested in baseline; here every GMS employee may author a kind."""
-    from src.baseline import product_access
 
-    async def everything(*_args: object) -> list[str]:
-        return ["morning", "afternoon", "evening", "marine"]
+    async def everyone(
+        _session: object, _kind: str, user_ids: Collection[uuid.UUID]
+    ) -> set[uuid.UUID]:
+        return set(user_ids)
 
-    monkeypatch.setattr(product_access, "allowed_kinds", everything)
+    monkeypatch.setattr(product_access, "users_who_may_author", everyone)
 
 
 async def _holder(db: AsyncSession, *permissions: str) -> User:
@@ -243,7 +250,7 @@ async def test_warning_expiring_in_an_hour_tells_the_author_and_duty_staff_once(
     assert await gms_sweeps.warning_expiring(sources, half_hour_before) == 0
 
     (told,) = await _told(sources, author, gms.WARNING_EXPIRING)
-    assert told.link_path == f"/cap/alerts/{alert.identifier}"
+    assert told.link_path == gms.alert_link(alert.identifier)
     assert len(await _told(sources, publisher, gms.WARNING_EXPIRING)) == 1
     assert await _told(sources, bystander, gms.WARNING_EXPIRING) == []
 
@@ -571,20 +578,133 @@ async def test_an_unexpected_error_in_one_sweep_does_not_stop_the_next(
     assert len(await _told(sources, staff, gms.NHC_PRODUCT)) == 1
 
 
-async def _nothing(*_args: object) -> list[str]:
-    return []
+async def _nothing(*_args: object) -> set[uuid.UUID]:
+    return set()
 
 
 async def test_nobody_allowed_to_author_falls_back_to_senior_holders_not_all_staff(
     sources: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from src.baseline import product_access
-
     ordinary = await _staff(sources)  # active GMS employee, no authoring grade
     senior = await _holder(sources, "eregister.qc")
-    monkeypatch.setattr(product_access, "allowed_kinds", _nothing)
+    monkeypatch.setattr(product_access, "users_who_may_author", _nothing)
 
     assert await gms_sweeps.forecast_overdue(sources, sources, LATE_MORNING) == 1
 
     assert await _told(sources, ordinary, gms.FORECAST_OVERDUE) == []
     assert len(await _told(sources, senior, gms.FORECAST_OVERDUE)) == 1
+
+
+# ── Follow-ups from the review of part 9 ─────────────────────────────────────
+
+
+async def test_an_automatic_station_never_raises_a_missing_observation(
+    sources: AsyncSession,
+) -> None:
+    await _holder(sources, "eregister.observe")
+    await sources.execute(
+        text("INSERT INTO observations.stations VALUES ('AWS01', 'automatic', '{}')")
+    )
+    await sources.commit()
+
+    assert await gms_sweeps.observation_missing(sources, sources, FIFTEEN_PAST) == 0
+
+
+async def test_a_hybrid_station_is_only_missing_in_its_manual_hours(
+    sources: AsyncSession,
+) -> None:
+    await _holder(sources, "eregister.observe")
+    await sources.execute(
+        text("INSERT INTO observations.stations VALUES ('MIX01', 'hybrid', '{12}')")
+    )
+    await sources.commit()
+
+    # 12:00 UTC is a manual hour; 13:00 UTC is the automatic station's.
+    assert await gms_sweeps.observation_missing(sources, sources, FIFTEEN_PAST) == 1
+    await sources.commit()
+    later = FIFTEEN_PAST + timedelta(hours=1)
+    assert await gms_sweeps.observation_missing(sources, sources, later) == 0
+
+
+async def test_a_department_scoped_observer_hears_about_a_missing_observation(
+    sources: AsyncSession,
+) -> None:
+    await make_department(sources, "gms")
+    role, _ = await make_role_with_permission(sources, "eregister.observe")
+    observer = await make_user(sources)
+    await assign_role(
+        sources,
+        user=observer,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id="gms",
+    )
+    await sources.execute(text("INSERT INTO observations.stations VALUES ('78958')"))
+    await sources.commit()
+
+    assert await gms_sweeps.observation_missing(sources, sources, FIFTEEN_PAST) == 1
+
+    assert len(await _told(sources, observer, gms.OBSERVATION_MISSING)) == 1
+
+
+async def test_a_grant_scoped_to_another_department_hears_nothing(
+    sources: AsyncSession,
+) -> None:
+    await make_department(sources, "gms")
+    await make_department(sources, "other")
+    role, _ = await make_role_with_permission(sources, "eregister.observe")
+    outsider = await make_user(sources)
+    await assign_role(
+        sources,
+        user=outsider,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id="other",
+    )
+    await sources.execute(text("INSERT INTO observations.stations VALUES ('78958')"))
+    await sources.commit()
+
+    assert await gms_sweeps.observation_missing(sources, sources, FIFTEEN_PAST) == 0
+
+
+async def test_finding_the_duty_forecasters_does_not_query_per_staff_member(
+    sources: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(product_access, "users_who_may_author", _REAL_AUTHOR_CHECK)
+
+    async def count_statements() -> int:
+        statements: list[str] = []
+
+        def capture(_conn: object, _cursor: object, statement: str, *_rest: object):
+            statements.append(statement)
+
+        engine = sources.sync_session.get_bind()
+        event.listen(engine, "before_cursor_execute", capture)
+        try:
+            await gms.duty_forecasters(sources, "morning", now=LATE_MORNING)
+        finally:
+            event.remove(engine, "before_cursor_execute", capture)
+        return len(statements)
+
+    await _staff(sources)
+    few = await count_statements()
+    for _ in range(5):
+        await _staff(sources)
+    assert await count_statements() == few
+
+
+async def test_expiring_warning_link_encodes_a_reserved_character(
+    sources: AsyncSession,
+) -> None:
+    author = await make_user(sources, superuser=True)
+    expires = datetime.now(UTC) + timedelta(hours=3)
+    alert = await _published_warning(sources, author, expires)
+    stored = await sources.get(CapAlert, alert.id)
+    assert stored is not None
+    stored.identifier = "GD/2026#10?x y"
+    await sources.commit()
+
+    await gms_sweeps.warning_expiring(sources, expires - timedelta(minutes=30))
+
+    (told,) = await _told(sources, author, gms.WARNING_EXPIRING)
+    assert told.link_path == "/cap/alerts/GD%2F2026%2310%3Fx%20y"

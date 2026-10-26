@@ -10,6 +10,7 @@ from src.baseline.models import ApprovalPolicy, BaselineAudit, StaffCredential
 from src.baseline.schemas import StaffInput
 from src.exceptions import AppException
 from src.hr.models import Department, Grade
+from src.utils.datetime import utc_now
 
 
 async def setup(session):
@@ -213,3 +214,38 @@ async def test_optional_stage_between_required_stages_is_valid(db_async):
     await db_async.commit()
     result = await catalogue.preview(db_async, actor, "meteorological_department")
     assert not result.conflicts
+
+
+@pytest.mark.asyncio
+async def test_group_authoring_check_matches_the_single_user_rule(db_async):
+    actor = await setup(db_async)
+    await catalogue.apply(db_async, actor, "meteorological_department")
+    await service.save_staff(
+        db_async,
+        actor,
+        actor.id,
+        StaffInput(
+            department_id="meteorological_department",
+            grade_id="GMS_SENIOR_TECH",
+            employee_number="MET-GROUP",
+            employment_type="FULL_TIME",
+            mailbox_ready=True,
+        ),
+    )
+    actor.is_superuser = False
+    assert "morning" in await product_access.allowed_kinds(db_async, actor)
+    assert await product_access.users_who_may_author(
+        db_async, "morning", [actor.id]
+    ) == {actor.id}
+    assert (
+        await product_access.users_who_may_author(db_async, "unknown", [actor.id])
+        == set()
+    )
+    credential = await db_async.get(StaffCredential, actor.id)
+    credential.revoked_at = utc_now()
+    await db_async.commit()
+    assert await product_access.allowed_kinds(db_async, actor) == []
+    assert (
+        await product_access.users_who_may_author(db_async, "morning", [actor.id])
+        == set()
+    )

@@ -111,6 +111,31 @@ describe("NotificationBell grouping", () => {
   });
 });
 
+describe("NotificationBell urgency", () => {
+  it("marks an urgent notification with the word Urgent, not only colour", async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/notifications`, () =>
+        HttpResponse.json({
+          data: [
+            { ...unreadItem, id: "n2", title: "Calm one" },
+            { ...unreadItem, urgent: true, title: "Forecast is overdue" },
+          ],
+          count: 2,
+          page: 1,
+          size: 8,
+          total_pages: 1,
+        })
+      )
+    );
+    wrap(<NotificationBell />);
+
+    fireEvent.click(await screen.findByRole("button", { name: BELL_UNREAD }));
+
+    await screen.findByText("Forecast is overdue", { exact: false });
+    expect(screen.getAllByText("Urgent")).toHaveLength(1);
+  });
+});
+
 describe("NotificationPreferences", () => {
   it("saves an email opt-out and locks approval requests on", async () => {
     const saved: unknown[] = [];

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import RoleAssignmentScope, User
 from src.baseline.models import ApprovalPolicy
 from src.cap.models import CapAlert, CapMessageType
-from src.cap.notifications import notify_warning_changed
+from src.cap.notifications import notify_review_requested, notify_warning_changed
 from src.cap.schemas import CapAlertAction, CapAlertCreate
 from src.cap.service import (
     approve_alert,
@@ -84,7 +84,8 @@ async def test_publishing_tells_all_gms_staff_but_not_the_publisher(
 
     (told,) = await _inbox(db_async, staff, gms.WARNING_CHANGED)
     assert told.title == "Warning issued: Heavy rain warning"
-    assert told.link_path == f"/cap/alerts/{alert.identifier}"
+    assert told.link_path == gms.alert_link(alert.identifier)
+    assert "%3A" in told.link_path  # the colons of the urn are encoded
     assert told.in_bell
     assert await _inbox(db_async, author, gms.WARNING_CHANGED) == []
 
@@ -156,3 +157,26 @@ async def test_publishing_an_ack_or_error_message_sends_no_warning_notice(
     assert sent == 0
 
     assert await _inbox(db_async, staff, gms.WARNING_CHANGED) == []
+
+
+async def test_warning_links_encode_a_reserved_character_in_the_identifier(
+    db_async: AsyncSession,
+) -> None:
+    author = await make_user(db_async, superuser=True)
+    staff = await _gms_staff(db_async)
+    role, _ = await make_role_with_permission(db_async, "cap.alert.approve")
+    approver = await make_user(db_async)
+    await assign_role(db_async, user=approver, role=role, scope=RoleAssignmentScope.ALL)
+    alert = await _alert(db_async, author)
+    stored = await db_async.get(CapAlert, alert.id)
+    assert stored is not None
+    stored.identifier = "GD/2026#10?x y"
+
+    await notify_warning_changed(session=db_async, alert=stored, actor=author)
+    await notify_review_requested(session=db_async, alert=stored, actor=author)
+
+    expected = "/cap/alerts/GD%2F2026%2310%3Fx%20y"
+    (told,) = await _inbox(db_async, staff, gms.WARNING_CHANGED)
+    (asked,) = await _inbox(db_async, approver, gms.REVIEW_REQUESTED)
+    assert told.link_path == expected
+    assert asked.link_path == expected
