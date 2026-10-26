@@ -332,6 +332,8 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/eRegister/janitorial/
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
 
+**Local production builds.** `next build` validates this env schema, so without `RESEND_API_KEY` a local `turbo run build --filter=@barrelsgd/web-gaa-admin` fails with `Invalid environment variables`. Export a placeholder in the shell for that one build (for example `RESEND_API_KEY=re_placeholder pnpm turbo run build --filter=@barrelsgd/web-gaa-admin`). Do not write it to any `.env*` file.
+
 ### admin (`apps/web/admin/.env.local`)
 
 The Barrels control plane. It holds no database credentials and calls FastAPI only.
@@ -758,11 +760,21 @@ With none of the drop variables set, publish answers 409 "WIS2 publication is no
 
 ### Privileged MFA rollout
 
-FastAPI auth settings default to disabled enforcement; enable it only after the
-[readiness and recovery gates](operations/privileged-mfa.md).
+`AUTH_PRIVILEGED_MFA_MODE` (`disabled` or `enforce`) is unset by default, which
+means `enforce` in `staging` and `production` and `disabled` when
+`ENVIRONMENT=local` (issue #501, owner decision 2026-10-25). Under `enforce` a
+superuser, or holder of a privileged permission, who has not enrolled an
+authenticator gets 403 with `Set up two-step verification ... (mfa_enrolment_required)`
+on every privileged route; account security and sign-in stay reachable so they can
+enrol. Set `disabled` explicitly to opt out (local development, tests, or an
+approved emergency rollback). Enforce refuses to start without
+`AUTH_TOTP_ENCRYPTION_KEYS`. Complete the
+[readiness and recovery gates](operations/privileged-mfa.md) before deploying.
 
 The deployment renderer accepts `AUTH_PRIVILEGED_MFA_MODE` from the selected
-GitHub environment's variable (`disabled` by default, or `enforce`) and
+GitHub environment's variable (the renderer still writes `disabled` when it is
+unset, so set it to `enforce` to switch a deployment on; the API's own default
+applies only when the variable is not passed at all) and
 `AUTH_TOTP_ENCRYPTION_KEYS` from its secret. Keys are a JSON array of dedicated
 Fernet keys, current encryption key first and retained decryption keys after it.
 Do not reuse `SECRET_KEY` or share keys across environments. These values reach

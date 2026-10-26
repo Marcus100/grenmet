@@ -3,7 +3,7 @@
 The register works the pressures out of the barometer as read with four fixed
 amounts per station: the total barometer correction (station pressure), and the
 QFE, mean sea level and QNH offsets. 78958 is seeded by migration
-``eregister_0005``; any other station stays empty until staff enter its amounts.
+``eregister_0006``; any other station stays empty until staff enter its amounts.
 Reading is open to register staff; changing them needs ``eregister.qc``.
 """
 
@@ -23,17 +23,16 @@ AMOUNTS: tuple[PressureAmount, ...] = (
     "qnh_offset_hpa",
 )
 _SELECT = text(
-    "SELECT station_id, total_correction_hpa, qfe_offset_hpa,"
-    " sea_level_offset_hpa, qnh_offset_hpa, updated_at, settings_updated_by"
+    "SELECT station_id, total_correction_hpa, qfe_offset_hpa, sea_level_offset_hpa,"
+    " qnh_offset_hpa, updated_at, settings_updated_by"
     " FROM observations.stations WHERE station_id = :station"
 )
+# Fixed column names, written out so no SQL is built from strings.
 _UPDATE = text(
     "UPDATE observations.stations SET total_correction_hpa = :total_correction_hpa,"
-    " qfe_offset_hpa = :qfe_offset_hpa,"
-    " sea_level_offset_hpa = :sea_level_offset_hpa,"
-    " qnh_offset_hpa = :qnh_offset_hpa,"
-    " settings_updated_by = :actor, updated_at = now()"
-    " WHERE station_id = :station"
+    " qfe_offset_hpa = :qfe_offset_hpa, sea_level_offset_hpa = :sea_level_offset_hpa,"
+    " qnh_offset_hpa = :qnh_offset_hpa, settings_updated_by = :actor,"
+    " updated_at = now() WHERE station_id = :station"
     " RETURNING station_id, total_correction_hpa, qfe_offset_hpa,"
     " sea_level_offset_hpa, qnh_offset_hpa, updated_at, settings_updated_by"
 )
@@ -80,6 +79,9 @@ async def pressure_for(
     try:
         return pressure_settings(await get(register, (station_id or "").strip()))
     except SQLAlchemyError, OSError:
+        # A failed statement leaves the transaction aborted: clear it so the caller's
+        # next statement (the save lock) does not fail on a dead transaction.
+        await register.rollback()
         return None
 
 

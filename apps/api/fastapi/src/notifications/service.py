@@ -294,6 +294,10 @@ async def notify(
                     Notification.recipient_user_id.in_(active),
                     Notification.event_key == event_key,
                     Notification.read_at.is_(None),
+                    # A hidden (bell-off) row is never read, so folding into it
+                    # would silence every later email: those recipients get a
+                    # fresh row and an email each time.
+                    Notification.in_bell.is_(True),
                     Notification.group_key.is_(None)
                     if group_key is None
                     else Notification.group_key == group_key,
@@ -302,6 +306,7 @@ async def notify(
         ).scalars()
         for row in open_rows:
             folded.setdefault(row.recipient_user_id, row)
+    refresh: list[Notification] = []
     deliveries: list[NotificationDelivery] = []
     occurrences: list[tuple[str, uuid.UUID]] = []
     queued = 0
@@ -320,7 +325,10 @@ async def notify(
         queued += 1
         existing = folded.get(user_id)
         if existing is not None:
-            existing.repeat_count += 1
+            # SQL expression: concurrent folds each add one instead of
+            # overwriting each other's count.
+            existing.repeat_count = Notification.repeat_count + 1
+            refresh.append(existing)
             existing.title, existing.body = title, body
             existing.link_path = link_path
             existing.entity_type, existing.entity_id = entity_type, entity_id
@@ -355,6 +363,8 @@ async def notify(
             )
     # No ORM relationship orders the inserts, so land parents before the outbox.
     await session.flush()
+    for row in refresh:
+        await session.refresh(row, ["repeat_count"])
     session.add_all(deliveries)
     session.add_all(
         NotificationOccurrence(dedupe_key=key, notification_id=notification_id)

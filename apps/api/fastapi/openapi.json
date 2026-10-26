@@ -13646,7 +13646,7 @@
           "hr-attendance"
         ],
         "summary": "List phone clock punches awaiting approval",
-        "description": "Pending phone punches of employees the caller supervises or reviews (named supervisor, or timesheet.approve in the department scope). Never includes the caller's own punches.",
+        "description": "Pending phone punches the caller may decide. Callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Approve and reject use the same rule.",
         "operationId": "hrListPendingClockPunches",
         "security": [
           {
@@ -13712,7 +13712,7 @@
           "hr-attendance"
         ],
         "summary": "Approve a phone clock punch",
-        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Only the employee's named supervisor or a timesheet.approve holder in scope; never the punching employee. Idempotent.",
+        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Allowed for: callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Idempotent.",
         "operationId": "hrApproveClockPunch",
         "security": [
           {
@@ -13770,7 +13770,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+            "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
           },
           "404": {
             "description": "Clock punch not found"
@@ -13838,7 +13838,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+            "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
           },
           "404": {
             "description": "Clock punch not found"
@@ -30723,6 +30723,25 @@
             "description": "true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false)."
           },
           {
+            "name": "observed_at",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only observations for exactly this UTC time (to find the record occupying an hour).",
+              "title": "Observed At"
+            },
+            "description": "Only observations for exactly this UTC time (to find the record occupying an hour)."
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -30740,6 +30759,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 10000000,
               "minimum": 0,
               "default": 0,
               "title": "Offset"
@@ -30898,7 +30918,7 @@
           "eregister"
         ],
         "summary": "Correct a register observation",
-        "description": "Saves a replacement that supersedes the observation (`supersedes_id`); the old one becomes `superseded` and stays listed. Station, kind and time are kept. `409` when the observation is rejected or already superseded; `422` when the replacement SYNOP has errors. The replacement starts as a draft: when its observer accepts it, a station-hour already sent to WIS2 is sent again marked as a correction. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "description": "Saves a replacement that supersedes the observation (`supersedes_id`); the old one becomes `superseded` and stays listed. Station, kind and time are kept. `409` when the observation is rejected or already superseded; `422` when the replacement SYNOP has errors. The replacement starts as a draft; saving it holds any queued WIS2 file of the replaced observation until the correction is accepted (the old file is dropped) or rejected (the old file is released and the old observation returns to the state it had before). When its observer accepts it, a station-hour already sent to WIS2 is sent again marked as a correction. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterCorrectRegisterObservation",
         "security": [
           {
@@ -31254,7 +31274,7 @@
           "eregister"
         ],
         "summary": "Reject a register observation (QC)",
-        "description": "Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Requires register staff access. Audited.",
+        "description": "Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Rejecting a correction releases the held WIS2 file of the observation it replaced and puts that observation back to the state it had before the correction (for example `accepted`), live and correctable again. Requires register staff access. Audited.",
         "operationId": "eregisterRejectRegisterObservation",
         "security": [
           {

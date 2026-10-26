@@ -8,11 +8,12 @@ supersedes the old one (``supersedes_id``; the old row becomes ``superseded``
 and stays visible).
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
+from pydantic import ValidationError
 from sqlalchemy import bindparam, func, select, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import IntegrityError
@@ -38,7 +39,20 @@ def validation_issues(
     observed_at: datetime,
     station: derive.PressureSettings | None = None,
 ) -> list[SynopValidationIssue]:
-    workbook = encode.workbook_from_body(body)
+    try:
+        workbook = encode.workbook_from_body(body)
+    except ValidationError as exc:
+        # The body is free-form JSON: a value over a field's length is the client's
+        # mistake (422 with the field), not a server error.
+        return [
+            SynopValidationIssue(
+                field=str(error["loc"][0]) if error["loc"] else "body",
+                code="invalid_value",
+                message=str(error["msg"]),
+                severity="error",
+            )
+            for error in exc.errors()
+        ]
     issues, _decoded = rules.validate_synop(workbook, station)
     return [*issues, *rules.check_observation_time(workbook, observed_at)]
 
@@ -74,21 +88,22 @@ async def _has_sends(app_session: AsyncSession, observation_id: UUID) -> bool:
     return bool(count)
 
 
-async def _lock_key(
+async def lock_key(
     register: AsyncSession, station_id: str, observed_at: datetime, kind: str
 ) -> None:
     await register.execute(
         select(
             func.pg_advisory_xact_lock(
                 func.hashtextextended(
-                    f"eregister-obs:{station_id}:{observed_at.isoformat()}:{kind}", 0
+                    f"eregister-obs:{station_id}:{observed_at.astimezone(UTC).isoformat()}:{kind}",
+                    0,
                 )
             )
         )
     )
 
 
-async def _live_row(
+async def live_row(
     register: AsyncSession, station_id: str, observed_at: datetime, kind: str
 ) -> dict[str, Any] | None:
     result = await register.execute(
@@ -137,7 +152,9 @@ _UPDATE = text(
     SET station_name = :station_name, aerodrome_icao = :aerodrome_icao,
         issued_at = :issued_at, body = CAST(:body AS jsonb), raw_tac = :raw_tac,
         bufr = CAST(:bufr AS jsonb), iwxxm = CAST(:iwxxm AS jsonb),
-        state = 'draft', updated_at = now()
+        state = 'draft', updated_at = now(),
+        review_outcome = NULL, review_note = NULL,
+        reviewed_by = NULL, reviewed_at = NULL
     WHERE id = :id
     RETURNING *
     """
@@ -161,8 +178,8 @@ async def create(
         require_valid_synop(data.body, data.observed_at, station)
     values = data.model_dump()
     values["body"] = derive.apply_to_body(values["body"], station)
-    await _lock_key(register, data.station_id, data.observed_at, data.kind)
-    existing = await _live_row(register, data.station_id, data.observed_at, data.kind)
+    await lock_key(register, data.station_id, data.observed_at, data.kind)
+    existing = await live_row(register, data.station_id, data.observed_at, data.kind)
     if existing is not None:
         own_draft = str(existing["actor_id"]) == str(user.id) and (
             existing["state"] in UNSENT_EDITABLE
@@ -236,8 +253,9 @@ async def correct(
     # The old row leaves the live set first so the unique index admits the new one.
     await register.execute(
         text(
-            "UPDATE register_observations SET state = 'superseded', updated_at = now(),"
-            " qc_notes = :notes WHERE id = :id"
+            "UPDATE register_observations SET superseded_from = state,"
+            " superseded_qc_notes = qc_notes, state = 'superseded',"
+            " updated_at = now(), qc_notes = :notes WHERE id = :id"
         ),
         {"id": str(observation_id), "notes": (data.reason or "").strip() or None},
     )

@@ -86,6 +86,17 @@ async def _staff(db: AsyncSession) -> User:
     return user
 
 
+@pytest.fixture(autouse=True)
+def _staff_may_author(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Grades are tested in baseline; here every GMS employee may author a kind."""
+    from src.baseline import product_access
+
+    async def everything(*_args: object) -> list[str]:
+        return ["morning", "afternoon", "evening", "marine"]
+
+    monkeypatch.setattr(product_access, "allowed_kinds", everything)
+
+
 async def _holder(db: AsyncSession, *permissions: str) -> User:
     role, _ = await make_role_with_permission(db, *permissions)
     user = await make_user(db)
@@ -533,3 +544,47 @@ async def test_one_failing_source_does_not_stop_the_others(
 
     assert total == 1
     assert len(await _told(sources, staff, gms.NHC_PRODUCT)) == 1
+
+
+async def test_an_unexpected_error_in_one_sweep_does_not_stop_the_next(
+    sources: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    staff = await _staff(sources)
+    now = datetime.now(UTC)
+    await sources.execute(
+        text(
+            "INSERT INTO archive_nhc_events VALUES ('e1', 'outlook', 'downloaded', :now)"
+        ),
+        {"now": now},
+    )
+    await sources.commit()
+
+    async def broken(*_args: object, **_kwargs: object) -> int:
+        raise KeyError("surprise")
+
+    monkeypatch.setattr(gms_sweeps, "warning_expiring", broken)
+    monkeypatch.setattr(gms_sweeps, "send_failed", broken)
+
+    total = await gms_sweeps.run(sources, archive=sources, now=now)
+
+    assert total == 1
+    assert len(await _told(sources, staff, gms.NHC_PRODUCT)) == 1
+
+
+async def _nothing(*_args: object) -> list[str]:
+    return []
+
+
+async def test_nobody_allowed_to_author_falls_back_to_senior_holders_not_all_staff(
+    sources: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from src.baseline import product_access
+
+    ordinary = await _staff(sources)  # active GMS employee, no authoring grade
+    senior = await _holder(sources, "eregister.qc")
+    monkeypatch.setattr(product_access, "allowed_kinds", _nothing)
+
+    assert await gms_sweeps.forecast_overdue(sources, sources, LATE_MORNING) == 1
+
+    assert await _told(sources, ordinary, gms.FORECAST_OVERDUE) == []
+    assert len(await _told(sources, senior, gms.FORECAST_OVERDUE)) == 1

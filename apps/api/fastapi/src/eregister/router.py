@@ -39,6 +39,8 @@ router = APIRouter(prefix="/eregister", tags=["eregister"])
 # Saved readings show on the public weather site at once (``public.py``), so only
 # register staff may record or read them. QC and senders already work the
 # register, and their roles predate ``eregister.observe``, so they keep access.
+# Far inside PostgreSQL's int64 OFFSET range; larger values reached the database and 500ed.
+MAX_OFFSET = 10_000_000
 REGISTER_ACCESS_KEYS = ("eregister.observe", "eregister.qc", "eregister.send")
 
 REGISTER_RESPONSES = {
@@ -93,8 +95,14 @@ async def list_register_observations(
             description="true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false)."
         ),
     ] = None,
+    observed_at: Annotated[
+        datetime | None,
+        Query(
+            description="Only observations for exactly this UTC time (to find the record occupying an hour)."
+        ),
+    ] = None,
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
-    offset: Annotated[int, Query(ge=0)] = 0,
+    offset: Annotated[int, Query(ge=0, le=MAX_OFFSET)] = 0,
 ) -> RegisterObservationList:
     _require_register_access(user)
     response.headers["Cache-Control"] = "private, no-store"
@@ -104,6 +112,7 @@ async def list_register_observations(
         "kind": kind,
         "states": states,
         "reviewed": reviewed,
+        "observed_at": observed_at,
     }
     result = await session.execute(
         text(
@@ -114,6 +123,7 @@ async def list_register_observations(
               AND (CAST(:states AS text[]) IS NULL OR state::text = ANY(CAST(:states AS text[])))
               AND (CAST(:reviewed AS boolean) IS NULL
                    OR (reviewed_at IS NOT NULL) = CAST(:reviewed AS boolean))
+              AND (CAST(:observed_at AS timestamptz) IS NULL OR observed_at = :observed_at)
             ORDER BY observed_at DESC, created_at DESC
             LIMIT :limit OFFSET :offset
             """
@@ -130,6 +140,7 @@ async def list_register_observations(
               AND (CAST(:states AS text[]) IS NULL OR state::text = ANY(CAST(:states AS text[])))
               AND (CAST(:reviewed AS boolean) IS NULL
                    OR (reviewed_at IS NOT NULL) = CAST(:reviewed AS boolean))
+              AND (CAST(:observed_at AS timestamptz) IS NULL OR observed_at = :observed_at)
             """
         ),
         params,
@@ -225,7 +236,10 @@ async def create_register_observation(
         "the old one becomes `superseded` and stays listed. Station, kind and "
         "time are kept. `409` when the observation is rejected or already "
         "superseded; `422` when the replacement SYNOP has errors. The "
-        "replacement starts as a draft: when its observer accepts it, a "
+        "replacement starts as a draft; saving it holds any queued WIS2 file of the "
+        "replaced observation until the correction is accepted (the old file is "
+        "dropped) or rejected (the old file is released and the old observation "
+        "returns to the state it had before). When its observer accepts it, a "
         "station-hour already sent to WIS2 is sent again marked as a correction. "
         "Requires `eregister.observe`, `eregister.qc` or `eregister.send`."
     ),
@@ -241,15 +255,22 @@ async def correct_register_observation(
     body: RegisterObservationCorrection,
     user: BrowserUser,
     session: RegisterSession,
+    app_session: SessionDep,
     response: Response,
 ) -> RegisterObservationRead:
     _require_register_access(user)
     response.headers["Cache-Control"] = "no-store"
-    return _read(
-        await entries.correct(
-            register=session, observation_id=observation_id, data=body, user=user
-        )
+    saved = await entries.correct(
+        register=session, observation_id=observation_id, data=body, user=user
     )
+    # The replaced reading must not be retried to WIS2 while the correction is pending.
+    await sends.hold_after_correction(
+        app_session,
+        station_id=str(saved["station_id"]),
+        observed_at=saved["observed_at"],
+        superseded_id=observation_id,
+    )
+    return _read(saved)
 
 
 SEND_RESPONSES = {
@@ -430,7 +451,9 @@ async def review_register_observation(
     description=(
         "Moves a draft or qc_pending observation to rejected; a reason is "
         "required. Rejected observations are never sent or shown publicly. "
-        "Requires register staff access. Audited."
+        "Rejecting a correction releases the held WIS2 file of the observation it "
+        "replaced and puts that observation back to the state it had before the "
+        "correction (for example `accepted`), live and correctable again. Requires register staff access. Audited."
     ),
     responses=QC_RESPONSES,
 )
