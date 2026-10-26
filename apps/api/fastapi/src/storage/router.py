@@ -36,7 +36,10 @@ def _is_safe_image_path(path: str) -> bool:
     responses={**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND},
 )
 async def weather_image(storage_path: str, _current_user: BrowserUser) -> Response:
-    """Issue a short-lived download redirect scoped to the environment's wxwatch prefix."""
+    """Issue a short-lived download redirect scoped to the environment's wxwatch prefix.
+
+    Only PNG, JPEG, GIF and WebP names are accepted; anything else is a 400.
+    """
     if not _is_safe_image_path(storage_path) or any(
         part in {"", ".", ".."} for part in storage_path.split("/")
     ):
