@@ -495,3 +495,18 @@ test("a failed status lookup is reported as unverified rather than waiting for r
     ["review not verified", "owner"]
   );
 });
+
+test("missing required Factory statuses never report a pull request ready", () => {
+  const required = new Set([
+    "CI Success",
+    "Factory review",
+    "Factory security review",
+  ]);
+  for (const context of [null, "Factory review", "Factory security review"]) {
+    const statusCheckRollup = [run_("CI Success")];
+    if (context) statusCheckRollup.push(status(context, "SUCCESS"));
+    const result = classify(pr({ statusCheckRollup }), new Set(), required);
+    assert.equal(result.state, "waiting for review");
+    assert.equal(result.needs, "nobody");
+  }
+});
