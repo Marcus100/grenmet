@@ -127,9 +127,9 @@ catalog:
   "@types/pg": "^8.23.1"
 
   # Repository tooling
-  "@biomejs/biome": "^2.6.2"
+  "@biomejs/biome": "~2.5.15"
   turbo: "^2.11.10"
-  ultracite: "^8.0.2"
+  ultracite: "8.0.1"
   husky: "^9.1.7"
   knip: "^6.42.1"
   lint-staged: ^17.6.0
