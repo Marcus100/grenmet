@@ -25,4 +25,6 @@ export const guidanceFactSchema = z.strictObject({
   reference_time: z.union([z.iso.datetime(), z.null()]).optional(),
   valid_from: z.union([z.iso.datetime(), z.null()]).optional(),
   valid_to: z.union([z.iso.datetime(), z.null()]).optional(),
+  edited: z.boolean().optional().default(false),
+  source_value: z.union([z.number(), z.null()]).optional(),
 });

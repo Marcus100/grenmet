@@ -4,7 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, Query, Response
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr.filenames import signed_document_filename
 from src.pagination import PaginationDep
+from src.utils.filenames import content_disposition
 
 from . import service
 from .models import SavedSignature
@@ -125,9 +127,18 @@ async def read_my_signed_documents(
     response_model=None,
     status_code=200,
     summary="Download a signed HR document",
-    description="Returns the original PDF to its signer, subject, or an HR document reader with scope over the subject.",
+    description="Returns the original PDF to its signer, subject, or an HR document reader with scope over the subject. The download file name is human and dated, for example 'Leave Application - Ana Smith - 2026-10-23.pdf'.",
     responses={
-        200: {"content": {"application/pdf": {}}, "description": "Original signed PDF"},
+        200: {
+            "content": {"application/pdf": {}},
+            "description": "Original signed PDF",
+            "headers": {
+                "Content-Disposition": {
+                    "description": "Attachment with a human, dated file name (ASCII filename plus RFC 6266 filename*).",
+                    "schema": {"type": "string"},
+                }
+            },
+        },
         403: {"description": "Not allowed"},
         404: {"description": "Not found"},
     },
@@ -142,6 +153,14 @@ async def download_signed_document(
         headers={
             "Cache-Control": "private, no-store",
             "X-Content-Type-Options": "nosniff",
-            "Content-Disposition": f'attachment; filename="signed-{record.entity_type}-{record.entity_id}.pdf"',
+            "Content-Disposition": content_disposition(
+                "attachment",
+                signed_document_filename(
+                    record.entity_type,
+                    record.signer_name,
+                    record.signed_at,
+                    record.revision,
+                ),
+            ),
         },
     )

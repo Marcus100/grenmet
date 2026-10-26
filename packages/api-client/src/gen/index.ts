@@ -133,6 +133,7 @@ export { capApproveAlert } from "./clients/capApproveAlert.js";
 export { capApproveHazardProfile } from "./clients/capApproveHazardProfile.js";
 export { capCancelAlert } from "./clients/capCancelAlert.js";
 export { capCreateAlert } from "./clients/capCreateAlert.js";
+export { capCreateEscalation } from "./clients/capCreateEscalation.js";
 export { capCreateFeed } from "./clients/capCreateFeed.js";
 export { capCreatePredefinedArea } from "./clients/capCreatePredefinedArea.js";
 export { capDeleteFeed } from "./clients/capDeleteFeed.js";
@@ -149,6 +150,7 @@ export { capGetAudit } from "./clients/capGetAudit.js";
 export { capGetCapSettings } from "./clients/capGetCapSettings.js";
 export { capGetCapXml } from "./clients/capGetCapXml.js";
 export { capGetCatalogs } from "./clients/capGetCatalogs.js";
+export { capGetEscalation } from "./clients/capGetEscalation.js";
 export { capGetFeeds } from "./clients/capGetFeeds.js";
 export { capGetHazardProfiles } from "./clients/capGetHazardProfiles.js";
 export { capGetIntegrations } from "./clients/capGetIntegrations.js";
@@ -161,6 +163,7 @@ export { capGetPublicWarnings } from "./clients/capGetPublicWarnings.js";
 export { capGetRss } from "./clients/capGetRss.js";
 export { capImportAlert } from "./clients/capImportAlert.js";
 export { capPublishAlert } from "./clients/capPublishAlert.js";
+export { capRecordAlertReview } from "./clients/capRecordAlertReview.js";
 export { capSaveHazardProfile } from "./clients/capSaveHazardProfile.js";
 export { capSubmitAlert } from "./clients/capSubmitAlert.js";
 export { capUpdateAlert } from "./clients/capUpdateAlert.js";
@@ -182,15 +185,19 @@ export { contactsUpsertOrgContact } from "./clients/contactsUpsertOrgContact.js"
 export { environmentGetAir } from "./clients/environmentGetAir.js";
 export { environmentGetMarine } from "./clients/environmentGetMarine.js";
 export { eregisterAcceptRegisterObservation } from "./clients/eregisterAcceptRegisterObservation.js";
+export { eregisterCorrectRegisterObservation } from "./clients/eregisterCorrectRegisterObservation.js";
 export { eregisterCreateRegisterObservation } from "./clients/eregisterCreateRegisterObservation.js";
 export { eregisterEmailRegisterObservation } from "./clients/eregisterEmailRegisterObservation.js";
+export { eregisterGetStationSettings } from "./clients/eregisterGetStationSettings.js";
 export { eregisterListObservationSends } from "./clients/eregisterListObservationSends.js";
 export { eregisterListRegisterObservations } from "./clients/eregisterListRegisterObservations.js";
 export { eregisterPublicCurrentConditions } from "./clients/eregisterPublicCurrentConditions.js";
 export { eregisterPublicMonthSummary } from "./clients/eregisterPublicMonthSummary.js";
 export { eregisterPublishRegisterObservation } from "./clients/eregisterPublishRegisterObservation.js";
+export { eregisterPutStationSettings } from "./clients/eregisterPutStationSettings.js";
 export { eregisterRejectRegisterObservation } from "./clients/eregisterRejectRegisterObservation.js";
 export { eregisterReopenRegisterObservation } from "./clients/eregisterReopenRegisterObservation.js";
+export { eregisterReviewRegisterObservation } from "./clients/eregisterReviewRegisterObservation.js";
 export { eregisterValidateSynopObservation } from "./clients/eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./clients/eventsAcceptConnection.js";
 export { eventsAdminListEvents } from "./clients/eventsAdminListEvents.js";
@@ -620,19 +627,25 @@ export { webhooksOutListEventTypes } from "./clients/webhooksOutListEventTypes.j
 export { webhooksOutRotateSecret } from "./clients/webhooksOutRotateSecret.js";
 export { webhooksOutTestEndpoint } from "./clients/webhooksOutTestEndpoint.js";
 export { webhooksOutUpdateEndpoint } from "./clients/webhooksOutUpdateEndpoint.js";
+export { wxproductsCreateTropicalSystem } from "./clients/wxproductsCreateTropicalSystem.js";
 export { wxproductsGetPublicProduct } from "./clients/wxproductsGetPublicProduct.js";
+export { wxproductsGetPublicTropicalSystem } from "./clients/wxproductsGetPublicTropicalSystem.js";
 export { wxproductsListPublicProducts } from "./clients/wxproductsListPublicProducts.js";
+export { wxproductsListPublicTropicalSystems } from "./clients/wxproductsListPublicTropicalSystems.js";
+export { wxproductsListTropicalSystems } from "./clients/wxproductsListTropicalSystems.js";
 export { wxproductsLoadAviationDrafts } from "./clients/wxproductsLoadAviationDrafts.js";
 export { wxproductsLoadAviationHistory } from "./clients/wxproductsLoadAviationHistory.js";
 export { wxproductsLoadHistory } from "./clients/wxproductsLoadHistory.js";
 export { wxproductsLoadObservations } from "./clients/wxproductsLoadObservations.js";
 export { wxproductsLoadProducts } from "./clients/wxproductsLoadProducts.js";
+export { wxproductsLoadTropicalSystemHistory } from "./clients/wxproductsLoadTropicalSystemHistory.js";
 export { wxproductsPreviewProduct } from "./clients/wxproductsPreviewProduct.js";
 export { wxproductsPreviewProductPdf } from "./clients/wxproductsPreviewProductPdf.js";
 export { wxproductsProductRevisionPdf } from "./clients/wxproductsProductRevisionPdf.js";
 export { wxproductsPublicForecast } from "./clients/wxproductsPublicForecast.js";
 export { wxproductsSaveAviationDraft } from "./clients/wxproductsSaveAviationDraft.js";
 export { wxproductsSaveProduct } from "./clients/wxproductsSaveProduct.js";
+export { wxproductsUpdateTropicalSystem } from "./clients/wxproductsUpdateTropicalSystem.js";
 export { wxproductsValidateAviationMessage } from "./clients/wxproductsValidateAviationMessage.js";
 export { wxwatchArchive } from "./clients/wxwatchArchive.js";
 export { wxwatchArchiveAsset } from "./clients/wxwatchArchiveAsset.js";
@@ -1316,6 +1329,11 @@ export {
   useCapCreateAlert,
 } from "./hooks/useCapCreateAlert.js";
 export {
+  capCreateEscalationMutationKey,
+  capCreateEscalationMutationOptions,
+  useCapCreateEscalation,
+} from "./hooks/useCapCreateEscalation.js";
+export {
   capCreateFeedMutationKey,
   capCreateFeedMutationOptions,
   useCapCreateFeed,
@@ -1396,6 +1414,11 @@ export {
   useCapGetCatalogs,
 } from "./hooks/useCapGetCatalogs.js";
 export {
+  capGetEscalationQueryKey,
+  capGetEscalationQueryOptions,
+  useCapGetEscalation,
+} from "./hooks/useCapGetEscalation.js";
+export {
   capGetFeedsQueryKey,
   capGetFeedsQueryOptions,
   useCapGetFeeds,
@@ -1455,6 +1478,11 @@ export {
   capPublishAlertMutationOptions,
   useCapPublishAlert,
 } from "./hooks/useCapPublishAlert.js";
+export {
+  capRecordAlertReviewMutationKey,
+  capRecordAlertReviewMutationOptions,
+  useCapRecordAlertReview,
+} from "./hooks/useCapRecordAlertReview.js";
 export {
   capSaveHazardProfileMutationKey,
   capSaveHazardProfileMutationOptions,
@@ -1561,6 +1589,11 @@ export {
   useEregisterAcceptRegisterObservation,
 } from "./hooks/useEregisterAcceptRegisterObservation.js";
 export {
+  eregisterCorrectRegisterObservationMutationKey,
+  eregisterCorrectRegisterObservationMutationOptions,
+  useEregisterCorrectRegisterObservation,
+} from "./hooks/useEregisterCorrectRegisterObservation.js";
+export {
   eregisterCreateRegisterObservationMutationKey,
   eregisterCreateRegisterObservationMutationOptions,
   useEregisterCreateRegisterObservation,
@@ -1570,6 +1603,11 @@ export {
   eregisterEmailRegisterObservationMutationOptions,
   useEregisterEmailRegisterObservation,
 } from "./hooks/useEregisterEmailRegisterObservation.js";
+export {
+  eregisterGetStationSettingsQueryKey,
+  eregisterGetStationSettingsQueryOptions,
+  useEregisterGetStationSettings,
+} from "./hooks/useEregisterGetStationSettings.js";
 export {
   eregisterListObservationSendsQueryKey,
   eregisterListObservationSendsQueryOptions,
@@ -1596,6 +1634,11 @@ export {
   useEregisterPublishRegisterObservation,
 } from "./hooks/useEregisterPublishRegisterObservation.js";
 export {
+  eregisterPutStationSettingsMutationKey,
+  eregisterPutStationSettingsMutationOptions,
+  useEregisterPutStationSettings,
+} from "./hooks/useEregisterPutStationSettings.js";
+export {
   eregisterRejectRegisterObservationMutationKey,
   eregisterRejectRegisterObservationMutationOptions,
   useEregisterRejectRegisterObservation,
@@ -1605,6 +1648,11 @@ export {
   eregisterReopenRegisterObservationMutationOptions,
   useEregisterReopenRegisterObservation,
 } from "./hooks/useEregisterReopenRegisterObservation.js";
+export {
+  eregisterReviewRegisterObservationMutationKey,
+  eregisterReviewRegisterObservationMutationOptions,
+  useEregisterReviewRegisterObservation,
+} from "./hooks/useEregisterReviewRegisterObservation.js";
 export {
   eregisterValidateSynopObservationMutationKey,
   eregisterValidateSynopObservationMutationOptions,
@@ -3751,15 +3799,35 @@ export {
   webhooksOutUpdateEndpointMutationOptions,
 } from "./hooks/useWebhooksOutUpdateEndpoint.js";
 export {
+  useWxproductsCreateTropicalSystem,
+  wxproductsCreateTropicalSystemMutationKey,
+  wxproductsCreateTropicalSystemMutationOptions,
+} from "./hooks/useWxproductsCreateTropicalSystem.js";
+export {
   useWxproductsGetPublicProduct,
   wxproductsGetPublicProductQueryKey,
   wxproductsGetPublicProductQueryOptions,
 } from "./hooks/useWxproductsGetPublicProduct.js";
 export {
+  useWxproductsGetPublicTropicalSystem,
+  wxproductsGetPublicTropicalSystemQueryKey,
+  wxproductsGetPublicTropicalSystemQueryOptions,
+} from "./hooks/useWxproductsGetPublicTropicalSystem.js";
+export {
   useWxproductsListPublicProducts,
   wxproductsListPublicProductsQueryKey,
   wxproductsListPublicProductsQueryOptions,
 } from "./hooks/useWxproductsListPublicProducts.js";
+export {
+  useWxproductsListPublicTropicalSystems,
+  wxproductsListPublicTropicalSystemsQueryKey,
+  wxproductsListPublicTropicalSystemsQueryOptions,
+} from "./hooks/useWxproductsListPublicTropicalSystems.js";
+export {
+  useWxproductsListTropicalSystems,
+  wxproductsListTropicalSystemsQueryKey,
+  wxproductsListTropicalSystemsQueryOptions,
+} from "./hooks/useWxproductsListTropicalSystems.js";
 export {
   useWxproductsLoadAviationDrafts,
   wxproductsLoadAviationDraftsQueryKey,
@@ -3785,6 +3853,11 @@ export {
   wxproductsLoadProductsQueryKey,
   wxproductsLoadProductsQueryOptions,
 } from "./hooks/useWxproductsLoadProducts.js";
+export {
+  useWxproductsLoadTropicalSystemHistory,
+  wxproductsLoadTropicalSystemHistoryQueryKey,
+  wxproductsLoadTropicalSystemHistoryQueryOptions,
+} from "./hooks/useWxproductsLoadTropicalSystemHistory.js";
 export {
   useWxproductsPreviewProduct,
   wxproductsPreviewProductMutationKey,
@@ -3815,6 +3888,11 @@ export {
   wxproductsSaveProductMutationKey,
   wxproductsSaveProductMutationOptions,
 } from "./hooks/useWxproductsSaveProduct.js";
+export {
+  useWxproductsUpdateTropicalSystem,
+  wxproductsUpdateTropicalSystemMutationKey,
+  wxproductsUpdateTropicalSystemMutationOptions,
+} from "./hooks/useWxproductsUpdateTropicalSystem.js";
 export {
   useWxproductsValidateAviationMessage,
   wxproductsValidateAviationMessageMutationKey,
@@ -5609,6 +5687,17 @@ export type {
   CapCreateAlertStatus422,
 } from "./models/CapCreateAlert.js";
 export type {
+  CapCreateEscalationBody,
+  CapCreateEscalationOptions,
+  CapCreateEscalationResponse,
+  CapCreateEscalationResponses,
+  CapCreateEscalationStatus201,
+  CapCreateEscalationStatus401,
+  CapCreateEscalationStatus403,
+  CapCreateEscalationStatus404,
+  CapCreateEscalationStatus422,
+} from "./models/CapCreateEscalation.js";
+export type {
   CapCreateFeedBody,
   CapCreateFeedOptions,
   CapCreateFeedResponse,
@@ -5686,6 +5775,12 @@ export type {
   CapEmergencyPublishAlertStatus404,
   CapEmergencyPublishAlertStatus422,
 } from "./models/CapEmergencyPublishAlert.js";
+export type { CapEscalationCreate } from "./models/CapEscalationCreate.js";
+export type { CapEscalationCreatePropertiesAwarenessLevelEnum } from "./models/CapEscalationCreatePropertiesAwarenessLevelEnum.js";
+export { capEscalationCreatePropertiesAwarenessLevelEnum } from "./models/CapEscalationCreatePropertiesAwarenessLevelEnum.js";
+export type { CapEscalationLookup } from "./models/CapEscalationLookup.js";
+export type { CapEscalationPublic } from "./models/CapEscalationPublic.js";
+export type { CapEscalationSource } from "./models/CapEscalationSource.js";
 export type {
   CapExpireAlertBody,
   CapExpireAlertOptions,
@@ -5773,6 +5868,16 @@ export type {
   CapGetCatalogsStatus403,
   CapGetCatalogsStatus422,
 } from "./models/CapGetCatalogs.js";
+export type {
+  CapGetEscalationOptions,
+  CapGetEscalationQuery,
+  CapGetEscalationResponse,
+  CapGetEscalationResponses,
+  CapGetEscalationStatus200,
+  CapGetEscalationStatus401,
+  CapGetEscalationStatus403,
+  CapGetEscalationStatus422,
+} from "./models/CapGetEscalation.js";
 export type {
   CapGetFeedsOptions,
   CapGetFeedsResponse,
@@ -5903,10 +6008,26 @@ export type {
   CapPublishAlertStatus422,
 } from "./models/CapPublishAlert.js";
 export type { CapPublishPublic } from "./models/CapPublishPublic.js";
+export type {
+  CapRecordAlertReviewBody,
+  CapRecordAlertReviewOptions,
+  CapRecordAlertReviewPath,
+  CapRecordAlertReviewResponse,
+  CapRecordAlertReviewResponses,
+  CapRecordAlertReviewStatus200,
+  CapRecordAlertReviewStatus401,
+  CapRecordAlertReviewStatus403,
+  CapRecordAlertReviewStatus404,
+  CapRecordAlertReviewStatus409,
+  CapRecordAlertReviewStatus422,
+} from "./models/CapRecordAlertReview.js";
 export type { CapReferenceCreate } from "./models/CapReferenceCreate.js";
 export type { CapReferencePublic } from "./models/CapReferencePublic.js";
 export type { CapResourceCreate } from "./models/CapResourceCreate.js";
 export type { CapResourcePublic } from "./models/CapResourcePublic.js";
+export type { CapReviewRecord } from "./models/CapReviewRecord.js";
+export type { CapReviewRecordPropertiesOutcomeEnum } from "./models/CapReviewRecordPropertiesOutcomeEnum.js";
+export { capReviewRecordPropertiesOutcomeEnum } from "./models/CapReviewRecordPropertiesOutcomeEnum.js";
 export type {
   CapSaveHazardProfileBody,
   CapSaveHazardProfileOptions,
@@ -6276,13 +6397,28 @@ export type {
   EregisterAcceptRegisterObservationStatus422,
 } from "./models/EregisterAcceptRegisterObservation.js";
 export type {
+  EregisterCorrectRegisterObservationBody,
+  EregisterCorrectRegisterObservationOptions,
+  EregisterCorrectRegisterObservationPath,
+  EregisterCorrectRegisterObservationResponse,
+  EregisterCorrectRegisterObservationResponses,
+  EregisterCorrectRegisterObservationStatus201,
+  EregisterCorrectRegisterObservationStatus401,
+  EregisterCorrectRegisterObservationStatus403,
+  EregisterCorrectRegisterObservationStatus404,
+  EregisterCorrectRegisterObservationStatus409,
+  EregisterCorrectRegisterObservationStatus422,
+} from "./models/EregisterCorrectRegisterObservation.js";
+export type {
   EregisterCreateRegisterObservationBody,
   EregisterCreateRegisterObservationOptions,
   EregisterCreateRegisterObservationResponse,
   EregisterCreateRegisterObservationResponses,
+  EregisterCreateRegisterObservationStatus200,
   EregisterCreateRegisterObservationStatus201,
   EregisterCreateRegisterObservationStatus401,
   EregisterCreateRegisterObservationStatus403,
+  EregisterCreateRegisterObservationStatus409,
   EregisterCreateRegisterObservationStatus422,
 } from "./models/EregisterCreateRegisterObservation.js";
 export type {
@@ -6298,6 +6434,17 @@ export type {
   EregisterEmailRegisterObservationStatus409,
   EregisterEmailRegisterObservationStatus422,
 } from "./models/EregisterEmailRegisterObservation.js";
+export type {
+  EregisterGetStationSettingsOptions,
+  EregisterGetStationSettingsPath,
+  EregisterGetStationSettingsResponse,
+  EregisterGetStationSettingsResponses,
+  EregisterGetStationSettingsStatus200,
+  EregisterGetStationSettingsStatus401,
+  EregisterGetStationSettingsStatus403,
+  EregisterGetStationSettingsStatus404,
+  EregisterGetStationSettingsStatus422,
+} from "./models/EregisterGetStationSettings.js";
 export type {
   EregisterListObservationSendsOptions,
   EregisterListObservationSendsPath,
@@ -6350,6 +6497,18 @@ export type {
   EregisterPublishRegisterObservationStatus422,
 } from "./models/EregisterPublishRegisterObservation.js";
 export type {
+  EregisterPutStationSettingsBody,
+  EregisterPutStationSettingsOptions,
+  EregisterPutStationSettingsPath,
+  EregisterPutStationSettingsResponse,
+  EregisterPutStationSettingsResponses,
+  EregisterPutStationSettingsStatus200,
+  EregisterPutStationSettingsStatus401,
+  EregisterPutStationSettingsStatus403,
+  EregisterPutStationSettingsStatus404,
+  EregisterPutStationSettingsStatus422,
+} from "./models/EregisterPutStationSettings.js";
+export type {
   EregisterRejectRegisterObservationBody,
   EregisterRejectRegisterObservationOptions,
   EregisterRejectRegisterObservationPath,
@@ -6375,6 +6534,19 @@ export type {
   EregisterReopenRegisterObservationStatus409,
   EregisterReopenRegisterObservationStatus422,
 } from "./models/EregisterReopenRegisterObservation.js";
+export type {
+  EregisterReviewRegisterObservationBody,
+  EregisterReviewRegisterObservationOptions,
+  EregisterReviewRegisterObservationPath,
+  EregisterReviewRegisterObservationResponse,
+  EregisterReviewRegisterObservationResponses,
+  EregisterReviewRegisterObservationStatus200,
+  EregisterReviewRegisterObservationStatus401,
+  EregisterReviewRegisterObservationStatus403,
+  EregisterReviewRegisterObservationStatus404,
+  EregisterReviewRegisterObservationStatus409,
+  EregisterReviewRegisterObservationStatus422,
+} from "./models/EregisterReviewRegisterObservation.js";
 export type {
   EregisterValidateSynopObservationBody,
   EregisterValidateSynopObservationOptions,
@@ -10493,9 +10665,12 @@ export { refundCreatePropertiesMethodEnum } from "./models/RefundCreatePropertie
 export type { RefundPublic } from "./models/RefundPublic.js";
 export type { RefundStatus } from "./models/RefundStatus.js";
 export { refundStatus } from "./models/RefundStatus.js";
+export type { RegisterObservationCorrection } from "./models/RegisterObservationCorrection.js";
 export type { RegisterObservationCreate } from "./models/RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./models/RegisterObservationList.js";
 export type { RegisterObservationRead } from "./models/RegisterObservationRead.js";
+export type { RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum } from "./models/RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum.js";
+export { registerObservationReadPropertiesReviewOutcomeAnyOfEnum } from "./models/RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum.js";
 export type { RegisterObservationReadPropertiesStateEnum } from "./models/RegisterObservationReadPropertiesStateEnum.js";
 export { registerObservationReadPropertiesStateEnum } from "./models/RegisterObservationReadPropertiesStateEnum.js";
 export type { ReportCreate } from "./models/ReportCreate.js";
@@ -10525,6 +10700,7 @@ export type { ReviewInput } from "./models/ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./models/ReviewInputPropertiesDecisionEnum.js";
 export { reviewInputPropertiesDecisionEnum } from "./models/ReviewInputPropertiesDecisionEnum.js";
 export type { ReviewPublic } from "./models/ReviewPublic.js";
+export type { ReviewRequest } from "./models/ReviewRequest.js";
 export type { RewardCardPublic } from "./models/RewardCardPublic.js";
 export type { RewardEntryListPublic } from "./models/RewardEntryListPublic.js";
 export type { RewardEntryPublic } from "./models/RewardEntryPublic.js";
@@ -11209,6 +11385,10 @@ export type { StaffInput } from "./models/StaffInput.js";
 export type { StaffOrganiserRow } from "./models/StaffOrganiserRow.js";
 export type { StaffSetup } from "./models/StaffSetup.js";
 export type { StaffUpdate } from "./models/StaffUpdate.js";
+export type { StationSettings } from "./models/StationSettings.js";
+export type { StationSettingsPropertiesPendingItemsEnum } from "./models/StationSettingsPropertiesPendingItemsEnum.js";
+export { stationSettingsPropertiesPendingItemsEnum } from "./models/StationSettingsPropertiesPendingItemsEnum.js";
+export type { StationSettingsUpdate } from "./models/StationSettingsUpdate.js";
 export type { StatusReportCreate } from "./models/StatusReportCreate.js";
 export type { StatusReportDetails } from "./models/StatusReportDetails.js";
 export type { StatusReportEntryInput } from "./models/StatusReportEntryInput.js";
@@ -11838,6 +12018,22 @@ export type {
 export type { TransportWeekday } from "./models/TransportWeekday.js";
 export { transportWeekday } from "./models/TransportWeekday.js";
 export type { TripView } from "./models/TripView.js";
+export type { TropicalSystemCreate } from "./models/TropicalSystemCreate.js";
+export type { TropicalSystemEntryRead } from "./models/TropicalSystemEntryRead.js";
+export type { TropicalSystemEntryReadPropertiesActionEnum } from "./models/TropicalSystemEntryReadPropertiesActionEnum.js";
+export { tropicalSystemEntryReadPropertiesActionEnum } from "./models/TropicalSystemEntryReadPropertiesActionEnum.js";
+export type { TropicalSystemHistory } from "./models/TropicalSystemHistory.js";
+export type { TropicalSystemList } from "./models/TropicalSystemList.js";
+export type { TropicalSystemPublic } from "./models/TropicalSystemPublic.js";
+export type { TropicalSystemPublicEntry } from "./models/TropicalSystemPublicEntry.js";
+export type { TropicalSystemPublicHistory } from "./models/TropicalSystemPublicHistory.js";
+export type { TropicalSystemPublicList } from "./models/TropicalSystemPublicList.js";
+export type { TropicalSystemPublicPropertiesStatusEnum } from "./models/TropicalSystemPublicPropertiesStatusEnum.js";
+export { tropicalSystemPublicPropertiesStatusEnum } from "./models/TropicalSystemPublicPropertiesStatusEnum.js";
+export type { TropicalSystemRead } from "./models/TropicalSystemRead.js";
+export type { TropicalSystemReadPropertiesClosedReasonAnyOfEnum } from "./models/TropicalSystemReadPropertiesClosedReasonAnyOfEnum.js";
+export { tropicalSystemReadPropertiesClosedReasonAnyOfEnum } from "./models/TropicalSystemReadPropertiesClosedReasonAnyOfEnum.js";
+export type { TropicalSystemUpdate } from "./models/TropicalSystemUpdate.js";
 export type { TurnstileMode } from "./models/TurnstileMode.js";
 export { turnstileMode } from "./models/TurnstileMode.js";
 export type { TwoFactorCodeRequest } from "./models/TwoFactorCodeRequest.js";
@@ -12080,6 +12276,18 @@ export type { WorkingDaysPublic } from "./models/WorkingDaysPublic.js";
 export type { WorkingDaysPublicPropertiesMethodEnum } from "./models/WorkingDaysPublicPropertiesMethodEnum.js";
 export { workingDaysPublicPropertiesMethodEnum } from "./models/WorkingDaysPublicPropertiesMethodEnum.js";
 export type {
+  WxproductsCreateTropicalSystemBody,
+  WxproductsCreateTropicalSystemOptions,
+  WxproductsCreateTropicalSystemResponse,
+  WxproductsCreateTropicalSystemResponses,
+  WxproductsCreateTropicalSystemStatus201,
+  WxproductsCreateTropicalSystemStatus401,
+  WxproductsCreateTropicalSystemStatus403,
+  WxproductsCreateTropicalSystemStatus409,
+  WxproductsCreateTropicalSystemStatus422,
+  WxproductsCreateTropicalSystemStatus503,
+} from "./models/WxproductsCreateTropicalSystem.js";
+export type {
   WxproductsGetPublicProductOptions,
   WxproductsGetPublicProductPath,
   WxproductsGetPublicProductResponse,
@@ -12090,6 +12298,16 @@ export type {
   WxproductsGetPublicProductStatus503,
 } from "./models/WxproductsGetPublicProduct.js";
 export type {
+  WxproductsGetPublicTropicalSystemOptions,
+  WxproductsGetPublicTropicalSystemPath,
+  WxproductsGetPublicTropicalSystemResponse,
+  WxproductsGetPublicTropicalSystemResponses,
+  WxproductsGetPublicTropicalSystemStatus200,
+  WxproductsGetPublicTropicalSystemStatus404,
+  WxproductsGetPublicTropicalSystemStatus422,
+  WxproductsGetPublicTropicalSystemStatus503,
+} from "./models/WxproductsGetPublicTropicalSystem.js";
+export type {
   WxproductsListPublicProductsOptions,
   WxproductsListPublicProductsQuery,
   WxproductsListPublicProductsResponse,
@@ -12099,6 +12317,25 @@ export type {
   WxproductsListPublicProductsStatus422,
   WxproductsListPublicProductsStatus503,
 } from "./models/WxproductsListPublicProducts.js";
+export type {
+  WxproductsListPublicTropicalSystemsOptions,
+  WxproductsListPublicTropicalSystemsResponse,
+  WxproductsListPublicTropicalSystemsResponses,
+  WxproductsListPublicTropicalSystemsStatus200,
+  WxproductsListPublicTropicalSystemsStatus422,
+  WxproductsListPublicTropicalSystemsStatus503,
+} from "./models/WxproductsListPublicTropicalSystems.js";
+export type {
+  WxproductsListTropicalSystemsOptions,
+  WxproductsListTropicalSystemsQuery,
+  WxproductsListTropicalSystemsResponse,
+  WxproductsListTropicalSystemsResponses,
+  WxproductsListTropicalSystemsStatus200,
+  WxproductsListTropicalSystemsStatus401,
+  WxproductsListTropicalSystemsStatus403,
+  WxproductsListTropicalSystemsStatus422,
+  WxproductsListTropicalSystemsStatus503,
+} from "./models/WxproductsListTropicalSystems.js";
 export type {
   WxproductsLoadAviationDraftsOptions,
   WxproductsLoadAviationDraftsQuery,
@@ -12151,6 +12388,18 @@ export type {
   WxproductsLoadProductsStatus422,
   WxproductsLoadProductsStatus503,
 } from "./models/WxproductsLoadProducts.js";
+export type {
+  WxproductsLoadTropicalSystemHistoryOptions,
+  WxproductsLoadTropicalSystemHistoryPath,
+  WxproductsLoadTropicalSystemHistoryResponse,
+  WxproductsLoadTropicalSystemHistoryResponses,
+  WxproductsLoadTropicalSystemHistoryStatus200,
+  WxproductsLoadTropicalSystemHistoryStatus401,
+  WxproductsLoadTropicalSystemHistoryStatus403,
+  WxproductsLoadTropicalSystemHistoryStatus404,
+  WxproductsLoadTropicalSystemHistoryStatus422,
+  WxproductsLoadTropicalSystemHistoryStatus503,
+} from "./models/WxproductsLoadTropicalSystemHistory.js";
 export type {
   WxproductsPreviewProductBody,
   WxproductsPreviewProductOptions,
@@ -12214,6 +12463,20 @@ export type {
   WxproductsSaveProductStatus422,
   WxproductsSaveProductStatus503,
 } from "./models/WxproductsSaveProduct.js";
+export type {
+  WxproductsUpdateTropicalSystemBody,
+  WxproductsUpdateTropicalSystemOptions,
+  WxproductsUpdateTropicalSystemPath,
+  WxproductsUpdateTropicalSystemResponse,
+  WxproductsUpdateTropicalSystemResponses,
+  WxproductsUpdateTropicalSystemStatus200,
+  WxproductsUpdateTropicalSystemStatus401,
+  WxproductsUpdateTropicalSystemStatus403,
+  WxproductsUpdateTropicalSystemStatus404,
+  WxproductsUpdateTropicalSystemStatus409,
+  WxproductsUpdateTropicalSystemStatus422,
+  WxproductsUpdateTropicalSystemStatus503,
+} from "./models/WxproductsUpdateTropicalSystem.js";
 export type {
   WxproductsValidateAviationMessageBody,
   WxproductsValidateAviationMessageOptions,
@@ -14009,6 +14272,16 @@ export {
   capCreateAlertStatus422Schema,
 } from "./zod/capCreateAlertSchema.js";
 export {
+  capCreateEscalationBodySchema,
+  capCreateEscalationErrorSchema,
+  capCreateEscalationResponseSchema,
+  capCreateEscalationStatus201Schema,
+  capCreateEscalationStatus401Schema,
+  capCreateEscalationStatus403Schema,
+  capCreateEscalationStatus404Schema,
+  capCreateEscalationStatus422Schema,
+} from "./zod/capCreateEscalationSchema.js";
+export {
   capCreateFeedBodySchema,
   capCreateFeedErrorSchema,
   capCreateFeedResponseSchema,
@@ -14079,6 +14352,11 @@ export {
   capEmergencyPublishAlertStatus422Schema,
 } from "./zod/capEmergencyPublishAlertSchema.js";
 export { capEmergencyPublishSchema } from "./zod/capEmergencyPublishSchema.js";
+export { capEscalationCreatePropertiesAwarenessLevelEnumSchema } from "./zod/capEscalationCreatePropertiesAwarenessLevelEnumSchema.js";
+export { capEscalationCreateSchema } from "./zod/capEscalationCreateSchema.js";
+export { capEscalationLookupSchema } from "./zod/capEscalationLookupSchema.js";
+export { capEscalationPublicSchema } from "./zod/capEscalationPublicSchema.js";
+export { capEscalationSourceSchema } from "./zod/capEscalationSourceSchema.js";
 export {
   capExpireAlertBodySchema,
   capExpireAlertErrorSchema,
@@ -14161,6 +14439,15 @@ export {
   capGetCatalogsStatus403Schema,
   capGetCatalogsStatus422Schema,
 } from "./zod/capGetCatalogsSchema.js";
+export {
+  capGetEscalationErrorSchema,
+  capGetEscalationQueryProductIdSchema,
+  capGetEscalationResponseSchema,
+  capGetEscalationStatus200Schema,
+  capGetEscalationStatus401Schema,
+  capGetEscalationStatus403Schema,
+  capGetEscalationStatus422Schema,
+} from "./zod/capGetEscalationSchema.js";
 export {
   capGetFeedsErrorSchema,
   capGetFeedsResponseSchema,
@@ -14272,10 +14559,24 @@ export {
   capPublishAlertStatus422Schema,
 } from "./zod/capPublishAlertSchema.js";
 export { capPublishPublicSchema } from "./zod/capPublishPublicSchema.js";
+export {
+  capRecordAlertReviewBodySchema,
+  capRecordAlertReviewErrorSchema,
+  capRecordAlertReviewPathAlertIdSchema,
+  capRecordAlertReviewResponseSchema,
+  capRecordAlertReviewStatus200Schema,
+  capRecordAlertReviewStatus401Schema,
+  capRecordAlertReviewStatus403Schema,
+  capRecordAlertReviewStatus404Schema,
+  capRecordAlertReviewStatus409Schema,
+  capRecordAlertReviewStatus422Schema,
+} from "./zod/capRecordAlertReviewSchema.js";
 export { capReferenceCreateSchema } from "./zod/capReferenceCreateSchema.js";
 export { capReferencePublicSchema } from "./zod/capReferencePublicSchema.js";
 export { capResourceCreateSchema } from "./zod/capResourceCreateSchema.js";
 export { capResourcePublicSchema } from "./zod/capResourcePublicSchema.js";
+export { capReviewRecordPropertiesOutcomeEnumSchema } from "./zod/capReviewRecordPropertiesOutcomeEnumSchema.js";
+export { capReviewRecordSchema } from "./zod/capReviewRecordSchema.js";
 export {
   capSaveHazardProfileBodySchema,
   capSaveHazardProfileErrorSchema,
@@ -14607,12 +14908,26 @@ export {
   eregisterAcceptRegisterObservationStatus422Schema,
 } from "./zod/eregisterAcceptRegisterObservationSchema.js";
 export {
+  eregisterCorrectRegisterObservationBodySchema,
+  eregisterCorrectRegisterObservationErrorSchema,
+  eregisterCorrectRegisterObservationPathObservationIdSchema,
+  eregisterCorrectRegisterObservationResponseSchema,
+  eregisterCorrectRegisterObservationStatus201Schema,
+  eregisterCorrectRegisterObservationStatus401Schema,
+  eregisterCorrectRegisterObservationStatus403Schema,
+  eregisterCorrectRegisterObservationStatus404Schema,
+  eregisterCorrectRegisterObservationStatus409Schema,
+  eregisterCorrectRegisterObservationStatus422Schema,
+} from "./zod/eregisterCorrectRegisterObservationSchema.js";
+export {
   eregisterCreateRegisterObservationBodySchema,
   eregisterCreateRegisterObservationErrorSchema,
   eregisterCreateRegisterObservationResponseSchema,
+  eregisterCreateRegisterObservationStatus200Schema,
   eregisterCreateRegisterObservationStatus201Schema,
   eregisterCreateRegisterObservationStatus401Schema,
   eregisterCreateRegisterObservationStatus403Schema,
+  eregisterCreateRegisterObservationStatus409Schema,
   eregisterCreateRegisterObservationStatus422Schema,
 } from "./zod/eregisterCreateRegisterObservationSchema.js";
 export {
@@ -14628,6 +14943,16 @@ export {
   eregisterEmailRegisterObservationStatus422Schema,
 } from "./zod/eregisterEmailRegisterObservationSchema.js";
 export {
+  eregisterGetStationSettingsErrorSchema,
+  eregisterGetStationSettingsPathStationIdSchema,
+  eregisterGetStationSettingsResponseSchema,
+  eregisterGetStationSettingsStatus200Schema,
+  eregisterGetStationSettingsStatus401Schema,
+  eregisterGetStationSettingsStatus403Schema,
+  eregisterGetStationSettingsStatus404Schema,
+  eregisterGetStationSettingsStatus422Schema,
+} from "./zod/eregisterGetStationSettingsSchema.js";
+export {
   eregisterListObservationSendsErrorSchema,
   eregisterListObservationSendsPathObservationIdSchema,
   eregisterListObservationSendsResponseSchema,
@@ -14640,6 +14965,9 @@ export {
   eregisterListRegisterObservationsErrorSchema,
   eregisterListRegisterObservationsQueryKindSchema,
   eregisterListRegisterObservationsQueryLimitSchema,
+  eregisterListRegisterObservationsQueryObservedAtSchema,
+  eregisterListRegisterObservationsQueryOffsetSchema,
+  eregisterListRegisterObservationsQueryReviewedSchema,
   eregisterListRegisterObservationsQueryStateSchema,
   eregisterListRegisterObservationsQueryStationIdSchema,
   eregisterListRegisterObservationsResponseSchema,
@@ -14677,6 +15005,17 @@ export {
   eregisterPublishRegisterObservationStatus422Schema,
 } from "./zod/eregisterPublishRegisterObservationSchema.js";
 export {
+  eregisterPutStationSettingsBodySchema,
+  eregisterPutStationSettingsErrorSchema,
+  eregisterPutStationSettingsPathStationIdSchema,
+  eregisterPutStationSettingsResponseSchema,
+  eregisterPutStationSettingsStatus200Schema,
+  eregisterPutStationSettingsStatus401Schema,
+  eregisterPutStationSettingsStatus403Schema,
+  eregisterPutStationSettingsStatus404Schema,
+  eregisterPutStationSettingsStatus422Schema,
+} from "./zod/eregisterPutStationSettingsSchema.js";
+export {
   eregisterRejectRegisterObservationBodySchema,
   eregisterRejectRegisterObservationErrorSchema,
   eregisterRejectRegisterObservationPathObservationIdSchema,
@@ -14700,6 +15039,18 @@ export {
   eregisterReopenRegisterObservationStatus409Schema,
   eregisterReopenRegisterObservationStatus422Schema,
 } from "./zod/eregisterReopenRegisterObservationSchema.js";
+export {
+  eregisterReviewRegisterObservationBodySchema,
+  eregisterReviewRegisterObservationErrorSchema,
+  eregisterReviewRegisterObservationPathObservationIdSchema,
+  eregisterReviewRegisterObservationResponseSchema,
+  eregisterReviewRegisterObservationStatus200Schema,
+  eregisterReviewRegisterObservationStatus401Schema,
+  eregisterReviewRegisterObservationStatus403Schema,
+  eregisterReviewRegisterObservationStatus404Schema,
+  eregisterReviewRegisterObservationStatus409Schema,
+  eregisterReviewRegisterObservationStatus422Schema,
+} from "./zod/eregisterReviewRegisterObservationSchema.js";
 export {
   eregisterValidateSynopObservationBodySchema,
   eregisterValidateSynopObservationErrorSchema,
@@ -18528,8 +18879,10 @@ export { refundCreatePropertiesMethodEnumSchema } from "./zod/refundCreateProper
 export { refundCreateSchema } from "./zod/refundCreateSchema.js";
 export { refundPublicSchema } from "./zod/refundPublicSchema.js";
 export { refundStatusSchema } from "./zod/refundStatusSchema.js";
+export { registerObservationCorrectionSchema } from "./zod/registerObservationCorrectionSchema.js";
 export { registerObservationCreateSchema } from "./zod/registerObservationCreateSchema.js";
 export { registerObservationListSchema } from "./zod/registerObservationListSchema.js";
+export { registerObservationReadPropertiesReviewOutcomeAnyOfEnumSchema } from "./zod/registerObservationReadPropertiesReviewOutcomeAnyOfEnumSchema.js";
 export { registerObservationReadPropertiesStateEnumSchema } from "./zod/registerObservationReadPropertiesStateEnumSchema.js";
 export { registerObservationReadSchema } from "./zod/registerObservationReadSchema.js";
 export { reportCreatePropertiesSubjectTypeEnumSchema } from "./zod/reportCreatePropertiesSubjectTypeEnumSchema.js";
@@ -18553,6 +18906,7 @@ export { reviewAssignmentSchema } from "./zod/reviewAssignmentSchema.js";
 export { reviewInputPropertiesDecisionEnumSchema } from "./zod/reviewInputPropertiesDecisionEnumSchema.js";
 export { reviewInputSchema } from "./zod/reviewInputSchema.js";
 export { reviewPublicSchema } from "./zod/reviewPublicSchema.js";
+export { reviewRequestSchema } from "./zod/reviewRequestSchema.js";
 export { rewardCardPublicSchema } from "./zod/rewardCardPublicSchema.js";
 export { rewardEntryListPublicSchema } from "./zod/rewardEntryListPublicSchema.js";
 export { rewardEntryPublicSchema } from "./zod/rewardEntryPublicSchema.js";
@@ -19192,6 +19546,9 @@ export { staffInputSchema } from "./zod/staffInputSchema.js";
 export { staffOrganiserRowSchema } from "./zod/staffOrganiserRowSchema.js";
 export { staffSetupSchema } from "./zod/staffSetupSchema.js";
 export { staffUpdateSchema } from "./zod/staffUpdateSchema.js";
+export { stationSettingsPropertiesPendingItemsEnumSchema } from "./zod/stationSettingsPropertiesPendingItemsEnumSchema.js";
+export { stationSettingsSchema } from "./zod/stationSettingsSchema.js";
+export { stationSettingsUpdateSchema } from "./zod/stationSettingsUpdateSchema.js";
 export { statusReportCreateSchema } from "./zod/statusReportCreateSchema.js";
 export { statusReportDetailsSchema } from "./zod/statusReportDetailsSchema.js";
 export { statusReportEntryInputSchema } from "./zod/statusReportEntryInputSchema.js";
@@ -19776,6 +20133,19 @@ export {
 } from "./zod/transportUpdateTimetableDraftSchema.js";
 export { transportWeekdaySchema } from "./zod/transportWeekdaySchema.js";
 export { tripViewSchema } from "./zod/tripViewSchema.js";
+export { tropicalSystemCreateSchema } from "./zod/tropicalSystemCreateSchema.js";
+export { tropicalSystemEntryReadPropertiesActionEnumSchema } from "./zod/tropicalSystemEntryReadPropertiesActionEnumSchema.js";
+export { tropicalSystemEntryReadSchema } from "./zod/tropicalSystemEntryReadSchema.js";
+export { tropicalSystemHistorySchema } from "./zod/tropicalSystemHistorySchema.js";
+export { tropicalSystemListSchema } from "./zod/tropicalSystemListSchema.js";
+export { tropicalSystemPublicEntrySchema } from "./zod/tropicalSystemPublicEntrySchema.js";
+export { tropicalSystemPublicHistorySchema } from "./zod/tropicalSystemPublicHistorySchema.js";
+export { tropicalSystemPublicListSchema } from "./zod/tropicalSystemPublicListSchema.js";
+export { tropicalSystemPublicPropertiesStatusEnumSchema } from "./zod/tropicalSystemPublicPropertiesStatusEnumSchema.js";
+export { tropicalSystemPublicSchema } from "./zod/tropicalSystemPublicSchema.js";
+export { tropicalSystemReadPropertiesClosedReasonAnyOfEnumSchema } from "./zod/tropicalSystemReadPropertiesClosedReasonAnyOfEnumSchema.js";
+export { tropicalSystemReadSchema } from "./zod/tropicalSystemReadSchema.js";
+export { tropicalSystemUpdateSchema } from "./zod/tropicalSystemUpdateSchema.js";
 export { turnstileModeSchema } from "./zod/turnstileModeSchema.js";
 export { twoFactorCodeRequestSchema } from "./zod/twoFactorCodeRequestSchema.js";
 export { twoFactorDisableRequestSchema } from "./zod/twoFactorDisableRequestSchema.js";
@@ -19999,6 +20369,17 @@ export { workingDayHolidaySchema } from "./zod/workingDayHolidaySchema.js";
 export { workingDaysPublicPropertiesMethodEnumSchema } from "./zod/workingDaysPublicPropertiesMethodEnumSchema.js";
 export { workingDaysPublicSchema } from "./zod/workingDaysPublicSchema.js";
 export {
+  wxproductsCreateTropicalSystemBodySchema,
+  wxproductsCreateTropicalSystemErrorSchema,
+  wxproductsCreateTropicalSystemResponseSchema,
+  wxproductsCreateTropicalSystemStatus201Schema,
+  wxproductsCreateTropicalSystemStatus401Schema,
+  wxproductsCreateTropicalSystemStatus403Schema,
+  wxproductsCreateTropicalSystemStatus409Schema,
+  wxproductsCreateTropicalSystemStatus422Schema,
+  wxproductsCreateTropicalSystemStatus503Schema,
+} from "./zod/wxproductsCreateTropicalSystemSchema.js";
+export {
   wxproductsGetPublicProductErrorSchema,
   wxproductsGetPublicProductPathProductIdSchema,
   wxproductsGetPublicProductResponseSchema,
@@ -20008,6 +20389,15 @@ export {
   wxproductsGetPublicProductStatus503Schema,
 } from "./zod/wxproductsGetPublicProductSchema.js";
 export {
+  wxproductsGetPublicTropicalSystemErrorSchema,
+  wxproductsGetPublicTropicalSystemPathSystemIdSchema,
+  wxproductsGetPublicTropicalSystemResponseSchema,
+  wxproductsGetPublicTropicalSystemStatus200Schema,
+  wxproductsGetPublicTropicalSystemStatus404Schema,
+  wxproductsGetPublicTropicalSystemStatus422Schema,
+  wxproductsGetPublicTropicalSystemStatus503Schema,
+} from "./zod/wxproductsGetPublicTropicalSystemSchema.js";
+export {
   wxproductsListPublicProductsErrorSchema,
   wxproductsListPublicProductsQueryKindSchema,
   wxproductsListPublicProductsResponseSchema,
@@ -20016,6 +20406,26 @@ export {
   wxproductsListPublicProductsStatus422Schema,
   wxproductsListPublicProductsStatus503Schema,
 } from "./zod/wxproductsListPublicProductsSchema.js";
+export {
+  wxproductsListPublicTropicalSystemsErrorSchema,
+  wxproductsListPublicTropicalSystemsResponseSchema,
+  wxproductsListPublicTropicalSystemsStatus200Schema,
+  wxproductsListPublicTropicalSystemsStatus422Schema,
+  wxproductsListPublicTropicalSystemsStatus503Schema,
+} from "./zod/wxproductsListPublicTropicalSystemsSchema.js";
+export {
+  wxproductsListTropicalSystemsErrorSchema,
+  wxproductsListTropicalSystemsQueryLimitSchema,
+  wxproductsListTropicalSystemsQueryOffsetSchema,
+  wxproductsListTropicalSystemsQuerySeasonSchema,
+  wxproductsListTropicalSystemsQueryStatusSchema,
+  wxproductsListTropicalSystemsResponseSchema,
+  wxproductsListTropicalSystemsStatus200Schema,
+  wxproductsListTropicalSystemsStatus401Schema,
+  wxproductsListTropicalSystemsStatus403Schema,
+  wxproductsListTropicalSystemsStatus422Schema,
+  wxproductsListTropicalSystemsStatus503Schema,
+} from "./zod/wxproductsListTropicalSystemsSchema.js";
 export {
   wxproductsLoadAviationDraftsErrorSchema,
   wxproductsLoadAviationDraftsQueryKindSchema,
@@ -20071,6 +20481,17 @@ export {
   wxproductsLoadProductsStatus422Schema,
   wxproductsLoadProductsStatus503Schema,
 } from "./zod/wxproductsLoadProductsSchema.js";
+export {
+  wxproductsLoadTropicalSystemHistoryErrorSchema,
+  wxproductsLoadTropicalSystemHistoryPathSystemIdSchema,
+  wxproductsLoadTropicalSystemHistoryResponseSchema,
+  wxproductsLoadTropicalSystemHistoryStatus200Schema,
+  wxproductsLoadTropicalSystemHistoryStatus401Schema,
+  wxproductsLoadTropicalSystemHistoryStatus403Schema,
+  wxproductsLoadTropicalSystemHistoryStatus404Schema,
+  wxproductsLoadTropicalSystemHistoryStatus422Schema,
+  wxproductsLoadTropicalSystemHistoryStatus503Schema,
+} from "./zod/wxproductsLoadTropicalSystemHistorySchema.js";
 export {
   wxproductsPreviewProductPdfBodySchema,
   wxproductsPreviewProductPdfErrorSchema,
@@ -20129,6 +20550,19 @@ export {
   wxproductsSaveProductStatus422Schema,
   wxproductsSaveProductStatus503Schema,
 } from "./zod/wxproductsSaveProductSchema.js";
+export {
+  wxproductsUpdateTropicalSystemBodySchema,
+  wxproductsUpdateTropicalSystemErrorSchema,
+  wxproductsUpdateTropicalSystemPathSystemIdSchema,
+  wxproductsUpdateTropicalSystemResponseSchema,
+  wxproductsUpdateTropicalSystemStatus200Schema,
+  wxproductsUpdateTropicalSystemStatus401Schema,
+  wxproductsUpdateTropicalSystemStatus403Schema,
+  wxproductsUpdateTropicalSystemStatus404Schema,
+  wxproductsUpdateTropicalSystemStatus409Schema,
+  wxproductsUpdateTropicalSystemStatus422Schema,
+  wxproductsUpdateTropicalSystemStatus503Schema,
+} from "./zod/wxproductsUpdateTropicalSystemSchema.js";
 export {
   wxproductsValidateAviationMessageBodySchema,
   wxproductsValidateAviationMessageErrorSchema,

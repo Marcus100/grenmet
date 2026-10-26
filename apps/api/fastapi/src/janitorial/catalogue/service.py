@@ -35,7 +35,7 @@ _SPACE_TYPE = TypeAdapter(schemas.SpaceType)
 
 
 def _slug(value: str) -> str:
-    return re.sub(r"^-+|-+$", "", re.sub(r"[^a-z0-9]+", "-", value.lower()))
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
 
 
 def _frequency(task: AreaTask) -> schemas.JanitorialFrequency:

@@ -191,6 +191,39 @@ access policy on every request. Account activation alone grants no authoring acc
 | `POST /api/v1/wxproducts/products` | Body: `id`, `expectedRevision`, `kind`, `values`, `action` (`draft`, `publish`, `withdraw`), `changeSummary`, `reviewed`; returns `StoredProduct` |
 | `GET /api/v1/wxproducts/products/{id}/history` | `{ history: [...] }`; up to 100 newest permitted revisions, exposing action, revision, actor name, note and timestamp, never revision content or actor IDs |
 
+### Tracked tropical systems (added 24 Oct 2026)
+
+A tracked system is the GMS identity of one tropical system across outlook issues,
+labelled by season and sequence (`GMS 2026-07`, assigned at creation). It lives in
+the wxproducts database (`tropical_systems`, migration `wxproducts_0003`). Each
+outlook system in a revision may name it in `guidance.systems[].tracked_system_id`;
+saving an outlook draft or publication then writes one row per linked system into
+`tropical_system_entries` in the same transaction (name, type, position, movement in
+knots, 48-hour and 7-day formation chances, source NHC edition IDs). The entries are
+a derived index: `tropical_systems.rebuild_entries` recreates them from revisions.
+A save is refused (422) when a linked system is unknown, closed, or linked twice, or when a movement speed has an unknown unit (kt/kn/knots, mph, km/h, m/s spellings are normalised) or exceeds 500 kt. NHC identifiers must carry the season year: storms `al072026` (numbers 01-89), invests `al942026` (90-99). On `PATCH` the format is checked only when the value changes (422), so a system saved with an older short id (`al07`) can send it back unchanged. Each entry also stores the NHC storm id the system had when the revision was saved (`wxproducts_0005`, which stamps each existing entry once with its system's current id, so check no unpublished id edits are pending at deploy). Concurrent saves lock the linked systems `FOR NO KEY UPDATE` in id order, and system edits (including merges) queue on one advisory lock, so opposite merges cannot form a loop.
+Every change to a system's identity (name, type, NHC ids, close, merge, reopen) is also written, with before/after values, actor and optional `reason`, to the append-only `tropical_system_changes` table (migration `wxproducts_0004`); it is not exposed by any route. A merge is refused (422) when it would create a continuation loop or target a system closed as a duplicate.
+`GuidanceFact` also gained `edited` (default false) and `source_value`, so an edited
+pre-filled value keeps the NHC original. All new fields are optional and additive.
+
+Staff routes need product access to the `outlook` kind (403 otherwise):
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET /api/v1/wxproducts/tropical-systems` | `TropicalSystemList`; optional `status` (`active`, `closed`), `season` (2000–2100), `limit` (1–200, default 100), `offset` (0–10000); newest season and sequence first |
+| `POST /api/v1/wxproducts/tropical-systems` | Body `TropicalSystemCreate` (`name`, `feature_type`, optional `season`, `nhc_storm_id`, `nhc_invest_id`); 201 `TropicalSystemRead`; 409 when the NHC storm identifier is already linked |
+| `PATCH /api/v1/wxproducts/tropical-systems/{system_id}` | Body `TropicalSystemUpdate`; rename, link identifiers, close with `closed_reason` (`dissipated`, `merged`, `out_of_area`, `duplicate`; `merged` needs `continued_as_id`) or reopen with `status: active` |
+| `GET /api/v1/wxproducts/tropical-systems/{system_id}/history` | `TropicalSystemHistory`; every entry oldest first, drafts included |
+
+Public routes are anonymous and `no-store` (like every wxproducts public route), and only ever show published issues:
+an entry is public when its product's current published snapshot has the entry's
+revision, so a withdrawn outlook disappears from both.
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET /api/v1/wxproducts/public/tropical-systems` | `TropicalSystemPublicList`; the systems listed in the most recent current published outlook, each with its `latest` entry from that issue. `name`, `feature_type` and `nhc_storm_id` come from the published entry, so staff renames and NHC id edits show only after the next publish; `status` is the live state, so a closed system stays listed (as closed) until the current outlook stops listing it. The current outlook is chosen in SQL (`latest_current_outlook`) |
+| `GET /api/v1/wxproducts/public/tropical-systems/{system_id}` | `TropicalSystemPublicHistory`; published entries oldest first; `name`, `feature_type` and `nhc_storm_id` from the latest published entry, `status` live; 404 when the system was never published |
+
 `StoredProduct` preserves the editor shape: `id`, `kind`, `values`, `revision`,
 `publishedRevision` (nullable), and `updatedAt`. Errors use `detail`: a string for
 application errors, or an array for request-schema errors. Statuses include 401
@@ -411,6 +444,15 @@ outside the registry) and `GET /organisations/{id}/admin/members` (roster of any
 organisation). A suspended organisation is refused with 403 by every
 `X-Barrels-Organisation` route. A verified organisation shows its linked Events
 organiser as `verified`.
+
+**Privileged MFA enrolment (issue #501).** With `AUTH_PRIVILEGED_MFA_MODE=enforce`
+(the default outside `ENVIRONMENT=local`), a superuser or privileged-permission
+holder (superuser, `user.manage`, or a CAP approve/publish key) without an enrolled
+authenticator gets 403 on every `CurrentUser` route, the cookie routes, GAA Admin and CMS
+admission, and (superusers only) the Events moderator and organiser routes, with a `detail` that starts `Set up two-step verification` and ends
+`(mfa_enrolment_required)`. Account security (`/auth/users/me/security*`), sign-in
+and sessions stay reachable so the person can enrol. Clients match the stable
+suffix `mfa_enrolment_required`.
 
 **Superuser admin powers (owner decision 2026-10-21).** All need an active
 superuser with an enrolled authenticator *and a session that passed MFA* (a
@@ -890,13 +932,26 @@ caller's transaction; the worker sends email every 30 s (React Email `notificati
 template via web-auth, Jinja fallback, delivered through Resend/SMTP) and runs the daily
 reminder sweep at 10:00 UTC. Emails carry only a summary and a portal link.
 
+**GMS staff notifications** (`src/notifications/gms.py`, no endpoints of their own; people
+choose the bell and email per event through `/notifications/preferences`). Eight events:
+`gms.forecast_overdue`, `gms.review_requested`, `gms.warning_changed`,
+`gms.warning_expiring`, `gms.observation_missing`, `gms.send_failed`, `gms.record_query`,
+`gms.nhc_product`. Forecast overdue, warning changed and send failed are urgent (always in
+the bell). `review_requested`, `observation_missing`, `send_failed` and `nhc_product` are
+grouped: repeats fold into the recipient's unread notification. Recipients come from the
+published GMS duty roster; when there is no roster, or it names nobody qualified on shift,
+every holder of the relevant permission hears (for a missing hourly observation, all
+register staff who may record observations). The warning events are
+raised inside the CAP lifecycle transaction; the rest are swept every five minutes by the
+worker job `run_gms_notification_sweeps`, each item once (`dedupe_key`).
+
 | Endpoint | Access and purpose |
 | --- | --- |
 | `GET /api/v1/notifications?unread=` | Own notifications, paginated |
 | `GET /api/v1/notifications/unread-count` | `{count}` for the header badge |
 | `POST /api/v1/notifications/{id}/read` | Mark own notification read; another person's → 404 |
 | `POST /api/v1/notifications/read-all` | Mark all own notifications read |
-| `GET/PUT /api/v1/notifications/preferences` | Own email opt-outs per event; approval events (`email_mutable: false`) cannot be muted → 400 |
+| `GET/PUT /api/v1/notifications/preferences` | Own bell and email choice per event (leave a channel out to keep it); approval events (`email_mutable: false`) cannot be muted by email and urgent events (`urgent: true`, `bell_mutable: false`) cannot leave the bell → 400. Items carry `repeat_count` (grouped events fold into one unread notification) and `urgent`; a notification with the bell off is kept only for its email and never listed or counted |
 | `GET /api/v1/notifications/settings?organisation_id=` | `notifications.manage` in the organisation: every event with effective settings, plus staff whose email domain is outside `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` |
 | `PUT /api/v1/notifications/settings/{event_key}?organisation_id=` | `notifications.manage`: on/off, email on/off, extra recipient roles, title/body Jinja templates (validated), timings (`remind_after_days`, `escalate_after_days`, `expiry_days_before`) |
 | `GET/POST /api/v1/notifications/snoozes?organisation_id=` | `notifications.manage`: list active snoozes / silence an event, or one entity of it (`entity_type` + `entity_id` together), until a future `until`; unknown event → 404 |
@@ -938,6 +993,23 @@ with private/no-store headers. `GET /attendance/review?attendance_id=…` (or
 retained corrections. `POST /attendance/{attendance_id}/corrections` requires a
 reason and starts a separate supervisor workflow; original time stays in effect
 until approval atomically advances its revision. See [manual attendance](../hr/manual-attendance.md).
+
+### Returned forms
+
+`POST /workflow/instances/{instance_id}/actions` with `action: "RETURN"` sends a
+submitted form back to its author and requires non-empty `comments` (the reason;
+400 otherwise). The form's `status` becomes `RETURNED` (leave, absentee, shift
+exchange, parking, daily status: `RequestStatus`; timesheet: `TimesheetStatus`),
+the reason is kept in the approval action log, and the author receives the
+`workflow.returned` notification carrying the reason. `RETURNED` is not final,
+unlike `REJECTED`: the author edits the form with its normal update route and
+resubmits it with its normal submit route, which starts a fresh approval chain
+(the returned chain stays as history). A returned timesheet can be resubmitted
+unchanged only; there is no timesheet edit route yet, and the generic workflow
+route refuses SUBMIT on a returned timesheet instance. `PATCH /hr/leave-requests/{id}/action`
+refuses `RETURNED`; returning goes through the workflow action so a reason is
+always recorded. Deleting a returned form stays blocked because approval history
+is retained.
 
 ### Department calendar
 
@@ -1031,9 +1103,21 @@ hours and timesheets ignore pending and rejected punches. Approval calls
 `save_attendance` as the employee (an arrival creates the record, a departure closes
 it), so roster, revision and the supervisor workflow are those of manual attendance.
 A departure can be approved only after its arrival; rejecting an arrival also
-rejects its pending departure, and the employee may then punch again. Only the
-employee's named supervisor (`supervisor_id`) or a `timesheet.approve` holder whose
-assignment covers the employee's department may decide, and nobody may decide their
+rejects its pending departure, and the employee may then punch again. Callers
+holding `timesheet.approve` with organisation-wide scope, with department scope for
+the punch's department or the employee's current department, or who are the
+employee's named supervisor may decide. After a department transfer the employee may
+still record their own attendance for shifts rostered under the old department
+(same organisation only). The employee may also submit that attendance, and propose
+corrections to it, for review: the approval is the old department's workflow and
+approvers (`require_ready` accepts the roster department only for attendance and
+attendance-correction reviews, only for the employee's own record and only within
+the same organisation; leave and other forms stay bound to the current department).
+Acting for someone else stays bound to the roster department. An arrival only attaches
+to a published shift of the department whose clock point was scanned. A departure
+closes the employee's open shift wherever it was rostered (so a mid-shift transfer
+does not strand it) and is stored with that shift's department, not the scanned
+point's; either way the punch department equals the roster department. Nobody may decide their
 own punch (superusers included). Approve and reject are idempotent for the same
 outcome and return 409 for the opposite one. Arrival needs a published work shift that
 started at most two hours ago or ends within the next hour; with none, the call
@@ -1156,7 +1240,7 @@ these anonymous endpoints:
 | `GET /api/cap/{identifier}.xml` | Latest CAP XML snapshot for an identifier |
 
 CAP management routes are under `/api/v1/cap` and require authenticated users plus permission checks.
-`POST /alerts/{id}/publish` accepts only an `APPROVED` alert whose approver is not its author (409 otherwise); `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
+`POST /alerts/{id}/publish` accepts only an `APPROVED` alert with a recorded approval, which the author may give (409 otherwise; owner decision 2026-10-23, ADR-0023 amendment). `POST /alerts/{id}/reviews` (`{"outcome": "reviewed" | "changes_requested", "note": "..."}`, permission `cap.alert.approve`) records an optional colleague review by someone other than the author (403 for the author, 409 unless the alert is Submitted or Approved); it never changes the alert's state. Asking for a review is the submit step; `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
 
 Only Public alerts with `status=Actual` create CAP publish side-effect jobs. The
 worker also skips previously queued jobs for any other status or scope, so an
@@ -1248,7 +1332,7 @@ Creating a leave request, absentee report, daily status report, shift swap, or t
 
 ### Private weather images
 
-`GET /api/v1/wxwatch/images/{storage_path}` accepts an active browser session or bearer identity. It returns private/no-store local image bytes when `WXWATCH_LOCAL_IMAGES_DIR` is configured, or a 60-second signed object-storage redirect otherwise. Raster paths are validated; local paths and symlinks must remain inside the configured root. Missing files return 404, invalid paths 400, and missing storage configuration 503. Gaa-admin uses a same-origin `/_backend/wxwatch/` rewrite and disables image optimization so browser credentials reach FastAPI.
+`GET /api/v1/wxwatch/images/{storage_path}` accepts an active browser session or bearer identity. It returns private/no-store local image bytes when `WXWATCH_LOCAL_IMAGES_DIR` is configured, or a 60-second signed object-storage redirect otherwise. Raster paths are validated (PNG, JPEG, GIF and WebP names only, checked in linear time); local paths and symlinks must remain inside the configured root. Missing files return 404, invalid paths 400, and missing storage configuration 503. Gaa-admin uses a same-origin `/_backend/wxwatch/` rewrite and disables image optimization so browser credentials reach FastAPI.
 
 ### Authored product grade policies
 
@@ -1324,6 +1408,23 @@ version is recorded in the resulting alert's `GMS:hazard-profile` parameter.
 Threshold evaluation and transport/channel enforcement are not performed here.
 Creating a draft never publishes it; its assessment remains Unknown.
 
+### CAP escalation from a GMS alert (ADR-0051, proposed)
+
+GMS alerts are green only. `POST /api/v1/cap/escalations` with
+`{product_id, revision, awareness_level: yellow|orange|red}` creates a CAP draft
+pre-filled from that saved alert revision (event, severity from the colour,
+certainty from likelihood, onset and expiry in UTC, synopsis, impacts and
+response) with `GMS:product` Warning, `awareness_level` and the three
+`GMS:source-bulletin-*` parameters. It requires `cap.alert.create` and product
+access to the alert's kind, and only hazard alert kinds are accepted (422
+otherwise; 404 for an unknown revision). It is idempotent per product: when a
+draft, submitted or approved CAP alert already links the product, it returns 200
+with that alert and `created: false`; a new draft returns 201. The draft areas
+are left empty and the wording needs GMS sign-off. `GET /api/v1/cap/escalations?product_id=`
+(`cap.alert.read`) returns the open or published linked alert, or nulls. The
+green alert is never changed or withdrawn by either route; a forecaster withdraws
+it. Both databases are read or written separately, with no shared transaction.
+
 
 ### Employee training history
 
@@ -1353,6 +1454,11 @@ Sign & submit action. Proxy submitters sign as themselves, never as the employee
 `GET /api/v1/hr/signed-documents/{id}/pdf` returns the original PDF to the signer,
 subject, or an HR document reader scoped over the subject and organisation.
 Authorized HR form responses include `signed_document_id` when a signed copy exists.
+PDF download names are human and dated in Grenada time, never UUIDs (headers only;
+routes are unchanged), e.g. `GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf` or
+`Leave Application - <signer> - 2026-10-23.pdf`. Every PDF response sends an ASCII
+`filename` plus `filename*=UTF-8''...` (RFC 6266) from `src/utils/filenames.py`; the
+signer's name appears only on signed documents, where it is already printed.
 All signature and PDF responses use private, no-store caching. Signed PDFs, signer
 identity, signature version, timestamp, canonical form snapshot and SHA-256 are
 committed with submission and remain unchanged when the saved signature changes.
@@ -1742,9 +1848,89 @@ blocks the save on errors only. A workbook with only identification fields is a
 NIL report (`decoded.is_nil_report`). Optional entries beyond the original
 workbook are the wet bulb (`wet_bulb`), wind gust (`wind_gust`), relative
 humidity (`relative_humidity`) and observer initials (`observer_initials`, not
-an observation value). The endpoint does not save, publish, or
-transmit an observation; `POST /api/v1/eregister/observations` still stores a
-draft.
+an observation value). With `observed_at` the endpoint also compares the
+observation with the saved ones 1 and 3 hours earlier (hour-to-hour warnings).
+It returns `expected_metar`, the METAR the observation implies, and when the
+workbook carries a typed `metar_text` it warns (field `metar_text`, codes
+`metar_*`) on every element that disagrees; these never change `valid`. The
+METAR dew point is the decoded one (so a `2 9UUU` humidity group works), and
+cloud is not compared when N is above 0 but no layer group is keyed. Group 908
+is a warning (`unused_supplementary`) until it is confirmed against Vol. I.1. The
+endpoint does not save, publish, or
+transmit an observation; `POST /api/v1/eregister/observations` stores a
+draft (validated, see below). `GET /api/v1/eregister/observations` filters by
+`station_id`, `kind`, `state`, `reviewed` and an exact `observed_at` (the record
+occupying an hour), and pages with `limit` and `offset` (`offset` above 10 million is
+`422`). A refused WIS2 or email hand-off after acceptance is stored as a `failed`
+send with the reason in `last_error`. Correcting an observation (`POST .../{id}/correct`) holds any queued WIS2 file of
+the replaced observation (status stays `queued`, `last_error` "Held while a correction
+is pending"): accepting the correction drops the held file (`failed`, "Replaced by a
+correction before it was delivered"); rejecting the correction releases it so the
+original reading is retried as before.
+
+`POST .../{id}/review` takes an optional `updated_at`, the value the reviewer saw
+when opening the record (to the second). If the record was saved or decided since (accept, reject and reopen also move
+`updated_at`), the review is refused with `409`; a change within the same second is
+not detected; omitting it keeps the earlier behaviour.
+
+Recording and reading the register (`POST` and `GET
+/api/v1/eregister/observations`, `GET .../{id}/sends`) need one of
+`eregister.observe` (role `eregister-observer`), `eregister.qc` or
+`eregister.send`; anyone else gets `403`. A saved SYNOP shows on the public
+weather site as provisional, so a signed-in account alone is not enough.
+
+#### eRegister entry rules (owner decisions, 23 Oct 2026)
+
+- *Typed visibility.* The workbook field `visibility_km` (kilometres, for example
+  `18` or `0.8`) is what the observer types; the coded `visibility` (VV, Code
+  table 4377) is calculated from it, rounding down. A text that is not a
+  non-negative number is an error (`invalid_km`).
+- *Calculated humidity.* With `air_temp`, `wet_bulb` and the keyed
+  `station_pressure`, the dew point, vapour pressure and relative humidity are
+  calculated (psychrometer equation, Magnus formula over water; `derive.py`).
+  `validate-synop` returns them in `normalized` (`dew_point`,
+  `relative_humidity`), and a saved observation stores them in its `body`. A row
+  without a wet bulb or station pressure keeps whatever dew point was keyed.
+- *Barometer as read and the pressures.* `barometer_reading` (paper column 17) is
+  the reading in hPa with one decimal. The pressures come from it with the
+  station's fixed amounts (owner confirmed for 78958 on 24 Oct 2026): station
+  pressure = barometer + `total_correction_hpa` (0.0); QFE = station pressure +
+  `qfe_offset_hpa` (0.3); mean sea level pressure = station pressure +
+  `sea_level_offset_hpa` (1.0); QNH = mean sea level pressure + `qnh_offset_hpa`
+  (0.1). Barometer 1012.8 gives group 3 `0128`, QFE 1013.1, group 4 `0138` and
+  QNH 1013.9. The server fills a blank `station_pressure` or `msl_pressure` from
+  this rule (returned in `normalized`, stored in the saved `body`), returns
+  `decoded.qfe_pa` and `decoded.qnh_pa`, and keeps a keyed group 3 or 4 but warns
+  (`station_pressure_mismatch`, `sea_level_mismatch`) when it differs.
+- *Station settings.* `GET` and `PUT /api/v1/eregister/stations/{station_id}/settings`
+  hold the four amounts. 78958 is seeded by migration `eregister_0006`; another
+  station's amounts are `null` (listed in `pending`) until staff enter them, and
+  nothing is assumed for it. Reading needs register staff access; `PUT` needs
+  `eregister.qc` and all four keys (an explicit `null` clears one; a missing key is
+  `422`, so `{}` can no longer clear everything). Each change writes a change-history
+  entry (`eregister_station_settings`, readable by `eregister.qc` or
+  `eregister.send`) with the amounts before and after and the actor.
+- *Special groups and listings.* Typed `s3_special_phenomena` groups are sent in the
+  order keyed, after the gust and `s3_group_909` built from their own fields; a typed
+  group with the same 9SpSp prefix as one of those is dropped and warns
+  (`duplicate_special_group`). `GET /observations` checks each stored row as saved,
+  without the station's current pressure amounts.
+- *Stored body is the record.* Calculated fields (visibility code, dew point,
+  relative humidity, groups 3 and 4) are filled in when a body is written (validate,
+  create, correct) and never on read, accept or send, so what QC accepted is what the
+  TAC and the WIS2 CSV carry. `barometer_reading` is `^\d{3,4}(\.\d)?$` (ASCII digits,
+  500 to 1100 hPa) and `visibility_km` is `^\d+(\.\d+)?$` (no sign or exponent).
+- *Reporting hours.* All 24 UTC hours are keyed by hand at station 78958, so no
+  hour is "non-synoptic". Advice (warnings only): Tx and Tn every 6 hours (00, 06,
+  12, 18 UTC), 24 hour rainfall at 12 UTC, the pressure tendency group `5appp`
+  every 3 hours, the rainfall group `6RRRtR` at every main hour. The daily
+  sunshine group `55SSS` is not reported (a keyed value is decoded and warned).
+- *Extra fields.* `s3_group_909`, precipitation timing and duration (909Rtdc:
+  the Region IV group 9SpSpspsp with SpSp 09, reported with 6RRRtR; five digits
+  starting 909, Rt and dc not decoded, passed through into
+  section 3) and the instrument chart time marks `time_mark_anemograph`,
+  `time_mark_barograph`, `time_mark_rain_recorder` and
+  `time_mark_thermohygrograph` (free text, not observation values).
 
 #### eRegister send actions
 
@@ -1759,20 +1945,49 @@ observation, `409` no recipients or WIS2 not configured, rejected or superseded
 or non-SYNOP observation, or already sent without `resend`, `422` the stored
 workbook fails validation. Details: `docs/operations/eregister-wmo-conformance.md`.
 
-#### eRegister QC
+#### eRegister QC, review and corrections
 
 `POST /api/v1/eregister/observations/{id}/accept`, `.../reject` and `.../reopen`
-(permission `eregister.qc`, body `{"reason": "..."}`, `200` with the
-`RegisterObservationRead`) move a SYNOP between `draft`/`qc_pending`,
-`accepted` and `rejected`. `reject` and `reopen` need a reason. The observer who
-saved an observation can never accept it (`403`, superusers included).
-`409` wrong state or non-SYNOP, or reopen after a WIS2 send; `422` missing
-reason or the workbook fails validation. `GET /api/v1/eregister/observations`
-takes `state=` (the QC queue is `draft` and `qc_pending`). `.../publish` (WIS2)
-now answers `409` unless the observation is `accepted`; `.../email` still
-accepts a validated draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set.
-`RegisterObservationRead` gains `qc_by` and `qc_at`. Every decision is audited
-(`eregister_observation`).
+(body `{"reason": "..."}`, `200` with the `RegisterObservationRead`) move a SYNOP
+between `draft`/`qc_pending`, `accepted` and `rejected`. Any register staff
+member (`eregister.observe`, `eregister.qc` or `eregister.send`) may use them;
+the observer accepts their own observation alone, there is no required second
+person. Accepting validates the workbook (`422`) and then queues the WIS2 file
+and the email at once (best effort: a refused hand-off, for example an hour the
+automatic source owns, never undoes the acceptance; see `GET .../sends`).
+`reject` and `reopen` need a reason; `reopen` (and `reject`) is `409` once a WIS2
+file was queued or sent. Rejecting a correction (a row with `supersedes_id`)
+releases the held WIS2 file of the observation it replaced and, in the same
+transaction, puts that `superseded` observation back to the state it had before
+(`accepted`, or `draft`/`qc_pending` for a never-accepted one) with its own QC
+notes, and returns the publish gate to it if the correction had taken it, so the
+hour can be sent, reopened or corrected again (audited as `restore`).
+
+`POST .../{id}/review` (body `{"outcome": "reviewed" | "query", "note": "..."}`,
+a note is required for a query) records an optional second look by register staff
+other than the observer. It sets `review_outcome`, `review_note`, `reviewed_by`
+and `reviewed_at` on the record, is audited, changes no state and never holds
+back WIS2 or email. `GET /observations` takes `state=` (comma separated, for
+example `draft,qc_pending`), `reviewed=true|false` (the review queue is
+`state=accepted&reviewed=false`), `limit` and `offset`, and returns `total`.
+SYNOP rows carry `coded` (the FM 12 row), `issues` (validation findings,
+warnings included) and `actor_name` (who recorded it).
+
+`POST /observations` validates a SYNOP: errors (including a keyed day or hour that
+differs from `observed_at` in UTC) are `422` with `detail.message` and
+`detail.issues`; warnings pass. There is one live observation per station, time
+and kind (partial unique index): saving again as the observer of an unsent draft
+updates it in place (`200`, same `id`); otherwise `409`.
+`POST .../{id}/correct` (body `{"body": {...}, "reason": "..."}`, `201`) saves a
+replacement that supersedes the observation (`supersedes_id`); the old row
+becomes `superseded` and stays listed (the UI shows it struck through). `409` when
+it is rejected or already superseded. Accepting a replacement of an hour already
+sent to WIS2 sends a correction (`ObservationSend.is_correction`; the email is
+marked `CORRECTION` with a `CCA` line). `POST .../validate-synop` also takes an
+optional `observed_at` to run the same time check. `.../publish` (WIS2) answers
+`409` unless the observation is `accepted`; `.../email` still accepts a validated
+draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set. Every decision and review
+is audited (`eregister_observation`).
 
 ### GAA operational catalogues
 

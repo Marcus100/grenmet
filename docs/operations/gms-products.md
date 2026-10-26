@@ -84,11 +84,30 @@ issue-date tab across midnight until 07:00. At 07:00 the date strip advances;
 without a new morning report it says “Awaiting today’s morning forecast”.
 Future date tabs use the latest visible evening outlook, showing full weather
 details and each period’s coverage. An open page refreshes every 30 seconds.
-Forecast warnings and impacts are optional legacy fields, excluded from forecast
-displays; CAP remains the independent warning source. The forecast PDF shows a
-summary of the CAP alerts and GMS bulletins in force when the revision was saved
-(captured by FastAPI, not entered by the forecaster). No missing assessment is
-rendered as “Minimal” or an all-clear.
+Forecasters do not write impact-based content: it is authored only in GMS alerts
+and CAP warnings (owner decision, 23 October 2026). Forecast warnings and impacts
+are legacy fields kept so older issues still open, and excluded from forecast
+forms and displays. The forecast PDF, and weather.gd's "What to watch", show the
+CAP alerts and GMS bulletins in force when the revision was saved (captured by
+FastAPI, not entered by the forecaster); forecasts issued before that capture
+fall back to their typed text. No missing assessment is rendered as “Minimal” or
+an all-clear.
+
+Temperatures follow the GMS sheets: morning and midday require today's maximum
+and tonight's minimum; the evening tonight block has only the minimum, and sun
+times appear on each of the four outlook days rather than on tonight. The
+midday sheet prints the midday temperature at MBIA first.
+
+Forecast choices carry SYNOP meaning so forecasts can later be verified against
+the eRegister hourlies at MBIA (owner decision, 23 October 2026). Conditions
+(Clear, Fair, Partly cloudy, Cloudy, Overcast) map to total cloud N in oktas
+(0, 1–2, 3–4, 5–7, 8); the Weather type picker on every period maps to present
+weather ww (for example Light showers 80, Thunderstorms 95); chance of rain
+(Low, Medium, High) maps to 0–30, 30–60 and 60–100 % for scoring. The tables are
+`CONDITION_OKTAS`, `WEATHER_TYPES` and `RAIN_CHANCE_BANDS` in
+`packages/gms/src/products.ts`, mirrored by `src/wxproducts/synop_codes.py`
+(kept equal by `tests/wxproducts/test_synop_codes.py`). Which hours count when
+verifying is still to be agreed with GMS.
 
 CAP is independent: these bulletins do not automatically create CAP messages,
 synchronize their statuses, or contribute to CAP warning counts. Per
@@ -182,3 +201,18 @@ Feed references: [NHC RSS products](https://www.nhc.noaa.gov/mobile/rss.html) an
 [NHC active storm JSON reference](https://www.nhc.noaa.gov/productexamples/NHC_Tropical_Cyclone_Status_JSON_File_Reference.pdf).
 
 Withdrawing an already saved product preserves its revision content and remains available when the NHC archive is unavailable. Saving new guidance and generating source graphics still require archive access.
+
+## Planned product model (ADR-0051, proposed)
+
+Not yet in force; the owner has not accepted [ADR-0051](../adr/0051-gms-product-model.md).
+Planned changes:
+
+- GMS alerts are green only (notice types Information, Advisory and All clear,
+  pending confirmation). Yellow, orange and red are CAP warnings, started from a
+  "Raise to warning" button. The green alert stays in force until a
+  forecaster withdraws it (open decision); the desk notes "Warning raised".
+- The marine bulletin becomes a 05:00 marine forecast (05:00 to 05:00 next day for
+  Grenada, Carriacou and Petite Martinique waters), with separate green marine alerts.
+- The Tropical Weather Outlook moves under Forecasts, with tracked systems.
+  Scheduled NHC pulls (every few hours 15 May to 30 November, every 6 hours off
+  season) are off by default per environment.

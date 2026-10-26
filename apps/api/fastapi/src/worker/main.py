@@ -9,6 +9,7 @@ without Redis).
 
 from __future__ import annotations
 
+import logging
 from importlib import import_module
 from socket import gethostname
 from typing import Any
@@ -22,6 +23,8 @@ from src.models_guidance.config import guidance_settings
 from src.telemetry import sentry_options
 from src.worker.config import worker_settings
 from src.worker.cron_monitor import monitored
+
+logger = logging.getLogger(__name__)
 
 configure_logging()
 
@@ -324,6 +327,44 @@ async def run_notification_sweeps(ctx: dict[str, Any]) -> int:
         return result
 
 
+async def run_gms_notification_sweeps(ctx: dict[str, Any]) -> int:
+    """Time-based GMS notifications (overdue forecast, expiring warning, missing hour...)."""
+    from contextlib import AsyncExitStack
+
+    from src.database import async_session_factory
+    from src.eregister import database as register_database
+    from src.notifications import gms_sweeps
+    from src.wxproducts import database as weather_database
+    from src.wxwatch import database as archive_database
+
+    async with AsyncExitStack() as stack, async_session_factory() as session:
+        weather = weather_database.create_session()
+        register = register_database.create_session()
+        archive = archive_database.create_session()
+        for source in (weather, register, archive):
+            if source is not None:
+                await stack.enter_async_context(source)
+        try:
+            result = await gms_sweeps.run(
+                session, weather=weather, register=register, archive=archive
+            )
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "run_gms_notification_sweeps",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"),
+            "run_gms_notification_sweeps",
+            str(ctx.get("job_id", "")),
+            True,
+        )
+        return result
+
+
 async def check_nhc_failures(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.wxwatch import alerts, database
@@ -366,6 +407,35 @@ async def check_alert_outbox(ctx: dict[str, Any]) -> int:
     if not healthy:
         raise RuntimeError(f"{stalled} notification emails stalled for over 10 minutes")
     return 0
+
+
+async def check_cap_job_failures(ctx: dict[str, Any]) -> int:
+    """Log an error when a CAP job has failed on every attempt (nothing retries it).
+
+    Counts and job kinds only: no recipients, payloads or error text.
+    """
+    from datetime import timedelta
+
+    _ = ctx  # arq passes the job context; this check needs none of it
+
+    from src.database import async_session_factory
+    from src.worker import cap_failure_mail, dispatch
+
+    async with async_session_factory() as session:
+        jobs = await dispatch.exhausted_jobs(
+            session=session,
+            max_attempts=worker_settings.CAP_JOB_MAX_ATTEMPTS,
+            window=timedelta(days=7),
+        )
+        total = len(jobs)
+        if total:
+            logger.error(
+                "CAP jobs failed on every attempt",
+                extra={"count": total, "kinds": sorted({job.kind for job in jobs})},
+            )
+            await cap_failure_mail.queue_failure_emails(session=session, jobs=jobs)
+            await session.commit()
+    return total
 
 
 async def check_outbox_backlog(ctx: dict[str, Any]) -> int:
@@ -494,10 +564,12 @@ class WorkerSettings:
         expire_unpaid_event_orders,
         send_wis2_publications,
         run_notification_sweeps,
+        run_gms_notification_sweeps,
         send_invoice_reminders,
         purge_expired_data,
         check_nhc_failures,
         check_alert_outbox,
+        check_cap_job_failures,
         check_outbox_backlog,
         poll_flights,
         fetch_marine_environment,
@@ -549,6 +621,14 @@ class WorkerSettings:
         cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
         cron(run_notification_sweeps, hour=10, minute=0, run_at_startup=False),
+        # GMS time-based notifications every 5 minutes: forecast overdue (15 minutes
+        # late), warning expiring, missing hourly observation (from 15 minutes past),
+        # failed sends, queries and new NHC products. Idempotent per item.
+        cron(
+            run_gms_notification_sweeps,
+            minute=set(range(0, 60, 5)),
+            run_at_startup=False,
+        ),
         # Invoice payment reminders at 07:00 Grenada (UTC-4); idempotent per stage.
         cron(send_invoice_reminders, hour=11, minute=0, run_at_startup=False),
         # Retention purge, 03:30 UTC (23:30 Grenada); idempotent and batched.
@@ -557,6 +637,8 @@ class WorkerSettings:
         cron(check_nhc_failures, minute=set(range(0, 60, 5)), run_at_startup=False),
         # Is the email outbox draining? Every 15 minutes.
         cron(check_alert_outbox, minute={0, 15, 30, 45}, run_at_startup=False),
+        # CAP jobs that used all their attempts (logged as an error for Sentry).
+        cron(check_cap_job_failures, minute={7, 22, 37, 52}, run_at_startup=False),
         # Dead and overdue rows in the platform outbox, every 15 minutes.
         cron(check_outbox_backlog, minute={2, 17, 32, 47}, run_at_startup=False),
         # OpenSky flight movements every 30 minutes; no-op unless the flag is on.

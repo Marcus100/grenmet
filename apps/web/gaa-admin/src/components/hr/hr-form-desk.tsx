@@ -11,6 +11,7 @@ import {
   downloadBlob,
   PdfDialog,
 } from "@/components/document/document-preview";
+import { signedDocumentFilename } from "@/lib/pdf-filename";
 import { reportError } from "@/lib/report-error";
 import { fetchHrPdf } from "./hr-pdf-preview";
 import { useSignedDocuments } from "./signatures/signature-api";
@@ -62,7 +63,12 @@ function SignedCopyRow({
     if (blob) {
       downloadBlob(
         blob,
-        `${label.toLowerCase().replaceAll(" ", "-")}-r${signed.revision ?? 1}.pdf`
+        signedDocumentFilename(
+          signed.entity_type,
+          signed.signer_name,
+          signed.signed_at,
+          signed.revision ?? 1
+        )
       );
     }
   }

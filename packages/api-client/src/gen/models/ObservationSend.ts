@@ -35,4 +35,9 @@ export type ObservationSend = {
    */
   queued_at: string;
   sent_at?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  is_correction?: boolean;
 };

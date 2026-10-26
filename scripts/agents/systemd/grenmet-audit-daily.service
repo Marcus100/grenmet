@@ -1,0 +1,18 @@
+[Unit]
+Description=Grenmet advisory daily audit
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/.local/share/grenmet-factory/audit-runner
+ExecStart=/usr/bin/bash -lc 'exec node scripts/agents/audit-worker.mjs --mode daily --publish'
+EnvironmentFile=-%h/.config/grenmet-factory/audit-operations.conf
+TimeoutStartSec=30min
+KillMode=control-group
+TimeoutStopSec=60
+UMask=0077
+Nice=15
+CPUWeight=20
+IOWeight=20
+MemoryHigh=3G
+Restart=no

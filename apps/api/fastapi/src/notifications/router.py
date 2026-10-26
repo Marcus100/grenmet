@@ -92,8 +92,8 @@ async def mark_all_notifications_read(
     "/preferences",
     response_model=list[NotificationPreferencePublic],
     status_code=200,
-    summary="Read my email preferences",
-    description="Which notifications the signed-in person also receives by email.",
+    summary="Read my bell and email preferences",
+    description="Per notification: whether the signed-in person gets it in the bell and by email. Urgent notifications always appear in the bell.",
     responses={401: {"description": "Not signed in"}},
 )
 async def read_notification_preferences(
@@ -106,9 +106,13 @@ async def read_notification_preferences(
     "/preferences",
     response_model=list[NotificationPreferencePublic],
     status_code=200,
-    summary="Update my email preferences",
-    description="Turn email on or off per notification. In-app notifications are always kept; approval requests cannot be muted.",
-    responses={400: {"description": "Unknown or unmutable notification"}},
+    summary="Update my bell and email preferences",
+    description="Turn the bell and email on or off per notification (leave a channel out to keep it). Urgent notifications always appear in the bell; approval requests cannot be muted by email.",
+    responses={
+        400: {
+            "description": "Unknown notification, or an urgent or approval one that cannot be turned off"
+        }
+    },
 )
 async def update_notification_preferences(
     *,

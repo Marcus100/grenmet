@@ -4,17 +4,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   accept: vi.fn(),
+  list: vi.fn(),
   reject: vi.fn(),
   reopen: vi.fn(),
+  review: vi.fn(),
 }));
 
 vi.mock("@barrelsgd/api-client", () => ({
   eregisterAcceptRegisterObservation: mocks.accept,
+  eregisterListRegisterObservations: mocks.list,
   eregisterRejectRegisterObservation: mocks.reject,
   eregisterReopenRegisterObservation: mocks.reopen,
+  eregisterReviewRegisterObservation: mocks.review,
 }));
 
-import { decisionError, QcBadge, QcQueue } from "./eregister-qc";
+import { decisionError, PAGE_SIZE, QcBadge, QcQueue } from "./eregister-qc";
 
 const ME = "user-me";
 const OTHER = "user-other";
@@ -27,8 +31,11 @@ function observation(
 ): RegisterObservationRead {
   return {
     actor_id: OTHER,
+    actor_name: "Pat Observer",
+    coded: "AAXX 18124 78958 11468 10715=",
     created_at: "2026-10-18T12:01:00",
     id: THEIRS,
+    issues: [],
     kind: "SYNOP",
     observed_at: "2026-10-18T12:00:00",
     state: "draft",
@@ -40,7 +47,32 @@ function observation(
 
 const REASON_LABEL = /Reason \(required\)/;
 const NOTE_LABEL = /Note \(optional\)/;
-const OWN_HINT = /another person must accept/;
+const RECORDED_BY = /Recorded by Pat Observer/;
+const STANDARD_HOURS = /standard hours/;
+const ERROR_NOT_LISTED = /error is not listed/;
+const CHANGED_MESSAGE = /saved or decided since you opened it/;
+const OWN_HINT = /another person reviews it/;
+
+/** Answer each queue by the filter the panel sends. */
+function serve(queues: {
+  awaiting?: RegisterObservationRead[];
+  review?: RegisterObservationRead[];
+  total?: number;
+}) {
+  mocks.list.mockImplementation(
+    (options: { query: { state: string; offset?: number } }) => {
+      const awaiting = options.query.state === "draft,qc_pending";
+      const rows = awaiting ? (queues.awaiting ?? []) : (queues.review ?? []);
+      return Promise.resolve({
+        data: {
+          observations: rows,
+          total: awaiting ? rows.length : (queues.total ?? rows.length),
+        },
+        error: undefined,
+      });
+    }
+  );
+}
 
 beforeEach(() => {
   for (const mock of Object.values(mocks)) {
@@ -49,68 +81,153 @@ beforeEach(() => {
 });
 
 describe("QcBadge", () => {
-  it("labels each QC state", () => {
+  it("labels each state", () => {
     render(<QcBadge state="accepted" />);
     expect(screen.getByText("Accepted")).toBeTruthy();
   });
 });
 
 describe("decisionError", () => {
-  it("prefers the server detail", () => {
+  it("prefers the server detail, plain or with issues", () => {
     expect(decisionError({ detail: "Cannot accept" }, 409)).toBe(
       "Cannot accept"
     );
-    expect(decisionError(undefined, 403)).toContain("QC permission");
+    expect(decisionError({ detail: { message: "dew_point: bad" } }, 422)).toBe(
+      "dew_point: bad"
+    );
+    expect(decisionError(undefined, 403)).toContain("permission");
   });
 });
 
 describe("QcQueue", () => {
-  it("lists pending observations and blocks accepting your own", () => {
-    render(
-      <QcQueue
-        observations={[
-          observation({ actor_id: ME, id: MINE }),
-          observation({ id: THEIRS }),
-          observation({ id: DONE, state: "accepted" }),
-        ]}
-        onDecided={vi.fn()}
-        userId={ME}
-      />
+  it("asks the server for each queue by state, not for the latest rows", async () => {
+    serve({});
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    await waitFor(() => expect(mocks.list).toHaveBeenCalledTimes(2));
+    const queries = mocks.list.mock.calls.map((call) => call[0].query);
+    expect(queries).toContainEqual(
+      expect.objectContaining({
+        kind: "SYNOP",
+        limit: PAGE_SIZE,
+        offset: 0,
+        state: "draft,qc_pending",
+      })
     );
-    expect(screen.getByText("QC queue (2)")).toBeTruthy();
-    expect(screen.getByText(OWN_HINT)).toBeTruthy();
-    const accept = screen.getAllByRole("button", { name: "Accept" });
-    expect((accept[0] as HTMLButtonElement).disabled).toBe(true);
-    expect((accept[1] as HTMLButtonElement).disabled).toBe(false);
-    expect(screen.getByRole("button", { name: "Reopen" })).toBeTruthy();
-  });
-
-  it("says when nothing is waiting", () => {
-    render(<QcQueue observations={[]} onDecided={vi.fn()} userId={ME} />);
+    expect(queries).toContainEqual(
+      expect.objectContaining({ reviewed: false, state: "accepted" })
+    );
     expect(
-      screen.getByText("No observations are waiting for QC.")
+      await screen.findByText("No observations are waiting for acceptance.")
+    ).toBeTruthy();
+    expect(
+      screen.getByText("No accepted observations are waiting for a review.")
     ).toBeTruthy();
   });
 
-  it("accepts with an optional note and reports the updated record", async () => {
-    const updated = observation({ id: THEIRS, state: "accepted" });
+  it("shows the coded row, warnings and who recorded each item", async () => {
+    serve({
+      awaiting: [
+        observation({
+          issues: [
+            {
+              code: "non_synoptic_hour",
+              field: "time_utc",
+              message: "SYNOP is made at the standard hours",
+              severity: "warning",
+            },
+            {
+              code: "x",
+              field: "air_temp",
+              message: "an error is not listed as a warning",
+              severity: "error",
+            },
+          ],
+        }),
+      ],
+    });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    expect(
+      await screen.findByText("AAXX 18124 78958 11468 10715=")
+    ).toBeTruthy();
+    expect(screen.getByText(RECORDED_BY)).toBeTruthy();
+    expect(screen.getByText(STANDARD_HOURS)).toBeTruthy();
+    expect(screen.queryByText(ERROR_NOT_LISTED)).toBeNull();
+  });
+
+  it("lets the observer accept their own draft", async () => {
+    const updated = observation({ actor_id: ME, id: MINE, state: "accepted" });
     mocks.accept.mockResolvedValue({ data: updated, error: undefined });
+    serve({ awaiting: [observation({ actor_id: ME, id: MINE })] });
     const onDecided = vi.fn();
-    render(
-      <QcQueue
-        observations={[observation({ id: THEIRS })]}
-        onDecided={onDecided}
-        userId={ME}
-      />
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Accept" }));
+    render(<QcQueue onDecided={onDecided} userId={ME} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Accept" }));
     expect(screen.getByText(NOTE_LABEL)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Accept observation" }));
     await waitFor(() => expect(onDecided).toHaveBeenCalledWith(updated));
     expect(mocks.accept.mock.calls[0]?.[0]).toMatchObject({
       body: { reason: null },
+      path: { observation_id: MINE },
+    });
+    // The queues are read again after the decision.
+    await waitFor(() =>
+      expect(mocks.list.mock.calls.length).toBeGreaterThan(2)
+    );
+  });
+
+  it("blocks reviewing your own accepted observation and allows others", async () => {
+    serve({
+      review: [
+        observation({ actor_id: ME, id: MINE, state: "accepted" }),
+        observation({ id: THEIRS, state: "accepted" }),
+      ],
+    });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    await screen.findByText(OWN_HINT);
+    const review = screen.getAllByRole("button", { name: "Review" });
+    expect((review[0] as HTMLButtonElement).disabled).toBe(true);
+    expect((review[1] as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("records a review with an outcome and requires a note for a query", async () => {
+    mocks.review.mockResolvedValue({
+      data: observation({ review_outcome: "query", state: "accepted" }),
+      error: undefined,
+    });
+    serve({ review: [observation({ state: "accepted" })] });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Review" }));
+    const save = screen.getByRole("button", { name: "Save review" });
+    expect((save as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(screen.getByLabelText("Query"));
+    expect((save as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText(REASON_LABEL), {
+      target: { value: "Pressure looks high" },
+    });
+    fireEvent.click(save);
+    await waitFor(() => expect(mocks.review).toHaveBeenCalledTimes(1));
+    expect(mocks.review.mock.calls[0]?.[0]).toMatchObject({
+      body: {
+        note: "Pressure looks high",
+        outcome: "query",
+        updated_at: "2026-10-18T12:01:00",
+      },
       path: { observation_id: THEIRS },
     });
+  });
+
+  it("shows the conflict message when the record changed since it was opened", async () => {
+    mocks.review.mockResolvedValue({
+      data: undefined,
+      error: {
+        detail: "The observation was saved or decided since you opened it",
+      },
+      response: { status: 409 },
+    });
+    serve({ review: [observation({ state: "accepted" })] });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Review" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save review" }));
+    expect(await screen.findByText(CHANGED_MESSAGE)).toBeTruthy();
   });
 
   it("needs a reason before rejecting", async () => {
@@ -118,14 +235,9 @@ describe("QcQueue", () => {
       data: observation({ state: "rejected" }),
       error: undefined,
     });
-    render(
-      <QcQueue
-        observations={[observation({})]}
-        onDecided={vi.fn()}
-        userId={ME}
-      />
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Reject" }));
+    serve({ awaiting: [observation({})] });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Reject" }));
     const confirm = screen.getByRole("button", { name: "Reject observation" });
     expect((confirm as HTMLButtonElement).disabled).toBe(true);
     fireEvent.change(screen.getByLabelText(REASON_LABEL), {
@@ -142,40 +254,46 @@ describe("QcQueue", () => {
   it("shows the server's refusal and keeps the dialog open", async () => {
     mocks.accept.mockResolvedValue({
       data: undefined,
-      error: { detail: "A different person from the observer must accept" },
-      response: { status: 403 },
+      error: {
+        detail: {
+          issues: [],
+          message: "Observation does not pass validation: dew_point",
+        },
+      },
+      response: { status: 422 },
     });
+    serve({ awaiting: [observation({})] });
     const onDecided = vi.fn();
-    render(
-      <QcQueue
-        observations={[observation({})]}
-        onDecided={onDecided}
-        userId={ME}
-      />
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Accept" }));
+    render(<QcQueue onDecided={onDecided} userId={ME} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Accept" }));
     fireEvent.click(screen.getByRole("button", { name: "Accept observation" }));
     await waitFor(() =>
-      expect(screen.getByRole("alert").textContent).toContain(
-        "different person"
-      )
+      expect(screen.getByRole("alert").textContent).toContain("dew_point")
     );
     expect(onDecided).not.toHaveBeenCalled();
   });
 
-  it("reopens a decided observation with a reason", async () => {
+  it("pages through a long queue from the server", async () => {
+    serve({ review: [observation({ state: "accepted" })], total: 25 });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    await screen.findByText("Page 1 of 3");
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() =>
+      expect(
+        mocks.list.mock.calls.some((call) => call[0].query.offset === PAGE_SIZE)
+      ).toBe(true)
+    );
+    await screen.findByText("Page 2 of 3");
+  });
+
+  it("reopens an accepted observation with a reason", async () => {
     mocks.reopen.mockResolvedValue({
       data: observation({ id: DONE, state: "qc_pending" }),
       error: undefined,
     });
-    render(
-      <QcQueue
-        observations={[observation({ id: DONE, state: "accepted" })]}
-        onDecided={vi.fn()}
-        userId={ME}
-      />
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Reopen" }));
+    serve({ review: [observation({ id: DONE, state: "accepted" })] });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Reopen" }));
     fireEvent.change(screen.getByLabelText(REASON_LABEL), {
       target: { value: "Observer corrected it" },
     });

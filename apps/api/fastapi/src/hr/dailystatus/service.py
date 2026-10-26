@@ -15,7 +15,7 @@ from src.hr.constants import (
 )
 from src.hr.dependencies import get_status_report_or_404
 from src.hr.exceptions import HRPermissionDeniedError, HRValidationError
-from src.hr.models import EmploymentRecord, RequestStatus
+from src.hr.models import EDITABLE_STATUSES, EmploymentRecord, RequestStatus
 from src.hr.organisations import department_for, permitted_departments
 from src.hr.roster import service as roster_service
 from src.hr.roster.models import (
@@ -132,7 +132,7 @@ async def submit_status_report(
     report = await get_status_report_or_404(session=session, report_id=status_report_id)
     if report.submitted_by_user_id != current_user.id:
         raise HRPermissionDeniedError(ERROR_STATUS_REPORT_ACTION_NOT_ALLOWED)
-    if report.status != RequestStatus.DRAFT:
+    if report.status not in EDITABLE_STATUSES:
         raise HRValidationError(ERROR_STATUS_REPORT_NOT_DRAFT)
 
     stored_entries = list(
@@ -202,7 +202,7 @@ async def update_status_report(
     report = await get_status_report_or_404(session=session, report_id=report_id)
     if report.submitted_by_user_id != current_user.id:
         raise HRPermissionDeniedError(ERROR_STATUS_REPORT_ACTION_NOT_ALLOWED)
-    if report.status != RequestStatus.DRAFT:
+    if report.status not in EDITABLE_STATUSES:
         raise HRValidationError(ERROR_STATUS_REPORT_NOT_DRAFT)
 
     if report.department_id != payload.department_id:

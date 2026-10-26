@@ -58,6 +58,14 @@ FactKey = Literal[
     "swell_period",
     "visibility",
 ]
+GuidanceFeatureType = Literal[
+    "disturbance",
+    "tropical_wave",
+    "low_pressure_area",
+    "low_pressure_centre",
+    "tropical_cyclone",
+    "other",
+]
 
 
 class GuidanceGridSample(BaseModel):
@@ -97,6 +105,9 @@ class GuidanceFact(BaseModel):
     reference_time: UtcDateTime | None = None
     valid_from: UtcDateTime | None = None
     valid_to: UtcDateTime | None = None
+    # The forecaster changed a pre-filled value; source_value keeps the NHC original.
+    edited: bool = False
+    source_value: Annotated[float, Field(allow_inf_nan=False)] | None = None
 
     @model_validator(mode="after")
     def check_quantity(self) -> Self:
@@ -151,14 +162,9 @@ class GuidanceSystem(BaseModel):
     id: UUID
     source_feature_key: str | None = None
     name: Annotated[str, Field(max_length=300)]
-    feature_type: Literal[
-        "disturbance",
-        "tropical_wave",
-        "low_pressure_area",
-        "low_pressure_centre",
-        "tropical_cyclone",
-        "other",
-    ]
+    feature_type: GuidanceFeatureType
+    # The GMS tracked system (wxproducts tropical_systems) this entry belongs to.
+    tracked_system_id: UUID | None = None
     parent_system_id: UUID | None = None
     suggested_parent_system_id: UUID | None = None
     relationship_confirmed: bool = False

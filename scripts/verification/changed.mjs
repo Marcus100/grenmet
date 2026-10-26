@@ -265,6 +265,15 @@ function parseArgs(argv) {
   return options;
 }
 
+/** "1m 05s" or "42s": how long one check took, printed in the summary. */
+export function formatSeconds(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return minutes > 0
+    ? `${minutes}m ${String(rest).padStart(2, "0")}s`
+    : `${rest}s`;
+}
+
 function main() {
   const options = parseArgs(process.argv.slice(2));
   const mergeBase = git(["merge-base", options.base, "HEAD"]);
@@ -307,17 +316,22 @@ function main() {
       `\n▶ ${check.name}: ${check.cwd ? `(${check.cwd}) ` : ""}${line}`
     );
     if (options.dryRun) continue;
+    const started = Date.now();
     const result = spawnSync(check.command, check.args, {
       cwd: join(root, check.cwd ?? ""),
       stdio: "inherit",
       env: { ...process.env, TURBO_SCM_BASE: options.base },
     });
-    results.push({ name: check.name, ok: result.status === 0 });
+    results.push({
+      name: check.name,
+      ok: result.status === 0,
+      seconds: Math.round((Date.now() - started) / 1000),
+    });
   }
   if (options.dryRun) return;
   console.log("\nverify:changed summary");
-  for (const { name, ok } of results)
-    console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
+  for (const { name, ok, seconds } of results)
+    console.log(`${ok ? "PASS" : "FAIL"} ${name} (${formatSeconds(seconds)})`);
   if (results.some((r) => !r.ok)) {
     process.exitCode = 1;
     return;

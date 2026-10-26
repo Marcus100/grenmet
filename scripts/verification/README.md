@@ -83,7 +83,7 @@ When intentionally using a dedicated test service from the devcontainer, these
 scripts can connect to the host-published port. Never supply application-service
 credentials. Backend database creation/teardown requires an administrative role
 on the disposable instance; ordinary application roles should remain restricted.
-Backend uses two workers by default; set `TEST_WORKERS` to measured capacity.
+Backend uses one worker per CPU in CI (4 on GitHub's standard runners) and two fewer than the CPUs elsewhere (at least one); set `TEST_WORKERS` to override.
 CI passes `-m 'not fuzz' --shard i/3` (three jobs) or `-m fuzz` (one job) after the
 script name and sets `COVERAGE_DATA_ONLY=1` so each job writes only a coverage data
 file for the combining job to merge (see `docs/testing.md`, CI test sharding).

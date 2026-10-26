@@ -3,7 +3,9 @@
 httpx.MockTransport stands in for webhook endpoints so no real HTTP is made.
 """
 
+import asyncio
 import uuid
+from datetime import timedelta
 
 import httpx
 import pytest
@@ -29,7 +31,8 @@ from src.cap.models import (
 from src.cap.tasks import enqueue_publish_side_effects
 from src.config import settings
 from src.storage.service import storage_service
-from src.worker.dispatch import process_due_jobs
+from src.utils.datetime import utc_now
+from src.worker.dispatch import exhausted_jobs, process_due_jobs
 
 
 def _client(handler) -> httpx.AsyncClient:
@@ -116,7 +119,7 @@ async def test_stub_kind_marked_skipped(db_async: AsyncSession) -> None:
         await process_due_jobs(session=db_async, http_client=client)
 
     await db_async.refresh(job)
-    assert job.status == CapJobStatus.SUCCEEDED
+    assert job.status == CapJobStatus.SKIPPED
     assert job.result is not None and job.result.get("skipped") is True
 
 
@@ -355,7 +358,204 @@ async def test_publish_batch_runs_every_side_effect_for_an_alert(
     for job in jobs:
         await db_async.refresh(job)
         outcomes[job.kind] = (job.status, job.result)
-    assert all(status == CapJobStatus.SUCCEEDED for status, _ in outcomes.values()), (
-        outcomes
-    )
+    # Channels that deliberately did nothing are SKIPPED, everything else SUCCEEDED.
+    for status, result in outcomes.values():
+        skipped = bool(result and result.get("skipped"))
+        assert status == (
+            CapJobStatus.SKIPPED if skipped else CapJobStatus.SUCCEEDED
+        ), outcomes
     assert len(stored) == 5
+
+
+async def test_two_concurrent_runs_deliver_a_slow_job_once(
+    db_async: AsyncSession,
+) -> None:
+    from src.database import async_session_factory
+
+    received: list[httpx.Request] = []
+
+    async def slow(request: httpx.Request) -> httpx.Response:
+        received.append(request)
+        await asyncio.sleep(0.5)
+        return httpx.Response(200)
+
+    await _add_webhook(db_async, "https://example.test/hook")
+    job = await _add_job(db_async, "publish.webhooks")
+
+    async def run() -> int:
+        async with async_session_factory() as session:
+            async with _client(slow) as client:
+                return await process_due_jobs(session=session, http_client=client)
+
+    first = asyncio.create_task(run())
+    await asyncio.sleep(0.2)  # the first run is now inside the slow send
+    second = await run()
+    await first
+
+    assert second == 0
+    assert len(received) == 1
+    await db_async.refresh(job)
+    assert job.status == CapJobStatus.SUCCEEDED
+    assert job.attempts == 1
+
+
+async def test_retry_after_unexpected_error_skips_recipients_already_sent(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from src.worker import dispatch
+
+    calls: list[str] = []
+
+    async def flaky(**_kw: object) -> dict[str, object]:
+        calls.append("run")
+        if len(calls) == 1:
+            raise RuntimeError("boom")
+        return {"delivered": ["a", "b"], "count": 2}
+
+    monkeypatch.setitem(dispatch.KIND_HANDLERS, "publish.webhooks", flaky)
+    job = await _add_job(db_async, "publish.webhooks")
+    job.result = {"delivered": ["a"]}
+    await db_async.commit()
+
+    async with _client(lambda _r: httpx.Response(200)) as client:
+        await process_due_jobs(session=db_async, http_client=client)
+    await db_async.refresh(job)
+    assert job.status == CapJobStatus.FAILED
+    assert job.result is not None and job.result["delivered"] == ["a"]
+
+
+async def test_running_job_is_not_picked_up_but_a_stale_one_is(
+    db_async: AsyncSession,
+) -> None:
+    from datetime import timedelta
+
+    from src.utils.datetime import utc_now
+
+    job = await _add_job(db_async, "publish.bogus")
+    job.status = CapJobStatus.RUNNING
+    job.attempts = 1
+    await db_async.commit()
+    async with _client(lambda _r: httpx.Response(200)) as client:
+        assert await process_due_jobs(session=db_async, http_client=client) == 0
+        job.updated_at = utc_now() - timedelta(hours=1)
+        await db_async.commit()
+        assert await process_due_jobs(session=db_async, http_client=client) == 1
+
+
+async def test_exhausted_jobs_are_counted_and_logged(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from unittest.mock import MagicMock
+
+    from src.worker import main as worker_main
+
+    job = await _add_job(db_async, "publish.email")
+    job.status = CapJobStatus.FAILED
+    job.attempts = 5
+    other = await _add_job(db_async, "publish.push")
+    other.status = CapJobStatus.FAILED
+    other.attempts = 2
+    await db_async.commit()
+    log = MagicMock()
+    monkeypatch.setattr(worker_main, "logger", log)
+
+    total = await worker_main.check_cap_job_failures({})
+
+    assert total == 1
+    log.error.assert_called_once()
+    assert log.error.call_args.kwargs["extra"] == {
+        "count": 1,
+        "kinds": ["publish.email"],
+    }
+
+
+async def test_exhausted_job_emails_gms_once_with_no_personal_data(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from src.notifications.models import OutboundEmail
+    from src.worker import main as worker_main
+    from src.worker.config import worker_settings
+
+    monkeypatch.setattr(
+        worker_settings, "CAP_DELIVERY_FAILURE_RECIPIENTS", "duty@gms.example.test"
+    )
+    job = await _add_job(db_async, "publish.email")
+    job.status = CapJobStatus.FAILED
+    job.attempts = 5
+    job.result = {"error": "smtp said ada@example.com", "error_class": "OSError"}
+    await db_async.commit()
+
+    assert await worker_main.check_cap_job_failures({}) == 1
+    assert await worker_main.check_cap_job_failures({}) == 1  # re-run: no resend
+
+    rows = list(
+        (
+            await db_async.scalars(
+                select(OutboundEmail).where(
+                    OutboundEmail.dedupe_key.like(f"cap-job-failed:{job.id}:%")
+                )
+            )
+        ).all()
+    )
+    assert len(rows) == 1
+    mail = rows[0]
+    assert mail.to_email == "duty@gms.example.test"
+    body = str(mail.props["body"])
+    assert "Delivery channel: email" in body
+    assert "Attempts: 5" in body
+    assert "Last error: OSError" in body
+    assert "ada@example.com" not in body
+
+
+async def test_no_failure_email_when_no_recipients_are_configured(
+    db_async: AsyncSession,
+) -> None:
+    from src.notifications.models import OutboundEmail
+    from src.worker import main as worker_main
+
+    job = await _add_job(db_async, "publish.email")
+    job.status = CapJobStatus.FAILED
+    job.attempts = 5
+    await db_async.commit()
+
+    assert await worker_main.check_cap_job_failures({}) == 1
+    count = await db_async.scalars(
+        select(OutboundEmail).where(OutboundEmail.dedupe_key.like("cap-job-failed:%"))
+    )
+    assert list(count.all()) == []
+
+
+async def test_job_abandoned_on_the_final_attempt_is_failed_and_reported(
+    db_async: AsyncSession,
+) -> None:
+    """A worker that dies on the last attempt must not strand the job in RUNNING."""
+    abandoned = await _add_job(db_async, "publish.webhooks")
+    live = await _add_job(db_async, "publish.webhooks")
+    abandoned.status = CapJobStatus.RUNNING
+    abandoned.attempts = 5
+    abandoned.updated_at = utc_now() - timedelta(minutes=30)
+    abandoned.result = {"delivered": ["hook-b", "hook-a"]}
+    live.status = CapJobStatus.RUNNING
+    live.attempts = 5
+    live.updated_at = utc_now() - timedelta(minutes=1)
+    db_async.add_all([abandoned, live])
+    await db_async.commit()
+
+    async with _client(lambda _request: httpx.Response(200)) as client:
+        handled = await process_due_jobs(
+            session=db_async, http_client=client, max_attempts=5
+        )
+
+    assert handled == 0
+    await db_async.refresh(abandoned)
+    await db_async.refresh(live)
+    assert abandoned.status == CapJobStatus.FAILED
+    assert abandoned.attempts == 5
+    assert abandoned.result is not None
+    assert abandoned.result["error_class"] == "WorkerStopped"
+    assert abandoned.result["delivered"] == ["hook-a", "hook-b"]
+    assert live.status == CapJobStatus.RUNNING
+    reported = await exhausted_jobs(
+        session=db_async, max_attempts=5, window=timedelta(hours=1)
+    )
+    assert [job.id for job in reported] == [abandoned.id]

@@ -18,6 +18,10 @@ import {
 } from "@/lib/hero-readings";
 
 const CLOCK = /^\d{2}:\d{2}$/;
+// en-GB abbreviates September as "Sept" on current ICU; match either.
+const LAST_OBSERVED_OTHER_DAY = /^Last observed 29 Sept?, 13:00 · MBIA$/;
+const LAST_OBSERVED_LABEL = /Last observed:/;
+const STALE_LINE = /This reading is more than 90 minutes old/;
 const SAMPLE_REFERENCE = /hero-samples|SAMPLE_/;
 const FEELS_LIKE = /^Feels like \d+°$/;
 const CHANCE_OF_RAIN = /chance of rain/;
@@ -149,6 +153,28 @@ describe("Now", () => {
     render(<SkyHero now={at("2026-09-29T21:00:00Z")} weather={weather()} />);
     expect(
       screen.getAllByText("Last observed 13:00 · MBIA").length
+    ).toBeGreaterThan(0);
+  });
+
+  it("puts the date on the top line when the reading is from another day", () => {
+    render(<SkyHero now={at("2026-09-30T14:00:00Z")} weather={weather()} />);
+    // en-GB abbreviates September as "Sept" on current ICU; match either.
+    expect(screen.getAllByText(LAST_OBSERVED_OTHER_DAY).length).toBeGreaterThan(
+      0
+    );
+  });
+
+  it("says Last observed once in the stale hero, not again in the source block", () => {
+    render(<SkyHero now={at("2026-09-29T21:00:00Z")} weather={weather()} />);
+    expect(screen.queryByText(LAST_OBSERVED_LABEL)).not.toBeInTheDocument();
+    expect(screen.getAllByText(STALE_LINE).length).toBeGreaterThan(0);
+  });
+
+  it("draws a dash for a reading not yet available, announced in words", () => {
+    render(<SkyHero now={at("2026-09-29T17:05:00Z")} weather={weather()} />);
+    expect(within(nowPanel()).getAllByText("—").length).toBeGreaterThan(0);
+    expect(
+      within(nowPanel()).getAllByText(NOT_AVAILABLE).length
     ).toBeGreaterThan(0);
   });
 
@@ -325,6 +351,20 @@ describe("hero readings", () => {
     expect(byLabel.Sunrise?.value).toMatch(CLOCK);
     expect(byLabel.Sunset?.value).toMatch(CLOCK);
     expect(byLabel.Sunrise?.unavailable).toBeUndefined();
+  });
+
+  it("shows a Low, Medium or High chance of rain as issued", () => {
+    const day = issued({
+      conditions: [
+        { label: "Chance of rain", value: "Medium" },
+        { label: "Wind speed", value: "12–25 mph" },
+        { label: "Wave height", value: "5–7 ft" },
+      ],
+    });
+    expect(rainChance(day)).toBe("Medium");
+    const rain = dayReadings(day).find((r) => r.label === "Chance of rain");
+    expect(rain?.value).toBe("Medium");
+    expect(rainChance(issued())).toBe("20%");
   });
 
   it("never invents a forecast for an outage", () => {

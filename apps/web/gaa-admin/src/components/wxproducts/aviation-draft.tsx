@@ -13,6 +13,7 @@ import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Input } from "@barrelsgd/ui/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@barrelsgd/ui/components/ui/tabs";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useState } from "react";
 import { SectionCard } from "@/components/wxproducts/eregister-ui";
@@ -298,18 +299,26 @@ export function AviationDraft() {
               Enter the coded message and UTC times. Saving records a working
               draft; it does not issue or transmit the message.
             </p>
-            <div className="flex flex-wrap gap-2 border-b pb-5">
-              {(["METAR", "SPECI", "TAF"] as const).map((type) => (
-                <Button
-                  key={type}
-                  onClick={() => newDraft(type)}
-                  type="button"
-                  variant={kind === type ? "default" : "outline"}
-                >
-                  {type}
-                </Button>
-              ))}
-            </div>
+            <Tabs
+              className="border-b pb-5"
+              onValueChange={(value) => newDraft(value as AviationKind)}
+              value={kind}
+            >
+              <TabsList aria-label="Message type">
+                {(["METAR", "SPECI", "TAF"] as const).map((type) => (
+                  <TabsTrigger
+                    key={type}
+                    onClick={() => {
+                      // Re-selecting the open type starts a fresh draft, as the buttons did.
+                      if (type === kind) newDraft(type);
+                    }}
+                    value={type}
+                  >
+                    {type}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
             <div className="flex flex-wrap items-end gap-3">
               <Field className="max-w-40">
                 <FieldLabel htmlFor="aviation-station">ICAO station</FieldLabel>

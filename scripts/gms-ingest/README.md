@@ -103,6 +103,16 @@ status, and artifact references. Unknown issue times stay null. Qualified outloo
 probabilities preserve their exact wording; “near 0” does not become exact zero.
 TWDAT sections and marine zone bodies remain verbatim alongside the full text.
 
+The `structured.systems` list also covers the graphical outlook map
+(`gtwo_atl.kmz`) and `CurrentStorms.json`. Map placemarks are grouped by their
+`Disturbance` number (the same number as the outlook text); each gives the
+48-hour and 7-day chances from `2day_percentage`/`2day_category` and
+`7day_percentage`/`7day_category`, the point as the current position and the
+polygon's extent as the 7-day formation area. Each active Atlantic cyclone gives
+position, movement (degrees and a compass word; speed converted from miles per
+hour to knots), minimum pressure and maximum winds. Results already decoded are
+reused, so older archived files keep their earlier `structured` output.
+
 Maps become WGS84 GeoJSON; raster overlays and embedded images retain asset links.
 Grid values retain original units and hazard codes. `point` returns each forecast
 record's nearest valid native cell, its coordinates/distance, source cycle, units,

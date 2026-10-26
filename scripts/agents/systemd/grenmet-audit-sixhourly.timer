@@ -1,0 +1,11 @@
+[Unit]
+Description=Grenmet advisory sixhourly audit schedule
+
+[Timer]
+OnCalendar=*-*-* 00,06,12,18:30:00 UTC
+Persistent=true
+RandomizedDelaySec=60
+Unit=grenmet-audit-sixhourly.service
+
+[Install]
+WantedBy=timers.target

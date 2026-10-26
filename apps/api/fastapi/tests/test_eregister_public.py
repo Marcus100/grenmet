@@ -15,8 +15,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from alembic import command
-from src.eregister import public
+from src.eregister import public, rules
 from src.eregister.dependencies import get_public_session
+from src.eregister.schemas import SynopWorkbook
 from src.main import app
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -88,6 +89,22 @@ def test_decode_workbook_into_public_units():
 )
 def test_decode_edge_codes(body, field, expected):
     assert getattr(public.decode(row(**body)), field) == expected
+
+
+def test_decode_relative_humidity_in_group_2_gives_dew_point_and_humidity():
+    # 2 9UUU: sign 9 means the group carries relative humidity, as in rules.py.
+    result = public.decode(row(air_temp="0280", dew_point="9080"))
+    assert result.relative_humidity == 80
+    decoded = rules.validate_synop(
+        SynopWorkbook.model_validate({"air_temp": "0280", "dew_point": "9080"})
+    )[1]
+    assert decoded.dew_point_k is not None
+    assert result.dew_point_c == round(decoded.dew_point_k - 273.15, 1)
+    assert 24.0 <= result.dew_point_c <= 25.0
+    # Out of range humidity and a missing air temperature leave the dew point out.
+    assert public.decode(row(air_temp="0280", dew_point="9101")).dew_point_c is None
+    assert public.decode(row(air_temp="", dew_point="9080")).dew_point_c is None
+    assert public.decode(row(air_temp="", dew_point="9080")).relative_humidity == 80
 
 
 def test_decode_nested_workbook_and_accepted_state():

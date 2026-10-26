@@ -64,6 +64,22 @@ def test_drafts_can_be_incomplete_but_not_invalid() -> None:
         )
 
 
+@pytest.mark.parametrize("kind", ["morning", "midday"])
+def test_day_forecasts_need_todays_maximum(kind: ProductKind) -> None:
+    # The GMS sheet prints "Today's Max | Tonight's Min" for both issues.
+    values = complete(kind)
+    values.pop("maxTemperature")
+    assert "Weather: Maximum temperature (°C) is required" in validation.validate(
+        body(kind, values=values), now=NOW
+    )
+
+
+def test_evening_tonight_needs_no_maximum() -> None:
+    values = complete("evening")
+    values.pop("maxTemperature", None)
+    assert validation.validate(body("evening", values=values), now=NOW) == []
+
+
 @pytest.mark.parametrize("day", range(1, 5))
 @pytest.mark.parametrize("action", ["draft", "publish"])
 def test_evening_temperature_order_is_checked_for_every_period(day, action) -> None:
@@ -184,3 +200,43 @@ def test_outlook_draft_shape_is_strict(values: dict[str, str]) -> None:
             )
             == {}
         )
+
+
+ALERT_KINDS = [
+    kind
+    for kind in get_args(ProductKind)
+    if "level" in {f.key for f in validation.FIELDS[kind]}
+]
+
+
+@pytest.mark.parametrize("kind", ALERT_KINDS)
+@pytest.mark.parametrize("level", ["Yellow", "Amber", "Orange", "Red"])
+@pytest.mark.parametrize("action", ["draft", "publish"])
+def test_alerts_refuse_levels_above_green_on_write(kind, level, action) -> None:
+    payload = body(kind, action=action)
+    payload.values["level"] = level
+    errors = validation.validate(payload, now=NOW)
+    assert any("green only" in error for error in errors)
+
+
+@pytest.mark.parametrize("kind", ALERT_KINDS)
+def test_alerts_offer_green_and_only_information_advisory_all_clear(kind) -> None:
+    rules = {f.key: f for f in validation.FIELDS[kind]}
+    assert rules["level"].options == ["Green"]
+    assert rules["notice"].options == ["Information", "Advisory", "All clear"]
+    for notice in ("Watch", "Warning"):
+        payload = body(kind, action="draft")
+        payload.values["notice"] = notice
+        errors = validation.validate(payload, now=NOW)
+        assert any("green only" in error for error in errors)
+
+
+def test_old_alert_can_still_be_withdrawn() -> None:
+    # Saved revisions are never re-validated: withdrawing checks only the reason.
+    payload = body(
+        "marine",
+        action="withdraw",
+        values={"level": "Red", "notice": "Warning"},
+        changeSummary="Raised to a CAP warning",
+    )
+    assert validation.validate(payload, now=NOW) == []

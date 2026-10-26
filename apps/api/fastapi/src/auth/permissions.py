@@ -198,12 +198,16 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cms.article.manage", "Manage CMS editorial settings"),
     # eRegister
     PermissionDef(
+        "eregister.observe",
+        "Record, approve and correct register observations and read the register; approving sends the observation to WIS2 and email (the observer)",
+    ),
+    PermissionDef(
         "eregister.send",
-        "Email a register observation and queue it for WIS2 publication",
+        "Email a register observation or queue it for WIS2 by hand (approval sends it automatically)",
     ),
     PermissionDef(
         "eregister.qc",
-        "Accept, reject or reopen a register observation (QC; a different person from the observer)",
+        "Accept, reject or reopen a register observation and change station settings (QC; reviewing another observer's record is optional)",
     ),
     # CAP — alert lifecycle
     PermissionDef("cap.alert.create", "Create CAP alerts"),
@@ -584,6 +588,10 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "events.ops.settlement",
             "events.ops.listings",
         ),
+    ),
+    "eregister-observer": (
+        "eRegister observer: records the hourly observations",
+        ("eregister.observe",),
     ),
     "eregister-sender": (
         "eRegister: email observations and queue them for WIS2",

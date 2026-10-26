@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/layout/page-header";
 
 export function CapAdminUnavailable() {
   return (
@@ -26,7 +27,7 @@ export function CapAdminHeading({
       <Link className="underline" href="/cap">
         Back to CAP
       </Link>
-      <h1 className="font-semibold text-2xl">{title}</h1>
+      <PageHeader title={title} />
       {children}
     </section>
   );

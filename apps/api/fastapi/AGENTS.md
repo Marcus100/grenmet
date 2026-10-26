@@ -289,7 +289,7 @@ async def test_create_leave_request(
   parallelises automatically (CPUs minus two, two under high load; override with
   `PYTEST_WORKERS`). If higher worker counts against the shared local Postgres cause
   fixture `TimeoutError`s that are not real failures, lower `PYTEST_WORKERS` (CI uses
-  `-n 2` per shard). `pytest --shard i/n` runs one of CI's file-aligned slices.
+  one worker per CPU, 4 on GitHub's runners, per shard). `pytest --shard i/n` runs one of CI's file-aligned slices.
 
   The passwords above are local-development placeholders; use the local stack's
   actual values when they differ, and never commit real credentials. The main
