@@ -46,6 +46,7 @@ import {
   PrefillInput,
   SourceHint,
 } from "@/components/hr/prefill-field";
+import { editingHint, isEditableStatus } from "@/components/hr/request-status";
 import {
   signedDocumentsKey,
   useSigning,
@@ -375,12 +376,8 @@ export function LeaveApplicationEditor() {
         { keepDefaultValues: true }
       );
       setDraftId(draftParam);
-      setSubmission(draft.status === "DRAFT" ? null : draft);
-      setStatusHint(
-        draft.status === "DRAFT"
-          ? "Editing saved draft"
-          : "Submitted copy — Reset to start a new form"
-      );
+      setSubmission(isEditableStatus(draft.status) ? null : draft);
+      setStatusHint(editingHint(draft));
       loadedDraftRef.current = draftParam;
     }
   }, [
@@ -455,7 +452,10 @@ export function LeaveApplicationEditor() {
         ),
         previewPath: "/api/v1/hr/leave-requests/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: hrFormFilename("leave_request", true),
+        filename: hrFormFilename(
+          "leave_request",
+          Boolean(submission?.signed_document_id)
+        ),
       });
     } catch (error) {
       reportError(error, "hr-leave-pdf-download");
@@ -916,7 +916,10 @@ export function LeaveApplicationEditor() {
           label="Leave Application"
           preview={
             <HrPdfPreview
-              filename={hrFormFilename("leave_request")}
+              filename={hrFormFilename(
+                "leave_request",
+                Boolean(submission?.signed_document_id)
+              )}
               payload={buildLeaveRequestPayload(values, departmentId ?? "")}
               previewPath="/api/v1/hr/leave-requests/preview-pdf"
               ready={Boolean(

@@ -39,6 +39,7 @@ import {
   EmployeeNumberField,
   PrefillInput,
 } from "@/components/hr/prefill-field";
+import { editingHint, isEditableStatus } from "@/components/hr/request-status";
 import {
   signedDocumentsKey,
   useSigning,
@@ -130,12 +131,8 @@ export function ShiftExchangeEditor() {
         { keepDefaultValues: true }
       );
       setDraftId(draftParam);
-      setSubmission(draft.status === "DRAFT" ? null : draft);
-      setStatusHint(
-        draft.status === "DRAFT"
-          ? "Editing saved draft"
-          : "Submitted copy — Reset to start a new form"
-      );
+      setSubmission(isEditableStatus(draft.status) ? null : draft);
+      setStatusHint(editingHint(draft));
       loadedDraftRef.current = draftParam;
     }
   }, [
@@ -195,7 +192,10 @@ export function ShiftExchangeEditor() {
         payload: buildPayload(form.state.values, departmentId ?? ""),
         previewPath: "/api/v1/hr/shift-swaps/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: hrFormFilename("shift_swap", true),
+        filename: hrFormFilename(
+          "shift_swap",
+          Boolean(submission?.signed_document_id)
+        ),
       });
     } catch (error) {
       reportError(error, "hr-exchange-pdf");
@@ -578,7 +578,10 @@ export function ShiftExchangeEditor() {
                 selected={values.sourceShiftCode}
               />
               <HrPdfPreview
-                filename={hrFormFilename("shift_swap")}
+                filename={hrFormFilename(
+                  "shift_swap",
+                  Boolean(submission?.signed_document_id)
+                )}
                 payload={buildPayload(values, departmentId ?? "")}
                 previewPath="/api/v1/hr/shift-swaps/preview-pdf"
                 ready={Boolean(

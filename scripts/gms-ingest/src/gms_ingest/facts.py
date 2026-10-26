@@ -1,5 +1,6 @@
 """Conservative, source-preserving extraction; unsupported prose stays prose."""
 
+import math
 import re
 
 FAMILIES = {"tropical_development", "active_cyclones", "marine", "aviation_recon"}
@@ -21,8 +22,221 @@ def family(record):
     return "tropical_development"
 
 
-def extract(decoded):
+def _number(value):
+    try:
+        number = float(str(value).strip())
+    except TypeError, ValueError:
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _property(properties, name):
+    for key, value in properties.items():
+        if key and key.lower() == name.lower():
+            return value
+    return None
+
+
+def _chance(text, category, horizon):
+    """One map chance such as '10%' or 'near 0%'; unrecognised wording is skipped."""
+    match = re.fullmatch(r"\s*(near\s+)?(\d{1,3})\s*%?\s*", text or "", re.I)
+    if not match or not 0 <= int(match[2]) <= 100:
+        return None
+    return {
+        "key": "formation_probability",
+        "record_type": "forecast",
+        "value": None if match[1] else int(match[2]),
+        "unit": "percent",
+        "horizon_hours": horizon,
+        "description": (category or "").strip().lower(),
+        "qualifier": "near" if match[1] else None,
+        "source_text": f"{text.strip()} ({(category or '').strip()})",
+    }
+
+
+def _points(geometry):
+    if geometry["type"] == "Point":
+        return [geometry["coordinates"]]
+    if geometry["type"] == "LineString":
+        return geometry["coordinates"]
+    if geometry["type"] == "Polygon":
+        return [point for ring in geometry["coordinates"] for point in ring]
+    if geometry["type"] == "GeometryCollection":
+        return [point for child in geometry["geometries"] for point in _points(child)]
+    return []
+
+
+def outlook_map_systems(features):
+    """Graphical outlook placemarks grouped by their NHC disturbance number.
+
+    Each disturbance has a point (current position) and a polygon (the area
+    where formation may occur within 7 days); both repeat the same chances.
+    """
+    grouped = {}
+    for feature in features:
+        properties = feature.get("properties") or {}
+        number = _property(properties, "Disturbance")
+        if number is None or not str(number).strip():
+            continue
+        grouped.setdefault(str(number).strip(), []).append(feature)
     systems = []
+    for number, members in grouped.items():
+        properties = members[0]["properties"]
+        discussion = (_property(properties, "Discussion") or "").strip()
+        heading = re.match(r"\s*\d+\.\s*([^:\n]+):", discussion)
+        facts = [
+            fact
+            for fact in (
+                _chance(
+                    _property(properties, f"{days}day_percentage"),
+                    _property(properties, f"{days}day_category"),
+                    hours,
+                )
+                for days, hours in (("2", 48), ("7", 168))
+            )
+            if fact
+        ]
+        for feature in members:
+            geometry = feature["geometry"]
+            if geometry["type"] == "Point":
+                longitude, latitude = geometry["coordinates"][:2]
+                for key, value, unit in (
+                    ("latitude", latitude, "degrees_north"),
+                    ("longitude", longitude, "degrees_east"),
+                ):
+                    facts.append(
+                        {
+                            "key": key,
+                            "record_type": "analysis",
+                            "value": float(value),
+                            "unit": unit,
+                            "qualifier": "near",
+                            "source_text": f"Outlook map position of disturbance {number}",
+                        }
+                    )
+            elif geometry["type"] in {"Polygon", "GeometryCollection"}:
+                points = _points(geometry)
+                if not points:
+                    continue
+                longitudes = [point[0] for point in points]
+                latitudes = [point[1] for point in points]
+                for key, value, unit in (
+                    ("latitude_min", min(latitudes), "degrees_north"),
+                    ("latitude_max", max(latitudes), "degrees_north"),
+                    ("longitude_west", min(longitudes), "degrees_east"),
+                    ("longitude_east", max(longitudes), "degrees_east"),
+                ):
+                    facts.append(
+                        {
+                            "key": key,
+                            "record_type": "forecast",
+                            "value": round(value, 2),
+                            "unit": unit,
+                            "horizon_hours": 168,
+                            "source_text": f"Outlook map 7-day formation area of disturbance {number}",
+                        }
+                    )
+        systems.append(
+            {
+                "source_feature_key": number,
+                "name": heading[1].strip() if heading else f"Disturbance {number}",
+                "feature_type": "disturbance",
+                "narrative": " ".join(discussion.split()),
+                "facts": facts,
+            }
+        )
+    return systems
+
+
+CLASSIFICATIONS = {
+    "TD": ("Tropical Depression", "tropical_cyclone"),
+    "TS": ("Tropical Storm", "tropical_cyclone"),
+    "HU": ("Hurricane", "tropical_cyclone"),
+    "STD": ("Subtropical Depression", "tropical_cyclone"),
+    "STS": ("Subtropical Storm", "tropical_cyclone"),
+    "PTC": ("Potential Tropical Cyclone", "disturbance"),
+    "PC": ("Post-Tropical Cyclone", "other"),
+}
+MPH_TO_KT = 0.868976
+COMPASS = (
+    "north north-northeast northeast east-northeast east east-southeast southeast "
+    "south-southeast south south-southwest southwest west-southwest west "
+    "west-northwest northwest north-northwest"
+).split()
+
+
+def storm_systems(storms):
+    """Active cyclones from CurrentStorms.json (already filtered to the Atlantic).
+
+    NHC documents intensity in knots, pressure in millibars, movement direction
+    in degrees and movement speed in miles per hour (converted to knots here).
+    """
+    systems = []
+    for storm in storms:
+        code = str(storm.get("classification") or "").upper()
+        label, feature_type = CLASSIFICATIONS.get(code, (code or "Cyclone", "other"))
+        name = str(storm.get("name") or storm["id"].upper())
+        # (key, value, unit, description, source wording) for each decoded number.
+        entries = []
+        latitude = _number(storm.get("latitudeNumeric"))
+        longitude = _number(storm.get("longitudeNumeric"))
+        if latitude is not None and longitude is not None:
+            source = (
+                f"{storm.get('latitude', latitude)} {storm.get('longitude', longitude)}"
+            )
+            entries.append(("latitude", latitude, "degrees_north", "", source))
+            entries.append(("longitude", longitude, "degrees_east", "", source))
+        direction = _number(storm.get("movementDir"))
+        if direction is not None and 0 <= direction <= 360:
+            compass = COMPASS[round(direction / 22.5) % 16]
+            source = f"movementDir {storm.get('movementDir')}"
+            entries.append(
+                ("movement_direction", direction, "degrees", compass, source)
+            )
+        speed = _number(storm.get("movementSpeed"))
+        if speed is not None and speed >= 0:
+            # Knots, like the forecast advisory, so every movement speed shares a unit.
+            source = f"movementSpeed {storm.get('movementSpeed')} mph"
+            entries.append(
+                ("movement_speed", round(speed * MPH_TO_KT, 1), "kt", "", source)
+            )
+        pressure = _number(storm.get("pressure"))
+        if pressure is not None:
+            source = f"pressure {storm.get('pressure')}"
+            entries.append(("pressure", pressure, "hPa", "", source))
+        wind = _number(storm.get("intensity"))
+        if wind is not None:
+            source = f"intensity {storm.get('intensity')}"
+            entries.append(("maximum_wind", wind, "kt", "", source))
+        facts = []
+        for key, value, unit, description, source in entries:
+            fact = {
+                "key": key,
+                "record_type": "analysis",
+                "value": value,
+                "unit": unit,
+                "description": description,
+                "source_text": source,
+            }
+            if storm.get("lastUpdate"):
+                fact["reference_time"] = storm["lastUpdate"]
+            facts.append(fact)
+        systems.append(
+            {
+                "source_feature_key": storm["id"].lower(),
+                "name": f"{label} {name}",
+                "feature_type": feature_type,
+                "narrative": "",
+                "facts": facts,
+            }
+        )
+    return systems
+
+
+def extract(decoded):
+    systems = outlook_map_systems(decoded.get("features", [])) + storm_systems(
+        decoded.get("storms", [])
+    )
     for disturbance in decoded.get("disturbances", []):
         facts = []
         for period, probability in disturbance["probabilities"].items():

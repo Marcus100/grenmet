@@ -1621,6 +1621,11 @@ async def test_a_pending_correction_holds_the_replaced_retry(
         qc_url(fixed.json()["id"], "reject"), json={"reason": "Not needed"}
     )
     assert rejected.status_code == 200, rejected.text
+    # The replaced reading is live again, so the hour stays correctable.
+    states = {
+        o["id"]: o["state"] for o in (await client.get(OBS_URL)).json()["observations"]
+    }
+    assert states[original] == "accepted"
     await db_async.refresh(queued)
     assert queued.next_retry_at is None
     await publisher.process_due_publications(
@@ -1630,3 +1635,159 @@ async def test_a_pending_correction_holds_the_replaced_retry(
     assert ",301.15," in delivered[0]
     await db_async.refresh(queued)
     assert queued.status == "sent"
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_rejecting_a_correction_restores_the_original_to_accepted(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    assert (await client.post(qc_url(original, "accept"))).status_code == 200
+    await publisher.process_due_publications(
+        session=db_async, config=sends.wis2box_settings
+    )
+    fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    fixed = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    )
+    assert fixed.status_code == 201, fixed.text
+    correction = fixed.json()["id"]
+
+    await as_staff(db_async)
+    rejected = await client.post(
+        qc_url(correction, "reject"), json={"reason": "Not needed"}
+    )
+    assert rejected.status_code == 200, rejected.text
+    listed = {
+        o["id"]: o["state"] for o in (await client.get(OBS_URL)).json()["observations"]
+    }
+    # The rejected correction stays listed; the original is the live row again.
+    assert listed == {original: "accepted", correction: "rejected"}
+    # The correction reason ("typo") no longer shows on the restored original.
+    notes = await register_rows(
+        "SELECT qc_notes, superseded_from FROM register_observations WHERE id = :i",
+        i=original,
+    )
+    assert notes == [{"qc_notes": None, "superseded_from": None}]
+    holders = await register_rows(
+        "SELECT observation_id FROM observations.publish_gate"
+    )
+    assert [str(r["observation_id"]) for r in holders] == [original]
+    # The hour can be corrected again.
+    again = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    )
+    assert again.status_code == 201, again.text
+    # The audit trail records the restore on the original.
+    restores = (
+        await db_async.scalars(
+            select(AuditEntry).where(
+                AuditEntry.entity_id == original, AuditEntry.action == "restore"
+            )
+        )
+    ).all()
+    assert len(restores) == 1
+
+
+async def test_rejecting_a_correction_of_a_draft_leaves_the_original_a_draft(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    first = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    )
+    assert first.status_code == 201, first.text
+    # A correction of the correction: rejecting it brings the first one back as a
+    # draft, not as accepted.
+    second = await client.post(
+        qc_url(first.json()["id"], "correct"), json={"body": fixed_body}
+    )
+    assert second.status_code == 201, second.text
+    await as_staff(db_async)
+    assert (
+        await client.post(
+            qc_url(second.json()["id"], "reject"), json={"reason": "Not needed"}
+        )
+    ).status_code == 200
+    states = {
+        o["id"]: o["state"] for o in (await client.get(OBS_URL)).json()["observations"]
+    }
+    assert states == {
+        original: "superseded",
+        first.json()["id"]: "draft",
+        second.json()["id"]: "rejected",
+    }
+    # Rejecting the first correction in turn restores the original draft.
+    assert (
+        await client.post(
+            qc_url(first.json()["id"], "reject"), json={"reason": "Not needed"}
+        )
+    ).status_code == 200
+    states = {
+        o["id"]: o["state"] for o in (await client.get(OBS_URL)).json()["observations"]
+    }
+    assert states[original] == "draft"
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_rejecting_a_correction_that_took_the_gate_gives_it_back(
+    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+) -> None:
+    client, _ = send_client
+    original = await save(client)
+    assert (await client.post(qc_url(original, "accept"))).status_code == 200
+    fixed_body = {**FULL_ROW, "air_temp": "0290", "source": "eregister-workbook"}
+    fixed = await client.post(
+        qc_url(original, "correct"), json={"body": fixed_body, "reason": "typo"}
+    )
+    correction = fixed.json()["id"]
+    # Another staff member accepts it: the correction takes the gate.
+    await as_staff(db_async)
+    assert (await client.post(qc_url(correction, "accept"))).status_code == 200
+    holders = await register_rows(
+        "SELECT observation_id FROM observations.publish_gate"
+    )
+    assert [str(r["observation_id"]) for r in holders] == [correction]
+    # Its WIS2 send fails for good, so it can be reopened and then rejected.
+    for log in await db_async.scalars(
+        select(ERegisterSend).where(
+            ERegisterSend.observation_id == UUID(correction),
+            ERegisterSend.target == "wis2",
+        )
+    ):
+        log.status = "failed"
+        log.next_retry_at = None
+    await db_async.commit()
+    assert (
+        await client.post(qc_url(correction, "reopen"), json={"reason": "Check"})
+    ).status_code == 200
+    assert (
+        await client.post(qc_url(correction, "reject"), json={"reason": "Not needed"})
+    ).status_code == 200
+    holders = await register_rows(
+        "SELECT observation_id FROM observations.publish_gate"
+    )
+    assert [str(r["observation_id"]) for r in holders] == [original]
+    decisions = await register_rows(
+        "SELECT observation_id, reason FROM observations.publish_gate_decisions"
+        " WHERE reason LIKE 'Hour returns%'"
+    )
+    assert [str(r["observation_id"]) for r in decisions] == [original]
+    # The original can be published again.
+    await as_staff(db_async, "eregister.send")
+    published = await client.post(f"/api/v1/eregister/observations/{original}/publish")
+    assert published.status_code == 202, published.text
+
+
+def test_the_register_migrations_form_one_chain_with_a_single_head() -> None:
+    from alembic.script import ScriptDirectory
+
+    script = ScriptDirectory.from_config(
+        Config(str(ROOT / "src/eregister/alembic.ini"))
+    )
+    assert script.get_heads() == ["eregister_0006"]
+    revisions = [item.revision for item in script.walk_revisions()]
+    assert revisions == [f"eregister_000{n}" for n in range(6, 0, -1)]

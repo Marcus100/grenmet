@@ -21,6 +21,12 @@ import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { grenadaToday } from "@/components/hr/expiry";
 import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
+import {
+  editingHint,
+  isEditableStatus,
+  RequestStatusBadge,
+  ReturnedReason,
+} from "@/components/hr/request-status";
 import { useSigning } from "@/components/hr/signatures/signature-api";
 import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import { hrFormFilename } from "@/lib/pdf-filename";
@@ -33,6 +39,17 @@ const actions = [
   ["INFORMATION_CHANGE", "Information change"],
   ["OTHER", "Other"],
 ] satisfies [ParkingAction, string][];
+
+function openNotice(permit: ParkingPermitPublic, renewal: boolean): string {
+  if (renewal)
+    return "New renewal application: confirm current insurance and submit for fresh approval.";
+  return permit.status === "RETURNED" ? editingHint(permit) : "";
+}
+
+function openLabel(permit: ParkingPermitPublic): string {
+  if (!isEditableStatus(permit.status)) return "View application";
+  return permit.status === "RETURNED" ? "Edit and resubmit" : "Open draft";
+}
 
 export function ParkingApplication() {
   const id = useId();
@@ -73,7 +90,7 @@ export function ParkingApplication() {
   const canIssue = permissions.includes("parking.permit.issue");
   const locked = Boolean(
     selected &&
-      (selected.status !== "DRAFT" ||
+      (!isEditableStatus(selected.status) ||
         selected.submitted_by_user_id !== actor.id)
   );
   const body: ParkingPermitCreate = {
@@ -107,11 +124,7 @@ export function ParkingApplication() {
     });
     setCoApprovers([]);
     setError("");
-    setNotice(
-      renewal
-        ? "New renewal application: confirm current insurance and submit for fresh approval."
-        : ""
-    );
+    setNotice(openNotice(permit, renewal));
   }
   function reset() {
     setSelected(null);
@@ -429,7 +442,10 @@ export function ParkingApplication() {
                       signedDocumentId: locked
                         ? selected?.signed_document_id
                         : null,
-                      filename: hrFormFilename("parking_permit", true),
+                      filename: hrFormFilename(
+                        "parking_permit",
+                        Boolean(locked && selected?.signed_document_id)
+                      ),
                     }).catch((caught: unknown) => {
                       reportError(caught, "hr-parking-pdf");
                       setError(hrApiErrorMessage(caught));
@@ -447,7 +463,10 @@ export function ParkingApplication() {
           label="Parking application"
           preview={
             <HrPdfPreview
-              filename={hrFormFilename("parking_permit")}
+              filename={hrFormFilename(
+                "parking_permit",
+                Boolean(locked && selected?.signed_document_id)
+              )}
               payload={body}
               previewPath="/api/v1/hr/parking-permits/preview-pdf"
               ready={ready}
@@ -494,8 +513,13 @@ export function ParkingApplication() {
                 key={permit.id}
               >
                 <h3 className="font-medium">
-                  {permit.vehicle_registration_no} · {permit.status}
+                  {permit.vehicle_registration_no} ·{" "}
+                  <RequestStatusBadge status={permit.status} />
                 </h3>
+                <ReturnedReason
+                  reason={permit.returned_reason}
+                  status={permit.status}
+                />
                 <p>
                   {
                     actions.find(
@@ -515,9 +539,7 @@ export function ParkingApplication() {
                 <div className="flex gap-2">
                   {canCreate && (
                     <Button onClick={() => load(permit)} variant="outline">
-                      {permit.status === "DRAFT"
-                        ? "Open draft"
-                        : "View application"}
+                      {openLabel(permit)}
                     </Button>
                   )}
                   {canCreate && permit.user_id === actor.id && (

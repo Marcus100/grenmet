@@ -66,6 +66,7 @@ REQUESTER_LINKS: dict[str, str] = {
 APPROVALS_LINK = "/hr/approvals"
 
 REQUEST_VARIABLES = ("request_type", "requester_name", "department", "summary")
+RETURNED_VARIABLES = (*REQUEST_VARIABLES, "reason")
 
 
 def _day(value: date | datetime | None) -> str:
@@ -112,8 +113,8 @@ def register() -> None:
             description="An approver sent your request back for changes.",
             audience="The person who made the request",
             title="Your {{ request_type | lower }} was returned for changes",
-            body="{{ summary }}. Open the portal to update and resubmit it.",
-            variables=REQUEST_VARIABLES,
+            body="{{ summary }}. Reason: {{ reason }}. Open the portal to update and resubmit it.",
+            variables=RETURNED_VARIABLES,
         ),
         EventDef(
             key="workflow.cancelled",
@@ -411,10 +412,13 @@ async def workflow_transitioned(
     actor_id: uuid.UUID,
     previous_status: WorkflowStatus,
     previous_order: int,
+    comments: str | None = None,
 ) -> None:
     """Queue notifications for one approval-workflow action (same transaction)."""
     organisation_id = await _organisation_id(session, instance.department_id)
     context = await _context(session, instance)
+    if action == WorkflowAction.RETURN:
+        context["reason"] = (comments or "").strip()
     common: dict[str, Any] = {
         "organisation_id": organisation_id,
         "context": context,

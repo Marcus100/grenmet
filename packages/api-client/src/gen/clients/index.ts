@@ -183,11 +183,13 @@ export { eregisterAcceptRegisterObservation } from "./eregisterAcceptRegisterObs
 export { eregisterCorrectRegisterObservation } from "./eregisterCorrectRegisterObservation.js";
 export { eregisterCreateRegisterObservation } from "./eregisterCreateRegisterObservation.js";
 export { eregisterEmailRegisterObservation } from "./eregisterEmailRegisterObservation.js";
+export { eregisterGetStationSettings } from "./eregisterGetStationSettings.js";
 export { eregisterListObservationSends } from "./eregisterListObservationSends.js";
 export { eregisterListRegisterObservations } from "./eregisterListRegisterObservations.js";
 export { eregisterPublicCurrentConditions } from "./eregisterPublicCurrentConditions.js";
 export { eregisterPublicMonthSummary } from "./eregisterPublicMonthSummary.js";
 export { eregisterPublishRegisterObservation } from "./eregisterPublishRegisterObservation.js";
+export { eregisterPutStationSettings } from "./eregisterPutStationSettings.js";
 export { eregisterRejectRegisterObservation } from "./eregisterRejectRegisterObservation.js";
 export { eregisterReopenRegisterObservation } from "./eregisterReopenRegisterObservation.js";
 export { eregisterReviewRegisterObservation } from "./eregisterReviewRegisterObservation.js";

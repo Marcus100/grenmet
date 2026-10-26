@@ -11252,7 +11252,7 @@
           "hr-workflows"
         ],
         "summary": "Perform workflow action",
-        "description": "Submit, approve, reject, return, or cancel a workflow instance. Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
+        "description": "Submit, approve, reject, return, or cancel a workflow instance. Return requires comments (the reason shown to the author). Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
         "operationId": "hrTakeAction",
         "security": [
           {
@@ -13646,7 +13646,7 @@
           "hr-attendance"
         ],
         "summary": "List phone clock punches awaiting approval",
-        "description": "Pending phone punches of employees the caller supervises or reviews (named supervisor, or timesheet.approve in the department scope). Never includes the caller's own punches.",
+        "description": "Pending phone punches the caller may decide. Callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Approve and reject use the same rule.",
         "operationId": "hrListPendingClockPunches",
         "security": [
           {
@@ -13712,7 +13712,7 @@
           "hr-attendance"
         ],
         "summary": "Approve a phone clock punch",
-        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Only the employee's named supervisor or a timesheet.approve holder in scope; never the punching employee. Idempotent.",
+        "description": "Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Allowed for: callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor. Never the employee. Idempotent.",
         "operationId": "hrApproveClockPunch",
         "security": [
           {
@@ -13770,7 +13770,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+            "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
           },
           "404": {
             "description": "Clock punch not found"
@@ -13838,7 +13838,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Not the employee's supervisor or reviewer, or reviewing your own punch"
+            "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
           },
           "404": {
             "description": "Clock punch not found"
@@ -30225,7 +30225,7 @@
           "eregister"
         ],
         "summary": "Validate a SYNOP observation",
-        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid.",
+        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid. With the station's pressure amounts (`/stations/{station_id}/settings`), blank groups 3 and 4 are worked out from `barometer_reading` and returned in `normalized`, `decoded` carries `qfe_pa` and `qnh_pa`, and a keyed group 3 or 4 that differs from the rule warns.",
         "operationId": "eregisterValidateSynopObservation",
         "requestBody": {
           "content": {
@@ -30281,7 +30281,7 @@
           "eregister"
         ],
         "summary": "Correct a register observation",
-        "description": "Saves a replacement that supersedes the observation (`supersedes_id`); the old one becomes `superseded` and stays listed. Station, kind and time are kept. `409` when the observation is rejected or already superseded; `422` when the replacement SYNOP has errors. The replacement starts as a draft; saving it holds any queued WIS2 file of the replaced observation until the correction is accepted (the old file is dropped) or rejected (the old file is released). When its observer accepts it, a station-hour already sent to WIS2 is sent again marked as a correction. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "description": "Saves a replacement that supersedes the observation (`supersedes_id`); the old one becomes `superseded` and stays listed. Station, kind and time are kept. `409` when the observation is rejected or already superseded; `422` when the replacement SYNOP has errors. The replacement starts as a draft; saving it holds any queued WIS2 file of the replaced observation until the correction is accepted (the old file is dropped) or rejected (the old file is released and the old observation returns to the state it had before). When its observer accepts it, a station-hour already sent to WIS2 is sent again marked as a correction. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterCorrectRegisterObservation",
         "security": [
           {
@@ -30637,7 +30637,7 @@
           "eregister"
         ],
         "summary": "Reject a register observation (QC)",
-        "description": "Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Requires register staff access. Audited.",
+        "description": "Moves a draft or qc_pending observation to rejected; a reason is required. Rejected observations are never sent or shown publicly. Rejecting a correction releases the held WIS2 file of the observation it replaced and puts that observation back to the state it had before the correction (for example `accepted`), live and correctable again. Requires register staff access. Audited.",
         "operationId": "eregisterRejectRegisterObservation",
         "security": [
           {
@@ -30833,6 +30833,134 @@
           },
           "403": {
             "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/stations/{station_id}/settings": {
+      "get": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Station pressure amounts",
+        "description": "The fixed amounts (hPa) the register uses to work out the pressures from the barometer as read: station pressure = barometer + `total_correction_hpa`; QFE = station + `qfe_offset_hpa`; mean sea level pressure = station + `sea_level_offset_hpa`; QNH = sea level + `qnh_offset_hpa`. 78958 holds the owner-confirmed 0.0, 0.3, 1.0 and 0.1; an amount not yet supplied is null and listed in `pending`. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "operationId": "eregisterGetStationSettings",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "station_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Station Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationSettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Set the station pressure amounts",
+        "description": "Replaces all four amounts (send null to clear one). Requires `eregister.qc`.",
+        "operationId": "eregisterPutStationSettings",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "station_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Station Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StationSettingsUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationSettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
           }
         }
       }
@@ -45169,6 +45297,17 @@
                 "type": "null"
               }
             ]
+          },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
           },
           "id": {
             "type": "string",
@@ -61715,6 +61854,17 @@
               }
             ]
           },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -67837,6 +67987,17 @@
               }
             ]
           },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -72854,7 +73015,8 @@
           "SUBMITTED",
           "APPROVED",
           "REJECTED",
-          "CANCELLED"
+          "CANCELLED",
+          "RETURNED"
         ],
         "title": "RequestStatus"
       },
@@ -77568,6 +77730,17 @@
               }
             ]
           },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -78515,6 +78688,157 @@
         ],
         "title": "StaffUpdate"
       },
+      "StationSettings": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "total_correction_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Correction Hpa",
+            "description": "Total barometer correction; null until supplied."
+          },
+          "qfe_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qfe Offset Hpa",
+            "description": "QFE minus station pressure; null until supplied."
+          },
+          "sea_level_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sea Level Offset Hpa",
+            "description": "Mean sea level pressure minus station pressure; null until supplied."
+          },
+          "qnh_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qnh Offset Hpa",
+            "description": "QNH minus mean sea level pressure; null until supplied."
+          },
+          "pending": {
+            "items": {
+              "$ref": "#/components/schemas/StationSettingsPropertiesPendingItemsEnum"
+            },
+            "type": "array",
+            "title": "Pending",
+            "description": "The amounts that are still empty."
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id"
+        ],
+        "title": "StationSettings",
+        "description": "Fixed amounts (hPa) the register uses to work out the pressures.\n\nStation pressure = barometer as read + total correction; QFE = station\npressure + QFE offset; mean sea level pressure = station pressure + sea level\noffset; QNH = mean sea level pressure + QNH offset. 78958 is seeded with the\nowner-confirmed 0.0, 0.3, 1.0 and 0.1; other stations start empty."
+      },
+      "StationSettingsUpdate": {
+        "properties": {
+          "total_correction_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Correction Hpa"
+          },
+          "qfe_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qfe Offset Hpa"
+          },
+          "sea_level_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sea Level Offset Hpa"
+          },
+          "qnh_offset_hpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qnh Offset Hpa"
+          }
+        },
+        "type": "object",
+        "title": "StationSettingsUpdate"
+      },
       "StatusReportCreate": {
         "properties": {
           "signature_version": {
@@ -78985,6 +79309,17 @@
                 "type": "null"
               }
             ]
+          },
+          "returned_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned Reason"
           },
           "id": {
             "type": "string",
@@ -80273,6 +80608,30 @@
               }
             ],
             "title": "Ground State"
+          },
+          "qfe_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qfe Pa",
+            "description": "QFE from the station pressure and the station's QFE offset."
+          },
+          "qnh_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qnh Pa",
+            "description": "QNH from the mean sea level pressure and the station's QNH offset."
           }
         },
         "type": "object",
@@ -80466,6 +80825,32 @@
               }
             ],
             "title": "Visibility"
+          },
+          "barometer_reading": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Barometer Reading",
+            "description": "Barometer as read (paper column 17), in hPa with one decimal, for example 1013.2."
+          },
+          "visibility_km": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility Km",
+            "description": "Visibility as typed, in kilometres; the coded VV is derived from it."
           },
           "total_cloud": {
             "anyOf": [
@@ -80970,6 +81355,67 @@
               }
             ],
             "title": "S3 Special Phenomena"
+          },
+          "s3_group_909": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Group 909",
+            "description": "Precipitation timing and duration (909Rtdc), the Region IV group 9SpSpspsp with SpSp 09, reported with 6RRRtR: five digits starting 909. Rt and dc are not decoded."
+          },
+          "time_mark_anemograph": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Anemograph"
+          },
+          "time_mark_barograph": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Barograph"
+          },
+          "time_mark_rain_recorder": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Rain Recorder"
+          },
+          "time_mark_thermohygrograph": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Mark Thermohygrograph"
           },
           "s3_sunshine_24h": {
             "anyOf": [
@@ -82580,7 +83026,8 @@
           "DRAFT",
           "SUBMITTED",
           "APPROVED",
-          "REJECTED"
+          "REJECTED",
+          "RETURNED"
         ],
         "title": "TimesheetStatus"
       },
@@ -87731,6 +88178,15 @@
           "till_open",
           "refund_without_till",
           "online_ledger_mismatch"
+        ]
+      },
+      "StationSettingsPropertiesPendingItemsEnum": {
+        "type": "string",
+        "enum": [
+          "total_correction_hpa",
+          "qfe_offset_hpa",
+          "sea_level_offset_hpa",
+          "qnh_offset_hpa"
         ]
       },
       "StoredFilePropertiesStatusEnum": {

@@ -19,7 +19,7 @@ from src.hr.exceptions import (
     HRPermissionDeniedError,
     HRValidationError,
 )
-from src.hr.models import EmploymentRecord, RequestStatus
+from src.hr.models import EDITABLE_STATUSES, EmploymentRecord, RequestStatus
 from src.hr.roster.holidays import PROVISIONAL_SOURCE
 from src.hr.roster.models import (
     PublicHoliday,
@@ -255,7 +255,7 @@ async def submit_leave_request(
     )
     if leave_request.user_id != current_user.id:
         raise HRPermissionDeniedError(ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED)
-    if leave_request.status != RequestStatus.DRAFT:
+    if leave_request.status not in EDITABLE_STATUSES:
         raise HRValidationError(ERROR_LEAVE_REQUEST_NOT_DRAFT)
 
     await validate_acting_officer(
@@ -334,7 +334,7 @@ async def update_leave_request(
     )
     if leave_request.user_id != current_user.id:
         raise HRPermissionDeniedError(ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED)
-    if leave_request.status != RequestStatus.DRAFT:
+    if leave_request.status not in EDITABLE_STATUSES:
         raise HRValidationError(ERROR_LEAVE_REQUEST_NOT_DRAFT)
 
     validate_leave_fields(
@@ -429,6 +429,10 @@ async def action_leave_request(
         permission_key="leave.request.action",
     ):
         raise HRPermissionDeniedError(ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED)
+    if payload.status == RequestStatus.RETURNED:
+        raise HRValidationError(
+            "Return a form from the approvals inbox, with a reason for its author"
+        )
     if leave_request.workflow_instance_id:
         from src.hr.workflow.models import WorkflowAction
         from src.hr.workflow.schemas import WorkflowActionRequest

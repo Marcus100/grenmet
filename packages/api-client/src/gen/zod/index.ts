@@ -2200,6 +2200,16 @@ export {
   eregisterEmailRegisterObservationStatus422Schema,
 } from "./eregisterEmailRegisterObservationSchema.js";
 export {
+  eregisterGetStationSettingsErrorSchema,
+  eregisterGetStationSettingsPathStationIdSchema,
+  eregisterGetStationSettingsResponseSchema,
+  eregisterGetStationSettingsStatus200Schema,
+  eregisterGetStationSettingsStatus401Schema,
+  eregisterGetStationSettingsStatus403Schema,
+  eregisterGetStationSettingsStatus404Schema,
+  eregisterGetStationSettingsStatus422Schema,
+} from "./eregisterGetStationSettingsSchema.js";
+export {
   eregisterListObservationSendsErrorSchema,
   eregisterListObservationSendsPathObservationIdSchema,
   eregisterListObservationSendsResponseSchema,
@@ -2251,6 +2261,17 @@ export {
   eregisterPublishRegisterObservationStatus409Schema,
   eregisterPublishRegisterObservationStatus422Schema,
 } from "./eregisterPublishRegisterObservationSchema.js";
+export {
+  eregisterPutStationSettingsBodySchema,
+  eregisterPutStationSettingsErrorSchema,
+  eregisterPutStationSettingsPathStationIdSchema,
+  eregisterPutStationSettingsResponseSchema,
+  eregisterPutStationSettingsStatus200Schema,
+  eregisterPutStationSettingsStatus401Schema,
+  eregisterPutStationSettingsStatus403Schema,
+  eregisterPutStationSettingsStatus404Schema,
+  eregisterPutStationSettingsStatus422Schema,
+} from "./eregisterPutStationSettingsSchema.js";
 export {
   eregisterRejectRegisterObservationBodySchema,
   eregisterRejectRegisterObservationErrorSchema,
@@ -6782,6 +6803,9 @@ export { staffInputSchema } from "./staffInputSchema.js";
 export { staffOrganiserRowSchema } from "./staffOrganiserRowSchema.js";
 export { staffSetupSchema } from "./staffSetupSchema.js";
 export { staffUpdateSchema } from "./staffUpdateSchema.js";
+export { stationSettingsPropertiesPendingItemsEnumSchema } from "./stationSettingsPropertiesPendingItemsEnumSchema.js";
+export { stationSettingsSchema } from "./stationSettingsSchema.js";
+export { stationSettingsUpdateSchema } from "./stationSettingsUpdateSchema.js";
 export { statusReportCreateSchema } from "./statusReportCreateSchema.js";
 export { statusReportDetailsSchema } from "./statusReportDetailsSchema.js";
 export { statusReportEntryInputSchema } from "./statusReportEntryInputSchema.js";

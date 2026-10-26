@@ -15,6 +15,7 @@ class TimesheetStatus(str, Enum):
     SUBMITTED = "SUBMITTED"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
+    RETURNED = "RETURNED"
 
 
 class SubmissionMode(str, Enum):

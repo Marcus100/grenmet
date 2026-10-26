@@ -24,6 +24,7 @@ interface ValidationIssue {
 type Status = "idle" | "checking" | "valid" | "invalid" | "error";
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
+import { type StationSettings, withDerived } from "./eregister-derived";
 import {
   cellUpdates,
   cellValue,
@@ -37,13 +38,25 @@ import {
   type SendController,
   type SendTarget,
 } from "./eregister-send";
-import { RegisterTable, SectionCard } from "./eregister-ui";
+import {
+  type SettingsSaveResult,
+  StationSettingsCard,
+} from "./eregister-station-settings";
+import {
+  PendingSettingsNote,
+  RegisterTable,
+  SectionCard,
+  TimeMarks,
+} from "./eregister-ui";
 
 interface Props {
   issues: ValidationIssue[];
   metarPreview: string;
   observedAt: string;
   onBack: () => void;
+  onSaveStationSettings?: (
+    settings: StationSettings
+  ) => Promise<SettingsSaveResult>;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onValidate: () => void;
   onValidationIssuesChange: (
@@ -54,8 +67,25 @@ interface Props {
   saveStatus: SaveStatus;
   send: SendController;
   station: Station;
+  stationSettings?: StationSettings | null;
   validationStatus: Status;
   values: Record<string, string>;
+}
+
+// Groups 3 and 4 follow from the barometer as read; while the observer has not
+// keyed them the worked-out group shows greyed in the cell (keying overrides).
+const RULE_FILLED = new Set(["station_pressure", "msl_pressure"]);
+
+function placeholderFor(
+  column: FieldColumn,
+  isUpper: boolean,
+  shown: Record<string, string>
+): string | undefined {
+  if (isUpper) return;
+  if (column.signed?.role === "sign") {
+    return `${column.signed.prefix}${column.signed.example ?? "0"}`;
+  }
+  if (RULE_FILLED.has(column.key)) return shown[column.key] || undefined;
 }
 
 function describedBy(severity: "error" | "warning" | undefined) {
@@ -143,6 +173,8 @@ export function ERegisterWorkbook({
   onValidationStateChange,
   onValidate,
   onSubmit,
+  onSaveStationSettings,
+  stationSettings = null,
 }: Props) {
   const errors = issues.filter(
     (issue) => (issue.severity ?? "error") === "error"
@@ -151,8 +183,17 @@ export function ERegisterWorkbook({
   // The sign digit of a signed value ("0254" = sign 0, 280 tenths) is remembered
   // while the digits beside it are still being keyed.
   const [leads, setLeads] = useState<Record<string, string>>({});
+  // The grey cells show what the register calculates from the entries.
+  const shown = withDerived(values, stationSettings);
+  const changed = (keys: readonly string[]) => {
+    onValidationIssuesChange((current) =>
+      current.filter((issue) => !keys.includes(issue.field))
+    );
+    onValidationStateChange("idle");
+  };
   const renderTable = (section: (typeof REGISTER_SECTIONS)[number]) => (
     <RegisterTable
+      context={{ station: stationSettings }}
       key={section.title}
       leads={leads}
       renderValue={(column: FieldColumn, layer) => {
@@ -165,14 +206,30 @@ export function ERegisterWorkbook({
               worst === "error" || next === "error" ? "error" : (worst ?? next),
             undefined as "error" | "warning" | undefined
           );
+        if (column.computed && layer === "lower") {
+          // Calculated from other entries (visibility code, dew point, humidity).
+          return (
+            <Input
+              aria-label={`${column.label} (${column.code}), calculated`}
+              className={cn(
+                "h-9 cursor-default rounded-none border-0 bg-muted px-0.5 text-center font-mono text-body-sm text-muted-foreground shadow-none",
+                column.signed?.role === "sign" ? "w-10" : "w-12"
+              )}
+              readOnly
+              tabIndex={-1}
+              value={cellValue(column, shown, leads)}
+            />
+          );
+        }
         let maxLength: number | undefined;
-        if (upper) maxLength = 4;
+        if (upper) maxLength = upper.maxLength ?? 4;
         else if (column.parts) maxLength = column.parts.length;
         else if (column.signed) {
           maxLength = column.signed.role === "sign" ? 2 : 3;
         }
         let width = "w-12";
         if (column.wide) width = "w-56 text-left";
+        else if (column.size === "md") width = "w-16";
         else if (!upper && column.signed?.role === "sign") width = "w-10";
         return (
           <Input
@@ -210,11 +267,7 @@ export function ERegisterWorkbook({
               );
               onValidationStateChange("idle");
             }}
-            placeholder={
-              !upper && column.signed?.role === "sign"
-                ? `${column.signed.prefix}${column.signed.example ?? "0"}`
-                : undefined
-            }
+            placeholder={placeholderFor(column, upper !== undefined, shown)}
             value={
               upper
                 ? (values[upper.key] ?? "")
@@ -224,7 +277,7 @@ export function ERegisterWorkbook({
         );
       }}
       section={section}
-      values={values}
+      values={shown}
     />
   );
   return (
@@ -266,6 +319,32 @@ export function ERegisterWorkbook({
             </SectionCard>
           </div>
           {REGISTER_SECTIONS.slice(1).map(renderTable)}
+          <div className="flex flex-wrap items-start gap-4">
+            <TimeMarks
+              renderInput={(key, label) => (
+                <Input
+                  aria-label={`Time mark: ${label}`}
+                  className="h-9 w-28 text-center font-mono"
+                  maxLength={16}
+                  onChange={(event) => {
+                    onValueChange(key, event.target.value);
+                    changed([key]);
+                  }}
+                  value={values[key] ?? ""}
+                />
+              )}
+              values={values}
+            />
+            {onSaveStationSettings ? (
+              <StationSettingsCard
+                key={JSON.stringify(stationSettings)}
+                onSave={onSaveStationSettings}
+                settings={stationSettings}
+              />
+            ) : (
+              <PendingSettingsNote settings={stationSettings} />
+            )}
+          </div>
         </div>
         {errors.length > 0 && (
           <div
