@@ -68,8 +68,17 @@ const pnpm = (name, ...args) => check(name, "pnpm", args);
 const RULES = [
   [
     (f) => WEB.test(f) || f === "pnpm-lock.yaml",
+    // Two test tasks at once, as in CI and `pnpm test`: each Vitest config
+    // takes half the cores, so a third concurrent task would oversubscribe.
     ["type-check", "test"].map((task) =>
-      pnpm(task, "turbo", "run", task, "--affected")
+      pnpm(
+        task,
+        "turbo",
+        "run",
+        task,
+        "--affected",
+        ...(task === "test" ? ["--concurrency=2"] : [])
+      )
     ),
   ],
   [
