@@ -16,7 +16,7 @@ export function DigitalStaffCard({ card }: { card: StaffCard }) {
   return (
     <section
       aria-label="GAA digital staff card"
-      className="mb-6 overflow-hidden rounded-2xl border border-border bg-card text-card-foreground"
+      className="mb-6 overflow-hidden rounded-xl border border-border bg-card text-card-foreground"
     >
       <div className="flex items-center justify-between gap-4 border-border border-b bg-muted/50 px-6 py-4">
         <div>

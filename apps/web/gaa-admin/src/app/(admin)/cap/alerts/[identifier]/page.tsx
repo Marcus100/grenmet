@@ -42,7 +42,7 @@ export default async function AlertDetailPage({ params }: Props) {
               {alert.lifecycle_state}
             </span>
           </div>
-          <h1 className="text-gm-text-primary text-heading-md leading-heading-md">
+          <h1 className="font-semibold text-2xl tracking-tight">
             {info?.headline ?? alert.identifier}
           </h1>
           <p className="mt-2 break-words text-body-sm text-gm-text-muted leading-body-sm">

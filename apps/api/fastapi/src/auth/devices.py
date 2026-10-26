@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+from collections.abc import Awaitable, Callable
 from datetime import datetime
 
 from src.auth.models import User
@@ -117,21 +118,37 @@ async def _new_sign_in_email(
     return EmailData(html_content=html, subject=title)
 
 
-async def _send_new_sign_in_alert(
-    *, email_to: str, device: str, ip_address: str | None, signed_in_at: datetime
+async def _deliver_alert(
+    build: Callable[[], Awaitable[EmailData]], *, email_to: str, what: str
 ) -> None:
+    """Build and send one alert email; a failure is logged and never raised."""
     try:
-        message = await _new_sign_in_email(
-            device=device, ip_address=ip_address, signed_in_at=signed_in_at
-        )
+        message = await build()
         await asyncio.to_thread(
             send_email,
             email_to=email_to,
             subject=message.subject,
             html_content=message.html_content,
         )
-    except Exception:  # noqa: BLE001 - an alert must never break sign-in
-        logger.exception("New sign-in alert could not be sent")
+    except Exception:  # noqa: BLE001 - an alert must never break the action it reports
+        logger.exception("%s could not be sent", what)
+
+
+async def wait_for_pending_alerts() -> None:
+    """Wait for alerts already scheduled (used by tests to drain the background work)."""
+    await asyncio.gather(*_pending_alerts)
+
+
+async def _send_new_sign_in_alert(
+    *, email_to: str, device: str, ip_address: str | None, signed_in_at: datetime
+) -> None:
+    await _deliver_alert(
+        lambda: _new_sign_in_email(
+            device=device, ip_address=ip_address, signed_in_at=signed_in_at
+        ),
+        email_to=email_to,
+        what="New sign-in alert",
+    )
 
 
 def schedule_new_sign_in_alert(
@@ -147,6 +164,46 @@ def schedule_new_sign_in_alert(
             ip_address=ip_address,
             signed_in_at=signed_in_at,
         )
+    )
+    _pending_alerts.add(task)
+    task.add_done_callback(_pending_alerts.discard)
+
+
+async def _authenticator_added_email() -> EmailData:
+    title = "An authenticator was added to your account"
+    body = (
+        "An authenticator app was added to your account and your other sessions "
+        "were signed out. If this was you, there is nothing to do. If it was not, "
+        "contact a Barrels administrator straight away."
+    )
+    html = _render_jinja2(
+        template_name="notification.html",
+        context={
+            "project_name": settings.PROJECT_NAME,
+            "title": title,
+            "body": body,
+            "link_url": None,
+        },
+    )
+    return EmailData(html_content=html, subject=title)
+
+
+async def _send_authenticator_added_alert(*, email_to: str) -> None:
+    await _deliver_alert(
+        _authenticator_added_email,
+        email_to=email_to,
+        what="Authenticator-added alert",
+    )
+
+
+def schedule_authenticator_added_alert(*, email_to: str) -> None:
+    """Warn the account owner, in the background, that an authenticator was added.
+
+    Detection only: it names no secret and no code."""
+    if not email_settings.emails_enabled:
+        return
+    task = asyncio.get_running_loop().create_task(
+        _send_authenticator_added_alert(email_to=email_to)
     )
     _pending_alerts.add(task)
     task.add_done_callback(_pending_alerts.discard)

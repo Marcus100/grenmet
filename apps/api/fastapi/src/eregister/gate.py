@@ -8,6 +8,7 @@ primary key on ``observations.publish_gate`` makes the claim atomic, so two
 concurrent attempts cannot both win. Every decision is logged.
 """
 
+from collections.abc import Collection
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -71,6 +72,62 @@ async def _log(
     )
 
 
+async def log_decision(
+    register: AsyncSession,
+    *,
+    station_id: str,
+    hour: datetime,
+    observation_id: UUID,
+    actor: str | None,
+    reason: str,
+) -> None:
+    """Record a gate hand-back (a rejected correction); the caller commits."""
+    await _log(
+        register,
+        station_id=station_id,
+        hour=hour,
+        official=None,
+        observation_id=observation_id,
+        outcome="claimed",
+        reason=reason,
+        actor=actor,
+    )
+
+
+async def hour_holder(
+    register: AsyncSession, *, station_id: str, observed_at: datetime
+) -> UUID | None:
+    """The observation that holds the station-hour, if any."""
+    found: UUID | None = await register.scalar(
+        text(
+            "SELECT observation_id FROM observations.publish_gate"
+            " WHERE station_id = :station AND valid_hour = :hour"
+        ),
+        {"station": station_id, "hour": valid_hour(observed_at)},
+    )
+    return found
+
+
+async def ancestors(register: AsyncSession, observation_id: UUID) -> list[UUID]:
+    """Observations this one supersedes, directly or through earlier corrections."""
+    result = await register.execute(
+        text(
+            """
+            WITH RECURSIVE chain(id, supersedes_id, depth) AS (
+              SELECT id, supersedes_id, 0 FROM register_observations WHERE id = :id
+              UNION ALL
+              SELECT o.id, o.supersedes_id, chain.depth + 1
+              FROM register_observations o JOIN chain ON o.id = chain.supersedes_id
+              WHERE chain.depth < 50
+            )
+            SELECT id FROM chain WHERE id <> :id
+            """
+        ),
+        {"id": str(observation_id)},
+    )
+    return [row[0] for row in result]
+
+
 async def claim_manual_hour(
     register: AsyncSession,
     *,
@@ -78,11 +135,13 @@ async def claim_manual_hour(
     observed_at: datetime,
     observation_id: UUID,
     actor: str | None = None,
+    supersedes: Collection[UUID] = (),
 ) -> bool:
     """Claim the station-hour for a manual publish.
 
     Returns True when newly claimed, False when this observation already holds
-    it. Raises ``PublishGateError`` (after logging the refusal) otherwise.
+    it or took it over from an observation it corrects (``supersedes``).
+    Raises ``PublishGateError`` (after logging the refusal) otherwise.
     """
     hour = valid_hour(observed_at)
     row = (
@@ -112,6 +171,7 @@ async def claim_manual_hour(
             "automatic source, not eRegister"
         )
     claimed = False
+    takeover = False
     if refusal is None:
         inserted = await register.execute(
             text(
@@ -137,7 +197,24 @@ async def claim_manual_hour(
                 ),
                 {"station": station_id, "hour": hour},
             )
-            if holder != observation_id:
+            if holder in supersedes:
+                await register.execute(
+                    text(
+                        "UPDATE observations.publish_gate SET observation_id = :obs,"
+                        " claimed_by = :actor, claimed_at = now()"
+                        " WHERE station_id = :station AND valid_hour = :hour"
+                        " AND observation_id = :old"
+                    ),
+                    {
+                        "obs": observation_id,
+                        "actor": actor,
+                        "station": station_id,
+                        "hour": hour,
+                        "old": holder,
+                    },
+                )
+                takeover = True
+            elif holder != observation_id:
                 refusal = (
                     f"The {hour:%Y-%m-%d %H}Z hour at station {station_id} was "
                     "already claimed by another observation"
@@ -162,9 +239,11 @@ async def claim_manual_hour(
         official=official,
         observation_id=observation_id,
         actor=actor,
-        outcome="claimed" if claimed else "reused",
+        outcome="claimed" if claimed or takeover else "reused",
         reason="Hour claimed for manual publish"
         if claimed
+        else "Correction takes over the hour from the observation it supersedes"
+        if takeover
         else "Hour already held by this observation",
     )
     await register.commit()
@@ -177,8 +256,12 @@ async def release_hour(
     station_id: str,
     observed_at: datetime,
     observation_id: UUID,
+    commit: bool = True,
 ) -> None:
-    """Undo a fresh claim when the publish could not be queued."""
+    """Undo a claim (a publish that could not be queued, a restored draft).
+
+    ``commit=False`` leaves the delete in the caller's transaction.
+    """
     await register.execute(
         text(
             "DELETE FROM observations.publish_gate WHERE station_id = :station"
@@ -186,4 +269,5 @@ async def release_hour(
         ),
         {"station": station_id, "hour": valid_hour(observed_at), "obs": observation_id},
     )
-    await register.commit()
+    if commit:
+        await register.commit()

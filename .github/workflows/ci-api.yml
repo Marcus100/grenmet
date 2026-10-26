@@ -232,7 +232,7 @@ jobs:
       - name: Run tests with coverage
         # pytest-cov rather than `coverage run -m pytest`: it is xdist-aware and
         # combines the per-worker data files. The shared script uses --dist load
-        # to distribute tests across two workers by default. Each worker
+        # to distribute tests across one worker per CPU in CI. Each worker
         # gets its own database — see the bootstrap in tests/conftest.py.
         # COVERAGE_DATA_ONLY defers reports to the combining job.
         run: bash ../../../scripts/verification/backend.sh ${{ matrix.pytest }}

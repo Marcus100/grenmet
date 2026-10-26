@@ -90,7 +90,8 @@ describe("WarningLegend", () => {
       "Take action now",
       "Status unavailable",
     ]) {
-      expect(screen.getByText(label)).toBeInTheDocument();
+      // "No active alerts" is both the label and its guidance line.
+      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     }
   });
 });

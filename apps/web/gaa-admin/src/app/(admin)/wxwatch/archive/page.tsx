@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/layout/page-header";
 import { ArchiveBrowser } from "@/components/wxwatch/archive-browser";
 import { getArchive, getArchiveHistory } from "@/db/wxwatch/queries";
 import { reportError } from "@/lib/report-error";
@@ -45,7 +46,7 @@ export default async function ArchivePage({
     reportError(error, "wxwatch-archive");
     return (
       <div className="space-y-4">
-        <h1 className="font-semibold text-2xl">WxWatch archive</h1>
+        <PageHeader title="WxWatch archive" />
         <p role="alert">
           {error instanceof Error ? error.message : "Archive unavailable"}
         </p>

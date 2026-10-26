@@ -8,10 +8,10 @@ import { useSessionUser } from "@barrelsgd/auth";
 import {
   Tabs,
   TabsContent,
-  TabsList,
   TabsTrigger,
 } from "@barrelsgd/ui/components/ui/tabs";
 import { useEffect, useState } from "react";
+import { PageTabsList } from "@/components/layout/page-tabs";
 import { reportError } from "@/lib/report-error";
 import { BalanceImport } from "./balance-import";
 import { DepartmentsManager } from "./departments-manager";
@@ -67,7 +67,7 @@ export function HrSetupTabs() {
           defaultValue={actor.is_superuser ? "staff" : "departments"}
           key={organisationId}
         >
-          <TabsList className="max-w-full shrink-0 justify-start overflow-x-auto">
+          <PageTabsList>
             {actor.is_superuser && (
               <TabsTrigger value="staff">Staff baseline</TabsTrigger>
             )}
@@ -78,7 +78,7 @@ export function HrSetupTabs() {
             {canManageNotifications && (
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
             )}
-          </TabsList>
+          </PageTabsList>
           {actor.is_superuser && (
             <TabsContent className="w-full min-w-0" value="staff">
               <StaffSetupManager organisationId={organisationId} />

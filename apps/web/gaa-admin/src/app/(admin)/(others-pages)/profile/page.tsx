@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/layout/page-header";
 import { StaffDigitalCard } from "@/components/user-profile/StaffDigitalCard";
 import UserProfileContent from "@/components/user-profile/UserProfileContent";
 
@@ -16,14 +17,10 @@ export default async function Profile({
   const { tab } = await searchParams;
   return (
     <div className="@container flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-medium text-3xl leading-none tracking-tight">
-          Employee profile
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Your GMS digital ID, verified employment record and personal details.
-        </p>
-      </div>
+      <PageHeader
+        description="Your GMS digital ID, verified employment record and personal details."
+        title="Employee profile"
+      />
 
       <StaffDigitalCard />
       <UserProfileContent

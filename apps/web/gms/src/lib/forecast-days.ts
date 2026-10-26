@@ -51,6 +51,24 @@ export function getUpcomingDaySlugs(): string[] {
     .map((d) => d.slug);
 }
 
+/** Browser title for a dated forecast: "Forecast for Friday 23 October 2026". */
+export function forecastDayTitle(slug: string): string {
+  const day = new Date(`${slug}T12:00:00Z`);
+  // The date parser rolls impossible days forward (2026-02-31 becomes 3 March):
+  // only a slug that round-trips is a real day.
+  if (Number.isNaN(day.getTime()) || day.toISOString().slice(0, 10) !== slug) {
+    return "Forecast";
+  }
+  const date = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(day);
+  return `Forecast for ${date}`;
+}
+
 /** Splits a `YYYY-MM-DD` slug into the route's three segments. */
 export function slugToSegments(slug: string): {
   day: string;

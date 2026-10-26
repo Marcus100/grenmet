@@ -1,17 +1,24 @@
 """Display-ready weather parameters shared by the PDF sheets and the public feed.
 
 Conversions happen here, once, so the issued PDF and weather.gd show the same
-wind, sea and tide text (public units first, WMO units in brackets).
+wind, sea and tide text, in the GMS public units only (mph, feet).
 """
 
-from . import units
+from . import synop_codes, units
 from .validation import optional_number, period_values
+
+RAIN_CHANCES = tuple(synop_codes.RAIN_CHANCE_BANDS)
 
 
 def conditions(values: dict[str, str], prefix: str = "") -> list[tuple[str, str, str]]:
     """(icon, value, label) tiles, in reading order."""
     p = period_values(values, prefix)
     tiles: list[tuple[str, str, str]] = []
+    weather_type = p.get("weatherType", "").strip()
+    if weather_type in synop_codes.WEATHER_TYPES:
+        tiles.append(
+            (synop_codes.weather_icon(weather_type), weather_type, "Weather type")
+        )
     # Evening outlook days store temperatures as `dayNMax` / `dayNMin`.
     high, low = (
         optional_number(p, key) if p.get(key) else optional_number(p, fallback)
@@ -26,19 +33,22 @@ def conditions(values: dict[str, str], prefix: str = "") -> list[tuple[str, str,
     if any(s is not None for s in speeds):
         unit = units.PUBLIC_WIND_UNIT
         converted = [None if s is None else units.convert_wind(s, unit) for s in speeds]
-        label = f"Wind speed ({units._span(*speeds)} kt)"
-        tiles.append(("wind", f"{units._span(*converted)} {unit}", label))
+        tiles.append(("wind", f"{units._span(*converted)} {unit}", "Wind speed"))
         if gust is not None:
             gusts = f"{round(units.convert_wind(gust, unit))} {unit}"
-            tiles.append(("wind", gusts, f"Gusts ({round(gust)} kt)"))
+            tiles.append(("wind", gusts, "Gusts"))
     elif p.get("wind"):
         tiles.append(("wind", p["wind"], "Wind"))
     direction = units.direction_text(p.get("windDirFrom", ""), p.get("windDirTo", ""))
     if direction:
         tiles.append(("compass", direction, "Wind direction"))
+    # Low/Medium/High since 23 October 2026; older issues carry a percentage.
+    rain_word = p.get("rainChance", "").strip()
     rain = optional_number(p, "rainChance")
     if rain is not None:
         tiles.append(("umbrella", f"{units._num(rain)}%", "Chance of rain"))
+    elif rain_word in RAIN_CHANCES:
+        tiles.append(("umbrella", rain_word, "Chance of rain"))
     sea = units.sea_state_text(p.get("seaStateFrom", ""), p.get("seaStateTo", ""))
     if sea:
         tiles.append(("waves", sea, "Sea state"))
@@ -46,15 +56,15 @@ def conditions(values: dict[str, str], prefix: str = "") -> list[tuple[str, str,
         tiles.append(("waves", p["seaState"], "Sea state"))
     waves = [optional_number(p, k) for k in ("waveHeightMin", "waveHeightMax")]
     if any(w is not None for w in waves):
-        metres = units._span(*waves, places=1)
-        feet = units._span(*(None if w is None else units.feet(w) for w in waves))
-        tiles.append(("waves", f"{metres} m", f"Wave height ({feet} ft)"))
+        tiles.append(("waves", units.height_text(*waves), "Wave height"))
     swell = units.swell_text(
         p.get("swellDir", ""), optional_number(p, "swellPeriod"), None
     )
     swell_height = optional_number(p, "swellHeight")
     if swell or swell_height is not None:
-        value = f"{units._num(swell_height)} m" if swell_height is not None else swell
+        value = (
+            units.height_text(swell_height, None) if swell_height is not None else swell
+        )
         label = "Swell" + (f" · {swell}" if swell_height is not None and swell else "")
         tiles.append(("ship", value, label))
     tides = sorted(
@@ -68,7 +78,7 @@ def conditions(values: dict[str, str], prefix: str = "") -> list[tuple[str, str,
     )
     for time, kind, height in tides:
         icon = "arrow-up-to-line" if kind == "High" else "arrow-down-to-line"
-        extra = f" ({units._num(height)} m)" if height is not None else ""
+        extra = f" ({units._num(units.feet(height))} ft)" if height is not None else ""
         tiles.append((icon, time, f"{kind} tide{extra}"))
     if not tides:
         for key, label in (("highTides", "High tides"), ("lowTides", "Low tides")):

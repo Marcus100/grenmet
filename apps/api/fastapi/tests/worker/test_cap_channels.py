@@ -188,7 +188,7 @@ async def test_push_skipped_when_disabled(
     alert = await _add_published_alert(db_async)
     await _browser(db_async, "a")
     job = await _run(db_async, alert, "publish.push")
-    assert job.status == CapJobStatus.SUCCEEDED
+    assert job.status == CapJobStatus.SKIPPED
     assert job.result is not None and job.result["skipped"] is True
 
 

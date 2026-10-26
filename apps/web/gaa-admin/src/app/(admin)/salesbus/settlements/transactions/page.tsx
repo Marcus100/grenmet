@@ -1,5 +1,6 @@
 import { requisitionStatus } from "@barrelsgd/api-client";
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/layout/page-header";
 import { NoAccess } from "@/components/salesbus/NoAccess";
 import { TransactionList } from "@/components/salesbus/settlements/TransactionList";
 import {
@@ -39,7 +40,7 @@ export default async function TransactionsPage({
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-5">
-      <h1 className="font-semibold text-2xl">{heading}</h1>
+      <PageHeader title={heading} />
       <TransactionList locations={locations} requisitions={requisitions.data} />
     </div>
   );
