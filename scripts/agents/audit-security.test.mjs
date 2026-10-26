@@ -234,3 +234,11 @@ test("Trivy consolidation does not close another scanner's alert or Dependabot w
   assert.equal(calls.length, 1);
   assert.equal(calls[0][2], "40");
 });
+
+test("existing GDAL tracker also covers the geonetcast manifest", async () => {
+  const observations = await dependencyObservations([
+    alert(115, "gdal", "geonetcast/pyproject.toml", "3.13.0"),
+  ]);
+  assert.equal(observations[0].trackingIssue, 733);
+  assert.equal(observations[0].status, "fail");
+});

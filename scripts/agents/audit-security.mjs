@@ -134,17 +134,17 @@ export async function dependencyObservations(alerts, readDevFile = () => "") {
       );
     });
     const outstanding = open.filter((a) => !fixed.includes(a));
-    const trackingIssue =
-      manifest === "surface/api/requirements.txt"
-        ? 722
-        : manifest === "uv.lock" &&
-            ["brotlicffi", "filelock", "twisted", "gdal"].includes(
-              normalize(name)
-            )
-          ? 733
-          : open.length && !outstanding.length
-            ? 721
-            : undefined;
+    let trackingIssue;
+    if (manifest === "surface/api/requirements.txt") trackingIssue = 722;
+    else if (
+      (manifest === "uv.lock" &&
+        ["brotlicffi", "filelock", "twisted", "gdal"].includes(
+          normalize(name)
+        )) ||
+      (manifest === "geonetcast/pyproject.toml" && normalize(name) === "gdal")
+    )
+      trackingIssue = 733;
+    else if (open.length && !outstanding.length) trackingIssue = 721;
     const numbers = open.map((a) => a.number).sort((a, b) => a - b);
     const severity = outstanding.reduce(
       (best, a) =>

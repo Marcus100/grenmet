@@ -154,7 +154,8 @@ Main-only alerts already fixed on dev await release instead of creating work.
 
 Existing coverage takes precedence: #721 tracks fixes awaiting release, #722
 tracks `surface/api/requirements.txt`, and #733 tracks brotlicffi, filelock,
-Twisted and gdal in `uv.lock`. Changed alert sets get at most one comment per
+Twisted and gdal in `uv.lock`, plus the GDAL pin in
+`geonetcast/pyproject.toml`. Changed alert sets get at most one comment per
 UTC day per tracker. Comments persist fingerprints across runner restarts.
 An empty successful scan can clear a previous tracker snapshot. A closed tracker
 with assigned groups stops publication until coverage is reviewed.
