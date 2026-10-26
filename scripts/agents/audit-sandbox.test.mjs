@@ -53,12 +53,22 @@ test("backend lifecycle stays outside the sandbox while the source test command 
   const root = mkdtempSync(join(tmpdir(), "audit-executor-"));
   const calls = [];
   try {
-    const execute = testExecutor(root, "/tmp/common", (argv, options) => {
-      calls.push({ argv, options });
-      if (argv[0] === "docker" && argv.includes("port"))
-        return { code: 0, stdout: "127.0.0.1:34567", stderr: "" };
-      return { code: 0, stdout: "", stderr: "" };
-    });
+    const execute = testExecutor(
+      root,
+      "/tmp/common",
+      (argv, options) => {
+        calls.push({ argv, options });
+        if (argv[0] === "docker" && argv.includes("port"))
+          return { code: 0, stdout: "127.0.0.1:34567", stderr: "" };
+        return { code: 0, stdout: "", stderr: "" };
+      },
+      (argv, options) =>
+        buildAuditSandboxArgs(argv, {
+          ...options,
+          uv: { real: "/opt/uv", path: "/usr/bin/uv" },
+          resolver: "/mnt/wsl/resolv.conf",
+        })
+    );
     const result = await execute(
       ["node", "scripts/verification/run.mjs", "backend"],
       { cwd: root, env: {}, timeout: 30_000, logPath: join(root, "test.log") }

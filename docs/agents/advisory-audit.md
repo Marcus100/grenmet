@@ -1,5 +1,9 @@
 # Standing advisory auditor
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-26
+
 The auditor helps Claude find errors. It never merges, synchronizes pull request
 branches, changes rulesets, repairs applications, or makes its results required.
 Only the six required automated checks govern development merges. The separate

@@ -10,11 +10,16 @@ import {
 import { buildAuditSandboxArgs } from "./audit-sandbox.mjs";
 
 const TRUSTED_ROOT = resolve(import.meta.dirname, "../..");
-export function testExecutor(root, commonGitDir, run = command) {
+export function testExecutor(
+  root,
+  commonGitDir,
+  run = command,
+  sandbox = buildAuditSandboxArgs
+) {
   const home = privateDirectory(join(root, "node_modules/.cache/audit-home"));
   const isolated = async (argv, options) => {
     const unit = `grenmet-audit-check-${randomUUID().replaceAll("-", "")}`;
-    const args = buildAuditSandboxArgs(argv, {
+    const args = sandbox(argv, {
       root,
       home,
       cwd: options.cwd,

@@ -343,7 +343,7 @@ def main(argv: list[str] | None = None, runner: Runner = run_command) -> int:
             "environments": environments,
         }
         write_private_json(args.output, receipt)
-        sys.stdout.write(json.dumps(receipt, separators=(",", ":")) + "\n")
+        sys.stdout.write("Audit aggregate receipt written.\n")
         return 0
     except Unavailable as exc:
         # The message is a fixed category only; command/config values are never shown.
