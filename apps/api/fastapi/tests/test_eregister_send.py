@@ -1214,7 +1214,9 @@ async def test_gate_refuses_an_hour_the_schedule_gives_to_automatic(
     incoming: Path,
 ) -> None:
     client, _ = send_client
-    await register_exec("UPDATE observations.stations SET schedule = 'automatic'")
+    await register_exec(
+        "UPDATE observations.stations SET schedule = 'automatic', source_kind = 'automatic'"
+    )
     observation = await save(client, accepted=True)
     refused = await client.post(publish_url(observation))
     assert refused.status_code == 409
@@ -2175,6 +2177,6 @@ def test_the_register_migrations_form_one_chain_with_a_single_head() -> None:
     script = ScriptDirectory.from_config(
         Config(str(ROOT / "src/eregister/alembic.ini"))
     )
-    assert script.get_heads() == ["eregister_0006"]
+    assert script.get_heads() == ["eregister_0007"]
     revisions = [item.revision for item in script.walk_revisions()]
-    assert revisions == [f"eregister_000{n}" for n in range(6, 0, -1)]
+    assert revisions == [f"eregister_000{n}" for n in range(7, 0, -1)]

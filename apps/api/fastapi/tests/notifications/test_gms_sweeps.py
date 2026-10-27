@@ -55,7 +55,8 @@ TABLES = [
     "CREATE SCHEMA observations",
     "CREATE TABLE observations.stations (station_id text PRIMARY KEY,"
     " schedule text NOT NULL DEFAULT 'manual',"
-    " manual_hours_utc smallint[] NOT NULL DEFAULT '{}')",
+    " manual_hours_utc smallint[] NOT NULL DEFAULT '{}',"
+    " active boolean NOT NULL DEFAULT true)",
     "CREATE TABLE archive_nhc_events (id text PRIMARY KEY, product_key text NOT NULL,"
     " outcome text NOT NULL, retrieved_at timestamptz)",
 ]
@@ -604,6 +605,21 @@ async def test_an_automatic_station_never_raises_a_missing_observation(
     await _holder(sources, "eregister.observe")
     await sources.execute(
         text("INSERT INTO observations.stations VALUES ('AWS01', 'automatic', '{}')")
+    )
+    await sources.commit()
+
+    assert await gms_sweeps.observation_missing(sources, sources, FIFTEEN_PAST) == 0
+
+
+async def test_an_inactive_station_never_raises_a_missing_observation(
+    sources: AsyncSession,
+) -> None:
+    await _holder(sources, "eregister.observe")
+    await sources.execute(
+        text(
+            "INSERT INTO observations.stations (station_id, active)"
+            " VALUES ('OLD01', false)"
+        )
     )
     await sources.commit()
 

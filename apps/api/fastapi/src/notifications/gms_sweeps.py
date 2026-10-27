@@ -160,7 +160,7 @@ async def observation_missing(
             await register.execute(
                 text(
                     "SELECT station_id, schedule, manual_hours_utc"
-                    " FROM observations.stations ORDER BY 1"
+                    " FROM observations.stations WHERE active ORDER BY 1"
                 )
             )
         )

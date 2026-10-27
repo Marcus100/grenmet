@@ -148,7 +148,7 @@ async def claim_manual_hour(
         (
             await register.execute(
                 text(
-                    "SELECT schedule, manual_hours_utc FROM observations.stations"
+                    "SELECT schedule, manual_hours_utc, active FROM observations.stations"
                     " WHERE station_id = :station"
                 ),
                 {"station": station_id},
@@ -165,6 +165,10 @@ async def claim_manual_hour(
     refusal: str | None = None
     if row is None:
         refusal = f"Station {station_id} is not in the observation station registry"
+    elif not row["active"]:
+        refusal = (
+            f"Station {station_id} is inactive in the observation station registry"
+        )
     elif official != SOURCE_MANUAL:
         refusal = (
             f"The {hour:%H}Z hour at station {station_id} is published by the "

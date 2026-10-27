@@ -929,6 +929,11 @@ export {
   useEregisterAcceptRegisterObservation,
 } from "./useEregisterAcceptRegisterObservation.js";
 export {
+  eregisterAddStationMutationKey,
+  eregisterAddStationMutationOptions,
+  useEregisterAddStation,
+} from "./useEregisterAddStation.js";
+export {
   eregisterCorrectRegisterObservationMutationKey,
   eregisterCorrectRegisterObservationMutationOptions,
   useEregisterCorrectRegisterObservation,
@@ -939,10 +944,20 @@ export {
   useEregisterCreateRegisterObservation,
 } from "./useEregisterCreateRegisterObservation.js";
 export {
+  eregisterEditStationMutationKey,
+  eregisterEditStationMutationOptions,
+  useEregisterEditStation,
+} from "./useEregisterEditStation.js";
+export {
   eregisterEmailRegisterObservationMutationKey,
   eregisterEmailRegisterObservationMutationOptions,
   useEregisterEmailRegisterObservation,
 } from "./useEregisterEmailRegisterObservation.js";
+export {
+  eregisterGetRegistryStationQueryKey,
+  eregisterGetRegistryStationQueryOptions,
+  useEregisterGetRegistryStation,
+} from "./useEregisterGetRegistryStation.js";
 export {
   eregisterGetStationSettingsQueryKey,
   eregisterGetStationSettingsQueryOptions,
@@ -958,6 +973,11 @@ export {
   eregisterListRegisterObservationsQueryOptions,
   useEregisterListRegisterObservations,
 } from "./useEregisterListRegisterObservations.js";
+export {
+  eregisterListRegistryStationsQueryKey,
+  eregisterListRegistryStationsQueryOptions,
+  useEregisterListRegistryStations,
+} from "./useEregisterListRegistryStations.js";
 export {
   eregisterPublicCurrentConditionsQueryKey,
   eregisterPublicCurrentConditionsQueryOptions,
