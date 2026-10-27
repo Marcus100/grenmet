@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { existsSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { verifyManaged } from "../verification/managed.mjs";
 import {
@@ -99,6 +100,11 @@ export function testExecutor(
               : await run([cmd, ...trustedArgs], {
                   ...settings,
                   cwd: TRUSTED_ROOT,
+                  env: {
+                    ...env,
+                    HOME: homedir(),
+                    DOCKER_CONFIG: join(homedir(), ".docker"),
+                  },
                   timeout: 180_000,
                 });
           output.push(result.stdout);

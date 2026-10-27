@@ -6,7 +6,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -91,6 +91,8 @@ test("backend lifecycle stays outside the sandbox while the source test command 
     for (const host of calls.filter(
       (call) => call.argv[0] === "docker" || call.argv[0] === "uv"
     )) {
+      assert.equal(host.options.env.HOME, homedir());
+      assert.equal(host.options.env.DOCKER_CONFIG, join(homedir(), ".docker"));
       assert.ok(
         !(host.options.env?.PATH ?? "")
           .split(":")

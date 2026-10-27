@@ -188,3 +188,8 @@ and adds it to the child PATH. This avoids exposing a host-home pnpm wrapper.
 The disposable backend runs its package-manager prerequisite probe inside the
 sandbox. Host-side Docker orchestration retains the trusted host PATH; it must
 never execute wrappers or package-manager caches writable by sandboxed tasks.
+
+Host orchestration also selects the trusted host home and Docker configuration.
+Docker can load executable CLI plugins from its configuration directory, so a
+sandbox-writable home must never control host-side Docker plugin discovery.
+The isolated package-manager and test commands keep their disposable home.
