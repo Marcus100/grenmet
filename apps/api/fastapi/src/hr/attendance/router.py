@@ -11,7 +11,7 @@ from src.hr.filenames import timesheet_week_filename
 from src.hr.roster import service as roster_service
 from src.hr.roster.models import RosterAvailability
 from src.hr.workflow.models import WorkflowStatus
-from src.utils.filenames import content_disposition
+from src.utils.pdf_response import pdf_response
 
 from . import pdf, service
 from .models import AttendanceRecord
@@ -64,17 +64,7 @@ async def read_week_pdf(
         session=session, current_user=current_user, day=day, department_id=department_id
     )
     document = await run_in_threadpool(pdf.render_week_pdf, week)
-    return Response(
-        document,
-        media_type="application/pdf",
-        headers={
-            "Cache-Control": "private, no-store",
-            "X-Content-Type-Options": "nosniff",
-            "Content-Disposition": content_disposition(
-                "inline", timesheet_week_filename(week.period_start)
-            ),
-        },
-    )
+    return pdf_response(document, timesheet_week_filename(week.period_start))
 
 
 @router.get(

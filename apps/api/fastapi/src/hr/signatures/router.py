@@ -6,7 +6,7 @@ from fastapi import APIRouter, Query, Response
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.filenames import signed_document_filename
 from src.pagination import PaginationDep
-from src.utils.filenames import content_disposition
+from src.utils.pdf_response import pdf_response
 
 from . import service
 from .models import SavedSignature
@@ -147,20 +147,13 @@ async def download_signed_document(
     *, session: SessionDep, current_user: CurrentUser, document_id: uuid.UUID
 ) -> Response:
     record = await service.get_document(session, current_user, document_id)
-    return Response(
+    return pdf_response(
         record.pdf,
-        media_type="application/pdf",
-        headers={
-            "Cache-Control": "private, no-store",
-            "X-Content-Type-Options": "nosniff",
-            "Content-Disposition": content_disposition(
-                "attachment",
-                signed_document_filename(
-                    record.entity_type,
-                    record.signer_name,
-                    record.signed_at,
-                    record.revision,
-                ),
-            ),
-        },
+        signed_document_filename(
+            record.entity_type,
+            record.signer_name,
+            record.signed_at,
+            record.revision,
+        ),
+        "attachment",
     )

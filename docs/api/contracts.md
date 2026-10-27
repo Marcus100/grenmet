@@ -1494,7 +1494,10 @@ routes are unchanged), e.g. `GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf` o
 `Leave Application - <signer> - 2026-10-23.pdf`. Every PDF response sends an ASCII
 `filename` plus `filename*=UTF-8''...` (RFC 6266) from `src/utils/filenames.py`; the
 signer's name appears only on signed documents, where it is already printed.
-All signature and PDF responses use private, no-store caching. Signed PDFs, signer
+The five HR preview routes document these headers in `openapi.json`; every server-rendered PDF (HR, billing, wxproducts) is built by `pdf_response` in
+`src/utils/pdf_response.py`: private, no-store caching, `nosniff` and the RFC 6266 name;
+a guard test rejects hand-built PDF responses. All signature responses use private,
+no-store caching. Signed PDFs, signer
 identity, signature version, timestamp, canonical form snapshot and SHA-256 are
 committed with submission and remain unchanged when the saved signature changes.
 
