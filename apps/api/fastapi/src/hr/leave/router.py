@@ -9,7 +9,7 @@ from src.hr.filenames import preview_filename
 from src.hr.submission import submission_list, submission_public
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
-from src.utils.filenames import content_disposition
+from src.utils.pdf_response import PDF_HEADERS_DOC, pdf_response
 
 from . import service
 from .models import LeaveType
@@ -33,7 +33,11 @@ router = APIRouter(prefix="/hr", tags=["hr-leave"])
     summary="Preview a leave request PDF",
     description="Render an unsaved leave application using the same Python renderer as the signed PDF. No request or signature is stored.",
     responses={
-        200: {"content": {"application/pdf": {}}, "description": "Draft PDF preview"},
+        200: {
+            "content": {"application/pdf": {}},
+            "description": "Draft PDF preview",
+            "headers": PDF_HEADERS_DOC,
+        },
         400: {"description": "Invalid date order, day count or travel dates"},
         403: {"description": "Permission or department mismatch"},
         422: {"description": "Invalid leave request fields"},
@@ -45,17 +49,7 @@ async def preview_leave_request_pdf(
     pdf = await service.preview_leave_request_pdf(
         session=session, current_user=current_user, payload=payload
     )
-    return Response(
-        pdf,
-        media_type="application/pdf",
-        headers={
-            "Cache-Control": "private, no-store",
-            "X-Content-Type-Options": "nosniff",
-            "Content-Disposition": content_disposition(
-                "inline", preview_filename("leave_request")
-            ),
-        },
-    )
+    return pdf_response(pdf, preview_filename("leave_request"))
 
 
 @router.post(

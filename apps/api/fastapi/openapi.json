@@ -14913,6 +14913,26 @@
         "responses": {
           "200": {
             "description": "Draft PDF preview",
+            "headers": {
+              "Cache-Control": {
+                "description": "Always `private, no-store`.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "RFC 6266 `filename` and `filename*` for download and print.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "Always `nosniff`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {}
@@ -15424,6 +15444,26 @@
         "responses": {
           "200": {
             "description": "Draft PDF preview",
+            "headers": {
+              "Cache-Control": {
+                "description": "Always `private, no-store`.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "RFC 6266 `filename` and `filename*` for download and print.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "Always `nosniff`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {}
@@ -15791,6 +15831,26 @@
         "responses": {
           "200": {
             "description": "Draft PDF",
+            "headers": {
+              "Cache-Control": {
+                "description": "Always `private, no-store`.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "RFC 6266 `filename` and `filename*` for download and print.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "Always `nosniff`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/pdf": {}
             }
@@ -16350,6 +16410,26 @@
         "responses": {
           "200": {
             "description": "Successful Response",
+            "headers": {
+              "Cache-Control": {
+                "description": "Always `private, no-store`.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "RFC 6266 `filename` and `filename*` for download and print.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "Always `nosniff`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/pdf": {}
             }
@@ -16777,6 +16857,26 @@
         "responses": {
           "200": {
             "description": "Draft PDF",
+            "headers": {
+              "Cache-Control": {
+                "description": "Always `private, no-store`.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "RFC 6266 `filename` and `filename*` for download and print.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "Always `nosniff`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/pdf": {}
             }

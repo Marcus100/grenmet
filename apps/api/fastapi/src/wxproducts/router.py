@@ -10,7 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 
 from src.exceptions import NotFoundError
-from src.utils.filenames import content_disposition
+from src.utils.pdf_response import pdf_response
 
 from . import (
     advisories,
@@ -540,17 +540,8 @@ async def preview_product_pdf(
         guidance=body.guidance,
         graphic_images=await guidance.images(body.guidance),
     )
-    return Response(
-        content,
-        media_type="application/pdf",
-        headers={
-            **NO_STORE,
-            "Content-Disposition": content_disposition(
-                "inline",
-                product_pdf_filename(body.kind, values, recorded_at=None),
-            ),
-            "X-Content-Type-Options": "nosniff",
-        },
+    return pdf_response(
+        content, product_pdf_filename(body.kind, values, recorded_at=None)
     )
 
 
@@ -593,22 +584,15 @@ async def product_revision_pdf(
         )
     except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
-    return Response(
+    return pdf_response(
         content,
-        media_type="application/pdf",
-        headers={
-            **NO_STORE,
-            "Content-Disposition": content_disposition(
-                "attachment",
-                product_pdf_filename(
-                    source.kind,
-                    values_as_dict(source.values),
-                    recorded_at=source.recorded_at,
-                    revision=revision,
-                ),
-            ),
-            "X-Content-Type-Options": "nosniff",
-        },
+        product_pdf_filename(
+            source.kind,
+            values_as_dict(source.values),
+            recorded_at=source.recorded_at,
+            revision=revision,
+        ),
+        "attachment",
     )
 
 

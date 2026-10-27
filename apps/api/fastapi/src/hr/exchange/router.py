@@ -9,7 +9,7 @@ from src.hr.roster.schemas import RosterRulesPublic, RuleViolationPublic
 from src.hr.submission import submission_list, submission_public
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
-from src.utils.filenames import content_disposition
+from src.utils.pdf_response import PDF_HEADERS_DOC, pdf_response
 
 from . import service, swap_rules
 from .schemas import (
@@ -32,7 +32,11 @@ router = APIRouter(prefix="/hr", tags=["hr-exchange"])
     summary="Preview a shift exchange PDF",
     description="Render unsaved exchange values with resolved employee names without creating a request or signature.",
     responses={
-        200: {"content": {"application/pdf": {}}, "description": "Draft PDF"},
+        200: {
+            "content": {"application/pdf": {}},
+            "description": "Draft PDF",
+            "headers": PDF_HEADERS_DOC,
+        },
         400: {"description": "Invalid exchange"},
         403: {"description": "Insufficient permission"},
     },
@@ -43,17 +47,7 @@ async def preview_shift_swap(
     pdf = await service.preview_shift_swap_pdf(
         session=session, current_user=current_user, payload=payload
     )
-    return Response(
-        pdf,
-        media_type="application/pdf",
-        headers={
-            "Cache-Control": "private, no-store",
-            "X-Content-Type-Options": "nosniff",
-            "Content-Disposition": content_disposition(
-                "inline", preview_filename("shift_swap")
-            ),
-        },
-    )
+    return pdf_response(pdf, preview_filename("shift_swap"))
 
 
 @router.get(

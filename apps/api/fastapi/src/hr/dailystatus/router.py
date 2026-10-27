@@ -8,7 +8,7 @@ from src.hr.dependencies import StatusReportDep
 from src.hr.filenames import preview_filename
 from src.hr.submission import submission_list, submission_public
 from src.pagination import PaginationDep
-from src.utils.filenames import content_disposition
+from src.utils.pdf_response import PDF_HEADERS_DOC, pdf_response
 
 from . import service
 from .schemas import (
@@ -62,7 +62,7 @@ async def get_status_staffing(
     summary="Preview a daily status report PDF",
     description="Render unsaved status values using the signed-document Python renderer. No report, workflow or signature is saved. Requires scoped status.report.create permission.",
     responses={
-        200: {"content": {"application/pdf": {}}},
+        200: {"content": {"application/pdf": {}}, "headers": PDF_HEADERS_DOC},
         400: {"description": "Invalid report values"},
         403: {"description": "Department access denied"},
         404: {"description": "Department not found"},
@@ -74,17 +74,7 @@ async def preview_status_report_pdf(
     pdf = await service.preview_status_report_pdf(
         session=session, actor=current_user, payload=payload
     )
-    return Response(
-        content=pdf,
-        media_type="application/pdf",
-        headers={
-            "Cache-Control": "private, no-store",
-            "X-Content-Type-Options": "nosniff",
-            "Content-Disposition": content_disposition(
-                "inline", preview_filename("status_report")
-            ),
-        },
-    )
+    return pdf_response(pdf, preview_filename("status_report"))
 
 
 @router.post(
