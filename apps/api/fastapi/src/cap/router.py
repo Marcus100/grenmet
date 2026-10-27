@@ -7,6 +7,7 @@ from fastapi.responses import RedirectResponse
 
 from src.cap import attachments, cache, escalation, service
 from src.cap.geo import alerts_to_feature_collection
+from src.cap.ibf_router import router as ibf_router
 from src.cap.models import CapLifecycleState, CapMessageType, CapStatus
 from src.cap.profile_router import router as profile_router
 from src.cap.schemas import (
@@ -42,6 +43,7 @@ from src.wxproducts.dependencies import AuthoringSessionDep
 
 router = APIRouter(prefix="/cap", tags=["cap"])
 router.include_router(profile_router)
+router.include_router(ibf_router)
 public_router = APIRouter(prefix="/api/cap", tags=["cap-public"])
 
 

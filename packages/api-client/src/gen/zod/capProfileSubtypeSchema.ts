@@ -5,6 +5,9 @@
 
 import * as z from "zod";
 import { capCategorySchema } from "./capCategorySchema.js";
+import { capProfileCellTextSchema } from "./capProfileCellTextSchema.js";
+import { capProfileColourResponseSchema } from "./capProfileColourResponseSchema.js";
+import { capProfileImpactLevelSchema } from "./capProfileImpactLevelSchema.js";
 import { capProfileRuleSchema } from "./capProfileRuleSchema.js";
 
 export const capProfileSubtypeSchema = z.object({
@@ -15,4 +18,7 @@ export const capProfileSubtypeSchema = z.object({
   impacts: z.array(z.string()).max(50).optional(),
   responses: z.array(z.string()).max(50).optional(),
   affected_groups: z.array(z.string()).max(50).optional(),
+  impact_levels: z.array(capProfileImpactLevelSchema).max(4).optional(),
+  colour_responses: z.array(capProfileColourResponseSchema).max(4).optional(),
+  cell_texts: z.array(capProfileCellTextSchema).max(16).optional(),
 });

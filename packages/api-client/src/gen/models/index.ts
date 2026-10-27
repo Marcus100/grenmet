@@ -1892,6 +1892,16 @@ export type {
   CapGetHazardProfilesStatus422,
 } from "./CapGetHazardProfiles.js";
 export type {
+  CapGetIbfMatrixOptions,
+  CapGetIbfMatrixQuery,
+  CapGetIbfMatrixResponse,
+  CapGetIbfMatrixResponses,
+  CapGetIbfMatrixStatus200,
+  CapGetIbfMatrixStatus401,
+  CapGetIbfMatrixStatus403,
+  CapGetIbfMatrixStatus422,
+} from "./CapGetIbfMatrix.js";
+export type {
   CapGetIntegrationsOptions,
   CapGetIntegrationsResponse,
   CapGetIntegrationsResponses,
@@ -1975,12 +1985,20 @@ export { capMessageType } from "./CapMessageType.js";
 export type { CapNameValue } from "./CapNameValue.js";
 export type { CapPredefinedAreaCreate } from "./CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./CapPredefinedAreaPublic.js";
+export type { CapProfileCellText } from "./CapProfileCellText.js";
+export type { CapProfileCellTextPropertiesImpactEnum } from "./CapProfileCellTextPropertiesImpactEnum.js";
+export { capProfileCellTextPropertiesImpactEnum } from "./CapProfileCellTextPropertiesImpactEnum.js";
+export type { CapProfileCellTextPropertiesLikelihoodEnum } from "./CapProfileCellTextPropertiesLikelihoodEnum.js";
+export { capProfileCellTextPropertiesLikelihoodEnum } from "./CapProfileCellTextPropertiesLikelihoodEnum.js";
+export type { CapProfileColourResponse } from "./CapProfileColourResponse.js";
 export type { CapProfileDefinition } from "./CapProfileDefinition.js";
 export type { CapProfileDefinitionPropertiesChannelsItemsEnum } from "./CapProfileDefinitionPropertiesChannelsItemsEnum.js";
 export { capProfileDefinitionPropertiesChannelsItemsEnum } from "./CapProfileDefinitionPropertiesChannelsItemsEnum.js";
 export type { CapProfileDraftRequest } from "./CapProfileDraftRequest.js";
 export type { CapProfileDraftRequestPropertiesLevelEnum } from "./CapProfileDraftRequestPropertiesLevelEnum.js";
 export { capProfileDraftRequestPropertiesLevelEnum } from "./CapProfileDraftRequestPropertiesLevelEnum.js";
+export type { CapProfileImpactLevel } from "./CapProfileImpactLevel.js";
+export type { CapProfileMatrix } from "./CapProfileMatrix.js";
 export type { CapProfilePublic } from "./CapProfilePublic.js";
 export type { CapProfilePublicPropertiesStateEnum } from "./CapProfilePublicPropertiesStateEnum.js";
 export { capProfilePublicPropertiesStateEnum } from "./CapProfilePublicPropertiesStateEnum.js";
@@ -2055,6 +2073,16 @@ export type {
   CapSubmitAlertStatus404,
   CapSubmitAlertStatus422,
 } from "./CapSubmitAlert.js";
+export type {
+  CapSuggestIbfOptions,
+  CapSuggestIbfQuery,
+  CapSuggestIbfResponse,
+  CapSuggestIbfResponses,
+  CapSuggestIbfStatus200,
+  CapSuggestIbfStatus401,
+  CapSuggestIbfStatus403,
+  CapSuggestIbfStatus422,
+} from "./CapSuggestIbf.js";
 export type {
   CapUpdateAlertBody,
   CapUpdateAlertOptions,
@@ -5151,6 +5179,9 @@ export type {
   HrValidateGridStatus404,
   HrValidateGridStatus422,
 } from "./HrValidateGrid.js";
+export type { IbfLevelPublic } from "./IbfLevelPublic.js";
+export type { IbfMatrixPublic } from "./IbfMatrixPublic.js";
+export type { IbfSuggestion } from "./IbfSuggestion.js";
 export type { ImageInput } from "./ImageInput.js";
 export type { ImageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBasisEnum.js";
 export { imageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBasisEnum.js";

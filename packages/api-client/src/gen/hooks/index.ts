@@ -759,6 +759,11 @@ export {
   useCapGetHazardProfiles,
 } from "./useCapGetHazardProfiles.js";
 export {
+  capGetIbfMatrixQueryKey,
+  capGetIbfMatrixQueryOptions,
+  useCapGetIbfMatrix,
+} from "./useCapGetIbfMatrix.js";
+export {
   capGetIntegrationsQueryKey,
   capGetIntegrationsQueryOptions,
   useCapGetIntegrations,
@@ -823,6 +828,11 @@ export {
   capSubmitAlertMutationOptions,
   useCapSubmitAlert,
 } from "./useCapSubmitAlert.js";
+export {
+  capSuggestIbfQueryKey,
+  capSuggestIbfQueryOptions,
+  useCapSuggestIbf,
+} from "./useCapSuggestIbf.js";
 export {
   capUpdateAlertMutationKey,
   capUpdateAlertMutationOptions,
