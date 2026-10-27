@@ -24,9 +24,15 @@ from .schemas import ALL_HOURS, StationCreate, StationRecord, StationUpdate
 
 AUDIT_ENTITY = "eregister_station"
 FIELDS = ("name", "wigos_id", "source_kind", "manual_hours_utc", "active")
-_COLUMNS = (
-    "station_id, name, wigos_id, source_kind, schedule, manual_hours_utc, active,"
-    " created_at, updated_at"
+_LIST = text(
+    "SELECT station_id, name, wigos_id, source_kind, schedule, manual_hours_utc,"
+    " active, created_at, updated_at FROM observations.stations"
+    " WHERE active OR CAST(:inactive AS boolean) ORDER BY station_id"
+)
+_ONE = text(
+    "SELECT station_id, name, wigos_id, source_kind, schedule, manual_hours_utc,"
+    " active, created_at, updated_at FROM observations.stations"
+    " WHERE station_id = :station"
 )
 _WIGOS_INDEX = "stations_wigos_id_key"
 
@@ -63,10 +69,7 @@ async def list_stations(
     register: AsyncSession, *, include_inactive: bool = True
 ) -> list[StationRecord]:
     result = await register.execute(
-        text(
-            f"SELECT {_COLUMNS} FROM observations.stations"  # noqa: S608
-            " WHERE active OR CAST(:inactive AS boolean) ORDER BY station_id"
-        ),
+        _LIST,
         {"inactive": include_inactive},
     )
     return [_record(row) for row in result.mappings()]
@@ -74,10 +77,7 @@ async def list_stations(
 
 async def get(register: AsyncSession, station_id: str) -> StationRecord | None:
     result = await register.execute(
-        text(
-            f"SELECT {_COLUMNS} FROM observations.stations"  # noqa: S608
-            " WHERE station_id = :station"
-        ),
+        _ONE,
         {"station": station_id},
     )
     row = result.mappings().first()

@@ -1,4 +1,3 @@
-# ruff: noqa: F811
 """Station registry (ADR-0032): list, add and edit stations."""
 
 import httpx
@@ -11,11 +10,12 @@ from src.audit.models import AuditEntry
 from src.auth.browser import get_browser_or_token_user
 from src.main import app
 
-from .test_eregister_entry_rules import (  # noqa: F401  (fixtures)
-    _user,
-    register_db,
-    staff_client,
-)
+from . import test_eregister_entry_rules as base
+
+# Reuse the register-database and staff-client fixtures of the entry-rules tests.
+register_db = base.register_db
+staff_client = base.staff_client
+_user = base._user
 
 URL = "/api/v1/eregister/stations"
 AWS = {
