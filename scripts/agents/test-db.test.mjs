@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 const SCRIPT = fileURLToPath(new URL("./test-db.sh", import.meta.url));
 const USAGE = /usage: scripts\/agents\/test-db\.sh/;
 const ABSENT = /absent/;
+const NOT_A_TEST_NAME = /must end in -test/;
 const READY_LINE = /test-db: ready on 127\.0\.0\.1:5433/;
 const IMAGE_PIN = /postgis\/postgis:17-3\.5@sha256:[0-9a-f]{64}/;
 const COMPOSE = readFileSync(
@@ -49,11 +50,17 @@ function fixture(t, initial) {
     ].join("\n"),
     { mode: 0o755 }
   );
-  const run = (...args) =>
+  const run = (...args) => runWith({}, ...args);
+  const runWith = (extraEnv, ...args) =>
     spawnSync("bash", [SCRIPT, ...args], {
       encoding: "utf8",
       env: {
-        ...process.env,
+        ...Object.fromEntries(
+          Object.entries(process.env).filter(
+            ([key]) => !key.startsWith("TEST_DB_")
+          )
+        ),
+        ...extraEnv,
         PATH: `${bin}${delimiter}${process.env.PATH}`,
         STUB_STATE: root,
       },
@@ -64,7 +71,7 @@ function fixture(t, initial) {
       ? readFileSync(file, "utf8").trim().split("\n")
       : [];
   };
-  return { run, calls };
+  return { run, runWith, calls };
 }
 
 test("up creates the container with durability off, in RAM, on loopback only", (t) => {
@@ -113,6 +120,25 @@ test("down removes it, and removing an absent container is fine", (t) => {
   assert.equal(run("down").status, 0);
   assert.ok(calls().some((line) => line.startsWith("rm -f")));
   assert.equal(fixture(t).run("down").status, 0);
+});
+
+test("it refuses a container name that is not a test container", (t) => {
+  const { runWith, calls } = fixture(t, "running");
+  for (const name of ["grenmet-postgres", "app-db"]) {
+    for (const command of ["up", "down"]) {
+      const result = runWith({ TEST_DB_CONTAINER: name }, command);
+      assert.equal(result.status, 2, `${name} ${command}`);
+      assert.match(result.stderr, NOT_A_TEST_NAME);
+    }
+  }
+  assert.deepEqual(calls(), []);
+});
+
+test("it is committed executable, as the docs run it directly", () => {
+  const { stdout } = spawnSync("git", ["ls-files", "-s", SCRIPT], {
+    encoding: "utf8",
+  });
+  assert.ok(stdout.startsWith("100755"), stdout);
 });
 
 test("it refuses an unknown command", (t) => {

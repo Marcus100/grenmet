@@ -151,7 +151,10 @@ in gaa-admin. Schema changes are Ask First.
 scripts, data in RAM, `fsync`, `synchronous_commit` and `full_page_writes` off,
 300 connections. `down` removes it; `status` says whether it is ready. It never
 touches the development database on 5432, and a crash loses everything in it by
-design, so nothing but tests may use it.
+design, so nothing but tests may use it. It is for the host: the port is bound
+to the host's loopback, so from the agent devcontainer the probe finds nothing
+and tests keep using `host.docker.internal:5432`. Keep 5433 free for it;
+`api-env.sh` uses whatever listens there and prints a line saying so.
 
 While it is running, `scripts/agents/api-env.sh` (and so `pnpm verify:changed`)
 uses it automatically, on `127.0.0.1`, when `POSTGRES_SERVER` and `POSTGRES_PORT`
