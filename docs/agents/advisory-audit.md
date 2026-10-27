@@ -180,3 +180,7 @@ grant write access to the main checkout to accommodate a tool cache.
 Trivy summary CVE counts include only `CVE-YYYY-NNNN` identifiers. Other
 vulnerability identifiers stay in the report as non-CVE findings and retain
 their alert numbers; duplicate alerts do not inflate the distinct count.
+
+Turbo also launches pnpm for individual tasks. The executor creates a quoted
+corepack wrapper in a fresh bin directory under its confined disposable home
+and adds it to the child PATH. This avoids exposing a host-home pnpm wrapper.

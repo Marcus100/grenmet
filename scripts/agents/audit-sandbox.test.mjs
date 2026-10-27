@@ -162,3 +162,32 @@ test("pnpm uses login runtime corepack despite a hidden HOME-dependent wrapper",
   );
   assert.ok(args.includes("HOME=/tmp/owned/home"));
 });
+
+import { spawnSync } from "node:child_process";
+import { preparePnpmShim } from "./audit-executor.mjs";
+
+test("nested pnpm uses the disposable shim with the selected corepack and preserves arguments", () => {
+  const root = mkdtempSync(join(tmpdir(), "audit-pnpm-child-"));
+  try {
+    const home = join(root, "home");
+    mkdirSync(home);
+    const corepack = join(root, "corepack's runtime");
+    writeFileSync(corepack, '#!/bin/sh\nprintf "%s\\n" "$@"\n', {
+      mode: 0o755,
+    });
+    const bin = preparePnpmShim(root, home, corepack);
+    const child = spawnSync(
+      join(bin, "pnpm"),
+      ["run", "argument with spaces"],
+      { env: { PATH: "/usr/bin:/bin", HOME: home }, encoding: "utf8" }
+    );
+    assert.equal(child.status, 0, child.stderr);
+    assert.deepEqual(child.stdout.trim().split("\n"), [
+      "pnpm",
+      "run",
+      "argument with spaces",
+    ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
