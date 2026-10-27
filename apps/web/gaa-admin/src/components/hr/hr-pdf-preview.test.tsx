@@ -136,7 +136,7 @@ it("renders only when Preview is selected and flags edits made afterwards", asyn
     "src",
     "blob:hr-preview#toolbar=0&navpanes=0&view=FitH"
   );
-  expect(screen.queryByText("Preview out of date")).toBeNull();
+  expect(screen.queryByText("Changes pending")).toBeNull();
 
   view.rerender(
     <HrPdfPreview
@@ -148,14 +148,14 @@ it("renders only when Preview is selected and flags edits made afterwards", asyn
   );
   await act(() => vi.advanceTimersByTimeAsync(5000));
   expect(request).toHaveBeenCalledTimes(1);
-  expect(screen.getByText("Preview out of date")).toBeInTheDocument();
+  expect(screen.getByText("Changes pending")).toBeInTheDocument();
 
   await previewNow();
   expect(request).toHaveBeenCalledTimes(2);
   expect(JSON.parse(request.mock.calls[1]?.[1]?.body)).toMatchObject({
     days_requested: "2",
   });
-  expect(screen.queryByText("Preview out of date")).toBeNull();
+  expect(screen.queryByText("Changes pending")).toBeNull();
 });
 
 it("keeps Preview disabled until the required fields are entered", () => {
