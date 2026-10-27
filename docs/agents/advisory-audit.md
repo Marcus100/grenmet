@@ -171,3 +171,12 @@ Systemd starts a WSL login shell to select the host Node runtime. Isolated check
 invoke pnpm through corepack in that runtime, avoiding a home-dependent wrapper
 hidden by `ProtectHome`. Separate HOME/cache and credential isolation remain.
 Runner changes require owner merge; host validation does not merge the PR.
+
+Turbo checks explicitly select the disposable checkout and its `.turbo/cache`.
+Git worktree discovery can otherwise resolve the main checkout as the cache
+root, which is intentionally read-only inside the sandbox. The sandbox does not
+grant write access to the main checkout to accommodate a tool cache.
+
+Trivy summary CVE counts include only `CVE-YYYY-NNNN` identifiers. Other
+vulnerability identifiers stay in the report as non-CVE findings and retain
+their alert numbers; duplicate alerts do not inflate the distinct count.

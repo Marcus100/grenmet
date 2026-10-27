@@ -307,8 +307,36 @@ export function sixHourlyPlan(root) {
       timeout: 900_000,
       prerequisite: true,
     },
-    { id: "types", argv: ["pnpm", "type-check"], timeout: 1_800_000 },
-    { id: "lint", argv: ["pnpm", "check"], timeout: 1_200_000 },
+    {
+      id: "types",
+      argv: [
+        "pnpm",
+        "exec",
+        "turbo",
+        "run",
+        "type-check",
+        "--cwd",
+        root,
+        "--cache-dir",
+        join(root, ".turbo/cache"),
+      ],
+      timeout: 1_800_000,
+    },
+    {
+      id: "lint",
+      argv: [
+        "pnpm",
+        "exec",
+        "turbo",
+        "run",
+        "check",
+        "--cwd",
+        root,
+        "--cache-dir",
+        join(root, ".turbo/cache"),
+      ],
+      timeout: 1_200_000,
+    },
     {
       id: "python-install",
       argv: [
