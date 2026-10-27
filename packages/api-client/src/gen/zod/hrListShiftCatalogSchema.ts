@@ -28,3 +28,7 @@ export const hrListShiftCatalogErrorSchema = z.union([
   hrListShiftCatalogStatus403Schema,
   hrListShiftCatalogStatus422Schema,
 ]);
+
+export const hrListShiftCatalogQuerySchema = z.object({
+  include_inactive: z.boolean().optional().default(false),
+});

@@ -34,3 +34,7 @@ export const hrUpdateStatusReportErrorSchema = z.union([
 ]);
 
 export const hrUpdateStatusReportBodySchema = statusReportCreateSchema;
+
+export const hrUpdateStatusReportPathSchema = z.object({
+  report_id: z.uuid(),
+});

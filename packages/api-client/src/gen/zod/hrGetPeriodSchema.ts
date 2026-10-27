@@ -27,3 +27,7 @@ export const hrGetPeriodErrorSchema = z.union([
   hrGetPeriodStatus404Schema,
   hrGetPeriodStatus422Schema,
 ]);
+
+export const hrGetPeriodPathSchema = z.object({
+  period_id: z.uuid(),
+});

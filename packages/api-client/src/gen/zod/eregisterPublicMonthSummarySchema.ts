@@ -32,3 +32,10 @@ export const eregisterPublicMonthSummaryErrorSchema = z.union([
   eregisterPublicMonthSummaryStatus429Schema,
   eregisterPublicMonthSummaryStatus503Schema,
 ]);
+
+export const eregisterPublicMonthSummaryQuerySchema = z.object({
+  month: z
+    .union([z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/), z.null()])
+    .optional()
+    .meta({ examples: ["2026-10"] }),
+});

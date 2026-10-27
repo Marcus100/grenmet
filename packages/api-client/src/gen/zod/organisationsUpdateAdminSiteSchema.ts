@@ -40,3 +40,7 @@ export const organisationsUpdateAdminSiteBodySchema =
   publicSiteUpdateSchema.describe(
     "Only the fields sent change. Send ``null`` to clear a nullable setting,\nincluding ``turnstile_secret``. The key and owner never change."
   );
+
+export const organisationsUpdateAdminSitePathSchema = z.object({
+  site_id: z.string(),
+});

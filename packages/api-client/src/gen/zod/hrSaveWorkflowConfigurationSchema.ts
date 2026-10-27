@@ -36,3 +36,7 @@ export const hrSaveWorkflowConfigurationErrorSchema = z.union([
 
 export const hrSaveWorkflowConfigurationBodySchema =
   workflowConfigurationInputSchema;
+
+export const hrSaveWorkflowConfigurationPathSchema = z.object({
+  template_id: z.uuid(),
+});

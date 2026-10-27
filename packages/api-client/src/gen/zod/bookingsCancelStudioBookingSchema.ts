@@ -52,3 +52,16 @@ export const bookingsCancelStudioBookingErrorSchema = z.union([
 ]);
 
 export const bookingsCancelStudioBookingBodySchema = bookingStudioCancelSchema;
+
+export const bookingsCancelStudioBookingPathSchema = z.object({
+  booking_id: z.uuid().describe("The booking's id."),
+});
+
+export const bookingsCancelStudioBookingHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+    ),
+});

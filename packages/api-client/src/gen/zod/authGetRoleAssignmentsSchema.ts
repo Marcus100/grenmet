@@ -31,3 +31,7 @@ export const authGetRoleAssignmentsErrorSchema = z.union([
   authGetRoleAssignmentsStatus403Schema,
   authGetRoleAssignmentsStatus422Schema,
 ]);
+
+export const authGetRoleAssignmentsQuerySchema = z.object({
+  user_id: z.union([z.uuid(), z.null()]).optional(),
+});

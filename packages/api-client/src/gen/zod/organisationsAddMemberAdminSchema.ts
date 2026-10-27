@@ -40,3 +40,7 @@ export const organisationsAddMemberAdminBodySchema =
   platformMemberAddSchema.describe(
     "Superuser adds a person (by account id or email) as a member, with a reason."
   );
+
+export const organisationsAddMemberAdminPathSchema = z.object({
+  organisation_id: z.string(),
+});

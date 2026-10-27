@@ -47,3 +47,16 @@ export const rewardsOrgPauseChallengeErrorSchema = z.union([
   rewardsOrgPauseChallengeStatus409Schema,
   rewardsOrgPauseChallengeStatus422Schema,
 ]);
+
+export const rewardsOrgPauseChallengePathSchema = z.object({
+  challenge_id: z.uuid(),
+});
+
+export const rewardsOrgPauseChallengeHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

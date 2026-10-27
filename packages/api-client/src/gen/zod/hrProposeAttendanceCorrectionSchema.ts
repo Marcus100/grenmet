@@ -39,3 +39,7 @@ export const hrProposeAttendanceCorrectionErrorSchema = z.union([
 
 export const hrProposeAttendanceCorrectionBodySchema =
   attendanceCorrectionCreateSchema;
+
+export const hrProposeAttendanceCorrectionPathSchema = z.object({
+  attendance_id: z.uuid(),
+});

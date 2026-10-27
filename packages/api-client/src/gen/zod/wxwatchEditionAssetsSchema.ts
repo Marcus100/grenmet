@@ -31,3 +31,7 @@ export const wxwatchEditionAssetsErrorSchema = z.union([
   wxwatchEditionAssetsStatus404Schema,
   wxwatchEditionAssetsStatus422Schema,
 ]);
+
+export const wxwatchEditionAssetsPathSchema = z.object({
+  edition_id: z.uuid(),
+});

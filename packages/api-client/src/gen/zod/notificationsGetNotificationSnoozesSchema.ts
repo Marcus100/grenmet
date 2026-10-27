@@ -29,3 +29,7 @@ export const notificationsGetNotificationSnoozesErrorSchema = z.union([
   notificationsGetNotificationSnoozesStatus403Schema,
   notificationsGetNotificationSnoozesStatus422Schema,
 ]);
+
+export const notificationsGetNotificationSnoozesQuerySchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+});

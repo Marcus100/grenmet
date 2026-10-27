@@ -41,3 +41,8 @@ export const hrGetAttendanceReviewErrorSchema = z.union([
   hrGetAttendanceReviewStatus409Schema,
   hrGetAttendanceReviewStatus422Schema,
 ]);
+
+export const hrGetAttendanceReviewQuerySchema = z.object({
+  attendance_id: z.union([z.uuid(), z.null()]).optional(),
+  correction_id: z.union([z.uuid(), z.null()]).optional(),
+});

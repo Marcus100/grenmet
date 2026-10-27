@@ -67,3 +67,21 @@ export const bookingsGetAgendaErrorSchema = z.union([
   bookingsGetAgendaStatus404Schema,
   bookingsGetAgendaStatus422Schema,
 ]);
+
+export const bookingsGetAgendaQuerySchema = z.object({
+  from_date: z.iso.date(),
+  to_date: z.iso.date(),
+  provider_id: z.union([z.uuid(), z.null()]).optional(),
+  status: z.union([z.array(bookingStatusSchema), z.null()]).optional(),
+  limit: z.int().min(1).max(500).optional().default(200),
+  offset: z.int().min(0).max(100000).optional().default(0),
+});
+
+export const bookingsGetAgendaHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+    ),
+});

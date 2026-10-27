@@ -30,3 +30,15 @@ export const wxwatchLatestStatus422Schema =
 export const wxwatchLatestResponseSchema = wxwatchLatestStatus200Schema;
 
 export const wxwatchLatestErrorSchema = wxwatchLatestStatus422Schema;
+
+export const wxwatchLatestQuerySchema = z.object({
+  product: z
+    .union([
+      z
+        .string()
+        .max(100)
+        .regex(/^[A-Za-z0-9_. :-]+$/),
+      z.null(),
+    ])
+    .optional(),
+});

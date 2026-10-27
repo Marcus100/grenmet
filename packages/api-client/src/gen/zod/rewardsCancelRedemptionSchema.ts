@@ -37,3 +37,7 @@ export const rewardsCancelRedemptionErrorSchema = z.union([
   rewardsCancelRedemptionStatus409Schema,
   rewardsCancelRedemptionStatus422Schema,
 ]);
+
+export const rewardsCancelRedemptionPathSchema = z.object({
+  redemption_id: z.uuid(),
+});

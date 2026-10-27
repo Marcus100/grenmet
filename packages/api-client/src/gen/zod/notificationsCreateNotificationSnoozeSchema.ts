@@ -38,3 +38,7 @@ export const notificationsCreateNotificationSnoozeErrorSchema = z.union([
 
 export const notificationsCreateNotificationSnoozeBodySchema =
   notificationSnoozeCreateSchema;
+
+export const notificationsCreateNotificationSnoozeQuerySchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+});

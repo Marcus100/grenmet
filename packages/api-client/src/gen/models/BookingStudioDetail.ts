@@ -9,7 +9,7 @@ import type { BookingStudioCustomer } from "./BookingStudioCustomer.js";
 import type { BookingStudioEvent } from "./BookingStudioEvent.js";
 
 /**
- * @description A booking as the business sees it, with the customer\'s contact details.
+ * @description A booking as the business sees it, with the customer's contact details.
  * @type object
  */
 export type BookingStudioDetail = {

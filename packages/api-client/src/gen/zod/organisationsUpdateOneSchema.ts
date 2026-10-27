@@ -41,3 +41,7 @@ export const organisationsUpdateOneBodySchema =
   platformOrganisationUpdateSchema.describe(
     "Only the fields sent change. At least one is required."
   );
+
+export const organisationsUpdateOnePathSchema = z.object({
+  organisation_id: z.string(),
+});

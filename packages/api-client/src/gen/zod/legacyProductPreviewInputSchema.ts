@@ -9,7 +9,7 @@ import { productGuidanceSchema } from "./productGuidanceSchema.js";
 
 export const legacyProductPreviewInputSchema = z.strictObject({
   guidance: z.union([productGuidanceSchema, z.null()]).optional(),
-  values: z.record(z.string(), z.string().max(12000)),
+  values: z.record(z.string().max(80), z.string().max(12000)),
   expectedRevision: z.int().min(0),
   changeSummary: z.string().max(1000),
   kind: legacyProductPreviewPropertiesKindEnumSchema,

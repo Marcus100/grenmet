@@ -25,3 +25,7 @@ export const hrGetDepartmentRulesErrorSchema = z.union([
   hrGetDepartmentRulesStatus403Schema,
   hrGetDepartmentRulesStatus422Schema,
 ]);
+
+export const hrGetDepartmentRulesPathSchema = z.object({
+  department_id: z.string(),
+});

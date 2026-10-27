@@ -37,3 +37,7 @@ export const hrUpdateStaffSetupErrorSchema = z.union([
 ]);
 
 export const hrUpdateStaffSetupBodySchema = staffInputSchema;
+
+export const hrUpdateStaffSetupPathSchema = z.object({
+  user_id: z.uuid(),
+});

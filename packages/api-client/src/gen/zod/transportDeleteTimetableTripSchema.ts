@@ -40,3 +40,8 @@ export const transportDeleteTimetableTripErrorSchema = z.union([
   transportDeleteTimetableTripStatus422Schema,
   transportDeleteTimetableTripStatus503Schema,
 ]);
+
+export const transportDeleteTimetableTripPathSchema = z.object({
+  version_id: z.int(),
+  trip_id: z.int(),
+});

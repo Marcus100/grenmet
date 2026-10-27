@@ -31,3 +31,7 @@ export const rewardsAdminListFlagsErrorSchema = z.union([
   rewardsAdminListFlagsStatus403Schema,
   rewardsAdminListFlagsStatus422Schema,
 ]);
+
+export const rewardsAdminListFlagsQuerySchema = z.object({
+  include_resolved: z.boolean().optional().default(false),
+});

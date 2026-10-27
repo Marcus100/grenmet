@@ -34,3 +34,7 @@ export const wxwatchRequestStatusErrorSchema = z.union([
   wxwatchRequestStatusStatus422Schema,
   wxwatchRequestStatusStatus503Schema,
 ]);
+
+export const wxwatchRequestStatusPathSchema = z.object({
+  job_id: z.uuid(),
+});

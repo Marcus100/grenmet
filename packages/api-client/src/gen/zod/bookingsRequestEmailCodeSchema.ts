@@ -41,3 +41,7 @@ export const bookingsRequestEmailCodeBodySchema =
   bookingEmailCodeRequestSchema.describe(
     "Ask for a code to be emailed before a deposit booking."
   );
+
+export const bookingsRequestEmailCodePathSchema = z.object({
+  slug: z.string().max(60),
+});

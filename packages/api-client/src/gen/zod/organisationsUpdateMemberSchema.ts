@@ -49,3 +49,17 @@ export const organisationsUpdateMemberErrorSchema = z.union([
 ]);
 
 export const organisationsUpdateMemberBodySchema = memberRoleUpdateSchema;
+
+export const organisationsUpdateMemberPathSchema = z.object({
+  organisation_id: z.string(),
+  membership_id: z.string(),
+});
+
+export const organisationsUpdateMemberHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

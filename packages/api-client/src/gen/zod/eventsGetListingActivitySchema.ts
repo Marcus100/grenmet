@@ -50,3 +50,15 @@ export const eventsGetListingActivityErrorSchema = z.union([
   eventsGetListingActivityStatus422Schema,
   eventsGetListingActivityStatus429Schema,
 ]);
+
+export const eventsGetListingActivityPathSchema = z.object({
+  listing_id: z.uuid(),
+});
+
+export const eventsGetListingActivityQuerySchema = z.object({
+  organiser: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional()
+    .describe("Organiser to act for when the member manages several."),
+  limit: z.int().min(1).max(200).optional().default(50),
+});

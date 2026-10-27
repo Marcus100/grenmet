@@ -30,3 +30,7 @@ export const eventsGetMyTicketErrorSchema = z.union([
   eventsGetMyTicketStatus422Schema,
   eventsGetMyTicketStatus429Schema,
 ]);
+
+export const eventsGetMyTicketPathSchema = z.object({
+  ticket_id: z.uuid(),
+});

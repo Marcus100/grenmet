@@ -40,3 +40,7 @@ export const transportDiscardTimetableDraftErrorSchema = z.union([
   transportDiscardTimetableDraftStatus422Schema,
   transportDiscardTimetableDraftStatus503Schema,
 ]);
+
+export const transportDiscardTimetableDraftPathSchema = z.object({
+  version_id: z.int(),
+});

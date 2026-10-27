@@ -36,3 +36,7 @@ export const eventsSendMessageErrorSchema = z.union([
 ]);
 
 export const eventsSendMessageBodySchema = messageCreateSchema;
+
+export const eventsSendMessagePathSchema = z.object({
+  thread_id: z.uuid(),
+});

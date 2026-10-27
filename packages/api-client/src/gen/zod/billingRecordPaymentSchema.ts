@@ -37,3 +37,7 @@ export const billingRecordPaymentErrorSchema = z.union([
 ]);
 
 export const billingRecordPaymentBodySchema = paymentCreateSchema;
+
+export const billingRecordPaymentPathSchema = z.object({
+  invoice_id: z.uuid(),
+});

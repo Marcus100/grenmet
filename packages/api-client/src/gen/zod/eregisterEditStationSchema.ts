@@ -37,3 +37,7 @@ export const eregisterEditStationErrorSchema = z.union([
 export const eregisterEditStationBodySchema = stationUpdateSchema.describe(
   "Change a station; omitted keys stay as they are. `station_id` is fixed."
 );
+
+export const eregisterEditStationPathSchema = z.object({
+  station_id: z.string(),
+});

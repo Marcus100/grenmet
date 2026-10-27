@@ -30,3 +30,7 @@ export const billingDownloadInvoicePdfErrorSchema = z.union([
   billingDownloadInvoicePdfStatus404Schema,
   billingDownloadInvoicePdfStatus422Schema,
 ]);
+
+export const billingDownloadInvoicePdfPathSchema = z.object({
+  invoice_id: z.uuid(),
+});

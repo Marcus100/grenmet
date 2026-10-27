@@ -28,3 +28,7 @@ export const organisationsGetPublicSiteErrorSchema = z.union([
   organisationsGetPublicSiteStatus404Schema,
   organisationsGetPublicSiteStatus422Schema,
 ]);
+
+export const organisationsGetPublicSitePathSchema = z.object({
+  site_key: z.string().max(40),
+});

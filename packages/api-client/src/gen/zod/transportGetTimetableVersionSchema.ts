@@ -36,3 +36,7 @@ export const transportGetTimetableVersionErrorSchema = z.union([
   transportGetTimetableVersionStatus422Schema,
   transportGetTimetableVersionStatus503Schema,
 ]);
+
+export const transportGetTimetableVersionPathSchema = z.object({
+  version_id: z.int(),
+});

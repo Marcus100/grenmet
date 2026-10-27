@@ -29,3 +29,7 @@ export const capDeleteFeedErrorSchema = z.union([
   capDeleteFeedStatus404Schema,
   capDeleteFeedStatus422Schema,
 ]);
+
+export const capDeleteFeedPathSchema = z.object({
+  feed_id: z.uuid(),
+});

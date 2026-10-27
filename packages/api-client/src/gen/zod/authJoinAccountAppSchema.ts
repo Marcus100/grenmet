@@ -36,3 +36,7 @@ export const authJoinAccountAppErrorSchema = z.union([
 ]);
 
 export const authJoinAccountAppBodySchema = accountSessionRequestSchema;
+
+export const authJoinAccountAppPathSchema = z.object({
+  app: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/),
+});

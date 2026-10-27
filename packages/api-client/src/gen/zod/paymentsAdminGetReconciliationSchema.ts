@@ -38,3 +38,9 @@ export const paymentsAdminGetReconciliationErrorSchema = z.union([
   paymentsAdminGetReconciliationStatus403Schema,
   paymentsAdminGetReconciliationStatus422Schema,
 ]);
+
+export const paymentsAdminGetReconciliationQuerySchema = z.object({
+  start_date: z.iso.date(),
+  end_date: z.iso.date(),
+  organisation_id: z.union([z.string().max(100), z.null()]).optional(),
+});

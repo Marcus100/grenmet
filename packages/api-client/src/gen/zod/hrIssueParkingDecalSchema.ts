@@ -34,3 +34,7 @@ export const hrIssueParkingDecalErrorSchema = z.union([
 ]);
 
 export const hrIssueParkingDecalBodySchema = parkingPermitIssueSchema;
+
+export const hrIssueParkingDecalPathSchema = z.object({
+  permit_id: z.uuid(),
+});

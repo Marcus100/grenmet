@@ -33,3 +33,7 @@ export const authUpdateUserErrorSchema = z.union([
 ]);
 
 export const authUpdateUserBodySchema = userUpdateSchema;
+
+export const authUpdateUserPathSchema = z.object({
+  user_id: z.uuid(),
+});

@@ -44,3 +44,16 @@ export const contactsEraseOrgContactErrorSchema = z.union([
   contactsEraseOrgContactStatus409Schema,
   contactsEraseOrgContactStatus422Schema,
 ]);
+
+export const contactsEraseOrgContactPathSchema = z.object({
+  contact_id: z.string(),
+});
+
+export const contactsEraseOrgContactHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

@@ -7,7 +7,8 @@ import type { CapProfileCellTextPropertiesImpactEnum } from "./CapProfileCellTex
 import type { CapProfileCellTextPropertiesLikelihoodEnum } from "./CapProfileCellTextPropertiesLikelihoodEnum.js";
 
 /**
- * @description Wording for one cell of the matrix, replacing the defaults built from the\nimpact level and the colour.
+ * @description Wording for one cell of the matrix, replacing the defaults built from the
+ * impact level and the colour.
  * @type object
  */
 export type CapProfileCellText = {

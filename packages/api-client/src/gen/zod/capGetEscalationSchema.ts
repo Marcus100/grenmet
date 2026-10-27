@@ -30,3 +30,7 @@ export const capGetEscalationErrorSchema = z.union([
   capGetEscalationStatus403Schema,
   capGetEscalationStatus422Schema,
 ]);
+
+export const capGetEscalationQuerySchema = z.object({
+  product_id: z.uuid(),
+});

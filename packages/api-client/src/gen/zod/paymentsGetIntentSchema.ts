@@ -37,3 +37,16 @@ export const paymentsGetIntentErrorSchema = z.union([
   paymentsGetIntentStatus404Schema,
   paymentsGetIntentStatus422Schema,
 ]);
+
+export const paymentsGetIntentPathSchema = z.object({
+  intent_id: z.uuid(),
+});
+
+export const paymentsGetIntentHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});
