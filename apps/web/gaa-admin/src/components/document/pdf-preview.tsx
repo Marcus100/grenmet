@@ -68,6 +68,7 @@ export function PdfDialog({
 
 interface Shown {
   blob: Blob;
+  filename: string;
   key: string;
   url: string;
 }
@@ -125,7 +126,7 @@ export function PdfPreview({
         const url = URL.createObjectURL(blob);
         if (urlRef.current) URL.revokeObjectURL(urlRef.current);
         urlRef.current = url;
-        setShown({ blob, key, url });
+        setShown({ blob, filename: source.filename, key, url });
       } catch (caught) {
         if (controller.signal.aborted) return;
         reportError(caught, errorArea);
@@ -158,7 +159,9 @@ export function PdfPreview({
   let status = "";
   if (rendering) status = "Rendering preview…";
   else if (stale) status = "Changes pending";
-  else if (!(shown || ready)) status = emptyHint;
+  else if (shown) status = "Preview matches your entries.";
+  else if (ready) status = "Select Preview to render the document.";
+  else status = emptyHint;
 
   return (
     <section aria-label={title} className="space-y-3 rounded-xl border p-4">
@@ -194,7 +197,7 @@ export function PdfPreview({
           </Button>
           <Button
             disabled={!shown}
-            onClick={() => shown && downloadBlob(shown.blob, pdf.filename)}
+            onClick={() => shown && downloadBlob(shown.blob, shown.filename)}
             type="button"
             variant="outline"
           >

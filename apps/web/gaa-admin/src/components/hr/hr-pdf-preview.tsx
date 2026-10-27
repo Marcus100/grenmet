@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { downloadBlob, PdfPreview } from "@/components/document/pdf-preview";
 import { pdfFilename } from "@/lib/pdf-filename";
 import { hrApiErrorMessage } from "./api-error";
@@ -92,14 +91,11 @@ export function HrPdfPreview({
   // The payload object is recreated by form subscriptions; its JSON key changes
   // only when the entered values change.
   const key = JSON.stringify(payload);
-  const pdf = useMemo(
-    () => ({
-      filename: filename ?? pdfFilename([title]),
-      render: (signal: AbortSignal) =>
-        fetchHrPdf({ payload: key, previewPath, signedDocumentId, signal }),
-    }),
-    [filename, key, previewPath, signedDocumentId, title]
-  );
+  const pdf = {
+    filename: filename ?? pdfFilename([title]),
+    render: (signal: AbortSignal) =>
+      fetchHrPdf({ payload: key, previewPath, signedDocumentId, signal }),
+  };
   return (
     <PdfPreview
       autoRender={Boolean(signedDocumentId)}
