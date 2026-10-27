@@ -1088,9 +1088,9 @@ separate as-of column yet.
 | Endpoint | Permission | Purpose |
 | --- | --- | --- |
 | `POST /api/v1/hr/attendance/clock` | `timesheet.submit.self` | Record a PENDING arrival, or departure when a shift is open |
-| `GET /api/v1/hr/attendance/clock-punches/pending` | `timesheet.approve` (named supervisor, or department scope) | Pending phone punches the caller may review; never their own |
-| `POST /api/v1/hr/attendance/clock-punches/{punch_id}/approve` | `timesheet.approve` (named supervisor, or department scope) | Approve a punch; it then counts as attendance |
-| `POST /api/v1/hr/attendance/clock-punches/{punch_id}/reject` | `timesheet.approve` (named supervisor, or department scope) | Reject a punch with a reason; it never counts |
+| `GET /api/v1/hr/attendance/clock-punches/pending` | `timesheet.approve` (named supervisor with a live assignment in the punch's organisation, or department scope) | Pending phone punches the caller may review; never their own |
+| `POST /api/v1/hr/attendance/clock-punches/{punch_id}/approve` | `timesheet.approve` (named supervisor with a live assignment in the punch's organisation, or department scope) | Approve a punch; it then counts as attendance |
+| `POST /api/v1/hr/attendance/clock-punches/{punch_id}/reject` | `timesheet.approve` (named supervisor with a live assignment in the punch's organisation, or department scope) | Reject a punch with a reason; it never counts |
 | `GET /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | List a department's clock points (no tokens) |
 | `POST /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | Create a clock point; the token is returned once |
 | `POST /api/v1/hr/attendance/clock-sites/{site_id}/rotate` | `roster.manage` in the department scope | Replace the token; the old one stops working |
@@ -1106,7 +1106,8 @@ A departure can be approved only after its arrival; rejecting an arrival also
 rejects its pending departure, and the employee may then punch again. Callers
 holding `timesheet.approve` with organisation-wide scope, with department scope for
 the punch's department or the employee's current department, or who are the
-employee's named supervisor may decide. After a department transfer the employee may
+employee's named supervisor and hold a live `timesheet.approve` assignment in the
+punch's organisation, may decide. After a department transfer the employee may
 still record their own attendance for shifts rostered under the old department
 (same organisation only). The employee may also submit that attendance, and propose
 corrections to it, for review: the approval is the old department's workflow and

@@ -68,7 +68,7 @@
     "check:ci": "turbo run check:ci",
     "type-check": "turbo run type-check",
     "test": "turbo run test --concurrency=2",
-    "validate": "turbo run type-check lint test",
+    "validate": "turbo run type-check lint && turbo run test --concurrency=2",
     "fix": "ultracite fix",
     "fix:changed": "node scripts/guardrails/fix-changed.mjs",
     "generate:api-client": "turbo run generate --filter=@barrelsgd/api-client",

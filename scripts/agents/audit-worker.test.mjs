@@ -6,6 +6,7 @@ import test from "node:test";
 import { hourly, runWithRetry, sixHourlyPlan } from "./audit-checks.mjs";
 import { aggregateReceipt, daily } from "./audit-daily.mjs";
 import { testEnvironment } from "./audit-process.mjs";
+import { groupKey } from "./audit-security.mjs";
 import { cleanCheckout, executePlan, SCHEDULES } from "./audit-worker.mjs";
 
 const sha = "a".repeat(40);
@@ -185,6 +186,10 @@ test("hourly request failures create coverage findings and resolved alerts repor
         [
           {
             number: 10,
+            dependency: {
+              package: { name: "pillow" },
+              manifest_path: "uv.lock",
+            },
             state: "resolved",
             security_advisory: { severity: "moderate" },
           },
@@ -204,7 +209,7 @@ test("hourly request failures create coverage findings and resolved alerts repor
     (item) => item.key === "coverage:dependabot"
   );
   const resolved = observations.find(
-    (item) => item.key === "security:dependabot:10"
+    (item) => item.key === groupKey("pillow", "uv.lock")
   );
   assert.equal(coverage?.status, "fail");
   assert.equal(coverage?.owner, "owner");
