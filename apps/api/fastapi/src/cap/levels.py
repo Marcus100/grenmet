@@ -25,6 +25,11 @@ from src.cap.schemas import CapNameValue
 
 AWARENESS_PARAMETER = "awareness_level"
 PRODUCT_PARAMETER = "GMS:product"
+OVERRIDE_REASON = "GMS:override-reason"
+
+# Kept on the alert for staff and audit; never written into the published XML,
+# the public JSON feeds or a duplicated alert.
+INTERNAL_PARAMETERS = frozenset({OVERRIDE_REASON})
 
 
 class GmsProduct(str, Enum):

@@ -30,12 +30,22 @@ async def saved_alert(weather_sessions, actor, kind="marine") -> UUID:
     return payload.id
 
 
-def request(product_id: UUID, level: str = "orange", revision: int = 1) -> dict:
-    return {
+def request(
+    product_id: UUID,
+    level: str = "orange",
+    revision: int = 1,
+    reason: str | None = "Exercise: forecaster judgement over the matrix",
+) -> dict:
+    # The saved test alerts sit in a low cell of the matrix, so a raised colour
+    # differs from the suggestion and carries a reason (tests below cover its absence).
+    body = {
         "product_id": str(product_id),
         "revision": revision,
         "awareness_level": level,
     }
+    if reason is not None:
+        body["override_reason"] = reason
+    return body
 
 
 def parameters(alert: dict) -> dict[str, str]:
