@@ -225,7 +225,7 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cap.settings.manage", "Manage CAP settings"),
     PermissionDef(
         "cap.library.manage",
-        "Edit the hazard library and impact-based matrix (impacts, responses, thresholds); approval needs a different reviewer holding cap.alert.approve",
+        "Edit the hazard library and impact-based matrix (impacts, responses, thresholds); approval needs a different reviewer holding cap.library.manage and cap.alert.approve",
     ),
     PermissionDef("cap.feed.manage", "Manage external CAP feed sources"),
     # Transport — staff bus service (admin portal, driver app, staff app)

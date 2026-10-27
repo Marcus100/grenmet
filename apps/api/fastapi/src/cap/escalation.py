@@ -206,7 +206,10 @@ async def _matrix_parameters(
     saved without a valid likelihood and impact has no suggestion and needs none.
     """
     values = values_as_dict(source.values)
-    likelihood, impact = values.get("likelihood", ""), values.get("impact", "")
+    likelihood, impact = (
+        values.get("likelihood", "").strip(),
+        values.get("impact", "").strip(),
+    )
     if likelihood not in ibf.LIKELIHOODS or impact not in ibf.IMPACTS:
         return []
     library = await ibf_suggest.latest_approved(session, kind)
@@ -224,7 +227,7 @@ async def _matrix_parameters(
             )
         )
     if suggested != requested.value:
-        if len(reason) < MIN_OVERRIDE_REASON:
+        if len(reason.strip()) < MIN_OVERRIDE_REASON:
             raise AppValidationError(
                 f"The matrix suggests {suggested} for {likelihood.lower()} likelihood "
                 f"and {impact.lower()} impact. To raise a {requested.value} warning, "

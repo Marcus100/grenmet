@@ -18,9 +18,8 @@ from src.cap.escalation import (
     OVERRIDE_REASON,
     SUGGESTED_COLOUR,
 )
-from src.cap.models import CapHazardProfile
 from src.cap.profile_schemas import CapProfileDefinition, CapProfileSave
-from src.exceptions import AuthorizationError
+from src.exceptions import AuthorizationError, NotFoundError
 from src.wxproducts import service
 from tests.cap.test_profiles import definition
 from tests.cap.test_profiles import profile_session as profile_session
@@ -188,7 +187,8 @@ async def test_an_approved_library_supplies_the_grid_and_the_starting_wording(
     data = with_matrix_content(
         matrix={"cells": CUSTOM_GRID},
     )
-    data.subtypes[0].cell_texts = [
+    raw = data.model_dump(mode="json")
+    raw["subtypes"][0]["cell_texts"] = [
         {
             "likelihood": "High",
             "impact": "Severe",
@@ -196,7 +196,7 @@ async def test_an_approved_library_supplies_the_grid_and_the_starting_wording(
             "response": "Cell response: evacuate low ground",
         }
     ]
-    data = CapProfileDefinition.model_validate(data.model_dump(mode="json"))
+    data = CapProfileDefinition.model_validate(raw)
     approved = await approved_library(profile_session, "flood", data)
 
     plain = await ibf_suggest.suggest(
@@ -312,7 +312,7 @@ async def test_a_different_colour_needs_a_reason_that_is_recorded(
             level="red",
             reason=reason,
         )
-        assert refused.status_code in (400, 422), refused.text
+        assert refused.status_code == 422, refused.text
         assert "matrix suggests green" in refused.text
     why = "Observed 90 mm in 2 hours upstream; forecaster judgement"
     created = await raised(
@@ -379,7 +379,7 @@ async def test_the_approved_library_and_its_grid_decide_the_suggestion(
     refused = await raised(
         async_client, superuser_token_headers_async, product_id, level="orange"
     )
-    assert refused.status_code in (400, 422), refused.text
+    assert refused.status_code == 422, refused.text
     assert "matrix suggests yellow" in refused.text
     created = await raised(
         async_client, superuser_token_headers_async, product_id, level="yellow"
@@ -392,4 +392,17 @@ async def test_the_approved_library_and_its_grid_decide_the_suggestion(
         )
     ).json()
     assert parameters(alert)[IBF_LIBRARY] == "ibf-flood:v1"
-    assert CapHazardProfile.__tablename__  # the library row lives in the cap schema
+
+
+async def test_a_misspelt_subtype_is_not_found(profile_session: AsyncSession) -> None:
+    user = await make_user(profile_session, superuser=True)
+    await approved_library(profile_session, "tsunami", with_matrix_content())
+    with pytest.raises(NotFoundError):
+        await ibf_suggest.suggest(
+            profile_session,
+            user,
+            kind="tsunami",
+            likelihood="High",
+            impact="Severe",
+            subtype="Flsh Flood",
+        )

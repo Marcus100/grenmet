@@ -23,7 +23,7 @@ from src.cap.profile_schemas import (
     IbfMatrixPublic,
     IbfSuggestion,
 )
-from src.exceptions import AuthorizationError
+from src.exceptions import AuthorizationError, NotFoundError
 
 
 def library_key(kind: str) -> str:
@@ -117,6 +117,8 @@ async def suggest(
     definition = found[1] if found else None
     colour = GmsColour(colour_for_kind(definition, likelihood, impact))
     chosen = _subtype(definition, subtype) if definition else None
+    if definition and subtype is not None and chosen is None:
+        raise NotFoundError(f"The {kind} library has no subtype named {subtype!r}.")
     level = (
         next((lv for lv in chosen.impact_levels if lv.impact == impact), None)
         if chosen
