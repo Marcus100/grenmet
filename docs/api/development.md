@@ -144,6 +144,24 @@ they keep each domain's history ordered and independent. Never point a
 main-database migration at these tables, and never add new Drizzle migrations
 in gaa-admin. Schema changes are Ask First.
 
+## A fast, disposable test database
+
+`scripts/agents/test-db.sh up` starts a second Postgres for tests only
+(`grenmet-postgres-test`, 127.0.0.1:5433): the development image and first-boot
+scripts, data in RAM, `fsync`, `synchronous_commit` and `full_page_writes` off,
+300 connections. `down` removes it; `status` says whether it is ready. It never
+touches the development database on 5432, and a crash loses everything in it by
+design, so nothing but tests may use it.
+
+While it is running, `scripts/agents/api-env.sh` (and so `pnpm verify:changed`)
+uses it automatically, on `127.0.0.1`, when `POSTGRES_SERVER` and `POSTGRES_PORT`
+are not set. Set either, or `TEST_DB_AUTO=0`, to use another database.
+
+Measured on an 8-core host, full API suite (3,456 tests): 4 workers took 711 s on
+a normal on-disk Postgres and 565 s on this one (about 20% faster); a single test
+file about halves (83 s to 42 s), because database setup dominates there. Workers
+matter more than the database: 2 workers took 1,192 s and 6 workers 523 s.
+
 ## Running tests from the agent devcontainer
 
 The devcontainer has no docker CLI, and Compose hostnames don't resolve there.

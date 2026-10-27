@@ -16,6 +16,18 @@ if [ "$#" -eq 0 ]; then
   exit 2
 fi
 
+# A disposable test database from scripts/agents/test-db.sh is used while it runs
+# and nothing in the environment names a database. Tests then run on 127.0.0.1
+# against RAM-backed Postgres (about twice as fast, and independent of how
+# host.docker.internal resolves). Set TEST_DB_AUTO=0 to opt out.
+if [ "${TEST_DB_AUTO:-1}" = 1 ] && [ -z "${POSTGRES_SERVER:-}" ] && [ -z "${POSTGRES_PORT:-}" ] \
+  && (exec 3<>"/dev/tcp/127.0.0.1/${TEST_DB_PORT:-5433}") 2>/dev/null; then
+  POSTGRES_SERVER=127.0.0.1
+  POSTGRES_PORT="${TEST_DB_PORT:-5433}"
+  : "${WXPRODUCTS_DATABASE_URL:=postgresql://wxproducts:changethis@127.0.0.1:$POSTGRES_PORT/wxproducts}"
+  : "${REDIS_URL:=redis://127.0.0.1:6379/0}"
+fi
+
 : "${PROJECT_NAME:=Barrels Grenada}"
 : "${FIRST_SUPERUSER:=admin@example.com}"
 : "${FIRST_SUPERUSER_PASSWORD:=changethis}"
