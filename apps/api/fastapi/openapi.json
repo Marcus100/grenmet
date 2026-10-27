@@ -24417,6 +24417,151 @@
         }
       }
     },
+    "/api/v1/cap/ibf/matrix": {
+      "get": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "The impact-based matrix for an alert kind",
+        "description": "The 4x4 likelihood-by-impact grid with the meaning of each colour. It is the grid of the newest approved library entry `ibf-<kind>` when that sets its own, otherwise the WMO grid. Needs cap.alert.read or authority to author the kind.",
+        "operationId": "capGetIbfMatrix",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,39}$",
+              "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IbfMatrixPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/cap/ibf/suggest": {
+      "get": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "The colour and starting wording for a likelihood and impact",
+        "description": "The colour from the matrix, with the impacts and response of the approved library entry `ibf-<kind>` as editable starting text. `available` is false when no approved entry exists; the colour is still suggested. Needs cap.alert.read or authority to author the kind.",
+        "operationId": "capSuggestIbf",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,39}$",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "likelihood",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CapProfileCellTextPropertiesLikelihoodEnum"
+            }
+          },
+          {
+            "name": "impact",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CapProfileCellTextPropertiesImpactEnum"
+            }
+          },
+          {
+            "name": "subtype",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subtype"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IbfSuggestion"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
     "/api/v1/cap/alerts": {
       "get": {
         "tags": [
@@ -53649,6 +53794,18 @@
           },
           "awareness_level": {
             "$ref": "#/components/schemas/CapEscalationCreatePropertiesAwarenessLevelEnum"
+          },
+          "override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override Reason"
           }
         },
         "type": "object",
@@ -54488,6 +54645,56 @@
         ],
         "title": "CapPredefinedAreaPublic"
       },
+      "CapProfileCellText": {
+        "properties": {
+          "likelihood": {
+            "$ref": "#/components/schemas/CapProfileCellTextPropertiesLikelihoodEnum"
+          },
+          "impact": {
+            "$ref": "#/components/schemas/CapProfileCellTextPropertiesImpactEnum"
+          },
+          "impacts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Impacts"
+          },
+          "response": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Response",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "likelihood",
+          "impact"
+        ],
+        "title": "CapProfileCellText",
+        "description": "Wording for one cell of the matrix, replacing the defaults built from the\nimpact level and the colour."
+      },
+      "CapProfileColourResponse": {
+        "properties": {
+          "colour": {
+            "$ref": "#/components/schemas/GmsColour"
+          },
+          "response": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Response",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "colour"
+        ],
+        "title": "CapProfileColourResponse",
+        "description": "What the public should do at one colour; \"[...locations...]\" marks a gap."
+      },
       "CapProfileDefinition": {
         "properties": {
           "name": {
@@ -54549,6 +54756,16 @@
             "maxLength": 5000,
             "title": "Notes",
             "default": ""
+          },
+          "matrix": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapProfileMatrix"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -54585,6 +54802,55 @@
           "level"
         ],
         "title": "CapProfileDraftRequest"
+      },
+      "CapProfileImpactLevel": {
+        "properties": {
+          "impact": {
+            "$ref": "#/components/schemas/CapProfileCellTextPropertiesImpactEnum"
+          },
+          "impacts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Impacts"
+          },
+          "thresholds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Thresholds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "impact"
+        ],
+        "title": "CapProfileImpactLevel",
+        "description": "What one impact level looks like for a hazard, and where it starts."
+      },
+      "CapProfileMatrix": {
+        "properties": {
+          "cells": {
+            "items": {
+              "items": {
+                "$ref": "#/components/schemas/GmsColour"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Cells"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cells"
+        ],
+        "title": "CapProfileMatrix",
+        "description": "A hazard's own likelihood-by-impact grid; absent means the WMO grid."
       },
       "CapProfilePublic": {
         "properties": {
@@ -54798,6 +55064,30 @@
             "type": "array",
             "maxItems": 50,
             "title": "Affected Groups"
+          },
+          "impact_levels": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileImpactLevel"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Impact Levels"
+          },
+          "colour_responses": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileColourResponse"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Colour Responses"
+          },
+          "cell_texts": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileCellText"
+            },
+            "type": "array",
+            "maxItems": 16,
+            "title": "Cell Texts"
           }
         },
         "type": "object",
@@ -60553,6 +60843,196 @@
           "scope"
         ],
         "title": "HrRolePublic"
+      },
+      "IbfLevelPublic": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "title": "IbfLevelPublic"
+      },
+      "IbfMatrixPublic": {
+        "properties": {
+          "likelihoods": {
+            "items": {
+              "$ref": "#/components/schemas/IbfLevelPublic"
+            },
+            "type": "array",
+            "title": "Likelihoods"
+          },
+          "impacts": {
+            "items": {
+              "$ref": "#/components/schemas/IbfLevelPublic"
+            },
+            "type": "array",
+            "title": "Impacts"
+          },
+          "cells": {
+            "items": {
+              "items": {
+                "$ref": "#/components/schemas/GmsColour"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Cells"
+          },
+          "meanings": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/GmsColour"
+            },
+            "type": "object",
+            "title": "Meanings"
+          },
+          "library_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Key"
+          },
+          "library_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "likelihoods",
+          "impacts",
+          "cells",
+          "meanings"
+        ],
+        "title": "IbfMatrixPublic",
+        "description": "The grid a forecaster reads for one hazard kind."
+      },
+      "IbfSuggestion": {
+        "properties": {
+          "colour": {
+            "$ref": "#/components/schemas/GmsColour"
+          },
+          "meaning": {
+            "type": "string",
+            "title": "Meaning"
+          },
+          "likelihood": {
+            "$ref": "#/components/schemas/CapProfileCellTextPropertiesLikelihoodEnum"
+          },
+          "impact": {
+            "$ref": "#/components/schemas/CapProfileCellTextPropertiesImpactEnum"
+          },
+          "percent": {
+            "type": "integer",
+            "title": "Percent"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/CapSeverity"
+          },
+          "awareness_level": {
+            "type": "string",
+            "title": "Awareness Level"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "subtype": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtype"
+          },
+          "thresholds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Thresholds"
+          },
+          "impacts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Impacts"
+          },
+          "response": {
+            "type": "string",
+            "title": "Response",
+            "default": ""
+          },
+          "library_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Key"
+          },
+          "library_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "colour",
+          "meaning",
+          "likelihood",
+          "impact",
+          "percent",
+          "severity",
+          "awareness_level",
+          "available"
+        ],
+        "title": "IbfSuggestion",
+        "description": "The colour and starting wording for one likelihood and impact."
       },
       "ImageInput": {
         "properties": {
@@ -89143,6 +89623,24 @@
           "yellow",
           "orange",
           "red"
+        ]
+      },
+      "CapProfileCellTextPropertiesLikelihoodEnum": {
+        "type": "string",
+        "enum": [
+          "Very low",
+          "Low",
+          "Medium",
+          "High"
+        ]
+      },
+      "CapProfileCellTextPropertiesImpactEnum": {
+        "type": "string",
+        "enum": [
+          "Minimal",
+          "Minor",
+          "Significant",
+          "Severe"
         ]
       },
       "CapProfileDefinitionPropertiesChannelsItemsEnum": {

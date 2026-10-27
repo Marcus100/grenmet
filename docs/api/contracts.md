@@ -1397,17 +1397,51 @@ Authenticated `/api/v1/cap/hazard-profiles` provides version history (GET),
 `/{key}/versions` creates an immutable DRAFT version (POST, optimistic
 `base_version`), `/{profile_id}/approve` records independent approval (POST),
 and `/{profile_id}/draft` starts an alert draft from an approved subtype/template
-(POST). Reads require `cap.alert.read`; saves require `cap.settings.manage`;
-approval also requires `cap.alert.approve` and a different actor from the author;
+(POST). Reads require `cap.alert.read`; saves require `cap.library.manage` (default
+roles `cap-admin` and `gms-lead`); approval also requires `cap.library.manage`,
+`cap.alert.approve` and a different actor from the author;
 draft creation requires `cap.alert.create`. Conflicting versions return 409.
 
 Profiles contain subtypes, CAP category mappings, per-message-level assessment
 rules, impacts, affected groups, responses, templates, authority names and intended
-channels. Incomplete profiles are savable drafts but cannot be approved. Approved
+channels. A subtype may also carry the impact-based matrix content (see below).
+Incomplete profiles are savable drafts but cannot be approved. Approved
 versions remain immutable when a newer draft is created. The selected profile
 version is recorded in the resulting alert's `GMS:hazard-profile` parameter.
 Threshold evaluation and transport/channel enforcement are not performed here.
 Creating a draft never publishes it; its assessment remains Unknown.
+
+### Impact-based alert matrix (WMO-No. 1150)
+
+The colour of a warning is read from a 4x4 grid of likelihood (Very low, Low,
+Medium, High; about 10, 30, 60 and 80 per cent) against impact (Minimal, Minor,
+Significant, Severe). The standard grid lives once in `src/cap/ibf.py`; a hazard
+profile may carry its own `matrix` (16 colours, which must never get milder as
+likelihood or impact rises). A subtype that sets any of `impact_levels` (impacts
+and thresholds per impact), `colour_responses` (what to do at each of the four
+colours) or `cell_texts` (wording for one cell) must complete all four impact
+levels and all four responses before approval; profiles without them are
+unchanged. The library entry for an alert kind is the newest APPROVED profile
+with key `ibf-<kind>` (for example `ibf-flood`).
+
+- `GET /api/v1/cap/ibf/matrix?kind=` returns the grid, the percent bands and the
+  meaning of each colour (Business as usual, Be aware, Be prepared, Take action);
+  it carries `library_key` and `library_version` only when an approved entry set
+  its own grid.
+- `GET /api/v1/cap/ibf/suggest?kind=&likelihood=&impact=[&subtype=]` returns the
+  colour, its meaning, the CAP severity and `awareness_level` value, and starting
+  impacts, thresholds and response from the approved entry (a cell's own wording
+  wins, then the impact level, then the colour's response). `available` is false
+  when no approved entry exists; the colour is still suggested.
+- Both need `cap.alert.read` or authority to author the kind (product access).
+
+`POST /api/v1/cap/escalations` accepts an optional `override_reason`. When the saved
+alert has a valid likelihood and impact, the colour must equal the matrix's
+suggestion or `override_reason` (at least 10 characters) must explain why not (422
+otherwise). The draft records `GMS:likelihood`, `GMS:impact`, `GMS:suggested-colour`,
+`GMS:ibf-library` (`key:vN`, when an approved entry was used) and, on an override,
+`GMS:override-reason`. CAP severity still follows the colour, so consumers that read
+only severity see the same level.
 
 ### CAP escalation from a GMS alert (ADR-0051, proposed)
 

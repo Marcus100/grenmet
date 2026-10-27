@@ -223,6 +223,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     # CAP — administration
     PermissionDef("cap.integrations.manage", "Manage CAP integrations"),
     PermissionDef("cap.settings.manage", "Manage CAP settings"),
+    PermissionDef(
+        "cap.library.manage",
+        "Edit the hazard library and impact-based matrix (impacts, responses, thresholds); approval needs a different reviewer holding cap.library.manage and cap.alert.approve",
+    ),
     PermissionDef("cap.feed.manage", "Manage external CAP feed sources"),
     # Transport — staff bus service (admin portal, driver app, staff app)
     # Barrels Events — app access is a permission; module keys narrow it further
@@ -551,7 +555,16 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "cap.alert.read",
             "cap.integrations.manage",
             "cap.settings.manage",
+            "cap.library.manage",
             "cap.feed.manage",
+        ),
+    ),
+    "gms-lead": (
+        "GMS lead: edits the hazard library and impact-based matrix and approves alerts and library versions",
+        (
+            "cap.alert.read",
+            "cap.alert.approve",
+            "cap.library.manage",
         ),
     ),
     "events-member": (

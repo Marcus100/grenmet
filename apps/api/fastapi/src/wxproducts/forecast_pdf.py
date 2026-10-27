@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup
 
+from src.cap.ibf import IMPACTS, LIKELIHOODS, WMO_MATRIX
 from src.wxwatch.nhc_schemas import ProductGuidance
 
 from . import advisories, units
@@ -60,17 +61,9 @@ WARNING_TOKENS = {
 }
 COLOUR_NAMES = {"green": "Green", "yellow": "Yellow", "orange": "Amber", "red": "Red"}
 
-LIKELIHOODS = ["Very low", "Low", "Medium", "High"]
-
-IMPACTS = ["Minimal", "Minor", "Significant", "Severe"]
-
-# Standard IBF risk matrix, rows from "Very low" to "High" likelihood.
-MATRIX = [
-    ["green", "green", "yellow", "yellow"],
-    ["green", "green", "yellow", "orange"],
-    ["green", "yellow", "orange", "orange"],
-    ["green", "yellow", "orange", "red"],
-]
+# The standard IBF risk matrix, defined once in src/cap/ibf.py. Rows run from
+# "Very low" to "High" likelihood.
+MATRIX = [list(row) for row in WMO_MATRIX]
 
 TITLES = {
     "morning": "Morning Forecast",

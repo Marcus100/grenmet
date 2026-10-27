@@ -14,6 +14,7 @@ The green alert is not changed: it stays in force until a forecaster withdraws i
 """
 
 import uuid
+from collections.abc import Sequence
 from datetime import UTC, datetime
 
 from sqlalchemy import String, cast, select, text
@@ -22,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.auth.policy import require_permission
 from src.baseline import product_access
-from src.cap import service
+from src.cap import ibf, ibf_suggest, service
 from src.cap.levels import GmsColour, GmsProduct, level_parameters, severity_for
 from src.cap.models import (
     CapAlert,
@@ -49,6 +50,13 @@ from src.wxproducts.validation import local_time
 SOURCE_KIND = "GMS:source-bulletin-kind"
 SOURCE_ID = "GMS:source-bulletin-id"
 SOURCE_REVISION = "GMS:source-bulletin-revision"
+# How the colour relates to the impact-based matrix (src/cap/ibf.py).
+SUGGESTED_COLOUR = "GMS:suggested-colour"
+OVERRIDE_REASON = "GMS:override-reason"
+IBF_LIBRARY = "GMS:ibf-library"
+LIKELIHOOD_PARAMETER = "GMS:likelihood"
+IMPACT_PARAMETER = "GMS:impact"
+MIN_OVERRIDE_REASON = 10
 
 # Hazard alert kinds only; forecasts and the outlook are never raised.
 EVENTS = {
@@ -91,7 +99,11 @@ def _utc(value: str) -> datetime | None:
 
 
 def draft_from_revision(
-    source: ProductPdfSource, colour: GmsColour, *, kind: str
+    source: ProductPdfSource,
+    colour: GmsColour,
+    *,
+    kind: str,
+    extra_parameters: Sequence[CapNameValue] = (),
 ) -> CapAlertCreate:
     """Pure: a CAP draft pre-filled from one saved GMS alert revision."""
     values = values_as_dict(source.values)
@@ -126,6 +138,7 @@ def draft_from_revision(
             CapNameValue(value_name=SOURCE_KIND, value=kind),
             CapNameValue(value_name=SOURCE_ID, value=str(source.product_id)),
             CapNameValue(value_name=SOURCE_REVISION, value=str(source.revision)),
+            *extra_parameters,
         ],
     )
     return CapAlertCreate(
@@ -179,6 +192,51 @@ async def lookup(
     return CapEscalationLookup(alert_id=found[0], lifecycle_state=found[1])
 
 
+async def _matrix_parameters(
+    session: AsyncSession,
+    source: ProductPdfSource,
+    *,
+    kind: str,
+    requested: GmsColour,
+    reason: str,
+) -> list[CapNameValue]:
+    """How the requested colour relates to the matrix, as CAP parameters.
+
+    A colour that differs from the matrix's suggestion needs a reason; an alert
+    saved without a valid likelihood and impact has no suggestion and needs none.
+    """
+    values = values_as_dict(source.values)
+    likelihood, impact = (
+        values.get("likelihood", "").strip(),
+        values.get("impact", "").strip(),
+    )
+    if likelihood not in ibf.LIKELIHOODS or impact not in ibf.IMPACTS:
+        return []
+    library = await ibf_suggest.latest_approved(session, kind)
+    definition = library[1] if library else None
+    suggested = ibf_suggest.colour_for_kind(definition, likelihood, impact)
+    parameters = [
+        CapNameValue(value_name=LIKELIHOOD_PARAMETER, value=likelihood),
+        CapNameValue(value_name=IMPACT_PARAMETER, value=impact),
+        CapNameValue(value_name=SUGGESTED_COLOUR, value=suggested),
+    ]
+    if library is not None:
+        parameters.append(
+            CapNameValue(
+                value_name=IBF_LIBRARY, value=f"{library[0].key}:v{library[0].version}"
+            )
+        )
+    if suggested != requested.value:
+        if len(reason.strip()) < MIN_OVERRIDE_REASON:
+            raise AppValidationError(
+                f"The matrix suggests {suggested} for {likelihood.lower()} likelihood "
+                f"and {impact.lower()} impact. To raise a {requested.value} warning, "
+                f"give the reason (at least {MIN_OVERRIDE_REASON} characters)."
+            )
+        parameters.append(CapNameValue(value_name=OVERRIDE_REASON, value=reason))
+    return parameters
+
+
 async def escalate(
     *,
     cap_session: AsyncSession,
@@ -212,9 +270,19 @@ async def escalate(
         return CapEscalationPublic(
             alert_id=existing, created=False, source=public_source
         )
+    requested = GmsColour(body.awareness_level)
+    parameters = await _matrix_parameters(
+        cap_session,
+        source,
+        kind=kind,
+        requested=requested,
+        reason=(body.override_reason or "").strip(),
+    )
     created = await service.create_alert(
         session=cap_session,
         current_user=current_user,
-        payload=draft_from_revision(source, GmsColour(body.awareness_level), kind=kind),
+        payload=draft_from_revision(
+            source, requested, kind=kind, extra_parameters=parameters
+        ),
     )
     return CapEscalationPublic(alert_id=created.id, created=True, source=public_source)

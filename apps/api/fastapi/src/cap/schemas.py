@@ -393,6 +393,9 @@ class CapEscalationCreate(BaseModel):
     product_id: uuid.UUID
     revision: int = Field(ge=1, le=1_000_000)
     awareness_level: Literal["yellow", "orange", "red"]
+    # Required when the colour differs from the matrix's suggestion for the saved
+    # likelihood and impact (WMO impact-based matrix); recorded on the draft.
+    override_reason: str | None = Field(default=None, max_length=1000)
 
 
 class CapEscalationSource(BaseModel):

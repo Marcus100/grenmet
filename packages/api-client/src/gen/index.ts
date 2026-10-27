@@ -153,6 +153,7 @@ export { capGetCatalogs } from "./clients/capGetCatalogs.js";
 export { capGetEscalation } from "./clients/capGetEscalation.js";
 export { capGetFeeds } from "./clients/capGetFeeds.js";
 export { capGetHazardProfiles } from "./clients/capGetHazardProfiles.js";
+export { capGetIbfMatrix } from "./clients/capGetIbfMatrix.js";
 export { capGetIntegrations } from "./clients/capGetIntegrations.js";
 export { capGetPredefinedAreas } from "./clients/capGetPredefinedAreas.js";
 export { capGetPublicAlert } from "./clients/capGetPublicAlert.js";
@@ -166,6 +167,7 @@ export { capPublishAlert } from "./clients/capPublishAlert.js";
 export { capRecordAlertReview } from "./clients/capRecordAlertReview.js";
 export { capSaveHazardProfile } from "./clients/capSaveHazardProfile.js";
 export { capSubmitAlert } from "./clients/capSubmitAlert.js";
+export { capSuggestIbf } from "./clients/capSuggestIbf.js";
 export { capUpdateAlert } from "./clients/capUpdateAlert.js";
 export { capUpdateCapSettings } from "./clients/capUpdateCapSettings.js";
 export { capUpdateFeed } from "./clients/capUpdateFeed.js";
@@ -1429,6 +1431,11 @@ export {
   useCapGetHazardProfiles,
 } from "./hooks/useCapGetHazardProfiles.js";
 export {
+  capGetIbfMatrixQueryKey,
+  capGetIbfMatrixQueryOptions,
+  useCapGetIbfMatrix,
+} from "./hooks/useCapGetIbfMatrix.js";
+export {
   capGetIntegrationsQueryKey,
   capGetIntegrationsQueryOptions,
   useCapGetIntegrations,
@@ -1493,6 +1500,11 @@ export {
   capSubmitAlertMutationOptions,
   useCapSubmitAlert,
 } from "./hooks/useCapSubmitAlert.js";
+export {
+  capSuggestIbfQueryKey,
+  capSuggestIbfQueryOptions,
+  useCapSuggestIbf,
+} from "./hooks/useCapSuggestIbf.js";
 export {
   capUpdateAlertMutationKey,
   capUpdateAlertMutationOptions,
@@ -5897,6 +5909,16 @@ export type {
   CapGetHazardProfilesStatus422,
 } from "./models/CapGetHazardProfiles.js";
 export type {
+  CapGetIbfMatrixOptions,
+  CapGetIbfMatrixQuery,
+  CapGetIbfMatrixResponse,
+  CapGetIbfMatrixResponses,
+  CapGetIbfMatrixStatus200,
+  CapGetIbfMatrixStatus401,
+  CapGetIbfMatrixStatus403,
+  CapGetIbfMatrixStatus422,
+} from "./models/CapGetIbfMatrix.js";
+export type {
   CapGetIntegrationsOptions,
   CapGetIntegrationsResponse,
   CapGetIntegrationsResponses,
@@ -5980,12 +6002,20 @@ export { capMessageType } from "./models/CapMessageType.js";
 export type { CapNameValue } from "./models/CapNameValue.js";
 export type { CapPredefinedAreaCreate } from "./models/CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./models/CapPredefinedAreaPublic.js";
+export type { CapProfileCellText } from "./models/CapProfileCellText.js";
+export type { CapProfileCellTextPropertiesImpactEnum } from "./models/CapProfileCellTextPropertiesImpactEnum.js";
+export { capProfileCellTextPropertiesImpactEnum } from "./models/CapProfileCellTextPropertiesImpactEnum.js";
+export type { CapProfileCellTextPropertiesLikelihoodEnum } from "./models/CapProfileCellTextPropertiesLikelihoodEnum.js";
+export { capProfileCellTextPropertiesLikelihoodEnum } from "./models/CapProfileCellTextPropertiesLikelihoodEnum.js";
+export type { CapProfileColourResponse } from "./models/CapProfileColourResponse.js";
 export type { CapProfileDefinition } from "./models/CapProfileDefinition.js";
 export type { CapProfileDefinitionPropertiesChannelsItemsEnum } from "./models/CapProfileDefinitionPropertiesChannelsItemsEnum.js";
 export { capProfileDefinitionPropertiesChannelsItemsEnum } from "./models/CapProfileDefinitionPropertiesChannelsItemsEnum.js";
 export type { CapProfileDraftRequest } from "./models/CapProfileDraftRequest.js";
 export type { CapProfileDraftRequestPropertiesLevelEnum } from "./models/CapProfileDraftRequestPropertiesLevelEnum.js";
 export { capProfileDraftRequestPropertiesLevelEnum } from "./models/CapProfileDraftRequestPropertiesLevelEnum.js";
+export type { CapProfileImpactLevel } from "./models/CapProfileImpactLevel.js";
+export type { CapProfileMatrix } from "./models/CapProfileMatrix.js";
 export type { CapProfilePublic } from "./models/CapProfilePublic.js";
 export type { CapProfilePublicPropertiesStateEnum } from "./models/CapProfilePublicPropertiesStateEnum.js";
 export { capProfilePublicPropertiesStateEnum } from "./models/CapProfilePublicPropertiesStateEnum.js";
@@ -6060,6 +6090,16 @@ export type {
   CapSubmitAlertStatus404,
   CapSubmitAlertStatus422,
 } from "./models/CapSubmitAlert.js";
+export type {
+  CapSuggestIbfOptions,
+  CapSuggestIbfQuery,
+  CapSuggestIbfResponse,
+  CapSuggestIbfResponses,
+  CapSuggestIbfStatus200,
+  CapSuggestIbfStatus401,
+  CapSuggestIbfStatus403,
+  CapSuggestIbfStatus422,
+} from "./models/CapSuggestIbf.js";
 export type {
   CapUpdateAlertBody,
   CapUpdateAlertOptions,
@@ -9156,6 +9196,9 @@ export type {
   HrValidateGridStatus404,
   HrValidateGridStatus422,
 } from "./models/HrValidateGrid.js";
+export type { IbfLevelPublic } from "./models/IbfLevelPublic.js";
+export type { IbfMatrixPublic } from "./models/IbfMatrixPublic.js";
+export type { IbfSuggestion } from "./models/IbfSuggestion.js";
 export type { ImageInput } from "./models/ImageInput.js";
 export type { ImageInputPropertiesTimeBasisEnum } from "./models/ImageInputPropertiesTimeBasisEnum.js";
 export { imageInputPropertiesTimeBasisEnum } from "./models/ImageInputPropertiesTimeBasisEnum.js";
@@ -14465,6 +14508,15 @@ export {
   capGetHazardProfilesStatus422Schema,
 } from "./zod/capGetHazardProfilesSchema.js";
 export {
+  capGetIbfMatrixErrorSchema,
+  capGetIbfMatrixQueryKindSchema,
+  capGetIbfMatrixResponseSchema,
+  capGetIbfMatrixStatus200Schema,
+  capGetIbfMatrixStatus401Schema,
+  capGetIbfMatrixStatus403Schema,
+  capGetIbfMatrixStatus422Schema,
+} from "./zod/capGetIbfMatrixSchema.js";
+export {
   capGetIntegrationsErrorSchema,
   capGetIntegrationsResponseSchema,
   capGetIntegrationsStatus200Schema,
@@ -14536,10 +14588,16 @@ export { capMessageTypeSchema } from "./zod/capMessageTypeSchema.js";
 export { capNameValueSchema } from "./zod/capNameValueSchema.js";
 export { capPredefinedAreaCreateSchema } from "./zod/capPredefinedAreaCreateSchema.js";
 export { capPredefinedAreaPublicSchema } from "./zod/capPredefinedAreaPublicSchema.js";
+export { capProfileCellTextPropertiesImpactEnumSchema } from "./zod/capProfileCellTextPropertiesImpactEnumSchema.js";
+export { capProfileCellTextPropertiesLikelihoodEnumSchema } from "./zod/capProfileCellTextPropertiesLikelihoodEnumSchema.js";
+export { capProfileCellTextSchema } from "./zod/capProfileCellTextSchema.js";
+export { capProfileColourResponseSchema } from "./zod/capProfileColourResponseSchema.js";
 export { capProfileDefinitionPropertiesChannelsItemsEnumSchema } from "./zod/capProfileDefinitionPropertiesChannelsItemsEnumSchema.js";
 export { capProfileDefinitionSchema } from "./zod/capProfileDefinitionSchema.js";
 export { capProfileDraftRequestPropertiesLevelEnumSchema } from "./zod/capProfileDraftRequestPropertiesLevelEnumSchema.js";
 export { capProfileDraftRequestSchema } from "./zod/capProfileDraftRequestSchema.js";
+export { capProfileImpactLevelSchema } from "./zod/capProfileImpactLevelSchema.js";
+export { capProfileMatrixSchema } from "./zod/capProfileMatrixSchema.js";
 export { capProfilePublicPropertiesStateEnumSchema } from "./zod/capProfilePublicPropertiesStateEnumSchema.js";
 export { capProfilePublicSchema } from "./zod/capProfilePublicSchema.js";
 export { capProfileRulePropertiesOperatorEnumSchema } from "./zod/capProfileRulePropertiesOperatorEnumSchema.js";
@@ -14604,6 +14662,18 @@ export {
   capSubmitAlertStatus404Schema,
   capSubmitAlertStatus422Schema,
 } from "./zod/capSubmitAlertSchema.js";
+export {
+  capSuggestIbfErrorSchema,
+  capSuggestIbfQueryImpactSchema,
+  capSuggestIbfQueryKindSchema,
+  capSuggestIbfQueryLikelihoodSchema,
+  capSuggestIbfQuerySubtypeSchema,
+  capSuggestIbfResponseSchema,
+  capSuggestIbfStatus200Schema,
+  capSuggestIbfStatus401Schema,
+  capSuggestIbfStatus403Schema,
+  capSuggestIbfStatus422Schema,
+} from "./zod/capSuggestIbfSchema.js";
 export {
   capUpdateAlertBodySchema,
   capUpdateAlertErrorSchema,
@@ -17489,6 +17559,9 @@ export {
   hrValidateGridStatus404Schema,
   hrValidateGridStatus422Schema,
 } from "./zod/hrValidateGridSchema.js";
+export { ibfLevelPublicSchema } from "./zod/ibfLevelPublicSchema.js";
+export { ibfMatrixPublicSchema } from "./zod/ibfMatrixPublicSchema.js";
+export { ibfSuggestionSchema } from "./zod/ibfSuggestionSchema.js";
 export { imageInputPropertiesTimeBasisEnumSchema } from "./zod/imageInputPropertiesTimeBasisEnumSchema.js";
 export { imageInputSchema } from "./zod/imageInputSchema.js";
 export { imageResultSchema } from "./zod/imageResultSchema.js";

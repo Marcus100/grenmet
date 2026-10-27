@@ -3,13 +3,18 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
+from src.cap import ibf
 from src.cap.levels import GmsColour
-from src.cap.models import CapCategory
+from src.cap.models import CapCategory, CapSeverity
 from src.models import BaseModel, UtcDateTime
 
 # The GMS products a profile can template. "Advisory" is kept for the marine
 # Small Craft Advisory; see src/cap/levels.py.
 ProfileLevel = Literal["Outlook", "Watch", "Warning", "Advisory"]
+
+# The axes of the impact-based forecasting matrix (src/cap/ibf.py).
+IbfLikelihood = Literal["Very low", "Low", "Medium", "High"]
+IbfImpact = Literal["Minimal", "Minor", "Significant", "Severe"]
 
 
 class CapProfileRule(BaseModel):
@@ -24,6 +29,49 @@ class CapProfileRule(BaseModel):
     evidence: str = Field(default="", max_length=2000)
 
 
+class CapProfileImpactLevel(BaseModel):
+    """What one impact level looks like for a hazard, and where it starts."""
+
+    impact: IbfImpact
+    impacts: list[str] = Field(default_factory=list, max_length=50)
+    # Plain-language thresholds, for example "1-hour rainfall > 50 mm".
+    thresholds: list[str] = Field(default_factory=list, max_length=20)
+
+
+class CapProfileColourResponse(BaseModel):
+    """What the public should do at one colour; "[...locations...]" marks a gap."""
+
+    colour: GmsColour
+    response: str = Field(default="", max_length=10000)
+
+
+class CapProfileCellText(BaseModel):
+    """Wording for one cell of the matrix, replacing the defaults built from the
+    impact level and the colour."""
+
+    likelihood: IbfLikelihood
+    impact: IbfImpact
+    impacts: list[str] = Field(default_factory=list, max_length=50)
+    response: str = Field(default="", max_length=10000)
+
+
+class CapProfileMatrix(BaseModel):
+    """A hazard's own likelihood-by-impact grid; absent means the WMO grid."""
+
+    # Rows from "Very low" to "High" likelihood, columns "Minimal" to "Severe" impact.
+    cells: list[list[GmsColour]]
+
+    @model_validator(mode="after")
+    def usable(self) -> CapProfileMatrix:
+        errors = ibf.matrix_errors([[c.value for c in row] for row in self.cells])
+        if errors:
+            raise ValueError(" ".join(errors))
+        return self
+
+    def grid(self) -> list[list[str]]:
+        return [[cell.value for cell in row] for row in self.cells]
+
+
 class CapProfileSubtype(BaseModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
     name: str = Field(min_length=1, max_length=200)
@@ -34,6 +82,28 @@ class CapProfileSubtype(BaseModel):
     impacts: list[str] = Field(default_factory=list, max_length=50)
     responses: list[str] = Field(default_factory=list, max_length=50)
     affected_groups: list[str] = Field(default_factory=list, max_length=50)
+    # Impact-based matrix content. A subtype that sets any of these must set all
+    # impact levels and all four responses before approval (profiles.approval_errors).
+    impact_levels: list[CapProfileImpactLevel] = Field(
+        default_factory=list, max_length=4
+    )
+    colour_responses: list[CapProfileColourResponse] = Field(
+        default_factory=list, max_length=4
+    )
+    cell_texts: list[CapProfileCellText] = Field(default_factory=list, max_length=16)
+
+    @model_validator(mode="after")
+    def unique_matrix_entries(self) -> CapProfileSubtype:
+        if len({level.impact for level in self.impact_levels}) != len(
+            self.impact_levels
+        ):
+            raise ValueError("Each impact level can be described once")
+        if len({r.colour for r in self.colour_responses}) != len(self.colour_responses):
+            raise ValueError("Each colour can have one response")
+        cells = [(c.likelihood, c.impact) for c in self.cell_texts]
+        if len(set(cells)) != len(cells):
+            raise ValueError("Each matrix cell can have one wording")
+        return self
 
 
 class CapProfileTemplate(BaseModel):
@@ -55,6 +125,7 @@ class CapProfileDefinition(BaseModel):
         Literal["CAP feed", "Email / EDIS", "WIS2", "GMS website", "Agency channels"]
     ] = Field(default_factory=list)
     notes: str = Field(default="", max_length=5000)
+    matrix: CapProfileMatrix | None = None
 
     @model_validator(mode="after")
     def unique_choices(self) -> CapProfileDefinition:
@@ -97,3 +168,40 @@ class CapProfileDraftRequest(BaseModel):
         if self.level != "Outlook" and self.colour is None:
             raise ValueError(f"Choose a colour for this {self.level}")
         return self
+
+
+class IbfLevelPublic(BaseModel):
+    label: str
+    percent: int | None = None
+
+
+class IbfMatrixPublic(BaseModel):
+    """The grid a forecaster reads for one hazard kind."""
+
+    likelihoods: list[IbfLevelPublic]
+    impacts: list[IbfLevelPublic]
+    cells: list[list[GmsColour]]
+    meanings: dict[GmsColour, str]
+    # Set when an approved library entry supplied its own grid; otherwise WMO's.
+    library_key: str | None = None
+    library_version: int | None = None
+
+
+class IbfSuggestion(BaseModel):
+    """The colour and starting wording for one likelihood and impact."""
+
+    colour: GmsColour
+    meaning: str
+    likelihood: IbfLikelihood
+    impact: IbfImpact
+    percent: int
+    severity: CapSeverity
+    awareness_level: str
+    # False when no approved library entry exists: only the colour is suggested.
+    available: bool
+    subtype: str | None = None
+    thresholds: list[str] = Field(default_factory=list)
+    impacts: list[str] = Field(default_factory=list)
+    response: str = ""
+    library_key: str | None = None
+    library_version: int | None = None
