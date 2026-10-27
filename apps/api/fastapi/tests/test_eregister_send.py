@@ -2175,6 +2175,6 @@ def test_the_register_migrations_form_one_chain_with_a_single_head() -> None:
     script = ScriptDirectory.from_config(
         Config(str(ROOT / "src/eregister/alembic.ini"))
     )
-    assert script.get_heads() == ["eregister_0006"]
+    assert script.get_heads() == ["eregister_0007"]
     revisions = [item.revision for item in script.walk_revisions()]
-    assert revisions == [f"eregister_000{n}" for n in range(6, 0, -1)]
+    assert revisions == [f"eregister_000{n}" for n in range(7, 0, -1)]

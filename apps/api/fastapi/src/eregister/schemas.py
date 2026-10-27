@@ -297,6 +297,67 @@ class StationSettingsUpdate(BaseModel):
     qnh_offset_hpa: float | None = Field(ge=-20, le=20)
 
 
+StationSourceKind = Literal["manual", "automatic"]
+StationSchedule = Literal["automatic", "manual", "hybrid"]
+STATION_ID_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+# WMO-No. 1192 WIGOS identifier: 0-<issuer>-<issue number>-<local identifier>.
+WIGOS_ID_PATTERN = r"^0-\d{1,5}-\d{1,5}-[A-Za-z0-9]{1,16}$"
+ALL_HOURS = list(range(24))
+UtcHour = Annotated[int, Field(ge=0, le=23)]
+
+
+class StationRecord(BaseModel):
+    """One station in the observation station registry (ADR-0032)."""
+
+    station_id: str
+    name: str | None = None
+    wigos_id: str | None = Field(
+        default=None, description="WIGOS identifier, for example 0-20000-0-78958."
+    )
+    source_kind: StationSourceKind = Field(
+        description="`manual` observer station or `automatic` weather station."
+    )
+    schedule: StationSchedule = Field(
+        description="Derived publish schedule: `manual` (all 24 hours), `hybrid` "
+        "(some hours) or `automatic`."
+    )
+    manual_hours_utc: list[int] = Field(
+        description="UTC hours (0-23) the observer publishes; empty for automatic."
+    )
+    active: bool
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
+
+
+class StationRecordList(BaseModel):
+    stations: list[StationRecord]
+
+
+class StationCreate(BaseModel):
+    """Add a station. An automatic station never has observer hours."""
+
+    station_id: str = Field(pattern=STATION_ID_PATTERN)
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    wigos_id: str | None = Field(default=None, pattern=WIGOS_ID_PATTERN)
+    source_kind: StationSourceKind
+    manual_hours_utc: list[UtcHour] | None = Field(
+        default=None,
+        max_length=24,
+        description="Manual stations only; omitted means all 24 hours.",
+    )
+    active: bool = True
+
+
+class StationUpdate(BaseModel):
+    """Change a station; omitted keys stay as they are. `station_id` is fixed."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    wigos_id: str | None = Field(default=None, pattern=WIGOS_ID_PATTERN)
+    source_kind: StationSourceKind | None = None
+    manual_hours_utc: list[UtcHour] | None = Field(default=None, max_length=24)
+    active: bool | None = None
+
+
 PressureTrend = Literal["rising", "steady", "falling"]
 
 
