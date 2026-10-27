@@ -16,6 +16,22 @@ For infrastructure commands (Postgres, FastAPI, Docker): see the
 
 Run `pnpm start` and `pnpm dev:web:*` on the host, not in the devcontainer.
 
+## Shared task cache
+
+Turborepo results (type-check, lint, tests, builds) are shared between CI and
+local runs through a signed remote cache (ADR-0052), so a check that already
+passed anywhere is replayed instead of rerun. To use it on a machine, once:
+
+1. `pnpm exec turbo login`, then `pnpm exec turbo link` in the main checkout
+   (choose the team that owns the repository's Vercel projects).
+2. Export the team for worktrees, which have no link file:
+   `export TURBO_TEAM=<team slug>` in your shell profile.
+3. Export the signing key from a private file outside the repository:
+   `export TURBO_REMOTE_CACHE_SIGNATURE_KEY="$(cat ~/.config/grenmet/turbo-signature-key)"`.
+   Without the key, runs still work; they just cannot sign or trust remote results.
+
+The token and key are the owner's; never commit them or put them in an env file.
+
 ## Apps at a glance
 
 | App | Command | Port | Needs FastAPI? | Notes |

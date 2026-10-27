@@ -29,6 +29,14 @@ concurrency:
 permissions:
   contents: read
 
+# Shared, signed Turborepo remote cache (ADR-0052). Pull requests read it; pushes
+# also write it. Forks and Dependabot get no secrets and run with it off.
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+  TURBO_CACHE: ${{ github.event_name == 'pull_request' && 'local:rw,remote:r' || 'local:rw,remote:rw' }}
+
 jobs:
   image-selection:
     name: Select image checks
