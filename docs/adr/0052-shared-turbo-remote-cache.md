@@ -48,10 +48,27 @@ request. The owner then chose short-lived OIDC tokens limited to trusted branche
   - Forks and Dependabot receive no secrets and no OIDC permission and run with the
     local cache only. Heuristic.
 - **Uncertainty:** how Vercel matches the branch claim in its policy form (exact
-  branch or pattern); release runs (`refs/tags/*`) have no policy yet and fall back to
+  branch or pattern, and whether a tag or branch named like a trusted one could match;
+  the owner proves this with a refused test from a feature branch before merging); release runs (`refs/tags/*`) have no policy yet and fall back to
   the local cache; the signing key is still a repository secret readable by any
   same-repository pull request, but without a token it cannot be used to write.
   Medium.
+
+- **Accepted risks (security review of 26 October 2026):**
+  - Code that runs inside a trusted job (a compromised npm dependency or a malicious
+    merged test) holds the short-lived token and the signing key together and could
+    upload correctly signed results, for example a forged passing `test` or
+    `type-check`, or package `dist/**` that the owner's laptop later replays. Images are
+    not affected: no Dockerfile receives the token and the `build` job does not enable
+    the remote cache. Mitigations: pinned action SHA, token revoked at job end, only
+    three jobs, trusted branches only. Medium confidence, low likelihood.
+  - The signing key is a repository secret readable by any same-repository pull
+    request. Without a token it can neither read nor write the remote cache. Moving it
+    to a GitHub environment restricted to `dev` and `staging` would harden this, at the
+    cost of changing the OIDC subject to `environment:<name>` and the Vercel policies.
+  - The owner's `turbo login` token on the laptop is a user token, probably wider than
+    cache-only. Local runs therefore default to reading the remote cache but not writing
+    it (`TURBO_CACHE=local:rw,remote:r`); CI is the only writer.
 
 ## Options considered
 
@@ -86,6 +103,9 @@ cache of `.turbo/cache` (ADR-0019) stays as the local layer.
   everywhere trusted: promotions skip checks `dev` already ran, and local runs skip
   what CI already ran.
 - Pull requests do not get remote hits; they keep the per-branch GitHub cache.
+- Local runs read what CI produced on trusted branches but do not publish their own
+  results by default, so a result computed from unreviewed local code is never replayed
+  in CI.
 - Adding a trusted branch or the release tags means adding a Vercel policy; until then
   those runs use the local cache.
 - Rotating the signing key is an owner task (repository secret and the private key

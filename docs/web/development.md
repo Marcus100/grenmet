@@ -18,9 +18,10 @@ Run `pnpm start` and `pnpm dev:web:*` on the host, not in the devcontainer.
 
 ## Shared task cache
 
-Turborepo results (type-check, lint, tests, builds) are shared between CI and
-local runs through a signed remote cache (ADR-0052; CI uses short-lived tokens on trusted branches, never on pull requests), so a check that already
-passed anywhere is replayed instead of rerun. To use it on a machine, once:
+Turborepo results (type-check, lint, tests, builds) are shared between CI and local
+runs through a signed remote cache (ADR-0052; CI uses short-lived tokens on trusted
+branches, never on pull requests), so a check that already passed on `dev` is
+replayed locally instead of rerun. To use it on a machine, once:
 
 1. `pnpm exec turbo login`, then `pnpm exec turbo link` in the main checkout
    (choose the team that owns the repository's Vercel projects).
@@ -28,7 +29,10 @@ passed anywhere is replayed instead of rerun. To use it on a machine, once:
    `export TURBO_TEAM=<team slug>` in your shell profile.
 3. Export the signing key from a private file outside the repository:
    `export TURBO_REMOTE_CACHE_SIGNATURE_KEY="$(cat ~/.config/grenmet/turbo-signature-key)"`.
-   Without the key, runs still work; they just cannot sign or trust remote results.
+   Without the key, runs still work; they just cannot trust remote results.
+4. Make local runs read-only: `export TURBO_CACHE=local:rw,remote:r`. Only CI
+   publishes to the remote cache, so a result from unreviewed local code is never
+   replayed in CI. The `turbo login` token is a user token; keep it to this machine.
 
 The token and key are the owner's; never commit them or put them in an env file.
 
