@@ -1,5 +1,9 @@
 # Finished worktree cleanup
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-26
+
 Preview registered Claude worktrees from a Grenmet checkout:
 
 ```bash
@@ -14,7 +18,8 @@ node scripts/agents/worktree-clean.mjs --remove /absolute/path/to/.claude/worktr
 ```
 
 The command checks that the registered checkout is physically inside the main
-repository's `.claude/worktrees` directory, its current commit is already in
+repository's managed `<main-checkout>/.claude/worktrees/` directory (created
+by the harness when needed), its current commit is already in
 `origin/dev`, it is unlocked, and no running process belonging to the current
 user has its working directory there. An incomplete process inspection blocks
 removal. Local remote-tracking history must be current before choosing a target.
