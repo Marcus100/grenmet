@@ -43,3 +43,21 @@ export const hrGetStatusReportsErrorSchema = z.union([
   hrGetStatusReportsStatus403Schema,
   hrGetStatusReportsStatus422Schema,
 ]);
+
+export const hrGetStatusReportsQuerySchema = z.object({
+  department_id: z.union([z.string(), z.null()]).optional(),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

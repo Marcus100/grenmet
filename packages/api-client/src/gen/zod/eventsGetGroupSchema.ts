@@ -26,3 +26,7 @@ export const eventsGetGroupErrorSchema = z.union([
   eventsGetGroupStatus404Schema,
   eventsGetGroupStatus422Schema,
 ]);
+
+export const eventsGetGroupPathSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+});

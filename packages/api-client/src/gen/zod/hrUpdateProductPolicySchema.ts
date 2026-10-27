@@ -40,3 +40,7 @@ export const hrUpdateProductPolicyErrorSchema = z.union([
 ]);
 
 export const hrUpdateProductPolicyBodySchema = productAccessInputSchema;
+
+export const hrUpdateProductPolicyPathSchema = z.object({
+  kind: z.string(),
+});

@@ -28,3 +28,7 @@ export const hrCheckPeriodRulesErrorSchema = z.union([
   hrCheckPeriodRulesStatus404Schema,
   hrCheckPeriodRulesStatus422Schema,
 ]);
+
+export const hrCheckPeriodRulesPathSchema = z.object({
+  period_id: z.uuid(),
+});

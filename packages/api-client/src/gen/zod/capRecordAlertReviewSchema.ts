@@ -39,3 +39,7 @@ export const capRecordAlertReviewErrorSchema = z.union([
 export const capRecordAlertReviewBodySchema = capReviewRecordSchema.describe(
   "An optional colleague review (owner decision 2026-10-23); never blocks."
 );
+
+export const capRecordAlertReviewPathSchema = z.object({
+  alert_id: z.uuid(),
+});

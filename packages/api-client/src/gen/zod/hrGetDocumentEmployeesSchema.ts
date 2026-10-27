@@ -53,3 +53,22 @@ export const hrGetDocumentEmployeesErrorSchema = z.union([
   hrGetDocumentEmployeesStatus403Schema,
   hrGetDocumentEmployeesStatus422Schema,
 ]);
+
+export const hrGetDocumentEmployeesQuerySchema = z.object({
+  search: z.string().max(100).optional().default(""),
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

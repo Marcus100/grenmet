@@ -44,3 +44,7 @@ export const janitorialUpdateSectionErrorSchema = z.union([
 ]);
 
 export const janitorialUpdateSectionBodySchema = sectionUpdateSchema;
+
+export const janitorialUpdateSectionPathSchema = z.object({
+  section_id: z.int(),
+});

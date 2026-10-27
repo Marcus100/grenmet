@@ -6,7 +6,7 @@
 import type { GmsColour } from "./GmsColour.js";
 
 /**
- * @description What the public should do at one colour; \"[...locations...]\" marks a gap.
+ * @description What the public should do at one colour; "[...locations...]" marks a gap.
  * @type object
  */
 export type CapProfileColourResponse = {

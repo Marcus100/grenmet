@@ -27,3 +27,7 @@ export const storagePublicFileErrorSchema = z.union([
   storagePublicFileStatus422Schema,
   storagePublicFileStatus503Schema,
 ]);
+
+export const storagePublicFilePathSchema = z.object({
+  file_id: z.uuid(),
+});

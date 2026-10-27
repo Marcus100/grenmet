@@ -32,3 +32,7 @@ export const eventsJoinGroupErrorSchema = z.union([
   eventsJoinGroupStatus422Schema,
   eventsJoinGroupStatus429Schema,
 ]);
+
+export const eventsJoinGroupPathSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+});

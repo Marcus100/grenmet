@@ -27,3 +27,7 @@ export const authRevokeActivationErrorSchema = z.union([
   authRevokeActivationStatus404Schema,
   authRevokeActivationStatus422Schema,
 ]);
+
+export const authRevokeActivationPathSchema = z.object({
+  user_id: z.uuid(),
+});

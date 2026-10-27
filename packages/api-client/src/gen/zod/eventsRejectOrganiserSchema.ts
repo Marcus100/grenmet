@@ -36,3 +36,7 @@ export const eventsRejectOrganiserErrorSchema = z.union([
 ]);
 
 export const eventsRejectOrganiserBodySchema = verificationRejectionSchema;
+
+export const eventsRejectOrganiserPathSchema = z.object({
+  organisation_id: z.string().max(100),
+});

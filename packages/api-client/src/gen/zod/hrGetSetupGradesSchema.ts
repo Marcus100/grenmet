@@ -32,3 +32,7 @@ export const hrGetSetupGradesErrorSchema = z.union([
   hrGetSetupGradesStatus409Schema,
   hrGetSetupGradesStatus422Schema,
 ]);
+
+export const hrGetSetupGradesQuerySchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+});

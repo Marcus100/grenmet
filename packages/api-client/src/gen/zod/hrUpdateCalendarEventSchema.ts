@@ -37,3 +37,7 @@ export const hrUpdateCalendarEventErrorSchema = z.union([
 ]);
 
 export const hrUpdateCalendarEventBodySchema = calendarEventUpdateSchema;
+
+export const hrUpdateCalendarEventPathSchema = z.object({
+  event_id: z.uuid(),
+});

@@ -30,3 +30,7 @@ export const eventsAcceptConnectionErrorSchema = z.union([
   eventsAcceptConnectionStatus422Schema,
   eventsAcceptConnectionStatus429Schema,
 ]);
+
+export const eventsAcceptConnectionPathSchema = z.object({
+  connection_id: z.uuid(),
+});

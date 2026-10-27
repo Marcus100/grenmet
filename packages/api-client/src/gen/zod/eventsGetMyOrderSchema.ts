@@ -30,3 +30,7 @@ export const eventsGetMyOrderErrorSchema = z.union([
   eventsGetMyOrderStatus422Schema,
   eventsGetMyOrderStatus429Schema,
 ]);
+
+export const eventsGetMyOrderPathSchema = z.object({
+  order_id: z.uuid(),
+});

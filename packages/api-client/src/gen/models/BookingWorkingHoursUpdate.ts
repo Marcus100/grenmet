@@ -6,7 +6,7 @@
 import type { BookingWorkingPeriodIn } from "./BookingWorkingPeriodIn.js";
 
 /**
- * @description The provider\'s complete weekly plan; replaces what was there.
+ * @description The provider's complete weekly plan; replaces what was there.
  * @type object
  */
 export type BookingWorkingHoursUpdate = {

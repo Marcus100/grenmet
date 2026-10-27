@@ -29,3 +29,7 @@ export const hrListDepartmentMembersErrorSchema = z.union([
   hrListDepartmentMembersStatus404Schema,
   hrListDepartmentMembersStatus422Schema,
 ]);
+
+export const hrListDepartmentMembersPathSchema = z.object({
+  department_id: z.string(),
+});

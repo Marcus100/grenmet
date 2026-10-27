@@ -48,3 +48,12 @@ export const bookingsUpsertProfileBodySchema =
   bookingProfileUpdateSchema.describe(
     "Create or replace the organisation's booking profile."
   );
+
+export const bookingsUpsertProfileHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+    ),
+});

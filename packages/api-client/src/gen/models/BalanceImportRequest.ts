@@ -4,7 +4,11 @@
  */
 
 /**
- * @description Opening leave balances from a spreadsheet export (for example HrPlus).\n\nThe CSV needs the columns ``employee_number``, ``leave_type`` (an exact leave\ntype code) and ``balance``; other columns, such as names, are ignored and never\nstored. Nothing is posted unless ``apply`` is true and every row is valid.
+ * @description Opening leave balances from a spreadsheet export (for example HrPlus).
+ *
+ * The CSV needs the columns ``employee_number``, ``leave_type`` (an exact leave
+ * type code) and ``balance``; other columns, such as names, are ignored and never
+ * stored. Nothing is posted unless ``apply`` is true and every row is valid.
  * @type object
  */
 export type BalanceImportRequest = {

@@ -41,3 +41,10 @@ export const janitorialGetCatalogueErrorSchema = z.union([
   janitorialGetCatalogueStatus422Schema,
   janitorialGetCatalogueStatus503Schema,
 ]);
+
+export const janitorialGetCatalogueQuerySchema = z.object({
+  site: z
+    .union([z.string().regex(/^[A-Za-z]{3}$/), z.null()])
+    .optional()
+    .describe("Site code, e.g. GND or CRU"),
+});

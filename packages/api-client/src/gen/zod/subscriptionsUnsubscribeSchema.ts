@@ -21,3 +21,7 @@ export const subscriptionsUnsubscribeErrorSchema = z.union([
   subscriptionsUnsubscribeStatus303Schema,
   subscriptionsUnsubscribeStatus422Schema,
 ]);
+
+export const subscriptionsUnsubscribeQuerySchema = z.object({
+  token: z.string(),
+});

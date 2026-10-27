@@ -33,3 +33,7 @@ export const hrGetSetupPoliciesErrorSchema = z.union([
   hrGetSetupPoliciesStatus409Schema,
   hrGetSetupPoliciesStatus422Schema,
 ]);
+
+export const hrGetSetupPoliciesQuerySchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+});

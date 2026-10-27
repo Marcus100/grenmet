@@ -13,7 +13,7 @@ export type GuidanceOrganisationPublic = {
   role: string;
   entitled: boolean;
   /**
-   * @description Status of the organisation\'s latest access request, if any.
+   * @description Status of the organisation's latest access request, if any.
    */
   request_status: string | null;
 };

@@ -4,7 +4,7 @@
  */
 
 /**
- * @description Create or replace the organisation\'s booking profile.
+ * @description Create or replace the organisation's booking profile.
  * @type object
  */
 export type BookingProfileUpdate = {

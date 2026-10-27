@@ -28,3 +28,7 @@ export const bookingsGetStorefrontErrorSchema = z.union([
   bookingsGetStorefrontStatus404Schema,
   bookingsGetStorefrontStatus422Schema,
 ]);
+
+export const bookingsGetStorefrontPathSchema = z.object({
+  slug: z.string(),
+});

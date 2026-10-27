@@ -42,3 +42,10 @@ export const hrListCalendarEventsErrorSchema = z.union([
   hrListCalendarEventsStatus404Schema,
   hrListCalendarEventsStatus422Schema,
 ]);
+
+export const hrListCalendarEventsQuerySchema = z.object({
+  start: z.iso.date(),
+  end: z.iso.date(),
+  department_id: z.union([z.string(), z.null()]).optional(),
+  include_cancelled: z.boolean().optional().default(false),
+});

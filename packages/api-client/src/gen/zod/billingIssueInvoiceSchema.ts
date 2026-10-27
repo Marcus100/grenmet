@@ -39,3 +39,7 @@ export const billingIssueInvoiceErrorSchema = z.union([
 export const billingIssueInvoiceBodySchema = z
   .union([invoiceIssueSchema, z.null()])
   .optional();
+
+export const billingIssueInvoicePathSchema = z.object({
+  invoice_id: z.uuid(),
+});

@@ -40,3 +40,12 @@ export const webhooksOutListEventTypesErrorSchema = z.union([
   webhooksOutListEventTypesStatus404Schema,
   webhooksOutListEventTypesStatus422Schema,
 ]);
+
+export const webhooksOutListEventTypesHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

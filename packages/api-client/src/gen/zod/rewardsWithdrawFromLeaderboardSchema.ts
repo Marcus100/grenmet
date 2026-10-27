@@ -31,3 +31,8 @@ export const rewardsWithdrawFromLeaderboardErrorSchema = z.union([
   rewardsWithdrawFromLeaderboardStatus403Schema,
   rewardsWithdrawFromLeaderboardStatus422Schema,
 ]);
+
+export const rewardsWithdrawFromLeaderboardPathSchema = z.object({
+  scope_kind: scopeKindSchema,
+  scope_id: z.string(),
+});

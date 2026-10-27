@@ -62,3 +62,22 @@ export const bookingsRecordManualDepositBodySchema =
   bookingManualDepositCreateSchema.describe(
     "How a deposit taken outside Stripe was paid (``method``, optional receipt\nor transfer ``reference``)."
   );
+
+export const bookingsRecordManualDepositPathSchema = z.object({
+  booking_id: z.uuid().describe("The booking's id."),
+});
+
+export const bookingsRecordManualDepositHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+    ),
+  "Idempotency-Key": z
+    .union([z.string().max(255), z.null()])
+    .optional()
+    .describe(
+      "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+    ),
+});

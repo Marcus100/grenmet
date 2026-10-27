@@ -62,3 +62,32 @@ export const paymentsListIntentsErrorSchema = z.union([
   paymentsListIntentsStatus403Schema,
   paymentsListIntentsStatus422Schema,
 ]);
+
+export const paymentsListIntentsQuerySchema = z.object({
+  status: z.union([intentStatusSchema, z.null()]).optional(),
+  source_type: z.union([z.string().max(60), z.null()]).optional(),
+  source_id: z.union([z.string().max(120), z.null()]).optional(),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});
+
+export const paymentsListIntentsHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});
