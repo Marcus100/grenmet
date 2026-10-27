@@ -310,6 +310,71 @@ const openApiInfoTextOnlyChange = (comparison) => {
   }
 };
 
+// Response header documentation does not affect Kubb output either (the client
+// reads bodies only). Strip `headers` from every response object, then require
+// the rest of the document to be identical, failing closed.
+const isRecord = (value) => typeof value === "object" && value !== null;
+const dropHeaders = (responses) =>
+  isRecord(responses)
+    ? Object.fromEntries(
+        Object.entries(responses).map(([status, response]) => {
+          if (!isRecord(response)) return [status, response];
+          const { headers: _headers, ...rest } = response;
+          return [status, rest];
+        })
+      )
+    : responses;
+const withoutResponseHeaders = (schema) => ({
+  ...schema,
+  paths: Object.fromEntries(
+    Object.entries(schema.paths ?? {}).map(([path, operations]) => [
+      path,
+      isRecord(operations)
+        ? Object.fromEntries(
+            Object.entries(operations).map(([method, operation]) => [
+              method,
+              isRecord(operation) && "responses" in operation
+                ? { ...operation, responses: dropHeaders(operation.responses) }
+                : operation,
+            ])
+          )
+        : operations,
+    ])
+  ),
+  components:
+    isRecord(schema.components) && "responses" in schema.components
+      ? {
+          ...schema.components,
+          responses: dropHeaders(schema.components.responses),
+        }
+      : schema.components,
+});
+const openApiResponseHeaderDocsOnlyChange = (comparison) => {
+  const file = "apps/api/fastapi/openapi.json";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  try {
+    const [before, after] = refs.map((ref) => {
+      const result = spawnSync("git", ["show", ref], {
+        encoding: "utf8",
+        maxBuffer: OPENAPI_MAX_BYTES,
+      });
+      if (result.error || result.status !== 0)
+        throw new Error("Missing schema");
+      return JSON.parse(result.stdout);
+    });
+    if (JSON.stringify(before) === JSON.stringify(after)) return false;
+    return (
+      JSON.stringify(withoutResponseHeaders(before)) ===
+      JSON.stringify(withoutResponseHeaders(after))
+    );
+  } catch {
+    return false;
+  }
+};
+
 // The API's descriptive metadata in main.py's module-level `app_configs`
 // (`description`, `contact`) only feeds OpenAPI info text. Permit edits to
 // those two values when both stay plain literals; anything else in main.py,
@@ -432,7 +497,10 @@ const evaluateChanges = (changes, comparison) => {
   if (triggers.length > 0 && !files.has("apps/api/fastapi/openapi.json")) {
     missingContractCompanions.push("apps/api/fastapi/openapi.json");
   }
-  if (triggers.length > 0 && !generatedClientChanged) {
+  const headerDocsOnly =
+    files.has("apps/api/fastapi/openapi.json") &&
+    openApiResponseHeaderDocsOnlyChange(comparison);
+  if (triggers.length > 0 && !generatedClientChanged && !headerDocsOnly) {
     missingContractCompanions.push("packages/api-client/src/gen/");
   }
   if (triggers.length > 0 && !files.has("docs/api/contracts.md")) {
@@ -452,6 +520,7 @@ const evaluateChanges = (changes, comparison) => {
     triggers.length === 0 &&
     files.has("apps/api/fastapi/openapi.json") &&
     !generatedClientChanged &&
+    !headerDocsOnly &&
     !openApiInfoTextOnlyChange(comparison)
   ) {
     violations.push({
