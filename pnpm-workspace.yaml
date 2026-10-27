@@ -57,7 +57,7 @@ catalog:
   # Core
   react: ^19.3.1
   react-dom: ^19.3.1
-  next: 16.4.2
+  next: 16.4.3
   babel-plugin-react-compiler: "^1.0.0"
   server-only: "0.0.1"
   typescript: "^7.0.2"
@@ -90,7 +90,7 @@ catalog:
   sonner: "^2.0.8"
   recharts: "^3.10.1"
   vaul: "^1.1.2"
-  react-resizable-panels: "^4.14.8"
+  react-resizable-panels: "^4.15.0"
   input-otp: "^1.5.0"
   qrcode: "^1.5.4"
   "@types/qrcode": "^1.5.6"
@@ -127,11 +127,11 @@ catalog:
   "@types/pg": "^8.23.1"
 
   # Repository tooling
-  "@biomejs/biome": "~2.5.15"
+  "@biomejs/biome": "~2.6.3"
   turbo: "^2.11.10"
-  ultracite: "8.0.1"
+  ultracite: "8.0.2"
   husky: "^9.1.7"
-  knip: "^6.42.1"
+  knip: "^6.43.0"
   lint-staged: ^17.6.0
 
   # MDX — content-collections stack (docs, signal)
@@ -150,11 +150,11 @@ catalog:
   "react-day-picker": "^10.0.2"
 
   # Error tracking
-  "@sentry/nextjs": ^11.8.0
+  "@sentry/nextjs": ^11.9.0
 
   # Analytics
-  "posthog-js": ^1.438.18
-  "posthog-node": ^5.57.0
+  "posthog-js": ^1.438.21
+  "posthog-node": ^5.57.1
 
   # Testing
   vitest: ^5.0.5
