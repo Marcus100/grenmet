@@ -277,9 +277,14 @@ The production API image (`apps/api/fastapi/Dockerfile.prod`) moved from
 regular security support on 2026-07-11. The one renamed package is `libssl3`,
 now `libssl3t64`; the other runtime packages (including WeasyPrint's Pango,
 HarfBuzz and fontconfig libraries) keep their names. The minimum-version checks
-now use trixie versions. The earlier follow-up below describes the Debian 12
-image and is kept as history. This trial is proven only by the CI Docker Build
-and Trivy scan; compare the Trivy alert count with dev's last scan.
+now name the trixie-security builds, so the image build fails if the security
+mirror cannot supply them. The earlier follow-up below describes the Debian 12
+image and is kept as history. CI proves the build, the vulnerability policy
+(298 findings reported on trixie against 381 on bookworm) and, through the
+image smoke step, that WeasyPrint renders a PDF. Compare a rendered forecast
+sheet on staging before promoting: Pango and HarfBuzz are newer and line breaks
+can shift. The development image (`apps/api/fastapi/Dockerfile`) and the weather
+collectors image are still on Debian 12.
 
 ### API Debian runtime follow-up
 
