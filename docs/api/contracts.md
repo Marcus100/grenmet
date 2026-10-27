@@ -1911,6 +1911,18 @@ weather site as provisional, so a signed-in account alone is not enough.
   `422`, so `{}` can no longer clear everything). Each change writes a change-history
   entry (`eregister_station_settings`, readable by `eregister.qc` or
   `eregister.send`) with the amounts before and after and the actor.
+- *Station registry.* `GET /api/v1/eregister/stations` (list; `include_inactive=false`
+  hides retired ones), `POST` (add, `201`), `GET /stations/{station_id}` and
+  `PATCH /stations/{station_id}` (edit the keys sent; `station_id` is fixed). A
+  station has a `wigos_id` (format `0-<issuer>-<issue>-<local>`, unique, `409` if
+  taken), `source_kind` (`manual` observer or `automatic`), `manual_hours_utc`
+  (manual only; omitted means all 24; the derived `schedule` is `manual`, `hybrid`
+  or `automatic`) and `active`. An automatic station with hours, or a manual one with
+  none, is `422`. Reading needs register staff access; changes need `eregister.qc`
+  and write a change-history entry (`eregister_station`, create or the fields before
+  and after). The WIS2 publish gate refuses an inactive station. 78958 stays the
+  manual station; the automatic station is added here once GMS confirms its WIGOS
+  identifier (migration `eregister_0007`, additive).
 - *Special groups and listings.* Typed `s3_special_phenomena` groups are sent in the
   order keyed, after the gust and `s3_group_909` built from their own fields; a typed
   group with the same 9SpSp prefix as one of those is dropped and warns

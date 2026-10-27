@@ -31474,6 +31474,241 @@
         }
       }
     },
+    "/api/v1/eregister/stations": {
+      "get": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "List stations",
+        "description": "The observation station registry (ADR-0032): id, name, WIGOS identifier, source kind (`manual` observer or `automatic`), derived schedule, observer hours (UTC) and active flag. Inactive stations are included unless `include_inactive=false`. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "operationId": "eregisterListRegistryStations",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "include_inactive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Include Inactive"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationRecordList"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Add a station",
+        "description": "Adds a station. `wigos_id` must look like `0-20000-0-78958` and be unique. A `manual` station defaults to all 24 observer hours; an `automatic` station has none. Recorded in the change history (entity `eregister_station`). Requires `eregister.qc`.",
+        "operationId": "eregisterAddStation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Schedule contradicts the source kind, or invalid format"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
+          },
+          "409": {
+            "description": "Station id or WIGOS identifier already registered"
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/stations/{station_id}": {
+      "get": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Get a station",
+        "description": "One registry entry. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "operationId": "eregisterGetRegistryStation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "station_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Station Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Edit a station",
+        "description": "Changes the keys sent (`station_id` is fixed). An explicit null clears `name` or `wigos_id`. Switching to `automatic` needs no observer hours; switching to `manual` without hours means all 24. An inactive station is refused by the WIS2 publish gate. Recorded in the change history (entity `eregister_station`) with the fields before and after. Requires `eregister.qc`.",
+        "operationId": "eregisterEditStation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "station_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Station Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Schedule contradicts the source kind, or invalid format"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
+          },
+          "409": {
+            "description": "Station id or WIGOS identifier already registered"
+          }
+        }
+      }
+    },
     "/api/v1/eregister/stations/{station_id}/settings": {
       "get": {
         "tags": [
@@ -79511,6 +79746,160 @@
         ],
         "title": "StaffUpdate"
       },
+      "StationCreate": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "title": "Station Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "wigos_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^0-\\d{1,5}-\\d{1,5}-[A-Za-z0-9]{1,16}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wigos Id"
+          },
+          "source_kind": {
+            "$ref": "#/components/schemas/StationCreatePropertiesSourceKindEnum"
+          },
+          "manual_hours_utc": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer",
+                  "maximum": 23.0,
+                  "minimum": 0.0
+                },
+                "type": "array",
+                "maxItems": 24
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manual Hours Utc",
+            "description": "Manual stations only; omitted means all 24 hours."
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "source_kind"
+        ],
+        "title": "StationCreate",
+        "description": "Add a station. An automatic station never has observer hours."
+      },
+      "StationRecord": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "wigos_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wigos Id",
+            "description": "WIGOS identifier, for example 0-20000-0-78958."
+          },
+          "source_kind": {
+            "$ref": "#/components/schemas/StationCreatePropertiesSourceKindEnum"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/StationRecordPropertiesScheduleEnum"
+          },
+          "manual_hours_utc": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Manual Hours Utc",
+            "description": "UTC hours (0-23) the observer publishes; empty for automatic."
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "source_kind",
+          "schedule",
+          "manual_hours_utc",
+          "active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "StationRecord",
+        "description": "One station in the observation station registry (ADR-0032)."
+      },
+      "StationRecordList": {
+        "properties": {
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/StationRecord"
+            },
+            "type": "array",
+            "title": "Stations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stations"
+        ],
+        "title": "StationRecordList"
+      },
       "StationSettings": {
         "properties": {
           "station_id": {
@@ -79668,6 +80057,77 @@
         ],
         "title": "StationSettingsUpdate",
         "description": "All four amounts are required: send an explicit null to clear one."
+      },
+      "StationUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "wigos_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^0-\\d{1,5}-\\d{1,5}-[A-Za-z0-9]{1,16}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wigos Id"
+          },
+          "source_kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StationCreatePropertiesSourceKindEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Kind"
+          },
+          "manual_hours_utc": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer",
+                  "maximum": 23.0,
+                  "minimum": 0.0
+                },
+                "type": "array",
+                "maxItems": 24
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manual Hours Utc"
+          },
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          }
+        },
+        "type": "object",
+        "title": "StationUpdate",
+        "description": "Change a station; omitted keys stay as they are. `station_id` is fixed."
       },
       "StatusReportCreate": {
         "properties": {
@@ -89717,6 +90177,22 @@
           "refund_without_till",
           "online_ledger_mismatch"
         ]
+      },
+      "StationCreatePropertiesSourceKindEnum": {
+        "type": "string",
+        "enum": [
+          "manual",
+          "automatic"
+        ]
+      },
+      "StationRecordPropertiesScheduleEnum": {
+        "type": "string",
+        "enum": [
+          "automatic",
+          "manual",
+          "hybrid"
+        ],
+        "description": "Derived publish schedule: `manual` (all 24 hours), `hybrid` (some hours) or `automatic`."
       },
       "StationSettingsPropertiesPendingItemsEnum": {
         "type": "string",

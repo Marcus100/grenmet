@@ -2392,6 +2392,18 @@ export type {
   EregisterAcceptRegisterObservationStatus422,
 } from "./EregisterAcceptRegisterObservation.js";
 export type {
+  EregisterAddStationBody,
+  EregisterAddStationOptions,
+  EregisterAddStationResponse,
+  EregisterAddStationResponses,
+  EregisterAddStationStatus201,
+  EregisterAddStationStatus401,
+  EregisterAddStationStatus403,
+  EregisterAddStationStatus404,
+  EregisterAddStationStatus409,
+  EregisterAddStationStatus422,
+} from "./EregisterAddStation.js";
+export type {
   EregisterCorrectRegisterObservationBody,
   EregisterCorrectRegisterObservationOptions,
   EregisterCorrectRegisterObservationPath,
@@ -2417,6 +2429,19 @@ export type {
   EregisterCreateRegisterObservationStatus422,
 } from "./EregisterCreateRegisterObservation.js";
 export type {
+  EregisterEditStationBody,
+  EregisterEditStationOptions,
+  EregisterEditStationPath,
+  EregisterEditStationResponse,
+  EregisterEditStationResponses,
+  EregisterEditStationStatus200,
+  EregisterEditStationStatus401,
+  EregisterEditStationStatus403,
+  EregisterEditStationStatus404,
+  EregisterEditStationStatus409,
+  EregisterEditStationStatus422,
+} from "./EregisterEditStation.js";
+export type {
   EregisterEmailRegisterObservationBody,
   EregisterEmailRegisterObservationOptions,
   EregisterEmailRegisterObservationPath,
@@ -2429,6 +2454,17 @@ export type {
   EregisterEmailRegisterObservationStatus409,
   EregisterEmailRegisterObservationStatus422,
 } from "./EregisterEmailRegisterObservation.js";
+export type {
+  EregisterGetRegistryStationOptions,
+  EregisterGetRegistryStationPath,
+  EregisterGetRegistryStationResponse,
+  EregisterGetRegistryStationResponses,
+  EregisterGetRegistryStationStatus200,
+  EregisterGetRegistryStationStatus401,
+  EregisterGetRegistryStationStatus403,
+  EregisterGetRegistryStationStatus404,
+  EregisterGetRegistryStationStatus422,
+} from "./EregisterGetRegistryStation.js";
 export type {
   EregisterGetStationSettingsOptions,
   EregisterGetStationSettingsPath,
@@ -2460,6 +2496,16 @@ export type {
   EregisterListRegisterObservationsStatus403,
   EregisterListRegisterObservationsStatus422,
 } from "./EregisterListRegisterObservations.js";
+export type {
+  EregisterListRegistryStationsOptions,
+  EregisterListRegistryStationsQuery,
+  EregisterListRegistryStationsResponse,
+  EregisterListRegistryStationsResponses,
+  EregisterListRegistryStationsStatus200,
+  EregisterListRegistryStationsStatus401,
+  EregisterListRegistryStationsStatus403,
+  EregisterListRegistryStationsStatus422,
+} from "./EregisterListRegistryStations.js";
 export type {
   EregisterPublicCurrentConditionsOptions,
   EregisterPublicCurrentConditionsResponse,
@@ -7380,10 +7426,18 @@ export type { StaffInput } from "./StaffInput.js";
 export type { StaffOrganiserRow } from "./StaffOrganiserRow.js";
 export type { StaffSetup } from "./StaffSetup.js";
 export type { StaffUpdate } from "./StaffUpdate.js";
+export type { StationCreate } from "./StationCreate.js";
+export type { StationCreatePropertiesSourceKindEnum } from "./StationCreatePropertiesSourceKindEnum.js";
+export { stationCreatePropertiesSourceKindEnum } from "./StationCreatePropertiesSourceKindEnum.js";
+export type { StationRecord } from "./StationRecord.js";
+export type { StationRecordList } from "./StationRecordList.js";
+export type { StationRecordPropertiesScheduleEnum } from "./StationRecordPropertiesScheduleEnum.js";
+export { stationRecordPropertiesScheduleEnum } from "./StationRecordPropertiesScheduleEnum.js";
 export type { StationSettings } from "./StationSettings.js";
 export type { StationSettingsPropertiesPendingItemsEnum } from "./StationSettingsPropertiesPendingItemsEnum.js";
 export { stationSettingsPropertiesPendingItemsEnum } from "./StationSettingsPropertiesPendingItemsEnum.js";
 export type { StationSettingsUpdate } from "./StationSettingsUpdate.js";
+export type { StationUpdate } from "./StationUpdate.js";
 export type { StatusReportCreate } from "./StatusReportCreate.js";
 export type { StatusReportDetails } from "./StatusReportDetails.js";
 export type { StatusReportEntryInput } from "./StatusReportEntryInput.js";

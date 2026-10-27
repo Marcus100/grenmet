@@ -96,3 +96,14 @@ Problems this ADR addresses:
   depends on organisation API keys (ADR-0029). Hydromet adapters wait for the
   inventory. Context is in the
   [WIS2 roadmap](../internal/wis2-implementation-roadmap-2026.md).
+
+## Amendment 2026-10-27: station registry
+
+Staff list, add and edit stations through `/api/v1/eregister/stations` instead
+of SQL (migration `eregister_0007`). Each station has a unique WIGOS identifier,
+a source kind (`manual` observer or `automatic`), observer hours, and an active
+flag; the gate refuses inactive stations. Owner decision: 78958 stays the manual
+observer SYNOP station for all 24 hours; the automatic weather station and any
+other station are separate stations with their own identity, added through the
+registry once GMS confirms the automatic station's WIGOS identifier (none is
+seeded). Changes need `eregister.qc` and are audited.
