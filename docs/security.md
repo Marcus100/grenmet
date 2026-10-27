@@ -270,6 +270,17 @@ credentials and Starlette's deprecated httpx TestClient integration. The host
 recreated its virtual environment because the previous interpreter link was
 invalid; do not infer that this proves the cause of earlier database timeouts.
 
+### API image on Debian 13 (trixie)
+
+The production API image (`apps/api/fastapi/Dockerfile.prod`) moved from
+`python:3.14-slim-bookworm` to `python:3.14-slim-trixie` because Debian 12 left
+regular security support on 2026-07-11. The one renamed package is `libssl3`,
+now `libssl3t64`; the other runtime packages (including WeasyPrint's Pango,
+HarfBuzz and fontconfig libraries) keep their names. The minimum-version checks
+now use trixie versions. The earlier follow-up below describes the Debian 12
+image and is kept as history. This trial is proven only by the CI Docker Build
+and Trivy scan; compare the Trivy alert count with dev's last scan.
+
 ### API Debian runtime follow-up
 
 The operator's API image scan reported 325 findings with no policy blockers or
