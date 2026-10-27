@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 from src.cap.exceptions import (
     CapAlertNotFoundError,
 )
+from src.cap.levels import INTERNAL_PARAMETERS
 from src.cap.models import (
     CapAlert,
     CapArea,
@@ -37,8 +38,13 @@ def _as_name_values(values: list[dict[str, str]]) -> list[CapNameValue]:
     return [CapNameValue.model_validate(value) for value in values]
 
 
-def _info_to_public_from_loaded(info: CapInfo) -> CapInfoPublic:
-    """Build CapInfoPublic from an already-loaded CapInfo (no queries fired)."""
+def _info_to_public_from_loaded(
+    info: CapInfo, *, redact_internal: bool = False
+) -> CapInfoPublic:
+    """Build CapInfoPublic from an already-loaded CapInfo (no queries fired).
+
+    ``redact_internal`` drops staff-only parameters; every anonymous path sets it.
+    """
     resource_rows = sorted(info.resources or [], key=lambda x: x.sequence)
     area_rows = sorted(info.areas or [], key=lambda x: x.sequence)
     return CapInfoPublic(
@@ -62,7 +68,11 @@ def _info_to_public_from_loaded(info: CapInfo) -> CapInfoPublic:
         instruction=info.instruction,
         web=info.web,
         contact=info.contact,
-        parameters=_as_name_values(info.parameters or []),
+        parameters=[
+            item
+            for item in _as_name_values(info.parameters or [])
+            if not (redact_internal and item.value_name in INTERNAL_PARAMETERS)
+        ],
         resources=[
             CapResourcePublic.model_validate(r, from_attributes=True)
             for r in resource_rows
@@ -71,7 +81,9 @@ def _info_to_public_from_loaded(info: CapInfo) -> CapInfoPublic:
     )
 
 
-def _to_public_from_loaded(alert: CapAlert) -> CapAlertPublic:
+def _to_public_from_loaded(
+    alert: CapAlert, *, redact_internal: bool = False
+) -> CapAlertPublic:
     """Build CapAlertPublic from relationships already loaded via selectinload."""
     info_rows = sorted(alert.info_blocks or [], key=lambda x: x.sequence)
     reference_rows = sorted(alert.cap_references or [], key=lambda x: x.sequence)
@@ -103,7 +115,10 @@ def _to_public_from_loaded(alert: CapAlert) -> CapAlertPublic:
             for r in reference_rows
         ],
         incidents=[i.value for i in incident_rows],
-        info=[_info_to_public_from_loaded(i) for i in info_rows],
+        info=[
+            _info_to_public_from_loaded(i, redact_internal=redact_internal)
+            for i in info_rows
+        ],
         xml_url=f"/api/cap/{alert.identifier}.xml",
     )
 
@@ -118,7 +133,9 @@ def _alert_selectinload_options() -> list[Any]:
     ]
 
 
-async def _to_public(*, session: AsyncSession, alert: CapAlert) -> CapAlertPublic:
+async def _to_public(
+    *, session: AsyncSession, alert: CapAlert, redact_internal: bool = False
+) -> CapAlertPublic:
     # Re-fetch with all children eager-loaded, then render via the loaded builder
     # so a single query set replaces the previous per-child (N+1) lookups. Callers
     # commit/flush their changes before rendering, so the reload sees fresh data.
@@ -130,7 +147,7 @@ async def _to_public(*, session: AsyncSession, alert: CapAlert) -> CapAlertPubli
     loaded = result.scalars().first()
     if loaded is None:
         raise CapAlertNotFoundError()
-    return _to_public_from_loaded(loaded)
+    return _to_public_from_loaded(loaded, redact_internal=redact_internal)
 
 
 def _area_to_public(area: CapArea) -> CapAreaPublic:

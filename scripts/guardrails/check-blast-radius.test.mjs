@@ -265,6 +265,66 @@ test("a title correction cannot hide an OpenAPI route change", (t) => {
   assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
 });
 
+const PDF_SCHEMA = (headers, extra = {}) => ({
+  openapi: "3.1.0",
+  info: { title: "Barrels Grenada" },
+  paths: {
+    "/pdf": {
+      get: {
+        responses: {
+          200: {
+            description: "PDF",
+            ...(headers ? { headers } : {}),
+            ...extra,
+          },
+        },
+      },
+    },
+  },
+});
+
+test("response header documentation needs no client regeneration", (t) => {
+  const router = "apps/api/fastapi/src/hr/router.py";
+  const openapi = "apps/api/fastapi/openapi.json";
+  const { base, repository } = createRepository(t, {
+    [openapi]: JSON.stringify(PDF_SCHEMA(null)),
+    [router]: "old\n",
+  });
+  write(
+    repository,
+    openapi,
+    JSON.stringify(PDF_SCHEMA({ "x-content-type-options": { schema: {} } }))
+  );
+  write(repository, router, "new\n");
+  write(repository, "docs/api/contracts.md");
+  git(repository, "add", "-A");
+  assert.equal(check(repository, ["--staged"]).status, 0);
+  const head = commit(repository);
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 0);
+});
+
+test("a header documentation edit cannot hide a response change", (t) => {
+  const router = "apps/api/fastapi/src/hr/router.py";
+  const openapi = "apps/api/fastapi/openapi.json";
+  const { base, repository } = createRepository(t, {
+    [openapi]: JSON.stringify(PDF_SCHEMA(null)),
+    [router]: "old\n",
+  });
+  write(
+    repository,
+    openapi,
+    JSON.stringify(
+      PDF_SCHEMA({ "x-content-type-options": { schema: {} } }, { content: {} })
+    )
+  );
+  write(repository, router, "new\n");
+  write(repository, "docs/api/contracts.md");
+  git(repository, "add", "-A");
+  assert.equal(check(repository, ["--staged"]).status, 1);
+  const head = commit(repository);
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
+});
+
 const DESCRIBED_MAIN = `app_configs: dict[str, Any] = {
     "title": settings.PROJECT_NAME,
     "description": (

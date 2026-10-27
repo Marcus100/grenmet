@@ -62,6 +62,7 @@ async def test_authenticated_parking_draft_pdf_submit_approval_and_issuance(
     )
     assert preview.status_code == 200 and preview.content.startswith(b"%PDF")
     assert preview.headers["cache-control"] == "private, no-store"
+    assert "Parking" in preview.headers["content-disposition"]
     assert await db_async.scalar(select(func.count()).select_from(ParkingPermit)) == 0
     response = await async_client.post(
         "/api/v1/hr/parking-permits", headers=auth, json=payload

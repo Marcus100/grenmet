@@ -11,5 +11,6 @@ export const capEscalationCreateSchema = z
     product_id: z.uuid(),
     revision: z.int().min(1).max(1000000),
     awareness_level: capEscalationCreatePropertiesAwarenessLevelEnumSchema,
+    override_reason: z.union([z.string().max(1000), z.null()]).optional(),
   })
   .describe("Raise a saved GMS alert revision to a CAP warning (ADR-0051).");

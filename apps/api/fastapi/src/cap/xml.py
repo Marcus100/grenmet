@@ -7,6 +7,7 @@ from defusedxml.common import DefusedXmlException
 from pydantic import ValidationError
 
 from src.cap.exceptions import CapImportError
+from src.cap.levels import INTERNAL_PARAMETERS
 from src.cap.models import (
     CapCertainty,
     CapMessageType,
@@ -83,6 +84,8 @@ def _info_element(info: CapInfoPublic) -> ET.Element:
     _append(element, "web", info.web)
     _append(element, "contact", info.contact)
     for parameter in info.parameters:
+        if parameter.value_name in INTERNAL_PARAMETERS:
+            continue
         element.append(_name_value_element("parameter", parameter))
     for resource in sorted(info.resources, key=lambda item: item.sequence):
         element.append(_resource_element(resource))

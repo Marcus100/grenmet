@@ -8,6 +8,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { delimiter, join } from "node:path";
 import test from "node:test";
@@ -159,13 +160,45 @@ function run(args, env = {}) {
     "FIRST_SUPERUSER",
     "POSTGRES_USER",
     "POSTGRES_SERVER",
+    "POSTGRES_PORT",
+    "REDIS_URL",
+    "WXPRODUCTS_DATABASE_URL",
+    "TEST_DB_PORT",
   ])
     delete base[key];
+  // Whether a disposable test database happens to be running must not change
+  // what these tests see; the detection has its own tests below.
   return spawnSync("bash", [SCRIPT, ...args], {
     encoding: "utf8",
-    env: { ...base, ...env },
+    env: { TEST_DB_AUTO: "0", ...base, ...env },
   });
 }
+
+// The caller's environment minus every database setting.
+function cleanEnv(extra) {
+  const env = { ...process.env };
+  for (const key of [
+    "POSTGRES_SERVER",
+    "POSTGRES_PORT",
+    "REDIS_URL",
+    "WXPRODUCTS_DATABASE_URL",
+  ])
+    delete env[key];
+  return { ...env, ...extra };
+}
+
+// A listener on a free port stands in for the disposable test database.
+function listen(t) {
+  return new Promise((resolve) => {
+    const server = createServer();
+    server.listen(0, "127.0.0.1", () => {
+      t.after(() => server.close());
+      resolve(server.address().port);
+    });
+  });
+}
+
+const SETTINGS = ["printenv", "POSTGRES_SERVER", "POSTGRES_PORT", "REDIS_URL"];
 
 test("sets the settings a fresh worktree is missing", () => {
   const result = run([
@@ -199,4 +232,71 @@ test("refuses to run without a command", () => {
   const result = run([]);
   assert.equal(result.status, 2);
   assert.match(result.stderr, USAGE);
+});
+
+test("a running disposable test database is used when nothing names one", async (t) => {
+  const port = await listen(t);
+  const result = spawnSync(
+    "bash",
+    [
+      SCRIPT,
+      "bash",
+      "-c",
+      'echo "$POSTGRES_SERVER:$POSTGRES_PORT $REDIS_URL $(printf %s "$WXPRODUCTS_DATABASE_URL" | sed \'s/.*@//\')"',
+    ],
+    {
+      encoding: "utf8",
+      env: cleanEnv({ TEST_DB_AUTO: "1", TEST_DB_PORT: String(port) }),
+    }
+  );
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(
+    result.stdout.trim(),
+    `127.0.0.1:${port} redis://127.0.0.1:6379/0 127.0.0.1:${port}/wxproducts`
+  );
+});
+
+test("an explicit database setting beats the disposable one", async (t) => {
+  const port = await listen(t);
+  for (const explicit of [
+    { POSTGRES_SERVER: "db.example" },
+    { POSTGRES_PORT: "5432" },
+  ]) {
+    const result = spawnSync("bash", [SCRIPT, ...SETTINGS], {
+      encoding: "utf8",
+      env: cleanEnv({
+        TEST_DB_AUTO: "1",
+        TEST_DB_PORT: String(port),
+        ...explicit,
+      }),
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const [server, dbPort] = result.stdout.trim().split("\n");
+    assert.notEqual(`${server}:${dbPort}`, `127.0.0.1:${port}`);
+  }
+});
+
+test("nothing is used when no disposable database is listening or auto is off", async (t) => {
+  const port = await listen(t);
+  const closed = createServer();
+  const free = await new Promise((resolve) =>
+    closed.listen(0, "127.0.0.1", () => {
+      const { port: p } = closed.address();
+      closed.close(() => resolve(p));
+    })
+  );
+  for (const env of [
+    { TEST_DB_AUTO: "1", TEST_DB_PORT: String(free) },
+    { TEST_DB_AUTO: "0", TEST_DB_PORT: String(port) },
+  ]) {
+    const result = spawnSync("bash", [SCRIPT, ...SETTINGS], {
+      encoding: "utf8",
+      env: cleanEnv(env),
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(result.stdout.trim().split("\n").slice(0, 2), [
+      "host.docker.internal",
+      "5432",
+    ]);
+  }
 });

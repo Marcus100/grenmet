@@ -14,7 +14,7 @@ from src.dependencies import SessionDep
 from src.openapi_responses import AUTHENTICATED
 from src.rate_limit import limiter
 
-from . import derive, entries, metar, public, qc, rules, sends, stations
+from . import derive, entries, metar, public, qc, registry, rules, sends, stations
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
     ObservationSend,
@@ -28,8 +28,12 @@ from .schemas import (
     RegisterObservationRead,
     ReviewRequest,
     SendObservationRequest,
+    StationCreate,
+    StationRecord,
+    StationRecordList,
     StationSettings,
     StationSettingsUpdate,
+    StationUpdate,
     SynopValidationRequest,
     SynopValidationResponse,
 )
@@ -513,6 +517,132 @@ async def list_observation_sends(
     _require_register_access(user)
     response.headers["Cache-Control"] = "private, no-store"
     return ObservationSendList(sends=await sends.list_sends(session, observation_id))
+
+
+STATION_RESPONSES = {
+    **REGISTER_RESPONSES,
+    404: {"description": "Unknown station"},
+    409: {"description": "Station id or WIGOS identifier already registered"},
+    422: {"description": "Schedule contradicts the source kind, or invalid format"},
+}
+
+
+@router.get(
+    "/stations",
+    response_model=StationRecordList,
+    summary="List stations",
+    description=(
+        "The observation station registry (ADR-0032): id, name, WIGOS identifier, "
+        "source kind (`manual` observer or `automatic`), derived schedule, observer "
+        "hours (UTC) and active flag. Inactive stations are included unless "
+        "`include_inactive=false`. Requires `eregister.observe`, `eregister.qc` or "
+        "`eregister.send`."
+    ),
+    responses=REGISTER_RESPONSES,
+)
+async def list_registry_stations(
+    user: BrowserUser,
+    session: RegisterSession,
+    response: Response,
+    include_inactive: bool = True,
+) -> StationRecordList:
+    _require_register_access(user)
+    response.headers["Cache-Control"] = "private, no-store"
+    return StationRecordList(
+        stations=await registry.list_stations(
+            session, include_inactive=include_inactive
+        )
+    )
+
+
+@router.post(
+    "/stations",
+    response_model=StationRecord,
+    status_code=201,
+    summary="Add a station",
+    description=(
+        "Adds a station. `wigos_id` must look like `0-20000-0-78958` and be unique. "
+        "A `manual` station needs an explicit, non-empty "
+        "`manual_hours_utc`; an `automatic` station has none. Recorded in the change history (entity "
+        "`eregister_station`). Requires `eregister.qc`."
+    ),
+    responses=STATION_RESPONSES,
+)
+async def add_station(
+    body: StationCreate,
+    user: BrowserUser,
+    session: RegisterSession,
+    app_session: SessionDep,
+    response: Response,
+) -> StationRecord:
+    require_permission(current_user=user, permission_key="eregister.qc")
+    response.headers["Cache-Control"] = "no-store"
+    created = await registry.create(session, body)
+    await registry.record_change(
+        app_session,
+        user=user,
+        station_id=created.station_id,
+        before=None,
+        after=created,
+    )
+    return created
+
+
+@router.get(
+    "/stations/{station_id}",
+    response_model=StationRecord,
+    summary="Get a station",
+    description=(
+        "One registry entry. Requires `eregister.observe`, `eregister.qc` or "
+        "`eregister.send`."
+    ),
+    responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
+)
+async def get_registry_station(
+    station_id: str,
+    user: BrowserUser,
+    session: RegisterSession,
+    response: Response,
+) -> StationRecord:
+    _require_register_access(user)
+    response.headers["Cache-Control"] = "private, no-store"
+    found = await registry.get(session, station_id.strip())
+    if found is None:
+        raise registry.StationNotFoundError
+    return found
+
+
+@router.patch(
+    "/stations/{station_id}",
+    response_model=StationRecord,
+    summary="Edit a station",
+    description=(
+        "Changes the keys sent (`station_id` is fixed). An explicit null clears "
+        "`name`. A `wigos_id` can be set once, while empty, and never changed or "
+        "cleared. Station 78958 can only be renamed (422 otherwise). Switching to "
+        "`manual` needs explicit hours; `automatic` has none. An inactive station is "
+        "refused by the WIS2 publish gate. Recorded in the change history (entity "
+        "`eregister_station`) with the fields before and after. Requires "
+        "`eregister.qc`."
+    ),
+    responses=STATION_RESPONSES,
+)
+async def edit_station(
+    station_id: str,
+    body: StationUpdate,
+    user: BrowserUser,
+    session: RegisterSession,
+    app_session: SessionDep,
+    response: Response,
+) -> StationRecord:
+    require_permission(current_user=user, permission_key="eregister.qc")
+    response.headers["Cache-Control"] = "no-store"
+    station = station_id.strip()
+    before, after = await registry.update(session, station, body)
+    await registry.record_change(
+        app_session, user=user, station_id=station, before=before, after=after
+    )
+    return after
 
 
 @router.get(

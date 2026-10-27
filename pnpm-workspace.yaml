@@ -191,6 +191,12 @@ overrides:
   # so the override is global. Remove once no dependant resolves an affected
   # release without it.
   dompurify: ">=3.4.17 <4"
+  # GHSA-587h-7wmj-h5pm (high): vite 8.3.0 to 8.3.2 is affected (launch-editor
+  # existence check bypass on Windows); 8.3.3 is the first fixed release. vite
+  # is a direct dependency of vitest, unplugin and unplugin-kubb and a peer of
+  # @sentry/cloudflare, so this is mostly a developer machine exposure (the
+  # vite dev server). Remove once every resolved vite is >= 8.3.3 on its own.
+  "vite@~8.3.0": ">=8.3.3 <9"
 
 # Accepted `pnpm audit --prod --audit-level high` findings, so only a NEW
 # advisory fails the daily CVE watch (issue #563). Review by 2026-11-20 and
