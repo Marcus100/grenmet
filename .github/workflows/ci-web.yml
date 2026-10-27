@@ -29,14 +29,6 @@ concurrency:
 permissions:
   contents: read
 
-# Shared, signed Turborepo remote cache (ADR-0052). Pull requests read it; pushes
-# also write it. Forks and Dependabot get no secrets and run with it off.
-env:
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
-  TURBO_CACHE: ${{ github.event_name == 'pull_request' && 'local:rw,remote:r' || 'local:rw,remote:rw' }}
-
 jobs:
   image-selection:
     name: Select image checks
@@ -77,6 +69,13 @@ jobs:
     name: Type Check
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write # short-lived cache token (ADR-0052); only used off pull requests
+    env:
+      # Signed remote cache on trusted events only; pull requests keep the local cache.
+      TURBO_CACHE: ${{ github.event_name != 'pull_request' && 'local:rw,remote:rw' || 'local:rw' }}
+      TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ github.event_name != 'pull_request' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
@@ -86,6 +85,8 @@ jobs:
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
+        with:
+          turbo-remote-cache: "true"
 
       - name: Type-check all web apps
         # --affected only on dev PRs; promotion PRs and pushes stay full, like image selection.
@@ -189,6 +190,13 @@ jobs:
     name: TypeScript Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # short-lived cache token (ADR-0052); only used off pull requests
+    env:
+      # Signed remote cache on trusted events only; pull requests keep the local cache.
+      TURBO_CACHE: ${{ github.event_name != 'pull_request' && 'local:rw,remote:rw' || 'local:rw' }}
+      TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ github.event_name != 'pull_request' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
@@ -198,6 +206,8 @@ jobs:
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
+        with:
+          turbo-remote-cache: "true"
 
       - name: Run all TypeScript unit tests
         # gaa-admin is the slowest suite and runs sharded in `gaa-admin-tests`
@@ -218,6 +228,13 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3]
+    permissions:
+      contents: read
+      id-token: write # short-lived cache token (ADR-0052); only used off pull requests
+    env:
+      # Signed remote cache on trusted events only; pull requests keep the local cache.
+      TURBO_CACHE: ${{ github.event_name != 'pull_request' && 'local:rw,remote:rw' || 'local:rw' }}
+      TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ github.event_name != 'pull_request' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
@@ -227,6 +244,8 @@ jobs:
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
+        with:
+          turbo-remote-cache: "true"
 
       - name: Run gaa-admin tests (shard ${{ matrix.shard }}/3)
         env:
