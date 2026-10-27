@@ -16,7 +16,12 @@ from src.hr.attendance import clock_service, punch_service
 from src.hr.attendance import service as attendance_service
 from src.hr.attendance.models import AttendanceRecord, ClockPunch
 from src.hr.attendance.schemas import AttendanceSave
-from src.hr.models import Department, EmploymentRecord, Organisation
+from src.hr.models import (
+    Department,
+    EmploymentRecord,
+    EmploymentStatus,
+    Organisation,
+)
 from src.hr.roster.models import (
     RosterAssignment,
     RosterPeriod,
@@ -903,3 +908,100 @@ async def test_roster_department_in_another_organisation_is_still_refused(
             ),
         )
     assert raised.value.status_code == 400
+
+
+@pytest.mark.parametrize(
+    "ended", [EmploymentStatus.TERMINATED, EmploymentStatus.INACTIVE]
+)
+@pytest.mark.parametrize(
+    "scope", [RoleAssignmentScope.DEPARTMENT, RoleAssignmentScope.ALL]
+)
+async def test_former_supervisor_with_ended_employment_cannot_review(
+    db_async: AsyncSession, scope: RoleAssignmentScope, ended: EmploymentStatus
+) -> None:
+    """#748: ending employment (profile update) revokes no role assignment and
+    leaves reports' supervisor_id in place, so the live review role must not
+    outlive the employment."""
+    employee, _, token = await _world(db_async)
+    named = await make_user(db_async)
+    named_record = await make_employee(db_async, user=named, department_id=DEPT)
+    role, _ = await make_role_with_permission(db_async, "timesheet.approve")
+    await assign_role(
+        db_async,
+        user=named,
+        role=role,
+        scope=scope,
+        department_id=DEPT if scope == RoleAssignmentScope.DEPARTMENT else None,
+    )
+    record = await db_async.scalar(
+        select(EmploymentRecord).where(EmploymentRecord.user_id == employee.id)
+    )
+    assert record is not None
+    record.supervisor_id = named.id
+    await db_async.commit()
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    depart = await _punch(db_async, employee, token, 18, 0)
+    assert await _pending_ids(db_async, named) == [arrive.id, depart.id]
+
+    named_record.status = ended
+    await db_async.commit()
+
+    assert await _pending_ids(db_async, named) == []
+    with pytest.raises(AppException) as approved:
+        await punch_service.approve_punch(
+            session=db_async, current_user=named, punch_id=arrive.id
+        )
+    assert approved.value.status_code == 403
+    with pytest.raises(AppException) as rejected:
+        await punch_service.reject_punch(
+            session=db_async,
+            current_user=named,
+            punch_id=arrive.id,
+            reason="no longer mine",
+        )
+    assert rejected.value.status_code == 403
+    assert await _records(db_async) == []
+
+
+async def test_deactivated_account_with_review_role_loses_it(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    named = await _supervisor(db_async, department=DEPT)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    assert await _pending_ids(db_async, named) == [arrive.id]
+    named.is_active = False
+    await db_async.commit()
+    assert await _pending_ids(db_async, named) == []
+
+
+async def test_all_scope_reviewer_without_any_employment_record_still_reviews(
+    db_async: AsyncSession,
+) -> None:
+    """Organisation administrators are modelled without an employment record;
+    only an ended record withdraws a review role."""
+    employee, _, token = await _world(db_async)
+    admin = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, "timesheet.approve")
+    await assign_role(db_async, user=admin, role=role, scope=RoleAssignmentScope.ALL)
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    assert await _pending_ids(db_async, admin) == [arrive.id]
+    approved = await punch_service.approve_punch(
+        session=db_async, current_user=admin, punch_id=arrive.id
+    )
+    assert approved.status == "APPROVED"
+
+
+async def test_superuser_with_ended_employment_still_reviews(
+    db_async: AsyncSession,
+) -> None:
+    employee, _, token = await _world(db_async)
+    root = await make_user(db_async, superuser=True)
+    root_record = await make_employee(db_async, user=root, department_id=DEPT)
+    root_record.status = EmploymentStatus.TERMINATED
+    await db_async.commit()
+    arrive = await _punch(db_async, employee, token, 9, 30)
+    approved = await punch_service.approve_punch(
+        session=db_async, current_user=root, punch_id=arrive.id
+    )
+    assert approved.status == "APPROVED"
