@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import outbox
 from src.bookings import reminders
 from src.bookings.models import Booking, Customer, Provider, Service
+from src.contacts import service as contacts_service
 from src.idempotency import IdempotencyKey, hash_request
 from src.outbox import Outbox, OutboxStatus
 from src.worker import main, retention
@@ -73,7 +74,10 @@ async def test_booking_reminder_job_records_metrics(
 async def _booking(db: AsyncSession, org_id: str, ends_at: datetime) -> Booking:
     service = Service(organisation_id=org_id, name="S", duration_min=60)
     provider = Provider(organisation_id=org_id, name="P")
-    customer = Customer(organisation_id=org_id, name="C")
+    contact = await contacts_service.create_without_email(
+        db, org_id, name="C", source="test"
+    )
+    customer = Customer(organisation_id=org_id, contact_id=contact.id)
     db.add_all([service, provider, customer])
     await db.flush()
     booking = Booking(

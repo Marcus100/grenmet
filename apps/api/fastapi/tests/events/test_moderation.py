@@ -58,6 +58,8 @@ async def test_moderators_resolve_reports_and_suggestions(
         assert [(row["subject_id"], row["status"]) for row in reports] == [
             ("tech-meetup", "open")
         ]
+        # Moderators see what was reported, never who reported it.
+        assert "reporter_id" not in reports[0]
         resolved = await client.patch(
             f"{BASE}/moderation/reports/{reports[0]['id']}",
             json={"status": "actioned"},
@@ -74,6 +76,11 @@ async def test_moderators_resolve_reports_and_suggestions(
         )
         assert approved.json()["status"] == "approved"
         assert (await client.get(f"{BASE}/moderation/suggestions")).json() == []
+        missing_suggestion = await client.patch(
+            f"{BASE}/moderation/suggestions/{uuid.uuid4()}",
+            json={"status": "rejected"},
+        )
+        assert missing_suggestion.status_code == 404
 
         missing = await client.patch(
             f"{BASE}/moderation/reports/{uuid.uuid4()}", json={"status": "dismissed"}

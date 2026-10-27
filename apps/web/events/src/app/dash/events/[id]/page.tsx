@@ -1,6 +1,6 @@
 import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { Banknote, Scale, ScanLine } from "lucide-react";
+import { Banknote, Receipt, Scale, ScanLine, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -59,7 +59,21 @@ export default async function EditEventPage({
             </h1>
           </div>
           {event.admission === "ticketed" ? (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Link
+                className={cn(buttonVariants({ variant: "outline" }))}
+                href={`/dash/events/${event.id}/orders`}
+              >
+                <Receipt data-icon="inline-start" />
+                Orders
+              </Link>
+              <Link
+                className={cn(buttonVariants({ variant: "outline" }))}
+                href={`/dash/events/${event.id}/attendees`}
+              >
+                <Users data-icon="inline-start" />
+                Attendees
+              </Link>
               <Link
                 className={cn(buttonVariants({ variant: "outline" }))}
                 href={`/dash/events/${event.id}/outlet`}
@@ -91,6 +105,7 @@ export default async function EditEventPage({
         />
         {event.status === "published" ? (
           <EventLifecycle
+            canChooseRefund={Boolean(managed.organiser.organisationId)}
             date={initial.date}
             endTime={initial.endTime}
             listingId={event.id}

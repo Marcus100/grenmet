@@ -2,7 +2,9 @@
 
 ## Status
 
-Proposed
+Superseded by [ADR-0039](0039-gaa-staff-platform.md) (staff platform) and [ADR-0040](0040-staff-attendance.md) (attendance) on 2026-10-20. Kept for history; its "app-only clock-in" and "one central login" parts no longer apply.
+
+Previously: Proposed.
 
 Amended 2026-09-16 following the product interview. See the [implementation guide](../exec-plans/gaa-modular-monolith-implementation.md). Planning agreement does not establish deployed behaviour or institutional operational acceptance.
 

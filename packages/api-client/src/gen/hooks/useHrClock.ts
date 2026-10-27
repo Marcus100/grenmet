@@ -50,7 +50,7 @@ export function hrClockMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Records arrival against the caller's rostered work shift, or departure when a shift is already open. The token proves presence at a department clock point. It feeds the same attendance record and supervisor review as manual attendance. Late, early-departure and overtime minutes are informational only.
+ * @description Records a PENDING punch for the caller's rostered work shift (arrival, or departure when a shift is already open). The token proves presence at a department clock point. A phone punch is not attendance, hours or timesheet input until a supervisor approves it (ADR-0040). Late, early-departure and overtime minutes are informational only.
  * @summary Clock in or out at a clock point
  * {@link /api/v1/hr/attendance/clock}
  */

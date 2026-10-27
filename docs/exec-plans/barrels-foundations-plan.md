@@ -23,7 +23,7 @@ authoritative for priority. Tenancy follows
 | Events pilot | Free and registration tickets plus outlet cash; online card payment waits for the Republic ePay answer |
 | Control plane | Separate `apps/web/admin` at `admin.barrels.gd`, superuser-only, dev and staging first |
 | Pay/Invoice v1 | Barrels invoicing its own service-line clients, manual payments (bank, cash, cheque); no card rail; new Stripe work parked |
-| Barrels HR | Next; stays in `apps/web/gaa-admin`; eventual host `hr.barrels.gd` |
+| Barrels HR | Next; stays in `apps/web/gaa-admin` until built. Decision 2026-10-21: a separate multi-organisation HR app at `hr.barrels.gd`, organisation in the path (`hr.barrels.gd/<orgSlug>/...`), port 3016 (ADR-0043) |
 | Build order | Approved as written (2026-10-18) |
 | Invoicing details | Configurable settings with provisional defaults: entity "Barrels Grenada", VAT 15%, numbers `BG-YYYY-NNNN`; confirm with an accountant |
 | Hub copy | Agent drafts neutral copy from the service-lines doc; owner edits later |
@@ -145,9 +145,9 @@ backup. GMS real data sources are ready; the work is integration.
 | 14 | Climate importer for GMS spreadsheets with QC flags; normals, monthly, records, rainfall pages | GMS | L | Spreadsheets in `/private/` | Open (request form only) |
 | 15 | ECMWF open data / AIFS / GFS point meteograms in the worker; `apps/web/gmsdash` (3013) scaffold with org access requests | GMS | L | — | Done, on staging (sign-in needs `GMSDASH_SSO_CLIENT_SECRET`) |
 | 16 | `JURY_DUTY` leave type; holiday table in timesheets; extra-day-for-holiday-in-vacation suggestion | HR | M | GAA HR rule confirmation | Done, on staging |
-| 17 | DPA purge job and email hashing migration (after verified backup) | Platform | M | — | Held for `EMAIL_HASH_PEPPER` |
+| 17 | DPA purge job and email hashing migration (after verified backup) | Platform | M | — | Purge built (`purge_expired_data`, daily 03:30 UTC) and email hashing on write built (`emailhash20261018`). Held: step 2, the destructive legacy backfill and plaintext null/drop, until a verified backup and the production `EMAIL_HASH_PEPPER` |
 | 18 | E3 outlet cash, E4 settlement report, E5 organiser cancel/refund | Barrels | L | — | Done, on staging |
-| 19 | C1 deploy wiring for `apps/web/admin` once `admin.*` is freed by the gmsadmin cutover | Barrels | M | — | Open (app built, not deployed) |
+| 19 | C1 deploy wiring for `apps/web/admin` once `admin.*` is freed by the admin host move | Barrels | M | — | Staging wired by the 2026-10-21 admin host move PR (compose service `web-admin`, release scope); reaches production when promoted to `main` |
 | 20 | Test speed: auto workers (CPUs − 2), pre-push runs changed-package tests, CI shards for API and gaa-admin, fuzz in CI only | Platform | M | — | Done, on staging |
 | 21 | Doc fixes: missing env.md rows, invoice settings in deploy, transition-plan port conflicts, note that compose `web-admin` is gaa-admin | Platform | S | — | Partly: domain map in `docs/ports.md`; the rest open |
 
@@ -187,11 +187,11 @@ Owner decisions (2026-10-18):
 | 24 | DMARC: add a `rua=` reporting address (Cloudflare DMARC Management) and `sp=`; review 2–4 weeks, then `quarantine`, then `reject` | Platform | S | Go for quarantine | Approved (reporting) |
 | 25 | CAA records: `issue "letsencrypt.org"` plus the CAs Vercel and Cloudflare need (verify first), and an `iodef` contact | Platform | S | — | Approved |
 | 26 | Security headers: nonce-based CSP in report-only, then enforced; Permissions-Policy; HSTS from 30 days to 1 year after a clean week; preload later | Platform | M | Go to enforce; go to preload | Open |
-| 27 | Health checks: every web app serves `/api/health` (cap and gmsdash already do) and Traefik and compose use it; document the API's liveness and readiness probes | Platform | S | — | Open |
+| 27 | Health checks: every web app serves `/api/health` (cap and gmsdash already do) and Traefik and compose use it; document the API's liveness and readiness probes | Platform | S | — | Partly: catalogue origin and examples updated 2026-10-21 |
 | 28 | `/.well-known/security.txt` (RFC 9116: `Contact`, `Expires` under a year) on barrels.gd and the public apps | Platform | S | Security contact | Open |
 | 29 | Explicit DNS records for every host, then remove the wildcard | Platform | S | — | Open |
 | 30 | GA4 for `cap.barrels.gd` in the service catalogue, production only (`publicAnalytics: true`) | CAP | S | GA4 ID | Open |
-| 31 | Tidy stale config: catalogue `gaa-admin` origin to `gmsadmin.*` (with item 19); retired hosts in `infra/docker/.env.*.example` CORS lists | Platform | S | — | Open |
+| 31 | Tidy stale config: catalogue `gaa-admin` origin to `gms.*` (with item 19); retired hosts in `infra/docker/.env.*.example` CORS lists | Platform | S | — | Open |
 
 Let's Encrypt allows about 50 certificates per registered domain per week,
 shared by staging and production. Today's roughly 28 hosts fit; keep
@@ -261,7 +261,7 @@ Alembic head.
 | P2 | Issue and email invoice PDF (stored through F8) | M | U — built, pending merge (PDF stored when object storage is configured, else rendered on demand; the email carries a 7-day link, not an attachment) |
 | P3 | Manual payments, receivables and ageing in the control plane | M | U — built, pending merge |
 | H1 | `barrels.gd` services page with contact and newsletter forms posting to FastAPI; drafted copy | S–M | U — built, pending merge; production CORS origins and copy review open |
-| E6 | Provider-neutral online payment adapter | L | Planned via B6: Stripe or Republic Bank ePay, whichever onboards first (owner approaching Republic Bank) |
+| E6 | Provider-neutral online payment adapter | L | Partly built on dev (checked 2026-10-21: provider registry in `src/payments/providers` with `manual` and `stripe` only; Events ticket payments use it through `src/events/order_payments.py`; Bookings deposits use it through `src/bookings/deposit_payments.py`, B6 partly built). No Republic Bank ePay adapter yet: whichever of Stripe or ePay onboards first (owner approaching Republic Bank) |
 | R1 | Phase 2 HR foreign key, then HR reads through `OrgContext` | L | O |
 
 Order: F1 → F2 → F3 → (F4, F5, F8) → A1, F6, F7 → E1 → E2 → E3 → E4 → E5. C1 → C2
@@ -293,10 +293,10 @@ Babydoll first. Main-database slices, one at a time.
 | B0 | ADR-0024, this section, portfolio and strategy updates | S | Done |
 | B1 | `bookings` schema and models; migration with the `btree_gist` exclusion constraint; studio CRUD for profile, services, providers, working plans and exceptions; `src/utils/timezones.py`; domain `AGENTS.md`; contracts and regenerated client | L | U — built on branch `claude/bookings-b1-b2`, pending CI (database tests) and merge |
 | B2 | Pure availability engine with property-style tests; public services and availability endpoints | M | U — built with B1, pending CI and merge |
-| B3 | Public create, manage, cancel and reschedule (Turnstile, honeypot, idempotency, hashed manage token); ICS; confirmation, studio and 24-hour reminder emails; retention | L | U |
-| B4 | Babydoll organisation and service seed; `/book` and `/booking/[token]` pages behind a switch flag (Acuity stays live) | M | U |
+| B3 | Public create, manage, cancel and reschedule (Turnstile, honeypot, idempotency, hashed manage token); ICS; confirmation, studio and 24-hour reminder emails; retention | L | Done: on dev (checked 2026-10-20: `src/bookings/public.py`, `ics.py`, `reminders.py`, `emails.py`, `tests/bookings/test_public_bookings.py`); CI not re-run |
+| B4 | Babydoll organisation and service seed; `/book` and `/booking/[token]` pages behind a switch flag (Acuity stays live) | M | O: built on dev (checked 2026-10-20: `src/bookings/seed.py`, `apps/web/babydoll/src/app/book`, `booking/[token]`, `BABYDOLL_ONLINE_BOOKING` in `src/env.ts`, default off). Owner: confirm durations, run the seed, flip the switch. See `docs/operations/babydoll-bookings-cutover.md` |
 | B5 | Babydoll Barrels ID sign-on and `/studio` (agenda, actions, services, hours, time off) | L | O (SSO secret and app URL) |
-| B6 | Provider-neutral payments (E6) on Barrels' merchant account: Stripe and Republic Bank ePay; deposits held as `pending_payment`; callback; refunds; settlement and payouts | L | O (a provider onboards Barrels) |
+| B6 | Provider-neutral payments (E6) on Barrels' merchant account: Stripe and Republic Bank ePay; deposits held as `pending_payment`; callback; refunds; settlement and payouts | L | Partly built on dev (checked 2026-10-20: `src/bookings/deposit_payments.py`, `deposits.py`, `outbox_handlers.py`, `expire_unpaid_bookings` job; `src/payments/providers` has `manual` and `stripe` only, no ePay adapter; `/admin/payouts` records payouts by hand, no automated settlement). O: a provider approved in writing (handoff A2). Deposits stay at 0 until then |
 | B7 | Switch Babydoll off Acuity; second tenant | S | O |
 
 Order: B1 → B2 → B3 → B4. B5 can start after B1. B6 follows B3 once a payment
@@ -311,11 +311,11 @@ Each primitive ships with one pilot consumer. Other domains move onto it one per
 | PF1 | **Org config and access.** N1 `org.public_site` (recipient, origin, Turnstile per site; the secret is Fernet-encrypted via `src/utils/secret_box.py` and `ORG_SECRET_ENCRYPTION_KEYS`). N2 site-keyed public routes. Request-time entitlements (`require_org_app`; products `bookings`, `rewards` in `src/organisations/entitlements.py`) | contact, subscriptions, bookings and rewards organisation routes | — | Built on `ccr-1892d1ff-r3cjk9`; control-plane "Sites" UI is C3 |
 | PF2 | **Reliability.** Shared `Idempotency-Key` with stored-response replay; one outbox table and runner with a single retry policy ([ADR-0026](../adr/0026-platform-reliability-primitives.md)) | Bookings B3 create | PF1 | Built (`reliability20261020`): idempotency, outbox, Bookings B3. Events, notifications and CAP loops are not moved onto it yet (one domain per PR; Events needs a separate-database design check) |
 | PF3 | **Org contacts.** `org.contact` with hashed email, consent and source; lookup, upsert and audited merge ([ADR-0028](../adr/0028-organisation-contacts.md)) | `bookings.customer`, then `billing.customer` | PF1 | Built (`src/contacts`, `orgcontacts20261020`). Bookings links customers to contacts when the organisation has the `contacts` entitlement; `billing.customer` is not wired yet |
-| PF4 | **Payments core.** Intents, attempts, append-only ledger, refunds; `PaymentProvider` with `manual` and Stripe test-mode adapters; reconciliation report ([ADR-0027](../adr/0027-payments-core-and-providers.md)) | Events paid tier or Bookings deposit (sandbox) | PF2, PF3 | Built, **test mode only** (`payments20261020`; `manual` and Stripe test adapters, live keys refused, payouts idempotent). Events paid tiers and booking deposits (B6) are not wired; the live rail stays gated |
+| PF4 | **Payments core.** Intents, attempts, append-only ledger, refunds; `PaymentProvider` with `manual` and Stripe test-mode adapters; reconciliation report ([ADR-0027](../adr/0027-payments-core-and-providers.md)) | Events paid tier or Bookings deposit (sandbox) | PF2, PF3 | Built, **test mode only** (`payments20261020`; `manual` and Stripe test adapters, live keys refused, payouts idempotent). Events ticket payments (`src/events/order_payments.py`) and Bookings deposits (`src/bookings/deposit_payments.py`, B6) are wired to it in test mode; the live rail stays gated |
 | PF5 | **Org API keys** (N4) | Bookings read | PF1 | Built (`orgapikeys20261020`). Bookings reads and rewards programme read/redemption confirm accept keys; bookings write routes arrive with B5 |
 | PF6 | **Outbound webhooks:** registry, HMAC signing generalised from CAP, delivery on the PF2 runner | `booking.created`, `payment.succeeded` | PF2, PF5 | Built (`webhooksout20261020`). Emitters: bookings, payments, contacts |
 | PF7 | **Feature flags** (accept ADR-0020) | Babydoll `/book` switch (B4) | PF1 | Built (`featureflags20261020`); control-plane page `/flags` in `apps/web/admin` |
-| PF8 | **Rewards earn sources:** `rewards.qualifying_action` on the outbox replaces `sync_event_rewards` ([ADR-0030](../adr/0030-rewards-earn-sources-and-gamification.md)) | Events admission, then bookings | PF2 | Built: catalogue, `record_qualifying_action`, outbox handler, `bookings.completed`. Events admissions still use `sync_event_rewards` |
+| PF8 | **Rewards earn sources:** `rewards.qualifying_action` on the outbox replaces the removed `sync_event_rewards` ([ADR-0030](../adr/0030-rewards-earn-sources-and-gamification.md)) | Events admission, then bookings | PF2 | Built: catalogue, `record_qualifying_action`, outbox handler, `bookings.completed`. Events admissions credit stamps inline in the admission transaction (`events/rewards_hook.py`; `sync_event_rewards` is gone) |
 | PF9 | **Gamification core:** Passport and trails (U5), achievements, check-in streaks (signed venue QR) | Events, venue check-in | PF8 | Built (`rewardsgame20261020`); account Rewards tab shows passport, achievements, streak and check-in |
 | PF10 | **Social layer**, each behind a PF7 flag: opt-in leaderboards, community challenges, stamp gifting. Gifting is off in production until an accountant and legal sign-off | Account Rewards tab | PF7, PF9 | Built (API, `rewardssocial20261020`), every mechanic off by default behind flags; gifting is hard-off in production. No UI yet |
 | PF11 | **Org rewards admin:** stamp cards, trails, challenges, redemptions | admin, Babydoll studio | PF8 | API half built (programme pause/resume, entries, redemptions, venues, trails, achievements). The organisation-facing UI is not built: it needs a decision on which app organisation admins use |
@@ -355,27 +355,27 @@ AI gateway, Knowledge and Automate; workspaces; Places API and a search engine;
 SMS, push and WhatsApp; live card checkout, payouts and wallets (the PF4
 payments core and its Stripe test-mode adapter are approved, owner decision
 2026-10-20; a live rail needs a separate owner approval); Shop and Salesbus
-extraction; `hr.barrels.gd` as its own app; organisation scope for CAP, weather,
+extraction; organisation scope for CAP, weather,
 janitorial or transport; a separate Barrels Business app; microservices.
+The separate HR app (`hr.barrels.gd`, port 3016) is decided (2026-10-21) and
+follows the build order above.
 
 ## Host move for the GAA staff portal
 
-Owner decision 2026-10-18: the GAA staff portal (`apps/web/gaa-admin`, code name
-unchanged) moves to `gmsadmin.barrels.gd`, freeing `admin.barrels.gd` for the
-Barrels control plane (C1).
+Owner decisions 2026-10-18 and 2026-10-21: the GAA staff portal
+(`apps/web/gaa-admin`, code name unchanged) moves to `gms.barrels.gd` for
+the Met office, and `admin.barrels.gd` becomes the Barrels staff / superuser
+control plane (C1, `apps/web/admin`). Staging first, production when
+promoted to `main`. Runbook, DNS and rollback: `docs/deployment.md`,
+"Admin host move".
 
-1. **Done:** `docker-compose.deploy.yml` serves the portal on both `admin.*` and
-   `gmsadmin.*` (separate Traefik router and certificate), and both origins are
-   in `BACKEND_CORS_ORIGINS`. The sign-in return-to allowlist already accepts any
-   `.barrels.gd` subdomain.
-2. **DNS:** nothing to add. Wildcard records (`*.staging.barrels.gd` to the
-   staging VM, `*.barrels.gd` to production) already resolve `gmsadmin.*`;
-   Traefik obtains the certificate on the first deploy that includes the router.
-3. **After DNS is verified on staging:** point `GAA_ADMIN_APP_URL` at
-   `gmsadmin.*`, update the service catalogue origin, email links
-   (`packages/email-templates/src/notification.tsx`) and docs, then redirect
-   `admin.*` to `gmsadmin.*`.
-4. **C1:** once the redirect has run for a while, `admin.*` routes to `apps/web/admin`.
+1. **Done (2026-10-18):** the portal answers on `gmsadmin.*` with its own router (replaced by `gms.*` in step 2).
+2. **Done in the 2026-10-21 change (staging):** `web-admin` is the console on
+   `admin.staging.barrels.gd`; `web-gmsadmin` is the portal on
+   `gms.staging.barrels.gd`; `GAA_ADMIN_APP_URL`, email links and the
+   catalogue point at `gms.*`; hard switch, no redirect from the old host.
+3. **Production:** follows when this change is promoted to `main`; set the
+   production secret first.
 
 ## Known documentation conflicts to fix
 

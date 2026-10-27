@@ -8,7 +8,7 @@
 
 > **Figma is not linked to this repository** (see [ADR-0012](./adr/0012-decouple-design-tooling-from-figma.md)). Design intent arrives as a Claude Design canvas, a screenshot, or a brief — see [Design Workflow](./design-workflow.md). Sections below that describe the old Figma file map and the Code Connect pilots are retained as **history**, not current process.
 
-Compact, agent-readable lane specs in the [DESIGN.md format](https://github.com/google-labs-code/design.md) — tokens by role, type scale, shape, elevation, components, do/don't — live in `docs/design/`: [gms](./design/gms.md), [gaa-admin](./design/gaa-admin.md), [mbia](./design/mbia.md), [signal](./design/signal.md), [elections](./design/elections.md). `scripts/docs/design-md.test.mjs` fails if their colours drift from the CSS.
+Compact, agent-readable lane specs in the [DESIGN.md format](https://github.com/google-labs-code/design.md) — tokens by role, type scale, shape, elevation, components, do/don't — live in `docs/design/`: [gms](./design/gms.md), [gaa-admin](./design/gaa-admin.md), [mbia](./design/mbia.md), [signal](./design/signal.md), [elections](./design/elections.md), [bookings](./design/bookings.md). `scripts/docs/design-md.test.mjs` fails if their colours drift from the CSS.
 
 This guide stays implementation-focused. The broader GMS service framing, catalogue, draft warning model, and roadmap live in [GMS Digital Service Architecture](./architecture.md).
 
@@ -459,6 +459,7 @@ they are folded into `gaa-admin` as internal modules (a cross-cutting surface; s
 | `mbia` | Not yet on the generated foundation block; imports `@barrelsgd/ui/styles/globals` directly | Highest hard-coded-color count outside `gaa-admin`/`docs`; bring under the same audit/doc coverage as the other apps. |
 | `signal` | Not yet on the generated foundation block; imports `@barrelsgd/ui/styles/globals` directly | Uses `Source_Serif_4` instead of the shared sans; carries app-local `--signal-*` tokens unmapped to the design system. |
 | `events` | Not yet on the generated foundation block; imports `@barrelsgd/ui/styles/globals` directly | Lowest drift of the three direct-import apps as of this writing. |
+| `bookings` | Barrels lane; imports `@barrelsgd/ui/styles/globals` directly with shared semantic tokens only (no GMS palette); skeleton | Lane spec in `docs/design/bookings.md`; business name leads public pages. |
 | `elections` | Imports `@barrelsgd/ui/styles/globals` directly with app-local `--el-*` tokens (party, referendum and map colours) | Colour is reserved for data; lane spec in `docs/design/elections.md`. |
 | `cap` | GMS-branded public CAP alert hub; imports `@barrelsgd/ui/styles/globals` directly plus `@barrelsgd/gms/styles/brand` | Noto Sans via `next/font`; monogram header. |
 | `gmsdash` | GMS Dashboard (a GMS client service); same pattern as `cap` | Noto Sans via `next/font`; monogram header; GMS brand layer since 2026-10-19. |

@@ -12,7 +12,6 @@ import { join } from "node:path";
 import test from "node:test";
 
 const EREGISTER_UPLOAD = /aws s3 cp .*eregister_/;
-const EVENTS_UPLOAD = /aws s3 cp .*events_/;
 
 const workflow = readFileSync(
   new URL("../../.github/workflows/backup-database.yml", import.meta.url),
@@ -37,7 +36,6 @@ for (const scenario of [
   "with CMS",
   "CMS dump failure",
   "eRegister dump failure",
-  "Events dump failure",
   "restore failure",
 ]) {
   test(`established production backup: ${scenario}`, () => {
@@ -55,7 +53,6 @@ for (const scenario of [
 printf '%s\\n' "$*" >> "$TEST_LOG"
 if [[ "$*" == *"pg_dump"* && "$*" == *"gms_cms"* && "$TEST_SCENARIO" == "CMS dump failure" ]]; then exit 1; fi
 if [[ "$*" == *"pg_dump"* && "$*" == *"eregister"* && "$TEST_SCENARIO" == "eRegister dump failure" ]]; then exit 1; fi
-if [[ "$*" == *"pg_dump"* && "$*" == *"-d events"* && "$TEST_SCENARIO" == "Events dump failure" ]]; then exit 1; fi
 if [[ "$*" == *"pg_restore"* && "$TEST_SCENARIO" == "restore failure" ]]; then exit 1; fi
 if [[ "$1" == cp && "$2" == grenmet-db-1:/tmp/backup.dump ]]; then echo dump > "$3"; fi
 if [[ "$*" == *"SELECT COUNT"* ]]; then echo 3; fi
@@ -101,7 +98,7 @@ if [[ "$*" == *"SELECT COUNT"* ]]; then echo 3; fi
       }
       const calls = readFileSync(log, "utf8");
       const fails = scenario.endsWith("failure");
-      const databaseCount = scenario === "without CMS" ? 7 : 8;
+      const databaseCount = scenario === "without CMS" ? 6 : 7;
       assert.equal(status === 0, !fails);
       assert.equal(
         (calls.match(/aws s3 cp/g) || []).length,
@@ -110,8 +107,8 @@ if [[ "$*" == *"SELECT COUNT"* ]]; then echo 3; fi
       if (!fails) {
         assert.ok(calls.includes("-d eregister"));
         assert.match(calls, EREGISTER_UPLOAD);
-        assert.ok(calls.includes("-d events"));
-        assert.match(calls, EVENTS_UPLOAD);
+        // Events lives in the main database dump: no separate events dump.
+        assert.ok(!calls.includes("-d events"));
         assert.equal((calls.match(/pg_restore/g) || []).length, databaseCount);
         assert.ok(calls.includes("s3://existing-backups/production/"));
         assert.ok(calls.lastIndexOf("pg_restore") < calls.indexOf("aws s3 cp"));

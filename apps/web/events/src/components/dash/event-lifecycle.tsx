@@ -16,7 +16,49 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
 import { cancelEvent, postponeEvent } from "@/data/actions";
+import { cancelEventWithRefund } from "@/data/order-actions";
+import {
+  type CancelCounts,
+  EVENT_CANCEL_BUTTON,
+  EVENT_REFUND_CHOICES,
+  type RefundChoice,
+} from "@/lib/org-orders";
 import { draftEndsAt, draftStartsAt } from "./event-draft";
+import { RefundChoiceGroup } from "./refund-choice";
+
+function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
+/** What a finished event cancel did, as separate lines so none is hidden. */
+export function CancelSummary({ counts }: { counts: CancelCounts }) {
+  return (
+    <div className="space-y-1" role="status">
+      <p className="font-medium text-body text-primary">Event cancelled.</p>
+      <ul className="list-disc pl-5 text-body">
+        <li>
+          {plural(counts.ticketsCancelled, "ticket", "tickets")} cancelled
+        </li>
+        <li>
+          {plural(counts.ordersQueued, "order", "orders")} queued for a card
+          refund
+        </li>
+        <li>{plural(counts.ordersRefunded, "order", "orders")} refunded now</li>
+        <li>
+          {plural(counts.ordersReleased, "unpaid order", "unpaid orders")}{" "}
+          released
+        </li>
+        <li>{plural(counts.ordersKept, "order", "orders")} kept the money</li>
+        <li className={counts.refundsFailed > 0 ? "text-destructive" : ""}>
+          {plural(counts.refundsFailed, "refund", "refunds")} failed
+          {counts.refundsFailed > 0
+            ? "; refund those by hand from the Orders screen"
+            : ""}
+        </li>
+      </ul>
+    </div>
+  );
+}
 
 /**
  * Cancel or postpone a published event. Cancelling cancels every valid ticket
@@ -24,12 +66,15 @@ import { draftEndsAt, draftStartsAt } from "./event-draft";
  * then be refunded from the outlet screen. Postponing keeps tickets valid.
  */
 export function EventLifecycle({
+  canChooseRefund = false,
   date,
   endTime,
   listingId,
   startTime,
   title,
 }: {
+  /** True when the organiser has an organisation, so cancelling can refund. */
+  canChooseRefund?: boolean;
   date: string;
   endTime: string;
   listingId: string;
@@ -41,6 +86,8 @@ export function EventLifecycle({
   const [open, setOpen] = useState(false);
   const [when, setWhen] = useState({ date, startTime, endTime });
   const [notice, setNotice] = useState<string | null>(null);
+  const [refund, setRefund] = useState<RefundChoice>("follow_policy");
+  const [counts, setCounts] = useState<CancelCounts | null>(null);
 
   async function postpone() {
     const result = await perform(() =>
@@ -53,6 +100,22 @@ export function EventLifecycle({
   }
 
   async function cancel() {
+    if (canChooseRefund) {
+      const result = await perform(() =>
+        cancelEventWithRefund(listingId, refund)
+      );
+      setOpen(false);
+      if (result.ok) {
+        setCounts(result.data);
+        router.refresh();
+      } else if (result.keepKey) {
+        setNotice(
+          "The cancel may have gone through. Reload and check the event before trying again."
+        );
+        router.refresh();
+      }
+      return;
+    }
     const result = await perform(() => cancelEvent(listingId));
     setOpen(false);
     if (result.ok) {
@@ -117,6 +180,7 @@ export function EventLifecycle({
       </form>
       <div className="border-t pt-3">
         <Button
+          className="min-h-11"
           disabled={pending}
           onClick={() => setOpen(true)}
           variant="destructive"
@@ -124,6 +188,7 @@ export function EventLifecycle({
           Cancel event
         </Button>
       </div>
+      {counts ? <CancelSummary counts={counts} /> : null}
       {notice ? (
         <p className="text-body text-primary" role="status">
           {notice}
@@ -141,9 +206,26 @@ export function EventLifecycle({
             Every valid ticket is cancelled and the people who are going, saved
             it or hold tickets are told. This can't be undone.
           </AlertDialogDescription>
+          {canChooseRefund ? (
+            <RefundChoiceGroup
+              legend="Money already paid online"
+              name="cancel-event-refund"
+              onChange={setRefund}
+              options={EVENT_REFUND_CHOICES}
+              value={refund}
+            />
+          ) : (
+            <p className="rounded-xl border border-destructive/40 p-3 font-medium text-body">
+              This cancel moves no money. Orders and refunds aren't available
+              for this organiser until a Barrels admin links it to an
+              organisation.
+            </p>
+          )}
           <AlertDialogFooter>
             <AlertDialogCancel>Keep event</AlertDialogCancel>
-            <AlertDialogAction onClick={cancel}>Cancel event</AlertDialogAction>
+            <AlertDialogAction onClick={cancel}>
+              {canChooseRefund ? EVENT_CANCEL_BUTTON[refund] : "Cancel event"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

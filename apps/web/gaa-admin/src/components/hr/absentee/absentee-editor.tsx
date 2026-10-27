@@ -45,6 +45,7 @@ import { FormActionBar } from "@/components/hr/form-action-bar";
 import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
 import { PrefillInput, SourceHint } from "@/components/hr/prefill-field";
+import { editingHint, isEditableStatus } from "@/components/hr/request-status";
 import {
   signedDocumentsKey,
   useSigning,
@@ -58,6 +59,7 @@ import {
   useEditorPrefill,
   useProfileReference,
 } from "@/components/hr/use-editor-prefill";
+import { hrFormFilename } from "@/lib/pdf-filename";
 import { reportError } from "@/lib/report-error";
 import { ABSENTEE_REASONS, EMPTY_ABSENTEE } from "./absentee-document";
 
@@ -172,12 +174,8 @@ export function AbsenteeEditor() {
         { keepDefaultValues: true }
       );
       setDraftId(draftParam);
-      setSubmission(draft.status === "DRAFT" ? null : draft);
-      setStatusHint(
-        draft.status === "DRAFT"
-          ? "Editing saved draft"
-          : "Submitted copy — Reset to start a new form"
-      );
+      setSubmission(isEditableStatus(draft.status) ? null : draft);
+      setStatusHint(editingHint(draft));
       loadedDraftRef.current = draftParam;
     }
   }, [
@@ -231,7 +229,10 @@ export function AbsenteeEditor() {
         ),
         previewPath: "/api/v1/hr/absentee-reports/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: "absentee-report.pdf",
+        filename: hrFormFilename(
+          "absentee_report",
+          Boolean(submission?.signed_document_id)
+        ),
       });
     } catch (error) {
       reportError(error, "hr-absentee-pdf-download");
@@ -620,7 +621,10 @@ export function AbsenteeEditor() {
           label="Absentee Report"
           preview={
             <HrPdfPreview
-              filename="absentee-report.pdf"
+              filename={hrFormFilename(
+                "absentee_report",
+                Boolean(submission?.signed_document_id)
+              )}
               payload={buildAbsenteeReportPayload(
                 values,
                 values.employeeId || userId || "",

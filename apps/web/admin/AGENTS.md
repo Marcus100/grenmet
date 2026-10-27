@@ -17,6 +17,21 @@ console. Lane spec: `docs/design/admin.md`. Plan: slice C1/C2 in
   validate with `src/lib/organisation-form.ts`, proxy to FastAPI and redirect with
   a fixed `?notice=` code. Disclosures are native `<details>`; no client state.
   Never fake data.
+- **Moderation (organiser verification).** `/moderation` (queue with
+  Pending/Approved/Rejected tabs, paginated) and `/moderation/[id]` (case,
+  owners, history), linked from the console nav. Reads and decisions proxy
+  `/admin/moderation/organisers*` (`src/lib/moderation-api.ts`); Approve and
+  Reject are server actions in `moderation/actions.ts` that re-check the staff
+  gate, validate with `src/lib/moderation-form.ts` (reject needs a 3-500
+  character reason) and redirect with a fixed `?notice=` code (`approved`,
+  `rejected`, `already-decided`) or return a code (`invalid`, `mfa`,
+  `not-allowed`, `suspended`, `missing`, `throttled`, `failed`) plus the typed
+  reason. API 409 maps to `suspended` when the detail says so, else
+  `already-decided` (decisions are transitions, never retried). Decisions need
+  an MFA superuser: a superuser without MFA can read and gets the `mfa` guidance
+  on a decision. A moderator who is not a superuser never reaches these pages
+  (the staff gate is superuser-only, ADR-0039); FastAPI re-checks every call.
+  Unexpected failures call `reportError(error, "admin-moderation")`.
 - **Sites (C3).** The organisation detail page has a "Sites" section (streamed
   behind `Suspense`, with loading, empty and error states) for the organisation's
   public sites (`org.public_site`): list, create and edit via
@@ -101,12 +116,11 @@ with `SKIP_ENV_VALIDATION` and fixed values from `vitest.config.ts`.
 
 ## Deployment
 
-Not deployed. There is deliberately no Traefik router or compose service: the
-`admin.*` host still serves the GAA staff portal until the move to
-`gmsadmin.*` finishes (plan, "Host move"). The Dockerfile builds the image for
-when that happens. To deploy: add the service and `admin.${BASE_DOMAIN}` router
-to `infra/docker/docker-compose.deploy.yml`, wire `BARRELS_ADMIN_SSO_CLIENT_SECRET`
-(API and web, GitHub environment secrets, env examples, `docs/deployment.md`),
-add the app to `scripts/ci/release-scope.mjs` and `select-images.mjs`, set
-`BARRELS_ADMIN_APP_URL` on the API, and add `barrels-admin` to the auth app's
-directory (`apps/web/auth/src/components/app-directory.tsx`) for its friendly name.
+Compose service `web-admin` (image `barrelsgd-web-admin`, port 3012, health
+`/api/health`) serves it at `admin.${BASE_DOMAIN}` (owner decision 2026-10-21;
+it reaches production when the change is promoted to `main`). It is in
+`scripts/ci/release-scope.mjs`. The GMS/GAA portal moved to `gms.*`
+(service `web-gmsadmin`). Secret `BARRELS_ADMIN_SSO_CLIENT_SECRET` (GitHub
+environment secret, same value for the API and this app; empty keeps sign-in
+off). Host runbook, DNS and rollback: `docs/deployment.md`, "Admin
+host move". Still open: a Sentry DSN for the app and an availability monitor.

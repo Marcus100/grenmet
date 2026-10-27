@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed (2026-10-06). Amends ADR-0016 decision 1 ("There is no cross-app
+Built, awaiting owner acceptance. The owner accepts after a staging check: signing out of one app leaves the others signed in; "Sign out of all apps" ends every session; the handoff code is single-use and expires in 60 s. (proposed 2026-10-06; steps 1–4 per the exec plan, `src/auth/app_router.py` `/handoff` routes). Amends ADR-0016 decision 1 ("There is no cross-app
 single sign-on"). Implementation plan: `docs/exec-plans/app-sso-handoff.md`.
 
 ## Context

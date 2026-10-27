@@ -1,9 +1,7 @@
 """Paid ticket tiers on the shared payments core (N4b).
 
-Events and payments live in different databases: ``db_async`` is the main one
-(payments, outbox, users, organisations), ``events_db`` is the Events one. The
-outbox handlers open their own Events session, so ``database.create_session`` is
-pointed at the test database. No test sends mail or reaches a network: the email
+Events, payments and the outbox share the main database (ADR-0003): ``db_async``
+and ``events_db`` sessions look at the same tables. No test sends mail or reaches a network: the email
 sender is stubbed and the Stripe rail runs over ``httpx.MockTransport``.
 """
 
@@ -22,10 +20,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import email as email_module
 from src import outbox
+from src.auth.config import auth_settings
 from src.auth.models import User
-from src.database import async_session_factory
 from src.email_config import email_settings
-from src.events import database as events_database
 from src.events import order_fulfilment, order_payments
 from src.events import schemas as event_schemas
 from src.events import service as events_service
@@ -55,14 +52,6 @@ stripe_env = payments_conftest.stripe_env
 PRICE = 5000
 TOPICS = {order_payments.PAID_TOPIC, order_payments.REFUNDED_TOPIC}
 WEBHOOK = "/api/v1/payments/public/webhooks/stripe"
-
-
-@pytest.fixture(autouse=True)
-def _events_database(
-    monkeypatch: pytest.MonkeyPatch, events_db: SessionFactory
-) -> None:
-    """The handlers and the sweeper open their own Events session."""
-    monkeypatch.setattr(events_database, "create_session", events_db)
 
 
 @pytest.fixture
@@ -108,7 +97,7 @@ async def _shop(
     *,
     allocation: int = 3,
     limit: int = 4,
-    apps: tuple[str, ...] = ("payments",),
+    apps: tuple[str, ...] = ("payments", "events"),
     linked: bool = True,
 ) -> Shop:
     owner = await make_user(db)
@@ -371,7 +360,7 @@ async def test_two_buyers_racing_for_the_last_ticket_exactly_one_wins(
     buyers = [await make_user(db_async), await make_user(db_async)]
 
     async def attempt(buyer: User) -> str:
-        async with events_db() as events, async_session_factory() as main:
+        async with events_db() as events:
             try:
                 await events_service.claim_tickets(
                     events,
@@ -384,7 +373,6 @@ async def test_two_buyers_racing_for_the_last_ticket_exactly_one_wins(
                             )
                         ]
                     ),
-                    main=main,
                 )
             except EventsConflict as error:
                 return error.message
@@ -425,14 +413,12 @@ async def test_payment_issues_tickets_exactly_once_even_if_the_handler_runs_twic
     # At-least-once: the same message delivered again must change nothing.
     intent = await _intent(db_async, order_id)
     assert intent is not None
-    async with events_db() as events:
-        again = await order_fulfilment.fulfil_paid(
-            db_async,
-            events,
-            organisation_id=shop.organisation_id,
-            order_id=uuid.UUID(order_id),
-            intent_id=intent.id,
-        )
+    again = await order_fulfilment.fulfil_paid(
+        db_async,
+        organisation_id=shop.organisation_id,
+        order_id=uuid.UUID(order_id),
+        intent_id=intent.id,
+    )
     await db_async.commit()
     assert again == "duplicate"
     assert await _drain(db_async) == 0
@@ -484,11 +470,11 @@ async def test_payment_issues_tickets_exactly_once_even_if_the_handler_runs_twic
 
 
 @pytest.mark.asyncio
-async def test_a_lost_receipt_is_queued_again_when_the_message_replays(
+async def test_a_rolled_back_fulfilment_loses_everything_and_the_replay_redoes_it(
     db_async: AsyncSession, events_db: SessionFactory
 ) -> None:
-    """Events committed but the main transaction rolled back: the replay still
-    queues the (deduplicated) receipt."""
+    """One transaction: a rollback loses the tickets and the receipt together, and
+    the replay then does all of it once."""
     shop = await _shop(db_async, events_db)
     buyer = await make_user(db_async)
     order_id = (await _order(buyer, shop)).json()["id"]
@@ -498,18 +484,17 @@ async def test_a_lost_receipt_is_queued_again_when_the_message_replays(
     intent_id = intent.id  # the rollback below expires the object
 
     async def run() -> str:
-        async with events_db() as events:
-            return await order_fulfilment.fulfil_paid(
-                db_async,
-                events,
-                organisation_id=shop.organisation_id,
-                order_id=uuid.UUID(order_id),
-                intent_id=intent_id,
-            )
+        return await order_fulfilment.fulfil_paid(
+            db_async,
+            organisation_id=shop.organisation_id,
+            order_id=uuid.UUID(order_id),
+            intent_id=intent_id,
+        )
 
     assert await run() == "confirmed"
-    await db_async.rollback()  # the main transaction (and its receipt) is lost
-    assert await run() == "duplicate"
+    await db_async.rollback()  # tickets, order and receipt are all lost together
+    assert await _tickets(events_db, order_id) == []
+    assert await run() == "confirmed"
     await db_async.commit()
     count = await db_async.scalar(
         select(func.count())
@@ -541,12 +526,10 @@ async def test_the_sweeper_releases_stock_and_cancels_the_intent(
     stale = (await _order(await make_user(db_async), shop, 2)).json()["id"]
     assert (await _order(await make_user(db_async), shop)).status_code == 409
 
-    async with events_db() as events:
-        assert await order_fulfilment.expire_unpaid(db_async, events) == 0  # not due
+    assert await order_fulfilment.expire_unpaid(db_async) == 0  # not due
     await _age(events_db, stale)
-    async with events_db() as events:
-        assert await order_fulfilment.expire_unpaid(db_async, events) == 1
-        assert await order_fulfilment.expire_unpaid(db_async, events) == 0
+    assert await order_fulfilment.expire_unpaid(db_async) == 1
+    assert await order_fulfilment.expire_unpaid(db_async) == 0
 
     assert (await _row(events_db, stale)).status == "expired"
     intent = await _intent(db_async, stale)
@@ -588,8 +571,7 @@ async def test_the_sweeper_skips_an_order_whose_payment_just_succeeded(
     order_id = (await _order(await make_user(db_async), shop)).json()["id"]
     await _pay_by_hand(db_async, shop, order_id)  # handler has not run yet
     await _age(events_db, order_id)
-    async with events_db() as events:
-        assert await order_fulfilment.expire_unpaid(db_async, events) == 0
+    assert await order_fulfilment.expire_unpaid(db_async) == 0
     assert (await _row(events_db, order_id)).status == "pending_payment"
     await _drain(db_async)
     assert (await _row(events_db, order_id)).status == "confirmed"
@@ -606,8 +588,7 @@ async def test_a_payment_after_expiry_is_refunded_and_issues_nothing(
     shop = await _shop(db_async, events_db)
     order_id = (await _order(await make_user(db_async), shop)).json()["id"]
     await _age(events_db, order_id)
-    async with events_db() as events:
-        assert await order_fulfilment.expire_unpaid(db_async, events) == 1
+    assert await order_fulfilment.expire_unpaid(db_async) == 1
     intent = await _intent(db_async, order_id)
     assert intent is not None
     assert intent.status == IntentStatus.CANCELLED.value
@@ -705,13 +686,11 @@ async def test_a_refund_cancels_the_tickets_once(
     assert await _remaining(events_db, shop) == 2  # the seats are free again
 
     # Delivered again: nothing is cancelled a second time.
-    async with events_db() as events:
-        outcome = await order_fulfilment.apply_refund(
-            db_async,
-            events,
-            organisation_id=shop.organisation_id,
-            order_id=uuid.UUID(order_id),
-        )
+    outcome = await order_fulfilment.apply_refund(
+        db_async,
+        organisation_id=shop.organisation_id,
+        order_id=uuid.UUID(order_id),
+    )
     assert outcome == "duplicate"
     assert await _drain(db_async) == 0
     assert {t.status for t in await _tickets(events_db, order_id)} == {"refunded"}
@@ -767,10 +746,10 @@ async def test_settlement_reconciles_online_orders_with_the_ledger(
 
     async with events_db() as events:
         report = await events_service.settlement(
-            events, shop.owner, shop.listing_id, [shop.organisation_id], None, db_async
+            events, shop.owner, shop.listing_id, [shop.organisation_id], None
         )
         csv_text = await events_service.settlement_csv(
-            events, shop.owner, shop.listing_id, [shop.organisation_id], None, db_async
+            events, shop.owner, shop.listing_id, [shop.organisation_id], None
         )
     online = report.online_payments
     assert online is not None
@@ -798,10 +777,10 @@ async def test_settlement_reconciles_online_orders_with_the_ledger(
         )
         await events.commit()
         broken = await events_service.settlement(
-            events, shop.owner, shop.listing_id, [shop.organisation_id], None, db_async
+            events, shop.owner, shop.listing_id, [shop.organisation_id], None
         )
         overview = await events_service.organiser_settlement(
-            events, shop.owner, [shop.organisation_id], None, db_async
+            events, shop.owner, [shop.organisation_id], None
         )
     assert broken.online_payments is not None
     assert broken.online_payments.reconciled is False
@@ -809,10 +788,68 @@ async def test_settlement_reconciles_online_orders_with_the_ledger(
     assert overview.listings[0].online_collected_minor == 2 * PRICE
     assert overview.listings[0].issues == 1
 
-    # Without a main session the ledger side is simply absent.
-    async with events_db() as events:
-        blind = await events_service.settlement(
-            events, shop.owner, shop.listing_id, [shop.organisation_id], None
-        )
-    assert blind.online_payments is not None
-    assert blind.online_payments.reconciled is None
+
+@pytest.mark.asyncio
+async def test_stripe_checkout_returns_to_the_order_page_and_names_the_event(
+    db_async: AsyncSession,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(auth_settings, "EVENTS_APP_URL", "https://events.example.test/")
+    shop = await _shop(db_async, events_db)
+    placed = await _order(await make_user(db_async), shop, 2, key="return-key-0001")
+    assert placed.status_code == 201
+    page = f"https://events.example.test/me/orders/{placed.json()['id']}"
+    form = stripe_env.form()
+    assert form["success_url"] == f"{page}?payment=success"
+    assert form["cancel_url"] == f"{page}?payment=cancelled"
+    name = form["line_items[0][price_data][product_data][name]"]
+    assert name == "Paid Fete (2 x General)"
+    assert "@" not in name
+
+
+@pytest.mark.asyncio
+async def test_a_stripe_failure_fails_the_claim_instead_of_using_the_manual_rail(
+    db_async: AsyncSession,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    stripe_env.fail_checkout = True
+    shop = await _shop(db_async, events_db)
+    buyer = await make_user(db_async)
+    failed = await _order(buyer, shop, 1, key="down-key-00001")
+    assert failed.status_code == 503
+    assert "Please try again" in failed.json()["detail"]
+    # No intent of any rail, and the hold is given back.
+    assert await _intent_count(db_async, shop) == 0
+    assert await _remaining(events_db, shop) == 3
+    # Stripe recovers: the buyer can order again.
+    stripe_env.fail_checkout = False
+    retry = await _order(buyer, shop, 1, key="down-key-00002")
+    assert retry.status_code == 201
+    assert retry.json()["checkout_url"].startswith("https://checkout.stripe.com/")
+
+
+@pytest.mark.asyncio
+async def test_replaying_the_key_of_a_failed_attempt_is_not_a_successful_claim(
+    db_async: AsyncSession,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    stripe_env.fail_checkout = True
+    shop = await _shop(db_async, events_db)
+    buyer = await make_user(db_async)
+    assert (await _order(buyer, shop, 1, key="same-key-0001")).status_code == 503
+    stripe_env.fail_checkout = False
+    # The dead attempt is reported as such, never as a 201 with an expired order.
+    replay = await _order(buyer, shop, 1, key="same-key-0001")
+    assert replay.status_code == 409
+    assert replay.json()["detail"] == "That attempt expired. Start a new one."
+    assert await _remaining(events_db, shop) == 3
+    # A fresh key works; a legitimate replay of a pending order still converges.
+    fresh = await _order(buyer, shop, 1, key="same-key-0002")
+    assert fresh.status_code == 201
+    again = await _order(buyer, shop, 1, key="same-key-0002")
+    assert again.status_code == 201
+    assert again.json()["id"] == fresh.json()["id"]

@@ -11,7 +11,7 @@ import type {
 } from "../models/PaymentsCreateIntent.js";
 
 /**
- * @description Ask to collect money for something the organisation sells. Idempotent per `idempotency_key`. Online rails return a hosted checkout URL; the manual rail is completed by staff recording the payment.
+ * @description Ask to collect money for something the organisation sells. Idempotent per `idempotency_key`. Online rails return a hosted checkout URL; the manual rail is completed by staff recording the payment. `source_type` values owned by another domain (`bookings.deposit`, `events.order`) are refused with 422.
  * @summary Create a payment
  * {@link /api/v1/payments/org/intents}
  */

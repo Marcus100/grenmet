@@ -58,6 +58,11 @@ def plan(config, environment, live):
         seen.add(key)
         if resource["environment"] != environment:
             continue
+        if resource.get("deferred") is True:
+            # Declared for when quota allows; covered by the probe runner meanwhile.
+            if identity or settings.get("paused") is not True:
+                raise ValueError("Deferred resources must be new and paused")
+            continue
         if identity:
             if not re.fullmatch("[0-9]+", str(identity)):
                 raise ValueError("Invalid provider ID")
@@ -102,6 +107,14 @@ def plan(config, environment, live):
     return changes
 
 
+def deferred_names(config, environment):
+    return [
+        resource["settings"].get("name") or resource["settings"]["pronounceable_name"]
+        for resource in config["resources"]
+        if resource["environment"] == environment and resource.get("deferred") is True
+    ]
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -132,6 +145,7 @@ def main():
                 "environment": args.environment,
                 "changes": changes,
                 "limitsVerified": config["limitsVerified"],
+                "deferred": deferred_names(config, args.environment),
                 "usage": {kind: len(rows) for kind, rows in live.items()},
             },
             indent=2,

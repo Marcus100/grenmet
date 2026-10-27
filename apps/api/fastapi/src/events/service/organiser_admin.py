@@ -6,14 +6,24 @@ import uuid
 from typing import Any, Literal
 
 from pydantic import TypeAdapter
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import ColumnElement, and_, exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit import service as audit_service
+from src.auth.email_verification import require_verified_email
 from src.auth.models import User
+from src.exceptions import AppException
 from src.organisations import service as organisations
-from src.organisations.models import MembershipRole, OrganisationKind
+from src.organisations import verification
+from src.organisations.models import (
+    MembershipRole,
+    OrganisationApp,
+    OrganisationKind,
+    PlatformOrganisation,
+)
 from src.storage import uploads as org_uploads
 from src.utils.datetime import utc_now
+from src.utils.reserved_names import is_reserved
 
 from .. import activity, outbox, schemas
 from ..exceptions import EventsConflict, EventsForbidden, EventsNotFound
@@ -26,7 +36,7 @@ from ..models import (
     Ticket,
     TicketTier,
 )
-from . import holds
+from . import event_cancel, holds, organiser_verification
 from .common import _naive_utc, _pairs
 from .discover import (
     _cards,
@@ -36,7 +46,6 @@ from .discover import (
     _organiser_verified,
     _tiers,
 )
-from .ticketing import cancel_valid_tickets
 
 _STATUS = TypeAdapter(Literal["draft", "published", "cancelled"])
 _VISIBILITY = TypeAdapter(Literal["public", "unlisted"])
@@ -44,12 +53,27 @@ _VISIBILITY = TypeAdapter(Literal["public", "unlisted"])
 # --- Organiser management -------------------------------------------------------------------
 
 
+def _events_entitled(org_ids: list[str]) -> Any:
+    """SQL condition: the organiser's organisation is one of ``org_ids`` and holds
+    an enabled ``events`` entitlement (the legacy kill switch, ADR-0044 S5)."""
+    return and_(
+        Organiser.organisation_id.in_(org_ids),
+        exists().where(
+            OrganisationApp.organisation_id == Organiser.organisation_id,
+            OrganisationApp.app_key == "events",
+            OrganisationApp.enabled.is_(True),
+        ),
+    )
+
+
 async def my_organisers(
     db: AsyncSession, user: User, org_ids: list[str]
 ) -> list[Organiser]:
-    """Organisers the user can manage: a platform admin/owner membership, or (for
-    organisers not yet linked to an organisation) a legacy ``organiser_members`` row.
-    Once linked, the platform membership is authoritative."""
+    """Organisers the user can manage: a platform admin/owner membership whose
+    organisation holds the ``events`` entitlement, or (for organisers not yet linked
+    to an organisation) a legacy ``organiser_members`` row. Once linked, the platform
+    membership is authoritative and the entitlement is a kill switch; an unlinked
+    legacy organiser has no organisation to switch off."""
     return list(
         (
             await db.scalars(
@@ -67,7 +91,7 @@ async def my_organisers(
                             Organiser.organisation_id.is_(None),
                             OrganiserMember.user_id.is_not(None),
                         ),
-                        Organiser.organisation_id.in_(org_ids),
+                        _events_entitled(org_ids),
                     )
                 )
                 .order_by(Organiser.name, Organiser.id)
@@ -84,6 +108,11 @@ async def _my_organiser(
         (row for row in candidates if slug is None or row.slug == slug), None
     )
     if organiser is None:
+        linked: list[ColumnElement[bool]] = [Organiser.organisation_id.in_(org_ids)]
+        if slug is not None:
+            linked.append(Organiser.slug == slug)
+        if org_ids and await db.scalar(select(exists().where(*linked))):
+            raise EventsForbidden("Barrels Events isn't enabled for this organisation")
         raise EventsForbidden("You're not a member of an organiser yet")
     return organiser
 
@@ -415,11 +444,15 @@ async def update_listing(
     listing = await db.get(Listing, listing_id)
     if listing is None or listing.organiser_id != organiser.id:
         raise EventsNotFound("Event not found")
+    if body.status == "cancelled":
+        # Saving as cancelled cancels like the cancel action: the exclusive
+        # listing lock first, then orders, then tickets. No money moves here.
+        await db.refresh(listing, with_for_update=True)
     before = await _snapshot(db, listing)
     await _require_verified_to_publish(organiser, body.status, before["status"])
     await _apply_listing(db, listing, body, organiser)
     if before["status"] != "cancelled" and listing.status == "cancelled":
-        await cancel_valid_tickets(db, listing.id)
+        await event_cancel.cancel_event_orders(db, user, listing, "none", utc_now())
     await _record_listing_change(db, listing, user, before=before)
     await db.commit()
     return await _managed(db, listing, user)
@@ -442,9 +475,23 @@ async def listing_activity(
     )
 
 
+async def ensure_events_entitlement(
+    db: AsyncSession, actor: User, organisation_id: str
+) -> None:
+    """Give an organisation behind an organiser the ``events`` product (ADR-0044 S2).
+
+    Only a missing row is created (audited like other entitlement writes); an
+    existing row, including one staff switched off, is left as it is. Call it
+    wherever an organiser is linked to an organisation."""
+    if await db.get(OrganisationApp, (organisation_id, "events")) is None:
+        audit_service.set_actor(db, actor.id)
+        await organisations.set_app_enabled(
+            db, organisation_id=organisation_id, app_key="events", enabled=True
+        )
+
+
 async def create_organiser(
-    events: AsyncSession,
-    platform: AsyncSession,
+    db: AsyncSession,
     user: User,
     *,
     name: str,
@@ -452,24 +499,28 @@ async def create_organiser(
     bio: str = "",
 ) -> Organiser:
     """Create an organiser backed by a new platform organisation, with the creator
-    as its owner. The platform side commits first; if the Events insert then fails
-    the orphan organisation is harmless and can be removed from the platform."""
+    as its owner, in one transaction."""
     clean = name.strip()
     wanted = _SLUG_STRIP.sub("-", (slug or clean).lower()).strip("-")[:60]
     if not clean or not wanted:
         raise EventsConflict("An organiser needs a name")
-    if await events.scalar(select(Organiser.id).where(Organiser.slug == wanted)):
+    if is_reserved(wanted):
+        # The organiser's platform organisation takes the same slug (ADR-0043).
+        raise EventsConflict("That organiser address is reserved")
+    if await db.scalar(select(Organiser.id).where(Organiser.slug == wanted)):
         raise EventsConflict("That organiser address is taken")
     organisation = await organisations.create_organisation(
-        platform, name=clean, kind=OrganisationKind.BUSINESS, slug=wanted
+        db, name=clean, kind=OrganisationKind.BUSINESS, slug=wanted
     )
     await organisations.add_member(
-        platform,
+        db,
         organisation_id=organisation.id,
         user_id=user.id,
         role=MembershipRole.OWNER,
+        # administrator-created / seed / backfill: ADR-0018 exempts administrator-mediated grants
+        skip_email_check=True,
     )
-    await platform.commit()
+    await ensure_events_entitlement(db, user, organisation.id)
     organiser = Organiser(
         id=uuid.uuid4(),
         slug=wanted,
@@ -477,9 +528,9 @@ async def create_organiser(
         bio=bio,
         organisation_id=organisation.id,
     )
-    events.add(organiser)
+    db.add(organiser)
     activity.record(
-        events,
+        db,
         actor_id=user.id,
         action="organiser.created",
         entity_type="organiser",
@@ -487,7 +538,7 @@ async def create_organiser(
         organiser_id=organiser.id,
         summary={"slug": wanted},
     )
-    await events.commit()
+    await db.commit()
     return organiser
 
 
@@ -517,24 +568,58 @@ async def set_organiser_logo(
 
 
 async def request_organiser(
-    events: AsyncSession,
-    platform: AsyncSession,
+    db: AsyncSession,
     user: User,
     body: schemas.OrganiserCreate,
 ) -> schemas.OrganiserPublic:
     """Self-service organiser account: created unverified (pending) with the member
     as owner. One pending request per member; a moderator verifies it."""
-    owned = await organisations.list_managed_organisation_ids(platform, user.id)
-    if owned and await events.scalar(
-        select(Organiser.id).where(
-            Organiser.organisation_id.in_(owned), Organiser.verified.is_(False)
+    require_verified_email(
+        user, "request an organiser account"
+    )  # self-service stays gated
+    owned = await organisations.list_managed_organisation_ids(db, user.id)
+    if owned and await db.scalar(
+        select(Organiser.id)
+        .join(
+            PlatformOrganisation, PlatformOrganisation.id == Organiser.organisation_id
+        )
+        .where(
+            Organiser.organisation_id.in_(owned),
+            PlatformOrganisation.verified_at.is_(None),
         )
     ):
-        raise EventsConflict("Your organiser request is awaiting review")
+        rejected = await db.scalar(
+            select(PlatformOrganisation.id)
+            .join(Organiser, Organiser.organisation_id == PlatformOrganisation.id)
+            .where(
+                Organiser.organisation_id.in_(owned),
+                PlatformOrganisation.verified_at.is_(None),
+                PlatformOrganisation.verification_status == "rejected",
+            )
+        )
+        raise EventsConflict(
+            "Your organiser request was rejected; resubmit it for review"
+            if rejected
+            else "Your organiser request is awaiting review"
+        )
     organiser = await create_organiser(
-        events, platform, user, name=body.name, slug=body.slug, bio=body.bio
+        db, user, name=body.name, slug=body.slug, bio=body.bio
     )
-    return await _organiser_public(events, organiser, user.id)
+    return await _organiser_public(db, organiser, user.id)
+
+
+async def resubmit_organiser(
+    db: AsyncSession,
+    user: User,
+    org_ids: list[str],
+    slug: str | None = None,
+) -> schemas.OrganiserPublic:
+    """A rejected organiser goes back to the moderation queue (pending)."""
+    if slug is None and len(await my_organisers(db, user, org_ids)) > 1:
+        raise AppException("Choose an organiser with ?organiser=<slug>", 422)
+    organiser = await _my_organiser(db, user, org_ids, slug)
+    await organiser_verification.resubmit(db, user, organiser)
+    return await _organiser_public(db, organiser, user.id)
 
 
 async def organiser_public(
@@ -548,8 +633,11 @@ async def pending_organisers(db: AsyncSession) -> list[Organiser]:
         (
             await db.scalars(
                 select(Organiser)
-                .where(Organiser.verified.is_(False))
-                .where(Organiser.organisation_id.is_not(None))
+                .join(
+                    PlatformOrganisation,
+                    PlatformOrganisation.id == Organiser.organisation_id,
+                )
+                .where(PlatformOrganisation.verification_status == "pending")
                 .order_by(Organiser.created_at, Organiser.id)
             )
         ).all()
@@ -559,9 +647,32 @@ async def pending_organisers(db: AsyncSession) -> list[Organiser]:
 async def review_organiser(
     db: AsyncSession, organiser_id: uuid.UUID, verified: bool, actor: User
 ) -> Organiser:
+    """Legacy review (MFA superuser). Linked organisers share the admin queue's
+    path, and a rejected one must be resubmitted first; unlinked legacy
+    organisers only have their own flag."""
     organiser = await db.get(Organiser, organiser_id)
     if organiser is None:
         raise EventsNotFound("Organiser not found")
+    if organiser.organisation_id is not None:
+        organisation = await db.get(
+            PlatformOrganisation, organiser.organisation_id, populate_existing=True
+        )
+        if organisation is None:
+            raise EventsNotFound("Organiser not found")
+        if (organisation.verified_at is not None) != verified or (
+            organisation.verification_status == "rejected"
+        ):
+            await organiser_verification.apply_decision(
+                db,
+                actor,
+                organisation.id,
+                verified=verified,
+                refuse_rejected=True,  # re-checked under the row lock
+                reason="Events moderation review",
+            )
+            await db.commit()
+            verification.clear_cache(organisation.id)
+        return organiser
     was_verified = organiser.verified
     organiser.verified = verified
     db.add(organiser)

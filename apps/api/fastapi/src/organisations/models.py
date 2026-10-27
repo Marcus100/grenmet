@@ -25,6 +25,12 @@ class OrganisationStatus(str, Enum):
     SUSPENDED = "suspended"
 
 
+class VerificationStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 class MembershipRole(str, Enum):
     OWNER = "owner"
     ADMIN = "admin"
@@ -49,6 +55,10 @@ def new_membership_id() -> str:
     return f"mem_{secrets.token_hex(8)}"
 
 
+def new_grant_id() -> str:
+    return f"grant_{secrets.token_hex(8)}"
+
+
 def new_invitation_id() -> str:
     return f"inv_{secrets.token_hex(8)}"
 
@@ -63,6 +73,10 @@ class PlatformOrganisation(Base):
     __table_args__ = (
         sa.CheckConstraint(f"kind IN ({_values(OrganisationKind)})", name="kind"),
         sa.CheckConstraint(f"status IN ({_values(OrganisationStatus)})", name="status"),
+        sa.CheckConstraint(
+            f"verification_status IN ({_values(VerificationStatus)})",
+            name="verification_status",
+        ),
         {"schema": "org"},
     )
 
@@ -74,6 +88,15 @@ class PlatformOrganisation(Base):
         String(20), default=OrganisationStatus.ACTIVE.value
     )
     verified_at: Mapped[datetime | None]
+    #: Moderation state; ``verified_at`` stays the single "is verified" signal.
+    verification_status: Mapped[str] = mapped_column(
+        String(20),
+        default=VerificationStatus.PENDING.value,
+        server_default=VerificationStatus.PENDING.value,
+    )
+    #: Reason given with the latest decision (approve, reject or unverify).
+    verification_reason: Mapped[str | None] = mapped_column(sa.Text)
+    verification_decided_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 
@@ -105,6 +128,44 @@ class Membership(Base):
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class MembershipGrant(Base):
+    """An extra role a member holds in one organisation (ADR-0044, S1).
+
+    ``role_key`` names a product-owned bundle (``role_bundles.py``); the bundle's
+    organisation keys are resolved by ``grants.effective_keys``. A grant ends at
+    ``expires_at`` or ``revoked_at``; rows are never deleted so history stays.
+    A member holds at most one live grant per ``role_key``.
+    """
+
+    __tablename__ = "membership_grant"
+    __table_args__ = (
+        sa.Index(
+            "uq_membership_grant_live",
+            "membership_id",
+            "role_key",
+            unique=True,
+            postgresql_where=sa.text("revoked_at IS NULL"),
+        ),
+        sa.Index("membership_grant_organisation_id_idx", "organisation_id"),
+        {"schema": "org"},
+    )
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    membership_id: Mapped[str] = mapped_column(
+        ForeignKey("org.membership.id", ondelete="CASCADE")
+    )
+    organisation_id: Mapped[str] = mapped_column(
+        ForeignKey("org.organisation.id", ondelete="CASCADE")
+    )
+    role_key: Mapped[str] = mapped_column(String(60))
+    granted_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), nullable=True
+    )
+    granted_at: Mapped[datetime] = mapped_column(default=utc_now)
+    expires_at: Mapped[datetime | None]
+    revoked_at: Mapped[datetime | None]
 
 
 class OrganisationApp(Base):

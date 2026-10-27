@@ -14,6 +14,16 @@ export {
   useAuthAccountEmailCodeVerify,
 } from "./useAuthAccountEmailCodeVerify.js";
 export {
+  authAdminActivateAccountMutationKey,
+  authAdminActivateAccountMutationOptions,
+  useAuthAdminActivateAccount,
+} from "./useAuthAdminActivateAccount.js";
+export {
+  authAdminResendVerificationMutationKey,
+  authAdminResendVerificationMutationOptions,
+  useAuthAdminResendVerification,
+} from "./useAuthAdminResendVerification.js";
+export {
   authAppEmailCodeStartMutationKey,
   authAppEmailCodeStartMutationOptions,
   useAuthAppEmailCodeStart,
@@ -464,6 +474,11 @@ export {
   useBookingsCompleteStudioBooking,
 } from "./useBookingsCompleteStudioBooking.js";
 export {
+  bookingsConfirmEmailCodeMutationKey,
+  bookingsConfirmEmailCodeMutationOptions,
+  useBookingsConfirmEmailCode,
+} from "./useBookingsConfirmEmailCode.js";
+export {
   bookingsConfirmStudioBookingMutationKey,
   bookingsConfirmStudioBookingMutationOptions,
   useBookingsConfirmStudioBooking,
@@ -488,6 +503,11 @@ export {
   bookingsCreateServiceMutationOptions,
   useBookingsCreateService,
 } from "./useBookingsCreateService.js";
+export {
+  bookingsCreateStudioBookingMutationKey,
+  bookingsCreateStudioBookingMutationOptions,
+  useBookingsCreateStudioBooking,
+} from "./useBookingsCreateStudioBooking.js";
 export {
   bookingsDeclineStudioBookingMutationKey,
   bookingsDeclineStudioBookingMutationOptions,
@@ -524,6 +544,11 @@ export {
   useBookingsGetPublicBookingIcs,
 } from "./useBookingsGetPublicBookingIcs.js";
 export {
+  bookingsGetSettingsQueryKey,
+  bookingsGetSettingsQueryOptions,
+  useBookingsGetSettings,
+} from "./useBookingsGetSettings.js";
+export {
   bookingsGetStorefrontQueryKey,
   bookingsGetStorefrontQueryOptions,
   useBookingsGetStorefront,
@@ -543,6 +568,11 @@ export {
   bookingsListExceptionsQueryOptions,
   useBookingsListExceptions,
 } from "./useBookingsListExceptions.js";
+export {
+  bookingsListMyOrganisationsQueryKey,
+  bookingsListMyOrganisationsQueryOptions,
+  useBookingsListMyOrganisations,
+} from "./useBookingsListMyOrganisations.js";
 export {
   bookingsListProvidersQueryKey,
   bookingsListProvidersQueryOptions,
@@ -564,10 +594,30 @@ export {
   useBookingsNoShowStudioBooking,
 } from "./useBookingsNoShowStudioBooking.js";
 export {
+  bookingsRecordManualDepositMutationKey,
+  bookingsRecordManualDepositMutationOptions,
+  useBookingsRecordManualDeposit,
+} from "./useBookingsRecordManualDeposit.js";
+export {
+  bookingsReorderProvidersMutationKey,
+  bookingsReorderProvidersMutationOptions,
+  useBookingsReorderProviders,
+} from "./useBookingsReorderProviders.js";
+export {
+  bookingsReorderServicesMutationKey,
+  bookingsReorderServicesMutationOptions,
+  useBookingsReorderServices,
+} from "./useBookingsReorderServices.js";
+export {
   bookingsReplaceWorkingHoursMutationKey,
   bookingsReplaceWorkingHoursMutationOptions,
   useBookingsReplaceWorkingHours,
 } from "./useBookingsReplaceWorkingHours.js";
+export {
+  bookingsRequestEmailCodeMutationKey,
+  bookingsRequestEmailCodeMutationOptions,
+  useBookingsRequestEmailCode,
+} from "./useBookingsRequestEmailCode.js";
 export {
   bookingsReschedulePublicBookingMutationKey,
   bookingsReschedulePublicBookingMutationOptions,
@@ -608,6 +658,11 @@ export {
   capCreateAlertMutationOptions,
   useCapCreateAlert,
 } from "./useCapCreateAlert.js";
+export {
+  capCreateEscalationMutationKey,
+  capCreateEscalationMutationOptions,
+  useCapCreateEscalation,
+} from "./useCapCreateEscalation.js";
 export {
   capCreateFeedMutationKey,
   capCreateFeedMutationOptions,
@@ -689,6 +744,11 @@ export {
   useCapGetCatalogs,
 } from "./useCapGetCatalogs.js";
 export {
+  capGetEscalationQueryKey,
+  capGetEscalationQueryOptions,
+  useCapGetEscalation,
+} from "./useCapGetEscalation.js";
+export {
   capGetFeedsQueryKey,
   capGetFeedsQueryOptions,
   useCapGetFeeds,
@@ -748,6 +808,11 @@ export {
   capPublishAlertMutationOptions,
   useCapPublishAlert,
 } from "./useCapPublishAlert.js";
+export {
+  capRecordAlertReviewMutationKey,
+  capRecordAlertReviewMutationOptions,
+  useCapRecordAlertReview,
+} from "./useCapRecordAlertReview.js";
 export {
   capSaveHazardProfileMutationKey,
   capSaveHazardProfileMutationOptions,
@@ -854,6 +919,11 @@ export {
   useEregisterAcceptRegisterObservation,
 } from "./useEregisterAcceptRegisterObservation.js";
 export {
+  eregisterCorrectRegisterObservationMutationKey,
+  eregisterCorrectRegisterObservationMutationOptions,
+  useEregisterCorrectRegisterObservation,
+} from "./useEregisterCorrectRegisterObservation.js";
+export {
   eregisterCreateRegisterObservationMutationKey,
   eregisterCreateRegisterObservationMutationOptions,
   useEregisterCreateRegisterObservation,
@@ -863,6 +933,11 @@ export {
   eregisterEmailRegisterObservationMutationOptions,
   useEregisterEmailRegisterObservation,
 } from "./useEregisterEmailRegisterObservation.js";
+export {
+  eregisterGetStationSettingsQueryKey,
+  eregisterGetStationSettingsQueryOptions,
+  useEregisterGetStationSettings,
+} from "./useEregisterGetStationSettings.js";
 export {
   eregisterListObservationSendsQueryKey,
   eregisterListObservationSendsQueryOptions,
@@ -889,6 +964,11 @@ export {
   useEregisterPublishRegisterObservation,
 } from "./useEregisterPublishRegisterObservation.js";
 export {
+  eregisterPutStationSettingsMutationKey,
+  eregisterPutStationSettingsMutationOptions,
+  useEregisterPutStationSettings,
+} from "./useEregisterPutStationSettings.js";
+export {
   eregisterRejectRegisterObservationMutationKey,
   eregisterRejectRegisterObservationMutationOptions,
   useEregisterRejectRegisterObservation,
@@ -898,6 +978,11 @@ export {
   eregisterReopenRegisterObservationMutationOptions,
   useEregisterReopenRegisterObservation,
 } from "./useEregisterReopenRegisterObservation.js";
+export {
+  eregisterReviewRegisterObservationMutationKey,
+  eregisterReviewRegisterObservationMutationOptions,
+  useEregisterReviewRegisterObservation,
+} from "./useEregisterReviewRegisterObservation.js";
 export {
   eregisterValidateSynopObservationMutationKey,
   eregisterValidateSynopObservationMutationOptions,
@@ -909,10 +994,25 @@ export {
   useEventsAcceptConnection,
 } from "./useEventsAcceptConnection.js";
 export {
+  eventsAdminListEventsQueryKey,
+  eventsAdminListEventsQueryOptions,
+  useEventsAdminListEvents,
+} from "./useEventsAdminListEvents.js";
+export {
+  eventsAdminListOrganisersQueryKey,
+  eventsAdminListOrganisersQueryOptions,
+  useEventsAdminListOrganisers,
+} from "./useEventsAdminListOrganisers.js";
+export {
   eventsAdmitTicketMutationKey,
   eventsAdmitTicketMutationOptions,
   useEventsAdmitTicket,
 } from "./useEventsAdmitTicket.js";
+export {
+  eventsApproveOrganiserMutationKey,
+  eventsApproveOrganiserMutationOptions,
+  useEventsApproveOrganiser,
+} from "./useEventsApproveOrganiser.js";
 export {
   eventsBlockMemberMutationKey,
   eventsBlockMemberMutationOptions,
@@ -1054,6 +1154,11 @@ export {
   useEventsGetThread,
 } from "./useEventsGetThread.js";
 export {
+  eventsGetVerificationCaseQueryKey,
+  eventsGetVerificationCaseQueryOptions,
+  useEventsGetVerificationCase,
+} from "./useEventsGetVerificationCase.js";
+export {
   eventsJoinGroupMutationKey,
   eventsJoinGroupMutationOptions,
   useEventsJoinGroup,
@@ -1099,6 +1204,11 @@ export {
   useEventsListThreads,
 } from "./useEventsListThreads.js";
 export {
+  eventsListVerificationCasesQueryKey,
+  eventsListVerificationCasesQueryOptions,
+  useEventsListVerificationCases,
+} from "./useEventsListVerificationCases.js";
+export {
   eventsOpenThreadMutationKey,
   eventsOpenThreadMutationOptions,
   useEventsOpenThread,
@@ -1109,6 +1219,41 @@ export {
   useEventsOpenTill,
 } from "./useEventsOpenTill.js";
 export {
+  eventsOrgCancelEventMutationKey,
+  eventsOrgCancelEventMutationOptions,
+  useEventsOrgCancelEvent,
+} from "./useEventsOrgCancelEvent.js";
+export {
+  eventsOrgCancelOrderMutationKey,
+  eventsOrgCancelOrderMutationOptions,
+  useEventsOrgCancelOrder,
+} from "./useEventsOrgCancelOrder.js";
+export {
+  eventsOrgGetOrderQueryKey,
+  eventsOrgGetOrderQueryOptions,
+  useEventsOrgGetOrder,
+} from "./useEventsOrgGetOrder.js";
+export {
+  eventsOrgListAttendeesQueryKey,
+  eventsOrgListAttendeesQueryOptions,
+  useEventsOrgListAttendees,
+} from "./useEventsOrgListAttendees.js";
+export {
+  eventsOrgListOrdersQueryKey,
+  eventsOrgListOrdersQueryOptions,
+  useEventsOrgListOrders,
+} from "./useEventsOrgListOrders.js";
+export {
+  eventsOrgRecordManualPaymentMutationKey,
+  eventsOrgRecordManualPaymentMutationOptions,
+  useEventsOrgRecordManualPayment,
+} from "./useEventsOrgRecordManualPayment.js";
+export {
+  eventsOrgRefundOrderMutationKey,
+  eventsOrgRefundOrderMutationOptions,
+  useEventsOrgRefundOrder,
+} from "./useEventsOrgRefundOrder.js";
+export {
   eventsPostponeEventMutationKey,
   eventsPostponeEventMutationOptions,
   useEventsPostponeEvent,
@@ -1118,6 +1263,11 @@ export {
   eventsRefundTicketMutationOptions,
   useEventsRefundTicket,
 } from "./useEventsRefundTicket.js";
+export {
+  eventsRejectOrganiserMutationKey,
+  eventsRejectOrganiserMutationOptions,
+  useEventsRejectOrganiser,
+} from "./useEventsRejectOrganiser.js";
 export {
   eventsRemoveConnectionMutationKey,
   eventsRemoveConnectionMutationOptions,
@@ -1133,6 +1283,11 @@ export {
   eventsRequestOrganiserMutationOptions,
   useEventsRequestOrganiser,
 } from "./useEventsRequestOrganiser.js";
+export {
+  eventsResubmitOrganiserMutationKey,
+  eventsResubmitOrganiserMutationOptions,
+  useEventsResubmitOrganiser,
+} from "./useEventsResubmitOrganiser.js";
 export {
   eventsReviewOrganiserMutationKey,
   eventsReviewOrganiserMutationOptions,
@@ -1219,6 +1374,11 @@ export {
   useFeatureEvaluateForOrganisation,
 } from "./useFeatureEvaluateForOrganisation.js";
 export {
+  featureEvaluatePublicQueryKey,
+  featureEvaluatePublicQueryOptions,
+  useFeatureEvaluatePublic,
+} from "./useFeatureEvaluatePublic.js";
+export {
   featureGetFlagQueryKey,
   featureGetFlagQueryOptions,
   useFeatureGetFlag,
@@ -1258,6 +1418,11 @@ export {
   hrActionShiftSwapMutationOptions,
   useHrActionShiftSwap,
 } from "./useHrActionShiftSwap.js";
+export {
+  hrApproveClockPunchMutationKey,
+  hrApproveClockPunchMutationOptions,
+  useHrApproveClockPunch,
+} from "./useHrApproveClockPunch.js";
 export {
   hrApproveStaffRegistrationMutationKey,
   hrApproveStaffRegistrationMutationOptions,
@@ -1699,6 +1864,11 @@ export {
   useHrListMyShiftSwaps,
 } from "./useHrListMyShiftSwaps.js";
 export {
+  hrListPendingClockPunchesQueryKey,
+  hrListPendingClockPunchesQueryOptions,
+  useHrListPendingClockPunches,
+} from "./useHrListPendingClockPunches.js";
+export {
   hrListPeriodsQueryKey,
   hrListPeriodsQueryOptions,
   useHrListPeriods,
@@ -1773,6 +1943,11 @@ export {
   hrPutDepartmentRulesMutationOptions,
   useHrPutDepartmentRules,
 } from "./useHrPutDepartmentRules.js";
+export {
+  hrRejectClockPunchMutationKey,
+  hrRejectClockPunchMutationOptions,
+  useHrRejectClockPunch,
+} from "./useHrRejectClockPunch.js";
 export {
   hrRemoveHolidayMutationKey,
   hrRemoveHolidayMutationOptions,
@@ -2174,6 +2349,11 @@ export {
   useOrganisationsAcceptInvitation,
 } from "./useOrganisationsAcceptInvitation.js";
 export {
+  organisationsAddMemberAdminMutationKey,
+  organisationsAddMemberAdminMutationOptions,
+  useOrganisationsAddMemberAdmin,
+} from "./useOrganisationsAddMemberAdmin.js";
+export {
   organisationsCreateAdminSiteMutationKey,
   organisationsCreateAdminSiteMutationOptions,
   useOrganisationsCreateAdminSite,
@@ -2199,6 +2379,11 @@ export {
   useOrganisationsDeleteMember,
 } from "./useOrganisationsDeleteMember.js";
 export {
+  organisationsDeleteMemberAdminMutationKey,
+  organisationsDeleteMemberAdminMutationOptions,
+  useOrganisationsDeleteMemberAdmin,
+} from "./useOrganisationsDeleteMemberAdmin.js";
+export {
   organisationsGetCurrentQueryKey,
   organisationsGetCurrentQueryOptions,
   useOrganisationsGetCurrent,
@@ -2213,6 +2398,11 @@ export {
   organisationsGetPublicSiteQueryOptions,
   useOrganisationsGetPublicSite,
 } from "./useOrganisationsGetPublicSite.js";
+export {
+  organisationsGrantMemberRoleMutationKey,
+  organisationsGrantMemberRoleMutationOptions,
+  useOrganisationsGrantMemberRole,
+} from "./useOrganisationsGrantMemberRole.js";
 export {
   organisationsKeyInfoQueryKey,
   organisationsKeyInfoQueryOptions,
@@ -2244,6 +2434,16 @@ export {
   useOrganisationsListInvitations,
 } from "./useOrganisationsListInvitations.js";
 export {
+  organisationsListIssuedGrantsQueryKey,
+  organisationsListIssuedGrantsQueryOptions,
+  useOrganisationsListIssuedGrants,
+} from "./useOrganisationsListIssuedGrants.js";
+export {
+  organisationsListMemberGrantsQueryKey,
+  organisationsListMemberGrantsQueryOptions,
+  useOrganisationsListMemberGrants,
+} from "./useOrganisationsListMemberGrants.js";
+export {
   organisationsListMembersQueryKey,
   organisationsListMembersQueryOptions,
   useOrganisationsListMembers,
@@ -2269,6 +2469,21 @@ export {
   useOrganisationsListOrgSites,
 } from "./useOrganisationsListOrgSites.js";
 export {
+  organisationsListRoleBundlesQueryKey,
+  organisationsListRoleBundlesQueryOptions,
+  useOrganisationsListRoleBundles,
+} from "./useOrganisationsListRoleBundles.js";
+export {
+  organisationsListTeamMembersQueryKey,
+  organisationsListTeamMembersQueryOptions,
+  useOrganisationsListTeamMembers,
+} from "./useOrganisationsListTeamMembers.js";
+export {
+  organisationsMyTeamCapabilitiesQueryKey,
+  organisationsMyTeamCapabilitiesQueryOptions,
+  useOrganisationsMyTeamCapabilities,
+} from "./useOrganisationsMyTeamCapabilities.js";
+export {
   organisationsRevokeAdminApiKeyMutationKey,
   organisationsRevokeAdminApiKeyMutationOptions,
   useOrganisationsRevokeAdminApiKey,
@@ -2278,6 +2493,11 @@ export {
   organisationsRevokeInvitationMutationOptions,
   useOrganisationsRevokeInvitation,
 } from "./useOrganisationsRevokeInvitation.js";
+export {
+  organisationsRevokeMemberGrantMutationKey,
+  organisationsRevokeMemberGrantMutationOptions,
+  useOrganisationsRevokeMemberGrant,
+} from "./useOrganisationsRevokeMemberGrant.js";
 export {
   organisationsRevokeOrgApiKeyMutationKey,
   organisationsRevokeOrgApiKeyMutationOptions,
@@ -2308,6 +2528,11 @@ export {
   organisationsUpdateMemberMutationOptions,
   useOrganisationsUpdateMember,
 } from "./useOrganisationsUpdateMember.js";
+export {
+  organisationsUpdateMemberAdminMutationKey,
+  organisationsUpdateMemberAdminMutationOptions,
+  useOrganisationsUpdateMemberAdmin,
+} from "./useOrganisationsUpdateMemberAdmin.js";
 export {
   organisationsUpdateOneMutationKey,
   organisationsUpdateOneMutationOptions,
@@ -2904,15 +3129,35 @@ export {
   webhooksOutUpdateEndpointMutationOptions,
 } from "./useWebhooksOutUpdateEndpoint.js";
 export {
+  useWxproductsCreateTropicalSystem,
+  wxproductsCreateTropicalSystemMutationKey,
+  wxproductsCreateTropicalSystemMutationOptions,
+} from "./useWxproductsCreateTropicalSystem.js";
+export {
   useWxproductsGetPublicProduct,
   wxproductsGetPublicProductQueryKey,
   wxproductsGetPublicProductQueryOptions,
 } from "./useWxproductsGetPublicProduct.js";
 export {
+  useWxproductsGetPublicTropicalSystem,
+  wxproductsGetPublicTropicalSystemQueryKey,
+  wxproductsGetPublicTropicalSystemQueryOptions,
+} from "./useWxproductsGetPublicTropicalSystem.js";
+export {
   useWxproductsListPublicProducts,
   wxproductsListPublicProductsQueryKey,
   wxproductsListPublicProductsQueryOptions,
 } from "./useWxproductsListPublicProducts.js";
+export {
+  useWxproductsListPublicTropicalSystems,
+  wxproductsListPublicTropicalSystemsQueryKey,
+  wxproductsListPublicTropicalSystemsQueryOptions,
+} from "./useWxproductsListPublicTropicalSystems.js";
+export {
+  useWxproductsListTropicalSystems,
+  wxproductsListTropicalSystemsQueryKey,
+  wxproductsListTropicalSystemsQueryOptions,
+} from "./useWxproductsListTropicalSystems.js";
 export {
   useWxproductsLoadAviationDrafts,
   wxproductsLoadAviationDraftsQueryKey,
@@ -2938,6 +3183,11 @@ export {
   wxproductsLoadProductsQueryKey,
   wxproductsLoadProductsQueryOptions,
 } from "./useWxproductsLoadProducts.js";
+export {
+  useWxproductsLoadTropicalSystemHistory,
+  wxproductsLoadTropicalSystemHistoryQueryKey,
+  wxproductsLoadTropicalSystemHistoryQueryOptions,
+} from "./useWxproductsLoadTropicalSystemHistory.js";
 export {
   useWxproductsPreviewProduct,
   wxproductsPreviewProductMutationKey,
@@ -2968,6 +3218,11 @@ export {
   wxproductsSaveProductMutationKey,
   wxproductsSaveProductMutationOptions,
 } from "./useWxproductsSaveProduct.js";
+export {
+  useWxproductsUpdateTropicalSystem,
+  wxproductsUpdateTropicalSystemMutationKey,
+  wxproductsUpdateTropicalSystemMutationOptions,
+} from "./useWxproductsUpdateTropicalSystem.js";
 export {
   useWxproductsValidateAviationMessage,
   wxproductsValidateAviationMessageMutationKey,

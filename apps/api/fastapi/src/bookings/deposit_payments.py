@@ -79,6 +79,31 @@ def _payload(
     )
 
 
+async def find_deposit(
+    session: AsyncSession, booking: Booking
+) -> payment_schemas.PaymentIntentPublic | None:
+    """The booking's own deposit intent (found by its idempotency key, never "the
+    newest intent for the booking"), with captured and refunded totals."""
+    return await payments_service.find_by_source(
+        session,
+        organisation_id=booking.organisation_id,
+        source_type=SOURCE_TYPE,
+        source_id=str(booking.id),
+        idempotency_key=intent_key(booking.id),
+    )
+
+
+async def cancel_unpaid_deposit(session: AsyncSession, booking: Booking) -> bool:
+    """Cancel the booking's own deposit intent while unpaid; False if it was paid."""
+    return await payments_service.cancel_open_intent(
+        session,
+        organisation_id=booking.organisation_id,
+        source_type=SOURCE_TYPE,
+        source_id=str(booking.id),
+        idempotency_key=intent_key(booking.id),
+    )
+
+
 async def start_deposit(
     session: AsyncSession, booking: Booking, customer_email: str | None
 ) -> str | None:
@@ -108,6 +133,17 @@ async def start_deposit(
     return manual.checkout_url
 
 
+async def start_manual_deposit(session: AsyncSession, booking: Booking) -> None:
+    """Create the manual deposit intent for a booking that has none (staff record
+    a deposit that was never started online)."""
+    await payments_service.create_intent(
+        session,
+        organisation_id=booking.organisation_id,
+        actor=None,
+        payload=_payload(booking, ProviderKey.MANUAL, None),
+    )
+
+
 def refund_by_policy(booking: Booking, profile: BookingProfile, now: datetime) -> bool:
     """Deposits come back when the booking is cancelled at least
     ``cancel_cutoff_hours`` before it starts; inside the cutoff they are kept."""
@@ -119,12 +155,7 @@ async def refund_deposit(
 ) -> bool:
     """Refund what is left of the captured deposit. Never raises for a payments
     problem: returns False (and logs) so the booking change itself still stands."""
-    intent = await payments_service.find_by_source(
-        session,
-        organisation_id=booking.organisation_id,
-        source_type=SOURCE_TYPE,
-        source_id=str(booking.id),
-    )
+    intent = await find_deposit(session, booking)
     if intent is None or intent.captured_minor - intent.refunded_minor <= 0:
         return True
     try:
@@ -168,12 +199,7 @@ async def settle_cancellation(
     if booking.deposit_minor <= 0:
         return None
     if previous is BookingStatus.PENDING_PAYMENT:
-        unpaid = await payments_service.cancel_open_intent(
-            session,
-            organisation_id=booking.organisation_id,
-            source_type=SOURCE_TYPE,
-            source_id=str(booking.id),
-        )
+        unpaid = await cancel_unpaid_deposit(session, booking)
         if unpaid:
             return "Unpaid deposit cancelled"
         refund = True

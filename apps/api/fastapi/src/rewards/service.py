@@ -567,9 +567,8 @@ async def reverse_for_source(
 ) -> int:
     """Reverse every earn entry that came from this source. Idempotent.
 
-    The hook for Events (and any future source): call it in the same main-database
-    transaction that records a refund or cancellation, or from the sync job in
-    ``events_link``. Returns how many entries were reversed.
+    The hook for Events (and any future source): call it in the same transaction
+    that records a refund or cancellation. Returns how many entries were reversed.
     """
     entries = await session.scalars(
         select(Entry)

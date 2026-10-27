@@ -12,6 +12,7 @@ the owner role. The last active owner can be neither demoted nor removed.
 import hashlib
 import logging
 import secrets
+import uuid
 from datetime import timedelta
 from urllib.parse import urlencode
 
@@ -19,10 +20,12 @@ from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
+from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import User
 from src.config import settings
 from src.email_config import email_settings
 from src.notifications import service as notification_service
+from src.organisations import grants
 from src.organisations.dependencies import OrgContext
 from src.organisations.exceptions import (
     AlreadyMemberError,
@@ -57,6 +60,10 @@ ACCEPT_PATH = "/organisations/accept"
 
 def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
+
+
+# Roles that carry administrative power; the account needs a verified email (ADR-0018).
+_POWER_ROLES = frozenset({MembershipRole.ADMIN.value, MembershipRole.OWNER.value})
 
 
 def _is_owner(role: str) -> bool:
@@ -106,13 +113,13 @@ async def list_members_of(
 
 
 async def _get_membership(
-    session: AsyncSession, context: OrgContext, membership_id: str
+    session: AsyncSession, organisation_id: str, membership_id: str
 ) -> Membership:
     membership = await session.scalar(
         select(Membership)
         .where(
             Membership.id == membership_id,
-            Membership.organisation_id == context.organisation_id,
+            Membership.organisation_id == organisation_id,
             Membership.status == MembershipStatus.ACTIVE.value,
         )
         .with_for_update()
@@ -141,35 +148,103 @@ async def _ensure_not_last_owner(
         raise LastOwnerError()
 
 
+async def apply_role_change(
+    session: AsyncSession,
+    organisation_id: str,
+    membership_id: str,
+    role: MembershipRole,
+    *,
+    actor_id: uuid.UUID,
+    actor_may_grant_owner: bool,
+) -> tuple[Membership, User]:
+    """Shared by the organisation-scoped route and the audited control-plane route."""
+    audit_service.set_actor(session, actor_id)
+    membership = await _get_membership(session, organisation_id, membership_id)
+    if not actor_may_grant_owner and (
+        _is_owner(membership.role) or _is_owner(role.value)
+    ):
+        raise OrganisationRoleError()  # touching an owner, or granting owner
+    user = await session.get(User, membership.user_id)
+    assert user is not None
+    if role.value in _POWER_ROLES and role.value != membership.role:
+        await require_verified_or_admin_activated(
+            session, user, "receive an administrator role"
+        )
+    if role.value != membership.role:
+        if _is_owner(membership.role):
+            await _ensure_not_last_owner(session, organisation_id, membership)
+        membership.role = role.value
+        await session.flush()
+    return membership, user
+
+
 async def change_role(
     session: AsyncSession,
     context: OrgContext,
     membership_id: str,
     role: MembershipRole,
 ) -> tuple[Membership, User]:
-    audit_service.set_actor(session, context.user.id)
-    membership = await _get_membership(session, context, membership_id)
-    _require_may_grant(context, membership.role)  # touching an owner
-    _require_may_grant(context, role.value)  # granting owner
-    if role.value != membership.role:
-        if _is_owner(membership.role):
-            await _ensure_not_last_owner(session, context.organisation_id, membership)
-        membership.role = role.value
-        await session.flush()
-    user = await session.get(User, membership.user_id)
-    assert user is not None
-    return membership, user
+    return await apply_role_change(
+        session,
+        context.organisation_id,
+        membership_id,
+        role,
+        actor_id=context.user.id,
+        actor_may_grant_owner=context.role == MembershipRole.OWNER,
+    )
+
+
+async def apply_removal(
+    session: AsyncSession,
+    organisation_id: str,
+    membership_id: str,
+    *,
+    actor_id: uuid.UUID,
+    actor_may_grant_owner: bool,
+) -> Membership:
+    audit_service.set_actor(session, actor_id)
+    membership = await _get_membership(session, organisation_id, membership_id)
+    if not actor_may_grant_owner and _is_owner(membership.role):
+        raise OrganisationRoleError()
+    await _ensure_not_last_owner(session, organisation_id, membership)
+    membership.status = MembershipStatus.REMOVED.value
+    await session.flush()
+    await grants.revoke_all_for_membership(
+        session, membership_id=membership.id, actor_id=actor_id
+    )
+    # Access the removed person handed out ends with their own (ADR-0044, S3).
+    # A demotion only lists it (``GET .../issued-grants``): admins decide.
+    ended = await grants.revoke_issued_by(
+        session,
+        organisation_id=organisation_id,
+        user_id=membership.user_id,
+        actor_id=actor_id,
+    )
+    if ended:
+        # Visible next to the per-grant history rows (the 204 response has no body).
+        await audit_service.record_change(
+            session,
+            entity_type="platform_organisation",
+            entity_id=organisation_id,
+            record_type="organisation_membership",
+            record_id=membership.id,
+            action="revoke_issued_grants",
+            changes={"grants_revoked": (None, ended)},
+            organisation_id=organisation_id,
+        )
+    return membership
 
 
 async def remove_member(
     session: AsyncSession, context: OrgContext, membership_id: str
 ) -> None:
-    audit_service.set_actor(session, context.user.id)
-    membership = await _get_membership(session, context, membership_id)
-    _require_may_grant(context, membership.role)
-    await _ensure_not_last_owner(session, context.organisation_id, membership)
-    membership.status = MembershipStatus.REMOVED.value
-    await session.flush()
+    await apply_removal(
+        session,
+        context.organisation_id,
+        membership_id,
+        actor_id=context.user.id,
+        actor_may_grant_owner=context.role == MembershipRole.OWNER,
+    )
 
 
 # ── Invitations ──────────────────────────────────────────────────────────────
@@ -300,6 +375,10 @@ async def accept_invitation(
         raise InvitationInvalidError()
     if notification_service.normalise_email(user.email) != invitation.email:
         raise InvitationEmailMismatchError()
+    if invitation.role in _POWER_ROLES:
+        await require_verified_or_admin_activated(
+            session, user, "accept an administrator role"
+        )
     organisation = await session.get(PlatformOrganisation, invitation.organisation_id)
     if organisation is None:  # pragma: no cover - the foreign key guarantees it
         raise InvitationInvalidError()

@@ -195,13 +195,19 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:${{ matrix.image }}
+          # Build provenance and an SPDX SBOM are attached as attestation manifests
+          # in the pushed image index. Build args are recorded in max-mode provenance;
+          # they are NEXT_PUBLIC_* values already shipped to browsers, and real
+          # secrets go through `secrets:`, which provenance never records.
+          provenance: mode=max
+          sbom: true
           platforms: linux/amd64
 
 
       - name: Upload Trivy results to GitHub Security tab
         if: always() && hashFiles('trivy-results.sarif') != ''
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: trivy-results.sarif
           category: trivy-${{ matrix.image }}

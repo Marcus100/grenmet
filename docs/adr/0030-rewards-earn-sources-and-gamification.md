@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed. The owner approved the scope on 2026-10-20 (foundations slices PF8–PF11). API implemented for PF8 (earn-source catalogue and `record_qualifying_action`, no outbox handler yet), PF9 (venues, signed QR, check-ins, trails, achievements, streaks), PF10 (opt-in leaderboards, community challenges and stamp gifting, each behind a feature flag, gifting also behind a hard setting refused in production) and the API half of PF11 on branch of 2026-10-20. This amends the rewards guardrails in the [foundations plan](../exec-plans/barrels-foundations-plan.md#barrels-id-and-rewards) and `src/rewards/AGENTS.md`.
+Built (API). Accepted by the owner 2026-10-20: gamification, rewards and points are central to Barrels. The owner approved the scope on 2026-10-20 (foundations slices PF8–PF11). API implemented for PF8 (earn-source catalogue and `record_qualifying_action`, outbox handler in `src/rewards/outbox_handlers.py`), PF9 (venues, signed QR, check-ins, trails, achievements, streaks), PF10 (opt-in leaderboards, community challenges and stamp gifting, each behind a feature flag, gifting also behind a hard setting refused in production) and the API half of PF11 on branch of 2026-10-20. This amends the rewards guardrails in the [foundations plan](../exec-plans/barrels-foundations-plan.md#barrels-id-and-rewards) and `src/rewards/AGENTS.md`.
 
 ## Context
 
@@ -55,6 +55,10 @@ Stamps come from one source only: Events admissions, through the dedicated job `
 
 **PF11: organisation rewards admin**
 - Organisations manage stamp cards, trails and challenges and confirm redemptions, through organisation-zone routes and UI.
+
+**Consumer protection (owner decision 2026-10-20):** points expire after 12 months with no activity, with a reminder 30 days before. Gifting stays off.
+
+**Events:** Events still use `sync_event_rewards` (`src/worker/main.py`); it goes away when Events moves into the main database (ADR-0003 rewrite).
 
 **Still banned:** cash withdrawal, buying points or stamps, random prizes and loot mechanics, rewards for opening the app, and spend-ranked public boards.
 

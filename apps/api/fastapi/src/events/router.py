@@ -11,10 +11,9 @@ from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Path, Query, Request, Response, status
 
 from src import idempotency
-from src.dependencies import SessionDep
+from src.dependencies import MfaAdminUser
 from src.models import Message
 from src.openapi_responses import UNAUTHENTICATED
-from src.organisations import verification
 from src.rate_limit import limiter
 
 from . import schemas, service
@@ -26,6 +25,7 @@ from .dependencies import (
     EventsViewer,
     OrganiserScope,
 )
+from .service import org_orders
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -594,12 +594,11 @@ async def request_organiser(
     *,
     request: Request,
     session: EventsSession,
-    platform: SessionDep,
     user: EventsMember,
     body: schemas.OrganiserCreate,
 ) -> schemas.OrganiserPublic:
     _ = request
-    return await service.request_organiser(session, platform, user, body)
+    return await service.request_organiser(session, user, body)
 
 
 @router.put(
@@ -624,6 +623,27 @@ async def set_organiser_logo(
     return await service.set_organiser_logo(
         session, user, body.file_id, scope, organiser
     )
+
+
+@router.post(
+    "/manage/organiser/resubmit",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Resubmit a rejected organiser for review",
+    description=(
+        "Owners and admins of an organiser whose verification was rejected put it "
+        "back in the moderation queue (pending). 409 unless it is rejected."
+    ),
+    responses=_ORGANISER,
+)
+async def resubmit_organiser(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    organiser: _ManagedSlug = None,
+) -> schemas.OrganiserPublic:
+    return await service.resubmit_organiser(session, user, scope, organiser)
 
 
 @router.post(
@@ -720,12 +740,11 @@ async def get_manifest(
 async def get_organiser_settlement(
     *,
     session: EventsSession,
-    main: SessionDep,
     user: EventsOrganiser,
     scope: OrganiserScope,
     organiser: _ManagedSlug = None,
 ) -> schemas.SettlementOverview:
-    return await service.organiser_settlement(session, user, scope, organiser, main)
+    return await service.organiser_settlement(session, user, scope, organiser)
 
 
 @router.get(
@@ -739,13 +758,12 @@ async def get_organiser_settlement(
 async def get_settlement(
     *,
     session: EventsSession,
-    main: SessionDep,
     user: EventsOrganiser,
     scope: OrganiserScope,
     listing_id: uuid.UUID,
     organiser: _ManagedSlug = None,
 ) -> schemas.Settlement:
-    return await service.settlement(session, user, listing_id, scope, organiser, main)
+    return await service.settlement(session, user, listing_id, scope, organiser)
 
 
 @router.get(
@@ -762,15 +780,12 @@ async def get_settlement(
 async def get_settlement_csv(
     *,
     session: EventsSession,
-    main: SessionDep,
     user: EventsOrganiser,
     scope: OrganiserScope,
     listing_id: uuid.UUID,
     organiser: _ManagedSlug = None,
 ) -> Response:
-    body = await service.settlement_csv(
-        session, user, listing_id, scope, organiser, main
-    )
+    body = await service.settlement_csv(session, user, listing_id, scope, organiser)
     return Response(
         content=body,
         media_type="text/csv",
@@ -785,7 +800,7 @@ async def get_settlement_csv(
     response_model=schemas.CancelResult,
     status_code=status.HTTP_200_OK,
     summary="Cancel an event",
-    description="Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. Outlet cash tickets can then be refunded.",
+    description="Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` (default; no money moves) or `follow_policy` (an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.",
     responses={**_ORGANISER, 409: {"description": "Not a published event"}},
 )
 async def cancel_event(
@@ -797,8 +812,10 @@ async def cancel_event(
     body: schemas.CancelEvent,
     organiser: _ManagedSlug = None,
 ) -> schemas.CancelResult:
-    _ = body
-    return await service.cancel_event(session, user, listing_id, scope, organiser)
+    async with org_orders.conflict_on_deadlock(session):
+        return await service.cancel_event(
+            session, user, listing_id, scope, organiser, refund=body.refund
+        )
 
 
 @router.post(
@@ -971,9 +988,10 @@ async def update_managed_listing(
     body: schemas.ListingUpsert,
     organiser: _ManagedSlug = None,
 ) -> schemas.ManagedListing:
-    return await service.update_listing(
-        session, user, listing_id, body, scope, organiser
-    )
+    async with org_orders.conflict_on_deadlock(session):
+        return await service.update_listing(
+            session, user, listing_id, body, scope, organiser
+        )
 
 
 # --- Tickets -------------------------------------------------------------------------
@@ -997,7 +1015,6 @@ async def claim_tickets(
     *,
     request: Request,
     session: EventsSession,
-    main: SessionDep,
     user: EventsMember,
     slug: Slug,
     body: schemas.OrderCreate,
@@ -1005,7 +1022,7 @@ async def claim_tickets(
 ) -> schemas.OrderPublic:
     _ = request
     return await service.claim_tickets(
-        session, user, slug, body, main=main, idempotency_key=idempotency_key
+        session, user, slug, body, idempotency_key=idempotency_key
     )
 
 
@@ -1020,11 +1037,10 @@ async def claim_tickets(
 async def get_my_order(
     *,
     session: EventsSession,
-    main: SessionDep,
     user: EventsMember,
     order_id: uuid.UUID,
 ) -> schemas.OrderPublic:
-    return await service.my_order(session, main, user, order_id)
+    return await service.my_order(session, user, order_id)
 
 
 @router.get(
@@ -1151,7 +1167,7 @@ async def update_suggestion(
     response_model=list[schemas.OrganiserPublic],
     status_code=status.HTTP_200_OK,
     summary="List organiser requests",
-    description="Organisers awaiting verification.",
+    description="Organisers awaiting verification (pending; rejected ones are not listed).",
     responses=_MODERATOR,
 )
 async def list_pending_organisers(
@@ -1167,27 +1183,22 @@ async def list_pending_organisers(
     status_code=status.HTTP_200_OK,
     summary="Verify an organiser",
     description=(
-        "Approve (or withdraw approval of) an organiser account. "
-        "Approving queues a notification to the organiser's owners and admins."
+        "MFA superuser only (a staff session, not an Events token). Approve or "
+        "withdraw approval of an organiser account through the same path as "
+        "`/admin/moderation/organisers`. 409 for a rejected organiser, which "
+        "must be resubmitted first."
     ),
-    responses=_MODERATOR,
+    responses={
+        **_MODERATOR,
+        409: {"description": "Organiser was rejected and must be resubmitted"},
+    },
 )
 async def review_organiser(
     *,
     session: EventsSession,
-    platform: SessionDep,
-    user: EventsModerator,
+    admin: MfaAdminUser,
     organiser_id: uuid.UUID,
     body: schemas.OrganiserReview,
 ) -> schemas.OrganiserPublic:
-    row = await service.review_organiser(session, organiser_id, body.verified, user)
-    if row.organisation_id is not None:
-        # Linked organisers read verification from the platform organisation.
-        await verification.moderator_set_verified(
-            platform,
-            row.organisation_id,
-            verified=body.verified,
-            actor_id=user.id,
-            source="Events",
-        )
-    return await service.organiser_public(session, row, user.id)
+    row = await service.review_organiser(session, organiser_id, body.verified, admin)
+    return await service.organiser_public(session, row, admin.id)

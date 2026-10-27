@@ -56,7 +56,7 @@ NODE_RANGE="$(json_field "$ROOT/package.json" engines.node)"
 NODE_MAJOR="$(printf '%s' "$NODE_RANGE" | grep -oE '[0-9]+' | head -1)"
 PNPM_VERSION="$(json_field "$ROOT/package.json" packageManager | sed -E 's/^pnpm@//; s/\+.*$//')"
 
-mkdir -p "$BIN" 2>/dev/null || true
+[ "$DRY_RUN" = 1 ] || mkdir -p "$BIN" 2>/dev/null || true
 export PATH="$BIN:$PATH"
 
 # ── 1. uv that knows the pinned Python ───────────────────────────────────────
@@ -85,12 +85,17 @@ ensure_node() {
     return 0
   fi
   local dir="$CACHE/node-$NODE_MAJOR" version
-  if [ ! -x "$dir/bin/node" ]; then
+  # Both binaries, so a download killed half way (the setup script's time
+  # budget) is redone instead of trusted.
+  if [ ! -x "$dir/bin/node" ] || [ ! -x "$dir/bin/npm" ]; then
     version="$(curl -fsSL https://nodejs.org/dist/index.json | python3 -c "
 import json, sys
 print(next(r['version'] for r in json.load(sys.stdin) if r['version'].startswith('v$NODE_MAJOR.')))")" || return 1
-    mkdir -p "$dir" && curl -fsSL "https://nodejs.org/dist/$version/node-$version-linux-x64.tar.xz" \
-      | tar -xJ -C "$dir" --strip-components=1 || return 1
+    # Unpack beside the target and move it into place only when complete.
+    rm -rf "$dir.partial" && mkdir -p "$dir.partial" \
+      && curl -fsSL "https://nodejs.org/dist/$version/node-$version-linux-x64.tar.xz" \
+        | tar -xJ -C "$dir.partial" --strip-components=1 || return 1
+    rm -rf "$dir" && mv "$dir.partial" "$dir" || return 1
   fi
   ln -sfn "$dir/bin/node" "$BIN/node"
   ln -sfn "$dir/bin/npm" "$BIN/npm"
@@ -123,6 +128,46 @@ ensure_pnpm() {
   ln -sfn "$exe" "$BIN/pnpm"
   hash -r
   say "ok pnpm: $(pnpm --version)"
+}
+
+# The workspace keeps its pnpm store at <repo>/.pnpm-store (pnpm-workspace.yaml).
+# The environment setup script (cloud-setup.sh) leaves a filled copy in the
+# cache; hard-linking it in first lets pnpm install without downloading, and the
+# store stays where every later pnpm command expects it.
+seed_pnpm_store() {
+  local seed="$CACHE/pnpm-store"
+  if [ -d "$ROOT/.pnpm-store" ]; then
+    say "skip pnpm store: checkout already has one"
+    return 0
+  fi
+  if [ ! -d "$seed" ]; then
+    say "skip pnpm store: no cached store to seed from"
+    return 0
+  fi
+  # Content files are written once and never changed, so sharing them is safe.
+  # pnpm edits its SQLite index (index.db and its -wal/-shm files) in place,
+  # so each checkout gets its own copy of those instead of a shared inode.
+  if cp -al "$seed" "$ROOT/.pnpm-store" 2>/dev/null; then
+    # List first, then copy, so the loop never sees its own temporary files.
+    local -a index_files
+    mapfile -d '' index_files < <(find "$ROOT/.pnpm-store" -type f \
+      \( -name index.db -o -name index.db-wal -o -name index.db-shm \) -print0)
+    local linked
+    for linked in "${index_files[@]}"; do
+      if ! { cp -p "$seed/${linked#"$ROOT/.pnpm-store/"}" "$linked.copy" \
+        && mv -f "$linked.copy" "$linked"; }; then
+        # A still-shared index would let pnpm edit the cached seed in place.
+        rm -rf "$ROOT/.pnpm-store"
+        return 1
+      fi
+    done
+    say "ok pnpm store seeded from $seed (linked)"
+  else
+    # Another filesystem: cp -al leaves a partial tree; replace it with a copy.
+    rm -rf "$ROOT/.pnpm-store" && mkdir -p "$ROOT/.pnpm-store" \
+      && cp -a "$seed/." "$ROOT/.pnpm-store/" || return 1
+    say "ok pnpm store seeded from $seed (copied)"
+  fi
 }
 
 install_node_deps() {
@@ -184,9 +229,16 @@ EOF
   fi
 }
 
+# BOOTSTRAP_ONLY=<function> runs one step (tests, or by hand).
+if [ -n "${BOOTSTRAP_ONLY:-}" ]; then
+  step "$BOOTSTRAP_ONLY" "$BOOTSTRAP_ONLY"
+  exit 0
+fi
+
 step "uv: install Python $PY_VERSION (upgrade uv if it is too old)" ensure_uv
 step "node: provide v$NODE_MAJOR (engines.node $NODE_RANGE)" ensure_node
 step "pnpm: provide @pnpm/exe $PNPM_VERSION; turn off pnpm version switching" ensure_pnpm
+step "pnpm store: seed <repo>/.pnpm-store from the cache" seed_pnpm_store
 step "pnpm install --frozen-lockfile" install_node_deps
 step "uv sync --package fast-back --package gms-ingest" sync_python
 step "postgres: start the cluster; create role and database 'app'" ensure_postgres

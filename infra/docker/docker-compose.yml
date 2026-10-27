@@ -40,9 +40,6 @@ services:
       TRANSPORT_DB_NAME: ${TRANSPORT_DB_NAME:-transport}
       TRANSPORT_DB_USER: ${TRANSPORT_DB_USER:-transport}
       TRANSPORT_DB_PASSWORD: ${TRANSPORT_DB_PASSWORD:-changethis}
-      EVENTS_DB_NAME: ${EVENTS_DB_NAME:-events}
-      EVENTS_DB_USER: ${EVENTS_DB_USER:-events}
-      EVENTS_DB_PASSWORD: ${EVENTS_DB_PASSWORD:-changethis}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"]
       interval: 10s
@@ -68,7 +65,7 @@ services:
       - grenmet
 
   mailcatcher:
-    image: axllent/mailpit:v1.31.5@sha256:94f6b70c1436defae6799d9ac7ff0eeff9540465b842026d5cdb018f1c0234ea
+    image: axllent/mailpit:v1.31.6@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
     container_name: grenmet-mailcatcher
     restart: "no"
     ports:

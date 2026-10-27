@@ -1,12 +1,12 @@
 import { Address, Hours } from "@/components/hours";
 import {
-  BOOKING_URL,
   GOOGLE_PROFILE_URL,
   GOOGLE_REVIEW_URL,
   RATING,
   REVIEWS,
   SOCIALS,
 } from "@/data/site";
+import { siteBookingLink } from "@/lib/book-link";
 
 export function PageHead({
   eyebrow,
@@ -101,6 +101,7 @@ export function ReviewsSection() {
 }
 
 export function VisitSection() {
+  const booking = siteBookingLink();
   return (
     <section className="visit block">
       <div className="wrap visit-grid">
@@ -108,7 +109,7 @@ export function VisitSection() {
           <p className="eyebrow">Find us</p>
           <h2>Visit the studio</h2>
           <Address />
-          <a className="btn" href={BOOKING_URL} rel="noopener" target="_blank">
+          <a className="btn" {...booking}>
             Make an appointment
           </a>
         </div>

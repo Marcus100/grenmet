@@ -207,7 +207,7 @@ Create a new session. Used by `web-auth` on sign-in. Returns `SessionLoginRespon
 
 ```ts
 const session = await createSession(authConfig, {
-  email: "user@weather.gd",
+  email: "user@example.com",
   password: "...",
   appName: "web-auth",
 });

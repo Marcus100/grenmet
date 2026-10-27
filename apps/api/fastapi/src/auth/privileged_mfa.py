@@ -12,6 +12,12 @@ from src.auth.models import Session as LoginSession
 from src.auth.models import User
 from src.auth.utils import ALGORITHM
 
+# Stable machine-readable suffix of the 403 detail (the detail still starts with
+# "Set up two-step verification", which GAA Admin and the auth app match to send
+# the person to account security) for a privileged account that
+# has not enrolled an authenticator. Account security stays reachable to enrol.
+ENROLMENT_REQUIRED_CODE = "mfa_enrolment_required"
+
 # Anyone who can manage users or approve/publish CAP warnings is privileged.
 PRIVILEGED_PERMISSION_KEYS = (
     "user.manage",
@@ -32,7 +38,21 @@ async def is_privileged(session: AsyncSession, user: User) -> bool:
     return False
 
 
-async def require_privileged_mfa(
+def session_id_from_token(token: str) -> uuid.UUID | None:
+    """The ``sid`` claim of a bearer JWT, or None when absent or malformed.
+
+    Raises 401 for an invalid token."""
+    try:
+        payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.InvalidTokenError:
+        raise HTTPException(401, "Sign in again") from None
+    try:
+        return uuid.UUID(str(payload.get("sid", "")))
+    except ValueError:
+        return None
+
+
+async def require_mfa_session(
     session: AsyncSession,
     user: User,
     *,
@@ -40,27 +60,20 @@ async def require_privileged_mfa(
     login_session: LoginSession | None = None,
     app_key: str | None = None,
 ) -> None:
-    if auth_settings.AUTH_PRIVILEGED_MFA_MODE != "enforce":
-        return
-    if not await is_privileged(session, user):
-        return
+    """Mode-independent check: an enrolled authenticator and a session that passed MFA.
+
+    A bearer token without a ``sid`` (legacy) or whose session never completed the
+    factor check (``mfa_verified_at`` empty) is refused."""
     if login_session is None and token is not None:
-        try:
-            payload = jwt.decode(
-                token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM]
-            )
-        except jwt.InvalidTokenError:
-            raise HTTPException(401, "Sign in again") from None
-        try:
-            session_id = uuid.UUID(str(payload.get("sid", "")))
-        except ValueError:
-            session_id = None
+        session_id = session_id_from_token(token)
         if session_id is not None:
             login_session = await session.get(LoginSession, session_id)
     if not user.totp_enabled or not totp.is_encrypted(user.totp_secret):
         raise HTTPException(
             403,
-            "Set up two-step verification and save recovery codes in account security before using privileged staff tools",
+            "Set up two-step verification and save recovery codes in account "
+            "security before using privileged staff tools "
+            f"({ENROLMENT_REQUIRED_CODE})",
         )
     if (
         login_session is None
@@ -77,3 +90,20 @@ async def require_privileged_mfa(
             403,
             "Sign in again with your authenticator or recovery code before using privileged staff tools",
         )
+
+
+async def require_privileged_mfa(
+    session: AsyncSession,
+    user: User,
+    *,
+    token: str | None = None,
+    login_session: LoginSession | None = None,
+    app_key: str | None = None,
+) -> None:
+    if auth_settings.AUTH_PRIVILEGED_MFA_MODE != "enforce":
+        return
+    if not await is_privileged(session, user):
+        return
+    await require_mfa_session(
+        session, user, token=token, login_session=login_session, app_key=app_key
+    )

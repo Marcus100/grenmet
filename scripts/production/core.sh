@@ -19,6 +19,12 @@ if [[ "$operation" == backup ]]; then
   exit
 fi
 : "${GITHUB_SHA:?}" "${GHCR_TOKEN:?}" "${GITHUB_ACTOR:?}"
+# Checked before anything changes: a typo must not silently skip rolling starts.
+case "${ROLLING_DEPLOY:-}" in
+  "" | 0 | false) rolling=false ;;
+  1 | true) rolling=true ;;
+  *) echo "ROLLING_DEPLOY must be 1, true, 0, false or unset; got '$ROLLING_DEPLOY'" >&2; exit 2 ;;
+esac
 umask 077
 cleanup() {
   rm -f runtime/.env.local runtime/deploy.lock.yml runtime/bootstrap-result runtime/images.txt
@@ -31,6 +37,7 @@ completed_phase="none"
 phase_started=$(date +%s)
 phase_timings=""
 migrations_started=false
+project_stopped=false
 end_phase() {
   [[ -n "$current_phase" ]] || return 0
   phase_timings+="| $current_phase | $(($(date +%s) - phase_started))s | $1 |"$'\n'
@@ -74,8 +81,14 @@ finish() {
     end_phase ok
   else
     end_phase failed
+    if [[ -n "$rollout_new" ]]; then
+      echo "Removing unfinished rollout container $rollout_new; the previous one keeps serving."
+      docker rm -f "$rollout_new" >/dev/null 2>&1
+    fi
     echo "::error::Core delivery failed in phase '$current_phase' (last completed: $completed_phase) for revision $GITHUB_SHA"
-    if [[ "$current_phase" == databases ]]; then
+    if [[ "$project_stopped" == true && "$current_phase" != start && "$current_phase" != smoke ]]; then
+      echo "The whole project was stopped to recreate its network, so nothing is serving until a deploy succeeds."
+    elif [[ "$current_phase" == databases ]]; then
       echo "Database services were starting; migrations did not run."
     elif [[ "$migrations_started" == false ]]; then
       echo "No container was changed; the previous release should still be serving."
@@ -101,6 +114,70 @@ finish() {
   exit "$status"
 }
 trap finish EXIT
+
+# Returns once a container is healthy (or running, when it has no healthcheck);
+# fails as soon as it is unhealthy, stopped or gone, or after ROLLOUT_TIMEOUT seconds.
+wait_healthy() {
+  local id=$1 state deadline=$(($(date +%s) + ${ROLLOUT_TIMEOUT:-300}))
+  while (($(date +%s) < deadline)); do
+    state=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$id") || return 1
+    case "$state" in
+      healthy | running) return 0 ;;
+      starting | created | restarting) ;;
+      *) return 1 ;;
+    esac
+    sleep "${ROLLOUT_POLL_SECONDS:-3}"
+  done
+  return 1
+}
+
+# The new container of an unfinished rollout; finish() removes it if the deploy
+# fails or is cancelled mid-rollout, so two releases are never left serving.
+rollout_new=""
+
+# Replaces one routed service without a gap: start the new container beside the
+# old one, wait until it is healthy (Traefik only routes to healthy containers),
+# then retire the old one. If the new container never becomes healthy it is
+# removed and the old one keeps serving, and the deploy fails.
+rollout() {
+  local service=$1 old new stale
+  local compose=(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT")
+  # Stopped containers count towards --scale, and --no-recreate would restart one
+  # on its old image instead of creating a new container. Remove them first.
+  stale=$("${compose[@]}" ps -aq --status exited --status created --status dead "$service")
+  # shellcheck disable=SC2086
+  [[ -z "$stale" ]] || docker rm $stale >/dev/null
+  old=$("${compose[@]}" ps -q "$service")
+  if [[ -z "$old" ]]; then
+    # First start: nothing is serving yet, so there is no gap to avoid.
+    "${compose[@]}" up -d --no-deps --wait --wait-timeout 300 "$service"
+    return
+  fi
+  # Always roll, even for an unchanged image: a changed environment or label
+  # also recreates the container, and recreating stops the old one first.
+  echo "Rolling $service"
+  "${compose[@]}" up -d --no-deps --no-recreate --scale "$service=$(($(wc -l <<<"$old") + 1))" "$service"
+  new=$(comm -13 <(sort <<<"$old") <("${compose[@]}" ps -q "$service" | sort))
+  if [[ -z "$new" || "$new" == *$'\n'* ]]; then
+    echo "::error::Rolling start of $service expected one new container, found: ${new:-none}" >&2
+    return 1
+  fi
+  rollout_new=$new
+  if ! wait_healthy "$new"; then
+    echo "::error::New $service container did not become healthy; the previous one is still serving" >&2
+    docker logs --tail "${DIAGNOSTIC_LOG_LINES:-200}" "$new" 2>&1 || true
+    docker rm -f "$new" >/dev/null
+    rollout_new=""
+    return 1
+  fi
+  # Give Traefik's Docker provider time to add the new backend before the old one goes.
+  sleep "${ROLLOUT_SETTLE_SECONDS:-5}"
+  rollout_new=""
+  # shellcheck disable=SC2086
+  docker stop --time 30 $old >/dev/null
+  # shellcheck disable=SC2086
+  docker rm $old >/dev/null
+}
 
 # Fails before any change to the running stack when a disk is too full.
 require_free_space() {
@@ -153,6 +230,76 @@ done < runtime/images.txt
 # Images only: the full resolved Compose file contains secrets.
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --images >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
+phase backup-gate
+# Alembic rollback does not undo migrations (release runbook, "Backup gate"). Every
+# deploy that reaches `migrations` runs `alembic upgrade head`, and there is no cheap,
+# reliable way here to tell "already at head" across seven Alembic histories plus the
+# Payload CMS, so the gate checks on any deploy that has migration services.
+# Modes: DEPLOY_BACKUP_GATE=off|warn|enforce (default warn). Only enforce blocks, and
+# only on a verified-stale backup; anything it cannot verify fails open, loudly.
+# DEPLOY_BACKUP_GATE_OVERRIDE=<reason> lets an enforced deploy continue and is recorded.
+gate_note() {
+  printf '%s\n' "$1"
+  printf '%s\n' "$1" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+}
+gate_mode=${DEPLOY_BACKUP_GATE:-warn}
+gate_max_age=${DEPLOY_BACKUP_MAX_AGE_HOURS:-26}
+if [[ "$gate_mode" != off && "$gate_mode" != warn && "$gate_mode" != enforce ]]; then
+  gate_note "::warning::DEPLOY_BACKUP_GATE='$gate_mode' is not off, warn or enforce; using warn."
+  gate_mode=warn
+fi
+gate_override=$(printf '%s' "${DEPLOY_BACKUP_GATE_OVERRIDE:-}" | tr -d '\r\n' | cut -c1-200)
+if [[ "$gate_mode" == off ]]; then
+  gate_note "Backup gate: off (DEPLOY_BACKUP_GATE=off); the newest backup was not checked before migrations."
+elif [[ -z "${migration_services// /}" ]]; then
+  gate_note "Backup gate: skipped, this release has no migration services."
+else
+  gate_code=0
+  gate_out=$(DEPLOY_BACKUP_MAX_AGE_HOURS="$gate_max_age" timeout 120 python3 ../../scripts/production/backup-gate.py "$DEPLOY_ENV" 2>&1) || gate_code=$?
+  printf '%s\n' "$gate_out"
+  gate_detail=$(printf '%s' "$gate_out" | tr '\n' ';')
+  how_to="Take one: run the Database Backup workflow (backup-database.yml) and wait for it to pass, then re-run this deploy. To proceed anyway, dispatch Deploy with backup_gate_override set to a reason, or set the DEPLOY_BACKUP_GATE variable to warn."
+  case "$gate_code" in
+    0) gate_note "Backup gate ($gate_mode): $gate_detail" ;;
+    10)
+      if [[ "$gate_mode" == enforce && -z "$gate_override" ]]; then
+        {
+          echo "### Backup gate blocked this deploy (enforce)"
+          echo "Newest backup is older than ${gate_max_age}h. No migration ran; the previous release is still serving."
+          printf '%s\n' "$gate_out" | sed 's/^/- /'
+          echo "$how_to"
+        } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+        echo "::error::Backup gate (enforce) blocked the deploy before migrations: stale backup (limit ${gate_max_age}h)." >&2
+        printf '%s\n%s\n' "$gate_out" "$how_to" >&2
+        exit 1
+      elif [[ "$gate_mode" == enforce ]]; then
+        gate_note "::warning::Backup gate OVERRIDDEN by ${GITHUB_ACTOR}: '$gate_override'. Backup is stale; migrations proceed. $gate_detail"
+      else
+        gate_note "::warning::Backup gate (warn): backup is stale and migrations will run anyway. $gate_detail $how_to"
+      fi ;;
+    *) gate_note "::warning::Backup gate could NOT verify the newest backup and is passing OPEN (mode $gate_mode): $gate_detail. Migrations will run without a verified fresh backup." ;;
+  esac
+  if [[ -n "$gate_override" && "$gate_mode" != enforce ]]; then
+    gate_note "Backup gate override recorded by ${GITHUB_ACTOR}: '$gate_override' (mode is $gate_mode, so it changed nothing)."
+  fi
+fi
+
+phase network
+# A changed IPAM block on the project network (the subnet pinned for uvicorn's
+# --forwarded-allow-ips) makes Compose recreate the network on the next `up`. That
+# `up` can only stop the services it names, so every other container keeps the
+# network in use, Docker refuses ("network ... has active endpoints") and db and
+# redis are left stopped. When the live subnet differs from the deployment file,
+# stop the whole project first so the databases phase creates the network fresh.
+# Volumes are kept (no -v). This is a full, one-off outage for that deploy.
+pinned_subnet=$(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --format json | grep -oE '"subnet": *"[^"]+"' | head -n 1 | sed -E 's/.*"([^"]+)"$/\1/' || true)
+live_subnets=$(docker network inspect --format '{{range .IPAM.Config}}{{.Subnet}} {{end}}' "${COMPOSE_PROJECT}_grenmet" 2>/dev/null || true)
+if [[ -n "$pinned_subnet" && -n "$live_subnets" && " $live_subnets " != *" $pinned_subnet "* ]]; then
+  echo "Network ${COMPOSE_PROJECT}_grenmet uses ${live_subnets% } but the deployment pins $pinned_subnet: stopping the project so Compose can recreate it (volumes are kept)."
+  project_stopped=true
+  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" down --remove-orphans --timeout 60
+fi
+
 phase databases
 # shellcheck disable=SC2086
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --wait $data_services
@@ -170,8 +317,23 @@ phase start
 # Allow the admin's 120s start period and five 30s probe intervals to finish.
 # Staging's worker recovered just after the former 180s deadline on 2026-10-06.
 # --remove-orphans retires containers of services no longer in the deployment file.
-# shellcheck disable=SC2086
-docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $app_services
+if [[ "$rolling" == true ]]; then
+  # Recreating a routed service stops its only container first, so Traefik has no
+  # backend and every route 404s until the new one is healthy (staging run
+  # 37131928180). Roll those services instead; start the rest as before.
+  routed_services=$(node ../../scripts/ci/check-release-scope.mjs --print routed)
+  for service in $routed_services; do
+    rollout "$service"
+  done
+  remaining_services=$(for service in $app_services; do
+    [[ " $routed_services " == *" $service "* ]] || printf '%s ' "$service"
+  done)
+  # shellcheck disable=SC2086
+  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $remaining_services
+else
+  # shellcheck disable=SC2086
+  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $app_services
+fi
 
 phase smoke
 domain=$(python3 -c 'import sys; from pathlib import Path; print(next(line.split("=", 1)[1] for line in Path(sys.argv[1]).read_text().splitlines() if line.startswith("BASE_DOMAIN=")))' "$DEPLOY_ENV.env")

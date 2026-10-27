@@ -215,9 +215,9 @@ my_domain_settings = MyDomainConfig()
 
 ## Observability
 
-**Logging** — `src/logging_config.py` configures JSON output (Datadog-compatible) via `python-json-logger`. Call `configure_logging()` once at startup (already wired in `main.py`). Set `LOG_FORMAT=text` locally for human-readable output, `LOG_LEVEL` to control verbosity.
+**Logging** — `src/logging_config.py` configures structured JSON output via `python-json-logger`. Call `configure_logging()` once at startup (already wired in `main.py`). Set `LOG_FORMAT=text` locally for human-readable output, `LOG_LEVEL` to control verbosity.
 
-**ddtrace** — Installed as a runtime dep. The production image defaults trace exports, instrumentation telemetry and remote configuration to disabled until a Datadog Agent is provisioned. In production, run the app via `ddtrace-run uvicorn src.main:app` so APM tracing, trace ID injection into logs, and auto-instrumentation of FastAPI/SQLAlchemy/httpx are active. Set `DD_LOGS_INJECTION=true`, `DD_SERVICE`, `DD_ENV`, `DD_VERSION` in the environment.
+**No APM agent** — ddtrace was removed (2026-10-20): no agent was ever provisioned and it slowed cold starts. Uptime is Better Stack, errors and cron check-ins are Sentry, counters are `src/operational_metrics.py` (`docs/operations/analytics-monitoring.md`).
 
 **Sentry** — Captures exceptions automatically via `sentry_sdk.init` in `main.py` (API) and `src/worker/main.py` (worker), with the content-minimising policy in `src/telemetry.py`. `logger.error`/`logger.exception` calls are reported too, so never swallow an unexpected exception silently: log it or re-raise. Only `area`, `digest` and `request_id` tags survive scrubbing. Controlled by `SENTRY_DSN`.
 
@@ -289,7 +289,7 @@ async def test_create_leave_request(
   parallelises automatically (CPUs minus two, two under high load; override with
   `PYTEST_WORKERS`). If higher worker counts against the shared local Postgres cause
   fixture `TimeoutError`s that are not real failures, lower `PYTEST_WORKERS` (CI uses
-  `-n 2` per shard). `pytest --shard i/n` runs one of CI's file-aligned slices.
+  one worker per CPU, 4 on GitHub's runners, per shard). `pytest --shard i/n` runs one of CI's file-aligned slices.
 
   The passwords above are local-development placeholders; use the local stack's
   actual values when they differ, and never commit real credentials. The main

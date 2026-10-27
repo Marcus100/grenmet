@@ -4,7 +4,7 @@
  */
 
 import type { GroupDetailPropertiesParishEnum } from "./GroupDetailPropertiesParishEnum.js";
-import type { OutletTicketPropertiesStatusEnum } from "./OutletTicketPropertiesStatusEnum.js";
+import type { OrgAttendeePropertiesStatusEnum } from "./OrgAttendeePropertiesStatusEnum.js";
 
 export type TicketSummary = {
   /**
@@ -14,7 +14,7 @@ export type TicketSummary = {
    */
   id: string;
   code: string;
-  status: OutletTicketPropertiesStatusEnum;
+  status: OrgAttendeePropertiesStatusEnum;
   tier_name: string;
   listing_slug: string;
   listing_title: string;

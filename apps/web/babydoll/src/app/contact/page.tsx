@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import { Address, Hours } from "@/components/hours";
 import { PageHead } from "@/components/sections";
-import { BOOKING_URL, INSTAGRAM_DM_URL, MAPS_URL, SOCIALS } from "@/data/site";
+import { INSTAGRAM_DM_URL, MAPS_URL, SOCIALS } from "@/data/site";
+import { type CtaLink, siteBookingLink } from "@/lib/book-link";
+
+/** Links to Instagram and the socials always open in a new tab. */
+const external = (href: string): CtaLink => ({
+  href,
+  target: "_blank",
+  rel: "noopener",
+});
 
 export const metadata: Metadata = {
   title: "Contact us",
@@ -11,21 +19,21 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  const channels = [
+  const channels: { title: string; detail: string; link: CtaLink }[] = [
     {
       title: "Book online",
       detail: "Choose a service and a time that suits you",
-      href: BOOKING_URL,
+      link: siteBookingLink(),
     },
     {
       title: "Message on Instagram",
       detail: "@babydoll.gnd · the quickest way to reach us",
-      href: INSTAGRAM_DM_URL,
+      link: external(INSTAGRAM_DM_URL),
     },
     ...SOCIALS.slice(1).map((social) => ({
       title: social.name,
       detail: social.handle,
-      href: social.href,
+      link: external(social.href),
     })),
   ];
   return (
@@ -40,13 +48,7 @@ export default function ContactPage() {
         <div className="wrap split">
           <div className="channels">
             {channels.map((channel) => (
-              <a
-                className="channel"
-                href={channel.href}
-                key={channel.title}
-                rel="noopener"
-                target="_blank"
-              >
+              <a className="channel" key={channel.title} {...channel.link}>
                 <b>{channel.title}</b>
                 <span>{channel.detail}</span>
                 <i aria-hidden="true">→</i>

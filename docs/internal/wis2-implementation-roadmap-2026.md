@@ -2,7 +2,7 @@
 
 **Status:** Working plan  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-09-10
+**Last updated:** 2026-10-20 (next-project sequencing and observation store)
 
 > Internal living plan. Reconciled on 2026-08-16 from the June 2026 workshop
 > report and implementation evidence recorded in this repository.
@@ -60,6 +60,34 @@ to WIS 2.0.
 The [CMO extraction review](./gms-product-strategy-and-roadmap.md#extracted-20252026-evidence-and-implementation-consequences) reinforces Gate 3 consumption and F18 acceptance. Publication success cannot stand in for forecaster retrieval. Gate 3 may begin as a bounded read-only pilot while publication work continues, subject to owner capacity.
 
 Before choosing the CAP integration in Gate 4, reconcile the regional portal reported in 2025 with the current local issuing path, sender authority and duplicate/cancellation handling. Keep the SURFACE observation publisher separate; approve the integration choice before implementing it. The [feature brief](../products/gms-evidence-library-implementation.md) tracks this as an operational acceptance refinement, not evidence that a regional integration already works here.
+
+## Next project: operational assurance and consumption (October 2026)
+
+The next engineering priority is proving what already exists, not building a
+new application. Sequence the work as follows, each step closing a gate's exit
+evidence:
+
+1. **Assure publication (Gates 1 and 2).** Complete the 24-hour soak, then
+   verify BUFR against the source observations value by value with
+   `scripts/wis2-setup/check_bufr.py`, and prove global notification and
+   discovery.
+2. **Remove the double-publication risk.** [ADR-0032](../adr/0032-canonical-observation-store-and-publish-gate.md)
+   makes SURFACE the owner of the automated hour and adds a per-station-hour
+   gate for manual and hybrid stations. This also supplies the Carriacou
+   day/night rule in Gate 4.
+3. **Prove consumption (Gate 3).** One unattended WIS2Downloader subscription,
+   chosen by forecasters, with freshness monitoring and a recovery procedure.
+4. **Then expand (Gate 4):** Carriacou, further stations and the hydromet
+   network, using
+   [the network inventory](../operations/observation-network-inventory.md).
+
+Membership of WMO is reported as effective from 18 October 2026 but is not yet
+evidenced in this repository; record the dated WMO notice and the Permanent
+Representative and WIS National Focal Point designations in Gate 0 before
+registering a national node or centre identifier (**confirmation required**).
+
+Reusable work from these steps should be kept free of client data so it can be
+shared with the regional COWET repository (Gate 5) with GMS approval.
 
 ## Workshop recommendations reconciled with project evidence
 

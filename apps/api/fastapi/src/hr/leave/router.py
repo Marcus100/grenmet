@@ -5,9 +5,11 @@ from fastapi import APIRouter, Query, Response, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import LeaveRequestDep
+from src.hr.filenames import preview_filename
 from src.hr.submission import submission_list, submission_public
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
+from src.utils.filenames import content_disposition
 
 from . import service
 from .models import LeaveType
@@ -49,7 +51,9 @@ async def preview_leave_request_pdf(
         headers={
             "Cache-Control": "private, no-store",
             "X-Content-Type-Options": "nosniff",
-            "Content-Disposition": 'inline; filename="leave-preview.pdf"',
+            "Content-Disposition": content_disposition(
+                "inline", preview_filename("leave_request")
+            ),
         },
     )
 

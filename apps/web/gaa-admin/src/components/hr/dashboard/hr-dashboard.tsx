@@ -36,13 +36,22 @@ import {
 
 const requestState: Record<
   RequestState,
-  { label: string; variant: "light-warning" | "light-info" | "light-success" }
+  {
+    label: string;
+    variant:
+      | "light-warning"
+      | "light-info"
+      | "light-success"
+      | "light-error"
+      | "solid-warning";
+  }
 > = {
   pending: { label: "Pending", variant: "light-warning" },
   review: { label: "In review", variant: "light-info" },
   approved: { label: "Approved", variant: "light-success" },
   draft: { label: "Draft", variant: "light-info" },
-  rejected: { label: "Rejected", variant: "light-warning" },
+  returned: { label: "Returned", variant: "solid-warning" },
+  rejected: { label: "Rejected", variant: "light-error" },
   cancelled: { label: "Cancelled", variant: "light-info" },
 };
 

@@ -78,7 +78,7 @@ Preview templates live at [mjml.io/try-it-live](https://mjml.io/try-it-live).
 Send a test email via the API:
 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/utils/test-email?email_to=test@weather.gd"
+curl -X POST "http://localhost:8000/api/v1/utils/test-email?email_to=test@example.com"
 ```
 
 View the result in MailCatcher: `http://localhost:1080`

@@ -100,5 +100,5 @@ async def test_job_skips_cleanly_when_storage_is_unconfigured(
     ) as client:
         await process_due_jobs(session=db_async, http_client=client)
     await db_async.refresh(job)
-    assert job.status == CapJobStatus.SUCCEEDED
+    assert job.status == CapJobStatus.SKIPPED
     assert job.result["skipped"] is True

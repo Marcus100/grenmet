@@ -28,7 +28,7 @@ acceptance.
 | Repository surface | Primary classification and owner | Lifecycle | Planning destination |
 | --- | --- | --- | --- |
 | `apps/web/auth` | Barrels platform identity | Active | Product-aware shared sign-in with application-scoped access |
-| `apps/web/admin` | Barrels control plane (superuser-only; status, organisations; no GMS or GAA modules) | Built (C1), not deployed | `admin.barrels.gd` after the GAA portal moves to `gmsadmin.barrels.gd`; never merges with the client portal |
+| `apps/web/admin` | Barrels control plane (superuser-only; status, organisations; no GMS or GAA modules) | Built (C1); deployed at `admin.<domain>` with the 2026-10-21 admin host move (staging first) | `admin.barrels.gd` after the GAA portal moves to `gms.barrels.gd`; never merges with the client portal |
 | `apps/web/cap` | GMS-branded public CAP alert hub (active alerts, map, history, feeds); built and operated by Barrels for GMS | Built, deploy wired (compose + release scope), awaiting DNS for `cap.barrels.gd` | Public alert hub first; sign-in CAP authoring moves here from `apps/web/gaa-admin` later |
 | `apps/web/gmsdash` | GMS Dashboard: GMS client service giving organisations raw ECMWF/NOAA model point meteograms (not an official forecast); access by organisation entitlement approved by GMS | Built, deploy wired (compose + release scope), awaiting DNS for `gmsdash.barrels.gd` and `GMSDASH_SSO_CLIENT_SECRET` | Premium GMS products for external users; more products join later |
 | `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Vercel site at barrels.gd |
@@ -38,6 +38,7 @@ acceptance.
 | `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |
 | `apps/web/docs` | GMS public documentation and preparedness content | Active content application; renamed at transition boundary 8 | `apps/web/docs` on the dedicated GMS documentation host |
 | `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
+| `apps/web/bookings` | Barrels Bookings: appointment booking for Grenada businesses (ADR-0024) | Skeleton | Public booking pages at `bookings.barrels.gd/{business}` and `/studio` on Barrels sign-in; booking widgets come from the shared package when extracted |
 | `apps/web/elections` | Barrels Elections Grenada product (Grenada election coverage and history) | Prototype; 2026 coverage first | Election coverage and results history from static checked data; a FastAPI domain for results night later |
 | `apps/web/signal` | Barrels Signal media product | Active | Editorial reader redesign and discovery preview; dedicated Signal CMS deferred until frontend review |
 | `apps/web/mbia` | GAA/MBIA passenger public service | Active | Keep distinct from GAA corporate and staff applications |
@@ -62,6 +63,7 @@ transition:
 | `packages/auth` | Barrels platform | Active | May serve products and clients; grants no application access by default |
 | `packages/ui` | Barrels platform, brand-neutral primitives | Active; separation complete at boundaries 3-5 | Carries no brand prefix; must not depend on a brand package or select GMS branding by default |
 | `packages/theme` | Barrels platform display infrastructure | Active | Brand-neutral; product packages supply mappings |
+| `packages/bookings-web` | Barrels Bookings public booking flow (Barrels platform) | Active | Brand-neutral and framework-light: hosts pass server actions, links and class names in as props; never imports the API client at runtime or reads env |
 | `packages/gms` | GMS client presentation package | Active; extracted at boundaries 4-5b | Owns the GMS logo, palette and components; may depend on shared UI/theme, never the reverse |
 | `packages/api-client` | Barrels platform generated client | Generated | Regenerate from FastAPI OpenAPI; never edit generated output manually |
 | `packages/email-templates` | Barrels platform messaging | Active | Product/client branding supplied by caller |
@@ -117,10 +119,13 @@ GMS or GAA.
 | `infra/docker` | Barrels platform infrastructure | Active; legacy naming remains during transition | Shared app/API databases and local/staging/production composition |
 | `infra/weather` | GMS weather delivery operated by Barrels | Active development | Separate SURFACE/WIS2 lifecycles, collector schedules, durable storage and recovery; GeoNetCast remains local |
 | `infra/postgres` | Barrels database bootstrap and compatibility assets | Active | Keep roles/extensions aligned with application migrations and independently managed stacks |
+| `infra/github` | Barrels repository governance: committed snapshot of GitHub branch rulesets | Active | Regenerate with `scripts/guardrails/github-rulesets.mjs --snapshot` after a ruleset change; `rulesets-drift.yml` fails when GitHub differs from it |
 | `.github/workflows` | Barrels engineering delivery automation | Active | CI, images, deployment orchestration, backups, and database preparation |
 | `.github/security` | Barrels engineering security policy | Active | Versioned, reviewed vulnerability exceptions with bounded expiry |
 | `.github/actions` | Reusable Barrels CI actions | Active | Centralize supported setup behavior without hiding workflow permissions |
 | `.github/dependabot.yml` and `.github/labeler.yml` | Repository maintenance automation | Active | Dependency and change classification only; no product authority |
+| `.github/CODEOWNERS` | Barrels engineering review routing | Active | Requests owner review on security-sensitive paths; enforcement is a ruleset setting |
+| `.gitleaks.toml` | Barrels engineering secret-scan policy | Active | Default gitleaks rules plus reviewed placeholder allowlists for the secret-scan workflow |
 | `.github/ISSUE_TEMPLATE` | Barrels engineering issue intake | Active | Agent-task template: deliverable, constraints, non-goals and acceptance check |
 | `docs/operations` | Mixed Barrels engineering and GMS operational controls | Active | Each runbook identifies its operational owner and environment |
 | `docs/products` | Product specifications and implementation plans, classified by their named owner | Planned/reference | Keep product scope and acceptance criteria aligned with the portfolio and client programme plans |
@@ -208,7 +213,7 @@ documented data boundaries.
 | GAA corporate site | GAA public-service delivery | Later | GAA content owner, domain, scope, and acceptance |
 | Barrels Shop | Barrels product option | Explore | Separate product discovery and investment approval |
 | Salesbus | Barrels product option/prototype extraction | Explore | Remove from client portal, then validate users and commercial case |
-| Barrels Human Resource | Barrels product (investment approved 2026-10-18) | Next | Stays inside `apps/web/gaa-admin` for now; eventual own app at `hr.barrels.gd`. Organisation-scoped HR built from shared workforce code; launch needs GAA pilot evidence, signed licence, tenant isolation, support and pricing |
+| Barrels Human Resource | Barrels product (investment approved 2026-10-18) | Next | Stays inside `apps/web/gaa-admin` until built; decision 2026-10-21: a separate multi-organisation HR app at `hr.barrels.gd` with the organisation in the path (`/<orgSlug>/...`), port 3016 (ADR-0043). Organisation-scoped HR built from shared workforce code; launch needs GAA pilot evidence, signed licence, tenant isolation, support and pricing |
 | Streaming/media application | Barrels product option | Explore | Audience, rights, economics, operating model, and architecture approval |
 
 Reserved ports, package names, hosts, or images prevent naming collisions; they

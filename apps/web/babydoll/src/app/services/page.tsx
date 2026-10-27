@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { PageHead } from "@/components/sections";
 import { ServiceMenu } from "@/components/service-menu";
-import { BOOKING_URL, CONSULTATION_PRICE, formatPrice } from "@/data/site";
+import { CONSULTATION_PRICE, formatPrice } from "@/data/site";
+import { siteBookingLink } from "@/lib/book-link";
 
 export const metadata: Metadata = {
   title: "Services and prices",
@@ -34,6 +35,7 @@ const LASH_CALENDAR = [
 ];
 
 export default function ServicesPage() {
+  const booking = siteBookingLink();
   return (
     <>
       <PageHead
@@ -45,17 +47,12 @@ export default function ServicesPage() {
       <section className="flush-top block">
         <div className="wrap">
           <div className="menu-card">
-            <ServiceMenu />
+            <ServiceMenu booking={booking} />
             <div className="menu-foot">
               <span>
                 Prices as listed on our booking page. By appointment only.
               </span>
-              <a
-                className="btn btn-solid"
-                href={BOOKING_URL}
-                rel="noopener"
-                target="_blank"
-              >
+              <a className="btn btn-solid" {...booking}>
                 Choose a time
               </a>
             </div>

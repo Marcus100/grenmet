@@ -58,7 +58,7 @@ export function eventsListPendingOrganisersQueryOptions(
 }
 
 /**
- * @description Organisers awaiting verification.
+ * @description Organisers awaiting verification (pending; rejected ones are not listed).
  * @summary List organiser requests
  * {@link /api/v1/events/moderation/organisers}
  */

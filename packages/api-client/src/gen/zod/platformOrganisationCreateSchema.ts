@@ -17,5 +17,8 @@ export const platformOrganisationCreateSchema = z.object({
         .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
       z.null(),
     ])
-    .optional(),
+    .optional()
+    .describe(
+      "Defaults to the name. A platform reserved name is refused (422)."
+    ),
 });

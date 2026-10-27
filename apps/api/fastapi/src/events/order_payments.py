@@ -1,7 +1,7 @@
 """Where Events talks to the shared payments core (N4b, ADR-0027).
 
-Everything here runs on the main database session (``payments.*`` lives there);
-the Events database is a separate session and is never joined (ADR-0003).
+Everything here runs on the request or outbox session (``payments.*`` shares the
+main database); only payments functions touch ``payments.*`` (ADR-0003).
 
 Rules:
 - One intent per order: ``source_type="events.order"``, ``source_id`` the order id,
@@ -14,6 +14,12 @@ Rules:
   Stripe cannot start a checkout, a manual intent is created and the organiser's
   staff record the payment through ``POST /payments/org/intents/{id}/manual-payments``
   (``checkout_url`` is then None).
+- When Stripe IS configured and a checkout cannot start, the claim fails with a
+  retryable 503 (``EventsPaymentUnavailable``) and the hold is released; a paid
+  order never silently drops to the manual rail.
+- The buyer returns to ``{EVENTS_APP_URL}/me/orders/<order id>`` (registered with
+  ``payments.return_urls`` below; never taken from a request) and the Checkout
+  line item is named after the event and tiers (``checkout_title``).
 """
 
 import logging
@@ -22,14 +28,17 @@ import uuid
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.config import auth_settings
 from src.exceptions import AppException
 from src.organisations import service as organisation_service
+from src.payments import return_urls
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
 from src.payments.config import payments_settings
 from src.payments.models import Intent, LedgerEntry, LedgerKind, ProviderKey
 
-from .models import Order
+from .exceptions import EventsPaymentUnavailable
+from .models import Order, OrderItem, TicketTier
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +46,43 @@ SOURCE_TYPE = "events.order"
 PAID_TOPIC = "events.order_paid"
 REFUNDED_TOPIC = "events.order_refunded"
 _TEST_KEY_PREFIX = "sk_test_"
+
+
+_TITLE_MAX = 120
+
+
+def _return_address(source_id: str | None) -> return_urls.ReturnAddress | None:
+    try:
+        order_id = uuid.UUID(source_id or "")
+    except ValueError:
+        return None
+    page = f"{auth_settings.EVENTS_APP_URL.rstrip('/')}/me/orders/{order_id}"
+    return return_urls.ReturnAddress(
+        success_url=f"{page}?payment=success", cancel_url=f"{page}?payment=cancelled"
+    )
+
+
+return_urls.register(SOURCE_TYPE, _return_address)
+
+
+async def checkout_title(
+    session: AsyncSession, *, order: Order, listing_title: str
+) -> str:
+    """What the buyer sees on the hosted checkout: the event and a tier summary,
+    trimmed. Public event data only; nothing about the buyer."""
+    rows = (
+        await session.execute(
+            select(TicketTier.name, OrderItem.quantity)
+            .join(OrderItem, OrderItem.tier_id == TicketTier.id)
+            .where(OrderItem.order_id == order.id)
+            .order_by(TicketTier.sort_order, TicketTier.id)
+        )
+    ).all()
+    tiers = ", ".join(f"{quantity} x {name}" for name, quantity in rows)
+    title = f"{listing_title.strip()} ({tiers})" if tiers else listing_title.strip()
+    if len(title) > _TITLE_MAX:
+        title = title[: _TITLE_MAX - 1].rstrip() + "\u2026"
+    return title or "Event tickets"
 
 
 def intent_key(order_id: uuid.UUID) -> str:
@@ -78,11 +124,13 @@ async def start_payment(
     organisation_id: str,
     order: Order,
     customer_email: str | None,
+    listing_title: str = "",
 ) -> payment_schemas.PaymentCheckoutPublic:
     """Create (or find) the order's intent. Flushes; the caller commits.
 
     Safe to repeat: the intent is keyed by the order, so a replay returns the
-    first one. A Stripe failure falls back to the manual rail."""
+    first one. With Stripe configured a checkout failure raises a retryable 503
+    (the manual rail is only for deployments without Stripe)."""
     if _stripe_available():
         try:
             async with session.begin_nested():
@@ -91,12 +139,16 @@ async def start_payment(
                     organisation_id=organisation_id,
                     actor=None,
                     payload=_payload(order, ProviderKey.STRIPE, customer_email),
+                    checkout_title=await checkout_title(
+                        session, order=order, listing_title=listing_title
+                    ),
                 )
         except AppException:
             logger.warning(
-                "stripe checkout unavailable for an event order; using manual",
+                "stripe checkout could not start for an event order",
                 extra={"order_id": str(order.id)},
             )
+            raise EventsPaymentUnavailable() from None
     return await payments_service.create_intent(
         session,
         organisation_id=organisation_id,
@@ -111,6 +163,7 @@ async def ensure_intent(
     organisation_id: str,
     order: Order,
     customer_email: str | None,
+    listing_title: str = "",
 ) -> tuple[uuid.UUID, str | None]:
     """The order's intent id and checkout URL, creating the intent if there is
     none yet. An existing intent is returned as it is (whatever its rail)."""
@@ -133,6 +186,7 @@ async def ensure_intent(
         organisation_id=organisation_id,
         order=order,
         customer_email=customer_email,
+        listing_title=listing_title,
     )
     return started.intent.id, started.checkout_url
 

@@ -11,6 +11,8 @@ Periods (docs/security.md, Data retention):
   row stays so helpful / not helpful counts per page do not change.
 * ``platform.idempotency_key`` rows past ``expires_at`` (24 hours): deleted.
 * ``platform.outbox`` rows ``done`` or ``dead`` for 30 days: deleted.
+* ``notification_occurrence`` rows older than 30 days: the grouped-notification
+  lookback is 24 to 48 hours, so older rows can never suppress anything.
 * ``bookings.booking.manage_token_hash`` for bookings that ended over 90 days
   ago: cleared, so the old manage link stops working.
 
@@ -29,6 +31,7 @@ from src.bookings.models import Booking
 from src.contact.models import ContactDataRequest, ContactMessage
 from src.feedback.models import PageFeedback
 from src.idempotency import IdempotencyKey
+from src.notifications.models import NotificationOccurrence
 from src.orm import Base
 from src.outbox import Outbox, OutboxStatus
 from src.subscriptions.models import ListSubscription, SubscriptionStatus
@@ -41,6 +44,7 @@ FEEDBACK_COMMENT_RETENTION_MONTHS = 24
 PENDING_SUBSCRIPTION_DAYS = 30
 OUTBOX_RETENTION_DAYS = 30
 BOOKING_TOKEN_RETENTION_DAYS = 90
+NOTIFICATION_OCCURRENCE_RETENTION_DAYS = 30
 BATCH_SIZE = 500
 
 
@@ -53,6 +57,7 @@ class PurgeResult:
     idempotency_keys: int = 0
     outbox_rows: int = 0
     booking_tokens: int = 0
+    notification_occurrences: int = 0
 
     @property
     def total(self) -> int:
@@ -64,6 +69,7 @@ class PurgeResult:
             + self.idempotency_keys
             + self.outbox_rows
             + self.booking_tokens
+            + self.notification_occurrences
         )
 
 
@@ -82,7 +88,7 @@ def months_before(moment: datetime, months: int) -> datetime:
 async def _delete_batched(
     session: AsyncSession, model: type[Base], *conditions: ColumnElement[bool]
 ) -> int:
-    # Every retained model has a single-column primary key ("id").
+    # Every retained model has a single-column primary key.
     primary_key = inspect(model).primary_key[0]
     total = 0
     while True:
@@ -141,6 +147,7 @@ async def purge_expired(
     pending_cutoff = now - timedelta(days=PENDING_SUBSCRIPTION_DAYS)
     outbox_cutoff = now - timedelta(days=OUTBOX_RETENTION_DAYS)
     token_cutoff = now - timedelta(days=BOOKING_TOKEN_RETENTION_DAYS)
+    occurrence_cutoff = now - timedelta(days=NOTIFICATION_OCCURRENCE_RETENTION_DAYS)
 
     result = PurgeResult(
         contact_messages=await _delete_batched(
@@ -166,6 +173,11 @@ async def purge_expired(
             Outbox.updated_at < outbox_cutoff,
         ),
         booking_tokens=await _clear_booking_tokens_batched(session, token_cutoff),
+        notification_occurrences=await _delete_batched(
+            session,
+            NotificationOccurrence,
+            NotificationOccurrence.created_at < occurrence_cutoff,
+        ),
     )
     logger.info(
         "Retention purge finished",
@@ -177,6 +189,7 @@ async def purge_expired(
             "idempotency_keys": result.idempotency_keys,
             "outbox_rows": result.outbox_rows,
             "booking_tokens": result.booking_tokens,
+            "notification_occurrences": result.notification_occurrences,
         },
     )
     return result

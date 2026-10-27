@@ -1,0 +1,21 @@
+{
+  "endpoints": {
+    "staging": [
+      "https://api.staging.barrels.gd/api/v1/utils/health-check/",
+      "https://api.staging.barrels.gd/api/v1/utils/ready/"
+    ],
+    "production": [
+      "https://api.barrels.gd/api/v1/utils/health-check/",
+      "https://api.barrels.gd/api/v1/utils/ready/"
+    ]
+  },
+  "receipts": {
+    "sentry": "/absolute/private/path/sentry.json",
+    "eregister-sends": "/absolute/private/path/eregister-sends.json",
+    "wis2-sends": "/absolute/private/path/wis2-sends.json",
+    "worker-jobs": "/absolute/private/path/worker-jobs.json",
+    "notification-sweeps": "/absolute/private/path/notification-sweeps.json",
+    "secrets": "/absolute/private/path/secrets.json",
+    "backups": "/absolute/private/path/backups.json"
+  }
+}

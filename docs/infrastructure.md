@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-18
+**Last updated:** 2026-10-20
 
 This guide documents the operational infrastructure implemented in this repo today. For first-time server setup see [deployment.md](deployment.md). For local development failures see [troubleshooting.md](troubleshooting.md).
 
@@ -17,11 +17,11 @@ Staging and production run as Docker Compose stacks on dedicated DigitalOcean dr
 
 Each stack includes:
 
-- `db`: PostgreSQL 17. The same server hosts separate databases for FastAPI, `wxwatch`, `wxproducts`, `janitorial`, and `transport`.
+- `db`: PostgreSQL 17. The same server hosts separate databases for FastAPI, `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister`, and `events`.
 - `api`: FastAPI backend on internal port `8000`.
 - `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
-- `redis` + `worker`: Redis and the arq background worker (CAP outbox).
-- `web-auth`, `web-admin`, `web-docs`, `web-gms`, `web-signal`, `web-mbia`, `web-events`, `web-cap`, and `web-gmsdash`: nine configured web services. The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-admin`.
+- `redis` + `worker`: Redis and the arq background worker (CAP publish jobs, notification and email outboxes, retention purge; see `src/worker/AGENTS.md`).
+- `web-cms`, `web-auth`, `web-admin` (Barrels staff console), `web-gmsadmin` (GMS/GAA portal), `web-docs`, `web-gms`, `web-signal`, `web-mbia`, `web-events`, `web-cap`, `web-gmsdash`, and `web-bookings`: twelve configured web services (recounted from `docker-compose.deploy.yml`). The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-gmsadmin`.
 - `proxy`: Traefik v3, terminating HTTPS and routing by host.
 - `adminer`: present in staging only in the current compose files.
 
@@ -79,7 +79,7 @@ Useful commands on a server (confirm names with `docker ps -a`):
 
 ```bash
 docker ps -a --filter label=com.docker.compose.project=grenmet
-docker logs grenmet-api-1 --tail 100
+docker compose -p grenmet logs api --tail 100
 docker logs grenmet-prestart-1 --tail 100
 docker logs grenmet-proxy-1 --tail 100
 docker logs grenmet-db-1 --tail 100
@@ -91,11 +91,11 @@ arguments shown in the [manual procedure](deployment.md#manual-deploy-fallback--
 
 ## Backups and Restore
 
-`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually. Its credentials come from the `production-backup` GitHub environment. The existing Spaces bucket and `production/YYYY/MM/DD/` layout are retained. Set environment variable `CMS_BACKUP_ENABLED=true` there when production CMS is provisioned to include `gms_cms`; until then the six other databases, including eRegister, are required. The staging monitoring pilot adds opt-in daily backups and weekly restore drills; see [activation gates](operations/analytics-monitoring.md#cicd-ownership-and-activation).
+`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually. Its credentials come from the `production-backup` GitHub environment. The existing Spaces bucket and `production/YYYY/MM/DD/` layout are retained. Set environment variable `CMS_BACKUP_ENABLED=true` there when production CMS is provisioned to include `gms_cms`; until then the seven other databases (including eRegister and Events) are required. The staging monitoring pilot adds opt-in daily backups and weekly restore drills; see [activation gates](operations/analytics-monitoring.md#cicd-ownership-and-activation).
 
 Implemented backup behavior:
 
-- Dumps `app_prod`, `wxwatch`, `wxproducts`, `janitorial`, `transport`, and `eregister` with `pg_dump --format=custom --compress=9`.
+- Dumps `app_prod`, `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister`, and `events` with `pg_dump --format=custom --compress=9`.
 - Restores each dump into a temporary database to verify integrity.
 - Uploads each dump to DigitalOcean Spaces under `production/YYYY/MM/DD/`.
 - Keeps local dump files for `BACKUP_RETENTION_DAYS=30`.
@@ -127,6 +127,13 @@ Review these access points at least quarterly and after staff changes:
 - FastAPI superusers, roles, permissions, and role assignments.
 - Resend, Sentry, PostHog, GHCR, and DigitalOcean access.
 
+Owner hardening runbooks (step-by-step, with verify and undo for each step):
+
+- [Host hardening](operations/host-hardening.md): updates, SSH, fail2ban, DigitalOcean Cloud Firewall, runner least privilege.
+- [Domain security](operations/domain-security.md): registrar lock, DNSSEC, wildcards, CAA, Microsoft 365 mail, DMARC.
+- [Account 2FA checklist](operations/account-2fa-checklist.md): provider 2FA and read-only audit tokens.
+- [Sentry hardening](operations/sentry-hardening.md): organization privacy and scrubbing settings.
+
 ## Current Operational Gaps
 
 These are not implemented as repo-level controls yet:
@@ -134,6 +141,5 @@ These are not implemented as repo-level controls yet:
 - Centralized log storage and retention.
 - External uptime monitoring and alert rules.
 - OpenTelemetry for the FastAPI app. The vendored CAP Composer has OTEL support, but the main FastAPI app currently uses Sentry plus request logs.
-- Redis-backed distributed rate limiting.
-- Background worker execution for CAP publish job events.
-- Timed, end-to-end recovery drills proving application recovery and RTO. The backup workflow already restores each database dump into a temporary database and checks for tables. The [restore drill](operations/restore-drill.md) (ADR-0021) now restores every database into a throwaway container and checks migrations and row floors; it has not yet been run and does not yet start the application.
+- Verified Redis-backed rate limiting in each environment. `src/rate_limit.py` uses `REDIS_URL` (set in `docker-compose.deploy.yml`); only a deployed check is missing.
+- Timed, end-to-end recovery drills proving application recovery and RTO. The backup workflow already restores each database dump into a temporary database and checks for tables. The [restore drill](operations/restore-drill.md) (ADR-0021) now restores every database into a throwaway container and checks migrations and row floors; it has not yet been run. Starting the application is an opt-in `api_check` that is built but also unrun.

@@ -331,7 +331,15 @@ export type RequestConfig<
 > = {
   baseURL?: string;
   url?: string;
-  method?: "GET" | "PUT" | "PATCH" | "POST" | "DELETE" | "OPTIONS" | "HEAD";
+  method?:
+    | "GET"
+    | "PUT"
+    | "PATCH"
+    | "POST"
+    | "DELETE"
+    | "OPTIONS"
+    | "HEAD"
+    | "QUERY";
   path?: unknown;
   query?: unknown;
   params?: unknown;
@@ -1134,7 +1142,7 @@ async function parseResponse(
 /**
  * The default transport that sends the resolved request through `globalThis.fetch` and returns the parsed body with the native request and response.
  */
-const defaultTransport: Transport = async (
+export const defaultTransport: Transport = async (
   request: ResolvedRequest
 ): Promise<TransportResult> => {
   const init: RequestInit = {

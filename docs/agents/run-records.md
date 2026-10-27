@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-13
+**Last updated:** 2026-10-20
 
 Every agent run, from Claude Code or Codex, leaves one structured comment so the
 factory can be measured instead of guessed at. `scripts/agents/run-record.mjs`
@@ -12,7 +12,7 @@ builds and validates the comment; `scripts/agents/run-report.mjs` reads them.
 
 | Kind | Posted by | When | Key fields |
 | --- | --- | --- | --- |
-| `run` | the agent | at the end of every task | `agent`, `model`, `task`, `outcome`, `verify`, `retries`, `wall_minutes`, `tier`, `friction`; optional `pr`, `benchmark` |
+| `run` | the agent | at the end of every task | `agent`, `model`, `task`, `outcome`, `verify`, `retries`, `wall_minutes`, `tier`, `friction`; optional `pr`, `benchmark`, `session`, `input_tokens`, `output_tokens`, `total_tokens` |
 | `review` | you | when you merge or close an agent PR | `pr`, `accepted`, `review_minutes` |
 | `usage` | you | once a week | `agent`, `week` (like `2026-W42`), `percent` of the plan allowance used |
 
@@ -30,6 +30,12 @@ node scripts/agents/run-record.mjs --kind run --agent claude --model claude-sonn
   --task "#366" --outcome success --verify pass --retries 0 --wall-minutes 12 \
   --tier standard --pr 371 --post 366
 ```
+
+Add `--from-session latest` (the newest local transcript for this directory) or
+`--from-session <session id>` to fill `agent`, `model`, `wall_minutes`, `session`,
+`input_tokens`, `output_tokens` and `total_tokens` from the transcript
+(`scripts/agents/sessions.mjs`); flags you pass still win. Cloud sandboxes have
+no local transcript, so routines there pass the fields by hand.
 
 Without `--post <number>` the comment body is printed instead, so it can be
 reviewed or piped. A review and a weekly usage record look like this:
@@ -56,4 +62,6 @@ split by agent, model and risk tier. A PR counts as accepted when your review
 record says so, otherwise when it merged; open PRs are left out of the rate.
 
 Dollar cost is not measured because runs use plan allowances, so compare agents
-on accepted-PR rate, first-pass rate, retries, review minutes and plan usage.
+on accepted-PR rate, first-pass rate, retries, review minutes, plan usage and
+token counts. Attended work rarely has a run record; `pnpm agents:flow` measures
+it from git and the local transcripts instead (see [factory.md](factory.md)).

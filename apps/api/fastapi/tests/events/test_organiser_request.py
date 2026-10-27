@@ -1,5 +1,6 @@
 """Self-service organiser requests and moderator verification (real gates)."""
 
+import httpx
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -81,28 +82,38 @@ async def test_only_moderators_review_organisers(
 
 
 @pytest.mark.asyncio
-async def test_moderator_verifies_a_pending_organiser(
-    events_db: SessionFactory, db_async: AsyncSession
+async def test_superuser_verifies_a_pending_organiser(
+    events_db: SessionFactory,
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    mfa_admin,
 ):
     member = await user_with_role(db_async, None)
     async with client_with_real_roles(member) as client:
         created = (await client.post(REQUEST, json=BODY)).json()
     moderator = await user_with_role(db_async, "events-moderator")
+    _, headers = await mfa_admin()
     async with client_with_real_roles(moderator) as client:
         pending = (await client.get(f"{BASE}/moderation/organisers")).json()
         assert [row["slug"] for row in pending] == ["island-beats"]
-        done = await client.patch(
-            f"{BASE}/moderation/organisers/{created['id']}",
-            json={"verified": True},
-        )
-        assert done.status_code == 200
-        assert done.json()["verified"] is True
+        assert (
+            await client.patch(
+                f"{BASE}/moderation/organisers/{created['id']}",
+                json={"verified": True},
+            )
+        ).status_code in (401, 403)  # moderators read; they do not decide
+    url = f"{BASE}/moderation/organisers/{created['id']}"
+    done = await async_client.patch(url, json={"verified": True}, headers=headers)
+    assert done.status_code == 200
+    assert done.json()["verified"] is True
+    async with client_with_real_roles(moderator) as client:
         assert (await client.get(f"{BASE}/moderation/organisers")).json() == []
-        missing = await client.patch(
-            f"{BASE}/moderation/organisers/00000000-0000-0000-0000-000000000000",
-            json={"verified": True},
-        )
-        assert missing.status_code == 404
+    missing = await async_client.patch(
+        f"{BASE}/moderation/organisers/00000000-0000-0000-0000-000000000000",
+        json={"verified": True},
+        headers=headers,
+    )
+    assert missing.status_code == 404
     async with events_db() as db:
         row = await db.scalar(select(Organiser))
         assert row is not None

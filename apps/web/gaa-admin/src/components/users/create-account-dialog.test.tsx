@@ -78,3 +78,37 @@ it("creates a work identity without an administrator choosing a password, then o
     email: "new@example.com",
   });
 });
+
+it("keeps the typed values when the account is refused", async () => {
+  server.use(
+    http.post("http://localhost/api/v1/auth/onboarding/accounts", () =>
+      HttpResponse.json({ detail: "Email already in use" }, { status: 409 })
+    )
+  );
+  vi.spyOn(console, "error").mockImplementation(() => undefined);
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <CreateAccountDialog />
+    </QueryClientProvider>
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "New account without email" })
+  );
+  for (const [label, value] of [
+    ["First name", "New"],
+    ["Last name", "Staff"],
+    ["Username", "newstaff"],
+    ["Work email address", "new@example.com"],
+  ] as const)
+    fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Unable to create the account"
+  );
+  expect(screen.getByLabelText("First name")).toHaveValue("New");
+  expect(screen.getByLabelText("Last name")).toHaveValue("Staff");
+  expect(screen.getByLabelText("Username")).toHaveValue("newstaff");
+  expect(screen.getByLabelText("Work email address")).toHaveValue(
+    "new@example.com"
+  );
+});

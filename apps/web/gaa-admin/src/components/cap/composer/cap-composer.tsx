@@ -1,10 +1,11 @@
 import {
   Tabs,
   TabsContent,
-  TabsList,
   TabsTrigger,
 } from "@barrelsgd/ui/components/ui/tabs";
 import type { ReactNode } from "react";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageTabsList } from "@/components/layout/page-tabs";
 
 const TABS = [
   { value: "alerts", label: "Alerts" },
@@ -32,19 +33,13 @@ export function CapComposer({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight">CAP Composer</h1>
-        <p className="text-muted-foreground text-sm">
-          Common Alerting Protocol — alerts, map, public feeds and the editor in
-          one place.
-        </p>
-      </div>
+      <PageHeader
+        description="Common Alerting Protocol — alerts, map, public feeds and the editor in one place."
+        title="CAP Composer"
+      />
 
       <Tabs className="flex flex-col gap-4" defaultValue="alerts">
-        <TabsList
-          className="h-auto w-full justify-start gap-6 border-b"
-          variant="line"
-        >
+        <PageTabsList className="gap-6">
           {TABS.map((tab) => (
             <TabsTrigger
               className="pb-2.5 text-base"
@@ -54,7 +49,7 @@ export function CapComposer({
               {tab.label}
             </TabsTrigger>
           ))}
-        </TabsList>
+        </PageTabsList>
         {TABS.map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {panels[tab.value]}

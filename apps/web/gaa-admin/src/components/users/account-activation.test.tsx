@@ -11,12 +11,15 @@ import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 
+const REASON_LABEL = /^Reason/;
+const NOT_VERIFY_EMAIL = /does not verify the email/;
 const READY_TO_SIGN_IN = /Ready to sign in/;
 
 const actor = vi.hoisted(() => ({ is_superuser: true }));
 vi.mock("@barrelsgd/auth", () => ({ useSessionUser: () => actor }));
 
 import { AccountActivation } from "./account-activation";
+import { SecurityUrlProvider } from "./security-url";
 
 const user: UserPublic = {
   id: "test-user",
@@ -87,6 +90,13 @@ afterEach(() => {
 afterAll(() => server.close());
 function mount() {
   return render(
+    <SecurityUrlProvider url="https://auth.example/security">
+      <Tree />
+    </SecurityUrlProvider>
+  );
+}
+function Tree() {
+  return (
     <QueryClientProvider
       client={
         new QueryClient({
@@ -166,4 +176,184 @@ it("explains MFA setup separately from verification at sign-in", async () => {
     )
   ).toBeInTheDocument();
   expect(screen.queryByText(READY_TO_SIGN_IN)).not.toBeInTheDocument();
+});
+
+const REASON = "Verified in person at the front desk";
+const ACTIVATE_URL =
+  "http://localhost/api/v1/auth/onboarding/test-user/admin-activate";
+
+async function fillReason() {
+  fireEvent.change(await screen.findByLabelText(REASON_LABEL), {
+    target: { value: REASON },
+  });
+}
+
+async function openActivate() {
+  mount();
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Activate account" })
+  );
+  await fillReason();
+}
+
+it("activates an account with the exact email shown and a reason", async () => {
+  let body: unknown;
+  server.use(
+    http.post(ACTIVATE_URL, async ({ request }) => {
+      body = await request.json();
+      return HttpResponse.json({
+        user_id: user.id,
+        email_verified: false,
+        password_setup_pending: false,
+        activation_pending: false,
+        can_issue_activation: false,
+        admin_activated: true,
+        apps: [],
+      });
+    })
+  );
+  mount();
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Activate account" })
+  );
+  expect(screen.getByText(NOT_VERIFY_EMAIL)).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Confirm activation" })
+  ).toBeDisabled();
+  await fillReason();
+  fireEvent.click(screen.getByRole("button", { name: "Confirm activation" }));
+  expect(await screen.findByRole("status")).toHaveTextContent(
+    "Account is activated"
+  );
+  expect(body).toEqual({ reason: REASON, expected_email: user.email });
+});
+
+it("tells the superuser to enrol two-step verification on a 403", async () => {
+  server.use(
+    http.post(ACTIVATE_URL, () =>
+      HttpResponse.json(
+        { detail: "superuser_mfa_required: set up two-step verification" },
+        { status: 403 }
+      )
+    )
+  );
+  await openActivate();
+  fireEvent.click(screen.getByRole("button", { name: "Confirm activation" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Set up two-step verification"
+  );
+  expect(
+    screen.getByRole("link", { name: "Open Security settings" })
+  ).toHaveAttribute("href", "https://auth.example/security");
+});
+
+it("shows the API reason for a 409 and a wait message for 429", async () => {
+  server.use(
+    http.post(ACTIVATE_URL, () =>
+      HttpResponse.json(
+        { detail: "The account's email address is not the one you confirmed" },
+        { status: 409 }
+      )
+    )
+  );
+  await openActivate();
+  fireEvent.click(screen.getByRole("button", { name: "Confirm activation" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "not the one you confirmed"
+  );
+  server.use(
+    http.post(ACTIVATE_URL, () =>
+      HttpResponse.json({ detail: "slow down" }, { status: 429 })
+    )
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Confirm activation" }));
+  await waitFor(() =>
+    expect(screen.getByRole("alert")).toHaveTextContent("Too many attempts")
+  );
+});
+
+it("warns when the verification email could not be delivered", async () => {
+  server.use(
+    http.post(
+      "http://localhost/api/v1/auth/onboarding/test-user/resend-verification",
+      () => HttpResponse.json({ delivered: false, message: "failed" })
+    )
+  );
+  mount();
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Resend verification email" })
+  );
+  await fillReason();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Send verification email" })
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "The mail could not be sent"
+  );
+});
+
+it("describes an already-activated account neutrally from the returned status", async () => {
+  const activated = {
+    user_id: user.id,
+    email_verified: false,
+    password_setup_pending: false,
+    activation_pending: false,
+    can_issue_activation: false,
+    admin_activated: true,
+    apps: [],
+  };
+  server.use(
+    http.get("http://localhost/api/v1/auth/onboarding/test-user", () =>
+      HttpResponse.json(activated)
+    ),
+    http.post(ACTIVATE_URL, () => HttpResponse.json(activated))
+  );
+  await openActivate();
+  fireEvent.click(screen.getByRole("button", { name: "Confirm activation" }));
+  expect(await screen.findByRole("status")).toHaveTextContent(
+    "If it already was, nothing changed"
+  );
+});
+
+it("focuses the reason, explains the minimum and returns focus on cancel", async () => {
+  mount();
+  const trigger = await screen.findByRole("button", {
+    name: "Activate account",
+  });
+  fireEvent.click(trigger);
+  const reason = await screen.findByLabelText(REASON_LABEL);
+  expect(reason).toHaveFocus();
+  expect(reason).toHaveAccessibleDescription(
+    "The confirm button stays disabled until the reason has at least 10 characters (0 so far)."
+  );
+  fireEvent.change(reason, { target: { value: "short" } });
+  expect(reason).toHaveAttribute("aria-invalid", "true");
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Activate account" })
+    ).toHaveFocus()
+  );
+});
+
+it("does not offer activation for a superuser account", async () => {
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <AccountActivation open user={{ ...user, is_superuser: true }} />
+    </QueryClientProvider>
+  );
+  expect(
+    await screen.findByText("Superuser accounts cannot be activated here.")
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Activate account" })
+  ).not.toBeInTheDocument();
+});
+
+it("does not offer superuser account actions to ordinary staff", () => {
+  actor.is_superuser = false;
+  mount();
+  expect(
+    screen.queryByRole("button", { name: "Activate account" })
+  ).not.toBeInTheDocument();
 });

@@ -149,7 +149,9 @@ def compose_legacy_text(values: dict[str, str]) -> dict[str, str]:
                     continue
                 height = optional_number(values, f"tide{n}Height")
                 entries.append(
-                    time if height is None else f"{time} ({units._num(height)} m)"
+                    time
+                    if height is None
+                    else f"{time} ({units._num(units.feet(height))} ft)"
                 )
             composed[key] = ", ".join(entries)
     return composed
@@ -254,6 +256,9 @@ def parameter_errors(values: dict[str, str]) -> list[str]:
     return errors
 
 
+_ABOVE_GREEN_NOTICES = ("Watch", "Warning")
+
+
 def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
     values, kind = values_as_dict(body.values), body.kind
     rules = FIELDS[kind]
@@ -272,7 +277,13 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
         if publish and rule.requiredOnPublish and not value:
             errors.append(f"{rule.section}: {rule.label} is required")
         if value and rule.options and value not in rule.options:
-            errors.append(f"{rule.label}: select a listed option")
+            errors.append(
+                f"{rule.label}: GMS alerts are green only; raise to a warning "
+                "(CAP) or change to green"
+                if rule.key == "level"
+                or (rule.key == "notice" and value in _ABOVE_GREEN_NOTICES)
+                else f"{rule.label}: select a listed option"
+            )
         if (
             value
             and rule.type == "datetime-local"

@@ -226,6 +226,40 @@ pnpm install
 
 > Warning: `pnpm clean` is destructive — it removes all untracked files, not just `node_modules`.
 
+### `pnpm install` rewrites `pnpm-lock.yaml` on WSL (adds `@pnpm/exe`)
+
+After `pnpm install`, `pnpm verify:changed` or a push, `git status` shows a
+modified `pnpm-lock.yaml` with about 19 added lines for `@pnpm/exe`, and the
+Stop hook asks to commit it. `pnpm install --frozen-lockfile` still passes, so
+the committed lockfile is valid.
+
+**Cause:** inside WSL, `pnpm` can resolve to the Windows install
+(`/mnt/c/Users/<you>/AppData/Local/pnpm/pnpm`). The Windows distribution is the
+standalone `@pnpm/exe` build, which records itself in
+`packageManagerDependencies`. Setting `manage-package-manager-versions=false`
+does not stop it.
+
+```bash
+command -v pnpm   # a path under /mnt/c is the cause
+```
+
+**Fix:** use a native pnpm from the `packageManager` field. Run
+`corepack enable pnpm` in WSL and make sure that shim comes before any
+`/mnt/c/...` entry on `PATH`, or set `appendWindowsPath = false` under
+`[interop]` in `/etc/wsl.conf` and restart WSL (`wsl --shutdown`). Check both
+parts, because `pnpm install --frozen-lockfile` exits 0 with either binary:
+
+```bash
+command -v pnpm                                                    # must not be under /mnt/c
+pnpm install --frozen-lockfile && git diff --stat -- pnpm-lock.yaml   # must print nothing
+```
+
+Until it is fixed, never commit that rewrite. Read `git diff pnpm-lock.yaml`
+first: if the only change is the `@pnpm/exe` importer entry and its package and
+snapshot blocks, `git checkout pnpm-lock.yaml` removes it. If you changed
+dependencies on purpose, or another agent's lockfile change is in the tree,
+delete just the `@pnpm/exe` blocks and keep the rest. Tracked in issue #432.
+
 ---
 
 If your issue isn't covered here, check the [Technical Overview](./technical-overview.md) for how the system fits together, or inspect the relevant app's `AGENTS.md` for app-specific context.

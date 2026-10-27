@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
 dependencies = [
-    "boto3>=1.35.0",
+    "boto3>=1.43.117",
     "cartopy>=0.25.0",
     "cdsapi>=0.7.7",
     "cfgrib>=0.9.15.1",
@@ -15,7 +15,7 @@ dependencies = [
     "eccodes>=2.49.0",
     # gdal + pygrib: no pre-built wheels for Windows on PyPI; both require C system libraries.
     # Install via conda-forge: conda install -c conda-forge gdal pygrib
-    "ecmwf-opendata>=0.3.26",
+    "ecmwf-opendata>=0.3.35",
     "fsspec>=2026.6.0",
     "geopandas>=1.1.4",
     "herbie-data>=2026.3.0",
@@ -27,9 +27,9 @@ dependencies = [
     "matplotlib>=3.10.8",
     "meteostat>=2.1.4",
     "metpy>=1.7.1",
-    "netcdf4>=1.7.0",
+    "netcdf4>=1.7.5.1",
     "notebook>=7.5.3",
-    "pandas>=3.0.1",
+    "pandas>=3.1.0",
     "pdbufr>=0.15.1",
     "plotly>=6.7.0",
     # "pygrib>=2.1.5",  # see gdal note above

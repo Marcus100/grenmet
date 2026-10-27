@@ -5,10 +5,10 @@ description = ""
 requires-python = ">=3.14,<3.15"
 dependencies = [
     # Upgrade the HTTP layer together; frozen lockfile records the tested pair.
-    "fastapi[standard]>=0.143.0,<0.144.0",
-    "starlette>=1.8.0,<1.9.0",
+    "fastapi[standard]>=0.161.1,<0.162.0",
+    "starlette>=1.9.0,<1.10.0",
     "pydantic>=2.14.1,<3.0.0",
-    "pydantic-settings>=2.4,<3.0.0",
+    "pydantic-settings>=2.16.1,<3.0.0",
     "resend>=2.0.0,<3.0.0",
     "jinja2>=3.1.4,<4.0.0",
     "alembic>=1.13.0,<2.0.0",
@@ -16,18 +16,16 @@ dependencies = [
     "psycopg[binary]>=3.3.6,<4.0.0",
     "asyncpg>=0.29.0,<1.0.0",
     "bcrypt>=4.2.0,<5.0.0",
-    "sentry-sdk[fastapi]>=2.72.0,<3.0.0",
+    "sentry-sdk[fastapi]>=2.73.0,<3.0.0",
     "pyjwt>=2.9,<3.0.0",
     "scalar-fastapi>=1.4.4",
     "slowapi>=0.1.9",
-    "ddtrace>=2.0.0",
     "python-json-logger>=2.0.0",
     "boto3>=1.43.36",
     "arq>=0.28.0",
     "redis>=5.3.1",
     "msgpack>=1.2.1",
     "setuptools>=78.1.1",
-    "fpdf2>=2.8.7",
     "pyotp>=2.10.0",
     "shapely>=2.1.2",
     "feedparser>=6.0.12",
@@ -50,12 +48,15 @@ dev = [
     "pytest-cov>=6.0.0",
     "pytest-xdist>=3.6.0",
     "mypy>=1.8.0",
-    "ruff>=0.6.0",
+    "ruff>=0.17.2",
     "pre-commit>=3.6.2",
     "coverage>=7.4.3",
     "fakeredis>=2.37.0",
     "types-defusedxml>=0.7.0.20260504",
     "schemathesis>=4",
+    # Independent decoders used only to cross-check eregister.encode (SYNOP TAC, BUFR CSV).
+    "pymetdecoder>=0.2.2",
+    "csv2bufr>=0.8.8",
 ]
 
 [build-system]
@@ -74,6 +75,7 @@ exclude = ["venv", ".venv", "alembic"]
 # Third-party libraries that ship no type information (or, for gms_ingest, no
 # py.typed marker). Importing them is fine; state it once instead of per import.
 module = [
+    "asyncpg.*",
     "boto3",
     "cdsapi.*",
     "eccodes.*",
@@ -84,6 +86,8 @@ module = [
     "feedparser",
     "gms_ingest.*",
     "lxml.*",
+    "pymetdecoder.*",
+    "csv2bufr.*",
     "py_vapid.*",
     "pywebpush.*",
     "shapely.*",
@@ -166,6 +170,9 @@ filterwarnings = [
 ]
 
 [tool.coverage.report]
+# netcdf4 >= 1.7.5 ships Cython line-trace data for _netCDF4.pyx, which has no
+# source on disk, so `coverage report` fails with "No source for code".
+omit = ["*/netCDF4/*"]
 show_missing = true
 sort = "-Cover"
 

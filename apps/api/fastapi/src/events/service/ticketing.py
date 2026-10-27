@@ -7,9 +7,10 @@ per-account limit against those counts, so sold never exceeds allocation.
 Cancelling a ticket marks it ``cancelled``, which releases the seat.
 
 A paid tier creates the order ``pending_payment`` and holds its stock. The intent
-is created on the shared payments core (main database, ``order_payments``); the
+is created on the shared payments core (``order_payments``); the
 ``events.order_paid`` handler issues the tickets, the sweeper releases an unpaid
-hold. Nothing here spans both databases in one transaction.
+hold. The order commits first (it holds the stock), then the intent is created and
+linked; a retry finds the intent by its key.
 """
 
 import uuid
@@ -26,7 +27,7 @@ from src.auth.models import User
 from src.exceptions import AppException
 from src.utils.datetime import utc_now
 
-from .. import order_payments, outbox, schemas, tickets
+from .. import order_payments, outbox, rewards_hook, schemas, tickets
 from ..config import events_settings
 from ..exceptions import EventsConflict, EventsNotFound
 from ..models import (
@@ -82,14 +83,13 @@ async def claim_tickets(
     slug: str,
     body: schemas.OrderCreate,
     *,
-    main: AsyncSession | None = None,
     idempotency_key: str | None = None,
 ) -> schemas.OrderPublic:
     """Claim free tickets, or order paid ones.
 
     A free order issues its tickets at once. A paid order is created
     ``pending_payment`` and holds its stock; the payments core collects the money
-    through ``main`` and the ``events.order_paid`` handler issues the tickets.
+    and the ``events.order_paid`` handler issues the tickets.
     ``idempotency_key`` makes a retry return the same order."""
     listing = await _claimable_listing(db, slug)
     wanted = Counter[uuid.UUID]()
@@ -97,7 +97,7 @@ async def claim_tickets(
         wanted[item.tier_id] += item.quantity
     try:
         order, tiers, issued = await _create_order(
-            db, user, listing, wanted, main, idempotency_key
+            db, user, listing, wanted, idempotency_key
         )
     except DBAPIError as error:
         if not is_deadlock(error):
@@ -108,7 +108,7 @@ async def claim_tickets(
         ) from None
     checkout_url = None
     if order.status == holds.PENDING:
-        checkout_url = await _payment_link(db, main, user, listing, order)
+        checkout_url = await _payment_link(db, user, listing, order)
     return _order_public(listing, order, tiers, issued, checkout_url)
 
 
@@ -117,7 +117,6 @@ async def _create_order(
     user: User,
     listing: Listing,
     wanted: Counter[uuid.UUID],
-    main: AsyncSession | None,
     idempotency_key: str | None,
 ) -> tuple[Order, list[TicketTier], list[Ticket]]:
     tiers = list(
@@ -171,7 +170,7 @@ async def _create_order(
         total += quantity * tier.price_minor
     paid = total > 0
     if paid:
-        await _require_collectable(db, main, listing, tiers)
+        await _require_collectable(db, listing, tiers)
     order = Order(
         listing_id=listing.id,
         user_id=user.id,
@@ -232,7 +231,6 @@ async def _create_order(
 
 async def _require_collectable(
     db: AsyncSession,
-    main: AsyncSession | None,
     listing: Listing,
     tiers: list[TicketTier],
 ) -> None:
@@ -241,11 +239,9 @@ async def _require_collectable(
     unavailable = EventsConflict(
         f"{paid.name} is a paid ticket; online payment isn't available for this event"
     )
-    if main is None:
-        raise unavailable
     organiser = await db.get(Organiser, listing.organiser_id)
     if organiser is None or not await order_payments.can_collect(
-        main, organiser.organisation_id
+        db, organiser.organisation_id
     ):
         raise unavailable
     if len({tier.currency for tier in tiers}) != 1:
@@ -278,6 +274,9 @@ async def _existing_order(
         items[tier_id] += quantity
     if items != wanted:
         raise EventsConflict("This Idempotency-Key was already used for another order")
+    if order.status == "expired":
+        # Never hand back a dead order as a successful claim; the client starts over.
+        raise EventsConflict("That attempt expired. Start a new one.")
     return order
 
 
@@ -293,38 +292,39 @@ async def _tickets_of(db: AsyncSession, order: Order) -> list[Ticket]:
 
 async def _payment_link(
     db: AsyncSession,
-    main: AsyncSession | None,
     user: User | None,
     listing: Listing,
     order: Order,
 ) -> str | None:
-    """Find or create the order's intent on the main database and return its
-    checkout URL (None on the manual rail).
+    """Find or create the order's intent and return its checkout URL (None on the
+    manual rail).
 
-    Not atomic across the two databases, by design: the order already holds its
-    stock, the intent is keyed by the order id (a retry finds it) and an order that
-    never gets one is expired by the sweeper. If the money side cannot start, the
-    stock is given back at once."""
+    The order is already committed and holds its stock; the intent is keyed by the
+    order id (a retry finds it) and an order that never gets one is expired by the
+    sweeper. If the money side cannot start, the stock is given back at once."""
     organiser = await db.get(Organiser, listing.organiser_id)
-    if main is None or organiser is None or organiser.organisation_id is None:
+    if organiser is None or organiser.organisation_id is None:
         return None
+    order_id = order.id
     try:
         intent_id, checkout_url = await order_payments.ensure_intent(
-            main,
+            db,
             organisation_id=organiser.organisation_id,
             order=order,
             customer_email=user.email if user else None,
+            listing_title=listing.title,
         )
-        await main.commit()
+        if order.payment_intent_id != intent_id:
+            order.payment_intent_id = intent_id
+            db.add(order)
+        await db.commit()
     except AppException:
-        await main.rollback()
-        order.status = "expired"
+        await db.rollback()
+        await db.execute(
+            update(Order).where(Order.id == order_id).values(status="expired")
+        )
         await db.commit()
         raise
-    if order.payment_intent_id != intent_id:
-        order.payment_intent_id = intent_id
-        db.add(order)
-        await db.commit()
     return checkout_url
 
 
@@ -352,7 +352,7 @@ def _order_public(
 
 
 async def my_order(
-    db: AsyncSession, main: AsyncSession | None, user: User, order_id: uuid.UUID
+    db: AsyncSession, user: User, order_id: uuid.UUID
 ) -> schemas.OrderPublic:
     """One of the member's own orders, for polling after checkout."""
     order = await db.scalar(
@@ -375,7 +375,7 @@ async def my_order(
     )
     checkout_url = None
     if order.status == holds.PENDING:
-        checkout_url = await _payment_link(db, main, user, listing, order)
+        checkout_url = await _payment_link(db, user, listing, order)
     return _order_public(
         listing, order, tiers, await _tickets_of(db, order), checkout_url
     )
@@ -495,4 +495,7 @@ async def cancel_valid_tickets(db: AsyncSession, listing_id: uuid.UUID) -> int:
         .values(status="cancelled", cancelled_at=utc_now())
         .returning(Ticket.id)
     )
-    return len(result.all())
+    cancelled = list(result.scalars())
+    # Tickets already scanned at the door lose their stamps with the event.
+    await rewards_hook.reverse_for_tickets(db, cancelled)
+    return len(cancelled)

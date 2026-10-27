@@ -11,7 +11,7 @@ import type {
 } from "../models/EregisterListObservationSends.js";
 
 /**
- * @description Newest first: each email and WIS2 hand-off with its status.
+ * @description Newest first: each email and WIS2 hand-off with its status. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.
  * @summary Send history of a register observation
  * {@link /api/v1/eregister/observations/:observation_id/sends}
  */

@@ -36,7 +36,19 @@ function errorMessage(error: unknown): string {
 
 function Outcome({ result }: { result: ClockResult }) {
   const arrived = result.action === "ARRIVED";
+  const punch = result.punch as ClockResult["punch"] | undefined;
+  const status: string | undefined = punch?.status;
+  const what = arrived ? "Arrival" : "Departure";
+  const headlines: Record<string, string> = {
+    PENDING: `${what} sent for approval`,
+    APPROVED: `${what} recorded`,
+    REJECTED: `${what} rejected`,
+  };
+  const headline = (status && headlines[status]) || `${what} received`;
   const attendance = result.attendance;
+  const when =
+    punch?.punched_at ??
+    (arrived ? attendance.arrived_at : attendance.departed_at);
   const late = result.late_minutes ?? 0;
   const early = result.early_departure_minutes ?? 0;
   const overtime = result.overtime_minutes ?? 0;
@@ -50,9 +62,16 @@ function Outcome({ result }: { result: ClockResult }) {
       className="space-y-1 rounded-xl border px-4 py-3 text-sm"
     >
       <p className="font-medium">
-        {arrived ? "Arrival recorded" : "Departure recorded"} at{" "}
-        {timeLabel(arrived ? attendance.arrived_at : attendance.departed_at)}
+        {headline} at {timeLabel(when)}
       </p>
+      {status === "PENDING" ? (
+        <p className="text-muted-foreground">
+          Your supervisor needs to approve this before it counts as attendance.
+        </p>
+      ) : null}
+      {status === "REJECTED" && punch?.review_note ? (
+        <p className="text-muted-foreground">Reason: {punch?.review_note}</p>
+      ) : null}
       <p className="text-muted-foreground">
         {result.site_name} · shift {attendance.shift_code} (
         {timeLabel(attendance.scheduled_start)}–
@@ -61,9 +80,11 @@ function Outcome({ result }: { result: ClockResult }) {
       {notes.length > 0 ? (
         <p className="text-muted-foreground">{notes.join(" · ")}</p>
       ) : null}
-      {arrived ? null : (
+      {arrived || status === "REJECTED" ? null : (
         <p className="text-muted-foreground">
-          Submit this shift for supervisor review from the Time Sheet page.
+          {status === "PENDING"
+            ? "Once approved, submit this shift for supervisor review from the Time Sheet page."
+            : "Submit this shift for supervisor review from the Time Sheet page."}
         </p>
       )}
     </section>

@@ -1,11 +1,15 @@
 """Two-step (TOTP) enrolment: begin, activate and disable."""
 
+import uuid
+
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import Session as AuthSession
 from src.auth.models import (
     User,
 )
+from src.utils.datetime import utc_now
 
 
 async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
@@ -26,7 +30,13 @@ async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
     return secret
 
 
-async def activate_totp(*, session: AsyncSession, user: User, code: str) -> bool:
+async def activate_totp(
+    *,
+    session: AsyncSession,
+    user: User,
+    code: str,
+    keep_session_id: uuid.UUID | None = None,
+) -> bool:
     """Verify a code against the pending secret and enable 2FA on success."""
     from src.auth import totp
 
@@ -40,9 +50,31 @@ async def activate_totp(*, session: AsyncSession, user: User, code: str) -> bool
 
     await record_security(session, user, "totp_enabled")
     session.add(user)
+    if await _is_privileged(session, user):
+        # A fresh authenticator on a privileged account ends every other session, so a
+        # session opened before enrolment cannot ride on the new factor.
+        statement = update(AuthSession).where(
+            AuthSession.user_id == user.id, AuthSession.revoked_at.is_(None)
+        )
+        if keep_session_id is not None:
+            statement = statement.where(AuthSession.id != keep_session_id)
+        await session.execute(statement.values(revoked_at=utc_now()))
+        privileged = True
+    else:
+        privileged = False
     await session.commit()
     await session.refresh(user)
+    if privileged:
+        from src.auth import devices
+
+        devices.schedule_authenticator_added_alert(email_to=user.email)
     return True
+
+
+async def _is_privileged(session: AsyncSession, user: User) -> bool:
+    from src.auth.privileged_mfa import is_privileged
+
+    return await is_privileged(session, user)
 
 
 async def disable_totp(*, session: AsyncSession, user: User) -> None:

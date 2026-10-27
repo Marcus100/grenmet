@@ -46,6 +46,10 @@ Claude Code cloud containers ship a toolchain older than the repo's pins. `scrip
 | `uv sync --package fast-back` misses `gms-ingest` | syncs both packages |
 | no Postgres or Redis for API tests | starts both on `localhost`, creates the `app` role and database; Redis runs with `--dir /tmp --save ""` so no `dump.rdb` lands in the repo |
 
+### Fast cloud starts: the environment setup script
+
+Paste `scripts/agents/cloud-setup.sh` into the cloud environment's **Setup script** (claude.ai → environment settings), or load the file there. The cloud runs it once, as root, then snapshots the filesystem and starts every later session from that snapshot; it rebuilds the snapshot about every seven days or when the script changes ([cloud environments](https://code.claude.com/docs/en/cloud-environments#environment-caching)). The script makes a shallow copy of the public repo beside the cache (`~/.cache/barrels-bootstrap`), runs `cloud-bootstrap.sh` once to fill the caches (the uv Python and uv cache, Node and pnpm when the image's are too old), keeps the filled pnpm store at `~/.cache/barrels-bootstrap/pnpm-store`, stops the Postgres and Redis it started so the snapshot holds them shut down cleanly, deletes the copy and always exits 0. The clone has a 60 s limit and the whole script a 270 s budget, so it stays under the platform's five-minute snapshot limit. The `SessionStart` hook still runs the bootstrap every session: it hard-links the cached store's package files into the checkout's `.pnpm-store` (where `pnpm-workspace.yaml` keeps it) and gives the checkout its own copy of pnpm's index (`index.db`, which pnpm edits in place) before `pnpm install`, so installs link instead of downloading, and it starts Postgres and Redis, since running servers are not snapshotted. Measured in a clean container: setup 198 s once; a session's bootstrap 14 s with the snapshot, 136 s without.
+
 Hooks still run (never bypass them): with the bootstrap done, `git push` runs lint, type-check and the changed packages' tests. If `pnpm-lock.yaml` shows as modified after a gate, the bootstrap did not run in that shell; restore it with `git checkout -- pnpm-lock.yaml` before committing and do not commit it.
 
 ## Switching between Codex and Claude Code
@@ -71,6 +75,21 @@ verified and ask only about unresolved intent.
 The SessionStart hooks read recent log entries; they do not create the handoff
 or share hidden chat history. Claude also reloads the log after compaction and
 forking. Runtime hook trust and client permissions remain separate checks.
+
+## Worktree sessions
+
+A Claude Code session started in a git worktree refuses some shell forms it cannot
+verify stay inside the worktree ("too complex to verify"). Those are heredocs, `;`
+or `&&` chains, `for` loops, process substitution (`<(...)`), and `gh` commands with a
+long quoted `--body`. In a worktree session:
+
+- Put long text in a file (scratchpad, or the Write tool) and pass it with
+  `--body-file` (`gh issue comment`, `gh issue create`, `gh pr create`).
+- Run one plain command per Bash call.
+- Edit files with Edit or Write, not `cat <<EOF`.
+
+The skills that show inline `--body "$(cat <<'EOF' ...)"` examples need the same
+change; they live under `.claude/`, so that edit goes through the owner.
 
 ## Keeping the session log short
 

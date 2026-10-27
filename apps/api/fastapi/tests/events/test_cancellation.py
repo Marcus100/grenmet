@@ -11,16 +11,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.events import outbox, schemas, service
-from src.events.models import Activity, Listing, Outbox, Refund, Ticket
+from src.events.models import Activity, Listing, Refund, Ticket
 from src.exceptions import AppException
 from src.utils.datetime import utc_now
 from tests.events.roles import user_with_role
 from tests.events.support import (
     BASE,
     SessionFactory,
+    as_row,
     client_as,
     client_with_real_roles,
     make_user,
+    queued,
 )
 from tests.events.test_organiser_admin import _organiser
 from tests.events.test_outlet import cash_event, open_till, outlet, sell
@@ -84,19 +86,22 @@ async def test_cancelling_an_event_cancels_every_ticket_and_tells_holders(
         "listing_id": event["listing"],
         "status": "cancelled",
         "tickets_cancelled": 4,
+        "orders_refunded": 0,
+        "orders_queued": 0,
+        "orders_kept": 0,
+        "refunds_failed": 0,
+        "orders_released": 0,
     }
     async with events_db() as db:
         statuses = (await db.scalars(select(Ticket.status))).all()
         listing = await db.get(Listing, event["listing"])
-        queued = (
-            await db.scalars(select(Outbox).where(Outbox.kind == outbox.CANCELLED))
-        ).all()
+        rows = await queued(events_db, outbox.CANCELLED)
         assert listing is not None
         assert listing.status == "cancelled"
         assert statuses.count("cancelled") == 4
         assert statuses.count("valid") == 0
-        assert len(queued) == 1
-        audience = await outbox._listing_audience(db, queued[0], listing)
+        assert len(rows) == 1
+        audience = await outbox._listing_audience(db, as_row(rows[0]), listing)
         assert ana.id in audience
 
     # Online holders see the cancellation; nobody can claim or sell any more.
@@ -211,12 +216,10 @@ async def test_postponing_keeps_tickets_valid_and_notifies_holders(
         valid = await db.scalar(
             select(func.count()).select_from(Ticket).where(Ticket.status == "valid")
         )
-        queued = (
-            await db.scalars(select(Outbox).where(Outbox.kind == outbox.POSTPONED))
-        ).all()
+        rows = await queued(events_db, outbox.POSTPONED)
         assert valid == 1
-        assert len(queued) == 1
-        assert holder.id in await outbox._listing_audience(db, queued[0], listing)
+        assert len(rows) == 1
+        assert holder.id in await outbox._listing_audience(db, as_row(rows[0]), listing)
     assert "listing.rescheduled" in await activity_actions(events_db)
 
 
@@ -390,7 +393,7 @@ async def test_claims_racing_a_cancellation_never_leave_a_valid_ticket(
     async def cancel_now():
         async with events_db() as db:
             return await service.cancel_event(
-                db, staff, uuid.UUID(event["listing"]), []
+                db, staff, uuid.UUID(event["listing"]), [], refund="none"
             )
 
     results = await asyncio.gather(

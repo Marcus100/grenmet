@@ -10,9 +10,13 @@
 //          --task <id> --outcome success --verify pass --retries 0
 //          --wall-minutes 12 --tier low [--pr 12] [--benchmark bm-01]
 //          [--friction "<text>"] [--post <issue-or-pr number>]
+//          [--from-session latest|<session id>]
+// --from-session fills agent, model, wall minutes and token counts from the
+// local transcript (scripts/agents/sessions.mjs); flags given explicitly win.
 
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { findSessions, latestSession } from "./sessions.mjs";
 
 export const MARKER = "<!-- agent-run:v1 -->";
 const AGENTS = ["claude", "codex"];
@@ -57,7 +61,14 @@ const FIELDS = {
 };
 const OPTIONAL = {
   review: [],
-  run: ["pr", "benchmark"],
+  run: [
+    "pr",
+    "benchmark",
+    "session",
+    "input_tokens",
+    "output_tokens",
+    "total_tokens",
+  ],
   usage: [],
 };
 
@@ -82,6 +93,11 @@ export function validateRecord(record) {
       problems.push("pr must be a non-negative integer");
     if (record.benchmark !== undefined && !isText(record.benchmark))
       problems.push("benchmark must be a non-empty string");
+    if (record.session !== undefined && !isText(record.session))
+      problems.push("session must be a non-empty string");
+    for (const field of ["input_tokens", "output_tokens", "total_tokens"])
+      if (record[field] !== undefined && !isCount(record[field]))
+        problems.push(`${field} must be a non-negative integer`);
   }
   return problems;
 }
@@ -155,12 +171,40 @@ function parseArgs(argv) {
   put("percent", number("percent"));
   if (values.accepted !== undefined)
     record.accepted = values.accepted === "true";
-  return { post: values.post, record };
+  return { fromSession: values["from-session"], post: values.post, record };
+}
+
+// Fills what the transcript knows; anything already on the record wins.
+export function withSession(record, session) {
+  if (!session) throw new Error("no matching local session transcript found");
+  return {
+    agent: session.agent,
+    input_tokens: session.tokens.input + session.tokens.cached,
+    model: session.model,
+    output_tokens: session.tokens.output,
+    session: session.id,
+    total_tokens: session.tokens.total,
+    wall_minutes: session.minutes,
+    ...record,
+  };
+}
+
+function resolveSession(ref) {
+  if (ref === "latest") return latestSession();
+  return findSessions({ days: 30 }).find((s) => s.id === ref);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
-    const { post, record } = parseArgs(process.argv.slice(2));
+    const {
+      fromSession,
+      post,
+      record: given,
+    } = parseArgs(process.argv.slice(2));
+    const record =
+      fromSession === undefined
+        ? given
+        : withSession(given, resolveSession(fromSession));
     const body = formatRecord(record);
     if (post === undefined) process.stdout.write(body);
     else {

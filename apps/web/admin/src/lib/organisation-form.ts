@@ -114,7 +114,9 @@ export type NoticeCode = keyof typeof NOTICES;
 export function noticeFor(
   code: string | undefined
 ): (typeof NOTICES)[NoticeCode] | undefined {
-  return code && code in NOTICES ? NOTICES[code as NoticeCode] : undefined;
+  return code && Object.hasOwn(NOTICES, code)
+    ? NOTICES[code as NoticeCode]
+    : undefined;
 }
 
 export function noticeForStatus(status: number): NoticeCode {

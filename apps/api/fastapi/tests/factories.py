@@ -25,6 +25,7 @@ from src.auth.models import (
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user
 from src.hr.models import Department, EmploymentRecord
+from src.utils.datetime import utc_now
 from tests.utils.utils import random_email, random_lower_string
 
 
@@ -50,8 +51,12 @@ async def make_user(
     superuser: bool = False,
     email: str | None = None,
     password: str = "password123",
+    verified: bool = True,
 ) -> User:
-    """Create a user with random credentials (roles+permissions eager-loaded)."""
+    """Create a user with random credentials (roles+permissions eager-loaded).
+
+    Email is verified by default because staff roles and admin memberships need
+    it (ADR-0018); pass ``verified=False`` to test the unverified path."""
     user = await create_user(
         session=session,
         user_create=UserCreate(
@@ -63,6 +68,9 @@ async def make_user(
             is_superuser=superuser,
         ),
     )
+    if verified:
+        user.email_verified_at = utc_now()
+        await session.commit()
     return await _load_user_with_roles(session, user.id)
 
 

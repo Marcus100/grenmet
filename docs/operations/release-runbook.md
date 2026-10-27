@@ -4,18 +4,20 @@
 **Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-10-15
 
-How a change ships from `dev` to production. Agents (Claude Code / Codex) may run
-local verification, direct dev pushes, and automatic staging PR creation and
-merge under standing authorization. Main merges and production publication or
-deployment require separate explicit authorization (see `AGENTS.md`).
+How a change ships from `dev` to production. Agents (Claude Code / Codex) run
+local verification, push their task branch, open a PR into `dev` and merge it
+once CI is green and the review is clean. Staging PR creation has
+standing authorization; the owner merges into `staging` (agents do not arm
+auto-merge).
+Main merges and production publication or deployment require separate explicit
+authorization (see `AGENTS.md`).
 
-Branch flow: `dev → (PR) → staging → (PR) → main → (release vN.M) → prod`.
-Merge completed task branches into local `dev`, check the combined result locally,
-then push `dev` directly. Do not push feature branches or open feature-to-dev PRs
-unless explicitly requested. Fetch and integrate current `origin/dev` before
-validation; if it advances, integrate and revalidate before retrying. Never
-force-push or bypass hooks. Promotion is always via PR; reuse an open promotion PR. Rulesets enforce the
-required checks on `staging` and `main` PRs.
+Branch flow: `task → (PR) → dev → (PR) → staging → (PR) → main → (release vN.M) → prod`.
+Integrate current `origin/dev` into the task branch and validate before opening
+the PR; if `dev` advances, integrate and revalidate. Never force-push or bypass
+hooks. Promotion is always via PR; reuse an open promotion PR. Rulesets enforce
+the required checks on `staging` and `main` PRs; `infra/github/rulesets.json`
+is their committed copy and `pnpm guardrails:rulesets` checks it.
 
 ## 1. Pre-flight on dev
 
@@ -23,28 +25,26 @@ required checks on `staging` and `main` PRs.
 - Run the `/pre-merge` check (types, lint, Docker names, env drift, API-client
   sync, Actions pinning). Fix findings before promoting.
 - `git status` clean, `dev` pushed.
-- For the API-backed Events release, provision `EVENTS_DB_PASSWORD` separately in
-  the staging and production GitHub environments before promotion (separate secrets were created and presence verified on 2026-10-05). Delivery
-  validates it before touching the running stack, provisions the dedicated
-  `events_staging` / `events` database, and runs its existing migrations. Verify
-  an Events sign-in and persisted save/RSVP on staging. Core backup and restore
-  acceptance now require eight databases including Events; retain a fresh complete
-  backup after provisioning. The production nightly backup will report a missing
-  Events database until this release has been deployed.
+- Events lives in the main database as the `events` schema (ADR-0003), so it needs
+  no separate secret or database. Verify an Events sign-in and persisted save/RSVP
+  on staging. Core backup and restore acceptance require seven databases (the
+  separate Events database is gone). Owner follow-up after the first deploy of this
+  change: drop the old `events_staging` database on staging.
 
 ## 2. Promote dev → staging
 
-- After completing and locally validating an authorized batch, push dev and
-  automatically create or update its staging promotion PR. Reuse an open PR.
+- Once the authorized batch has been merged into `dev`, automatically
+  create or update its staging promotion PR with a recap. Reuse an open PR.
 - Review the entire promotion diff; exclude unrelated or unfinished work.
-- Arm auto-merge on the reviewed head without another confirmation:
-  `gh pr merge <num> --auto --merge --match-head-commit <sha>`. The staging
+- The owner merges the PR into `staging`. Agents do not merge it or arm
+  auto-merge (the owner may arm it:
+  `gh pr merge <num> --auto --merge --match-head-commit <sha>`). The staging
   ruleset requires `CI Success` and `Build Web Apps`, which aggregate every API
   and web CI job, plus `api-client`, `Biome Check`, `Type Check` and
   `Peer Dependencies`; GitHub merges only when all pass. If a job is added
   outside those aggregates, add it to an aggregate before relying on
   auto-merge. Never use an admin bypass; the agent hook blocks `--admin` and
-  any merge whose base is not `staging`.
+  any agent merge whose base is not `dev`.
 - If dev advances, review and verify the new head. Fix failures locally and
   revalidate before pushing; do not blindly retry CI.
 - The push to `staging` triggers `pipeline-staging.yml`,
@@ -89,11 +89,15 @@ The draft's generated notes only list pull request titles. Before publishing, ad
 
 ## Irreversible data migrations need a verified backup first
 
-`scripts/production/core.sh deploy` has no backup phase before `migrations`
-(phases: render-config, auth, disk, pull-verify, databases, migrations, grants,
-start, smoke), so a deploy is **not** a backup gate. Scheduled backups run
-separately (`monitoring-maintenance.yml`, `backup-database.yml`, `core.sh
-backup`). Before any migration that deletes, nulls or hashes existing data:
+`scripts/production/core.sh deploy` runs a `backup-gate` phase before
+`migrations` (phases: render-config, auth, disk, pull-verify, backup-gate,
+network, databases, migrations, grants, start, smoke). The gate only lists the
+backup store, so it runs before `network`, which stops the whole project when
+the network's pinned subnet changed. It warns by default and blocks
+only when you turn on `enforce`, so a deploy is not yet a guaranteed backup
+point (see "Backup gate" below). Scheduled backups run separately
+(`monitoring-maintenance.yml`, `backup-database.yml`, `core.sh backup`).
+Before any migration that deletes, nulls or hashes existing data:
 
 1. Run the backup for the target environment and confirm it succeeded
    (`backup-freshness.yml`, restore drill if practical).
@@ -104,6 +108,53 @@ Email-hash change: revision `emailhash20261018` is additive and safe to deploy
 on its own (set the `EMAIL_HASH_PEPPER` secret first). The destructive "step 2"
 (backfill hashes, null plaintext of suppressed and unsubscribed rows, drop the
 plaintext suppression column) is not written yet and waits for this gate.
+
+### Backup gate
+
+The `backup-gate` phase checks that the newest nightly dump of each production
+database (`app_prod`, `wxwatch`, `wxproducts`, `janitorial`, `transport`,
+`eregister`, `events`) in the Spaces bucket is newer than a limit. It lists the
+`production/YYYY/MM/DD/<database>_<timestamp>.dump` objects written by
+`backup-database.yml` and reuses the discovery logic of `restore-drill.py`; it
+does not use the unused `latest-success.json` markers.
+
+| Setting | Where | Default |
+| --- | --- | --- |
+| `DEPLOY_BACKUP_GATE` = `off`, `warn` or `enforce` | repository variable | `warn` |
+| `DEPLOY_BACKUP_MAX_AGE_HOURS` | repository variable | `26` |
+| `backup_gate_override` | **Deploy** workflow_dispatch input (free-text reason) | empty |
+
+- `off`: no check; the summary says so.
+- `warn` (default): a stale backup prints a warning and writes it to the step
+  summary; the deploy continues.
+- `enforce`: a verified stale or missing dump stops the deploy before any
+  migration, naming each database and its age. Nothing in the repository sets
+  `enforce`; the owner enables it by setting the variable.
+- Override: dispatch **Deploy** with `backup_gate_override` set to a reason
+  (for a hotfix with a stale backup). The deploy continues and the summary
+  records the actor and reason. Setting `DEPLOY_BACKUP_GATE=warn` also unblocks
+  a release-triggered deploy. Taking a backup first remains the better option.
+- Staging: reported as "not checked", because the scheduled backup covers
+  production only.
+
+Migrations are not detected as pending: `prestart` runs `alembic upgrade head`
+for seven histories plus the Payload CMS, with no cheap reliable comparison in
+`core.sh`. The gate therefore checks on every deploy that has migration
+services, not only ones that change the schema.
+
+It fails open, loudly: if the runner lacks the read credentials, the `aws` CLI,
+or cannot list the bucket, the summary says exactly what could not be checked and
+the deploy continues, in every mode. The gate reads
+`DO_SPACES_READ_ACCESS_KEY_ID` / `DO_SPACES_READ_SECRET_ACCESS_KEY`,
+`DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT` and `DO_SPACES_REGION`; the read keys
+live in the `production-backup` environment, so confirm the `production`
+deploy environment can resolve them before relying on `enforce`.
+
+What it does not prove: that a dump restores (the restore drill does), that the
+backup contains the data about to be migrated, that the CMS database or object
+files are covered, or that the dump timestamp is UTC (the nightly job names files
+with the runner's clock). A passing gate is not a replacement for step 1 above
+before a destructive migration.
 
 ## Rollback / redeploy
 

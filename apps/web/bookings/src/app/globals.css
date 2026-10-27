@@ -1,0 +1,11 @@
+@import "tailwindcss";
+/* Native-app touch behaviour shared by every app (no PWA features). */
+@import "@barrelsgd/ui/styles/app-feel";
+@import "@barrelsgd/ui/styles/globals";
+/* Styles for the shared booking components (class names only in the package). */
+@import "./booking.css";
+
+/* Tailwind v4 only auto-scans this app's own source; scan the shared package
+   so the reused primitives' utilities are generated (docs/design-system.md). */
+@source "../../node_modules/@barrelsgd/ui/src";
+@source "../../node_modules/@barrelsgd/bookings-web/src";

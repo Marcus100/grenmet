@@ -11,7 +11,7 @@ docker compose exec api bash
 | Script | Purpose |
 |---|---|
 | `seed_data.py` | Create custom users defined in `CUSTOM_USERS` |
-| `clear_seed_data.py` | Remove test users matching `testuser*@weather.gd` |
+| `clear_seed_data.py` | Remove test users matching `testuser*@example.com` |
 | `format.sh` | Run ruff check --fix + ruff format |
 | `lint.sh` | Run ruff check, ruff format --check, and mypy |
 | `dev.sh` | Convenience wrapper for common docker compose commands |
@@ -29,6 +29,8 @@ python scripts/seed_data.py            # create custom users
 python scripts/seed_data.py --reset    # clear test users first, then create
 python scripts/clear_seed_data.py      # remove test users only
 ```
+
+Staging only: `seed_staging_demo.py` creates a synthetic studio (bookings in every state, a deposit service) and a verified and a pending events organiser with orders. It refuses unless `ENVIRONMENT=staging`, `DEMO_SEED_ENABLED=true` and the database name ends with `_staging` (see `docs/env.md`); it previews by default and `--apply` writes. Safe to repeat; demo bookings are matched by their `[demo] <key>` notes, so do not edit those.
 
 Or via docker compose from `apps/api/fastapi`:
 

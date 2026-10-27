@@ -46,6 +46,48 @@ it("keeps only the digest, area and request_id tags, dropping anything else", ()
   expect(scrubSentryEvent({ tags: { email: "private" } }).tags).toBeUndefined();
 });
 
+it("keeps the internal user ID and org_id tag but no personal user fields", () => {
+  const result = scrubSentryEvent({
+    user: {
+      id: "11111111-2222-3333-4444-555555555555",
+      email: "private@example.test",
+      username: "private-name",
+      ip_address: "203.0.113.9",
+      name: "Private Person",
+    },
+    tags: {
+      org_id: "org-uuid-1",
+      user_id: "11111111-2222-3333-4444-555555555555",
+      phone: "private",
+    },
+  });
+  expect(result.user).toEqual({ id: "11111111-2222-3333-4444-555555555555" });
+  expect(result.tags).toEqual({
+    org_id: "org-uuid-1",
+    user_id: "11111111-2222-3333-4444-555555555555",
+  });
+  expect(JSON.stringify(result)).not.toContain("private");
+  expect(JSON.stringify(result)).not.toContain("203.0.113.9");
+  expect(
+    scrubSentryEvent({ user: { email: "private@example.test" } }).user
+  ).toBeUndefined();
+});
+
+it("drops unknown user keys and rejects an ID that looks like an email or name", () => {
+  const withExtras = scrubSentryEvent({
+    user: { id: "user_abc-123", geo: { city: "private" }, segment: "private" },
+  });
+  expect(withExtras.user).toEqual({ id: "user_abc-123" });
+  for (const bad of [
+    "private@example.test",
+    "Private Person",
+    "x".repeat(65),
+  ]) {
+    expect(scrubSentryEvent({ user: { id: bad } }).user).toBeUndefined();
+    expect(scrubSentryEvent({ tags: { user_id: bad } }).tags).toBeUndefined();
+  }
+});
+
 it("drops performance events until their sanitation and quota are verified", () => {
   expect(
     scrubSentryTransaction({

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LeaveApplicationEditor } from "@/components/hr/leave/leave-application-editor";
 import { LeaveSubmissions } from "@/components/hr/leave/leave-submissions";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = {
   title: "Leave Application",
@@ -10,14 +11,10 @@ export const metadata: Metadata = {
 export default function LeaveApplicationPage() {
   return (
     <div className="@container space-y-6">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight">
-          Application for Leave of Absence
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Fill in the form, submit it to HR, and print the signed copy.
-        </p>
-      </div>
+      <PageHeader
+        description="Fill in the form, submit it to HR, and print the signed copy."
+        title="Application for Leave of Absence"
+      />
       <LeaveApplicationEditor />
       <LeaveSubmissions />
     </div>

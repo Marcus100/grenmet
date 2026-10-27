@@ -89,9 +89,6 @@ in `infra/docker/.env.local.example`.
 | `TRANSPORT_DB_NAME` | Database name for the staff transportation timetable |
 | `TRANSPORT_DB_USER` | Database user for transport |
 | `TRANSPORT_DB_PASSWORD` | Password for the transport DB user |
-| `EVENTS_DB_NAME` | Database name for Barrels Events (`events` locally) |
-| `EVENTS_DB_USER` | Database user for Barrels Events |
-| `EVENTS_DB_PASSWORD` | Password for the Barrels Events DB user; required as an environment secret in staging and production before promoting the API-backed Events website |
 | `ADMINER_DESIGN` | Adminer UI theme (e.g. `pepa-linha-dark`) |
 
 ### FastAPI backend (`apps/api/fastapi/.env.local`)
@@ -121,7 +118,7 @@ the API image and the local source mount contain the same migration assets.
 | `SESSION_EXPIRE_DAYS` | Rotating session lifetime (default: `30`) |
 | `BROWSER_SESSION_COOKIE_NAME` | GAA Admin's session cookie, read by the cookie-authenticated routes (default `admin_session`); must match gaa-admin's `ADMIN_SESSION_COOKIE_NAME` |
 | `GAA_ADMIN_APP_URL` / `CMS_APP_URL` | Public URLs of the staff apps for single sign-on callbacks (ADR-0017). Defaults `http://localhost:3001` / `http://localhost:3006` |
-| `BARRELS_ADMIN_APP_URL` / `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Barrels control plane (`apps/web/admin`, registry key `barrels-admin`, superusers only). Default URL `http://localhost:3012`. Empty secret (the default) leaves the app out of single sign-on; not wired into the deploy compose or GitHub secrets yet |
+| `BARRELS_ADMIN_APP_URL` / `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Barrels control plane (`apps/web/admin`, registry key `barrels-admin`, superusers only). Default URL `http://localhost:3012`. Empty secret (the default) leaves the app out of single sign-on; deployment sets the URL to `https://admin.${BASE_DOMAIN}` and passes the GitHub environment secret `BARRELS_ADMIN_SSO_CLIENT_SECRET` (docs/deployment.md, "Admin host move") |
 | `GAA_ADMIN_SSO_CLIENT_SECRET` / `CMS_SSO_CLIENT_SECRET` | Secrets the staff apps present to redeem single sign-on codes; at least 32 characters (`openssl rand -base64 32`). Required GitHub environment secrets in staging and production, set to the same value in the matching web app. Empty locally switches single sign-on off for that app |
 | `LOGIN_MAX_FAILED_ATTEMPTS` | Failed attempts allowed before lockout (default: `10`) |
 | `LOGIN_LOCKOUT_SECONDS` | Account lockout duration (default: `900`) |
@@ -134,12 +131,14 @@ the API image and the local source mount contain the same migration assets.
 | `POSTGRES_USER` | FastAPI DB user (matches `APP_DB_USER` in infra file) |
 | `POSTGRES_PASSWORD` | FastAPI DB password (matches `APP_DB_PASSWORD` in infra file) |
 | `WXPRODUCTS_DATABASE_URL` | PostgreSQL URL for the separate existing weather-products database; required to serve the public product feed. Use a hostname reachable from FastAPI (`grenmet-postgres` in local Compose, `host.docker.internal` from the devcontainer). The API role needs read/write access to authored products, revisions and their identity sequence; the migration runner needs schema ownership. Weather migrations are owned by FastAPI. Missing configuration returns 503, not an empty feed. |
-| `EVENTS_DATABASE_URL` | PostgreSQL URL for the Barrels Events database (e.g. `postgresql://events:changethis@grenmet-postgres:5432/events` locally). Optional: unset means `/api/v1/events/*` returns 503 and prestart skips its migrations. |
 | `EVENTS_ORDER_HOLD_MINUTES` | How long an unpaid paid-tier order holds its tickets before the `expire_unpaid_event_orders` job cancels it and releases the stock (default `30`). The Stripe rail is test mode only (`PAYMENTS_STRIPE_*`). |
-| `EVENTS_APP_URL` | Public URL of the Barrels Events web app (app-scoped sign-in, ADR-0016). Default `http://localhost:3009`. |
+| `EVENTS_REFUND_CUTOFF_HOURS` | Refund policy for an organiser cancelling one paid order with `refund: follow_policy`: refunded when the event starts at least this many hours away, kept inside the window (default `48`). An event the organiser cancels is refunded in full. |
+| `EVENTS_APP_URL` | Public URL of the Barrels Events web app (app-scoped sign-in, ADR-0016; also where Stripe Checkout returns an Events buyer, `/me/orders/<order id>`). Default `http://localhost:3009`. |
 | `EVENTS_SSO_CLIENT_SECRET` | Secret the Events web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters (`openssl rand -base64 32`). Set the same value for the API and the Events web app (which also needs `AUTH_APP_URL`); deployment reads the GitHub environment secret of this name. Empty disables single sign-on into Events and hides "Continue with your Barrels account". |
 | `GMSDASH_APP_URL` | Public URL of the GMS Dashboard web app (app-scoped sign-in). Default `http://localhost:3013`. |
 | `GMSDASH_SSO_CLIENT_SECRET` | Secret the GMS Dashboard web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Set the same value for the API and `apps/web/gmsdash`. |
+| `BOOKINGS_APP_URL` | Public URL of the Barrels Bookings web app (app-scoped sign-in). Default `http://localhost:3015`. |
+| `BOOKINGS_SSO_CLIENT_SECRET` | Secret the Bookings web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Empty (the default) keeps sign-in off. Set the same value for the API and `apps/web/bookings`. |
 | `MODELS_GUIDANCE_ENABLED` | Worker fetch of ECMWF IFS/AIFS and NOAA GFS point guidance (`src/models_guidance`). Default `false`; a run downloads hundreds of MB, so enable deliberately. |
 | `MODELS_GUIDANCE_MODELS` / `MODELS_GUIDANCE_POINTS` / `MODELS_GUIDANCE_POLL_MINUTE` / `MODELS_GUIDANCE_HORIZON_HOURS` / `MODELS_GUIDANCE_RETENTION_DAYS` / `MODELS_GUIDANCE_CACHE_DIR` | Optional. Models (`ifs,aifs,gfs`), JSON list of points (key, name, latitude, longitude; default MBIA, Lauriston, Petite Martinique), the minute of each hourly check (default 20), forecast length (default 240 h), stored-run retention (default 7 days) and the parent directory for temporary GRIB files. |
 | `EVENTS_GOOGLE_REDIRECT_URI` | Google OAuth redirect for Events sign-in (e.g. `https://events.barrels.gd/auth/google/callback`); Google sign-in for Events is offered only when this and `GOOGLE_CLIENT_ID` are set. |
@@ -154,7 +153,7 @@ the API image and the local source mount contain the same migration assets.
 | `EMAIL_TEST_USER` | Recipient used by email tests and diagnostics |
 | `RESEND_WEBHOOK_SECRET` | Optional Svix signing secret for Resend webhook verification |
 | `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` | Comma-separated domains notification email may go to. Deployment reads the GitHub environment variable of this name; missing/blank staging values default to `barrels.gd`, while missing/blank production values allow all domains. Explicit values must be domain names (no wildcards, URLs or email addresses). Local development must configure its own restriction. |
-| `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (local default `http://localhost:3001`). Deployment sets `https://admin.${BASE_DOMAIN}` for both API and worker. |
+| `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (local default `http://localhost:3001`). Deployment sets `https://gms.${BASE_DOMAIN}` for both API and worker. |
 | `NOTIFICATIONS_BATCH_SIZE`, `NOTIFICATIONS_MAX_ATTEMPTS` | Worker email outbox batch size (50) and retry limit (5); also used for the public-flow outbox (subscriptions, contact) |
 | `MBIA_CONTACT_RECIPIENT` | Inbox that receives MBIA website contact messages (`site: "mbia"`). Unset: messages are stored and logged only, nothing is emailed. Sent through the worker outbox as transactional mail |
 | `BARRELS_CONTACT_RECIPIENT` | Inbox that receives Barrels Grenada website contact messages (`site: "barrels"`). Same behaviour as `MBIA_CONTACT_RECIPIENT`; each site has its own inbox and a message is never sent to another site's inbox |
@@ -162,6 +161,9 @@ the API image and the local source mount contain the same migration assets.
 | `TURNSTILE_ENABLED` | Default `false`. When `true`, contact messages, data requests, subscribe and page feedback require a valid Cloudflare Turnstile token (`turnstile_token`), verified server-side by `src/turnstile.py`: a missing or rejected token is 400 "Verification failed". A Cloudflare outage or timeout (5 s) also fails closed with 400, because every protected form sends email or stores visitor data. Enabled without `TURNSTILE_SECRET_KEY` is 503 and an error log |
 | `TURNSTILE_SECRET_KEY` | Turnstile widget secret (free Cloudflare account). Secret: environment secret store only, never a committed file |
 | `EMAIL_HASH_PEPPER` | Secret key for the HMAC-SHA256 hash of suppressed and unsubscribed email addresses (`src/utils/email_hash.py`). Generate with `openssl rand -base64 32 | tr -d '\n'` and store it without a trailing newline (`gh secret set EMAIL_HASH_PEPPER --env <env> < pepper-file`); the deploy's render-config step rejects a multi-line value. Never reuse `SECRET_KEY`. Unset is allowed only when `ENVIRONMENT=local` (a fixed dev key is used); elsewhere hashing raises `EmailHashPepperMissingError` and the subscribe, suppression and email-dispatch paths fail, so set it in staging and production before this release. Rotating or losing it makes every stored hash unmatchable, so keep a copy with the other backed-up secrets. |
+| `CAP_DELIVERY_FAILURE_RECIPIENTS` | Worker. Comma-separated GMS addresses emailed (through the notifications outbox) when a warning delivery job (email, push, webhooks, PDF and so on) has failed on every attempt. One email per failed job and address, deduplicated by job id; it names the warning headline, channel, attempts and error class only. Empty (default): no email; the worker still logs an error that Sentry captures. |
+| `TRUSTED_WEB_SECRET` | Shared secret (at least 32 characters, `openssl rand -base64 32`) that Next.js web hosts send with `X-Visitor-IP` and `X-Visitor-Secret` so rate limits (`src/rate_limit.py`) key on the real visitor, not the web server. Empty or shorter than 32 characters (a startup warning is logged, never the value) ignores both headers and keys on the connecting address, as does a wrong or missing secret, a non-ASCII value, and every `/auth` route, so a spoofed header changes nothing. IPv6 visitors key on their /64; IPv4-mapped IPv6 maps to IPv4. Set the same value for the API, `apps/web/bookings`, `apps/web/babydoll` and `apps/web/gms` (the weather site's email and browser alert sign-ups; without it every visitor shares one bucket of 5 email and 10 push sign-ups a minute); a web-side value under 32 characters fails the bookings, Babydoll and gms env validation. The owner sets it on web-gms. |
+| `VISITOR_IP_PROXY_HOPS` | `apps/web/bookings`, `apps/web/babydoll` and `apps/web/gms`. Number of reverse proxies in front of the web server that append to `x-forwarded-for` (default 1: the right-most entry, as written by a Traefik that does not trust its peer). Behind Cloudflare and a Traefik that trusts it (`trustedIPs`), set 2. The visitor is counted from the right; leading entries are visitor-controlled and ignored, and `x-real-ip` is not used. |
 | `FLIGHTS_OPENSKY_ENABLED` | Feature flag, default `false`. When `true` the worker polls OpenSky every 30 minutes and `GET /api/v1/flights/board` serves the Redis-cached rows. Research use only: commercial use needs a written OpenSky licence (owner decision pending). Needs `REDIS_URL` |
 | `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | Optional OpenSky OAuth2 client credentials (free account). Unset: anonymous access with a very small daily quota. Set in the environment secret store, never in a committed file |
 | `COPERNICUSMARINE_SERVICE_USERNAME`, `COPERNICUSMARINE_SERVICE_PASSWORD` | Copernicus Marine free account (secrets). Both set enables the worker fetch (every 6 h) and `GET /api/v1/environment/marine`; unset: `available: false`, never sample data |
@@ -200,6 +202,10 @@ the API image and the local source mount contain the same migration assets.
 | `CAP_JOB_BATCH_SIZE` | CAP worker batch size (default: `20`) |
 | `CAP_JOB_MAX_ATTEMPTS` | Maximum CAP job attempts (default: `5`) |
 | `CAP_JOB_POLL_SECONDS` | CAP worker polling cadence; must divide 60 (default: `10`) |
+| `OUTBOX_STALE_MINUTES` | Worker `check_outbox_backlog`: pending outbox rows overdue this long count as stale (default: `30`) |
+| `OUTBOX_DEAD_WINDOW_HOURS` | Worker `check_outbox_backlog`: dead rows counted from this window (default: `24`) |
+| `OUTBOX_ALERT_THRESHOLD` | Worker logs `Outbox backlog above threshold` when dead or stale rows exceed this (default: `0`) |
+| `SENTRY_CRONS_ENABLED` | Worker: send Sentry Cron check-ins for key jobs (default: `false`; each monitor may be billable) |
 | `CAP_SIGNING_CERT` | Optional CAP XML signing certificate, as PEM content or a path |
 | `CAP_SIGNING_KEY` | Optional CAP XML signing key, as PEM content or a path |
 | `CAP_SIGNING_KEY_REF` | Human-readable key reference stored with signed snapshots |
@@ -214,7 +220,7 @@ FastAPI settings but are not application settings themselves.
 | Variable | Purpose |
 |---|---|
 | `AUTH_APP_URL` | Public URL of the auth app (e.g. `http://localhost:3000`); used for OAuth callback redirects |
-| `AUTH_API_URL` | FastAPI base URL (e.g. `http://localhost:8000`) |
+| `AUTH_API_URL` | FastAPI base URL (e.g. `http://localhost:8000`). Server-side only; deployment sets the internal `http://api:8000` for every web service (see below) |
 | `AUTH_API_V1_STR` | API version prefix (e.g. `/api/v1`) |
 | `AUTH_SESSION_COOKIE_NAME` | Host-only account session cookie (default `auth_session`). Every app keeps its own cookie (ADR-0017); none sets a `Domain` |
 | `AUTH_ALLOWED_RETURN_HOSTS` | See section below |
@@ -223,7 +229,8 @@ FastAPI settings but are not application settings themselves.
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Optional PostHog project key |
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog ingest host |
-| `ADMIN_APP_URL` | Optional GAA Admin URL for the account-page app links and the "Edit in GAA Admin" profile button |
+| `BARRELS_ADMIN_APP_URL` | Optional Barrels staff console URL for the account-page app links and the signed-out "sign in again" link |
+| `ADMIN_APP_URL` | Optional GAA Admin (GMS/GAA portal, `gms.*`) URL for the account-page app links and the "Edit in GAA Admin" profile button |
 | `MBIA_APP_URL` | Optional airport website URL for the account-page app links |
 | `GMS_APP_URL` | Optional GMS weather site URL for the account-page app links |
 | `DOCS_APP_URL` | Optional docs site URL for the account-page app links |
@@ -234,7 +241,7 @@ The `*_APP_URL` links fall back to the local ports in `docs/ports.md` in develop
 
 ### `AUTH_ALLOWED_RETURN_HOSTS` — how it works
 
-After a successful sign-in, the auth app reads a `return_to` query parameter and redirects the user back to the originating app. `getSafeReturnTo()` in `apps/web/auth/src/lib/return-to.ts` validates that the redirect target's host is in this allowlist.
+After a successful sign-in, the auth app reads a `return_to` query parameter and redirects the user back to the originating app. `getSafeReturnTo()` in `apps/web/auth/src/lib/return-to.ts` validates that the redirect target's origin is in this allowlist. Matching is exact (ADR-0043): the origins of `AUTH_APP_URL` and the `*_APP_URL` settings are always accepted, plus each entry listed here; a leading-dot or wildcard entry such as `.barrels.gd` is ignored. Bare hosts mean `https`; `localhost` entries and the local ports in `ports.md` work outside production only.
 
 **If a host is missing from the allowlist, the redirect silently falls back to `/` with no error.** The user signs in successfully but lands on the auth app home page instead of where they came from.
 
@@ -248,18 +255,25 @@ Port map: 3001=gaa-admin, 3002=docs, 3003=gms, 3004=signal. See [`ports.md`](./p
 
 For staging/production, replace with the actual subdomain hosts (no port needed).
 
-**Production:**
+**Production** (exact hosts; list every app that sends users back to auth):
 
 ```text
-AUTH_ALLOWED_RETURN_HOSTS=.barrels.gd
+AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,elections.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
 ```
 
-Staging uses `.staging.barrels.gd`. The shared Compose file assembles this as
-`.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}`; current production configuration does
-not add `.weather.gd`. Production CORS origins are the seven frontend hosts
+Staging uses the same labels under `staging.barrels.gd`. The shared Compose file
+gives the `web-auth` service the app-URL variables the code honours as they are
+(auth, gms, docs, weather, signal, mbia, events) and one exact `https://` entry in
+`AUTH_ALLOWED_RETURN_HOSTS` for each other app that signs in through it (admin,
+bookings, cms, elections, gmsdash), all built from `${BASE_DOMAIN}`. A leading-dot
+entry such as `.${BASE_DOMAIN}` is ignored by the code and reaches no app.
+`EXTRA_RETURN_HOSTS`, if set, is appended as it is and must start with a comma.
+`scripts/production/auth-return-origins.test.mjs` fails when an app in the API
+registry is neither honoured nor named. Babydoll does not sign in through the auth
+app, so it is not listed. Current production configuration does not add `.weather.gd`. Production CORS origins are the seven frontend hosts
 listed in `infra/docker/production.env`; staging uses their staging equivalents.
 
-A leading-dot entry accepts the apex and its subdomains. The superseded
+The superseded
 weather.gd go-live plan is historical context, not an active allowlist recipe.
 
 ### Public sites with "Sign in" (gms, docs, signal, mbia, elections)
@@ -276,6 +290,14 @@ site's secret is set; the same value must be set for the API.
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
 | elections (Vercel) | `elections` | `ELECTIONS_SSO_CLIENT_SECRET` | `elections_session` |
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
+| bookings | `bookings` | `BOOKINGS_SSO_CLIENT_SECRET` | `bookings_session` |
+
+In `infra/docker/docker-compose.deploy.yml` every web service (and the CMS) sets
+`AUTH_API_URL: http://api:8000`, never the public `https://api.<domain>`.
+Calling the public hostname hairpins through Traefik, which replaces the
+forwarded browser address with the web container's, so FastAPI rate limits and
+audit logs would key every user on one address.
+`scripts/production/internal-api-url.test.mjs` enforces this.
 
 Each also needs `AUTH_API_URL`, `AUTH_API_V1_STR` and `AUTH_APP_URL`. The API
 needs `<SITE>_APP_URL` (defaults to the local port) and the matching secret.
@@ -310,6 +332,8 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/eRegister/janitorial/
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
 
+**Local production builds.** `next build` validates this env schema, so without `RESEND_API_KEY` a local `turbo run build --filter=@barrelsgd/web-gaa-admin` fails with `Invalid environment variables`. Export a placeholder in the shell for that one build (for example `RESEND_API_KEY=re_placeholder pnpm turbo run build --filter=@barrelsgd/web-gaa-admin`). Do not write it to any `.env*` file.
+
 ### admin (`apps/web/admin/.env.local`)
 
 The Barrels control plane. It holds no database credentials and calls FastAPI only.
@@ -343,6 +367,18 @@ GMS Dashboard (model meteograms for entitled organisations). No database; it cal
 | `AUTH_API_URL` / `AUTH_API_V1_STR` / `AUTH_APP_URL` | FastAPI base URL (`http://api:8000` in deployment), API prefix and the Barrels sign-in app |
 | `GMSDASH_SESSION_COOKIE_NAME` | Host-only session cookie (default `gmsdash_session`) |
 | `GMSDASH_SSO_CLIENT_SECRET` | Same value as the API's; without it `/auth/callback` returns 503 and nobody can sign in |
+| `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
+
+### bookings (`apps/web/bookings/.env.local`)
+
+Barrels Bookings. Only `/studio` needs sign-in; the public booking pages (`/[slug]`) need no sign-in. No database; the Bookings API is called from the server only, at `AUTH_API_URL`.
+
+| Variable | Purpose |
+|---|---|
+| `AUTH_API_URL` / `AUTH_API_V1_STR` / `AUTH_APP_URL` | FastAPI base URL (`http://api:8000` in deployment), API prefix and the Barrels sign-in app |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile key for the booking form. Unset: no widget and no token. Inlined at build time |
+| `BOOKINGS_SESSION_COOKIE_NAME` | Host-only session cookie (default `bookings_session`) |
+| `BOOKINGS_SSO_CLIENT_SECRET` | Same value as the API's registration for `bookings`; without it `/auth/callback` returns 503 and nobody can sign in. Optional in deployment (empty keeps sign-in off) |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
 
 ### signal (`apps/web/signal/.env.local`)
@@ -381,6 +417,14 @@ Read through `src/env.ts` (hand-written, no schema library). Every value has a d
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile key for the booking form. Unset: no widget and no token. The API uses the `babydoll` public site's Turnstile policy |
 
 FastAPI: `BOOKINGS_BABYDOLL_SITE_URL` (default `https://babydoll.barrels.gd`) is read only by the on-demand Babydoll seed (`src/bookings/seed.py`) for the booking manage link and the public site row.
+
+### Staging demo seed (`apps/api/fastapi/scripts/seed_staging_demo.py`)
+
+An operator opt-in for the staging API container only; it is not in the deploy workflow, `render-env.py` or any compose file, and nothing is stored as a secret.
+
+| Variable | Description |
+| --- | --- |
+| `DEMO_SEED_ENABLED` | Set to `true` on the command line (`docker compose -p grenmet-staging exec -e DEMO_SEED_ENABLED=true api python scripts/seed_staging_demo.py --apply`) to allow the synthetic Bookings and Events demo data. Anything else, or unset, refuses. The script also refuses unless the API's own `ENVIRONMENT` is `staging`, and the configured database name must end with `_staging`, so production and local runs exit with status 2 before touching the database. Demo bookings are found by their `[demo] <key>` notes; editing those in the studio makes a re-run recreate them (possibly failing on a slot conflict). Never set it in a GitHub environment or a `.env*` file. |
 
 ### Scrapy script (`scripts/scrapy-wxwatch/.env.local`)
 
@@ -487,7 +531,7 @@ Deployment supplies the existing environment-scoped `RESEND_API_KEY` secret and 
 
 Use app-specific local configuration for host-run development. Inside deployment
 containers, localhost refers to that container: CAP uses `http://api:8000`,
-GMS authored products use `http://web-admin:3001`, and email rendering uses
+GMS authored products use `http://web-gmsadmin:3001`, and email rendering uses
 `http://web-auth:3000`. Browser API requests and redirects use public HTTPS
 origins under `staging.barrels.gd` or `barrels.gd`. Local host processes use
 localhost ports from [the port map](ports.md); agent-container processes use
@@ -520,8 +564,7 @@ GitHub environments, but no PostHog, Stripe, Google OAuth, CAP signing, Resend
 webhook or email-render credentials. Production also lacked the new CMS and
 FastAPI runtime database credentials and core infrastructure variables. Supply
 these through GitHub environment settings before claiming those integrations
-are connected. Datadog logging hooks alone do not establish an APM connection;
-a collector/agent is not configured by this release.
+are connected. There is no APM agent: ddtrace was removed on 2026-10-20.
 
 GMS reads forecasts, observations and published products from FastAPI via
 `AUTH_API_URL`; it never calls gaa-admin. Publication authorization is configured through the
@@ -585,15 +628,9 @@ PostHog remains disabled without its project key. Its shared provider disables
 session recording, autocapture and person profiles and sends only allowlisted
 page-section counts; preserve these controls when activating it.
 
-The API image ships with `DD_TRACE_ENABLED=false`,
-`DD_INSTRUMENTATION_TELEMETRY_ENABLED=false` and
-`DD_REMOTE_CONFIGURATION_ENABLED=false`. There is no Datadog Agent in the core
-Compose stack. Do not enable exports until an agent is provisioned with a
-container-reachable `DD_TRACE_AGENT_URL`, separate environment configuration,
-and `DD_SERVICE`, `DD_ENV`, `DD_VERSION` tags. A Datadog cloud API key belongs on
-the agent, not in browser configuration. The current deployment renderer does
-not forward Datadog enablement settings; wiring the agent and these settings is
-a separate deployment change, not an existing activated integration.
+The API image runs plain `uvicorn`; ddtrace and its `DD_*` defaults were removed
+on 2026-10-20 because no Datadog Agent was ever provisioned. Adding APM later is a
+new dependency and deployment decision.
 
 Sentry preserves exception types and stack locations while redacting payloads,
 local variables and log contents. Log-only events retain a generic safe title.
@@ -641,7 +678,6 @@ but they are not all deployment prerequisites:
   `EMAIL_RENDER_SECRET`, `EMAIL_RENDER_URL`.
 - CAP XML signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY`,
   `CAP_SIGNING_KEY_REF`.
-- Datadog: `DD_*` values, only after an agent or collector is provisioned.
 - CAP MQTT, outbound webhooks, WIS2Box, static maps, and social-image
   publication consumers; these are currently dormant and have no required
   runtime credentials.
@@ -724,11 +760,21 @@ With none of the drop variables set, publish answers 409 "WIS2 publication is no
 
 ### Privileged MFA rollout
 
-FastAPI auth settings default to disabled enforcement; enable it only after the
-[readiness and recovery gates](operations/privileged-mfa.md).
+`AUTH_PRIVILEGED_MFA_MODE` (`disabled` or `enforce`) is unset by default, which
+means `enforce` in `staging` and `production` and `disabled` when
+`ENVIRONMENT=local` (issue #501, owner decision 2026-10-25). Under `enforce` a
+superuser, or holder of a privileged permission, who has not enrolled an
+authenticator gets 403 with `Set up two-step verification ... (mfa_enrolment_required)`
+on every privileged route; account security and sign-in stay reachable so they can
+enrol. Set `disabled` explicitly to opt out (local development, tests, or an
+approved emergency rollback). Enforce refuses to start without
+`AUTH_TOTP_ENCRYPTION_KEYS`. Complete the
+[readiness and recovery gates](operations/privileged-mfa.md) before deploying.
 
 The deployment renderer accepts `AUTH_PRIVILEGED_MFA_MODE` from the selected
-GitHub environment's variable (`disabled` by default, or `enforce`) and
+GitHub environment's variable (the renderer still writes `disabled` when it is
+unset, so set it to `enforce` to switch a deployment on; the API's own default
+applies only when the variable is not passed at all) and
 `AUTH_TOTP_ENCRYPTION_KEYS` from its secret. Keys are a JSON array of dedicated
 Fernet keys, current encryption key first and retained decryption keys after it.
 Do not reuse `SECRET_KEY` or share keys across environments. These values reach
@@ -752,13 +798,13 @@ change does not provision secrets or enable enforcement in production.
 
 ### Payments (PF4, test mode only)
 
-The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter runs in **test mode only**. They are wired into the deployment (`deploy.yml` → `render-env.py` → the API and worker in `docker-compose.deploy.yml`), but leave them **unset** in staging and production until the owner approves a payment rail. `render-env.py` refuses a `PAYMENTS_STRIPE_SECRET_KEY` that does not start with `sk_test_`, so a live key cannot be deployed by accident.
+The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter runs in **test mode only**. They are wired into the deployment (`deploy.yml` → `render-env.py` → the API and worker in `docker-compose.deploy.yml`), but leave them **unset** in staging and production until the owner approves a payment rail. `render-env.py` refuses a `PAYMENTS_STRIPE_SECRET_KEY` that does not start with `sk_test_`, so a live key cannot be deployed by accident. It also refuses a half-set Stripe configuration: `PAYMENTS_STRIPE_SECRET_KEY`, `_WEBHOOK_SECRET`, `_SUCCESS_URL` and `_CANCEL_URL` are set together or not at all, and both URLs must be `https://`.
 
 | Variable | Purpose |
 | --- | --- |
 | `PAYMENTS_STRIPE_SECRET_KEY` | Stripe test secret. A key that does not start with `sk_test_` is refused at use, so a live key cannot enable a live rail. Unset: the Stripe adapter is disabled (the `manual` provider still works). |
 | `PAYMENTS_STRIPE_WEBHOOK_SECRET` | Signing secret for `POST /api/v1/payments/public/webhooks/stripe` (503 when unset). |
-| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | Where Stripe Checkout returns the customer (our HTTPS pages). Checkout answers 503 until both are set. |
+| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | Fallback return pages (HTTPS) for a purchase type with no registered address; Checkout answers 503 until both are set. A purchase type can register its own address (`src/payments/return_urls.py`): Events returns the buyer to `{EVENTS_APP_URL}/me/orders/<order id>?payment=success\|cancelled`. Return addresses come from settings, never from a request. Outside `ENVIRONMENT=local`, an `http` or localhost address (registered or global) is refused. |
 | `PAYMENTS_STRIPE_API_BASE` | Defaults to `https://api.stripe.com`; override only in tests. |
 | `PAYMENTS_WEBHOOK_TOLERANCE_SECONDS` | How old a signed webhook may be (default 300). |
 | `PAYMENTS_REQUEST_TIMEOUT_SECONDS` | Provider request timeout (default 10). |

@@ -2,13 +2,14 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-14
+**Last updated:** 2026-10-20
 
 Everything agents (Claude Code, Codex and scheduled routines) and the people who
 direct them need beyond the root `AGENTS.md`.
 
 | Document | Read it to |
 | --- | --- |
+| [factory.md](factory.md) | See every layer of the agent factory, how it is measured and scored, and the weekly improvement loop. |
 | [workflow.md](workflow.md) | Work in parallel worktrees, integrate and push, check blast radius, hand off, extend hooks. |
 | [roles.md](roles.md) | Split work across the planner, architect, engineer, QA and reviewer roles in Claude Code or Codex, and see the automated review and API-break gates. |
 | [tool-usage.md](tool-usage.md) | Hand work between tools and keep the session log short. |

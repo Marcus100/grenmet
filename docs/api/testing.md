@@ -75,7 +75,7 @@ curl http://localhost:8000/api/v1/utils/health-check/
 curl http://localhost:8000/api/v1/openapi.json
 curl -X POST http://localhost:8000/api/v1/auth/token \
     -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "username=admin@weather.gd&password=changethis"
+    -d "username=admin@example.com&password=changethis"
 ```
 
 ## Suggested Pre-Deployment Gate

@@ -1,12 +1,17 @@
 import uuid
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 
 from src.dependencies import CurrentUser, SessionDep
 
-from . import clock_service
+from . import clock_service, punch_service
 from .clock_schemas import (
+    ClockPunchApprove,
+    ClockPunchesPublic,
+    ClockPunchPendingPublic,
+    ClockPunchPublic,
+    ClockPunchReject,
     ClockRequest,
     ClockResult,
     ClockSiteActive,
@@ -30,11 +35,11 @@ SITE_ERRORS: dict[int | str, dict[str, Any]] = {
     status_code=status.HTTP_200_OK,
     summary="Clock in or out at a clock point",
     description=(
-        "Records arrival against the caller's rostered work shift, or departure "
-        "when a shift is already open. The token proves presence at a department "
-        "clock point. It feeds the same attendance record and supervisor review as "
-        "manual attendance. Late, early-departure and overtime minutes are "
-        "informational only."
+        "Records a PENDING punch for the caller's rostered work shift (arrival, or "
+        "departure when a shift is already open). The token proves presence at a "
+        "department clock point. A phone punch is not attendance, hours or "
+        "timesheet input until a supervisor approves it (ADR-0040). Late, "
+        "early-departure and overtime minutes are informational only."
     ),
     operation_id="hrClock",
     responses={
@@ -47,13 +52,16 @@ SITE_ERRORS: dict[int | str, dict[str, Any]] = {
 async def clock(
     *, session: SessionDep, current_user: CurrentUser, payload: ClockRequest
 ) -> Any:
-    action, record, site, late, early, overtime = await clock_service.clock(
+    action, punch, site, late, early, overtime, arrived_at = await clock_service.clock(
         session=session, current_user=current_user, token=payload.token
     )
     return ClockResult(
         action="DEPARTED" if action == "DEPARTED" else "ARRIVED",
         site_name=site.name,
-        attendance=await public_record(session, record),
+        attendance=await public_record(
+            session, clock_service.provisional_attendance(punch, arrived_at)
+        ),
+        punch=ClockPunchPublic.model_validate(punch, from_attributes=True),
         late_minutes=late,
         early_departure_minutes=early,
         overtime_minutes=overtime,
@@ -144,4 +152,94 @@ async def set_clock_site_active(
         current_user=current_user,
         site_id=site_id,
         active=payload.is_active,
+    )
+
+
+PUNCH_ERRORS: dict[int | str, dict[str, Any]] = {
+    403: {
+        "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
+    },
+    404: {"description": "Clock punch not found"},
+    409: {"description": "Punch already decided, or its arrival is not approved"},
+}
+
+
+@router.get(
+    "/clock-punches/pending",
+    response_model=ClockPunchesPublic,
+    summary="List phone clock punches awaiting approval",
+    description="Pending phone punches the caller may decide. Callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor and hold a live timesheet.approve assignment in the punch's organisation. Never the employee. Approve and reject use the same rule.",
+    operation_id="hrListPendingClockPunches",
+    responses={403: {"description": "Requires timesheet.approve"}},
+)
+async def list_pending_clock_punches(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0, le=100000)] = 0,
+) -> Any:
+    rows, total = await punch_service.list_pending(
+        session=session, current_user=current_user, limit=limit, offset=offset
+    )
+    return ClockPunchesPublic(
+        data=[
+            ClockPunchPendingPublic(
+                **ClockPunchPublic.model_validate(
+                    punch, from_attributes=True
+                ).model_dump(),
+                employee_name=name,
+                site_name=site_name,
+                shift_date=shift_date,
+                shift_code=shift_code,
+            )
+            for punch, name, site_name, shift_date, shift_code in rows
+        ],
+        count=total,
+    )
+
+
+@router.post(
+    "/clock-punches/{punch_id}/approve",
+    response_model=ClockPunchPublic,
+    summary="Approve a phone clock punch",
+    description="Approving counts the punch as attendance: an arrival creates the attendance record, a departure closes it. Allowed for: callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor and hold a live timesheet.approve assignment in the punch's organisation. Never the employee. Idempotent.",
+    operation_id="hrApproveClockPunch",
+    responses=PUNCH_ERRORS,
+)
+async def approve_clock_punch(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    punch_id: uuid.UUID,
+    payload: ClockPunchApprove | None = None,
+) -> Any:
+    return await punch_service.approve_punch(
+        session=session,
+        current_user=current_user,
+        punch_id=punch_id,
+        note=payload.note if payload else None,
+    )
+
+
+@router.post(
+    "/clock-punches/{punch_id}/reject",
+    response_model=ClockPunchPublic,
+    summary="Reject a phone clock punch",
+    description="A rejected punch never becomes attendance. Rejecting an arrival also rejects its pending departure. A reason is required. Same authority as approval.",
+    operation_id="hrRejectClockPunch",
+    responses=PUNCH_ERRORS,
+)
+async def reject_clock_punch(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    punch_id: uuid.UUID,
+    payload: ClockPunchReject,
+) -> Any:
+    return await punch_service.reject_punch(
+        session=session,
+        current_user=current_user,
+        punch_id=punch_id,
+        reason=payload.reason,
     )

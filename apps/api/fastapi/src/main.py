@@ -38,6 +38,7 @@ from src.baseline.router import router as staff_setup_router
 from src.billing.invoice_router import router as billing_invoice_router
 from src.billing.router import router as billing_router
 from src.bookings.router import router as bookings_router
+from src.bookings.settings import router as bookings_settings_router
 from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
@@ -46,8 +47,10 @@ from src.contacts.router import router as contacts_router
 from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
 from src.eregister.router import router as eregister_router
-from src.events import database as events_database
+from src.events.moderation_router import router as events_moderation_router
+from src.events.org_router import router as events_org_router
 from src.events.router import router as events_router
+from src.events.staff_router import router as events_staff_router
 from src.exceptions import (
     AppException,
     app_exception_handler,
@@ -322,7 +325,6 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
         await wxwatch_database.close_engine()
         await janitorial_database.close_engine()
         await transport_database.close_engine()
-        await events_database.close_engine()
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
@@ -453,6 +455,7 @@ app.include_router(billing_invoice_router, prefix=settings.API_V1_STR)
 app.include_router(rewards_router, prefix=settings.API_V1_STR)
 app.include_router(payments_router, prefix=settings.API_V1_STR)
 app.include_router(bookings_router, prefix=settings.API_V1_STR)
+app.include_router(bookings_settings_router, prefix=settings.API_V1_STR)
 app.include_router(hr_profile_router, prefix=settings.API_V1_STR)
 app.include_router(hr_workflow_router, prefix=settings.API_V1_STR)
 app.include_router(hr_roster_router, prefix=settings.API_V1_STR)
@@ -500,6 +503,9 @@ app.include_router(browser_auth_router, prefix=settings.API_V1_STR)
 app.include_router(janitorial_router, prefix=settings.API_V1_STR)
 app.include_router(transport_router, prefix=settings.API_V1_STR)
 app.include_router(events_router, prefix=settings.API_V1_STR)
+app.include_router(events_moderation_router, prefix=settings.API_V1_STR)
+app.include_router(events_org_router, prefix=settings.API_V1_STR)
+app.include_router(events_staff_router, prefix=settings.API_V1_STR)
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]

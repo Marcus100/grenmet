@@ -5,12 +5,14 @@
 
 import * as z from "zod";
 import { attendanceShiftPublicSchema } from "./attendanceShiftPublicSchema.js";
+import { clockPunchPublicSchema } from "./clockPunchPublicSchema.js";
 import { clockResultPropertiesActionEnumSchema } from "./clockResultPropertiesActionEnumSchema.js";
 
 export const clockResultSchema = z.object({
   action: clockResultPropertiesActionEnumSchema,
   site_name: z.string(),
   attendance: attendanceShiftPublicSchema,
+  punch: clockPunchPublicSchema,
   late_minutes: z.int().optional().default(0),
   early_departure_minutes: z.int().optional().default(0),
   overtime_minutes: z.int().optional().default(0),

@@ -17,6 +17,7 @@ import type {
   EventsReviewOrganiserStatus401,
   EventsReviewOrganiserStatus403,
   EventsReviewOrganiserStatus404,
+  EventsReviewOrganiserStatus409,
   EventsReviewOrganiserStatus422,
   EventsReviewOrganiserStatus429,
 } from "../models/EventsReviewOrganiser.js";
@@ -36,6 +37,7 @@ export function eventsReviewOrganiserMutationOptions<TContext = unknown>(
       | EventsReviewOrganiserStatus401
       | EventsReviewOrganiserStatus403
       | EventsReviewOrganiserStatus404
+      | EventsReviewOrganiserStatus409
       | EventsReviewOrganiserStatus422
       | EventsReviewOrganiserStatus429
     >,
@@ -55,7 +57,7 @@ export function eventsReviewOrganiserMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Approve (or withdraw approval of) an organiser account. Approving queues a notification to the organiser's owners and admins.
+ * @description MFA superuser only (a staff session, not an Events token). Approve or withdraw approval of an organiser account through the same path as `/admin/moderation/organisers`. 409 for a rejected organiser, which must be resubmitted first.
  * @summary Verify an organiser
  * {@link /api/v1/events/moderation/organisers/:organiser_id}
  */
@@ -67,6 +69,7 @@ export function useEventsReviewOrganiser<TContext>(
         | EventsReviewOrganiserStatus401
         | EventsReviewOrganiserStatus403
         | EventsReviewOrganiserStatus404
+        | EventsReviewOrganiserStatus409
         | EventsReviewOrganiserStatus422
         | EventsReviewOrganiserStatus429
       >,
@@ -91,6 +94,7 @@ export function useEventsReviewOrganiser<TContext>(
       | EventsReviewOrganiserStatus401
       | EventsReviewOrganiserStatus403
       | EventsReviewOrganiserStatus404
+      | EventsReviewOrganiserStatus409
       | EventsReviewOrganiserStatus422
       | EventsReviewOrganiserStatus429
     >,
@@ -104,6 +108,7 @@ export function useEventsReviewOrganiser<TContext>(
       | EventsReviewOrganiserStatus401
       | EventsReviewOrganiserStatus403
       | EventsReviewOrganiserStatus404
+      | EventsReviewOrganiserStatus409
       | EventsReviewOrganiserStatus422
       | EventsReviewOrganiserStatus429
     >,
@@ -122,6 +127,7 @@ export function useEventsReviewOrganiser<TContext>(
       | EventsReviewOrganiserStatus401
       | EventsReviewOrganiserStatus403
       | EventsReviewOrganiserStatus404
+      | EventsReviewOrganiserStatus409
       | EventsReviewOrganiserStatus422
       | EventsReviewOrganiserStatus429
     >,

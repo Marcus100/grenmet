@@ -13,13 +13,18 @@ async def has_effective_permission(
     *, session: AsyncSession, user: User, permission_key: str
 ) -> bool:
     """Permission check for app-scoped users, whose roles aren't preloaded."""
+    from src.auth.policy import is_organisation_bound
+
+    if is_organisation_bound(user=user, permission_key=permission_key):
+        return False
     if user.is_superuser:
         return True
     from src.auth.access import effective_roles
 
     roles = await effective_roles(session, user)
+    wanted = permission_key.strip().lower()
     return any(
-        permission.key == permission_key
+        permission.key.lower() == wanted
         for role in roles
         for permission in role.permissions
     )

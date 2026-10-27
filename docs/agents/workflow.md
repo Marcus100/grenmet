@@ -25,8 +25,10 @@ agent instructions. Nothing here relaxes a root rule.
   cannot make symlinks (`git worktree add` run inside WSL makes it correctly).
   Run `git restore .agents/skills` there instead of staging or committing the
   typechange; `git rebase` refuses to start while it is dirty.
-- Commit in the worktree, then merge completed branches into local `dev` in a
-  clean integration checkout. Dev servers stay on the host in the main checkout.
+- Commit in the worktree, validate, push the task branch and open a PR into
+  `dev`; the agent merges it once CI is green on its head and a fresh-context
+  review has no open blocking finding (`AGENTS.md` → Git, parallel agents and
+  handoff). Never push `dev`. Dev servers stay on the host in the main checkout.
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`: take either
   side and regenerate (openapi command in `AGENTS.md` → `pnpm generate:api-client`
   → `pnpm check:drift`).
@@ -40,27 +42,55 @@ agent instructions. Nothing here relaxes a root rule.
 
 **Attended sessions** (a person is directing the agent):
 
-- Merge completed task branches into local `dev`, validate the combined result,
-  then push `dev` directly. Do not push feature branches or open feature-to-dev
-  PRs unless the user asks.
-- Fetch first and integrate current `origin/dev`; run `pnpm fix:changed`,
-  `pnpm type-check`, affected tests, staged guardrails and the blast-radius review
-  before pushing. If remote `dev` advances, integrate it locally and revalidate
-  before retrying.
-- Standing authorization: after local validation and a direct `dev` push,
-  create or update the `dev → staging` PR, review the promotion diff, verify `dev`
-  has not advanced, and arm auto-merge with
-  `gh pr merge <num> --auto --merge --match-head-commit <sha>`. GitHub merges only
-  after the staging ruleset's required checks pass; `CI Success` and
-  `Build Web Apps` aggregate every API and web job. Re-arm if `dev` advances.
+- Finish the task on its branch and integrate current `origin/dev`; run
+  `pnpm fix:changed`, `pnpm type-check`, affected tests, staged guardrails and
+  the blast-radius review. Then push the task branch and open a PR into `dev`
+  (`gh pr create --base dev`) with the `/commit` step 7 recap as its body. The
+  agent merges its own PR into `dev` once CI is green on the PR head and a
+  fresh-context review has no open blocking finding
+  (`gh pr merge <num> --merge --match-head-commit <sha>`); agents never push
+  `dev`. Before merging, run `gh pr checks <num> --watch --fail-fast` until it
+  exits 0 on that head, and leave the fresh-context review as a PR comment that
+  names the reviewer. A `risk:high` PR also gets a `security-reviewer` pass with
+  no open finding first. Unattended routines do the same from their own branch.
+  A PR that changes owner-only files listed in `AGENTS.md` is merged by the
+  owner; the hook refuses an agent merge. Other factory-control changes require
+  independent code and security review with no open blocking finding before an
+  agent merges into dev. If `origin/dev` advances, integrate it and revalidate.
+- Standing authorization: once PRs are merged into `dev`,
+  create or update the `dev → staging` PR with a recap, review the promotion diff
+  and verify `dev` has not advanced. The owner reviews and merges into `staging`;
+  agents do not arm auto-merge. GitHub merges only after the staging ruleset's
+  required checks pass; `CI Success` and `Build Web Apps` aggregate every API and
+  web job. If `dev` advances, update the recap and tell the owner.
 - Monitor the staging deployment and report actionable failures or readiness for
   acceptance. Reuse an open promotion PR. Production (`staging → main`), releases
   and deploys need separate explicit authorization. Do not promote unrelated or
   unfinished work.
 
-**Unattended routines** follow [routines.md](routines.md) instead: they push only
+**Unattended routines** follow [routines.md](routines.md): they push only
 their own `agent/<n>-<slug>` branch, open a PR to `dev`, and never push `dev`,
-`staging` or `main` or merge anything.
+`staging` or `main`. They merge reviewed PRs into dev under the same checks as
+attended sessions, except the owner merges PRs that touch owner-only files.
+
+**Rulesets.** `infra/github/rulesets.json` is the committed copy of the branch
+rulesets, which are what make "PR required" and "required checks" true.
+`pnpm guardrails:rulesets` compares it with GitHub, and
+`.github/workflows/rulesets-drift.yml` does the same on every PR into a
+long-lived branch and weekly. Today `main` and `staging` each require a PR and
+six checks with no bypass actors. `Protect dev` adds the factory code/security
+review contexts and requires branches to be current with `dev` before merge.
+This protects the worker's merge-base and changed-file overlap check from `dev`
+advancing between check and merge. A `dev` merge makes other PR branches stale;
+the worker syncs only the next eligible PR and waits for fresh CI and review. This
+is slower than loose checks, but this personal-account repo has no GitHub merge
+queue to provide the equivalent server-side guarantee. No bypass actors are
+configured. The review contexts must be pinned to the dedicated status App's
+integration ID in both GitHub and the snapshot. The worker refuses to publish
+review statuses unless its App ID matches that pin; until this setup is
+complete, do not treat user-created review statuses as trusted.
+After changing a ruleset, run `node scripts/guardrails/github-rulesets.mjs
+--snapshot` and commit the result.
 
 ## Blast-radius gate
 
@@ -83,12 +113,34 @@ file limits or authorize unrelated work.
 
 ## Session handoff
 
-Claude Code and Codex share one working tree. A `SessionStart` hook tails
-`SESSION_LOG.md` (main checkout root, gitignored, shared by every worktree) into
-context; read it before assuming a task is untouched. After a meaningful chunk of
-work, append one entry: timestamp, tool, summary, files, friction issues, next
-step, newest at the bottom. If you worked around anything, run the
-`file-friction` skill. For tool switches, follow [tool-usage.md](tool-usage.md).
+Claude Code and Codex share one working tree on a host or devcontainer; separate
+cloud environments do not, so there the owner relays handoffs
+(`pnpm agents:handoff` prints the block; see [roles.md](roles.md)). A
+`SessionStart` hook tails `SESSION_LOG.md` (main checkout root, gitignored,
+shared by every worktree) into context; read it before assuming a task is
+untouched. After a meaningful chunk of work, append one entry: timestamp, tool,
+summary, files, friction issues, next step, newest at the bottom. A read-only
+reviewer appends nothing; the author records the review outcome (`AGENTS.md`).
+If you worked around anything, run the `file-friction` skill. For tool switches,
+follow [tool-usage.md](tool-usage.md).
+
+### Context reset
+
+Long sessions get slower, dearer and forgetful: auto-compaction is lossy, and
+practitioner guides put the quality drop-off well before the window fills (about
+60%; a heuristic, not a measured limit). So:
+
+- **One session, one task.** Start a fresh session after each merged PR and
+  whenever the work changes area. Do not carry a finished task into the next one.
+- **Reset at about 60% context**, or when you notice the signs: forgetting a
+  decision made earlier, contradicting yourself, or rewriting code already
+  validated. Do not start a multi-file change in a session that is already long.
+- **Before resetting, write the handoff** to `SESSION_LOG.md`: at most 10 lines
+  covering state (branch, head SHA, PR), what is done, what is next, and open
+  decisions. Put detail in the PR body or an issue, not the log. The next session
+  reads the tail of the log and the PR, not the old transcript.
+- Anything that must survive every reset goes in `AGENTS.md`, a hook or a test,
+  not in the conversation.
 
 ## Editing agent instructions
 
@@ -113,8 +165,20 @@ Hook scripts live in `.claude/hooks/` and are wired in `.claude/settings.json`
 `git reset --hard`, `git clean -f`, forced branch deletes, `git checkout .`,
 `git restore .` (unstaging with `--staged` is allowed), `git stash clear`, forced
 switches and worktree removals, and merges through `gh api`. It also scans
-commands inside `bash -c`, `sh -c` and `eval`. `gh pr merge` is allowed only
-when the PR's base is `staging` and `--admin` is absent; an unknown base blocks.
+commands inside `bash -c`, `sh -c` and `eval`. `gh pr merge` is allowed only in
+one exact shape, read the way the shell reads it (quotes and line continuations
+removed, so `gh pr "merge"` is still a merge; wrappers such as `xargs`, `env`,
+`sudo`, `timeout` and `nice`, `if`, `!`, subshells and `-R` before `merge` are
+looked through): `gh pr merge <number|url> [--repo Marcus100/grenmet] [--merge]
+[--delete-branch] --match-head-commit <sha>`. Anything else blocks: `--admin`,
+`--auto`, `--squash`, `--body`, another repository (`-R`, `--repo`, a PR URL,
+`GH_REPO`), a chained `gh pr edit --base`, a `cd`, a PR not named in the
+command, or no pinned head. The PR's base must be `dev`; a PR that changes
+owner-only paths listed in `AGENTS.md`, an unknown base or file list blocks,
+and `staging` and `main` always block. `gh alias`, GraphQL
+merge mutations, `gh api …/merges` and the REST merge endpoint block too. This
+is a best-effort filter, not a sandbox: the real controls are the rulesets, the
+owner's merge into `staging`, and the permission rule in the user's settings.
 `protect-files.mjs` blocks `.env*` writes and edits to the generated API client.
 Claude Code also enforces `permissions.deny` in `.claude/settings.json`, which a
 hook cannot override. In Codex these hooks sit alongside its own sandbox and

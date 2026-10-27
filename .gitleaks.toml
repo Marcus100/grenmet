@@ -1,0 +1,30 @@
+# gitleaks configuration for .github/workflows/secret-scan.yml.
+# Keeps every default rule and allowlists only reviewed false positives found by
+# a full-history scan (gitleaks 8.30.1, 2026-10-20). Allowlist exact values or
+# narrow paths; never a whole rule or a broad directory.
+title = "grenmet gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Documented CI and test placeholders, not credentials"
+regexTarget = "secret"
+regexes = [
+  '''^(ci|test)-secret-key-min-32-characters-long$''',
+  '''^(knip|bench)-placeholder-secret-0123456789$''',
+  '''^abc_DEF-123456(7890)?$''',
+  '''^v1\.venue\.123\.abcdef0123456789$''',
+  '''^BT1\.7K3M9Q2XVD\.AbCdEfGhIjKlMnOp$''',
+  '''^abcdefghijklmnop1234$''',
+  '''^YOUR_TOKEN$''',
+  '''^CAP_SIGNING_KEY_REF=cap-signing-key$''',
+  '''^SQLAlchemy/Alembic$''',
+]
+
+[[allowlists]]
+description = "Field-name catalogues whose \"key\" entries are identifiers"
+paths = [
+  '''^apps/api/fastapi/src/wxproducts/fields\.json$''',
+  '''^surface/api/fixtures/wx_variableformat\.json$''',
+]

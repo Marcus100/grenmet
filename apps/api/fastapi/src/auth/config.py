@@ -2,7 +2,7 @@ import secrets
 import warnings
 from typing import Literal, Self
 
-from pydantic import model_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -50,12 +50,17 @@ class AuthConfig(BaseSettings):
     ELECTIONS_SSO_CLIENT_SECRET: str = ""
     GMSDASH_APP_URL: str = "http://localhost:3013"
     GMSDASH_SSO_CLIENT_SECRET: str = ""
+    BOOKINGS_APP_URL: str = "http://localhost:3015"
+    BOOKINGS_SSO_CLIENT_SECRET: str = ""
     # One-time codes by SMS/WhatsApp. "disabled" until a provider is chosen
     # (every message costs money); "console" logs codes for local development.
     PHONE_OTP_PROVIDER: Literal["disabled", "console"] = "disabled"
 
-    # Staged rollout: enforcement only after operator enrolment/recovery acceptance.
-    AUTH_PRIVILEGED_MFA_MODE: Literal["disabled", "enforce"] = "disabled"
+    # Unset (or empty) resolves to "enforce" in staging and production and to
+    # "disabled" locally (owner decision 2026-10-25, issue #501): a privileged
+    # account without an enrolled authenticator is refused with
+    # ``mfa_enrolment_required``. Set "disabled" explicitly to opt out.
+    AUTH_PRIVILEGED_MFA_MODE: Literal["disabled", "enforce"] | None = None
     # Dedicated Fernet keys: first encrypts; remaining keys decrypt during rotation.
     AUTH_TOTP_ENCRYPTION_KEYS: list[str] = []
 
@@ -79,6 +84,11 @@ class AuthConfig(BaseSettings):
     # enforced as a floor outside local; test runs lower it (BCRYPT_ROUNDS=4)
     # because each hash+verify at cost 12 costs ~440ms, which dominated CI.
     BCRYPT_ROUNDS: int = 12
+
+    @field_validator("AUTH_PRIVILEGED_MFA_MODE", mode="before")
+    @classmethod
+    def _empty_mfa_mode_is_unset(cls, value: object) -> object:
+        return None if value == "" else value
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
@@ -131,6 +141,10 @@ class AuthConfig(BaseSettings):
                 f"BCRYPT_ROUNDS must be at least 12 in the {self.ENVIRONMENT} "
                 f"environment (got {self.BCRYPT_ROUNDS}); a lowered cost factor "
                 "is a test-only optimisation."
+            )
+        if self.AUTH_PRIVILEGED_MFA_MODE is None:
+            self.AUTH_PRIVILEGED_MFA_MODE = (
+                "disabled" if self.ENVIRONMENT == "local" else "enforce"
             )
         if (
             self.AUTH_PRIVILEGED_MFA_MODE == "enforce"

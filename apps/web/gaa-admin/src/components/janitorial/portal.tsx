@@ -15,12 +15,13 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@barrelsgd/ui/components/ui/empty";
-import { cn } from "@barrelsgd/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import { RadioTower } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageRouteTabs } from "@/components/layout/page-tabs";
 import {
   APPA_LEVEL_LABELS,
   CADENCE_LABELS,
@@ -43,7 +44,7 @@ export function JanitorHeader({
   title: string;
 }) {
   return (
-    <header className="space-y-2">
+    <div className="space-y-2">
       {crumbs.length > 0 ? (
         <Breadcrumb>
           <BreadcrumbList>
@@ -61,16 +62,8 @@ export function JanitorHeader({
           </BreadcrumbList>
         </Breadcrumb>
       ) : null}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0 space-y-1">
-          <h1 className="font-semibold text-2xl tracking-tight">{title}</h1>
-          {children ? (
-            <p className="text-muted-foreground text-sm">{children}</p>
-          ) : null}
-        </div>
-        {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
-      </div>
-    </header>
+      <PageHeader actions={actions} description={children} title={title} />
+    </div>
   );
 }
 
@@ -88,29 +81,22 @@ export function SiteSwitcher({
   href: (site: SiteCode) => string;
 }) {
   return (
-    <nav
+    <PageRouteTabs
       aria-label="Airport"
-      className="inline-flex rounded-lg border bg-muted p-0.5"
-    >
-      {SITE_CODES.map((code) => (
-        <Link
-          aria-current={code === current ? "page" : undefined}
-          className={cn(
-            "rounded-md px-3 py-1 font-medium text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            code === current
-              ? "bg-background text-foreground shadow-xs"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-          href={href(code) as Route}
-          key={code}
-        >
-          {SITE_NAMES[code]}
-          <span className="ml-1 font-mono text-muted-foreground text-xs">
-            {code}
-          </span>
-        </Link>
-      ))}
-    </nav>
+      items={SITE_CODES.map((code) => ({
+        href: href(code) as Route,
+        label: (
+          <>
+            {SITE_NAMES[code]}
+            <span className="ml-1 font-mono text-muted-foreground text-xs">
+              {code}
+            </span>
+          </>
+        ),
+        value: code,
+      }))}
+      value={current}
+    />
   );
 }
 

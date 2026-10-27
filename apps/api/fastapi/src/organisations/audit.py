@@ -16,6 +16,7 @@ from .models import (
     ApiKey,
     Invitation,
     Membership,
+    MembershipGrant,
     MembershipRole,
     MembershipStatus,
     OrganisationApp,
@@ -53,6 +54,13 @@ def register() -> None:
         entity_type="platform_organisation",
         entity_id_attr="organisation_id",
         label="Membership",
+    )
+    registry.track(
+        MembershipGrant,
+        record_type="organisation_membership_grant",
+        entity_type="platform_organisation",
+        entity_id_attr="organisation_id",
+        label="Role grant",
     )
     registry.track(
         Invitation,

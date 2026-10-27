@@ -4,24 +4,42 @@
 
 import {
   type BookingAvailability,
+  type BookingEmailCodeConfirm,
+  type BookingEmailCodeRequest,
+  type BookingEmailCodeSent,
+  type BookingEmailProof,
   type BookingPublicDetail,
   type BookingPublicReceipt,
   type BookingStorefront,
   bookingsCancelPublicBooking,
+  bookingsConfirmEmailCode,
   bookingsCreatePublicBooking,
   bookingsGetAvailability,
   bookingsGetPublicBooking,
   bookingsGetPublicBookingIcs,
   bookingsGetStorefront,
+  bookingsRequestEmailCode,
   bookingsReschedulePublicBooking,
   createClient,
   ResponseError,
 } from "@barrelsgd/api-client";
+import { windowFrom } from "@barrelsgd/bookings-web/lib/booking-format";
+import { headers } from "next/headers";
 import { env } from "@/env";
-import { windowFrom } from "./booking-format";
+import { redactRequest } from "@/lib/redact-request";
+import { visitorHeaders } from "@/lib/visitor-headers";
 
-function options() {
-  return { client: createClient({ baseURL: env.BABYDOLL_API_URL }) };
+// Next calls the API from one address, so the visitor's own address travels in
+// headers the API trusts only with the shared secret (src/rate_limit.py).
+async function options() {
+  const visitor = visitorHeaders(
+    await headers(),
+    env.TRUSTED_WEB_SECRET,
+    env.VISITOR_IP_PROXY_HOPS
+  );
+  return {
+    client: createClient({ baseURL: env.BABYDOLL_API_URL, headers: visitor }),
+  };
 }
 
 const slug = () => env.BABYDOLL_BOOKING_SLUG;
@@ -42,23 +60,25 @@ function nullOn404<T>(error: unknown): T | null {
 export async function getStorefront(): Promise<BookingStorefront | null> {
   try {
     return await bookingsGetStorefront({
-      ...options(),
+      ...(await options()),
       path: { slug: slug() },
-    }).unwrap();
+    })
+      .unwrap()
+      .catch(redactRequest);
   } catch (error) {
     return nullOn404(error);
   }
 }
 
 /** Open slots for a service over the 14 days from `firstDay` (YYYY-MM-DD). */
-export function getAvailability(
+export async function getAvailability(
   serviceId: string,
   firstDay: string,
   providerId?: string
 ): Promise<BookingAvailability> {
   const { lastDay } = windowFrom(firstDay);
   return bookingsGetAvailability({
-    ...options(),
+    ...(await options()),
     path: { slug: slug() },
     query: {
       service_id: serviceId,
@@ -66,13 +86,16 @@ export function getAvailability(
       last_day: lastDay,
       ...(providerId ? { provider_id: providerId } : {}),
     },
-  }).unwrap();
+  })
+    .unwrap()
+    .catch(redactRequest);
 }
 
 export interface NewBooking {
   customer_email: string;
   customer_name: string;
   customer_phone?: string;
+  email_proof?: string;
   marketing_consent: boolean;
   notes?: string;
   service_id: string;
@@ -81,16 +104,44 @@ export interface NewBooking {
   website?: string;
 }
 
-export function createBooking(
+export async function createBooking(
   body: NewBooking,
   idempotencyKey: string
 ): Promise<BookingPublicReceipt> {
   return bookingsCreatePublicBooking({
-    ...options(),
+    ...(await options()),
     path: { slug: slug() },
     headers: { "Idempotency-Key": idempotencyKey },
     body,
-  }).unwrap();
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Emails a verification code when a deposit is due; `required: false` when none is needed. */
+export async function requestEmailCode(
+  body: BookingEmailCodeRequest
+): Promise<BookingEmailCodeSent> {
+  return bookingsRequestEmailCode({
+    ...(await options()),
+    path: { slug: slug() },
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Exchanges the emailed code for a single-use proof. */
+export async function confirmEmailCode(
+  body: BookingEmailCodeConfirm
+): Promise<BookingEmailProof> {
+  return bookingsConfirmEmailCode({
+    ...(await options()),
+    path: { slug: slug() },
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
 }
 
 /** The customer's booking; null for an unknown, expired or cleared token. */
@@ -99,40 +150,50 @@ export async function getBooking(
 ): Promise<BookingPublicDetail | null> {
   try {
     return await bookingsGetPublicBooking({
-      ...options(),
+      ...(await options()),
       path: { token },
-    }).unwrap();
+    })
+      .unwrap()
+      .catch(redactRequest);
   } catch (error) {
     return nullOn404(error);
   }
 }
 
-export function cancelBooking(token: string): Promise<BookingPublicDetail> {
+export async function cancelBooking(
+  token: string
+): Promise<BookingPublicDetail> {
   return bookingsCancelPublicBooking({
-    ...options(),
+    ...(await options()),
     path: { token },
     body: {},
-  }).unwrap();
+  })
+    .unwrap()
+    .catch(redactRequest);
 }
 
-export function rescheduleBooking(
+export async function rescheduleBooking(
   token: string,
   startsAt: string
 ): Promise<BookingPublicDetail> {
   return bookingsReschedulePublicBooking({
-    ...options(),
+    ...(await options()),
     path: { token },
     body: { starts_at: startsAt },
-  }).unwrap();
+  })
+    .unwrap()
+    .catch(redactRequest);
 }
 
 /** The booking as iCalendar text; null for an unknown token. */
 export async function getBookingIcs(token: string): Promise<string | null> {
   try {
     return await bookingsGetPublicBookingIcs({
-      ...options(),
+      ...(await options()),
       path: { token },
-    }).unwrap();
+    })
+      .unwrap()
+      .catch(redactRequest);
   } catch (error) {
     return nullOn404(error);
   }

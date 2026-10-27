@@ -250,7 +250,7 @@ export type FlagNoticeCode = keyof typeof FLAG_NOTICES;
 export function flagNoticeFor(
   code: string | undefined
 ): (typeof FLAG_NOTICES)[FlagNoticeCode] | undefined {
-  return code && code in FLAG_NOTICES
+  return code && Object.hasOwn(FLAG_NOTICES, code)
     ? FLAG_NOTICES[code as FlagNoticeCode]
     : undefined;
 }

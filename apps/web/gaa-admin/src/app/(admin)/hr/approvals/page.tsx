@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { ApprovalsInbox } from "@/components/hr/approvals-inbox";
+import { PunchApprovals } from "@/components/hr/clock/punch-approvals";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = {
   title: "Approvals",
@@ -9,14 +11,12 @@ export const metadata: Metadata = {
 export default function ApprovalsPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight">Approvals</h1>
-        <p className="text-muted-foreground text-sm">
-          Requests awaiting your approval — as a named co-approver or your
-          department role.
-        </p>
-      </div>
+      <PageHeader
+        description="Requests awaiting your approval — as a named co-approver or your department role."
+        title="Approvals"
+      />
       <ApprovalsInbox />
+      <PunchApprovals />
     </div>
   );
 }

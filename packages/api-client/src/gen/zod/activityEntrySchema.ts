@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { activityEntryPropertiesActorCapacityEnumSchema } from "./activityEntryPropertiesActorCapacityEnumSchema.js";
 
 export const activityEntrySchema = z.object({
   id: z.uuid(),
@@ -12,6 +13,9 @@ export const activityEntrySchema = z.object({
   entity_id: z.string(),
   actor_id: z.uuid(),
   actor_name: z.union([z.string(), z.null()]).optional(),
+  actor_capacity: activityEntryPropertiesActorCapacityEnumSchema
+    .optional()
+    .default("member"),
   summary: z.looseObject({}),
   created_at: z.iso.datetime(),
 });

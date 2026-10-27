@@ -8,10 +8,12 @@ ids; ``entries`` joins the actor's current profile name at read time.
 
 import uuid
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.organisations.capacity import ACTOR_CAPACITY_KEY, DEFAULT_CAPACITY, Capacity
 
 from . import schemas
 from .models import Activity, MemberProfile
@@ -29,6 +31,10 @@ SHORT_FIELDS = (
     "starts_at",
     "ends_at",
 )
+
+
+STAFF_ACTOR_NAME = "Barrels staff"
+STAFF_ACTOR_ID = uuid.UUID(int=0)
 
 
 def diff(before: Mapping[str, Any], after: Mapping[str, Any]) -> dict[str, object]:
@@ -52,7 +58,10 @@ def record(
     organiser_id: uuid.UUID | None = None,
     summary: Mapping[str, object] | None = None,
 ) -> None:
-    """Add a history row to the caller's transaction (no commit)."""
+    """Add a history row to the caller's transaction (no commit).
+
+    The row records the capacity the request acts in (``member`` or Barrels
+    ``staff``, ADR-0050) from ``db.info``, set by the route's dependency."""
     db.add(
         Activity(
             id=uuid.uuid4(),
@@ -61,6 +70,7 @@ def record(
             entity_id=entity_id,
             action=action,
             actor_id=actor_id,
+            actor_capacity=db.info.get(ACTOR_CAPACITY_KEY, DEFAULT_CAPACITY),
             summary=dict(summary or {}),
         )
     )
@@ -81,7 +91,9 @@ async def entries(
         (
             await db.execute(
                 select(MemberProfile.user_id, MemberProfile.display_name).where(
-                    MemberProfile.user_id.in_({row.actor_id for row in rows})
+                    MemberProfile.user_id.in_(
+                        {row.actor_id for row in rows if row.actor_capacity != "staff"}
+                    )
                 )
             )
         )
@@ -94,8 +106,14 @@ async def entries(
             action=row.action,
             entity_type=row.entity_type,
             entity_id=row.entity_id,
-            actor_id=row.actor_id,
-            actor_name=names.get(row.actor_id),
+            # Organiser-facing history never names Barrels staff (ADR-0050).
+            actor_id=STAFF_ACTOR_ID if row.actor_capacity == "staff" else row.actor_id,
+            actor_name=(
+                STAFF_ACTOR_NAME
+                if row.actor_capacity == "staff"
+                else names.get(row.actor_id)
+            ),
+            actor_capacity=cast(Capacity, row.actor_capacity),
             summary=row.summary,
             created_at=row.created_at,
         )

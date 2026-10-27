@@ -7,7 +7,10 @@ import {
   MARKER,
   parseRecords,
   validateRecord,
+  withSession,
 } from "./run-record.mjs";
+
+const NO_MATCHING_RE = /no matching/;
 
 const SUMMARY_LINE =
   /\*\*Agent run:\*\* claude · claude-sonnet-5-5 · success · #366/;
@@ -153,4 +156,52 @@ test("the CLI defaults friction to none and rejects bad input with exit 2", () =
   const bad = cli("--agent", "claude");
   assert.equal(bad.status, 2);
   assert.match(bad.stderr, INVALID_RUN);
+});
+
+test("withSession fills transcript fields and keeps explicit flags", () => {
+  const session = {
+    agent: "claude",
+    id: "abc",
+    minutes: 12.5,
+    model: "claude-haiku-5-5",
+    tokens: { cached: 900, input: 100, output: 50, total: 1050 },
+  };
+  const record = withSession(
+    {
+      friction: "none",
+      kind: "run",
+      model: "claude-sonnet-5-5",
+      outcome: "success",
+      retries: 0,
+      task: "#1",
+      tier: "low",
+      verify: "pass",
+    },
+    session
+  );
+  assert.equal(record.model, "claude-sonnet-5-5");
+  assert.equal(record.agent, "claude");
+  assert.equal(record.wall_minutes, 12.5);
+  assert.equal(record.total_tokens, 1050);
+  assert.equal(record.input_tokens, 1000);
+  assert.equal(record.session, "abc");
+  assert.deepEqual(validateRecord(record), []);
+  assert.throws(() => withSession(record, undefined), NO_MATCHING_RE);
+});
+
+test("token fields must be counts", () => {
+  const problems = validateRecord({
+    agent: "codex",
+    friction: "none",
+    kind: "run",
+    model: "m",
+    outcome: "success",
+    retries: 0,
+    task: "t",
+    tier: "low",
+    total_tokens: -1,
+    verify: "pass",
+    wall_minutes: 1,
+  });
+  assert.deepEqual(problems, ["total_tokens must be a non-negative integer"]);
 });

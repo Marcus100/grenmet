@@ -16,6 +16,7 @@ from src.outbox import Outbox
 from src.payments.models import Intent, IntentStatus, LedgerEntry, LedgerKind
 from src.utils.datetime import utc_now
 from src.worker import main as worker
+from tests.bookings.email_code_helpers import get_proof
 from tests.bookings.test_public_bookings import (
     API,
     Studio,
@@ -51,10 +52,19 @@ async def _deposit_studio(
 
 
 async def _book_deposit(
-    client: httpx.AsyncClient, studio: Studio, slot: int = 0
+    client: httpx.AsyncClient,
+    studio: Studio,
+    slot: int = 0,
+    *,
+    db: AsyncSession,
+    verify: bool = True,
 ) -> dict:
     slots = await _slots(client, studio)
-    response = await _book(client, studio, slots[slot])
+    email = f"ada-{uuid.uuid4().hex[:8]}@example.com"
+    proof = await get_proof(db, client, studio, slots[slot], email) if verify else None
+    response = await _book(
+        client, studio, slots[slot], customer_email=email, email_proof=proof
+    )
     assert response.status_code == 201, response.text
     return response.json()
 
@@ -62,7 +72,12 @@ async def _book_deposit(
 async def _intent(db: AsyncSession, booking_id: str) -> Intent | None:
     return await db.scalar(
         select(Intent)
-        .where(Intent.source_type == "bookings.deposit", Intent.source_id == booking_id)
+        .where(
+            Intent.source_type == "bookings.deposit",
+            Intent.source_id == booking_id,
+            # The booking's own intent, never a stray one for the same booking.
+            Intent.idempotency_key == f"bookings.deposit:{booking_id}",
+        )
         .execution_options(populate_existing=True)
     )
 
@@ -87,7 +102,7 @@ async def _paid_booking(
     db: AsyncSession, client: httpx.AsyncClient, **profile: object
 ) -> tuple[Studio, str]:
     studio = await _deposit_studio(db, client, **profile)
-    receipt = await _book_deposit(client, studio)
+    receipt = await _book_deposit(client, studio, db=db)
     booking_id = receipt["booking"]["id"]
     intent = await _intent(db, booking_id)
     assert intent is not None
@@ -115,7 +130,7 @@ async def test_deposit_booking_waits_for_payment_and_holds_the_slot(
 ) -> None:
     studio = await _deposit_studio(db_async, async_client)
     slots = await _slots(async_client, studio)
-    receipt = await _book_deposit(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
 
     assert receipt["payment_required"] is True
     assert receipt["checkout_url"] is None  # no Stripe key: the studio records it
@@ -133,7 +148,11 @@ async def test_deposit_booking_waits_for_payment_and_holds_the_slot(
     assert intent.idempotency_key == f"bookings.deposit:{booking['id']}"
     assert intent.status == IntentStatus.REQUIRES_PAYMENT.value
     # Nobody is emailed until the deposit is paid.
-    assert await _emails(db_async, studio.org_id) == []
+    # The only mail so far is the verification code, not a booking notice.
+    sent = [
+        row.dedupe_key.split(":")[0] for row in await _emails(db_async, studio.org_id)
+    ]
+    assert sent == ["booking-email-code"]
 
 
 async def test_stripe_test_key_returns_a_checkout_url(
@@ -142,7 +161,7 @@ async def test_stripe_test_key_returns_a_checkout_url(
     stripe_env: payments_conftest.StripeStub,
 ) -> None:
     studio = await _deposit_studio(db_async, async_client)
-    receipt = await _book_deposit(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
     assert receipt["payment_required"] is True
     assert receipt["checkout_url"] == "https://checkout.stripe.com/c/pay/cs_test_1"
     intent = await _intent(db_async, receipt["booking"]["id"])
@@ -159,7 +178,12 @@ async def test_a_replayed_create_returns_the_same_checkout(
 ) -> None:
     studio = await _deposit_studio(db_async, async_client)
     slots = await _slots(async_client, studio)
-    same = {"key": "deposit-replay-key-1", "customer_email": "ada@example.com"}
+    proof = await get_proof(db_async, async_client, studio, slots[0], "ada@example.com")
+    same = {
+        "key": "deposit-replay-key-1",
+        "customer_email": "ada@example.com",
+        "email_proof": proof,
+    }
     first = await _book(async_client, studio, slots[0], **same)
     replay = await _book(async_client, studio, slots[0], **same)
     assert first.status_code == replay.status_code == 201
@@ -178,7 +202,7 @@ async def test_a_deposit_without_the_payments_entitlement_is_ignored(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _deposit_studio(db_async, async_client, apps=("bookings",))
-    receipt = await _book_deposit(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async, verify=False)
     assert receipt["payment_required"] is False
     assert receipt["checkout_url"] is None
     assert receipt["booking"]["status"] == "confirmed"
@@ -237,7 +261,7 @@ async def test_stripe_callback_confirms_through_the_outbox(
 ) -> None:
     _ = stripe_env
     studio = await _deposit_studio(db_async, async_client)
-    receipt = await _book_deposit(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
     booking_id = receipt["booking"]["id"]
     intent = await _intent(db_async, booking_id)
     assert intent is not None
@@ -269,7 +293,7 @@ async def test_a_late_payment_for_an_expired_booking_is_refunded(
     stripe_env: payments_conftest.StripeStub,
 ) -> None:
     studio = await _deposit_studio(db_async, async_client)
-    receipt = await _book_deposit(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
     booking_id = receipt["booking"]["id"]
     later = utc_now() + timedelta(minutes=45)
     assert (
@@ -304,7 +328,7 @@ async def test_expiry_releases_the_slot_and_is_idempotent(
 ) -> None:
     studio = await _deposit_studio(db_async, async_client)
     slots = await _slots(async_client, studio)
-    receipt = await _book_deposit(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
     booking_id = receipt["booking"]["id"]
     now = utc_now()
 
@@ -343,7 +367,7 @@ async def test_expiry_leaves_a_paid_booking_alone(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _deposit_studio(db_async, async_client)
-    receipt = await _book_deposit(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
     booking_id = receipt["booking"]["id"]
     intent = await _intent(db_async, booking_id)
     assert intent is not None
@@ -466,7 +490,7 @@ async def test_a_customer_cancel_refunds_and_a_decline_refunds(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _deposit_studio(db_async, async_client)
-    receipt = await _book_deposit(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
     booking_id = receipt["booking"]["id"]
     intent = await _intent(db_async, booking_id)
     assert intent is not None
@@ -494,7 +518,7 @@ async def test_cancelling_an_unpaid_deposit_booking_cancels_the_intent(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
     studio = await _deposit_studio(db_async, async_client)
-    receipt = await _book_deposit(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
     booking_id = receipt["booking"]["id"]
     response = await _cancel(async_client, studio, booking_id)
     assert response.status_code == 200, response.text
@@ -511,7 +535,7 @@ async def test_a_refund_that_fails_does_not_undo_the_cancel(
     stripe_env: payments_conftest.StripeStub,
 ) -> None:
     studio = await _deposit_studio(db_async, async_client)
-    receipt = await _book_deposit(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
     booking_id = receipt["booking"]["id"]
     intent = await _intent(db_async, booking_id)
     assert intent is not None

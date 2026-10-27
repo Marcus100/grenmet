@@ -1,4 +1,4 @@
-"""Rewards tests that read Events reuse its disposable migrated database."""
+"""Rewards tests that read Events share its fixture (same database)."""
 
 from tests.events import conftest as events_conftest
 

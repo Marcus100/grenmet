@@ -9,10 +9,13 @@ from src.auth.onboarding_schemas import (
     ActivationConfirm,
     ActivationIssue,
     ActivationLink,
+    AdminActivation,
     OnboardingStatus,
+    SuperuserActionReason,
+    VerificationResend,
 )
 from src.auth.schemas import UserPublic
-from src.dependencies import CurrentUser, SessionDep
+from src.dependencies import CurrentUser, MfaAdminUser, SessionDep
 from src.models import Message
 from src.rate_limit import limiter
 
@@ -102,6 +105,80 @@ async def revoke(
     *, session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> None:
     await onboarding.revoke_activation(session, current_user, user_id)
+
+
+@router.post(
+    "/{user_id}/admin-activate",
+    response_model=OnboardingStatus,
+    status_code=200,
+    operation_id="authAdminActivateAccount",
+    summary="Vouch for an account (roles and memberships only)",
+    description=(
+        "Superuser with an enrolled authenticator vouches for an existing account "
+        "whose email cannot be verified. Unlocks staff roles and owner/admin "
+        "memberships (`require_verified_or_admin_activated`); does not set "
+        "`email_verified_at` and does not clear the strict deposit and "
+        "organiser-request gate. A reason is required and audited. Idempotent. "
+        "Body also carries `expected_email`, which must match the account's address (409 otherwise) and is stored in the audit entry. Inactive and superuser accounts are refused (409)."
+    ),
+    responses={
+        403: {
+            "description": "Superuser with an authenticator required (superuser_mfa_required)"
+        },
+        404: {"description": "Account not found"},
+        409: {"description": "Inactive or superuser account"},
+    },
+)
+@limiter.limit("20/minute")
+async def admin_activate(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    admin: MfaAdminUser,
+    user_id: uuid.UUID,
+    body: AdminActivation,
+) -> OnboardingStatus:
+    _ = request
+    response.headers["Cache-Control"] = "no-store"
+    return await onboarding.admin_activate(
+        session, admin, user_id, body.reason, body.expected_email
+    )
+
+
+@router.post(
+    "/{user_id}/resend-verification",
+    response_model=VerificationResend,
+    status_code=200,
+    operation_id="authAdminResendVerification",
+    summary="Send an existing account its verification email again",
+    description=(
+        "Superuser with an enrolled authenticator re-sends the verification link. "
+        "Reports `delivered: false` when mail is not configured or fails. A "
+        "reason is required and audited."
+    ),
+    responses={
+        403: {
+            "description": "Superuser with an authenticator required (superuser_mfa_required)"
+        },
+        404: {"description": "Account not found"},
+        409: {"description": "Inactive account"},
+    },
+)
+@limiter.limit("5/minute")
+async def resend_verification(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    admin: MfaAdminUser,
+    user_id: uuid.UUID,
+    body: SuperuserActionReason,
+) -> VerificationResend:
+    response.headers["Cache-Control"] = "no-store"
+    return await onboarding.resend_verification(
+        request, session, admin, user_id, body.reason
+    )
 
 
 @router.post(

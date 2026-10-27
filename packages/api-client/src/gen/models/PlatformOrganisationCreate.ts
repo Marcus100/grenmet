@@ -13,5 +13,8 @@ export type PlatformOrganisationCreate = {
    */
   name: string;
   kind: OrganisationKind;
+  /**
+   * @description Defaults to the name. A platform reserved name is refused (422).
+   */
   slug?: string | null;
 };

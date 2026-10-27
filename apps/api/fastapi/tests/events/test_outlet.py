@@ -148,7 +148,10 @@ async def test_outlet_sale_issues_scannable_tickets_without_an_account(
     assert {row.action for row in rows} == {"till.opened", "ticket.sold_outlet"}
     assert all(row.actor_id == staff.id for row in rows)
     assert all("Marcia" not in str(row.summary) for row in rows)
-    assert all("555" not in str(row.summary) for row in rows)
+    # The phone number itself, not "555": the summary holds random UUIDs that can
+    # contain those digits by chance.
+    assert all("473-555-0101" not in str(row.summary) for row in rows)
+    assert all("4735550101" not in str(row.summary) for row in rows)
 
 
 @pytest.mark.asyncio

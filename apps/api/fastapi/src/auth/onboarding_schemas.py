@@ -1,7 +1,8 @@
 import uuid
 from enum import Enum
+from typing import Annotated
 
-from pydantic import EmailStr, Field
+from pydantic import EmailStr, Field, StringConstraints
 
 from src.models import BaseModel, UtcDateTime
 
@@ -50,4 +51,29 @@ class OnboardingStatus(BaseModel):
     password_setup_pending: bool
     activation_pending: bool
     can_issue_activation: bool
+    # True when an administrator vouched for the account (unlocks roles and
+    # memberships, never the deposit gate); email_verified stays False then.
+    admin_activated: bool = False
     apps: list[AppAccessStatus]
+
+
+AdminReasonText = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=10, max_length=500)
+]
+
+
+class SuperuserActionReason(BaseModel):
+    """Why a superuser is using an admin power; stored in the audit trail."""
+
+    reason: AdminReasonText
+
+
+class AdminActivation(SuperuserActionReason):
+    """The operator vouches for the exact address they saw on the account."""
+
+    expected_email: EmailStr
+
+
+class VerificationResend(BaseModel):
+    delivered: bool
+    message: str

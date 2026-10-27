@@ -2,9 +2,11 @@
 
 ## Status
 
-Decisions 1 and 2 are superseded by [ADR-0023](0023-cap-approval-before-publish.md) (2026-10-18).
-Accepted. Supersedes [ADR-0007](0007-cap-warning-lifecycle.md)'s mandatory
-approval gate; the CAP-XML/audit/public-feed decisions in ADR-0007 stand.
+Accepted, except decisions 1 and 2 (self-publish with no approval gate), which
+[ADR-0023](0023-cap-approval-before-publish.md) superseded on 2026-10-18: a CAP
+alert again needs approval by a different person before publish. The other
+decisions (bulletin linkage and the rest) stand, as do the CAP-XML, audit and
+public-feed decisions of [ADR-0007](0007-cap-warning-lifecycle.md).
 Also reverses the "linking is deferred" stance in
 `docs/operations/gms-products.md`.
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AttendanceTimesheet } from "@/components/hr/timesheet/attendance-timesheet";
 import { TimesheetEditor } from "@/components/hr/timesheet/timesheet-editor";
 import { TimesheetSubmissions } from "@/components/hr/timesheet/timesheet-submissions";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = {
   title: "Time Sheet",
@@ -11,14 +12,10 @@ export const metadata: Metadata = {
 export default function TimesheetPage() {
   return (
     <div className="@container space-y-6">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight">
-          Official Time Sheet
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Add entries to preview the time sheet, then print or export.
-        </p>
-      </div>
+      <PageHeader
+        description="Add entries to preview the time sheet, then print or export."
+        title="Official Time Sheet"
+      />
       <AttendanceTimesheet />
       <details className="rounded-lg border p-4">
         <summary className="cursor-pointer font-medium text-sm">

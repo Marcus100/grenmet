@@ -1,0 +1,65 @@
+name: CodeQL
+
+# Static analysis for first-party TypeScript and Python. Results appear in the
+# repository Security tab (Code scanning), not as PR failures, until the owner
+# makes this check required. Both languages are interpreted, so build-mode none
+# needs no install or build step.
+on:
+  pull_request:
+    branches: [main, staging, dev]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+  push:
+    branches: [dev]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+  schedule:
+    # Weekly full scan picks up new queries even when the code is unchanged.
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, python]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          # Vendored upstream stacks (VENDORED.md) and generated code are
+          # covered by image scanning and regeneration, not by our review.
+          config: |
+            paths-ignore:
+              - surface
+              - wis2box
+              - packages/api-client/src/gen
+              - "**/node_modules"
+              - "**/.next"
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: /language:${{ matrix.language }}

@@ -25,6 +25,7 @@ from src.organisations.models import PlatformOrganisation
 from src.storage.config import storage_settings
 from src.storage.service import storage_service
 from src.utils.datetime import utc_now
+from src.utils.filenames import pdf_filename
 from src.utils.timezones import GRENADA
 
 from . import calc, emails, pdf
@@ -365,8 +366,9 @@ async def render_pdf(session: AsyncSession, invoice_id: uuid.UUID) -> tuple[str,
     )
     name = organisation.name if organisation else invoice.customer.organisation_id
     data = await run_in_threadpool(pdf.render_invoice_pdf, document_for(invoice, name))
-    stem = invoice.number or f"draft-{invoice.id}"
-    return f"{stem}.pdf", data
+    if invoice.number:
+        return pdf_filename("Invoice", invoice.number), data
+    return pdf_filename("Draft Invoice", name, today_grenada().isoformat()), data
 
 
 def download_url(invoice: Invoice) -> str | None:

@@ -191,6 +191,39 @@ access policy on every request. Account activation alone grants no authoring acc
 | `POST /api/v1/wxproducts/products` | Body: `id`, `expectedRevision`, `kind`, `values`, `action` (`draft`, `publish`, `withdraw`), `changeSummary`, `reviewed`; returns `StoredProduct` |
 | `GET /api/v1/wxproducts/products/{id}/history` | `{ history: [...] }`; up to 100 newest permitted revisions, exposing action, revision, actor name, note and timestamp, never revision content or actor IDs |
 
+### Tracked tropical systems (added 24 Oct 2026)
+
+A tracked system is the GMS identity of one tropical system across outlook issues,
+labelled by season and sequence (`GMS 2026-07`, assigned at creation). It lives in
+the wxproducts database (`tropical_systems`, migration `wxproducts_0003`). Each
+outlook system in a revision may name it in `guidance.systems[].tracked_system_id`;
+saving an outlook draft or publication then writes one row per linked system into
+`tropical_system_entries` in the same transaction (name, type, position, movement in
+knots, 48-hour and 7-day formation chances, source NHC edition IDs). The entries are
+a derived index: `tropical_systems.rebuild_entries` recreates them from revisions.
+A save is refused (422) when a linked system is unknown, closed, or linked twice, or when a movement speed has an unknown unit (kt/kn/knots, mph, km/h, m/s spellings are normalised) or exceeds 500 kt. NHC identifiers must carry the season year: storms `al072026` (numbers 01-89), invests `al942026` (90-99). On `PATCH` the format is checked only when the value changes (422), so a system saved with an older short id (`al07`) can send it back unchanged. Each entry also stores the NHC storm id the system had when the revision was saved (`wxproducts_0005`, which stamps each existing entry once with its system's current id, so check no unpublished id edits are pending at deploy). Concurrent saves lock the linked systems `FOR NO KEY UPDATE` in id order, and system edits (including merges) queue on one advisory lock, so opposite merges cannot form a loop.
+Every change to a system's identity (name, type, NHC ids, close, merge, reopen) is also written, with before/after values, actor and optional `reason`, to the append-only `tropical_system_changes` table (migration `wxproducts_0004`); it is not exposed by any route. A merge is refused (422) when it would create a continuation loop or target a system closed as a duplicate.
+`GuidanceFact` also gained `edited` (default false) and `source_value`, so an edited
+pre-filled value keeps the NHC original. All new fields are optional and additive.
+
+Staff routes need product access to the `outlook` kind (403 otherwise):
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET /api/v1/wxproducts/tropical-systems` | `TropicalSystemList`; optional `status` (`active`, `closed`), `season` (2000–2100), `limit` (1–200, default 100), `offset` (0–10000); newest season and sequence first |
+| `POST /api/v1/wxproducts/tropical-systems` | Body `TropicalSystemCreate` (`name`, `feature_type`, optional `season`, `nhc_storm_id`, `nhc_invest_id`); 201 `TropicalSystemRead`; 409 when the NHC storm identifier is already linked |
+| `PATCH /api/v1/wxproducts/tropical-systems/{system_id}` | Body `TropicalSystemUpdate`; rename, link identifiers, close with `closed_reason` (`dissipated`, `merged`, `out_of_area`, `duplicate`; `merged` needs `continued_as_id`) or reopen with `status: active` |
+| `GET /api/v1/wxproducts/tropical-systems/{system_id}/history` | `TropicalSystemHistory`; every entry oldest first, drafts included |
+
+Public routes are anonymous and `no-store` (like every wxproducts public route), and only ever show published issues:
+an entry is public when its product's current published snapshot has the entry's
+revision, so a withdrawn outlook disappears from both.
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET /api/v1/wxproducts/public/tropical-systems` | `TropicalSystemPublicList`; the systems listed in the most recent current published outlook, each with its `latest` entry from that issue. `name`, `feature_type` and `nhc_storm_id` come from the published entry, so staff renames and NHC id edits show only after the next publish; `status` is the live state, so a closed system stays listed (as closed) until the current outlook stops listing it. The current outlook is chosen in SQL (`latest_current_outlook`) |
+| `GET /api/v1/wxproducts/public/tropical-systems/{system_id}` | `TropicalSystemPublicHistory`; published entries oldest first; `name`, `feature_type` and `nhc_storm_id` from the latest published entry, `status` live; 404 when the system was never published |
+
 `StoredProduct` preserves the editor shape: `id`, `kind`, `values`, `revision`,
 `publishedRevision` (nullable), and `updatedAt`. Errors use `detail`: a string for
 application errors, or an array for request-schema errors. Statuses include 401
@@ -402,7 +435,7 @@ purpose and take no `X-Barrels-Organisation` header. The detail also lists
 
 Control-plane writes (superuser only, all return the refreshed detail and are
 audited under the `platform_organisation` history subject): `POST /organisations`
-(`name`, `kind` barrels, client or business, optional `slug`; 409 when taken),
+(`name`, `kind` barrels, client or business, optional `slug`; 409 when taken, 422 when it is a platform reserved name from `docs/ports.md`),
 `PATCH /organisations/{id}` (`name`, `slug`, `kind`, `status` active or
 suspended; at least one field), `POST /organisations/{id}/verify` and
 `/unverify` (body `{reason}`, 3 to 500 characters; 409 when already in that
@@ -411,6 +444,31 @@ outside the registry) and `GET /organisations/{id}/admin/members` (roster of any
 organisation). A suspended organisation is refused with 403 by every
 `X-Barrels-Organisation` route. A verified organisation shows its linked Events
 organiser as `verified`.
+
+**Privileged MFA enrolment (issue #501).** With `AUTH_PRIVILEGED_MFA_MODE=enforce`
+(the default outside `ENVIRONMENT=local`), a superuser or privileged-permission
+holder (superuser, `user.manage`, or a CAP approve/publish key) without an enrolled
+authenticator gets 403 on every `CurrentUser` route, the cookie routes, GAA Admin and CMS
+admission, and (superusers only) the Events moderator and organiser routes, with a `detail` that starts `Set up two-step verification` and ends
+`(mfa_enrolment_required)`. Account security (`/auth/users/me/security*`), sign-in
+and sessions stay reachable so the person can enrol. Clients match the stable
+suffix `mfa_enrolment_required`.
+
+**Superuser admin powers (owner decision 2026-10-21).** All need an active
+superuser with an enrolled authenticator *and a session that passed MFA* (a
+token without `sid`, or a session with empty `mfa_verified_at`, gets 403) in
+every environment, whatever `AUTH_PRIVILEGED_MFA_MODE` says (403
+`superuser_mfa_required: ...` when not enrolled). Activating 2FA on a privileged
+account revokes its other sessions. They are limited to 30/minute.
+Every call needs a `reason` of 10 to 500 characters that is stored in the audit trail:
+`POST /organisations/{id}/admin/members` (`organisationsAddMemberAdmin`: body
+`{user_id | email, role, reason}`; 409 when already a member; owner/admin need a
+verified or administrator-activated target), `PATCH
+/organisations/{id}/admin/members/{membership_id}` (`{role, reason}`) and
+`DELETE` the same path (body `{reason}`); the last-owner rule applies (409).
+Adding yourself works and is audited (`platform_organisation_member`, actor,
+target, role, reason). This is the only way in: ADR-0022 still gives superusers
+no bypass on `X-Barrels-Organisation` routes.
 
 ### Organisation context
 
@@ -427,7 +485,11 @@ the header cross-origin (it is in the CORS allow list).
 | Member whose role is too low for the route (`owner` > `admin` > `member`) | 403 |
 
 There is no superuser bypass. The caller needs any active Barrels account (the
-same as the account routes), not staff approval. The resolved organisation id is
+same as the account routes), not staff approval. A route family may opt in to the session of its own app
+(`session_app=` on `require_org_app` / `org_or_key`; `/bookings/org/*` accepts the
+bookings app session, issue #472): that JWT then needs an active account with
+`app.<key>.access`, and the membership, role and entitlement rules above are
+unchanged. Every other app's token stays 401. The resolved organisation id is
 written to every log line for the request as `organisation_id`. A route is only
 described as organisation-isolated if it uses `OrgContext` and has a
 cross-organisation denial test.
@@ -470,6 +532,17 @@ address or a second pending request); moderators verify it through
 `PATCH /events/moderation/organisers/{id}`. Publishing, cancelling or rescheduling a
 listing and approving an organiser also write `outbox` rows (same Events transaction)
 that the worker turns into notifications; no endpoint is involved.
+Admin moderation (zone `admin`, staff session): `GET /admin/moderation/organisers`
+(`?status=pending|approved|rejected`, paginated) and `GET /admin/moderation/organisers/{organisation_id}`
+(case with owners, listing counts and verification history) are open to superusers and
+`events.moderate` holders; `POST .../approve` and `POST .../reject` (reason required)
+need an MFA superuser and go through `organisations.service.admin_set_verified`
+(409 on a repeat decision, audit entry with the actor, `organiser.approved` /
+`organiser.rejected` outbox row). A rejected organiser's owners or admins send
+`POST /events/manage/organiser/resubmit` to return to `pending` (409 otherwise).
+The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{id}/verify|unverify` also need an MFA superuser and use the same path (organiser flag mirror, activity row, notification); the PATCH is 409 for a rejected organiser (resubmit first). Superuser override: an MFA superuser may approve a rejected organisation directly through `POST /admin/moderation/organisers/{id}/approve` or `POST /organisations/{id}/verify`. Approving a suspended organisation is 409.
+`org.organisation` carries `verification_status`, `verification_reason` and
+`verification_decided_at`; `verified_at` stays the single "verified" signal.
 `GET /events/manage/{listing_id}/activity` returns that listing's append-only history
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.
@@ -557,6 +630,56 @@ without a reference, a ticket already refunded or cancelled by its holder, or a 
 the event was cancelled. Ticket `status` can now be `refunded`; refunded tickets are not
 admitted. The settlement report lists `refunds` and per-channel `refunded`/`refunded_minor`.
 
+### Events organiser orders (org zone)
+
+`/events/org/*` acts for the organisation in `X-Barrels-Organisation` (account or Events app
+session, `events` entitlement). Each route needs an organisation-bound Events key (ADR-0044),
+held by owners and admins and by members through a grant: orders `events.settlement.view`,
+attendees `events.door.scan`, manual payment `events.tickets.sell`, refund and order cancel
+`events.refunds.issue`, event cancel `events.listings.manage`. Another organisation's event or
+order is 404. The order detail carries the buyer's account email (owner-approved); lists carry none and use `PaginatedResponse`.
+`GET /events/org/events/{id}/orders` (`status`, `page`, `size`), `GET .../attendees` (`status`,
+`tier_id`) and `GET /events/org/orders/{id}` (with `refund_status`) read the desk.
+`POST /events/org/orders/{id}/manual-payments` (`{method: "cash"|"bank_transfer", reference?}`,
+`Idempotency-Key` required, 201) records money received for a `pending_payment` order on the manual
+rail and issues its tickets at once. `POST .../refunds` (`{amount_minor?, reason}`,
+`Idempotency-Key` required) hands money back through the payments core. Both replay the first
+answer with `Idempotency-Replayed: true`.
+
+Refund choice: cancelling takes `refund`: `full`, `none` or `follow_policy`.
+`POST /events/org/orders/{id}/cancel` (`{reason?, refund}`, default `follow_policy`) cancels one
+order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUTOFF_HOURS`
+(default 48) away; outlet cash orders cancel only with `none`.
+`POST /events/org/events/{id}/cancel` (`{confirm, refund}`, default `follow_policy`: paid online
+orders are refunded in full, unpaid holds released) cancels an event. The legacy
+`POST /events/manage/{id}/cancel` takes the same optional `refund` but defaults to `none`, and
+saving a listing as cancelled never moves money. Event cancel reports `orders_refunded`
+(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`
+and `refunds_failed`.
+
+Provider-rail (card) refunds are never sent inside a request (one may wait per order; a second is 409, and the buyer email is shown to org admins/owners only): they are queued on the outbox topic
+`events.order_refund_requested` and sent with retries; the refund id is derived from the order and
+the request, so a retry cannot refund twice. Follow it on the order's `refund_status`
+(`none`, `queued`, `partial`, `refunded`, `failed`).
+
+### Events staff path (ADR-0050)
+
+The same `/events/org/*` routes also accept Barrels staff who hold a global staff key through a
+role (never implied for a superuser): orders list and detail `events.ops.settlement`, attendees
+`events.ops.door`, manual payment `events.ops.till`, refund and order cancel `events.ops.refunds`,
+event cancel `events.ops.listings`. A member holding the organisation key is a member call;
+otherwise the staff path applies and an unknown organisation or missing staff key gives the member
+path's own answer (404, or 403 for a member without the key). Suspended organisation or `events`
+entitlement off is 403. Every staff key except `events.ops.door` needs a session that passed
+two-step verification (403), whatever `AUTH_PRIVILEGED_MFA_MODE` says. Staff see the buyer email
+(each read is logged with ids only). Staff writes are limited per user and key (refunds, cancels
+20/minute; till 120/minute; 429). `ActivityEntry.actor_capacity` is `member` or `staff`; staff
+rows show as "Barrels staff" with a nil actor id. Staff pick work with
+`GET /events/admin/events` (`from`, `to`, `q`, `organiser_id`, `page`, `size`) and
+`GET /events/admin/organisers` (`q`): ids, names, dates and status only, any `events.ops.*` key,
+two-step verification unless the only key is `events.ops.door`. Staff keys count only from live ALL-scope role assignments or plain role links (SELF/DEPARTMENT give none), and the caller needs `app.events.access`. A staff event cancel with `refund` other than `none` also needs `events.ops.refunds` (403). Staff reads are limited to 120/minute per user and key. The pickers list only active organisations with the `events` entitlement, and draft listings only to holders of `events.ops.listings` or `events.ops.settlement`. Staff end dates are not built yet:
+only permanent staff roles are supported.
+
 ## Platform foundations (PF-series, 2026-10-20)
 
 Shared APIs for every Barrels app. Zones follow ADR-0025.
@@ -577,9 +700,30 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   `POST /rewards/redemptions/confirm` (`rewards.write`). A key acts on its own
   organisation only (the organisation header is ignored), needs the scope and the
   organisation's entitlement (403), and a revoked or expired key is 401.
+- **Membership grants** (ADR-0044 S3, `organisations/team.py`): org-zone routes under
+  `/organisations/org`: `GET /role-bundles` (entitled products; `grantable` for the
+  caller), `GET`/`POST /members/{membership_id}/grants` (live grants; grant with
+  optional UTC `expires_at`), `POST /grants/{grant_id}/revoke`, and admin-only
+  `GET /members/{membership_id}/issued-grants`. Entry needs some entitled product's
+  `team.manage` key (owner and admin implicitly); the grant rules (hold the bundle,
+  no self-grant 403, expiry cap 422, duplicate or lost race 409) live in
+  `grants.py`. Responses carry display names, never emails. Removing a member also
+  revokes live grants they issued (audited with a count); a demotion only lists them.
+  `issued-grants` lists direct grants only: revocation is not transitive. Member grant
+  lists show only products whose `team.manage` the caller holds. Each bundle carries a
+  human `label` and `description` (`role_bundles.BUNDLE_COPY`). `GET /team/members`
+  (team managers) is the paginated roster of active members: membership id, display
+  name, org role and live grants limited to the products the caller manages, no
+  emails. `GET /team/me` (any member) returns the caller's org role, the products
+  whose `team.manage` they hold and `is_admin_or_owner`.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
-  which return only flags marked exposed.
+  which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`
+  is the unauthenticated variant for static sites (at most 20 keys, rate limited,
+  `Cache-Control: public, max-age=30`; 600/minute per IP): callers must cache it (Next
+  `revalidate` ~60 s) rather than call per visitor, and treat 429 or any error as flag
+  off (fail closed). Anonymous subject, so only environment and
+  `everyone` rules can be on; unknown and non-exposed keys are absent.
 - **Rewards earn sources, Passport and achievements** (PF8/PF9, ADR-0030): programmes take
   a `qualifying_source_type` from the catalogue in `src/rewards/sources.py`.
   Organisation routes under `/rewards/org/...` manage venues, trails, stops,
@@ -599,7 +743,9 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   `POST /rewards/me/gifts/{id}/reverse` (passport souvenirs, never ledger entries).
 - **Payments core** (PF4, ADR-0027, Stripe test mode only): organisation routes under
   `/payments/org/...` (intents, manual payments, refunds, balance; `payments`
-  entitlement and organisation admin); signed provider callbacks at
+  entitlement and organisation admin; `POST /payments/org/intents` refuses `source_type`
+  values owned by another domain, `bookings.deposit` and `events.order`, with 422);
+  signed provider callbacks at
   `POST /payments/public/webhooks/{provider}` (idempotent through the ledger, hidden
   from OpenAPI); superuser reconciliation, ledger, balances and payouts under
   `/payments/admin/...`, including `reconciliation.csv`. The ledger is append-only. A payout
@@ -633,7 +779,9 @@ Some older auth endpoints still use `skip` and `limit`. New list endpoints shoul
 | Endpoint | Meaning | Expected response |
 | --- | --- | --- |
 | `GET /api/v1/utils/health-check/` | Liveness | JSON `true` |
-| `GET /api/v1/utils/ready/` | Database readiness | `{"status":"ready"}` or 503 |
+| `GET /api/v1/utils/ready/` | Database readiness | `{"status":"ready"}` or 503 `{"detail":"Database unreachable"}` |
+
+Readiness returns the 503 as a response, not a raised exception, so expected not-ready probes are not reported to Sentry. Only database (SQLAlchemy and asyncpg, including connect-time errors), I/O, timeout and schema-revision failures map to 503; any other exception stays a reported 500 (including a failure to read the migration heads).
 
 Deployment smoke checks currently use liveness. Operational diagnosis should use readiness when database access matters.
 
@@ -659,10 +807,13 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 
 | Endpoint | Authentication | Contract |
 | --- | --- | --- |
-| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409 |
+| `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
+| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409, a platform reserved name 422 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
 | `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
 | `GET/PUT /api/v1/bookings/org/providers/{id}/hours` | Same | Replace the weekly plan; overlapping periods on one day 422 |
+| `GET /api/v1/bookings/org/settings` | Member or API key `bookings.read` | Settings screen in one call: profile (null before it exists), services, providers with `service_ids` and `working_hours`, and `deposits_available` (false without the `payments` entitlement, where deposits are stored but not collected) |
+| `PUT /api/v1/bookings/org/services/order`, `PUT /providers/order` | Admin member or API key `bookings.write` | Body `{ids}`: each `sort_order` becomes its position; a foreign or unknown id 404, duplicates or an empty list 422 |
 | `GET/POST /api/v1/bookings/org/providers/{id}/exceptions`, `DELETE /studio/exceptions/{id}` | Same | Dated `time_off` and `extra_hours` |
 | `GET /api/v1/bookings/org/bookings?starts_from&ends_before` | `X-Barrels-Organisation`, any member | Agenda of bookings overlapping the range |
 | `GET /api/v1/bookings/public/{slug}` | None (60/minute) | Storefront: active services and providers; unknown or disabled 404 |
@@ -670,7 +821,9 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 
 | `GET /api/v1/bookings/org/agenda?from_date&to_date[&provider_id&status&limit&offset]` | Member or API key `bookings.read` | Bookings grouped by local day; at most 62 days (422), paged with `limit` and `offset` |
 | `GET /api/v1/bookings/org/bookings/{id}` | Same | Studio view with customer contact details, history and deposit state; another organisation's id 404 |
+| `POST /api/v1/bookings/org/bookings` | Admin member or API key `bookings.write`; `Idempotency-Key` required | Staff entry (phone, walk-in, re-entered appointment): `confirmed`, source `studio`, no deposit; ignores lead time, horizon and weekly hours, but an overlap is 409; provider must offer the service (422); optional customer email, emailed only with `send_confirmation` |
 | `POST /api/v1/bookings/org/bookings/{id}/confirm`, `/decline`, `/cancel`, `/no-show`, `/complete` | Admin member or API key `bookings.write` | Studio actions through the status machine; decline and cancel need a `reason`, email the customer and emit `booking.cancelled`; an illegal move 409 |
+| `POST /api/v1/bookings/org/bookings/{id}/manual-deposit` | Owner or admin member only (no API key), organisation must hold `bookings` and `payments`; `Idempotency-Key` required | Records a deposit taken outside Stripe (`method` cash/bank_transfer/cheque, optional `reference`) through the payments manual rail, so `deposit_captured_minor` shows it and a `pending_payment` booking is confirmed; writes an audit entry and a history note with the actor; no deposit, closed booking, deposit already paid, an online payment in flight, or a failed or expired card payment is 409 |
 
 Overlapping active bookings for one provider are refused by the database
 (`booking_no_overlap`).
@@ -681,6 +834,19 @@ entitlement, `POST /bookings/public/{slug}/bookings` answers a booking in
 mode; null when the business records payment itself). Unpaid bookings are cancelled
 and their slot released after `BOOKINGS_DEPOSIT_HOLD_MINUTES` (30). Both receipt
 fields are additive.
+
+Email code before a deposit (#471, ADR-0018): a deposit booking needs `email_proof` in
+the create body unless the caller is a signed-in account (any session, including the
+bookings app's) whose verified or administrator-activated email equals
+`customer_email`. Without it the create answers 403 `email_verification_required` and
+stores nothing. `POST /bookings/public/{slug}/email-code` (`service_id`, `starts_at`,
+`customer_email`, Turnstile; 5/minute and 20/hour per visitor, 5 per email per hour)
+emails a 6-digit code (10 minutes) and answers `{required, expires_in_seconds}`
+(`required: false` and no mail when no step applies). `POST
+/bookings/public/{slug}/email-code/confirm` (same fields plus `code`) answers `{proof,
+expires_in_seconds}`: wrong or expired 400, five wrong answers lock the email for 15
+minutes (429), Redis down 503. The proof is single use, valid 15 minutes and bound to
+organisation, email, service and start time. Both routes and `email_proof` are additive.
 
 ## Billing
 
@@ -766,13 +932,26 @@ caller's transaction; the worker sends email every 30 s (React Email `notificati
 template via web-auth, Jinja fallback, delivered through Resend/SMTP) and runs the daily
 reminder sweep at 10:00 UTC. Emails carry only a summary and a portal link.
 
+**GMS staff notifications** (`src/notifications/gms.py`, no endpoints of their own; people
+choose the bell and email per event through `/notifications/preferences`). Eight events:
+`gms.forecast_overdue`, `gms.review_requested`, `gms.warning_changed`,
+`gms.warning_expiring`, `gms.observation_missing`, `gms.send_failed`, `gms.record_query`,
+`gms.nhc_product`. Forecast overdue, warning changed and send failed are urgent (always in
+the bell). `review_requested`, `observation_missing`, `send_failed` and `nhc_product` are
+grouped: repeats fold into the recipient's unread notification. Recipients come from the
+published GMS duty roster; when there is no roster, or it names nobody qualified on shift,
+every holder of the relevant permission hears (for a missing hourly observation, all
+register staff who may record observations). The warning events are
+raised inside the CAP lifecycle transaction; the rest are swept every five minutes by the
+worker job `run_gms_notification_sweeps`, each item once (`dedupe_key`).
+
 | Endpoint | Access and purpose |
 | --- | --- |
 | `GET /api/v1/notifications?unread=` | Own notifications, paginated |
 | `GET /api/v1/notifications/unread-count` | `{count}` for the header badge |
 | `POST /api/v1/notifications/{id}/read` | Mark own notification read; another person's → 404 |
 | `POST /api/v1/notifications/read-all` | Mark all own notifications read |
-| `GET/PUT /api/v1/notifications/preferences` | Own email opt-outs per event; approval events (`email_mutable: false`) cannot be muted → 400 |
+| `GET/PUT /api/v1/notifications/preferences` | Own bell and email choice per event (leave a channel out to keep it); approval events (`email_mutable: false`) cannot be muted by email and urgent events (`urgent: true`, `bell_mutable: false`) cannot leave the bell → 400. Items carry `repeat_count` (grouped events fold into one unread notification) and `urgent`; a notification with the bell off is kept only for its email and never listed or counted |
 | `GET /api/v1/notifications/settings?organisation_id=` | `notifications.manage` in the organisation: every event with effective settings, plus staff whose email domain is outside `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` |
 | `PUT /api/v1/notifications/settings/{event_key}?organisation_id=` | `notifications.manage`: on/off, email on/off, extra recipient roles, title/body Jinja templates (validated), timings (`remind_after_days`, `escalate_after_days`, `expiry_days_before`) |
 | `GET/POST /api/v1/notifications/snoozes?organisation_id=` | `notifications.manage`: list active snoozes / silence an event, or one entity of it (`entity_type` + `entity_id` together), until a future `until`; unknown event → 404 |
@@ -814,6 +993,23 @@ with private/no-store headers. `GET /attendance/review?attendance_id=…` (or
 retained corrections. `POST /attendance/{attendance_id}/corrections` requires a
 reason and starts a separate supervisor workflow; original time stays in effect
 until approval atomically advances its revision. See [manual attendance](../hr/manual-attendance.md).
+
+### Returned forms
+
+`POST /workflow/instances/{instance_id}/actions` with `action: "RETURN"` sends a
+submitted form back to its author and requires non-empty `comments` (the reason;
+400 otherwise). The form's `status` becomes `RETURNED` (leave, absentee, shift
+exchange, parking, daily status: `RequestStatus`; timesheet: `TimesheetStatus`),
+the reason is kept in the approval action log, and the author receives the
+`workflow.returned` notification carrying the reason. `RETURNED` is not final,
+unlike `REJECTED`: the author edits the form with its normal update route and
+resubmits it with its normal submit route, which starts a fresh approval chain
+(the returned chain stays as history). A returned timesheet can be resubmitted
+unchanged only; there is no timesheet edit route yet, and the generic workflow
+route refuses SUBMIT on a returned timesheet instance. `PATCH /hr/leave-requests/{id}/action`
+refuses `RETURNED`; returning goes through the workflow action so a reason is
+always recorded. Deleting a returned form stays blocked because approval history
+is retained.
 
 ### Department calendar
 
@@ -891,20 +1087,47 @@ separate as-of column yet.
 
 | Endpoint | Permission | Purpose |
 | --- | --- | --- |
-| `POST /api/v1/hr/attendance/clock` | `timesheet.submit.self` | Record arrival, or departure when a shift is open |
+| `POST /api/v1/hr/attendance/clock` | `timesheet.submit.self` | Record a PENDING arrival, or departure when a shift is open |
+| `GET /api/v1/hr/attendance/clock-punches/pending` | `timesheet.approve` (named supervisor with a live assignment in the punch's organisation, or department scope) | Pending phone punches the caller may review; never their own |
+| `POST /api/v1/hr/attendance/clock-punches/{punch_id}/approve` | `timesheet.approve` (named supervisor with a live assignment in the punch's organisation, or department scope) | Approve a punch; it then counts as attendance |
+| `POST /api/v1/hr/attendance/clock-punches/{punch_id}/reject` | `timesheet.approve` (named supervisor with a live assignment in the punch's organisation, or department scope) | Reject a punch with a reason; it never counts |
 | `GET /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | List a department's clock points (no tokens) |
 | `POST /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | Create a clock point; the token is returned once |
 | `POST /api/v1/hr/attendance/clock-sites/{site_id}/rotate` | `roster.manage` in the department scope | Replace the token; the old one stops working |
 | `PUT /api/v1/hr/attendance/clock-sites/{site_id}/active` | `roster.manage` in the department scope | Activate or deactivate a clock point |
 
 A clock point proves presence with a static token on an NFC tag or QR poster; only
-its SHA-256 hash is stored. A scan feeds the existing attendance record through
-`save_attendance`, so roster, permission and revision rules and the supervisor
-workflow are those of manual attendance. Arrival needs a published work shift that
+its SHA-256 hash is stored. A phone punch is **pending** until a supervisor approves
+it (ADR-0040): the scan stores a `hr.clock_punch` row and writes no attendance, so
+hours and timesheets ignore pending and rejected punches. Approval calls
+`save_attendance` as the employee (an arrival creates the record, a departure closes
+it), so roster, revision and the supervisor workflow are those of manual attendance.
+A departure can be approved only after its arrival; rejecting an arrival also
+rejects its pending departure, and the employee may then punch again. Callers
+holding `timesheet.approve` with organisation-wide scope, with department scope for
+the punch's department or the employee's current department, or who are the
+employee's named supervisor and hold a live `timesheet.approve` assignment in the
+punch's organisation, may decide. After a department transfer the employee may
+still record their own attendance for shifts rostered under the old department
+(same organisation only). The employee may also submit that attendance, and propose
+corrections to it, for review: the approval is the old department's workflow and
+approvers (`require_ready` accepts the roster department only for attendance and
+attendance-correction reviews, only for the employee's own record and only within
+the same organisation; leave and other forms stay bound to the current department).
+Acting for someone else stays bound to the roster department. An arrival only attaches
+to a published shift of the department whose clock point was scanned. A departure
+closes the employee's open shift wherever it was rostered (so a mid-shift transfer
+does not strand it) and is stored with that shift's department, not the scanned
+point's; either way the punch department equals the roster department. Nobody may decide their
+own punch (superusers included). Approve and reject are idempotent for the same
+outcome and return 409 for the opposite one. Arrival needs a published work shift that
 started at most two hours ago or ends within the next hour; with none, the call
 returns 409 and no shift is invented. A second scan within 60 seconds changes
 nothing. The clock point must belong to the caller's own department. `late_minutes`,
 `early_departure_minutes` and `overtime_minutes` are informational and not stored.
+`ClockResult` gains `punch` (with `status`); `attendance` stays but is a provisional,
+unsaved view (`attendance_id` null) until the punch is approved. Terminal punches
+(import not built yet) will count immediately and do not use this table.
 
 ### Roster rule limits and check
 
@@ -984,14 +1207,14 @@ carries two time bases.
 
 ## Barrels Events
 
-`/api/v1/events/*` (ADR-0016, separate `events` database; 503 while `EVENTS_DATABASE_URL` is unset).
+`/api/v1/events/*` (ADR-0016; `events` schema in the main database, ADR-0003). Settlement `online_payments` description now says orders and the ledger are compared, not joined (wording only, no shape change).
 
 | Access | Endpoints |
 | --- | --- |
 | Public (an Events token personalises) | `GET /listings` (`when`, `category`, `parish`, `price`, `tag`, `q`, `organiser`, `limit`, `offset`), `GET /listings/{slug}`, `GET /organisers/{slug}`, `GET /groups`, `GET /groups/{slug}`, `GET /people/{handle}`, `POST /suggestions` |
 | Events member | `POST /manage/organiser`, `GET`/`PATCH /me/profile`, `GET /me/plans`, `GET /me/network`, `PUT`/`DELETE /listings/{slug}/rsvp` and `/save`, `PUT`/`DELETE /organisers/{slug}/follow`, `PUT`/`DELETE /groups/{slug}/membership`, `POST /connections`, `POST /connections/{id}/accept`, `DELETE /connections/{id}`, `PUT`/`DELETE /blocks/{handle}`, `POST /reports`, `GET`/`POST /threads`, `GET /threads/{id}`, `POST /threads/{id}/messages` |
 | `events.organiser.manage` + organiser membership | `GET /manage`, `POST /manage/listings`, `PUT /manage/listings/{id}`, `GET /manage/{id}/activity` |
-| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions`, `GET /moderation/organisers`, `PATCH /moderation/organisers/{id}` |
+| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions`, `GET /moderation/organisers` (pending only) |
 
 Prices are integer minor units (`price_from_minor`, tier `price_minor`); datetimes are UTC and
 clients render Grenada time. Direct threads open only between accepted connections or members
@@ -1018,7 +1241,7 @@ these anonymous endpoints:
 | `GET /api/cap/{identifier}.xml` | Latest CAP XML snapshot for an identifier |
 
 CAP management routes are under `/api/v1/cap` and require authenticated users plus permission checks.
-`POST /alerts/{id}/publish` accepts only an `APPROVED` alert whose approver is not its author (409 otherwise); `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
+`POST /alerts/{id}/publish` accepts only an `APPROVED` alert with a recorded approval, which the author may give (409 otherwise; owner decision 2026-10-23, ADR-0023 amendment). `POST /alerts/{id}/reviews` (`{"outcome": "reviewed" | "changes_requested", "note": "..."}`, permission `cap.alert.approve`) records an optional colleague review by someone other than the author (403 for the author, 409 unless the alert is Submitted or Approved); it never changes the alert's state. Asking for a review is the submit step; `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
 
 Only Public alerts with `status=Actual` create CAP publish side-effect jobs. The
 worker also skips previously queued jobs for any other status or scope, so an
@@ -1110,7 +1333,7 @@ Creating a leave request, absentee report, daily status report, shift swap, or t
 
 ### Private weather images
 
-`GET /api/v1/wxwatch/images/{storage_path}` accepts an active browser session or bearer identity. It returns private/no-store local image bytes when `WXWATCH_LOCAL_IMAGES_DIR` is configured, or a 60-second signed object-storage redirect otherwise. Raster paths are validated; local paths and symlinks must remain inside the configured root. Missing files return 404, invalid paths 400, and missing storage configuration 503. Gaa-admin uses a same-origin `/_backend/wxwatch/` rewrite and disables image optimization so browser credentials reach FastAPI.
+`GET /api/v1/wxwatch/images/{storage_path}` accepts an active browser session or bearer identity. It returns private/no-store local image bytes when `WXWATCH_LOCAL_IMAGES_DIR` is configured, or a 60-second signed object-storage redirect otherwise. Raster paths are validated (PNG, JPEG, GIF and WebP names only, checked in linear time); local paths and symlinks must remain inside the configured root. Missing files return 404, invalid paths 400, and missing storage configuration 503. Gaa-admin uses a same-origin `/_backend/wxwatch/` rewrite and disables image optimization so browser credentials reach FastAPI.
 
 ### Authored product grade policies
 
@@ -1186,6 +1409,23 @@ version is recorded in the resulting alert's `GMS:hazard-profile` parameter.
 Threshold evaluation and transport/channel enforcement are not performed here.
 Creating a draft never publishes it; its assessment remains Unknown.
 
+### CAP escalation from a GMS alert (ADR-0051, proposed)
+
+GMS alerts are green only. `POST /api/v1/cap/escalations` with
+`{product_id, revision, awareness_level: yellow|orange|red}` creates a CAP draft
+pre-filled from that saved alert revision (event, severity from the colour,
+certainty from likelihood, onset and expiry in UTC, synopsis, impacts and
+response) with `GMS:product` Warning, `awareness_level` and the three
+`GMS:source-bulletin-*` parameters. It requires `cap.alert.create` and product
+access to the alert's kind, and only hazard alert kinds are accepted (422
+otherwise; 404 for an unknown revision). It is idempotent per product: when a
+draft, submitted or approved CAP alert already links the product, it returns 200
+with that alert and `created: false`; a new draft returns 201. The draft areas
+are left empty and the wording needs GMS sign-off. `GET /api/v1/cap/escalations?product_id=`
+(`cap.alert.read`) returns the open or published linked alert, or nulls. The
+green alert is never changed or withdrawn by either route; a forecaster withdraws
+it. Both databases are read or written separately, with no shared transaction.
+
 
 ### Employee training history
 
@@ -1215,6 +1455,11 @@ Sign & submit action. Proxy submitters sign as themselves, never as the employee
 `GET /api/v1/hr/signed-documents/{id}/pdf` returns the original PDF to the signer,
 subject, or an HR document reader scoped over the subject and organisation.
 Authorized HR form responses include `signed_document_id` when a signed copy exists.
+PDF download names are human and dated in Grenada time, never UUIDs (headers only;
+routes are unchanged), e.g. `GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf` or
+`Leave Application - <signer> - 2026-10-23.pdf`. Every PDF response sends an ASCII
+`filename` plus `filename*=UTF-8''...` (RFC 6266) from `src/utils/filenames.py`; the
+signer's name appears only on signed documents, where it is already printed.
 All signature and PDF responses use private, no-store caching. Signed PDFs, signer
 identity, signature version, timestamp, canonical form snapshot and SHA-256 are
 committed with submission and remain unchanged when the saved signature changes.
@@ -1604,9 +1849,89 @@ blocks the save on errors only. A workbook with only identification fields is a
 NIL report (`decoded.is_nil_report`). Optional entries beyond the original
 workbook are the wet bulb (`wet_bulb`), wind gust (`wind_gust`), relative
 humidity (`relative_humidity`) and observer initials (`observer_initials`, not
-an observation value). The endpoint does not save, publish, or
-transmit an observation; `POST /api/v1/eregister/observations` still stores a
-draft.
+an observation value). With `observed_at` the endpoint also compares the
+observation with the saved ones 1 and 3 hours earlier (hour-to-hour warnings).
+It returns `expected_metar`, the METAR the observation implies, and when the
+workbook carries a typed `metar_text` it warns (field `metar_text`, codes
+`metar_*`) on every element that disagrees; these never change `valid`. The
+METAR dew point is the decoded one (so a `2 9UUU` humidity group works), and
+cloud is not compared when N is above 0 but no layer group is keyed. Group 908
+is a warning (`unused_supplementary`) until it is confirmed against Vol. I.1. The
+endpoint does not save, publish, or
+transmit an observation; `POST /api/v1/eregister/observations` stores a
+draft (validated, see below). `GET /api/v1/eregister/observations` filters by
+`station_id`, `kind`, `state`, `reviewed` and an exact `observed_at` (the record
+occupying an hour), and pages with `limit` and `offset` (`offset` above 10 million is
+`422`). A refused WIS2 or email hand-off after acceptance is stored as a `failed`
+send with the reason in `last_error`. Correcting an observation (`POST .../{id}/correct`) holds any queued WIS2 file of
+the replaced observation (status stays `queued`, `last_error` "Held while a correction
+is pending"): accepting the correction drops the held file (`failed`, "Replaced by a
+correction before it was delivered"); rejecting the correction releases it so the
+original reading is retried as before.
+
+`POST .../{id}/review` takes an optional `updated_at`, the value the reviewer saw
+when opening the record (to the second). If the record was saved or decided since (accept, reject and reopen also move
+`updated_at`), the review is refused with `409`; a change within the same second is
+not detected; omitting it keeps the earlier behaviour.
+
+Recording and reading the register (`POST` and `GET
+/api/v1/eregister/observations`, `GET .../{id}/sends`) need one of
+`eregister.observe` (role `eregister-observer`), `eregister.qc` or
+`eregister.send`; anyone else gets `403`. A saved SYNOP shows on the public
+weather site as provisional, so a signed-in account alone is not enough.
+
+#### eRegister entry rules (owner decisions, 23 Oct 2026)
+
+- *Typed visibility.* The workbook field `visibility_km` (kilometres, for example
+  `18` or `0.8`) is what the observer types; the coded `visibility` (VV, Code
+  table 4377) is calculated from it, rounding down. A text that is not a
+  non-negative number is an error (`invalid_km`).
+- *Calculated humidity.* With `air_temp`, `wet_bulb` and the keyed
+  `station_pressure`, the dew point, vapour pressure and relative humidity are
+  calculated (psychrometer equation, Magnus formula over water; `derive.py`).
+  `validate-synop` returns them in `normalized` (`dew_point`,
+  `relative_humidity`), and a saved observation stores them in its `body`. A row
+  without a wet bulb or station pressure keeps whatever dew point was keyed.
+- *Barometer as read and the pressures.* `barometer_reading` (paper column 17) is
+  the reading in hPa with one decimal. The pressures come from it with the
+  station's fixed amounts (owner confirmed for 78958 on 24 Oct 2026): station
+  pressure = barometer + `total_correction_hpa` (0.0); QFE = station pressure +
+  `qfe_offset_hpa` (0.3); mean sea level pressure = station pressure +
+  `sea_level_offset_hpa` (1.0); QNH = mean sea level pressure + `qnh_offset_hpa`
+  (0.1). Barometer 1012.8 gives group 3 `0128`, QFE 1013.1, group 4 `0138` and
+  QNH 1013.9. The server fills a blank `station_pressure` or `msl_pressure` from
+  this rule (returned in `normalized`, stored in the saved `body`), returns
+  `decoded.qfe_pa` and `decoded.qnh_pa`, and keeps a keyed group 3 or 4 but warns
+  (`station_pressure_mismatch`, `sea_level_mismatch`) when it differs.
+- *Station settings.* `GET` and `PUT /api/v1/eregister/stations/{station_id}/settings`
+  hold the four amounts. 78958 is seeded by migration `eregister_0006`; another
+  station's amounts are `null` (listed in `pending`) until staff enter them, and
+  nothing is assumed for it. Reading needs register staff access; `PUT` needs
+  `eregister.qc` and all four keys (an explicit `null` clears one; a missing key is
+  `422`, so `{}` can no longer clear everything). Each change writes a change-history
+  entry (`eregister_station_settings`, readable by `eregister.qc` or
+  `eregister.send`) with the amounts before and after and the actor.
+- *Special groups and listings.* Typed `s3_special_phenomena` groups are sent in the
+  order keyed, after the gust and `s3_group_909` built from their own fields; a typed
+  group with the same 9SpSp prefix as one of those is dropped and warns
+  (`duplicate_special_group`). `GET /observations` checks each stored row as saved,
+  without the station's current pressure amounts.
+- *Stored body is the record.* Calculated fields (visibility code, dew point,
+  relative humidity, groups 3 and 4) are filled in when a body is written (validate,
+  create, correct) and never on read, accept or send, so what QC accepted is what the
+  TAC and the WIS2 CSV carry. `barometer_reading` is `^\d{3,4}(\.\d)?$` (ASCII digits,
+  500 to 1100 hPa) and `visibility_km` is `^\d+(\.\d+)?$` (no sign or exponent).
+- *Reporting hours.* All 24 UTC hours are keyed by hand at station 78958, so no
+  hour is "non-synoptic". Advice (warnings only): Tx and Tn every 6 hours (00, 06,
+  12, 18 UTC), 24 hour rainfall at 12 UTC, the pressure tendency group `5appp`
+  every 3 hours, the rainfall group `6RRRtR` at every main hour. The daily
+  sunshine group `55SSS` is not reported (a keyed value is decoded and warned).
+- *Extra fields.* `s3_group_909`, precipitation timing and duration (909Rtdc:
+  the Region IV group 9SpSpspsp with SpSp 09, reported with 6RRRtR; five digits
+  starting 909, Rt and dc not decoded, passed through into
+  section 3) and the instrument chart time marks `time_mark_anemograph`,
+  `time_mark_barograph`, `time_mark_rain_recorder` and
+  `time_mark_thermohygrograph` (free text, not observation values).
 
 #### eRegister send actions
 
@@ -1621,20 +1946,49 @@ observation, `409` no recipients or WIS2 not configured, rejected or superseded
 or non-SYNOP observation, or already sent without `resend`, `422` the stored
 workbook fails validation. Details: `docs/operations/eregister-wmo-conformance.md`.
 
-#### eRegister QC
+#### eRegister QC, review and corrections
 
 `POST /api/v1/eregister/observations/{id}/accept`, `.../reject` and `.../reopen`
-(permission `eregister.qc`, body `{"reason": "..."}`, `200` with the
-`RegisterObservationRead`) move a SYNOP between `draft`/`qc_pending`,
-`accepted` and `rejected`. `reject` and `reopen` need a reason. The observer who
-saved an observation can never accept it (`403`, superusers included).
-`409` wrong state or non-SYNOP, or reopen after a WIS2 send; `422` missing
-reason or the workbook fails validation. `GET /api/v1/eregister/observations`
-takes `state=` (the QC queue is `draft` and `qc_pending`). `.../publish` (WIS2)
-now answers `409` unless the observation is `accepted`; `.../email` still
-accepts a validated draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set.
-`RegisterObservationRead` gains `qc_by` and `qc_at`. Every decision is audited
-(`eregister_observation`).
+(body `{"reason": "..."}`, `200` with the `RegisterObservationRead`) move a SYNOP
+between `draft`/`qc_pending`, `accepted` and `rejected`. Any register staff
+member (`eregister.observe`, `eregister.qc` or `eregister.send`) may use them;
+the observer accepts their own observation alone, there is no required second
+person. Accepting validates the workbook (`422`) and then queues the WIS2 file
+and the email at once (best effort: a refused hand-off, for example an hour the
+automatic source owns, never undoes the acceptance; see `GET .../sends`).
+`reject` and `reopen` need a reason; `reopen` (and `reject`) is `409` once a WIS2
+file was queued or sent. Rejecting a correction (a row with `supersedes_id`)
+releases the held WIS2 file of the observation it replaced and, in the same
+transaction, puts that `superseded` observation back to the state it had before
+(`accepted`, or `draft`/`qc_pending` for a never-accepted one) with its own QC
+notes, and returns the publish gate to it if the correction had taken it, so the
+hour can be sent, reopened or corrected again (audited as `restore`).
+
+`POST .../{id}/review` (body `{"outcome": "reviewed" | "query", "note": "..."}`,
+a note is required for a query) records an optional second look by register staff
+other than the observer. It sets `review_outcome`, `review_note`, `reviewed_by`
+and `reviewed_at` on the record, is audited, changes no state and never holds
+back WIS2 or email. `GET /observations` takes `state=` (comma separated, for
+example `draft,qc_pending`), `reviewed=true|false` (the review queue is
+`state=accepted&reviewed=false`), `limit` and `offset`, and returns `total`.
+SYNOP rows carry `coded` (the FM 12 row), `issues` (validation findings,
+warnings included) and `actor_name` (who recorded it).
+
+`POST /observations` validates a SYNOP: errors (including a keyed day or hour that
+differs from `observed_at` in UTC) are `422` with `detail.message` and
+`detail.issues`; warnings pass. There is one live observation per station, time
+and kind (partial unique index): saving again as the observer of an unsent draft
+updates it in place (`200`, same `id`); otherwise `409`.
+`POST .../{id}/correct` (body `{"body": {...}, "reason": "..."}`, `201`) saves a
+replacement that supersedes the observation (`supersedes_id`); the old row
+becomes `superseded` and stays listed (the UI shows it struck through). `409` when
+it is rejected or already superseded. Accepting a replacement of an hour already
+sent to WIS2 sends a correction (`ObservationSend.is_correction`; the email is
+marked `CORRECTION` with a `CCA` line). `POST .../validate-synop` also takes an
+optional `observed_at` to run the same time check. `.../publish` (WIS2) answers
+`409` unless the observation is `accepted`; `.../email` still accepts a validated
+draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set. Every decision and review
+is audited (`eregister_observation`).
 
 ### GAA operational catalogues
 
@@ -1948,6 +2302,8 @@ system administrators retain full CMS access.
 - `POST /api/v1/auth/onboarding/accounts` (`authCreateOnboardingAccount`): superuser creates an active, staff-approved account with an unusable random password and password setup pending; no roles or CMS grants are assigned. Existing email/username conflicts return 409.
 - `GET /api/v1/auth/onboarding/{user_id}` (`authGetOnboardingStatus`): superuser receives email/activation state and typed GAA Admin/CMS blockers. This is app admission, not HR workflow readiness.
 - `POST /api/v1/auth/onboarding/{user_id}/activation` (`authIssueActivation`): requires explicit `identity_confirmed: true`; returns a private URL and expiry once with `Cache-Control: no-store`. The URL uses a fragment so its secret is not sent in page requests. Valid for 30 minutes; replacement invalidates earlier links.
+- `POST /api/v1/auth/onboarding/{user_id}/admin-activate` (`authAdminActivateAccount`): superuser with an enrolled authenticator vouches for an existing active, non-superuser account (also one with `email_verification_required` true). Body `{reason, expected_email}` (reason 10 to 500 characters; `expected_email` must equal the account's address or the call is refused with 409, and it is stored in the audit entry). Clears `email_verification_required` and writes the `account_activation`/`activated` audit entry (actor, reason, `admin_override`), so `require_verified_or_admin_activated` passes (staff role, owner/admin membership); `email_verified_at` stays empty and the deposit and organiser-request gate (`require_verified_email`) still refuses. Idempotent (a repeat writes an `admin_activate_noop` audit entry); returns the onboarding status (`admin_activated`). 409 for inactive or superuser targets.
+- `POST /api/v1/auth/onboarding/{user_id}/resend-verification` (`authAdminResendVerification`): same caller rule and body; rate limited (5/minute). Sends the existing verification email again and answers `{delivered, message}` (`delivered: false` when mail is unconfigured or fails); audited as `resend_sent` / `resend_failed`.
 - `DELETE /api/v1/auth/onboarding/{user_id}/activation` (`authRevokeActivation`): superuser revokes outstanding links.
 - `POST /api/v1/auth/onboarding/activate` (`authConfirmActivation`): public, rate-limited; takes the one-use token and a 12–128 character password. Requires an active eligible target and an active superuser issuer, unchanged email and credentials. Atomically consumes proof, sets password, clears password setup/email requirement, revokes sessions and outstanding challenges. Does not verify email, approve pending staff, grant roles, change CMS access or reset MFA.
 
@@ -2098,3 +2454,16 @@ t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`, `Barrels-Event-Id` and
 disables the endpoint, other failures retry (1 minute doubling to 1 hour, 5 attempts)
 and 15 failed attempts in a row disable it. Verify the timestamp (reject beyond five
 minutes) to stop replays. Adding an event type or a data field is additive.
+
+- **Verified email for money and power** (ADR-0018): `POST /bookings/public/{slug}/bookings` stays anonymous, but a caller who sends a valid sign-in bearer and books a service with a deposit gets 403 `email_verification_required: ...` until the account has verified its email (guests and no-deposit bookings are not gated; a bad token is treated as a guest). The same 403 code answers accepting or being promoted to an organisation admin or owner role, and assigning a staff role. Sign-in and browsing never need verification.
+
+- The deposit gate above is advisory until a host forwards the session: a missing, invalid, app-scoped or activation-pending token is treated as a guest, and the public booking site sends no bearer today. `organisations.service.add_member` also refuses OWNER and ADMIN for an unverified account (403, same code).
+
+## eRegister WIS2 publish gate (ADR-0032)
+
+`POST /api/v1/eregister/observations/{id}/publish` now passes the station-hour
+publish gate before queueing. It returns 409 when the station schedule gives
+the hour to the automatic source (SURFACE), when the station is not in the
+registry, or when another observation already holds the hour. A WIS2 file is
+never queued twice, so `resend` no longer repeats a queued or sent publish. The
+request and response shapes are unchanged; the optional request body is accepted and ignored.

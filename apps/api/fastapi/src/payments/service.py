@@ -63,6 +63,18 @@ REFUND_TOPICS = {"events.order": "events.order_refunded"}
 #: Refunds that still count against what can be handed back.
 _LIVE_REFUND = (RefundStatus.PENDING.value, RefundStatus.SUCCEEDED.value)
 
+#: Source types owned by another domain (it creates them through the service with
+#: its own idempotency key and reacts to their payments): the generic org route
+#: refuses them so nobody can plant a look-alike intent.
+RESERVED_SOURCE_TYPES = frozenset(PAID_TOPICS) | frozenset(REFUND_TOPICS)
+
+
+def reject_reserved_source(source_type: str) -> None:
+    if source_type in RESERVED_SOURCE_TYPES:
+        raise PaymentsValidationError(
+            f"source_type {source_type} is reserved for the domain that owns it"
+        )
+
 
 def hash_email(email: str) -> str:
     """SHA-256 hex of the trimmed, lower-cased address. The address is not kept."""
@@ -238,13 +250,15 @@ async def create_intent(
     organisation_id: str,
     actor: User | None,
     payload: schemas.PaymentIntentCreate,
+    checkout_title: str | None = None,
 ) -> schemas.PaymentCheckoutPublic:
     """Create an intent (idempotent per organisation and ``idempotency_key``).
 
     A repeat with the same key and the same request returns the first intent; the
     same key with a different request is a 409. ``actor`` is the signed-in member,
     or ``None`` when the system acts for an anonymous customer (a public booking
-    deposit): ``created_by_user_id`` is then NULL.
+    deposit): ``created_by_user_id`` is then NULL. ``checkout_title`` is the human
+    name the buyer sees on the hosted checkout (not stored; no personal data).
     """
     # Resolve the provider first so an unavailable rail fails before any row exists.
     provider = registry.get_provider(payload.provider.value)
@@ -282,7 +296,7 @@ async def create_intent(
             raise
         return await _replay(session, existing, payload)
 
-    start = await provider.create_payment(intent)
+    start = await provider.create_payment(intent, title=checkout_title)
     intent.provider_ref = start.provider_ref
     intent.checkout_url = start.checkout_url
     if start.checkout_url is not None:
@@ -351,8 +365,11 @@ async def find_by_source(
     organisation_id: str,
     source_type: str,
     source_id: str,
+    idempotency_key: str | None = None,
 ) -> schemas.PaymentIntentPublic | None:
-    """The newest intent sold for ``(source_type, source_id)``, or None."""
+    """The newest intent sold for ``(source_type, source_id)``, or None. With
+    ``idempotency_key`` the consumer's own intent is returned instead, whatever
+    other intents share the source."""
     row = (
         await session.execute(
             _intent_select()
@@ -360,6 +377,11 @@ async def find_by_source(
                 Intent.organisation_id == organisation_id,
                 Intent.source_type == source_type,
                 Intent.source_id == source_id,
+                *(
+                    [Intent.idempotency_key == idempotency_key]
+                    if idempotency_key is not None
+                    else []
+                ),
             )
             .order_by(Intent.created_at.desc(), Intent.id)
             .limit(1)
@@ -368,12 +390,32 @@ async def find_by_source(
     return _public(row) if row else None
 
 
+async def lock_intent_by_key(
+    session: AsyncSession, *, organisation_id: str, idempotency_key: str
+) -> Intent | None:
+    """The organisation's intent with this idempotency key, row-locked and read
+    fresh (so a payment recorded a moment ago is seen), or None. Unlike
+    ``find_by_source`` this never picks "the newest" of several intents."""
+    return (
+        await session.execute(
+            select(Intent)
+            .where(
+                Intent.organisation_id == organisation_id,
+                Intent.idempotency_key == idempotency_key,
+            )
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+    ).scalar_one_or_none()
+
+
 async def cancel_open_intent(
     session: AsyncSession,
     *,
     organisation_id: str,
     source_type: str,
     source_id: str,
+    idempotency_key: str | None = None,
 ) -> bool:
     """Stop collecting for a sale that no longer exists.
 
@@ -387,6 +429,11 @@ async def cancel_open_intent(
                 Intent.organisation_id == organisation_id,
                 Intent.source_type == source_type,
                 Intent.source_id == source_id,
+                *(
+                    [Intent.idempotency_key == idempotency_key]
+                    if idempotency_key is not None
+                    else []
+                ),
             )
             .order_by(Intent.created_at.desc(), Intent.id)
             .limit(1)
@@ -608,12 +655,24 @@ async def refund_intent(
     intent_id: uuid.UUID,
     actor: User | None,
     payload: schemas.PaymentRefundCreate,
+    refund_id: uuid.UUID | None = None,
 ) -> schemas.PaymentRefundPublic:
     """Hand money back. The total refunded can never exceed what was captured.
 
     ``actor`` is ``None`` when the system refunds (for example a booking
-    deposit); the refund and ledger rows then record no user."""
+    deposit); the refund and ledger rows then record no user.
+
+    ``refund_id`` lets a caller that retries (an outbox handler) derive the refund's
+    id from its own request: a refund with that id on this intent is returned as it
+    is, and the provider (Stripe uses ``refund-<id>`` as its idempotency key) never
+    sees a second refund for the same request."""
     intent = await _get_owned(session, organisation_id, intent_id, lock=True)
+    if refund_id is not None:
+        existing = await session.get(Refund, refund_id)
+        if existing is not None:
+            if existing.intent_id != intent.id:
+                raise PaymentsConflictError("That refund belongs to another payment")
+            return _refund_public(existing)
     captured, refunded = await _totals(session, intent.id)
     if captured <= 0:
         raise PaymentsConflictError("Nothing has been collected on this payment")
@@ -626,6 +685,7 @@ async def refund_intent(
 
     provider = registry.get_provider(intent.provider)
     refund = Refund(
+        id=refund_id or uuid.uuid4(),
         intent_id=intent.id,
         amount_minor=amount,
         reason=payload.reason,

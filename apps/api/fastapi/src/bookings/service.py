@@ -9,12 +9,20 @@ from collections import defaultdict
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.contacts.models import Contact
 from src.organisations import service as organisation_service
 from src.organisations.exceptions import OrganisationAppNotEntitledError
+from src.organisations.models import (
+    Membership,
+    MembershipStatus,
+    OrganisationApp,
+    OrganisationStatus,
+    PlatformOrganisation,
+)
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
@@ -338,9 +346,10 @@ async def list_bookings(
     ends_before: datetime,
 ) -> list[dict[str, Any]]:
     rows = await session.execute(
-        select(Booking, Service.name, Customer.name)
+        select(Booking, Service.name, func.coalesce(Contact.name, ""))
         .join(Service, Service.id == Booking.service_id)
         .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
         .where(
             Booking.organisation_id == organisation_id,
             Booking.starts_at < as_naive_utc(ends_before),
@@ -546,3 +555,27 @@ def is_overlap_violation(error: DBAPIError) -> bool:
         return True
     code = getattr(error.orig, "sqlstate", None) or getattr(error.orig, "pgcode", None)
     return code == _DEADLOCK_SQLSTATE or "deadlock detected" in str(error.orig)
+
+
+async def list_my_organisations(
+    session: AsyncSession, user_id: uuid.UUID
+) -> list[tuple[PlatformOrganisation, str]]:
+    """Active organisations the user belongs to that hold the bookings entitlement,
+    with the user's role: ``(organisation, role)`` rows, filtered in SQL."""
+    rows = await session.execute(
+        select(PlatformOrganisation, Membership.role)
+        .join(Membership, Membership.organisation_id == PlatformOrganisation.id)
+        .join(
+            OrganisationApp,
+            (OrganisationApp.organisation_id == PlatformOrganisation.id)
+            & (OrganisationApp.app_key == "bookings")
+            & OrganisationApp.enabled.is_(True),
+        )
+        .where(
+            Membership.user_id == user_id,
+            Membership.status == MembershipStatus.ACTIVE.value,
+            PlatformOrganisation.status == OrganisationStatus.ACTIVE.value,
+        )
+        .order_by(PlatformOrganisation.name, PlatformOrganisation.id)
+    )
+    return [(o, role) for o, role in rows.all()]

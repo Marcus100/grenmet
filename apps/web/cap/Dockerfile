@@ -20,6 +20,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY apps/web/admin/package.json apps/web/admin/
 COPY apps/web/auth/package.json apps/web/auth/
 COPY apps/web/babydoll/package.json apps/web/babydoll/
+COPY apps/web/bookings/package.json apps/web/bookings/
 COPY apps/web/cap/package.json apps/web/cap/
 COPY apps/web/cms/package.json apps/web/cms/
 COPY apps/web/docs/package.json apps/web/docs/
@@ -32,6 +33,7 @@ COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
 COPY packages/api-client/package.json packages/api-client/
 COPY packages/auth/package.json packages/auth/
+COPY packages/bookings-web/package.json packages/bookings-web/
 COPY packages/cms-migrations/package.json packages/cms-migrations/
 COPY packages/email-templates/package.json packages/email-templates/
 COPY packages/gms/package.json packages/gms/

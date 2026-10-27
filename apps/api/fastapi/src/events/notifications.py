@@ -10,6 +10,7 @@ LISTING_PUBLISHED = "events.listing_published"
 LISTING_CANCELLED = "events.listing_cancelled"
 LISTING_POSTPONED = "events.listing_postponed"
 ORGANISER_APPROVED = "events.organiser_approved"
+ORGANISER_REJECTED = "events.organiser_rejected"
 TICKET_ISSUED = "events.ticket_issued"
 
 
@@ -58,6 +59,18 @@ def register() -> None:
             title="{{ organiser }} is verified",
             body="Barrels verified {{ organiser }}.",
             variables=("organiser",),
+            email_mutable=False,
+        )
+    )
+    events.register(
+        EventDef(
+            key=ORGANISER_REJECTED,
+            label="Organiser not verified",
+            description="Barrels could not verify your organiser account.",
+            audience="Owners and admins of the organiser",
+            title="{{ organiser }} was not verified",
+            body="Barrels could not verify {{ organiser }}: {{ reason }} Update your details and resubmit for review.",
+            variables=("organiser", "reason"),
             email_mutable=False,
         )
     )
