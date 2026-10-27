@@ -22,6 +22,7 @@ import { useState } from "react";
 import { WarningLevelPicker } from "@/components/cap/warning-level-picker";
 import { GMS_PRODUCTS, type GmsProduct, needsColour } from "@/lib/cap-levels";
 import { emptySubtype, floodProfile } from "@/lib/cap-profile-defaults";
+import { ImpactMatrixEditor } from "./impact-matrix-editor";
 import { ProfileField } from "./profile-field";
 import { ProfileSubtypeEditor } from "./profile-subtype";
 
@@ -37,8 +38,11 @@ const LEVELS = GMS_PRODUCTS;
 
 export function ProfileEditor({
   initialVersions,
+  canManageLibrary = false,
 }: {
   initialVersions: CapProfilePublic[];
+  /** Holds cap.library.manage: shows the impact matrix, levels and responses. */
+  canManageLibrary?: boolean;
 }) {
   const router = useRouter();
   const [versions, setVersions] = useState(initialVersions);
@@ -218,6 +222,7 @@ export function ProfileEditor({
           <h2 className="font-semibold">Subtypes, rules and impacts</h2>
           {definition.subtypes.map((subtype, index) => (
             <ProfileSubtypeEditor
+              canManageLibrary={canManageLibrary}
               key={subtype.id}
               onChange={(next) =>
                 edit({
@@ -248,6 +253,12 @@ export function ProfileEditor({
             Add hazard subtype
           </Button>
         </section>
+        {canManageLibrary ? (
+          <ImpactMatrixEditor
+            matrix={definition.matrix}
+            onChange={(matrix) => edit({ ...definition, matrix })}
+          />
+        ) : null}
         <section className="space-y-4 rounded-lg border p-4">
           <h2 className="font-semibold">Message templates</h2>
           <p className="text-muted-foreground text-sm">

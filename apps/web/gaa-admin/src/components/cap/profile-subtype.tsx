@@ -18,15 +18,18 @@ import { CAP_CATEGORY_LABELS } from "@/lib/cap-hazards";
 import { GMS_PRODUCTS, type GmsProduct } from "@/lib/cap-levels";
 import { emptyRule } from "@/lib/cap-profile-defaults";
 import { ProfileField } from "./profile-field";
+import { SubtypeImpactEditor } from "./subtype-impact-editor";
 
 export function ProfileSubtypeEditor({
   subtype,
   onChange,
   onRemove,
+  canManageLibrary = false,
 }: {
   subtype: CapProfileSubtype;
   onChange: (value: CapProfileSubtype) => void;
   onRemove: () => void;
+  canManageLibrary?: boolean;
 }) {
   const rules = subtype.rules ?? [];
   function updateRule(index: number, patch: Partial<CapProfileRule>) {
@@ -201,6 +204,9 @@ export function ProfileSubtypeEditor({
           />
         ))}
       </div>
+      {canManageLibrary ? (
+        <SubtypeImpactEditor onChange={onChange} subtype={subtype} />
+      ) : null}
       <Button onClick={onRemove} variant="outline">
         Remove subtype
       </Button>

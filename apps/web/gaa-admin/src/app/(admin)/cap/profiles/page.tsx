@@ -1,4 +1,7 @@
-import type { CapProfilePublic } from "@barrelsgd/api-client";
+import type {
+  CapProfilePublic,
+  UserProfilePublic,
+} from "@barrelsgd/api-client";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProfileEditor } from "@/components/cap/profile-editor";
@@ -29,11 +32,31 @@ export default async function HazardProfilesPage() {
   if (!response.ok)
     throw new Error(`Failed to load hazard profiles (${response.status})`);
   const versions = (await response.json()) as CapProfilePublic[];
+  const canManageLibrary = await canManageHazardLibrary(token);
   return (
     <div className="space-y-6">
       <Link href="/cap">Back to CAP</Link>
       <PageHeader title="Hazard profiles" />
-      <ProfileEditor initialVersions={versions} />
+      <ProfileEditor
+        canManageLibrary={canManageLibrary}
+        initialVersions={versions}
+      />
     </div>
   );
+}
+
+/** Editing the impact matrix needs cap.library.manage; without it the section stays out. */
+async function canManageHazardLibrary(token: string): Promise<boolean> {
+  try {
+    const response = await fetch(
+      new URL(`${getAuthApiPrefix()}/hr/profile/me`, getCapApiBaseUrl()),
+      { cache: "no-store", headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!response.ok) return false;
+    const profile = (await response.json()) as UserProfilePublic;
+    return profile.permissions?.includes("cap.library.manage") ?? false;
+  } catch (error) {
+    reportError(error, "cap");
+    return false;
+  }
 }
