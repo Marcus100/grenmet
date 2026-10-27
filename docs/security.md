@@ -270,6 +270,22 @@ credentials and Starlette's deprecated httpx TestClient integration. The host
 recreated its virtual environment because the previous interpreter link was
 invalid; do not infer that this proves the cause of earlier database timeouts.
 
+### API image on Debian 13 (trixie)
+
+The production API image (`apps/api/fastapi/Dockerfile.prod`) moved from
+`python:3.14-slim-bookworm` to `python:3.14-slim-trixie` because Debian 12 left
+regular security support on 2026-07-11. The one renamed package is `libssl3`,
+now `libssl3t64`; the other runtime packages (including WeasyPrint's Pango,
+HarfBuzz and fontconfig libraries) keep their names. The minimum-version checks
+now name the trixie-security builds, so the image build fails if the security
+mirror cannot supply them. The earlier follow-up below describes the Debian 12
+image and is kept as history. CI proves the build, the vulnerability policy
+(298 findings reported on trixie against 381 on bookworm) and, through the
+image smoke step, that WeasyPrint renders a PDF. Compare a rendered forecast
+sheet on staging before promoting: Pango and HarfBuzz are newer and line breaks
+can shift. The development image (`apps/api/fastapi/Dockerfile`) and the weather
+collectors image are still on Debian 12.
+
 ### API Debian runtime follow-up
 
 The operator's API image scan reported 325 findings with no policy blockers or
