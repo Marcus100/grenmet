@@ -108,39 +108,42 @@ export function PdfPreview({
   const [expanded, setExpanded] = useState(false);
   const urlRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const latest = useRef({ inputKey, pdf });
-  latest.current = { inputKey, pdf };
+  const latestPdf = useRef(pdf);
+  latestPdf.current = pdf;
 
-  const renderNow = useCallback(async () => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    const { inputKey: key, pdf: source } = latest.current;
-    setRendering(true);
-    setError("");
-    try {
-      const blob = await source.render(controller.signal);
-      if (controller.signal.aborted) return;
-      const url = URL.createObjectURL(blob);
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-      urlRef.current = url;
-      setShown({ blob, key, url });
-    } catch (caught) {
-      if (controller.signal.aborted) return;
-      reportError(caught, errorArea);
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Could not render the preview. Check your connection and retry."
-      );
-    } finally {
-      if (!controller.signal.aborted) setRendering(false);
-    }
-  }, [errorArea]);
+  const renderNow = useCallback(
+    async (key: string) => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const source = latestPdf.current;
+      setRendering(true);
+      setError("");
+      try {
+        const blob = await source.render(controller.signal);
+        if (controller.signal.aborted) return;
+        const url = URL.createObjectURL(blob);
+        if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+        urlRef.current = url;
+        setShown({ blob, key, url });
+      } catch (caught) {
+        if (controller.signal.aborted) return;
+        reportError(caught, errorArea);
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : "Could not render the preview. Check your connection and retry."
+        );
+      } finally {
+        if (!controller.signal.aborted) setRendering(false);
+      }
+    },
+    [errorArea]
+  );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a fixed document (signed copy) re-renders when its identity (inputKey) changes
+  // A fixed document (signed copy) re-renders when its identity (inputKey) changes.
   useEffect(() => {
-    if (autoRender && ready) renderNow();
+    if (autoRender && ready) renderNow(inputKey);
   }, [autoRender, ready, inputKey, renderNow]);
 
   useEffect(
@@ -173,7 +176,7 @@ export function PdfPreview({
           <Button
             aria-controls={panelId}
             disabled={!ready || rendering}
-            onClick={renderNow}
+            onClick={() => renderNow(inputKey)}
             type="button"
             variant={stale || !shown ? "default" : "outline"}
           >
@@ -205,7 +208,11 @@ export function PdfPreview({
           <p className="text-destructive text-sm" role="alert">
             {error}
           </p>
-          <Button onClick={renderNow} type="button" variant="outline">
+          <Button
+            onClick={() => renderNow(inputKey)}
+            type="button"
+            variant="outline"
+          >
             Retry PDF preview
           </Button>
         </div>
