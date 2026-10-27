@@ -229,7 +229,7 @@ async def test_preview_pdf_endpoint(async_client, actor, monkeypatch):
         )
         assert response.status_code == 200, response.text
         assert response.headers["content-type"] == "application/pdf"
-        assert response.headers["cache-control"] == "no-store"
+        assert response.headers["cache-control"] == "private, no-store"
         assert response.content.startswith(b"%PDF-")
         bulletin = await async_client.post(
             "/api/v1/wxproducts/products/preview/pdf",

@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
-import { DocumentPreview } from "@/components/document/document-preview";
+import { downloadBlob, PdfPreview } from "@/components/document/pdf-preview";
 import { pdfFilename } from "@/lib/pdf-filename";
 import { hrApiErrorMessage } from "./api-error";
 
@@ -60,23 +59,18 @@ export async function downloadHrPdf({
   signedDocumentId?: string | null;
   filename: string;
 }) {
-  const blob = await fetchHrPdf({
-    payload: JSON.stringify(payload),
-    previewPath,
-    signedDocumentId,
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadBlob(
+    await fetchHrPdf({
+      payload: JSON.stringify(payload),
+      previewPath,
+      signedDocumentId,
+    }),
+    filename
+  );
 }
 
 /**
- * The shared document preview wired to the FastAPI PDF renderer. A draft
+ * The shared PDF preview wired to the FastAPI PDF renderer. A draft
  * renders only when the user selects Preview; a signed copy renders on its own.
  */
 export function HrPdfPreview({
@@ -97,16 +91,13 @@ export function HrPdfPreview({
   // The payload object is recreated by form subscriptions; its JSON key changes
   // only when the entered values change.
   const key = JSON.stringify(payload);
-  const pdf = useMemo(
-    () => ({
-      filename: filename ?? pdfFilename([title]),
-      render: (signal: AbortSignal) =>
-        fetchHrPdf({ payload: key, previewPath, signedDocumentId, signal }),
-    }),
-    [filename, key, previewPath, signedDocumentId, title]
-  );
+  const pdf = {
+    filename: filename ?? pdfFilename([title]),
+    render: (signal: AbortSignal) =>
+      fetchHrPdf({ payload: key, previewPath, signedDocumentId, signal }),
+  };
   return (
-    <DocumentPreview
+    <PdfPreview
       autoRender={Boolean(signedDocumentId)}
       description={
         signedDocumentId

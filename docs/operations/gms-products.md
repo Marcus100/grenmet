@@ -202,17 +202,21 @@ Feed references: [NHC RSS products](https://www.nhc.noaa.gov/mobile/rss.html) an
 
 Withdrawing an already saved product preserves its revision content and remains available when the NHC archive is unavailable. Saving new guidance and generating source graphics still require archive access.
 
-## Planned product model (ADR-0051, proposed)
+## Product model (ADR-0051)
 
-Not yet in force; the owner has not accepted [ADR-0051](../adr/0051-gms-product-model.md).
-Planned changes:
+Landed on `dev` and staging with the GMS/GAA work of 26 October 2026; the owner has
+not yet marked [ADR-0051](../adr/0051-gms-product-model.md) Accepted. In force:
 
 - GMS alerts are green only (notice types Information, Advisory and All clear,
   pending confirmation). Yellow, orange and red are CAP warnings, started from a
-  "Raise to warning" button. The green alert stays in force until a
+  "Raise to warning" button that opens a pre-filled CAP draft (a repeat raise opens
+  the existing open warning instead). The green alert stays in force until a
   forecaster withdraws it (open decision); the desk notes "Warning raised".
+- The Tropical Weather Outlook sits under Forecasts, with tracked systems. NHC data
+  is downloaded by hand; scheduled NHC pulls (every few hours 15 May to 30 November,
+  every 6 hours off season) are off by default per environment.
+
+Not built yet:
+
 - The marine bulletin becomes a 05:00 marine forecast (05:00 to 05:00 next day for
   Grenada, Carriacou and Petite Martinique waters), with separate green marine alerts.
-- The Tropical Weather Outlook moves under Forecasts, with tracked systems.
-  Scheduled NHC pulls (every few hours 15 May to 30 November, every 6 hours off
-  season) are off by default per environment.

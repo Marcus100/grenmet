@@ -37,6 +37,7 @@ from src.cap.exceptions import (
     CapStateError,
     CapValidationFailedError,
 )
+from src.cap.levels import INTERNAL_PARAMETERS
 from src.cap.mapping import (
     _alert_selectinload_options,
     _area_to_public,
@@ -378,7 +379,12 @@ async def duplicate_alert(
                 instruction=info.instruction,
                 web=info.web,
                 contact=info.contact,
-                parameters=info.parameters,
+                # A copy is a new decision: it needs its own override reason.
+                parameters=[
+                    item
+                    for item in info.parameters
+                    if item.value_name not in INTERNAL_PARAMETERS
+                ],
                 resources=[
                     CapResourceCreate(
                         resource_desc=resource.resource_desc,

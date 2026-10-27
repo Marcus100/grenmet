@@ -25,6 +25,7 @@ export async function GET(
           upstream.headers.get("content-disposition") ??
           'attachment; filename="invoice.pdf"',
         "content-type": "application/pdf",
+        "x-content-type-options": "nosniff",
       },
     });
   } catch (error) {

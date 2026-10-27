@@ -61,7 +61,7 @@ import {
 } from "@/components/hr/use-editor-prefill";
 import { hrFormFilename } from "@/lib/pdf-filename";
 import { reportError } from "@/lib/report-error";
-import { ABSENTEE_REASONS, EMPTY_ABSENTEE } from "./absentee-document";
+import { ABSENTEE_REASONS, EMPTY_ABSENTEE } from "./absentee-values";
 
 /** Paper-form checklist labels → API AbsenceReason values. */
 const ABSENCE_REASON_MAP: Record<string, AbsenceReason> = {

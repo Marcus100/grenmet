@@ -92,6 +92,20 @@ def test_cap_xml_keeps_default_namespace_when_another_library_claims_it() -> Non
     assert "ns0:" not in xml
 
 
+def test_cap_xml_never_publishes_the_override_reason() -> None:
+    alert = _alert()
+    alert.info[0].parameters = [
+        CapNameValue(value_name="GMS:suggested-colour", value="green"),
+        CapNameValue(value_name="GMS:override-reason", value="Forecaster judgement"),
+    ]
+
+    xml = alert_to_cap_xml(alert)
+
+    assert "GMS:suggested-colour" in xml
+    assert "GMS:override-reason" not in xml
+    assert "Forecaster judgement" not in xml
+
+
 def test_validation_rejects_non_alert_without_references() -> None:
     alert = _alert(msg_type=CapMessageType.CANCEL)
 

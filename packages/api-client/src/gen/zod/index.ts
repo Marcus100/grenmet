@@ -1746,6 +1746,15 @@ export {
   capGetHazardProfilesStatus422Schema,
 } from "./capGetHazardProfilesSchema.js";
 export {
+  capGetIbfMatrixErrorSchema,
+  capGetIbfMatrixQueryKindSchema,
+  capGetIbfMatrixResponseSchema,
+  capGetIbfMatrixStatus200Schema,
+  capGetIbfMatrixStatus401Schema,
+  capGetIbfMatrixStatus403Schema,
+  capGetIbfMatrixStatus422Schema,
+} from "./capGetIbfMatrixSchema.js";
+export {
   capGetIntegrationsErrorSchema,
   capGetIntegrationsResponseSchema,
   capGetIntegrationsStatus200Schema,
@@ -1817,10 +1826,16 @@ export { capMessageTypeSchema } from "./capMessageTypeSchema.js";
 export { capNameValueSchema } from "./capNameValueSchema.js";
 export { capPredefinedAreaCreateSchema } from "./capPredefinedAreaCreateSchema.js";
 export { capPredefinedAreaPublicSchema } from "./capPredefinedAreaPublicSchema.js";
+export { capProfileCellTextPropertiesImpactEnumSchema } from "./capProfileCellTextPropertiesImpactEnumSchema.js";
+export { capProfileCellTextPropertiesLikelihoodEnumSchema } from "./capProfileCellTextPropertiesLikelihoodEnumSchema.js";
+export { capProfileCellTextSchema } from "./capProfileCellTextSchema.js";
+export { capProfileColourResponseSchema } from "./capProfileColourResponseSchema.js";
 export { capProfileDefinitionPropertiesChannelsItemsEnumSchema } from "./capProfileDefinitionPropertiesChannelsItemsEnumSchema.js";
 export { capProfileDefinitionSchema } from "./capProfileDefinitionSchema.js";
 export { capProfileDraftRequestPropertiesLevelEnumSchema } from "./capProfileDraftRequestPropertiesLevelEnumSchema.js";
 export { capProfileDraftRequestSchema } from "./capProfileDraftRequestSchema.js";
+export { capProfileImpactLevelSchema } from "./capProfileImpactLevelSchema.js";
+export { capProfileMatrixSchema } from "./capProfileMatrixSchema.js";
 export { capProfilePublicPropertiesStateEnumSchema } from "./capProfilePublicPropertiesStateEnumSchema.js";
 export { capProfilePublicSchema } from "./capProfilePublicSchema.js";
 export { capProfileRulePropertiesOperatorEnumSchema } from "./capProfileRulePropertiesOperatorEnumSchema.js";
@@ -1885,6 +1900,18 @@ export {
   capSubmitAlertStatus404Schema,
   capSubmitAlertStatus422Schema,
 } from "./capSubmitAlertSchema.js";
+export {
+  capSuggestIbfErrorSchema,
+  capSuggestIbfQueryImpactSchema,
+  capSuggestIbfQueryKindSchema,
+  capSuggestIbfQueryLikelihoodSchema,
+  capSuggestIbfQuerySubtypeSchema,
+  capSuggestIbfResponseSchema,
+  capSuggestIbfStatus200Schema,
+  capSuggestIbfStatus401Schema,
+  capSuggestIbfStatus403Schema,
+  capSuggestIbfStatus422Schema,
+} from "./capSuggestIbfSchema.js";
 export {
   capUpdateAlertBodySchema,
   capUpdateAlertErrorSchema,
@@ -2189,6 +2216,17 @@ export {
   eregisterAcceptRegisterObservationStatus422Schema,
 } from "./eregisterAcceptRegisterObservationSchema.js";
 export {
+  eregisterAddStationBodySchema,
+  eregisterAddStationErrorSchema,
+  eregisterAddStationResponseSchema,
+  eregisterAddStationStatus201Schema,
+  eregisterAddStationStatus401Schema,
+  eregisterAddStationStatus403Schema,
+  eregisterAddStationStatus404Schema,
+  eregisterAddStationStatus409Schema,
+  eregisterAddStationStatus422Schema,
+} from "./eregisterAddStationSchema.js";
+export {
   eregisterCorrectRegisterObservationBodySchema,
   eregisterCorrectRegisterObservationErrorSchema,
   eregisterCorrectRegisterObservationPathObservationIdSchema,
@@ -2212,6 +2250,18 @@ export {
   eregisterCreateRegisterObservationStatus422Schema,
 } from "./eregisterCreateRegisterObservationSchema.js";
 export {
+  eregisterEditStationBodySchema,
+  eregisterEditStationErrorSchema,
+  eregisterEditStationPathStationIdSchema,
+  eregisterEditStationResponseSchema,
+  eregisterEditStationStatus200Schema,
+  eregisterEditStationStatus401Schema,
+  eregisterEditStationStatus403Schema,
+  eregisterEditStationStatus404Schema,
+  eregisterEditStationStatus409Schema,
+  eregisterEditStationStatus422Schema,
+} from "./eregisterEditStationSchema.js";
+export {
   eregisterEmailRegisterObservationBodySchema,
   eregisterEmailRegisterObservationErrorSchema,
   eregisterEmailRegisterObservationPathObservationIdSchema,
@@ -2223,6 +2273,16 @@ export {
   eregisterEmailRegisterObservationStatus409Schema,
   eregisterEmailRegisterObservationStatus422Schema,
 } from "./eregisterEmailRegisterObservationSchema.js";
+export {
+  eregisterGetRegistryStationErrorSchema,
+  eregisterGetRegistryStationPathStationIdSchema,
+  eregisterGetRegistryStationResponseSchema,
+  eregisterGetRegistryStationStatus200Schema,
+  eregisterGetRegistryStationStatus401Schema,
+  eregisterGetRegistryStationStatus403Schema,
+  eregisterGetRegistryStationStatus404Schema,
+  eregisterGetRegistryStationStatus422Schema,
+} from "./eregisterGetRegistryStationSchema.js";
 export {
   eregisterGetStationSettingsErrorSchema,
   eregisterGetStationSettingsPathStationIdSchema,
@@ -2257,6 +2317,15 @@ export {
   eregisterListRegisterObservationsStatus403Schema,
   eregisterListRegisterObservationsStatus422Schema,
 } from "./eregisterListRegisterObservationsSchema.js";
+export {
+  eregisterListRegistryStationsErrorSchema,
+  eregisterListRegistryStationsQueryIncludeInactiveSchema,
+  eregisterListRegistryStationsResponseSchema,
+  eregisterListRegistryStationsStatus200Schema,
+  eregisterListRegistryStationsStatus401Schema,
+  eregisterListRegistryStationsStatus403Schema,
+  eregisterListRegistryStationsStatus422Schema,
+} from "./eregisterListRegistryStationsSchema.js";
 export {
   eregisterPublicCurrentConditionsErrorSchema,
   eregisterPublicCurrentConditionsResponseSchema,
@@ -4770,6 +4839,9 @@ export {
   hrValidateGridStatus404Schema,
   hrValidateGridStatus422Schema,
 } from "./hrValidateGridSchema.js";
+export { ibfLevelPublicSchema } from "./ibfLevelPublicSchema.js";
+export { ibfMatrixPublicSchema } from "./ibfMatrixPublicSchema.js";
+export { ibfSuggestionSchema } from "./ibfSuggestionSchema.js";
 export { imageInputPropertiesTimeBasisEnumSchema } from "./imageInputPropertiesTimeBasisEnumSchema.js";
 export { imageInputSchema } from "./imageInputSchema.js";
 export { imageResultSchema } from "./imageResultSchema.js";
@@ -6827,9 +6899,15 @@ export { staffInputSchema } from "./staffInputSchema.js";
 export { staffOrganiserRowSchema } from "./staffOrganiserRowSchema.js";
 export { staffSetupSchema } from "./staffSetupSchema.js";
 export { staffUpdateSchema } from "./staffUpdateSchema.js";
+export { stationCreatePropertiesSourceKindEnumSchema } from "./stationCreatePropertiesSourceKindEnumSchema.js";
+export { stationCreateSchema } from "./stationCreateSchema.js";
+export { stationRecordListSchema } from "./stationRecordListSchema.js";
+export { stationRecordPropertiesScheduleEnumSchema } from "./stationRecordPropertiesScheduleEnumSchema.js";
+export { stationRecordSchema } from "./stationRecordSchema.js";
 export { stationSettingsPropertiesPendingItemsEnumSchema } from "./stationSettingsPropertiesPendingItemsEnumSchema.js";
 export { stationSettingsSchema } from "./stationSettingsSchema.js";
 export { stationSettingsUpdateSchema } from "./stationSettingsUpdateSchema.js";
+export { stationUpdateSchema } from "./stationUpdateSchema.js";
 export { statusReportCreateSchema } from "./statusReportCreateSchema.js";
 export { statusReportDetailsSchema } from "./statusReportDetailsSchema.js";
 export { statusReportEntryInputSchema } from "./statusReportEntryInputSchema.js";

@@ -23,4 +23,5 @@ export type CapEscalationCreate = {
    */
   revision: number;
   awareness_level: CapEscalationCreatePropertiesAwarenessLevelEnum;
+  override_reason?: string | null;
 };
