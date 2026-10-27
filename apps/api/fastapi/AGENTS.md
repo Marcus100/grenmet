@@ -280,6 +280,12 @@ async def test_create_leave_request(
     uv run --frozen --package fast-back pytest
   ```
 
+- Local API tests can use a disposable, RAM-backed Postgres: `scripts/agents/test-db.sh up`
+  (127.0.0.1:5433; `down` removes it). While it runs, `scripts/agents/api-env.sh` and
+  `pnpm verify:changed` use it automatically unless `POSTGRES_SERVER` or `POSTGRES_PORT`
+  is set (`TEST_DB_AUTO=0` opts out). About 20% faster on the full suite, about twice as
+  fast on one file, and it avoids the shared database's connection limit. Details in
+  `docs/api/development.md`.
 - In a fresh git worktree there is no `.env.local`; run commands through
   `scripts/agents/api-env.sh` from the repo root (it sets the placeholder
   values above unless you already set them), e.g.
