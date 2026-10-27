@@ -33,8 +33,28 @@ const ENDS_WITH_EXIT_ZERO = /exit 0$/;
 const REMOTE_GUARD = /CLAUDE_CODE_REMOTE/;
 const DUMP_IGNORED = /^dump\.rdb$/m;
 
+// The environment a test runs the scripts with: the caller's, minus the knobs
+// a developer may have exported that would change what the scripts do.
+function cleanEnv(extra = {}) {
+  const env = { ...process.env, ...extra };
+  for (const key of [
+    "BOOTSTRAP_ONLY",
+    "GRENMET_BRANCH",
+    "GRENMET_CLONE_SECONDS",
+    "GRENMET_MIN_BOOTSTRAP_SECONDS",
+    "GRENMET_REPO_URL",
+    "GRENMET_SETUP_SECONDS",
+    "BASH_ENV",
+  ])
+    if (!(key in extra)) delete env[key];
+  return env;
+}
+
 function dryRun() {
-  return spawnSync("bash", [SCRIPT, "--dry-run"], { encoding: "utf8" });
+  return spawnSync("bash", [SCRIPT, "--dry-run"], {
+    encoding: "utf8",
+    env: cleanEnv(),
+  });
 }
 
 test("dry run lists every step, exits 0 and changes nothing", () => {
@@ -116,6 +136,8 @@ function fixture(body) {
     "user.email=t@t",
     "-c",
     "commit.gpgsign=false",
+    "-c",
+    "core.hooksPath=/dev/null",
     "commit",
     "-qm",
     "fixture"
@@ -144,12 +166,11 @@ function runSetup(env, state) {
   }
   return spawnSync("bash", [SETUP], {
     encoding: "utf8",
-    env: {
-      ...process.env,
+    env: cleanEnv({
       ...env,
       PATH: `${bin}:${process.env.PATH}`,
       STUB_STATE: state,
-    },
+    }),
   });
 }
 
@@ -279,11 +300,10 @@ function seedFixture() {
   const run = () =>
     spawnSync("bash", [join(root, "scripts", "agents", "cloud-bootstrap.sh")], {
       encoding: "utf8",
-      env: {
-        ...process.env,
+      env: cleanEnv({
         BOOTSTRAP_CACHE_DIR: cache,
         BOOTSTRAP_ONLY: "seed_pnpm_store",
-      },
+      }),
     });
   return { dir, root, seed, run };
 }

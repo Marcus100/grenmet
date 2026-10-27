@@ -56,7 +56,7 @@ NODE_RANGE="$(json_field "$ROOT/package.json" engines.node)"
 NODE_MAJOR="$(printf '%s' "$NODE_RANGE" | grep -oE '[0-9]+' | head -1)"
 PNPM_VERSION="$(json_field "$ROOT/package.json" packageManager | sed -E 's/^pnpm@//; s/\+.*$//')"
 
-mkdir -p "$BIN" 2>/dev/null || true
+[ "$DRY_RUN" = 1 ] || mkdir -p "$BIN" 2>/dev/null || true
 export PATH="$BIN:$PATH"
 
 # ── 1. uv that knows the pinned Python ───────────────────────────────────────
@@ -148,14 +148,22 @@ seed_pnpm_store() {
   # pnpm edits its SQLite index (index.db and its -wal/-shm files) in place,
   # so each checkout gets its own copy of those instead of a shared inode.
   if cp -al "$seed" "$ROOT/.pnpm-store" 2>/dev/null; then
-    find "$ROOT/.pnpm-store" -name 'index.db*' -type f -print0 \
-      | while IFS= read -r -d '' linked; do
-          cp -p "$seed/${linked#"$ROOT/.pnpm-store/"}" "$linked.copy" \
-            && mv -f "$linked.copy" "$linked"
-        done
+    # List first, then copy, so the loop never sees its own temporary files.
+    local -a index_files
+    mapfile -d '' index_files < <(find "$ROOT/.pnpm-store" -type f \
+      \( -name index.db -o -name index.db-wal -o -name index.db-shm \) -print0)
+    local linked
+    for linked in "${index_files[@]}"; do
+      if ! { cp -p "$seed/${linked#"$ROOT/.pnpm-store/"}" "$linked.copy" \
+        && mv -f "$linked.copy" "$linked"; }; then
+        # A still-shared index would let pnpm edit the cached seed in place.
+        rm -rf "$ROOT/.pnpm-store"
+        return 1
+      fi
+    done
     say "ok pnpm store seeded from $seed (linked)"
   else
-    # Another filesystem: cp -al leaves an empty tree behind; copy into it.
+    # Another filesystem: cp -al leaves a partial tree; replace it with a copy.
     rm -rf "$ROOT/.pnpm-store" && mkdir -p "$ROOT/.pnpm-store" \
       && cp -a "$seed/." "$ROOT/.pnpm-store/" || return 1
     say "ok pnpm store seeded from $seed (copied)"
