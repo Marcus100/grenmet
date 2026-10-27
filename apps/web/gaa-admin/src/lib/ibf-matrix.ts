@@ -32,7 +32,9 @@ export const IBF_COLOUR_MEANING: Record<GmsColour, string> = {
 };
 
 /**
- * The standard WMO grid, offered as a starting point only. FastAPI validates
+ * The standard WMO grid, offered as a starting point only. Copied from
+ * `WMO_MATRIX` in apps/api/fastapi/src/cap/ibf.py; ibf-matrix.test.ts fails
+ * if the two drift apart. FastAPI validates
  * every saved grid and GMS must review it before the library entry is approved.
  */
 export function wmoStarterMatrix(): CapProfileMatrix {
@@ -61,6 +63,13 @@ export function starterColourResponses(): CapProfileColourResponse[] {
 export function matrixProblems(cells: GmsColour[][]): string[] {
   const rank = (colour: GmsColour) => IBF_COLOURS.indexOf(colour);
   const problems: string[] = [];
+  if (
+    cells.length !== IBF_LIKELIHOODS.length ||
+    cells.some((row) => row.length !== IBF_IMPACTS.length)
+  )
+    problems.push(
+      `The grid needs ${IBF_LIKELIHOODS.length} rows of ${IBF_IMPACTS.length} colours.`
+    );
   cells.forEach((row, r) => {
     row.forEach((colour, c) => {
       const right = row[c + 1];

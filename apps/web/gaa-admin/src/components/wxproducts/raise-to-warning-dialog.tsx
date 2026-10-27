@@ -61,18 +61,26 @@ export function RaiseToWarningDialog({
   const shownLevel: WarningLevel =
     !levelChosen && suggested && suggested !== "green" ? suggested : level;
   const needsReason = suggested !== null && shownLevel !== suggested;
-  const reasonMissing =
-    needsReason && reason.trim().length < MIN_OVERRIDE_REASON;
+  // When the matrix could not be read, the forecaster may still explain the choice.
+  const reasonOptional = state.status === "failed";
+  const showReason = needsReason || reasonOptional;
+  const trimmedReason = reason.trim();
+  const reasonMissing = needsReason
+    ? trimmedReason.length < MIN_OVERRIDE_REASON
+    : reasonOptional &&
+      trimmedReason.length > 0 &&
+      trimmedReason.length < MIN_OVERRIDE_REASON;
+  const suggestionLoading = state.status === "loading";
 
   async function confirm() {
-    if (reasonMissing) return;
+    if (reasonMissing || suggestionLoading) return;
     setPending(true);
     setError("");
     setExistingAlertId("");
     try {
       const result = await onRaise(
         shownLevel,
-        needsReason ? reason.trim() : undefined
+        showReason && trimmedReason ? trimmedReason : undefined
       );
       if ("error" in result) {
         setError(result.error);
@@ -119,10 +127,12 @@ export function RaiseToWarningDialog({
             The impact matrix suggests {COLOUR_LABEL[suggested]}.
           </p>
         ) : null}
-        {needsReason ? (
+        {showReason ? (
           <div className="space-y-2">
             <Label htmlFor={reasonId}>
-              Reason for choosing a different colour (required)
+              {needsReason
+                ? "Reason for choosing a different colour (required)"
+                : "Reason for choosing this colour (optional)"}
             </Label>
             <Textarea
               id={reasonId}
@@ -132,9 +142,21 @@ export function RaiseToWarningDialog({
             <p className="text-muted-foreground text-xs">
               Internal only. The reason is saved and audited for GMS review. It
               is never published and does not go into the public alert text.
-              Write at least {MIN_OVERRIDE_REASON} characters.
+              {needsReason ? "Write" : "If you write one, use"} at least{" "}
+              {MIN_OVERRIDE_REASON} characters.
             </p>
           </div>
+        ) : null}
+        {suggestionLoading ? (
+          <p className="text-muted-foreground text-sm">
+            Checking the impact matrix…
+          </p>
+        ) : null}
+        {reasonOptional ? (
+          <p className="text-muted-foreground text-sm">
+            The impact matrix could not be read, so the colour was not compared
+            with it.
+          </p>
         ) : null}
         {error ? (
           <p className="text-destructive text-sm" role="alert">
@@ -156,7 +178,7 @@ export function RaiseToWarningDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            disabled={pending || reasonMissing}
+            disabled={pending || reasonMissing || suggestionLoading}
             onClick={(event) => {
               // Keep the dialog open until the warning draft exists.
               event.preventDefault();

@@ -1,10 +1,24 @@
 "use client";
 import { capSuggestIbf, type IbfSuggestion } from "@barrelsgd/api-client";
 import { useEffect, useState } from "react";
+import { IBF_IMPACTS, IBF_LIKELIHOODS } from "@/lib/ibf-matrix";
 import { reportError } from "@/lib/report-error";
 
-export const IBF_LIKELIHOOD_VALUES = ["Very low", "Low", "Medium", "High"];
-export const IBF_IMPACT_VALUES = ["Minimal", "Minor", "Significant", "Severe"];
+const LIKELIHOOD_VALUES: readonly string[] = IBF_LIKELIHOODS;
+const IMPACT_VALUES: readonly string[] = IBF_IMPACTS;
+
+/** Statuses the endpoint answers when there is simply nothing to suggest. */
+const EXPECTED_STATUSES = new Set([403, 422]);
+
+function isExpectedFailure(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    typeof error.status === "number" &&
+    EXPECTED_STATUSES.has(error.status)
+  );
+}
 
 export type IbfSuggestionState =
   | { status: "idle" }
@@ -28,8 +42,8 @@ export function useIbfSuggestion(
       !(
         likelihood &&
         impact &&
-        IBF_LIKELIHOOD_VALUES.includes(likelihood) &&
-        IBF_IMPACT_VALUES.includes(impact)
+        LIKELIHOOD_VALUES.includes(likelihood) &&
+        IMPACT_VALUES.includes(impact)
       )
     ) {
       setState({ status: "idle" });
@@ -50,7 +64,7 @@ export function useIbfSuggestion(
       })
       .catch((error) => {
         // The matrix is guidance; the form still works without it.
-        reportError(error, "wxproducts");
+        if (!isExpectedFailure(error)) reportError(error, "wxproducts");
         if (!cancelled) setState({ status: "failed" });
       });
     return () => {

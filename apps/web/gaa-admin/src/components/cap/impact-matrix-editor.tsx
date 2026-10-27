@@ -21,7 +21,10 @@ import {
 export function ImpactMatrixEditor({
   matrix,
   onChange,
+  isDraft = true,
 }: {
+  /** False for a saved approved version with no unsaved edits. */
+  isDraft?: boolean;
   matrix: CapProfileMatrix | null | undefined;
   onChange: (next: CapProfileMatrix | null) => void;
 }) {
@@ -41,7 +44,7 @@ export function ImpactMatrixEditor({
     >
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="font-semibold">Impact matrix (likelihood by impact)</h2>
-        {matrix ? <Badge variant="outline">Draft</Badge> : null}
+        {matrix && isDraft ? <Badge variant="outline">Draft</Badge> : null}
       </div>
       <p className="text-muted-foreground text-sm">
         The colour a forecaster is shown for each likelihood and impact. Without
@@ -142,7 +145,7 @@ export function ImpactMatrixEditor({
           </Button>
         </div>
       )}
-      {matrix ? (
+      {matrix && isDraft ? (
         <p className="text-muted-foreground text-sm">
           Starter values are a draft. GMS must review them before this version
           is approved.

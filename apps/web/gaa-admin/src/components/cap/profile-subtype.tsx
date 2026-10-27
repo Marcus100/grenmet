@@ -25,11 +25,14 @@ export function ProfileSubtypeEditor({
   onChange,
   onRemove,
   canManageLibrary = false,
+  isDraft = true,
 }: {
   subtype: CapProfileSubtype;
   onChange: (value: CapProfileSubtype) => void;
   onRemove: () => void;
   canManageLibrary?: boolean;
+  /** False for a saved approved version with no unsaved edits. */
+  isDraft?: boolean;
 }) {
   const rules = subtype.rules ?? [];
   function updateRule(index: number, patch: Partial<CapProfileRule>) {
@@ -205,7 +208,11 @@ export function ProfileSubtypeEditor({
         ))}
       </div>
       {canManageLibrary ? (
-        <SubtypeImpactEditor onChange={onChange} subtype={subtype} />
+        <SubtypeImpactEditor
+          isDraft={isDraft}
+          onChange={onChange}
+          subtype={subtype}
+        />
       ) : null}
       <Button onClick={onRemove} variant="outline">
         Remove subtype

@@ -8,6 +8,7 @@ import { RaiseToWarningDialog } from "./raise-to-warning-dialog";
 const RE_REASON_FOR_CHOOSING = /Reason for choosing/;
 const RE_REASON = /Reason for choosing a different colour/;
 const RE_INTERNAL_ONLY = /Internal only/;
+const RE_OPTIONAL_REASON = /Reason for choosing this colour \(optional\)/;
 
 const server = setupServer(
   http.get("http://localhost/api/v1/cap/ibf/suggest", () =>
@@ -131,5 +132,65 @@ it("requires an internal-only reason to override the matrix colour", async () =>
   fireEvent.click(raise);
   await waitFor(() =>
     expect(onRaise).toHaveBeenCalledWith("red", "River already at bank level.")
+  );
+});
+
+it("offers an optional reason when the matrix could not be read", async () => {
+  server.use(
+    http.get("http://localhost/api/v1/cap/ibf/suggest", () =>
+      HttpResponse.json({ detail: "boom" }, { status: 500 })
+    )
+  );
+  const onRaise = vi.fn().mockResolvedValue({ alertId: "alert-4" });
+  render(
+    <RaiseToWarningDialog
+      impact="Significant"
+      kind="flood"
+      likelihood="Medium"
+      onOpenChange={vi.fn()}
+      onRaise={onRaise}
+      open
+    />
+  );
+  const raise = screen.getByRole("button", { name: "Raise to warning" });
+  expect(raise).toBeDisabled();
+  const reason = await screen.findByLabelText(RE_OPTIONAL_REASON);
+  expect(raise).toBeEnabled();
+  fireEvent.change(reason, { target: { value: "short" } });
+  expect(raise).toBeDisabled();
+  fireEvent.change(reason, {
+    target: { value: "Matrix unavailable; river at bank." },
+  });
+  expect(raise).toBeEnabled();
+  fireEvent.click(raise);
+  await waitFor(() =>
+    expect(onRaise).toHaveBeenCalledWith(
+      "yellow",
+      "Matrix unavailable; river at bank."
+    )
+  );
+});
+
+it("raises without a reason when the matrix could not be read", async () => {
+  server.use(
+    http.get("http://localhost/api/v1/cap/ibf/suggest", () =>
+      HttpResponse.json({ detail: "forbidden" }, { status: 403 })
+    )
+  );
+  const onRaise = vi.fn().mockResolvedValue({ alertId: "alert-5" });
+  render(
+    <RaiseToWarningDialog
+      impact="Significant"
+      kind="flood"
+      likelihood="Medium"
+      onOpenChange={vi.fn()}
+      onRaise={onRaise}
+      open
+    />
+  );
+  await screen.findByLabelText(RE_OPTIONAL_REASON);
+  fireEvent.click(screen.getByRole("button", { name: "Raise to warning" }));
+  await waitFor(() =>
+    expect(onRaise).toHaveBeenCalledWith("yellow", undefined)
   );
 });

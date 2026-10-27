@@ -16,6 +16,7 @@ import {
   vi,
 } from "vitest";
 import { floodProfile } from "@/lib/cap-profile-defaults";
+import { wmoStarterMatrix } from "@/lib/ibf-matrix";
 import { nth } from "@/test/nth";
 import { ProfileEditor } from "./profile-editor";
 
@@ -154,6 +155,21 @@ describe("Hazard profile editor", () => {
         name: "Start impact levels and responses",
       })
     ).toBeNull();
+  });
+
+  it("shows no draft badge for an approved version until it is edited", () => {
+    const approved = version("APPROVED");
+    approved.definition = {
+      ...approved.definition,
+      matrix: { cells: wmoStarterMatrix().cells },
+    };
+    render(<ProfileEditor canManageLibrary initialVersions={[approved]} />);
+    expect(screen.queryByText("Draft")).toBeNull();
+    fireEvent.change(
+      screen.getByLabelText("Very low likelihood, Minimal impact"),
+      { target: { value: "yellow" } }
+    );
+    expect(screen.getAllByText("Draft").length).toBeGreaterThan(0);
   });
 
   it("edits the matrix, impact levels and colour responses for library managers", async () => {

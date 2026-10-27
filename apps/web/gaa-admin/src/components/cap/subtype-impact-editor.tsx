@@ -21,7 +21,10 @@ import { ProfileField } from "./profile-field";
 export function SubtypeImpactEditor({
   subtype,
   onChange,
+  isDraft = true,
 }: {
+  /** False for a saved approved version with no unsaved edits. */
+  isDraft?: boolean;
   subtype: CapProfileSubtype;
   onChange: (next: CapProfileSubtype) => void;
 }) {
@@ -55,7 +58,7 @@ export function SubtypeImpactEditor({
     >
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="font-medium">Impact levels and responses by colour</h3>
-        {started ? <Badge variant="outline">Draft</Badge> : null}
+        {started && isDraft ? <Badge variant="outline">Draft</Badge> : null}
       </div>
       <p className="text-muted-foreground text-sm">
         Set all four impact levels and all four colour responses, or none. A
