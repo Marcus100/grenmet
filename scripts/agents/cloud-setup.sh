@@ -47,6 +47,13 @@ fi
 MIN_BOOTSTRAP="${GRENMET_MIN_BOOTSTRAP_SECONDS:-30}"
 remaining=$((BUDGET - SECONDS))
 [ "$remaining" -ge "$MIN_BOOTSTRAP" ] || remaining="$MIN_BOOTSTRAP"
+# Stop afterwards only the servers this run started, never ones already up
+# (a machine running the tests, or a session that already started them).
+pg_online() { pg_lsclusters --no-header 2>/dev/null | awk '$4 == "online" {print $1, $2}'; }
+pg_before=""
+command -v pg_lsclusters >/dev/null 2>&1 && pg_before="$(pg_online)"
+redis_before=0
+redis-cli ping >/dev/null 2>&1 && redis_before=1
 log="$WORK/bootstrap.log"
 # The same idempotent bootstrap the hook runs; it fills the caches under $HOME.
 timeout "$remaining" bash "$WORK/repo/scripts/agents/cloud-bootstrap.sh" >"$log" 2>&1
@@ -69,10 +76,14 @@ fi
 # A snapshot keeps files, not processes: stop the servers the bootstrap started
 # so their data directories are captured shut down cleanly.
 if command -v pg_lsclusters >/dev/null 2>&1; then
-  pg_lsclusters --no-header 2>/dev/null | awk '$4 == "online" {print $1, $2}' \
-    | while read -r ver name; do pg_ctlcluster "$ver" "$name" stop || true; done
+  pg_online | while read -r ver name; do
+    grep -qxF "$ver $name" <<<"$pg_before" && continue
+    pg_ctlcluster "$ver" "$name" stop </dev/null || true
+  done
 fi
-redis-cli shutdown nosave >/dev/null 2>&1 || true
+if [ "$redis_before" = 0 ] && redis-cli ping >/dev/null 2>&1; then
+  redis-cli shutdown nosave >/dev/null 2>&1 || true
+fi
 
 rm -rf "$WORK"
 exit 0

@@ -144,9 +144,22 @@ seed_pnpm_store() {
     say "skip pnpm store: no cached store to seed from"
     return 0
   fi
-  cp -al "$seed" "$ROOT/.pnpm-store" 2>/dev/null \
-    || cp -a "$seed" "$ROOT/.pnpm-store" || return 1
-  say "ok pnpm store seeded from $seed"
+  # Content files are written once and never changed, so sharing them is safe.
+  # pnpm edits its SQLite index (index.db and its -wal/-shm files) in place,
+  # so each checkout gets its own copy of those instead of a shared inode.
+  if cp -al "$seed" "$ROOT/.pnpm-store" 2>/dev/null; then
+    find "$ROOT/.pnpm-store" -name 'index.db*' -type f -print0 \
+      | while IFS= read -r -d '' linked; do
+          cp -p "$seed/${linked#"$ROOT/.pnpm-store/"}" "$linked.copy" \
+            && mv -f "$linked.copy" "$linked"
+        done
+    say "ok pnpm store seeded from $seed (linked)"
+  else
+    # Another filesystem: cp -al leaves an empty tree behind; copy into it.
+    rm -rf "$ROOT/.pnpm-store" && mkdir -p "$ROOT/.pnpm-store" \
+      && cp -a "$seed/." "$ROOT/.pnpm-store/" || return 1
+    say "ok pnpm store seeded from $seed (copied)"
+  fi
 }
 
 install_node_deps() {
@@ -207,6 +220,12 @@ EOF
     printf '%s\n' "$lines"
   fi
 }
+
+# BOOTSTRAP_ONLY=<function> runs one step (tests, or by hand).
+if [ -n "${BOOTSTRAP_ONLY:-}" ]; then
+  step "$BOOTSTRAP_ONLY" "$BOOTSTRAP_ONLY"
+  exit 0
+fi
 
 step "uv: install Python $PY_VERSION (upgrade uv if it is too old)" ensure_uv
 step "node: provide v$NODE_MAJOR (engines.node $NODE_RANGE)" ensure_node
