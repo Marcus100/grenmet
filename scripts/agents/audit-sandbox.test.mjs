@@ -79,7 +79,29 @@ test("backend lifecycle stays outside the sandbox while the source test command 
         (call) => call.argv[0] === "docker" && call.argv.includes("up")
       )
     );
-    const sandbox = calls.find((call) => call.argv[0] === "systemd-run");
+    assert.ok(!calls.some((call) => call.argv[0] === "pnpm"));
+    assert.ok(
+      calls.some(
+        (call) =>
+          call.argv[0] === "systemd-run" &&
+          call.argv.includes("pnpm") &&
+          call.argv.includes("--version")
+      )
+    );
+    for (const host of calls.filter(
+      (call) => call.argv[0] === "docker" || call.argv[0] === "uv"
+    )) {
+      assert.ok(
+        !(host.options.env?.PATH ?? "")
+          .split(":")
+          .some((directory) => directory.startsWith(`${root}/`))
+      );
+    }
+    const sandbox = calls.find(
+      (call) =>
+        call.argv[0] === "systemd-run" &&
+        call.argv.includes("scripts/verification/backend.sh")
+    );
     assert.ok(sandbox);
     for (const call of calls.filter(
       (entry) => entry.argv[0] === "docker" && entry.argv.includes("compose")

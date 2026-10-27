@@ -184,3 +184,7 @@ their alert numbers; duplicate alerts do not inflate the distinct count.
 Turbo also launches pnpm for individual tasks. The executor creates a quoted
 corepack wrapper in a fresh bin directory under its confined disposable home
 and adds it to the child PATH. This avoids exposing a host-home pnpm wrapper.
+
+The disposable backend runs its package-manager prerequisite probe inside the
+sandbox. Host-side Docker orchestration retains the trusted host PATH; it must
+never execute wrappers or package-manager caches writable by sandboxed tasks.

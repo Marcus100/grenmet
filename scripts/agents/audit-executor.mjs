@@ -94,7 +94,7 @@ export function testExecutor(
                 )
               : args;
           const result =
-            cmd === "bash"
+            cmd === "bash" || cmd === "pnpm"
               ? await isolated([cmd, ...args], settings)
               : await run([cmd, ...trustedArgs], {
                   ...settings,
