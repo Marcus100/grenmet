@@ -24,7 +24,13 @@ from src.auth.models import User
 from src.auth.policy import require_permission
 from src.baseline import product_access
 from src.cap import ibf, ibf_suggest, service
-from src.cap.levels import GmsColour, GmsProduct, level_parameters, severity_for
+from src.cap.levels import (
+    OVERRIDE_REASON,
+    GmsColour,
+    GmsProduct,
+    level_parameters,
+    severity_for,
+)
 from src.cap.models import (
     CapAlert,
     CapCategory,
@@ -52,7 +58,6 @@ SOURCE_ID = "GMS:source-bulletin-id"
 SOURCE_REVISION = "GMS:source-bulletin-revision"
 # How the colour relates to the impact-based matrix (src/cap/ibf.py).
 SUGGESTED_COLOUR = "GMS:suggested-colour"
-OVERRIDE_REASON = "GMS:override-reason"
 IBF_LIBRARY = "GMS:ibf-library"
 LIKELIHOOD_PARAMETER = "GMS:likelihood"
 IMPACT_PARAMETER = "GMS:impact"

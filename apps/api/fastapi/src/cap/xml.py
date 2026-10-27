@@ -7,6 +7,7 @@ from defusedxml.common import DefusedXmlException
 from pydantic import ValidationError
 
 from src.cap.exceptions import CapImportError
+from src.cap.levels import INTERNAL_PARAMETERS
 from src.cap.models import (
     CapCertainty,
     CapMessageType,
@@ -26,9 +27,6 @@ from src.cap.schemas import (
 )
 
 CAP_NS = "urn:oasis:names:tc:emergency:cap:1.2"
-
-# Kept on the alert for staff and audit, never written into the published XML.
-INTERNAL_PARAMETERS = frozenset({"GMS:override-reason"})
 
 
 def alert_to_cap_xml(alert: CapAlertPublic) -> str:
