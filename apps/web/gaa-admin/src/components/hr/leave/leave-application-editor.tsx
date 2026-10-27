@@ -62,7 +62,7 @@ import {
 } from "@/components/hr/use-editor-prefill";
 import { hrFormFilename } from "@/lib/pdf-filename";
 import { reportError } from "@/lib/report-error";
-import { EMPTY_LEAVE, JURY_DUTY_LABEL, LEAVE_TYPES } from "./leave-document";
+import { EMPTY_LEAVE, JURY_DUTY_LABEL, LEAVE_TYPES } from "./leave-values";
 
 /** Paper-form labels → API LeaveType values. */
 const LEAVE_TYPE_MAP: Record<string, LeaveType> = {

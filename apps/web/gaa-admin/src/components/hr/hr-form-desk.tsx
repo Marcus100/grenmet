@@ -7,10 +7,7 @@ import { Download, Maximize2 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { DeskLayout } from "@/components/document/desk-layout";
-import {
-  downloadBlob,
-  PdfDialog,
-} from "@/components/document/document-preview";
+import { downloadBlob, PdfDialog } from "@/components/document/pdf-preview";
 import { signedDocumentFilename } from "@/lib/pdf-filename";
 import { reportError } from "@/lib/report-error";
 import { fetchHrPdf } from "./hr-pdf-preview";

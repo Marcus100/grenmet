@@ -53,7 +53,7 @@ import {
 import { hrFormFilename } from "@/lib/pdf-filename";
 import { displayName } from "@/lib/people";
 import { reportError } from "@/lib/report-error";
-import { EMPTY_SHIFT } from "./shift-exchange-document";
+import { EMPTY_SHIFT } from "./shift-exchange-values";
 
 /** Printable-paper fields plus the structured fields the HR API needs. */
 const EMPTY_FORM = {

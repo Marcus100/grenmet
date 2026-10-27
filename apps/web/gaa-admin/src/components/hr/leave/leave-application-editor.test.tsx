@@ -19,8 +19,8 @@ import {
   LeaveApplicationEditor,
   validateLeaveValues,
 } from "./leave-application-editor";
-import { EMPTY_LEAVE, JURY_DUTY_LABEL } from "./leave-document";
 import { LeaveSubmissions } from "./leave-submissions";
+import { EMPTY_LEAVE, JURY_DUTY_LABEL } from "./leave-values";
 
 const navigation = vi.hoisted(() => ({ search: "" }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));

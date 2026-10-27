@@ -15,13 +15,13 @@ import {
   it,
   vi,
 } from "vitest";
-import { EMPTY_DAILY_STATUS } from "./daily-status-document";
 import {
   buildStatusReportPayload,
   DailyStatusEditor,
   staffingEntry,
   validateStatusValues,
 } from "./daily-status-editor";
+import { EMPTY_DAILY_STATUS } from "./daily-status-values";
 import { StatusSubmissions } from "./status-submissions";
 
 const nav = vi.hoisted(() => ({ search: "" }));

@@ -1,15 +1,5 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { AbsenteeDocument, EMPTY_ABSENTEE } from "./absentee/absentee-document";
-import { EMPTY_LEAVE, LeaveDocument } from "./leave/leave-document";
-import {
-  EMPTY_SHIFT,
-  ShiftExchangeDocument,
-} from "./shift/shift-exchange-document";
-import {
-  DailyStatusDocument,
-  EMPTY_DAILY_STATUS,
-} from "./status/daily-status-document";
 import { formatSubmissionDate } from "./submission-date";
 import {
   EMPTY_TIMESHEET,
@@ -30,53 +20,14 @@ describe("HR submission dates", () => {
       formatSubmissionDate({ status: "SUBMITTED", submitted_at: "invalid" })
     ).toBe("Not recorded");
   });
-  it.each([
-    [
-      "leave",
-      <LeaveDocument
-        key="leave"
-        submission={submission}
-        values={EMPTY_LEAVE}
-      />,
-    ],
-    [
-      "shift",
-      <ShiftExchangeDocument
-        key="shift"
-        submission={submission}
-        values={EMPTY_SHIFT}
-      />,
-    ],
-    [
-      "absentee",
-      <AbsenteeDocument
-        key="absentee"
-        submission={submission}
-        values={EMPTY_ABSENTEE}
-      />,
-    ],
-    [
-      "status",
-      <DailyStatusDocument
-        key="status"
-        submission={submission}
-        values={EMPTY_DAILY_STATUS}
-      />,
-    ],
-    [
-      "timesheet",
-      <TimesheetDocument
-        key="timesheet"
-        submission={submission}
-        values={EMPTY_TIMESHEET}
-      />,
-    ],
-  ])("prints the saved date on %s", (_name, document) => {
-    render(document);
+  it("prints the saved date on the timesheet", () => {
+    render(
+      <TimesheetDocument submission={submission} values={EMPTY_TIMESHEET} />
+    );
     expect(screen.getByText("06 Sept 2026")).toBeInTheDocument();
   });
-  it("marks an unsaved document as not submitted", () => {
-    render(<LeaveDocument values={EMPTY_LEAVE} />);
+  it("marks an unsaved timesheet as not submitted", () => {
+    render(<TimesheetDocument values={EMPTY_TIMESHEET} />);
     expect(screen.getByText("Not submitted")).toBeInTheDocument();
   });
 });
