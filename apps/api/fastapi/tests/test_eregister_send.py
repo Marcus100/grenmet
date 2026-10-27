@@ -1214,7 +1214,9 @@ async def test_gate_refuses_an_hour_the_schedule_gives_to_automatic(
     incoming: Path,
 ) -> None:
     client, _ = send_client
-    await register_exec("UPDATE observations.stations SET schedule = 'automatic'")
+    await register_exec(
+        "UPDATE observations.stations SET schedule = 'automatic', source_kind = 'automatic'"
+    )
     observation = await save(client, accepted=True)
     refused = await client.post(publish_url(observation))
     assert refused.status_code == 409

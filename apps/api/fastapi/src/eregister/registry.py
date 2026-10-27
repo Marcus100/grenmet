@@ -35,6 +35,18 @@ _ONE = text(
     " WHERE station_id = :station"
 )
 _WIGOS_INDEX = "stations_wigos_id_key"
+PROTECTED_STATION = "78958"
+PROTECTED_MESSAGE = (
+    "Station 78958 is the manual observer station for all 24 hours: only its name "
+    "can change"
+)
+WIGOS_FIXED_MESSAGE = (
+    "A WIGOS identifier can be set once, while it is empty; it cannot be changed "
+    "or cleared afterwards"
+)
+MANUAL_HOURS_REQUIRED_MESSAGE = (
+    "A manual station needs an explicit, non-empty manual_hours_utc"
+)
 
 
 class StationNotFoundError(NotFoundError):
@@ -115,9 +127,7 @@ async def _unique_wigos(
         )
 
 
-async def _conflict_after(
-    error: IntegrityError, station_id: str
-) -> StationConflictError:
+def _conflict_after(error: IntegrityError, station_id: str) -> StationConflictError:
     # A concurrent writer won the race the pre-checks cannot close.
     message = str(error.orig)
     if _WIGOS_INDEX in message:
@@ -126,6 +136,8 @@ async def _conflict_after(
 
 
 async def create(register: AsyncSession, data: StationCreate) -> StationRecord:
+    if data.source_kind == SOURCE_MANUAL and not data.manual_hours_utc:
+        raise StationRuleError(MANUAL_HOURS_REQUIRED_MESSAGE)
     hours = _hours(data.source_kind, data.manual_hours_utc, ALL_HOURS)
     if await get(register, data.station_id) is not None:
         raise StationConflictError(f"Station {data.station_id} already exists")
@@ -151,11 +163,34 @@ async def create(register: AsyncSession, data: StationCreate) -> StationRecord:
         await register.commit()
     except IntegrityError as error:
         await register.rollback()
-        raise await _conflict_after(error, data.station_id) from error
+        raise _conflict_after(error, data.station_id) from error
     created = await get(register, data.station_id)
     if created is None:  # pragma: no cover - committed just above
         raise StationNotFoundError
     return created
+
+
+def _check_allowed(before: StationRecord, data: StationUpdate) -> None:
+    sent = data.model_fields_set
+    if (
+        "wigos_id" in sent
+        and data.wigos_id != before.wigos_id
+        and before.wigos_id is not None
+    ):
+        raise StationRuleError(WIGOS_FIXED_MESSAGE)
+    if before.station_id != PROTECTED_STATION:
+        return
+    # Owner decision 2026-10-23: 78958 is observed by hand, all 24 hours, always on.
+    hours_changed = "manual_hours_utc" in sent and (
+        data.manual_hours_utc is None
+        or sorted(set(data.manual_hours_utc)) != before.manual_hours_utc
+    )
+    changes_identity = hours_changed or any(
+        key in sent and getattr(data, key) != getattr(before, key)
+        for key in ("source_kind", "active")
+    )
+    if changes_identity or ("wigos_id" in sent and data.wigos_id != before.wigos_id):
+        raise StationRuleError(PROTECTED_MESSAGE)
 
 
 async def update(
@@ -176,18 +211,24 @@ async def update(
     if before is None:
         await register.rollback()
         raise StationNotFoundError
+    try:
+        _check_allowed(before, data)
+    except AppException:
+        await register.rollback()
+        raise
     name = data.name if "name" in sent else before.name
     wigos_id = data.wigos_id if "wigos_id" in sent else before.wigos_id
     source_kind = data.source_kind or before.source_kind
     active = before.active if data.active is None else data.active
     try:
         # Switching a station to manual without hours means every hour.
-        default = (
-            before.manual_hours_utc
-            if before.source_kind == SOURCE_MANUAL
-            else ALL_HOURS
-        )
-        hours = _hours(source_kind, data.manual_hours_utc, default)
+        if (
+            source_kind == SOURCE_MANUAL
+            and before.source_kind != SOURCE_MANUAL
+            and not data.manual_hours_utc
+        ):
+            raise StationRuleError(MANUAL_HOURS_REQUIRED_MESSAGE)
+        hours = _hours(source_kind, data.manual_hours_utc, before.manual_hours_utc)
         if wigos_id != before.wigos_id:
             await _unique_wigos(register, wigos_id, except_station=station_id)
     except AppException:
@@ -214,7 +255,7 @@ async def update(
         await register.commit()
     except IntegrityError as error:
         await register.rollback()
-        raise await _conflict_after(error, station_id) from error
+        raise _conflict_after(error, station_id) from error
     after = await get(register, station_id)
     if after is None:  # pragma: no cover - committed just above
         raise StationNotFoundError

@@ -7,6 +7,7 @@ Additive on the eRegister chain only (ADR-0032 amendment).
   and get the kind it implies (an ``automatic`` schedule is an automatic station).
 * ``active`` lets staff retire a station without deleting it (observations and
   gate rows reference it); the publish gate refuses an inactive station.
+* A check keeps ``source_kind`` and ``schedule`` consistent.
 * A partial unique index keeps one station per WIGOS identifier. Rows without
   one stay allowed; nothing is invented for them.
 """
@@ -33,6 +34,10 @@ def upgrade() -> None:
         " WHERE schedule = 'automatic'"
     )
     op.execute(
+        "ALTER TABLE observations.stations ADD CONSTRAINT stations_kind_matches_schedule"
+        " CHECK ((source_kind = 'automatic') = (schedule = 'automatic'))"
+    )
+    op.execute(
         "CREATE UNIQUE INDEX stations_wigos_id_key"
         " ON observations.stations (wigos_id) WHERE wigos_id IS NOT NULL"
     )
@@ -40,5 +45,8 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.execute("DROP INDEX observations.stations_wigos_id_key")
+    op.execute(
+        "ALTER TABLE observations.stations DROP CONSTRAINT stations_kind_matches_schedule"
+    )
     op.execute("ALTER TABLE observations.stations DROP COLUMN active")
     op.execute("ALTER TABLE observations.stations DROP COLUMN source_kind")

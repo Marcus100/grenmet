@@ -11,7 +11,7 @@ import type {
 } from "../models/EregisterEditStation.js";
 
 /**
- * @description Changes the keys sent (`station_id` is fixed). An explicit null clears `name` or `wigos_id`. Switching to `automatic` needs no observer hours; switching to `manual` without hours means all 24. An inactive station is refused by the WIS2 publish gate. Recorded in the change history (entity `eregister_station`) with the fields before and after. Requires `eregister.qc`.
+ * @description Changes the keys sent (`station_id` is fixed). An explicit null clears `name`. A `wigos_id` can be set once, while empty, and never changed or cleared. Station 78958 can only be renamed (422 otherwise). Switching to `manual` needs explicit hours; `automatic` has none. An inactive station is refused by the WIS2 publish gate. Recorded in the change history (entity `eregister_station`) with the fields before and after. Requires `eregister.qc`.
  * @summary Edit a station
  * {@link /api/v1/eregister/stations/:station_id}
  */

@@ -42,7 +42,7 @@
 
 - Schema `observations` in the register DB (migration `eregister_0003`, same eRegister Alembic chain, never the main chain): `stations` (registry and schedule `automatic`/`manual`/`hybrid` with `manual_hours_utc`), `observations` (natural key station, element, `valid_time_utc`, source; `store.upsert_observation` is idempotent, non-top-of-hour rows get `is_hourly` false), `publish_gate` (primary key station + UTC hour) and `publish_gate_decisions` (audit of every claim, reuse and refusal).
 - `gate.claim_manual_hour` runs before `sends.queue_wis2` queues anything: unregistered station or an hour the schedule gives to `automatic` is 409 (`PublishGateError`); the insert on the primary key makes one claim win under concurrency; another observation for the same hour is 409. WIS2 is never queued twice (`resend` is ignored for WIS2); a failed send may be queued again by the same observation.
-- 78958 is seeded `automatic` (SURFACE publishes it, ADR-0010), so eRegister WIS2 is refused until the owner updates `observations.stations` for the agreed hours. There is no registry endpoint yet. Not built: ingest endpoint (needs ADR-0029 keys), element mapping table, SURFACE sync.
+- 78958 was seeded `automatic` (SURFACE, ADR-0010); migration `eregister_0006` made it manual for all 24 hours (owner decision). Staff manage stations through the registry endpoints (see the Station registry section). Not built: ingest endpoint (needs ADR-0029 keys), element mapping table, SURFACE sync.
 
 ## Station registry (ADR-0032 amendment)
 
@@ -50,3 +50,4 @@
 - Audit entity `eregister_station` (`create`/`update`, only changed fields), second commit in the application DB. `gate.claim_manual_hour` refuses an inactive station.
 - 78958 is the manual observer station (24 hours). The automatic weather station is a separate row added through this registry once GMS confirms its WIGOS id; never seed or guess one. `config.WIS2BOX_WIGOS_ID` and the CSV metadata are still 78958-only (per-station WIS2 metadata is not built).
 - Tests: `tests/test_eregister_station_registry.py`.
+- Rules: 78958 may only be renamed (source kind, hours, active and WIGOS id are refused with 422, `PROTECTED_MESSAGE`); a WIGOS id can be set once while empty and never changed or cleared (`WIGOS_FIXED_MESSAGE`; WIS2 file names and metadata still read `config.WIS2BOX_WIGOS_ID`); creating or switching to a manual station needs explicit non-empty hours; a check constraint keeps `source_kind` and `schedule` consistent. The missing-observation sweep (`notifications/gms_sweeps.py`) skips inactive stations.

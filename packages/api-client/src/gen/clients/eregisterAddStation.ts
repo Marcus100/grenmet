@@ -11,7 +11,7 @@ import type {
 } from "../models/EregisterAddStation.js";
 
 /**
- * @description Adds a station. `wigos_id` must look like `0-20000-0-78958` and be unique. A `manual` station defaults to all 24 observer hours; an `automatic` station has none. Recorded in the change history (entity `eregister_station`). Requires `eregister.qc`.
+ * @description Adds a station. `wigos_id` must look like `0-20000-0-78958` and be unique. A `manual` station needs an explicit, non-empty `manual_hours_utc`; an `automatic` station has none. Recorded in the change history (entity `eregister_station`). Requires `eregister.qc`.
  * @summary Add a station
  * {@link /api/v1/eregister/stations}
  */

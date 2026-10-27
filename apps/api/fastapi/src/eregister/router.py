@@ -562,8 +562,8 @@ async def list_registry_stations(
     summary="Add a station",
     description=(
         "Adds a station. `wigos_id` must look like `0-20000-0-78958` and be unique. "
-        "A `manual` station defaults to all 24 observer hours; an `automatic` "
-        "station has none. Recorded in the change history (entity "
+        "A `manual` station needs an explicit, non-empty "
+        "`manual_hours_utc`; an `automatic` station has none. Recorded in the change history (entity "
         "`eregister_station`). Requires `eregister.qc`."
     ),
     responses=STATION_RESPONSES,
@@ -618,8 +618,9 @@ async def get_registry_station(
     summary="Edit a station",
     description=(
         "Changes the keys sent (`station_id` is fixed). An explicit null clears "
-        "`name` or `wigos_id`. Switching to `automatic` needs no observer hours; "
-        "switching to `manual` without hours means all 24. An inactive station is "
+        "`name`. A `wigos_id` can be set once, while empty, and never changed or "
+        "cleared. Station 78958 can only be renamed (422 otherwise). Switching to "
+        "`manual` needs explicit hours; `automatic` has none. An inactive station is "
         "refused by the WIS2 publish gate. Recorded in the change history (entity "
         "`eregister_station`) with the fields before and after. Requires "
         "`eregister.qc`."

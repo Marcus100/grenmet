@@ -1916,13 +1916,14 @@ weather site as provisional, so a signed-in account alone is not enough.
   `PATCH /stations/{station_id}` (edit the keys sent; `station_id` is fixed). A
   station has a `wigos_id` (format `0-<issuer>-<issue>-<local>`, unique, `409` if
   taken), `source_kind` (`manual` observer or `automatic`), `manual_hours_utc`
-  (manual only; omitted means all 24; the derived `schedule` is `manual`, `hybrid`
+  (manual only and required, non-empty; the derived `schedule` is `manual`, `hybrid`
   or `automatic`) and `active`. An automatic station with hours, or a manual one with
   none, is `422`. Reading needs register staff access; changes need `eregister.qc`
   and write a change-history entry (`eregister_station`, create or the fields before
   and after). The WIS2 publish gate refuses an inactive station. 78958 stays the
   manual station; the automatic station is added here once GMS confirms its WIGOS
-  identifier (migration `eregister_0007`, additive).
+  identifier (migration `eregister_0007`, additive). A `wigos_id` is set once and never
+  changed; 78958 can only be renamed.
 - *Special groups and listings.* Typed `s3_special_phenomena` groups are sent in the
   order keyed, after the gust and `s3_group_909` built from their own fields; a typed
   group with the same 9SpSp prefix as one of those is dropped and warns
