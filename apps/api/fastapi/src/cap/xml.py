@@ -27,6 +27,9 @@ from src.cap.schemas import (
 
 CAP_NS = "urn:oasis:names:tc:emergency:cap:1.2"
 
+# Kept on the alert for staff and audit, never written into the published XML.
+INTERNAL_PARAMETERS = frozenset({"GMS:override-reason"})
+
 
 def alert_to_cap_xml(alert: CapAlertPublic) -> str:
     root = ET.Element(_tag("alert"))
@@ -83,6 +86,8 @@ def _info_element(info: CapInfoPublic) -> ET.Element:
     _append(element, "web", info.web)
     _append(element, "contact", info.contact)
     for parameter in info.parameters:
+        if parameter.value_name in INTERNAL_PARAMETERS:
+            continue
         element.append(_name_value_element("parameter", parameter))
     for resource in sorted(info.resources, key=lambda item: item.sequence):
         element.append(_resource_element(resource))
