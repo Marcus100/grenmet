@@ -8,6 +8,7 @@ module's tables (ADR-0003).
 
 import uuid
 from datetime import date, datetime
+from typing import Any, cast
 
 from sqlalchemy import Date, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
@@ -97,7 +98,7 @@ class Announcement(EventsModel):
 
 def _default_booking_mode(context: DefaultExecutionContext) -> str:
     """Legacy ``admission`` -> ``booking_mode`` for rows built without one."""
-    admission = context.get_current_parameters().get("admission")  # type: ignore[no-untyped-call]
+    admission = cast("Any", context).get_current_parameters().get("admission")
     return {"rsvp": "rsvp", "ticketed": "tickets"}.get(str(admission), "none")
 
 

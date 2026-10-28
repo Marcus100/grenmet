@@ -32,7 +32,7 @@ Notes:
   short ``lock_timeout`` so it fails fast instead of queueing behind traffic.
 
 Revision ID: eventstaxonomy20261022
-Revises: eventsactivitycapacity20261022
+Revises: caplibrarymanage20261027
 """
 
 import uuid
@@ -42,7 +42,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "eventstaxonomy20261022"
-down_revision = "eventsactivitycapacity20261022"
+down_revision = "caplibrarymanage20261027"
 branch_labels = None
 depends_on = None
 

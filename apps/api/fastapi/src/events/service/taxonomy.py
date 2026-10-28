@@ -6,7 +6,7 @@ Imports only models, schemas and exceptions, so ``discover`` and
 
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -90,7 +90,7 @@ async def category_tree(
                 schemas.EventCategorySub(
                     slug=row.slug,
                     name=row.name,
-                    applies_to=list(row.applies_to),  # type: ignore[arg-type]
+                    applies_to=cast("list[schemas.ListingType]", list(row.applies_to)),
                     sort_order=row.sort_order,
                     listing_count=int(sub_counts.get(row.id, 0)),
                 )
@@ -99,7 +99,7 @@ async def category_tree(
         schemas.EventCategoryNode(
             slug=row.slug,
             name=row.name,
-            applies_to=list(row.applies_to),  # type: ignore[arg-type]
+            applies_to=cast("list[schemas.ListingType]", list(row.applies_to)),
             sort_order=row.sort_order,
             listing_count=int(top_counts.get(row.id, 0)),
             children=children.get(row.id, []),
