@@ -1,7 +1,7 @@
 [project]
 name = "notebooks"
 version = "0.1.0"
-description = "Add your description here"
+description = "Weather model download, analysis and MetPy exploration notebooks for Grenada"
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
 dependencies = [
