@@ -1,4 +1,4 @@
-import { FlatMap } from "@/components/map/flat-map";
+import { LevelMap } from "@/components/map/level-map";
 import { PartyDot } from "@/components/party-chip";
 import { currentHouse, type SeatOutlook } from "@/data/election-2026";
 import { partyColor, partyInfo } from "@/data/parties";
@@ -17,15 +17,16 @@ export function HouseMap({
   const house = Object.entries(currentHouse(seats)).sort((a, b) => b[1] - a[1]);
   return (
     <figure className={className}>
-      <FlatMap
-        geo={geo}
-        label="Party holding each seat today"
-        regions={seats.map((seat) => ({
+      <LevelMap
+        constituencyRegions={seats.map((seat) => ({
           code: seat.code,
           fill: partyColor(seat.sitting.party),
           href: seat.href,
           title: `${seat.name}: ${seat.sitting.name}, ${partyInfo(seat.sitting.party).name}`,
         }))}
+        geo={geo}
+        label="Party holding each seat today"
+        unavailableReason="Members of Parliament represent whole constituencies, so this measure has no polling-division view."
       />
       <figcaption className="mt-2 text-base">
         <span className="flex flex-wrap gap-x-4 gap-y-1">
