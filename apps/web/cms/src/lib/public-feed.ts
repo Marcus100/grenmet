@@ -2,7 +2,6 @@ import type { CollectionConfig, Field, Payload } from "payload";
 import { DeskUpdates } from "../collections/desk-updates";
 import { ReportNotes } from "../collections/report-notes";
 import { Stories } from "../collections/stories";
-import { copyFieldName, HOMEPAGE_SECTIONS } from "../globals/homepage";
 import { editorialLinksSchema } from "./editorial-links";
 import { bodyToText } from "./lexical";
 
@@ -266,30 +265,7 @@ export async function findWeatherNow(payload: Payload, now: Date = new Date()) {
 }
 export type PublicWeatherNow = Awaited<ReturnType<typeof findWeatherNow>>;
 
-export interface SectionCopy {
-  intro?: string;
-  kicker?: string;
-  title?: string;
-}
-
-/** Editor wording keyed by section; blank fields are dropped so GMS keeps its own. */
-export function toSectionCopy(value: unknown): Record<string, SectionCopy> {
-  const groups = value && typeof value === "object" ? (value as Doc) : {};
-  const copy: Record<string, SectionCopy> = {};
-  for (const { value: key } of HOMEPAGE_SECTIONS) {
-    const group = groups[copyFieldName(key)];
-    if (!group || typeof group !== "object") continue;
-    const words: SectionCopy = {};
-    for (const field of ["kicker", "title", "intro"] as const) {
-      const text = (group as Doc)[field];
-      if (typeof text === "string" && text.trim()) words[field] = text.trim();
-    }
-    if (Object.keys(words).length > 0) copy[key] = words;
-  }
-  return copy;
-}
-
-/** Homepage settings: wording and visibility, plus the posts marked to lead. */
+/** Homepage settings: which sections are hidden, plus the posts marked to lead. */
 export async function findHomepage(payload: Payload) {
   const global = (await payload.findGlobal({
     slug: "homepage",
@@ -328,14 +304,12 @@ export async function findHomepage(payload: Payload) {
   return {
     leadStory: (lead.docs[0] as unknown as Doc | undefined) ?? null,
     featuredQuestions: featured.docs as unknown as Doc[],
-    discoverCards: Array.isArray(global.discoverCards)
-      ? (global.discoverCards as string[])
-      : ["sky", "on-this-day", "quiz", "fact"],
+    discoverCards: ["sky", "on-this-day", "quiz", "fact"],
     hiddenSections: Array.isArray(global.hiddenSections)
       ? (global.hiddenSections as string[])
       : [],
     exploreReading: {},
-    sectionCopy: toSectionCopy(global.sectionCopy),
+    sectionCopy: {},
   };
 }
 

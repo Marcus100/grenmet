@@ -634,7 +634,7 @@ export interface Question {
   createdAt: string;
 }
 /**
- * Sky, history and a little fun: On this day, quizzes, Did you know facts and sky notes. Tonight's sun and moon times are calculated automatically.
+ * News: On this day, quizzes, Did you know facts and sky notes. Tonight's sun and moon times are calculated automatically.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "discover".
@@ -1157,62 +1157,13 @@ export interface WeatherNow {
   createdAt?: string | null;
 }
 /**
- * Change the wording of a homepage section, choose which Discover cards show, or hide a section (for example during a hurricane). What leads a section is set on the posts themselves: Lead story on Stories, Featured on Questions.
+ * Hide a homepage section for now, for example during a hurricane. What leads a section is set on the posts themselves: Lead story on Stories, Featured on Questions.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "homepage".
  */
 export interface Homepage {
   id: number;
-  /**
-   * Which cards Sky, history and a little fun shows.
-   */
-  discoverCards?: ('sky' | 'on-this-day' | 'quiz' | 'fact')[] | null;
-  /**
-   * Words only: figures and statuses come from the forecast system. Leave a field empty to keep the standard wording.
-   */
-  sectionCopy?: {
-    weather_now?: {
-      kicker?: string | null;
-      title?: string | null;
-      intro?: string | null;
-    };
-    desk?: {
-      kicker?: string | null;
-      title?: string | null;
-      intro?: string | null;
-    };
-    stories?: {
-      kicker?: string | null;
-      title?: string | null;
-      intro?: string | null;
-    };
-    questions?: {
-      kicker?: string | null;
-      title?: string | null;
-      intro?: string | null;
-    };
-    discover?: {
-      kicker?: string | null;
-      title?: string | null;
-      intro?: string | null;
-    };
-    reports?: {
-      kicker?: string | null;
-      title?: string | null;
-      intro?: string | null;
-    };
-    explore_today?: {
-      kicker?: string | null;
-      title?: string | null;
-      intro?: string | null;
-    };
-    grenada_in_data?: {
-      kicker?: string | null;
-      title?: string | null;
-      intro?: string | null;
-    };
-  };
   /**
    * Sections to hide from the homepage for now.
    */
@@ -1247,67 +1198,6 @@ export interface WeatherNowSelect<T extends boolean = true> {
  * via the `definition` "homepage_select".
  */
 export interface HomepageSelect<T extends boolean = true> {
-  discoverCards?: T;
-  sectionCopy?:
-    | T
-    | {
-        weather_now?:
-          | T
-          | {
-              kicker?: T;
-              title?: T;
-              intro?: T;
-            };
-        desk?:
-          | T
-          | {
-              kicker?: T;
-              title?: T;
-              intro?: T;
-            };
-        stories?:
-          | T
-          | {
-              kicker?: T;
-              title?: T;
-              intro?: T;
-            };
-        questions?:
-          | T
-          | {
-              kicker?: T;
-              title?: T;
-              intro?: T;
-            };
-        discover?:
-          | T
-          | {
-              kicker?: T;
-              title?: T;
-              intro?: T;
-            };
-        reports?:
-          | T
-          | {
-              kicker?: T;
-              title?: T;
-              intro?: T;
-            };
-        explore_today?:
-          | T
-          | {
-              kicker?: T;
-              title?: T;
-              intro?: T;
-            };
-        grenada_in_data?:
-          | T
-          | {
-              kicker?: T;
-              title?: T;
-              intro?: T;
-            };
-      };
   hiddenSections?: T;
   updatedAt?: T;
   createdAt?: T;
