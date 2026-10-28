@@ -294,7 +294,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
           ],
         },
       })
-    ).rejects.toThrow("Related links");
+    ).rejects.toThrow("Paste a full HTTP or HTTPS address");
     await payload.update({
       collection: "desk-updates",
       id: article.id,

@@ -8,6 +8,10 @@ import {
   workflowFields,
 } from "../fields/workflow";
 
+/** Fields that stay last: search and social sharing settings. */
+const AFTER_LINKS = new Set(["seo", "social"]);
+const fieldName = (field: Field) => ("name" in field ? field.name : "");
+
 interface EditorialOptions {
   admin: CollectionConfig["admin"];
   /** Slug includes year/month (articles) or not (evergreen questions). */
@@ -17,6 +21,8 @@ interface EditorialOptions {
   /** URL prefix; keeps slugs unique across collections. */
   prefix: string;
   publishKey: string;
+  /** Report write-ups must carry a main issued-product link. */
+  requireMainProduct?: boolean;
   slug: string;
   titleField?: string;
   withLinks?: boolean;
@@ -33,6 +39,7 @@ export function editorialCollection({
   labels,
   prefix,
   publishKey,
+  requireMainProduct = false,
   slug,
   titleField = "title",
   withLinks = true,
@@ -60,12 +67,14 @@ export function editorialCollection({
       ],
       beforeChange: [
         enforceReview(publishKey),
-        ...(withLinks ? [validateRelatedLinks] : []),
+        ...(withLinks ? [validateRelatedLinks({ requireMainProduct })] : []),
       ],
     },
+    // Links belong with the content, before the sharing and search settings.
     fields: [
-      ...fields,
+      ...fields.filter((field) => !AFTER_LINKS.has(fieldName(field))),
       ...(withLinks ? [relatedLinksField] : []),
+      ...fields.filter((field) => AFTER_LINKS.has(fieldName(field))),
       slugField,
       ...workflowFields,
     ],

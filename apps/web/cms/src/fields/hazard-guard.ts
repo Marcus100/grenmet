@@ -1,3 +1,4 @@
+import { recognizeLink } from "@barrelsgd/gms/link-recognition";
 import { APIError } from "payload";
 
 /** Words that belong to issued warnings, never to editorial copy alone. */
@@ -22,7 +23,10 @@ export function assertNoUnlinkedHazard(
     );
 }
 
+/** A related link to a CAP warning: marked so, or a pasted GMS warning address. */
 export const isCapLink = (link: {
   category?: string | null;
   url?: string | null;
-}) => link.category === "cap" && Boolean(link.url);
+}) =>
+  Boolean(link.url) &&
+  (link.category === "cap" || recognizeLink(link.url ?? "").type === "cap");

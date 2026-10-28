@@ -2,7 +2,7 @@ import type { CollectionConfig, Field, Payload } from "payload";
 import { DeskUpdates } from "../collections/desk-updates";
 import { ReportNotes } from "../collections/report-notes";
 import { Stories } from "../collections/stories";
-import { editorialLinksSchema } from "./editorial-links";
+import { type EditorialLink, editorialLinksSchema } from "./editorial-links";
 import { bodyToText } from "./lexical";
 
 export const ARTICLE_COLLECTIONS = {
@@ -50,15 +50,15 @@ type Doc = Record<string, unknown>;
 const upload = (value: unknown) =>
   value && typeof value === "object" ? (value as Doc) : null;
 
-/** The FastAPI product a post points at; its figures are never stored here. */
-export function toLinkedProduct(value: unknown) {
-  const group = upload(value);
-  const productId = group?.productId;
-  return typeof productId === "string" && productId
-    ? {
-        productId,
-        kind: typeof group?.kind === "string" && group.kind ? group.kind : null,
-      }
+/**
+ * The issued product a post features, from its main related link. Kept for
+ * older site builds that read one product per post; the figures are never
+ * stored here.
+ */
+export function toLinkedProduct(links: EditorialLink[]) {
+  const main = links.find((link) => link.type === "product" && link.isMain);
+  return main?.ref
+    ? { productId: main.ref, kind: null, title: main.title }
     : null;
 }
 
@@ -66,6 +66,7 @@ export function toLinkedProduct(value: unknown) {
 export function toArticle(collection: ArticleCollection, doc: Doc) {
   const config = ARTICLE_COLLECTIONS[collection];
   const image = upload(doc.image);
+  const relatedLinks = editorialLinksSchema.parse(doc.relatedLinks ?? []);
   return {
     id: String(doc.id),
     collection,
@@ -86,8 +87,8 @@ export function toArticle(collection: ArticleCollection, doc: Doc) {
     topics: Array.isArray(doc.topics) ? (doc.topics as string[]) : [],
     publishedAt: (doc.publishedAt as string | undefined) ?? null,
     updatedAt: String(doc.updatedAt),
-    relatedLinks: editorialLinksSchema.parse(doc.relatedLinks ?? []),
-    linkedProduct: toLinkedProduct(doc.linkedProduct),
+    relatedLinks,
+    linkedProduct: toLinkedProduct(relatedLinks),
   };
 }
 export type PublicArticle = ReturnType<typeof toArticle>;

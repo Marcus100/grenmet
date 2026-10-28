@@ -12,6 +12,8 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { useId, useState } from "react";
+import { RelatedLinkAnchor } from "@/components/related-link-anchor";
+import type { RelatedLink } from "@/lib/cms";
 import type { MediaEmbed } from "@/lib/media-embed";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +38,7 @@ export const NOTE_KINDS = ["satellite", "radar", "wind", "seas"] as const;
 
 /** A forecaster's note for one imagery tab, already formatted on the server. */
 export interface TabNote {
+  link: RelatedLink | null;
   posted: string | null;
   text: string;
   title: string;
@@ -237,6 +240,11 @@ export function WeatherNowPanel({
               )}
             </p>
             <p className="text-body leading-body">{note.text}</p>
+            {note.link && (
+              <p className="text-body leading-body [&_a]:text-gm-lime">
+                <RelatedLinkAnchor link={note.link} />
+              </p>
+            )}
           </div>
         )}
 

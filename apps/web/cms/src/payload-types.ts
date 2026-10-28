@@ -159,13 +159,26 @@ export interface LivePost {
    */
   expiresAt?: string | null;
   /**
-   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   * Paste a link: a GMS product (an issued forecast, outlook or bulletin), a warning, any page of the GMS site, or somewhere else. Pasted GMS products and warnings show their live details on the site. Tick Main link on one to show it as a card. Linking does not publish the destination.
    */
   relatedLinks?:
     | {
-        title: string;
-        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
+        /**
+         * Paste the address from your browser, for example a product page on weather.barrels.gd.
+         */
         url: string;
+        /**
+         * Leave blank to fill in automatically (a product's name and issue time, a warning's headline, a page's title).
+         */
+        title?: string | null;
+        /**
+         * Leave blank to fill in automatically.
+         */
+        category?: ('forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source') | null;
+        /**
+         * Show this one as a card with its live details. Only one per post; it must be a GMS product, warning or page.
+         */
+        isMain?: boolean | null;
         id?: string | null;
       }[]
     | null;
@@ -212,7 +225,7 @@ export interface User {
   collection: 'users';
 }
 /**
- * From the Desk: the forecast office writing about what it issues, plus service notices. Attach a product to show its live figures; never type forecast figures or warnings here.
+ * From the Desk: the forecast office writing about what it issues, plus service notices. Paste the product under Related links and tick Main link to show its live details; never type forecast figures or warnings here.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "desk-updates".
@@ -235,13 +248,6 @@ export interface DeskUpdate {
     | 'community'
     | 'announcement';
   /**
-   * Optional. Shows this product's live figures with the post; they always come from the forecast system.
-   */
-  linkedProduct?: {
-    productId?: string | null;
-    kind?: string | null;
-  };
-  /**
    * Shown on cards and in search. 200 characters at most.
    */
   summary: string;
@@ -261,6 +267,30 @@ export interface DeskUpdate {
     [k: string]: unknown;
   } | null;
   /**
+   * Paste a link: a GMS product (an issued forecast, outlook or bulletin), a warning, any page of the GMS site, or somewhere else. Pasted GMS products and warnings show their live details on the site. Tick Main link on one to show it as a card. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        /**
+         * Paste the address from your browser, for example a product page on weather.barrels.gd.
+         */
+        url: string;
+        /**
+         * Leave blank to fill in automatically (a product's name and issue time, a warning's headline, a page's title).
+         */
+        title?: string | null;
+        /**
+         * Leave blank to fill in automatically.
+         */
+        category?: ('forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source') | null;
+        /**
+         * Show this one as a card with its live details. Only one per post; it must be a GMS product, warning or page.
+         */
+        isMain?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Prepare platform-specific copy. Automatic delivery can be added later.
    */
   social?: {
@@ -276,17 +306,6 @@ export interface DeskUpdate {
     linkedinText?: string | null;
     whatsappText?: string | null;
   };
-  /**
-   * Link to an existing product, publication or news source. Linking does not publish the destination.
-   */
-  relatedLinks?:
-    | {
-        title: string;
-        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
   /**
    * Built from the title. Fixed once published so links last.
    */
@@ -304,7 +323,7 @@ export interface DeskUpdate {
   createdAt: string;
 }
 /**
- * Latest reports: explain an issued report in plain language. Only reports with a published write-up appear on the homepage.
+ * Latest reports: explain an issued report in plain language. Paste the issued report under Related links and tick Main link; its figures come from the forecast system. Only reports with a published write-up appear on the homepage.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "report-notes".
@@ -312,13 +331,6 @@ export interface DeskUpdate {
 export interface ReportNote {
   id: number;
   title: string;
-  /**
-   * The issued report this write-up is about. Its figures come from the forecast system.
-   */
-  linkedProduct: {
-    productId: string;
-    kind?: string | null;
-  };
   /**
    * Shown on cards and in search. 240 characters at most.
    */
@@ -350,6 +362,30 @@ export interface ReportNote {
     | ('tropical' | 'rain' | 'heat' | 'marine' | 'climate' | 'sky' | 'safety' | 'agriculture' | 'aviation' | 'gms')[]
     | null;
   /**
+   * Paste a link: a GMS product (an issued forecast, outlook or bulletin), a warning, any page of the GMS site, or somewhere else. Pasted GMS products and warnings show their live details on the site. Tick Main link on one to show it as a card. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        /**
+         * Paste the address from your browser, for example a product page on weather.barrels.gd.
+         */
+        url: string;
+        /**
+         * Leave blank to fill in automatically (a product's name and issue time, a warning's headline, a page's title).
+         */
+        title?: string | null;
+        /**
+         * Leave blank to fill in automatically.
+         */
+        category?: ('forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source') | null;
+        /**
+         * Show this one as a card with its live details. Only one per post; it must be a GMS product, warning or page.
+         */
+        isMain?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Optional. Falls back to the title, summary and image.
    */
   seo?: {
@@ -373,17 +409,6 @@ export interface ReportNote {
     linkedinText?: string | null;
     whatsappText?: string | null;
   };
-  /**
-   * Link to an existing product, publication or news source. Linking does not publish the destination.
-   */
-  relatedLinks?:
-    | {
-        title: string;
-        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
   /**
    * Built from the title. Fixed once published so links last.
    */
@@ -480,6 +505,30 @@ export interface Story {
     | ('tropical' | 'rain' | 'heat' | 'marine' | 'climate' | 'sky' | 'safety' | 'agriculture' | 'aviation' | 'gms')[]
     | null;
   /**
+   * Paste a link: a GMS product (an issued forecast, outlook or bulletin), a warning, any page of the GMS site, or somewhere else. Pasted GMS products and warnings show their live details on the site. Tick Main link on one to show it as a card. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        /**
+         * Paste the address from your browser, for example a product page on weather.barrels.gd.
+         */
+        url: string;
+        /**
+         * Leave blank to fill in automatically (a product's name and issue time, a warning's headline, a page's title).
+         */
+        title?: string | null;
+        /**
+         * Leave blank to fill in automatically.
+         */
+        category?: ('forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source') | null;
+        /**
+         * Show this one as a card with its live details. Only one per post; it must be a GMS product, warning or page.
+         */
+        isMain?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Optional. Falls back to the title, summary and image.
    */
   seo?: {
@@ -503,17 +552,6 @@ export interface Story {
     linkedinText?: string | null;
     whatsappText?: string | null;
   };
-  /**
-   * Link to an existing product, publication or news source. Linking does not publish the destination.
-   */
-  relatedLinks?:
-    | {
-        title: string;
-        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
   /**
    * Built from the title. Fixed once published so links last.
    */
@@ -599,6 +637,30 @@ export interface Question {
     checkedBy?: (number | null) | User;
   };
   /**
+   * Paste a link: a GMS product (an issued forecast, outlook or bulletin), a warning, any page of the GMS site, or somewhere else. Pasted GMS products and warnings show their live details on the site. Tick Main link on one to show it as a card. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        /**
+         * Paste the address from your browser, for example a product page on weather.barrels.gd.
+         */
+        url: string;
+        /**
+         * Leave blank to fill in automatically (a product's name and issue time, a warning's headline, a page's title).
+         */
+        title?: string | null;
+        /**
+         * Leave blank to fill in automatically.
+         */
+        category?: ('forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source') | null;
+        /**
+         * Show this one as a card with its live details. Only one per post; it must be a GMS product, warning or page.
+         */
+        isMain?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Optional. Falls back to the title, summary and image.
    */
   seo?: {
@@ -606,17 +668,6 @@ export interface Question {
     description?: string | null;
     image?: (number | null) | Media;
   };
-  /**
-   * Link to an existing product, publication or news source. Linking does not publish the destination.
-   */
-  relatedLinks?:
-    | {
-        title: string;
-        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
   /**
    * Built from the title. Fixed once published so links last.
    */
@@ -819,9 +870,10 @@ export interface LivePostsSelect<T extends boolean = true> {
   relatedLinks?:
     | T
     | {
+        url?: T;
         title?: T;
         category?: T;
-        url?: T;
+        isMain?: T;
         id?: T;
       };
   slug?: T;
@@ -838,14 +890,17 @@ export interface LivePostsSelect<T extends boolean = true> {
 export interface DeskUpdatesSelect<T extends boolean = true> {
   title?: T;
   kind?: T;
-  linkedProduct?:
-    | T
-    | {
-        productId?: T;
-        kind?: T;
-      };
   summary?: T;
   body?: T;
+  relatedLinks?:
+    | T
+    | {
+        url?: T;
+        title?: T;
+        category?: T;
+        isMain?: T;
+        id?: T;
+      };
   social?:
     | T
     | {
@@ -857,14 +912,6 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
         instagramText?: T;
         linkedinText?: T;
         whatsappText?: T;
-      };
-  relatedLinks?:
-    | T
-    | {
-        title?: T;
-        category?: T;
-        url?: T;
-        id?: T;
       };
   slug?: T;
   status?: T;
@@ -879,17 +926,20 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
  */
 export interface ReportNotesSelect<T extends boolean = true> {
   title?: T;
-  linkedProduct?:
-    | T
-    | {
-        productId?: T;
-        kind?: T;
-      };
   summary?: T;
   image?: T;
   imageCaption?: T;
   body?: T;
   topics?: T;
+  relatedLinks?:
+    | T
+    | {
+        url?: T;
+        title?: T;
+        category?: T;
+        isMain?: T;
+        id?: T;
+      };
   seo?:
     | T
     | {
@@ -908,14 +958,6 @@ export interface ReportNotesSelect<T extends boolean = true> {
         instagramText?: T;
         linkedinText?: T;
         whatsappText?: T;
-      };
-  relatedLinks?:
-    | T
-    | {
-        title?: T;
-        category?: T;
-        url?: T;
-        id?: T;
       };
   slug?: T;
   status?: T;
@@ -938,6 +980,15 @@ export interface StoriesSelect<T extends boolean = true> {
   body?: T;
   leadOnHomepage?: T;
   topics?: T;
+  relatedLinks?:
+    | T
+    | {
+        url?: T;
+        title?: T;
+        category?: T;
+        isMain?: T;
+        id?: T;
+      };
   seo?:
     | T
     | {
@@ -956,14 +1007,6 @@ export interface StoriesSelect<T extends boolean = true> {
         instagramText?: T;
         linkedinText?: T;
         whatsappText?: T;
-      };
-  relatedLinks?:
-    | T
-    | {
-        title?: T;
-        category?: T;
-        url?: T;
-        id?: T;
       };
   slug?: T;
   status?: T;
@@ -991,20 +1034,21 @@ export interface QuestionsSelect<T extends boolean = true> {
         checkedAt?: T;
         checkedBy?: T;
       };
+  relatedLinks?:
+    | T
+    | {
+        url?: T;
+        title?: T;
+        category?: T;
+        isMain?: T;
+        id?: T;
+      };
   seo?:
     | T
     | {
         title?: T;
         description?: T;
         image?: T;
-      };
-  relatedLinks?:
-    | T
-    | {
-        title?: T;
-        category?: T;
-        url?: T;
-        id?: T;
       };
   slug?: T;
   status?: T;

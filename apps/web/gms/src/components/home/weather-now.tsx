@@ -6,6 +6,8 @@ import {
   type TabNotes,
   WeatherNowPanel,
 } from "@/components/home/weather-now-panel";
+import { RelatedLinkAnchor } from "@/components/related-link-anchor";
+import type { RelatedLink } from "@/lib/cms";
 import {
   fetchHomeContent,
   isSectionHidden,
@@ -21,7 +23,14 @@ const TIME = new Intl.DateTimeFormat("en-GB", {
 });
 
 /** A quick text update under the duty forecaster's note. */
+/** The link to show under a live post: its main link, else the first. */
+function leadLink(post: LivePost): RelatedLink | null {
+  const links = post.relatedLinks ?? [];
+  return links.find((link) => link.isMain) ?? links[0] ?? null;
+}
+
 function UpdateItem({ post }: { post: LivePost }) {
+  const link = leadLink(post);
   return (
     <li className="flex flex-col gap-1 border-gm-border border-t pt-3">
       <p className="flex flex-wrap items-baseline gap-x-2 font-bold text-body text-gm-heading leading-body">
@@ -36,6 +45,11 @@ function UpdateItem({ post }: { post: LivePost }) {
         )}
       </p>
       {post.text && <p className="text-body leading-body">{post.text}</p>}
+      {link && (
+        <p className="text-body leading-body">
+          <RelatedLinkAnchor link={link} />
+        </p>
+      )}
     </li>
   );
 }
@@ -76,6 +90,7 @@ export async function WeatherNow() {
     const post = livePosts.posts.find((item) => item.kind === kind);
     if (post?.text)
       notes[kind] = {
+        link: leadLink(post),
         title: post.title,
         text: post.text,
         posted: post.publishedAt

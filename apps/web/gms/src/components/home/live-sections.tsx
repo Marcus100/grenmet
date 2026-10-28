@@ -366,12 +366,14 @@ export async function LatestReports() {
                       className={`${HOME_CARD} flex flex-col gap-1 hover:border-gm-blue-ink`}
                       href={contentHref(note) as Route}
                     >
-                      {note.linkedProduct?.kind &&
-                        isProductKind(note.linkedProduct.kind) && (
-                          <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
-                            {productTitle(note.linkedProduct.kind)}
-                          </span>
-                        )}
+                      {note.linkedProduct && (
+                        <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+                          {note.linkedProduct.kind &&
+                          isProductKind(note.linkedProduct.kind)
+                            ? productTitle(note.linkedProduct.kind)
+                            : note.linkedProduct.title}
+                        </span>
+                      )}
                       <span className="font-bold text-body text-gm-heading leading-body">
                         {note.title}
                       </span>

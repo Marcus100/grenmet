@@ -2,7 +2,6 @@ import type { CollectionBeforeChangeHook } from "payload";
 import { PUBLISH_KEYS } from "../access";
 import { bodyField, socialField, summaryField } from "../fields/common";
 import { assertNoUnlinkedHazard, isCapLink } from "../fields/hazard-guard";
-import { linkedProductField } from "../fields/linked-product";
 import { bodyToText } from "../lib/lexical";
 import { editorialCollection } from "./editorial";
 
@@ -35,7 +34,7 @@ const base = editorialCollection({
   admin: {
     group: "GMS Content",
     description:
-      "From the Desk: the forecast office writing about what it issues, plus service notices. Attach a product to show its live figures; never type forecast figures or warnings here.",
+      "From the Desk: the forecast office writing about what it issues, plus service notices. Paste the product under Related links and tick Main link to show its live details; never type forecast figures or warnings here.",
   },
   fields: [
     { name: "title", type: "text", required: true, maxLength: 120 },
@@ -62,10 +61,6 @@ const base = editorialCollection({
         { label: "Announcement", value: "announcement" },
       ],
     },
-    linkedProductField({
-      description:
-        "Optional. Shows this product's live figures with the post; they always come from the forecast system.",
-    }),
     summaryField(200),
     bodyField(false),
     socialField,

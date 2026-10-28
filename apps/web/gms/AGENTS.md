@@ -25,8 +25,8 @@ No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
   desk updates, stories, questions, quizzes, Discover, weather-now note, home
   settings, report write-ups, Weather now live posts. The homepage reads CMS
   content in one call (`fetchHomeContent`). The CMS holds no figures: a post's
-  `linkedProduct` is an id that `components/linked-product.tsx` resolves live via
-  `fetchPublishedProduct`. Live media are click-to-load (`media-player.tsx`,
+  a post's main related link (`isMain`) is a card: `components/featured-link.tsx` shows an issued product (`linked-product.tsx`, live via
+  `fetchPublishedProduct`), a warning (`linked-alert.tsx`, live via `fetchPublicAlert`) or a GMS page (`linked-page.tsx`, from `NAV_SECTIONS`); site addresses are built from the stored id/identifier/path (`lib/related-link-href.ts`), never the pasted host. Older CMS builds send `linkedProduct`, kept as a fallback. Live media are click-to-load (`media-player.tsx`,
   allowlist in `lib/media-embed.ts`).
 - Each home section fetches copy and data separately; either may be unavailable
   without hiding the other. An unavailable feed says so. It never falls back to

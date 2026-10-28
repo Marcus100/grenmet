@@ -26,3 +26,15 @@ describe("warning language guard", () => {
     );
   });
 });
+
+it("counts a pasted warning address as a CAP link", () => {
+  expect(
+    isCapLink({
+      category: "article",
+      url: "https://weather.barrels.gd/alerts/GMS-1",
+    })
+  ).toBe(true);
+  expect(isCapLink({ category: "article", url: "/alerts/GMS-1" })).toBe(true);
+  expect(isCapLink({ category: "article", url: "/weather/radar" })).toBe(false);
+  expect(isCapLink({ category: "cap", url: "" })).toBe(false);
+});
