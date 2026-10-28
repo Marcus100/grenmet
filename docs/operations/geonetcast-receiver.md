@@ -39,15 +39,20 @@ authority.
 
 ## First survey (record results in `/private/`)
 
-Run on the receiver PC and keep the output:
+Copy [`survey-receiver.sh`](../../scripts/gnc-collector/deploy/survey-receiver.sh)
+to the receiver PC and run it. It is read-only: it reads no file contents and
+prints no environment variables, configuration or credentials, but it does print
+the hostname and IP addresses, so keep the output out of this repository.
 
 ```bash
-hostnamectl                      # distribution and version
-df -h                            # disk headroom
-systemctl list-units --type=service | grep -i -E 'fazzt|kencast'
-find / -name 'OR_ABI-L2-CMIP*' -mmin -60 2>/dev/null | head   # where GOES files land
-find / \( -name '*.grib2' -o -name '*.grb2' \) -mmin -360 2>/dev/null | head
+bash survey-receiver.sh > survey-$(date +%F).txt 2>&1
+# optional: SURVEY_FOLDER=/path/to/fazzt/output bash survey-receiver.sh
 ```
+
+It reports the operating system, disk space, network addresses, DVB receiver
+hardware, FAZZT services, the folders that hold recent GOES and model files,
+which products and bands arrived, and whether `python3`, `uv` and `systemctl`
+are available. Narrow the search with `SEARCH_ROOTS=/data` if it is slow.
 
 Answer these before deploying the collector:
 
@@ -82,6 +87,12 @@ storage, so the receiver never needs to accept connections for it.
    set the real `--input-dir`, then `systemctl enable --now gnc-collector.timer`.
 6. Check: `journalctl -u gnc-collector -n 50` shows `archived gnca/...` lines
    and the images appear in the WxWatch gallery.
+7. Install the stall check the same way (`gnc-collector-check.service` and
+   `.timer`). `gnc-collector check --input-dir <folder>` prints the newest file
+   per band and exits 1 if either band has not arrived for `--max-age-minutes`
+   (default 45). A stalled receiver then shows in `systemctl --failed` and the
+   journal. Forwarding that to a person (email or an in-app notification) is
+   not built yet.
 
 ## Housekeeping
 
@@ -100,7 +111,8 @@ storage, so the receiver never needs to accept connections for it.
 
 | Symptom | Likely cause | First check |
 | --- | --- | --- |
-| No new `archived` lines | Broadcast or FAZZT stopped, or wrong `--input-dir` | Newest `OR_ABI-L2-CMIPF` file time |
+| No new `archived` lines | Broadcast or FAZZT stopped, or wrong `--input-dir` | `gnc-collector check --input-dir <folder>`: newest file per band |
+| `gnc-collector-check` unit failed | No GOES-19 file for 45 minutes | Dish and receiver lock, FAZZT service and channel list |
 | `failed …: OSError` lines | Truncated file written during a reception error | Same file is retried next pass; persistent → FAZZT logs |
 | `Archive API returned HTTP 401` | Token mismatch | Token in `/etc/gnc-collector/env` vs FastAPI |
 | `HTTP 409` | Previous pass crashed with its archive run still open | The API expires a run's lease after 45 minutes; later passes succeed after that |
@@ -113,5 +125,6 @@ storage, so the receiver never needs to accept connections for it.
   the `goes19` web source is public). Owner decision.
 - Which additional products to automate (visible band, true colour,
   rainfall rate, lightning, NWP charts) after the first two run reliably.
-- Monitoring and alerting for receiver staleness (follows the integration
-  roadmap's failure-alerting exit criterion).
+- Alerting on receiver staleness: the check exists and fails a systemd unit;
+  how a person is told (email, in-app notification) is the remaining part of
+  the integration roadmap's failure-alerting exit criterion.

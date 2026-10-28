@@ -88,3 +88,17 @@ def test_dry_run_never_marks_files_done_for_the_real_run(
     assert main([*args, "--dry-run", "--no-coastlines"]) == 0
     assert (work / "processed-dry-run.json").exists()
     assert not (work / "processed.json").exists()
+
+
+def test_check_passes_when_files_are_recent_and_fails_when_stale(
+    receiver: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    args = ["check", "--input-dir", str(receiver)]
+    assert main([*args, "--max-age-minutes", "30"]) == 0
+    assert "STALE" not in capsys.readouterr().out
+    assert main([*args, "--bands", "8", "--max-age-minutes", "1"]) == 1
+    assert "band 8: STALE" in capsys.readouterr().out
+
+
+def test_check_fails_when_a_band_has_no_files(tmp_path: Path) -> None:
+    assert main(["check", "--input-dir", str(tmp_path), "--bands", "13"]) == 1

@@ -1,0 +1,29 @@
+[Unit]
+Description=Check the GeoNetCast receiver is still delivering GOES-19 files
+Documentation=https://github.com/Marcus100/grenmet/blob/dev/docs/operations/geonetcast-receiver.md
+
+[Service]
+Type=oneshot
+User=gnc
+Group=gnc
+WorkingDirectory=/opt/gnc-collector
+
+# Exits 1 (unit shows as failed in `systemctl --failed`) when either band has
+# not arrived for 45 minutes: full disks come every 10 minutes, so this is a
+# stalled receiver, not a late scan. Replace the input folder as in the
+# collector unit.
+ExecStart=/opt/gnc-collector/.venv/bin/gnc-collector check \
+    --input-dir /var/fazzt/incoming \
+    --max-age-minutes 45
+
+TimeoutStartSec=60
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+PrivateDevices=true
+NoNewPrivileges=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX
+UMask=0077
+StandardOutput=journal
+StandardError=journal
