@@ -4,9 +4,13 @@
  */
 
 import * as z from "zod";
+import { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
 import { groupDetailPropertiesCategoryEnumSchema } from "./groupDetailPropertiesCategoryEnumSchema.js";
 import { groupDetailPropertiesParishEnumSchema } from "./groupDetailPropertiesParishEnumSchema.js";
+import { listingCardPropertiesAccessTypeEnumSchema } from "./listingCardPropertiesAccessTypeEnumSchema.js";
 import { listingCardPropertiesAdmissionEnumSchema } from "./listingCardPropertiesAdmissionEnumSchema.js";
+import { listingCardPropertiesBookingModeEnumSchema } from "./listingCardPropertiesBookingModeEnumSchema.js";
+import { listingCardPropertiesPricingTypeEnumSchema } from "./listingCardPropertiesPricingTypeEnumSchema.js";
 import { listingUpsertPropertiesStatusEnumSchema } from "./listingUpsertPropertiesStatusEnumSchema.js";
 import { listingUpsertPropertiesVisibilityEnumSchema } from "./listingUpsertPropertiesVisibilityEnumSchema.js";
 import { tierInputSchema } from "./tierInputSchema.js";
@@ -33,4 +37,23 @@ export const listingUpsertSchema = z.object({
     .optional(),
   tiers: z.array(tierInputSchema).max(20).optional(),
   image_file_id: z.union([z.uuid(), z.null()]).optional(),
+  listing_type: z
+    .union([eventCategoryNodePropertiesAppliesToItemsEnumSchema, z.null()])
+    .optional(),
+  access_type: z
+    .union([listingCardPropertiesAccessTypeEnumSchema, z.null()])
+    .optional(),
+  pricing_type: z
+    .union([listingCardPropertiesPricingTypeEnumSchema, z.null()])
+    .optional(),
+  booking_mode: z
+    .union([listingCardPropertiesBookingModeEnumSchema, z.null()])
+    .optional(),
+  category_slug: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional(),
+  subcategory_slug: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional(),
+  external_ticket_url: z.union([z.string().max(500), z.null()]).optional(),
 });

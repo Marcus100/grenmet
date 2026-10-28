@@ -1199,6 +1199,11 @@ export {
   useEventsLeaveGroup,
 } from "./useEventsLeaveGroup.js";
 export {
+  eventsListCategoriesQueryKey,
+  eventsListCategoriesQueryOptions,
+  useEventsListCategories,
+} from "./useEventsListCategories.js";
+export {
   eventsListGroupsQueryKey,
   eventsListGroupsQueryOptions,
   useEventsListGroups,

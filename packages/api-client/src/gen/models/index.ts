@@ -2626,6 +2626,11 @@ export type {
   EregisterValidateSynopObservationStatus403,
   EregisterValidateSynopObservationStatus422,
 } from "./EregisterValidateSynopObservation.js";
+export type { EventCategoryNode } from "./EventCategoryNode.js";
+export type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
+export { eventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
+export type { EventCategorySub } from "./EventCategorySub.js";
+export type { EventCategoryTree } from "./EventCategoryTree.js";
 export type {
   EventsAcceptConnectionOptions,
   EventsAcceptConnectionPath,
@@ -3051,6 +3056,13 @@ export type {
   EventsLeaveGroupStatus422,
   EventsLeaveGroupStatus429,
 } from "./EventsLeaveGroup.js";
+export type {
+  EventsListCategoriesOptions,
+  EventsListCategoriesResponse,
+  EventsListCategoriesResponses,
+  EventsListCategoriesStatus200,
+  EventsListCategoriesStatus422,
+} from "./EventsListCategories.js";
 export type {
   EventsListGroupsOptions,
   EventsListGroupsResponse,
@@ -5607,10 +5619,16 @@ export { legacyProductWritePropertiesActionEnum } from "./LegacyProductWriteProp
 export type { LegacyStoredProduct } from "./LegacyStoredProduct.js";
 export type { ListingCard } from "./ListingCard.js";
 export type { ListingCardList } from "./ListingCardList.js";
+export type { ListingCardPropertiesAccessTypeEnum } from "./ListingCardPropertiesAccessTypeEnum.js";
+export { listingCardPropertiesAccessTypeEnum } from "./ListingCardPropertiesAccessTypeEnum.js";
 export type { ListingCardPropertiesAdmissionEnum } from "./ListingCardPropertiesAdmissionEnum.js";
 export { listingCardPropertiesAdmissionEnum } from "./ListingCardPropertiesAdmissionEnum.js";
+export type { ListingCardPropertiesBookingModeEnum } from "./ListingCardPropertiesBookingModeEnum.js";
+export { listingCardPropertiesBookingModeEnum } from "./ListingCardPropertiesBookingModeEnum.js";
 export type { ListingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurrencyEnum.js";
 export { listingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurrencyEnum.js";
+export type { ListingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
+export { listingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
 export type { ListingDetail } from "./ListingDetail.js";
 export type { ListingUpsert } from "./ListingUpsert.js";
 export type { ListingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";

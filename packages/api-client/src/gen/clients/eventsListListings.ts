@@ -11,7 +11,7 @@ import type {
 } from "../models/EventsListListings.js";
 
 /**
- * @description Published public events, soonest first, filtered by Grenada-calendar window, category, parish, price, tag or text.
+ * @description Published public events, soonest first, filtered by Grenada-calendar window, category, parish, price, tag or text; and by catalogue type, category and subcategory slug, pricing type, access (public only: private listings are never listed) and booking mode.
  * @summary List upcoming events
  * {@link /api/v1/events/listings}
  */
