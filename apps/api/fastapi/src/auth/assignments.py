@@ -380,7 +380,7 @@ async def end_assignments_for_employment(
         )
     ).all()
     for row in rows:
-        row.effective_to = now
+        row.effective_to = max(now, row.effective_from)
         row.updated_at = now
         session.add(row)
         await audit_assignment(session, row, "UPDATE")

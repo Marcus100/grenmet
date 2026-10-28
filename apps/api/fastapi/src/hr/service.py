@@ -801,7 +801,8 @@ async def update_employment_for_user(
     if employment_update:
         if (
             target_user_id == current_user.id
-            and "status" in employment_update.model_fields_set
+            and employment_update.status is not None
+            and employment_update.status != employment.status
         ):
             raise HRValidationError("You cannot change your own employment status")
         ended_employment = (

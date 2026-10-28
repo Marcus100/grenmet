@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEntry
+from src.auth.access import effective_roles
 from src.auth.models import RoleAssignmentScope, UserRoleAssignment
 from src.auth.policy import _active_assignments
 from src.exceptions import AppException
@@ -89,6 +90,7 @@ async def test_end_employment_service_expires_assignments_with_audit(
             select(AuditEntry).where(
                 AuditEntry.record_type == "role_assignment",
                 AuditEntry.record_id == str(grant.id),
+                AuditEntry.action == "UPDATE",
             )
         )
     ).all()
@@ -102,13 +104,15 @@ async def test_nobody_edits_their_own_employment_status(
     user = await make_user(db_async)
     await make_employee(db_async, user=user, department_id=department.id)
     role, _ = await make_role_with_permission(db_async, "hr.employment.manage")
-    await assign_role(db_async, user=user, role=role, scope=RoleAssignmentScope.ALL)
+    grant = await assign_role(
+        db_async, user=user, role=role, scope=RoleAssignmentScope.ALL
+    )
     with pytest.raises(AppException) as raised:
         await service.update_employment_for_user(
             session=db_async,
             current_user=user,
             target_user_id=user.id,
-            employment_update=EmploymentUpdate(status=EmploymentStatus.ACTIVE),
+            employment_update=EmploymentUpdate(status=EmploymentStatus.TERMINATED),
             approval_update=None,
         )
     assert raised.value.status_code == 400
@@ -116,3 +120,37 @@ async def test_nobody_edits_their_own_employment_status(
         select(EmploymentRecord).where(EmploymentRecord.user_id == user.id)
     )
     assert record is not None
+    await db_async.refresh(record)
+    assert record.status == EmploymentStatus.ACTIVE
+    await db_async.refresh(grant)
+    assert grant.effective_to is None
+
+    # Sending the unchanged status with another field is an ordinary edit.
+    await service.update_employment_for_user(
+        session=db_async,
+        current_user=user,
+        target_user_id=user.id,
+        employment_update=EmploymentUpdate(
+            status=EmploymentStatus.ACTIVE, position="Senior Officer"
+        ),
+        approval_update=None,
+    )
+    await db_async.refresh(record)
+    assert record.position == "Senior Officer"
+
+
+async def test_old_plain_role_link_ends_with_employment(
+    db_async: AsyncSession,
+) -> None:
+    department = await make_department(db_async, "ended_roles_dept5")
+    user = await make_user(db_async)
+    record = await make_employee(db_async, user=user, department_id=department.id)
+    role, _ = await make_role_with_permission(db_async, "cap.alert.approve")
+    user.roles.append(role)
+    db_async.add(user)
+    await db_async.commit()
+    assert role.id in {r.id for r in await effective_roles(db_async, user)}
+
+    record.status = EmploymentStatus.TERMINATED
+    await db_async.commit()
+    assert role.id not in {r.id for r in await effective_roles(db_async, user)}
