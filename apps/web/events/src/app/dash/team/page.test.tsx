@@ -5,6 +5,7 @@ import { makeBundle, makeTeamMember } from "@/test/team-factories";
 const getManagedOrganiser = vi.fn();
 const resolveOrgContext = vi.fn();
 const getTeam = vi.fn();
+const getSession = vi.fn();
 
 vi.mock("@/data/events-api", () => ({
   getManagedOrganiser: () => getManagedOrganiser(),
@@ -17,7 +18,7 @@ vi.mock("@/data/team", () => ({
 }));
 vi.mock("@/data/viewer", () => ({ requireViewer: vi.fn() }));
 vi.mock("@/lib/session", () => ({
-  getSession: async () => ({ userId: "user_1" }),
+  getSession: () => getSession(),
 }));
 vi.mock("@/data/team-actions", () => ({
   grantRole: vi.fn(),
@@ -61,6 +62,7 @@ function show(search: { page?: string } = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  getSession.mockResolvedValue({ userId: "user_1" });
   getManagedOrganiser.mockResolvedValue(managed);
   resolveOrgContext.mockResolvedValue({
     ok: true,
@@ -75,6 +77,7 @@ describe("Team page", () => {
       kind: "ok",
       bundles: [makeBundle()],
       members: [makeTeamMember()],
+      viewer: { canRemove: true, isOwner: false },
       count: 40,
       page: 2,
       totalPages: 2,
@@ -82,7 +85,7 @@ describe("Team page", () => {
     render(await show({ page: "2" }));
     expect(getTeam).toHaveBeenCalledWith(
       expect.objectContaining({ organisationId: "org_1" }),
-      { page: 2, userId: "user_1" }
+      { page: 2 }
     );
     expect(
       screen.getByRole("heading", { name: "Team and roles" })
@@ -124,6 +127,7 @@ describe("Team page", () => {
       kind: "ok",
       bundles: [],
       members: [],
+      viewer: { canRemove: true, isOwner: false },
       count: 30,
       page: 9,
       totalPages: 2,
@@ -133,4 +137,16 @@ describe("Team page", () => {
       "redirect:/dash/team?page=2"
     );
   });
+
+  it.each([null, { userId: "" }])(
+    "treats a missing session user id (%j) as signed out",
+    async (session) => {
+      getSession.mockResolvedValue(session);
+      const error = await show().catch((caught: unknown) => caught);
+      expect(error instanceof Error ? error.message : null).toBe(
+        "redirect:/sign-in?returnTo=%2Fdash%2Fteam"
+      );
+      expect(getTeam).not.toHaveBeenCalled();
+    }
+  );
 });

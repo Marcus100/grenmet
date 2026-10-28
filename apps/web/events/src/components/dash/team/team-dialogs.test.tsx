@@ -43,6 +43,8 @@ const bundles = [
   makeBundle(),
   makeBundle({
     role_key: "events-refunds",
+    label: "Refunds",
+    description: "Issue refunds to ticket buyers.",
     permissions: ["events.refunds.issue"],
     grantable: false,
   }),
@@ -372,7 +374,7 @@ describe("RemoveMemberDialog", () => {
 });
 
 describe("GrantRoleDialog alert", () => {
-  it("has one alert node across both steps, focuses it on every refusal, and resets on close", async () => {
+  it("has one alert node across both steps, focuses it on every refusal, and keeps the choice on close", async () => {
     grantRole.mockResolvedValue({ ok: false, error: "Same refusal" });
     renderGrant();
     await openGrant();
@@ -404,6 +406,6 @@ describe("GrantRoleDialog alert", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     await openGrant();
     expect(alerts()[0]).toHaveTextContent("");
-    expect(screen.getByRole("radio", { name: RE_T1 })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: RE_T1 })).toBeChecked();
   });
 });

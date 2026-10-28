@@ -31,16 +31,17 @@ export default async function TeamPage({
   const query = await searchParams;
   await requireViewer("/dash/team");
   const session = await getSession();
+  if (!session?.userId) {
+    // No signed-in user id means signed out, never an empty id.
+    redirect(`/sign-in?returnTo=${encodeURIComponent("/dash/team")}`);
+  }
   const managed = await getManagedOrganiser();
   if (!managed) {
     return <NoOrganiserAccess />;
   }
   const context = await resolveOrgContext();
   const team = context.ok
-    ? await getTeam(context, {
-        page: pageParam(query.page),
-        userId: session?.userId ?? "",
-      })
+    ? await getTeam(context, { page: pageParam(query.page) })
     : null;
   if (team?.kind === "not-found") {
     notFound();
@@ -48,7 +49,7 @@ export default async function TeamPage({
 
   if (
     team?.kind === "ok" &&
-    team.members?.length === 0 &&
+    team.members.length === 0 &&
     team.count > 0 &&
     team.page > team.totalPages
   ) {
@@ -63,9 +64,9 @@ export default async function TeamPage({
         <TeamHelp />
         <TeamMembers
           bundles={team.bundles}
-          canRemove={team.members !== null}
           members={team.members}
           today={todayUtc(new Date())}
+          viewer={team.viewer}
         />
         <TeamPager
           count={team.count}

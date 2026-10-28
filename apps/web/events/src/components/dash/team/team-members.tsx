@@ -1,10 +1,6 @@
 import type { RoleBundlePublic } from "@barrelsgd/api-client";
-import type { TeamMember } from "@/data/team";
-import {
-  bundleCopy,
-  formatUtc,
-  MEMBER_ROLES_UNAVAILABLE,
-} from "@/lib/team-roles";
+import type { TeamMember, TeamViewer } from "@/data/team";
+import { bundleCopy, formatUtc } from "@/lib/team-roles";
 import { GrantRoleDialog } from "./grant-role-dialog";
 import { RemoveMemberDialog } from "./remove-member-dialog";
 import { RevokeGrantDialog } from "./revoke-grant-dialog";
@@ -17,54 +13,51 @@ const ROLE_WORDS: Record<TeamMember["role"], string> = {
 
 function MemberRow({
   bundles,
-  canRemove,
   member,
   today,
+  viewer,
 }: {
   bundles: readonly RoleBundlePublic[];
-  canRemove: boolean;
   member: TeamMember;
   today: string;
+  viewer: TeamViewer;
 }) {
   const implicit = member.role !== "member";
+  // Only an owner may remove an owner; admins and owners may remove the rest.
+  const canRemove =
+    viewer.canRemove && (member.role !== "owner" || viewer.isOwner);
+  const grantableKeys = new Set(
+    bundles.filter((bundle) => bundle.grantable).map((b) => b.role_key)
+  );
   return (
     <li className="space-y-3 rounded-2xl border border-border bg-card p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-medium text-body-base">
             {member.fullName}
-            {member.isSelf ? (
-              <span className="font-normal text-muted-foreground"> (you)</span>
-            ) : null}
           </p>
           <p className="truncate text-caption text-muted-foreground">
             {ROLE_WORDS[member.role]}
           </p>
         </div>
-        {member.isSelf ? (
-          <p className="max-w-xs text-caption text-muted-foreground">
-            You can't change your own roles.
-          </p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {member.grants !== null && !implicit ? (
-              <GrantRoleDialog
-                bundles={bundles}
-                heldRoleKeys={member.grants.map((grant) => grant.role_key)}
-                memberName={member.fullName}
-                membershipId={member.membershipId}
-                today={today}
-              />
-            ) : null}
-            {canRemove ? (
-              <RemoveMemberDialog
-                memberName={member.fullName}
-                membershipId={member.membershipId}
-                targetRole={member.role}
-              />
-            ) : null}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {implicit ? null : (
+            <GrantRoleDialog
+              bundles={bundles}
+              heldRoleKeys={member.grants.map((grant) => grant.role_key)}
+              memberName={member.fullName}
+              membershipId={member.membershipId}
+              today={today}
+            />
+          )}
+          {canRemove ? (
+            <RemoveMemberDialog
+              memberName={member.fullName}
+              membershipId={member.membershipId}
+              targetRole={member.role}
+            />
+          ) : null}
+        </div>
       </div>
 
       {implicit ? (
@@ -74,11 +67,7 @@ function MemberRow({
         </p>
       ) : null}
 
-      {member.grants === null ? (
-        <p className="text-body text-destructive">{MEMBER_ROLES_UNAVAILABLE}</p>
-      ) : null}
-
-      {member.grants?.length === 0 ? (
+      {member.grants.length === 0 ? (
         <p className="text-body text-muted-foreground">
           {implicit
             ? "No extra roles given."
@@ -86,7 +75,7 @@ function MemberRow({
         </p>
       ) : null}
 
-      {member.grants && member.grants.length > 0 ? (
+      {member.grants.length > 0 ? (
         <ul className="space-y-2">
           {member.grants.map((grant) => {
             const copy = bundleCopy(grant.role_key);
@@ -101,19 +90,20 @@ function MemberRow({
                     {copy.description}
                   </p>
                   <p className="text-caption text-muted-foreground">
-                    {grant.granted_by_name
-                      ? `Given by ${grant.granted_by_name}. `
-                      : ""}
                     {grant.expires_at
                       ? `Ends ${formatUtc(grant.expires_at)}.`
                       : "No end date."}
                   </p>
                 </div>
-                {member.isSelf ? null : (
+                {grantableKeys.has(grant.role_key) ? (
                   <RevokeGrantDialog
                     grant={grant}
                     memberName={member.fullName}
                   />
+                ) : (
+                  <p className="max-w-xs text-caption text-muted-foreground">
+                    You can't take this away because you don't hold it yourself.
+                  </p>
                 )}
               </li>
             );
@@ -131,27 +121,15 @@ function MemberRow({
  */
 export function TeamMembers({
   bundles,
-  canRemove,
   members,
   today,
+  viewer,
 }: {
   bundles: readonly RoleBundlePublic[];
-  canRemove: boolean;
-  members: readonly TeamMember[] | null;
+  members: readonly TeamMember[];
   today: string;
+  viewer: TeamViewer;
 }) {
-  if (members === null) {
-    return (
-      <p
-        className="rounded-2xl border border-dashed bg-card px-4 py-8 text-center text-body text-muted-foreground"
-        role="status"
-      >
-        You can manage roles, but the member list is only available to owners
-        and admins, so there is nobody to show here. Ask an owner or admin to
-        give or take away roles.
-      </p>
-    );
-  }
   if (members.length === 0) {
     return (
       <p
@@ -167,10 +145,10 @@ export function TeamMembers({
       {members.map((member) => (
         <MemberRow
           bundles={bundles}
-          canRemove={canRemove}
           key={member.membershipId}
           member={member}
           today={today}
+          viewer={viewer}
         />
       ))}
     </ul>

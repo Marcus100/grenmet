@@ -1,8 +1,8 @@
 /**
- * Pure helpers for the "Team and roles" screen: the words shown for role
- * bundles, the expiry date conversion and the wording of API refusals. The API
- * returns only `role_key` and permission keys, so the friendly copy lives here,
- * keyed by those stable strings, with a readable fallback for a new bundle.
+ * Pure helpers for the "Team and roles" screen: the expiry date conversion and
+ * the wording of API refusals. Role bundles carry their own `label` and
+ * `description` from the API; `bundleCopy` only names the live grant rows,
+ * which carry just a `role_key`, with a readable fallback for a new bundle.
  */
 
 export interface BundleCopy {
@@ -127,8 +127,6 @@ export function formatUtc(iso: string): string {
   return `${UTC_FORMAT.format(new Date(iso))} UTC`;
 }
 
-export const MEMBER_ROLES_UNAVAILABLE =
-  "We couldn't load this member's roles. Reload to try again.";
 export const COULDNT_CONFIRM_TEAM =
   "We couldn't confirm that change. Reload the page to see the current roles before trying again.";
 export const NOT_FOUND_TEAM =

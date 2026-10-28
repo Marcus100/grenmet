@@ -20,7 +20,6 @@ import { SIGN_IN_REQUIRED } from "@/data/action-result";
 import { grantRole } from "@/data/team-actions";
 import {
   allowedActions,
-  bundleCopy,
   COULDNT_CONFIRM_TEAM,
   expiryFromDate,
 } from "@/lib/team-roles";
@@ -76,9 +75,9 @@ export function GrantRoleDialog({
   function changeOpen(next: boolean) {
     setOpen(next);
     if (!next) {
+      // A closed dialog keeps the chosen role and date; only success clears them.
       setStep("choose");
       setFormError(null);
-      setRoleKey("");
     }
   }
 
@@ -123,9 +122,7 @@ export function GrantRoleDialog({
       setRoleKey("");
       setExpiresOn("");
       setFormError(null);
-      feedback.notice(
-        `${memberName} now has the ${bundleCopy(chosen.role_key).title} role.`
-      );
+      feedback.notice(`${memberName} now has the ${chosen.label} role.`);
       router.refresh();
       return;
     }
@@ -178,7 +175,6 @@ export function GrantRoleDialog({
                 </p>
               ) : null}
               {bundles.map((bundle) => {
-                const copy = bundleCopy(bundle.role_key);
                 const already = heldRoleKeys.includes(bundle.role_key);
                 const reason = unavailableReason(bundle, already);
                 return (
@@ -200,10 +196,10 @@ export function GrantRoleDialog({
                     />
                     <span>
                       <span className="block font-medium text-body">
-                        {copy.title}
+                        {bundle.label}
                       </span>
                       <span className="block text-caption text-muted-foreground">
-                        {copy.description}
+                        {bundle.description}
                       </span>
                       {reason ? (
                         <span className="block text-caption text-muted-foreground">
@@ -259,9 +255,7 @@ export function GrantRoleDialog({
           <div className="space-y-4">
             {chosen ? (
               <div className="space-y-2 rounded-xl border bg-muted/40 p-3">
-                <p className="font-medium text-body">
-                  {bundleCopy(chosen.role_key).title}
-                </p>
+                <p className="font-medium text-body">{chosen.label}</p>
                 <p className="text-body text-muted-foreground">
                   {memberName} will be able to:
                 </p>

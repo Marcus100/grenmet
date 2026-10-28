@@ -25,19 +25,20 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
-const RE_GAP = /only available to owners and admins/;
+const viewerAdmin = { canRemove: true, isOwner: false };
 
 function show(
   members: Parameters<typeof TeamMembers>[0]["members"],
-  canRemove = true
+  viewer = viewerAdmin,
+  bundles = [makeBundle(), makeBundle({ role_key: "events-till" })]
 ) {
   return render(
     <TeamFeedbackProvider>
       <TeamMembers
-        bundles={[makeBundle()]}
-        canRemove={canRemove}
+        bundles={bundles}
         members={members}
         today="2026-10-22"
+        viewer={viewer}
       />
     </TeamFeedbackProvider>
   );
@@ -51,12 +52,7 @@ describe("TeamMembers", () => {
     ).toHaveAttribute("role", "status");
   });
 
-  it("explains the gap when the API does not allow the roster", () => {
-    show(null, false);
-    expect(screen.getByText(RE_GAP)).toHaveAttribute("role", "status");
-  });
-
-  it("shows live roles with who gave them, UTC end dates and a take-away button", () => {
+  it("shows live roles with UTC end dates and a take-away button", () => {
     show([
       makeTeamMember({
         grants: [
@@ -97,28 +93,30 @@ describe("TeamMembers", () => {
     expect(screen.getByText(RE_T4)).toBeInTheDocument();
   });
 
-  it("offers no change controls on the viewer's own row", () => {
-    show([makeTeamMember({ isSelf: true, grants: [makeGrant()] })]);
-    expect(
-      screen.getByText("You can't change your own roles.")
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Give role" })).toBeNull();
-    expect(screen.queryByRole("button", { name: RE_T5 })).toBeNull();
-  });
-
-  it("hides removal when the caller is not an admin", () => {
-    show([makeTeamMember()], false);
+  it("hides removal when the caller is not an admin or owner", () => {
+    show([makeTeamMember()], { canRemove: false, isOwner: false });
     expect(screen.queryByRole("button", { name: RE_T6 })).toBeNull();
   });
 
-  it("marks a member whose roles failed to load and offers no Give role there", () => {
-    show([makeTeamMember({ grants: null })]);
+  it("hides Take away, with the reason, for a role the caller does not hold", () => {
+    show([makeTeamMember({ grants: [makeGrant()] })], viewerAdmin, [
+      makeBundle({ grantable: false }),
+    ]);
+    expect(screen.queryByRole("button", { name: RE_T5 })).toBeNull();
     expect(
       screen.getByText(
-        "We couldn't load this member's roles. Reload to try again."
+        "You can't take this away because you don't hold it yourself."
       )
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Give role" })).toBeNull();
+  });
+
+  it("hides Remove on an owner row unless the caller is an owner", () => {
+    const owner = makeTeamMember({ fullName: "Olu Owner", role: "owner" });
+    const { unmount } = show([owner]);
+    expect(screen.queryByRole("button", { name: RE_T6 })).toBeNull();
+    unmount();
+    show([owner], { canRemove: true, isOwner: true });
+    expect(screen.getByRole("button", { name: RE_T6 })).toBeInTheDocument();
   });
 
   it("offers no Give role on owner and admin rows", () => {

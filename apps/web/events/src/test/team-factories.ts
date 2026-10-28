@@ -40,9 +40,7 @@ export function makeTeamMember(
   return {
     membershipId: "mem_1",
     fullName: "Ana Door",
-    email: "ana@example.test",
     role: "member",
-    isSelf: false,
     grants: [],
     ...overrides,
   };

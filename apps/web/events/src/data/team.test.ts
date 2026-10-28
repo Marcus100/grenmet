@@ -2,20 +2,16 @@ import { ResponseError } from "@barrelsgd/api-client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const bundlesCall = vi.fn();
-const membersCall = vi.fn();
-const grantsCall = vi.fn();
+const capabilitiesCall = vi.fn();
+const rosterCall = vi.fn();
 
-const reportError = vi.fn();
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/report-error", () => ({
-  reportError: (...a: unknown[]) => reportError(...a),
-}));
 vi.mock("@/lib/api", () => ({ apiOptions: () => ({}) }));
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
   organisationsListRoleBundles: (...a: unknown[]) => bundlesCall(...a),
-  organisationsListMembers: (...a: unknown[]) => membersCall(...a),
-  organisationsListMemberGrants: (...a: unknown[]) => grantsCall(...a),
+  organisationsMyTeamCapabilities: (...a: unknown[]) => capabilitiesCall(...a),
+  organisationsListTeamMembers: (...a: unknown[]) => rosterCall(...a),
 }));
 
 const { getTeam } = await import("./team");
@@ -25,7 +21,7 @@ const context = {
   accessToken: "t",
   organisationId: "org_1",
 };
-const viewer = { page: 1, userId: "user_1" };
+const viewer = { page: 1 };
 const ok = (value: unknown) => ({ unwrap: () => Promise.resolve(value) });
 const failing = (status: number) => ({
   unwrap: () =>
@@ -39,13 +35,11 @@ const failing = (status: number) => ({
       })
     ),
 });
-const member = (id: string, userId: string, role = "member") => ({
+const rosterMember = (id: string, role = "member", grants: unknown[] = []) => ({
   membership_id: id,
-  user_id: userId,
-  email: `${id}@example.test`,
-  full_name: ` ${id} `,
+  name: ` ${id} `,
   role,
-  joined_at: "2026-01-01T00:00:00Z",
+  grants,
 });
 
 beforeEach(() => {
@@ -56,91 +50,95 @@ beforeEach(() => {
       { role_key: "bookings-desk", product: "bookings" },
     ])
   );
+  capabilitiesCall.mockReturnValue(
+    ok({ role: "admin", managed_products: ["events"], is_admin_or_owner: true })
+  );
 });
 
 describe("getTeam", () => {
-  it("reads the roster for the resolved organisation, then each member's live grants", async () => {
-    membersCall.mockReturnValue(
+  it("reads the roster in one call for the resolved organisation, keeping only Events grants", async () => {
+    rosterCall.mockReturnValue(
       ok({
-        data: [member("m1", "user_1"), member("m2", "u2")],
+        data: [
+          rosterMember("m1"),
+          rosterMember("m2", "member", [
+            { id: "g1", role_key: "events-door" },
+            { id: "g2", role_key: "bookings-desk" },
+          ]),
+        ],
         count: 2,
         page: 1,
+        size: 25,
       })
     );
-    grantsCall.mockImplementation(
-      ({ path }: { path: { membership_id: string } }) =>
-        ok(
-          path.membership_id === "m2"
-            ? [
-                { id: "g1", role_key: "events-door" },
-                { id: "g2", role_key: "bookings-desk" },
-              ]
-            : []
-        )
-    );
     const team = await getTeam(context, viewer);
-    expect(membersCall).toHaveBeenCalledWith(
+    expect(rosterCall).toHaveBeenCalledTimes(1);
+    expect(rosterCall).toHaveBeenCalledWith(
       expect.objectContaining({
         headers: { "X-Barrels-Organisation": "org_1" },
-        path: { organisation_id: "org_1" },
         query: { page: 1, size: 25 },
       })
     );
-    if (team.kind !== "ok" || !team.members) {
-      throw new Error("expected members");
+    if (team.kind !== "ok") {
+      throw new Error("expected ok");
     }
-    expect(
-      team.members.map((m) => [m.fullName, m.isSelf, m.grants?.length])
-    ).toEqual([
-      ["m1", true, 0],
-      ["m2", false, 1],
+    expect(team.members.map((m) => [m.fullName, m.grants.length])).toEqual([
+      ["m1", 0],
+      ["m2", 1],
     ]);
+    expect(team.members[0]).not.toHaveProperty("email");
+    expect(team.bundles).toHaveLength(1);
     expect(team.totalPages).toBe(1);
   });
 
+  it("takes removal and owner status from the capabilities, not from a refusal", async () => {
+    rosterCall.mockReturnValue(ok({ data: [], count: 0, page: 1, size: 25 }));
+    let team = await getTeam(context, viewer);
+    expect(team).toMatchObject({
+      viewer: { canRemove: true, isOwner: false },
+    });
+    capabilitiesCall.mockReturnValue(
+      ok({ role: "owner", managed_products: [], is_admin_or_owner: true })
+    );
+    team = await getTeam(context, viewer);
+    expect(team).toMatchObject({ viewer: { canRemove: true, isOwner: true } });
+    capabilitiesCall.mockReturnValue(
+      ok({
+        role: "member",
+        managed_products: ["events"],
+        is_admin_or_owner: false,
+      })
+    );
+    team = await getTeam(context, viewer);
+    expect(team).toMatchObject({
+      viewer: { canRemove: false, isOwner: false },
+    });
+  });
+
   it("is forbidden when the caller manages no team", async () => {
+    rosterCall.mockReturnValue(failing(403));
+    expect(await getTeam(context, viewer)).toEqual({ kind: "forbidden" });
     bundlesCall.mockReturnValue(failing(403));
     expect(await getTeam(context, viewer)).toEqual({ kind: "forbidden" });
-    expect(membersCall).not.toHaveBeenCalled();
   });
 
-  it("hides only the roster when the API refuses it to a non-admin manager", async () => {
-    membersCall.mockReturnValue(failing(403));
-    const team = await getTeam(context, viewer);
-    expect(team).toMatchObject({ kind: "ok", members: null });
-    expect(grantsCall).not.toHaveBeenCalled();
+  it("is not-found for an unknown organisation", async () => {
+    bundlesCall.mockReturnValue(failing(404));
+    expect(await getTeam(context, viewer)).toEqual({ kind: "not-found" });
   });
 
-  it("treats a member who left mid-load as having no roles and rethrows real failures", async () => {
-    membersCall.mockReturnValue(
-      ok({ data: [member("m2", "u2")], count: 1, page: 1 })
-    );
-    grantsCall.mockReturnValue(failing(404));
-    const team = await getTeam(context, viewer);
-    expect(team.kind === "ok" && team.members?.[0]?.grants).toEqual([]);
-    grantsCall.mockReturnValue(failing(401));
+  it("throws a 401 from the bundles read to the error page", async () => {
+    bundlesCall.mockReturnValue(failing(401));
+    rosterCall.mockReturnValue(ok({ data: [], count: 0, page: 1, size: 25 }));
+    await expect(getTeam(context, viewer)).rejects.toMatchObject({
+      status: 401,
+    });
+  });
+
+  it("throws other failures", async () => {
+    rosterCall.mockReturnValue(failing(500));
     await expect(getTeam(context, viewer)).rejects.toBeInstanceOf(
       ResponseError
     );
-    grantsCall.mockReturnValue(failing(403));
-    await expect(getTeam(context, viewer)).rejects.toBeInstanceOf(
-      ResponseError
-    );
-  });
-
-  it("keeps the page when one member's roles fail to load, reporting only the error", async () => {
-    membersCall.mockReturnValue(
-      ok({ data: [member("m1", "u1"), member("m2", "u2")], count: 2, page: 1 })
-    );
-    grantsCall.mockImplementation(
-      ({ path }: { path: { membership_id: string } }) =>
-        path.membership_id === "m1" ? failing(500) : ok([])
-    );
-    const team = await getTeam(context, viewer);
-    expect(team.kind === "ok" && team.members?.map((m) => m.grants)).toEqual([
-      null,
-      [],
-    ]);
-    expect(reportError).toHaveBeenCalledWith(expect.anything(), "events-team");
   });
 });
