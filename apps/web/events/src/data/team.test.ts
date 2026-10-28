@@ -118,6 +118,7 @@ describe("getTeam", () => {
   it("is forbidden when the caller manages no team", async () => {
     rosterCall.mockReturnValue(failing(403));
     expect(await getTeam(context, viewer)).toEqual({ kind: "forbidden" });
+    rosterCall.mockReturnValue(ok({ data: [], count: 0, page: 1, size: 25 }));
     bundlesCall.mockReturnValue(failing(403));
     expect(await getTeam(context, viewer)).toEqual({ kind: "forbidden" });
   });

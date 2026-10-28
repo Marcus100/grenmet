@@ -13,7 +13,7 @@ import {
 } from "@barrelsgd/ui/components/ui/alert-dialog";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
 import { SIGN_IN_REQUIRED } from "@/data/action-result";
 import { loadIssuedGrants, removeMember } from "@/data/team-actions";
@@ -47,6 +47,7 @@ export function RemoveMemberDialog({
   targetRole: "admin" | "member" | "owner";
 }) {
   const router = useRouter();
+  const issuedTitleId = useId();
   const feedback = useTeamFeedback();
   // Two actions, two states: the preview must not make the destructive
   // button read "Removing", and a failed preview must not enable it.
@@ -125,8 +126,8 @@ export function RemoveMemberDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <section aria-labelledby="issued-title" className="space-y-2">
-          <h3 className="font-medium text-body" id="issued-title">
+        <section aria-labelledby={issuedTitleId} className="space-y-2">
+          <h3 className="font-medium text-body" id={issuedTitleId}>
             Roles {memberName} gave to others
           </h3>
           {issued.kind === "loading" ? (
