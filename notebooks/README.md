@@ -46,6 +46,15 @@ JupyterLab also works:
 Column names and units shared by every analysis notebook:
 [`models/CANONICAL_PARAMS.md`](models/CANONICAL_PARAMS.md).
 
+## Satellite
+
+`satellite/goes19_gfs_grenada.ipynb` overlays the latest GOES-19 infrared and
+water-vapour imagery on GFS pressure, 850 hPa wind and rain for Grenada. Run
+it from `satellite/` (VS Code does this for you); downloads cache in
+`satellite/data/` (git-ignored). See [`satellite/README.md`](satellite/README.md).
+Use the `notebooks/.venv` environment above, not a plain `uv run` from the
+repository root.
+
 ## MetPy
 
 `metpy/unidata.ipynb` indexes about 1,000 Unidata and MetPy example notebooks
