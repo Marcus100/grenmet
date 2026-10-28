@@ -6,8 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEntry
 from src.auth.access import effective_roles
-from src.auth.models import RoleAssignmentScope, UserRoleAssignment
-from src.auth.policy import _active_assignments
+from src.auth.models import Role, RoleAssignmentScope, UserRoleAssignment
+from src.auth.policy import STAFF_ROLE, _active_assignments
 from src.exceptions import AppException
 from src.hr import service
 from src.hr.models import EmploymentRecord, EmploymentStatus
@@ -46,16 +46,48 @@ async def test_custom_role_stops_granting_when_employment_ends(
     assert grant.id not in await _live_ids(db_async, user.id)
 
 
-async def test_self_scope_roles_are_untouched(
-    db_async: AsyncSession,
+@pytest.mark.parametrize(
+    "ended", [EmploymentStatus.TERMINATED, EmploymentStatus.INACTIVE]
+)
+@pytest.mark.parametrize("key", ["timesheet.approve", "cap.alert.approve"])
+async def test_self_scope_approver_role_stops_when_employment_ends(
+    db_async: AsyncSession, key: str, ended: EmploymentStatus
 ) -> None:
     department = await make_department(db_async, "ended_roles_dept2")
     user = await make_user(db_async)
     record = await make_employee(db_async, user=user, department_id=department.id)
-    role, _ = await make_role_with_permission(db_async, "workflow.instance.view")
+    role, _ = await make_role_with_permission(db_async, key)
     own = await assign_role(db_async, user=user, role=role)
-    record.status = EmploymentStatus.TERMINATED
+    assert own.id in await _live_ids(db_async, user.id)
+    assert role.id in {r.id for r in await effective_roles(db_async, user)}
+    record.status = ended
     await db_async.commit()
+    assert own.id not in await _live_ids(db_async, user.id)
+    assert role.id not in {r.id for r in await effective_roles(db_async, user)}
+
+
+async def test_baseline_staff_role_survives_ended_employment(
+    db_async: AsyncSession,
+) -> None:
+    department = await make_department(db_async, "ended_roles_dept2b")
+    admin = await make_user(db_async, superuser=True)
+    user = await make_user(db_async)
+    await make_employee(db_async, user=user, department_id=department.id)
+    role = await db_async.scalar(select(Role).where(Role.name == STAFF_ROLE))
+    if role is None:
+        role, _ = await make_role_with_permission(
+            db_async, "leave.request.create", role_name=STAFF_ROLE
+        )
+    own = await assign_role(db_async, user=user, role=role)
+    await service.update_employment_for_user(
+        session=db_async,
+        current_user=admin,
+        target_user_id=user.id,
+        employment_update=EmploymentUpdate(status=EmploymentStatus.TERMINATED),
+        approval_update=None,
+    )
+    await db_async.refresh(own)
+    assert own.effective_to is None
     assert own.id in await _live_ids(db_async, user.id)
 
 

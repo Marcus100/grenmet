@@ -12,6 +12,7 @@ from src.auth.models import (
     User,
     UserRoleAssignment,
 )
+from src.auth.policy import STAFF_ROLE
 from src.auth.roles import get_role
 from src.auth.schemas import (
     UserRoleAssignmentCreate,
@@ -362,7 +363,7 @@ async def delegation_authority(
 async def end_assignments_for_employment(
     *, session: AsyncSession, user_id: uuid.UUID, organisation_id: str
 ) -> int:
-    """Expire the user's live non-SELF assignments in one organisation (#789).
+    """Expire the user's live assignments of every scope (except the baseline staff role) in one organisation (#789).
 
     Called when employment there ends. Does not commit; each ended assignment
     gets an audit entry. Reinstating employment does not bring them back.
@@ -373,7 +374,9 @@ async def end_assignments_for_employment(
             select(UserRoleAssignment).where(
                 UserRoleAssignment.user_id == user_id,
                 UserRoleAssignment.organisation_id == organisation_id,
-                UserRoleAssignment.scope != RoleAssignmentScope.SELF,
+                ~UserRoleAssignment.role_id.in_(
+                    select(Role.id).where(Role.name == STAFF_ROLE)
+                ),
                 UserRoleAssignment.effective_to.is_(None)
                 | (UserRoleAssignment.effective_to > now),
             )
