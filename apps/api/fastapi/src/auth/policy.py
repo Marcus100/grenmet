@@ -64,8 +64,11 @@ async def _active_assignments(
     result = await session.execute(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user_id,
-            UserRoleAssignment.role_id.in_(
-                select(Role.id).where(Role.name == STAFF_ROLE)
+            (
+                UserRoleAssignment.role_id.in_(
+                    select(Role.id).where(Role.name == STAFF_ROLE)
+                )
+                & (UserRoleAssignment.scope == RoleAssignmentScope.SELF)
             )
             | live_holder,
             UserRoleAssignment.effective_from <= now,
