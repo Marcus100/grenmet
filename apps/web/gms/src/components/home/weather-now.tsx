@@ -1,9 +1,8 @@
 import { ArrowRightIcon } from "lucide-react";
 import { HomeSection } from "@/components/home/home-section";
+import { NOTE_KINDS, type TabNotes } from "@/components/home/tab-notes";
 import {
   type MediaItem,
-  NOTE_KINDS,
-  type TabNotes,
   WeatherNowPanel,
 } from "@/components/home/weather-now-panel";
 import { RelatedLinkAnchor } from "@/components/related-link-anchor";
