@@ -1,7 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { Flag } from "@/components/flag";
-import { FlatMap } from "@/components/map/flat-map";
+import { LevelMap } from "@/components/map/level-map";
 import { Provenance } from "@/components/results/provenance";
 import { PageHead, Section } from "@/components/section";
 import {
@@ -44,11 +44,20 @@ function ReferendumMap({
   );
   return (
     <figure>
-      <FlatMap
-        geo={geo}
-        label={label}
-        level="div"
-        regions={Object.keys(geo.divisions).map((code) => {
+      <LevelMap
+        constituencyRegions={CODES.map((code) => {
+          const rows = eventResult(data, id, code)?.c ?? [];
+          const share = rows.some((row) => row[2] > 0) ? yesShare(rows) : null;
+          return {
+            code,
+            fill: share == null ? "var(--el-paper-2)" : yesFill(share),
+            title:
+              share == null
+                ? `${constituencyName(results, code)}: no readable result`
+                : `${constituencyName(results, code)}: Yes ${pct(share)}`,
+          };
+        })}
+        divisionRegions={Object.keys(geo.divisions).map((code) => {
           const d = divisions[code];
           return {
             code,
@@ -58,6 +67,8 @@ function ReferendumMap({
               : `${code}: no readable result`,
           };
         })}
+        geo={geo}
+        label={label.replace(" by polling division", "")}
       />
       <figcaption className="mt-2 text-base">
         <span className="flex items-center gap-2">
@@ -71,7 +82,7 @@ function ReferendumMap({
           <span>Yes +40</span>
         </span>
         <span className="mt-1 block text-el-muted">
-          Yes as a share of Yes and No votes, by polling division. Grey: no
+          Yes as a share of Yes and No votes at the selected map level. Grey: no
           readable result. Boundaries are illustrative.
         </span>
       </figcaption>

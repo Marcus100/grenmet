@@ -2,12 +2,13 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { ChartViewport } from "@/components/chart-viewport";
 import { CalculationNote, EvidenceCitation } from "@/components/learn/evidence";
-import { FlatMap } from "@/components/map/flat-map";
+import { LevelMap } from "@/components/map/level-map";
 import { PageHead, Section } from "@/components/section";
 import { geo, register, results } from "@/data/load";
-import { CODES, constituencyHref, constituencyName } from "@/data/model";
+import { constituencyHref, constituencyName } from "@/data/model";
 import {
   addendumTotals,
+  constituencyGrowth,
   divisionGrowth,
   rollChecks,
   snapshotTotals,
@@ -47,18 +48,9 @@ export default function RegisterPage() {
   const y = (v: number) => H - 26 - ((v - minE) / (maxE - minE)) * (H - 44);
   const maxAdd = Math.max(...adds.map((a) => a.added));
 
-  const byCode = CODES.map((code) => {
-    const rows = growth.filter((g) => g.division.startsWith(code));
-    const a = rows.reduce((s, r) => s + r.first, 0);
-    const b = rows.reduce((s, r) => s + r.last, 0);
-    return {
-      code,
-      divisions: rows.length,
-      first: a,
-      last: b,
-      change: a ? (b - a) / a : 0,
-    };
-  }).sort((p, q) => q.change - p.change);
+  const byCode = constituencyGrowth(register).sort(
+    (p, q) => q.change - p.change
+  );
 
   return (
     <>
@@ -282,17 +274,21 @@ export default function RegisterPage() {
       >
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <figure>
-            <FlatMap
-              geo={geo}
-              label="Change in electors by polling division"
-              level="div"
-              regions={growth.map((g) => ({
+            <LevelMap
+              constituencyRegions={byCode.map((g) => ({
+                code: g.code,
+                fill: g.first ? growthFill(g.change) : "var(--el-paper-2)",
+                title: `${constituencyName(results, g.code)}: ${fmt(g.first)} → ${fmt(g.last)}${g.first ? ` (${pct(g.change)})` : ""}`,
+              }))}
+              divisionRegions={growth.map((g) => ({
                 code: g.division,
                 fill: g.first
                   ? growthFill((g.last - g.first) / g.first)
                   : "var(--el-paper-2)",
                 title: `${g.division}: ${fmt(g.first)} → ${fmt(g.last)}${g.first ? ` (${pct((g.last - g.first) / g.first)})` : ""}`,
               }))}
+              geo={geo}
+              label="Change in electors"
             />
             <figcaption className="mt-2 text-base">
               <span className="flex items-center gap-2">

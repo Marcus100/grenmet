@@ -5,7 +5,8 @@ import {
   SwingCalculator,
   type SwingYear,
 } from "@/components/how-close/swing-calculator";
-import { FlatMap, ringPath } from "@/components/map/flat-map";
+import { ringPath } from "@/components/map/flat-map";
+import { LevelMap } from "@/components/map/level-map";
 import { PageHead, Section } from "@/components/section";
 import {
   type EventDivision,
@@ -69,11 +70,26 @@ function DivisionSwing({ from, to }: { from: string; to: string }) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <figure>
-        <FlatMap
-          geo={geo}
-          label={`Swing in each polling division, ${from} to ${to}`}
-          level="div"
-          regions={Object.keys(geo.divisions).map((code) => {
+        <LevelMap
+          constituencyRegions={CODES.map((code) => {
+            const a = eventResult(data, from, code);
+            const b = eventResult(data, to, code);
+            const beforeShare = a ? ndcShare(a) : null;
+            const afterShare = b ? ndcShare(b) : null;
+            const swing =
+              beforeShare != null && afterShare != null
+                ? (afterShare - beforeShare) * 100
+                : null;
+            return {
+              code,
+              fill: swing == null ? "var(--el-paper-2)" : swingFill(swing),
+              title:
+                swing == null
+                  ? `${constituencyName(results, code)}: not comparable`
+                  : `${constituencyName(results, code)}: ${Math.abs(swing).toFixed(1)} pts toward the ${swing >= 0 ? "NDC" : "NNP"}`,
+            };
+          })}
+          divisionRegions={Object.keys(geo.divisions).map((code) => {
             const s = bySwing[code];
             return {
               code,
@@ -81,9 +97,11 @@ function DivisionSwing({ from, to }: { from: string; to: string }) {
               title:
                 s == null
                   ? `${code}: not comparable`
-                  : `${code}: ${s >= 0 ? "+" : ""}${s.toFixed(1)} pts toward the ${s >= 0 ? "NDC" : "NNP"}`,
+                  : `${code}: ${Math.abs(s).toFixed(1)} pts toward the ${s >= 0 ? "NDC" : "NNP"}`,
             };
           })}
+          geo={geo}
+          label={`Two-party swing, ${from} to ${to}`}
         />
         <figcaption className="mt-2 text-base text-el-muted">
           Gold: toward the NDC. Green: toward the NNP. Grey: no comparable
