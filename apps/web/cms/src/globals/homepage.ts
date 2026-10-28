@@ -6,7 +6,7 @@ export const HOMEPAGE_SECTIONS = [
   { label: "From the Desk", value: "desk" },
   { label: "Stories", value: "stories" },
   { label: "Questions about the weather", value: "questions" },
-  { label: "Sky, history and a little fun", value: "discover" },
+  { label: "News", value: "discover" },
   { label: "Latest reports", value: "reports" },
   { label: "Explore today", value: "explore-today" },
   { label: "Grenada in data", value: "grenada-in-data" },
@@ -45,7 +45,7 @@ export const Homepage: GlobalConfig = {
       options: [...DISCOVER_CARDS],
       defaultValue: DISCOVER_CARDS.map((card) => card.value),
       admin: {
-        description: "Which cards Sky, history and a little fun shows.",
+        description: "Which cards News shows.",
       },
     },
     {
