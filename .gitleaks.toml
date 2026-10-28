@@ -16,6 +16,8 @@ regexes = [
   '''^abc_DEF-123456(7890)?$''',
   '''^v1\.venue\.123\.abcdef0123456789$''',
   '''^BT1\.7K3M9Q2XVD\.AbCdEfGhIjKlMnOp$''',
+  '''^BT1\.CCCCCDDDDD\.abcdEFGH12345678$''',
+  '''^BT1\.ABCDEFGHJK\.abcdEFGH12345678$''',
   '''^abcdefghijklmnop1234$''',
   '''^YOUR_TOKEN$''',
   '''^CAP_SIGNING_KEY_REF=cap-signing-key$''',
