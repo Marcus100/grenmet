@@ -171,3 +171,25 @@ Systemd starts a WSL login shell to select the host Node runtime. Isolated check
 invoke pnpm through corepack in that runtime, avoiding a home-dependent wrapper
 hidden by `ProtectHome`. Separate HOME/cache and credential isolation remain.
 Runner changes require owner merge; host validation does not merge the PR.
+
+Turbo checks explicitly select the disposable checkout and its `.turbo/cache`.
+Git worktree discovery can otherwise resolve the main checkout as the cache
+root, which is intentionally read-only inside the sandbox. The sandbox does not
+grant write access to the main checkout to accommodate a tool cache.
+
+Trivy summary CVE counts include only `CVE-YYYY-NNNN` identifiers. Other
+vulnerability identifiers stay in the report as non-CVE findings and retain
+their alert numbers; duplicate alerts do not inflate the distinct count.
+
+Turbo also launches pnpm for individual tasks. The executor creates a quoted
+corepack wrapper in a fresh bin directory under its confined disposable home
+and adds it to the child PATH. This avoids exposing a host-home pnpm wrapper.
+
+The disposable backend runs its package-manager prerequisite probe inside the
+sandbox. Host-side Docker orchestration retains the trusted host PATH; it must
+never execute wrappers or package-manager caches writable by sandboxed tasks.
+
+Host orchestration also selects the trusted host home and Docker configuration.
+Docker can load executable CLI plugins from its configuration directory, so a
+sandbox-writable home must never control host-side Docker plugin discovery.
+The isolated package-manager and test commands keep their disposable home.
