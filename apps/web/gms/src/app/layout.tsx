@@ -75,7 +75,7 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-screen flex-col bg-background font-sans text-foreground">
         <SkipLink />
-        <PostHogProvider app="gms">
+        <PostHogProvider app="gms" privacyHref="/privacy">
           <PreferencesStoreProvider
             contentLayout={PREFERENCE_DEFAULTS.content_layout}
             font={PREFERENCE_DEFAULTS.font}
