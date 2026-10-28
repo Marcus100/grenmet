@@ -6,7 +6,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -79,7 +79,31 @@ test("backend lifecycle stays outside the sandbox while the source test command 
         (call) => call.argv[0] === "docker" && call.argv.includes("up")
       )
     );
-    const sandbox = calls.find((call) => call.argv[0] === "systemd-run");
+    assert.ok(!calls.some((call) => call.argv[0] === "pnpm"));
+    assert.ok(
+      calls.some(
+        (call) =>
+          call.argv[0] === "systemd-run" &&
+          call.argv.includes("pnpm") &&
+          call.argv.includes("--version")
+      )
+    );
+    for (const host of calls.filter(
+      (call) => call.argv[0] === "docker" || call.argv[0] === "uv"
+    )) {
+      assert.equal(host.options.env.HOME, homedir());
+      assert.equal(host.options.env.DOCKER_CONFIG, join(homedir(), ".docker"));
+      assert.ok(
+        !(host.options.env?.PATH ?? "")
+          .split(":")
+          .some((directory) => directory.startsWith(`${root}/`))
+      );
+    }
+    const sandbox = calls.find(
+      (call) =>
+        call.argv[0] === "systemd-run" &&
+        call.argv.includes("scripts/verification/backend.sh")
+    );
     assert.ok(sandbox);
     for (const call of calls.filter(
       (entry) => entry.argv[0] === "docker" && entry.argv.includes("compose")
@@ -161,4 +185,33 @@ test("pnpm uses login runtime corepack despite a hidden HOME-dependent wrapper",
     )
   );
   assert.ok(args.includes("HOME=/tmp/owned/home"));
+});
+
+import { spawnSync } from "node:child_process";
+import { preparePnpmShim } from "./audit-executor.mjs";
+
+test("nested pnpm uses the disposable shim with the selected corepack and preserves arguments", () => {
+  const root = mkdtempSync(join(tmpdir(), "audit-pnpm-child-"));
+  try {
+    const home = join(root, "home");
+    mkdirSync(home);
+    const corepack = join(root, "corepack's runtime");
+    writeFileSync(corepack, '#!/bin/sh\nprintf "%s\\n" "$@"\n', {
+      mode: 0o755,
+    });
+    const bin = preparePnpmShim(root, home, corepack);
+    const child = spawnSync(
+      join(bin, "pnpm"),
+      ["run", "argument with spaces"],
+      { env: { PATH: "/usr/bin:/bin", HOME: home }, encoding: "utf8" }
+    );
+    assert.equal(child.status, 0, child.stderr);
+    assert.deepEqual(child.stdout.trim().split("\n"), [
+      "pnpm",
+      "run",
+      "argument with spaces",
+    ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });

@@ -6,7 +6,7 @@
 import type { GuidanceSystemPropertiesFeatureTypeEnum } from "./GuidanceSystemPropertiesFeatureTypeEnum.js";
 
 /**
- * @description One published outlook issue\'s view of a system.
+ * @description One published outlook issue's view of a system.
  * @type object
  */
 export type TropicalSystemPublicEntry = {

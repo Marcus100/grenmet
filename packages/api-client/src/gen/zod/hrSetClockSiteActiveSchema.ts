@@ -31,3 +31,7 @@ export const hrSetClockSiteActiveErrorSchema = z.union([
 ]);
 
 export const hrSetClockSiteActiveBodySchema = clockSiteActiveSchema;
+
+export const hrSetClockSiteActivePathSchema = z.object({
+  site_id: z.uuid(),
+});

@@ -38,3 +38,14 @@ export const bookingsGetAvailabilityErrorSchema = z.union([
   bookingsGetAvailabilityStatus404Schema,
   bookingsGetAvailabilityStatus422Schema,
 ]);
+
+export const bookingsGetAvailabilityPathSchema = z.object({
+  slug: z.string(),
+});
+
+export const bookingsGetAvailabilityQuerySchema = z.object({
+  service_id: z.uuid(),
+  first_day: z.iso.date(),
+  last_day: z.iso.date(),
+  provider_id: z.union([z.uuid(), z.null()]).optional(),
+});

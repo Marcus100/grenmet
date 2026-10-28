@@ -53,3 +53,16 @@ export const paymentsCreateRefundErrorSchema = z.union([
 ]);
 
 export const paymentsCreateRefundBodySchema = paymentRefundCreateSchema;
+
+export const paymentsCreateRefundPathSchema = z.object({
+  intent_id: z.uuid(),
+});
+
+export const paymentsCreateRefundHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

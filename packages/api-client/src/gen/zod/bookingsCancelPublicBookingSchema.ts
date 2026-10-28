@@ -38,3 +38,11 @@ export const bookingsCancelPublicBookingErrorSchema = z.union([
 export const bookingsCancelPublicBookingBodySchema = z
   .union([bookingPublicCancelSchema, z.null()])
   .optional();
+
+export const bookingsCancelPublicBookingPathSchema = z.object({
+  token: z
+    .string()
+    .min(16)
+    .max(100)
+    .describe("The manage token returned when the booking was made."),
+});

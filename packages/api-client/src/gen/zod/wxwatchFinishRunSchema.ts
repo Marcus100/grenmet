@@ -33,3 +33,11 @@ export const wxwatchFinishRunErrorSchema = z.union([
 ]);
 
 export const wxwatchFinishRunBodySchema = runFinishSchema;
+
+export const wxwatchFinishRunPathSchema = z.object({
+  run_id: z.uuid(),
+});
+
+export const wxwatchFinishRunHeadersSchema = z.object({
+  authorization: z.union([z.string(), z.null()]).optional(),
+});

@@ -56,6 +56,7 @@
     "agents:routing": "node scripts/agents/routing.mjs",
     "agents:skill-evals": "node scripts/agents/skill-evals.mjs",
     "agents:sweep": "node scripts/agents/claim-issue.mjs sweep",
+    "agents:queue": "node scripts/agents/pr-queue.mjs",
     "agents:handoff": "node scripts/agents/review-handoff.mjs",
     "agents:codex-review": "node scripts/agents/codex-review.mjs",
     "coverage:check": "node scripts/guardrails/check-coverage.mjs",

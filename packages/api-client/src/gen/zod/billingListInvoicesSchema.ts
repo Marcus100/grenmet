@@ -60,3 +60,24 @@ export const billingListInvoicesErrorSchema = z.union([
   billingListInvoicesStatus403Schema,
   billingListInvoicesStatus422Schema,
 ]);
+
+export const billingListInvoicesQuerySchema = z.object({
+  status: z.union([invoiceStatusSchema, z.null()]).optional(),
+  customer_id: z.union([z.uuid(), z.null()]).optional(),
+  q: z.union([z.string().max(100), z.null()]).optional(),
+  overdue: z.boolean().optional().default(false),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

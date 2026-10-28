@@ -388,3 +388,18 @@ test("all four worker schedules are explicit UTC schedules", () => {
   for (const schedule of Object.values(SCHEDULES))
     assert.match(schedule, UTC_SUFFIX_PATTERN);
 });
+
+test("six-hour Turbo checks pin their working directory and cache to the disposable checkout", (t) => {
+  const root = tempDirectory(t, "audit-turbo-root-");
+  mkdirSync(join(root, "apps/web"), { recursive: true });
+  mkdirSync(join(root, "apps/api/fastapi"), { recursive: true });
+  const plan = sixHourlyPlan(root);
+  for (const id of ["types", "lint"]) {
+    const argv = plan.find((item) => item.id === id).argv;
+    assert.equal(argv[argv.indexOf("--cwd") + 1], root);
+    assert.equal(
+      argv[argv.indexOf("--cache-dir") + 1],
+      join(root, ".turbo/cache")
+    );
+  }
+});

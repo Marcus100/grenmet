@@ -33,3 +33,7 @@ export const billingDeleteInvoiceErrorSchema = z.union([
   billingDeleteInvoiceStatus409Schema,
   billingDeleteInvoiceStatus422Schema,
 ]);
+
+export const billingDeleteInvoicePathSchema = z.object({
+  invoice_id: z.uuid(),
+});

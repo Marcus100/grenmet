@@ -44,3 +44,7 @@ export const janitorialUpdateTaskErrorSchema = z.union([
 ]);
 
 export const janitorialUpdateTaskBodySchema = taskUpdateSchema;
+
+export const janitorialUpdateTaskPathSchema = z.object({
+  task_id: z.int(),
+});

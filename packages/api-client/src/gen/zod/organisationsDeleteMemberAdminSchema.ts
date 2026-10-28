@@ -40,3 +40,8 @@ export const organisationsDeleteMemberAdminErrorSchema = z.union([
 
 export const organisationsDeleteMemberAdminBodySchema =
   platformMemberRemoveSchema;
+
+export const organisationsDeleteMemberAdminPathSchema = z.object({
+  organisation_id: z.string(),
+  membership_id: z.string(),
+});

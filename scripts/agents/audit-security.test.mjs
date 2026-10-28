@@ -242,3 +242,20 @@ test("existing GDAL tracker also covers the geonetcast manifest", async () => {
   assert.equal(observations[0].trackingIssue, 733);
   assert.equal(observations[0].status, "fail");
 });
+
+test("Trivy counts only CVE identifiers while preserving other vulnerability findings", () => {
+  const observations = [
+    { number: 1, state: "open", rule: { id: "CVE-2026-12345" } },
+    { number: 2, state: "open", rule: { id: "CVE-2026-12345" } },
+    { number: 3, state: "open", rule: { id: "TEMP-0841856-B18BAF" } },
+    { number: 4, state: "fixed", rule: { id: "CVE-2025-99999" } },
+  ];
+  const report = trivyObservation(observations);
+  assert.ok(
+    report.summary.includes(
+      "3 open Trivy alerts, 1 distinct CVEs, 1 non-CVE finding"
+    )
+  );
+  assert.ok(report.details.join(" ").includes("alert 3"));
+  assert.deepEqual(report.alertNumbers, [1, 2, 3, 4]);
+});

@@ -26,3 +26,7 @@ export const hrListDepartmentsErrorSchema = z.union([
   hrListDepartmentsStatus403Schema,
   hrListDepartmentsStatus422Schema,
 ]);
+
+export const hrListDepartmentsQuerySchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+});

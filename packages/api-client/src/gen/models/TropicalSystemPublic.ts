@@ -20,7 +20,7 @@ export type TropicalSystemPublic = {
   nhc_storm_id: string | null;
   status: TropicalSystemPublicPropertiesStatusEnum;
   /**
-   * @description One published outlook issue\'s view of a system.
+   * @description One published outlook issue's view of a system.
    * @type object
    */
   latest: TropicalSystemPublicEntry;

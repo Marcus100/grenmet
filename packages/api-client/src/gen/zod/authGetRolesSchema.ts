@@ -41,3 +41,20 @@ export const authGetRolesErrorSchema = z.union([
   authGetRolesStatus403Schema,
   authGetRolesStatus422Schema,
 ]);
+
+export const authGetRolesQuerySchema = z.object({
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

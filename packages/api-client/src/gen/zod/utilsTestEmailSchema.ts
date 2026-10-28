@@ -27,3 +27,7 @@ export const utilsTestEmailErrorSchema = z.union([
   utilsTestEmailStatus403Schema,
   utilsTestEmailStatus422Schema,
 ]);
+
+export const utilsTestEmailQuerySchema = z.object({
+  email_to: z.email(),
+});

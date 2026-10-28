@@ -51,3 +51,21 @@ export const bookingsListExceptionsErrorSchema = z.union([
   bookingsListExceptionsStatus404Schema,
   bookingsListExceptionsStatus422Schema,
 ]);
+
+export const bookingsListExceptionsPathSchema = z.object({
+  provider_id: z.uuid(),
+});
+
+export const bookingsListExceptionsQuerySchema = z.object({
+  starts_from: z.union([z.iso.datetime(), z.null()]).optional(),
+  ends_before: z.union([z.iso.datetime(), z.null()]).optional(),
+});
+
+export const bookingsListExceptionsHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+    ),
+});

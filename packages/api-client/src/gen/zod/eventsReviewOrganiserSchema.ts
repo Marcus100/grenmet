@@ -40,3 +40,7 @@ export const eventsReviewOrganiserErrorSchema = z.union([
 ]);
 
 export const eventsReviewOrganiserBodySchema = organiserReviewSchema;
+
+export const eventsReviewOrganiserPathSchema = z.object({
+  organiser_id: z.uuid(),
+});

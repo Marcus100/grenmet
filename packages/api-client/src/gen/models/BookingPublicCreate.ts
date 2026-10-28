@@ -4,7 +4,7 @@
  */
 
 /**
- * @description A customer\'s booking request. Sent with an `Idempotency-Key` header.
+ * @description A customer's booking request. Sent with an `Idempotency-Key` header.
  * @type object
  */
 export type BookingPublicCreate = {

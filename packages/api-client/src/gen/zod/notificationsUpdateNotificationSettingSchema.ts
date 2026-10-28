@@ -44,3 +44,11 @@ export const notificationsUpdateNotificationSettingErrorSchema = z.union([
 
 export const notificationsUpdateNotificationSettingBodySchema =
   notificationSettingUpdateSchema;
+
+export const notificationsUpdateNotificationSettingPathSchema = z.object({
+  event_key: z.string(),
+});
+
+export const notificationsUpdateNotificationSettingQuerySchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+});

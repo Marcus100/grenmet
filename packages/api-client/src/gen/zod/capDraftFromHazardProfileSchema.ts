@@ -34,3 +34,7 @@ export const capDraftFromHazardProfileErrorSchema = z.union([
 ]);
 
 export const capDraftFromHazardProfileBodySchema = capProfileDraftRequestSchema;
+
+export const capDraftFromHazardProfilePathSchema = z.object({
+  profile_id: z.uuid(),
+});

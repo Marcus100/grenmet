@@ -49,3 +49,26 @@ export const hrGetMySignedDocumentsErrorSchema = z.union([
   hrGetMySignedDocumentsStatus401Schema,
   hrGetMySignedDocumentsStatus422Schema,
 ]);
+
+export const hrGetMySignedDocumentsQuerySchema = z.object({
+  entity_type: z
+    .union([z.string().max(60), z.null()])
+    .optional()
+    .describe(
+      "Only documents for this form type, e.g. leave_request or timesheet."
+    ),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

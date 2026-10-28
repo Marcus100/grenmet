@@ -110,8 +110,11 @@ Go into each environment and add the following secrets. Staging and production u
 | `EVENTS_SSO_CLIENT_SECRET` | Events single sign-on secret (optional) | `openssl rand -base64 32` (different per environment)        |
 | `RESEND_API_KEY`           | Email sending via Resend              | From your resend.com dashboard                                 |
 | `EMAIL`                    | Let's Encrypt registration email      | Your real email address                                        |
-| `USERNAME`                 | Traefik + Adminer dashboard login     | e.g. `admin`                                                   |
+| `USERNAME`                 | Traefik dashboard login (SSH tunnel only) | e.g. `admin`                                               |
 | `HASHED_PASSWORD`          | Bcrypt hash of the dashboard password | See note below                                                 |
+| `STAGING_BASIC_AUTH_USERS` | **Staging only.** Basic-auth gate on every staging web host (not the API) | `htpasswd -nbB <user> '<password>'` lines, comma-separated |
+| `ADMINER_BASIC_AUTH_USERS` | **Staging only.** Adminer login, separate from the dashboard's | `htpasswd -nbB <user> '<password>'` |
+| `STAGING_PROBE_CREDENTIALS` | **Staging only.** `user:password` (plaintext) of one `STAGING_BASIC_AUTH_USERS` entry, used by the deploy smoke and the availability probe | e.g. `probe:<password>` |
 | `SENTRY_DSN`               | Error tracking (optional)             | From sentry.io, or leave empty string                          |
 
 The complete runtime and build-time inventory is in [docs/env.md](env.md).
@@ -129,6 +132,21 @@ docker run --rm httpd:2.4 htpasswd -nbB admin 'your-password-here' | cut -d: -f2
 
 Save only the hash part (starting with `$2y$...`). The `USERNAME` secret holds the username
 separately — the compose file combines them as `${USERNAME}:${HASHED_PASSWORD}`.
+
+**Generating the staging basic-auth secrets** (`STAGING_BASIC_AUTH_USERS`,
+`ADMINER_BASIC_AUTH_USERS`): store the whole `htpasswd -nbB` line, user included:
+
+```bash
+docker run --rm httpd:2.4 htpasswd -nbB reviewer 'your-password-here'
+# reviewer:$2y$05$...
+```
+
+Several users go in one secret, comma-separated. Paste the hash exactly as printed:
+do **not** double the `$` signs — `render-env.py` escapes them for Compose and
+rejects anything that is not a bcrypt `htpasswd` line. Add a dedicated `probe` user
+to `STAGING_BASIC_AUTH_USERS` and store its `probe:<password>` as
+`STAGING_PROBE_CREDENTIALS`. Production must not have these secrets; the workflow
+passes them only to staging.
 
 > Note: `SECRET_KEY`, `POSTGRES_PASSWORD`, `WXWATCH_DB_PASSWORD`, `WXPRODUCTS_DB_PASSWORD`
 > and `FIRST_SUPERUSER_PASSWORD` **must be different** between staging and production.
@@ -508,9 +526,20 @@ Additional operational routes are:
 | --- | --- | --- |
 | API documentation | Disabled | https://api.staging.barrels.gd/swagger |
 | Adminer | Disabled by profile | https://adminer.staging.barrels.gd |
-| Traefik dashboard | https://traefik.barrels.gd | https://traefik.staging.barrels.gd |
+| Traefik dashboard | SSH tunnel only (below) | SSH tunnel only (below) |
 
-Adminer and the Traefik dashboard require the configured dashboard credentials.
+Adminer requires `ADMINER_BASIC_AUTH_USERS` credentials. Every other staging web
+host requires `STAGING_BASIC_AUTH_USERS` credentials and answers with
+`X-Robots-Tag: noindex, nofollow`; `api.staging` has only the noindex header,
+because the browser apps call it cross-origin. Production has neither.
+
+The Traefik dashboard has no public host. It listens on the droplet's loopback
+interface only (`127.0.0.1:8080`, Traefik's internal `traefik` entrypoint) and
+still asks for the `USERNAME`/`HASHED_PASSWORD` login:
+
+```bash
+ssh -L 8080:127.0.0.1:8080 <user>@<droplet>   # then open http://localhost:8080/dashboard/
+```
 
 ## Canonical app domains
 

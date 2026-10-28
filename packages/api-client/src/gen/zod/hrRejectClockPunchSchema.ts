@@ -34,3 +34,7 @@ export const hrRejectClockPunchErrorSchema = z.union([
 ]);
 
 export const hrRejectClockPunchBodySchema = clockPunchRejectSchema;
+
+export const hrRejectClockPunchPathSchema = z.object({
+  punch_id: z.uuid(),
+});

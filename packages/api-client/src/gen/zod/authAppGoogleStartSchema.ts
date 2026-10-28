@@ -42,3 +42,7 @@ export const authAppGoogleStartErrorSchema = z.union([
 ]);
 
 export const authAppGoogleStartBodySchema = googleStartSchema;
+
+export const authAppGoogleStartPathSchema = z.object({
+  app: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/),
+});

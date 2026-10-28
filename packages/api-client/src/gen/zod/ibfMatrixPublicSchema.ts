@@ -12,7 +12,7 @@ export const ibfMatrixPublicSchema = z
     likelihoods: z.array(ibfLevelPublicSchema),
     impacts: z.array(ibfLevelPublicSchema),
     cells: z.array(z.array(gmsColourSchema)),
-    meanings: z.record(z.string(), z.string()),
+    meanings: z.partialRecord(gmsColourSchema, z.string()),
     library_key: z.union([z.string(), z.null()]).optional(),
     library_version: z.union([z.int(), z.null()]).optional(),
   })

@@ -4,7 +4,7 @@
  */
 
 /**
- * @description Leave a channel out (null) to keep the person\'s current choice.
+ * @description Leave a channel out (null) to keep the person's current choice.
  * @type object
  */
 export type NotificationPreferenceUpdate = {

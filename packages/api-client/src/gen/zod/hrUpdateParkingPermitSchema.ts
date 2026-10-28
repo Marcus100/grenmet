@@ -34,3 +34,7 @@ export const hrUpdateParkingPermitErrorSchema = z.union([
 ]);
 
 export const hrUpdateParkingPermitBodySchema = parkingPermitCreateSchema;
+
+export const hrUpdateParkingPermitPathSchema = z.object({
+  permit_id: z.uuid(),
+});

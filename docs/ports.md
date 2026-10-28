@@ -97,9 +97,11 @@ Never reuse. They stay here as the record.
 | `3011` | Never used (the transition plan once pencilled in a GAA staff portal here) | Never assign |
 | `4000–4099` | The retired Hono API and weather-data proxy | Retired |
 
-In production only Traefik's entry points are published to the host; app ports stay
+In production only Traefik's entry points are published to the host (80 and 443
+publicly; the dashboard/ping entrypoint on `127.0.0.1:8080` only); app ports stay
 on the Docker network and Traefik routes by hostname using an explicit
-`loadbalancer.server.port` label.
+`loadbalancer.server.port` label. Postgres is the exception: it is published on
+the droplet's private IP (`${CORE_PRIVATE_IP}:5432`) for the private network.
 
 The static `apps/web/barrels` homepage has no assigned Next.js port. Port
 allocation does not indicate deployment status; see the
@@ -135,11 +137,13 @@ entry there or its image build fails.
 | gmsdash (GMS Dashboard) | `localhost:3013` | 3013 | `gmsdash.staging.barrels.gd` | `gmsdash.barrels.gd` | `/api/health` |
 | bookings (Barrels Bookings) | `localhost:3015` | 3015 | `bookings.staging.barrels.gd` | `bookings.barrels.gd` | `/api/health` |
 | FastAPI | `localhost:8000` | 8000 | `api.staging.barrels.gd` | `api.barrels.gd` | `/api/v1/utils/health-check/` |
-| Adminer (password) | `localhost:8080` | 8080 | `adminer.staging.barrels.gd` | `adminer.barrels.gd` | — |
-| Traefik dashboard (password) | `localhost:8090` | built in (`api@internal`) | `traefik.staging.barrels.gd` | `traefik.barrels.gd` | — |
+| Adminer (password) | `localhost:8080` | 8080 | `adminer.staging.barrels.gd` | `adminer.barrels.gd` (reserved; the Adminer service runs under the staging profile only and is never deployed to production) | — |
+| Traefik dashboard (password) | `localhost:8090` | built in (`api@internal`) | SSH tunnel to port 8080 on the droplet (loopback only) | SSH tunnel to port 8080 on the droplet (loopback only) | — |
 
-Internal only (no hostname): Postgres 5432, Redis 6379, the ARQ `worker`, the
-`nhc-worker`, `prestart` (migrations) and `cms-migrate`.
+Internal only (no hostname): Postgres 5432 (also on the private IP, above),
+Redis 6379, the ARQ `worker`, the `nhc-worker`, `prestart` (migrations),
+`cms-migrate` and `traefik-socket-proxy` (Docker API for Traefik, port 2375 on an
+internal network).
 
 Admin host move (owner decision 2026-10-21): `admin.<domain>` is the Barrels
 staff / superuser console (`apps/web/admin`, port 3012) and `gms.<domain>` is the

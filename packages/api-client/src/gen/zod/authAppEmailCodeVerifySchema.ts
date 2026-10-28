@@ -42,3 +42,7 @@ export const authAppEmailCodeVerifyErrorSchema = z.union([
 ]);
 
 export const authAppEmailCodeVerifyBodySchema = appEmailCodeVerifySchema;
+
+export const authAppEmailCodeVerifyPathSchema = z.object({
+  app: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/),
+});

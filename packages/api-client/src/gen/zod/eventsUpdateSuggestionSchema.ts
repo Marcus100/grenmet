@@ -37,3 +37,7 @@ export const eventsUpdateSuggestionErrorSchema = z.union([
 ]);
 
 export const eventsUpdateSuggestionBodySchema = suggestionUpdateSchema;
+
+export const eventsUpdateSuggestionPathSchema = z.object({
+  suggestion_id: z.uuid(),
+});

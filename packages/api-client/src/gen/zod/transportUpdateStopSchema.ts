@@ -46,3 +46,7 @@ export const transportUpdateStopErrorSchema = z.union([
 ]);
 
 export const transportUpdateStopBodySchema = transportStopInputSchema;
+
+export const transportUpdateStopPathSchema = z.object({
+  stop_id: z.int(),
+});

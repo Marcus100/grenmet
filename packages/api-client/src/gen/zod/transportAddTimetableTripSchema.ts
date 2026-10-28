@@ -44,3 +44,7 @@ export const transportAddTimetableTripErrorSchema = z.union([
 ]);
 
 export const transportAddTimetableTripBodySchema = timetableTripInputSchema;
+
+export const transportAddTimetableTripPathSchema = z.object({
+  version_id: z.int(),
+});

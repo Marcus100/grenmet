@@ -40,3 +40,7 @@ export const storesApproveRequisitionErrorSchema = z.union([
 ]);
 
 export const storesApproveRequisitionBodySchema = requisitionApproveSchema;
+
+export const storesApproveRequisitionPathSchema = z.object({
+  requisition_id: z.uuid(),
+});

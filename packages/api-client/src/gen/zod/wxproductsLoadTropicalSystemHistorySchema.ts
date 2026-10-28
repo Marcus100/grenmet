@@ -40,3 +40,7 @@ export const wxproductsLoadTropicalSystemHistoryErrorSchema = z.union([
   wxproductsLoadTropicalSystemHistoryStatus422Schema,
   wxproductsLoadTropicalSystemHistoryStatus503Schema,
 ]);
+
+export const wxproductsLoadTropicalSystemHistoryPathSchema = z.object({
+  system_id: z.uuid(),
+});

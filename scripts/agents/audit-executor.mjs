@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { verifyManaged } from "../verification/managed.mjs";
 import {
   command,
@@ -10,6 +11,23 @@ import {
 import { buildAuditSandboxArgs } from "./audit-sandbox.mjs";
 
 const TRUSTED_ROOT = resolve(import.meta.dirname, "../..");
+// Turbo launches the package manager again for each task. Host pnpm wrappers
+// are hidden and may depend on the host HOME, so supply an isolated wrapper.
+export function preparePnpmShim(
+  root,
+  home,
+  corepack = join(dirname(process.execPath), "corepack")
+) {
+  if (!realpathSync(home).startsWith(`${realpathSync(root)}/`))
+    throw new Error("Pnpm shim must remain in its own checkout");
+  const bin = mkdtempSync(join(home, "bin-"));
+  const quoted = "'" + corepack.replaceAll("'", "'\\''") + "'";
+  writeFileSync(join(bin, "pnpm"), `#!/bin/sh\nexec ${quoted} pnpm "$@"\n`, {
+    mode: 0o755,
+    flag: "wx",
+  });
+  return bin;
+}
 export function testExecutor(
   root,
   commonGitDir,
@@ -17,13 +35,18 @@ export function testExecutor(
   sandbox = buildAuditSandboxArgs
 ) {
   const home = privateDirectory(join(root, "node_modules/.cache/audit-home"));
+  const bin = preparePnpmShim(root, home);
   const isolated = async (argv, options) => {
     const unit = `grenmet-audit-check-${randomUUID().replaceAll("-", "")}`;
     const args = sandbox(argv, {
       root,
       home,
       cwd: options.cwd,
-      env: { ...options.env, HOME: home },
+      env: {
+        ...options.env,
+        HOME: home,
+        PATH: `${bin}:${options.env?.PATH ?? "/usr/bin:/bin"}`,
+      },
       commonGitDir,
       timeout: options.timeout,
     });
@@ -72,11 +95,16 @@ export function testExecutor(
                 )
               : args;
           const result =
-            cmd === "bash"
+            cmd === "bash" || cmd === "pnpm"
               ? await isolated([cmd, ...args], settings)
               : await run([cmd, ...trustedArgs], {
                   ...settings,
                   cwd: TRUSTED_ROOT,
+                  env: {
+                    ...env,
+                    HOME: homedir(),
+                    DOCKER_CONFIG: join(homedir(), ".docker"),
+                  },
                   timeout: 180_000,
                 });
           output.push(result.stdout);

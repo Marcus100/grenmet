@@ -53,3 +53,10 @@ export const wxproductsLoadProductsErrorSchema = z.union([
   wxproductsLoadProductsStatus422Schema,
   wxproductsLoadProductsStatus503Schema,
 ]);
+
+export const wxproductsLoadProductsQuerySchema = z.object({
+  kind: z.union([forecastSourcePropertiesKindEnumSchema, z.null()]).optional(),
+  issue_date: z.union([z.iso.date(), z.null()]).optional(),
+  limit: z.int().min(1).max(100).optional().default(100),
+  offset: z.int().min(0).max(100000).optional().default(0),
+});

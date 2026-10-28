@@ -71,3 +71,14 @@ export const wxwatchEditionsErrorSchema = z.union([
   wxwatchEditionsStatus422Schema,
   wxwatchEditionsStatus503Schema,
 ]);
+
+export const wxwatchEditionsQuerySchema = z.object({
+  family: z.union([nhcEditionPropertiesFamilyEnumSchema, z.null()]).optional(),
+  product: z.union([z.string().max(300), z.null()]).optional(),
+  storm: z.union([z.string().regex(/^al\d{6}$/), z.null()]).optional(),
+  start: z.union([z.iso.date(), z.null()]).optional(),
+  end: z.union([z.iso.date(), z.null()]).optional(),
+  latest: z.boolean().optional().default(true),
+  offset: z.int().min(0).max(100000).optional().default(0),
+  limit: z.int().min(1).max(100).optional().default(30),
+});

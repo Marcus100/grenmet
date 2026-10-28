@@ -28,3 +28,7 @@ export const notificationsGetNotificationSettingsErrorSchema = z.union([
   notificationsGetNotificationSettingsStatus403Schema,
   notificationsGetNotificationSettingsStatus422Schema,
 ]);
+
+export const notificationsGetNotificationSettingsQuerySchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+});

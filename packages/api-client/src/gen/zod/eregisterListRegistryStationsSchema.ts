@@ -32,3 +32,7 @@ export const eregisterListRegistryStationsErrorSchema = z.union([
   eregisterListRegistryStationsStatus403Schema,
   eregisterListRegistryStationsStatus422Schema,
 ]);
+
+export const eregisterListRegistryStationsQuerySchema = z.object({
+  include_inactive: z.boolean().optional().default(true),
+});

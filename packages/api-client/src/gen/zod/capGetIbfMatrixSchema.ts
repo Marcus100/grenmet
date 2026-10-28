@@ -31,3 +31,7 @@ export const capGetIbfMatrixErrorSchema = z.union([
   capGetIbfMatrixStatus403Schema,
   capGetIbfMatrixStatus422Schema,
 ]);
+
+export const capGetIbfMatrixQuerySchema = z.object({
+  kind: z.string().regex(/^[a-z][a-z0-9-]{1,39}$/),
+});

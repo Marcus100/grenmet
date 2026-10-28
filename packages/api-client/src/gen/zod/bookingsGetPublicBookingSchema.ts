@@ -30,3 +30,11 @@ export const bookingsGetPublicBookingErrorSchema = z.union([
   bookingsGetPublicBookingStatus404Schema,
   bookingsGetPublicBookingStatus422Schema,
 ]);
+
+export const bookingsGetPublicBookingPathSchema = z.object({
+  token: z
+    .string()
+    .min(16)
+    .max(100)
+    .describe("The manage token returned when the booking was made."),
+});

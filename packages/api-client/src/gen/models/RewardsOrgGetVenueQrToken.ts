@@ -23,7 +23,7 @@ export type RewardsOrgGetVenueQrTokenHeaders = {
 };
 
 /**
- * @description The current code for the venue\'s display screen; refetch before it expires.
+ * @description The current code for the venue's display screen; refetch before it expires.
  * @type object
  */
 export type RewardsOrgGetVenueQrTokenStatus200 = RewardsQrTokenPublic;

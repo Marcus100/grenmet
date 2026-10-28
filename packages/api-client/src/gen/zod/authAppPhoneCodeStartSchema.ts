@@ -42,3 +42,7 @@ export const authAppPhoneCodeStartErrorSchema = z.union([
 ]);
 
 export const authAppPhoneCodeStartBodySchema = appPhoneCodeStartSchema;
+
+export const authAppPhoneCodeStartPathSchema = z.object({
+  app: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/),
+});

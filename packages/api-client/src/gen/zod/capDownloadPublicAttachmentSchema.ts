@@ -28,3 +28,8 @@ export const capDownloadPublicAttachmentErrorSchema = z.union([
   capDownloadPublicAttachmentStatus404Schema,
   capDownloadPublicAttachmentStatus422Schema,
 ]);
+
+export const capDownloadPublicAttachmentPathSchema = z.object({
+  identifier: z.string(),
+  kind: capDownloadPublicAttachmentParametersSchemaEnumSchema,
+});

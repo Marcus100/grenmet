@@ -44,3 +44,7 @@ export const janitorialUpdateBuildingErrorSchema = z.union([
 ]);
 
 export const janitorialUpdateBuildingBodySchema = buildingUpdateSchema;
+
+export const janitorialUpdateBuildingPathSchema = z.object({
+  building_id: z.int(),
+});

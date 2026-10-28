@@ -43,3 +43,9 @@ export const janitorialGetShiftBoardErrorSchema = z.union([
   janitorialGetShiftBoardStatus422Schema,
   janitorialGetShiftBoardStatus503Schema,
 ]);
+
+export const janitorialGetShiftBoardQuerySchema = z.object({
+  site: z.string().regex(/^[A-Za-z]{3}$/),
+  from: z.iso.date(),
+  to: z.iso.date(),
+});

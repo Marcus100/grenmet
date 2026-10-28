@@ -42,3 +42,12 @@ export const organisationsCreateApiKeyErrorSchema = z.union([
 ]);
 
 export const organisationsCreateApiKeyBodySchema = apiKeyCreateSchema;
+
+export const organisationsCreateApiKeyHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

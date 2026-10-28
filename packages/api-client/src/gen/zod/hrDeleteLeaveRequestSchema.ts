@@ -30,3 +30,7 @@ export const hrDeleteLeaveRequestErrorSchema = z.union([
   hrDeleteLeaveRequestStatus404Schema,
   hrDeleteLeaveRequestStatus422Schema,
 ]);
+
+export const hrDeleteLeaveRequestPathSchema = z.object({
+  leave_request_id: z.uuid(),
+});

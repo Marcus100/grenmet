@@ -48,3 +48,16 @@ export const rewardsOrgAddTrailStopErrorSchema = z.union([
 ]);
 
 export const rewardsOrgAddTrailStopBodySchema = rewardsTrailStopCreateSchema;
+
+export const rewardsOrgAddTrailStopPathSchema = z.object({
+  trail_id: z.uuid(),
+});
+
+export const rewardsOrgAddTrailStopHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

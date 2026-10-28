@@ -45,3 +45,21 @@ export const notificationsGetNotificationsErrorSchema = z.union([
   notificationsGetNotificationsStatus401Schema,
   notificationsGetNotificationsStatus422Schema,
 ]);
+
+export const notificationsGetNotificationsQuerySchema = z.object({
+  unread: z.boolean().optional().default(false),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

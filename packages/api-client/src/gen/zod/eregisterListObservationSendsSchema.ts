@@ -29,3 +29,7 @@ export const eregisterListObservationSendsErrorSchema = z.union([
   eregisterListObservationSendsStatus403Schema,
   eregisterListObservationSendsStatus422Schema,
 ]);
+
+export const eregisterListObservationSendsPathSchema = z.object({
+  observation_id: z.uuid(),
+});

@@ -42,3 +42,8 @@ export const transportReplaceTimetableTripErrorSchema = z.union([
 ]);
 
 export const transportReplaceTimetableTripBodySchema = timetableTripInputSchema;
+
+export const transportReplaceTimetableTripPathSchema = z.object({
+  version_id: z.int(),
+  trip_id: z.int(),
+});
