@@ -45,7 +45,7 @@ async def _active_assignments(
     # decision 2026-10-28, #789). No employment record at all (organisation
     # administrators, platform staff) keeps the assignment; an ended record, or a
     # deactivated account, drops it. Every scope is gated, SELF included (SELF
-    # approver roles are common); only the baseline self-service staff role stays.
+    # approver roles are common); only the SELF-scope baseline staff role stays.
     live_holder = (
         ~exists(
             select(EmploymentRecord.id).where(

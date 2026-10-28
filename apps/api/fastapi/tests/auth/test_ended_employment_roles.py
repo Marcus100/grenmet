@@ -1,4 +1,4 @@
-"""#789: ending employment ends every non-SELF role in that organisation."""
+"""#789: ending employment ends every role in that organisation, except the SELF-scope staff role."""
 
 import pytest
 from sqlalchemy import select
@@ -10,7 +10,7 @@ from src.auth.models import Role, RoleAssignmentScope, UserRoleAssignment
 from src.auth.policy import STAFF_ROLE, _active_assignments
 from src.exceptions import AppException
 from src.hr import service
-from src.hr.models import EmploymentRecord, EmploymentStatus
+from src.hr.models import EmploymentRecord, EmploymentStatus, Organisation
 from src.hr.schemas import EmploymentUpdate
 from tests.factories import (
     assign_role,
@@ -186,3 +186,63 @@ async def test_old_plain_role_link_ends_with_employment(
     record.status = EmploymentStatus.TERMINATED
     await db_async.commit()
     assert role.id not in {r.id for r in await effective_roles(db_async, user)}
+
+
+async def _staff_role(db: AsyncSession) -> Role:
+    role = await db.scalar(select(Role).where(Role.name == STAFF_ROLE))
+    if role is None:
+        role, _ = await make_role_with_permission(
+            db, "leave.request.create", role_name=STAFF_ROLE
+        )
+    return role
+
+
+async def test_department_scope_staff_role_is_not_exempt(
+    db_async: AsyncSession,
+) -> None:
+    department = await make_department(db_async, "ended_roles_dept6")
+    user = await make_user(db_async)
+    record = await make_employee(db_async, user=user, department_id=department.id)
+    grant = await assign_role(
+        db_async,
+        user=user,
+        role=await _staff_role(db_async),
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=department.id,
+    )
+    record.status = EmploymentStatus.TERMINATED
+    await db_async.commit()
+    assert grant.id not in await _live_ids(db_async, user.id)
+
+
+async def test_holder_with_no_employment_record_keeps_self_role(
+    db_async: AsyncSession,
+) -> None:
+    user = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, "timesheet.approve")
+    own = await assign_role(db_async, user=user, role=role)
+    assert own.id in await _live_ids(db_async, user.id)
+
+
+async def test_ending_in_one_organisation_leaves_another_organisation_alone(
+    db_async: AsyncSession,
+) -> None:
+    department = await make_department(db_async, "ended_roles_dept7")
+    other = await db_async.get(Organisation, "ended_roles_org")
+    if other is None:
+        db_async.add(
+            Organisation(id="ended_roles_org", code="ENDEDROLES", name="Other employer")
+        )
+        await db_async.commit()
+    user = await make_user(db_async)
+    record = await make_employee(db_async, user=user, department_id=department.id)
+    role, _ = await make_role_with_permission(db_async, "timesheet.approve")
+    here = await assign_role(db_async, user=user, role=role)
+    elsewhere = await assign_role(
+        db_async, user=user, role=role, organisation_id="ended_roles_org"
+    )
+    record.status = EmploymentStatus.TERMINATED
+    await db_async.commit()
+    live = await _live_ids(db_async, user.id)
+    assert here.id not in live
+    assert elsewhere.id in live
