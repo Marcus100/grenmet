@@ -12,6 +12,7 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { useId, useState } from "react";
+import { NOTE_KINDS, type TabNotes } from "@/components/home/tab-notes";
 import type { MediaEmbed } from "@/lib/media-embed";
 import { cn } from "@/lib/utils";
 
@@ -30,17 +31,6 @@ const EMPTY_NOTICE =
   "rounded-gm-card border border-gm-border bg-gm-navy px-4 py-3 text-body-sm leading-body-sm";
 
 type TabKey = "satellite" | "radar" | "wind" | "seas" | "audio" | "video";
-
-/** The imagery tabs, each of which can carry a forecaster's note. */
-export const NOTE_KINDS = ["satellite", "radar", "wind", "seas"] as const;
-
-/** A forecaster's note for one imagery tab, already formatted on the server. */
-export interface TabNote {
-  posted: string | null;
-  text: string;
-  title: string;
-}
-export type TabNotes = Partial<Record<(typeof NOTE_KINDS)[number], TabNote>>;
 
 interface TabDef {
   href: string;
