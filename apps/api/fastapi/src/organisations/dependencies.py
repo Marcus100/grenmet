@@ -195,6 +195,34 @@ async def get_org_context(
         yield context
 
 
+TEAM_SESSION_APP = "events"
+
+
+async def get_events_org_context(
+    session: SessionDep,
+    token: TokenDep,
+    organisation: Annotated[
+        str | None,
+        Header(
+            alias=ORGANISATION_HEADER,
+            description=(
+                "Id of the organisation the request acts for. The caller must be "
+                "an active member, signed in with an account or the Events app."
+            ),
+        ),
+    ] = None,
+) -> AsyncGenerator[OrgContext]:
+    """``get_org_context`` for the team routes: also accepts an Events app token.
+
+    Only the ``events`` app is admitted (``resolve_org_caller``); every other app's
+    token stays 401. Used by the team-management routes only (ADR-0016, ADR-0044)."""
+    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+    user, _ = await resolve_org_caller(session, credentials, TEAM_SESSION_APP)
+    context = await resolve_org_context(session, user, organisation)
+    with bound_organisation(context.organisation.id):
+        yield context
+
+
 def require_org_role(
     minimum: MembershipRole,
 ) -> Callable[..., Awaitable[OrgContext]]:
@@ -202,6 +230,20 @@ def require_org_role(
 
     async def dependency(
         context: Annotated[OrgContext, Depends(get_org_context)],
+    ) -> OrgContext:
+        context.require_role(minimum)
+        return context
+
+    return dependency
+
+
+def require_events_org_role(
+    minimum: MembershipRole,
+) -> Callable[..., Awaitable[OrgContext]]:
+    """``require_org_role`` over ``get_events_org_context`` (team routes only)."""
+
+    async def dependency(
+        context: Annotated[OrgContext, Depends(get_events_org_context)],
     ) -> OrgContext:
         context.require_role(minimum)
         return context
@@ -496,16 +538,9 @@ def _team_manage_keys() -> frozenset[str]:
     return frozenset(k for k in grants.product_keys() if k.endswith(".team.manage"))
 
 
-async def get_org_team_manager(
-    session: SessionDep, context: Annotated[OrgContext, Depends(get_org_context)]
+async def _require_team_manager(
+    session: AsyncSession, context: OrgContext
 ) -> OrgContext:
-    """Organisation member who holds some entitled product's ``team.manage`` key
-    (owner and admin implicitly; a member through a granted bundle) - ADR-0044, S3.
-
-    The key is per product, so the route family cannot name one: this gates entry,
-    and ``grants.grant_role`` / ``revoke_grant`` then require the specific product's
-    ``team.manage`` for the bundle being changed. Entitlement is part of
-    ``effective_keys``. No superuser bypass."""
     held = await grants.effective_keys(session, membership=context.membership)
     if not held & _team_manage_keys():
         logger.warning(
@@ -520,7 +555,35 @@ async def get_org_team_manager(
     return context
 
 
+async def get_events_org_team_manager(
+    session: SessionDep,
+    context: Annotated[OrgContext, Depends(get_events_org_context)],
+) -> OrgContext:
+    """``get_org_team_manager`` that also accepts an Events app token."""
+    return await _require_team_manager(session, context)
+
+
+async def get_org_team_manager(
+    session: SessionDep, context: Annotated[OrgContext, Depends(get_org_context)]
+) -> OrgContext:
+    """Organisation member who holds some entitled product's ``team.manage`` key
+    (owner and admin implicitly; a member through a granted bundle) - ADR-0044, S3.
+
+    The key is per product, so the route family cannot name one: this gates entry,
+    and ``grants.grant_role`` / ``revoke_grant`` then require the specific product's
+    ``team.manage`` for the bundle being changed. Entitlement is part of
+    ``effective_keys``. No superuser bypass."""
+    return await _require_team_manager(session, context)
+
+
 OrgMember = Annotated[OrgContext, Depends(get_org_context)]
 OrgTeamManager = Annotated[OrgContext, Depends(get_org_team_manager)]
 OrgAdmin = Annotated[OrgContext, Depends(require_org_role(MembershipRole.ADMIN))]
 OrgOwner = Annotated[OrgContext, Depends(require_org_role(MembershipRole.OWNER))]
+
+# Team routes only: account token or Events app token (ADR-0016 amendment).
+EventsOrgMember = Annotated[OrgContext, Depends(get_events_org_context)]
+EventsOrgTeamManager = Annotated[OrgContext, Depends(get_events_org_team_manager)]
+EventsOrgAdmin = Annotated[
+    OrgContext, Depends(require_events_org_role(MembershipRole.ADMIN))
+]

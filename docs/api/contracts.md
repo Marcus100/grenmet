@@ -716,6 +716,8 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   name, org role and live grants limited to the products the caller manages, no
   emails. `GET /team/me` (any member) returns the caller's org role, the products
   whose `team.manage` they hold and `is_admin_or_owner`.
+  These team routes, and member removal (`DELETE /{organisation_id}/members/{id}`), also
+  accept an Events app token (`EventsOrg*` dependencies); any other app's token is 401.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
   which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`

@@ -20379,10 +20379,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -20449,10 +20449,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -20543,10 +20543,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -20618,10 +20618,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -20695,10 +20695,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "requestBody": {
@@ -20786,10 +20786,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -20865,10 +20865,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -22586,10 +22586,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
