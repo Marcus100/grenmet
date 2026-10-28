@@ -74,6 +74,10 @@ import {
   down as down_20261028_220706_related_links_paste,
   up as up_20261028_220706_related_links_paste,
 } from "./20261028_220706_related_links_paste";
+import {
+  down as down_20261028_223907_social_image,
+  up as up_20261028_223907_social_image,
+} from "./20261028_223907_social_image";
 
 export const migrations = [
   {
@@ -170,5 +174,10 @@ export const migrations = [
     up: up_20261028_220706_related_links_paste,
     down: down_20261028_220706_related_links_paste,
     name: "20261028_220706_related_links_paste",
+  },
+  {
+    up: up_20261028_223907_social_image,
+    down: down_20261028_223907_social_image,
+    name: "20261028_223907_social_image",
   },
 ];

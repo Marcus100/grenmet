@@ -88,3 +88,29 @@ describe("post form order", () => {
     }
   });
 });
+
+describe("social sharing", () => {
+  it("has a download panel, a custom image and the captions", () => {
+    const social = (
+      DeskUpdates.fields as {
+        name?: string;
+        fields?: { name?: string; type?: string }[];
+      }[]
+    ).find((field) => field.name === "social");
+    const names = social?.fields?.map((field) => field.name);
+    expect(names).toEqual(
+      expect.arrayContaining([
+        "attachments",
+        "image",
+        "caption",
+        "facebookText",
+      ])
+    );
+    expect(social?.fields?.find((f) => f.name === "attachments")?.type).toBe(
+      "ui"
+    );
+    expect(social?.fields?.find((f) => f.name === "image")?.type).toBe(
+      "upload"
+    );
+  });
+});

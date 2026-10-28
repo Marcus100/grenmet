@@ -291,9 +291,13 @@ export interface DeskUpdate {
       }[]
     | null;
   /**
-   * Prepare platform-specific copy. Automatic delivery can be added later.
+   * Download the main link's images, then prepare platform-specific copy. Automatic delivery can be added later.
    */
   social?: {
+    /**
+     * Optional. Replaces the warning's social image when the post is shared.
+     */
+    image?: (number | null) | Media;
     caption?: string | null;
     enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
     /**
@@ -321,6 +325,34 @@ export interface DeskUpdate {
   author: number | User;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * Images and documents for GMS website content.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  /**
+   * Alt text shown to screen readers.
+   */
+  alt: string;
+  /**
+   * Who made or supplied it, e.g. "GMS / J. Pryce" or "NOAA".
+   */
+  credit?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * Latest reports: explain an issued report in plain language. Paste the issued report under Related links and tick Main link; its figures come from the forecast system. Only reports with a published write-up appear on the homepage.
@@ -394,9 +426,13 @@ export interface ReportNote {
     image?: (number | null) | Media;
   };
   /**
-   * Prepare platform-specific copy. Automatic delivery can be added later.
+   * Download the main link's images, then prepare platform-specific copy. Automatic delivery can be added later.
    */
   social?: {
+    /**
+     * Optional. Replaces the warning's social image when the post is shared.
+     */
+    image?: (number | null) | Media;
     caption?: string | null;
     enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
     /**
@@ -424,34 +460,6 @@ export interface ReportNote {
   author: number | User;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * Images and documents for GMS website content.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  /**
-   * Alt text shown to screen readers.
-   */
-  alt: string;
-  /**
-   * Who made or supplied it, e.g. "GMS / J. Pryce" or "NOAA".
-   */
-  credit?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
 }
 /**
  * Stories from our atmosphere and ocean: features that explain the weather, the sea and the climate around us.
@@ -537,9 +545,13 @@ export interface Story {
     image?: (number | null) | Media;
   };
   /**
-   * Prepare platform-specific copy. Automatic delivery can be added later.
+   * Download the main link's images, then prepare platform-specific copy. Automatic delivery can be added later.
    */
   social?: {
+    /**
+     * Optional. Replaces the warning's social image when the post is shared.
+     */
+    image?: (number | null) | Media;
     caption?: string | null;
     enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
     /**
@@ -904,6 +916,7 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
   social?:
     | T
     | {
+        image?: T;
         caption?: T;
         enabledPlatforms?: T;
         publishAt?: T;
@@ -950,6 +963,7 @@ export interface ReportNotesSelect<T extends boolean = true> {
   social?:
     | T
     | {
+        image?: T;
         caption?: T;
         enabledPlatforms?: T;
         publishAt?: T;
@@ -999,6 +1013,7 @@ export interface StoriesSelect<T extends boolean = true> {
   social?:
     | T
     | {
+        image?: T;
         caption?: T;
         enabledPlatforms?: T;
         publishAt?: T;
