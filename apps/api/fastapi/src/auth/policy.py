@@ -1,11 +1,10 @@
 import logging
 import uuid
 
-from sqlalchemy import exists, func, select
+from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import (
-    Permission,
     Role,
     RoleAssignmentScope,
     User,
@@ -17,19 +16,10 @@ from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
 
-ERROR_PERMISSION_DENIED = "Insufficient permission for this operation"
+# Baseline self-service role (leave, timesheets, own records); survives ended employment.
+STAFF_ROLE = "staff"
 
-# Keys that let a holder decide other people's requests. A role carrying one of
-# them only counts while its holder is still employed (#748): ending employment
-# revokes no role assignment and leaves reports' supervisor_id in place.
-REVIEW_AUTHORITY_KEYS = frozenset(
-    {
-        "timesheet.approve",
-        "leave.request.action",
-        "shift_swap.request.action",
-        "stores.approve",
-    }
-)
+ERROR_PERMISSION_DENIED = "Insufficient permission for this operation"
 
 
 async def _active_assignments(
@@ -51,9 +41,12 @@ async def _active_assignments(
             ),
         )
     )
-    # No employment record at all (organisation administrators, platform staff)
-    # keeps the assignment; an ended record, or a deactivated account, drops it.
-    live_review_holder = (
+    # Ending employment ends every role scoped to that organisation (owner
+    # decision 2026-10-28, #789). No employment record at all (organisation
+    # administrators, platform staff) keeps the assignment; an ended record, or a
+    # deactivated account, drops it. Every scope is gated, SELF included (SELF
+    # approver roles are common); only the SELF-scope baseline staff role stays.
+    live_holder = (
         ~exists(
             select(EmploymentRecord.id).where(
                 EmploymentRecord.user_id == UserRoleAssignment.user_id,
@@ -68,15 +61,16 @@ async def _active_assignments(
             )
         )
     ) & UserRoleAssignment.user_id.in_(select(User.id).where(User.is_active.is_(True)))
-    review_roles = (
-        select(Role.id)
-        .join(Role.permissions)
-        .where(func.lower(Permission.key).in_(REVIEW_AUTHORITY_KEYS))
-    )
     result = await session.execute(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user_id,
-            ~UserRoleAssignment.role_id.in_(review_roles) | live_review_holder,
+            (
+                UserRoleAssignment.role_id.in_(
+                    select(Role.id).where(Role.name == STAFF_ROLE)
+                )
+                & (UserRoleAssignment.scope == RoleAssignmentScope.SELF)
+            )
+            | live_holder,
             UserRoleAssignment.effective_from <= now,
             UserRoleAssignment.effective_to.is_(None)
             | (UserRoleAssignment.effective_to > now),
