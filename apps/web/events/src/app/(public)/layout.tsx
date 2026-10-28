@@ -12,7 +12,7 @@ export default async function PublicLayout({
   const viewer = await getViewer();
 
   return (
-    <PostHogProvider app="events">
+    <PostHogProvider app="events" privacyHref="/privacy">
       <SiteHeader viewer={viewer} />
       <main className="mx-auto max-w-6xl px-4 pt-6 pb-10 max-md:standalone:pb-24 sm:px-6">
         {children}

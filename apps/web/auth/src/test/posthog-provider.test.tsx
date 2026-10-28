@@ -48,6 +48,8 @@ vi.mock("@barrelsgd/ui/lib/analytics-policy", async (importOriginal) => ({
   >()),
   configForOrigin: () => (state.configured ? config : null),
 }));
+const ANALYTICS_BOX = /Analytics cookies/;
+const ESSENTIAL_BOX = /Essential cookies/;
 const config = {
   app: "elections",
   environment: "development",
@@ -176,13 +178,17 @@ it("does not load or persist optional identifiers before consent; decline stays 
   expect(posthog.init).not.toHaveBeenCalled();
   expect(document.querySelector("script")).toBeNull();
   expect(localStorage.length).toBe(0);
-  fireEvent.click(await screen.findByRole("button", { name: "Deny" }));
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Essential cookies only" })
+  );
   expect(readConsent()).toBe("declined");
   expect(posthog.init).not.toHaveBeenCalled();
 });
 it("accepts once, deduplicates strict effects, and stops capture on withdrawal", async () => {
   const view = show();
-  fireEvent.click(await screen.findByRole("button", { name: "Accept" }));
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Accept cookies" })
+  );
   await waitFor(() => expect(posthog.init).toHaveBeenCalledTimes(1));
   await waitFor(() => expect(posthog.capture).toHaveBeenCalledTimes(1));
   await startAnalytics(config);
@@ -199,7 +205,13 @@ it("accepts once, deduplicates strict effects, and stops capture on withdrawal",
   // biome-ignore lint/suspicious/noDocumentCookie: test browser cookie cleanup.
   document.cookie = "_ga=identifier";
   fireEvent.click(screen.getByRole("button", { name: "Privacy settings" }));
-  fireEvent.click(screen.getByRole("button", { name: "Deny" }));
+  // Reopening shows the settings with analytics ticked; untick and confirm.
+  const analytics = screen.getByRole("checkbox", { name: ANALYTICS_BOX });
+  expect(analytics).toBeChecked();
+  fireEvent.click(analytics);
+  fireEvent.click(
+    screen.getByRole("button", { name: "Confirm cookie settings" })
+  );
   captureEvent("csv_download_clicked", {});
   expect(posthog.capture).toHaveBeenCalledTimes(2);
   expect(localStorage.getItem("ph_test")).toBeNull();
@@ -274,7 +286,9 @@ it("asks once in a popup, then leaves a small button to change the choice", asyn
     name: "Cookie preferences",
   });
   expect(dialog.className).toContain("fixed");
-  fireEvent.click(screen.getByRole("button", { name: "Deny" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Essential cookies only" })
+  );
   expect(screen.queryByRole("dialog")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Privacy settings" }));
   expect(
@@ -312,9 +326,11 @@ it("opens on a first visit with browser opt-out while keeping analytics disabled
     name: "Cookie preferences",
   });
   expect(dialog.parentElement).toBe(document.body);
-  expect(screen.getByRole("button", { name: "Accept" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Accept cookies" })).toBeDisabled();
   expect(posthog.init).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole("button", { name: "Deny" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Essential cookies only" })
+  );
   expect(screen.queryByRole("dialog")).toBeNull();
   fireEvent(window, new Event("focus"));
   expect(screen.queryByRole("dialog")).toBeNull();
@@ -332,6 +348,50 @@ it("portals the first-visit popup outside transformed mobile layouts", async () 
     name: "Cookie preferences",
   });
   expect(dialog.parentElement).toBe(document.body);
-  expect(screen.getByText("Read more").closest("details")?.open).toBe(false);
-  expect(screen.getByText("We use cookies.")).toBeVisible();
+  expect(
+    screen.getByRole("heading", { name: "Do you accept our cookie policy?" })
+  ).toBeVisible();
+});
+
+it("customises: essential always on, analytics off until ticked, privacy link when given", async () => {
+  render(
+    <PostHogProvider app="elections" privacyHref="/privacy">
+      <p>Content</p>
+    </PostHogProvider>
+  );
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Customise settings" })
+  );
+  expect(
+    screen.getByRole("heading", { name: "Customise your cookie settings" })
+  ).toBeVisible();
+  expect(screen.getByRole("link", { name: "privacy policy" })).toHaveAttribute(
+    "href",
+    "/privacy"
+  );
+  const essential = screen.getByRole("checkbox", { name: ESSENTIAL_BOX });
+  expect(essential).toBeChecked();
+  expect(essential).toBeDisabled();
+  const analytics = screen.getByRole("checkbox", { name: ANALYTICS_BOX });
+  expect(analytics).not.toBeChecked();
+  // Confirming without ticking analytics declines it.
+  fireEvent.click(
+    screen.getByRole("button", { name: "Confirm cookie settings" })
+  );
+  expect(readConsent()).toBe("declined");
+  expect(posthog.init).not.toHaveBeenCalled();
+  cleanup();
+  localStorage.clear();
+
+  show();
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Customise settings" })
+  );
+  expect(screen.queryByRole("link", { name: "privacy policy" })).toBeNull();
+  fireEvent.click(screen.getByRole("checkbox", { name: ANALYTICS_BOX }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Confirm cookie settings" })
+  );
+  expect(readConsent()).toBe("accepted");
+  await waitFor(() => expect(posthog.init).toHaveBeenCalledTimes(1));
 });
