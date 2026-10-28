@@ -136,7 +136,14 @@ export function GrantRoleDialog({
   return (
     <Dialog onOpenChange={changeOpen} open={open}>
       <DialogTrigger
-        render={<Button className="min-h-11" type="button" variant="outline" />}
+        render={
+          <Button
+            aria-label={`Give a role to ${memberName}`}
+            className="min-h-11"
+            type="button"
+            variant="outline"
+          />
+        }
       >
         Give role
       </DialogTrigger>
@@ -217,6 +224,7 @@ export function GrantRoleDialog({
                 Ends on (optional)
               </FieldLabel>
               <Input
+                aria-describedby={`${ids}-expires-help`}
                 className="min-h-11"
                 id={`${ids}-expires`}
                 min={today}
@@ -227,7 +235,10 @@ export function GrantRoleDialog({
                 type="date"
                 value={expiresOn}
               />
-              <p className="text-caption text-muted-foreground">
+              <p
+                className="text-caption text-muted-foreground"
+                id={`${ids}-expires-help`}
+              >
                 The role ends at 23:59 UTC on this day (7:59 pm in Grenada).
                 Leave empty for no end date.
               </p>
