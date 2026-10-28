@@ -3,7 +3,7 @@
 `goes19_gfs_grenada.ipynb` shows what GeoNetCast Americas (GNC-A) satellite data can do for forecasters in Grenada:
 
 - latest GOES-19 ABI band 13 (infrared) and band 8 (water vapour), cropped to lon -66..-56, lat 9..18, with the scan time in UTC
-- GFS 0.25 degree mean sea level pressure, 850 hPa wind barbs and pressure and wind at 0, 24 and 48 hours, and accumulated rain at 24 and 48 hours (there is no accumulation at 0 hours)
+- GFS 0.25 degree mean sea level pressure and 850 hPa wind barbs at 0, 24 and 48 hours, and accumulated rain at 24 and 48 hours (no accumulation exists at 0 hours)
 
 These are research outputs, not operational products.
 
