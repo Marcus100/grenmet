@@ -9,10 +9,12 @@ These are research outputs, not operational products.
 
 ## Run
 
-From the repository root:
+From the repository root, using the notebooks' own environment (a plain
+`uv run --package notebooks` would install these packages into the shared root
+`.venv` the API uses):
 
 ```bash
-uv run --frozen --package notebooks jupyter lab
+UV_PROJECT_ENVIRONMENT=notebooks/.venv uv run --frozen --package notebooks jupyter lab
 ```
 
 Open `notebooks/satellite/goes19_gfs_grenada.ipynb` and run all cells. Network access is needed. The notebook must run with `notebooks/satellite` as its working directory so downloads land in `notebooks/satellite/data/`: Jupyter does this by default; for `nbconvert`, `cd notebooks/satellite` first.
