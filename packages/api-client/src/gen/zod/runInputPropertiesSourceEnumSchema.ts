@@ -11,4 +11,5 @@ export const runInputPropertiesSourceEnumSchema = z.enum([
   "cimss",
   "trackthetropics",
   "uwyo",
+  "gnca",
 ]);
