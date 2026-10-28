@@ -2,7 +2,7 @@
 
 **Status:** Working plan (planning only; each slice starts after its blocking decisions)  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-28
+**Last updated:** 2026-10-27
 
 The owner said on 2026-10-27 that GMS/GAA operational work is mostly
 finished. Five things restart or start now, in parallel with Events and
@@ -22,6 +22,10 @@ decisions that block each start. It follows the
 **Hosting rule** (ADR-0036 and its 2026-10-27 amendment): anything with
 sign-in, credentialed API calls or stored data runs on the DigitalOcean
 droplets. Plain static public sites go to Cloudflare Pages.
+
+**Order of merging:** this plan refers to `apps/web/commit` and to the
+Cloudflare Pages amendment of ADR-0036. Both arrive in the Commit app pull
+request (branch `feat/commit-app`), which should merge into `dev` first.
 
 ## 1. mbia: public airport site (`apps/web/mbia`, port 3005)
 
@@ -87,17 +91,22 @@ these would move it to the droplets).
   approval.
 
 **First slice (read-only)**
-- `GET /janitorial/me/shift-assignments`, scoped to the signed-in caller.
+- `GET /janitorial/me/shift-assignments`, scoped to the signed-in caller (the
+  existing `/janitorial/shift-assignments` is the supervisor list and stays as
+  it is).
 - Regenerate OpenAPI and the client.
 - New app `apps/web/janitor`: a "Today" screen, a manifest, and a hand-written
-  service worker caching only the last loaded day, like `apps/web/gms/public/sw.js`.
+  service worker caching only the last loaded day. `apps/web/gms/public/sw.js`
+  is only a precedent for writing a worker by hand without a library: it
+  handles push notifications and has no caching, so the offline logic is new.
 
 **Hosting:** droplets.
 
 **Open questions**
 1. Host. *Default:* `janitor.barrels.gd`.
-2. How contractor cleaners get access (`app.janitor.access`). This widens
-   access, so it needs approval. *Default:* granted automatically with
+2. How contractor cleaners get access: a new permission `app.janitor.access`
+   that does not exist yet in `src/auth/permissions.py`. This widens access, so
+   it needs approval. *Default:* granted automatically with
    janitorial staff membership.
 3. No-phone fallback. *Default:* the supervisor records work for them.
 4. Approve the phase-3 visits migration after the pilot.
@@ -211,7 +220,7 @@ sign-in) on the existing `rewards` APIs, not a separate app.
 **Then widen in this order**
 1. Janitor visits (phase 3).
 2. Bus check-in.
-3. mbia corporate content moves to gaa.gd.
+3. mbia corporate, development and news content moves to gaa.gd (whole sections, with redirects).
 4. Flyer pilot.
 5. Parking product decision.
 
