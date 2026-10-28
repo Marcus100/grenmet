@@ -100,6 +100,7 @@ GMS or GAA.
 | `scripts/perf` | Barrels engineering HTTP performance measurement | Active | Compare first and repeated requests, reject failed responses, and keep credentials out of saved results |
 | `scripts/production` | Barrels engineering database provisioning | Active | Apply reviewed migrations and repeatable baseline seeds without overwriting recorded operational data |
 | `scripts/sutron-collector` | GMS observation operations delivered by Barrels | Active development | Prove hardware collection, durable spool, SURFACE export, monitoring, and recovery |
+| `scripts/gnc-collector` | GMS satellite imagery from the GeoNetCast receiver, delivered by Barrels | Active development | Survey the receiver, deploy the timer, and prove freshness, storage and failure alerting before operational acceptance |
 | `scripts/scrapy-wxwatch` | GMS forecast-support operations delivered by Barrels | Active | Deploy bounded schedules with freshness, storage, database, and alert ownership |
 | `scripts/wis2-setup` | GMS/WIS2 integration artifacts | Active pilot | Complete local soak and separately approved global publication gates |
 | `scripts/wxregister` | GMS data migration/extraction utility | Reference utility | Retain until migration need is resolved; promote or retire explicitly |
@@ -197,7 +198,7 @@ documented data boundaries.
 
 | Repository surface | Classification | Lifecycle | Promotion rule |
 | --- | --- | --- | --- |
-| `geonetcast` | GMS training and satellite/NWP reference material | Reference | Adopt a script into operations only with an owner, supported runtime, tests, monitoring, and data rights |
+| `geonetcast` | GMS training and satellite/NWP reference material | Reference | Adopt a script into operations only with an owner, supported runtime, tests, monitoring, and data rights; `scripts/gnc-collector` is the operational path for receiver imagery |
 | `notebooks` | Data exploration | Research | Results are non-operational until converted to a reviewed package, service, or procedure |
 | `docs/internal/reports` | Source reports and evidence | Reference | Preserve provenance; derived commitments live in an approved plan |
 | `docs/agent-configuration-guide.md` | Agent-workspace design tutorial | Reference | Keep aligned with the configuration it teaches, or retire it when the tooling moves on |
