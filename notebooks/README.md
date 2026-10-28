@@ -27,9 +27,12 @@ JupyterLab also works:
 1. `models/<model>/download.ipynb`: fetches the latest run into
    `models/<model>/data/YYYY-MM-DD_HHZ/` (git-ignored, often hundreds of MB).
 2. `models/<model>/analysis.ipynb`: set `RUN_DIR` to that folder; prints the
-   TGPY nearest-point tables and writes `canonical_sfc.csv`.
-3. `models/ensemble/compare.ipynb`: reads every model's `canonical_sfc.csv`
-   and draws the side-by-side heatmap.
+   TGPY nearest-point tables and writes `canonical_sfc.csv`. The exception is
+   `ecmwf_ens`: it is probability-only, picks the latest run by itself and
+   writes no `canonical_sfc.csv`.
+3. `models/ensemble/compare.ipynb`: reads `canonical_sfc.csv` from IFS, AIFS,
+   GFS, GEFS and AIFS-ENS (not `ecmwf_ens`) and draws the side-by-side
+   heatmap, saved as `models/ensemble/heatmap.png` (git-ignored).
 
 | Folder | Model | Source |
 | --- | --- | --- |

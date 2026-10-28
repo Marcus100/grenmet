@@ -14,3 +14,4 @@ wheels/
 
 models/*/data/
 satellite/data/
+models/ensemble/heatmap.png
