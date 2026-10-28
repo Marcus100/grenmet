@@ -24,6 +24,20 @@ _MODES_BY_ADMISSION = {
     "rsvp": {"rsvp"},
     "ticketed": {"tickets"},
 }
+#: Legacy ``listings.category`` -> (category slug, subcategory slug). Mirrors the
+#: migration backfill (``culture`` -> arts-culture; ``faith`` has a subcategory).
+LEGACY_TO_CATEGORY: dict[str, tuple[str, str | None]] = {
+    "fete": ("parties-fetes", None),
+    "music": ("music-live-shows", None),
+    "food": ("food-drink", None),
+    "sport": ("sports-fitness", None),
+    "business": ("business-learning", None),
+    "tech": ("business-learning", None),
+    "culture": ("arts-culture", None),
+    "faith": ("community-causes", "church-faith"),
+    "family": ("community-causes", None),
+    "wellness": ("sports-fitness", None),
+}
 _DEFAULT_MODE = {"free": "none", "rsvp": "rsvp", "ticketed": "tickets"}
 
 
@@ -43,7 +57,6 @@ async def category_tree(
     current = now or utc_now()
     counted = (
         select(
-            func.coalesce(Listing.subcategory_id, Listing.category_id).label("leaf"),
             Listing.category_id.label("top"),
             Listing.subcategory_id.label("sub"),
         )
@@ -130,12 +143,35 @@ async def _category(db: AsyncSession, slug: str) -> Category:
     return row
 
 
+async def _from_legacy(
+    db: AsyncSession, legacy: str | None, listing_type: str
+) -> tuple[uuid.UUID | None, uuid.UUID | None]:
+    """Classification derived from the legacy category, as the migration did."""
+    slugs = LEGACY_TO_CATEGORY.get(legacy or "")
+    if slugs is None:
+        return None, None
+    wanted = [slug for slug in slugs if slug]
+    rows = {
+        row.slug: row
+        for row in (
+            await db.scalars(select(Category).where(Category.slug.in_(wanted)))
+        ).all()
+    }
+    category = rows.get(slugs[0])
+    if category is None or listing_type not in category.applies_to:
+        return None, None
+    sub = rows.get(slugs[1]) if slugs[1] else None
+    return category.id, sub.id if sub else None
+
+
 async def _resolve_categories(
     db: AsyncSession, listing: Listing, body: schemas.ListingUpsert, listing_type: str
 ) -> tuple[uuid.UUID | None, uuid.UUID | None]:
     """The (category_id, subcategory_id) to store, validated against the type."""
     if body.category_slug is None and body.subcategory_slug is None:
         category_id, sub_id = listing.category_id, listing.subcategory_id
+        if category_id is None:
+            return await _from_legacy(db, listing.category, listing_type)
         if listing_type == listing.listing_type or category_id is None:
             return category_id, sub_id
         category = await db.get(Category, category_id)
@@ -157,7 +193,8 @@ async def _resolve_categories(
             raise EventsConflict(f"'{category.slug}' is a subcategory, not a category")
     elif sub is not None:
         category = await db.get(Category, sub.parent_id)  # parent of the subcategory
-        assert category is not None
+        if category is None:
+            raise EventsConflict(f"Subcategory '{sub.slug}' has no parent category")
     else:
         return None, None
     if sub is not None and sub.parent_id != category.id:

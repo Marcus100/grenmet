@@ -7,6 +7,7 @@ module's tables (ADR-0003).
 """
 
 import uuid
+from collections.abc import Mapping
 from datetime import date, datetime
 from typing import Any, cast
 
@@ -98,7 +99,8 @@ class Announcement(EventsModel):
 
 def _default_booking_mode(context: DefaultExecutionContext) -> str:
     """Legacy ``admission`` -> ``booking_mode`` for rows built without one."""
-    admission = cast("Any", context).get_current_parameters().get("admission")
+    params: Mapping[str, object] = cast("Any", context).get_current_parameters()
+    admission = params.get("admission")
     return {"rsvp": "rsvp", "ticketed": "tickets"}.get(str(admission), "none")
 
 

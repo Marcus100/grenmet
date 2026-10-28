@@ -305,7 +305,7 @@ def upgrade() -> None:
         WHERE EXISTS (
             SELECT 1 FROM events.ticket_tiers t
             WHERE t.listing_id = l.id AND t.price_minor > 0
-        );
+        ) AND l.admission = 'ticketed';
 
         UPDATE events.listings SET booking_mode = CASE admission
             WHEN 'rsvp' THEN 'rsvp'

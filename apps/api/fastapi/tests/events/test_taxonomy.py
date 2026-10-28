@@ -80,6 +80,23 @@ async def test_existing_listings_default_to_the_free_event_classification(
 
 
 @pytest.mark.asyncio
+async def test_create_with_only_the_legacy_category_gets_a_catalogue_category(
+    events_db: SessionFactory, db_async: AsyncSession
+):
+    user = await _organiser(events_db, db_async)
+    for legacy, category, sub in (
+        ("fete", "parties-fetes", None),
+        ("culture", "arts-culture", None),
+        ("faith", "community-causes", "church-faith"),
+    ):
+        resp = await _post(user, category=legacy, title=f"Legacy {legacy}")
+        assert resp.status_code in (200, 201), resp.text
+        body = resp.json()
+        assert body["category_slug"] == category
+        assert body["subcategory_slug"] == sub
+
+
+@pytest.mark.asyncio
 async def test_category_tree_has_seed_children_and_counts(
     events_db: SessionFactory, db_async: AsyncSession
 ):

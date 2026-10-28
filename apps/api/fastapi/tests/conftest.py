@@ -1,6 +1,7 @@
 # Imports below the DB-isolation bootstrap are intentionally not at the top of
 # the file (env must be set before any `src` import), so E402 is disabled here.
 # ruff: noqa: E402
+import functools
 import os
 import smtplib
 import sys
@@ -290,6 +291,7 @@ async def _clear_database_async(session: AsyncSession) -> None:
     await session.commit()
 
 
+@functools.cache
 def _expected_category_rows() -> set[tuple[object, ...]]:
     """The migration's seed, as (slug, parent slug, name, applies_to, sort, active, legacy)."""
     import importlib.util
