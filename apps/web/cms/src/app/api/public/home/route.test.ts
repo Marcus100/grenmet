@@ -93,7 +93,7 @@ describe("homepage leads and Weather now", () => {
   });
 });
 
-describe("homepage section wording", () => {
+describe("homepage hidden sections", () => {
   const withHomepage = (homepage: Record<string, unknown>) => {
     const find = vi.fn().mockResolvedValue({ docs: [] });
     const findGlobal = vi.fn(({ slug }: { slug: string }) =>
@@ -102,26 +102,19 @@ describe("homepage section wording", () => {
     vi.mocked(getPayload).mockResolvedValue({ find, findGlobal } as never);
   };
 
-  it("passes wording through and drops blanks", async () => {
+  it("passes the hidden sections through; wording and links are no longer editable", async () => {
     withHomepage({
-      sectionCopy: {
-        stories: { kicker: "  ", title: " Island stories ", intro: null },
-        explore_today: { intro: "Plan around the weather." },
-        desk: { kicker: "", title: "", intro: "" },
-      },
       hiddenSections: ["grenada-in-data"],
+      // Old data the CMS no longer reads.
+      sectionCopy: { stories: { title: "Island stories" } },
     });
     const { settings } = await (await GET()).json();
-    expect(settings.sectionCopy).toEqual({
-      stories: { title: "Island stories" },
-      "explore-today": { intro: "Plan around the weather." },
-    });
-    // Plan your week no longer reads CMS links; the field stays for the site.
-    expect(settings.exploreReading).toEqual({});
     expect(settings.hiddenSections).toEqual(["grenada-in-data"]);
+    expect(settings.sectionCopy).toEqual({});
+    expect(settings.exploreReading).toEqual({});
   });
 
-  it("sends no wording when unset", async () => {
+  it("sends no wording or hidden sections when unset", async () => {
     withHomepage({});
     const { settings } = await (await GET()).json();
     expect(settings.sectionCopy).toEqual({});
