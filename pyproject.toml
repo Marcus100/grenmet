@@ -13,6 +13,12 @@ dependency-metadata = [
     { name = "gdal", version = "3.6.2", requires-dist = [] },
 ]
 
+# GDAL's setup.py compiles the osgeo.gdal_array extension (gdal.ReadAsArray,
+# gdal_array.OpenArray) only when NumPy is importable while it builds. uv
+# builds in isolation, so supply the runtime's NumPy to that build.
+[tool.uv.extra-build-dependencies]
+gdal = [{ requirement = "numpy", match-runtime = true }]
+
 [tool.uv.workspace]
 members = [
     "apps/api/fastapi",
