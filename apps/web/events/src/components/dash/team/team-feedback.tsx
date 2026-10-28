@@ -10,7 +10,6 @@ import {
 } from "react";
 
 interface Feedback {
-  readonly error: (message: string) => void;
   readonly notice: (message: string) => void;
 }
 
@@ -37,7 +36,6 @@ export function TeamFeedbackProvider({ children }: { children: ReactNode }) {
 
   const feedback: Feedback = {
     notice: (text) => setMessage({ kind: "notice", text }),
-    error: (text) => setMessage({ kind: "error", text }),
   };
 
   return (

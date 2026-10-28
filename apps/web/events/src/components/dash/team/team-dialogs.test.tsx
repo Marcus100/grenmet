@@ -65,7 +65,9 @@ function renderGrant(held: string[] = []) {
 }
 
 async function openGrant() {
-  fireEvent.click(screen.getByRole("button", { name: "Give role" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Give a role to Ana Door" })
+  );
   await screen.findByRole("heading", { name: "Give a role to Ana Door" });
 }
 
