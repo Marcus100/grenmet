@@ -171,7 +171,7 @@ function CardLink({ card }: { card: Card }) {
 }
 
 /**
- * Sky, history and a little fun: at most four cards, in the order editors
+ * News (the Discover collection): at most four cards, in the order editors
  * choose. Tonight's sky is calculated; the rest appear only when published.
  */
 export async function Discover({ now = new Date() }: { now?: Date } = {}) {
@@ -187,7 +187,7 @@ export async function Discover({ now = new Date() }: { now?: Date } = {}) {
   if (cards.length === 0) return null;
   const words = sectionWords(settings, "discover", {
     kicker: "Discover",
-    title: "Sky, history and a little fun",
+    title: "News",
   });
   return (
     <HomeSection tone="surface" {...words}>
