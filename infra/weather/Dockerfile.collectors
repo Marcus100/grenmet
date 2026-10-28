@@ -29,7 +29,7 @@ CMD ["collect", "--output-dir", "/data/nhc"]
 FROM base AS geonetcast
 RUN apt-get update && apt-get install -y --no-install-recommends g++ libgdal-dev gdal-bin libhdf4-alt-dev && rm -rf /var/lib/apt/lists/*
 COPY geonetcast geonetcast
-RUN uv sync --frozen --no-dev --package geonetcast && python -c "from osgeo import gdal; assert gdal.VersionInfo().startswith('306')"
+RUN uv sync --frozen --no-dev --package geonetcast && python -c "from osgeo import gdal, gdal_array; assert gdal.VersionInfo().startswith('306')"
 USER collector
 WORKDIR /data/output
 ENTRYPOINT ["python"]
