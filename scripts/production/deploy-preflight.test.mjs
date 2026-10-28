@@ -28,6 +28,9 @@ const FORMATTED_VALUES = {
   CORE_REDIS_IMAGE: `redis:7-alpine@sha256:${"b".repeat(64)}`,
   CORE_PRIVATE_IP: "10.0.0.5",
   DEPLOY_IMAGE_TAG: `sha-${"c".repeat(40)}`,
+  // Staging-only Traefik basic auth: htpasswd bcrypt lines.
+  STAGING_BASIC_AUTH_USERS: `reviewer:$2y$05$${"d".repeat(53)}`,
+  ADMINER_BASIC_AUTH_USERS: `dba:$2y$05$${"e".repeat(53)}`,
 };
 
 const baseEnvironment = Object.fromEntries(
