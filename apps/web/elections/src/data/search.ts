@@ -1,3 +1,4 @@
+import { candidateNote } from "@/data/election-2026";
 import { CODES, constituencyHref, constituencyName } from "@/data/model";
 import type { CampaignFile, GeoFile, ResultsFile } from "@/data/types";
 
@@ -44,7 +45,7 @@ function addStations(add: Add, results: ResultsFile) {
         add({
           kind: "place",
           label: place,
-          note: `${constituencyName(results, code)} · polling station, division ${division}`,
+          note: `${constituencyName(results, code)} · 2022 polling station, division ${division}`,
           href: constituencyHref(results, code),
         });
 }
@@ -60,7 +61,7 @@ function addPeople(add: Add, results: ResultsFile, campaign: CampaignFile) {
       add({
         kind: "person",
         label: sitting.name,
-        note: `${sitting.party} member for ${seat}`,
+        note: `${sitting.party} member at dissolution for ${seat}`,
         href: constituencyHref(results, code),
       });
     for (const [party, slate] of Object.entries(campaign.candidates)) {
@@ -69,7 +70,7 @@ function addPeople(add: Add, results: ResultsFile, campaign: CampaignFile) {
         add({
           kind: "person",
           label: name,
-          note: `${party} candidate for ${seat}`,
+          note: `${party} reported selection for ${seat}${candidateNote(campaign, party, code) ? " · source verification needed" : ""}`,
           href: constituencyHref(results, code),
         });
     }

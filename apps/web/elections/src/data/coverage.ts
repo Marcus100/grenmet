@@ -6,7 +6,7 @@ import type { PhotoId } from "@/data/photos";
  * the data). Every post names its sources on its own page.
  */
 export interface CoverageUpdate {
-  /** ISO date-time of publication. */
+  /** ISO date or date-time of publication. */
   at: string;
   /** Files readers can download, such as our copy of a Gazette notice. */
   attachments?: { href: string; label: string; size: string }[];
@@ -50,6 +50,19 @@ export interface CoverageUpdate {
 }
 
 export const COVERAGE: CoverageUpdate[] = [
+  {
+    at: "2026-10-28",
+    slug: "october-nomination-and-debate-update",
+    featured: true,
+    title: "46 nominees reported; leaders’ debate scheduled for 28 October",
+    dek: "The October nomination report and debate announcement bring the campaign record up to date. The named directory still needs the complete primary ballot list.",
+    body: [
+      "CMC reported on 26 October that PEO indicated 46 nominated candidates. NDC and NNP each nominated candidates in all 15 constituencies, and DPM is contesting nine. These party counts cover 39 nominees; the remaining seven are not identified in that breakdown.",
+      "A separate report by Roxanne Thompson says Dickon Mitchell, Emmalin Pierre and Peter David confirmed participation in a leaders’ debate scheduled for 7 pm on 28 October at the Grenada Trade Centre. This records the announcement, not a claim that the debate has taken place.",
+    ],
+    sources: [{ id: "cmc26oct" }, { id: "debate26oct" }],
+  },
+
   {
     at: "2026-10-02T19:00:00-04:00",
     slug: "parliament-dissolved",
@@ -235,7 +248,7 @@ export const COVERAGE: CoverageUpdate[] = [
     dek: "Issuing the writ closed registration on 2 October, and it stays suspended until after the election. The Parliamentary Elections Office asks voters to check their entry before polling day.",
     body: [
       "The writ for the general election reached the Parliamentary Elections Office at 3:45 p.m. on 2 October 2026, the office said in a release published by NOW Grenada. “The issuance of the Writ officially closes voter registration,” the release said. “Registration will remain suspended until after the conclusion of the General Election.”",
-      "That means the list of electors for 5 November is now fixed. The office asks every registered voter to check their entry before polling day, in either of two ways: online, through the electoral listing on peogrenada.org, or in person, on the printed lists displayed at courthouses, medical stations, revenue offices and other designated places in each constituency.",
+      "Registration is suspended, but that does not mean every published list is unchanged. Update, 28 October: PEO subsequently published a consolidated file reference-dated 16 October and addenda. Check your entry through the official PEO voter search or the displayed lists; PEO confirms corrections and current polling arrangements.",
       "Check that your name, address and polling division are right. The Parliamentary Elections Office, not Elections Grenada, confirms your registration and where you vote.",
     ],
     sources: [{ id: "peo3oct" }, { id: "gazette47" }],
@@ -256,7 +269,7 @@ export const COVERAGE: CoverageUpdate[] = [
   {
     at: "2026-10-04T22:00:00-04:00",
     slug: "mitchell-announces-5-november",
-    featured: true,
+    featured: false,
     graphic: "election-timeline",
     title: "Prime Minister Mitchell announces polling day: 5 November",
     dek: "In an address to the nation, Prime Minister Dickon Mitchell said the general election will be held on 5 November 2026, with nomination day on 15 October and a special poll for police officers on 2 November.",

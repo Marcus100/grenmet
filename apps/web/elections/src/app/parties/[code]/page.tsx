@@ -6,7 +6,8 @@ import { ChartViewport } from "@/components/chart-viewport";
 import { PartyDot } from "@/components/party-chip";
 import { PageHead, Section } from "@/components/section";
 import { personHref } from "@/data/candidates";
-import { eventSlug, isOfficial } from "@/data/events";
+import { eventSlug } from "@/data/events";
+import { metricEvidence } from "@/data/evidence";
 import { campaign, data, people } from "@/data/load";
 import { partyColor, partyInfo } from "@/data/parties";
 import { partyRecords, partySlug } from "@/data/parties-history";
@@ -167,9 +168,10 @@ export default async function PartyPage({ params }: Props) {
                     >
                       {p.year}
                     </Link>
-                    {!isOfficial(String(p.year)) && (
+                    {!metricEvidence(data, String(p.year), "votes")
+                      .official && (
                       <span className="ml-1 text-base text-el-muted">
-                        (secondary source)
+                        (votes include secondary sources)
                       </span>
                     )}
                   </td>

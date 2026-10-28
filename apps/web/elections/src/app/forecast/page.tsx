@@ -40,7 +40,7 @@ import { fmt, formatIsoDate, pct } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Forecast",
   description:
-    "Where Grenada’s 2026 election will be decided: the Grenada Lean Index, seat ratings, 10,000 simulated elections, a backtest against every election since 1990, and every published poll.",
+    "Explore conditional election scenarios, historical lean, backtests and the poll reports held in this archive.",
 };
 
 const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
@@ -49,7 +49,7 @@ const CHANGE_LOG = [
   {
     date: "27 September 2026",
     what: "Model v0.2: DPM added",
-    why: "The DPM is standing in 8 seats, so seat chances are now three-way. The DPM’s size and which party it draws from are assumptions ✱ until a poll or result gives them. National swing now has fatter tails and local noise uses the three elections since 2008, both chosen by backtest.",
+    why: "DPM was added as a third modelled party. Candidate selections remain provisional; this change log is not the verified October nomination slate. The DPM’s size and which party it draws from are assumptions ✱ until a poll or result gives them. National swing now has fatter tails and local noise uses the three elections since 2008, both chosen by backtest.",
   },
   {
     date: "27 September 2026",
@@ -62,8 +62,8 @@ const STILL_NEEDED = [
   "DPB Global’s full 2026 report: party shares, questionnaire, sample design and fieldwork dates.",
   "CADRES’s Grenada poll archive, including the original June 2008 release and any polls from 2012–2022.",
   "Public announcements corroborating the owner-confirmed NDC candidate names.",
-  "The NNP candidate for St. Andrew North West.",
-  "A public copy of the 2 October 2026 dissolution proclamation, such as the Gazette notice.",
+  "A complete primary nomination list: the current directory is based on earlier announcements, not the complete 46-name ballot.",
+  "An authoritative mapping from all nominated candidates to the model; CMC now reports DPM candidates in nine constituencies.",
   "Any poll that measures DPM support. The DPM settings above are assumptions until then.",
 ];
 
@@ -252,6 +252,16 @@ export default function ForecastPage() {
         </dl>
       </PageHead>
 
+      <p className="mx-auto mt-4 max-w-[1240px] px-4 text-base leading-relaxed sm:px-6">
+        Model scope: NDC, NNP and an earlier {Object.keys(dpmSlate).length}
+        -constituency DPM configuration from our provisional directory. The
+        October report names 46 nominees and nine DPM constituencies, which
+        differs from this directory. These scenarios have not been recalibrated
+        to that full ballot; they are not a current election prediction.
+        <Link className="ml-1 underline" href="/candidates">
+          Nomination coverage →
+        </Link>
+      </p>
       <Section
         id="lean"
         intro="How much more NDC or NNP each place votes than Grenada as a whole: the NDC–NNP vote in 2022 (75%) and 2018 (25%), relative to the nation. NNP+7 means the NNP’s two-party share there ran about 7 points above its national share. The method follows the Cook Political Report’s Partisan Voting Index."

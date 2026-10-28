@@ -29,7 +29,7 @@ import { fmt, pct } from "@/lib/format";
 export const metadata: Metadata = {
   title: "How close was it?",
   description:
-    "A swing calculator for every Grenada election since 1990, where the votes moved in each polling division, votes against seats, and how far each result can be trusted.",
+    "Explore Grenada’s recorded results through 2022: a historical swing calculator, changes in polling-division vote shares, votes versus seats and source limitations.",
 };
 
 const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
@@ -320,15 +320,15 @@ export default function HowClosePage() {
   return (
     <>
       <PageHead
-        deck="Grenada elects 15 members by first past the post, so small shifts in votes can change a government. These tools show how close each election was, where votes moved, and how far each result can be trusted."
-        eyebrow="Analysis"
+        deck="Explore winning margins, changes in vote share and the evidence behind recorded elections through 2022. The swing calculator changes historical results under stated assumptions; it does not measure current support or predict 2026."
+        eyebrow="Historical analysis · through 2022"
         learning="statistics"
         title="How close was it?"
       />
 
       <Section
         id="swing"
-        intro="Move votes between the NDC and the NNP by the same number of points in every constituency (a uniform swing) and see which seats change hands. Other parties’ votes stay as they were. Elections from 1990, when both parties first stood."
+        intro="Choose a recorded election from 1990 to 2022, then add the same number of percentage points to one party’s share of all valid votes and subtract it from the other’s in every constituency. This uniform-swing scenario changes NDC and NNP shares while keeping other parties unchanged. It is an illustration, not a forecast; local changes need not be uniform."
         title="1 · Swing calculator"
       >
         <SwingCalculator
@@ -341,7 +341,7 @@ export default function HowClosePage() {
 
       <Section
         id="moved"
-        intro="Every polling division’s change in the NDC’s share of the two-party vote."
+        intro="Compare matched polling-division records in the archive. The change is in the NDC’s share of NDC plus NNP votes, not its share of all valid votes. The illustrative boundaries do not establish current polling arrangements."
         title="2 · Where the votes moved"
       >
         <h3 className="mb-3 font-bold text-lg">2018 → 2022</h3>
@@ -490,15 +490,19 @@ export default function HowClosePage() {
               </svg>
             </ChartViewport>
             <figcaption className="text-base text-el-muted">
-              Hollow dot: vote share. Filled dot: seat share. 1976 votes are
-              from a secondary source.
+              Hollow dot: vote share. Filled dot: seat share. These are
+              calculations from the archive; 1976 votes are secondary and 1990
+              vote inputs mix official and secondary records. See the election
+              pages for sources and discrepancies.
             </figcaption>
           </figure>
           <div>
             <h3 className={LABEL}>How unequal the result was</h3>
             <p className="text-base text-el-muted leading-relaxed">
               Gallagher disproportionality index (0 means seats exactly match
-              votes). Above about 15 is very high internationally.
+              votes). Higher values mean a larger gap between parties’ vote
+              shares and seat shares. This is a calculation from the displayed
+              historical records, not a measure of election administration.
             </p>
             <ul className="mt-2 space-y-1 text-base">
               {votesSeats.map((r) => (
@@ -524,8 +528,8 @@ export default function HowClosePage() {
 
       <Section
         id="turnout"
-        intro="Each dot is a polling division: its turnout against its winning margin."
-        title="4 · Do close contests bring out voters?"
+        intro="Each dot compares a polling division’s recorded turnout with its winning margin. An association cannot establish that a close contest caused people to vote, and these totals cannot identify individual voters’ reasons."
+        title="4 · Compare turnout and winning margins"
       >
         <div className="grid gap-6 md:grid-cols-3">
           {["2013", "2018", "2022"].map((id) => {
@@ -595,8 +599,8 @@ export default function HowClosePage() {
 
       <Section
         id="referendums"
-        intro="Each dot is a polling division: the Yes share in a referendum against the NDC’s share of the two-party vote at the nearest general election."
-        title="5 · Did referendums follow party lines?"
+        intro="Each dot compares a matched division’s referendum Yes share with its NDC–NNP two-party share at the preceding general election. Area totals cannot tell us how the same individuals voted or why."
+        title="5 · Compare referendum and party vote shares"
       >
         <div className="grid gap-6 md:grid-cols-2">
           {refPairs.map((p) => {
@@ -666,7 +670,9 @@ export default function HowClosePage() {
         </div>
         <p className="mt-1 text-base text-el-muted leading-relaxed">
           The 2018 referendum has divisions only for the 10 constituencies
-          readable in the Gazette.
+          readable in the Gazette. The 2016 Yes share combines responses to
+          seven questions, so it does not describe one proposition or count
+          distinct people.
         </p>
       </Section>
 

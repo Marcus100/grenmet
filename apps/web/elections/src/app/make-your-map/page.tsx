@@ -22,7 +22,7 @@ import { formatIsoDate } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Make your map",
   description:
-    "Predict Grenada’s 2026 election: rate all 15 constituencies from Solid NDC to Solid NNP, with the DPM where it stands, and share your map.",
+    "Build and share a constituency scenario using historical results and the earlier recorded three-party configuration.",
 };
 
 export default function YourPredictionPage() {
@@ -64,21 +64,32 @@ export default function YourPredictionPage() {
         deck={
           <>
             Rate each of the 15 constituencies, from Solid NDC to Solid NNP, and
-            for the DPM in the {Object.keys(dpmSlate).length} where it has named
-            a candidate. Your map starts from the 2022 result, or any election
-            since 1990; change any constituency you disagree with, then share
-            the link. Our own ratings are on the{" "}
+            for the DPM in the {Object.keys(dpmSlate).length} constituencies in
+            this earlier configuration. Your map starts from the 2022 result, or
+            any election since 1990; change any constituency you disagree with,
+            then share the link. Our own ratings are on the{" "}
             <Link className="underline underline-offset-4" href="/forecast">
               Forecast
             </Link>{" "}
             page. This is your prediction, not ours.
           </>
         }
-        eyebrow={`General election 2026 · Candidates as of ${formatIsoDate(campaign.updated)}`}
+        eyebrow={`General election 2026 · Configuration recorded ${formatIsoDate(campaign.candidate_names_as_of ?? campaign.updated)}`}
         learning="scenario"
         title="Make your map"
       />
       <div className="mx-auto max-w-[1240px] px-4 pt-8 sm:px-6">
+        <p className="mb-6 max-w-[70ch] text-base text-el-muted leading-relaxed">
+          This tool uses the earlier NDC, NNP and {Object.keys(dpmSlate).length}
+          -constituency DPM configuration from our provisional directory. Later
+          reporting lists 46 nominees, including nine DPM nominees, which
+          differs from this directory. This scenario does not represent the
+          complete current ballot. See{" "}
+          <Link className="underline" href="/candidates">
+            nomination coverage
+          </Link>
+          .
+        </p>
         <PredictionTool
           inset={geo.inset}
           land={ringPath(geo.land)}

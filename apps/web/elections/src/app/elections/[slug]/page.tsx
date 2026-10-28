@@ -261,8 +261,13 @@ export default async function EventPage({ params }: Props) {
             }))}
             geo={geo}
             label={`${e.label} result`}
-            unavailableReason="Polling-division results are unavailable for this election."
+            unavailableReason="A complete set of mapped polling-division results is unavailable for this event. See the recorded returns below."
           />
+          <p className="mt-3 max-w-prose text-base text-el-muted leading-relaxed">
+            This map shows the selected historical event. Boundaries are
+            illustrative; they do not confirm current voting arrangements or
+            which party a representative belongs to today.
+          </p>
         </Section>
       )}
 
