@@ -116,6 +116,7 @@ RESERVED_NAMES: frozenset[str] = frozenset(
         "cms",
         "mbia",
         "babydoll",
+        "commit",
         "gms",
         # Reserved sector products (not built)
         "education",

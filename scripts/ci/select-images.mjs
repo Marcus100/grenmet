@@ -26,11 +26,13 @@ function imagesForPath(path) {
   if (deferredPath.test(path)) return noImages;
   if (path.startsWith("packages/") || workspaceManifest.test(path))
     return { ...noImages, web: webImages };
-  // Elections and Babydoll deploy independently on Vercel. Their manifests still affect
+  // Elections, Babydoll (Vercel) and Commit (Cloudflare Pages) deploy
+  // independently. Their manifests still affect
   // Docker installation layers above, but their source does not enter them.
   if (
     path.startsWith("apps/web/elections/") ||
     path.startsWith("apps/web/babydoll/") ||
+    path.startsWith("apps/web/commit/") ||
     path.startsWith("apps/web/barrels/")
   )
     return noImages;
