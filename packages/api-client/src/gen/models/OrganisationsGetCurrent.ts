@@ -14,7 +14,7 @@ export type OrganisationsGetCurrentHeaders = {
 };
 
 /**
- * @description The organisation resolved from ``X-Barrels-Organisation`` and the caller\'s role.
+ * @description The organisation resolved from ``X-Barrels-Organisation`` and the caller's role.
  * @type object
  */
 export type OrganisationsGetCurrentStatus200 = CurrentOrganisationPublic;

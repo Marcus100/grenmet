@@ -11,8 +11,8 @@ import type {
 } from "../models/EregisterReopenRegisterObservation.js";
 
 /**
- * @description Moves an accepted or rejected observation back to qc_pending; a reason is required. Requires `eregister.qc`. 409 once the observation was queued or sent to WIS2. Audited.
- * @summary Reopen an accepted or rejected observation (QC)
+ * @description Moves an accepted or rejected observation back to qc_pending (any review is cleared); a reason is required. 409 once the observation was queued or sent to WIS2. Requires register staff access. Audited.
+ * @summary Reopen an accepted or rejected observation
  * {@link /api/v1/eregister/observations/:observation_id/reopen}
  */
 export function eregisterReopenRegisterObservation<

@@ -31,3 +31,7 @@ export const capApproveHazardProfileErrorSchema = z.union([
   capApproveHazardProfileStatus404Schema,
   capApproveHazardProfileStatus422Schema,
 ]);
+
+export const capApproveHazardProfilePathSchema = z.object({
+  profile_id: z.uuid(),
+});

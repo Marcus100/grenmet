@@ -30,3 +30,7 @@ export const capGetAlertErrorSchema = z.union([
   capGetAlertStatus404Schema,
   capGetAlertStatus422Schema,
 ]);
+
+export const capGetAlertPathSchema = z.object({
+  alert_id: z.uuid(),
+});

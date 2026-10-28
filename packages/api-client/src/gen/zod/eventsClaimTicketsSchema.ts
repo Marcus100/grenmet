@@ -44,3 +44,14 @@ export const eventsClaimTicketsErrorSchema = z.union([
 ]);
 
 export const eventsClaimTicketsBodySchema = orderCreateSchema;
+
+export const eventsClaimTicketsPathSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+});
+
+export const eventsClaimTicketsHeadersSchema = z.object({
+  "Idempotency-Key": z
+    .union([z.string().max(255), z.null()])
+    .optional()
+    .describe("Client-chosen key that makes a retried request safe."),
+});

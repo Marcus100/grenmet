@@ -82,8 +82,12 @@ async def test_exact_revision_and_access(async_client, weather_sessions, actor):
         assert response.status_code == 200, response.text
         assert response.content.startswith(b"%PDF-")
         assert response.headers["content-type"] == "application/pdf"
-        assert response.headers["cache-control"] == "no-store"
-        assert "r1.pdf" in response.headers["content-disposition"]
+        assert response.headers["cache-control"] == "private, no-store"
+        disposition = response.headers["content-disposition"]
+        assert "Marine Bulletin" in disposition
+        assert "(rev 1).pdf" in disposition
+        assert "filename*=UTF-8''" in disposition
+        assert str(payload.id) not in disposition
         app.dependency_overrides[get_author] = lambda: ProductAuthor(actor, ["morning"])
         assert (await async_client.get(url)).status_code == 404
     finally:

@@ -14,7 +14,7 @@ from pydantic import (
 )
 
 from src.models import BaseModel, UtcDateTime
-from src.wxwatch.nhc_schemas import ProductGuidance
+from src.wxwatch.nhc_schemas import GuidanceFeatureType, ProductGuidance
 
 from .models import AuthoredProduct
 
@@ -444,3 +444,161 @@ class AviationIssue(BaseModel):
 class AviationValidationResponse(BaseModel):
     valid: bool
     issues: list[AviationIssue] = Field(default_factory=list)
+
+
+TropicalSystemStatus = Literal["active", "closed"]
+TropicalSystemClosedReason = Literal["dissipated", "merged", "out_of_area", "duplicate"]
+# NHC ids carry the season year so they never collide across seasons. Storms are
+# numbered 01-89; invests 90-99.
+NhcSystemId = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        to_lower=True,
+        pattern=r"^[A-Za-z]{2}(0[1-9]|[1-8]\d)\d{4}$",
+    ),
+]
+NhcInvestId = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True, to_lower=True, pattern=r"^[A-Za-z]{2}9\d\d{4}$"
+    ),
+]
+
+
+# On update the shape is checked in the service, only when the value changes, so a
+# system saved with an older short id (al07) can still be sent back unchanged.
+NhcStoredId = Annotated[
+    str, StringConstraints(strip_whitespace=True, to_lower=True, max_length=20)
+]
+
+
+class TropicalSystemCreate(BaseModel):
+    """Start tracking a system by hand. The label (GMS season-sequence) is assigned."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)
+    ]
+    feature_type: GuidanceFeatureType
+    season: Annotated[int, Field(ge=2000, le=2100)] | None = Field(
+        default=None, description="Defaults to the current year in Grenada."
+    )
+    nhc_storm_id: NhcSystemId | None = Field(
+        default=None, description="NHC storm identifier such as al072026."
+    )
+    nhc_invest_id: NhcInvestId | None = Field(
+        default=None, description="NHC invest identifier such as al902026."
+    )
+
+
+class TropicalSystemUpdate(BaseModel):
+    """Rename, link NHC identifiers, close or merge. Omitted fields stay unchanged."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: (
+        Annotated[
+            str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)
+        ]
+        | None
+    ) = None
+    feature_type: GuidanceFeatureType | None = None
+    nhc_storm_id: NhcStoredId | None = Field(
+        default=None,
+        description="Must match al072026 when it changes; an unchanged older id is accepted.",
+    )
+    nhc_invest_id: NhcStoredId | None = Field(
+        default=None,
+        description="Must match al942026 when it changes; an unchanged older id is accepted.",
+    )
+    status: TropicalSystemStatus | None = None
+    closed_reason: TropicalSystemClosedReason | None = None
+    continued_as_id: UUID | None = None
+    reason: (
+        Annotated[
+            str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)
+        ]
+        | None
+    ) = Field(default=None, description="Why the change was made (audit trail).")
+
+
+class TropicalSystemRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    label: str
+    season: int
+    sequence: int
+    name: str
+    feature_type: GuidanceFeatureType
+    nhc_storm_id: str | None
+    nhc_invest_id: str | None
+    status: TropicalSystemStatus
+    closed_reason: TropicalSystemClosedReason | None
+    continued_as_id: UUID | None
+    first_issued_at: UtcDateTime | None
+    last_issued_at: UtcDateTime | None
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
+
+
+class TropicalSystemList(BaseModel):
+    systems: list[TropicalSystemRead]
+
+
+class TropicalSystemPublicEntry(BaseModel):
+    """One published outlook issue's view of a system."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    product_id: UUID
+    revision: int
+    issued_at: UtcDateTime
+    name: str
+    feature_type: GuidanceFeatureType
+    latitude: float | None
+    longitude: float | None
+    movement_direction: str | None
+    movement_speed_kt: float | None
+    formation_48h: int | None
+    formation_7d: int | None
+
+
+class TropicalSystemEntryRead(TropicalSystemPublicEntry):
+    """Staff view of an entry, drafts included."""
+
+    action: Literal["draft", "publish"]
+    source_edition_ids: list[UUID]
+
+
+class TropicalSystemHistory(BaseModel):
+    system: TropicalSystemRead
+    entries: list[TropicalSystemEntryRead]
+
+
+class TropicalSystemPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    label: str
+    name: str
+    feature_type: GuidanceFeatureType
+    nhc_storm_id: str | None
+    status: TropicalSystemStatus
+    latest: TropicalSystemPublicEntry
+
+
+class TropicalSystemPublicList(BaseModel):
+    systems: list[TropicalSystemPublic]
+
+
+class TropicalSystemPublicHistory(BaseModel):
+    id: UUID
+    label: str
+    name: str
+    feature_type: GuidanceFeatureType
+    nhc_storm_id: str | None
+    status: TropicalSystemStatus
+    entries: list[TropicalSystemPublicEntry]

@@ -1,0 +1,11 @@
+[Unit]
+Description=Grenmet advisory hourly audit schedule
+
+[Timer]
+OnCalendar=*-*-* *:10:00 UTC
+Persistent=true
+RandomizedDelaySec=60
+Unit=grenmet-audit-hourly.service
+
+[Install]
+WantedBy=timers.target

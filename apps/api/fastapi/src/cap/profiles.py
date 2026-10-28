@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.policy import require_permission
-from src.cap import service
+from src.cap import ibf, service
 from src.cap.exceptions import CapStateError, CapValidationFailedError
 from src.cap.levels import (
     GmsProduct,
@@ -22,10 +22,33 @@ from src.cap.profile_schemas import (
     CapProfileDraftRequest,
     CapProfilePublic,
     CapProfileSave,
+    CapProfileSubtype,
 )
 from src.cap.schemas import CapAlertCreate, CapAlertPublic, CapInfoCreate, CapNameValue
 from src.exceptions import AuthorizationError, NotFoundError
 from src.utils.datetime import utc_now
+
+
+def matrix_content_errors(subtype: CapProfileSubtype) -> list[str]:
+    """A subtype that uses the impact-based matrix must describe every level and colour."""
+    if not (subtype.impact_levels or subtype.colour_responses or subtype.cell_texts):
+        return []
+    errors = []
+    described = {
+        level.impact
+        for level in subtype.impact_levels
+        if any(item.strip() for item in level.impacts)
+    }
+    missing = [name for name in ibf.IMPACTS if name not in described]
+    if missing:
+        errors.append(
+            f"{subtype.name}: describe the impacts for {', '.join(missing)} impact."
+        )
+    answered = {r.colour.value for r in subtype.colour_responses if r.response.strip()}
+    missing = [name for name in ibf.COLOURS if name not in answered]
+    if missing:
+        errors.append(f"{subtype.name}: write the response for {', '.join(missing)}.")
+    return errors
 
 
 def approval_errors(definition: CapProfileDefinition) -> list[str]:
@@ -58,6 +81,7 @@ def approval_errors(definition: CapProfileDefinition) -> list[str]:
                 errors.append(
                     f"{subtype.name}: numeric rules need a threshold, unit and duration."
                 )
+        errors.extend(matrix_content_errors(subtype))
         for label, values in [
             ("impacts", subtype.impacts),
             ("responses", subtype.responses),
@@ -107,7 +131,7 @@ async def list_versions(
 async def save_version(
     session: AsyncSession, current_user: User, key: str, payload: CapProfileSave
 ) -> CapProfilePublic:
-    require_permission(current_user=current_user, permission_key="cap.settings.manage")
+    require_permission(current_user=current_user, permission_key="cap.library.manage")
     result = await session.execute(
         select(CapHazardProfile)
         .where(CapHazardProfile.key == key)
@@ -151,7 +175,7 @@ async def get_row(session: AsyncSession, profile_id: uuid.UUID) -> CapHazardProf
 async def approve(
     session: AsyncSession, current_user: User, profile_id: uuid.UUID
 ) -> CapProfilePublic:
-    require_permission(current_user=current_user, permission_key="cap.settings.manage")
+    require_permission(current_user=current_user, permission_key="cap.library.manage")
     require_permission(current_user=current_user, permission_key="cap.alert.approve")
     row = await get_row(session, profile_id)
     if row.state != "DRAFT":

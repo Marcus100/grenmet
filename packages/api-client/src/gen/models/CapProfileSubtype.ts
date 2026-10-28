@@ -4,6 +4,9 @@
  */
 
 import type { CapCategory } from "./CapCategory.js";
+import type { CapProfileCellText } from "./CapProfileCellText.js";
+import type { CapProfileColourResponse } from "./CapProfileColourResponse.js";
+import type { CapProfileImpactLevel } from "./CapProfileImpactLevel.js";
 import type { CapProfileRule } from "./CapProfileRule.js";
 
 export type CapProfileSubtype = {
@@ -24,4 +27,7 @@ export type CapProfileSubtype = {
   impacts?: string[];
   responses?: string[];
   affected_groups?: string[];
+  impact_levels?: CapProfileImpactLevel[];
+  colour_responses?: CapProfileColourResponse[];
+  cell_texts?: CapProfileCellText[];
 };

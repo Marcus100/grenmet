@@ -24,3 +24,7 @@ export const capGetPublicAlertErrorSchema = z.union([
   capGetPublicAlertStatus404Schema,
   capGetPublicAlertStatus422Schema,
 ]);
+
+export const capGetPublicAlertPathSchema = z.object({
+  identifier: z.string(),
+});

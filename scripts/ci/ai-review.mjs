@@ -234,6 +234,14 @@ export async function run(
     log = console.log,
   } = {}
 ) {
+  // Legacy API reviewer is opt-in even if an old environment still has a key.
+  // A positive value represents a separately owner-approved API budget.
+  if (!(Number(env.AI_REVIEW_API_BUDGET_USD ?? 0) > 0)) {
+    log(
+      "API review disabled: no separately approved API budget. Use the subscription-backed review worker."
+    );
+    return 0;
+  }
   const {
     ANTHROPIC_API_KEY: apiKey,
     GITHUB_TOKEN: token,

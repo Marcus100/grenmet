@@ -12,6 +12,7 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { getImageUrl } from "@/lib/wxwatch/utils";
 
 export function ArchiveBrowser({
@@ -44,17 +45,17 @@ export function ArchiveBrowser({
   }
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="font-semibold text-2xl">
-          {nhcOnly ? "NHC guidance" : "WxWatch archive"}
-        </h1>
-        <p className="text-muted-foreground">
-          All catalogued editions. Times are UTC; estimates remain labelled.
-        </p>
-        <Link className="text-sm underline" href="/wxwatch">
-          Synoptic gallery
-        </Link>
-      </header>
+      <div>
+        <PageHeader
+          actions={
+            <Link className="text-sm underline" href="/wxwatch">
+              Synoptic gallery
+            </Link>
+          }
+          description="All catalogued editions. Times are UTC; estimates remain labelled."
+          title={nhcOnly ? "NHC guidance" : "WxWatch archive"}
+        />
+      </div>
       <form
         action={basePath}
         className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"

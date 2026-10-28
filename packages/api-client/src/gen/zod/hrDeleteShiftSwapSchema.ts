@@ -29,3 +29,7 @@ export const hrDeleteShiftSwapErrorSchema = z.union([
   hrDeleteShiftSwapStatus404Schema,
   hrDeleteShiftSwapStatus422Schema,
 ]);
+
+export const hrDeleteShiftSwapPathSchema = z.object({
+  shift_swap_id: z.uuid(),
+});

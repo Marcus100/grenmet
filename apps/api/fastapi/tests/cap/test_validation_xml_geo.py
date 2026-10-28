@@ -1,5 +1,8 @@
-from datetime import UTC, datetime, timedelta
+import re
+from datetime import UTC, datetime, timedelta, timezone
 from uuid import uuid4
+
+from defusedxml import ElementTree as DefusedET
 
 from src.cap.geo import alerts_to_feature_collection
 from src.cap.models import (
@@ -18,9 +21,10 @@ from src.cap.schemas import (
     CapAreaPublic,
     CapInfoPublic,
     CapNameValue,
+    CapReferencePublic,
 )
 from src.cap.validation import validate_cap_alert
-from src.cap.xml import alert_to_cap_xml
+from src.cap.xml import alert_to_cap_xml, xml_to_alert_data
 
 
 def test_cap_xml_uses_oasis_order_and_snapshot_ready_content() -> None:
@@ -36,6 +40,45 @@ def test_cap_xml_uses_oasis_order_and_snapshot_ready_content() -> None:
     assert "<polygon>12,-61.8 12.2,-61.7 12.1,-61.6 12,-61.8</polygon>" in xml
 
 
+CAP_DATE_PATTERN = re.compile(r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d")
+
+
+def test_every_cap_xml_date_matches_the_cap_12_pattern() -> None:
+    alert = _alert(msg_type=CapMessageType.UPDATE)
+    odd = datetime(2026, 10, 23, 16, 17, 7, 514612, tzinfo=UTC)
+    alert.sent = odd
+    alert.info[0].effective = odd
+    alert.info[0].onset = odd + timedelta(minutes=5)
+    alert.info[0].expires = odd.astimezone(timezone(timedelta(hours=-4))) + timedelta(
+        hours=1
+    )
+    alert.references = [
+        CapReferencePublic(
+            id=uuid4(),
+            sequence=0,
+            sender="cap@example.com",
+            identifier="earlier",
+            sent=odd,
+        )
+    ]
+
+    root = DefusedET.fromstring(alert_to_cap_xml(alert))
+    ns = {"c": "urn:oasis:names:tc:emergency:cap:1.2"}
+    dates = [
+        root.findtext("c:sent", namespaces=ns),
+        root.findtext("c:info/c:effective", namespaces=ns),
+        root.findtext("c:info/c:onset", namespaces=ns),
+        root.findtext("c:info/c:expires", namespaces=ns),
+        (root.findtext("c:references", namespaces=ns) or "").split(",")[-1],
+    ]
+
+    assert all(d and CAP_DATE_PATTERN.fullmatch(d) for d in dates), dates
+    assert dates[0] == "2026-10-23T16:17:07-00:00"
+    assert dates[3] == "2026-10-23T17:17:07-00:00"
+    parsed = xml_to_alert_data(alert_to_cap_xml(alert))
+    assert parsed.sent == datetime(2026, 10, 23, 16, 17, 7, tzinfo=UTC)
+
+
 def test_cap_xml_keeps_default_namespace_when_another_library_claims_it() -> None:
     # WeasyPrint registers its own "" namespace on import; CAP output must not
     # fall back to ns0: prefixes when that happens.
@@ -47,6 +90,20 @@ def test_cap_xml_keeps_default_namespace_when_another_library_claims_it() -> Non
 
     assert '<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">' in xml
     assert "ns0:" not in xml
+
+
+def test_cap_xml_never_publishes_the_override_reason() -> None:
+    alert = _alert()
+    alert.info[0].parameters = [
+        CapNameValue(value_name="GMS:suggested-colour", value="green"),
+        CapNameValue(value_name="GMS:override-reason", value="Forecaster judgement"),
+    ]
+
+    xml = alert_to_cap_xml(alert)
+
+    assert "GMS:suggested-colour" in xml
+    assert "GMS:override-reason" not in xml
+    assert "Forecaster judgement" not in xml
 
 
 def test_validation_rejects_non_alert_without_references() -> None:

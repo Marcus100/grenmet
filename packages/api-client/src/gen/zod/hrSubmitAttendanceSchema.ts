@@ -37,3 +37,7 @@ export const hrSubmitAttendanceErrorSchema = z.union([
 ]);
 
 export const hrSubmitAttendanceBodySchema = attendanceSubmitSchema;
+
+export const hrSubmitAttendancePathSchema = z.object({
+  attendance_id: z.uuid(),
+});

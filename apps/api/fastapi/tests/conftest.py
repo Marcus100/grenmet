@@ -2,9 +2,11 @@
 # the file (env must be set before any `src` import), so E402 is disabled here.
 # ruff: noqa: E402
 import os
+import smtplib
+import sys
 from collections.abc import AsyncGenerator, Awaitable, Callable, Generator
 from datetime import timedelta
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol, TypedDict
 from uuid import uuid4
 
 if TYPE_CHECKING:
@@ -111,10 +113,13 @@ _test_database_bootstrapped = False
 
 import httpx
 import pytest
+import resend
 from sqlalchemy import text
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email as email_module
 from src.auth import service as auth_service
 from src.auth.config import auth_settings
 from src.auth.models import User
@@ -245,37 +250,42 @@ def weather_engine(request: pytest.FixtureRequest) -> Generator[Engine]:
 #: Migration-seeded reference data that cleanup must keep (tests never edit it).
 REFERENCE_TABLES = {"events.categories"}
 
+# Ledgers that refuse DELETE by a row trigger; cleanup lifts it inside the same
+# transaction (DDL is transactional) and restores it before commit.
+_APPEND_ONLY = (
+    ("rewards.entry", "entry_append_only"),
+    ("payments.ledger_entry", "ledger_entry_append_only"),
+    ("events.activity", "activity_append_only"),
+)
+_clear_sql: str | None = None
+
+
+def _clear_statement() -> str:
+    """One server-side block that empties every table in dependency order.
+
+    Sending it as a single statement replaces 175 separate DELETE round trips.
+    Row deletes are kept on purpose: TRUNCATE recreates each table's files, and
+    with several workers the resulting checkpoint backlog stalled DROP DATABASE
+    for minutes.
+    """
+    global _clear_sql
+    if _clear_sql is None:
+        off = [f"ALTER TABLE {t} DISABLE TRIGGER {g};" for t, g in _APPEND_ONLY]
+        on = [f"ALTER TABLE {t} ENABLE TRIGGER {g};" for t, g in _APPEND_ONLY]
+        dialect = postgresql.dialect()
+        deletes = [
+            f"{table.delete().compile(dialect=dialect)};"
+            for table in reversed(Base.metadata.sorted_tables)
+            if table.fullname not in REFERENCE_TABLES
+        ]
+        _clear_sql = "DO $$ BEGIN\n" + "\n".join([*off, *deletes, *on]) + "\nEND $$;"
+    return _clear_sql
+
 
 async def _clear_database_async(session: AsyncSession) -> None:
     """Clear app tables in dependency order so FK constraints are respected."""
     await session.rollback()
-    # The rewards ledger refuses DELETE by trigger; test cleanup lifts it inside
-    # this one transaction (DDL is transactional) and restores it before commit.
-    ledger = "rewards.entry"
-    await session.execute(
-        text(f"ALTER TABLE {ledger} DISABLE TRIGGER entry_append_only")
-    )
-    payments_ledger = "payments.ledger_entry"
-    await session.execute(
-        text(f"ALTER TABLE {payments_ledger} DISABLE TRIGGER ledger_entry_append_only")
-    )
-    events_activity = "events.activity"
-    await session.execute(
-        text(f"ALTER TABLE {events_activity} DISABLE TRIGGER activity_append_only")
-    )
-    for table in reversed(Base.metadata.sorted_tables):
-        if table.fullname in REFERENCE_TABLES:
-            continue
-        await session.execute(table.delete())
-    await session.execute(
-        text(f"ALTER TABLE {ledger} ENABLE TRIGGER entry_append_only")
-    )
-    await session.execute(
-        text(f"ALTER TABLE {payments_ledger} ENABLE TRIGGER ledger_entry_append_only")
-    )
-    await session.execute(
-        text(f"ALTER TABLE {events_activity} ENABLE TRIGGER activity_append_only")
-    )
+    await session.execute(text(_clear_statement()))
     await _assert_categories_are_the_seed(session)
     await session.commit()
 
@@ -389,13 +399,17 @@ def disable_rate_limiting() -> Generator[None]:
 
 @pytest.fixture
 async def db_async(test_database: None) -> AsyncGenerator[AsyncSession]:
-    """Async database session. Ensures superuser exists; cleans up users on teardown."""
+    """Async database session on a freshly cleared and seeded database.
+
+    The database is cleared before each test, not after: the next test clears it
+    anyway, so a second clear only cost time (about 90 ms a test).
+    """
     assert test_database is None
     async with async_session_factory() as session:
         await _clear_database_async(session)
         await init_db_async(session)
         yield session
-        await _clear_database_async(session)
+        await session.rollback()
 
 
 @pytest.fixture
@@ -436,7 +450,13 @@ def mfa_admin(
 
 @pytest.fixture
 async def async_client(test_database: None) -> AsyncGenerator[httpx.AsyncClient]:
-    """Preferred client for new tests: async HTTP client with ASGI transport (avoids event loop issues)."""
+    """Preferred client for new tests: async HTTP client with ASGI transport (avoids event loop issues).
+
+    Only ``db_async`` clears and seeds the database, and it does so before its test.
+    A test that uses this client without ``db_async`` sees what the previous test on
+    the worker left behind, so add ``db_async`` (or
+    ``@pytest.mark.usefixtures("db_async")``) when the test reads or counts shared rows.
+    """
     assert test_database is None
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app),
@@ -512,6 +532,61 @@ def code_store() -> Generator[MemoryCodeStore]:
     previous = email_code.set_store(store)
     yield store
     email_code.set_store(previous)
+
+
+class EmailSendCall(TypedDict):
+    email_to: str
+    subject: str
+    html_content: str
+
+
+class EmailSender(Protocol):
+    def __call__(
+        self, *, email_to: str, subject: str = "", html_content: str = ""
+    ) -> None: ...
+
+
+@pytest.fixture(autouse=True)
+def outbound_email_calls() -> list[EmailSendCall]:
+    return []
+
+
+@pytest.fixture(autouse=True)
+def stub_email_sender(
+    monkeypatch: pytest.MonkeyPatch,
+    outbound_email_calls: list[EmailSendCall],
+) -> EmailSender:
+    """Record provider sends so test runs never contact a real email service."""
+    original_sender = email_module.send_email
+
+    def record_send(
+        *, email_to: str, subject: str = "", html_content: str = ""
+    ) -> None:
+        outbound_email_calls.append(
+            {"email_to": email_to, "subject": subject, "html_content": html_content}
+        )
+
+    def block_provider(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError(
+            "Real email transport called in tests; mock the provider explicitly."
+        )
+
+    # Patch the canonical sender first so any module imported later gets the stub.
+    monkeypatch.setattr(email_module, "send_email", record_send)
+    # Patch modules already holding ``from src.email import send_email`` aliases.
+    for module in tuple(sys.modules.values()):
+        if (
+            module is not None
+            and getattr(module, "__name__", "").startswith("src.")
+            and getattr(module, "send_email", None) is original_sender
+        ):
+            monkeypatch.setattr(module, "send_email", record_send)
+
+    # Guard transport entry points too, so an unpatched alias fails closed.
+    monkeypatch.setattr(resend.Emails, "send", block_provider)
+    monkeypatch.setattr(smtplib, "SMTP", block_provider)
+    monkeypatch.setattr(smtplib, "SMTP_SSL", block_provider)
+    return record_send
 
 
 @pytest.fixture

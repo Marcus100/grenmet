@@ -53,7 +53,7 @@ export function capApproveAlertMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Approves a submitted CAP alert and advances it toward publication.
+ * @description Approves a submitted CAP alert and advances it toward publication. The author may approve their own alert; a colleague review is optional.
  * @summary Approve a CAP alert
  * {@link /api/v1/cap/alerts/:alert_id/approve}
  */

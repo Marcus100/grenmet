@@ -12,7 +12,9 @@ export type OrganisationsUpdateAdminSitePath = {
 };
 
 /**
- * @description A public site\'s settings for organisation admins and the control plane.\n\nThe Turnstile secret is write-only: only whether it is set is returned.
+ * @description A public site's settings for organisation admins and the control plane.
+ *
+ * The Turnstile secret is write-only: only whether it is set is returned.
  * @type object
  */
 export type OrganisationsUpdateAdminSiteStatus200 = PublicSiteAdmin;
@@ -30,7 +32,8 @@ export type OrganisationsUpdateAdminSiteStatus404 = unknown;
 export type OrganisationsUpdateAdminSiteStatus422 = ValidationErrorResponse;
 
 /**
- * @description Only the fields sent change. Send ``null`` to clear a nullable setting,\nincluding ``turnstile_secret``. The key and owner never change.
+ * @description Only the fields sent change. Send ``null`` to clear a nullable setting,
+ * including ``turnstile_secret``. The key and owner never change.
  * @type object
  */
 export type OrganisationsUpdateAdminSiteBody = PublicSiteUpdate;

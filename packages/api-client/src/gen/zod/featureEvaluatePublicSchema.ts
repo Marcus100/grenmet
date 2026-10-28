@@ -32,3 +32,11 @@ export const featureEvaluatePublicErrorSchema = z.union([
   featureEvaluatePublicStatus422Schema,
   featureEvaluatePublicStatus429Schema,
 ]);
+
+export const featureEvaluatePublicQuerySchema = z.object({
+  keys: z
+    .string()
+    .max(1700)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*(,[a-z0-9]+(?:-[a-z0-9]+)*){0,19}$/)
+    .describe("Comma-separated kebab-case flag keys, at most 20."),
+});

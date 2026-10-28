@@ -8,7 +8,9 @@ import type { PublicSiteCreate } from "./PublicSiteCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 /**
- * @description A public site\'s settings for organisation admins and the control plane.\n\nThe Turnstile secret is write-only: only whether it is set is returned.
+ * @description A public site's settings for organisation admins and the control plane.
+ *
+ * The Turnstile secret is write-only: only whether it is set is returned.
  * @type object
  */
 export type OrganisationsCreateAdminSiteStatus201 = PublicSiteAdmin;

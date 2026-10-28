@@ -27,3 +27,7 @@ export const hrGetHrEmploymentErrorSchema = z.union([
   hrGetHrEmploymentStatus404Schema,
   hrGetHrEmploymentStatus422Schema,
 ]);
+
+export const hrGetHrEmploymentPathSchema = z.object({
+  user_id: z.uuid(),
+});

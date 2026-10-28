@@ -21,12 +21,16 @@ import {
   sectionWords,
 } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
+import { cn } from "@/lib/utils";
 
 const SHORT_DATE = new Intl.DateTimeFormat("en-GB", {
   timeZone: "America/Grenada",
   day: "numeric",
   month: "short",
 });
+
+/** The same bordered notice as "Grenada in data": one line, aligned to the heading. */
+const NOTICE = cn(HOME_CARD, "p-4 text-body-sm text-gm-text-secondary");
 
 /** Unavailable, empty or content — the three states every CMS feed has. */
 function FeedState({
@@ -43,13 +47,13 @@ function FeedState({
 }) {
   if (unavailable) {
     return (
-      <p className="p-4" role="status">
+      <p className={NOTICE} role="status">
         {unavailable}
       </p>
     );
   }
   if (count === 0) {
-    return <p className="p-4">{empty}</p>;
+    return <p className={NOTICE}>{empty}</p>;
   }
   return children;
 }
@@ -394,7 +398,7 @@ export function GetAlertsStrip() {
       className="bg-background pt-3 pb-4 lg:pt-4 lg:pb-6"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:px-8">
-        <div className="flex flex-col gap-3 rounded-gm-card bg-gm-navy px-4 py-4 text-gm-text-inverse sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2 sm:py-3">
+        <div className="flex flex-col gap-3 rounded-gm-card border border-gm-border bg-gm-navy px-4 py-4 text-gm-text-inverse sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2 sm:py-3">
           <div className="flex min-w-0 flex-1 items-center justify-center gap-3 sm:justify-start sm:gap-4">
             <BellIcon
               aria-hidden="true"

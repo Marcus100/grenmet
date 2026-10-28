@@ -17,12 +17,30 @@ export const eregisterListRegisterObservationsQueryKindSchema = z
 
 export const eregisterListRegisterObservationsQueryStateSchema = z
   .union([
-    z.string().regex(/^(draft|qc_pending|accepted|rejected|superseded)$/),
+    z
+      .string()
+      .regex(
+        /^(draft|qc_pending|accepted|rejected|superseded)(,(draft|qc_pending|accepted|rejected|superseded))*$/
+      ),
     z.null(),
   ])
   .optional()
   .describe(
-    "Only observations in this QC state (the QC queue is draft and qc_pending)."
+    "Only observations in these QC states, comma separated. Awaiting acceptance: draft,qc_pending."
+  );
+
+export const eregisterListRegisterObservationsQueryReviewedSchema = z
+  .union([z.boolean(), z.null()])
+  .optional()
+  .describe(
+    "true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false)."
+  );
+
+export const eregisterListRegisterObservationsQueryObservedAtSchema = z
+  .union([z.iso.datetime(), z.null()])
+  .optional()
+  .describe(
+    "Only observations for exactly this UTC time (to find the record occupying an hour)."
   );
 
 export const eregisterListRegisterObservationsQueryLimitSchema = z
@@ -31,6 +49,13 @@ export const eregisterListRegisterObservationsQueryLimitSchema = z
   .max(500)
   .optional()
   .default(100);
+
+export const eregisterListRegisterObservationsQueryOffsetSchema = z
+  .int()
+  .min(0)
+  .max(10000000)
+  .optional()
+  .default(0);
 
 export const eregisterListRegisterObservationsStatus200Schema =
   registerObservationListSchema;
@@ -52,3 +77,37 @@ export const eregisterListRegisterObservationsErrorSchema = z.union([
   eregisterListRegisterObservationsStatus403Schema,
   eregisterListRegisterObservationsStatus422Schema,
 ]);
+
+export const eregisterListRegisterObservationsQuerySchema = z.object({
+  station_id: z.union([z.string().max(64), z.null()]).optional(),
+  kind: z
+    .union([z.string().regex(/^(SYNOP|METAR|SPECI)$/), z.null()])
+    .optional(),
+  state: z
+    .union([
+      z
+        .string()
+        .regex(
+          /^(draft|qc_pending|accepted|rejected|superseded)(,(draft|qc_pending|accepted|rejected|superseded))*$/
+        ),
+      z.null(),
+    ])
+    .optional()
+    .describe(
+      "Only observations in these QC states, comma separated. Awaiting acceptance: draft,qc_pending."
+    ),
+  reviewed: z
+    .union([z.boolean(), z.null()])
+    .optional()
+    .describe(
+      "true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false)."
+    ),
+  observed_at: z
+    .union([z.iso.datetime(), z.null()])
+    .optional()
+    .describe(
+      "Only observations for exactly this UTC time (to find the record occupying an hour)."
+    ),
+  limit: z.int().min(1).max(500).optional().default(100),
+  offset: z.int().min(0).max(10000000).optional().default(0),
+});

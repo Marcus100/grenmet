@@ -44,3 +44,7 @@ export const janitorialCreateTaskErrorSchema = z.union([
 ]);
 
 export const janitorialCreateTaskBodySchema = taskCreateSchema;
+
+export const janitorialCreateTaskPathSchema = z.object({
+  area_id: z.int(),
+});

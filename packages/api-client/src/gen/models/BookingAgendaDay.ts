@@ -7,7 +7,7 @@ import type { BookingAgendaItem } from "./BookingAgendaItem.js";
 
 export type BookingAgendaDay = {
   /**
-   * @description Local date in the profile\'s timezone.
+   * @description Local date in the profile's timezone.
    *
    * Format: `date`
    * @type string

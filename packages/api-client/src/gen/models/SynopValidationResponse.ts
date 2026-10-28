@@ -20,4 +20,8 @@ export type SynopValidationResponse = {
    * @type object | undefined
    */
   decoded?: SynopDecoded;
+  /**
+   * @description The METAR the observation implies, for the observer to copy and edit.
+   */
+  expected_metar?: string | null;
 };

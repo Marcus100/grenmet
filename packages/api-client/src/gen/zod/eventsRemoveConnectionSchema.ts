@@ -30,3 +30,7 @@ export const eventsRemoveConnectionErrorSchema = z.union([
   eventsRemoveConnectionStatus422Schema,
   eventsRemoveConnectionStatus429Schema,
 ]);
+
+export const eventsRemoveConnectionPathSchema = z.object({
+  connection_id: z.uuid(),
+});

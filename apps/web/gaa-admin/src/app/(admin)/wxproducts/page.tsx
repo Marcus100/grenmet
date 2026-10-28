@@ -1,5 +1,6 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata = { title: "Weather products" };
 
@@ -33,12 +34,10 @@ const desks = [
 export default function WeatherProductsPage() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8 p-4 sm:p-6">
-      <header className="space-y-2">
-        <h1 className="font-semibold text-heading-lg">Weather products</h1>
-        <p className="text-body text-muted-foreground">
-          Choose a desk to prepare products or review guidance.
-        </p>
-      </header>
+      <PageHeader
+        description="Choose a desk to prepare products or review guidance."
+        title="Weather products"
+      />
       <nav aria-label="Weather product desks">
         <ul className="grid gap-4 sm:grid-cols-2">
           {desks.map((desk) => (

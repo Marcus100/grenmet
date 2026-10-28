@@ -27,6 +27,7 @@ export type RequestState =
   | "review"
   | "approved"
   | "draft"
+  | "returned"
   | "rejected"
   | "cancelled";
 
@@ -97,7 +98,7 @@ const states: Record<string, { state: RequestState; step: 0 | 1 | 2 }> = {
   DRAFT: { state: "draft", step: 0 },
   SUBMITTED: { state: "pending", step: 1 },
   PENDING: { state: "pending", step: 1 },
-  RETURNED: { state: "review", step: 2 },
+  RETURNED: { state: "returned", step: 0 },
   APPROVED: { state: "approved", step: 0 },
   REJECTED: { state: "rejected", step: 0 },
   CANCELLED: { state: "cancelled", step: 0 },

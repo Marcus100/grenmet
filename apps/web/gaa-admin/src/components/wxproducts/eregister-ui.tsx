@@ -14,13 +14,15 @@ import {
 } from "@barrelsgd/ui/components/ui/table";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
+import { type StationSettings, settingsPending } from "./eregister-derived";
 import {
   cellValue,
   type FieldColumn,
   type RegisterColumn,
   type RegisterGroup,
+  TIME_MARKS,
 } from "./eregister-layout";
-import { READINGS } from "./eregister-readings";
+import { READINGS, type ReadingContext } from "./eregister-readings";
 
 export const GRID_CELL = "border-border border-r last:border-r-0";
 export const HEAD_ROW = "bg-muted/50 hover:bg-muted/50";
@@ -54,6 +56,7 @@ export function SectionCard({
 function columnWidth(column: RegisterColumn): string {
   if (column.kind === "fixed") return "w-8 min-w-8";
   if (column.wide) return "min-w-56";
+  if (column.size === "md") return "w-16 min-w-16";
   if (column.signed?.role === "sign") return "w-10 min-w-10";
   return "w-12 min-w-12";
 }
@@ -96,11 +99,14 @@ function VerticalName({
  * layer. `renderValue` swaps the read-only text for an input.
  */
 export function RegisterTable({
+  context,
   leads,
   renderValue,
   section,
   values,
 }: {
+  /** Station settings the QFE, QNH and corrections readings need. */
+  context?: ReadingContext;
   leads?: Record<string, string>;
   renderValue?: (
     column: FieldColumn,
@@ -209,6 +215,10 @@ export function RegisterTable({
                   );
                 }
                 if (column.upper) {
+                  const fallback =
+                    column.upper.fallback && !values[column.upper.key]
+                      ? READINGS[column.key]?.(values, context)
+                      : undefined;
                   return (
                     <TableCell
                       aria-label={renderValue ? undefined : column.upper.label}
@@ -221,7 +231,7 @@ export function RegisterTable({
                     >
                       {renderValue
                         ? renderValue(column, "upper")
-                        : values[column.upper.key] || ""}
+                        : values[column.upper.key] || fallback || ""}
                     </TableCell>
                   );
                 }
@@ -229,7 +239,7 @@ export function RegisterTable({
                   column.signed?.role === "sign"
                     ? undefined
                     : READINGS[column.key];
-                const text = reading ? reading(values) : "";
+                const text = reading ? reading(values, context) : "";
                 return (
                   <TableCell
                     className="h-6 border-border border-r border-b bg-muted/30 px-0.5 text-center font-mono text-caption text-muted-foreground tabular-nums"
@@ -293,5 +303,64 @@ export function SummaryHead({
       <span>{label}</span>
       <span className="font-normal text-muted-foreground text-xs">{unit}</span>
     </span>
+  );
+}
+
+/** The TIME MARKS line of the paper register; `renderInput` swaps text for inputs. */
+export function TimeMarks({
+  renderInput,
+  values,
+}: {
+  renderInput?: (key: string, label: string) => React.ReactNode;
+  values: Record<string, string>;
+}) {
+  return (
+    <SectionCard className="w-fit max-w-full" title="TIME MARKS">
+      <dl className="flex flex-wrap gap-x-6 gap-y-3 p-4 text-sm">
+        {TIME_MARKS.map((mark) => (
+          <div className="flex flex-col gap-1" key={mark.key}>
+            <dt className="text-muted-foreground text-xs">{mark.label}</dt>
+            <dd className="font-medium font-mono tabular-nums">
+              {renderInput
+                ? renderInput(mark.key, mark.label)
+                : values[mark.key] || "—"}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </SectionCard>
+  );
+}
+
+const AMOUNT_NAMES: [keyof StationSettings, string][] = [
+  ["totalCorrectionHpa", "the total barometer correction"],
+  ["qfeOffsetHpa", "the QFE amount"],
+  ["seaLevelOffsetHpa", "the sea level amount"],
+  ["qnhOffsetHpa", "the QNH amount"],
+];
+
+/**
+ * Says why pressures show a dash when a station's amounts are missing. Not
+ * shown while the settings load, nor for a station whose amounts are all set
+ * (78958 holds the owner-confirmed amounts).
+ */
+export function PendingSettingsNote({
+  settings,
+}: {
+  settings: StationSettings | null | undefined;
+}) {
+  if (!(settings && settingsPending(settings))) return null;
+  const missing = AMOUNT_NAMES.filter(([key]) => settings[key] === null).map(
+    ([, name]) => name
+  );
+  return (
+    <p
+      className="rounded-md border border-border border-l-4 border-l-warning bg-card px-3 py-2 text-muted-foreground text-xs"
+      data-testid="pending-settings-note"
+    >
+      Station pressure, sea level pressure, QFE and QNH are worked out from the
+      barometer as read with this station's fixed amounts. Pending:{" "}
+      {missing.join(", ")}. Until they are entered those cells show a dash.
+    </p>
   );
 }

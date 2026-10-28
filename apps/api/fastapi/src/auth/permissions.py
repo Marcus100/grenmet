@@ -198,12 +198,16 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cms.article.manage", "Manage CMS editorial settings"),
     # eRegister
     PermissionDef(
+        "eregister.observe",
+        "Record, approve and correct register observations and read the register; approving sends the observation to WIS2 and email (the observer)",
+    ),
+    PermissionDef(
         "eregister.send",
-        "Email a register observation and queue it for WIS2 publication",
+        "Email a register observation or queue it for WIS2 by hand (approval sends it automatically)",
     ),
     PermissionDef(
         "eregister.qc",
-        "Accept, reject or reopen a register observation (QC; a different person from the observer)",
+        "Accept, reject or reopen a register observation and change station settings (QC; reviewing another observer's record is optional)",
     ),
     # CAP — alert lifecycle
     PermissionDef("cap.alert.create", "Create CAP alerts"),
@@ -219,6 +223,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     # CAP — administration
     PermissionDef("cap.integrations.manage", "Manage CAP integrations"),
     PermissionDef("cap.settings.manage", "Manage CAP settings"),
+    PermissionDef(
+        "cap.library.manage",
+        "Edit the hazard library and impact-based matrix (impacts, responses, thresholds); approval needs a different reviewer holding cap.library.manage and cap.alert.approve",
+    ),
     PermissionDef("cap.feed.manage", "Manage external CAP feed sources"),
     # Transport — staff bus service (admin portal, driver app, staff app)
     # Barrels Events — app access is a permission; module keys narrow it further
@@ -547,7 +555,16 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "cap.alert.read",
             "cap.integrations.manage",
             "cap.settings.manage",
+            "cap.library.manage",
             "cap.feed.manage",
+        ),
+    ),
+    "gms-lead": (
+        "GMS lead: edits the hazard library and impact-based matrix and approves alerts and library versions",
+        (
+            "cap.alert.read",
+            "cap.alert.approve",
+            "cap.library.manage",
         ),
     ),
     "events-member": (
@@ -584,6 +601,10 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "events.ops.settlement",
             "events.ops.listings",
         ),
+    ),
+    "eregister-observer": (
+        "eRegister observer: records the hourly observations",
+        ("eregister.observe",),
     ),
     "eregister-sender": (
         "eRegister: email observations and queue them for WIS2",

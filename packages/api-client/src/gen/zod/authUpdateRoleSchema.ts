@@ -27,3 +27,7 @@ export const authUpdateRoleErrorSchema = z.union([
 ]);
 
 export const authUpdateRoleBodySchema = roleUpdateSchema;
+
+export const authUpdateRolePathSchema = z.object({
+  role_id: z.uuid(),
+});

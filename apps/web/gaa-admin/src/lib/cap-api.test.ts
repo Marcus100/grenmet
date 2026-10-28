@@ -9,7 +9,7 @@ import {
   it,
   vi,
 } from "vitest";
-import { fetchAdminAlerts } from "./cap-api";
+import { fetchAdminAlerts, getAlertByIdentifier } from "./cap-api";
 
 vi.mock("@/lib/auth-config", () => ({
   getCapApiBaseUrl: () => "http://localhost:8000",
@@ -87,5 +87,23 @@ describe("fetchAdminAlerts", () => {
     );
 
     await expect(fetchAdminAlerts("test-access-token")).rejects.toThrow();
+  });
+});
+
+describe("getAlertByIdentifier", () => {
+  it("encodes reserved characters in the identifier", async () => {
+    let requested = "";
+    server.use(
+      http.get("http://localhost:8000/api/cap/alerts/*", ({ request }) => {
+        requested = request.url;
+        return HttpResponse.json({ detail: "Not found" }, { status: 404 });
+      })
+    );
+
+    await getAlertByIdentifier("GD/2026#1?x y").catch(() => undefined);
+
+    expect(requested).toBe(
+      "http://localhost:8000/api/cap/alerts/GD%2F2026%231%3Fx%20y"
+    );
   });
 });

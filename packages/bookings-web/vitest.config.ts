@@ -6,8 +6,8 @@ export default defineConfig({
     // the 5 s default flakes. The form tests type through user-event, so give them room.
     testTimeout: 60_000,
     hookTimeout: 60_000,
-    // Turbo runs two test tasks at once; cap workers so they do not starve each other.
-    maxWorkers: 2,
+    // Turbo runs two test tasks at once; half the cores each keeps them from starving each other.
+    maxWorkers: "50%",
     environment: "jsdom",
     // Testing Library registers its cleanup through the global afterEach.
     globals: true,

@@ -37,3 +37,7 @@ export const authAdminActivateAccountBodySchema =
   adminActivationSchema.describe(
     "The operator vouches for the exact address they saw on the account."
   );
+
+export const authAdminActivateAccountPathSchema = z.object({
+  user_id: z.uuid(),
+});

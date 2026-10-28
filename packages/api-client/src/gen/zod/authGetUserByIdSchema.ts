@@ -24,3 +24,7 @@ export const authGetUserByIdErrorSchema = z.union([
   authGetUserByIdStatus403Schema,
   authGetUserByIdStatus422Schema,
 ]);
+
+export const authGetUserByIdPathSchema = z.object({
+  user_id: z.uuid(),
+});

@@ -30,3 +30,7 @@ export const featureGetFlagErrorSchema = z.union([
   featureGetFlagStatus404Schema,
   featureGetFlagStatus422Schema,
 ]);
+
+export const featureGetFlagPathSchema = z.object({
+  flag_id: z.string().min(1).max(100),
+});

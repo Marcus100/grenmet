@@ -6,7 +6,10 @@
 import type { ForecastSourcePropertiesKindEnum } from "./ForecastSourcePropertiesKindEnum.js";
 
 /**
- * @description One published snapshot by id, for editorial links to a product.\n\nUnlike the feed it stays readable after its validity window; `current` says\nwhether it is still in force. Withdrawn products are not returned.
+ * @description One published snapshot by id, for editorial links to a product.
+ *
+ * Unlike the feed it stays readable after its validity window; `current` says
+ * whether it is still in force. Withdrawn products are not returned.
  * @type object
  */
 export type PublicProductDetail = {

@@ -115,6 +115,7 @@ jobs:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           EVENTS_SSO_CLIENT_SECRET: ${{ secrets.EVENTS_SSO_CLIENT_SECRET }}
           GAA_ADMIN_SSO_CLIENT_SECRET: ${{ secrets.GAA_ADMIN_SSO_CLIENT_SECRET }}
+          BARRELS_ADMIN_SSO_CLIENT_SECRET: ${{ secrets.BARRELS_ADMIN_SSO_CLIENT_SECRET }}
           CMS_SSO_CLIENT_SECRET: ${{ secrets.CMS_SSO_CLIENT_SECRET }}
           WEATHER_SSO_CLIENT_SECRET: ${{ secrets.WEATHER_SSO_CLIENT_SECRET }}
           MBIA_SSO_CLIENT_SECRET: ${{ secrets.MBIA_SSO_CLIENT_SECRET }}
@@ -126,6 +127,14 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           USERNAME: ${{ secrets.USERNAME }}
           HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}
+          # Staging-only Traefik basic auth (htpasswd bcrypt lines); render-env.py
+          # requires them on staging. Never exported on production (Compose would
+          # otherwise read them from the shell).
+          STAGING_BASIC_AUTH_USERS: ${{ inputs.environment == 'staging' && secrets.STAGING_BASIC_AUTH_USERS || '' }}
+          ADMINER_BASIC_AUTH_USERS: ${{ inputs.environment == 'staging' && secrets.ADMINER_BASIC_AUTH_USERS || '' }}
+          # user:password of one STAGING_BASIC_AUTH_USERS entry, so the post-deploy
+          # smoke can pass the staging gate. Unset on production.
+          STAGING_PROBE_CREDENTIALS: ${{ inputs.environment == 'staging' && secrets.STAGING_PROBE_CREDENTIALS || '' }}
           STORAGE_ENDPOINT_URL: ${{ secrets.STORAGE_ENDPOINT_URL || secrets.DO_SPACES_ENDPOINT }}
           STORAGE_REGION: ${{ secrets.STORAGE_REGION || secrets.DO_SPACES_REGION }}
           STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET || secrets.DO_SPACES_BUCKET }}
@@ -192,9 +201,10 @@ jobs:
           BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
           PROBE_INCIDENTS_ENABLED: ${{ vars.PROBE_INCIDENTS_ENABLED }}
           PROBE_MAINTENANCE: ${{ vars.PROBE_MAINTENANCE }}
+          STAGING_PROBE_CREDENTIALS: ${{ inputs.environment == 'staging' && secrets.STAGING_PROBE_CREDENTIALS || '' }}
         run: |
           set -euo pipefail
-          sudo --preserve-env=DEPLOY_ENV,GITHUB_SHA,PROBE_HEARTBEAT_URL,BETTERSTACK_API_TOKEN,PROBE_INCIDENTS_ENABLED,PROBE_MAINTENANCE bash ../../scripts/monitoring/install.sh
+          sudo --preserve-env=DEPLOY_ENV,GITHUB_SHA,PROBE_HEARTBEAT_URL,BETTERSTACK_API_TOKEN,PROBE_INCIDENTS_ENABLED,PROBE_MAINTENANCE,STAGING_PROBE_CREDENTIALS bash ../../scripts/monitoring/install.sh
       # Marks the release deployed in Sentry so issues show "first seen in" and
       # regressions per deploy. Release = commit SHA, matching SENTRY_RELEASE
       # (render-env.py) and NEXT_PUBLIC_RELEASE (build-web-images.yml). Optional:

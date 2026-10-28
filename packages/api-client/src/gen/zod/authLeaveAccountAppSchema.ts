@@ -36,3 +36,7 @@ export const authLeaveAccountAppErrorSchema = z.union([
 ]);
 
 export const authLeaveAccountAppBodySchema = accountSessionRequestSchema;
+
+export const authLeaveAccountAppPathSchema = z.object({
+  app: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/),
+});

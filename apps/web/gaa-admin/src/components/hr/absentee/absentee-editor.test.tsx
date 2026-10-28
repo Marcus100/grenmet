@@ -15,9 +15,9 @@ import {
   it,
   vi,
 } from "vitest";
-import { EMPTY_ABSENTEE } from "./absentee-document";
 import { AbsenteeEditor, buildAbsenteeReportPayload } from "./absentee-editor";
 import { AbsenteeSubmissions } from "./absentee-submissions";
+import { EMPTY_ABSENTEE } from "./absentee-values";
 
 const navigation = vi.hoisted(() => ({ search: "" }));
 vi.mock("next/navigation", () => ({
@@ -377,6 +377,6 @@ describe("AbsenteeSubmissions", () => {
     expect(await screen.findByText("TIME_OFF")).toBeInTheDocument();
     expect(screen.getByText("2026-07-03")).toBeInTheDocument();
     expect(screen.getByText("Family matter")).toBeInTheDocument();
-    expect(screen.getByText("SUBMITTED")).toBeInTheDocument();
+    expect(screen.getByText("Submitted")).toBeInTheDocument();
   });
 });

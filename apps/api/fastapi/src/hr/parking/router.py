@@ -4,8 +4,10 @@ from typing import Any
 from fastapi import APIRouter, Response, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr.filenames import preview_filename
 from src.hr.submission import submission_list, submission_public
 from src.pagination import PaginationDep
+from src.utils.pdf_response import PDF_HEADERS_DOC, pdf_response
 
 from . import service
 from .schemas import (
@@ -27,7 +29,11 @@ router = APIRouter(prefix="/hr", tags=["hr-parking"])
     summary="Preview parking application PDF",
     description="Render the scoped draft application without saving or signing it.",
     responses={
-        200: {"content": {"application/pdf": {}}, "description": "Draft PDF"},
+        200: {
+            "content": {"application/pdf": {}},
+            "description": "Draft PDF",
+            "headers": PDF_HEADERS_DOC,
+        },
         400: {"description": "Invalid application"},
         403: {"description": "Subject outside scope"},
         422: {"description": "Invalid fields"},
@@ -39,14 +45,7 @@ async def preview_parking_permit(
     pdf = await service.preview_pdf(
         session=session, current_user=current_user, payload=payload
     )
-    return Response(
-        content=pdf,
-        media_type="application/pdf",
-        headers={
-            "Cache-Control": "private, no-store",
-            "X-Content-Type-Options": "nosniff",
-        },
-    )
+    return pdf_response(pdf, preview_filename("parking_permit"))
 
 
 @router.patch(

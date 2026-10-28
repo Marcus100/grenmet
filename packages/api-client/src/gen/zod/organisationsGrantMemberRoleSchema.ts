@@ -51,3 +51,16 @@ export const organisationsGrantMemberRoleErrorSchema = z.union([
 
 export const organisationsGrantMemberRoleBodySchema =
   membershipGrantCreateSchema;
+
+export const organisationsGrantMemberRolePathSchema = z.object({
+  membership_id: z.string(),
+});
+
+export const organisationsGrantMemberRoleHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

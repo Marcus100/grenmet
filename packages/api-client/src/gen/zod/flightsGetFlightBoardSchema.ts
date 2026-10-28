@@ -28,3 +28,8 @@ export const flightsGetFlightBoardResponseSchema =
 
 export const flightsGetFlightBoardErrorSchema =
   flightsGetFlightBoardStatus422Schema;
+
+export const flightsGetFlightBoardQuerySchema = z.object({
+  airport: z.enum(["TGPY"]).optional().default("TGPY"),
+  board: flightBoardResponsePropertiesBoardEnumSchema.optional(),
+});

@@ -45,3 +45,21 @@ export const hrGetDepartmentTimesheetsErrorSchema = z.union([
   hrGetDepartmentTimesheetsStatus403Schema,
   hrGetDepartmentTimesheetsStatus422Schema,
 ]);
+
+export const hrGetDepartmentTimesheetsQuerySchema = z.object({
+  department_id: z.string(),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

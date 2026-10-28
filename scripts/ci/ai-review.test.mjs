@@ -12,6 +12,9 @@ import {
   sanitize,
 } from "./ai-review.mjs";
 
+// Compare the host, not a URL prefix, so the check cannot match a lookalike host.
+const isAnthropic = (url) => new URL(url).hostname === "api.anthropic.com";
+
 const contains = (text, needle) =>
   assert.ok(text.includes(needle), `expected "${needle}" in: ${text}`);
 
@@ -158,7 +161,7 @@ function fakeFetch({ comments = [], modelText, anthropicStatus = 200, diff }) {
       json: () => Promise.resolve(data),
       text: () => Promise.resolve(text),
     });
-    if (url.startsWith("https://api.anthropic.com")) {
+    if (isAnthropic(url)) {
       if (anthropicStatus !== 200)
         return { ok: false, status: anthropicStatus };
       return ok({ content: [{ type: "text", text: modelText }] });
@@ -177,11 +180,32 @@ function fakeFetch({ comments = [], modelText, anthropicStatus = 200, diff }) {
 }
 
 const env = {
+  AI_REVIEW_API_BUDGET_USD: "1",
   ANTHROPIC_API_KEY: "k",
   GITHUB_TOKEN: "t",
   GITHUB_REPOSITORY: "o/r",
   PR_NUMBER: "7",
 };
+
+test("API keys alone never enable spending without an explicit approved budget", async () => {
+  for (const budget of [undefined, "0", "-1", "invalid"]) {
+    let called = false;
+    const code = await run(
+      { ...env, AI_REVIEW_API_BUDGET_USD: budget },
+      {
+        fetchImpl() {
+          called = true;
+          throw new Error("must not call the API");
+        },
+        log() {
+          /* Deliberately silence the expected disabled notice. */
+        },
+      }
+    );
+    assert.equal(code, 0);
+    assert.equal(called, false);
+  }
+});
 const goodModel = JSON.stringify({
   summary: "ok",
   verdict: "approve",
@@ -238,9 +262,7 @@ test("run sends only reviewable diff content to the model", async () => {
       section("src/a.py", "+real\n"),
   });
   await run(env, deps(f.impl));
-  const sent = f.calls.find((c) =>
-    c.url.startsWith("https://api.anthropic.com")
-  ).body;
+  const sent = f.calls.find((c) => isAnthropic(c.url)).body;
   contains(sent, "real");
   assert.ok(!sent.includes("secretish"));
 });
@@ -274,7 +296,5 @@ test("run skips a diff with nothing reviewable", async () => {
     diff: section("pnpm-lock.yaml"),
   });
   await run(env, deps(f.impl));
-  assert.ok(
-    !f.calls.some((c) => c.url.startsWith("https://api.anthropic.com"))
-  );
+  assert.ok(!f.calls.some((c) => isAnthropic(c.url)));
 });

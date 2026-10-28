@@ -10,6 +10,8 @@ from src.auth.models import User
 from src.auth.policy import has_permission
 
 from .qc import AUDIT_ENTITY
+from .registry import AUDIT_ENTITY as REGISTRY_AUDIT_ENTITY
+from .stations import AUDIT_ENTITY as STATION_AUDIT_ENTITY
 
 READ_PERMISSIONS = ("eregister.qc", "eregister.send")
 
@@ -23,3 +25,5 @@ async def _staff(_session: AsyncSession, actor: User, _entity_id: str) -> bool:
 
 def register() -> None:
     registry.register_entity(AUDIT_ENTITY, _staff)
+    registry.register_entity(STATION_AUDIT_ENTITY, _staff)
+    registry.register_entity(REGISTRY_AUDIT_ENTITY, _staff)

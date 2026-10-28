@@ -45,3 +45,17 @@ export const organisationsDeleteMemberErrorSchema = z.union([
   organisationsDeleteMemberStatus409Schema,
   organisationsDeleteMemberStatus422Schema,
 ]);
+
+export const organisationsDeleteMemberPathSchema = z.object({
+  organisation_id: z.string(),
+  membership_id: z.string(),
+});
+
+export const organisationsDeleteMemberHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

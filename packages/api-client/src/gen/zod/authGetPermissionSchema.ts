@@ -24,3 +24,7 @@ export const authGetPermissionErrorSchema = z.union([
   authGetPermissionStatus404Schema,
   authGetPermissionStatus422Schema,
 ]);
+
+export const authGetPermissionPathSchema = z.object({
+  permission_id: z.uuid(),
+});

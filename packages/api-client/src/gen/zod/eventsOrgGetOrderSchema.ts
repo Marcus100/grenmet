@@ -37,3 +37,16 @@ export const eventsOrgGetOrderErrorSchema = z.union([
   eventsOrgGetOrderStatus404Schema,
   eventsOrgGetOrderStatus422Schema,
 ]);
+
+export const eventsOrgGetOrderPathSchema = z.object({
+  order_id: z.uuid(),
+});
+
+export const eventsOrgGetOrderHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
+    ),
+});

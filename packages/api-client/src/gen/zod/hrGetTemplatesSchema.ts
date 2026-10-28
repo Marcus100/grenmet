@@ -26,3 +26,7 @@ export const hrGetTemplatesErrorSchema = z.union([
   hrGetTemplatesStatus403Schema,
   hrGetTemplatesStatus422Schema,
 ]);
+
+export const hrGetTemplatesQuerySchema = z.object({
+  department_id: z.union([z.string(), z.null()]).optional(),
+});

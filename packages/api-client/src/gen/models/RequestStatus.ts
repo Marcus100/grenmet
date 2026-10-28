@@ -9,6 +9,7 @@ export const requestStatus = {
   APPROVED: "APPROVED",
   REJECTED: "REJECTED",
   CANCELLED: "CANCELLED",
+  RETURNED: "RETURNED",
 } as const;
 
 export type RequestStatus = (typeof requestStatus)[keyof typeof requestStatus];

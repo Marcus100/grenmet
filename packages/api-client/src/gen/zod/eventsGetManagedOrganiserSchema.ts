@@ -40,3 +40,10 @@ export const eventsGetManagedOrganiserErrorSchema = z.union([
   eventsGetManagedOrganiserStatus422Schema,
   eventsGetManagedOrganiserStatus429Schema,
 ]);
+
+export const eventsGetManagedOrganiserQuerySchema = z.object({
+  organiser: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional()
+    .describe("Organiser to act for when the member manages several."),
+});

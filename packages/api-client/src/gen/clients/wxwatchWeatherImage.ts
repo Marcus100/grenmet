@@ -12,6 +12,7 @@ import type {
 
 /**
  * @description Issue a short-lived download redirect scoped to the environment's wxwatch prefix.
+ * Only PNG, JPEG, GIF and WebP names are accepted; anything else is a 400.
  * @summary Weather Image
  * {@link /api/v1/wxwatch/images/:storage_path}
  */

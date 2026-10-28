@@ -31,3 +31,7 @@ export const eventsSaveListingErrorSchema = z.union([
   eventsSaveListingStatus422Schema,
   eventsSaveListingStatus429Schema,
 ]);
+
+export const eventsSaveListingPathSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+});

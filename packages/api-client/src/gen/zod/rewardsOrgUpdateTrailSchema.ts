@@ -47,3 +47,16 @@ export const rewardsOrgUpdateTrailErrorSchema = z.union([
 ]);
 
 export const rewardsOrgUpdateTrailBodySchema = rewardsTrailUpdateSchema;
+
+export const rewardsOrgUpdateTrailPathSchema = z.object({
+  trail_id: z.uuid(),
+});
+
+export const rewardsOrgUpdateTrailHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

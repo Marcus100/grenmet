@@ -40,6 +40,7 @@ import { FormActionBar } from "@/components/hr/form-action-bar";
 import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
 import { PrefillInput, SourceHint } from "@/components/hr/prefill-field";
+import { editingHint, isEditableStatus } from "@/components/hr/request-status";
 import {
   signedDocumentsKey,
   useSigning,
@@ -47,6 +48,7 @@ import {
 import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import type { SubmissionMetadata } from "@/components/hr/submission-date";
 import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
+import { hrFormFilename } from "@/lib/pdf-filename";
 import { reportError } from "@/lib/report-error";
 import {
   type DailyStatusEntry,
@@ -54,7 +56,7 @@ import {
   EMPTY_DAILY_STATUS,
   SHIFT_OPTIONS,
   YES_NO,
-} from "./daily-status-document";
+} from "./daily-status-values";
 
 export function buildStatusReportPayload(
   values: DailyStatusValues,
@@ -190,12 +192,8 @@ export function DailyStatusEditor() {
         { keepDefaultValues: true }
       );
       setDraftId(draftParam);
-      setSubmission(draft.status === "DRAFT" ? null : draft);
-      setStatusHint(
-        draft.status === "DRAFT"
-          ? "Editing saved draft"
-          : "Submitted copy — Reset to start a new form"
-      );
+      setSubmission(isEditableStatus(draft.status) ? null : draft);
+      setStatusHint(editingHint(draft));
       loadedDraftRef.current = draftParam;
     }
   }, [draftParam, draftQuery.data, profileQuery.data, form]);
@@ -232,7 +230,11 @@ export function DailyStatusEditor() {
         payload: buildStatusReportPayload(form.state.values, departmentId),
         previewPath: "/api/v1/hr/status-reports/preview-pdf",
         signedDocumentId: submission?.signed_document_id,
-        filename: `daily-status-${form.getFieldValue("date")}.pdf`,
+        filename: hrFormFilename(
+          "status_report",
+          Boolean(submission?.signed_document_id),
+          String(form.getFieldValue("date") ?? "")
+        ),
       });
     } catch (error) {
       reportError(error, "hr-status-download");
@@ -683,7 +685,11 @@ export function DailyStatusEditor() {
           label="Daily Airport Status Report"
           preview={
             <HrPdfPreview
-              filename="daily-status-report.pdf"
+              filename={hrFormFilename(
+                "status_report",
+                Boolean(submission?.signed_document_id),
+                values.date
+              )}
               payload={
                 departmentId
                   ? buildStatusReportPayload(values, departmentId)

@@ -227,6 +227,67 @@ describe("getSafeReturnTo: origin entries and control characters", () => {
   }
 });
 
+// What the web-auth service receives on staging (infra/docker/docker-compose.deploy.yml
+// with BASE_DOMAIN=staging.barrels.gd). The app-URL variables are honoured as they
+// are; every other app that signs in here is named in AUTH_ALLOWED_RETURN_HOSTS.
+// scripts/production/auth-return-origins.test.mjs keeps that file and this list in step.
+const STAGING = {
+  apps: {
+    auth: "https://auth.staging.barrels.gd",
+    admin: "https://gms.staging.barrels.gd",
+    docs: "https://docs.staging.barrels.gd",
+    weather: "https://weather.staging.barrels.gd",
+    signal: "https://signal.staging.barrels.gd",
+    mbia: "https://mbia.staging.barrels.gd",
+    events: "https://events.staging.barrels.gd",
+  },
+  hosts:
+    "https://admin.staging.barrels.gd,https://bookings.staging.barrels.gd,https://cms.staging.barrels.gd,https://elections.staging.barrels.gd,https://gmsdash.staging.barrels.gd",
+};
+
+describe("getSafeReturnTo: the staging compose configuration", () => {
+  it("returns to every app that signs in through the auth app", () => {
+    configure(STAGING);
+    const origins = [
+      ...Object.values(STAGING.apps),
+      ...STAGING.hosts.split(","),
+    ];
+    expect(origins).toHaveLength(12);
+    for (const origin of origins) {
+      expect(getSafeReturnTo(`${origin}/start?x=1`)).toBe(
+        `${origin}/start?x=1`
+      );
+    }
+  });
+
+  it("returns to the staff console and studio, which a leading-dot entry never reached", () => {
+    configure({ apps: STAGING.apps, hosts: ".staging.barrels.gd" });
+    expect(getSafeReturnTo("https://admin.staging.barrels.gd/")).toBeNull();
+    expect(getSafeReturnTo("https://bookings.staging.barrels.gd/")).toBeNull();
+    configure(STAGING);
+    expect(getSafeReturnTo("https://admin.staging.barrels.gd/")).toBe(
+      "https://admin.staging.barrels.gd/"
+    );
+    expect(getSafeReturnTo("https://bookings.staging.barrels.gd/studio")).toBe(
+      "https://bookings.staging.barrels.gd/studio"
+    );
+  });
+
+  it("still refuses an unregistered sibling, the apex, production and look-alikes", () => {
+    configure(STAGING);
+    for (const url of [
+      "https://unregistered.staging.barrels.gd/",
+      "https://staging.barrels.gd/",
+      "https://admin.barrels.gd/",
+      "https://admin.staging.barrels.gd.evil.example/",
+      "https://evil.example/https://admin.staging.barrels.gd/",
+      "http://admin.staging.barrels.gd/",
+    ]) {
+      expect(getSafeReturnTo(url), url).toBeNull();
+    }
+  });
+});
+
 describe("getSafeReturnTo: local development", () => {
   it("allows the local app ports only when NODE_ENV is development", () => {
     configure({ nodeEnv: "development" });

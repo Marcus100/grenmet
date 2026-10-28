@@ -28,3 +28,7 @@ export const hrGetPeriodRevisionsErrorSchema = z.union([
   hrGetPeriodRevisionsStatus404Schema,
   hrGetPeriodRevisionsStatus422Schema,
 ]);
+
+export const hrGetPeriodRevisionsPathSchema = z.object({
+  period_id: z.uuid(),
+});
