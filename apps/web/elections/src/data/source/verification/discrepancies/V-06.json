@@ -1,0 +1,13 @@
+{
+  "id": "V-06",
+  "area": "Voter register",
+  "status": "open",
+  "impact": "data",
+  "what": "The 16 October consolidated PDF has one source sex code U, in division M04. It counts towards 95,908 electors but not the F/M totals (49,497 F, 46,410 M). The PDF does not define U.",
+  "action": "Retain the record and report its code separately; never infer sex from the name.",
+  "sources": [
+    "PEO consolidated list reference date 16 October 2026",
+    "PEO September and October 2026 addenda",
+    "https://peogrenada.org/constituency-summary/"
+  ]
+}

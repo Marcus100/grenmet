@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 import GuidePage, { generateStaticParams } from "@/app/learn/[slug]/page";
 import { GUIDES } from "@/data/learning";
 
+const SEARCH_IS_NOT_REGISTRATION =
+  /Searching the list does not register you or update your details/;
+
 vi.mock("server-only", () => ({}));
 describe("learning pages", () => {
   it("pre-renders all eight real guides", () => {
@@ -31,5 +34,19 @@ describe("learning pages", () => {
     expect(
       screen.getByRole("heading", { name: "Try explaining it yourself" })
     ).toBeInTheDocument();
+  });
+  it("separates checking the voter list from in-person registration", async () => {
+    render(
+      await GuidePage({
+        params: Promise.resolve({ slug: "registering-and-voting" }),
+      })
+    );
+    expect(
+      screen.getByRole("link", { name: "Search the official voter list →" })
+    ).toHaveAttribute("href", "https://search.peogrenada.org/");
+    expect(
+      screen.getByRole("link", { name: "Read PEO registration guidance →" })
+    ).toHaveAttribute("href", "https://peogrenada.org/registration-procedure/");
+    expect(screen.getByText(SEARCH_IS_NOT_REGISTRATION)).toBeInTheDocument();
   });
 });

@@ -34,7 +34,7 @@ describe("constituency search", () => {
       "/constituencies/town-of-st-george"
     );
     expect(searchConstituencies(index, "delma")[0]?.note).toContain(
-      "NDC member"
+      "NDC member at dissolution"
     );
   });
 

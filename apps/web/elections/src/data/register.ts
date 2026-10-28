@@ -14,7 +14,7 @@ export interface RegisterSnapshot {
 
 export interface RegisterAddendum {
   date: string;
-  /** division → new registrations */
+  /** division → entries in this dated addendum; may overlap other lists. */
   div: Record<string, number>;
   file: string;
 }
@@ -54,14 +54,14 @@ export function addendumTotals(file: RegisterFile) {
 export interface RollCheck {
   added: number;
   from: string;
-  /** Previous list + additions − next list: removed or transferred, implied. */
+  /** Arithmetic residual only; overlapping addenda cannot establish removals. */
   implied: number;
   next: number;
   previous: number;
   to: string;
 }
 
-/** Previous list + new registrations − next list, for each pair of lists. */
+/** Previous snapshot + dated addendum entries − next snapshot, without causal inference. */
 export function rollChecks(file: RegisterFile): RollCheck[] {
   const lists = snapshotTotals(file);
   const adds = addendumTotals(file);
