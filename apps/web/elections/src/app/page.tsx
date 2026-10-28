@@ -150,10 +150,9 @@ export default function FrontPage() {
             {status}
           </h1>
           <p className="mt-3 max-w-[56ch] font-serif text-el-ink-2 text-lg leading-normal">
-            Prime Minister Dickon Mitchell has announced polling day: Thursday 5
-            November, with nominations on 15 October. Fifteen seats, eight for a
-            majority. The NDC won nine in 2022; Delma Thomas has since crossed
-            to the government, and Peter David now leads a new party, the DPM.
+            Fifteen constituencies choose the next House of Representatives.
+            Follow the campaign, explore your constituency, and compare the
+            election with Grenada’s history.
           </p>
           <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap">
             <Link

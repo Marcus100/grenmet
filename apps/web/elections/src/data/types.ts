@@ -99,6 +99,7 @@ export interface CampaignFile {
     NDC: string;
     NNP: Partial<Record<ConstituencyCode, string>>;
   };
+  candidate_names_as_of?: string;
   /** Why a named candidate is uncertain (✱), by party and seat. */
   candidate_seat_flags?: Record<
     string,
@@ -118,6 +119,14 @@ export interface CampaignFile {
   events: CampaignEvent[];
   /** Nomination day, once proclaimed in the Gazette. */
   nomination_day?: string | null;
+  /** Published totals, distinct from the completeness of the named directory. */
+  nomination_summary?: {
+    date: string;
+    total: number;
+    party_counts: Record<string, number>;
+    src: string;
+    note: string;
+  };
   police_polling_day?: string | null;
   /** Polling day, once proclaimed in the Gazette. */
   polling_day?: string | null;

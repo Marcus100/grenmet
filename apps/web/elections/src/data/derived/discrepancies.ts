@@ -28,6 +28,9 @@ import record25 from "@/data/source/verification/discrepancies/R-05.json";
 import record26 from "@/data/source/verification/discrepancies/V-01.json";
 import record27 from "@/data/source/verification/discrepancies/V-02.json";
 import record28 from "@/data/source/verification/discrepancies/V-03.json";
+import record29 from "@/data/source/verification/discrepancies/V-04.json";
+import record30 from "@/data/source/verification/discrepancies/V-05.json";
+import record31 from "@/data/source/verification/discrepancies/V-06.json";
 
 const data = {
   items: Object.values({
@@ -60,6 +63,9 @@ const data = {
     "V-01": record26,
     "V-02": record27,
     "V-03": record28,
+    "V-04": record29,
+    "V-05": record30,
+    "V-06": record31,
   }),
 };
 export default data;

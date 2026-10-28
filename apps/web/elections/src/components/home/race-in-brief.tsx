@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Flag } from "@/components/flag";
 import { PartyDot } from "@/components/party-chip";
 import { SourceLink } from "@/components/source-link";
@@ -14,7 +15,7 @@ import { pct } from "@/lib/format";
 
 const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 
-/** One card per party standing in 2026: seats now, 2022 result, candidates named. */
+/** Three parties tracked here: House at dissolution, 2022 result, recorded names. */
 export function RaceInBrief({
   seats,
   result2022,
@@ -26,76 +27,88 @@ export function RaceInBrief({
 }) {
   const house = currentHouse(seats);
   return (
-    <ul className="grid gap-px border border-el-rule bg-el-rule md:grid-cols-3">
-      {(["NDC", "NNP", "DPM"] as const).map((party) => {
-        const note = PARTY_NOTES[party];
-        const named = Object.keys(campaign.candidates[party] ?? {}).length;
-        const won = result2022.seats[party];
-        const votes = result2022.votes[party];
-        const uncertain = seats.filter(
-          (seat) =>
-            seat.candidates.some((candidate) => candidate.party === party) &&
-            candidateNote(campaign, party, seat.code)
-        ).length;
-        return (
-          <li className="bg-background p-4" key={party}>
-            <span
-              className="block h-1 w-10"
-              style={{ background: partyColor(party) }}
-            />
-            <h3 className="mt-2 font-bold text-lg leading-tight">
-              <PartyDot party={party} />
-              {partyInfo(party).name}
-            </h3>
-            <p className="mt-1 text-base text-el-ink-2 leading-relaxed">
-              {note.text}
-              {note.unverified && (
-                <Flag note={note.unverified} status="unverified" />
-              )}
-            </p>
-            <p className="mt-1 text-base text-el-muted leading-relaxed">
-              <SourceLink id={note.source} sources={campaign.sources} />
-            </p>
-            <dl className="mt-3 grid grid-cols-3 gap-2">
-              <div>
-                <dt className={LABEL}>Seats now</dt>
-                <dd
-                  className="font-semibold text-xl tabular-nums"
-                  style={{ color: partyColor(party, "ink") }}
-                >
-                  {house[party] ?? 0}
-                </dd>
-              </div>
-              <div>
-                <dt className={LABEL}>2022</dt>
-                <dd className="font-semibold text-xl tabular-nums">
-                  {won == null ? "–" : won}
-                </dd>
-                <dd className="text-base text-el-muted">
-                  {votes
-                    ? `${pct(votes / result2022.total)} of votes`
-                    : "did not stand"}
-                </dd>
-              </div>
-              <div>
-                <dt className={LABEL}>Named for 2026</dt>
-                <dd className="font-semibold text-xl tabular-nums">
-                  {named ? `${named}` : "–"}
-                  {uncertain > 0 && (
-                    <Flag
-                      note={`${uncertain} named candidates still need public or primary-source confirmation; see Candidates for individual notes.`}
-                      status="unverified"
-                    />
-                  )}
-                </dd>
-                <dd className="text-base text-el-muted">
-                  {named ? "of 15 seats" : "no slate yet"}
-                </dd>
-              </div>
-            </dl>
-          </li>
-        );
-      })}
-    </ul>
+    <div>
+      <ul className="grid gap-px border border-el-rule bg-el-rule md:grid-cols-3">
+        {(["NDC", "NNP", "DPM"] as const).map((party) => {
+          const note = PARTY_NOTES[party];
+          const named = Object.keys(campaign.candidates[party] ?? {}).length;
+          const won = result2022.seats[party];
+          const votes = result2022.votes[party];
+          const uncertain = seats.filter(
+            (seat) =>
+              seat.candidates.some((candidate) => candidate.party === party) &&
+              candidateNote(campaign, party, seat.code)
+          ).length;
+          return (
+            <li className="bg-background p-4" key={party}>
+              <span
+                className="block h-1 w-10"
+                style={{ background: partyColor(party) }}
+              />
+              <h3 className="mt-2 font-bold text-lg leading-tight">
+                <PartyDot party={party} />
+                {partyInfo(party).name}
+              </h3>
+              <p className="mt-1 text-base text-el-ink-2 leading-relaxed">
+                {note.text}
+                {note.unverified && (
+                  <Flag note={note.unverified} status="unverified" />
+                )}
+              </p>
+              <p className="mt-1 text-base text-el-muted leading-relaxed">
+                <SourceLink id={note.source} sources={campaign.sources} />
+              </p>
+              <dl className="mt-3 grid grid-cols-3 gap-2">
+                <div>
+                  <dt className={LABEL}>At dissolution</dt>
+                  <dd
+                    className="font-semibold text-xl tabular-nums"
+                    style={{ color: partyColor(party, "ink") }}
+                  >
+                    {house[party] ?? 0}
+                  </dd>
+                </div>
+                <div>
+                  <dt className={LABEL}>2022</dt>
+                  <dd className="font-semibold text-xl tabular-nums">
+                    {won == null ? "–" : won}
+                  </dd>
+                  <dd className="text-base text-el-muted">
+                    {votes
+                      ? `${pct(votes / result2022.total)} of votes`
+                      : "did not stand"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className={LABEL}>Earlier names</dt>
+                  <dd className="font-semibold text-xl tabular-nums">
+                    {named ? `${named}` : "–"}
+                    {uncertain > 0 && (
+                      <Flag
+                        note={`${uncertain} named candidates still need public or primary-source confirmation; see Candidates for individual notes.`}
+                        status="unverified"
+                      />
+                    )}
+                  </dd>
+                  <dd className="text-base text-el-muted">
+                    {named
+                      ? "in our incomplete directory"
+                      : "none recorded here"}
+                  </dd>
+                </div>
+              </dl>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-3 text-base text-el-muted">
+        Names recorded through{" "}
+        {campaign.candidate_names_as_of ?? campaign.updated}. See{" "}
+        <Link className="underline" href="/candidates">
+          latest nomination coverage
+        </Link>
+        .
+      </p>
+    </div>
   );
 }
