@@ -12,6 +12,7 @@ const sources = {
   "admin.md": ["packages/ui/src/styles/globals.css"],
   "babydoll.md": ["apps/web/babydoll/src/app/globals.css"],
   "barrels.md": ["packages/ui/src/styles/globals.css"],
+  "commit.md": ["apps/web/commit/src/styles/tailwind.css"],
   "bookings.md": ["packages/ui/src/styles/globals.css"],
   "gaa-admin.md": [
     "packages/gms/src/styles/foundation.css",

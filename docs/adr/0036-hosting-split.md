@@ -4,6 +4,20 @@
 
 Accepted (owner decision, 2026-10-20).
 
+## Amendment (owner decision, 2026-10-27)
+
+- **Static sites move to Cloudflare Pages.** Cloudflare's free tier allows
+  commercial use (Vercel's Hobby tier does not) and the DNS is already on
+  Cloudflare. A site keeps working on its current host until its Pages
+  deployment is verified; then its DNS is cut over. DigitalOcean stays for
+  everything that needs a server (rule 2 below is unchanged).
+- New static sites start on Pages: `apps/web/commit` (`commit.barrels.gd`) is
+  the first. The homepage and Elections follow; Babydoll needs an adapter for
+  its server actions, so it stays on Vercel until that is decided.
+- **Elections dropped Barrels sign-in** (#792), so it now meets rule 2.
+- Read "Vercel" in rules 1, 3 and 4 as "static hosting (Cloudflare Pages, or
+  Vercel for sites not yet moved)".
+
 ## Context
 
 Most apps run on Barrels droplets with Docker Compose and Traefik (ADR-0005). Three sites deploy to Vercel instead: the Barrels homepage, Elections and Babydoll (`docs/deployment.md`; Babydoll is "hosted on Vercel at `babydoll.barrels.gd`" per `apps/web/babydoll/AGENTS.md`). The owner prefers free and open-source tools. Vercel is a hosted vendor.
