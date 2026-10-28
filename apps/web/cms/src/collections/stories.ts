@@ -15,7 +15,7 @@ export const Stories = editorialCollection({
   slug: "stories",
   prefix: "stories",
   publishKey: PUBLISH_KEYS.stories,
-  labels: { singular: "Story", plural: "Stories" },
+  labels: { singular: "News story", plural: "News" },
   admin: {
     group: "GMS Content",
     description:

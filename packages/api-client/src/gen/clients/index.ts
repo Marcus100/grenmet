@@ -647,6 +647,7 @@ export { wxproductsPreviewProduct } from "./wxproductsPreviewProduct.js";
 export { wxproductsPreviewProductPdf } from "./wxproductsPreviewProductPdf.js";
 export { wxproductsProductRevisionPdf } from "./wxproductsProductRevisionPdf.js";
 export { wxproductsPublicForecast } from "./wxproductsPublicForecast.js";
+export { wxproductsPublicSectorOutlook } from "./wxproductsPublicSectorOutlook.js";
 export { wxproductsSaveAviationDraft } from "./wxproductsSaveAviationDraft.js";
 export { wxproductsSaveProduct } from "./wxproductsSaveProduct.js";
 export { wxproductsUpdateTropicalSystem } from "./wxproductsUpdateTropicalSystem.js";

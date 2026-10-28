@@ -3757,6 +3757,13 @@
     },
     {
       "section": "Impact and response",
+      "key": "sectors",
+      "label": "Sectors affected",
+      "type": "sectors",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
       "key": "nextUpdate",
       "label": "Next update (Grenada)",
       "type": "datetime-local",
@@ -4237,6 +4244,13 @@
     },
     {
       "section": "Impact and response",
+      "key": "sectors",
+      "label": "Sectors affected",
+      "type": "sectors",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
       "key": "nextUpdate",
       "label": "Next update (Grenada)",
       "type": "datetime-local",
@@ -4378,6 +4392,13 @@
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "sectors",
+      "label": "Sectors affected",
+      "type": "sectors",
+      "requiredOnPublish": false
     },
     {
       "section": "Impact and response",
@@ -4523,6 +4544,13 @@
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "sectors",
+      "label": "Sectors affected",
+      "type": "sectors",
+      "requiredOnPublish": false
     },
     {
       "section": "Impact and response",
@@ -4733,6 +4761,13 @@
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "sectors",
+      "label": "Sectors affected",
+      "type": "sectors",
+      "requiredOnPublish": false
     },
     {
       "section": "Impact and response",
@@ -4956,6 +4991,13 @@
     },
     {
       "section": "Impact and response",
+      "key": "sectors",
+      "label": "Sectors affected",
+      "type": "sectors",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
       "key": "nextUpdate",
       "label": "Next update (Grenada)",
       "type": "datetime-local",
@@ -5112,6 +5154,13 @@
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "sectors",
+      "label": "Sectors affected",
+      "type": "sectors",
+      "requiredOnPublish": false
     },
     {
       "section": "Impact and response",
@@ -5303,6 +5352,13 @@
     },
     {
       "section": "Impact and response",
+      "key": "sectors",
+      "label": "Sectors affected",
+      "type": "sectors",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
       "key": "nextUpdate",
       "label": "Next update (Grenada)",
       "type": "datetime-local",
@@ -5461,6 +5517,13 @@
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "sectors",
+      "label": "Sectors affected",
+      "type": "sectors",
+      "requiredOnPublish": false
     },
     {
       "section": "Impact and response",

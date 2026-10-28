@@ -9,8 +9,6 @@ export interface MonthStat {
 }
 
 export interface MonthStats {
-  /** "Month to date · MBIA · provisional · to 18 October" */
-  caption: string;
   /** Time of the newest register reading behind the figures (ISO). */
   lastObservationAt: string;
   provisional: boolean;
@@ -38,18 +36,7 @@ const text = (value: number | null | undefined, digits?: number) =>
  */
 export function monthStats(summary: PublicMonthSummary): MonthStats {
   const station = summary.station_name || "MBIA";
-  // period_end is exclusive for a finished month; step back to its last day.
-  const lastDay = new Date(new Date(summary.period_end).getTime() - 1);
-  const caption = [
-    "Month to date",
-    station,
-    summary.provisional ? "provisional" : null,
-    `to ${day(lastDay.toISOString())}`,
-  ]
-    .filter(Boolean)
-    .join(" · ");
   return {
-    caption,
     lastObservationAt: summary.last_observation_at,
     provisional: summary.provisional,
     stats: [

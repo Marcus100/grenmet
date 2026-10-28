@@ -284,6 +284,38 @@ class ProductFeedError(BaseModel):
     error: str
 
 
+class SectorOutlookItem(BaseModel):
+    """One alert or warning that applies to the coming days, with its sectors."""
+
+    source: Literal["CAP", "Bulletin"]
+    title: str
+    product: str
+    colour: Literal["green", "yellow", "orange", "red"] | None = None
+    likelihood: str | None = None
+    impact: str | None = None
+    impacts: str
+    response: str
+    valid_from: UtcDateTime | None = None
+    valid_to: UtcDateTime | None = None
+    reference: str
+    # Where the full text lives: a CAP warning's identifier or a bulletin's id.
+    identifier: str | None = None
+    product_id: UUID | None = None
+    # Known sectors, in menu order. Empty means untagged: affects everyone.
+    sectors: list[str]
+    affects_everyone: bool
+
+
+class SectorOutlook(BaseModel):
+    as_of: UtcDateTime
+    window_start: UtcDateTime
+    window_end: UtcDateTime
+    # False when a source (CAP or bulletins) could not be read: the site must
+    # say so, never show an all-clear.
+    complete: bool
+    items: list[SectorOutlookItem]
+
+
 class AuthoredProducts(BaseModel):
     products: list[StoredProduct]
 

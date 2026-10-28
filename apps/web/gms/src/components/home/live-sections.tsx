@@ -183,7 +183,7 @@ export async function Stories() {
   const { stories: result, settings } = await fetchHomeContent();
   const words = sectionWords(settings, "stories", {
     kicker: "Earth & Weather",
-    title: "Stories from our atmosphere and ocean",
+    title: "Weather news",
   });
   const [lead, ...rest] = result.articles.map(contentToArticle);
   return (

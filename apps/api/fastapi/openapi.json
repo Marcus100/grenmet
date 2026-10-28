@@ -29690,6 +29690,52 @@
         }
       }
     },
+    "/api/v1/wxproducts/public/sector-outlook": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Alerts and warnings for the coming days, by sector",
+        "description": "GMS alerts and CAP warnings in force from today for the requested number of days, each with the sectors it affects. An item with no sectors affects everyone. `complete` is false when a source could not be read.",
+        "operationId": "wxproductsPublicSectorOutlook",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 14,
+              "minimum": 1,
+              "default": 7,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectorOutlook"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
     "/api/v1/wxproducts/public/forecast": {
       "get": {
         "tags": [
@@ -78222,6 +78268,176 @@
         ],
         "title": "SectionView"
       },
+      "SectorOutlook": {
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "window_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window Start"
+          },
+          "window_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window End"
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SectorOutlookItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "window_start",
+          "window_end",
+          "complete",
+          "items"
+        ],
+        "title": "SectorOutlook"
+      },
+      "SectorOutlookItem": {
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/SectorOutlookItemPropertiesSourceEnum"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "product": {
+            "type": "string",
+            "title": "Product"
+          },
+          "colour": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicWarningPropertiesColourAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Colour"
+          },
+          "likelihood": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Likelihood"
+          },
+          "impact": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact"
+          },
+          "impacts": {
+            "type": "string",
+            "title": "Impacts"
+          },
+          "response": {
+            "type": "string",
+            "title": "Response"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "reference": {
+            "type": "string",
+            "title": "Reference"
+          },
+          "identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identifier"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "sectors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sectors"
+          },
+          "affects_everyone": {
+            "type": "boolean",
+            "title": "Affects Everyone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "title",
+          "product",
+          "impacts",
+          "response",
+          "reference",
+          "sectors",
+          "affects_everyone"
+        ],
+        "title": "SectorOutlookItem",
+        "description": "One alert or warning that applies to the coming days, with its sectors."
+      },
       "SecurityProof": {
         "properties": {
           "password": {
@@ -91239,6 +91455,13 @@
           "trackthetropics",
           "uwyo",
           "gnca"
+        ]
+      },
+      "SectorOutlookItemPropertiesSourceEnum": {
+        "type": "string",
+        "enum": [
+          "CAP",
+          "Bulletin"
         ]
       },
       "SettlementChannelPropertiesChannelEnum": {

@@ -650,6 +650,7 @@ export { wxproductsPreviewProduct } from "./clients/wxproductsPreviewProduct.js"
 export { wxproductsPreviewProductPdf } from "./clients/wxproductsPreviewProductPdf.js";
 export { wxproductsProductRevisionPdf } from "./clients/wxproductsProductRevisionPdf.js";
 export { wxproductsPublicForecast } from "./clients/wxproductsPublicForecast.js";
+export { wxproductsPublicSectorOutlook } from "./clients/wxproductsPublicSectorOutlook.js";
 export { wxproductsSaveAviationDraft } from "./clients/wxproductsSaveAviationDraft.js";
 export { wxproductsSaveProduct } from "./clients/wxproductsSaveProduct.js";
 export { wxproductsUpdateTropicalSystem } from "./clients/wxproductsUpdateTropicalSystem.js";
@@ -3920,6 +3921,11 @@ export {
   wxproductsPublicForecastQueryKey,
   wxproductsPublicForecastQueryOptions,
 } from "./hooks/useWxproductsPublicForecast.js";
+export {
+  useWxproductsPublicSectorOutlook,
+  wxproductsPublicSectorOutlookQueryKey,
+  wxproductsPublicSectorOutlookQueryOptions,
+} from "./hooks/useWxproductsPublicSectorOutlook.js";
 export {
   useWxproductsSaveAviationDraft,
   wxproductsSaveAviationDraftMutationKey,
@@ -11465,6 +11471,10 @@ export { scopeKind } from "./models/ScopeKind.js";
 export type { SectionCreate } from "./models/SectionCreate.js";
 export type { SectionUpdate } from "./models/SectionUpdate.js";
 export type { SectionView } from "./models/SectionView.js";
+export type { SectorOutlook } from "./models/SectorOutlook.js";
+export type { SectorOutlookItem } from "./models/SectorOutlookItem.js";
+export type { SectorOutlookItemPropertiesSourceEnum } from "./models/SectorOutlookItemPropertiesSourceEnum.js";
+export { sectorOutlookItemPropertiesSourceEnum } from "./models/SectorOutlookItemPropertiesSourceEnum.js";
 export type { SecurityProof } from "./models/SecurityProof.js";
 export type { SecuritySessionPublic } from "./models/SecuritySessionPublic.js";
 export type { SendObservationRequest } from "./models/SendObservationRequest.js";
@@ -12585,6 +12595,14 @@ export type {
   WxproductsPublicForecastStatus422,
   WxproductsPublicForecastStatus503,
 } from "./models/WxproductsPublicForecast.js";
+export type {
+  WxproductsPublicSectorOutlookOptions,
+  WxproductsPublicSectorOutlookQuery,
+  WxproductsPublicSectorOutlookResponse,
+  WxproductsPublicSectorOutlookResponses,
+  WxproductsPublicSectorOutlookStatus200,
+  WxproductsPublicSectorOutlookStatus422,
+} from "./models/WxproductsPublicSectorOutlook.js";
 export type {
   WxproductsSaveAviationDraftBody,
   WxproductsSaveAviationDraftOptions,
@@ -20214,6 +20232,9 @@ export { scopeKindSchema } from "./zod/scopeKindSchema.js";
 export { sectionCreateSchema } from "./zod/sectionCreateSchema.js";
 export { sectionUpdateSchema } from "./zod/sectionUpdateSchema.js";
 export { sectionViewSchema } from "./zod/sectionViewSchema.js";
+export { sectorOutlookItemPropertiesSourceEnumSchema } from "./zod/sectorOutlookItemPropertiesSourceEnumSchema.js";
+export { sectorOutlookItemSchema } from "./zod/sectorOutlookItemSchema.js";
+export { sectorOutlookSchema } from "./zod/sectorOutlookSchema.js";
 export { securityProofSchema } from "./zod/securityProofSchema.js";
 export { securitySessionPublicSchema } from "./zod/securitySessionPublicSchema.js";
 export { sendObservationRequestSchema } from "./zod/sendObservationRequestSchema.js";
@@ -21315,6 +21336,14 @@ export {
   wxproductsPublicForecastStatus422Schema,
   wxproductsPublicForecastStatus503Schema,
 } from "./zod/wxproductsPublicForecastSchema.js";
+export {
+  wxproductsPublicSectorOutlookErrorSchema,
+  wxproductsPublicSectorOutlookQueryDaysSchema,
+  wxproductsPublicSectorOutlookQuerySchema,
+  wxproductsPublicSectorOutlookResponseSchema,
+  wxproductsPublicSectorOutlookStatus200Schema,
+  wxproductsPublicSectorOutlookStatus422Schema,
+} from "./zod/wxproductsPublicSectorOutlookSchema.js";
 export {
   wxproductsSaveAviationDraftBodySchema,
   wxproductsSaveAviationDraftErrorSchema,

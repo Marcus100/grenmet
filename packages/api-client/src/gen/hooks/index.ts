@@ -3244,6 +3244,11 @@ export {
   wxproductsPublicForecastQueryOptions,
 } from "./useWxproductsPublicForecast.js";
 export {
+  useWxproductsPublicSectorOutlook,
+  wxproductsPublicSectorOutlookQueryKey,
+  wxproductsPublicSectorOutlookQueryOptions,
+} from "./useWxproductsPublicSectorOutlook.js";
+export {
   useWxproductsSaveAviationDraft,
   wxproductsSaveAviationDraftMutationKey,
   wxproductsSaveAviationDraftMutationOptions,

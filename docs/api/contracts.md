@@ -1700,6 +1700,24 @@ docker compose -p grenmet-api --env-file .env.local exec api \
 Repeat that import command with `--apply` to register the eligible records.
 No additional Alembic migration beyond `wxwatch_0006` is required for this slice.
 
+### Public sector outlook
+
+`GET /api/v1/wxproducts/public/sector-outlook?days=7` (1 to 14) is an anonymous,
+`no-store` endpoint for the weather site's Plan your week. It returns the GMS
+alerts (hazard bulletins, always green) and CAP warnings in force from the start
+of today (Grenada) for `days` days: `{as_of, window_start, window_end, complete,
+items[]}`. Each item has `source` (`CAP` or `Bulletin`), `title`, `product`,
+`colour`, `likelihood`, `impact`, `impacts`, `response`, `valid_from`, `valid_to`,
+`reference`, `identifier` (a warning's CAP identifier) or `product_id` (a
+bulletin), `sectors` and `affects_everyone`. Sectors are the keys in
+`src/sectors.py` (tourism, marine, aviation, agriculture, health,
+roads-transport), set on a CAP warning in its `GMS:sectors` info parameter and on
+a bulletin in its `sectors` value (comma-separated; unknown names are rejected).
+An item with no sectors has `affects_everyone: true`. `complete` is false when
+CAP or the bulletin store could not be read; callers must not show an all-clear
+then. Bulletins appear only while published and in force, so a bulletin with a
+future start is not listed.
+
 ### Public forecast selection
 
 `GET /api/v1/wxproducts/public/forecast` is an anonymous, `no-store` endpoint.

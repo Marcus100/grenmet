@@ -18,6 +18,7 @@ import {
   wxproductsListPublicProducts,
 } from "@barrelsgd/api-client";
 import { BULLETIN_CATEGORIES } from "@barrelsgd/gms/products";
+import type { SectorKey } from "@barrelsgd/gms/sectors";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
@@ -40,12 +41,14 @@ import { HazardClassification } from "@/components/cap/hazard-classification";
 import { LivePreview, ReadinessChecklist } from "@/components/cap/live-preview";
 import { RiskLadder } from "@/components/cap/risk-ladder";
 import { WarningLevelPicker } from "@/components/cap/warning-level-picker";
+import { SectorCheckboxes } from "@/components/sectors/sector-checkboxes";
 import { sourceBulletinParameters } from "@/lib/cap-bulletin-link";
 import {
   type GmsProduct,
   levelHeading,
   levelParameters,
   needsColour,
+  sectorParameters,
   severityForColour,
 } from "@/lib/cap-levels";
 import {
@@ -164,6 +167,7 @@ export function NewAlertEditor({
   const [categories, setCategories] = useState<CapCategory[]>([]);
   const [product, setProduct] = useState<GmsProduct | null>(null);
   const [colour, setColour] = useState<GmsColour | null>(null);
+  const [sectors, setSectors] = useState<SectorKey[]>([]);
   const [sourceBulletins, setSourceBulletins] = useState<
     PublicPublishedProduct[]
   >([]);
@@ -285,6 +289,7 @@ export function NewAlertEditor({
           web: form.web.trim() || null,
           parameters: [
             ...levelParameters(product, colour),
+            ...sectorParameters(sectors),
             ...(sourceBulletin ? sourceBulletinParameters(sourceBulletin) : []),
           ],
           areas,
@@ -467,6 +472,7 @@ export function NewAlertEditor({
               onChange={changeLevel}
               product={product}
             />
+            <SectorCheckboxes onChange={setSectors} value={sectors} />
             <div className="grid gap-4 sm:grid-cols-3">
               {/* A colour fixes CAP severity; only an Outlook (or a message
                   before a product is chosen) assesses it directly. */}

@@ -430,7 +430,7 @@ export function toQuiz(doc: Doc) {
 }
 export type PublicQuiz = ReturnType<typeof toQuiz>;
 
-/** What the homepage's News section shows today. */
+/** What the homepage's Discover section shows today. */
 export async function findDiscover(payload: Payload, now: Date = new Date()) {
   const today = grenadaToday(now);
   const [history, quizzes, facts, notes] = await Promise.all([

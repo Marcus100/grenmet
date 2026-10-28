@@ -7350,6 +7350,9 @@ export { scopeKindSchema } from "./scopeKindSchema.js";
 export { sectionCreateSchema } from "./sectionCreateSchema.js";
 export { sectionUpdateSchema } from "./sectionUpdateSchema.js";
 export { sectionViewSchema } from "./sectionViewSchema.js";
+export { sectorOutlookItemPropertiesSourceEnumSchema } from "./sectorOutlookItemPropertiesSourceEnumSchema.js";
+export { sectorOutlookItemSchema } from "./sectorOutlookItemSchema.js";
+export { sectorOutlookSchema } from "./sectorOutlookSchema.js";
 export { securityProofSchema } from "./securityProofSchema.js";
 export { securitySessionPublicSchema } from "./securitySessionPublicSchema.js";
 export { sendObservationRequestSchema } from "./sendObservationRequestSchema.js";
@@ -8451,6 +8454,14 @@ export {
   wxproductsPublicForecastStatus422Schema,
   wxproductsPublicForecastStatus503Schema,
 } from "./wxproductsPublicForecastSchema.js";
+export {
+  wxproductsPublicSectorOutlookErrorSchema,
+  wxproductsPublicSectorOutlookQueryDaysSchema,
+  wxproductsPublicSectorOutlookQuerySchema,
+  wxproductsPublicSectorOutlookResponseSchema,
+  wxproductsPublicSectorOutlookStatus200Schema,
+  wxproductsPublicSectorOutlookStatus422Schema,
+} from "./wxproductsPublicSectorOutlookSchema.js";
 export {
   wxproductsSaveAviationDraftBodySchema,
   wxproductsSaveAviationDraftErrorSchema,

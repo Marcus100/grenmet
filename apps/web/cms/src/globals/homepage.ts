@@ -4,9 +4,9 @@ import { HOMEPAGE_KEY, hasPermission } from "../access";
 export const HOMEPAGE_SECTIONS = [
   { label: "Weather now", value: "weather-now" },
   { label: "From the Desk", value: "desk" },
-  { label: "Stories", value: "stories" },
+  { label: "News", value: "stories" },
   { label: "Questions about the weather", value: "questions" },
-  { label: "News", value: "discover" },
+  { label: "Discover", value: "discover" },
   { label: "Latest reports", value: "reports" },
   { label: "Explore today", value: "explore-today" },
   { label: "Grenada in data", value: "grenada-in-data" },

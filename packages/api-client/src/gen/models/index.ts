@@ -7418,6 +7418,10 @@ export { scopeKind } from "./ScopeKind.js";
 export type { SectionCreate } from "./SectionCreate.js";
 export type { SectionUpdate } from "./SectionUpdate.js";
 export type { SectionView } from "./SectionView.js";
+export type { SectorOutlook } from "./SectorOutlook.js";
+export type { SectorOutlookItem } from "./SectorOutlookItem.js";
+export type { SectorOutlookItemPropertiesSourceEnum } from "./SectorOutlookItemPropertiesSourceEnum.js";
+export { sectorOutlookItemPropertiesSourceEnum } from "./SectorOutlookItemPropertiesSourceEnum.js";
 export type { SecurityProof } from "./SecurityProof.js";
 export type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
 export type { SendObservationRequest } from "./SendObservationRequest.js";
@@ -8538,6 +8542,14 @@ export type {
   WxproductsPublicForecastStatus422,
   WxproductsPublicForecastStatus503,
 } from "./WxproductsPublicForecast.js";
+export type {
+  WxproductsPublicSectorOutlookOptions,
+  WxproductsPublicSectorOutlookQuery,
+  WxproductsPublicSectorOutlookResponse,
+  WxproductsPublicSectorOutlookResponses,
+  WxproductsPublicSectorOutlookStatus200,
+  WxproductsPublicSectorOutlookStatus422,
+} from "./WxproductsPublicSectorOutlook.js";
 export type {
   WxproductsSaveAviationDraftBody,
   WxproductsSaveAviationDraftOptions,
