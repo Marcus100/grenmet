@@ -404,7 +404,7 @@ Its typed defaults allow it to run without an env file.
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile site key for the contact form. Unset: no widget and no token (fine while FastAPI has `TURNSTILE_ENABLED` off) |
 
-### Commit web (`apps/web/commit`, Vercel)
+### Commit web (`apps/web/commit`, Cloudflare Pages)
 
 Read through `src/env.ts` (hand-written, no schema library). The site is static and needs no variables in production.
 
