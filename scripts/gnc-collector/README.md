@@ -39,10 +39,15 @@ owner decides otherwise.
 - Reads only the Caribbean window of each full disk (a few hundred kilobytes,
   not the 5424 × 5424 array).
 - Processes at most `--max-files` (default 12) per pass; one broken file is
-  reported and retried next pass, and never stops the others.
-- Remembers archived file names in `<work-dir>/processed.json`, so restarts and
-  overlapping receiver retention never duplicate images. A pass with nothing
-  new opens no archive run.
+  reported and retried on the next two passes, then given up on, and never
+  stops the others.
+- Remembers archived and given-up file names in `<work-dir>/processed.json`,
+  so restarts and overlapping receiver retention never duplicate images. A
+  damaged state file is set aside as `processed.corrupt`. A pass with nothing
+  new opens no archive run. `--dry-run` keeps a separate
+  `processed-dry-run.json`, so a trial never hides files from the real run.
+- Sends credentials only over HTTPS, except to `localhost`; ignores symbolic
+  links in the receiver folder.
 - Never writes to, moves or deletes receiver files.
 
 ## Offline exercise in WSL

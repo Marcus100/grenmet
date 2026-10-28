@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from gnc_collector.archive import ConfigurationError, Storage, client_from_env
-from gnc_collector.collector import collect
+from gnc_collector.collector import DRY_RUN_STATE_FILE, STATE_FILE, collect
 from gnc_collector.goes import CARIBBEAN, parse_name
 from gnc_collector.render import BANDS, render
 
@@ -91,6 +91,7 @@ def main(argv: list[str] | None = None) -> int:
         bands=args.bands,
         max_files=args.max_files,
         coastlines=not args.no_coastlines,
+        state_file=DRY_RUN_STATE_FILE if args.dry_run else STATE_FILE,
     )
     for path in result.archived:
         print(f"archived {path}")

@@ -26,10 +26,25 @@ Nice=10
 # Read-only system and receiver data; only the work folder is writable, so
 # a bug cannot touch FAZZT's files or database.
 ProtectSystem=strict
+# read-only, not true: FAZZT may write its output under /home.
 ProtectHome=read-only
 ReadWritePaths=/var/lib/gnc-collector
 PrivateTmp=true
+PrivateDevices=true
 NoNewPrivileges=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+CapabilityBoundingSet=
+SystemCallFilter=@system-service
+UMask=0077
+
+# cartopy keeps its Natural Earth coastlines under $HOME/.local/share/cartopy;
+# point HOME at the writable work folder so the first download can be cached.
+Environment=HOME=/var/lib/gnc-collector
 
 StandardOutput=journal
 StandardError=journal

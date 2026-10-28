@@ -103,7 +103,8 @@ storage, so the receiver never needs to accept connections for it.
 | No new `archived` lines | Broadcast or FAZZT stopped, or wrong `--input-dir` | Newest `OR_ABI-L2-CMIPF` file time |
 | `failed …: OSError` lines | Truncated file written during a reception error | Same file is retried next pass; persistent → FAZZT logs |
 | `Archive API returned HTTP 401` | Token mismatch | Token in `/etc/gnc-collector/env` vs FastAPI |
-| `HTTP 409` | Previous run still open, or source not enabled | Wait for lease expiry; API version |
+| `HTTP 409` | Previous pass crashed with its archive run still open | The API expires a run's lease after 45 minutes; later passes succeed after that |
+| `failed … (attempt 3 of 3)` | File is permanently unreadable | Given up on; check FAZZT reception logs for that time |
 | `HTTP 422` | API does not yet accept `gnca` | Deploy the API change first |
 
 ## Not yet decided

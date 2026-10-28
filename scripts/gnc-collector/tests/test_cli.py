@@ -78,3 +78,13 @@ def test_render_command(tmp_path: Path, receiver: Path) -> None:
         main(["render", str(source), "--output", str(output), "--no-coastlines"]) == 0
     )
     assert output.exists()
+
+
+def test_dry_run_never_marks_files_done_for_the_real_run(
+    tmp_path: Path, receiver: Path
+) -> None:
+    work = tmp_path / "w"
+    args = ["collect", "--input-dir", str(receiver), "--work-dir", str(work)]
+    assert main([*args, "--dry-run", "--no-coastlines"]) == 0
+    assert (work / "processed-dry-run.json").exists()
+    assert not (work / "processed.json").exists()

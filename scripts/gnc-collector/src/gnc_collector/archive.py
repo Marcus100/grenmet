@@ -44,19 +44,25 @@ class NoRedirect(HTTPRedirectHandler):
         return None
 
 
+LOOPBACK = {"localhost", "127.0.0.1", "::1"}
+
+
+def require_https(name: str, url: str) -> None:
+    """Credentials only travel over HTTPS, except to this machine."""
+    parsed = urlparse(url)
+    if not parsed.hostname or parsed.username or parsed.password:
+        raise ConfigurationError(f"{name} must be a URL without credentials")
+    if parsed.scheme == "https":
+        return
+    if parsed.scheme == "http" and parsed.hostname in LOOPBACK:
+        return
+    raise ConfigurationError(f"{name} must use HTTPS unless it is this machine")
+
+
 class ArchiveClient:
     def __init__(self, base_url: str, token: str) -> None:
         self.base_url = base_url.rstrip("/")
-        parsed = urlparse(self.base_url)
-        if (
-            parsed.scheme not in {"http", "https"}
-            or not parsed.hostname
-            or parsed.username
-            or parsed.password
-        ):
-            raise ConfigurationError(
-                "WXWATCH_API_URL must be an HTTP(S) URL without credentials"
-            )
+        require_https("WXWATCH_API_URL", self.base_url)
         if len(token) < 32:
             raise ConfigurationError(
                 "WXWATCH_INGEST_TOKEN must contain at least 32 characters"
@@ -115,6 +121,7 @@ class Storage:
             raise ConfigurationError(
                 f"Incomplete object-storage configuration; missing: {missing}"
             )
+        require_https("STORAGE_ENDPOINT_URL", values["STORAGE_ENDPOINT_URL"])
         import boto3
 
         client = boto3.client(

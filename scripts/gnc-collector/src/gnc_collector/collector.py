@@ -15,7 +15,12 @@ from gnc_collector.render import BANDS, render
 # FAZZT writes files in place; anything this fresh may still be growing.
 SETTLE_SECONDS = 60
 STATE_FILE = "processed.json"
+# --dry-run keeps its own memory so a trial never marks files done for real.
+DRY_RUN_STATE_FILE = "processed-dry-run.json"
 STATE_LIMIT = 5000
+# A file that fails this often is given up on, so a few permanently broken
+# files cannot hold the newest-first queue and starve older good files.
+MAX_ATTEMPTS = 3
 
 
 def discover(
@@ -28,7 +33,11 @@ def discover(
     wanted = set(bands)
     cutoff = (now if now is not None else time.time()) - SETTLE_SECONDS
     found = []
+    root = input_dir.resolve()
     for path in input_dir.rglob("OR_ABI-L2-CMIP*.nc"):
+        # FAZZT writes regular files; a link could point outside the folder.
+        if path.is_symlink() or not path.resolve().is_relative_to(root):
+            continue
         scan = parse_name(path)
         if scan is None or scan.band not in wanted or scan.satellite != satellite:
             continue
@@ -45,29 +54,47 @@ def discover(
 
 @dataclass
 class State:
-    """Names already archived, so reruns and restarts never duplicate work."""
+    """Names archived or given up on, so reruns never duplicate work."""
 
     path: Path
     done: list[str] = field(default_factory=list)
+    failures: dict[str, int] = field(default_factory=dict)
 
     @classmethod
     def load(cls, path: Path) -> State:
         try:
-            return cls(path, list(json.loads(path.read_text())["done"]))
+            data = json.loads(path.read_text())
+            return cls(
+                path,
+                [str(n) for n in data["done"]],
+                {str(k): int(v) for k, v in data.get("failures", {}).items()},
+            )
         except FileNotFoundError:
+            return cls(path)
+        except ValueError, KeyError, TypeError:
+            # A damaged file must not stop every future pass. Starting empty
+            # re-renders files still on disk; the API deduplicates them.
+            path.replace(path.with_suffix(".corrupt"))
             return cls(path)
 
     def __contains__(self, name: str) -> bool:
-        return name in self.done
+        return name in self.done or self.failures.get(name, 0) >= MAX_ATTEMPTS
 
     def add(self, name: str) -> None:
+        self.failures.pop(name, None)
         self.done.append(name)
         self.done = self.done[-STATE_LIMIT:]
+
+    def fail(self, name: str) -> int:
+        self.failures[name] = self.failures.get(name, 0) + 1
+        if len(self.failures) > STATE_LIMIT:
+            self.failures = dict(list(self.failures.items())[-STATE_LIMIT:])
+        return self.failures[name]
 
     def save(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.path.with_suffix(".tmp")
-        temporary.write_text(json.dumps({"done": self.done}))
+        temporary.write_text(json.dumps({"done": self.done, "failures": self.failures}))
         temporary.replace(self.path)
 
 
@@ -136,9 +163,10 @@ def collect(
     max_files: int = 12,
     coastlines: bool = True,
     renderer: Callable[..., tuple[int, int]] = render,
+    state_file: str = STATE_FILE,
 ) -> Result:
     """Process at most max_files new scans; one bad file never stops the rest."""
-    state = State.load(work_dir / STATE_FILE)
+    state = State.load(work_dir / state_file)
     pending = [s for s in discover(input_dir, bands) if s.path.name not in state]
     pending = pending[:max_files]
     result = Result()
@@ -160,12 +188,21 @@ def collect(
                         payload(scan, band.key, band.title, area, image, size, run_id)
                     )
             except Exception as exc:  # recorded; the run continues
-                result.failed.append(f"{scan.path.name}: {type(exc).__name__}: {exc}")
+                attempt = state.fail(scan.path.name)
+                result.failed.append(
+                    f"{scan.path.name}: {type(exc).__name__}: {exc}"
+                    f" (attempt {attempt} of {MAX_ATTEMPTS})"
+                )
                 continue
             state.add(scan.path.name)
             result.archived.append(path)
     finally:
         state.save()
         if client is not None and run_id is not None:
-            client.finish_run(run_id, "failed" if result.failed else "finished")
+            try:
+                client.finish_run(run_id, "failed" if result.failed else "finished")
+            except RuntimeError as exc:
+                # e.g. the 45-minute lease expired; the next pass can start once
+                # the API expires it. Report rather than hide the results.
+                result.failed.append(f"finishing run: {exc}")
     return result
