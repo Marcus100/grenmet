@@ -6,7 +6,9 @@
 import type { TurnstileMode } from "./TurnstileMode.js";
 
 /**
- * @description A public site\'s settings for organisation admins and the control plane.\n\nThe Turnstile secret is write-only: only whether it is set is returned.
+ * @description A public site's settings for organisation admins and the control plane.
+ *
+ * The Turnstile secret is write-only: only whether it is set is returned.
  * @type object
  */
 export type PublicSiteAdmin = {
@@ -19,7 +21,10 @@ export type PublicSiteAdmin = {
   accepts_contact: boolean;
   accepts_subscriptions: boolean;
   /**
-   * @description Bot check for one public site\'s forms.\n\n``inherit`` uses the global ``TURNSTILE_*`` settings, ``off`` skips the check\nand ``enforce`` requires the site\'s own secret (503 while it is unset).
+   * @description Bot check for one public site's forms.
+   *
+   * ``inherit`` uses the global ``TURNSTILE_*`` settings, ``off`` skips the check
+   * and ``enforce`` requires the site's own secret (503 while it is unset).
    * @type string
    */
   turnstile_mode: TurnstileMode;

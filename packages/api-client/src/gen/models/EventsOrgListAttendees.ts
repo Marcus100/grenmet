@@ -39,7 +39,7 @@ export type EventsOrgListAttendeesQuery = {
 
 export type EventsOrgListAttendeesHeaders = {
   /**
-   * @description Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app.
+   * @description Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key.
    */
   "X-Barrels-Organisation"?: string | null;
 };

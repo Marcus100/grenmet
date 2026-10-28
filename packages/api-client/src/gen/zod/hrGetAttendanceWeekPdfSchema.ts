@@ -37,3 +37,8 @@ export const hrGetAttendanceWeekPdfErrorSchema = z.union([
   hrGetAttendanceWeekPdfStatus409Schema,
   hrGetAttendanceWeekPdfStatus422Schema,
 ]);
+
+export const hrGetAttendanceWeekPdfQuerySchema = z.object({
+  day: z.iso.date(),
+  department_id: z.union([z.string(), z.null()]).optional(),
+});

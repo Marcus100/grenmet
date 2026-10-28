@@ -36,3 +36,8 @@ export const wxproductsProductRevisionPdfErrorSchema = z.union([
   wxproductsProductRevisionPdfStatus422Schema,
   wxproductsProductRevisionPdfStatus503Schema,
 ]);
+
+export const wxproductsProductRevisionPdfPathSchema = z.object({
+  product_id: z.uuid(),
+  revision: z.int(),
+});

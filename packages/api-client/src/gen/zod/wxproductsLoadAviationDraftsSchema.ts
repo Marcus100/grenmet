@@ -36,3 +36,8 @@ export const wxproductsLoadAviationDraftsErrorSchema = z.union([
   wxproductsLoadAviationDraftsStatus422Schema,
   wxproductsLoadAviationDraftsStatus503Schema,
 ]);
+
+export const wxproductsLoadAviationDraftsQuerySchema = z.object({
+  kind: aviationDraftReadPropertiesKindEnumSchema,
+  station: z.string().regex(/^[A-Z]{4}$/),
+});

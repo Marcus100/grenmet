@@ -43,8 +43,9 @@ counted; their PRs and run records still are.
 ## Measures
 
 `pnpm agents:flow --days 14` counts a **change** as one merge (or direct
-commit) on `origin/dev`'s first-parent history, because attended work merges
-branches into local `dev` instead of opening PRs. It reports:
+commit) on `origin/dev`'s first-parent history: each merged PR is one merge
+commit, and older history also holds branches merged locally and direct
+commits. It reports:
 
 - changes merged, reverts and revert rate;
 - lead time from a branch's first commit to its merge;
@@ -87,10 +88,16 @@ Once a week, in an attended session:
 2. It picks the top problem with a cause in the repository and makes one small
    change to a skill, an `AGENTS.md` rule, a scorer or a check, with a
    regression case.
-3. You review the diff before it lands. Hooks, settings, `.codex/` and CI stay
-   human-only.
+3. Agents may implement and merge factory-control changes into dev after
+   independent code and security review and all checks pass, except for the
+   owner-only paths listed in `AGENTS.md`; only the owner merges those. Staging
+   and production merges remain owner approved.
 4. Next week's `agents:score report` shows whether that scorer's pass rate
    moved.
 
-Benchmarks and skill evals spend more tokens; rerun them when a model, skill or
+Benchmarks and skill evals require approval for extra API spending; rerun them when a model, skill or
 `AGENTS.md` changes a lot, then `pnpm agents:routing write` to refresh routing.
+
+Execution uses existing subscriptions first with $0 extra spending by default.
+Prefer local execution; use cloud as fallback. Extra API spending requires owner
+approval, including scorer, benchmark and skill-eval runs that incur charges.

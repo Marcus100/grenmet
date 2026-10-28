@@ -42,3 +42,7 @@ export const authAppEmailCodeStartErrorSchema = z.union([
 ]);
 
 export const authAppEmailCodeStartBodySchema = appEmailCodeStartSchema;
+
+export const authAppEmailCodeStartPathSchema = z.object({
+  app: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/),
+});

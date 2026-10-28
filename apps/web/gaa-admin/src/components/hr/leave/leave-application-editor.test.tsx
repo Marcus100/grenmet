@@ -19,8 +19,8 @@ import {
   LeaveApplicationEditor,
   validateLeaveValues,
 } from "./leave-application-editor";
-import { EMPTY_LEAVE, JURY_DUTY_LABEL } from "./leave-document";
 import { LeaveSubmissions } from "./leave-submissions";
+import { EMPTY_LEAVE, JURY_DUTY_LABEL } from "./leave-values";
 
 const navigation = vi.hoisted(() => ({ search: "" }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
@@ -233,7 +233,7 @@ describe("LeaveSubmissions", () => {
     wrap(<LeaveSubmissions />);
     expect(await screen.findByText("VACATION")).toBeInTheDocument();
     expect(screen.getByText("2026-08-03")).toBeInTheDocument();
-    expect(screen.getByText("SUBMITTED")).toBeInTheDocument();
+    expect(screen.getByText("Submitted")).toBeInTheDocument();
   });
 });
 

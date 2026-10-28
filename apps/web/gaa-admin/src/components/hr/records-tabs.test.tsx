@@ -6,22 +6,22 @@ const mockPathname = vi.hoisted(() => ({ value: "/hr/training" }));
 vi.mock("next/navigation", () => ({ usePathname: () => mockPathname.value }));
 
 describe("RecordsTabs", () => {
-  it("links the three records sections and marks the current one", () => {
+  it("links the three records sections as tabs and marks the current one", () => {
     render(<RecordsTabs />);
 
-    expect(screen.getByRole("link", { name: "Documents" })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: "Documents" })).toHaveAttribute(
       "href",
       "/hr/documents"
     );
-    expect(screen.getByRole("link", { name: "Parking" })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: "Parking" })).toHaveAttribute(
       "href",
       "/hr/parking"
     );
-    expect(screen.getByRole("link", { name: "Training" })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: "Training" })).toHaveAttribute(
       "aria-current",
       "page"
     );
-    expect(screen.getByRole("link", { name: "Documents" })).not.toHaveAttribute(
+    expect(screen.getByRole("tab", { name: "Documents" })).not.toHaveAttribute(
       "aria-current"
     );
   });

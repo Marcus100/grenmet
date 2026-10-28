@@ -44,3 +44,16 @@ export const contactsGetOrgContactConsentsErrorSchema = z.union([
   contactsGetOrgContactConsentsStatus404Schema,
   contactsGetOrgContactConsentsStatus422Schema,
 ]);
+
+export const contactsGetOrgContactConsentsPathSchema = z.object({
+  contact_id: z.string(),
+});
+
+export const contactsGetOrgContactConsentsHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

@@ -1,6 +1,10 @@
 "use client";
 
-import type { GuidanceSystem, ProductGuidance } from "@barrelsgd/api-client";
+import {
+  capCreateEscalation,
+  type GuidanceSystem,
+  type ProductGuidance,
+} from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { ProductContentView } from "@barrelsgd/gms/components/product-content";
 import {
@@ -45,18 +49,34 @@ import {
   saveProductAction,
 } from "@/app/(admin)/wxproducts/product-actions";
 import { DeskLayout } from "@/components/document/desk-layout";
+import { PageHeader } from "@/components/layout/page-header";
 import type { PdfPreviewRequest } from "@/components/wxproducts/forecast-pdf-frame";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
+import { reportError } from "@/lib/report-error";
+import {
+  ABOVE_GREEN_MESSAGE,
+  isAboveGreen,
+} from "@/lib/wxproducts/alert-level";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 import { CapForecastPicker } from "./cap-forecast-picker";
+import { ImpactMatrixPanel } from "./impact-matrix-panel";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
 import { ProductDiscardDialog } from "./product-discard-dialog";
-import { ProductFieldControl, sectionParts } from "./product-field-control";
+import {
+  ProductFieldControl,
+  sectionParts,
+  startsRow,
+} from "./product-field-control";
 import { type HistoryItem, ProductHistoryPanel } from "./product-history-panel";
 import { ProductList } from "./product-list";
 import { ProductWithdrawDialog } from "./product-withdraw-dialog";
+import {
+  RaiseToWarningDialog,
+  type WarningLevel,
+} from "./raise-to-warning-dialog";
 import { SectionHints } from "./section-hints";
+import { WarningRaisedNote } from "./warning-raised-note";
 
 const DAY_KEY_PREFIX = /^(day[1-4])/;
 
@@ -224,6 +244,8 @@ function ProductEditor({
   const [previewGuidance, setPreviewGuidance] = useState<string | null>(null);
   const [baseline, setBaseline] = useState(() => JSON.stringify(start));
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [raiseOpen, setRaiseOpen] = useState(false);
+  const [raisedKey, setRaisedKey] = useState("");
   const [preview, setPreview] = useState<ProductValues | null>(null);
   const [pdfRequest, setPdfRequest] = useState<PdfPreviewRequest | null>(null);
   const [pdfExpanded, setPdfExpanded] = useState(false);
@@ -327,7 +349,7 @@ function ProductEditor({
     });
     if (!result.ok) {
       setMessage(result.error);
-      return;
+      return null;
     }
     setRevision(result.product.revision);
     setPublishedRevision(result.product.publishedRevision);
@@ -354,6 +376,46 @@ function ProductEditor({
       withdraw: "Withdrawn from the public website.",
     } as const;
     setMessage(messageByAction[action]);
+    return result.product;
+  }
+  /** Save the alert as a green draft, then ask FastAPI for the CAP warning draft. */
+  async function raiseToWarning(
+    values: ProductValues,
+    level: WarningLevel,
+    overrideReason?: string
+  ): Promise<
+    { alertId: string } | { error: string; existingAlertId?: string }
+  > {
+    const saved = await save({ ...values, level: "Green" }, "draft");
+    if (!saved)
+      return { error: "Save the alert first: fix the problem shown." };
+    try {
+      const raised = await capCreateEscalation({
+        body: {
+          product_id: id,
+          revision: saved.revision,
+          awareness_level: level,
+          override_reason: overrideReason ?? null,
+        },
+      }).unwrap();
+      setRaisedKey(raised.alert_id);
+      if (!raised.created) {
+        return {
+          error:
+            "An open warning already exists for this alert; change its colour in CAP.",
+          existingAlertId: raised.alert_id,
+        };
+      }
+      return { alertId: raised.alert_id };
+    } catch (error) {
+      reportError(error, "wxproducts");
+      const reason = matrixRefusal(error);
+      return {
+        error: reason
+          ? `The alert was saved, but the warning was not raised: ${reason}`
+          : "The alert was saved, but the warning draft could not be created. Check your CAP permissions and try again.",
+      };
+    }
   }
   function submit(
     values: ProductValues,
@@ -440,7 +502,8 @@ function ProductEditor({
           }));
         }
         return (
-          <div className="@container">
+          // Editor, preview and archive side by side: always full width.
+          <div className="@container" data-content-width="wide">
             <DeskLayout
               archive={archive}
               editor={
@@ -453,8 +516,7 @@ function ProductEditor({
                     >
                       <TabsList
                         aria-label="Evening forecast period"
-                        className="w-full"
-                        variant="line"
+                        className="w-full max-w-full justify-start overflow-x-auto"
                       >
                         {PERIOD_PREFIXES.map((prefix, index) => (
                           <TabsTrigger
@@ -541,6 +603,17 @@ function ProductEditor({
                       ) : null}
                     </div>
                   </div>
+                  {isBulletin(kind) && revision > 0 ? (
+                    <WarningRaisedNote key={raisedKey} productId={id} />
+                  ) : null}
+                  {isAboveGreen(kind, values.level) ? (
+                    <p
+                      className="rounded-lg border border-destructive p-3 text-sm"
+                      role="alert"
+                    >
+                      {ABOVE_GREEN_MESSAGE}
+                    </p>
+                  ) : null}
                   <form
                     className="space-y-4"
                     onSubmit={(event) => {
@@ -675,7 +748,18 @@ function ProductEditor({
                                       ) : null}
                                     </div>
                                   ) : (
-                                    sectionFields.map(renderField)
+                                    sectionFields.flatMap((f, index) =>
+                                      startsRow(f, sectionFields[index - 1])
+                                        ? [
+                                            <div
+                                              aria-hidden="true"
+                                              className="h-0 basis-full"
+                                              key={`${f.key}-row`}
+                                            />,
+                                            renderField(f),
+                                          ]
+                                        : [renderField(f)]
+                                    )
                                   )}
                                 </div>
                                 <SectionHints
@@ -751,6 +835,13 @@ function ProductEditor({
                           ) : null}
                         </FieldContent>
                       </Field>
+                      {isBulletin(kind) ? (
+                        <ImpactMatrixPanel
+                          impact={values.impact}
+                          kind={kind}
+                          likelihood={values.likelihood}
+                        />
+                      ) : null}
                       {message ? (
                         <p
                           className="whitespace-pre-wrap rounded-lg border p-3 text-sm"
@@ -768,6 +859,29 @@ function ProductEditor({
                         >
                           Validate and preview
                         </Button>
+                        {isBulletin(kind) ? (
+                          <>
+                            <Button
+                              onClick={() => setRaiseOpen(true)}
+                              type="button"
+                              variant="outline"
+                            >
+                              Raise to warning
+                            </Button>
+                            {raiseOpen ? (
+                              <RaiseToWarningDialog
+                                impact={values.impact}
+                                kind={kind}
+                                likelihood={values.likelihood}
+                                onOpenChange={setRaiseOpen}
+                                onRaise={(level, overrideReason) =>
+                                  raiseToWarning(values, level, overrideReason)
+                                }
+                                open
+                              />
+                            ) : null}
+                          </>
+                        ) : null}
                         {publishedRevision ? (
                           <Button
                             onClick={() => {
@@ -870,6 +984,15 @@ function DirtyState({
   }, [dirty]);
   return null;
 }
+/** The matrix rule's explanation when FastAPI refuses a raise with a 422. */
+function matrixRefusal(error: unknown): string | null {
+  if (typeof error !== "object" || error === null) return null;
+  const { status, data } = error as { status?: number; data?: unknown };
+  if (status !== 422 || typeof data !== "object" || data === null) return null;
+  const { detail } = data as { detail?: unknown };
+  return typeof detail === "string" ? detail : null;
+}
+
 export function ProductDesk({
   kinds,
   title,
@@ -926,13 +1049,10 @@ export function ProductDesk({
   }
   return (
     <div className="space-y-4">
-      <header className="space-y-1">
-        <h1 className="font-semibold text-2xl tracking-tight">{title}</h1>
-        <p className="text-muted-foreground text-sm">
-          Save a draft, check the preview, then publish. Revisions preserve the
-          currently published product until you issue the update.
-        </p>
-      </header>
+      <PageHeader
+        description="Save a draft, check the preview, then publish. Revisions preserve the currently published product until you issue the update."
+        title={title}
+      />
       <ProductDiscardDialog
         onConfirm={() => {
           discard?.();
@@ -997,7 +1117,6 @@ export function ProductDesk({
                 {deskKinds.map((value) => (
                   <TabsTrigger
                     className={cn(
-                      "font-normal text-muted-foreground data-active:text-foreground",
                       hasAlertTabs &&
                         "h-auto min-h-10 whitespace-normal text-balance px-2 py-1 text-center leading-4"
                     )}

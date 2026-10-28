@@ -10,9 +10,17 @@ export type EregisterListRegisterObservationsQuery = {
   station_id?: string | null;
   kind?: string | null;
   /**
-   * @description Only observations in this QC state (the QC queue is draft and qc_pending).
+   * @description Only observations in these QC states, comma separated. Awaiting acceptance: draft,qc_pending.
    */
   state?: string | null;
+  /**
+   * @description true: only reviewed observations; false: only unreviewed (the review queue is state=accepted, reviewed=false).
+   */
+  reviewed?: boolean | null;
+  /**
+   * @description Only observations for exactly this UTC time (to find the record occupying an hour).
+   */
+  observed_at?: string | null;
   /**
    * @minLength 1
    * @maxLength 500
@@ -20,6 +28,13 @@ export type EregisterListRegisterObservationsQuery = {
    * @type integer | undefined
    */
   limit?: number;
+  /**
+   * @minLength 0
+   * @maxLength 10000000
+   * @default 0
+   * @type integer | undefined
+   */
+  offset?: number;
 };
 
 export type EregisterListRegisterObservationsStatus200 =

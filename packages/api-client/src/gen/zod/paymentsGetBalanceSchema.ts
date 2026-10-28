@@ -33,3 +33,12 @@ export const paymentsGetBalanceErrorSchema = z.union([
   paymentsGetBalanceStatus403Schema,
   paymentsGetBalanceStatus422Schema,
 ]);
+
+export const paymentsGetBalanceHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

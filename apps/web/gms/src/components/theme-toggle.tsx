@@ -34,14 +34,16 @@ export function ThemeToggle({
   return (
     <Button
       aria-label={`Current theme: ${THEME_LABEL[themeMode]}. Click to cycle themes`}
+      // A plain icon like Search beside it: no filled chip, a faint hover.
       className={cn(
         tone === "masthead"
-          ? "size-11 focus-visible:ring-gm-lime"
+          ? "size-11 text-gm-text-inverse hover:bg-gm-text-inverse/10 hover:text-gm-text-inverse focus-visible:ring-gm-lime [&_svg]:size-5"
           : "focus-visible:ring-gm-blue"
       )}
       onClick={cycleTheme}
       size="icon"
       type="button"
+      variant="ghost"
     >
       <Monitor
         aria-hidden="true"

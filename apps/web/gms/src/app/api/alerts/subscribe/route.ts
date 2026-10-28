@@ -1,7 +1,8 @@
 import { ResponseError, subscriptionsSubscribe } from "@barrelsgd/api-client";
 import { NextResponse } from "next/server";
 import { ALERTS_LIST_KEY, parseAlertEmail } from "@/lib/alert-signup";
-import { env } from "@/lib/env";
+import { redactRequest } from "@/lib/redact-request";
+import { visitorClient } from "@/lib/visitor-client";
 
 /**
  * Email sign-up for published weather alerts. Validates the body and forwards
@@ -20,9 +21,11 @@ export async function POST(request: Request) {
 
   try {
     const accepted = await subscriptionsSubscribe({
-      baseURL: env.AUTH_API_URL,
+      client: await visitorClient(),
       body: { list_key: ALERTS_LIST_KEY, email: parsed.data.email },
-    }).unwrap();
+    })
+      .unwrap()
+      .catch(redactRequest);
     return NextResponse.json(
       { ok: true, message: accepted.message },
       { status: 202 }

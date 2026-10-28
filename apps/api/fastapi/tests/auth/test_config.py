@@ -34,7 +34,10 @@ def test_secret_key_required_in_staging(monkeypatch: pytest.MonkeyPatch) -> None
 
 def test_secret_key_explicit_passes_in_production() -> None:
     config = AuthConfig(
-        ENVIRONMENT="production", SECRET_KEY=STRONG_SECRET, _env_file=None
+        ENVIRONMENT="production",
+        SECRET_KEY=STRONG_SECRET,
+        AUTH_PRIVILEGED_MFA_MODE="disabled",
+        _env_file=None,
     )
     assert config.SECRET_KEY == STRONG_SECRET
 
@@ -69,7 +72,10 @@ def test_lowered_bcrypt_rounds_rejected_in_staging() -> None:
 
 def test_bcrypt_rounds_defaults_to_twelve_outside_local() -> None:
     config = AuthConfig(
-        ENVIRONMENT="production", SECRET_KEY=STRONG_SECRET, _env_file=None
+        ENVIRONMENT="production",
+        SECRET_KEY=STRONG_SECRET,
+        AUTH_PRIVILEGED_MFA_MODE="disabled",
+        _env_file=None,
     )
     assert config.BCRYPT_ROUNDS == 12
 

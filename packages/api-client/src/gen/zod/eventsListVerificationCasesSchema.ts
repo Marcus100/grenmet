@@ -47,3 +47,9 @@ export const eventsListVerificationCasesErrorSchema = z.union([
   eventsListVerificationCasesStatus404Schema,
   eventsListVerificationCasesStatus422Schema,
 ]);
+
+export const eventsListVerificationCasesQuerySchema = z.object({
+  status: verificationStatusSchema.optional().default("pending"),
+  page: z.int().min(1).optional().default(1),
+  size: z.int().min(1).max(100).optional().default(25),
+});

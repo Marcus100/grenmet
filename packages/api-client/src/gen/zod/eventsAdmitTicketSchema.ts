@@ -44,3 +44,14 @@ export const eventsAdmitTicketErrorSchema = z.union([
 ]);
 
 export const eventsAdmitTicketBodySchema = admissionCreateSchema;
+
+export const eventsAdmitTicketPathSchema = z.object({
+  listing_id: z.uuid(),
+});
+
+export const eventsAdmitTicketQuerySchema = z.object({
+  organiser: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional()
+    .describe("Organiser to act for when the member manages several."),
+});

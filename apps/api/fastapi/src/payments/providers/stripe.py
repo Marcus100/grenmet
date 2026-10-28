@@ -24,6 +24,7 @@ from typing import Any
 
 import httpx
 
+from src.payments import return_urls
 from src.payments.config import PaymentsConfig, payments_settings
 from src.payments.exceptions import (
     InvalidCallbackError,
@@ -47,6 +48,8 @@ WHSEC_PREFIX = "whsec_"  # prefix of a Stripe webhook signing key
 
 # Test seam: an httpx transport (e.g. MockTransport) used instead of the network.
 _transport: httpx.AsyncBaseTransport | None = None
+#: Longest checkout line-item name we send.
+_TITLE_MAX = 120
 # Test seam: the clock used for the webhook tolerance window.
 _now: Callable[[], float] = time.time
 
@@ -229,23 +232,29 @@ class StripeProvider:
 
     # --- PaymentProvider -------------------------------------------------------
 
-    async def create_payment(self, intent: Intent) -> PaymentStart:
-        success_url = self._config.STRIPE_SUCCESS_URL
-        cancel_url = self._config.STRIPE_CANCEL_URL
-        if not success_url or not cancel_url:
+    async def create_payment(
+        self, intent: Intent, /, *, title: str | None = None
+    ) -> PaymentStart:
+        address = return_urls.resolve(
+            intent.source_type, intent.source_id, self._config
+        )
+        if address is None:
             raise ProviderUnavailableError("Stripe return URLs are not configured")
         intent_id = str(intent.id)
         data = {
             "mode": "payment",
             "client_reference_id": intent_id,
-            "success_url": success_url,
-            "cancel_url": cancel_url,
+            "success_url": address.success_url,
+            "cancel_url": address.cancel_url,
             "metadata[intent_id]": intent_id,
             "payment_intent_data[metadata][intent_id]": intent_id,
             "line_items[0][quantity]": "1",
             "line_items[0][price_data][currency]": intent.currency.lower(),
             "line_items[0][price_data][unit_amount]": str(intent.amount_minor),
-            "line_items[0][price_data][product_data][name]": intent.source_type,
+            "line_items[0][price_data][product_data][name]": (title or "").strip()[
+                :_TITLE_MAX
+            ]
+            or intent.source_type,
         }
         body = await self._request(
             "POST",

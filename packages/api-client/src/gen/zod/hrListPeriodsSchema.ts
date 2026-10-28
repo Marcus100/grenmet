@@ -29,3 +29,8 @@ export const hrListPeriodsErrorSchema = z.union([
   hrListPeriodsStatus403Schema,
   hrListPeriodsStatus422Schema,
 ]);
+
+export const hrListPeriodsQuerySchema = z.object({
+  department_id: z.string(),
+  period_status: z.union([rosterPeriodStatusSchema, z.null()]).optional(),
+});

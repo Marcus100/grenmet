@@ -34,3 +34,7 @@ export const hrDownloadSignedDocumentErrorSchema = z.union([
   hrDownloadSignedDocumentStatus404Schema,
   hrDownloadSignedDocumentStatus422Schema,
 ]);
+
+export const hrDownloadSignedDocumentPathSchema = z.object({
+  document_id: z.uuid(),
+});

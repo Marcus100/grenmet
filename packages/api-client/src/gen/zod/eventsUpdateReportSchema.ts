@@ -37,3 +37,7 @@ export const eventsUpdateReportErrorSchema = z.union([
 ]);
 
 export const eventsUpdateReportBodySchema = reportUpdateSchema;
+
+export const eventsUpdateReportPathSchema = z.object({
+  report_id: z.uuid(),
+});

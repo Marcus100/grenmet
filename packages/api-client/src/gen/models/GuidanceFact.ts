@@ -39,4 +39,10 @@ export type GuidanceFact = {
   reference_time?: string | null;
   valid_from?: string | null;
   valid_to?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  edited?: boolean;
+  source_value?: number | null;
 };

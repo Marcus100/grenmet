@@ -35,3 +35,10 @@ export const hrGetTimesheetPrefillErrorSchema = z.union([
   hrGetTimesheetPrefillStatus403Schema,
   hrGetTimesheetPrefillStatus422Schema,
 ]);
+
+export const hrGetTimesheetPrefillQuerySchema = z.object({
+  period: z
+    .string()
+    .regex(/^\d{4}-\d{2}$/)
+    .describe("Calendar month, YYYY-MM"),
+});

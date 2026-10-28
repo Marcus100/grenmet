@@ -27,3 +27,7 @@ export const hrGetInstanceErrorSchema = z.union([
   hrGetInstanceStatus404Schema,
   hrGetInstanceStatus422Schema,
 ]);
+
+export const hrGetInstancePathSchema = z.object({
+  instance_id: z.uuid(),
+});

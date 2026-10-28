@@ -1,6 +1,6 @@
 ---
 name: commit
-description: "Reviews, validates and commits authorized changes, opens the task branch's PR into dev for the owner to merge, then arms the staging promotion. Use when a task is ready to land, when the user says commit, ship or push it, or when a routine reaches its commit gates."
+description: "Reviews, validates and commits authorized changes, opens the task branch's PR into dev and merges it once CI is green and the review is clean, then creates or updates the staging promotion PR for the owner. Use when a task is ready to land, when the user says commit, ship or push it, or when a routine reaches its commit gates."
 allowed-tools: Bash(git *), Bash(pnpm *), Bash(gh *)
 ---
 
@@ -41,10 +41,8 @@ Claude Code fills these in; in Codex, run the commands.
    First run `gh pr checks <num> --watch --fail-fast` until it exits 0 on that
    head and post the fresh-context review as a PR comment naming the reviewer;
    then `gh pr merge <num> --merge --match-head-commit <sha>`. A `risk:high` PR
-   also needs a `security-reviewer` pass with no open finding first. A PR that
-   changes hooks, settings, `.codex`, `.agents`, skills, any `AGENTS.md`, guardrail
-   scripts, workflows or rulesets is left for the owner to merge: the hook
-   refuses it. If
+   also needs a `security-reviewer` pass with no open finding first.
+   Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before agents merge into dev. PRs that change owner-only paths listed in `AGENTS.md` are left for the owner to merge. If
    remote dev advances, integrate and revalidate before updating the PR; never
    force-push. Unattended scheduled runs (`docs/agents/routines.md`) do the same
    from their `agent/<n>-<slug>` branch. For a cross-tool review first, hand the

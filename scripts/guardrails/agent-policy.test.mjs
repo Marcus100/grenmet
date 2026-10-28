@@ -25,10 +25,21 @@ const POLICY_FILES = [
   "docs/operations/release-runbook.md",
   ".claude/skills/commit/SKILL.md",
   ".claude/skills/release/SKILL.md",
+  // These restate part of the policy (how flow is measured, how the hooks
+  // enforce it, what the commit skill should do), so they must not drift back.
+  "docs/agents/factory.md",
+  "docs/agent-configuration-guide.md",
+  ".claude/skills/commit/evals/triggers.md",
 ];
 // Files that state the whole landing and promotion policy, not just part of it.
+const PARTIAL_POLICY_FILES = [
+  "docs/agents/routines.md",
+  "docs/agents/factory.md",
+  "docs/agent-configuration-guide.md",
+  ".claude/skills/commit/evals/triggers.md",
+];
 const FULL_POLICY_FILES = POLICY_FILES.filter(
-  (file) => !["docs/agents/routines.md"].includes(file)
+  (file) => !PARTIAL_POLICY_FILES.includes(file)
 );
 // Retired wording, each paired with what replaced it. "push dev" is retired in
 // every affirmative form; a negated form ("never push dev") states the policy.
@@ -46,7 +57,7 @@ const RETIRED = [
     "agents open a PR into `dev` and merge it once CI is green and the review is clean",
   ],
   [
-    /merges? (?:the task branch |completed task branches )?into local `?dev`?/i,
+    /merges? (?:(?:the |all |any )?(?:completed |finished |task )*branch(?:es)? )?into (?:a |the )?local `?dev`?/i,
     "the task branch is pushed and lands by PR into `dev`",
   ],
   [
@@ -68,6 +79,33 @@ const DRIFT_WORKFLOW_RUNS_CHECK =
   /scripts\/guardrails\/github-rulesets\.mjs --check/;
 const DRIFT_WORKFLOW_BRANCHES = /branches: \[main, staging, dev\]/;
 const SNAPSHOT_MENTION = /infra\/github\/rulesets\.json/;
+const INDEPENDENT_FACTORY_REVIEW = /independent code and security review/;
+const OWNER_ONLY_PATH_POLICY = /owner-only (?:files|paths)/i;
+const OWNER_MERGES_OWNER_ONLY = /the owner merges those/i;
+const HIGH_RISK_SECURITY_REVIEW = /risk:high[^.]*security-reviewer/i;
+const NEVER_MERGE_ANYTHING = /or merge anything/;
+const NO_EXTRA_SPENDING = /\$0 extra spending/;
+
+test("factory-control dev merges preserve the owner-only path exception", () => {
+  const reviewPolicyFiles = [
+    "docs/agents/workflow.md",
+    "docs/agents/roles.md",
+    "docs/agents/routines.md",
+    "docs/agents/factory.md",
+    ".claude/skills/commit/SKILL.md",
+    ".claude/skills/factory-improve/SKILL.md",
+  ];
+  for (const file of reviewPolicyFiles) {
+    const text = read(file);
+    assert.match(text, INDEPENDENT_FACTORY_REVIEW, file);
+  }
+  assert.match(read("AGENTS.md"), OWNER_MERGES_OWNER_ONLY);
+  assert.match(read("AGENTS.md"), HIGH_RISK_SECURITY_REVIEW);
+  for (const file of reviewPolicyFiles.slice(1))
+    assert.match(read(file), OWNER_ONLY_PATH_POLICY, file);
+  assert.doesNotMatch(read("docs/agents/workflow.md"), NEVER_MERGE_ANYTHING);
+  assert.match(read("docs/agents/factory.md"), NO_EXTRA_SPENDING);
+});
 
 test("no policy file still states retired git policy", () => {
   for (const file of POLICY_FILES) {
@@ -90,6 +128,9 @@ test("the retired-wording patterns catch affirmative variants and allow negated 
     "then push `dev` directly.",
     "after a direct dev push,",
     "Merge completed task branches into local `dev`",
+    "then merge completed branches into local `dev` in a clean checkout",
+    "merges branches into local dev instead of opening PRs",
+    "merges into local dev, pushes dev and arms the staging promotion",
   ];
   const negated = [
     "agents never push `dev` or merge into it themselves.",

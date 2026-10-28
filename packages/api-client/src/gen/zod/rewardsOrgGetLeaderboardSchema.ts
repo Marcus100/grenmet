@@ -57,3 +57,26 @@ export const rewardsOrgGetLeaderboardErrorSchema = z.union([
   rewardsOrgGetLeaderboardStatus409Schema,
   rewardsOrgGetLeaderboardStatus422Schema,
 ]);
+
+export const rewardsOrgGetLeaderboardQuerySchema = z.object({
+  metric: challengeMetricSchema
+    .optional()
+    .default("venue_check_ins")
+    .describe("Real-world action to rank"),
+  limit: z
+    .int()
+    .min(1)
+    .max(50)
+    .optional()
+    .default(10)
+    .describe("Rows to return (max 50)"),
+});
+
+export const rewardsOrgGetLeaderboardHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

@@ -40,3 +40,10 @@ export const hrListAssignmentsErrorSchema = z.union([
   hrListAssignmentsStatus404Schema,
   hrListAssignmentsStatus422Schema,
 ]);
+
+export const hrListAssignmentsQuerySchema = z.object({
+  start: z.iso.date(),
+  end: z.iso.date(),
+  department_id: z.union([z.string(), z.null()]).optional(),
+  scope: hrListAssignmentsParametersSchemaEnumSchema.optional().default("me"),
+});

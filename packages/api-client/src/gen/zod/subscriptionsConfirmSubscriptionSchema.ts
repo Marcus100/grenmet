@@ -21,3 +21,7 @@ export const subscriptionsConfirmSubscriptionErrorSchema = z.union([
   subscriptionsConfirmSubscriptionStatus303Schema,
   subscriptionsConfirmSubscriptionStatus422Schema,
 ]);
+
+export const subscriptionsConfirmSubscriptionQuerySchema = z.object({
+  token: z.string(),
+});

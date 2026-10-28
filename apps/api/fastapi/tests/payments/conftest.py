@@ -20,6 +20,7 @@ class StripeStub:
     requests: list[httpx.Request] = field(default_factory=list)
     paid: bool = False
     fail_refund: bool = False
+    fail_checkout: bool = False
 
     def form(self, index: int = -1) -> dict[str, str]:
         parsed = parse_qs(self.requests[index].content.decode())
@@ -33,6 +34,8 @@ def stripe_env(monkeypatch: pytest.MonkeyPatch) -> StripeStub:
     def handler(request: httpx.Request) -> httpx.Response:
         stub.requests.append(request)
         if request.method == "POST" and request.url.path == "/v1/checkout/sessions":
+            if stub.fail_checkout:
+                return httpx.Response(500, json={"error": {"message": "down"}})
             return httpx.Response(
                 200,
                 json={

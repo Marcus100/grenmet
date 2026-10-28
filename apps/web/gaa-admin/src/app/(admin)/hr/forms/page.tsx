@@ -6,6 +6,7 @@ import {
   type NewRequestItem,
   newRequestItems,
 } from "@/components/hr/dashboard/dashboard-data";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = {
   title: "HR Forms",
@@ -33,13 +34,10 @@ const SECTIONS: Array<{
 export default function HrFormsPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight">HR Forms</h1>
-        <p className="text-muted-foreground text-sm">
-          Fill in a form, submit it, and print the signed copy. Submissions
-          appear under each form and on the HR dashboard.
-        </p>
-      </div>
+      <PageHeader
+        description="Fill in a form, submit it, and print the signed copy. Submissions appear under each form and on the HR dashboard."
+        title="HR Forms"
+      />
 
       {SECTIONS.map((section) => (
         <section className="space-y-3" key={section.group}>

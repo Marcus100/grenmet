@@ -42,3 +42,7 @@ export const authAppHandoffStartErrorSchema = z.union([
 ]);
 
 export const authAppHandoffStartBodySchema = appHandoffStartSchema;
+
+export const authAppHandoffStartPathSchema = z.object({
+  app: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/),
+});

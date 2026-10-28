@@ -4,6 +4,7 @@
  */
 
 import type { CapProfileDefinitionPropertiesChannelsItemsEnum } from "./CapProfileDefinitionPropertiesChannelsItemsEnum.js";
+import type { CapProfileMatrix } from "./CapProfileMatrix.js";
 import type { CapProfileSubtype } from "./CapProfileSubtype.js";
 import type { CapProfileTemplate } from "./CapProfileTemplate.js";
 
@@ -47,4 +48,5 @@ export type CapProfileDefinition = {
    * @type string | undefined
    */
   notes?: string;
+  matrix?: CapProfileMatrix | null;
 };

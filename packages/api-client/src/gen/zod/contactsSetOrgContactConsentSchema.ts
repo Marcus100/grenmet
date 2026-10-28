@@ -48,3 +48,16 @@ export const contactsSetOrgContactConsentErrorSchema = z.union([
 ]);
 
 export const contactsSetOrgContactConsentBodySchema = contactConsentSetSchema;
+
+export const contactsSetOrgContactConsentPathSchema = z.object({
+  contact_id: z.string(),
+});
+
+export const contactsSetOrgContactConsentHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

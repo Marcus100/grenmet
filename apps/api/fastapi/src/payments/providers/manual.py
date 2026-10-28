@@ -16,7 +16,9 @@ from .base import PaymentStart, ProviderEvent, ProviderStatus, RefundResult
 class ManualProvider:
     key = ProviderKey.MANUAL.value
 
-    async def create_payment(self, _intent: Intent, /) -> PaymentStart:
+    async def create_payment(
+        self, _intent: Intent, /, *, title: str | None = None
+    ) -> PaymentStart:
         return PaymentStart()
 
     def verify_callback(

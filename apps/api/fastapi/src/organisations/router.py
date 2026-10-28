@@ -70,6 +70,8 @@ from .schemas import (
     PublicSitePublic,
     PublicSiteUpdate,
     RoleBundlePublic,
+    TeamCapabilitiesPublic,
+    TeamMemberListPublic,
     VerificationDecision,
 )
 
@@ -251,6 +253,38 @@ GRANT_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 )
 async def list_role_bundles(*, session: SessionDep, context: OrgTeamManager) -> Any:
     return await team.list_bundles(session, context)
+
+
+@router.get(
+    "/org/team/me",
+    response_model=TeamCapabilitiesPublic,
+    summary="My team capabilities",
+    description=(
+        "The caller's organisation role, the products whose team-manage "
+        "permission they hold, and whether they are an admin or owner. Any "
+        "member may read it; plain members get an empty product list."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def my_team_capabilities(*, session: SessionDep, context: OrgMember) -> Any:
+    return await team.my_capabilities(session, context)
+
+
+@router.get(
+    "/org/team/members",
+    response_model=TeamMemberListPublic,
+    summary="List the team roster",
+    description=(
+        "Active members with their live role grants, limited to the products the "
+        "caller manages. Display names only. Needs a team-manage permission "
+        "(owners and admins hold it)."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def list_team_members(
+    *, session: SessionDep, context: OrgTeamManager, pagination: PaginationDep
+) -> Any:
+    return await team.list_roster(session, context, pagination)
 
 
 @router.get(

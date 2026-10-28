@@ -9,7 +9,7 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsRecordManualDepositPath = {
   /**
-   * @description The booking\'s id.
+   * @description The booking's id.
    *
    * Format: `uuid`
    * @type string
@@ -29,7 +29,7 @@ export type BookingsRecordManualDepositHeaders = {
 };
 
 /**
- * @description A booking as the business sees it, with the customer\'s contact details.
+ * @description A booking as the business sees it, with the customer's contact details.
  * @type object
  */
 export type BookingsRecordManualDepositStatus200 = BookingStudioDetail;
@@ -51,7 +51,8 @@ export type BookingsRecordManualDepositStatus409 = unknown;
 export type BookingsRecordManualDepositStatus422 = ValidationErrorResponse;
 
 /**
- * @description How a deposit taken outside Stripe was paid (``method``, optional receipt\nor transfer ``reference``).
+ * @description How a deposit taken outside Stripe was paid (``method``, optional receipt
+ * or transfer ``reference``).
  * @type object
  */
 export type BookingsRecordManualDepositBody = BookingManualDepositCreate;

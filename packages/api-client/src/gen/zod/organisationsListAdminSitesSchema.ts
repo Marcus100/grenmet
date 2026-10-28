@@ -31,3 +31,7 @@ export const organisationsListAdminSitesErrorSchema = z.union([
   organisationsListAdminSitesStatus403Schema,
   organisationsListAdminSitesStatus422Schema,
 ]);
+
+export const organisationsListAdminSitesQuerySchema = z.object({
+  organisation_id: z.union([z.string().max(100), z.null()]).optional(),
+});

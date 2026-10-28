@@ -34,3 +34,7 @@ export const hrUpdateHrEmploymentErrorSchema = z.union([
 ]);
 
 export const hrUpdateHrEmploymentBodySchema = employmentAdminUpdateSchema;
+
+export const hrUpdateHrEmploymentPathSchema = z.object({
+  user_id: z.uuid(),
+});

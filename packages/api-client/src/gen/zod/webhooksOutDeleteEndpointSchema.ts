@@ -40,3 +40,16 @@ export const webhooksOutDeleteEndpointErrorSchema = z.union([
   webhooksOutDeleteEndpointStatus404Schema,
   webhooksOutDeleteEndpointStatus422Schema,
 ]);
+
+export const webhooksOutDeleteEndpointPathSchema = z.object({
+  endpoint_id: z.string(),
+});
+
+export const webhooksOutDeleteEndpointHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

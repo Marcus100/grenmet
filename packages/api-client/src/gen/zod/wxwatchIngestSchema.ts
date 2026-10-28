@@ -24,3 +24,7 @@ export const wxwatchIngestResponseSchema = wxwatchIngestStatus200Schema;
 export const wxwatchIngestErrorSchema = wxwatchIngestStatus422Schema;
 
 export const wxwatchIngestBodySchema = imageInputSchema;
+
+export const wxwatchIngestHeadersSchema = z.object({
+  authorization: z.union([z.string(), z.null()]).optional(),
+});

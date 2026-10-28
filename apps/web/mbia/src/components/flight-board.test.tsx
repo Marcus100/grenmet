@@ -82,6 +82,29 @@ describe("FlightBoard", () => {
     expect(screen.getByText(SAMPLE_RE)).toBeInTheDocument();
   });
 
+  it("says plainly that the sample schedule is not live flights", () => {
+    render(<FlightBoard flights={FLIGHTS} />);
+    expect(
+      screen.getByText("Sample schedule, not live flights.")
+    ).toBeInTheDocument();
+  });
+
+  it("does not call provider data a sample schedule", () => {
+    render(<FlightBoard flights={FLIGHTS} source="opensky" />);
+    expect(
+      screen.queryByText("Sample schedule, not live flights.")
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the status visible on phones and scrolls inside its own box", () => {
+    render(<FlightBoard flights={FLIGHTS} />);
+    const inline = screen.getByTestId("status-inline");
+    expect(inline).toHaveTextContent("On time");
+    expect(inline.className).toContain("sm:hidden");
+    const scroller = screen.getByTestId("flight-table-scroll");
+    expect(scroller.className).toContain("overflow-x-auto");
+  });
+
   it("labels provider data as recent movements, not sample or live", () => {
     render(
       <FlightBoard

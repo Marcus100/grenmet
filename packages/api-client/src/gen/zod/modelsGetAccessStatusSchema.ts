@@ -34,3 +34,10 @@ export const modelsGetAccessStatusErrorSchema = z.union([
   modelsGetAccessStatusStatus404Schema,
   modelsGetAccessStatusStatus422Schema,
 ]);
+
+export const modelsGetAccessStatusHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe("Id of the organisation the request acts for (active member)."),
+});

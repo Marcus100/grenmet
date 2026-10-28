@@ -6,7 +6,8 @@
 import type { ManualMethod } from "./ManualMethod.js";
 
 /**
- * @description How a deposit taken outside Stripe was paid (``method``, optional receipt\nor transfer ``reference``).
+ * @description How a deposit taken outside Stripe was paid (``method``, optional receipt
+ * or transfer ``reference``).
  * @type object
  */
 export type BookingManualDepositCreate = {

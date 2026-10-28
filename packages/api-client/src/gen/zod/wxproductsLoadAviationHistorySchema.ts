@@ -32,3 +32,7 @@ export const wxproductsLoadAviationHistoryErrorSchema = z.union([
   wxproductsLoadAviationHistoryStatus422Schema,
   wxproductsLoadAviationHistoryStatus503Schema,
 ]);
+
+export const wxproductsLoadAviationHistoryPathSchema = z.object({
+  draft_id: z.uuid(),
+});

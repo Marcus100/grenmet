@@ -33,3 +33,7 @@ export const wxwatchWeatherImageErrorSchema = z.union([
   wxwatchWeatherImageStatus404Schema,
   wxwatchWeatherImageStatus422Schema,
 ]);
+
+export const wxwatchWeatherImagePathSchema = z.object({
+  storage_path: z.string(),
+});

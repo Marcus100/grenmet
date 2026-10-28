@@ -12,7 +12,7 @@ export const legacyProductWriteSchema = z.strictObject({
   guidance: z.union([productGuidanceSchema, z.null()]).optional(),
   id: z.uuid(),
   expectedRevision: z.int().min(0),
-  values: z.record(z.string(), z.string().max(12000)),
+  values: z.record(z.string().max(80), z.string().max(12000)),
   action: legacyProductWritePropertiesActionEnumSchema,
   changeSummary: z.string().max(1000),
   reviewed: z.boolean(),

@@ -43,3 +43,16 @@ export const bookingsDeleteExceptionErrorSchema = z.union([
   bookingsDeleteExceptionStatus409Schema,
   bookingsDeleteExceptionStatus422Schema,
 ]);
+
+export const bookingsDeleteExceptionPathSchema = z.object({
+  exception_id: z.uuid(),
+});
+
+export const bookingsDeleteExceptionHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+    ),
+});

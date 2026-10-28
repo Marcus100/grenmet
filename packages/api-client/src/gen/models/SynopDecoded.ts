@@ -32,4 +32,12 @@ export type SynopDecoded = {
   pressure_change_24h_pa?: number | null;
   sunshine_24h_hours?: number | null;
   ground_state?: number | null;
+  /**
+   * @description QFE from the station pressure and the station's QFE offset.
+   */
+  qfe_pa?: number | null;
+  /**
+   * @description QNH from the mean sea level pressure and the station's QNH offset.
+   */
+  qnh_pa?: number | null;
 };

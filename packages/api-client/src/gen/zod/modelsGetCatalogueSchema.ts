@@ -33,3 +33,12 @@ export const modelsGetCatalogueErrorSchema = z.union([
   modelsGetCatalogueStatus403Schema,
   modelsGetCatalogueStatus422Schema,
 ]);
+
+export const modelsGetCatalogueHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Organisation entitled to the GMS Dashboard. Omit only when reading as GMS staff."
+    ),
+});

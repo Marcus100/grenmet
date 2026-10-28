@@ -12,7 +12,6 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import email as email_module
 from src import outbox, turnstile
 from src.bookings import public, reminders
 from src.bookings.models import Booking, BookingEvent, BookingStatus, Customer
@@ -781,11 +780,11 @@ async def test_emails_are_queued_on_the_outbox_with_a_manage_link(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
     monkeypatch: pytest.MonkeyPatch,
+    outbound_email_calls: list[dict[str, str]],
 ) -> None:
     monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", "noreply@example.com")
     monkeypatch.setattr(email_settings, "RESEND_API_KEY", "re_test")
     monkeypatch.setattr(email_settings, "EMAIL_RENDER_URL", None)
-    monkeypatch.setattr(email_module, "send_email", lambda **_: None)
     studio, receipt, _ = await _booked(db_async, async_client)
     rows = await _emails(db_async, studio.org_id)
     by_key = {row.dedupe_key.split(":")[0]: row for row in rows}
@@ -815,6 +814,13 @@ async def test_emails_are_queued_on_the_outbox_with_a_manage_link(
         )
     )
     assert sent is not None
+    assert outbound_email_calls == [
+        {
+            "email_to": customer["to_email"].lower(),
+            "subject": customer["subject"],
+            "html_content": customer["html"],
+        }
+    ]
     await db_async.rollback()
 
 

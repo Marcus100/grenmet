@@ -1,17 +1,19 @@
 """Grade access for authored GMS products. CAP retains independent permissions."""
 
 import logging
+import uuid
+from collections.abc import Collection
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.baseline import service
-from src.baseline.department import is_gms_department
+from src.baseline.department import GMS_DEPARTMENT_IDS, is_gms_department
 from src.baseline.models import BaselineAudit, ProductAccessPolicy, StaffCredential
 from src.baseline.schemas import ProductAccessInput, ProductAccessPublic
 from src.exceptions import AppException
-from src.hr.models import EmploymentStatus, Grade
+from src.hr.models import EmploymentRecord, EmploymentStatus, Grade
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +56,48 @@ async def policies(session: AsyncSession) -> list[ProductAccessPublic]:
         )
         for kind in PRODUCT_KINDS
     ]
+
+
+async def users_who_may_author(
+    session: AsyncSession, kind: str, user_ids: Collection[uuid.UUID]
+) -> set[uuid.UUID]:
+    """Which of ``user_ids`` may author ``kind``, in two queries however many there are.
+
+    Same rule as ``allowed_kinds`` (active user, live credential, active GMS
+    employment, active grade of that department listed in the kind's policy),
+    answered in SQL for a whole group.
+    """
+    if kind not in PRODUCT_KINDS or not user_ids:
+        return set()
+    grade_ids = next(p.grade_ids for p in await policies(session) if p.kind == kind)
+    rows = await session.execute(
+        select(User.id)
+        .outerjoin(StaffCredential, StaffCredential.user_id == User.id)
+        .outerjoin(
+            EmploymentRecord,
+            (EmploymentRecord.user_id == User.id)
+            & (EmploymentRecord.status == EmploymentStatus.ACTIVE)
+            & EmploymentRecord.department_id.in_(GMS_DEPARTMENT_IDS),
+        )
+        .outerjoin(
+            Grade,
+            (Grade.id == EmploymentRecord.grade_id)
+            & (Grade.department_id == EmploymentRecord.department_id)
+            & Grade.is_active.is_(True),
+        )
+        .where(
+            User.id.in_(list(user_ids)),
+            User.is_active.is_(True),
+            User.registration_pending.is_(False),
+            User.is_superuser.is_(True)
+            | (
+                StaffCredential.revoked_at.is_(None)
+                & StaffCredential.user_id.is_not(None)
+                & Grade.id.in_(grade_ids)
+            ),
+        )
+    )
+    return set(rows.scalars().all())
 
 
 async def save_policy(

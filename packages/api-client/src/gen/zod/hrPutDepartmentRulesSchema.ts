@@ -30,3 +30,7 @@ export const hrPutDepartmentRulesErrorSchema = z.union([
 export const hrPutDepartmentRulesBodySchema = rosterRulesUpdateSchema.describe(
   "Replace all limits for a department; null disables a rule."
 );
+
+export const hrPutDepartmentRulesPathSchema = z.object({
+  department_id: z.string(),
+});

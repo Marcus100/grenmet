@@ -33,3 +33,7 @@ export const capUpdateFeedErrorSchema = z.union([
 ]);
 
 export const capUpdateFeedBodySchema = capFeedImportUpdateSchema;
+
+export const capUpdateFeedPathSchema = z.object({
+  feed_id: z.uuid(),
+});

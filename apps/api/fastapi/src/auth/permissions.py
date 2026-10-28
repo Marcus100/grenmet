@@ -198,12 +198,16 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cms.article.manage", "Manage CMS editorial settings"),
     # eRegister
     PermissionDef(
+        "eregister.observe",
+        "Record, approve and correct register observations and read the register; approving sends the observation to WIS2 and email (the observer)",
+    ),
+    PermissionDef(
         "eregister.send",
-        "Email a register observation and queue it for WIS2 publication",
+        "Email a register observation or queue it for WIS2 by hand (approval sends it automatically)",
     ),
     PermissionDef(
         "eregister.qc",
-        "Accept, reject or reopen a register observation (QC; a different person from the observer)",
+        "Accept, reject or reopen a register observation and change station settings (QC; reviewing another observer's record is optional)",
     ),
     # CAP — alert lifecycle
     PermissionDef("cap.alert.create", "Create CAP alerts"),
@@ -219,6 +223,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     # CAP — administration
     PermissionDef("cap.integrations.manage", "Manage CAP integrations"),
     PermissionDef("cap.settings.manage", "Manage CAP settings"),
+    PermissionDef(
+        "cap.library.manage",
+        "Edit the hazard library and impact-based matrix (impacts, responses, thresholds); approval needs a different reviewer holding cap.library.manage and cap.alert.approve",
+    ),
     PermissionDef("cap.feed.manage", "Manage external CAP feed sources"),
     # Transport — staff bus service (admin portal, driver app, staff app)
     # Barrels Events — app access is a permission; module keys narrow it further
@@ -231,6 +239,29 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "events.organiser.manage", "Create and manage events as an organiser"
     ),
     PermissionDef("events.moderate", "Review reports and resident event suggestions"),
+    # Barrels staff operations on any organiser's events (ADR-0050). Global keys
+    # held through a role assignment only (``policy.has_role_permission``); a
+    # superuser has none implicitly and there is no staff team-management key.
+    PermissionDef(
+        "events.ops.door",
+        "Staff: admit tickets and see the door list for any organiser's event",
+    ),
+    PermissionDef(
+        "events.ops.till",
+        "Staff: take payments at the till for any organiser's event (needs two-step sign-in)",
+    ),
+    PermissionDef(
+        "events.ops.refunds",
+        "Staff: refund and cancel orders for any organiser's event (needs two-step sign-in)",
+    ),
+    PermissionDef(
+        "events.ops.settlement",
+        "Staff: read orders and settlement for any organiser's event (needs two-step sign-in)",
+    ),
+    PermissionDef(
+        "events.ops.listings",
+        "Staff: cancel any organiser's event (needs two-step sign-in)",
+    ),
     # Organisation-bound keys (ADR-0044): held inside one organisation through
     # its membership, never through a staff role. Role bundles arrive in S1.
     PermissionDef(
@@ -361,6 +392,9 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
 )
 
 ALL_PERMISSION_KEYS: frozenset[str] = frozenset(p.key for p in PERMISSIONS)
+EVENTS_OPS_KEYS: tuple[str, ...] = tuple(
+    p.key for p in PERMISSIONS if p.key.startswith("events.ops.")
+)
 ORGANISATION_BOUND_KEYS: frozenset[str] = frozenset(
     p.key for p in PERMISSIONS if p.binding == "organisation"
 )
@@ -521,7 +555,16 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "cap.alert.read",
             "cap.integrations.manage",
             "cap.settings.manage",
+            "cap.library.manage",
             "cap.feed.manage",
+        ),
+    ),
+    "gms-lead": (
+        "GMS lead: edits the hazard library and impact-based matrix and approves alerts and library versions",
+        (
+            "cap.alert.read",
+            "cap.alert.approve",
+            "cap.library.manage",
         ),
     ),
     "events-member": (
@@ -535,6 +578,33 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "events-moderator": (
         "Barrels Events moderator: handles reports and suggestions",
         ("app.events.access", "events.member.write", "events.moderate"),
+    ),
+    "events-staff-door": (
+        "Barrels Events staff: door scanning for any organiser's event",
+        ("app.events.access", "events.member.write", "events.ops.door"),
+    ),
+    "events-staff-till": (
+        "Barrels Events staff: till sales for any organiser's event",
+        ("app.events.access", "events.member.write", "events.ops.till"),
+    ),
+    "events-staff-refunds": (
+        "Barrels Events staff: refunds and order cancels for any organiser's event",
+        ("app.events.access", "events.member.write", "events.ops.refunds"),
+    ),
+    "events-staff-manager": (
+        "Barrels Events staff manager: door, till, settlement and listings for any organiser's event",
+        (
+            "app.events.access",
+            "events.member.write",
+            "events.ops.door",
+            "events.ops.till",
+            "events.ops.settlement",
+            "events.ops.listings",
+        ),
+    ),
+    "eregister-observer": (
+        "eRegister observer: records the hourly observations",
+        ("eregister.observe",),
     ),
     "eregister-sender": (
         "eRegister: email observations and queue them for WIS2",

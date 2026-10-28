@@ -40,3 +40,7 @@ export const storesUpdateRequisitionErrorSchema = z.union([
 ]);
 
 export const storesUpdateRequisitionBodySchema = requisitionUpdateSchema;
+
+export const storesUpdateRequisitionPathSchema = z.object({
+  requisition_id: z.uuid(),
+});

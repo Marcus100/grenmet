@@ -37,3 +37,7 @@ export const eregisterRejectRegisterObservationErrorSchema = z.union([
 export const eregisterRejectRegisterObservationBodySchema = z
   .union([qcDecisionRequestSchema, z.null()])
   .optional();
+
+export const eregisterRejectRegisterObservationPathSchema = z.object({
+  observation_id: z.uuid(),
+});

@@ -45,3 +45,17 @@ export const modelsGetMeteogramErrorSchema = z.union([
   modelsGetMeteogramStatus404Schema,
   modelsGetMeteogramStatus422Schema,
 ]);
+
+export const modelsGetMeteogramQuerySchema = z.object({
+  point: z.string().max(40).describe("Point key, e.g. `mbia`."),
+  model: guidanceModelSchema.describe("Model to read."),
+});
+
+export const modelsGetMeteogramHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Organisation entitled to the GMS Dashboard. Omit only when reading as GMS staff."
+    ),
+});

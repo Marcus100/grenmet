@@ -11,6 +11,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
+// A well-formed (not real) htpasswd bcrypt line, as `htpasswd -nbB` prints it.
+const HTPASSWD_ENTRY = (user) => `${user}:$2y$05$${"a".repeat(53)}`;
+
 function fixture(directory) {
   const env = {
     ...process.env,
@@ -40,6 +43,8 @@ function fixture(directory) {
     "PAYLOAD_SECRET",
   ])
     env[key] = `test-only-configuration-value-32-characters-${key}`;
+  env.STAGING_BASIC_AUTH_USERS = HTPASSWD_ENTRY("reviewer");
+  env.ADMINER_BASIC_AUTH_USERS = HTPASSWD_ENTRY("dba");
   const lines = ["FASTAPI_DB_USER=app_runtime", "ENVIRONMENT=staging"];
   for (const domain of [
     "WXWATCH",
@@ -714,6 +719,31 @@ test("the payments Stripe key must be a test key and is otherwise optional", () 
   );
 });
 
+test("the payments Stripe settings are set together and return over https", () => {
+  const full = {
+    PAYMENTS_STRIPE_SECRET_KEY: "sk_test_fixture",
+    PAYMENTS_STRIPE_WEBHOOK_SECRET: "whsec_fixture",
+    PAYMENTS_STRIPE_SUCCESS_URL: "https://auth.example.test/?paid=1",
+    PAYMENTS_STRIPE_CANCEL_URL: "https://auth.example.test/?paid=0",
+  };
+  for (const name of Object.keys(full)) {
+    const { [name]: _omitted, ...partial } = full;
+    const half = render(partial);
+    assert.notEqual(half.result.status, 0, `${name} missing`);
+    assert.ok(half.result.stderr.includes("set together"));
+    assert.ok(half.result.stderr.includes(name), name);
+    assert.equal(half.result.stderr.includes("sk_test_fixture"), false);
+  }
+  for (const name of [
+    "PAYMENTS_STRIPE_SUCCESS_URL",
+    "PAYMENTS_STRIPE_CANCEL_URL",
+  ]) {
+    const insecure = render({ ...full, [name]: "http://auth.example.test/" });
+    assert.notEqual(insecure.result.status, 0, name);
+    assert.ok(insecure.result.stderr.includes("https"));
+  }
+});
+
 test("the deploy workflow and compose file pass the new variables to the API and worker", () => {
   const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
   const compose = readFileSync(
@@ -741,4 +771,79 @@ test("the deploy workflow and compose file pass the new variables to the API and
       .filter((line) => line.includes("ORG_SECRET_ENCRYPTION_KEYS:")).length,
     4
   );
+});
+
+function renderFor(environment, change = {}) {
+  const directory = mkdtempSync(join(tmpdir(), "delivery-edge-auth-"));
+  try {
+    const { env, config, destination } = fixture(directory);
+    writeFileSync(
+      config,
+      readFileSync(config, "utf8").replace(
+        "ENVIRONMENT=staging",
+        `ENVIRONMENT=${environment}`
+      )
+    );
+    const result = spawnSync(
+      "python3",
+      ["scripts/production/render-env.py", config, destination],
+      { env: { ...env, ...change }, encoding: "utf8" }
+    );
+    return {
+      result,
+      output: result.status === 0 ? readFileSync(destination, "utf8") : "",
+    };
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+
+test("staging requires its own basic-auth user lists and escapes them for Compose", () => {
+  const rendered = renderFor("staging");
+  assert.equal(rendered.result.status, 0, rendered.result.stderr);
+  // `$` is doubled so Compose passes the bcrypt hash through literally.
+  assert.equal(
+    GENERATED_LINE(rendered.output, "STAGING_BASIC_AUTH_USERS"),
+    `STAGING_BASIC_AUTH_USERS="${HTPASSWD_ENTRY("reviewer").replaceAll("$", "$$$$")}"`
+  );
+  assert.ok(GENERATED_LINE(rendered.output, "ADMINER_BASIC_AUTH_USERS"));
+  for (const name of ["STAGING_BASIC_AUTH_USERS", "ADMINER_BASIC_AUTH_USERS"]) {
+    const missing = renderFor("staging", { [name]: "" });
+    assert.notEqual(missing.result.status, 0);
+    assert.ok(missing.result.stderr.includes(name));
+  }
+  const several = renderFor("staging", {
+    STAGING_BASIC_AUTH_USERS: `${HTPASSWD_ENTRY("a")},${HTPASSWD_ENTRY("b")}`,
+  });
+  assert.equal(several.result.status, 0, several.result.stderr);
+});
+
+test("basic-auth user lists must be bcrypt htpasswd lines and are never echoed", () => {
+  for (const value of [
+    "DO-NOT-ECHO:plaintext",
+    "DO-NOT-ECHO",
+    `${HTPASSWD_ENTRY("ok")},DO-NOT-ECHO:$apr1$abc`,
+    // Already-doubled dollars: render-env does the Compose escaping itself.
+    `DO-NOT-ECHO:$$2y$$05$$${"a".repeat(53)}`,
+  ]) {
+    const { result } = renderFor("staging", {
+      STAGING_BASIC_AUTH_USERS: value,
+    });
+    assert.notEqual(result.status, 0);
+    assert.equal(result.stderr.includes("DO-NOT-ECHO"), false);
+  }
+});
+
+test("production never receives the staging basic-auth user lists", () => {
+  const rendered = renderFor("production", {
+    STAGING_BASIC_AUTH_USERS: HTPASSWD_ENTRY("reviewer"),
+  });
+  assert.equal(rendered.result.status, 0, rendered.result.stderr);
+  for (const name of ["STAGING_BASIC_AUTH_USERS", "ADMINER_BASIC_AUTH_USERS"])
+    assert.equal(GENERATED_LINE(rendered.output, name), `${name}=""`);
+  const unset = renderFor("production", {
+    STAGING_BASIC_AUTH_USERS: "",
+    ADMINER_BASIC_AUTH_USERS: "",
+  });
+  assert.equal(unset.result.status, 0, unset.result.stderr);
 });

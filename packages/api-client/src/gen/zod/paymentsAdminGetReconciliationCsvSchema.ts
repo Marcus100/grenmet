@@ -34,3 +34,9 @@ export const paymentsAdminGetReconciliationCsvErrorSchema = z.union([
   paymentsAdminGetReconciliationCsvStatus403Schema,
   paymentsAdminGetReconciliationCsvStatus422Schema,
 ]);
+
+export const paymentsAdminGetReconciliationCsvQuerySchema = z.object({
+  start_date: z.iso.date(),
+  end_date: z.iso.date(),
+  organisation_id: z.union([z.string().max(100), z.null()]).optional(),
+});

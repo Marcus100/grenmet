@@ -30,3 +30,7 @@ export const wxwatchBulletinErrorSchema = z.union([
   wxwatchBulletinStatus404Schema,
   wxwatchBulletinStatus422Schema,
 ]);
+
+export const wxwatchBulletinPathSchema = z.object({
+  edition_id: z.uuid(),
+});

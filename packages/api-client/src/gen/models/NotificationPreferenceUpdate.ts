@@ -3,7 +3,12 @@
  * Do not edit manually.
  */
 
+/**
+ * @description Leave a channel out (null) to keep the person's current choice.
+ * @type object
+ */
 export type NotificationPreferenceUpdate = {
   event_key: string;
-  email_enabled: boolean;
+  email_enabled?: boolean | null;
+  bell_enabled?: boolean | null;
 };
