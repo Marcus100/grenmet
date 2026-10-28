@@ -4,16 +4,13 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-import matplotlib
+import numpy as np
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.figure import Figure
+from netCDF4 import Dataset
 
-matplotlib.use("Agg")
-
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
-from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
-from netCDF4 import Dataset  # noqa: E402
-
-from gnc_collector.goes import Area, Projection, crop_window  # noqa: E402
+from gnc_collector.goes import Area, Projection, crop_window
 
 GRENADA = (12.05, -61.75)  # lat, lon of Maurice Bishop International Airport
 
@@ -92,7 +89,9 @@ def render(
 ) -> tuple[int, int]:
     """Write the PNG atomically and return its (width, height) in pixels."""
     celsius, projection, extent = read_window(path, area)
-    figure = plt.figure(figsize=(8, 8), dpi=100)
+    # An explicit Agg canvas: no pyplot global state, no display needed.
+    figure = Figure(figsize=(8, 8), dpi=100)
+    FigureCanvasAgg(figure)
     cmap = LinearSegmentedColormap.from_list(band.key, list(band.colours))
     if coastlines:
         import cartopy.crs as ccrs
@@ -146,10 +145,7 @@ def render(
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_suffix(".tmp.png")
-    try:
-        figure.savefig(temporary, bbox_inches="tight")
-    finally:
-        plt.close(figure)
+    figure.savefig(temporary, bbox_inches="tight")
     temporary.replace(output)
     return png_size(output)
 

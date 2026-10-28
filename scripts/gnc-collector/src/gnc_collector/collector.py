@@ -159,7 +159,7 @@ def collect(
                     client.ingest(
                         payload(scan, band.key, band.title, area, image, size, run_id)
                     )
-            except Exception as exc:  # noqa: BLE001 - recorded, run continues
+            except Exception as exc:  # recorded; the run continues
                 result.failed.append(f"{scan.path.name}: {type(exc).__name__}: {exc}")
                 continue
             state.add(scan.path.name)
