@@ -14,7 +14,7 @@ export const organisationsDeleteMemberHeaderXBarrelsOrganisationSchema = z
   .union([z.string(), z.null()])
   .optional()
   .describe(
-    "Id of the organisation the request acts for. The caller must be an active member."
+    "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
   );
 
 export const organisationsDeleteMemberStatus204Schema = z.unknown();
@@ -56,6 +56,6 @@ export const organisationsDeleteMemberHeadersSchema = z.object({
     .union([z.string(), z.null()])
     .optional()
     .describe(
-      "Id of the organisation the request acts for. The caller must be an active member."
+      "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
     ),
 });
