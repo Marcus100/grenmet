@@ -9,6 +9,8 @@ export function makeBundle(
 ): RoleBundlePublic {
   return {
     role_key: "events-door",
+    label: "Door staff",
+    description: "Scan tickets at the door",
     product: "events",
     permissions: ["events.door.scan"],
     grantable: true,
