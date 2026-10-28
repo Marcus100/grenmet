@@ -359,6 +359,34 @@ async def delegation_authority(
     raise AppException("No active authority permits this delegated grant", 403)
 
 
+async def end_assignments_for_employment(
+    *, session: AsyncSession, user_id: uuid.UUID, organisation_id: str
+) -> int:
+    """Expire the user's live non-SELF assignments in one organisation (#789).
+
+    Called when employment there ends. Does not commit; each ended assignment
+    gets an audit entry. Reinstating employment does not bring them back.
+    """
+    now = utc_now()
+    rows = (
+        await session.scalars(
+            select(UserRoleAssignment).where(
+                UserRoleAssignment.user_id == user_id,
+                UserRoleAssignment.organisation_id == organisation_id,
+                UserRoleAssignment.scope != RoleAssignmentScope.SELF,
+                UserRoleAssignment.effective_to.is_(None)
+                | (UserRoleAssignment.effective_to > now),
+            )
+        )
+    ).all()
+    for row in rows:
+        row.effective_to = now
+        row.updated_at = now
+        session.add(row)
+        await audit_assignment(session, row, "UPDATE")
+    return len(rows)
+
+
 async def audit_assignment(
     session: AsyncSession, assignment: UserRoleAssignment, action: str
 ) -> None:
