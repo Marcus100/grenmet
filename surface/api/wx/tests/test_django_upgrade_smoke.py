@@ -17,6 +17,8 @@ class DjangoUpgradeSmokeTests(SimpleTestCase):
     """
 
     def test_django_is_the_4_2_series(self):
+        # Step 2 of #722 (Django 5.2) must update this expected version, not
+        # delete the test.
         self.assertEqual(django.VERSION[:2], (4, 2))
 
     def test_system_check_passes(self):

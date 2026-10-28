@@ -47,9 +47,13 @@ ALLOWED_HOSTS = ['*']
 
 USE_X_FORWARDED_HOST = True
 
-# Django 4.0+ checks the Origin header of unsafe requests against the scheme
-# and host Django sees. Behind a TLS-terminating proxy that is http, so list
-# the public origins here, comma separated and with the scheme, for example
+# Both nginx configs (surface/nginx/nginx.conf and infra/weather/surface-nginx.conf)
+# pass X-Forwarded-Proto; the weather one carries Traefik's value, so Django
+# sees https and Django 4's Origin check accepts the public https origin.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Extra origins Django should trust for unsafe requests, comma separated and
+# with the scheme, for example
 # SURFACE_CSRF_TRUSTED_ORIGINS=https://surface.example.org
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()

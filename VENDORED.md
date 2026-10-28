@@ -34,12 +34,36 @@ reconciling an upstream release.
 | `werkzeug` | 3.1.4 | 3.1.9 | Dependabot #389 | Transitive via `flask` |
 | `fsspec` | 2025.12.0 | 2026.6.0 | Dependabot #391 | Transitive via `pyiceberg` |
 | `multidict` | 6.7.0 | 6.9.1 | Dependabot #393 | Transitive via `yarl` |
-| `Django` | 3.2.13 | 4.2.x (`>=4.2,<4.3`, resolved 4.2.30) | #722 step 1 | Django 4.2 LTS. Step 2 goes to 5.2 |
-| `djangorestframework`, `djangorestframework-simplejwt`, `django-celery-beat`, `django-cors-headers`, `django-import-export`, `django-material`, `django-simple-history`, `celery`, `kombu`, `amqp`, `redis` | older | see `requirements.in` | #722 step 1 | Raised to versions that support Django 4.2; `pymemcache` replaces `python-memcached` (Django 4.1 removed `MemcachedCache`) |
-| `django-colorfield` | 0.4.5 | 0.4.5 (kept) | #722 step 1 | Newer versions change `ColorField` max_length 18 to 25 and need a migration; revisit in step 2 |
 
-The transitive pins are edited in place in the pip-compiled `requirements.txt`.
-If you re-run `pip-compile`, keep these versions as lower bounds.
+The transitive pins were first edited in place in the pip-compiled
+`requirements.txt`. The lock was then re-resolved with `pip-compile` for #722
+step 1, and those versions held (they are all still at or above the values
+above). If you re-run `pip-compile`, keep these versions as lower bounds.
+
+### Upgrade pins (#722)
+
+Step 1 moved SURFACE from Django 3.2.13 to Django 4.2 (`>=4.2,<4.3`, resolved
+4.2.30). Django 4.2 support ended in April 2026 and 4.2.30 is the final
+release, so this step is intermediate: step 2 (Django 5.2) is still required.
+Django 5.2 needs PostgreSQL 14 or newer, and both compose files pin
+`timescale/timescaledb-postgis:2.3.0-pg13`, so a database upgrade is a
+prerequisite for step 2.
+
+| Package | Upstream | Ours | Note |
+| --- | --- | --- | --- |
+| `Django` | 3.2.13 | 4.2.30 | Final 4.2 release |
+| `djangorestframework`, `djangorestframework-simplejwt`, `django-celery-beat`, `django-cors-headers`, `django-import-export`, `django-material`, `django-simple-history`, `celery`, `kombu`, `amqp`, `redis` | older | see `requirements.in` | Raised to versions that support Django 4.2 |
+| `tablib` | 3.9.0 | 3.5.0 | Downgrade forced by `django-import-export` 3.3.9 |
+| `pymemcache` | `python-memcached` | 4.0.0 | Replaces `python-memcached`; Django 4.1 removed `MemcachedCache` (settings use `PyMemcacheCache`) |
+| `django-colorfield` | 0.4.5 | 0.4.5 (kept) | Newer versions change `ColorField` max_length 18 to 25 and need a migration; revisit in step 2 |
+
+`Dockerfile.deploy` now installs `api/requirements.txt` on top of the upstream
+`surface-base` image; before that the pins never reached a running container.
+
+**No CI gate covers SURFACE.** `scripts/ci/select-images.mjs` treats `surface/`
+as deferred and no workflow runs its tests, so verification on the host stack
+(`surface/docker-compose.yml` or the weather compose) is the only gate. Run
+`wx/tests` with the `manage.py test` command inside the built image too.
 
 ## wis2box/
 
