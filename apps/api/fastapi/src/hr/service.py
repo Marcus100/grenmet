@@ -9,6 +9,7 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from src.auth import access as auth_access
 from src.auth import policy as auth_policy
+from src.auth.assignments import end_assignments_for_employment
 from src.auth.models import (
     Role,
     RoleAssignmentScope,
@@ -796,7 +797,18 @@ async def update_employment_for_user(
     if not employment:
         raise EmploymentNotFoundError()
 
+    ended_employment = False
     if employment_update:
+        if (
+            target_user_id == current_user.id
+            and employment_update.status is not None
+            and employment_update.status != employment.status
+        ):
+            raise HRValidationError("You cannot change your own employment status")
+        ended_employment = (
+            employment.status == EmploymentStatus.ACTIVE
+            and employment_update.status not in (None, EmploymentStatus.ACTIVE)
+        )
         await validate_service_facts(
             employment_update.model_dump(exclude_unset=True), employment
         )
@@ -823,6 +835,12 @@ async def update_employment_for_user(
             )
         _apply_employment_update(employment, employment_update)
         session.add(employment)
+        if ended_employment:
+            await end_assignments_for_employment(
+                session=session,
+                user_id=target_user_id,
+                organisation_id=employment.organisation_id,
+            )
 
     if approval_update:
         authority = await _get_or_create_approval_authority(

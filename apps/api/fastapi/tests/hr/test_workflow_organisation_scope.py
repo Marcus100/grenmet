@@ -248,9 +248,8 @@ async def test_named_approver_membership_revocation_removes_inbox_history_and_no
     assert outsider.id not in await notifications.pending_approvers(
         db_async, instances[1]
     )
-    assert not await service.list_actionable_instances(
-        session=db_async, current_user=outsider
-    )
+    with pytest.raises(AuthorizationError):
+        await service.list_actionable_instances(session=db_async, current_user=outsider)
     with pytest.raises(AppException):
         await service.apply_workflow_action(
             session=db_async,
