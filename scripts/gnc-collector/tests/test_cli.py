@@ -1,3 +1,5 @@
+import os
+import time
 from pathlib import Path
 
 import pytest
@@ -102,3 +104,13 @@ def test_check_passes_when_files_are_recent_and_fails_when_stale(
 
 def test_check_fails_when_a_band_has_no_files(tmp_path: Path) -> None:
     assert main(["check", "--input-dir", str(tmp_path), "--bands", "13"]) == 1
+
+
+def test_check_fails_on_a_file_dated_in_the_future(
+    tmp_path: Path, receiver: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    future = time.time() + 3 * 3600
+    for scan in receiver.glob("*C13*"):
+        os.utime(scan, (future, future))
+    assert main(["check", "--input-dir", str(receiver), "--bands", "13"]) == 1
+    assert "band 13: CLOCK" in capsys.readouterr().out

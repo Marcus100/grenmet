@@ -49,10 +49,19 @@ bash survey-receiver.sh > survey-$(date +%F).txt 2>&1
 # optional: SURVEY_FOLDER=/path/to/fazzt/output bash survey-receiver.sh
 ```
 
-It reports the operating system, disk space, network addresses, DVB receiver
-hardware, FAZZT services, the folders that hold recent GOES and model files,
-which products and bands arrived, and whether `python3`, `uv` and `systemctl`
-are available. Narrow the search with `SEARCH_ROOTS=/data` if it is slow.
+It reports the operating system and kernel, disk space, network addresses, DVB
+receiver hardware, FAZZT services (program names only, never their arguments),
+the folders that hold recent GOES and model files, which products and bands
+arrived, whether a file's time matches the scan time in its name, and whether
+`python3`, `uv` and `systemctl` are available.
+
+- It searches every drive except virtual (`/proc`, `/sys`, devices) and network
+  mounts, at low priority. A full search can take several minutes; each search
+  stops after `FIND_TIMEOUT` seconds (default 300) and prints `SEARCH
+  INCOMPLETE`, so a count is never silently too low. Narrow it with
+  `SEARCH_ROOTS="/data /var"` if it is slow.
+- Paths in `SEARCH_ROOTS` and `SURVEY_FOLDER` must be absolute.
+- The output still identifies the machine (addresses, folder and file names).
 
 Answer these before deploying the collector:
 
@@ -88,7 +97,8 @@ storage, so the receiver never needs to accept connections for it.
 6. Check: `journalctl -u gnc-collector -n 50` shows `archived gnca/...` lines
    and the images appear in the WxWatch gallery.
 7. Install the stall check the same way (`gnc-collector-check.service` and
-   `.timer`). `gnc-collector check --input-dir <folder>` prints the newest file
+   `.timer`; set the same real `--input-dir`, and make sure the `gnc` user can
+   read that folder). `gnc-collector check --input-dir <folder>` prints the newest file
    per band and exits 1 if either band has not arrived for `--max-age-minutes`
    (default 45). A stalled receiver then shows in `systemctl --failed` and the
    journal. Forwarding that to a person (email or an in-app notification) is

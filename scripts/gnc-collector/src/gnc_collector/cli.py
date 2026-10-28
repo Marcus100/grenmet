@@ -15,6 +15,9 @@ from gnc_collector.collector import (
 from gnc_collector.goes import CARIBBEAN, parse_name
 from gnc_collector.render import BANDS, render
 
+# File times this far ahead of the clock are a clock or receiver problem.
+CLOCK_SKEW_MINUTES = 5.0
+
 
 def parse_bands(value: str) -> list[int]:
     bands = [int(part) for part in value.split(",") if part]
@@ -97,6 +100,15 @@ def main(argv: list[str] | None = None) -> int:
         for band in freshness(args.input_dir, args.bands):
             if band.newest is None or band.received_minutes_ago is None:
                 print(f"band {band.band}: no GOES-19 full-disk file found")
+                stale = True
+                continue
+            if band.received_minutes_ago < -CLOCK_SKEW_MINUTES:
+                # A file dated in the future would look fresh forever and hide a
+                # stall, so a wrong clock counts as a failure.
+                print(
+                    f"band {band.band}: CLOCK - newest {band.newest} is dated "
+                    f"{-band.received_minutes_ago:.0f} min in the future"
+                )
                 stale = True
                 continue
             late = band.received_minutes_ago > args.max_age_minutes
