@@ -188,6 +188,7 @@ export function draftToCard(draft: EventDraft): EventCardData {
     slug: "preview",
     goingCount: 0,
     goingNames: [],
+    imageFileId: draft.imageFileId ?? null,
     viewerSaved: false,
   };
 }

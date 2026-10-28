@@ -9,6 +9,7 @@ const createUpload = vi.fn();
 const completeUpload = vi.fn();
 const setLogo = vi.fn();
 const claim = vi.fn();
+const resubmit = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSession: () => getSession() }));
@@ -24,14 +25,21 @@ vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
   eventsRsvpListing: (...args: unknown[]) => rsvp(...args),
   eventsCancelListingRsvp: (...args: unknown[]) => cancelRsvp(...args),
+  eventsResubmitOrganiser: (...args: unknown[]) => resubmit(...args),
   eventsClaimTickets: (...args: unknown[]) => claim(...args),
   eventsSetOrganiserLogo: (...args: unknown[]) => setLogo(...args),
   storageCompleteUpload: (...args: unknown[]) => completeUpload(...args),
   storageCreateUpload: (...args: unknown[]) => createUpload(...args),
 }));
 
-const { claimTickets, finishUpload, saveOrganiserLogo, setGoing, startUpload } =
-  await import("./actions");
+const {
+  claimTickets,
+  finishUpload,
+  resubmitOrganiser,
+  saveOrganiserLogo,
+  setGoing,
+  startUpload,
+} = await import("./actions");
 
 function responseError(status: number, data: unknown) {
   return new ResponseError({
@@ -247,5 +255,68 @@ describe("claimTickets failures", () => {
     const result = await claimTickets("fete", [], "key");
     expect(result.ok).toBe(false);
     expect("freshKey" in result).toBe(false);
+  });
+});
+
+describe("resubmitOrganiser", () => {
+  beforeEach(() => {
+    for (const mock of [getSession, reportError, resubmit]) {
+      mock.mockReset();
+    }
+    getSession.mockResolvedValue({ accessToken: "tok" });
+  });
+
+  it("asks visitors to sign in without calling the API", async () => {
+    getSession.mockResolvedValue(null);
+    expect(await resubmitOrganiser()).toEqual({
+      ok: false,
+      error: "sign-in-required",
+    });
+    expect(resubmit).not.toHaveBeenCalled();
+  });
+
+  it("resubmits the organiser resolved on the server", async () => {
+    resubmit.mockReturnValue({ unwrap: async () => ({}) });
+    expect(await resubmitOrganiser()).toEqual({
+      ok: true,
+      data: "resubmitted",
+    });
+    expect(resubmit).toHaveBeenCalledOnce();
+    expect(resubmit.mock.calls[0]?.[0]).not.toHaveProperty("body");
+  });
+
+  it("maps the real 409 for a non-rejected organiser to unchanged, unreported", async () => {
+    resubmit.mockReturnValue({
+      unwrap: async () =>
+        Promise.reject(
+          responseError(409, {
+            detail: "Only a rejected request can be resubmitted",
+          })
+        ),
+    });
+    expect(await resubmitOrganiser()).toEqual({ ok: true, data: "unchanged" });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("shows other refusals and reports server faults without detail", async () => {
+    resubmit.mockReturnValue({
+      unwrap: async () =>
+        Promise.reject(
+          responseError(403, { detail: "You can't do that here" })
+        ),
+    });
+    expect(await resubmitOrganiser()).toEqual({
+      ok: false,
+      error: "You can't do that here",
+    });
+    resubmit.mockReturnValue({
+      unwrap: async () => Promise.reject(responseError(500, { detail: "x" })),
+    });
+    const result = await resubmitOrganiser();
+    expect(result.ok).toBe(false);
+    expect(reportError).toHaveBeenCalledWith(
+      expect.any(ResponseError),
+      "events-organiser"
+    );
   });
 });

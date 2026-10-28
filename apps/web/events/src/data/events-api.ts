@@ -192,31 +192,56 @@ export interface ManagedWorkspace {
   organisers: OrganiserOption[];
 }
 
+/** What the API answers (403) when the organiser's organisation has Events switched off. */
+const EVENTS_DISABLED_DETAIL = "Barrels Events isn't enabled";
+
+export type ManagedAccess =
+  | { readonly kind: "ok"; readonly workspace: ManagedWorkspace }
+  /** The member is not part of any organiser yet. */
+  | { readonly kind: "no-organiser" }
+  /** An organiser exists but its organisation's Events access is off. */
+  | { readonly kind: "events-disabled" };
+
+function forbiddenKind(
+  error: ResponseError
+): "events-disabled" | "no-organiser" {
+  const data: unknown = error.data;
+  const detail =
+    typeof data === "object" && data !== null && "detail" in data
+      ? data.detail
+      : null;
+  return typeof detail === "string" && detail.startsWith(EVENTS_DISABLED_DETAIL)
+    ? "events-disabled"
+    : "no-organiser";
+}
+
 /**
  * The organiser's own listings, drafts included, for the organiser picked in
- * the switcher (cookie) or the first one. Null without organiser access.
+ * the switcher (cookie) or the first one. A 403 is told apart by the API's
+ * message: Events switched off for the organisation, or no organiser at all.
  */
-export const getManagedOrganiser = cache(
-  async (): Promise<ManagedWorkspace | null> => {
-    const chosen = await chosenOrganiser();
-    const load = async (organiser: string | undefined) =>
-      await eventsGetManagedOrganiser({
-        ...(await options()),
-        ...(organiser ? { query: { organiser } } : {}),
-      }).unwrap();
+export const getManagedAccess = cache(async (): Promise<ManagedAccess> => {
+  const chosen = await chosenOrganiser();
+  const load = async (organiser: string | undefined) =>
+    await eventsGetManagedOrganiser({
+      ...(await options()),
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap();
+  try {
+    let managed: Awaited<ReturnType<typeof load>>;
     try {
-      let managed: Awaited<ReturnType<typeof load>>;
-      try {
-        managed = await load(chosen);
-      } catch (error) {
-        // A remembered organiser the member no longer manages: fall back.
-        if (chosen && error instanceof ResponseError && error.status === 403) {
-          managed = await load(undefined);
-        } else {
-          throw error;
-        }
+      managed = await load(chosen);
+    } catch (error) {
+      // A remembered organiser the member no longer manages: fall back.
+      if (chosen && error instanceof ResponseError && error.status === 403) {
+        managed = await load(undefined);
+      } else {
+        throw error;
       }
-      return {
+    }
+    return {
+      kind: "ok",
+      workspace: {
         organiser: toOrganiser(managed),
         organisers: managed.organisers.map((row) => ({
           slug: row.slug,
@@ -224,15 +249,21 @@ export const getManagedOrganiser = cache(
           organisationId: row.organisation_id ?? null,
         })),
         listings: managed.listings.map(toManagedEvent),
-      };
-    } catch (error) {
-      if (error instanceof ResponseError && error.status === 403) {
-        return null;
-      }
-      throw error;
+      },
+    };
+  } catch (error) {
+    if (error instanceof ResponseError && error.status === 403) {
+      return { kind: forbiddenKind(error) };
     }
+    throw error;
   }
-);
+});
+
+/** The workspace, or null without organiser access (any reason). */
+export async function getManagedOrganiser(): Promise<ManagedWorkspace | null> {
+  const access = await getManagedAccess();
+  return access.kind === "ok" ? access.workspace : null;
+}
 
 /** A listing's change history, newest first. Empty without organiser access. */
 export async function getListingActivity(
