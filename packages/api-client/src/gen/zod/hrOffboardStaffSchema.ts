@@ -30,3 +30,7 @@ export const hrOffboardStaffErrorSchema = z.union([
   hrOffboardStaffStatus409Schema,
   hrOffboardStaffStatus422Schema,
 ]);
+
+export const hrOffboardStaffPathSchema = z.object({
+  user_id: z.uuid(),
+});

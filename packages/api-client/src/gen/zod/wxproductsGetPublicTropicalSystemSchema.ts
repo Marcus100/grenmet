@@ -32,3 +32,7 @@ export const wxproductsGetPublicTropicalSystemErrorSchema = z.union([
   wxproductsGetPublicTropicalSystemStatus422Schema,
   wxproductsGetPublicTropicalSystemStatus503Schema,
 ]);
+
+export const wxproductsGetPublicTropicalSystemPathSchema = z.object({
+  system_id: z.uuid(),
+});

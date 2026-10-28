@@ -15,9 +15,9 @@ import {
   it,
   vi,
 } from "vitest";
-import { EMPTY_ABSENTEE } from "./absentee-document";
 import { AbsenteeEditor, buildAbsenteeReportPayload } from "./absentee-editor";
 import { AbsenteeSubmissions } from "./absentee-submissions";
+import { EMPTY_ABSENTEE } from "./absentee-values";
 
 const navigation = vi.hoisted(() => ({ search: "" }));
 vi.mock("next/navigation", () => ({

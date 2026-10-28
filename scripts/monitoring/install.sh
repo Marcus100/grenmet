@@ -52,7 +52,7 @@ for app, window in windows.items():
     if not start.tzinfo or not end.tzinfo or not timedelta(0) < end - start <= timedelta(hours=48):
         raise ValueError('Maintenance must be timezone-aware and at most 48 hours')
 with open('/etc/grenmet/monitoring.conf', 'a') as output:
-    for key in ('BETTERSTACK_API_TOKEN', 'PROBE_INCIDENTS_ENABLED'):
+    for key in ('BETTERSTACK_API_TOKEN', 'PROBE_INCIDENTS_ENABLED', 'STAGING_PROBE_CREDENTIALS'):
         value = os.environ.get(key, '')
         if any(char in value for char in '\n\r\x00'):
             raise ValueError('Invalid configuration value')

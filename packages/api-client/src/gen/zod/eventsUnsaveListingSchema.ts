@@ -32,3 +32,7 @@ export const eventsUnsaveListingErrorSchema = z.union([
   eventsUnsaveListingStatus422Schema,
   eventsUnsaveListingStatus429Schema,
 ]);
+
+export const eventsUnsaveListingPathSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+});

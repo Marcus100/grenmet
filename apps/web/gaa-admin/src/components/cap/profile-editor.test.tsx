@@ -16,8 +16,11 @@ import {
   vi,
 } from "vitest";
 import { floodProfile } from "@/lib/cap-profile-defaults";
+import { wmoStarterMatrix } from "@/lib/ibf-matrix";
 import { nth } from "@/test/nth";
 import { ProfileEditor } from "./profile-editor";
+
+const RE_RED_RESPONSE = /^Red response/;
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -142,5 +145,72 @@ describe("Hazard profile editor", () => {
     await screen.findByRole("status");
     expect(screen.getByLabelText("Profile name")).toHaveValue("My draft");
     expect(screen.getByRole("button", { name: SAVE })).toBeEnabled();
+  });
+
+  it("hides the impact matrix without the library permission", () => {
+    render(<ProfileEditor initialVersions={[]} />);
+    expect(screen.queryByRole("region", { name: "Impact matrix" })).toBeNull();
+    expect(
+      screen.queryByRole("button", {
+        name: "Start impact levels and responses",
+      })
+    ).toBeNull();
+  });
+
+  it("shows no draft badge for an approved version until it is edited", () => {
+    const approved = version("APPROVED");
+    approved.definition = {
+      ...approved.definition,
+      matrix: { cells: wmoStarterMatrix().cells },
+    };
+    render(<ProfileEditor canManageLibrary initialVersions={[approved]} />);
+    expect(screen.queryByText("Draft")).toBeNull();
+    fireEvent.change(
+      screen.getByLabelText("Very low likelihood, Minimal impact"),
+      { target: { value: "yellow" } }
+    );
+    expect(screen.getAllByText("Draft").length).toBeGreaterThan(0);
+  });
+
+  it("edits the matrix, impact levels and colour responses for library managers", async () => {
+    render(<ProfileEditor canManageLibrary initialVersions={[]} />);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Start a grid from the standard values",
+      })
+    );
+    expect(screen.getAllByText("Draft").length).toBeGreaterThan(0);
+    fireEvent.change(
+      screen.getByLabelText("Very low likelihood, Minimal impact"),
+      { target: { value: "red" } }
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("stronger than");
+    fireEvent.change(
+      screen.getByLabelText("Very low likelihood, Minimal impact"),
+      { target: { value: "green" } }
+    );
+    fireEvent.click(
+      nth(
+        screen.getAllByRole("button", {
+          name: "Start impact levels and responses",
+        })
+      )
+    );
+    fireEvent.change(screen.getByLabelText(RE_RED_RESPONSE), {
+      target: { value: "Move to higher ground." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: SAVE }));
+    await waitFor(() => expect(body).not.toBeNull());
+    expect(body?.definition.matrix?.cells[0]).toEqual([
+      "green",
+      "green",
+      "yellow",
+      "yellow",
+    ]);
+    expect(body?.definition.subtypes[0]?.colour_responses).toContainEqual({
+      colour: "red",
+      response: "Move to higher ground.",
+    });
+    expect(body?.definition.subtypes[0]?.impact_levels).toHaveLength(4);
   });
 });

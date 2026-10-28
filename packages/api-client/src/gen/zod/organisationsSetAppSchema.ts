@@ -36,3 +36,8 @@ export const organisationsSetAppErrorSchema = z.union([
 ]);
 
 export const organisationsSetAppBodySchema = appEntitlementUpdateSchema;
+
+export const organisationsSetAppPathSchema = z.object({
+  organisation_id: z.string(),
+  app_key: z.string(),
+});

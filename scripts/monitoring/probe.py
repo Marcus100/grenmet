@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
-"""Bounded, unauthenticated availability checks. No response bodies enter reports."""
+"""Bounded availability checks. No response bodies enter reports.
+
+Checks are unauthenticated, except that staging web hosts sit behind Traefik
+basic auth: there the edge credential (STAGING_PROBE_CREDENTIALS, user:password)
+is sent. The staging API and every production host never receive it.
+"""
 
 import argparse
+import base64
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
@@ -19,6 +25,15 @@ CATALOGUE = (
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
+
+
+def request_headers(service, environment):
+    headers = {"User-Agent": "Barrels-Availability/1"}
+    credentials = os.environ.get("STAGING_PROBE_CREDENTIALS", "")
+    if environment == "staging" and service["id"] != "api" and credentials:
+        token = base64.b64encode(credentials.encode()).decode("ascii")
+        headers["Authorization"] = f"Basic {token}"
+    return headers
 
 
 def check(service, environment, opener=None):
@@ -41,7 +56,7 @@ def check(service, environment, opener=None):
         with opener.open(
             urllib.request.Request(
                 entry["origin"] + service["healthPath"],
-                headers={"User-Agent": "Barrels-Availability/1"},
+                headers=request_headers(service, environment),
             ),
             timeout=10,
         ) as response:

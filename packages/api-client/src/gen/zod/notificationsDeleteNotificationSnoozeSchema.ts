@@ -31,3 +31,11 @@ export const notificationsDeleteNotificationSnoozeErrorSchema = z.union([
   notificationsDeleteNotificationSnoozeStatus404Schema,
   notificationsDeleteNotificationSnoozeStatus422Schema,
 ]);
+
+export const notificationsDeleteNotificationSnoozePathSchema = z.object({
+  snooze_id: z.uuid(),
+});
+
+export const notificationsDeleteNotificationSnoozeQuerySchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+});

@@ -61,9 +61,10 @@ working SURFACE publisher does not imply that WIS2Downloader is deployed.
 processed into imagery/animations on a schedule and archived with metadata,
 viewable in gaa-admin — no manual notebook runs for routine products.
 
-**Approach:** promote the top routine notebook workflows (`geonetcast/`) into a
-scheduled pipeline following the Scrapy → `wxwatch` precedent (standalone
-script, own DB credentials, metadata rows + files in storage). Notebooks remain
+**Approach:** a scheduled collector on the receiver following the Scrapy →
+`wxwatch` precedent (standalone script, worker token only, metadata rows +
+files in storage). It is `scripts/gnc-collector`, written independently of the
+GPL-licensed `geonetcast/` training scripts. Notebooks remain
 for research. Confirm whether NOAA LRGS will replace the current DADS-dependent
 acquisition path before treating either source as authoritative.
 
@@ -72,7 +73,12 @@ acquisition path before treating either source as authoritative.
   (wxwatch-style DB + object storage).
 - **Exit criteria:** chosen products regenerate automatically on new satellite
   data; imagery browsable in gaa-admin; failure alerting exists.
-- **Status:** planned.
+- **Status:** in progress (2026-10-27). The owner confirms a GNC-A receiver is
+  installed on a Linux PC on the office network. First products chosen:
+  GOES-19 clean infrared (band 13) and upper-level water vapour (band 8) over
+  the Eastern Caribbean, stored in WxWatch as the login-only `gnca` source.
+  Collector code and tests exist; the receiver survey, deployment and failure
+  alerting remain. Runbook: [GeoNetCast receiver](../operations/geonetcast-receiver.md).
 
 ## Phase 3 — Forecaster dashboard (presentation layer)
 

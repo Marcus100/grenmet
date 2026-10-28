@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import * as z from "zod";
 import { airResponseSchema } from "./airResponseSchema.js";
 import { environmentGetMarineParametersSchemaEnumSchema } from "./environmentGetMarineParametersSchemaEnumSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -22,3 +23,9 @@ export const environmentGetAirStatus422Schema =
 export const environmentGetAirResponseSchema = environmentGetAirStatus200Schema;
 
 export const environmentGetAirErrorSchema = environmentGetAirStatus422Schema;
+
+export const environmentGetAirQuerySchema = z.object({
+  point: environmentGetMarineParametersSchemaEnumSchema
+    .optional()
+    .default("st-georges"),
+});

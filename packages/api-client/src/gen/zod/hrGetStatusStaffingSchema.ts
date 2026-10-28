@@ -35,3 +35,9 @@ export const hrGetStatusStaffingErrorSchema = z.union([
   hrGetStatusStaffingStatus404Schema,
   hrGetStatusStaffingStatus422Schema,
 ]);
+
+export const hrGetStatusStaffingQuerySchema = z.object({
+  department_id: z.string(),
+  report_date: z.iso.date(),
+  shift_code: z.string(),
+});

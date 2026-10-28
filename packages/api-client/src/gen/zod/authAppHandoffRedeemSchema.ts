@@ -42,3 +42,7 @@ export const authAppHandoffRedeemErrorSchema = z.union([
 ]);
 
 export const authAppHandoffRedeemBodySchema = appHandoffRedeemSchema;
+
+export const authAppHandoffRedeemPathSchema = z.object({
+  app: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/),
+});

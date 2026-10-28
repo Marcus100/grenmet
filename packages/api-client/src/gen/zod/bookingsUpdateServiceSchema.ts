@@ -47,3 +47,16 @@ export const bookingsUpdateServiceErrorSchema = z.union([
 ]);
 
 export const bookingsUpdateServiceBodySchema = bookingServiceUpdateSchema;
+
+export const bookingsUpdateServicePathSchema = z.object({
+  service_id: z.uuid(),
+});
+
+export const bookingsUpdateServiceHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+    ),
+});

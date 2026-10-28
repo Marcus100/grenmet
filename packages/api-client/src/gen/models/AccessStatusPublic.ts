@@ -12,7 +12,7 @@ export type AccessStatusPublic = {
    */
   entitled: boolean;
   /**
-   * @description The organisation\'s most recent request, if any.
+   * @description The organisation's most recent request, if any.
    */
   request: AccessRequestPublic | null;
 };

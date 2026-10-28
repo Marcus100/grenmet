@@ -34,3 +34,7 @@ export const hrSubmitAbsenteeReportErrorSchema = z.union([
 ]);
 
 export const hrSubmitAbsenteeReportBodySchema = absenteeReportSubmitSchema;
+
+export const hrSubmitAbsenteeReportPathSchema = z.object({
+  absentee_report_id: z.uuid(),
+});

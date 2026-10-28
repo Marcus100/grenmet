@@ -48,6 +48,9 @@ export default async function EventPage({ params }: { params: Params }) {
           <EventFlyer
             category={event.category}
             className="aspect-[16/9] sm:aspect-[21/9]"
+            imageAlt={`Cover image for ${event.title}`}
+            imageFileId={event.imageFileId}
+            priority
             startsAt={event.startsAt}
           />
           <div className="space-y-3">

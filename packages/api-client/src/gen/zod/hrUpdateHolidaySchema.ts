@@ -33,3 +33,7 @@ export const hrUpdateHolidayErrorSchema = z.union([
 ]);
 
 export const hrUpdateHolidayBodySchema = publicHolidayUpdateSchema;
+
+export const hrUpdateHolidayPathSchema = z.object({
+  holiday_id: z.uuid(),
+});

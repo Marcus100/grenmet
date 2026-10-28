@@ -15,6 +15,10 @@ import { useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { getImageUrl } from "@/lib/wxwatch/utils";
 
+const SOURCE_LABELS: Record<string, string> = {
+  gnca: "GeoNetCast receiver (GOES-19)",
+};
+
 export function ArchiveBrowser({
   archive,
   history,
@@ -70,9 +74,19 @@ export function ArchiveBrowser({
             {!nhcOnly && <option value="">All sources</option>}
             {(nhcOnly
               ? ["nhc"]
-              : ["goes19", "sfcana", "cimss", "trackthetropics", "uwyo", "nhc"]
+              : [
+                  "goes19",
+                  "sfcana",
+                  "cimss",
+                  "trackthetropics",
+                  "uwyo",
+                  "gnca",
+                  "nhc",
+                ]
             ).map((source) => (
-              <option key={source}>{source}</option>
+              <option key={source} value={source}>
+                {SOURCE_LABELS[source] ?? source}
+              </option>
             ))}
           </select>
         </label>

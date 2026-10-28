@@ -211,6 +211,15 @@ docs/agents/routines.md, and follow "Shared rules for every routine".
 6. Finish with a summary of files removed and files skipped, with reasons.
 ```
 
+## Finished worktrees
+
+Routines may run `node scripts/agents/worktree-clean.mjs` to preview finished
+checkout candidates. Removal is attended: confirm with the checkout's owner that
+the session has finished and preserve unique ignored material before selecting
+one target. Follow [the guarded cleanup guide](worktree-cleanup.md). Active
+harness locks must be resolved by their owner; routines do not force removal or
+unlock a checkout.
+
 Execution uses existing subscriptions first with $0 extra spending by default.
 Prefer local execution; use cloud as fallback. Extra API spending requires owner
 approval, including scorer, benchmark and skill-eval runs that incur charges.

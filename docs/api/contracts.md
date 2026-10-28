@@ -547,6 +547,26 @@ The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.
 
+### Events catalogue taxonomy (ADR-0046, L3)
+
+`GET /events/public/categories` returns the active two-level category tree
+(`slug`, `name`, `applies_to`, `children`) with `listing_count` of upcoming
+published, public-visibility, public-access listings. `GET /events/listings`
+gains `type`, `category_slug`, `subcategory_slug`, `pricing`
+(`free|paid|donation`), `access` (`public` only: private listings are never
+listed) and `booking_mode`; the legacy `category` (ten frozen values), `price`
+and `admission` are unchanged. Listing responses add `listing_type`,
+`access_type`, `pricing_type`, `booking_mode`, `category_slug`,
+`subcategory_slug` and `external_ticket_url` (defaults keep old clients valid).
+`POST/PUT /events/manage/listings` accept the same fields, all optional, with
+409 rules: the category must apply to the `listing_type`, the subcategory must
+belong to the category, priced tiers need `pricing_type=paid`, `service` is
+refused, and `access_type=private` forces `visibility=unlisted`.
+`booking_mode=slots` (reserved for the Bookings bridge) and `booking_mode=external`
+or `external_ticket_url` (set by Barrels staff through the later curation routes,
+ADR-0048) answer 422 on the organiser routes. External links are https only,
+normalised, and refuse userinfo, control or bidi characters and non-ASCII hosts.
+
 ### Events tickets (E1)
 
 `POST /events/listings/{slug}/orders` (Events member, 20/minute) claims free or
@@ -716,6 +736,8 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   name, org role and live grants limited to the products the caller manages, no
   emails. `GET /team/me` (any member) returns the caller's org role, the products
   whose `team.manage` they hold and `is_admin_or_owner`.
+  These team routes, and member removal (`DELETE /{organisation_id}/members/{id}`), also
+  accept an Events app token (`EventsOrg*` dependencies); any other app's token is 401.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
   which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`
@@ -1397,17 +1419,51 @@ Authenticated `/api/v1/cap/hazard-profiles` provides version history (GET),
 `/{key}/versions` creates an immutable DRAFT version (POST, optimistic
 `base_version`), `/{profile_id}/approve` records independent approval (POST),
 and `/{profile_id}/draft` starts an alert draft from an approved subtype/template
-(POST). Reads require `cap.alert.read`; saves require `cap.settings.manage`;
-approval also requires `cap.alert.approve` and a different actor from the author;
+(POST). Reads require `cap.alert.read`; saves require `cap.library.manage` (default
+roles `cap-admin` and `gms-lead`); approval also requires `cap.library.manage`,
+`cap.alert.approve` and a different actor from the author;
 draft creation requires `cap.alert.create`. Conflicting versions return 409.
 
 Profiles contain subtypes, CAP category mappings, per-message-level assessment
 rules, impacts, affected groups, responses, templates, authority names and intended
-channels. Incomplete profiles are savable drafts but cannot be approved. Approved
+channels. A subtype may also carry the impact-based matrix content (see below).
+Incomplete profiles are savable drafts but cannot be approved. Approved
 versions remain immutable when a newer draft is created. The selected profile
 version is recorded in the resulting alert's `GMS:hazard-profile` parameter.
 Threshold evaluation and transport/channel enforcement are not performed here.
 Creating a draft never publishes it; its assessment remains Unknown.
+
+### Impact-based alert matrix (WMO-No. 1150)
+
+The colour of a warning is read from a 4x4 grid of likelihood (Very low, Low,
+Medium, High; about 10, 30, 60 and 80 per cent) against impact (Minimal, Minor,
+Significant, Severe). The standard grid lives once in `src/cap/ibf.py`; a hazard
+profile may carry its own `matrix` (16 colours, which must never get milder as
+likelihood or impact rises). A subtype that sets any of `impact_levels` (impacts
+and thresholds per impact), `colour_responses` (what to do at each of the four
+colours) or `cell_texts` (wording for one cell) must complete all four impact
+levels and all four responses before approval; profiles without them are
+unchanged. The library entry for an alert kind is the newest APPROVED profile
+with key `ibf-<kind>` (for example `ibf-flood`).
+
+- `GET /api/v1/cap/ibf/matrix?kind=` returns the grid, the percent bands and the
+  meaning of each colour (Business as usual, Be aware, Be prepared, Take action);
+  it carries `library_key` and `library_version` only when an approved entry set
+  its own grid.
+- `GET /api/v1/cap/ibf/suggest?kind=&likelihood=&impact=[&subtype=]` returns the
+  colour, its meaning, the CAP severity and `awareness_level` value, and starting
+  impacts, thresholds and response from the approved entry (a cell's own wording
+  wins, then the impact level, then the colour's response). `available` is false
+  when no approved entry exists; the colour is still suggested.
+- Both need `cap.alert.read` or authority to author the kind (product access).
+
+`POST /api/v1/cap/escalations` accepts an optional `override_reason`. When the saved
+alert has a valid likelihood and impact, the colour must equal the matrix's
+suggestion or `override_reason` (at least 10 characters) must explain why not (422
+otherwise). The draft records `GMS:likelihood`, `GMS:impact`, `GMS:suggested-colour`,
+`GMS:ibf-library` (`key:vN`, when an approved entry was used) and, on an override,
+`GMS:override-reason`. CAP severity still follows the colour, so consumers that read
+only severity see the same level.
 
 ### CAP escalation from a GMS alert (ADR-0051, proposed)
 
@@ -1460,7 +1516,10 @@ routes are unchanged), e.g. `GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf` o
 `Leave Application - <signer> - 2026-10-23.pdf`. Every PDF response sends an ASCII
 `filename` plus `filename*=UTF-8''...` (RFC 6266) from `src/utils/filenames.py`; the
 signer's name appears only on signed documents, where it is already printed.
-All signature and PDF responses use private, no-store caching. Signed PDFs, signer
+The five HR preview routes document these headers in `openapi.json`; every server-rendered PDF (HR, billing, wxproducts) is built by `pdf_response` in
+`src/utils/pdf_response.py`: private, no-store caching, `nosniff` and the RFC 6266 name;
+a guard test rejects hand-built PDF responses. All signature responses use private,
+no-store caching. Signed PDFs, signer
 identity, signature version, timestamp, canonical form snapshot and SHA-256 are
 committed with submission and remain unchanged when the saved signature changes.
 
@@ -1911,6 +1970,19 @@ weather site as provisional, so a signed-in account alone is not enough.
   `422`, so `{}` can no longer clear everything). Each change writes a change-history
   entry (`eregister_station_settings`, readable by `eregister.qc` or
   `eregister.send`) with the amounts before and after and the actor.
+- *Station registry.* `GET /api/v1/eregister/stations` (list; `include_inactive=false`
+  hides retired ones), `POST` (add, `201`), `GET /stations/{station_id}` and
+  `PATCH /stations/{station_id}` (edit the keys sent; `station_id` is fixed). A
+  station has a `wigos_id` (format `0-<issuer>-<issue>-<local>`, unique, `409` if
+  taken), `source_kind` (`manual` observer or `automatic`), `manual_hours_utc`
+  (manual only and required, non-empty; the derived `schedule` is `manual`, `hybrid`
+  or `automatic`) and `active`. An automatic station with hours, or a manual one with
+  none, is `422`. Reading needs register staff access; changes need `eregister.qc`
+  and write a change-history entry (`eregister_station`, create or the fields before
+  and after). The WIS2 publish gate refuses an inactive station. 78958 stays the
+  manual station; the automatic station is added here once GMS confirms its WIGOS
+  identifier (migration `eregister_0007`, additive). A `wigos_id` is set once and never
+  changed; 78958 can only be renamed.
 - *Special groups and listings.* Typed `s3_special_phenomena` groups are sent in the
   order keyed, after the gust and `s3_group_909` built from their own fields; a typed
   group with the same 9SpSp prefix as one of those is dropped and warns

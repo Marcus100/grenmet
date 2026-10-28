@@ -1,0 +1,13 @@
+[Unit]
+Description=Run gnc-collector every ten minutes, after each GOES-19 full disk
+
+[Timer]
+# Full-disk scans start every ten minutes on the hour; files reach the
+# receiver a few minutes later. Running at :04, :14 … leaves the 60-second
+# settle window plus margin. A systemd oneshot never overlaps itself.
+OnCalendar=*:04,14,24,34,44,54
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

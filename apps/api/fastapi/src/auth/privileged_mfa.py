@@ -24,6 +24,7 @@ PRIVILEGED_PERMISSION_KEYS = (
     "cap.alert.approve",
     "cap.alert.publish",
     "cap.alert.publish_emergency",
+    "cap.library.manage",
 )
 
 

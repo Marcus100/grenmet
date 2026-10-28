@@ -48,3 +48,16 @@ export const bookingsCreateExceptionErrorSchema = z.union([
 ]);
 
 export const bookingsCreateExceptionBodySchema = bookingExceptionCreateSchema;
+
+export const bookingsCreateExceptionPathSchema = z.object({
+  provider_id: z.uuid(),
+});
+
+export const bookingsCreateExceptionHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+    ),
+});

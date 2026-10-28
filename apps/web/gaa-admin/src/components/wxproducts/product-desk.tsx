@@ -60,6 +60,7 @@ import {
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 import { CapForecastPicker } from "./cap-forecast-picker";
+import { ImpactMatrixPanel } from "./impact-matrix-panel";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
 import { ProductDiscardDialog } from "./product-discard-dialog";
 import {
@@ -380,7 +381,8 @@ function ProductEditor({
   /** Save the alert as a green draft, then ask FastAPI for the CAP warning draft. */
   async function raiseToWarning(
     values: ProductValues,
-    level: WarningLevel
+    level: WarningLevel,
+    overrideReason?: string
   ): Promise<
     { alertId: string } | { error: string; existingAlertId?: string }
   > {
@@ -393,6 +395,7 @@ function ProductEditor({
           product_id: id,
           revision: saved.revision,
           awareness_level: level,
+          override_reason: overrideReason ?? null,
         },
       }).unwrap();
       setRaisedKey(raised.alert_id);
@@ -406,9 +409,11 @@ function ProductEditor({
       return { alertId: raised.alert_id };
     } catch (error) {
       reportError(error, "wxproducts");
+      const reason = matrixRefusal(error);
       return {
-        error:
-          "The alert was saved, but the warning draft could not be created. Check your CAP permissions and try again.",
+        error: reason
+          ? `The alert was saved, but the warning was not raised: ${reason}`
+          : "The alert was saved, but the warning draft could not be created. Check your CAP permissions and try again.",
       };
     }
   }
@@ -830,6 +835,13 @@ function ProductEditor({
                           ) : null}
                         </FieldContent>
                       </Field>
+                      {isBulletin(kind) ? (
+                        <ImpactMatrixPanel
+                          impact={values.impact}
+                          kind={kind}
+                          likelihood={values.likelihood}
+                        />
+                      ) : null}
                       {message ? (
                         <p
                           className="whitespace-pre-wrap rounded-lg border p-3 text-sm"
@@ -858,9 +870,12 @@ function ProductEditor({
                             </Button>
                             {raiseOpen ? (
                               <RaiseToWarningDialog
+                                impact={values.impact}
+                                kind={kind}
+                                likelihood={values.likelihood}
                                 onOpenChange={setRaiseOpen}
-                                onRaise={(level) =>
-                                  raiseToWarning(values, level)
+                                onRaise={(level, overrideReason) =>
+                                  raiseToWarning(values, level, overrideReason)
                                 }
                                 open
                               />
@@ -969,6 +984,15 @@ function DirtyState({
   }, [dirty]);
   return null;
 }
+/** The matrix rule's explanation when FastAPI refuses a raise with a 422. */
+function matrixRefusal(error: unknown): string | null {
+  if (typeof error !== "object" || error === null) return null;
+  const { status, data } = error as { status?: number; data?: unknown };
+  if (status !== 422 || typeof data !== "object" || data === null) return null;
+  const { detail } = data as { detail?: unknown };
+  return typeof detail === "string" ? detail : null;
+}
+
 export function ProductDesk({
   kinds,
   title,

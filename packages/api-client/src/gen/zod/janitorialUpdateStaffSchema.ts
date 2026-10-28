@@ -44,3 +44,7 @@ export const janitorialUpdateStaffErrorSchema = z.union([
 ]);
 
 export const janitorialUpdateStaffBodySchema = staffUpdateSchema;
+
+export const janitorialUpdateStaffPathSchema = z.object({
+  staff_id: z.uuid(),
+});

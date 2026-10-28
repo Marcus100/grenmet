@@ -47,3 +47,22 @@ export const hrGetTrainingEmployeesErrorSchema = z.union([
   hrGetTrainingEmployeesStatus403Schema,
   hrGetTrainingEmployeesStatus422Schema,
 ]);
+
+export const hrGetTrainingEmployeesQuerySchema = z.object({
+  organisation_id: z.string(),
+  search: z.string().max(100).optional().default(""),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

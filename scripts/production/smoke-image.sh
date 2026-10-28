@@ -30,7 +30,7 @@ case "$kind" in
       -e POSTGRES_SERVER=db -e POSTGRES_PORT=5432 -e POSTGRES_USER=app \
       -e POSTGRES_PASSWORD=ci -e POSTGRES_DB=app \
       -e FIRST_SUPERUSER=ci@example.com -e FIRST_SUPERUSER_PASSWORD=changethis-ci \
-      "$image" -c 'from src.main import app; print("boot-ok: app + routers imported")'
+      "$image" -c 'from src.main import app; print("boot-ok: app + routers imported"); from weasyprint import HTML; assert HTML(string="<p>x</p>").write_pdf().startswith(b"%PDF"); print("pdf-ok: weasyprint rendered")'
     ;;
   cms-migrate)
     docker run --rm --network none --entrypoint node \

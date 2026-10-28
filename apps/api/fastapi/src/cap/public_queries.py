@@ -58,7 +58,10 @@ async def public_latest_active(*, session: AsyncSession) -> CapAlertListPublic:
         .limit(100)
         .options(*_alert_selectinload_options())
     )
-    active = [_to_public_from_loaded(alert) for alert in result.scalars()]
+    active = [
+        _to_public_from_loaded(alert, redact_internal=True)
+        for alert in result.scalars()
+    ]
     await _attach_public_replacements(session=session, alerts=active)
     return CapAlertListPublic(data=active, count=len(active))
 
@@ -80,7 +83,10 @@ async def public_recent_cancels(*, session: AsyncSession) -> list[CapAlertPublic
         .limit(100)
         .options(*_alert_selectinload_options())
     )
-    return [_to_public_from_loaded(alert) for alert in result.scalars()]
+    return [
+        _to_public_from_loaded(alert, redact_internal=True)
+        for alert in result.scalars()
+    ]
 
 
 async def public_past_alerts(*, session: AsyncSession) -> CapAlertListPublic:
@@ -116,7 +122,10 @@ async def public_past_alerts(*, session: AsyncSession) -> CapAlertListPublic:
         .limit(100)
         .options(*_alert_selectinload_options())
     )
-    past = [_to_public_from_loaded(alert) for alert in result.scalars()]
+    past = [
+        _to_public_from_loaded(alert, redact_internal=True)
+        for alert in result.scalars()
+    ]
     await _attach_public_replacements(session=session, alerts=past)
     return CapAlertListPublic(data=past, count=len(past))
 
@@ -154,7 +163,7 @@ async def public_alert_by_identifier(
     alert = result.scalars().first()
     if not alert:
         raise CapAlertNotFoundError()
-    public = await _to_public(session=session, alert=alert)
+    public = await _to_public(session=session, alert=alert, redact_internal=True)
     await _attach_public_replacements(session=session, alerts=[public])
     return public
 
@@ -192,7 +201,10 @@ async def _public_alerts_by_state(
         .options(*_alert_selectinload_options())
     )
     result = await session.execute(stmt)
-    alerts = [_to_public_from_loaded(alert) for alert in result.scalars()]
+    alerts = [
+        _to_public_from_loaded(alert, redact_internal=True)
+        for alert in result.scalars()
+    ]
     await _attach_public_replacements(session=session, alerts=alerts)
     return alerts
 
@@ -344,5 +356,6 @@ async def public_warnings(*, session: AsyncSession) -> PublicWarnings:
     )
     rows = (await session.execute(statement)).scalars().all()
     return select_public_warnings(
-        [_to_public_from_loaded(row) for row in rows], datetime.now(UTC)
+        [_to_public_from_loaded(row, redact_internal=True) for row in rows],
+        datetime.now(UTC),
     )

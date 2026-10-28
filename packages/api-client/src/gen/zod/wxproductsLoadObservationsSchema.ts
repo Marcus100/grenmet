@@ -50,3 +50,11 @@ export const wxproductsLoadObservationsErrorSchema = z.union([
   wxproductsLoadObservationsStatus403Schema,
   wxproductsLoadObservationsStatus422Schema,
 ]);
+
+export const wxproductsLoadObservationsQuerySchema = z.object({
+  kind: observationRecordPropertiesKindEnumSchema,
+  station: z.union([z.string().min(1).max(32), z.null()]).optional(),
+  start: z.union([z.iso.datetime(), z.null()]).optional(),
+  end: z.union([z.iso.datetime(), z.null()]).optional(),
+  limit: z.int().min(1).max(500).optional().default(100),
+});

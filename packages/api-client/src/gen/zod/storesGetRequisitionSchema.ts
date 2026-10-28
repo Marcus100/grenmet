@@ -31,3 +31,7 @@ export const storesGetRequisitionErrorSchema = z.union([
   storesGetRequisitionStatus404Schema,
   storesGetRequisitionStatus422Schema,
 ]);
+
+export const storesGetRequisitionPathSchema = z.object({
+  requisition_id: z.uuid(),
+});

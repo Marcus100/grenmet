@@ -39,3 +39,7 @@ export const storesUpdateItemErrorSchema = z.union([
 ]);
 
 export const storesUpdateItemBodySchema = itemUpdateSchema;
+
+export const storesUpdateItemPathSchema = z.object({
+  item_id: z.uuid(),
+});

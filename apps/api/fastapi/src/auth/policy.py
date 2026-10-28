@@ -16,6 +16,9 @@ from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
 
+# Baseline self-service role (leave, timesheets, own records); survives ended employment.
+STAFF_ROLE = "staff"
+
 ERROR_PERMISSION_DENIED = "Insufficient permission for this operation"
 
 
@@ -38,9 +41,36 @@ async def _active_assignments(
             ),
         )
     )
+    # Ending employment ends every role scoped to that organisation (owner
+    # decision 2026-10-28, #789). No employment record at all (organisation
+    # administrators, platform staff) keeps the assignment; an ended record, or a
+    # deactivated account, drops it. Every scope is gated, SELF included (SELF
+    # approver roles are common); only the SELF-scope baseline staff role stays.
+    live_holder = (
+        ~exists(
+            select(EmploymentRecord.id).where(
+                EmploymentRecord.user_id == UserRoleAssignment.user_id,
+                EmploymentRecord.organisation_id == UserRoleAssignment.organisation_id,
+            )
+        )
+        | exists(
+            select(EmploymentRecord.id).where(
+                EmploymentRecord.user_id == UserRoleAssignment.user_id,
+                EmploymentRecord.organisation_id == UserRoleAssignment.organisation_id,
+                EmploymentRecord.status == EmploymentStatus.ACTIVE,
+            )
+        )
+    ) & UserRoleAssignment.user_id.in_(select(User.id).where(User.is_active.is_(True)))
     result = await session.execute(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user_id,
+            (
+                UserRoleAssignment.role_id.in_(
+                    select(Role.id).where(Role.name == STAFF_ROLE)
+                )
+                & (UserRoleAssignment.scope == RoleAssignmentScope.SELF)
+            )
+            | live_holder,
             UserRoleAssignment.effective_from <= now,
             UserRoleAssignment.effective_to.is_(None)
             | (UserRoleAssignment.effective_to > now),

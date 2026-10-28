@@ -25,3 +25,7 @@ export const authRevokeSecuritySessionErrorSchema = z.union([
   authRevokeSecuritySessionStatus404Schema,
   authRevokeSecuritySessionStatus422Schema,
 ]);
+
+export const authRevokeSecuritySessionPathSchema = z.object({
+  session_id: z.uuid(),
+});

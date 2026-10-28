@@ -38,3 +38,7 @@ export const modelsDecideAccessRequestErrorSchema = z.union([
 ]);
 
 export const modelsDecideAccessRequestBodySchema = accessRequestDecideSchema;
+
+export const modelsDecideAccessRequestPathSchema = z.object({
+  request_id: z.uuid(),
+});

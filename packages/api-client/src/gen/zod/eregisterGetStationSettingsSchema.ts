@@ -34,3 +34,7 @@ export const eregisterGetStationSettingsErrorSchema = z.union([
   eregisterGetStationSettingsStatus404Schema,
   eregisterGetStationSettingsStatus422Schema,
 ]);
+
+export const eregisterGetStationSettingsPathSchema = z.object({
+  station_id: z.string(),
+});

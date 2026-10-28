@@ -40,3 +40,7 @@ export const rewardsAdminResolveFlagErrorSchema = z.union([
 ]);
 
 export const rewardsAdminResolveFlagBodySchema = flagResolveSchema;
+
+export const rewardsAdminResolveFlagPathSchema = z.object({
+  flag_id: z.uuid(),
+});

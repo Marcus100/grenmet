@@ -41,3 +41,12 @@ export const bookingsListProvidersErrorSchema = z.union([
   bookingsListProvidersStatus404Schema,
   bookingsListProvidersStatus422Schema,
 ]);
+
+export const bookingsListProvidersHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+    ),
+});

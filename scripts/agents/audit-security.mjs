@@ -183,6 +183,7 @@ export function trivyObservation(alerts) {
   const open = alerts.filter((a) => a.state === "open");
   const groups = new Map();
   const cves = new Set();
+  const otherFindings = new Set();
   for (const alert of open) {
     const message = alert.most_recent_instance?.message?.text ?? "";
     const name = message.match(TRIVY_PACKAGE)?.[1] ?? "unknown";
@@ -191,7 +192,8 @@ export function trivyObservation(alerts) {
     const cve = CVE_ID.test(alert.rule?.id)
       ? alert.rule.id
       : `alert ${alert.number}`;
-    cves.add(cve);
+    if (CVE_ID.test(alert.rule?.id)) cves.add(cve);
+    else otherFindings.add(alert.rule?.id ?? cve);
     const key = `${severity} / ${name}`;
     if (!groups.has(key)) groups.set(key, []);
     groups
@@ -209,7 +211,7 @@ export function trivyObservation(alerts) {
     severity: "high",
     owner: "Claude",
     command: "gh api repos/Marcus100/grenmet/code-scanning/alerts --paginate",
-    summary: `${open.length} open Trivy alerts, ${cves.size} distinct CVEs in main's ci-api.yml docker scan (Debian 12 base). This is main scan evidence, not proof of dev exposure; rescan dev before remediation. `,
+    summary: `${open.length} open Trivy alerts, ${cves.size} distinct CVEs, ${otherFindings.size} non-CVE findings in main's ci-api.yml docker scan (Debian 12 base). This is main scan evidence, not proof of dev exposure; rescan dev before remediation. `,
     details: [...groups]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(

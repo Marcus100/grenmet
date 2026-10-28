@@ -38,3 +38,7 @@ export const authAdminResendVerificationBodySchema =
   superuserActionReasonSchema.describe(
     "Why a superuser is using an admin power; stored in the audit trail."
   );
+
+export const authAdminResendVerificationPathSchema = z.object({
+  user_id: z.uuid(),
+});

@@ -1892,6 +1892,16 @@ export type {
   CapGetHazardProfilesStatus422,
 } from "./CapGetHazardProfiles.js";
 export type {
+  CapGetIbfMatrixOptions,
+  CapGetIbfMatrixQuery,
+  CapGetIbfMatrixResponse,
+  CapGetIbfMatrixResponses,
+  CapGetIbfMatrixStatus200,
+  CapGetIbfMatrixStatus401,
+  CapGetIbfMatrixStatus403,
+  CapGetIbfMatrixStatus422,
+} from "./CapGetIbfMatrix.js";
+export type {
   CapGetIntegrationsOptions,
   CapGetIntegrationsResponse,
   CapGetIntegrationsResponses,
@@ -1975,12 +1985,20 @@ export { capMessageType } from "./CapMessageType.js";
 export type { CapNameValue } from "./CapNameValue.js";
 export type { CapPredefinedAreaCreate } from "./CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./CapPredefinedAreaPublic.js";
+export type { CapProfileCellText } from "./CapProfileCellText.js";
+export type { CapProfileCellTextPropertiesImpactEnum } from "./CapProfileCellTextPropertiesImpactEnum.js";
+export { capProfileCellTextPropertiesImpactEnum } from "./CapProfileCellTextPropertiesImpactEnum.js";
+export type { CapProfileCellTextPropertiesLikelihoodEnum } from "./CapProfileCellTextPropertiesLikelihoodEnum.js";
+export { capProfileCellTextPropertiesLikelihoodEnum } from "./CapProfileCellTextPropertiesLikelihoodEnum.js";
+export type { CapProfileColourResponse } from "./CapProfileColourResponse.js";
 export type { CapProfileDefinition } from "./CapProfileDefinition.js";
 export type { CapProfileDefinitionPropertiesChannelsItemsEnum } from "./CapProfileDefinitionPropertiesChannelsItemsEnum.js";
 export { capProfileDefinitionPropertiesChannelsItemsEnum } from "./CapProfileDefinitionPropertiesChannelsItemsEnum.js";
 export type { CapProfileDraftRequest } from "./CapProfileDraftRequest.js";
 export type { CapProfileDraftRequestPropertiesLevelEnum } from "./CapProfileDraftRequestPropertiesLevelEnum.js";
 export { capProfileDraftRequestPropertiesLevelEnum } from "./CapProfileDraftRequestPropertiesLevelEnum.js";
+export type { CapProfileImpactLevel } from "./CapProfileImpactLevel.js";
+export type { CapProfileMatrix } from "./CapProfileMatrix.js";
 export type { CapProfilePublic } from "./CapProfilePublic.js";
 export type { CapProfilePublicPropertiesStateEnum } from "./CapProfilePublicPropertiesStateEnum.js";
 export { capProfilePublicPropertiesStateEnum } from "./CapProfilePublicPropertiesStateEnum.js";
@@ -2055,6 +2073,16 @@ export type {
   CapSubmitAlertStatus404,
   CapSubmitAlertStatus422,
 } from "./CapSubmitAlert.js";
+export type {
+  CapSuggestIbfOptions,
+  CapSuggestIbfQuery,
+  CapSuggestIbfResponse,
+  CapSuggestIbfResponses,
+  CapSuggestIbfStatus200,
+  CapSuggestIbfStatus401,
+  CapSuggestIbfStatus403,
+  CapSuggestIbfStatus422,
+} from "./CapSuggestIbf.js";
 export type {
   CapUpdateAlertBody,
   CapUpdateAlertOptions,
@@ -2392,6 +2420,18 @@ export type {
   EregisterAcceptRegisterObservationStatus422,
 } from "./EregisterAcceptRegisterObservation.js";
 export type {
+  EregisterAddStationBody,
+  EregisterAddStationOptions,
+  EregisterAddStationResponse,
+  EregisterAddStationResponses,
+  EregisterAddStationStatus201,
+  EregisterAddStationStatus401,
+  EregisterAddStationStatus403,
+  EregisterAddStationStatus404,
+  EregisterAddStationStatus409,
+  EregisterAddStationStatus422,
+} from "./EregisterAddStation.js";
+export type {
   EregisterCorrectRegisterObservationBody,
   EregisterCorrectRegisterObservationOptions,
   EregisterCorrectRegisterObservationPath,
@@ -2417,6 +2457,19 @@ export type {
   EregisterCreateRegisterObservationStatus422,
 } from "./EregisterCreateRegisterObservation.js";
 export type {
+  EregisterEditStationBody,
+  EregisterEditStationOptions,
+  EregisterEditStationPath,
+  EregisterEditStationResponse,
+  EregisterEditStationResponses,
+  EregisterEditStationStatus200,
+  EregisterEditStationStatus401,
+  EregisterEditStationStatus403,
+  EregisterEditStationStatus404,
+  EregisterEditStationStatus409,
+  EregisterEditStationStatus422,
+} from "./EregisterEditStation.js";
+export type {
   EregisterEmailRegisterObservationBody,
   EregisterEmailRegisterObservationOptions,
   EregisterEmailRegisterObservationPath,
@@ -2429,6 +2482,17 @@ export type {
   EregisterEmailRegisterObservationStatus409,
   EregisterEmailRegisterObservationStatus422,
 } from "./EregisterEmailRegisterObservation.js";
+export type {
+  EregisterGetRegistryStationOptions,
+  EregisterGetRegistryStationPath,
+  EregisterGetRegistryStationResponse,
+  EregisterGetRegistryStationResponses,
+  EregisterGetRegistryStationStatus200,
+  EregisterGetRegistryStationStatus401,
+  EregisterGetRegistryStationStatus403,
+  EregisterGetRegistryStationStatus404,
+  EregisterGetRegistryStationStatus422,
+} from "./EregisterGetRegistryStation.js";
 export type {
   EregisterGetStationSettingsOptions,
   EregisterGetStationSettingsPath,
@@ -2460,6 +2524,16 @@ export type {
   EregisterListRegisterObservationsStatus403,
   EregisterListRegisterObservationsStatus422,
 } from "./EregisterListRegisterObservations.js";
+export type {
+  EregisterListRegistryStationsOptions,
+  EregisterListRegistryStationsQuery,
+  EregisterListRegistryStationsResponse,
+  EregisterListRegistryStationsResponses,
+  EregisterListRegistryStationsStatus200,
+  EregisterListRegistryStationsStatus401,
+  EregisterListRegistryStationsStatus403,
+  EregisterListRegistryStationsStatus422,
+} from "./EregisterListRegistryStations.js";
 export type {
   EregisterPublicCurrentConditionsOptions,
   EregisterPublicCurrentConditionsResponse,
@@ -2552,6 +2626,11 @@ export type {
   EregisterValidateSynopObservationStatus403,
   EregisterValidateSynopObservationStatus422,
 } from "./EregisterValidateSynopObservation.js";
+export type { EventCategoryNode } from "./EventCategoryNode.js";
+export type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
+export { eventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
+export type { EventCategorySub } from "./EventCategorySub.js";
+export type { EventCategoryTree } from "./EventCategoryTree.js";
 export type {
   EventsAcceptConnectionOptions,
   EventsAcceptConnectionPath,
@@ -2977,6 +3056,13 @@ export type {
   EventsLeaveGroupStatus422,
   EventsLeaveGroupStatus429,
 } from "./EventsLeaveGroup.js";
+export type {
+  EventsListCategoriesOptions,
+  EventsListCategoriesResponse,
+  EventsListCategoriesResponses,
+  EventsListCategoriesStatus200,
+  EventsListCategoriesStatus422,
+} from "./EventsListCategories.js";
 export type {
   EventsListGroupsOptions,
   EventsListGroupsResponse,
@@ -5151,6 +5237,9 @@ export type {
   HrValidateGridStatus404,
   HrValidateGridStatus422,
 } from "./HrValidateGrid.js";
+export type { IbfLevelPublic } from "./IbfLevelPublic.js";
+export type { IbfMatrixPublic } from "./IbfMatrixPublic.js";
+export type { IbfSuggestion } from "./IbfSuggestion.js";
 export type { ImageInput } from "./ImageInput.js";
 export type { ImageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBasisEnum.js";
 export { imageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBasisEnum.js";
@@ -5530,10 +5619,16 @@ export { legacyProductWritePropertiesActionEnum } from "./LegacyProductWriteProp
 export type { LegacyStoredProduct } from "./LegacyStoredProduct.js";
 export type { ListingCard } from "./ListingCard.js";
 export type { ListingCardList } from "./ListingCardList.js";
+export type { ListingCardPropertiesAccessTypeEnum } from "./ListingCardPropertiesAccessTypeEnum.js";
+export { listingCardPropertiesAccessTypeEnum } from "./ListingCardPropertiesAccessTypeEnum.js";
 export type { ListingCardPropertiesAdmissionEnum } from "./ListingCardPropertiesAdmissionEnum.js";
 export { listingCardPropertiesAdmissionEnum } from "./ListingCardPropertiesAdmissionEnum.js";
+export type { ListingCardPropertiesBookingModeEnum } from "./ListingCardPropertiesBookingModeEnum.js";
+export { listingCardPropertiesBookingModeEnum } from "./ListingCardPropertiesBookingModeEnum.js";
 export type { ListingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurrencyEnum.js";
 export { listingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurrencyEnum.js";
+export type { ListingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
+export { listingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
 export type { ListingDetail } from "./ListingDetail.js";
 export type { ListingUpsert } from "./ListingUpsert.js";
 export type { ListingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
@@ -7380,10 +7475,18 @@ export type { StaffInput } from "./StaffInput.js";
 export type { StaffOrganiserRow } from "./StaffOrganiserRow.js";
 export type { StaffSetup } from "./StaffSetup.js";
 export type { StaffUpdate } from "./StaffUpdate.js";
+export type { StationCreate } from "./StationCreate.js";
+export type { StationCreatePropertiesSourceKindEnum } from "./StationCreatePropertiesSourceKindEnum.js";
+export { stationCreatePropertiesSourceKindEnum } from "./StationCreatePropertiesSourceKindEnum.js";
+export type { StationRecord } from "./StationRecord.js";
+export type { StationRecordList } from "./StationRecordList.js";
+export type { StationRecordPropertiesScheduleEnum } from "./StationRecordPropertiesScheduleEnum.js";
+export { stationRecordPropertiesScheduleEnum } from "./StationRecordPropertiesScheduleEnum.js";
 export type { StationSettings } from "./StationSettings.js";
 export type { StationSettingsPropertiesPendingItemsEnum } from "./StationSettingsPropertiesPendingItemsEnum.js";
 export { stationSettingsPropertiesPendingItemsEnum } from "./StationSettingsPropertiesPendingItemsEnum.js";
 export type { StationSettingsUpdate } from "./StationSettingsUpdate.js";
+export type { StationUpdate } from "./StationUpdate.js";
 export type { StatusReportCreate } from "./StatusReportCreate.js";
 export type { StatusReportDetails } from "./StatusReportDetails.js";
 export type { StatusReportEntryInput } from "./StatusReportEntryInput.js";

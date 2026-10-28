@@ -14913,6 +14913,26 @@
         "responses": {
           "200": {
             "description": "Draft PDF preview",
+            "headers": {
+              "Cache-Control": {
+                "description": "Always `private, no-store`.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "RFC 6266 `filename` and `filename*` for download and print.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "Always `nosniff`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {}
@@ -15424,6 +15444,26 @@
         "responses": {
           "200": {
             "description": "Draft PDF preview",
+            "headers": {
+              "Cache-Control": {
+                "description": "Always `private, no-store`.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "RFC 6266 `filename` and `filename*` for download and print.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "Always `nosniff`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {}
@@ -15791,6 +15831,26 @@
         "responses": {
           "200": {
             "description": "Draft PDF",
+            "headers": {
+              "Cache-Control": {
+                "description": "Always `private, no-store`.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "RFC 6266 `filename` and `filename*` for download and print.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "Always `nosniff`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/pdf": {}
             }
@@ -16350,6 +16410,26 @@
         "responses": {
           "200": {
             "description": "Successful Response",
+            "headers": {
+              "Cache-Control": {
+                "description": "Always `private, no-store`.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "RFC 6266 `filename` and `filename*` for download and print.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "Always `nosniff`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/pdf": {}
             }
@@ -16777,6 +16857,26 @@
         "responses": {
           "200": {
             "description": "Draft PDF",
+            "headers": {
+              "Cache-Control": {
+                "description": "Always `private, no-store`.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "RFC 6266 `filename` and `filename*` for download and print.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "Always `nosniff`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/pdf": {}
             }
@@ -20279,10 +20379,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -20349,10 +20449,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -20443,10 +20543,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -20518,10 +20618,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -20595,10 +20695,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "requestBody": {
@@ -20686,10 +20786,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -20765,10 +20865,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -22486,10 +22586,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.",
               "title": "X-Barrels-Organisation"
             },
-            "description": "Id of the organisation the request acts for. The caller must be an active member."
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
           }
         ],
         "responses": {
@@ -24413,6 +24513,151 @@
           },
           "404": {
             "description": "Resource not found"
+          }
+        }
+      }
+    },
+    "/api/v1/cap/ibf/matrix": {
+      "get": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "The impact-based matrix for an alert kind",
+        "description": "The 4x4 likelihood-by-impact grid with the meaning of each colour. It is the grid of the newest approved library entry `ibf-<kind>` when that sets its own, otherwise the WMO grid. Needs cap.alert.read or authority to author the kind.",
+        "operationId": "capGetIbfMatrix",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,39}$",
+              "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IbfMatrixPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
+    "/api/v1/cap/ibf/suggest": {
+      "get": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "The colour and starting wording for a likelihood and impact",
+        "description": "The colour from the matrix, with the impacts and response of the approved library entry `ibf-<kind>` as editable starting text. `available` is false when no approved entry exists; the colour is still suggested. Needs cap.alert.read or authority to author the kind.",
+        "operationId": "capSuggestIbf",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,39}$",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "likelihood",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CapProfileCellTextPropertiesLikelihoodEnum"
+            }
+          },
+          {
+            "name": "impact",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CapProfileCellTextPropertiesImpactEnum"
+            }
+          },
+          {
+            "name": "subtype",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subtype"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IbfSuggestion"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -31474,6 +31719,241 @@
         }
       }
     },
+    "/api/v1/eregister/stations": {
+      "get": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "List stations",
+        "description": "The observation station registry (ADR-0032): id, name, WIGOS identifier, source kind (`manual` observer or `automatic`), derived schedule, observer hours (UTC) and active flag. Inactive stations are included unless `include_inactive=false`. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "operationId": "eregisterListRegistryStations",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "include_inactive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Include Inactive"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationRecordList"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Add a station",
+        "description": "Adds a station. `wigos_id` must look like `0-20000-0-78958` and be unique. A `manual` station needs an explicit, non-empty `manual_hours_utc`; an `automatic` station has none. Recorded in the change history (entity `eregister_station`). Requires `eregister.qc`.",
+        "operationId": "eregisterAddStation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Schedule contradicts the source kind, or invalid format"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
+          },
+          "409": {
+            "description": "Station id or WIGOS identifier already registered"
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/stations/{station_id}": {
+      "get": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Get a station",
+        "description": "One registry entry. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "operationId": "eregisterGetRegistryStation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "station_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Station Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Edit a station",
+        "description": "Changes the keys sent (`station_id` is fixed). An explicit null clears `name`. A `wigos_id` can be set once, while empty, and never changed or cleared. Station 78958 can only be renamed (422 otherwise). Switching to `manual` needs explicit hours; `automatic` has none. An inactive station is refused by the WIS2 publish gate. Recorded in the change history (entity `eregister_station`) with the fields before and after. Requires `eregister.qc`.",
+        "operationId": "eregisterEditStation",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "station_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Station Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Schedule contradicts the source kind, or invalid format"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+          },
+          "404": {
+            "description": "Unknown station"
+          },
+          "409": {
+            "description": "Station id or WIGOS identifier already registered"
+          }
+        }
+      }
+    },
     "/api/v1/eregister/stations/{station_id}/settings": {
       "get": {
         "tags": [
@@ -36849,7 +37329,7 @@
           "events"
         ],
         "summary": "List upcoming events",
-        "description": "Published public events, soonest first, filtered by Grenada-calendar window, category, parish, price, tag or text.",
+        "description": "Published public events, soonest first, filtered by Grenada-calendar window, category, parish, price, tag or text; and by catalogue type, category and subcategory slug, pricing type, access (public only: private listings are never listed) and booking mode.",
         "operationId": "eventsListListings",
         "security": [
           {
@@ -36919,6 +37399,105 @@
                 }
               ],
               "title": "Price"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          },
+          {
+            "name": "category_slug",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category Slug"
+            }
+          },
+          {
+            "name": "subcategory_slug",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subcategory Slug"
+            }
+          },
+          {
+            "name": "pricing",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ListingCardPropertiesPricingTypeEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pricing"
+            }
+          },
+          {
+            "name": "access",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "const": "public",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access"
+            }
+          },
+          {
+            "name": "booking_mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ListingCardPropertiesBookingModeEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Booking Mode"
             }
           },
           {
@@ -37030,6 +37609,38 @@
           },
           "401": {
             "description": "Missing or invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/v1/events/public/categories": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List event categories",
+        "description": "Active categories with their subcategories and the number of upcoming published public listings in each (ADR-0046).",
+        "operationId": "eventsListCategories",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventCategoryTree"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -53649,6 +54260,18 @@
           },
           "awareness_level": {
             "$ref": "#/components/schemas/CapEscalationCreatePropertiesAwarenessLevelEnum"
+          },
+          "override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override Reason"
           }
         },
         "type": "object",
@@ -54488,6 +55111,56 @@
         ],
         "title": "CapPredefinedAreaPublic"
       },
+      "CapProfileCellText": {
+        "properties": {
+          "likelihood": {
+            "$ref": "#/components/schemas/CapProfileCellTextPropertiesLikelihoodEnum"
+          },
+          "impact": {
+            "$ref": "#/components/schemas/CapProfileCellTextPropertiesImpactEnum"
+          },
+          "impacts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Impacts"
+          },
+          "response": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Response",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "likelihood",
+          "impact"
+        ],
+        "title": "CapProfileCellText",
+        "description": "Wording for one cell of the matrix, replacing the defaults built from the\nimpact level and the colour."
+      },
+      "CapProfileColourResponse": {
+        "properties": {
+          "colour": {
+            "$ref": "#/components/schemas/GmsColour"
+          },
+          "response": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Response",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "colour"
+        ],
+        "title": "CapProfileColourResponse",
+        "description": "What the public should do at one colour; \"[...locations...]\" marks a gap."
+      },
       "CapProfileDefinition": {
         "properties": {
           "name": {
@@ -54549,6 +55222,16 @@
             "maxLength": 5000,
             "title": "Notes",
             "default": ""
+          },
+          "matrix": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapProfileMatrix"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -54585,6 +55268,55 @@
           "level"
         ],
         "title": "CapProfileDraftRequest"
+      },
+      "CapProfileImpactLevel": {
+        "properties": {
+          "impact": {
+            "$ref": "#/components/schemas/CapProfileCellTextPropertiesImpactEnum"
+          },
+          "impacts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Impacts"
+          },
+          "thresholds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Thresholds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "impact"
+        ],
+        "title": "CapProfileImpactLevel",
+        "description": "What one impact level looks like for a hazard, and where it starts."
+      },
+      "CapProfileMatrix": {
+        "properties": {
+          "cells": {
+            "items": {
+              "items": {
+                "$ref": "#/components/schemas/GmsColour"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Cells"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cells"
+        ],
+        "title": "CapProfileMatrix",
+        "description": "A hazard's own likelihood-by-impact grid; absent means the WMO grid."
       },
       "CapProfilePublic": {
         "properties": {
@@ -54798,6 +55530,30 @@
             "type": "array",
             "maxItems": 50,
             "title": "Affected Groups"
+          },
+          "impact_levels": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileImpactLevel"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Impact Levels"
+          },
+          "colour_responses": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileColourResponse"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Colour Responses"
+          },
+          "cell_texts": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileCellText"
+            },
+            "type": "array",
+            "maxItems": 16,
+            "title": "Cell Texts"
           }
         },
         "type": "object",
@@ -58577,6 +59333,102 @@
           "production"
         ]
       },
+      "EventCategoryNode": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "applies_to": {
+            "items": {
+              "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+            },
+            "type": "array",
+            "title": "Applies To"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order"
+          },
+          "listing_count": {
+            "type": "integer",
+            "title": "Listing Count"
+          },
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/EventCategorySub"
+            },
+            "type": "array",
+            "title": "Children"
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "applies_to",
+          "sort_order",
+          "listing_count",
+          "children"
+        ],
+        "title": "EventCategoryNode"
+      },
+      "EventCategorySub": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "applies_to": {
+            "items": {
+              "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+            },
+            "type": "array",
+            "title": "Applies To"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order"
+          },
+          "listing_count": {
+            "type": "integer",
+            "title": "Listing Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "applies_to",
+          "sort_order",
+          "listing_count"
+        ],
+        "title": "EventCategorySub"
+      },
+      "EventCategoryTree": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EventCategoryNode"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "EventCategoryTree"
+      },
       "FeatureFlagAdmin": {
         "properties": {
           "id": {
@@ -60553,6 +61405,196 @@
           "scope"
         ],
         "title": "HrRolePublic"
+      },
+      "IbfLevelPublic": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "title": "IbfLevelPublic"
+      },
+      "IbfMatrixPublic": {
+        "properties": {
+          "likelihoods": {
+            "items": {
+              "$ref": "#/components/schemas/IbfLevelPublic"
+            },
+            "type": "array",
+            "title": "Likelihoods"
+          },
+          "impacts": {
+            "items": {
+              "$ref": "#/components/schemas/IbfLevelPublic"
+            },
+            "type": "array",
+            "title": "Impacts"
+          },
+          "cells": {
+            "items": {
+              "items": {
+                "$ref": "#/components/schemas/GmsColour"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Cells"
+          },
+          "meanings": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/GmsColour"
+            },
+            "type": "object",
+            "title": "Meanings"
+          },
+          "library_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Key"
+          },
+          "library_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "likelihoods",
+          "impacts",
+          "cells",
+          "meanings"
+        ],
+        "title": "IbfMatrixPublic",
+        "description": "The grid a forecaster reads for one hazard kind."
+      },
+      "IbfSuggestion": {
+        "properties": {
+          "colour": {
+            "$ref": "#/components/schemas/GmsColour"
+          },
+          "meaning": {
+            "type": "string",
+            "title": "Meaning"
+          },
+          "likelihood": {
+            "$ref": "#/components/schemas/CapProfileCellTextPropertiesLikelihoodEnum"
+          },
+          "impact": {
+            "$ref": "#/components/schemas/CapProfileCellTextPropertiesImpactEnum"
+          },
+          "percent": {
+            "type": "integer",
+            "title": "Percent"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/CapSeverity"
+          },
+          "awareness_level": {
+            "type": "string",
+            "title": "Awareness Level"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "subtype": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtype"
+          },
+          "thresholds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Thresholds"
+          },
+          "impacts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Impacts"
+          },
+          "response": {
+            "type": "string",
+            "title": "Response",
+            "default": ""
+          },
+          "library_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Key"
+          },
+          "library_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "colour",
+          "meaning",
+          "likelihood",
+          "impact",
+          "percent",
+          "severity",
+          "awareness_level",
+          "available"
+        ],
+        "title": "IbfSuggestion",
+        "description": "The colour and starting wording for one likelihood and impact."
       },
       "ImageInput": {
         "properties": {
@@ -63219,6 +64261,51 @@
               }
             ],
             "title": "Viewer Saved"
+          },
+          "listing_type": {
+            "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+          },
+          "access_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesAccessTypeEnum"
+          },
+          "pricing_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesPricingTypeEnum"
+          },
+          "booking_mode": {
+            "$ref": "#/components/schemas/ListingCardPropertiesBookingModeEnum"
+          },
+          "category_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Slug"
+          },
+          "subcategory_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subcategory Slug"
+          },
+          "external_ticket_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ticket Url"
           }
         },
         "type": "object",
@@ -63392,6 +64479,51 @@
             ],
             "title": "Viewer Saved"
           },
+          "listing_type": {
+            "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+          },
+          "access_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesAccessTypeEnum"
+          },
+          "pricing_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesPricingTypeEnum"
+          },
+          "booking_mode": {
+            "$ref": "#/components/schemas/ListingCardPropertiesBookingModeEnum"
+          },
+          "category_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Slug"
+          },
+          "subcategory_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subcategory Slug"
+          },
+          "external_ticket_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ticket Url"
+          },
           "description": {
             "type": "string",
             "title": "Description"
@@ -63557,6 +64689,86 @@
               }
             ],
             "title": "Image File Id"
+          },
+          "listing_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Type"
+          },
+          "access_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingCardPropertiesAccessTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Access Type"
+          },
+          "pricing_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingCardPropertiesPricingTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pricing Type"
+          },
+          "booking_mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingCardPropertiesBookingModeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Mode"
+          },
+          "category_slug": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Slug"
+          },
+          "subcategory_slug": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subcategory Slug"
+          },
+          "external_ticket_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ticket Url"
           }
         },
         "type": "object",
@@ -63798,6 +65010,51 @@
               }
             ],
             "title": "Viewer Saved"
+          },
+          "listing_type": {
+            "$ref": "#/components/schemas/EventCategoryNodePropertiesAppliesToItemsEnum"
+          },
+          "access_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesAccessTypeEnum"
+          },
+          "pricing_type": {
+            "$ref": "#/components/schemas/ListingCardPropertiesPricingTypeEnum"
+          },
+          "booking_mode": {
+            "$ref": "#/components/schemas/ListingCardPropertiesBookingModeEnum"
+          },
+          "category_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Slug"
+          },
+          "subcategory_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subcategory Slug"
+          },
+          "external_ticket_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ticket Url"
           },
           "description": {
             "type": "string",
@@ -79511,6 +80768,160 @@
         ],
         "title": "StaffUpdate"
       },
+      "StationCreate": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "title": "Station Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "wigos_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^0-\\d{1,5}-\\d{1,5}-[A-Za-z0-9]{1,16}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wigos Id"
+          },
+          "source_kind": {
+            "$ref": "#/components/schemas/StationCreatePropertiesSourceKindEnum"
+          },
+          "manual_hours_utc": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer",
+                  "maximum": 23.0,
+                  "minimum": 0.0
+                },
+                "type": "array",
+                "maxItems": 24
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manual Hours Utc",
+            "description": "Manual stations only; omitted means all 24 hours."
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "source_kind"
+        ],
+        "title": "StationCreate",
+        "description": "Add a station. An automatic station never has observer hours."
+      },
+      "StationRecord": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "wigos_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wigos Id",
+            "description": "WIGOS identifier, for example 0-20000-0-78958."
+          },
+          "source_kind": {
+            "$ref": "#/components/schemas/StationCreatePropertiesSourceKindEnum"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/StationRecordPropertiesScheduleEnum"
+          },
+          "manual_hours_utc": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Manual Hours Utc",
+            "description": "UTC hours (0-23) the observer publishes; empty for automatic."
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "source_kind",
+          "schedule",
+          "manual_hours_utc",
+          "active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "StationRecord",
+        "description": "One station in the observation station registry (ADR-0032)."
+      },
+      "StationRecordList": {
+        "properties": {
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/StationRecord"
+            },
+            "type": "array",
+            "title": "Stations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stations"
+        ],
+        "title": "StationRecordList"
+      },
       "StationSettings": {
         "properties": {
           "station_id": {
@@ -79668,6 +81079,77 @@
         ],
         "title": "StationSettingsUpdate",
         "description": "All four amounts are required: send an explicit null to clear one."
+      },
+      "StationUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "wigos_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^0-\\d{1,5}-\\d{1,5}-[A-Za-z0-9]{1,16}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wigos Id"
+          },
+          "source_kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StationCreatePropertiesSourceKindEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Kind"
+          },
+          "manual_hours_utc": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer",
+                  "maximum": 23.0,
+                  "minimum": 0.0
+                },
+                "type": "array",
+                "maxItems": 24
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manual Hours Utc"
+          },
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          }
+        },
+        "type": "object",
+        "title": "StationUpdate",
+        "description": "Change a station; omitted keys stay as they are. `station_id` is fixed."
       },
       "StatusReportCreate": {
         "properties": {
@@ -89145,6 +90627,24 @@
           "red"
         ]
       },
+      "CapProfileCellTextPropertiesLikelihoodEnum": {
+        "type": "string",
+        "enum": [
+          "Very low",
+          "Low",
+          "Medium",
+          "High"
+        ]
+      },
+      "CapProfileCellTextPropertiesImpactEnum": {
+        "type": "string",
+        "enum": [
+          "Minimal",
+          "Minor",
+          "Significant",
+          "Severe"
+        ]
+      },
       "CapProfileDefinitionPropertiesChannelsItemsEnum": {
         "type": "string",
         "enum": [
@@ -89202,6 +90702,16 @@
           "connected",
           "sent",
           "received"
+        ]
+      },
+      "EventCategoryNodePropertiesAppliesToItemsEnum": {
+        "type": "string",
+        "enum": [
+          "event",
+          "experience",
+          "class",
+          "attraction",
+          "service"
         ]
       },
       "FlightBoardResponsePropertiesBoardEnum": {
@@ -89409,6 +90919,35 @@
           "XCD",
           "USD"
         ]
+      },
+      "ListingCardPropertiesAccessTypeEnum": {
+        "type": "string",
+        "enum": [
+          "public",
+          "private"
+        ],
+        "default": "public"
+      },
+      "ListingCardPropertiesPricingTypeEnum": {
+        "type": "string",
+        "enum": [
+          "free",
+          "paid",
+          "donation"
+        ],
+        "default": "free"
+      },
+      "ListingCardPropertiesBookingModeEnum": {
+        "type": "string",
+        "enum": [
+          "rsvp",
+          "tickets",
+          "slots",
+          "enquiry",
+          "none",
+          "external"
+        ],
+        "default": "none"
       },
       "ListingUpsertPropertiesVisibilityEnum": {
         "type": "string",
@@ -89698,7 +91237,8 @@
           "sfcana",
           "cimss",
           "trackthetropics",
-          "uwyo"
+          "uwyo",
+          "gnca"
         ]
       },
       "SettlementChannelPropertiesChannelEnum": {
@@ -89717,6 +91257,22 @@
           "refund_without_till",
           "online_ledger_mismatch"
         ]
+      },
+      "StationCreatePropertiesSourceKindEnum": {
+        "type": "string",
+        "enum": [
+          "manual",
+          "automatic"
+        ]
+      },
+      "StationRecordPropertiesScheduleEnum": {
+        "type": "string",
+        "enum": [
+          "automatic",
+          "manual",
+          "hybrid"
+        ],
+        "description": "Derived publish schedule: `manual` (all 24 hours), `hybrid` (some hours) or `automatic`."
       },
       "StationSettingsPropertiesPendingItemsEnum": {
         "type": "string",

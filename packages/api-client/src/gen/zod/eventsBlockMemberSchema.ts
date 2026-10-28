@@ -34,3 +34,7 @@ export const eventsBlockMemberErrorSchema = z.union([
   eventsBlockMemberStatus422Schema,
   eventsBlockMemberStatus429Schema,
 ]);
+
+export const eventsBlockMemberPathSchema = z.object({
+  handle: z.string().regex(/^[a-z0-9][a-z0-9-]{1,29}$/),
+});

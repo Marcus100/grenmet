@@ -5,7 +5,7 @@
 
 export type SubscribeRequest = {
   /**
-   * @description Mailing list key, e.g. \'signal\'.
+   * @description Mailing list key, e.g. 'signal'.
    * @minLength 1
    * @maxLength 40
    * @pattern ^[a-z0-9-]+$

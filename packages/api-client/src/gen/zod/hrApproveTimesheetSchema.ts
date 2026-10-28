@@ -31,3 +31,7 @@ export const hrApproveTimesheetErrorSchema = z.union([
   hrApproveTimesheetStatus404Schema,
   hrApproveTimesheetStatus422Schema,
 ]);
+
+export const hrApproveTimesheetPathSchema = z.object({
+  timesheet_id: z.uuid(),
+});

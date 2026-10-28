@@ -56,7 +56,7 @@ import {
   EMPTY_DAILY_STATUS,
   SHIFT_OPTIONS,
   YES_NO,
-} from "./daily-status-document";
+} from "./daily-status-values";
 
 export function buildStatusReportPayload(
   values: DailyStatusValues,

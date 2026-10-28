@@ -9,7 +9,13 @@ from src.auth.models import User
 from src.dependencies import AccountUser, AdminUser, MfaAdminUser, SessionDep
 from src.events.service import organiser_verification as events_verification
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
-from src.organisations.dependencies import OrgAdmin, OrgMember, OrgTeamManager
+from src.organisations.dependencies import (
+    EventsOrgAdmin,
+    EventsOrgMember,
+    EventsOrgTeamManager,
+    OrgAdmin,
+    OrgMember,
+)
 from src.pagination import PaginationDep
 from src.rate_limit import limiter
 
@@ -251,7 +257,9 @@ GRANT_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
     ),
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
-async def list_role_bundles(*, session: SessionDep, context: OrgTeamManager) -> Any:
+async def list_role_bundles(
+    *, session: SessionDep, context: EventsOrgTeamManager
+) -> Any:
     return await team.list_bundles(session, context)
 
 
@@ -266,7 +274,7 @@ async def list_role_bundles(*, session: SessionDep, context: OrgTeamManager) -> 
     ),
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
-async def my_team_capabilities(*, session: SessionDep, context: OrgMember) -> Any:
+async def my_team_capabilities(*, session: SessionDep, context: EventsOrgMember) -> Any:
     return await team.my_capabilities(session, context)
 
 
@@ -282,7 +290,7 @@ async def my_team_capabilities(*, session: SessionDep, context: OrgMember) -> An
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def list_team_members(
-    *, session: SessionDep, context: OrgTeamManager, pagination: PaginationDep
+    *, session: SessionDep, context: EventsOrgTeamManager, pagination: PaginationDep
 ) -> Any:
     return await team.list_roster(session, context, pagination)
 
@@ -295,7 +303,7 @@ async def list_team_members(
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def list_member_grants(
-    *, session: SessionDep, context: OrgTeamManager, membership_id: str
+    *, session: SessionDep, context: EventsOrgTeamManager, membership_id: str
 ) -> Any:
     return await team.list_member_grants(session, context, membership_id=membership_id)
 
@@ -312,7 +320,7 @@ async def list_member_grants(
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def list_issued_grants(
-    *, session: SessionDep, context: OrgAdmin, membership_id: str
+    *, session: SessionDep, context: EventsOrgAdmin, membership_id: str
 ) -> Any:
     return await team.list_issued(session, context, membership_id=membership_id)
 
@@ -334,7 +342,7 @@ async def list_issued_grants(
 async def grant_member_role(
     *,
     session: SessionDep,
-    context: OrgTeamManager,
+    context: EventsOrgTeamManager,
     membership_id: str,
     payload: MembershipGrantCreate,
 ) -> Any:
@@ -361,7 +369,7 @@ async def grant_member_role(
     responses={**GRANT_ERRORS},
 )
 async def revoke_member_grant(
-    *, session: SessionDep, context: OrgTeamManager, grant_id: str
+    *, session: SessionDep, context: EventsOrgTeamManager, grant_id: str
 ) -> Any:
     return await team.run_and_commit(
         session, team.revoke(session, context, grant_id=grant_id)
@@ -1020,7 +1028,7 @@ async def update_member(
 async def delete_member(
     *,
     session: SessionDep,
-    context: OrgAdmin,
+    context: EventsOrgAdmin,
     organisation_id: str,
     membership_id: str,
 ) -> None:

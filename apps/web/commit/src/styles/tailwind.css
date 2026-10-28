@@ -1,0 +1,54 @@
+@import "tailwindcss";
+@import "@barrelsgd/ui/styles/app-feel";
+@import "./typography.css" layer(components);
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Lane colours (docs/design/commit.md), Tailwind defaults restated as hex for
+ * scripts/docs/design-md.test.mjs: background gray-950 #030712, foreground
+ * white #ffffff, accent sky-300 #7dd3fc.
+ */
+@theme {
+  --text-2xs: 0.6875rem;
+
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-mona-sans);
+}
+
+/* Star field twinkle (src/components/star-field.tsx). */
+@keyframes twinkle {
+  from {
+    opacity: var(--star-from);
+    transform: scale(var(--star-scale-from));
+  }
+  to {
+    opacity: var(--star-to);
+    transform: scale(var(--star-scale-to));
+  }
+}
+
+.star {
+  animation: twinkle 3s ease-in-out infinite alternate;
+}
+
+.star-dim {
+  --star-from: 0.2;
+  --star-to: 0.5;
+  --star-scale-from: 1;
+  --star-scale-to: 1.2;
+  opacity: 0.2;
+}
+
+.star-bright {
+  --star-from: 1;
+  --star-to: 0.6;
+  --star-scale-from: 1.2;
+  --star-scale-to: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star {
+    animation: none;
+  }
+}

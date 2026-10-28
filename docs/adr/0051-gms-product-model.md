@@ -2,7 +2,9 @@
 
 ## Status
 
-Proposed — 2026-10-23. Amends the bulletin-linkage practice of ADR-0013 (the link
+Proposed — 2026-10-23; implemented on `dev` and staging 2026-10-26 (green-only alerts, Raise to
+warning, tracked tropical systems; the 05:00 marine forecast is not built), awaiting the owner's
+acceptance. Amends the bulletin-linkage practice of ADR-0013 (the link
 becomes a button that pre-fills a CAP draft). ADR-0023 (CAP approval) is unchanged.
 
 ## Context

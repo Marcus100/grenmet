@@ -49,3 +49,22 @@ export const storesListStockErrorSchema = z.union([
   storesListStockStatus403Schema,
   storesListStockStatus422Schema,
 ]);
+
+export const storesListStockQuerySchema = z.object({
+  location_id: z.union([z.uuid(), z.null()]).optional(),
+  item_id: z.union([z.uuid(), z.null()]).optional(),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

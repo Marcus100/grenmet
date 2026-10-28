@@ -60,3 +60,34 @@ export const eventsOrgListOrdersErrorSchema = z.union([
   eventsOrgListOrdersStatus404Schema,
   eventsOrgListOrdersStatus422Schema,
 ]);
+
+export const eventsOrgListOrdersPathSchema = z.object({
+  listing_id: z.uuid(),
+});
+
+export const eventsOrgListOrdersQuerySchema = z.object({
+  status: z.union([orderPublicPropertiesStatusEnumSchema, z.null()]).optional(),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});
+
+export const eventsOrgListOrdersHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
+    ),
+});

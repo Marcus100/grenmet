@@ -45,3 +45,17 @@ export const organisationsRevokeInvitationErrorSchema = z.union([
   organisationsRevokeInvitationStatus409Schema,
   organisationsRevokeInvitationStatus422Schema,
 ]);
+
+export const organisationsRevokeInvitationPathSchema = z.object({
+  organisation_id: z.string(),
+  invitation_id: z.string(),
+});
+
+export const organisationsRevokeInvitationHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

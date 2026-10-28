@@ -17,6 +17,7 @@ export interface EventCardData
     | "category"
     | "goingCount"
     | "goingNames"
+    | "imageFileId"
     | "parish"
     | "priceFrom"
     | "recurrence"
@@ -53,6 +54,8 @@ export function EventCard({
           "transition-transform group-hover:-translate-y-0.5",
           layout === "row" && "w-32 shrink-0 sm:w-44"
         )}
+        imageAlt={`Cover image for ${event.title}`}
+        imageFileId={event.imageFileId}
         startsAt={event.startsAt}
       />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">

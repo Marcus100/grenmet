@@ -57,3 +57,12 @@ export const wxproductsListTropicalSystemsErrorSchema = z.union([
   wxproductsListTropicalSystemsStatus422Schema,
   wxproductsListTropicalSystemsStatus503Schema,
 ]);
+
+export const wxproductsListTropicalSystemsQuerySchema = z.object({
+  status: z
+    .union([tropicalSystemPublicPropertiesStatusEnumSchema, z.null()])
+    .optional(),
+  season: z.union([z.int().min(2000).max(2100), z.null()]).optional(),
+  limit: z.int().min(1).max(200).optional().default(100),
+  offset: z.int().min(0).max(10000).optional().default(0),
+});

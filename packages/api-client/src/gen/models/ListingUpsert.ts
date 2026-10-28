@@ -3,9 +3,13 @@
  * Do not edit manually.
  */
 
+import type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
 import type { GroupDetailPropertiesCategoryEnum } from "./GroupDetailPropertiesCategoryEnum.js";
 import type { GroupDetailPropertiesParishEnum } from "./GroupDetailPropertiesParishEnum.js";
+import type { ListingCardPropertiesAccessTypeEnum } from "./ListingCardPropertiesAccessTypeEnum.js";
 import type { ListingCardPropertiesAdmissionEnum } from "./ListingCardPropertiesAdmissionEnum.js";
+import type { ListingCardPropertiesBookingModeEnum } from "./ListingCardPropertiesBookingModeEnum.js";
+import type { ListingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
 import type { ListingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
 import type { ListingUpsertPropertiesVisibilityEnum } from "./ListingUpsertPropertiesVisibilityEnum.js";
 import type { TierInput } from "./TierInput.js";
@@ -71,4 +75,11 @@ export type ListingUpsert = {
   group_slug?: string | null;
   tiers?: TierInput[];
   image_file_id?: string | null;
+  listing_type?: EventCategoryNodePropertiesAppliesToItemsEnum | null;
+  access_type?: ListingCardPropertiesAccessTypeEnum | null;
+  pricing_type?: ListingCardPropertiesPricingTypeEnum | null;
+  booking_mode?: ListingCardPropertiesBookingModeEnum | null;
+  category_slug?: string | null;
+  subcategory_slug?: string | null;
+  external_ticket_url?: string | null;
 };

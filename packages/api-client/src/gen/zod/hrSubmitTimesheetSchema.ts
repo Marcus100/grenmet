@@ -33,3 +33,7 @@ export const hrSubmitTimesheetErrorSchema = z.union([
 ]);
 
 export const hrSubmitTimesheetBodySchema = timesheetSubmitRequestSchema;
+
+export const hrSubmitTimesheetPathSchema = z.object({
+  timesheet_id: z.uuid(),
+});

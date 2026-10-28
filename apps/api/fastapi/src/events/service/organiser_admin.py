@@ -36,7 +36,7 @@ from ..models import (
     Ticket,
     TicketTier,
 )
-from . import event_cancel, holds, organiser_verification
+from . import event_cancel, holds, organiser_verification, taxonomy
 from .common import _naive_utc, _pairs
 from .discover import (
     _cards,
@@ -237,6 +237,7 @@ async def _apply_listing(
     if body.image_file_id != listing.image_file_id:
         await _require_file(body.image_file_id, organiser, "listing-image")
         listing.image_file_id = body.image_file_id
+    await taxonomy.apply_classification(db, listing, body)
     listing.updated_at = utc_now()
     db.add(listing)
     await db.flush()
@@ -336,6 +337,15 @@ async def _snapshot(db: AsyncSession, listing: Listing) -> dict[str, Any]:
         "tags": list(listing.tags),
         "group_id": str(listing.group_id) if listing.group_id else None,
         "image_file_id": str(listing.image_file_id) if listing.image_file_id else None,
+        "listing_type": listing.listing_type,
+        "access_type": listing.access_type,
+        "pricing_type": listing.pricing_type,
+        "booking_mode": listing.booking_mode,
+        "category_id": str(listing.category_id) if listing.category_id else None,
+        "subcategory_id": (
+            str(listing.subcategory_id) if listing.subcategory_id else None
+        ),
+        "external_ticket_url": listing.external_ticket_url,
         "tiers": [[row.name, row.price_minor, row.allocation] for row in tiers],
     }
 

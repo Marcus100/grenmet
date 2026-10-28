@@ -33,3 +33,7 @@ export const capUpdateAlertErrorSchema = z.union([
 ]);
 
 export const capUpdateAlertBodySchema = capAlertUpdateSchema;
+
+export const capUpdateAlertPathSchema = z.object({
+  alert_id: z.uuid(),
+});
