@@ -34,6 +34,9 @@ reconciling an upstream release.
 | `werkzeug` | 3.1.4 | 3.1.9 | Dependabot #389 | Transitive via `flask` |
 | `fsspec` | 2025.12.0 | 2026.6.0 | Dependabot #391 | Transitive via `pyiceberg` |
 | `multidict` | 6.7.0 | 6.9.1 | Dependabot #393 | Transitive via `yarl` |
+| `Django` | 3.2.13 | 4.2.x (`>=4.2,<4.3`, resolved 4.2.30) | #722 step 1 | Django 4.2 LTS. Step 2 goes to 5.2 |
+| `djangorestframework`, `djangorestframework-simplejwt`, `django-celery-beat`, `django-cors-headers`, `django-import-export`, `django-material`, `django-simple-history`, `celery`, `kombu`, `amqp`, `redis` | older | see `requirements.in` | #722 step 1 | Raised to versions that support Django 4.2; `pymemcache` replaces `python-memcached` (Django 4.1 removed `MemcachedCache`) |
+| `django-colorfield` | 0.4.5 | 0.4.5 (kept) | #722 step 1 | Newer versions change `ColorField` max_length 18 to 25 and need a migration; revisit in step 2 |
 
 The transitive pins are edited in place in the pip-compiled `requirements.txt`.
 If you re-run `pip-compile`, keep these versions as lower bounds.

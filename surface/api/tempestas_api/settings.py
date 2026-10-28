@@ -47,6 +47,16 @@ ALLOWED_HOSTS = ['*']
 
 USE_X_FORWARDED_HOST = True
 
+# Django 4.0+ checks the Origin header of unsafe requests against the scheme
+# and host Django sees. Behind a TLS-terminating proxy that is http, so list
+# the public origins here, comma separated and with the scheme, for example
+# SURFACE_CSRF_TRUSTED_ORIGINS=https://surface.example.org
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv('SURFACE_CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -123,7 +133,7 @@ WSGI_APPLICATION = 'tempestas_api.wsgi.application'
 
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {
@@ -361,7 +371,7 @@ LOGGING = {
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': 'cache:11211',
     }
 }
