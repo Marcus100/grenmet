@@ -41,3 +41,10 @@ export const modelsCreateAccessRequestErrorSchema = z.union([
 ]);
 
 export const modelsCreateAccessRequestBodySchema = accessRequestCreateSchema;
+
+export const modelsCreateAccessRequestHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe("Id of the organisation the request acts for (active member)."),
+});

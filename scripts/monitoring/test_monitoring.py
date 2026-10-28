@@ -1,12 +1,13 @@
 from datetime import datetime, timezone, timedelta
 import json
+import os
 import unittest
-from probe import CATALOGUE, check, transition
+from probe import CATALOGUE, check, request_headers, transition
 from report import build_reports
 from journal import compact
 from incidents import reconcile
 from alert_test import exercise
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 
 class MonitoringTests(unittest.TestCase):
@@ -25,6 +26,26 @@ class MonitoringTests(unittest.TestCase):
     def test_pending_never_becomes_healthy(self):
         service = json.loads(CATALOGUE.read_text())["services"][-2]
         self.assertEqual(check(service, "production")["status"], "pending")
+
+    def test_staging_edge_credential_only_reaches_staging_web_hosts(self):
+        services = {s["id"]: s for s in json.loads(CATALOGUE.read_text())["services"]}
+        with patch.dict(os.environ, {"STAGING_PROBE_CREDENTIALS": "probe:secret"}):
+            web = request_headers(services["auth"], "staging")
+            self.assertEqual(web["Authorization"], "Basic cHJvYmU6c2VjcmV0")
+            self.assertNotIn("Authorization", request_headers(services["api"], "staging"))
+            self.assertNotIn(
+                "Authorization", request_headers(services["auth"], "production")
+            )
+        with patch.dict(os.environ, {"STAGING_PROBE_CREDENTIALS": ""}):
+            self.assertNotIn(
+                "Authorization", request_headers(services["auth"], "staging")
+            )
+        opener = Mock()
+        opener.open.side_effect = OSError
+        with patch.dict(os.environ, {"STAGING_PROBE_CREDENTIALS": "probe:secret"}):
+            check(services["auth"], "staging", opener)
+        sent = opener.open.call_args.args[0]
+        self.assertTrue(sent.get_header("Authorization").startswith("Basic "))
 
     def test_synthetic_alert_stays_open_until_manual_recovery(self):
         api = Mock(return_value={"data": {"id": "123"}})

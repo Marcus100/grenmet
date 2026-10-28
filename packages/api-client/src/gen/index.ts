@@ -133,6 +133,7 @@ export { capApproveAlert } from "./clients/capApproveAlert.js";
 export { capApproveHazardProfile } from "./clients/capApproveHazardProfile.js";
 export { capCancelAlert } from "./clients/capCancelAlert.js";
 export { capCreateAlert } from "./clients/capCreateAlert.js";
+export { capCreateEscalation } from "./clients/capCreateEscalation.js";
 export { capCreateFeed } from "./clients/capCreateFeed.js";
 export { capCreatePredefinedArea } from "./clients/capCreatePredefinedArea.js";
 export { capDeleteFeed } from "./clients/capDeleteFeed.js";
@@ -149,8 +150,10 @@ export { capGetAudit } from "./clients/capGetAudit.js";
 export { capGetCapSettings } from "./clients/capGetCapSettings.js";
 export { capGetCapXml } from "./clients/capGetCapXml.js";
 export { capGetCatalogs } from "./clients/capGetCatalogs.js";
+export { capGetEscalation } from "./clients/capGetEscalation.js";
 export { capGetFeeds } from "./clients/capGetFeeds.js";
 export { capGetHazardProfiles } from "./clients/capGetHazardProfiles.js";
+export { capGetIbfMatrix } from "./clients/capGetIbfMatrix.js";
 export { capGetIntegrations } from "./clients/capGetIntegrations.js";
 export { capGetPredefinedAreas } from "./clients/capGetPredefinedAreas.js";
 export { capGetPublicAlert } from "./clients/capGetPublicAlert.js";
@@ -161,8 +164,10 @@ export { capGetPublicWarnings } from "./clients/capGetPublicWarnings.js";
 export { capGetRss } from "./clients/capGetRss.js";
 export { capImportAlert } from "./clients/capImportAlert.js";
 export { capPublishAlert } from "./clients/capPublishAlert.js";
+export { capRecordAlertReview } from "./clients/capRecordAlertReview.js";
 export { capSaveHazardProfile } from "./clients/capSaveHazardProfile.js";
 export { capSubmitAlert } from "./clients/capSubmitAlert.js";
+export { capSuggestIbf } from "./clients/capSuggestIbf.js";
 export { capUpdateAlert } from "./clients/capUpdateAlert.js";
 export { capUpdateCapSettings } from "./clients/capUpdateCapSettings.js";
 export { capUpdateFeed } from "./clients/capUpdateFeed.js";
@@ -182,15 +187,23 @@ export { contactsUpsertOrgContact } from "./clients/contactsUpsertOrgContact.js"
 export { environmentGetAir } from "./clients/environmentGetAir.js";
 export { environmentGetMarine } from "./clients/environmentGetMarine.js";
 export { eregisterAcceptRegisterObservation } from "./clients/eregisterAcceptRegisterObservation.js";
+export { eregisterAddStation } from "./clients/eregisterAddStation.js";
+export { eregisterCorrectRegisterObservation } from "./clients/eregisterCorrectRegisterObservation.js";
 export { eregisterCreateRegisterObservation } from "./clients/eregisterCreateRegisterObservation.js";
+export { eregisterEditStation } from "./clients/eregisterEditStation.js";
 export { eregisterEmailRegisterObservation } from "./clients/eregisterEmailRegisterObservation.js";
+export { eregisterGetRegistryStation } from "./clients/eregisterGetRegistryStation.js";
+export { eregisterGetStationSettings } from "./clients/eregisterGetStationSettings.js";
 export { eregisterListObservationSends } from "./clients/eregisterListObservationSends.js";
 export { eregisterListRegisterObservations } from "./clients/eregisterListRegisterObservations.js";
+export { eregisterListRegistryStations } from "./clients/eregisterListRegistryStations.js";
 export { eregisterPublicCurrentConditions } from "./clients/eregisterPublicCurrentConditions.js";
 export { eregisterPublicMonthSummary } from "./clients/eregisterPublicMonthSummary.js";
 export { eregisterPublishRegisterObservation } from "./clients/eregisterPublishRegisterObservation.js";
+export { eregisterPutStationSettings } from "./clients/eregisterPutStationSettings.js";
 export { eregisterRejectRegisterObservation } from "./clients/eregisterRejectRegisterObservation.js";
 export { eregisterReopenRegisterObservation } from "./clients/eregisterReopenRegisterObservation.js";
+export { eregisterReviewRegisterObservation } from "./clients/eregisterReviewRegisterObservation.js";
 export { eregisterValidateSynopObservation } from "./clients/eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./clients/eventsAcceptConnection.js";
 export { eventsAdminListEvents } from "./clients/eventsAdminListEvents.js";
@@ -620,19 +633,25 @@ export { webhooksOutListEventTypes } from "./clients/webhooksOutListEventTypes.j
 export { webhooksOutRotateSecret } from "./clients/webhooksOutRotateSecret.js";
 export { webhooksOutTestEndpoint } from "./clients/webhooksOutTestEndpoint.js";
 export { webhooksOutUpdateEndpoint } from "./clients/webhooksOutUpdateEndpoint.js";
+export { wxproductsCreateTropicalSystem } from "./clients/wxproductsCreateTropicalSystem.js";
 export { wxproductsGetPublicProduct } from "./clients/wxproductsGetPublicProduct.js";
+export { wxproductsGetPublicTropicalSystem } from "./clients/wxproductsGetPublicTropicalSystem.js";
 export { wxproductsListPublicProducts } from "./clients/wxproductsListPublicProducts.js";
+export { wxproductsListPublicTropicalSystems } from "./clients/wxproductsListPublicTropicalSystems.js";
+export { wxproductsListTropicalSystems } from "./clients/wxproductsListTropicalSystems.js";
 export { wxproductsLoadAviationDrafts } from "./clients/wxproductsLoadAviationDrafts.js";
 export { wxproductsLoadAviationHistory } from "./clients/wxproductsLoadAviationHistory.js";
 export { wxproductsLoadHistory } from "./clients/wxproductsLoadHistory.js";
 export { wxproductsLoadObservations } from "./clients/wxproductsLoadObservations.js";
 export { wxproductsLoadProducts } from "./clients/wxproductsLoadProducts.js";
+export { wxproductsLoadTropicalSystemHistory } from "./clients/wxproductsLoadTropicalSystemHistory.js";
 export { wxproductsPreviewProduct } from "./clients/wxproductsPreviewProduct.js";
 export { wxproductsPreviewProductPdf } from "./clients/wxproductsPreviewProductPdf.js";
 export { wxproductsProductRevisionPdf } from "./clients/wxproductsProductRevisionPdf.js";
 export { wxproductsPublicForecast } from "./clients/wxproductsPublicForecast.js";
 export { wxproductsSaveAviationDraft } from "./clients/wxproductsSaveAviationDraft.js";
 export { wxproductsSaveProduct } from "./clients/wxproductsSaveProduct.js";
+export { wxproductsUpdateTropicalSystem } from "./clients/wxproductsUpdateTropicalSystem.js";
 export { wxproductsValidateAviationMessage } from "./clients/wxproductsValidateAviationMessage.js";
 export { wxwatchArchive } from "./clients/wxwatchArchive.js";
 export { wxwatchArchiveAsset } from "./clients/wxwatchArchiveAsset.js";
@@ -1316,6 +1335,11 @@ export {
   useCapCreateAlert,
 } from "./hooks/useCapCreateAlert.js";
 export {
+  capCreateEscalationMutationKey,
+  capCreateEscalationMutationOptions,
+  useCapCreateEscalation,
+} from "./hooks/useCapCreateEscalation.js";
+export {
   capCreateFeedMutationKey,
   capCreateFeedMutationOptions,
   useCapCreateFeed,
@@ -1396,6 +1420,11 @@ export {
   useCapGetCatalogs,
 } from "./hooks/useCapGetCatalogs.js";
 export {
+  capGetEscalationQueryKey,
+  capGetEscalationQueryOptions,
+  useCapGetEscalation,
+} from "./hooks/useCapGetEscalation.js";
+export {
   capGetFeedsQueryKey,
   capGetFeedsQueryOptions,
   useCapGetFeeds,
@@ -1405,6 +1434,11 @@ export {
   capGetHazardProfilesQueryOptions,
   useCapGetHazardProfiles,
 } from "./hooks/useCapGetHazardProfiles.js";
+export {
+  capGetIbfMatrixQueryKey,
+  capGetIbfMatrixQueryOptions,
+  useCapGetIbfMatrix,
+} from "./hooks/useCapGetIbfMatrix.js";
 export {
   capGetIntegrationsQueryKey,
   capGetIntegrationsQueryOptions,
@@ -1456,6 +1490,11 @@ export {
   useCapPublishAlert,
 } from "./hooks/useCapPublishAlert.js";
 export {
+  capRecordAlertReviewMutationKey,
+  capRecordAlertReviewMutationOptions,
+  useCapRecordAlertReview,
+} from "./hooks/useCapRecordAlertReview.js";
+export {
   capSaveHazardProfileMutationKey,
   capSaveHazardProfileMutationOptions,
   useCapSaveHazardProfile,
@@ -1465,6 +1504,11 @@ export {
   capSubmitAlertMutationOptions,
   useCapSubmitAlert,
 } from "./hooks/useCapSubmitAlert.js";
+export {
+  capSuggestIbfQueryKey,
+  capSuggestIbfQueryOptions,
+  useCapSuggestIbf,
+} from "./hooks/useCapSuggestIbf.js";
 export {
   capUpdateAlertMutationKey,
   capUpdateAlertMutationOptions,
@@ -1561,15 +1605,40 @@ export {
   useEregisterAcceptRegisterObservation,
 } from "./hooks/useEregisterAcceptRegisterObservation.js";
 export {
+  eregisterAddStationMutationKey,
+  eregisterAddStationMutationOptions,
+  useEregisterAddStation,
+} from "./hooks/useEregisterAddStation.js";
+export {
+  eregisterCorrectRegisterObservationMutationKey,
+  eregisterCorrectRegisterObservationMutationOptions,
+  useEregisterCorrectRegisterObservation,
+} from "./hooks/useEregisterCorrectRegisterObservation.js";
+export {
   eregisterCreateRegisterObservationMutationKey,
   eregisterCreateRegisterObservationMutationOptions,
   useEregisterCreateRegisterObservation,
 } from "./hooks/useEregisterCreateRegisterObservation.js";
 export {
+  eregisterEditStationMutationKey,
+  eregisterEditStationMutationOptions,
+  useEregisterEditStation,
+} from "./hooks/useEregisterEditStation.js";
+export {
   eregisterEmailRegisterObservationMutationKey,
   eregisterEmailRegisterObservationMutationOptions,
   useEregisterEmailRegisterObservation,
 } from "./hooks/useEregisterEmailRegisterObservation.js";
+export {
+  eregisterGetRegistryStationQueryKey,
+  eregisterGetRegistryStationQueryOptions,
+  useEregisterGetRegistryStation,
+} from "./hooks/useEregisterGetRegistryStation.js";
+export {
+  eregisterGetStationSettingsQueryKey,
+  eregisterGetStationSettingsQueryOptions,
+  useEregisterGetStationSettings,
+} from "./hooks/useEregisterGetStationSettings.js";
 export {
   eregisterListObservationSendsQueryKey,
   eregisterListObservationSendsQueryOptions,
@@ -1580,6 +1649,11 @@ export {
   eregisterListRegisterObservationsQueryOptions,
   useEregisterListRegisterObservations,
 } from "./hooks/useEregisterListRegisterObservations.js";
+export {
+  eregisterListRegistryStationsQueryKey,
+  eregisterListRegistryStationsQueryOptions,
+  useEregisterListRegistryStations,
+} from "./hooks/useEregisterListRegistryStations.js";
 export {
   eregisterPublicCurrentConditionsQueryKey,
   eregisterPublicCurrentConditionsQueryOptions,
@@ -1596,6 +1670,11 @@ export {
   useEregisterPublishRegisterObservation,
 } from "./hooks/useEregisterPublishRegisterObservation.js";
 export {
+  eregisterPutStationSettingsMutationKey,
+  eregisterPutStationSettingsMutationOptions,
+  useEregisterPutStationSettings,
+} from "./hooks/useEregisterPutStationSettings.js";
+export {
   eregisterRejectRegisterObservationMutationKey,
   eregisterRejectRegisterObservationMutationOptions,
   useEregisterRejectRegisterObservation,
@@ -1605,6 +1684,11 @@ export {
   eregisterReopenRegisterObservationMutationOptions,
   useEregisterReopenRegisterObservation,
 } from "./hooks/useEregisterReopenRegisterObservation.js";
+export {
+  eregisterReviewRegisterObservationMutationKey,
+  eregisterReviewRegisterObservationMutationOptions,
+  useEregisterReviewRegisterObservation,
+} from "./hooks/useEregisterReviewRegisterObservation.js";
 export {
   eregisterValidateSynopObservationMutationKey,
   eregisterValidateSynopObservationMutationOptions,
@@ -3751,15 +3835,35 @@ export {
   webhooksOutUpdateEndpointMutationOptions,
 } from "./hooks/useWebhooksOutUpdateEndpoint.js";
 export {
+  useWxproductsCreateTropicalSystem,
+  wxproductsCreateTropicalSystemMutationKey,
+  wxproductsCreateTropicalSystemMutationOptions,
+} from "./hooks/useWxproductsCreateTropicalSystem.js";
+export {
   useWxproductsGetPublicProduct,
   wxproductsGetPublicProductQueryKey,
   wxproductsGetPublicProductQueryOptions,
 } from "./hooks/useWxproductsGetPublicProduct.js";
 export {
+  useWxproductsGetPublicTropicalSystem,
+  wxproductsGetPublicTropicalSystemQueryKey,
+  wxproductsGetPublicTropicalSystemQueryOptions,
+} from "./hooks/useWxproductsGetPublicTropicalSystem.js";
+export {
   useWxproductsListPublicProducts,
   wxproductsListPublicProductsQueryKey,
   wxproductsListPublicProductsQueryOptions,
 } from "./hooks/useWxproductsListPublicProducts.js";
+export {
+  useWxproductsListPublicTropicalSystems,
+  wxproductsListPublicTropicalSystemsQueryKey,
+  wxproductsListPublicTropicalSystemsQueryOptions,
+} from "./hooks/useWxproductsListPublicTropicalSystems.js";
+export {
+  useWxproductsListTropicalSystems,
+  wxproductsListTropicalSystemsQueryKey,
+  wxproductsListTropicalSystemsQueryOptions,
+} from "./hooks/useWxproductsListTropicalSystems.js";
 export {
   useWxproductsLoadAviationDrafts,
   wxproductsLoadAviationDraftsQueryKey,
@@ -3785,6 +3889,11 @@ export {
   wxproductsLoadProductsQueryKey,
   wxproductsLoadProductsQueryOptions,
 } from "./hooks/useWxproductsLoadProducts.js";
+export {
+  useWxproductsLoadTropicalSystemHistory,
+  wxproductsLoadTropicalSystemHistoryQueryKey,
+  wxproductsLoadTropicalSystemHistoryQueryOptions,
+} from "./hooks/useWxproductsLoadTropicalSystemHistory.js";
 export {
   useWxproductsPreviewProduct,
   wxproductsPreviewProductMutationKey,
@@ -3815,6 +3924,11 @@ export {
   wxproductsSaveProductMutationKey,
   wxproductsSaveProductMutationOptions,
 } from "./hooks/useWxproductsSaveProduct.js";
+export {
+  useWxproductsUpdateTropicalSystem,
+  wxproductsUpdateTropicalSystemMutationKey,
+  wxproductsUpdateTropicalSystemMutationOptions,
+} from "./hooks/useWxproductsUpdateTropicalSystem.js";
 export {
   useWxproductsValidateAviationMessage,
   wxproductsValidateAviationMessageMutationKey,
@@ -5609,6 +5723,17 @@ export type {
   CapCreateAlertStatus422,
 } from "./models/CapCreateAlert.js";
 export type {
+  CapCreateEscalationBody,
+  CapCreateEscalationOptions,
+  CapCreateEscalationResponse,
+  CapCreateEscalationResponses,
+  CapCreateEscalationStatus201,
+  CapCreateEscalationStatus401,
+  CapCreateEscalationStatus403,
+  CapCreateEscalationStatus404,
+  CapCreateEscalationStatus422,
+} from "./models/CapCreateEscalation.js";
+export type {
   CapCreateFeedBody,
   CapCreateFeedOptions,
   CapCreateFeedResponse,
@@ -5686,6 +5811,12 @@ export type {
   CapEmergencyPublishAlertStatus404,
   CapEmergencyPublishAlertStatus422,
 } from "./models/CapEmergencyPublishAlert.js";
+export type { CapEscalationCreate } from "./models/CapEscalationCreate.js";
+export type { CapEscalationCreatePropertiesAwarenessLevelEnum } from "./models/CapEscalationCreatePropertiesAwarenessLevelEnum.js";
+export { capEscalationCreatePropertiesAwarenessLevelEnum } from "./models/CapEscalationCreatePropertiesAwarenessLevelEnum.js";
+export type { CapEscalationLookup } from "./models/CapEscalationLookup.js";
+export type { CapEscalationPublic } from "./models/CapEscalationPublic.js";
+export type { CapEscalationSource } from "./models/CapEscalationSource.js";
 export type {
   CapExpireAlertBody,
   CapExpireAlertOptions,
@@ -5774,6 +5905,16 @@ export type {
   CapGetCatalogsStatus422,
 } from "./models/CapGetCatalogs.js";
 export type {
+  CapGetEscalationOptions,
+  CapGetEscalationQuery,
+  CapGetEscalationResponse,
+  CapGetEscalationResponses,
+  CapGetEscalationStatus200,
+  CapGetEscalationStatus401,
+  CapGetEscalationStatus403,
+  CapGetEscalationStatus422,
+} from "./models/CapGetEscalation.js";
+export type {
   CapGetFeedsOptions,
   CapGetFeedsResponse,
   CapGetFeedsResponses,
@@ -5791,6 +5932,16 @@ export type {
   CapGetHazardProfilesStatus403,
   CapGetHazardProfilesStatus422,
 } from "./models/CapGetHazardProfiles.js";
+export type {
+  CapGetIbfMatrixOptions,
+  CapGetIbfMatrixQuery,
+  CapGetIbfMatrixResponse,
+  CapGetIbfMatrixResponses,
+  CapGetIbfMatrixStatus200,
+  CapGetIbfMatrixStatus401,
+  CapGetIbfMatrixStatus403,
+  CapGetIbfMatrixStatus422,
+} from "./models/CapGetIbfMatrix.js";
 export type {
   CapGetIntegrationsOptions,
   CapGetIntegrationsResponse,
@@ -5875,12 +6026,20 @@ export { capMessageType } from "./models/CapMessageType.js";
 export type { CapNameValue } from "./models/CapNameValue.js";
 export type { CapPredefinedAreaCreate } from "./models/CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./models/CapPredefinedAreaPublic.js";
+export type { CapProfileCellText } from "./models/CapProfileCellText.js";
+export type { CapProfileCellTextPropertiesImpactEnum } from "./models/CapProfileCellTextPropertiesImpactEnum.js";
+export { capProfileCellTextPropertiesImpactEnum } from "./models/CapProfileCellTextPropertiesImpactEnum.js";
+export type { CapProfileCellTextPropertiesLikelihoodEnum } from "./models/CapProfileCellTextPropertiesLikelihoodEnum.js";
+export { capProfileCellTextPropertiesLikelihoodEnum } from "./models/CapProfileCellTextPropertiesLikelihoodEnum.js";
+export type { CapProfileColourResponse } from "./models/CapProfileColourResponse.js";
 export type { CapProfileDefinition } from "./models/CapProfileDefinition.js";
 export type { CapProfileDefinitionPropertiesChannelsItemsEnum } from "./models/CapProfileDefinitionPropertiesChannelsItemsEnum.js";
 export { capProfileDefinitionPropertiesChannelsItemsEnum } from "./models/CapProfileDefinitionPropertiesChannelsItemsEnum.js";
 export type { CapProfileDraftRequest } from "./models/CapProfileDraftRequest.js";
 export type { CapProfileDraftRequestPropertiesLevelEnum } from "./models/CapProfileDraftRequestPropertiesLevelEnum.js";
 export { capProfileDraftRequestPropertiesLevelEnum } from "./models/CapProfileDraftRequestPropertiesLevelEnum.js";
+export type { CapProfileImpactLevel } from "./models/CapProfileImpactLevel.js";
+export type { CapProfileMatrix } from "./models/CapProfileMatrix.js";
 export type { CapProfilePublic } from "./models/CapProfilePublic.js";
 export type { CapProfilePublicPropertiesStateEnum } from "./models/CapProfilePublicPropertiesStateEnum.js";
 export { capProfilePublicPropertiesStateEnum } from "./models/CapProfilePublicPropertiesStateEnum.js";
@@ -5903,10 +6062,26 @@ export type {
   CapPublishAlertStatus422,
 } from "./models/CapPublishAlert.js";
 export type { CapPublishPublic } from "./models/CapPublishPublic.js";
+export type {
+  CapRecordAlertReviewBody,
+  CapRecordAlertReviewOptions,
+  CapRecordAlertReviewPath,
+  CapRecordAlertReviewResponse,
+  CapRecordAlertReviewResponses,
+  CapRecordAlertReviewStatus200,
+  CapRecordAlertReviewStatus401,
+  CapRecordAlertReviewStatus403,
+  CapRecordAlertReviewStatus404,
+  CapRecordAlertReviewStatus409,
+  CapRecordAlertReviewStatus422,
+} from "./models/CapRecordAlertReview.js";
 export type { CapReferenceCreate } from "./models/CapReferenceCreate.js";
 export type { CapReferencePublic } from "./models/CapReferencePublic.js";
 export type { CapResourceCreate } from "./models/CapResourceCreate.js";
 export type { CapResourcePublic } from "./models/CapResourcePublic.js";
+export type { CapReviewRecord } from "./models/CapReviewRecord.js";
+export type { CapReviewRecordPropertiesOutcomeEnum } from "./models/CapReviewRecordPropertiesOutcomeEnum.js";
+export { capReviewRecordPropertiesOutcomeEnum } from "./models/CapReviewRecordPropertiesOutcomeEnum.js";
 export type {
   CapSaveHazardProfileBody,
   CapSaveHazardProfileOptions,
@@ -5939,6 +6114,16 @@ export type {
   CapSubmitAlertStatus404,
   CapSubmitAlertStatus422,
 } from "./models/CapSubmitAlert.js";
+export type {
+  CapSuggestIbfOptions,
+  CapSuggestIbfQuery,
+  CapSuggestIbfResponse,
+  CapSuggestIbfResponses,
+  CapSuggestIbfStatus200,
+  CapSuggestIbfStatus401,
+  CapSuggestIbfStatus403,
+  CapSuggestIbfStatus422,
+} from "./models/CapSuggestIbf.js";
 export type {
   CapUpdateAlertBody,
   CapUpdateAlertOptions,
@@ -6276,15 +6461,55 @@ export type {
   EregisterAcceptRegisterObservationStatus422,
 } from "./models/EregisterAcceptRegisterObservation.js";
 export type {
+  EregisterAddStationBody,
+  EregisterAddStationOptions,
+  EregisterAddStationResponse,
+  EregisterAddStationResponses,
+  EregisterAddStationStatus201,
+  EregisterAddStationStatus401,
+  EregisterAddStationStatus403,
+  EregisterAddStationStatus404,
+  EregisterAddStationStatus409,
+  EregisterAddStationStatus422,
+} from "./models/EregisterAddStation.js";
+export type {
+  EregisterCorrectRegisterObservationBody,
+  EregisterCorrectRegisterObservationOptions,
+  EregisterCorrectRegisterObservationPath,
+  EregisterCorrectRegisterObservationResponse,
+  EregisterCorrectRegisterObservationResponses,
+  EregisterCorrectRegisterObservationStatus201,
+  EregisterCorrectRegisterObservationStatus401,
+  EregisterCorrectRegisterObservationStatus403,
+  EregisterCorrectRegisterObservationStatus404,
+  EregisterCorrectRegisterObservationStatus409,
+  EregisterCorrectRegisterObservationStatus422,
+} from "./models/EregisterCorrectRegisterObservation.js";
+export type {
   EregisterCreateRegisterObservationBody,
   EregisterCreateRegisterObservationOptions,
   EregisterCreateRegisterObservationResponse,
   EregisterCreateRegisterObservationResponses,
+  EregisterCreateRegisterObservationStatus200,
   EregisterCreateRegisterObservationStatus201,
   EregisterCreateRegisterObservationStatus401,
   EregisterCreateRegisterObservationStatus403,
+  EregisterCreateRegisterObservationStatus409,
   EregisterCreateRegisterObservationStatus422,
 } from "./models/EregisterCreateRegisterObservation.js";
+export type {
+  EregisterEditStationBody,
+  EregisterEditStationOptions,
+  EregisterEditStationPath,
+  EregisterEditStationResponse,
+  EregisterEditStationResponses,
+  EregisterEditStationStatus200,
+  EregisterEditStationStatus401,
+  EregisterEditStationStatus403,
+  EregisterEditStationStatus404,
+  EregisterEditStationStatus409,
+  EregisterEditStationStatus422,
+} from "./models/EregisterEditStation.js";
 export type {
   EregisterEmailRegisterObservationBody,
   EregisterEmailRegisterObservationOptions,
@@ -6298,6 +6523,28 @@ export type {
   EregisterEmailRegisterObservationStatus409,
   EregisterEmailRegisterObservationStatus422,
 } from "./models/EregisterEmailRegisterObservation.js";
+export type {
+  EregisterGetRegistryStationOptions,
+  EregisterGetRegistryStationPath,
+  EregisterGetRegistryStationResponse,
+  EregisterGetRegistryStationResponses,
+  EregisterGetRegistryStationStatus200,
+  EregisterGetRegistryStationStatus401,
+  EregisterGetRegistryStationStatus403,
+  EregisterGetRegistryStationStatus404,
+  EregisterGetRegistryStationStatus422,
+} from "./models/EregisterGetRegistryStation.js";
+export type {
+  EregisterGetStationSettingsOptions,
+  EregisterGetStationSettingsPath,
+  EregisterGetStationSettingsResponse,
+  EregisterGetStationSettingsResponses,
+  EregisterGetStationSettingsStatus200,
+  EregisterGetStationSettingsStatus401,
+  EregisterGetStationSettingsStatus403,
+  EregisterGetStationSettingsStatus404,
+  EregisterGetStationSettingsStatus422,
+} from "./models/EregisterGetStationSettings.js";
 export type {
   EregisterListObservationSendsOptions,
   EregisterListObservationSendsPath,
@@ -6318,6 +6565,16 @@ export type {
   EregisterListRegisterObservationsStatus403,
   EregisterListRegisterObservationsStatus422,
 } from "./models/EregisterListRegisterObservations.js";
+export type {
+  EregisterListRegistryStationsOptions,
+  EregisterListRegistryStationsQuery,
+  EregisterListRegistryStationsResponse,
+  EregisterListRegistryStationsResponses,
+  EregisterListRegistryStationsStatus200,
+  EregisterListRegistryStationsStatus401,
+  EregisterListRegistryStationsStatus403,
+  EregisterListRegistryStationsStatus422,
+} from "./models/EregisterListRegistryStations.js";
 export type {
   EregisterPublicCurrentConditionsOptions,
   EregisterPublicCurrentConditionsResponse,
@@ -6350,6 +6607,18 @@ export type {
   EregisterPublishRegisterObservationStatus422,
 } from "./models/EregisterPublishRegisterObservation.js";
 export type {
+  EregisterPutStationSettingsBody,
+  EregisterPutStationSettingsOptions,
+  EregisterPutStationSettingsPath,
+  EregisterPutStationSettingsResponse,
+  EregisterPutStationSettingsResponses,
+  EregisterPutStationSettingsStatus200,
+  EregisterPutStationSettingsStatus401,
+  EregisterPutStationSettingsStatus403,
+  EregisterPutStationSettingsStatus404,
+  EregisterPutStationSettingsStatus422,
+} from "./models/EregisterPutStationSettings.js";
+export type {
   EregisterRejectRegisterObservationBody,
   EregisterRejectRegisterObservationOptions,
   EregisterRejectRegisterObservationPath,
@@ -6375,6 +6644,19 @@ export type {
   EregisterReopenRegisterObservationStatus409,
   EregisterReopenRegisterObservationStatus422,
 } from "./models/EregisterReopenRegisterObservation.js";
+export type {
+  EregisterReviewRegisterObservationBody,
+  EregisterReviewRegisterObservationOptions,
+  EregisterReviewRegisterObservationPath,
+  EregisterReviewRegisterObservationResponse,
+  EregisterReviewRegisterObservationResponses,
+  EregisterReviewRegisterObservationStatus200,
+  EregisterReviewRegisterObservationStatus401,
+  EregisterReviewRegisterObservationStatus403,
+  EregisterReviewRegisterObservationStatus404,
+  EregisterReviewRegisterObservationStatus409,
+  EregisterReviewRegisterObservationStatus422,
+} from "./models/EregisterReviewRegisterObservation.js";
 export type {
   EregisterValidateSynopObservationBody,
   EregisterValidateSynopObservationOptions,
@@ -8984,6 +9266,9 @@ export type {
   HrValidateGridStatus404,
   HrValidateGridStatus422,
 } from "./models/HrValidateGrid.js";
+export type { IbfLevelPublic } from "./models/IbfLevelPublic.js";
+export type { IbfMatrixPublic } from "./models/IbfMatrixPublic.js";
+export type { IbfSuggestion } from "./models/IbfSuggestion.js";
 export type { ImageInput } from "./models/ImageInput.js";
 export type { ImageInputPropertiesTimeBasisEnum } from "./models/ImageInputPropertiesTimeBasisEnum.js";
 export { imageInputPropertiesTimeBasisEnum } from "./models/ImageInputPropertiesTimeBasisEnum.js";
@@ -10493,9 +10778,12 @@ export { refundCreatePropertiesMethodEnum } from "./models/RefundCreatePropertie
 export type { RefundPublic } from "./models/RefundPublic.js";
 export type { RefundStatus } from "./models/RefundStatus.js";
 export { refundStatus } from "./models/RefundStatus.js";
+export type { RegisterObservationCorrection } from "./models/RegisterObservationCorrection.js";
 export type { RegisterObservationCreate } from "./models/RegisterObservationCreate.js";
 export type { RegisterObservationList } from "./models/RegisterObservationList.js";
 export type { RegisterObservationRead } from "./models/RegisterObservationRead.js";
+export type { RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum } from "./models/RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum.js";
+export { registerObservationReadPropertiesReviewOutcomeAnyOfEnum } from "./models/RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum.js";
 export type { RegisterObservationReadPropertiesStateEnum } from "./models/RegisterObservationReadPropertiesStateEnum.js";
 export { registerObservationReadPropertiesStateEnum } from "./models/RegisterObservationReadPropertiesStateEnum.js";
 export type { ReportCreate } from "./models/ReportCreate.js";
@@ -10525,6 +10813,7 @@ export type { ReviewInput } from "./models/ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./models/ReviewInputPropertiesDecisionEnum.js";
 export { reviewInputPropertiesDecisionEnum } from "./models/ReviewInputPropertiesDecisionEnum.js";
 export type { ReviewPublic } from "./models/ReviewPublic.js";
+export type { ReviewRequest } from "./models/ReviewRequest.js";
 export type { RewardCardPublic } from "./models/RewardCardPublic.js";
 export type { RewardEntryListPublic } from "./models/RewardEntryListPublic.js";
 export type { RewardEntryPublic } from "./models/RewardEntryPublic.js";
@@ -11209,6 +11498,18 @@ export type { StaffInput } from "./models/StaffInput.js";
 export type { StaffOrganiserRow } from "./models/StaffOrganiserRow.js";
 export type { StaffSetup } from "./models/StaffSetup.js";
 export type { StaffUpdate } from "./models/StaffUpdate.js";
+export type { StationCreate } from "./models/StationCreate.js";
+export type { StationCreatePropertiesSourceKindEnum } from "./models/StationCreatePropertiesSourceKindEnum.js";
+export { stationCreatePropertiesSourceKindEnum } from "./models/StationCreatePropertiesSourceKindEnum.js";
+export type { StationRecord } from "./models/StationRecord.js";
+export type { StationRecordList } from "./models/StationRecordList.js";
+export type { StationRecordPropertiesScheduleEnum } from "./models/StationRecordPropertiesScheduleEnum.js";
+export { stationRecordPropertiesScheduleEnum } from "./models/StationRecordPropertiesScheduleEnum.js";
+export type { StationSettings } from "./models/StationSettings.js";
+export type { StationSettingsPropertiesPendingItemsEnum } from "./models/StationSettingsPropertiesPendingItemsEnum.js";
+export { stationSettingsPropertiesPendingItemsEnum } from "./models/StationSettingsPropertiesPendingItemsEnum.js";
+export type { StationSettingsUpdate } from "./models/StationSettingsUpdate.js";
+export type { StationUpdate } from "./models/StationUpdate.js";
 export type { StatusReportCreate } from "./models/StatusReportCreate.js";
 export type { StatusReportDetails } from "./models/StatusReportDetails.js";
 export type { StatusReportEntryInput } from "./models/StatusReportEntryInput.js";
@@ -11838,6 +12139,22 @@ export type {
 export type { TransportWeekday } from "./models/TransportWeekday.js";
 export { transportWeekday } from "./models/TransportWeekday.js";
 export type { TripView } from "./models/TripView.js";
+export type { TropicalSystemCreate } from "./models/TropicalSystemCreate.js";
+export type { TropicalSystemEntryRead } from "./models/TropicalSystemEntryRead.js";
+export type { TropicalSystemEntryReadPropertiesActionEnum } from "./models/TropicalSystemEntryReadPropertiesActionEnum.js";
+export { tropicalSystemEntryReadPropertiesActionEnum } from "./models/TropicalSystemEntryReadPropertiesActionEnum.js";
+export type { TropicalSystemHistory } from "./models/TropicalSystemHistory.js";
+export type { TropicalSystemList } from "./models/TropicalSystemList.js";
+export type { TropicalSystemPublic } from "./models/TropicalSystemPublic.js";
+export type { TropicalSystemPublicEntry } from "./models/TropicalSystemPublicEntry.js";
+export type { TropicalSystemPublicHistory } from "./models/TropicalSystemPublicHistory.js";
+export type { TropicalSystemPublicList } from "./models/TropicalSystemPublicList.js";
+export type { TropicalSystemPublicPropertiesStatusEnum } from "./models/TropicalSystemPublicPropertiesStatusEnum.js";
+export { tropicalSystemPublicPropertiesStatusEnum } from "./models/TropicalSystemPublicPropertiesStatusEnum.js";
+export type { TropicalSystemRead } from "./models/TropicalSystemRead.js";
+export type { TropicalSystemReadPropertiesClosedReasonAnyOfEnum } from "./models/TropicalSystemReadPropertiesClosedReasonAnyOfEnum.js";
+export { tropicalSystemReadPropertiesClosedReasonAnyOfEnum } from "./models/TropicalSystemReadPropertiesClosedReasonAnyOfEnum.js";
+export type { TropicalSystemUpdate } from "./models/TropicalSystemUpdate.js";
 export type { TurnstileMode } from "./models/TurnstileMode.js";
 export { turnstileMode } from "./models/TurnstileMode.js";
 export type { TwoFactorCodeRequest } from "./models/TwoFactorCodeRequest.js";
@@ -12080,6 +12397,18 @@ export type { WorkingDaysPublic } from "./models/WorkingDaysPublic.js";
 export type { WorkingDaysPublicPropertiesMethodEnum } from "./models/WorkingDaysPublicPropertiesMethodEnum.js";
 export { workingDaysPublicPropertiesMethodEnum } from "./models/WorkingDaysPublicPropertiesMethodEnum.js";
 export type {
+  WxproductsCreateTropicalSystemBody,
+  WxproductsCreateTropicalSystemOptions,
+  WxproductsCreateTropicalSystemResponse,
+  WxproductsCreateTropicalSystemResponses,
+  WxproductsCreateTropicalSystemStatus201,
+  WxproductsCreateTropicalSystemStatus401,
+  WxproductsCreateTropicalSystemStatus403,
+  WxproductsCreateTropicalSystemStatus409,
+  WxproductsCreateTropicalSystemStatus422,
+  WxproductsCreateTropicalSystemStatus503,
+} from "./models/WxproductsCreateTropicalSystem.js";
+export type {
   WxproductsGetPublicProductOptions,
   WxproductsGetPublicProductPath,
   WxproductsGetPublicProductResponse,
@@ -12090,6 +12419,16 @@ export type {
   WxproductsGetPublicProductStatus503,
 } from "./models/WxproductsGetPublicProduct.js";
 export type {
+  WxproductsGetPublicTropicalSystemOptions,
+  WxproductsGetPublicTropicalSystemPath,
+  WxproductsGetPublicTropicalSystemResponse,
+  WxproductsGetPublicTropicalSystemResponses,
+  WxproductsGetPublicTropicalSystemStatus200,
+  WxproductsGetPublicTropicalSystemStatus404,
+  WxproductsGetPublicTropicalSystemStatus422,
+  WxproductsGetPublicTropicalSystemStatus503,
+} from "./models/WxproductsGetPublicTropicalSystem.js";
+export type {
   WxproductsListPublicProductsOptions,
   WxproductsListPublicProductsQuery,
   WxproductsListPublicProductsResponse,
@@ -12099,6 +12438,25 @@ export type {
   WxproductsListPublicProductsStatus422,
   WxproductsListPublicProductsStatus503,
 } from "./models/WxproductsListPublicProducts.js";
+export type {
+  WxproductsListPublicTropicalSystemsOptions,
+  WxproductsListPublicTropicalSystemsResponse,
+  WxproductsListPublicTropicalSystemsResponses,
+  WxproductsListPublicTropicalSystemsStatus200,
+  WxproductsListPublicTropicalSystemsStatus422,
+  WxproductsListPublicTropicalSystemsStatus503,
+} from "./models/WxproductsListPublicTropicalSystems.js";
+export type {
+  WxproductsListTropicalSystemsOptions,
+  WxproductsListTropicalSystemsQuery,
+  WxproductsListTropicalSystemsResponse,
+  WxproductsListTropicalSystemsResponses,
+  WxproductsListTropicalSystemsStatus200,
+  WxproductsListTropicalSystemsStatus401,
+  WxproductsListTropicalSystemsStatus403,
+  WxproductsListTropicalSystemsStatus422,
+  WxproductsListTropicalSystemsStatus503,
+} from "./models/WxproductsListTropicalSystems.js";
 export type {
   WxproductsLoadAviationDraftsOptions,
   WxproductsLoadAviationDraftsQuery,
@@ -12151,6 +12509,18 @@ export type {
   WxproductsLoadProductsStatus422,
   WxproductsLoadProductsStatus503,
 } from "./models/WxproductsLoadProducts.js";
+export type {
+  WxproductsLoadTropicalSystemHistoryOptions,
+  WxproductsLoadTropicalSystemHistoryPath,
+  WxproductsLoadTropicalSystemHistoryResponse,
+  WxproductsLoadTropicalSystemHistoryResponses,
+  WxproductsLoadTropicalSystemHistoryStatus200,
+  WxproductsLoadTropicalSystemHistoryStatus401,
+  WxproductsLoadTropicalSystemHistoryStatus403,
+  WxproductsLoadTropicalSystemHistoryStatus404,
+  WxproductsLoadTropicalSystemHistoryStatus422,
+  WxproductsLoadTropicalSystemHistoryStatus503,
+} from "./models/WxproductsLoadTropicalSystemHistory.js";
 export type {
   WxproductsPreviewProductBody,
   WxproductsPreviewProductOptions,
@@ -12214,6 +12584,20 @@ export type {
   WxproductsSaveProductStatus422,
   WxproductsSaveProductStatus503,
 } from "./models/WxproductsSaveProduct.js";
+export type {
+  WxproductsUpdateTropicalSystemBody,
+  WxproductsUpdateTropicalSystemOptions,
+  WxproductsUpdateTropicalSystemPath,
+  WxproductsUpdateTropicalSystemResponse,
+  WxproductsUpdateTropicalSystemResponses,
+  WxproductsUpdateTropicalSystemStatus200,
+  WxproductsUpdateTropicalSystemStatus401,
+  WxproductsUpdateTropicalSystemStatus403,
+  WxproductsUpdateTropicalSystemStatus404,
+  WxproductsUpdateTropicalSystemStatus409,
+  WxproductsUpdateTropicalSystemStatus422,
+  WxproductsUpdateTropicalSystemStatus503,
+} from "./models/WxproductsUpdateTropicalSystem.js";
 export type {
   WxproductsValidateAviationMessageBody,
   WxproductsValidateAviationMessageOptions,
@@ -12536,7 +12920,9 @@ export {
   auditGetHistoryErrorSchema,
   auditGetHistoryPathEntityIdSchema,
   auditGetHistoryPathEntityTypeSchema,
+  auditGetHistoryPathSchema,
   auditGetHistoryQueryPageSchema,
+  auditGetHistoryQuerySchema,
   auditGetHistoryQuerySizeSchema,
   auditGetHistoryResponseSchema,
   auditGetHistoryStatus200Schema,
@@ -12566,6 +12952,7 @@ export {
 export {
   authAdminActivateAccountBodySchema,
   authAdminActivateAccountErrorSchema,
+  authAdminActivateAccountPathSchema,
   authAdminActivateAccountPathUserIdSchema,
   authAdminActivateAccountResponseSchema,
   authAdminActivateAccountStatus200Schema,
@@ -12577,6 +12964,7 @@ export {
 export {
   authAdminResendVerificationBodySchema,
   authAdminResendVerificationErrorSchema,
+  authAdminResendVerificationPathSchema,
   authAdminResendVerificationPathUserIdSchema,
   authAdminResendVerificationResponseSchema,
   authAdminResendVerificationStatus200Schema,
@@ -12589,6 +12977,7 @@ export {
   authAppEmailCodeStartBodySchema,
   authAppEmailCodeStartErrorSchema,
   authAppEmailCodeStartPathAppSchema,
+  authAppEmailCodeStartPathSchema,
   authAppEmailCodeStartResponseSchema,
   authAppEmailCodeStartStatus200Schema,
   authAppEmailCodeStartStatus400Schema,
@@ -12602,6 +12991,7 @@ export {
   authAppEmailCodeVerifyBodySchema,
   authAppEmailCodeVerifyErrorSchema,
   authAppEmailCodeVerifyPathAppSchema,
+  authAppEmailCodeVerifyPathSchema,
   authAppEmailCodeVerifyResponseSchema,
   authAppEmailCodeVerifyStatus200Schema,
   authAppEmailCodeVerifyStatus400Schema,
@@ -12615,6 +13005,7 @@ export {
   authAppGoogleCompleteBodySchema,
   authAppGoogleCompleteErrorSchema,
   authAppGoogleCompletePathAppSchema,
+  authAppGoogleCompletePathSchema,
   authAppGoogleCompleteResponseSchema,
   authAppGoogleCompleteStatus200Schema,
   authAppGoogleCompleteStatus400Schema,
@@ -12628,6 +13019,7 @@ export {
   authAppGoogleFinishBodySchema,
   authAppGoogleFinishErrorSchema,
   authAppGoogleFinishPathAppSchema,
+  authAppGoogleFinishPathSchema,
   authAppGoogleFinishResponseSchema,
   authAppGoogleFinishStatus200Schema,
   authAppGoogleFinishStatus400Schema,
@@ -12641,6 +13033,7 @@ export {
   authAppGoogleStartBodySchema,
   authAppGoogleStartErrorSchema,
   authAppGoogleStartPathAppSchema,
+  authAppGoogleStartPathSchema,
   authAppGoogleStartResponseSchema,
   authAppGoogleStartStatus200Schema,
   authAppGoogleStartStatus400Schema,
@@ -12654,6 +13047,7 @@ export {
   authAppHandoffRedeemBodySchema,
   authAppHandoffRedeemErrorSchema,
   authAppHandoffRedeemPathAppSchema,
+  authAppHandoffRedeemPathSchema,
   authAppHandoffRedeemResponseSchema,
   authAppHandoffRedeemStatus200Schema,
   authAppHandoffRedeemStatus400Schema,
@@ -12667,6 +13061,7 @@ export {
   authAppHandoffStartBodySchema,
   authAppHandoffStartErrorSchema,
   authAppHandoffStartPathAppSchema,
+  authAppHandoffStartPathSchema,
   authAppHandoffStartResponseSchema,
   authAppHandoffStartStatus200Schema,
   authAppHandoffStartStatus401Schema,
@@ -12680,6 +13075,7 @@ export {
   authAppPasswordLoginBodySchema,
   authAppPasswordLoginErrorSchema,
   authAppPasswordLoginPathAppSchema,
+  authAppPasswordLoginPathSchema,
   authAppPasswordLoginResponseSchema,
   authAppPasswordLoginStatus200Schema,
   authAppPasswordLoginStatus400Schema,
@@ -12693,6 +13089,7 @@ export {
   authAppPhoneCodeStartBodySchema,
   authAppPhoneCodeStartErrorSchema,
   authAppPhoneCodeStartPathAppSchema,
+  authAppPhoneCodeStartPathSchema,
   authAppPhoneCodeStartResponseSchema,
   authAppPhoneCodeStartStatus200Schema,
   authAppPhoneCodeStartStatus400Schema,
@@ -12706,6 +13103,7 @@ export {
   authAppPhoneCodeVerifyBodySchema,
   authAppPhoneCodeVerifyErrorSchema,
   authAppPhoneCodeVerifyPathAppSchema,
+  authAppPhoneCodeVerifyPathSchema,
   authAppPhoneCodeVerifyResponseSchema,
   authAppPhoneCodeVerifyStatus200Schema,
   authAppPhoneCodeVerifyStatus400Schema,
@@ -12719,6 +13117,7 @@ export {
   authAppPhoneLinkStartBodySchema,
   authAppPhoneLinkStartErrorSchema,
   authAppPhoneLinkStartPathAppSchema,
+  authAppPhoneLinkStartPathSchema,
   authAppPhoneLinkStartResponseSchema,
   authAppPhoneLinkStartStatus200Schema,
   authAppPhoneLinkStartStatus400Schema,
@@ -12733,6 +13132,7 @@ export {
   authAppPhoneLinkVerifyBodySchema,
   authAppPhoneLinkVerifyErrorSchema,
   authAppPhoneLinkVerifyPathAppSchema,
+  authAppPhoneLinkVerifyPathSchema,
   authAppPhoneLinkVerifyResponseSchema,
   authAppPhoneLinkVerifyStatus200Schema,
   authAppPhoneLinkVerifyStatus400Schema,
@@ -12807,6 +13207,7 @@ export {
 export {
   authDeleteRoleAssignmentErrorSchema,
   authDeleteRoleAssignmentPathAssignmentIdSchema,
+  authDeleteRoleAssignmentPathSchema,
   authDeleteRoleAssignmentResponseSchema,
   authDeleteRoleAssignmentStatus204Schema,
   authDeleteRoleAssignmentStatus404Schema,
@@ -12815,6 +13216,7 @@ export {
 export {
   authDeleteRoleErrorSchema,
   authDeleteRolePathRoleIdSchema,
+  authDeleteRolePathSchema,
   authDeleteRoleResponseSchema,
   authDeleteRoleStatus204Schema,
   authDeleteRoleStatus400Schema,
@@ -12830,6 +13232,7 @@ export {
 } from "./zod/authDeleteUserMeSchema.js";
 export {
   authDeleteUserErrorSchema,
+  authDeleteUserPathSchema,
   authDeleteUserPathUserIdSchema,
   authDeleteUserResponseSchema,
   authDeleteUserStatus200Schema,
@@ -12882,6 +13285,7 @@ export {
 export {
   authGetAppIdentityErrorSchema,
   authGetAppIdentityPathAppSchema,
+  authGetAppIdentityPathSchema,
   authGetAppIdentityResponseSchema,
   authGetAppIdentityStatus200Schema,
   authGetAppIdentityStatus401Schema,
@@ -12890,6 +13294,7 @@ export {
 export {
   authGetAppSignInOptionsErrorSchema,
   authGetAppSignInOptionsPathAppSchema,
+  authGetAppSignInOptionsPathSchema,
   authGetAppSignInOptionsResponseSchema,
   authGetAppSignInOptionsStatus200Schema,
   authGetAppSignInOptionsStatus404Schema,
@@ -12906,6 +13311,7 @@ export {
 } from "./zod/authGetEffectiveAccessSchema.js";
 export {
   authGetOnboardingStatusErrorSchema,
+  authGetOnboardingStatusPathSchema,
   authGetOnboardingStatusPathUserIdSchema,
   authGetOnboardingStatusResponseSchema,
   authGetOnboardingStatusStatus200Schema,
@@ -12916,6 +13322,7 @@ export {
 export {
   authGetPermissionErrorSchema,
   authGetPermissionPathPermissionIdSchema,
+  authGetPermissionPathSchema,
   authGetPermissionResponseSchema,
   authGetPermissionStatus200Schema,
   authGetPermissionStatus404Schema,
@@ -12924,6 +13331,7 @@ export {
 export {
   authGetPermissionsErrorSchema,
   authGetPermissionsQueryPageSchema,
+  authGetPermissionsQuerySchema,
   authGetPermissionsQuerySizeSchema,
   authGetPermissionsResponseSchema,
   authGetPermissionsStatus200Schema,
@@ -12934,6 +13342,7 @@ export {
 export {
   authGetRoleAssignmentErrorSchema,
   authGetRoleAssignmentPathAssignmentIdSchema,
+  authGetRoleAssignmentPathSchema,
   authGetRoleAssignmentResponseSchema,
   authGetRoleAssignmentStatus200Schema,
   authGetRoleAssignmentStatus404Schema,
@@ -12941,6 +13350,7 @@ export {
 } from "./zod/authGetRoleAssignmentSchema.js";
 export {
   authGetRoleAssignmentsErrorSchema,
+  authGetRoleAssignmentsQuerySchema,
   authGetRoleAssignmentsQueryUserIdSchema,
   authGetRoleAssignmentsResponseSchema,
   authGetRoleAssignmentsStatus200Schema,
@@ -12951,6 +13361,7 @@ export {
 export {
   authGetRoleErrorSchema,
   authGetRolePathRoleIdSchema,
+  authGetRolePathSchema,
   authGetRoleResponseSchema,
   authGetRoleStatus200Schema,
   authGetRoleStatus404Schema,
@@ -12959,6 +13370,7 @@ export {
 export {
   authGetRolesErrorSchema,
   authGetRolesQueryPageSchema,
+  authGetRolesQuerySchema,
   authGetRolesQuerySizeSchema,
   authGetRolesResponseSchema,
   authGetRolesStatus200Schema,
@@ -12976,6 +13388,7 @@ export {
 } from "./zod/authGetStaffMeSchema.js";
 export {
   authGetUserByIdErrorSchema,
+  authGetUserByIdPathSchema,
   authGetUserByIdPathUserIdSchema,
   authGetUserByIdResponseSchema,
   authGetUserByIdStatus200Schema,
@@ -12993,6 +13406,7 @@ export {
 export {
   authGetUsersErrorSchema,
   authGetUsersQueryPageSchema,
+  authGetUsersQuerySchema,
   authGetUsersQuerySizeSchema,
   authGetUsersResponseSchema,
   authGetUsersStatus200Schema,
@@ -13030,6 +13444,7 @@ export {
 export {
   authIssueActivationBodySchema,
   authIssueActivationErrorSchema,
+  authIssueActivationPathSchema,
   authIssueActivationPathUserIdSchema,
   authIssueActivationResponseSchema,
   authIssueActivationStatus201Schema,
@@ -13043,6 +13458,7 @@ export {
   authJoinAccountAppBodySchema,
   authJoinAccountAppErrorSchema,
   authJoinAccountAppPathAppSchema,
+  authJoinAccountAppPathSchema,
   authJoinAccountAppResponseSchema,
   authJoinAccountAppStatus200Schema,
   authJoinAccountAppStatus401Schema,
@@ -13054,6 +13470,7 @@ export {
   authLeaveAccountAppBodySchema,
   authLeaveAccountAppErrorSchema,
   authLeaveAccountAppPathAppSchema,
+  authLeaveAccountAppPathSchema,
   authLeaveAccountAppResponseSchema,
   authLeaveAccountAppStatus200Schema,
   authLeaveAccountAppStatus401Schema,
@@ -13107,6 +13524,7 @@ export {
   authRecordAccessReviewBodySchema,
   authRecordAccessReviewErrorSchema,
   authRecordAccessReviewPathAssignmentIdSchema,
+  authRecordAccessReviewPathSchema,
   authRecordAccessReviewResponseSchema,
   authRecordAccessReviewStatus201Schema,
   authRecordAccessReviewStatus401Schema,
@@ -13173,6 +13591,7 @@ export {
 } from "./zod/authResetPasswordSchema.js";
 export {
   authRevokeActivationErrorSchema,
+  authRevokeActivationPathSchema,
   authRevokeActivationPathUserIdSchema,
   authRevokeActivationResponseSchema,
   authRevokeActivationStatus204Schema,
@@ -13182,6 +13601,7 @@ export {
 } from "./zod/authRevokeActivationSchema.js";
 export {
   authRevokeSecuritySessionErrorSchema,
+  authRevokeSecuritySessionPathSchema,
   authRevokeSecuritySessionPathSessionIdSchema,
   authRevokeSecuritySessionResponseSchema,
   authRevokeSecuritySessionStatus200Schema,
@@ -13232,6 +13652,7 @@ export {
   authUpdateRoleAssignmentBodySchema,
   authUpdateRoleAssignmentErrorSchema,
   authUpdateRoleAssignmentPathAssignmentIdSchema,
+  authUpdateRoleAssignmentPathSchema,
   authUpdateRoleAssignmentResponseSchema,
   authUpdateRoleAssignmentStatus200Schema,
   authUpdateRoleAssignmentStatus404Schema,
@@ -13241,6 +13662,7 @@ export {
   authUpdateRoleBodySchema,
   authUpdateRoleErrorSchema,
   authUpdateRolePathRoleIdSchema,
+  authUpdateRolePathSchema,
   authUpdateRoleResponseSchema,
   authUpdateRoleStatus200Schema,
   authUpdateRoleStatus404Schema,
@@ -13257,6 +13679,7 @@ export {
 export {
   authUpdateUserBodySchema,
   authUpdateUserErrorSchema,
+  authUpdateUserPathSchema,
   authUpdateUserPathUserIdSchema,
   authUpdateUserResponseSchema,
   authUpdateUserStatus200Schema,
@@ -13315,6 +13738,7 @@ export {
 export {
   billingDeleteInvoiceErrorSchema,
   billingDeleteInvoicePathInvoiceIdSchema,
+  billingDeleteInvoicePathSchema,
   billingDeleteInvoiceResponseSchema,
   billingDeleteInvoiceStatus204Schema,
   billingDeleteInvoiceStatus401Schema,
@@ -13326,6 +13750,7 @@ export {
 export {
   billingDownloadInvoicePdfErrorSchema,
   billingDownloadInvoicePdfPathInvoiceIdSchema,
+  billingDownloadInvoicePdfPathSchema,
   billingDownloadInvoicePdfResponseSchema,
   billingDownloadInvoicePdfStatus200Schema,
   billingDownloadInvoicePdfStatus401Schema,
@@ -13336,6 +13761,7 @@ export {
 export {
   billingGetCustomerErrorSchema,
   billingGetCustomerPathCustomerIdSchema,
+  billingGetCustomerPathSchema,
   billingGetCustomerResponseSchema,
   billingGetCustomerStatus200Schema,
   billingGetCustomerStatus401Schema,
@@ -13346,6 +13772,7 @@ export {
 export {
   billingGetInvoiceErrorSchema,
   billingGetInvoicePathInvoiceIdSchema,
+  billingGetInvoicePathSchema,
   billingGetInvoiceResponseSchema,
   billingGetInvoiceStatus200Schema,
   billingGetInvoiceStatus401Schema,
@@ -13356,6 +13783,7 @@ export {
 export {
   billingGetReceivablesErrorSchema,
   billingGetReceivablesQueryPageSchema,
+  billingGetReceivablesQuerySchema,
   billingGetReceivablesQuerySizeSchema,
   billingGetReceivablesResponseSchema,
   billingGetReceivablesStatus200Schema,
@@ -13367,6 +13795,7 @@ export {
   billingIssueInvoiceBodySchema,
   billingIssueInvoiceErrorSchema,
   billingIssueInvoicePathInvoiceIdSchema,
+  billingIssueInvoicePathSchema,
   billingIssueInvoiceResponseSchema,
   billingIssueInvoiceStatus200Schema,
   billingIssueInvoiceStatus401Schema,
@@ -13379,6 +13808,7 @@ export {
   billingListCustomersErrorSchema,
   billingListCustomersQueryPageSchema,
   billingListCustomersQueryQSchema,
+  billingListCustomersQuerySchema,
   billingListCustomersQuerySizeSchema,
   billingListCustomersResponseSchema,
   billingListCustomersStatus200Schema,
@@ -13392,6 +13822,7 @@ export {
   billingListInvoicesQueryOverdueSchema,
   billingListInvoicesQueryPageSchema,
   billingListInvoicesQueryQSchema,
+  billingListInvoicesQuerySchema,
   billingListInvoicesQuerySizeSchema,
   billingListInvoicesQueryStatusSchema,
   billingListInvoicesResponseSchema,
@@ -13404,6 +13835,7 @@ export {
   billingRecordPaymentBodySchema,
   billingRecordPaymentErrorSchema,
   billingRecordPaymentPathInvoiceIdSchema,
+  billingRecordPaymentPathSchema,
   billingRecordPaymentResponseSchema,
   billingRecordPaymentStatus201Schema,
   billingRecordPaymentStatus401Schema,
@@ -13416,6 +13848,7 @@ export {
   billingUpdateCustomerBodySchema,
   billingUpdateCustomerErrorSchema,
   billingUpdateCustomerPathCustomerIdSchema,
+  billingUpdateCustomerPathSchema,
   billingUpdateCustomerResponseSchema,
   billingUpdateCustomerStatus200Schema,
   billingUpdateCustomerStatus401Schema,
@@ -13427,6 +13860,7 @@ export {
   billingUpdateInvoiceBodySchema,
   billingUpdateInvoiceErrorSchema,
   billingUpdateInvoicePathInvoiceIdSchema,
+  billingUpdateInvoicePathSchema,
   billingUpdateInvoiceResponseSchema,
   billingUpdateInvoiceStatus200Schema,
   billingUpdateInvoiceStatus401Schema,
@@ -13439,6 +13873,7 @@ export {
   billingVoidInvoiceBodySchema,
   billingVoidInvoiceErrorSchema,
   billingVoidInvoicePathInvoiceIdSchema,
+  billingVoidInvoicePathSchema,
   billingVoidInvoiceResponseSchema,
   billingVoidInvoiceStatus200Schema,
   billingVoidInvoiceStatus401Schema,
@@ -13493,6 +13928,7 @@ export { bookingStudioEventSchema } from "./zod/bookingStudioEventSchema.js";
 export {
   bookingsCancelPublicBookingBodySchema,
   bookingsCancelPublicBookingErrorSchema,
+  bookingsCancelPublicBookingPathSchema,
   bookingsCancelPublicBookingPathTokenSchema,
   bookingsCancelPublicBookingResponseSchema,
   bookingsCancelPublicBookingStatus200Schema,
@@ -13503,8 +13939,10 @@ export {
 export {
   bookingsCancelStudioBookingBodySchema,
   bookingsCancelStudioBookingErrorSchema,
+  bookingsCancelStudioBookingHeadersSchema,
   bookingsCancelStudioBookingHeaderXBarrelsOrganisationSchema,
   bookingsCancelStudioBookingPathBookingIdSchema,
+  bookingsCancelStudioBookingPathSchema,
   bookingsCancelStudioBookingResponseSchema,
   bookingsCancelStudioBookingStatus200Schema,
   bookingsCancelStudioBookingStatus400Schema,
@@ -13516,8 +13954,10 @@ export {
 } from "./zod/bookingsCancelStudioBookingSchema.js";
 export {
   bookingsCompleteStudioBookingErrorSchema,
+  bookingsCompleteStudioBookingHeadersSchema,
   bookingsCompleteStudioBookingHeaderXBarrelsOrganisationSchema,
   bookingsCompleteStudioBookingPathBookingIdSchema,
+  bookingsCompleteStudioBookingPathSchema,
   bookingsCompleteStudioBookingResponseSchema,
   bookingsCompleteStudioBookingStatus200Schema,
   bookingsCompleteStudioBookingStatus400Schema,
@@ -13530,6 +13970,7 @@ export {
 export {
   bookingsConfirmEmailCodeBodySchema,
   bookingsConfirmEmailCodeErrorSchema,
+  bookingsConfirmEmailCodePathSchema,
   bookingsConfirmEmailCodePathSlugSchema,
   bookingsConfirmEmailCodeResponseSchema,
   bookingsConfirmEmailCodeStatus200Schema,
@@ -13541,8 +13982,10 @@ export {
 } from "./zod/bookingsConfirmEmailCodeSchema.js";
 export {
   bookingsConfirmStudioBookingErrorSchema,
+  bookingsConfirmStudioBookingHeadersSchema,
   bookingsConfirmStudioBookingHeaderXBarrelsOrganisationSchema,
   bookingsConfirmStudioBookingPathBookingIdSchema,
+  bookingsConfirmStudioBookingPathSchema,
   bookingsConfirmStudioBookingResponseSchema,
   bookingsConfirmStudioBookingStatus200Schema,
   bookingsConfirmStudioBookingStatus400Schema,
@@ -13555,8 +13998,10 @@ export {
 export {
   bookingsCreateExceptionBodySchema,
   bookingsCreateExceptionErrorSchema,
+  bookingsCreateExceptionHeadersSchema,
   bookingsCreateExceptionHeaderXBarrelsOrganisationSchema,
   bookingsCreateExceptionPathProviderIdSchema,
+  bookingsCreateExceptionPathSchema,
   bookingsCreateExceptionResponseSchema,
   bookingsCreateExceptionStatus201Schema,
   bookingsCreateExceptionStatus400Schema,
@@ -13569,6 +14014,7 @@ export {
 export {
   bookingsCreateProviderBodySchema,
   bookingsCreateProviderErrorSchema,
+  bookingsCreateProviderHeadersSchema,
   bookingsCreateProviderHeaderXBarrelsOrganisationSchema,
   bookingsCreateProviderResponseSchema,
   bookingsCreateProviderStatus201Schema,
@@ -13583,6 +14029,8 @@ export {
   bookingsCreatePublicBookingBodySchema,
   bookingsCreatePublicBookingErrorSchema,
   bookingsCreatePublicBookingHeaderIdempotencyKeySchema,
+  bookingsCreatePublicBookingHeadersSchema,
+  bookingsCreatePublicBookingPathSchema,
   bookingsCreatePublicBookingPathSlugSchema,
   bookingsCreatePublicBookingResponseSchema,
   bookingsCreatePublicBookingStatus201Schema,
@@ -13595,6 +14043,7 @@ export {
 export {
   bookingsCreateServiceBodySchema,
   bookingsCreateServiceErrorSchema,
+  bookingsCreateServiceHeadersSchema,
   bookingsCreateServiceHeaderXBarrelsOrganisationSchema,
   bookingsCreateServiceResponseSchema,
   bookingsCreateServiceStatus201Schema,
@@ -13609,6 +14058,7 @@ export {
   bookingsCreateStudioBookingBodySchema,
   bookingsCreateStudioBookingErrorSchema,
   bookingsCreateStudioBookingHeaderIdempotencyKeySchema,
+  bookingsCreateStudioBookingHeadersSchema,
   bookingsCreateStudioBookingHeaderXBarrelsOrganisationSchema,
   bookingsCreateStudioBookingResponseSchema,
   bookingsCreateStudioBookingStatus201Schema,
@@ -13622,8 +14072,10 @@ export {
 export {
   bookingsDeclineStudioBookingBodySchema,
   bookingsDeclineStudioBookingErrorSchema,
+  bookingsDeclineStudioBookingHeadersSchema,
   bookingsDeclineStudioBookingHeaderXBarrelsOrganisationSchema,
   bookingsDeclineStudioBookingPathBookingIdSchema,
+  bookingsDeclineStudioBookingPathSchema,
   bookingsDeclineStudioBookingResponseSchema,
   bookingsDeclineStudioBookingStatus200Schema,
   bookingsDeclineStudioBookingStatus400Schema,
@@ -13635,8 +14087,10 @@ export {
 } from "./zod/bookingsDeclineStudioBookingSchema.js";
 export {
   bookingsDeleteExceptionErrorSchema,
+  bookingsDeleteExceptionHeadersSchema,
   bookingsDeleteExceptionHeaderXBarrelsOrganisationSchema,
   bookingsDeleteExceptionPathExceptionIdSchema,
+  bookingsDeleteExceptionPathSchema,
   bookingsDeleteExceptionResponseSchema,
   bookingsDeleteExceptionStatus204Schema,
   bookingsDeleteExceptionStatus400Schema,
@@ -13648,11 +14102,13 @@ export {
 } from "./zod/bookingsDeleteExceptionSchema.js";
 export {
   bookingsGetAgendaErrorSchema,
+  bookingsGetAgendaHeadersSchema,
   bookingsGetAgendaHeaderXBarrelsOrganisationSchema,
   bookingsGetAgendaQueryFromDateSchema,
   bookingsGetAgendaQueryLimitSchema,
   bookingsGetAgendaQueryOffsetSchema,
   bookingsGetAgendaQueryProviderIdSchema,
+  bookingsGetAgendaQuerySchema,
   bookingsGetAgendaQueryStatusSchema,
   bookingsGetAgendaQueryToDateSchema,
   bookingsGetAgendaResponseSchema,
@@ -13665,10 +14121,12 @@ export {
 } from "./zod/bookingsGetAgendaSchema.js";
 export {
   bookingsGetAvailabilityErrorSchema,
+  bookingsGetAvailabilityPathSchema,
   bookingsGetAvailabilityPathSlugSchema,
   bookingsGetAvailabilityQueryFirstDaySchema,
   bookingsGetAvailabilityQueryLastDaySchema,
   bookingsGetAvailabilityQueryProviderIdSchema,
+  bookingsGetAvailabilityQuerySchema,
   bookingsGetAvailabilityQueryServiceIdSchema,
   bookingsGetAvailabilityResponseSchema,
   bookingsGetAvailabilityStatus200Schema,
@@ -13678,6 +14136,7 @@ export {
 } from "./zod/bookingsGetAvailabilitySchema.js";
 export {
   bookingsGetProfileErrorSchema,
+  bookingsGetProfileHeadersSchema,
   bookingsGetProfileHeaderXBarrelsOrganisationSchema,
   bookingsGetProfileResponseSchema,
   bookingsGetProfileStatus200Schema,
@@ -13689,6 +14148,7 @@ export {
 } from "./zod/bookingsGetProfileSchema.js";
 export {
   bookingsGetPublicBookingIcsErrorSchema,
+  bookingsGetPublicBookingIcsPathSchema,
   bookingsGetPublicBookingIcsPathTokenSchema,
   bookingsGetPublicBookingIcsResponseSchema,
   bookingsGetPublicBookingIcsStatus200Schema,
@@ -13697,6 +14157,7 @@ export {
 } from "./zod/bookingsGetPublicBookingIcsSchema.js";
 export {
   bookingsGetPublicBookingErrorSchema,
+  bookingsGetPublicBookingPathSchema,
   bookingsGetPublicBookingPathTokenSchema,
   bookingsGetPublicBookingResponseSchema,
   bookingsGetPublicBookingStatus200Schema,
@@ -13705,6 +14166,7 @@ export {
 } from "./zod/bookingsGetPublicBookingSchema.js";
 export {
   bookingsGetSettingsErrorSchema,
+  bookingsGetSettingsHeadersSchema,
   bookingsGetSettingsHeaderXBarrelsOrganisationSchema,
   bookingsGetSettingsResponseSchema,
   bookingsGetSettingsStatus200Schema,
@@ -13716,6 +14178,7 @@ export {
 } from "./zod/bookingsGetSettingsSchema.js";
 export {
   bookingsGetStorefrontErrorSchema,
+  bookingsGetStorefrontPathSchema,
   bookingsGetStorefrontPathSlugSchema,
   bookingsGetStorefrontResponseSchema,
   bookingsGetStorefrontStatus200Schema,
@@ -13724,8 +14187,10 @@ export {
 } from "./zod/bookingsGetStorefrontSchema.js";
 export {
   bookingsGetStudioBookingErrorSchema,
+  bookingsGetStudioBookingHeadersSchema,
   bookingsGetStudioBookingHeaderXBarrelsOrganisationSchema,
   bookingsGetStudioBookingPathBookingIdSchema,
+  bookingsGetStudioBookingPathSchema,
   bookingsGetStudioBookingResponseSchema,
   bookingsGetStudioBookingStatus200Schema,
   bookingsGetStudioBookingStatus400Schema,
@@ -13736,8 +14201,10 @@ export {
 } from "./zod/bookingsGetStudioBookingSchema.js";
 export {
   bookingsGetWorkingHoursErrorSchema,
+  bookingsGetWorkingHoursHeadersSchema,
   bookingsGetWorkingHoursHeaderXBarrelsOrganisationSchema,
   bookingsGetWorkingHoursPathProviderIdSchema,
+  bookingsGetWorkingHoursPathSchema,
   bookingsGetWorkingHoursResponseSchema,
   bookingsGetWorkingHoursStatus200Schema,
   bookingsGetWorkingHoursStatus400Schema,
@@ -13748,9 +14215,12 @@ export {
 } from "./zod/bookingsGetWorkingHoursSchema.js";
 export {
   bookingsListExceptionsErrorSchema,
+  bookingsListExceptionsHeadersSchema,
   bookingsListExceptionsHeaderXBarrelsOrganisationSchema,
   bookingsListExceptionsPathProviderIdSchema,
+  bookingsListExceptionsPathSchema,
   bookingsListExceptionsQueryEndsBeforeSchema,
+  bookingsListExceptionsQuerySchema,
   bookingsListExceptionsQueryStartsFromSchema,
   bookingsListExceptionsResponseSchema,
   bookingsListExceptionsStatus200Schema,
@@ -13770,6 +14240,7 @@ export {
 } from "./zod/bookingsListMyOrganisationsSchema.js";
 export {
   bookingsListProvidersErrorSchema,
+  bookingsListProvidersHeadersSchema,
   bookingsListProvidersHeaderXBarrelsOrganisationSchema,
   bookingsListProvidersResponseSchema,
   bookingsListProvidersStatus200Schema,
@@ -13781,6 +14252,7 @@ export {
 } from "./zod/bookingsListProvidersSchema.js";
 export {
   bookingsListServicesErrorSchema,
+  bookingsListServicesHeadersSchema,
   bookingsListServicesHeaderXBarrelsOrganisationSchema,
   bookingsListServicesResponseSchema,
   bookingsListServicesStatus200Schema,
@@ -13792,8 +14264,10 @@ export {
 } from "./zod/bookingsListServicesSchema.js";
 export {
   bookingsListStudioBookingsErrorSchema,
+  bookingsListStudioBookingsHeadersSchema,
   bookingsListStudioBookingsHeaderXBarrelsOrganisationSchema,
   bookingsListStudioBookingsQueryEndsBeforeSchema,
+  bookingsListStudioBookingsQuerySchema,
   bookingsListStudioBookingsQueryStartsFromSchema,
   bookingsListStudioBookingsResponseSchema,
   bookingsListStudioBookingsStatus200Schema,
@@ -13805,8 +14279,10 @@ export {
 } from "./zod/bookingsListStudioBookingsSchema.js";
 export {
   bookingsNoShowStudioBookingErrorSchema,
+  bookingsNoShowStudioBookingHeadersSchema,
   bookingsNoShowStudioBookingHeaderXBarrelsOrganisationSchema,
   bookingsNoShowStudioBookingPathBookingIdSchema,
+  bookingsNoShowStudioBookingPathSchema,
   bookingsNoShowStudioBookingResponseSchema,
   bookingsNoShowStudioBookingStatus200Schema,
   bookingsNoShowStudioBookingStatus400Schema,
@@ -13820,8 +14296,10 @@ export {
   bookingsRecordManualDepositBodySchema,
   bookingsRecordManualDepositErrorSchema,
   bookingsRecordManualDepositHeaderIdempotencyKeySchema,
+  bookingsRecordManualDepositHeadersSchema,
   bookingsRecordManualDepositHeaderXBarrelsOrganisationSchema,
   bookingsRecordManualDepositPathBookingIdSchema,
+  bookingsRecordManualDepositPathSchema,
   bookingsRecordManualDepositResponseSchema,
   bookingsRecordManualDepositStatus200Schema,
   bookingsRecordManualDepositStatus400Schema,
@@ -13834,6 +14312,7 @@ export {
 export {
   bookingsReorderProvidersBodySchema,
   bookingsReorderProvidersErrorSchema,
+  bookingsReorderProvidersHeadersSchema,
   bookingsReorderProvidersHeaderXBarrelsOrganisationSchema,
   bookingsReorderProvidersResponseSchema,
   bookingsReorderProvidersStatus200Schema,
@@ -13847,6 +14326,7 @@ export {
 export {
   bookingsReorderServicesBodySchema,
   bookingsReorderServicesErrorSchema,
+  bookingsReorderServicesHeadersSchema,
   bookingsReorderServicesHeaderXBarrelsOrganisationSchema,
   bookingsReorderServicesResponseSchema,
   bookingsReorderServicesStatus200Schema,
@@ -13860,8 +14340,10 @@ export {
 export {
   bookingsReplaceWorkingHoursBodySchema,
   bookingsReplaceWorkingHoursErrorSchema,
+  bookingsReplaceWorkingHoursHeadersSchema,
   bookingsReplaceWorkingHoursHeaderXBarrelsOrganisationSchema,
   bookingsReplaceWorkingHoursPathProviderIdSchema,
+  bookingsReplaceWorkingHoursPathSchema,
   bookingsReplaceWorkingHoursResponseSchema,
   bookingsReplaceWorkingHoursStatus200Schema,
   bookingsReplaceWorkingHoursStatus400Schema,
@@ -13874,6 +14356,7 @@ export {
 export {
   bookingsRequestEmailCodeBodySchema,
   bookingsRequestEmailCodeErrorSchema,
+  bookingsRequestEmailCodePathSchema,
   bookingsRequestEmailCodePathSlugSchema,
   bookingsRequestEmailCodeResponseSchema,
   bookingsRequestEmailCodeStatus200Schema,
@@ -13886,6 +14369,7 @@ export {
 export {
   bookingsReschedulePublicBookingBodySchema,
   bookingsReschedulePublicBookingErrorSchema,
+  bookingsReschedulePublicBookingPathSchema,
   bookingsReschedulePublicBookingPathTokenSchema,
   bookingsReschedulePublicBookingResponseSchema,
   bookingsReschedulePublicBookingStatus200Schema,
@@ -13896,8 +14380,10 @@ export {
 export {
   bookingsUpdateProviderBodySchema,
   bookingsUpdateProviderErrorSchema,
+  bookingsUpdateProviderHeadersSchema,
   bookingsUpdateProviderHeaderXBarrelsOrganisationSchema,
   bookingsUpdateProviderPathProviderIdSchema,
+  bookingsUpdateProviderPathSchema,
   bookingsUpdateProviderResponseSchema,
   bookingsUpdateProviderStatus200Schema,
   bookingsUpdateProviderStatus400Schema,
@@ -13910,7 +14396,9 @@ export {
 export {
   bookingsUpdateServiceBodySchema,
   bookingsUpdateServiceErrorSchema,
+  bookingsUpdateServiceHeadersSchema,
   bookingsUpdateServiceHeaderXBarrelsOrganisationSchema,
+  bookingsUpdateServicePathSchema,
   bookingsUpdateServicePathServiceIdSchema,
   bookingsUpdateServiceResponseSchema,
   bookingsUpdateServiceStatus200Schema,
@@ -13924,6 +14412,7 @@ export {
 export {
   bookingsUpsertProfileBodySchema,
   bookingsUpsertProfileErrorSchema,
+  bookingsUpsertProfileHeadersSchema,
   bookingsUpsertProfileHeaderXBarrelsOrganisationSchema,
   bookingsUpsertProfileResponseSchema,
   bookingsUpsertProfileStatus200Schema,
@@ -13963,6 +14452,7 @@ export {
   capApproveAlertBodySchema,
   capApproveAlertErrorSchema,
   capApproveAlertPathAlertIdSchema,
+  capApproveAlertPathSchema,
   capApproveAlertResponseSchema,
   capApproveAlertStatus200Schema,
   capApproveAlertStatus401Schema,
@@ -13973,6 +14463,7 @@ export {
 export {
   capApproveHazardProfileErrorSchema,
   capApproveHazardProfilePathProfileIdSchema,
+  capApproveHazardProfilePathSchema,
   capApproveHazardProfileResponseSchema,
   capApproveHazardProfileStatus200Schema,
   capApproveHazardProfileStatus401Schema,
@@ -13989,6 +14480,7 @@ export {
   capCancelAlertBodySchema,
   capCancelAlertErrorSchema,
   capCancelAlertPathAlertIdSchema,
+  capCancelAlertPathSchema,
   capCancelAlertResponseSchema,
   capCancelAlertStatus200Schema,
   capCancelAlertStatus401Schema,
@@ -14008,6 +14500,16 @@ export {
   capCreateAlertStatus403Schema,
   capCreateAlertStatus422Schema,
 } from "./zod/capCreateAlertSchema.js";
+export {
+  capCreateEscalationBodySchema,
+  capCreateEscalationErrorSchema,
+  capCreateEscalationResponseSchema,
+  capCreateEscalationStatus201Schema,
+  capCreateEscalationStatus401Schema,
+  capCreateEscalationStatus403Schema,
+  capCreateEscalationStatus404Schema,
+  capCreateEscalationStatus422Schema,
+} from "./zod/capCreateEscalationSchema.js";
 export {
   capCreateFeedBodySchema,
   capCreateFeedErrorSchema,
@@ -14029,6 +14531,7 @@ export {
 export {
   capDeleteFeedErrorSchema,
   capDeleteFeedPathFeedIdSchema,
+  capDeleteFeedPathSchema,
   capDeleteFeedResponseSchema,
   capDeleteFeedStatus204Schema,
   capDeleteFeedStatus401Schema,
@@ -14041,6 +14544,7 @@ export {
   capDownloadPublicAttachmentErrorSchema,
   capDownloadPublicAttachmentPathIdentifierSchema,
   capDownloadPublicAttachmentPathKindSchema,
+  capDownloadPublicAttachmentPathSchema,
   capDownloadPublicAttachmentResponseSchema,
   capDownloadPublicAttachmentStatus307Schema,
   capDownloadPublicAttachmentStatus404Schema,
@@ -14050,6 +14554,7 @@ export {
   capDraftFromHazardProfileBodySchema,
   capDraftFromHazardProfileErrorSchema,
   capDraftFromHazardProfilePathProfileIdSchema,
+  capDraftFromHazardProfilePathSchema,
   capDraftFromHazardProfileResponseSchema,
   capDraftFromHazardProfileStatus201Schema,
   capDraftFromHazardProfileStatus401Schema,
@@ -14060,6 +14565,7 @@ export {
 export {
   capDuplicateAlertErrorSchema,
   capDuplicateAlertPathAlertIdSchema,
+  capDuplicateAlertPathSchema,
   capDuplicateAlertResponseSchema,
   capDuplicateAlertStatus200Schema,
   capDuplicateAlertStatus401Schema,
@@ -14071,6 +14577,7 @@ export {
   capEmergencyPublishAlertBodySchema,
   capEmergencyPublishAlertErrorSchema,
   capEmergencyPublishAlertPathAlertIdSchema,
+  capEmergencyPublishAlertPathSchema,
   capEmergencyPublishAlertResponseSchema,
   capEmergencyPublishAlertStatus200Schema,
   capEmergencyPublishAlertStatus401Schema,
@@ -14079,10 +14586,16 @@ export {
   capEmergencyPublishAlertStatus422Schema,
 } from "./zod/capEmergencyPublishAlertSchema.js";
 export { capEmergencyPublishSchema } from "./zod/capEmergencyPublishSchema.js";
+export { capEscalationCreatePropertiesAwarenessLevelEnumSchema } from "./zod/capEscalationCreatePropertiesAwarenessLevelEnumSchema.js";
+export { capEscalationCreateSchema } from "./zod/capEscalationCreateSchema.js";
+export { capEscalationLookupSchema } from "./zod/capEscalationLookupSchema.js";
+export { capEscalationPublicSchema } from "./zod/capEscalationPublicSchema.js";
+export { capEscalationSourceSchema } from "./zod/capEscalationSourceSchema.js";
 export {
   capExpireAlertBodySchema,
   capExpireAlertErrorSchema,
   capExpireAlertPathAlertIdSchema,
+  capExpireAlertPathSchema,
   capExpireAlertResponseSchema,
   capExpireAlertStatus200Schema,
   capExpireAlertStatus401Schema,
@@ -14102,6 +14615,7 @@ export {
 export {
   capGetAlertErrorSchema,
   capGetAlertPathAlertIdSchema,
+  capGetAlertPathSchema,
   capGetAlertResponseSchema,
   capGetAlertStatus200Schema,
   capGetAlertStatus401Schema,
@@ -14119,6 +14633,7 @@ export {
   capGetAlertsErrorSchema,
   capGetAlertsQueryLifecycleStateSchema,
   capGetAlertsQueryPageSchema,
+  capGetAlertsQuerySchema,
   capGetAlertsQuerySizeSchema,
   capGetAlertsResponseSchema,
   capGetAlertsStatus200Schema,
@@ -14130,6 +14645,7 @@ export {
   capGetAuditErrorSchema,
   capGetAuditQueryAlertIdSchema,
   capGetAuditQueryPageSchema,
+  capGetAuditQuerySchema,
   capGetAuditQuerySizeSchema,
   capGetAuditResponseSchema,
   capGetAuditStatus200Schema,
@@ -14148,6 +14664,7 @@ export {
 export {
   capGetCapXmlErrorSchema,
   capGetCapXmlPathIdentifierSchema,
+  capGetCapXmlPathSchema,
   capGetCapXmlResponseSchema,
   capGetCapXmlStatus200Schema,
   capGetCapXmlStatus404Schema,
@@ -14161,6 +14678,16 @@ export {
   capGetCatalogsStatus403Schema,
   capGetCatalogsStatus422Schema,
 } from "./zod/capGetCatalogsSchema.js";
+export {
+  capGetEscalationErrorSchema,
+  capGetEscalationQueryProductIdSchema,
+  capGetEscalationQuerySchema,
+  capGetEscalationResponseSchema,
+  capGetEscalationStatus200Schema,
+  capGetEscalationStatus401Schema,
+  capGetEscalationStatus403Schema,
+  capGetEscalationStatus422Schema,
+} from "./zod/capGetEscalationSchema.js";
 export {
   capGetFeedsErrorSchema,
   capGetFeedsResponseSchema,
@@ -14177,6 +14704,16 @@ export {
   capGetHazardProfilesStatus403Schema,
   capGetHazardProfilesStatus422Schema,
 } from "./zod/capGetHazardProfilesSchema.js";
+export {
+  capGetIbfMatrixErrorSchema,
+  capGetIbfMatrixQueryKindSchema,
+  capGetIbfMatrixQuerySchema,
+  capGetIbfMatrixResponseSchema,
+  capGetIbfMatrixStatus200Schema,
+  capGetIbfMatrixStatus401Schema,
+  capGetIbfMatrixStatus403Schema,
+  capGetIbfMatrixStatus422Schema,
+} from "./zod/capGetIbfMatrixSchema.js";
 export {
   capGetIntegrationsErrorSchema,
   capGetIntegrationsResponseSchema,
@@ -14196,6 +14733,7 @@ export {
 export {
   capGetPublicAlertErrorSchema,
   capGetPublicAlertPathIdentifierSchema,
+  capGetPublicAlertPathSchema,
   capGetPublicAlertResponseSchema,
   capGetPublicAlertStatus200Schema,
   capGetPublicAlertStatus404Schema,
@@ -14249,10 +14787,16 @@ export { capMessageTypeSchema } from "./zod/capMessageTypeSchema.js";
 export { capNameValueSchema } from "./zod/capNameValueSchema.js";
 export { capPredefinedAreaCreateSchema } from "./zod/capPredefinedAreaCreateSchema.js";
 export { capPredefinedAreaPublicSchema } from "./zod/capPredefinedAreaPublicSchema.js";
+export { capProfileCellTextPropertiesImpactEnumSchema } from "./zod/capProfileCellTextPropertiesImpactEnumSchema.js";
+export { capProfileCellTextPropertiesLikelihoodEnumSchema } from "./zod/capProfileCellTextPropertiesLikelihoodEnumSchema.js";
+export { capProfileCellTextSchema } from "./zod/capProfileCellTextSchema.js";
+export { capProfileColourResponseSchema } from "./zod/capProfileColourResponseSchema.js";
 export { capProfileDefinitionPropertiesChannelsItemsEnumSchema } from "./zod/capProfileDefinitionPropertiesChannelsItemsEnumSchema.js";
 export { capProfileDefinitionSchema } from "./zod/capProfileDefinitionSchema.js";
 export { capProfileDraftRequestPropertiesLevelEnumSchema } from "./zod/capProfileDraftRequestPropertiesLevelEnumSchema.js";
 export { capProfileDraftRequestSchema } from "./zod/capProfileDraftRequestSchema.js";
+export { capProfileImpactLevelSchema } from "./zod/capProfileImpactLevelSchema.js";
+export { capProfileMatrixSchema } from "./zod/capProfileMatrixSchema.js";
 export { capProfilePublicPropertiesStateEnumSchema } from "./zod/capProfilePublicPropertiesStateEnumSchema.js";
 export { capProfilePublicSchema } from "./zod/capProfilePublicSchema.js";
 export { capProfileRulePropertiesOperatorEnumSchema } from "./zod/capProfileRulePropertiesOperatorEnumSchema.js";
@@ -14264,6 +14808,7 @@ export {
   capPublishAlertBodySchema,
   capPublishAlertErrorSchema,
   capPublishAlertPathAlertIdSchema,
+  capPublishAlertPathSchema,
   capPublishAlertResponseSchema,
   capPublishAlertStatus200Schema,
   capPublishAlertStatus401Schema,
@@ -14272,14 +14817,30 @@ export {
   capPublishAlertStatus422Schema,
 } from "./zod/capPublishAlertSchema.js";
 export { capPublishPublicSchema } from "./zod/capPublishPublicSchema.js";
+export {
+  capRecordAlertReviewBodySchema,
+  capRecordAlertReviewErrorSchema,
+  capRecordAlertReviewPathAlertIdSchema,
+  capRecordAlertReviewPathSchema,
+  capRecordAlertReviewResponseSchema,
+  capRecordAlertReviewStatus200Schema,
+  capRecordAlertReviewStatus401Schema,
+  capRecordAlertReviewStatus403Schema,
+  capRecordAlertReviewStatus404Schema,
+  capRecordAlertReviewStatus409Schema,
+  capRecordAlertReviewStatus422Schema,
+} from "./zod/capRecordAlertReviewSchema.js";
 export { capReferenceCreateSchema } from "./zod/capReferenceCreateSchema.js";
 export { capReferencePublicSchema } from "./zod/capReferencePublicSchema.js";
 export { capResourceCreateSchema } from "./zod/capResourceCreateSchema.js";
 export { capResourcePublicSchema } from "./zod/capResourcePublicSchema.js";
+export { capReviewRecordPropertiesOutcomeEnumSchema } from "./zod/capReviewRecordPropertiesOutcomeEnumSchema.js";
+export { capReviewRecordSchema } from "./zod/capReviewRecordSchema.js";
 export {
   capSaveHazardProfileBodySchema,
   capSaveHazardProfileErrorSchema,
   capSaveHazardProfilePathKeySchema,
+  capSaveHazardProfilePathSchema,
   capSaveHazardProfileResponseSchema,
   capSaveHazardProfileStatus201Schema,
   capSaveHazardProfileStatus401Schema,
@@ -14296,6 +14857,7 @@ export {
   capSubmitAlertBodySchema,
   capSubmitAlertErrorSchema,
   capSubmitAlertPathAlertIdSchema,
+  capSubmitAlertPathSchema,
   capSubmitAlertResponseSchema,
   capSubmitAlertStatus200Schema,
   capSubmitAlertStatus401Schema,
@@ -14304,9 +14866,23 @@ export {
   capSubmitAlertStatus422Schema,
 } from "./zod/capSubmitAlertSchema.js";
 export {
+  capSuggestIbfErrorSchema,
+  capSuggestIbfQueryImpactSchema,
+  capSuggestIbfQueryKindSchema,
+  capSuggestIbfQueryLikelihoodSchema,
+  capSuggestIbfQuerySchema,
+  capSuggestIbfQuerySubtypeSchema,
+  capSuggestIbfResponseSchema,
+  capSuggestIbfStatus200Schema,
+  capSuggestIbfStatus401Schema,
+  capSuggestIbfStatus403Schema,
+  capSuggestIbfStatus422Schema,
+} from "./zod/capSuggestIbfSchema.js";
+export {
   capUpdateAlertBodySchema,
   capUpdateAlertErrorSchema,
   capUpdateAlertPathAlertIdSchema,
+  capUpdateAlertPathSchema,
   capUpdateAlertResponseSchema,
   capUpdateAlertStatus200Schema,
   capUpdateAlertStatus401Schema,
@@ -14327,6 +14903,7 @@ export {
   capUpdateFeedBodySchema,
   capUpdateFeedErrorSchema,
   capUpdateFeedPathFeedIdSchema,
+  capUpdateFeedPathSchema,
   capUpdateFeedResponseSchema,
   capUpdateFeedStatus200Schema,
   capUpdateFeedStatus401Schema,
@@ -14338,6 +14915,7 @@ export { capUrgencySchema } from "./zod/capUrgencySchema.js";
 export {
   capValidateAlertErrorSchema,
   capValidateAlertPathAlertIdSchema,
+  capValidateAlertPathSchema,
   capValidateAlertResponseSchema,
   capValidateAlertStatus200Schema,
   capValidateAlertStatus401Schema,
@@ -14402,6 +14980,7 @@ export {
 export {
   contactSendSiteContactMessageBodySchema,
   contactSendSiteContactMessageErrorSchema,
+  contactSendSiteContactMessagePathSchema,
   contactSendSiteContactMessagePathSiteKeySchema,
   contactSendSiteContactMessageResponseSchema,
   contactSendSiteContactMessageStatus202Schema,
@@ -14412,8 +14991,10 @@ export {
 export { contactSiteSchema } from "./zod/contactSiteSchema.js";
 export {
   contactsEraseOrgContactErrorSchema,
+  contactsEraseOrgContactHeadersSchema,
   contactsEraseOrgContactHeaderXBarrelsOrganisationSchema,
   contactsEraseOrgContactPathContactIdSchema,
+  contactsEraseOrgContactPathSchema,
   contactsEraseOrgContactResponseSchema,
   contactsEraseOrgContactStatus200Schema,
   contactsEraseOrgContactStatus400Schema,
@@ -14425,8 +15006,10 @@ export {
 } from "./zod/contactsEraseOrgContactSchema.js";
 export {
   contactsGetOrgContactConsentsErrorSchema,
+  contactsGetOrgContactConsentsHeadersSchema,
   contactsGetOrgContactConsentsHeaderXBarrelsOrganisationSchema,
   contactsGetOrgContactConsentsPathContactIdSchema,
+  contactsGetOrgContactConsentsPathSchema,
   contactsGetOrgContactConsentsResponseSchema,
   contactsGetOrgContactConsentsStatus200Schema,
   contactsGetOrgContactConsentsStatus400Schema,
@@ -14437,8 +15020,10 @@ export {
 } from "./zod/contactsGetOrgContactConsentsSchema.js";
 export {
   contactsGetOrgContactErrorSchema,
+  contactsGetOrgContactHeadersSchema,
   contactsGetOrgContactHeaderXBarrelsOrganisationSchema,
   contactsGetOrgContactPathContactIdSchema,
+  contactsGetOrgContactPathSchema,
   contactsGetOrgContactResponseSchema,
   contactsGetOrgContactStatus200Schema,
   contactsGetOrgContactStatus400Schema,
@@ -14453,6 +15038,7 @@ export {
   contactsListAdminContactsQueryOrganisationIdSchema,
   contactsListAdminContactsQueryPageSchema,
   contactsListAdminContactsQueryQSchema,
+  contactsListAdminContactsQuerySchema,
   contactsListAdminContactsQuerySizeSchema,
   contactsListAdminContactsResponseSchema,
   contactsListAdminContactsStatus200Schema,
@@ -14463,10 +15049,12 @@ export {
 } from "./zod/contactsListAdminContactsSchema.js";
 export {
   contactsListOrgContactsErrorSchema,
+  contactsListOrgContactsHeadersSchema,
   contactsListOrgContactsHeaderXBarrelsOrganisationSchema,
   contactsListOrgContactsQueryIncludeErasedSchema,
   contactsListOrgContactsQueryPageSchema,
   contactsListOrgContactsQueryQSchema,
+  contactsListOrgContactsQuerySchema,
   contactsListOrgContactsQuerySizeSchema,
   contactsListOrgContactsResponseSchema,
   contactsListOrgContactsStatus200Schema,
@@ -14479,8 +15067,10 @@ export {
 export {
   contactsMergeOrgContactBodySchema,
   contactsMergeOrgContactErrorSchema,
+  contactsMergeOrgContactHeadersSchema,
   contactsMergeOrgContactHeaderXBarrelsOrganisationSchema,
   contactsMergeOrgContactPathContactIdSchema,
+  contactsMergeOrgContactPathSchema,
   contactsMergeOrgContactResponseSchema,
   contactsMergeOrgContactStatus200Schema,
   contactsMergeOrgContactStatus400Schema,
@@ -14493,8 +15083,10 @@ export {
 export {
   contactsSetOrgContactConsentBodySchema,
   contactsSetOrgContactConsentErrorSchema,
+  contactsSetOrgContactConsentHeadersSchema,
   contactsSetOrgContactConsentHeaderXBarrelsOrganisationSchema,
   contactsSetOrgContactConsentPathContactIdSchema,
+  contactsSetOrgContactConsentPathSchema,
   contactsSetOrgContactConsentResponseSchema,
   contactsSetOrgContactConsentStatus201Schema,
   contactsSetOrgContactConsentStatus400Schema,
@@ -14507,8 +15099,10 @@ export {
 export {
   contactsUpdateOrgContactBodySchema,
   contactsUpdateOrgContactErrorSchema,
+  contactsUpdateOrgContactHeadersSchema,
   contactsUpdateOrgContactHeaderXBarrelsOrganisationSchema,
   contactsUpdateOrgContactPathContactIdSchema,
+  contactsUpdateOrgContactPathSchema,
   contactsUpdateOrgContactResponseSchema,
   contactsUpdateOrgContactStatus200Schema,
   contactsUpdateOrgContactStatus400Schema,
@@ -14521,6 +15115,7 @@ export {
 export {
   contactsUpsertOrgContactBodySchema,
   contactsUpsertOrgContactErrorSchema,
+  contactsUpsertOrgContactHeadersSchema,
   contactsUpsertOrgContactHeaderXBarrelsOrganisationSchema,
   contactsUpsertOrgContactResponseSchema,
   contactsUpsertOrgContactStatus200Schema,
@@ -14581,6 +15176,7 @@ export { entryStatusSchema } from "./zod/entryStatusSchema.js";
 export {
   environmentGetAirErrorSchema,
   environmentGetAirQueryPointSchema,
+  environmentGetAirQuerySchema,
   environmentGetAirResponseSchema,
   environmentGetAirStatus200Schema,
   environmentGetAirStatus422Schema,
@@ -14589,6 +15185,7 @@ export { environmentGetMarineParametersSchemaEnumSchema } from "./zod/environmen
 export {
   environmentGetMarineErrorSchema,
   environmentGetMarineQueryPointSchema,
+  environmentGetMarineQuerySchema,
   environmentGetMarineResponseSchema,
   environmentGetMarineStatus200Schema,
   environmentGetMarineStatus422Schema,
@@ -14598,6 +15195,7 @@ export {
   eregisterAcceptRegisterObservationBodySchema,
   eregisterAcceptRegisterObservationErrorSchema,
   eregisterAcceptRegisterObservationPathObservationIdSchema,
+  eregisterAcceptRegisterObservationPathSchema,
   eregisterAcceptRegisterObservationResponseSchema,
   eregisterAcceptRegisterObservationStatus200Schema,
   eregisterAcceptRegisterObservationStatus401Schema,
@@ -14607,18 +15205,58 @@ export {
   eregisterAcceptRegisterObservationStatus422Schema,
 } from "./zod/eregisterAcceptRegisterObservationSchema.js";
 export {
+  eregisterAddStationBodySchema,
+  eregisterAddStationErrorSchema,
+  eregisterAddStationResponseSchema,
+  eregisterAddStationStatus201Schema,
+  eregisterAddStationStatus401Schema,
+  eregisterAddStationStatus403Schema,
+  eregisterAddStationStatus404Schema,
+  eregisterAddStationStatus409Schema,
+  eregisterAddStationStatus422Schema,
+} from "./zod/eregisterAddStationSchema.js";
+export {
+  eregisterCorrectRegisterObservationBodySchema,
+  eregisterCorrectRegisterObservationErrorSchema,
+  eregisterCorrectRegisterObservationPathObservationIdSchema,
+  eregisterCorrectRegisterObservationPathSchema,
+  eregisterCorrectRegisterObservationResponseSchema,
+  eregisterCorrectRegisterObservationStatus201Schema,
+  eregisterCorrectRegisterObservationStatus401Schema,
+  eregisterCorrectRegisterObservationStatus403Schema,
+  eregisterCorrectRegisterObservationStatus404Schema,
+  eregisterCorrectRegisterObservationStatus409Schema,
+  eregisterCorrectRegisterObservationStatus422Schema,
+} from "./zod/eregisterCorrectRegisterObservationSchema.js";
+export {
   eregisterCreateRegisterObservationBodySchema,
   eregisterCreateRegisterObservationErrorSchema,
   eregisterCreateRegisterObservationResponseSchema,
+  eregisterCreateRegisterObservationStatus200Schema,
   eregisterCreateRegisterObservationStatus201Schema,
   eregisterCreateRegisterObservationStatus401Schema,
   eregisterCreateRegisterObservationStatus403Schema,
+  eregisterCreateRegisterObservationStatus409Schema,
   eregisterCreateRegisterObservationStatus422Schema,
 } from "./zod/eregisterCreateRegisterObservationSchema.js";
+export {
+  eregisterEditStationBodySchema,
+  eregisterEditStationErrorSchema,
+  eregisterEditStationPathSchema,
+  eregisterEditStationPathStationIdSchema,
+  eregisterEditStationResponseSchema,
+  eregisterEditStationStatus200Schema,
+  eregisterEditStationStatus401Schema,
+  eregisterEditStationStatus403Schema,
+  eregisterEditStationStatus404Schema,
+  eregisterEditStationStatus409Schema,
+  eregisterEditStationStatus422Schema,
+} from "./zod/eregisterEditStationSchema.js";
 export {
   eregisterEmailRegisterObservationBodySchema,
   eregisterEmailRegisterObservationErrorSchema,
   eregisterEmailRegisterObservationPathObservationIdSchema,
+  eregisterEmailRegisterObservationPathSchema,
   eregisterEmailRegisterObservationResponseSchema,
   eregisterEmailRegisterObservationStatus202Schema,
   eregisterEmailRegisterObservationStatus401Schema,
@@ -14628,8 +15266,31 @@ export {
   eregisterEmailRegisterObservationStatus422Schema,
 } from "./zod/eregisterEmailRegisterObservationSchema.js";
 export {
+  eregisterGetRegistryStationErrorSchema,
+  eregisterGetRegistryStationPathSchema,
+  eregisterGetRegistryStationPathStationIdSchema,
+  eregisterGetRegistryStationResponseSchema,
+  eregisterGetRegistryStationStatus200Schema,
+  eregisterGetRegistryStationStatus401Schema,
+  eregisterGetRegistryStationStatus403Schema,
+  eregisterGetRegistryStationStatus404Schema,
+  eregisterGetRegistryStationStatus422Schema,
+} from "./zod/eregisterGetRegistryStationSchema.js";
+export {
+  eregisterGetStationSettingsErrorSchema,
+  eregisterGetStationSettingsPathSchema,
+  eregisterGetStationSettingsPathStationIdSchema,
+  eregisterGetStationSettingsResponseSchema,
+  eregisterGetStationSettingsStatus200Schema,
+  eregisterGetStationSettingsStatus401Schema,
+  eregisterGetStationSettingsStatus403Schema,
+  eregisterGetStationSettingsStatus404Schema,
+  eregisterGetStationSettingsStatus422Schema,
+} from "./zod/eregisterGetStationSettingsSchema.js";
+export {
   eregisterListObservationSendsErrorSchema,
   eregisterListObservationSendsPathObservationIdSchema,
+  eregisterListObservationSendsPathSchema,
   eregisterListObservationSendsResponseSchema,
   eregisterListObservationSendsStatus200Schema,
   eregisterListObservationSendsStatus401Schema,
@@ -14640,6 +15301,10 @@ export {
   eregisterListRegisterObservationsErrorSchema,
   eregisterListRegisterObservationsQueryKindSchema,
   eregisterListRegisterObservationsQueryLimitSchema,
+  eregisterListRegisterObservationsQueryObservedAtSchema,
+  eregisterListRegisterObservationsQueryOffsetSchema,
+  eregisterListRegisterObservationsQueryReviewedSchema,
+  eregisterListRegisterObservationsQuerySchema,
   eregisterListRegisterObservationsQueryStateSchema,
   eregisterListRegisterObservationsQueryStationIdSchema,
   eregisterListRegisterObservationsResponseSchema,
@@ -14648,6 +15313,16 @@ export {
   eregisterListRegisterObservationsStatus403Schema,
   eregisterListRegisterObservationsStatus422Schema,
 } from "./zod/eregisterListRegisterObservationsSchema.js";
+export {
+  eregisterListRegistryStationsErrorSchema,
+  eregisterListRegistryStationsQueryIncludeInactiveSchema,
+  eregisterListRegistryStationsQuerySchema,
+  eregisterListRegistryStationsResponseSchema,
+  eregisterListRegistryStationsStatus200Schema,
+  eregisterListRegistryStationsStatus401Schema,
+  eregisterListRegistryStationsStatus403Schema,
+  eregisterListRegistryStationsStatus422Schema,
+} from "./zod/eregisterListRegistryStationsSchema.js";
 export {
   eregisterPublicCurrentConditionsErrorSchema,
   eregisterPublicCurrentConditionsResponseSchema,
@@ -14658,6 +15333,7 @@ export {
 export {
   eregisterPublicMonthSummaryErrorSchema,
   eregisterPublicMonthSummaryQueryMonthSchema,
+  eregisterPublicMonthSummaryQuerySchema,
   eregisterPublicMonthSummaryResponseSchema,
   eregisterPublicMonthSummaryStatus200Schema,
   eregisterPublicMonthSummaryStatus422Schema,
@@ -14668,6 +15344,7 @@ export {
   eregisterPublishRegisterObservationBodySchema,
   eregisterPublishRegisterObservationErrorSchema,
   eregisterPublishRegisterObservationPathObservationIdSchema,
+  eregisterPublishRegisterObservationPathSchema,
   eregisterPublishRegisterObservationResponseSchema,
   eregisterPublishRegisterObservationStatus202Schema,
   eregisterPublishRegisterObservationStatus401Schema,
@@ -14677,9 +15354,22 @@ export {
   eregisterPublishRegisterObservationStatus422Schema,
 } from "./zod/eregisterPublishRegisterObservationSchema.js";
 export {
+  eregisterPutStationSettingsBodySchema,
+  eregisterPutStationSettingsErrorSchema,
+  eregisterPutStationSettingsPathSchema,
+  eregisterPutStationSettingsPathStationIdSchema,
+  eregisterPutStationSettingsResponseSchema,
+  eregisterPutStationSettingsStatus200Schema,
+  eregisterPutStationSettingsStatus401Schema,
+  eregisterPutStationSettingsStatus403Schema,
+  eregisterPutStationSettingsStatus404Schema,
+  eregisterPutStationSettingsStatus422Schema,
+} from "./zod/eregisterPutStationSettingsSchema.js";
+export {
   eregisterRejectRegisterObservationBodySchema,
   eregisterRejectRegisterObservationErrorSchema,
   eregisterRejectRegisterObservationPathObservationIdSchema,
+  eregisterRejectRegisterObservationPathSchema,
   eregisterRejectRegisterObservationResponseSchema,
   eregisterRejectRegisterObservationStatus200Schema,
   eregisterRejectRegisterObservationStatus401Schema,
@@ -14692,6 +15382,7 @@ export {
   eregisterReopenRegisterObservationBodySchema,
   eregisterReopenRegisterObservationErrorSchema,
   eregisterReopenRegisterObservationPathObservationIdSchema,
+  eregisterReopenRegisterObservationPathSchema,
   eregisterReopenRegisterObservationResponseSchema,
   eregisterReopenRegisterObservationStatus200Schema,
   eregisterReopenRegisterObservationStatus401Schema,
@@ -14700,6 +15391,19 @@ export {
   eregisterReopenRegisterObservationStatus409Schema,
   eregisterReopenRegisterObservationStatus422Schema,
 } from "./zod/eregisterReopenRegisterObservationSchema.js";
+export {
+  eregisterReviewRegisterObservationBodySchema,
+  eregisterReviewRegisterObservationErrorSchema,
+  eregisterReviewRegisterObservationPathObservationIdSchema,
+  eregisterReviewRegisterObservationPathSchema,
+  eregisterReviewRegisterObservationResponseSchema,
+  eregisterReviewRegisterObservationStatus200Schema,
+  eregisterReviewRegisterObservationStatus401Schema,
+  eregisterReviewRegisterObservationStatus403Schema,
+  eregisterReviewRegisterObservationStatus404Schema,
+  eregisterReviewRegisterObservationStatus409Schema,
+  eregisterReviewRegisterObservationStatus422Schema,
+} from "./zod/eregisterReviewRegisterObservationSchema.js";
 export {
   eregisterValidateSynopObservationBodySchema,
   eregisterValidateSynopObservationErrorSchema,
@@ -14712,6 +15416,7 @@ export {
 export {
   eventsAcceptConnectionErrorSchema,
   eventsAcceptConnectionPathConnectionIdSchema,
+  eventsAcceptConnectionPathSchema,
   eventsAcceptConnectionResponseSchema,
   eventsAcceptConnectionStatus204Schema,
   eventsAcceptConnectionStatus401Schema,
@@ -14725,6 +15430,7 @@ export {
   eventsAdminListEventsQueryOrganiserIdSchema,
   eventsAdminListEventsQueryPageSchema,
   eventsAdminListEventsQueryQSchema,
+  eventsAdminListEventsQuerySchema,
   eventsAdminListEventsQuerySizeSchema,
   eventsAdminListEventsQueryToSchema,
   eventsAdminListEventsResponseSchema,
@@ -14737,6 +15443,7 @@ export {
   eventsAdminListOrganisersErrorSchema,
   eventsAdminListOrganisersQueryPageSchema,
   eventsAdminListOrganisersQueryQSchema,
+  eventsAdminListOrganisersQuerySchema,
   eventsAdminListOrganisersQuerySizeSchema,
   eventsAdminListOrganisersResponseSchema,
   eventsAdminListOrganisersStatus200Schema,
@@ -14748,7 +15455,9 @@ export {
   eventsAdmitTicketBodySchema,
   eventsAdmitTicketErrorSchema,
   eventsAdmitTicketPathListingIdSchema,
+  eventsAdmitTicketPathSchema,
   eventsAdmitTicketQueryOrganiserSchema,
+  eventsAdmitTicketQuerySchema,
   eventsAdmitTicketResponseSchema,
   eventsAdmitTicketStatus200Schema,
   eventsAdmitTicketStatus401Schema,
@@ -14762,6 +15471,7 @@ export {
   eventsApproveOrganiserBodySchema,
   eventsApproveOrganiserErrorSchema,
   eventsApproveOrganiserPathOrganisationIdSchema,
+  eventsApproveOrganiserPathSchema,
   eventsApproveOrganiserResponseSchema,
   eventsApproveOrganiserStatus200Schema,
   eventsApproveOrganiserStatus401Schema,
@@ -14773,6 +15483,7 @@ export {
 export {
   eventsBlockMemberErrorSchema,
   eventsBlockMemberPathHandleSchema,
+  eventsBlockMemberPathSchema,
   eventsBlockMemberResponseSchema,
   eventsBlockMemberStatus204Schema,
   eventsBlockMemberStatus401Schema,
@@ -14785,7 +15496,9 @@ export {
   eventsCancelEventBodySchema,
   eventsCancelEventErrorSchema,
   eventsCancelEventPathListingIdSchema,
+  eventsCancelEventPathSchema,
   eventsCancelEventQueryOrganiserSchema,
+  eventsCancelEventQuerySchema,
   eventsCancelEventResponseSchema,
   eventsCancelEventStatus200Schema,
   eventsCancelEventStatus401Schema,
@@ -14797,6 +15510,7 @@ export {
 } from "./zod/eventsCancelEventSchema.js";
 export {
   eventsCancelListingRsvpErrorSchema,
+  eventsCancelListingRsvpPathSchema,
   eventsCancelListingRsvpPathSlugSchema,
   eventsCancelListingRsvpResponseSchema,
   eventsCancelListingRsvpStatus204Schema,
@@ -14807,6 +15521,7 @@ export {
 } from "./zod/eventsCancelListingRsvpSchema.js";
 export {
   eventsCancelMyTicketErrorSchema,
+  eventsCancelMyTicketPathSchema,
   eventsCancelMyTicketPathTicketIdSchema,
   eventsCancelMyTicketResponseSchema,
   eventsCancelMyTicketStatus200Schema,
@@ -14820,6 +15535,8 @@ export {
   eventsClaimTicketsBodySchema,
   eventsClaimTicketsErrorSchema,
   eventsClaimTicketsHeaderIdempotencyKeySchema,
+  eventsClaimTicketsHeadersSchema,
+  eventsClaimTicketsPathSchema,
   eventsClaimTicketsPathSlugSchema,
   eventsClaimTicketsResponseSchema,
   eventsClaimTicketsStatus201Schema,
@@ -14833,7 +15550,9 @@ export {
   eventsCloseTillBodySchema,
   eventsCloseTillErrorSchema,
   eventsCloseTillPathListingIdSchema,
+  eventsCloseTillPathSchema,
   eventsCloseTillQueryOrganiserSchema,
+  eventsCloseTillQuerySchema,
   eventsCloseTillResponseSchema,
   eventsCloseTillStatus200Schema,
   eventsCloseTillStatus401Schema,
@@ -14847,6 +15566,7 @@ export {
   eventsCreateManagedListingBodySchema,
   eventsCreateManagedListingErrorSchema,
   eventsCreateManagedListingQueryOrganiserSchema,
+  eventsCreateManagedListingQuerySchema,
   eventsCreateManagedListingResponseSchema,
   eventsCreateManagedListingStatus201Schema,
   eventsCreateManagedListingStatus401Schema,
@@ -14876,6 +15596,7 @@ export {
 } from "./zod/eventsCreateSuggestionSchema.js";
 export {
   eventsFollowOrganiserErrorSchema,
+  eventsFollowOrganiserPathSchema,
   eventsFollowOrganiserPathSlugSchema,
   eventsFollowOrganiserResponseSchema,
   eventsFollowOrganiserStatus204Schema,
@@ -14886,6 +15607,7 @@ export {
 } from "./zod/eventsFollowOrganiserSchema.js";
 export {
   eventsGetGroupErrorSchema,
+  eventsGetGroupPathSchema,
   eventsGetGroupPathSlugSchema,
   eventsGetGroupResponseSchema,
   eventsGetGroupStatus200Schema,
@@ -14895,8 +15617,10 @@ export {
 export {
   eventsGetListingActivityErrorSchema,
   eventsGetListingActivityPathListingIdSchema,
+  eventsGetListingActivityPathSchema,
   eventsGetListingActivityQueryLimitSchema,
   eventsGetListingActivityQueryOrganiserSchema,
+  eventsGetListingActivityQuerySchema,
   eventsGetListingActivityResponseSchema,
   eventsGetListingActivityStatus200Schema,
   eventsGetListingActivityStatus401Schema,
@@ -14908,6 +15632,7 @@ export {
 } from "./zod/eventsGetListingActivitySchema.js";
 export {
   eventsGetListingErrorSchema,
+  eventsGetListingPathSchema,
   eventsGetListingPathSlugSchema,
   eventsGetListingResponseSchema,
   eventsGetListingStatus200Schema,
@@ -14917,6 +15642,7 @@ export {
 export {
   eventsGetManagedOrganiserErrorSchema,
   eventsGetManagedOrganiserQueryOrganiserSchema,
+  eventsGetManagedOrganiserQuerySchema,
   eventsGetManagedOrganiserResponseSchema,
   eventsGetManagedOrganiserStatus200Schema,
   eventsGetManagedOrganiserStatus401Schema,
@@ -14929,7 +15655,9 @@ export {
 export {
   eventsGetManifestErrorSchema,
   eventsGetManifestPathListingIdSchema,
+  eventsGetManifestPathSchema,
   eventsGetManifestQueryOrganiserSchema,
+  eventsGetManifestQuerySchema,
   eventsGetManifestResponseSchema,
   eventsGetManifestStatus200Schema,
   eventsGetManifestStatus401Schema,
@@ -14951,6 +15679,7 @@ export {
 export {
   eventsGetMyOrderErrorSchema,
   eventsGetMyOrderPathOrderIdSchema,
+  eventsGetMyOrderPathSchema,
   eventsGetMyOrderResponseSchema,
   eventsGetMyOrderStatus200Schema,
   eventsGetMyOrderStatus401Schema,
@@ -14978,6 +15707,7 @@ export {
 } from "./zod/eventsGetMyProfileSchema.js";
 export {
   eventsGetMyTicketErrorSchema,
+  eventsGetMyTicketPathSchema,
   eventsGetMyTicketPathTicketIdSchema,
   eventsGetMyTicketResponseSchema,
   eventsGetMyTicketStatus200Schema,
@@ -14988,6 +15718,7 @@ export {
 } from "./zod/eventsGetMyTicketSchema.js";
 export {
   eventsGetOrganiserErrorSchema,
+  eventsGetOrganiserPathSchema,
   eventsGetOrganiserPathSlugSchema,
   eventsGetOrganiserResponseSchema,
   eventsGetOrganiserStatus200Schema,
@@ -14997,6 +15728,7 @@ export {
 export {
   eventsGetOrganiserSettlementErrorSchema,
   eventsGetOrganiserSettlementQueryOrganiserSchema,
+  eventsGetOrganiserSettlementQuerySchema,
   eventsGetOrganiserSettlementResponseSchema,
   eventsGetOrganiserSettlementStatus200Schema,
   eventsGetOrganiserSettlementStatus401Schema,
@@ -15010,7 +15742,9 @@ export {
   eventsGetOutletSaleErrorSchema,
   eventsGetOutletSalePathListingIdSchema,
   eventsGetOutletSalePathOrderIdSchema,
+  eventsGetOutletSalePathSchema,
   eventsGetOutletSaleQueryOrganiserSchema,
+  eventsGetOutletSaleQuerySchema,
   eventsGetOutletSaleResponseSchema,
   eventsGetOutletSaleStatus200Schema,
   eventsGetOutletSaleStatus401Schema,
@@ -15023,7 +15757,9 @@ export {
 export {
   eventsGetOutletErrorSchema,
   eventsGetOutletPathListingIdSchema,
+  eventsGetOutletPathSchema,
   eventsGetOutletQueryOrganiserSchema,
+  eventsGetOutletQuerySchema,
   eventsGetOutletResponseSchema,
   eventsGetOutletStatus200Schema,
   eventsGetOutletStatus401Schema,
@@ -15036,6 +15772,7 @@ export {
 export {
   eventsGetPersonErrorSchema,
   eventsGetPersonPathHandleSchema,
+  eventsGetPersonPathSchema,
   eventsGetPersonResponseSchema,
   eventsGetPersonStatus200Schema,
   eventsGetPersonStatus404Schema,
@@ -15044,7 +15781,9 @@ export {
 export {
   eventsGetSettlementCsvErrorSchema,
   eventsGetSettlementCsvPathListingIdSchema,
+  eventsGetSettlementCsvPathSchema,
   eventsGetSettlementCsvQueryOrganiserSchema,
+  eventsGetSettlementCsvQuerySchema,
   eventsGetSettlementCsvResponseSchema,
   eventsGetSettlementCsvStatus200Schema,
   eventsGetSettlementCsvStatus401Schema,
@@ -15057,7 +15796,9 @@ export {
 export {
   eventsGetSettlementErrorSchema,
   eventsGetSettlementPathListingIdSchema,
+  eventsGetSettlementPathSchema,
   eventsGetSettlementQueryOrganiserSchema,
+  eventsGetSettlementQuerySchema,
   eventsGetSettlementResponseSchema,
   eventsGetSettlementStatus200Schema,
   eventsGetSettlementStatus401Schema,
@@ -15069,6 +15810,7 @@ export {
 } from "./zod/eventsGetSettlementSchema.js";
 export {
   eventsGetThreadErrorSchema,
+  eventsGetThreadPathSchema,
   eventsGetThreadPathThreadIdSchema,
   eventsGetThreadResponseSchema,
   eventsGetThreadStatus200Schema,
@@ -15080,6 +15822,7 @@ export {
 export {
   eventsGetVerificationCaseErrorSchema,
   eventsGetVerificationCasePathOrganisationIdSchema,
+  eventsGetVerificationCasePathSchema,
   eventsGetVerificationCaseResponseSchema,
   eventsGetVerificationCaseStatus200Schema,
   eventsGetVerificationCaseStatus401Schema,
@@ -15089,6 +15832,7 @@ export {
 } from "./zod/eventsGetVerificationCaseSchema.js";
 export {
   eventsJoinGroupErrorSchema,
+  eventsJoinGroupPathSchema,
   eventsJoinGroupPathSlugSchema,
   eventsJoinGroupResponseSchema,
   eventsJoinGroupStatus200Schema,
@@ -15099,6 +15843,7 @@ export {
 } from "./zod/eventsJoinGroupSchema.js";
 export {
   eventsLeaveGroupErrorSchema,
+  eventsLeaveGroupPathSchema,
   eventsLeaveGroupPathSlugSchema,
   eventsLeaveGroupResponseSchema,
   eventsLeaveGroupStatus204Schema,
@@ -15126,6 +15871,7 @@ export {
   eventsListListingsQueryParishSchema,
   eventsListListingsQueryPriceSchema,
   eventsListListingsQueryQSchema,
+  eventsListListingsQuerySchema,
   eventsListListingsQueryTagSchema,
   eventsListListingsQueryWhenSchema,
   eventsListListingsResponseSchema,
@@ -15184,6 +15930,7 @@ export {
 export {
   eventsListVerificationCasesErrorSchema,
   eventsListVerificationCasesQueryPageSchema,
+  eventsListVerificationCasesQuerySchema,
   eventsListVerificationCasesQuerySizeSchema,
   eventsListVerificationCasesQueryStatusSchema,
   eventsListVerificationCasesResponseSchema,
@@ -15208,7 +15955,9 @@ export {
   eventsOpenTillBodySchema,
   eventsOpenTillErrorSchema,
   eventsOpenTillPathListingIdSchema,
+  eventsOpenTillPathSchema,
   eventsOpenTillQueryOrganiserSchema,
+  eventsOpenTillQuerySchema,
   eventsOpenTillResponseSchema,
   eventsOpenTillStatus201Schema,
   eventsOpenTillStatus401Schema,
@@ -15221,8 +15970,10 @@ export {
 export {
   eventsOrgCancelEventBodySchema,
   eventsOrgCancelEventErrorSchema,
+  eventsOrgCancelEventHeadersSchema,
   eventsOrgCancelEventHeaderXBarrelsOrganisationSchema,
   eventsOrgCancelEventPathListingIdSchema,
+  eventsOrgCancelEventPathSchema,
   eventsOrgCancelEventResponseSchema,
   eventsOrgCancelEventStatus200Schema,
   eventsOrgCancelEventStatus400Schema,
@@ -15235,8 +15986,10 @@ export {
 export {
   eventsOrgCancelOrderBodySchema,
   eventsOrgCancelOrderErrorSchema,
+  eventsOrgCancelOrderHeadersSchema,
   eventsOrgCancelOrderHeaderXBarrelsOrganisationSchema,
   eventsOrgCancelOrderPathOrderIdSchema,
+  eventsOrgCancelOrderPathSchema,
   eventsOrgCancelOrderResponseSchema,
   eventsOrgCancelOrderStatus200Schema,
   eventsOrgCancelOrderStatus400Schema,
@@ -15248,8 +16001,10 @@ export {
 } from "./zod/eventsOrgCancelOrderSchema.js";
 export {
   eventsOrgGetOrderErrorSchema,
+  eventsOrgGetOrderHeadersSchema,
   eventsOrgGetOrderHeaderXBarrelsOrganisationSchema,
   eventsOrgGetOrderPathOrderIdSchema,
+  eventsOrgGetOrderPathSchema,
   eventsOrgGetOrderResponseSchema,
   eventsOrgGetOrderStatus200Schema,
   eventsOrgGetOrderStatus401Schema,
@@ -15259,9 +16014,12 @@ export {
 } from "./zod/eventsOrgGetOrderSchema.js";
 export {
   eventsOrgListAttendeesErrorSchema,
+  eventsOrgListAttendeesHeadersSchema,
   eventsOrgListAttendeesHeaderXBarrelsOrganisationSchema,
   eventsOrgListAttendeesPathListingIdSchema,
+  eventsOrgListAttendeesPathSchema,
   eventsOrgListAttendeesQueryPageSchema,
+  eventsOrgListAttendeesQuerySchema,
   eventsOrgListAttendeesQuerySizeSchema,
   eventsOrgListAttendeesQueryStatusSchema,
   eventsOrgListAttendeesQueryTierIdSchema,
@@ -15274,9 +16032,12 @@ export {
 } from "./zod/eventsOrgListAttendeesSchema.js";
 export {
   eventsOrgListOrdersErrorSchema,
+  eventsOrgListOrdersHeadersSchema,
   eventsOrgListOrdersHeaderXBarrelsOrganisationSchema,
   eventsOrgListOrdersPathListingIdSchema,
+  eventsOrgListOrdersPathSchema,
   eventsOrgListOrdersQueryPageSchema,
+  eventsOrgListOrdersQuerySchema,
   eventsOrgListOrdersQuerySizeSchema,
   eventsOrgListOrdersQueryStatusSchema,
   eventsOrgListOrdersResponseSchema,
@@ -15290,8 +16051,10 @@ export {
   eventsOrgRecordManualPaymentBodySchema,
   eventsOrgRecordManualPaymentErrorSchema,
   eventsOrgRecordManualPaymentHeaderIdempotencyKeySchema,
+  eventsOrgRecordManualPaymentHeadersSchema,
   eventsOrgRecordManualPaymentHeaderXBarrelsOrganisationSchema,
   eventsOrgRecordManualPaymentPathOrderIdSchema,
+  eventsOrgRecordManualPaymentPathSchema,
   eventsOrgRecordManualPaymentResponseSchema,
   eventsOrgRecordManualPaymentStatus201Schema,
   eventsOrgRecordManualPaymentStatus400Schema,
@@ -15305,8 +16068,10 @@ export {
   eventsOrgRefundOrderBodySchema,
   eventsOrgRefundOrderErrorSchema,
   eventsOrgRefundOrderHeaderIdempotencyKeySchema,
+  eventsOrgRefundOrderHeadersSchema,
   eventsOrgRefundOrderHeaderXBarrelsOrganisationSchema,
   eventsOrgRefundOrderPathOrderIdSchema,
+  eventsOrgRefundOrderPathSchema,
   eventsOrgRefundOrderResponseSchema,
   eventsOrgRefundOrderStatus201Schema,
   eventsOrgRefundOrderStatus400Schema,
@@ -15320,7 +16085,9 @@ export {
   eventsPostponeEventBodySchema,
   eventsPostponeEventErrorSchema,
   eventsPostponeEventPathListingIdSchema,
+  eventsPostponeEventPathSchema,
   eventsPostponeEventQueryOrganiserSchema,
+  eventsPostponeEventQuerySchema,
   eventsPostponeEventResponseSchema,
   eventsPostponeEventStatus200Schema,
   eventsPostponeEventStatus401Schema,
@@ -15334,8 +16101,10 @@ export {
   eventsRefundTicketBodySchema,
   eventsRefundTicketErrorSchema,
   eventsRefundTicketPathListingIdSchema,
+  eventsRefundTicketPathSchema,
   eventsRefundTicketPathTicketIdSchema,
   eventsRefundTicketQueryOrganiserSchema,
+  eventsRefundTicketQuerySchema,
   eventsRefundTicketResponseSchema,
   eventsRefundTicketStatus201Schema,
   eventsRefundTicketStatus401Schema,
@@ -15349,6 +16118,7 @@ export {
   eventsRejectOrganiserBodySchema,
   eventsRejectOrganiserErrorSchema,
   eventsRejectOrganiserPathOrganisationIdSchema,
+  eventsRejectOrganiserPathSchema,
   eventsRejectOrganiserResponseSchema,
   eventsRejectOrganiserStatus200Schema,
   eventsRejectOrganiserStatus401Schema,
@@ -15360,6 +16130,7 @@ export {
 export {
   eventsRemoveConnectionErrorSchema,
   eventsRemoveConnectionPathConnectionIdSchema,
+  eventsRemoveConnectionPathSchema,
   eventsRemoveConnectionResponseSchema,
   eventsRemoveConnectionStatus204Schema,
   eventsRemoveConnectionStatus401Schema,
@@ -15392,6 +16163,7 @@ export {
 export {
   eventsResubmitOrganiserErrorSchema,
   eventsResubmitOrganiserQueryOrganiserSchema,
+  eventsResubmitOrganiserQuerySchema,
   eventsResubmitOrganiserResponseSchema,
   eventsResubmitOrganiserStatus200Schema,
   eventsResubmitOrganiserStatus401Schema,
@@ -15405,6 +16177,7 @@ export {
   eventsReviewOrganiserBodySchema,
   eventsReviewOrganiserErrorSchema,
   eventsReviewOrganiserPathOrganiserIdSchema,
+  eventsReviewOrganiserPathSchema,
   eventsReviewOrganiserResponseSchema,
   eventsReviewOrganiserStatus200Schema,
   eventsReviewOrganiserStatus401Schema,
@@ -15416,6 +16189,7 @@ export {
 } from "./zod/eventsReviewOrganiserSchema.js";
 export {
   eventsRsvpListingErrorSchema,
+  eventsRsvpListingPathSchema,
   eventsRsvpListingPathSlugSchema,
   eventsRsvpListingResponseSchema,
   eventsRsvpListingStatus204Schema,
@@ -15426,6 +16200,7 @@ export {
 } from "./zod/eventsRsvpListingSchema.js";
 export {
   eventsSaveListingErrorSchema,
+  eventsSaveListingPathSchema,
   eventsSaveListingPathSlugSchema,
   eventsSaveListingResponseSchema,
   eventsSaveListingStatus204Schema,
@@ -15438,7 +16213,9 @@ export {
   eventsSellOutletTicketsBodySchema,
   eventsSellOutletTicketsErrorSchema,
   eventsSellOutletTicketsPathListingIdSchema,
+  eventsSellOutletTicketsPathSchema,
   eventsSellOutletTicketsQueryOrganiserSchema,
+  eventsSellOutletTicketsQuerySchema,
   eventsSellOutletTicketsResponseSchema,
   eventsSellOutletTicketsStatus201Schema,
   eventsSellOutletTicketsStatus401Schema,
@@ -15451,6 +16228,7 @@ export {
 export {
   eventsSendMessageBodySchema,
   eventsSendMessageErrorSchema,
+  eventsSendMessagePathSchema,
   eventsSendMessagePathThreadIdSchema,
   eventsSendMessageResponseSchema,
   eventsSendMessageStatus201Schema,
@@ -15464,6 +16242,7 @@ export {
   eventsSetOrganiserLogoBodySchema,
   eventsSetOrganiserLogoErrorSchema,
   eventsSetOrganiserLogoQueryOrganiserSchema,
+  eventsSetOrganiserLogoQuerySchema,
   eventsSetOrganiserLogoResponseSchema,
   eventsSetOrganiserLogoStatus200Schema,
   eventsSetOrganiserLogoStatus401Schema,
@@ -15476,6 +16255,7 @@ export {
 export {
   eventsUnblockMemberErrorSchema,
   eventsUnblockMemberPathHandleSchema,
+  eventsUnblockMemberPathSchema,
   eventsUnblockMemberResponseSchema,
   eventsUnblockMemberStatus204Schema,
   eventsUnblockMemberStatus401Schema,
@@ -15485,6 +16265,7 @@ export {
 } from "./zod/eventsUnblockMemberSchema.js";
 export {
   eventsUnfollowOrganiserErrorSchema,
+  eventsUnfollowOrganiserPathSchema,
   eventsUnfollowOrganiserPathSlugSchema,
   eventsUnfollowOrganiserResponseSchema,
   eventsUnfollowOrganiserStatus204Schema,
@@ -15495,6 +16276,7 @@ export {
 } from "./zod/eventsUnfollowOrganiserSchema.js";
 export {
   eventsUnsaveListingErrorSchema,
+  eventsUnsaveListingPathSchema,
   eventsUnsaveListingPathSlugSchema,
   eventsUnsaveListingResponseSchema,
   eventsUnsaveListingStatus204Schema,
@@ -15507,7 +16289,9 @@ export {
   eventsUpdateManagedListingBodySchema,
   eventsUpdateManagedListingErrorSchema,
   eventsUpdateManagedListingPathListingIdSchema,
+  eventsUpdateManagedListingPathSchema,
   eventsUpdateManagedListingQueryOrganiserSchema,
+  eventsUpdateManagedListingQuerySchema,
   eventsUpdateManagedListingResponseSchema,
   eventsUpdateManagedListingStatus200Schema,
   eventsUpdateManagedListingStatus401Schema,
@@ -15532,6 +16316,7 @@ export {
   eventsUpdateReportBodySchema,
   eventsUpdateReportErrorSchema,
   eventsUpdateReportPathReportIdSchema,
+  eventsUpdateReportPathSchema,
   eventsUpdateReportResponseSchema,
   eventsUpdateReportStatus200Schema,
   eventsUpdateReportStatus401Schema,
@@ -15543,6 +16328,7 @@ export {
 export {
   eventsUpdateSuggestionBodySchema,
   eventsUpdateSuggestionErrorSchema,
+  eventsUpdateSuggestionPathSchema,
   eventsUpdateSuggestionPathSuggestionIdSchema,
   eventsUpdateSuggestionResponseSchema,
   eventsUpdateSuggestionStatus200Schema,
@@ -15565,6 +16351,7 @@ export {
 export {
   featureDeleteFlagErrorSchema,
   featureDeleteFlagPathFlagIdSchema,
+  featureDeleteFlagPathSchema,
   featureDeleteFlagResponseSchema,
   featureDeleteFlagStatus204Schema,
   featureDeleteFlagStatus401Schema,
@@ -15582,6 +16369,7 @@ export {
 } from "./zod/featureEvaluateForMeSchema.js";
 export {
   featureEvaluateForOrganisationErrorSchema,
+  featureEvaluateForOrganisationHeadersSchema,
   featureEvaluateForOrganisationHeaderXBarrelsOrganisationSchema,
   featureEvaluateForOrganisationResponseSchema,
   featureEvaluateForOrganisationStatus200Schema,
@@ -15594,6 +16382,7 @@ export {
 export {
   featureEvaluatePublicErrorSchema,
   featureEvaluatePublicQueryKeysSchema,
+  featureEvaluatePublicQuerySchema,
   featureEvaluatePublicResponseSchema,
   featureEvaluatePublicStatus200Schema,
   featureEvaluatePublicStatus422Schema,
@@ -15608,6 +16397,7 @@ export { featureFlagUpdateSchema } from "./zod/featureFlagUpdateSchema.js";
 export {
   featureGetFlagErrorSchema,
   featureGetFlagPathFlagIdSchema,
+  featureGetFlagPathSchema,
   featureGetFlagResponseSchema,
   featureGetFlagStatus200Schema,
   featureGetFlagStatus401Schema,
@@ -15618,6 +16408,7 @@ export {
 export {
   featureListFlagsErrorSchema,
   featureListFlagsQueryPageSchema,
+  featureListFlagsQuerySchema,
   featureListFlagsQuerySizeSchema,
   featureListFlagsResponseSchema,
   featureListFlagsStatus200Schema,
@@ -15637,6 +16428,7 @@ export {
   featureUpdateFlagBodySchema,
   featureUpdateFlagErrorSchema,
   featureUpdateFlagPathFlagIdSchema,
+  featureUpdateFlagPathSchema,
   featureUpdateFlagResponseSchema,
   featureUpdateFlagStatus200Schema,
   featureUpdateFlagStatus401Schema,
@@ -15663,6 +16455,7 @@ export {
   flightsGetFlightBoardErrorSchema,
   flightsGetFlightBoardQueryAirportSchema,
   flightsGetFlightBoardQueryBoardSchema,
+  flightsGetFlightBoardQuerySchema,
   flightsGetFlightBoardResponseSchema,
   flightsGetFlightBoardStatus200Schema,
   flightsGetFlightBoardStatus422Schema,
@@ -15710,6 +16503,7 @@ export {
   hrActionLeaveRequestBodySchema,
   hrActionLeaveRequestErrorSchema,
   hrActionLeaveRequestPathLeaveRequestIdSchema,
+  hrActionLeaveRequestPathSchema,
   hrActionLeaveRequestResponseSchema,
   hrActionLeaveRequestStatus200Schema,
   hrActionLeaveRequestStatus403Schema,
@@ -15719,6 +16513,7 @@ export {
 export {
   hrActionShiftSwapBodySchema,
   hrActionShiftSwapErrorSchema,
+  hrActionShiftSwapPathSchema,
   hrActionShiftSwapPathShiftSwapIdSchema,
   hrActionShiftSwapResponseSchema,
   hrActionShiftSwapStatus200Schema,
@@ -15731,6 +16526,7 @@ export {
   hrApproveClockPunchBodySchema,
   hrApproveClockPunchErrorSchema,
   hrApproveClockPunchPathPunchIdSchema,
+  hrApproveClockPunchPathSchema,
   hrApproveClockPunchResponseSchema,
   hrApproveClockPunchStatus200Schema,
   hrApproveClockPunchStatus403Schema,
@@ -15740,6 +16536,7 @@ export {
 } from "./zod/hrApproveClockPunchSchema.js";
 export {
   hrApproveStaffRegistrationErrorSchema,
+  hrApproveStaffRegistrationPathSchema,
   hrApproveStaffRegistrationPathUserIdSchema,
   hrApproveStaffRegistrationResponseSchema,
   hrApproveStaffRegistrationStatus200Schema,
@@ -15750,6 +16547,7 @@ export {
 } from "./zod/hrApproveStaffRegistrationSchema.js";
 export {
   hrApproveTimesheetErrorSchema,
+  hrApproveTimesheetPathSchema,
   hrApproveTimesheetPathTimesheetIdSchema,
   hrApproveTimesheetResponseSchema,
   hrApproveTimesheetStatus200Schema,
@@ -15761,6 +16559,7 @@ export {
 export {
   hrArchiveDocumentErrorSchema,
   hrArchiveDocumentPathDocumentIdSchema,
+  hrArchiveDocumentPathSchema,
   hrArchiveDocumentResponseSchema,
   hrArchiveDocumentStatus200Schema,
   hrArchiveDocumentStatus403Schema,
@@ -15771,6 +16570,7 @@ export {
   hrArchiveTrainingRecordBodySchema,
   hrArchiveTrainingRecordErrorSchema,
   hrArchiveTrainingRecordPathRecordIdSchema,
+  hrArchiveTrainingRecordPathSchema,
   hrArchiveTrainingRecordResponseSchema,
   hrArchiveTrainingRecordStatus200Schema,
   hrArchiveTrainingRecordStatus403Schema,
@@ -15790,6 +16590,7 @@ export {
 export {
   hrCheckPeriodRulesErrorSchema,
   hrCheckPeriodRulesPathPeriodIdSchema,
+  hrCheckPeriodRulesPathSchema,
   hrCheckPeriodRulesResponseSchema,
   hrCheckPeriodRulesStatus200Schema,
   hrCheckPeriodRulesStatus403Schema,
@@ -15798,6 +16599,7 @@ export {
 } from "./zod/hrCheckPeriodRulesSchema.js";
 export {
   hrCheckShiftSwapRulesErrorSchema,
+  hrCheckShiftSwapRulesPathSchema,
   hrCheckShiftSwapRulesPathShiftSwapIdSchema,
   hrCheckShiftSwapRulesResponseSchema,
   hrCheckShiftSwapRulesStatus200Schema,
@@ -15819,6 +16621,7 @@ export {
 export {
   hrClosePeriodErrorSchema,
   hrClosePeriodPathPeriodIdSchema,
+  hrClosePeriodPathSchema,
   hrClosePeriodResponseSchema,
   hrClosePeriodStatus200Schema,
   hrClosePeriodStatus400Schema,
@@ -15876,6 +16679,7 @@ export {
 export {
   hrCreateHrEmploymentBodySchema,
   hrCreateHrEmploymentErrorSchema,
+  hrCreateHrEmploymentPathSchema,
   hrCreateHrEmploymentPathUserIdSchema,
   hrCreateHrEmploymentResponseSchema,
   hrCreateHrEmploymentStatus201Schema,
@@ -15969,6 +16773,7 @@ export {
 export {
   hrCreateTemplateStepBodySchema,
   hrCreateTemplateStepErrorSchema,
+  hrCreateTemplateStepPathSchema,
   hrCreateTemplateStepPathTemplateIdSchema,
   hrCreateTemplateStepResponseSchema,
   hrCreateTemplateStepStatus200Schema,
@@ -15999,6 +16804,7 @@ export { hrDashboardPublicSchema } from "./zod/hrDashboardPublicSchema.js";
 export {
   hrDeleteAbsenteeReportErrorSchema,
   hrDeleteAbsenteeReportPathAbsenteeReportIdSchema,
+  hrDeleteAbsenteeReportPathSchema,
   hrDeleteAbsenteeReportResponseSchema,
   hrDeleteAbsenteeReportStatus204Schema,
   hrDeleteAbsenteeReportStatus400Schema,
@@ -16009,6 +16815,7 @@ export {
 export {
   hrDeleteLeaveRequestErrorSchema,
   hrDeleteLeaveRequestPathLeaveRequestIdSchema,
+  hrDeleteLeaveRequestPathSchema,
   hrDeleteLeaveRequestResponseSchema,
   hrDeleteLeaveRequestStatus204Schema,
   hrDeleteLeaveRequestStatus400Schema,
@@ -16026,6 +16833,7 @@ export {
 } from "./zod/hrDeleteMySignatureSchema.js";
 export {
   hrDeleteShiftSwapErrorSchema,
+  hrDeleteShiftSwapPathSchema,
   hrDeleteShiftSwapPathShiftSwapIdSchema,
   hrDeleteShiftSwapResponseSchema,
   hrDeleteShiftSwapStatus204Schema,
@@ -16037,6 +16845,7 @@ export {
 export {
   hrDeleteStatusReportErrorSchema,
   hrDeleteStatusReportPathReportIdSchema,
+  hrDeleteStatusReportPathSchema,
   hrDeleteStatusReportResponseSchema,
   hrDeleteStatusReportStatus204Schema,
   hrDeleteStatusReportStatus400Schema,
@@ -16047,6 +16856,7 @@ export {
 export {
   hrDownloadDocumentErrorSchema,
   hrDownloadDocumentPathDocumentIdSchema,
+  hrDownloadDocumentPathSchema,
   hrDownloadDocumentResponseSchema,
   hrDownloadDocumentStatus307Schema,
   hrDownloadDocumentStatus403Schema,
@@ -16057,6 +16867,7 @@ export {
 export {
   hrDownloadSignedDocumentErrorSchema,
   hrDownloadSignedDocumentPathDocumentIdSchema,
+  hrDownloadSignedDocumentPathSchema,
   hrDownloadSignedDocumentResponseSchema,
   hrDownloadSignedDocumentStatus200Schema,
   hrDownloadSignedDocumentStatus200SchemaJson,
@@ -16069,6 +16880,7 @@ export {
   hrGetAbsenteeReportsErrorSchema,
   hrGetAbsenteeReportsQueryDepartmentIdSchema,
   hrGetAbsenteeReportsQueryPageSchema,
+  hrGetAbsenteeReportsQuerySchema,
   hrGetAbsenteeReportsQuerySizeSchema,
   hrGetAbsenteeReportsResponseSchema,
   hrGetAbsenteeReportsStatus200Schema,
@@ -16079,6 +16891,7 @@ export {
   hrGetAttendanceReviewErrorSchema,
   hrGetAttendanceReviewQueryAttendanceIdSchema,
   hrGetAttendanceReviewQueryCorrectionIdSchema,
+  hrGetAttendanceReviewQuerySchema,
   hrGetAttendanceReviewResponseSchema,
   hrGetAttendanceReviewStatus200Schema,
   hrGetAttendanceReviewStatus400Schema,
@@ -16091,6 +16904,7 @@ export {
   hrGetAttendanceWeekPdfErrorSchema,
   hrGetAttendanceWeekPdfQueryDaySchema,
   hrGetAttendanceWeekPdfQueryDepartmentIdSchema,
+  hrGetAttendanceWeekPdfQuerySchema,
   hrGetAttendanceWeekPdfResponseSchema,
   hrGetAttendanceWeekPdfStatus200Schema,
   hrGetAttendanceWeekPdfStatus400Schema,
@@ -16103,6 +16917,7 @@ export {
   hrGetAttendanceWeekErrorSchema,
   hrGetAttendanceWeekQueryDaySchema,
   hrGetAttendanceWeekQueryDepartmentIdSchema,
+  hrGetAttendanceWeekQuerySchema,
   hrGetAttendanceWeekResponseSchema,
   hrGetAttendanceWeekStatus200Schema,
   hrGetAttendanceWeekStatus400Schema,
@@ -16114,6 +16929,7 @@ export {
 export {
   hrGetDepartmentRulesErrorSchema,
   hrGetDepartmentRulesPathDepartmentIdSchema,
+  hrGetDepartmentRulesPathSchema,
   hrGetDepartmentRulesResponseSchema,
   hrGetDepartmentRulesStatus200Schema,
   hrGetDepartmentRulesStatus403Schema,
@@ -16123,6 +16939,7 @@ export {
   hrGetDepartmentTimesheetsErrorSchema,
   hrGetDepartmentTimesheetsQueryDepartmentIdSchema,
   hrGetDepartmentTimesheetsQueryPageSchema,
+  hrGetDepartmentTimesheetsQuerySchema,
   hrGetDepartmentTimesheetsQuerySizeSchema,
   hrGetDepartmentTimesheetsResponseSchema,
   hrGetDepartmentTimesheetsStatus200Schema,
@@ -16134,6 +16951,7 @@ export {
   hrGetDocumentEmployeesErrorSchema,
   hrGetDocumentEmployeesQueryOrganisationIdSchema,
   hrGetDocumentEmployeesQueryPageSchema,
+  hrGetDocumentEmployeesQuerySchema,
   hrGetDocumentEmployeesQuerySearchSchema,
   hrGetDocumentEmployeesQuerySizeSchema,
   hrGetDocumentEmployeesResponseSchema,
@@ -16145,6 +16963,7 @@ export {
 export {
   hrGetDocumentErrorSchema,
   hrGetDocumentPathDocumentIdSchema,
+  hrGetDocumentPathSchema,
   hrGetDocumentResponseSchema,
   hrGetDocumentStatus200Schema,
   hrGetDocumentStatus403Schema,
@@ -16158,6 +16977,7 @@ export {
   hrGetDocumentsQueryIncludeArchivedSchema,
   hrGetDocumentsQueryOrganisationIdSchema,
   hrGetDocumentsQueryPageSchema,
+  hrGetDocumentsQuerySchema,
   hrGetDocumentsQuerySizeSchema,
   hrGetDocumentsQueryUserIdSchema,
   hrGetDocumentsResponseSchema,
@@ -16175,6 +16995,7 @@ export {
 } from "./zod/hrGetHrDashboardSchema.js";
 export {
   hrGetHrEmploymentErrorSchema,
+  hrGetHrEmploymentPathSchema,
   hrGetHrEmploymentPathUserIdSchema,
   hrGetHrEmploymentResponseSchema,
   hrGetHrEmploymentStatus200Schema,
@@ -16199,6 +17020,7 @@ export {
 export {
   hrGetInstanceErrorSchema,
   hrGetInstancePathInstanceIdSchema,
+  hrGetInstancePathSchema,
   hrGetInstanceResponseSchema,
   hrGetInstanceStatus200Schema,
   hrGetInstanceStatus403Schema,
@@ -16208,6 +17030,7 @@ export {
 export {
   hrGetMyLeaveRequestsErrorSchema,
   hrGetMyLeaveRequestsQueryPageSchema,
+  hrGetMyLeaveRequestsQuerySchema,
   hrGetMyLeaveRequestsQuerySizeSchema,
   hrGetMyLeaveRequestsResponseSchema,
   hrGetMyLeaveRequestsStatus200Schema,
@@ -16227,6 +17050,7 @@ export {
   hrGetMySignedDocumentsErrorSchema,
   hrGetMySignedDocumentsQueryEntityTypeSchema,
   hrGetMySignedDocumentsQueryPageSchema,
+  hrGetMySignedDocumentsQuerySchema,
   hrGetMySignedDocumentsQuerySizeSchema,
   hrGetMySignedDocumentsResponseSchema,
   hrGetMySignedDocumentsStatus200Schema,
@@ -16237,6 +17061,7 @@ export {
 export {
   hrGetMyTimesheetsErrorSchema,
   hrGetMyTimesheetsQueryPageSchema,
+  hrGetMyTimesheetsQuerySchema,
   hrGetMyTimesheetsQuerySizeSchema,
   hrGetMyTimesheetsResponseSchema,
   hrGetMyTimesheetsStatus200Schema,
@@ -16265,6 +17090,7 @@ export {
   hrGetParkingPermitsErrorSchema,
   hrGetParkingPermitsQueryDepartmentIdSchema,
   hrGetParkingPermitsQueryPageSchema,
+  hrGetParkingPermitsQuerySchema,
   hrGetParkingPermitsQuerySizeSchema,
   hrGetParkingPermitsResponseSchema,
   hrGetParkingPermitsStatus200Schema,
@@ -16274,6 +17100,7 @@ export {
 export {
   hrGetPeriodRevisionsErrorSchema,
   hrGetPeriodRevisionsPathPeriodIdSchema,
+  hrGetPeriodRevisionsPathSchema,
   hrGetPeriodRevisionsResponseSchema,
   hrGetPeriodRevisionsStatus200Schema,
   hrGetPeriodRevisionsStatus403Schema,
@@ -16283,6 +17110,7 @@ export {
 export {
   hrGetPeriodErrorSchema,
   hrGetPeriodPathPeriodIdSchema,
+  hrGetPeriodPathSchema,
   hrGetPeriodResponseSchema,
   hrGetPeriodStatus200Schema,
   hrGetPeriodStatus403Schema,
@@ -16319,6 +17147,7 @@ export {
 export {
   hrGetSetupGradesErrorSchema,
   hrGetSetupGradesQueryOrganisationIdSchema,
+  hrGetSetupGradesQuerySchema,
   hrGetSetupGradesResponseSchema,
   hrGetSetupGradesStatus200Schema,
   hrGetSetupGradesStatus403Schema,
@@ -16329,6 +17158,7 @@ export {
 export {
   hrGetSetupPoliciesErrorSchema,
   hrGetSetupPoliciesQueryOrganisationIdSchema,
+  hrGetSetupPoliciesQuerySchema,
   hrGetSetupPoliciesResponseSchema,
   hrGetSetupPoliciesStatus200Schema,
   hrGetSetupPoliciesStatus403Schema,
@@ -16348,6 +17178,7 @@ export {
 export {
   hrGetStaffSetupErrorSchema,
   hrGetStaffSetupQueryOrganisationIdSchema,
+  hrGetStaffSetupQuerySchema,
   hrGetStaffSetupQueryUnassignedSchema,
   hrGetStaffSetupResponseSchema,
   hrGetStaffSetupStatus200Schema,
@@ -16360,6 +17191,7 @@ export {
 export {
   hrGetStatusReportErrorSchema,
   hrGetStatusReportPathReportIdSchema,
+  hrGetStatusReportPathSchema,
   hrGetStatusReportResponseSchema,
   hrGetStatusReportStatus200Schema,
   hrGetStatusReportStatus403Schema,
@@ -16370,6 +17202,7 @@ export {
   hrGetStatusReportsErrorSchema,
   hrGetStatusReportsQueryDepartmentIdSchema,
   hrGetStatusReportsQueryPageSchema,
+  hrGetStatusReportsQuerySchema,
   hrGetStatusReportsQuerySizeSchema,
   hrGetStatusReportsResponseSchema,
   hrGetStatusReportsStatus200Schema,
@@ -16380,6 +17213,7 @@ export {
   hrGetStatusStaffingErrorSchema,
   hrGetStatusStaffingQueryDepartmentIdSchema,
   hrGetStatusStaffingQueryReportDateSchema,
+  hrGetStatusStaffingQuerySchema,
   hrGetStatusStaffingQueryShiftCodeSchema,
   hrGetStatusStaffingResponseSchema,
   hrGetStatusStaffingStatus200Schema,
@@ -16391,6 +17225,7 @@ export {
 export {
   hrGetTemplatesErrorSchema,
   hrGetTemplatesQueryDepartmentIdSchema,
+  hrGetTemplatesQuerySchema,
   hrGetTemplatesResponseSchema,
   hrGetTemplatesStatus200Schema,
   hrGetTemplatesStatus403Schema,
@@ -16399,6 +17234,7 @@ export {
 export {
   hrGetTimesheetPrefillErrorSchema,
   hrGetTimesheetPrefillQueryPeriodSchema,
+  hrGetTimesheetPrefillQuerySchema,
   hrGetTimesheetPrefillResponseSchema,
   hrGetTimesheetPrefillStatus200Schema,
   hrGetTimesheetPrefillStatus400Schema,
@@ -16408,6 +17244,7 @@ export {
 } from "./zod/hrGetTimesheetPrefillSchema.js";
 export {
   hrGetTimesheetErrorSchema,
+  hrGetTimesheetPathSchema,
   hrGetTimesheetPathTimesheetIdSchema,
   hrGetTimesheetResponseSchema,
   hrGetTimesheetStatus200Schema,
@@ -16417,6 +17254,7 @@ export {
 } from "./zod/hrGetTimesheetSchema.js";
 export {
   hrGetTimesheetSummaryErrorSchema,
+  hrGetTimesheetSummaryPathSchema,
   hrGetTimesheetSummaryPathTimesheetIdSchema,
   hrGetTimesheetSummaryResponseSchema,
   hrGetTimesheetSummaryStatus200Schema,
@@ -16428,6 +17266,7 @@ export {
   hrGetTrainingEmployeesErrorSchema,
   hrGetTrainingEmployeesQueryOrganisationIdSchema,
   hrGetTrainingEmployeesQueryPageSchema,
+  hrGetTrainingEmployeesQuerySchema,
   hrGetTrainingEmployeesQuerySearchSchema,
   hrGetTrainingEmployeesQuerySizeSchema,
   hrGetTrainingEmployeesResponseSchema,
@@ -16440,6 +17279,7 @@ export {
   hrGetTrainingRecordsQueryIncludeArchivedSchema,
   hrGetTrainingRecordsQueryOrganisationIdSchema,
   hrGetTrainingRecordsQueryPageSchema,
+  hrGetTrainingRecordsQuerySchema,
   hrGetTrainingRecordsQuerySizeSchema,
   hrGetTrainingRecordsQueryUserIdSchema,
   hrGetTrainingRecordsResponseSchema,
@@ -16460,6 +17300,7 @@ export {
   hrGetWorkingDaysErrorSchema,
   hrGetWorkingDaysQueryEndSchema,
   hrGetWorkingDaysQueryLeaveTypeSchema,
+  hrGetWorkingDaysQuerySchema,
   hrGetWorkingDaysQueryStartSchema,
   hrGetWorkingDaysResponseSchema,
   hrGetWorkingDaysStatus200Schema,
@@ -16520,6 +17361,7 @@ export {
   hrIssueParkingDecalBodySchema,
   hrIssueParkingDecalErrorSchema,
   hrIssueParkingDecalPathPermitIdSchema,
+  hrIssueParkingDecalPathSchema,
   hrIssueParkingDecalResponseSchema,
   hrIssueParkingDecalStatus200Schema,
   hrIssueParkingDecalStatus400Schema,
@@ -16532,6 +17374,7 @@ export {
   hrListAssignmentsErrorSchema,
   hrListAssignmentsQueryDepartmentIdSchema,
   hrListAssignmentsQueryEndSchema,
+  hrListAssignmentsQuerySchema,
   hrListAssignmentsQueryScopeSchema,
   hrListAssignmentsQueryStartSchema,
   hrListAssignmentsResponseSchema,
@@ -16546,6 +17389,7 @@ export {
   hrListCalendarEventsQueryDepartmentIdSchema,
   hrListCalendarEventsQueryEndSchema,
   hrListCalendarEventsQueryIncludeCancelledSchema,
+  hrListCalendarEventsQuerySchema,
   hrListCalendarEventsQueryStartSchema,
   hrListCalendarEventsResponseSchema,
   hrListCalendarEventsStatus200Schema,
@@ -16557,6 +17401,7 @@ export {
 export {
   hrListClockSitesErrorSchema,
   hrListClockSitesQueryDepartmentIdSchema,
+  hrListClockSitesQuerySchema,
   hrListClockSitesResponseSchema,
   hrListClockSitesStatus200Schema,
   hrListClockSitesStatus403Schema,
@@ -16566,6 +17411,7 @@ export {
 export {
   hrListDepartmentMembersErrorSchema,
   hrListDepartmentMembersPathDepartmentIdSchema,
+  hrListDepartmentMembersPathSchema,
   hrListDepartmentMembersResponseSchema,
   hrListDepartmentMembersStatus200Schema,
   hrListDepartmentMembersStatus403Schema,
@@ -16575,6 +17421,7 @@ export {
 export {
   hrListDepartmentsErrorSchema,
   hrListDepartmentsQueryOrganisationIdSchema,
+  hrListDepartmentsQuerySchema,
   hrListDepartmentsResponseSchema,
   hrListDepartmentsStatus200Schema,
   hrListDepartmentsStatus403Schema,
@@ -16582,6 +17429,7 @@ export {
 } from "./zod/hrListDepartmentsSchema.js";
 export {
   hrListHolidaysErrorSchema,
+  hrListHolidaysQuerySchema,
   hrListHolidaysQueryYearSchema,
   hrListHolidaysResponseSchema,
   hrListHolidaysStatus200Schema,
@@ -16591,6 +17439,7 @@ export {
 export {
   hrListMyShiftSwapsErrorSchema,
   hrListMyShiftSwapsQueryPageSchema,
+  hrListMyShiftSwapsQuerySchema,
   hrListMyShiftSwapsQuerySizeSchema,
   hrListMyShiftSwapsResponseSchema,
   hrListMyShiftSwapsStatus200Schema,
@@ -16602,6 +17451,7 @@ export {
   hrListPendingClockPunchesErrorSchema,
   hrListPendingClockPunchesQueryLimitSchema,
   hrListPendingClockPunchesQueryOffsetSchema,
+  hrListPendingClockPunchesQuerySchema,
   hrListPendingClockPunchesResponseSchema,
   hrListPendingClockPunchesStatus200Schema,
   hrListPendingClockPunchesStatus403Schema,
@@ -16611,6 +17461,7 @@ export {
   hrListPeriodsErrorSchema,
   hrListPeriodsQueryDepartmentIdSchema,
   hrListPeriodsQueryPeriodStatusSchema,
+  hrListPeriodsQuerySchema,
   hrListPeriodsResponseSchema,
   hrListPeriodsStatus200Schema,
   hrListPeriodsStatus403Schema,
@@ -16619,6 +17470,7 @@ export {
 export {
   hrListShiftCatalogErrorSchema,
   hrListShiftCatalogQueryIncludeInactiveSchema,
+  hrListShiftCatalogQuerySchema,
   hrListShiftCatalogResponseSchema,
   hrListShiftCatalogStatus200Schema,
   hrListShiftCatalogStatus403Schema,
@@ -16635,6 +17487,7 @@ export {
 } from "./zod/hrLoadProvisionalHolidaysSchema.js";
 export {
   hrOffboardStaffErrorSchema,
+  hrOffboardStaffPathSchema,
   hrOffboardStaffPathUserIdSchema,
   hrOffboardStaffResponseSchema,
   hrOffboardStaffStatus200Schema,
@@ -16647,6 +17500,7 @@ export {
   hrPatchDocumentBodySchema,
   hrPatchDocumentErrorSchema,
   hrPatchDocumentPathDocumentIdSchema,
+  hrPatchDocumentPathSchema,
   hrPatchDocumentResponseSchema,
   hrPatchDocumentStatus200Schema,
   hrPatchDocumentStatus400Schema,
@@ -16668,6 +17522,7 @@ export {
 export {
   hrPreviewCatalogueErrorSchema,
   hrPreviewCatalogueQueryDepartmentIdSchema,
+  hrPreviewCatalogueQuerySchema,
   hrPreviewCatalogueResponseSchema,
   hrPreviewCatalogueStatus200Schema,
   hrPreviewCatalogueStatus403Schema,
@@ -16727,6 +17582,7 @@ export {
   hrProposeAttendanceCorrectionBodySchema,
   hrProposeAttendanceCorrectionErrorSchema,
   hrProposeAttendanceCorrectionPathAttendanceIdSchema,
+  hrProposeAttendanceCorrectionPathSchema,
   hrProposeAttendanceCorrectionResponseSchema,
   hrProposeAttendanceCorrectionStatus201Schema,
   hrProposeAttendanceCorrectionStatus400Schema,
@@ -16738,6 +17594,7 @@ export {
 export {
   hrPublishPeriodErrorSchema,
   hrPublishPeriodPathPeriodIdSchema,
+  hrPublishPeriodPathSchema,
   hrPublishPeriodResponseSchema,
   hrPublishPeriodStatus200Schema,
   hrPublishPeriodStatus400Schema,
@@ -16749,6 +17606,7 @@ export {
   hrPutDepartmentRulesBodySchema,
   hrPutDepartmentRulesErrorSchema,
   hrPutDepartmentRulesPathDepartmentIdSchema,
+  hrPutDepartmentRulesPathSchema,
   hrPutDepartmentRulesResponseSchema,
   hrPutDepartmentRulesStatus200Schema,
   hrPutDepartmentRulesStatus403Schema,
@@ -16758,6 +17616,7 @@ export {
   hrRejectClockPunchBodySchema,
   hrRejectClockPunchErrorSchema,
   hrRejectClockPunchPathPunchIdSchema,
+  hrRejectClockPunchPathSchema,
   hrRejectClockPunchResponseSchema,
   hrRejectClockPunchStatus200Schema,
   hrRejectClockPunchStatus403Schema,
@@ -16768,6 +17627,7 @@ export {
 export {
   hrRemoveHolidayErrorSchema,
   hrRemoveHolidayPathHolidayIdSchema,
+  hrRemoveHolidayPathSchema,
   hrRemoveHolidayResponseSchema,
   hrRemoveHolidayStatus204Schema,
   hrRemoveHolidayStatus403Schema,
@@ -16778,6 +17638,7 @@ export {
   hrRenameOrganisationBodySchema,
   hrRenameOrganisationErrorSchema,
   hrRenameOrganisationPathOrganisationIdSchema,
+  hrRenameOrganisationPathSchema,
   hrRenameOrganisationResponseSchema,
   hrRenameOrganisationStatus200Schema,
   hrRenameOrganisationStatus403Schema,
@@ -16787,6 +17648,7 @@ export {
 export { hrRolePublicSchema } from "./zod/hrRolePublicSchema.js";
 export {
   hrRotateClockSiteErrorSchema,
+  hrRotateClockSitePathSchema,
   hrRotateClockSitePathSiteIdSchema,
   hrRotateClockSiteResponseSchema,
   hrRotateClockSiteStatus200Schema,
@@ -16817,6 +17679,7 @@ export {
 export {
   hrSaveWorkflowConfigurationBodySchema,
   hrSaveWorkflowConfigurationErrorSchema,
+  hrSaveWorkflowConfigurationPathSchema,
   hrSaveWorkflowConfigurationPathTemplateIdSchema,
   hrSaveWorkflowConfigurationResponseSchema,
   hrSaveWorkflowConfigurationStatus200Schema,
@@ -16828,6 +17691,7 @@ export {
 export {
   hrSetClockSiteActiveBodySchema,
   hrSetClockSiteActiveErrorSchema,
+  hrSetClockSiteActivePathSchema,
   hrSetClockSiteActivePathSiteIdSchema,
   hrSetClockSiteActiveResponseSchema,
   hrSetClockSiteActiveStatus200Schema,
@@ -16839,6 +17703,7 @@ export {
   hrSubmitAbsenteeReportBodySchema,
   hrSubmitAbsenteeReportErrorSchema,
   hrSubmitAbsenteeReportPathAbsenteeReportIdSchema,
+  hrSubmitAbsenteeReportPathSchema,
   hrSubmitAbsenteeReportResponseSchema,
   hrSubmitAbsenteeReportStatus200Schema,
   hrSubmitAbsenteeReportStatus400Schema,
@@ -16850,6 +17715,7 @@ export {
   hrSubmitAttendanceBodySchema,
   hrSubmitAttendanceErrorSchema,
   hrSubmitAttendancePathAttendanceIdSchema,
+  hrSubmitAttendancePathSchema,
   hrSubmitAttendanceResponseSchema,
   hrSubmitAttendanceStatus200Schema,
   hrSubmitAttendanceStatus400Schema,
@@ -16862,6 +17728,7 @@ export {
   hrSubmitLeaveRequestBodySchema,
   hrSubmitLeaveRequestErrorSchema,
   hrSubmitLeaveRequestPathLeaveRequestIdSchema,
+  hrSubmitLeaveRequestPathSchema,
   hrSubmitLeaveRequestResponseSchema,
   hrSubmitLeaveRequestStatus200Schema,
   hrSubmitLeaveRequestStatus400Schema,
@@ -16873,6 +17740,7 @@ export {
   hrSubmitParkingPermitBodySchema,
   hrSubmitParkingPermitErrorSchema,
   hrSubmitParkingPermitPathPermitIdSchema,
+  hrSubmitParkingPermitPathSchema,
   hrSubmitParkingPermitResponseSchema,
   hrSubmitParkingPermitStatus200Schema,
   hrSubmitParkingPermitStatus400Schema,
@@ -16883,6 +17751,7 @@ export {
 export {
   hrSubmitShiftSwapBodySchema,
   hrSubmitShiftSwapErrorSchema,
+  hrSubmitShiftSwapPathSchema,
   hrSubmitShiftSwapPathShiftSwapIdSchema,
   hrSubmitShiftSwapResponseSchema,
   hrSubmitShiftSwapStatus200Schema,
@@ -16895,6 +17764,7 @@ export {
   hrSubmitStatusReportBodySchema,
   hrSubmitStatusReportErrorSchema,
   hrSubmitStatusReportPathReportIdSchema,
+  hrSubmitStatusReportPathSchema,
   hrSubmitStatusReportResponseSchema,
   hrSubmitStatusReportStatus200Schema,
   hrSubmitStatusReportStatus400Schema,
@@ -16905,6 +17775,7 @@ export {
 export {
   hrSubmitTimesheetBodySchema,
   hrSubmitTimesheetErrorSchema,
+  hrSubmitTimesheetPathSchema,
   hrSubmitTimesheetPathTimesheetIdSchema,
   hrSubmitTimesheetResponseSchema,
   hrSubmitTimesheetStatus200Schema,
@@ -16917,6 +17788,7 @@ export {
   hrTakeActionBodySchema,
   hrTakeActionErrorSchema,
   hrTakeActionPathInstanceIdSchema,
+  hrTakeActionPathSchema,
   hrTakeActionResponseSchema,
   hrTakeActionStatus200Schema,
   hrTakeActionStatus400Schema,
@@ -16928,6 +17800,7 @@ export {
   hrUpdateAbsenteeReportBodySchema,
   hrUpdateAbsenteeReportErrorSchema,
   hrUpdateAbsenteeReportPathAbsenteeReportIdSchema,
+  hrUpdateAbsenteeReportPathSchema,
   hrUpdateAbsenteeReportResponseSchema,
   hrUpdateAbsenteeReportStatus200Schema,
   hrUpdateAbsenteeReportStatus400Schema,
@@ -16939,6 +17812,7 @@ export {
   hrUpdateCalendarEventBodySchema,
   hrUpdateCalendarEventErrorSchema,
   hrUpdateCalendarEventPathEventIdSchema,
+  hrUpdateCalendarEventPathSchema,
   hrUpdateCalendarEventResponseSchema,
   hrUpdateCalendarEventStatus200Schema,
   hrUpdateCalendarEventStatus400Schema,
@@ -16950,6 +17824,7 @@ export {
   hrUpdateDepartmentBodySchema,
   hrUpdateDepartmentErrorSchema,
   hrUpdateDepartmentPathDepartmentIdSchema,
+  hrUpdateDepartmentPathSchema,
   hrUpdateDepartmentResponseSchema,
   hrUpdateDepartmentStatus200Schema,
   hrUpdateDepartmentStatus400Schema,
@@ -16961,6 +17836,7 @@ export {
   hrUpdateHolidayBodySchema,
   hrUpdateHolidayErrorSchema,
   hrUpdateHolidayPathHolidayIdSchema,
+  hrUpdateHolidayPathSchema,
   hrUpdateHolidayResponseSchema,
   hrUpdateHolidayStatus200Schema,
   hrUpdateHolidayStatus400Schema,
@@ -16971,6 +17847,7 @@ export {
 export {
   hrUpdateHrEmploymentBodySchema,
   hrUpdateHrEmploymentErrorSchema,
+  hrUpdateHrEmploymentPathSchema,
   hrUpdateHrEmploymentPathUserIdSchema,
   hrUpdateHrEmploymentResponseSchema,
   hrUpdateHrEmploymentStatus200Schema,
@@ -16991,6 +17868,7 @@ export {
   hrUpdateLeaveRequestBodySchema,
   hrUpdateLeaveRequestErrorSchema,
   hrUpdateLeaveRequestPathLeaveRequestIdSchema,
+  hrUpdateLeaveRequestPathSchema,
   hrUpdateLeaveRequestResponseSchema,
   hrUpdateLeaveRequestStatus200Schema,
   hrUpdateLeaveRequestStatus400Schema,
@@ -17002,6 +17880,7 @@ export {
   hrUpdateParkingPermitBodySchema,
   hrUpdateParkingPermitErrorSchema,
   hrUpdateParkingPermitPathPermitIdSchema,
+  hrUpdateParkingPermitPathSchema,
   hrUpdateParkingPermitResponseSchema,
   hrUpdateParkingPermitStatus200Schema,
   hrUpdateParkingPermitStatus400Schema,
@@ -17013,6 +17892,7 @@ export {
   hrUpdateProductPolicyBodySchema,
   hrUpdateProductPolicyErrorSchema,
   hrUpdateProductPolicyPathKindSchema,
+  hrUpdateProductPolicyPathSchema,
   hrUpdateProductPolicyResponseSchema,
   hrUpdateProductPolicyStatus200Schema,
   hrUpdateProductPolicyStatus400Schema,
@@ -17026,6 +17906,7 @@ export {
   hrUpdateRoleConfigurationBodySchema,
   hrUpdateRoleConfigurationErrorSchema,
   hrUpdateRoleConfigurationPathRoleIdSchema,
+  hrUpdateRoleConfigurationPathSchema,
   hrUpdateRoleConfigurationResponseSchema,
   hrUpdateRoleConfigurationStatus200Schema,
   hrUpdateRoleConfigurationStatus403Schema,
@@ -17037,6 +17918,7 @@ export {
   hrUpdateSetupGradeBodySchema,
   hrUpdateSetupGradeErrorSchema,
   hrUpdateSetupGradePathGradeIdSchema,
+  hrUpdateSetupGradePathSchema,
   hrUpdateSetupGradeResponseSchema,
   hrUpdateSetupGradeStatus200Schema,
   hrUpdateSetupGradeStatus403Schema,
@@ -17048,6 +17930,7 @@ export {
   hrUpdateSetupPolicyBodySchema,
   hrUpdateSetupPolicyErrorSchema,
   hrUpdateSetupPolicyPathKeySchema,
+  hrUpdateSetupPolicyPathSchema,
   hrUpdateSetupPolicyResponseSchema,
   hrUpdateSetupPolicyStatus200Schema,
   hrUpdateSetupPolicyStatus403Schema,
@@ -17059,6 +17942,7 @@ export {
   hrUpdateShiftBodySchema,
   hrUpdateShiftErrorSchema,
   hrUpdateShiftPathCodeSchema,
+  hrUpdateShiftPathSchema,
   hrUpdateShiftResponseSchema,
   hrUpdateShiftStatus200Schema,
   hrUpdateShiftStatus403Schema,
@@ -17068,6 +17952,7 @@ export {
 export {
   hrUpdateShiftSwapBodySchema,
   hrUpdateShiftSwapErrorSchema,
+  hrUpdateShiftSwapPathSchema,
   hrUpdateShiftSwapPathShiftSwapIdSchema,
   hrUpdateShiftSwapResponseSchema,
   hrUpdateShiftSwapStatus200Schema,
@@ -17079,6 +17964,7 @@ export {
 export {
   hrUpdateStaffBalanceBodySchema,
   hrUpdateStaffBalanceErrorSchema,
+  hrUpdateStaffBalancePathSchema,
   hrUpdateStaffBalancePathUserIdSchema,
   hrUpdateStaffBalanceResponseSchema,
   hrUpdateStaffBalanceStatus200Schema,
@@ -17090,6 +17976,7 @@ export {
 export {
   hrUpdateStaffSetupBodySchema,
   hrUpdateStaffSetupErrorSchema,
+  hrUpdateStaffSetupPathSchema,
   hrUpdateStaffSetupPathUserIdSchema,
   hrUpdateStaffSetupResponseSchema,
   hrUpdateStaffSetupStatus200Schema,
@@ -17103,6 +17990,7 @@ export {
   hrUpdateStatusReportBodySchema,
   hrUpdateStatusReportErrorSchema,
   hrUpdateStatusReportPathReportIdSchema,
+  hrUpdateStatusReportPathSchema,
   hrUpdateStatusReportResponseSchema,
   hrUpdateStatusReportStatus200Schema,
   hrUpdateStatusReportStatus400Schema,
@@ -17138,6 +18026,9 @@ export {
   hrValidateGridStatus404Schema,
   hrValidateGridStatus422Schema,
 } from "./zod/hrValidateGridSchema.js";
+export { ibfLevelPublicSchema } from "./zod/ibfLevelPublicSchema.js";
+export { ibfMatrixPublicSchema } from "./zod/ibfMatrixPublicSchema.js";
+export { ibfSuggestionSchema } from "./zod/ibfSuggestionSchema.js";
 export { imageInputPropertiesTimeBasisEnumSchema } from "./zod/imageInputPropertiesTimeBasisEnumSchema.js";
 export { imageInputSchema } from "./zod/imageInputSchema.js";
 export { imageResultSchema } from "./zod/imageResultSchema.js";
@@ -17259,6 +18150,7 @@ export {
   janitorialCreateTaskBodySchema,
   janitorialCreateTaskErrorSchema,
   janitorialCreateTaskPathAreaIdSchema,
+  janitorialCreateTaskPathSchema,
   janitorialCreateTaskResponseSchema,
   janitorialCreateTaskStatus201Schema,
   janitorialCreateTaskStatus403Schema,
@@ -17289,6 +18181,7 @@ export {
 } from "./zod/janitorialGetAccessSchema.js";
 export {
   janitorialGetCatalogueErrorSchema,
+  janitorialGetCatalogueQuerySchema,
   janitorialGetCatalogueQuerySiteSchema,
   janitorialGetCatalogueResponseSchema,
   janitorialGetCatalogueStatus200Schema,
@@ -17300,6 +18193,7 @@ export {
 export {
   janitorialGetShiftBoardErrorSchema,
   janitorialGetShiftBoardQueryFromSchema,
+  janitorialGetShiftBoardQuerySchema,
   janitorialGetShiftBoardQuerySiteSchema,
   janitorialGetShiftBoardQueryToSchema,
   janitorialGetShiftBoardResponseSchema,
@@ -17329,6 +18223,7 @@ export {
 export {
   janitorialRevokeGrantErrorSchema,
   janitorialRevokeGrantPathGrantIdSchema,
+  janitorialRevokeGrantPathSchema,
   janitorialRevokeGrantResponseSchema,
   janitorialRevokeGrantStatus204Schema,
   janitorialRevokeGrantStatus403Schema,
@@ -17359,6 +18254,7 @@ export {
   janitorialUpdateAreaBodySchema,
   janitorialUpdateAreaErrorSchema,
   janitorialUpdateAreaPathAreaIdSchema,
+  janitorialUpdateAreaPathSchema,
   janitorialUpdateAreaResponseSchema,
   janitorialUpdateAreaStatus200Schema,
   janitorialUpdateAreaStatus403Schema,
@@ -17371,6 +18267,7 @@ export {
   janitorialUpdateBuildingBodySchema,
   janitorialUpdateBuildingErrorSchema,
   janitorialUpdateBuildingPathBuildingIdSchema,
+  janitorialUpdateBuildingPathSchema,
   janitorialUpdateBuildingResponseSchema,
   janitorialUpdateBuildingStatus200Schema,
   janitorialUpdateBuildingStatus403Schema,
@@ -17383,6 +18280,7 @@ export {
   janitorialUpdateContractorBodySchema,
   janitorialUpdateContractorErrorSchema,
   janitorialUpdateContractorPathContractorIdSchema,
+  janitorialUpdateContractorPathSchema,
   janitorialUpdateContractorResponseSchema,
   janitorialUpdateContractorStatus200Schema,
   janitorialUpdateContractorStatus403Schema,
@@ -17394,6 +18292,7 @@ export {
 export {
   janitorialUpdateSectionBodySchema,
   janitorialUpdateSectionErrorSchema,
+  janitorialUpdateSectionPathSchema,
   janitorialUpdateSectionPathSectionIdSchema,
   janitorialUpdateSectionResponseSchema,
   janitorialUpdateSectionStatus200Schema,
@@ -17407,6 +18306,7 @@ export {
   janitorialUpdateShiftAssignmentBodySchema,
   janitorialUpdateShiftAssignmentErrorSchema,
   janitorialUpdateShiftAssignmentPathAssignmentIdSchema,
+  janitorialUpdateShiftAssignmentPathSchema,
   janitorialUpdateShiftAssignmentResponseSchema,
   janitorialUpdateShiftAssignmentStatus200Schema,
   janitorialUpdateShiftAssignmentStatus403Schema,
@@ -17419,6 +18319,7 @@ export {
   janitorialUpdateShiftPatternBodySchema,
   janitorialUpdateShiftPatternErrorSchema,
   janitorialUpdateShiftPatternPathPatternIdSchema,
+  janitorialUpdateShiftPatternPathSchema,
   janitorialUpdateShiftPatternResponseSchema,
   janitorialUpdateShiftPatternStatus200Schema,
   janitorialUpdateShiftPatternStatus403Schema,
@@ -17430,6 +18331,7 @@ export {
 export {
   janitorialUpdateStaffBodySchema,
   janitorialUpdateStaffErrorSchema,
+  janitorialUpdateStaffPathSchema,
   janitorialUpdateStaffPathStaffIdSchema,
   janitorialUpdateStaffResponseSchema,
   janitorialUpdateStaffStatus200Schema,
@@ -17442,6 +18344,7 @@ export {
 export {
   janitorialUpdateTaskBodySchema,
   janitorialUpdateTaskErrorSchema,
+  janitorialUpdateTaskPathSchema,
   janitorialUpdateTaskPathTaskIdSchema,
   janitorialUpdateTaskResponseSchema,
   janitorialUpdateTaskStatus200Schema,
@@ -17454,6 +18357,7 @@ export {
 export {
   janitorialUpdateZoneBodySchema,
   janitorialUpdateZoneErrorSchema,
+  janitorialUpdateZonePathSchema,
   janitorialUpdateZonePathZoneIdSchema,
   janitorialUpdateZoneResponseSchema,
   janitorialUpdateZoneStatus200Schema,
@@ -17516,6 +18420,7 @@ export { meteogramUnitsSchema } from "./zod/meteogramUnitsSchema.js";
 export {
   modelsCreateAccessRequestBodySchema,
   modelsCreateAccessRequestErrorSchema,
+  modelsCreateAccessRequestHeadersSchema,
   modelsCreateAccessRequestHeaderXBarrelsOrganisationSchema,
   modelsCreateAccessRequestResponseSchema,
   modelsCreateAccessRequestStatus201Schema,
@@ -17529,6 +18434,7 @@ export {
   modelsDecideAccessRequestBodySchema,
   modelsDecideAccessRequestErrorSchema,
   modelsDecideAccessRequestPathRequestIdSchema,
+  modelsDecideAccessRequestPathSchema,
   modelsDecideAccessRequestResponseSchema,
   modelsDecideAccessRequestStatus200Schema,
   modelsDecideAccessRequestStatus401Schema,
@@ -17539,6 +18445,7 @@ export {
 } from "./zod/modelsDecideAccessRequestSchema.js";
 export {
   modelsGetAccessStatusErrorSchema,
+  modelsGetAccessStatusHeadersSchema,
   modelsGetAccessStatusHeaderXBarrelsOrganisationSchema,
   modelsGetAccessStatusResponseSchema,
   modelsGetAccessStatusStatus200Schema,
@@ -17549,6 +18456,7 @@ export {
 } from "./zod/modelsGetAccessStatusSchema.js";
 export {
   modelsGetCatalogueErrorSchema,
+  modelsGetCatalogueHeadersSchema,
   modelsGetCatalogueHeaderXBarrelsOrganisationSchema,
   modelsGetCatalogueResponseSchema,
   modelsGetCatalogueStatus200Schema,
@@ -17558,9 +18466,11 @@ export {
 } from "./zod/modelsGetCatalogueSchema.js";
 export {
   modelsGetMeteogramErrorSchema,
+  modelsGetMeteogramHeadersSchema,
   modelsGetMeteogramHeaderXBarrelsOrganisationSchema,
   modelsGetMeteogramQueryModelSchema,
   modelsGetMeteogramQueryPointSchema,
+  modelsGetMeteogramQuerySchema,
   modelsGetMeteogramResponseSchema,
   modelsGetMeteogramStatus200Schema,
   modelsGetMeteogramStatus401Schema,
@@ -17570,6 +18480,7 @@ export {
 } from "./zod/modelsGetMeteogramSchema.js";
 export {
   modelsListAccessRequestsErrorSchema,
+  modelsListAccessRequestsQuerySchema,
   modelsListAccessRequestsQueryStatusSchema,
   modelsListAccessRequestsResponseSchema,
   modelsListAccessRequestsStatus200Schema,
@@ -17620,6 +18531,7 @@ export {
   notificationsCreateNotificationSnoozeBodySchema,
   notificationsCreateNotificationSnoozeErrorSchema,
   notificationsCreateNotificationSnoozeQueryOrganisationIdSchema,
+  notificationsCreateNotificationSnoozeQuerySchema,
   notificationsCreateNotificationSnoozeResponseSchema,
   notificationsCreateNotificationSnoozeStatus201Schema,
   notificationsCreateNotificationSnoozeStatus400Schema,
@@ -17629,8 +18541,10 @@ export {
 } from "./zod/notificationsCreateNotificationSnoozeSchema.js";
 export {
   notificationsDeleteNotificationSnoozeErrorSchema,
+  notificationsDeleteNotificationSnoozePathSchema,
   notificationsDeleteNotificationSnoozePathSnoozeIdSchema,
   notificationsDeleteNotificationSnoozeQueryOrganisationIdSchema,
+  notificationsDeleteNotificationSnoozeQuerySchema,
   notificationsDeleteNotificationSnoozeResponseSchema,
   notificationsDeleteNotificationSnoozeStatus204Schema,
   notificationsDeleteNotificationSnoozeStatus403Schema,
@@ -17647,6 +18561,7 @@ export {
 export {
   notificationsGetNotificationSettingsErrorSchema,
   notificationsGetNotificationSettingsQueryOrganisationIdSchema,
+  notificationsGetNotificationSettingsQuerySchema,
   notificationsGetNotificationSettingsResponseSchema,
   notificationsGetNotificationSettingsStatus200Schema,
   notificationsGetNotificationSettingsStatus403Schema,
@@ -17655,6 +18570,7 @@ export {
 export {
   notificationsGetNotificationSnoozesErrorSchema,
   notificationsGetNotificationSnoozesQueryOrganisationIdSchema,
+  notificationsGetNotificationSnoozesQuerySchema,
   notificationsGetNotificationSnoozesResponseSchema,
   notificationsGetNotificationSnoozesStatus200Schema,
   notificationsGetNotificationSnoozesStatus403Schema,
@@ -17663,6 +18579,7 @@ export {
 export {
   notificationsGetNotificationsErrorSchema,
   notificationsGetNotificationsQueryPageSchema,
+  notificationsGetNotificationsQuerySchema,
   notificationsGetNotificationsQuerySizeSchema,
   notificationsGetNotificationsQueryUnreadSchema,
   notificationsGetNotificationsResponseSchema,
@@ -17687,6 +18604,7 @@ export {
 export {
   notificationsMarkNotificationReadErrorSchema,
   notificationsMarkNotificationReadPathNotificationIdSchema,
+  notificationsMarkNotificationReadPathSchema,
   notificationsMarkNotificationReadResponseSchema,
   notificationsMarkNotificationReadStatus200Schema,
   notificationsMarkNotificationReadStatus404Schema,
@@ -17704,7 +18622,9 @@ export {
   notificationsUpdateNotificationSettingBodySchema,
   notificationsUpdateNotificationSettingErrorSchema,
   notificationsUpdateNotificationSettingPathEventKeySchema,
+  notificationsUpdateNotificationSettingPathSchema,
   notificationsUpdateNotificationSettingQueryOrganisationIdSchema,
+  notificationsUpdateNotificationSettingQuerySchema,
   notificationsUpdateNotificationSettingResponseSchema,
   notificationsUpdateNotificationSettingStatus200Schema,
   notificationsUpdateNotificationSettingStatus400Schema,
@@ -17754,6 +18674,7 @@ export {
   organisationsAddMemberAdminBodySchema,
   organisationsAddMemberAdminErrorSchema,
   organisationsAddMemberAdminPathOrganisationIdSchema,
+  organisationsAddMemberAdminPathSchema,
   organisationsAddMemberAdminResponseSchema,
   organisationsAddMemberAdminStatus201Schema,
   organisationsAddMemberAdminStatus401Schema,
@@ -17776,6 +18697,7 @@ export {
 export {
   organisationsCreateApiKeyBodySchema,
   organisationsCreateApiKeyErrorSchema,
+  organisationsCreateApiKeyHeadersSchema,
   organisationsCreateApiKeyHeaderXBarrelsOrganisationSchema,
   organisationsCreateApiKeyResponseSchema,
   organisationsCreateApiKeyStatus201Schema,
@@ -17788,8 +18710,10 @@ export {
 export {
   organisationsCreateInvitationBodySchema,
   organisationsCreateInvitationErrorSchema,
+  organisationsCreateInvitationHeadersSchema,
   organisationsCreateInvitationHeaderXBarrelsOrganisationSchema,
   organisationsCreateInvitationPathOrganisationIdSchema,
+  organisationsCreateInvitationPathSchema,
   organisationsCreateInvitationResponseSchema,
   organisationsCreateInvitationStatus201Schema,
   organisationsCreateInvitationStatus400Schema,
@@ -17814,6 +18738,7 @@ export {
   organisationsDeleteMemberAdminErrorSchema,
   organisationsDeleteMemberAdminPathMembershipIdSchema,
   organisationsDeleteMemberAdminPathOrganisationIdSchema,
+  organisationsDeleteMemberAdminPathSchema,
   organisationsDeleteMemberAdminResponseSchema,
   organisationsDeleteMemberAdminStatus204Schema,
   organisationsDeleteMemberAdminStatus401Schema,
@@ -17824,9 +18749,11 @@ export {
 } from "./zod/organisationsDeleteMemberAdminSchema.js";
 export {
   organisationsDeleteMemberErrorSchema,
+  organisationsDeleteMemberHeadersSchema,
   organisationsDeleteMemberHeaderXBarrelsOrganisationSchema,
   organisationsDeleteMemberPathMembershipIdSchema,
   organisationsDeleteMemberPathOrganisationIdSchema,
+  organisationsDeleteMemberPathSchema,
   organisationsDeleteMemberResponseSchema,
   organisationsDeleteMemberStatus204Schema,
   organisationsDeleteMemberStatus400Schema,
@@ -17838,6 +18765,7 @@ export {
 } from "./zod/organisationsDeleteMemberSchema.js";
 export {
   organisationsGetCurrentErrorSchema,
+  organisationsGetCurrentHeadersSchema,
   organisationsGetCurrentHeaderXBarrelsOrganisationSchema,
   organisationsGetCurrentResponseSchema,
   organisationsGetCurrentStatus200Schema,
@@ -17850,6 +18778,7 @@ export {
 export {
   organisationsGetOneErrorSchema,
   organisationsGetOnePathOrganisationIdSchema,
+  organisationsGetOnePathSchema,
   organisationsGetOneResponseSchema,
   organisationsGetOneStatus200Schema,
   organisationsGetOneStatus401Schema,
@@ -17859,6 +18788,7 @@ export {
 } from "./zod/organisationsGetOneSchema.js";
 export {
   organisationsGetPublicSiteErrorSchema,
+  organisationsGetPublicSitePathSchema,
   organisationsGetPublicSitePathSiteKeySchema,
   organisationsGetPublicSiteResponseSchema,
   organisationsGetPublicSiteStatus200Schema,
@@ -17868,8 +18798,10 @@ export {
 export {
   organisationsGrantMemberRoleBodySchema,
   organisationsGrantMemberRoleErrorSchema,
+  organisationsGrantMemberRoleHeadersSchema,
   organisationsGrantMemberRoleHeaderXBarrelsOrganisationSchema,
   organisationsGrantMemberRolePathMembershipIdSchema,
+  organisationsGrantMemberRolePathSchema,
   organisationsGrantMemberRoleResponseSchema,
   organisationsGrantMemberRoleStatus201Schema,
   organisationsGrantMemberRoleStatus400Schema,
@@ -17891,6 +18823,7 @@ export {
   organisationsListAdminApiKeysErrorSchema,
   organisationsListAdminApiKeysQueryOrganisationIdSchema,
   organisationsListAdminApiKeysQueryPageSchema,
+  organisationsListAdminApiKeysQuerySchema,
   organisationsListAdminApiKeysQuerySizeSchema,
   organisationsListAdminApiKeysResponseSchema,
   organisationsListAdminApiKeysStatus200Schema,
@@ -17901,6 +18834,7 @@ export {
 export {
   organisationsListAdminSitesErrorSchema,
   organisationsListAdminSitesQueryOrganisationIdSchema,
+  organisationsListAdminSitesQuerySchema,
   organisationsListAdminSitesResponseSchema,
   organisationsListAdminSitesStatus200Schema,
   organisationsListAdminSitesStatus401Schema,
@@ -17912,6 +18846,7 @@ export {
   organisationsListAllQueryKindSchema,
   organisationsListAllQueryPageSchema,
   organisationsListAllQueryQSchema,
+  organisationsListAllQuerySchema,
   organisationsListAllQuerySizeSchema,
   organisationsListAllQueryStatusSchema,
   organisationsListAllResponseSchema,
@@ -17922,6 +18857,7 @@ export {
 } from "./zod/organisationsListAllSchema.js";
 export {
   organisationsListApiKeyScopesErrorSchema,
+  organisationsListApiKeyScopesHeadersSchema,
   organisationsListApiKeyScopesHeaderXBarrelsOrganisationSchema,
   organisationsListApiKeyScopesResponseSchema,
   organisationsListApiKeyScopesStatus200Schema,
@@ -17933,8 +18869,10 @@ export {
 } from "./zod/organisationsListApiKeyScopesSchema.js";
 export {
   organisationsListInvitationsErrorSchema,
+  organisationsListInvitationsHeadersSchema,
   organisationsListInvitationsHeaderXBarrelsOrganisationSchema,
   organisationsListInvitationsPathOrganisationIdSchema,
+  organisationsListInvitationsPathSchema,
   organisationsListInvitationsResponseSchema,
   organisationsListInvitationsStatus200Schema,
   organisationsListInvitationsStatus400Schema,
@@ -17946,8 +18884,10 @@ export {
 } from "./zod/organisationsListInvitationsSchema.js";
 export {
   organisationsListIssuedGrantsErrorSchema,
+  organisationsListIssuedGrantsHeadersSchema,
   organisationsListIssuedGrantsHeaderXBarrelsOrganisationSchema,
   organisationsListIssuedGrantsPathMembershipIdSchema,
+  organisationsListIssuedGrantsPathSchema,
   organisationsListIssuedGrantsResponseSchema,
   organisationsListIssuedGrantsStatus200Schema,
   organisationsListIssuedGrantsStatus401Schema,
@@ -17957,8 +18897,10 @@ export {
 } from "./zod/organisationsListIssuedGrantsSchema.js";
 export {
   organisationsListMemberGrantsErrorSchema,
+  organisationsListMemberGrantsHeadersSchema,
   organisationsListMemberGrantsHeaderXBarrelsOrganisationSchema,
   organisationsListMemberGrantsPathMembershipIdSchema,
+  organisationsListMemberGrantsPathSchema,
   organisationsListMemberGrantsResponseSchema,
   organisationsListMemberGrantsStatus200Schema,
   organisationsListMemberGrantsStatus401Schema,
@@ -17969,7 +18911,9 @@ export {
 export {
   organisationsListMembersAdminErrorSchema,
   organisationsListMembersAdminPathOrganisationIdSchema,
+  organisationsListMembersAdminPathSchema,
   organisationsListMembersAdminQueryPageSchema,
+  organisationsListMembersAdminQuerySchema,
   organisationsListMembersAdminQuerySizeSchema,
   organisationsListMembersAdminResponseSchema,
   organisationsListMembersAdminStatus200Schema,
@@ -17980,9 +18924,12 @@ export {
 } from "./zod/organisationsListMembersAdminSchema.js";
 export {
   organisationsListMembersErrorSchema,
+  organisationsListMembersHeadersSchema,
   organisationsListMembersHeaderXBarrelsOrganisationSchema,
   organisationsListMembersPathOrganisationIdSchema,
+  organisationsListMembersPathSchema,
   organisationsListMembersQueryPageSchema,
+  organisationsListMembersQuerySchema,
   organisationsListMembersQuerySizeSchema,
   organisationsListMembersResponseSchema,
   organisationsListMembersStatus200Schema,
@@ -18003,8 +18950,10 @@ export {
 } from "./zod/organisationsListMineSchema.js";
 export {
   organisationsListOrgApiKeysErrorSchema,
+  organisationsListOrgApiKeysHeadersSchema,
   organisationsListOrgApiKeysHeaderXBarrelsOrganisationSchema,
   organisationsListOrgApiKeysQueryPageSchema,
+  organisationsListOrgApiKeysQuerySchema,
   organisationsListOrgApiKeysQuerySizeSchema,
   organisationsListOrgApiKeysResponseSchema,
   organisationsListOrgApiKeysStatus200Schema,
@@ -18016,6 +18965,7 @@ export {
 } from "./zod/organisationsListOrgApiKeysSchema.js";
 export {
   organisationsListOrgSitesErrorSchema,
+  organisationsListOrgSitesHeadersSchema,
   organisationsListOrgSitesHeaderXBarrelsOrganisationSchema,
   organisationsListOrgSitesResponseSchema,
   organisationsListOrgSitesStatus200Schema,
@@ -18027,6 +18977,7 @@ export {
 } from "./zod/organisationsListOrgSitesSchema.js";
 export {
   organisationsListRoleBundlesErrorSchema,
+  organisationsListRoleBundlesHeadersSchema,
   organisationsListRoleBundlesHeaderXBarrelsOrganisationSchema,
   organisationsListRoleBundlesResponseSchema,
   organisationsListRoleBundlesStatus200Schema,
@@ -18037,8 +18988,10 @@ export {
 } from "./zod/organisationsListRoleBundlesSchema.js";
 export {
   organisationsListTeamMembersErrorSchema,
+  organisationsListTeamMembersHeadersSchema,
   organisationsListTeamMembersHeaderXBarrelsOrganisationSchema,
   organisationsListTeamMembersQueryPageSchema,
+  organisationsListTeamMembersQuerySchema,
   organisationsListTeamMembersQuerySizeSchema,
   organisationsListTeamMembersResponseSchema,
   organisationsListTeamMembersStatus200Schema,
@@ -18049,6 +19002,7 @@ export {
 } from "./zod/organisationsListTeamMembersSchema.js";
 export {
   organisationsMyTeamCapabilitiesErrorSchema,
+  organisationsMyTeamCapabilitiesHeadersSchema,
   organisationsMyTeamCapabilitiesHeaderXBarrelsOrganisationSchema,
   organisationsMyTeamCapabilitiesResponseSchema,
   organisationsMyTeamCapabilitiesStatus200Schema,
@@ -18060,6 +19014,7 @@ export {
 export {
   organisationsRevokeAdminApiKeyErrorSchema,
   organisationsRevokeAdminApiKeyPathKeyIdSchema,
+  organisationsRevokeAdminApiKeyPathSchema,
   organisationsRevokeAdminApiKeyResponseSchema,
   organisationsRevokeAdminApiKeyStatus200Schema,
   organisationsRevokeAdminApiKeyStatus401Schema,
@@ -18069,9 +19024,11 @@ export {
 } from "./zod/organisationsRevokeAdminApiKeySchema.js";
 export {
   organisationsRevokeInvitationErrorSchema,
+  organisationsRevokeInvitationHeadersSchema,
   organisationsRevokeInvitationHeaderXBarrelsOrganisationSchema,
   organisationsRevokeInvitationPathInvitationIdSchema,
   organisationsRevokeInvitationPathOrganisationIdSchema,
+  organisationsRevokeInvitationPathSchema,
   organisationsRevokeInvitationResponseSchema,
   organisationsRevokeInvitationStatus204Schema,
   organisationsRevokeInvitationStatus400Schema,
@@ -18083,8 +19040,10 @@ export {
 } from "./zod/organisationsRevokeInvitationSchema.js";
 export {
   organisationsRevokeMemberGrantErrorSchema,
+  organisationsRevokeMemberGrantHeadersSchema,
   organisationsRevokeMemberGrantHeaderXBarrelsOrganisationSchema,
   organisationsRevokeMemberGrantPathGrantIdSchema,
+  organisationsRevokeMemberGrantPathSchema,
   organisationsRevokeMemberGrantResponseSchema,
   organisationsRevokeMemberGrantStatus200Schema,
   organisationsRevokeMemberGrantStatus400Schema,
@@ -18096,8 +19055,10 @@ export {
 } from "./zod/organisationsRevokeMemberGrantSchema.js";
 export {
   organisationsRevokeOrgApiKeyErrorSchema,
+  organisationsRevokeOrgApiKeyHeadersSchema,
   organisationsRevokeOrgApiKeyHeaderXBarrelsOrganisationSchema,
   organisationsRevokeOrgApiKeyPathKeyIdSchema,
+  organisationsRevokeOrgApiKeyPathSchema,
   organisationsRevokeOrgApiKeyResponseSchema,
   organisationsRevokeOrgApiKeyStatus200Schema,
   organisationsRevokeOrgApiKeyStatus400Schema,
@@ -18109,8 +19070,10 @@ export {
 export {
   organisationsRotateApiKeyBodySchema,
   organisationsRotateApiKeyErrorSchema,
+  organisationsRotateApiKeyHeadersSchema,
   organisationsRotateApiKeyHeaderXBarrelsOrganisationSchema,
   organisationsRotateApiKeyPathKeyIdSchema,
+  organisationsRotateApiKeyPathSchema,
   organisationsRotateApiKeyResponseSchema,
   organisationsRotateApiKeyStatus201Schema,
   organisationsRotateApiKeyStatus400Schema,
@@ -18125,6 +19088,7 @@ export {
   organisationsSetAppErrorSchema,
   organisationsSetAppPathAppKeySchema,
   organisationsSetAppPathOrganisationIdSchema,
+  organisationsSetAppPathSchema,
   organisationsSetAppResponseSchema,
   organisationsSetAppStatus200Schema,
   organisationsSetAppStatus401Schema,
@@ -18136,6 +19100,7 @@ export {
   organisationsUnverifyOneBodySchema,
   organisationsUnverifyOneErrorSchema,
   organisationsUnverifyOnePathOrganisationIdSchema,
+  organisationsUnverifyOnePathSchema,
   organisationsUnverifyOneResponseSchema,
   organisationsUnverifyOneStatus200Schema,
   organisationsUnverifyOneStatus401Schema,
@@ -18147,6 +19112,7 @@ export {
 export {
   organisationsUpdateAdminSiteBodySchema,
   organisationsUpdateAdminSiteErrorSchema,
+  organisationsUpdateAdminSitePathSchema,
   organisationsUpdateAdminSitePathSiteIdSchema,
   organisationsUpdateAdminSiteResponseSchema,
   organisationsUpdateAdminSiteStatus200Schema,
@@ -18160,6 +19126,7 @@ export {
   organisationsUpdateMemberAdminErrorSchema,
   organisationsUpdateMemberAdminPathMembershipIdSchema,
   organisationsUpdateMemberAdminPathOrganisationIdSchema,
+  organisationsUpdateMemberAdminPathSchema,
   organisationsUpdateMemberAdminResponseSchema,
   organisationsUpdateMemberAdminStatus200Schema,
   organisationsUpdateMemberAdminStatus401Schema,
@@ -18171,9 +19138,11 @@ export {
 export {
   organisationsUpdateMemberBodySchema,
   organisationsUpdateMemberErrorSchema,
+  organisationsUpdateMemberHeadersSchema,
   organisationsUpdateMemberHeaderXBarrelsOrganisationSchema,
   organisationsUpdateMemberPathMembershipIdSchema,
   organisationsUpdateMemberPathOrganisationIdSchema,
+  organisationsUpdateMemberPathSchema,
   organisationsUpdateMemberResponseSchema,
   organisationsUpdateMemberStatus200Schema,
   organisationsUpdateMemberStatus400Schema,
@@ -18187,6 +19156,7 @@ export {
   organisationsUpdateOneBodySchema,
   organisationsUpdateOneErrorSchema,
   organisationsUpdateOnePathOrganisationIdSchema,
+  organisationsUpdateOnePathSchema,
   organisationsUpdateOneResponseSchema,
   organisationsUpdateOneStatus200Schema,
   organisationsUpdateOneStatus401Schema,
@@ -18199,6 +19169,7 @@ export {
   organisationsVerifyOneBodySchema,
   organisationsVerifyOneErrorSchema,
   organisationsVerifyOnePathOrganisationIdSchema,
+  organisationsVerifyOnePathSchema,
   organisationsVerifyOneResponseSchema,
   organisationsVerifyOneStatus200Schema,
   organisationsVerifyOneStatus401Schema,
@@ -18292,6 +19263,7 @@ export {
   paymentsAdminGetReconciliationCsvErrorSchema,
   paymentsAdminGetReconciliationCsvQueryEndDateSchema,
   paymentsAdminGetReconciliationCsvQueryOrganisationIdSchema,
+  paymentsAdminGetReconciliationCsvQuerySchema,
   paymentsAdminGetReconciliationCsvQueryStartDateSchema,
   paymentsAdminGetReconciliationCsvResponseSchema,
   paymentsAdminGetReconciliationCsvStatus200Schema,
@@ -18303,6 +19275,7 @@ export {
   paymentsAdminGetReconciliationErrorSchema,
   paymentsAdminGetReconciliationQueryEndDateSchema,
   paymentsAdminGetReconciliationQueryOrganisationIdSchema,
+  paymentsAdminGetReconciliationQuerySchema,
   paymentsAdminGetReconciliationQueryStartDateSchema,
   paymentsAdminGetReconciliationResponseSchema,
   paymentsAdminGetReconciliationStatus200Schema,
@@ -18323,6 +19296,7 @@ export {
   paymentsAdminListIntentsErrorSchema,
   paymentsAdminListIntentsQueryOrganisationIdSchema,
   paymentsAdminListIntentsQueryPageSchema,
+  paymentsAdminListIntentsQuerySchema,
   paymentsAdminListIntentsQuerySizeSchema,
   paymentsAdminListIntentsQueryStatusSchema,
   paymentsAdminListIntentsResponseSchema,
@@ -18336,6 +19310,7 @@ export {
   paymentsAdminListLedgerQueryKindSchema,
   paymentsAdminListLedgerQueryOrganisationIdSchema,
   paymentsAdminListLedgerQueryPageSchema,
+  paymentsAdminListLedgerQuerySchema,
   paymentsAdminListLedgerQuerySizeSchema,
   paymentsAdminListLedgerResponseSchema,
   paymentsAdminListLedgerStatus200Schema,
@@ -18346,6 +19321,7 @@ export {
 export {
   paymentsCreateIntentBodySchema,
   paymentsCreateIntentErrorSchema,
+  paymentsCreateIntentHeadersSchema,
   paymentsCreateIntentHeaderXBarrelsOrganisationSchema,
   paymentsCreateIntentResponseSchema,
   paymentsCreateIntentStatus201Schema,
@@ -18361,8 +19337,10 @@ export {
 export {
   paymentsCreateRefundBodySchema,
   paymentsCreateRefundErrorSchema,
+  paymentsCreateRefundHeadersSchema,
   paymentsCreateRefundHeaderXBarrelsOrganisationSchema,
   paymentsCreateRefundPathIntentIdSchema,
+  paymentsCreateRefundPathSchema,
   paymentsCreateRefundResponseSchema,
   paymentsCreateRefundStatus201Schema,
   paymentsCreateRefundStatus400Schema,
@@ -18376,6 +19354,7 @@ export {
 } from "./zod/paymentsCreateRefundSchema.js";
 export {
   paymentsGetBalanceErrorSchema,
+  paymentsGetBalanceHeadersSchema,
   paymentsGetBalanceHeaderXBarrelsOrganisationSchema,
   paymentsGetBalanceResponseSchema,
   paymentsGetBalanceStatus200Schema,
@@ -18385,8 +19364,10 @@ export {
 } from "./zod/paymentsGetBalanceSchema.js";
 export {
   paymentsGetIntentErrorSchema,
+  paymentsGetIntentHeadersSchema,
   paymentsGetIntentHeaderXBarrelsOrganisationSchema,
   paymentsGetIntentPathIntentIdSchema,
+  paymentsGetIntentPathSchema,
   paymentsGetIntentResponseSchema,
   paymentsGetIntentStatus200Schema,
   paymentsGetIntentStatus401Schema,
@@ -18396,8 +19377,10 @@ export {
 } from "./zod/paymentsGetIntentSchema.js";
 export {
   paymentsListIntentsErrorSchema,
+  paymentsListIntentsHeadersSchema,
   paymentsListIntentsHeaderXBarrelsOrganisationSchema,
   paymentsListIntentsQueryPageSchema,
+  paymentsListIntentsQuerySchema,
   paymentsListIntentsQuerySizeSchema,
   paymentsListIntentsQuerySourceIdSchema,
   paymentsListIntentsQuerySourceTypeSchema,
@@ -18411,8 +19394,10 @@ export {
 export {
   paymentsRecordManualPaymentBodySchema,
   paymentsRecordManualPaymentErrorSchema,
+  paymentsRecordManualPaymentHeadersSchema,
   paymentsRecordManualPaymentHeaderXBarrelsOrganisationSchema,
   paymentsRecordManualPaymentPathIntentIdSchema,
+  paymentsRecordManualPaymentPathSchema,
   paymentsRecordManualPaymentResponseSchema,
   paymentsRecordManualPaymentStatus201Schema,
   paymentsRecordManualPaymentStatus400Schema,
@@ -18528,8 +19513,10 @@ export { refundCreatePropertiesMethodEnumSchema } from "./zod/refundCreateProper
 export { refundCreateSchema } from "./zod/refundCreateSchema.js";
 export { refundPublicSchema } from "./zod/refundPublicSchema.js";
 export { refundStatusSchema } from "./zod/refundStatusSchema.js";
+export { registerObservationCorrectionSchema } from "./zod/registerObservationCorrectionSchema.js";
 export { registerObservationCreateSchema } from "./zod/registerObservationCreateSchema.js";
 export { registerObservationListSchema } from "./zod/registerObservationListSchema.js";
+export { registerObservationReadPropertiesReviewOutcomeAnyOfEnumSchema } from "./zod/registerObservationReadPropertiesReviewOutcomeAnyOfEnumSchema.js";
 export { registerObservationReadPropertiesStateEnumSchema } from "./zod/registerObservationReadPropertiesStateEnumSchema.js";
 export { registerObservationReadSchema } from "./zod/registerObservationReadSchema.js";
 export { reportCreatePropertiesSubjectTypeEnumSchema } from "./zod/reportCreatePropertiesSubjectTypeEnumSchema.js";
@@ -18553,6 +19540,7 @@ export { reviewAssignmentSchema } from "./zod/reviewAssignmentSchema.js";
 export { reviewInputPropertiesDecisionEnumSchema } from "./zod/reviewInputPropertiesDecisionEnumSchema.js";
 export { reviewInputSchema } from "./zod/reviewInputSchema.js";
 export { reviewPublicSchema } from "./zod/reviewPublicSchema.js";
+export { reviewRequestSchema } from "./zod/reviewRequestSchema.js";
 export { rewardCardPublicSchema } from "./zod/rewardCardPublicSchema.js";
 export { rewardEntryListPublicSchema } from "./zod/rewardEntryListPublicSchema.js";
 export { rewardEntryPublicSchema } from "./zod/rewardEntryPublicSchema.js";
@@ -18574,6 +19562,7 @@ export {
 export {
   rewardsAdminListFlagsErrorSchema,
   rewardsAdminListFlagsQueryIncludeResolvedSchema,
+  rewardsAdminListFlagsQuerySchema,
   rewardsAdminListFlagsResponseSchema,
   rewardsAdminListFlagsStatus200Schema,
   rewardsAdminListFlagsStatus401Schema,
@@ -18583,6 +19572,7 @@ export {
 export {
   rewardsAdminListProgramsErrorSchema,
   rewardsAdminListProgramsQueryPageSchema,
+  rewardsAdminListProgramsQuerySchema,
   rewardsAdminListProgramsQuerySizeSchema,
   rewardsAdminListProgramsResponseSchema,
   rewardsAdminListProgramsStatus200Schema,
@@ -18594,6 +19584,7 @@ export {
   rewardsAdminResolveFlagBodySchema,
   rewardsAdminResolveFlagErrorSchema,
   rewardsAdminResolveFlagPathFlagIdSchema,
+  rewardsAdminResolveFlagPathSchema,
   rewardsAdminResolveFlagResponseSchema,
   rewardsAdminResolveFlagStatus200Schema,
   rewardsAdminResolveFlagStatus400Schema,
@@ -18606,6 +19597,7 @@ export {
 export {
   rewardsCancelRedemptionErrorSchema,
   rewardsCancelRedemptionPathRedemptionIdSchema,
+  rewardsCancelRedemptionPathSchema,
   rewardsCancelRedemptionResponseSchema,
   rewardsCancelRedemptionStatus200Schema,
   rewardsCancelRedemptionStatus400Schema,
@@ -18620,6 +19612,7 @@ export { rewardsChallengePublicSchema } from "./zod/rewardsChallengePublicSchema
 export {
   rewardsConfirmRedemptionBodySchema,
   rewardsConfirmRedemptionErrorSchema,
+  rewardsConfirmRedemptionHeadersSchema,
   rewardsConfirmRedemptionHeaderXBarrelsOrganisationSchema,
   rewardsConfirmRedemptionResponseSchema,
   rewardsConfirmRedemptionStatus200Schema,
@@ -18658,6 +19651,7 @@ export {
 export {
   rewardsCreateProgramBodySchema,
   rewardsCreateProgramErrorSchema,
+  rewardsCreateProgramHeadersSchema,
   rewardsCreateProgramHeaderXBarrelsOrganisationSchema,
   rewardsCreateProgramResponseSchema,
   rewardsCreateProgramStatus201Schema,
@@ -18670,10 +19664,12 @@ export {
 } from "./zod/rewardsCreateProgramSchema.js";
 export {
   rewardsGetLeaderboardErrorSchema,
+  rewardsGetLeaderboardPathSchema,
   rewardsGetLeaderboardPathScopeIdSchema,
   rewardsGetLeaderboardPathScopeKindSchema,
   rewardsGetLeaderboardQueryLimitSchema,
   rewardsGetLeaderboardQueryMetricSchema,
+  rewardsGetLeaderboardQuerySchema,
   rewardsGetLeaderboardResponseSchema,
   rewardsGetLeaderboardStatus200Schema,
   rewardsGetLeaderboardStatus400Schema,
@@ -18740,6 +19736,7 @@ export {
 export {
   rewardsListMyEntriesErrorSchema,
   rewardsListMyEntriesQueryPageSchema,
+  rewardsListMyEntriesQuerySchema,
   rewardsListMyEntriesQuerySizeSchema,
   rewardsListMyEntriesResponseSchema,
   rewardsListMyEntriesStatus200Schema,
@@ -18765,6 +19762,7 @@ export {
 } from "./zod/rewardsListMyTicketsSchema.js";
 export {
   rewardsListProgramsErrorSchema,
+  rewardsListProgramsHeadersSchema,
   rewardsListProgramsHeaderXBarrelsOrganisationSchema,
   rewardsListProgramsResponseSchema,
   rewardsListProgramsStatus200Schema,
@@ -18793,6 +19791,7 @@ export {
 export {
   rewardsOptInToLeaderboardBodySchema,
   rewardsOptInToLeaderboardErrorSchema,
+  rewardsOptInToLeaderboardPathSchema,
   rewardsOptInToLeaderboardPathScopeIdSchema,
   rewardsOptInToLeaderboardPathScopeKindSchema,
   rewardsOptInToLeaderboardResponseSchema,
@@ -18807,7 +19806,9 @@ export {
 export {
   rewardsOrgAddTrailStopBodySchema,
   rewardsOrgAddTrailStopErrorSchema,
+  rewardsOrgAddTrailStopHeadersSchema,
   rewardsOrgAddTrailStopHeaderXBarrelsOrganisationSchema,
+  rewardsOrgAddTrailStopPathSchema,
   rewardsOrgAddTrailStopPathTrailIdSchema,
   rewardsOrgAddTrailStopResponseSchema,
   rewardsOrgAddTrailStopStatus201Schema,
@@ -18821,6 +19822,7 @@ export {
 export {
   rewardsOrgCreateAchievementBodySchema,
   rewardsOrgCreateAchievementErrorSchema,
+  rewardsOrgCreateAchievementHeadersSchema,
   rewardsOrgCreateAchievementHeaderXBarrelsOrganisationSchema,
   rewardsOrgCreateAchievementResponseSchema,
   rewardsOrgCreateAchievementStatus201Schema,
@@ -18834,6 +19836,7 @@ export {
 export {
   rewardsOrgCreateChallengeBodySchema,
   rewardsOrgCreateChallengeErrorSchema,
+  rewardsOrgCreateChallengeHeadersSchema,
   rewardsOrgCreateChallengeHeaderXBarrelsOrganisationSchema,
   rewardsOrgCreateChallengeResponseSchema,
   rewardsOrgCreateChallengeStatus201Schema,
@@ -18847,6 +19850,7 @@ export {
 export {
   rewardsOrgCreateTrailBodySchema,
   rewardsOrgCreateTrailErrorSchema,
+  rewardsOrgCreateTrailHeadersSchema,
   rewardsOrgCreateTrailHeaderXBarrelsOrganisationSchema,
   rewardsOrgCreateTrailResponseSchema,
   rewardsOrgCreateTrailStatus201Schema,
@@ -18860,6 +19864,7 @@ export {
 export {
   rewardsOrgCreateVenueBodySchema,
   rewardsOrgCreateVenueErrorSchema,
+  rewardsOrgCreateVenueHeadersSchema,
   rewardsOrgCreateVenueHeaderXBarrelsOrganisationSchema,
   rewardsOrgCreateVenueResponseSchema,
   rewardsOrgCreateVenueStatus201Schema,
@@ -18875,9 +19880,11 @@ export { rewardsOrgEntryListPublicSchema } from "./zod/rewardsOrgEntryListPublic
 export { rewardsOrgEntryPublicSchema } from "./zod/rewardsOrgEntryPublicSchema.js";
 export {
   rewardsOrgGetLeaderboardErrorSchema,
+  rewardsOrgGetLeaderboardHeadersSchema,
   rewardsOrgGetLeaderboardHeaderXBarrelsOrganisationSchema,
   rewardsOrgGetLeaderboardQueryLimitSchema,
   rewardsOrgGetLeaderboardQueryMetricSchema,
+  rewardsOrgGetLeaderboardQuerySchema,
   rewardsOrgGetLeaderboardResponseSchema,
   rewardsOrgGetLeaderboardStatus200Schema,
   rewardsOrgGetLeaderboardStatus400Schema,
@@ -18889,7 +19896,9 @@ export {
 } from "./zod/rewardsOrgGetLeaderboardSchema.js";
 export {
   rewardsOrgGetVenueQrTokenErrorSchema,
+  rewardsOrgGetVenueQrTokenHeadersSchema,
   rewardsOrgGetVenueQrTokenHeaderXBarrelsOrganisationSchema,
+  rewardsOrgGetVenueQrTokenPathSchema,
   rewardsOrgGetVenueQrTokenPathVenueIdSchema,
   rewardsOrgGetVenueQrTokenResponseSchema,
   rewardsOrgGetVenueQrTokenStatus200Schema,
@@ -18902,6 +19911,7 @@ export {
 } from "./zod/rewardsOrgGetVenueQrTokenSchema.js";
 export {
   rewardsOrgListAchievementsErrorSchema,
+  rewardsOrgListAchievementsHeadersSchema,
   rewardsOrgListAchievementsHeaderXBarrelsOrganisationSchema,
   rewardsOrgListAchievementsResponseSchema,
   rewardsOrgListAchievementsStatus200Schema,
@@ -18913,6 +19923,7 @@ export {
 } from "./zod/rewardsOrgListAchievementsSchema.js";
 export {
   rewardsOrgListChallengesErrorSchema,
+  rewardsOrgListChallengesHeadersSchema,
   rewardsOrgListChallengesHeaderXBarrelsOrganisationSchema,
   rewardsOrgListChallengesResponseSchema,
   rewardsOrgListChallengesStatus200Schema,
@@ -18925,10 +19936,12 @@ export {
 } from "./zod/rewardsOrgListChallengesSchema.js";
 export {
   rewardsOrgListEntriesErrorSchema,
+  rewardsOrgListEntriesHeadersSchema,
   rewardsOrgListEntriesHeaderXBarrelsOrganisationSchema,
   rewardsOrgListEntriesQueryKindSchema,
   rewardsOrgListEntriesQueryPageSchema,
   rewardsOrgListEntriesQueryProgramIdSchema,
+  rewardsOrgListEntriesQuerySchema,
   rewardsOrgListEntriesQuerySizeSchema,
   rewardsOrgListEntriesResponseSchema,
   rewardsOrgListEntriesStatus200Schema,
@@ -18940,9 +19953,11 @@ export {
 } from "./zod/rewardsOrgListEntriesSchema.js";
 export {
   rewardsOrgListRedemptionsErrorSchema,
+  rewardsOrgListRedemptionsHeadersSchema,
   rewardsOrgListRedemptionsHeaderXBarrelsOrganisationSchema,
   rewardsOrgListRedemptionsQueryPageSchema,
   rewardsOrgListRedemptionsQueryProgramIdSchema,
+  rewardsOrgListRedemptionsQuerySchema,
   rewardsOrgListRedemptionsQuerySizeSchema,
   rewardsOrgListRedemptionsResponseSchema,
   rewardsOrgListRedemptionsStatus200Schema,
@@ -18954,6 +19969,7 @@ export {
 } from "./zod/rewardsOrgListRedemptionsSchema.js";
 export {
   rewardsOrgListTrailsErrorSchema,
+  rewardsOrgListTrailsHeadersSchema,
   rewardsOrgListTrailsHeaderXBarrelsOrganisationSchema,
   rewardsOrgListTrailsResponseSchema,
   rewardsOrgListTrailsStatus200Schema,
@@ -18965,6 +19981,7 @@ export {
 } from "./zod/rewardsOrgListTrailsSchema.js";
 export {
   rewardsOrgListVenuesErrorSchema,
+  rewardsOrgListVenuesHeadersSchema,
   rewardsOrgListVenuesHeaderXBarrelsOrganisationSchema,
   rewardsOrgListVenuesResponseSchema,
   rewardsOrgListVenuesStatus200Schema,
@@ -18976,8 +19993,10 @@ export {
 } from "./zod/rewardsOrgListVenuesSchema.js";
 export {
   rewardsOrgPauseChallengeErrorSchema,
+  rewardsOrgPauseChallengeHeadersSchema,
   rewardsOrgPauseChallengeHeaderXBarrelsOrganisationSchema,
   rewardsOrgPauseChallengePathChallengeIdSchema,
+  rewardsOrgPauseChallengePathSchema,
   rewardsOrgPauseChallengeResponseSchema,
   rewardsOrgPauseChallengeStatus200Schema,
   rewardsOrgPauseChallengeStatus400Schema,
@@ -18989,8 +20008,10 @@ export {
 } from "./zod/rewardsOrgPauseChallengeSchema.js";
 export {
   rewardsOrgPauseProgramErrorSchema,
+  rewardsOrgPauseProgramHeadersSchema,
   rewardsOrgPauseProgramHeaderXBarrelsOrganisationSchema,
   rewardsOrgPauseProgramPathProgramIdSchema,
+  rewardsOrgPauseProgramPathSchema,
   rewardsOrgPauseProgramResponseSchema,
   rewardsOrgPauseProgramStatus200Schema,
   rewardsOrgPauseProgramStatus400Schema,
@@ -19002,8 +20023,10 @@ export {
 } from "./zod/rewardsOrgPauseProgramSchema.js";
 export {
   rewardsOrgResumeChallengeErrorSchema,
+  rewardsOrgResumeChallengeHeadersSchema,
   rewardsOrgResumeChallengeHeaderXBarrelsOrganisationSchema,
   rewardsOrgResumeChallengePathChallengeIdSchema,
+  rewardsOrgResumeChallengePathSchema,
   rewardsOrgResumeChallengeResponseSchema,
   rewardsOrgResumeChallengeStatus200Schema,
   rewardsOrgResumeChallengeStatus400Schema,
@@ -19015,8 +20038,10 @@ export {
 } from "./zod/rewardsOrgResumeChallengeSchema.js";
 export {
   rewardsOrgResumeProgramErrorSchema,
+  rewardsOrgResumeProgramHeadersSchema,
   rewardsOrgResumeProgramHeaderXBarrelsOrganisationSchema,
   rewardsOrgResumeProgramPathProgramIdSchema,
+  rewardsOrgResumeProgramPathSchema,
   rewardsOrgResumeProgramResponseSchema,
   rewardsOrgResumeProgramStatus200Schema,
   rewardsOrgResumeProgramStatus400Schema,
@@ -19029,7 +20054,9 @@ export {
 export {
   rewardsOrgUpdateTrailBodySchema,
   rewardsOrgUpdateTrailErrorSchema,
+  rewardsOrgUpdateTrailHeadersSchema,
   rewardsOrgUpdateTrailHeaderXBarrelsOrganisationSchema,
+  rewardsOrgUpdateTrailPathSchema,
   rewardsOrgUpdateTrailPathTrailIdSchema,
   rewardsOrgUpdateTrailResponseSchema,
   rewardsOrgUpdateTrailStatus200Schema,
@@ -19056,6 +20083,7 @@ export {
 export {
   rewardsReverseGiftErrorSchema,
   rewardsReverseGiftPathGiftIdSchema,
+  rewardsReverseGiftPathSchema,
   rewardsReverseGiftResponseSchema,
   rewardsReverseGiftStatus204Schema,
   rewardsReverseGiftStatus400Schema,
@@ -19073,8 +20101,10 @@ export { rewardsTrailUpdateSchema } from "./zod/rewardsTrailUpdateSchema.js";
 export {
   rewardsUpdateProgramBodySchema,
   rewardsUpdateProgramErrorSchema,
+  rewardsUpdateProgramHeadersSchema,
   rewardsUpdateProgramHeaderXBarrelsOrganisationSchema,
   rewardsUpdateProgramPathProgramIdSchema,
+  rewardsUpdateProgramPathSchema,
   rewardsUpdateProgramResponseSchema,
   rewardsUpdateProgramStatus200Schema,
   rewardsUpdateProgramStatus400Schema,
@@ -19088,6 +20118,7 @@ export { rewardsVenueCreateSchema } from "./zod/rewardsVenueCreateSchema.js";
 export { rewardsVenuePublicSchema } from "./zod/rewardsVenuePublicSchema.js";
 export {
   rewardsWithdrawFromLeaderboardErrorSchema,
+  rewardsWithdrawFromLeaderboardPathSchema,
   rewardsWithdrawFromLeaderboardPathScopeIdSchema,
   rewardsWithdrawFromLeaderboardPathScopeKindSchema,
   rewardsWithdrawFromLeaderboardResponseSchema,
@@ -19192,6 +20223,15 @@ export { staffInputSchema } from "./zod/staffInputSchema.js";
 export { staffOrganiserRowSchema } from "./zod/staffOrganiserRowSchema.js";
 export { staffSetupSchema } from "./zod/staffSetupSchema.js";
 export { staffUpdateSchema } from "./zod/staffUpdateSchema.js";
+export { stationCreatePropertiesSourceKindEnumSchema } from "./zod/stationCreatePropertiesSourceKindEnumSchema.js";
+export { stationCreateSchema } from "./zod/stationCreateSchema.js";
+export { stationRecordListSchema } from "./zod/stationRecordListSchema.js";
+export { stationRecordPropertiesScheduleEnumSchema } from "./zod/stationRecordPropertiesScheduleEnumSchema.js";
+export { stationRecordSchema } from "./zod/stationRecordSchema.js";
+export { stationSettingsPropertiesPendingItemsEnumSchema } from "./zod/stationSettingsPropertiesPendingItemsEnumSchema.js";
+export { stationSettingsSchema } from "./zod/stationSettingsSchema.js";
+export { stationSettingsUpdateSchema } from "./zod/stationSettingsUpdateSchema.js";
+export { stationUpdateSchema } from "./zod/stationUpdateSchema.js";
 export { statusReportCreateSchema } from "./zod/statusReportCreateSchema.js";
 export { statusReportDetailsSchema } from "./zod/statusReportDetailsSchema.js";
 export { statusReportEntryInputSchema } from "./zod/statusReportEntryInputSchema.js";
@@ -19209,7 +20249,9 @@ export { stockMovementPublicSchema } from "./zod/stockMovementPublicSchema.js";
 export { stopViewSchema } from "./zod/stopViewSchema.js";
 export {
   storageCompleteUploadErrorSchema,
+  storageCompleteUploadHeadersSchema,
   storageCompleteUploadHeaderXBarrelsOrganisationSchema,
+  storageCompleteUploadPathSchema,
   storageCompleteUploadPathUploadIdSchema,
   storageCompleteUploadResponseSchema,
   storageCompleteUploadStatus200Schema,
@@ -19223,6 +20265,7 @@ export {
 export {
   storageCreateUploadBodySchema,
   storageCreateUploadErrorSchema,
+  storageCreateUploadHeadersSchema,
   storageCreateUploadHeaderXBarrelsOrganisationSchema,
   storageCreateUploadResponseSchema,
   storageCreateUploadStatus201Schema,
@@ -19234,8 +20277,10 @@ export {
 } from "./zod/storageCreateUploadSchema.js";
 export {
   storageGetFileErrorSchema,
+  storageGetFileHeadersSchema,
   storageGetFileHeaderXBarrelsOrganisationSchema,
   storageGetFilePathFileIdSchema,
+  storageGetFilePathSchema,
   storageGetFileResponseSchema,
   storageGetFileStatus200Schema,
   storageGetFileStatus401Schema,
@@ -19247,6 +20292,7 @@ export {
 export {
   storagePublicFileErrorSchema,
   storagePublicFilePathFileIdSchema,
+  storagePublicFilePathSchema,
   storagePublicFileResponseSchema,
   storagePublicFileStatus307Schema,
   storagePublicFileStatus404Schema,
@@ -19260,6 +20306,7 @@ export {
   storesApproveRequisitionBodySchema,
   storesApproveRequisitionErrorSchema,
   storesApproveRequisitionPathRequisitionIdSchema,
+  storesApproveRequisitionPathSchema,
   storesApproveRequisitionResponseSchema,
   storesApproveRequisitionStatus200Schema,
   storesApproveRequisitionStatus400Schema,
@@ -19272,6 +20319,7 @@ export {
 export {
   storesCancelRequisitionErrorSchema,
   storesCancelRequisitionPathRequisitionIdSchema,
+  storesCancelRequisitionPathSchema,
   storesCancelRequisitionResponseSchema,
   storesCancelRequisitionStatus200Schema,
   storesCancelRequisitionStatus400Schema,
@@ -19333,6 +20381,7 @@ export {
   storesDeliverRequisitionBodySchema,
   storesDeliverRequisitionErrorSchema,
   storesDeliverRequisitionPathRequisitionIdSchema,
+  storesDeliverRequisitionPathSchema,
   storesDeliverRequisitionResponseSchema,
   storesDeliverRequisitionStatus200Schema,
   storesDeliverRequisitionStatus400Schema,
@@ -19353,6 +20402,7 @@ export {
 export {
   storesGetRequisitionErrorSchema,
   storesGetRequisitionPathRequisitionIdSchema,
+  storesGetRequisitionPathSchema,
   storesGetRequisitionResponseSchema,
   storesGetRequisitionStatus200Schema,
   storesGetRequisitionStatus401Schema,
@@ -19366,6 +20416,7 @@ export {
   storesListItemsQueryCategorySchema,
   storesListItemsQueryPageSchema,
   storesListItemsQueryQSchema,
+  storesListItemsQuerySchema,
   storesListItemsQuerySizeSchema,
   storesListItemsResponseSchema,
   storesListItemsStatus200Schema,
@@ -19386,6 +20437,7 @@ export {
   storesListRequisitionsQueryDepartmentIdSchema,
   storesListRequisitionsQueryMineSchema,
   storesListRequisitionsQueryPageSchema,
+  storesListRequisitionsQuerySchema,
   storesListRequisitionsQuerySizeSchema,
   storesListRequisitionsQueryStatusSchema,
   storesListRequisitionsResponseSchema,
@@ -19400,6 +20452,7 @@ export {
   storesListStockMovementsQueryLocationIdSchema,
   storesListStockMovementsQueryPageSchema,
   storesListStockMovementsQueryRequisitionIdSchema,
+  storesListStockMovementsQuerySchema,
   storesListStockMovementsQuerySizeSchema,
   storesListStockMovementsResponseSchema,
   storesListStockMovementsStatus200Schema,
@@ -19412,6 +20465,7 @@ export {
   storesListStockQueryItemIdSchema,
   storesListStockQueryLocationIdSchema,
   storesListStockQueryPageSchema,
+  storesListStockQuerySchema,
   storesListStockQuerySizeSchema,
   storesListStockResponseSchema,
   storesListStockStatus200Schema,
@@ -19423,6 +20477,7 @@ export {
   storesRejectRequisitionBodySchema,
   storesRejectRequisitionErrorSchema,
   storesRejectRequisitionPathRequisitionIdSchema,
+  storesRejectRequisitionPathSchema,
   storesRejectRequisitionResponseSchema,
   storesRejectRequisitionStatus200Schema,
   storesRejectRequisitionStatus400Schema,
@@ -19435,6 +20490,7 @@ export {
 export {
   storesSubmitRequisitionErrorSchema,
   storesSubmitRequisitionPathRequisitionIdSchema,
+  storesSubmitRequisitionPathSchema,
   storesSubmitRequisitionResponseSchema,
   storesSubmitRequisitionStatus200Schema,
   storesSubmitRequisitionStatus400Schema,
@@ -19448,6 +20504,7 @@ export {
   storesUpdateItemBodySchema,
   storesUpdateItemErrorSchema,
   storesUpdateItemPathItemIdSchema,
+  storesUpdateItemPathSchema,
   storesUpdateItemResponseSchema,
   storesUpdateItemStatus200Schema,
   storesUpdateItemStatus400Schema,
@@ -19461,6 +20518,7 @@ export {
   storesUpdateLocationBodySchema,
   storesUpdateLocationErrorSchema,
   storesUpdateLocationPathLocationIdSchema,
+  storesUpdateLocationPathSchema,
   storesUpdateLocationResponseSchema,
   storesUpdateLocationStatus200Schema,
   storesUpdateLocationStatus400Schema,
@@ -19474,6 +20532,7 @@ export {
   storesUpdateRequisitionBodySchema,
   storesUpdateRequisitionErrorSchema,
   storesUpdateRequisitionPathRequisitionIdSchema,
+  storesUpdateRequisitionPathSchema,
   storesUpdateRequisitionResponseSchema,
   storesUpdateRequisitionStatus200Schema,
   storesUpdateRequisitionStatus400Schema,
@@ -19489,6 +20548,7 @@ export { subscribeAcceptedSchema } from "./zod/subscribeAcceptedSchema.js";
 export { subscribeRequestSchema } from "./zod/subscribeRequestSchema.js";
 export {
   subscriptionsConfirmSubscriptionErrorSchema,
+  subscriptionsConfirmSubscriptionQuerySchema,
   subscriptionsConfirmSubscriptionQueryTokenSchema,
   subscriptionsConfirmSubscriptionResponseSchema,
   subscriptionsConfirmSubscriptionStatus303Schema,
@@ -19505,6 +20565,7 @@ export {
 export {
   subscriptionsSubscribeToSiteBodySchema,
   subscriptionsSubscribeToSiteErrorSchema,
+  subscriptionsSubscribeToSitePathSchema,
   subscriptionsSubscribeToSitePathSiteKeySchema,
   subscriptionsSubscribeToSiteResponseSchema,
   subscriptionsSubscribeToSiteStatus202Schema,
@@ -19514,6 +20575,7 @@ export {
 } from "./zod/subscriptionsSubscribeToSiteSchema.js";
 export {
   subscriptionsUnsubscribeErrorSchema,
+  subscriptionsUnsubscribeQuerySchema,
   subscriptionsUnsubscribeQueryTokenSchema,
   subscriptionsUnsubscribeResponseSchema,
   subscriptionsUnsubscribeStatus303Schema,
@@ -19593,6 +20655,7 @@ export { transportAccessSchema } from "./zod/transportAccessSchema.js";
 export {
   transportAddTimetableTripBodySchema,
   transportAddTimetableTripErrorSchema,
+  transportAddTimetableTripPathSchema,
   transportAddTimetableTripPathVersionIdSchema,
   transportAddTimetableTripResponseSchema,
   transportAddTimetableTripStatus201Schema,
@@ -19635,6 +20698,7 @@ export {
 } from "./zod/transportCreateTimetableDraftSchema.js";
 export {
   transportDeleteTimetableTripErrorSchema,
+  transportDeleteTimetableTripPathSchema,
   transportDeleteTimetableTripPathTripIdSchema,
   transportDeleteTimetableTripPathVersionIdSchema,
   transportDeleteTimetableTripResponseSchema,
@@ -19648,6 +20712,7 @@ export {
 export { transportDirectionSchema } from "./zod/transportDirectionSchema.js";
 export {
   transportDiscardTimetableDraftErrorSchema,
+  transportDiscardTimetableDraftPathSchema,
   transportDiscardTimetableDraftPathVersionIdSchema,
   transportDiscardTimetableDraftResponseSchema,
   transportDiscardTimetableDraftStatus200Schema,
@@ -19683,6 +20748,7 @@ export {
 } from "./zod/transportGetCurrentTimetableSchema.js";
 export {
   transportGetTimetableVersionErrorSchema,
+  transportGetTimetableVersionPathSchema,
   transportGetTimetableVersionPathVersionIdSchema,
   transportGetTimetableVersionResponseSchema,
   transportGetTimetableVersionStatus200Schema,
@@ -19702,6 +20768,7 @@ export {
 export {
   transportPublishTimetableDraftBodySchema,
   transportPublishTimetableDraftErrorSchema,
+  transportPublishTimetableDraftPathSchema,
   transportPublishTimetableDraftPathVersionIdSchema,
   transportPublishTimetableDraftResponseSchema,
   transportPublishTimetableDraftStatus200Schema,
@@ -19714,6 +20781,7 @@ export {
 export {
   transportReplaceTimetableTripBodySchema,
   transportReplaceTimetableTripErrorSchema,
+  transportReplaceTimetableTripPathSchema,
   transportReplaceTimetableTripPathTripIdSchema,
   transportReplaceTimetableTripPathVersionIdSchema,
   transportReplaceTimetableTripResponseSchema,
@@ -19742,6 +20810,7 @@ export {
   transportUpdateRouteEntryBodySchema,
   transportUpdateRouteEntryErrorSchema,
   transportUpdateRouteEntryPathRouteIdSchema,
+  transportUpdateRouteEntryPathSchema,
   transportUpdateRouteEntryResponseSchema,
   transportUpdateRouteEntryStatus200Schema,
   transportUpdateRouteEntryStatus403Schema,
@@ -19753,6 +20822,7 @@ export {
 export {
   transportUpdateStopBodySchema,
   transportUpdateStopErrorSchema,
+  transportUpdateStopPathSchema,
   transportUpdateStopPathStopIdSchema,
   transportUpdateStopResponseSchema,
   transportUpdateStopStatus200Schema,
@@ -19765,6 +20835,7 @@ export {
 export {
   transportUpdateTimetableDraftBodySchema,
   transportUpdateTimetableDraftErrorSchema,
+  transportUpdateTimetableDraftPathSchema,
   transportUpdateTimetableDraftPathVersionIdSchema,
   transportUpdateTimetableDraftResponseSchema,
   transportUpdateTimetableDraftStatus200Schema,
@@ -19776,6 +20847,19 @@ export {
 } from "./zod/transportUpdateTimetableDraftSchema.js";
 export { transportWeekdaySchema } from "./zod/transportWeekdaySchema.js";
 export { tripViewSchema } from "./zod/tripViewSchema.js";
+export { tropicalSystemCreateSchema } from "./zod/tropicalSystemCreateSchema.js";
+export { tropicalSystemEntryReadPropertiesActionEnumSchema } from "./zod/tropicalSystemEntryReadPropertiesActionEnumSchema.js";
+export { tropicalSystemEntryReadSchema } from "./zod/tropicalSystemEntryReadSchema.js";
+export { tropicalSystemHistorySchema } from "./zod/tropicalSystemHistorySchema.js";
+export { tropicalSystemListSchema } from "./zod/tropicalSystemListSchema.js";
+export { tropicalSystemPublicEntrySchema } from "./zod/tropicalSystemPublicEntrySchema.js";
+export { tropicalSystemPublicHistorySchema } from "./zod/tropicalSystemPublicHistorySchema.js";
+export { tropicalSystemPublicListSchema } from "./zod/tropicalSystemPublicListSchema.js";
+export { tropicalSystemPublicPropertiesStatusEnumSchema } from "./zod/tropicalSystemPublicPropertiesStatusEnumSchema.js";
+export { tropicalSystemPublicSchema } from "./zod/tropicalSystemPublicSchema.js";
+export { tropicalSystemReadPropertiesClosedReasonAnyOfEnumSchema } from "./zod/tropicalSystemReadPropertiesClosedReasonAnyOfEnumSchema.js";
+export { tropicalSystemReadSchema } from "./zod/tropicalSystemReadSchema.js";
+export { tropicalSystemUpdateSchema } from "./zod/tropicalSystemUpdateSchema.js";
 export { turnstileModeSchema } from "./zod/turnstileModeSchema.js";
 export { twoFactorCodeRequestSchema } from "./zod/twoFactorCodeRequestSchema.js";
 export { twoFactorDisableRequestSchema } from "./zod/twoFactorDisableRequestSchema.js";
@@ -19816,6 +20900,7 @@ export {
 export {
   utilsTestEmailErrorSchema,
   utilsTestEmailQueryEmailToSchema,
+  utilsTestEmailQuerySchema,
   utilsTestEmailResponseSchema,
   utilsTestEmailStatus201Schema,
   utilsTestEmailStatus401Schema,
@@ -19851,6 +20936,7 @@ export {
   webhooksOutAdminDisableEndpointBodySchema,
   webhooksOutAdminDisableEndpointErrorSchema,
   webhooksOutAdminDisableEndpointPathEndpointIdSchema,
+  webhooksOutAdminDisableEndpointPathSchema,
   webhooksOutAdminDisableEndpointResponseSchema,
   webhooksOutAdminDisableEndpointStatus200Schema,
   webhooksOutAdminDisableEndpointStatus400Schema,
@@ -19864,6 +20950,7 @@ export {
   webhooksOutAdminListEndpointsErrorSchema,
   webhooksOutAdminListEndpointsQueryOrganisationIdSchema,
   webhooksOutAdminListEndpointsQueryPageSchema,
+  webhooksOutAdminListEndpointsQuerySchema,
   webhooksOutAdminListEndpointsQuerySizeSchema,
   webhooksOutAdminListEndpointsResponseSchema,
   webhooksOutAdminListEndpointsStatus200Schema,
@@ -19876,6 +20963,7 @@ export {
 export {
   webhooksOutCreateEndpointBodySchema,
   webhooksOutCreateEndpointErrorSchema,
+  webhooksOutCreateEndpointHeadersSchema,
   webhooksOutCreateEndpointHeaderXBarrelsOrganisationSchema,
   webhooksOutCreateEndpointResponseSchema,
   webhooksOutCreateEndpointStatus201Schema,
@@ -19888,8 +20976,10 @@ export {
 } from "./zod/webhooksOutCreateEndpointSchema.js";
 export {
   webhooksOutDeleteEndpointErrorSchema,
+  webhooksOutDeleteEndpointHeadersSchema,
   webhooksOutDeleteEndpointHeaderXBarrelsOrganisationSchema,
   webhooksOutDeleteEndpointPathEndpointIdSchema,
+  webhooksOutDeleteEndpointPathSchema,
   webhooksOutDeleteEndpointResponseSchema,
   webhooksOutDeleteEndpointStatus204Schema,
   webhooksOutDeleteEndpointStatus400Schema,
@@ -19900,9 +20990,12 @@ export {
 } from "./zod/webhooksOutDeleteEndpointSchema.js";
 export {
   webhooksOutListDeliveriesErrorSchema,
+  webhooksOutListDeliveriesHeadersSchema,
   webhooksOutListDeliveriesHeaderXBarrelsOrganisationSchema,
   webhooksOutListDeliveriesPathEndpointIdSchema,
+  webhooksOutListDeliveriesPathSchema,
   webhooksOutListDeliveriesQueryPageSchema,
+  webhooksOutListDeliveriesQuerySchema,
   webhooksOutListDeliveriesQuerySizeSchema,
   webhooksOutListDeliveriesResponseSchema,
   webhooksOutListDeliveriesStatus200Schema,
@@ -19914,8 +21007,10 @@ export {
 } from "./zod/webhooksOutListDeliveriesSchema.js";
 export {
   webhooksOutListEndpointsErrorSchema,
+  webhooksOutListEndpointsHeadersSchema,
   webhooksOutListEndpointsHeaderXBarrelsOrganisationSchema,
   webhooksOutListEndpointsQueryPageSchema,
+  webhooksOutListEndpointsQuerySchema,
   webhooksOutListEndpointsQuerySizeSchema,
   webhooksOutListEndpointsResponseSchema,
   webhooksOutListEndpointsStatus200Schema,
@@ -19927,6 +21022,7 @@ export {
 } from "./zod/webhooksOutListEndpointsSchema.js";
 export {
   webhooksOutListEventTypesErrorSchema,
+  webhooksOutListEventTypesHeadersSchema,
   webhooksOutListEventTypesHeaderXBarrelsOrganisationSchema,
   webhooksOutListEventTypesResponseSchema,
   webhooksOutListEventTypesStatus200Schema,
@@ -19938,8 +21034,10 @@ export {
 } from "./zod/webhooksOutListEventTypesSchema.js";
 export {
   webhooksOutRotateSecretErrorSchema,
+  webhooksOutRotateSecretHeadersSchema,
   webhooksOutRotateSecretHeaderXBarrelsOrganisationSchema,
   webhooksOutRotateSecretPathEndpointIdSchema,
+  webhooksOutRotateSecretPathSchema,
   webhooksOutRotateSecretResponseSchema,
   webhooksOutRotateSecretStatus200Schema,
   webhooksOutRotateSecretStatus400Schema,
@@ -19951,8 +21049,10 @@ export {
 } from "./zod/webhooksOutRotateSecretSchema.js";
 export {
   webhooksOutTestEndpointErrorSchema,
+  webhooksOutTestEndpointHeadersSchema,
   webhooksOutTestEndpointHeaderXBarrelsOrganisationSchema,
   webhooksOutTestEndpointPathEndpointIdSchema,
+  webhooksOutTestEndpointPathSchema,
   webhooksOutTestEndpointResponseSchema,
   webhooksOutTestEndpointStatus200Schema,
   webhooksOutTestEndpointStatus400Schema,
@@ -19965,8 +21065,10 @@ export {
 export {
   webhooksOutUpdateEndpointBodySchema,
   webhooksOutUpdateEndpointErrorSchema,
+  webhooksOutUpdateEndpointHeadersSchema,
   webhooksOutUpdateEndpointHeaderXBarrelsOrganisationSchema,
   webhooksOutUpdateEndpointPathEndpointIdSchema,
+  webhooksOutUpdateEndpointPathSchema,
   webhooksOutUpdateEndpointResponseSchema,
   webhooksOutUpdateEndpointStatus200Schema,
   webhooksOutUpdateEndpointStatus400Schema,
@@ -19999,8 +21101,20 @@ export { workingDayHolidaySchema } from "./zod/workingDayHolidaySchema.js";
 export { workingDaysPublicPropertiesMethodEnumSchema } from "./zod/workingDaysPublicPropertiesMethodEnumSchema.js";
 export { workingDaysPublicSchema } from "./zod/workingDaysPublicSchema.js";
 export {
+  wxproductsCreateTropicalSystemBodySchema,
+  wxproductsCreateTropicalSystemErrorSchema,
+  wxproductsCreateTropicalSystemResponseSchema,
+  wxproductsCreateTropicalSystemStatus201Schema,
+  wxproductsCreateTropicalSystemStatus401Schema,
+  wxproductsCreateTropicalSystemStatus403Schema,
+  wxproductsCreateTropicalSystemStatus409Schema,
+  wxproductsCreateTropicalSystemStatus422Schema,
+  wxproductsCreateTropicalSystemStatus503Schema,
+} from "./zod/wxproductsCreateTropicalSystemSchema.js";
+export {
   wxproductsGetPublicProductErrorSchema,
   wxproductsGetPublicProductPathProductIdSchema,
+  wxproductsGetPublicProductPathSchema,
   wxproductsGetPublicProductResponseSchema,
   wxproductsGetPublicProductStatus200Schema,
   wxproductsGetPublicProductStatus404Schema,
@@ -20008,8 +21122,19 @@ export {
   wxproductsGetPublicProductStatus503Schema,
 } from "./zod/wxproductsGetPublicProductSchema.js";
 export {
+  wxproductsGetPublicTropicalSystemErrorSchema,
+  wxproductsGetPublicTropicalSystemPathSchema,
+  wxproductsGetPublicTropicalSystemPathSystemIdSchema,
+  wxproductsGetPublicTropicalSystemResponseSchema,
+  wxproductsGetPublicTropicalSystemStatus200Schema,
+  wxproductsGetPublicTropicalSystemStatus404Schema,
+  wxproductsGetPublicTropicalSystemStatus422Schema,
+  wxproductsGetPublicTropicalSystemStatus503Schema,
+} from "./zod/wxproductsGetPublicTropicalSystemSchema.js";
+export {
   wxproductsListPublicProductsErrorSchema,
   wxproductsListPublicProductsQueryKindSchema,
+  wxproductsListPublicProductsQuerySchema,
   wxproductsListPublicProductsResponseSchema,
   wxproductsListPublicProductsStatus200Schema,
   wxproductsListPublicProductsStatus400Schema,
@@ -20017,8 +21142,30 @@ export {
   wxproductsListPublicProductsStatus503Schema,
 } from "./zod/wxproductsListPublicProductsSchema.js";
 export {
+  wxproductsListPublicTropicalSystemsErrorSchema,
+  wxproductsListPublicTropicalSystemsResponseSchema,
+  wxproductsListPublicTropicalSystemsStatus200Schema,
+  wxproductsListPublicTropicalSystemsStatus422Schema,
+  wxproductsListPublicTropicalSystemsStatus503Schema,
+} from "./zod/wxproductsListPublicTropicalSystemsSchema.js";
+export {
+  wxproductsListTropicalSystemsErrorSchema,
+  wxproductsListTropicalSystemsQueryLimitSchema,
+  wxproductsListTropicalSystemsQueryOffsetSchema,
+  wxproductsListTropicalSystemsQuerySchema,
+  wxproductsListTropicalSystemsQuerySeasonSchema,
+  wxproductsListTropicalSystemsQueryStatusSchema,
+  wxproductsListTropicalSystemsResponseSchema,
+  wxproductsListTropicalSystemsStatus200Schema,
+  wxproductsListTropicalSystemsStatus401Schema,
+  wxproductsListTropicalSystemsStatus403Schema,
+  wxproductsListTropicalSystemsStatus422Schema,
+  wxproductsListTropicalSystemsStatus503Schema,
+} from "./zod/wxproductsListTropicalSystemsSchema.js";
+export {
   wxproductsLoadAviationDraftsErrorSchema,
   wxproductsLoadAviationDraftsQueryKindSchema,
+  wxproductsLoadAviationDraftsQuerySchema,
   wxproductsLoadAviationDraftsQueryStationSchema,
   wxproductsLoadAviationDraftsResponseSchema,
   wxproductsLoadAviationDraftsStatus200Schema,
@@ -20029,6 +21176,7 @@ export {
 export {
   wxproductsLoadAviationHistoryErrorSchema,
   wxproductsLoadAviationHistoryPathDraftIdSchema,
+  wxproductsLoadAviationHistoryPathSchema,
   wxproductsLoadAviationHistoryResponseSchema,
   wxproductsLoadAviationHistoryStatus200Schema,
   wxproductsLoadAviationHistoryStatus403Schema,
@@ -20038,6 +21186,7 @@ export {
 export {
   wxproductsLoadHistoryErrorSchema,
   wxproductsLoadHistoryPathProductIdSchema,
+  wxproductsLoadHistoryPathSchema,
   wxproductsLoadHistoryResponseSchema,
   wxproductsLoadHistoryStatus200Schema,
   wxproductsLoadHistoryStatus401Schema,
@@ -20050,6 +21199,7 @@ export {
   wxproductsLoadObservationsQueryEndSchema,
   wxproductsLoadObservationsQueryKindSchema,
   wxproductsLoadObservationsQueryLimitSchema,
+  wxproductsLoadObservationsQuerySchema,
   wxproductsLoadObservationsQueryStartSchema,
   wxproductsLoadObservationsQueryStationSchema,
   wxproductsLoadObservationsResponseSchema,
@@ -20064,6 +21214,7 @@ export {
   wxproductsLoadProductsQueryKindSchema,
   wxproductsLoadProductsQueryLimitSchema,
   wxproductsLoadProductsQueryOffsetSchema,
+  wxproductsLoadProductsQuerySchema,
   wxproductsLoadProductsResponseSchema,
   wxproductsLoadProductsStatus200Schema,
   wxproductsLoadProductsStatus401Schema,
@@ -20071,6 +21222,18 @@ export {
   wxproductsLoadProductsStatus422Schema,
   wxproductsLoadProductsStatus503Schema,
 } from "./zod/wxproductsLoadProductsSchema.js";
+export {
+  wxproductsLoadTropicalSystemHistoryErrorSchema,
+  wxproductsLoadTropicalSystemHistoryPathSchema,
+  wxproductsLoadTropicalSystemHistoryPathSystemIdSchema,
+  wxproductsLoadTropicalSystemHistoryResponseSchema,
+  wxproductsLoadTropicalSystemHistoryStatus200Schema,
+  wxproductsLoadTropicalSystemHistoryStatus401Schema,
+  wxproductsLoadTropicalSystemHistoryStatus403Schema,
+  wxproductsLoadTropicalSystemHistoryStatus404Schema,
+  wxproductsLoadTropicalSystemHistoryStatus422Schema,
+  wxproductsLoadTropicalSystemHistoryStatus503Schema,
+} from "./zod/wxproductsLoadTropicalSystemHistorySchema.js";
 export {
   wxproductsPreviewProductPdfBodySchema,
   wxproductsPreviewProductPdfErrorSchema,
@@ -20093,6 +21256,7 @@ export {
   wxproductsProductRevisionPdfErrorSchema,
   wxproductsProductRevisionPdfPathProductIdSchema,
   wxproductsProductRevisionPdfPathRevisionSchema,
+  wxproductsProductRevisionPdfPathSchema,
   wxproductsProductRevisionPdfResponseSchema,
   wxproductsProductRevisionPdfStatus200Schema,
   wxproductsProductRevisionPdfStatus401Schema,
@@ -20130,6 +21294,20 @@ export {
   wxproductsSaveProductStatus503Schema,
 } from "./zod/wxproductsSaveProductSchema.js";
 export {
+  wxproductsUpdateTropicalSystemBodySchema,
+  wxproductsUpdateTropicalSystemErrorSchema,
+  wxproductsUpdateTropicalSystemPathSchema,
+  wxproductsUpdateTropicalSystemPathSystemIdSchema,
+  wxproductsUpdateTropicalSystemResponseSchema,
+  wxproductsUpdateTropicalSystemStatus200Schema,
+  wxproductsUpdateTropicalSystemStatus401Schema,
+  wxproductsUpdateTropicalSystemStatus403Schema,
+  wxproductsUpdateTropicalSystemStatus404Schema,
+  wxproductsUpdateTropicalSystemStatus409Schema,
+  wxproductsUpdateTropicalSystemStatus422Schema,
+  wxproductsUpdateTropicalSystemStatus503Schema,
+} from "./zod/wxproductsUpdateTropicalSystemSchema.js";
+export {
   wxproductsValidateAviationMessageBodySchema,
   wxproductsValidateAviationMessageErrorSchema,
   wxproductsValidateAviationMessageResponseSchema,
@@ -20140,6 +21318,7 @@ export {
 export {
   wxwatchArchiveAssetErrorSchema,
   wxwatchArchiveAssetPathAssetIdSchema,
+  wxwatchArchiveAssetPathSchema,
   wxwatchArchiveAssetResponseSchema,
   wxwatchArchiveAssetStatus200Schema,
   wxwatchArchiveAssetStatus200SchemaGif,
@@ -20157,6 +21336,7 @@ export {
   wxwatchArchiveQueryLimitSchema,
   wxwatchArchiveQueryOffsetSchema,
   wxwatchArchiveQueryProductSchema,
+  wxwatchArchiveQuerySchema,
   wxwatchArchiveQuerySourceSchema,
   wxwatchArchiveQueryStartSchema,
   wxwatchArchiveQueryUnknownTimeSchema,
@@ -20169,6 +21349,7 @@ export {
 export {
   wxwatchBulletinErrorSchema,
   wxwatchBulletinPathEditionIdSchema,
+  wxwatchBulletinPathSchema,
   wxwatchBulletinResponseSchema,
   wxwatchBulletinStatus200Schema,
   wxwatchBulletinStatus401Schema,
@@ -20179,6 +21360,7 @@ export {
 export {
   wxwatchEditionAssetsErrorSchema,
   wxwatchEditionAssetsPathEditionIdSchema,
+  wxwatchEditionAssetsPathSchema,
   wxwatchEditionAssetsResponseSchema,
   wxwatchEditionAssetsStatus200Schema,
   wxwatchEditionAssetsStatus401Schema,
@@ -20189,6 +21371,7 @@ export {
 export {
   wxwatchEditionErrorSchema,
   wxwatchEditionPathEditionIdSchema,
+  wxwatchEditionPathSchema,
   wxwatchEditionResponseSchema,
   wxwatchEditionStatus200Schema,
   wxwatchEditionStatus401Schema,
@@ -20205,6 +21388,7 @@ export {
   wxwatchEditionsQueryLimitSchema,
   wxwatchEditionsQueryOffsetSchema,
   wxwatchEditionsQueryProductSchema,
+  wxwatchEditionsQuerySchema,
   wxwatchEditionsQueryStartSchema,
   wxwatchEditionsQueryStormSchema,
   wxwatchEditionsResponseSchema,
@@ -20219,7 +21403,9 @@ export {
   wxwatchFinishRunBodySchema,
   wxwatchFinishRunErrorSchema,
   wxwatchFinishRunHeaderAuthorizationSchema,
+  wxwatchFinishRunHeadersSchema,
   wxwatchFinishRunPathRunIdSchema,
+  wxwatchFinishRunPathSchema,
   wxwatchFinishRunResponseSchema,
   wxwatchFinishRunStatus204Schema,
   wxwatchFinishRunStatus401Schema,
@@ -20229,6 +21415,7 @@ export {
 export {
   wxwatchImageErrorSchema,
   wxwatchImagePathImageIdSchema,
+  wxwatchImagePathSchema,
   wxwatchImageResponseSchema,
   wxwatchImageStatus307Schema,
   wxwatchImageStatus400Schema,
@@ -20239,6 +21426,7 @@ export {
   wxwatchIngestBodySchema,
   wxwatchIngestErrorSchema,
   wxwatchIngestHeaderAuthorizationSchema,
+  wxwatchIngestHeadersSchema,
   wxwatchIngestResponseSchema,
   wxwatchIngestStatus200Schema,
   wxwatchIngestStatus422Schema,
@@ -20246,6 +21434,7 @@ export {
 export {
   wxwatchLatestErrorSchema,
   wxwatchLatestQueryProductSchema,
+  wxwatchLatestQuerySchema,
   wxwatchLatestResponseSchema,
   wxwatchLatestStatus200Schema,
   wxwatchLatestStatus422Schema,
@@ -20253,6 +21442,7 @@ export {
 export {
   wxwatchMetadataErrorSchema,
   wxwatchMetadataQueryDaySchema,
+  wxwatchMetadataQuerySchema,
   wxwatchMetadataResponseSchema,
   wxwatchMetadataStatus200Schema,
   wxwatchMetadataStatus401Schema,
@@ -20302,6 +21492,7 @@ export {
   wxwatchRegisterDerivationBodySchema,
   wxwatchRegisterDerivationErrorSchema,
   wxwatchRegisterDerivationHeaderAuthorizationSchema,
+  wxwatchRegisterDerivationHeadersSchema,
   wxwatchRegisterDerivationResponseSchema,
   wxwatchRegisterDerivationStatus200Schema,
   wxwatchRegisterDerivationStatus422Schema,
@@ -20309,6 +21500,7 @@ export {
 export {
   wxwatchRequestStatusErrorSchema,
   wxwatchRequestStatusPathJobIdSchema,
+  wxwatchRequestStatusPathSchema,
   wxwatchRequestStatusResponseSchema,
   wxwatchRequestStatusStatus200Schema,
   wxwatchRequestStatusStatus401Schema,
@@ -20320,8 +21512,10 @@ export {
 export {
   wxwatchRetrievalsErrorSchema,
   wxwatchRetrievalsPathEditionIdSchema,
+  wxwatchRetrievalsPathSchema,
   wxwatchRetrievalsQueryLimitSchema,
   wxwatchRetrievalsQueryOffsetSchema,
+  wxwatchRetrievalsQuerySchema,
   wxwatchRetrievalsResponseSchema,
   wxwatchRetrievalsStatus200Schema,
   wxwatchRetrievalsStatus401Schema,
@@ -20332,6 +21526,7 @@ export {
 export {
   wxwatchSourceChecksErrorSchema,
   wxwatchSourceChecksQueryEditionIdsSchema,
+  wxwatchSourceChecksQuerySchema,
   wxwatchSourceChecksResponseSchema,
   wxwatchSourceChecksStatus200Schema,
   wxwatchSourceChecksStatus401Schema,
@@ -20344,12 +21539,14 @@ export {
   wxwatchStartRunBodySchema,
   wxwatchStartRunErrorSchema,
   wxwatchStartRunHeaderAuthorizationSchema,
+  wxwatchStartRunHeadersSchema,
   wxwatchStartRunResponseSchema,
   wxwatchStartRunStatus200Schema,
   wxwatchStartRunStatus422Schema,
 } from "./zod/wxwatchStartRunSchema.js";
 export {
   wxwatchWeatherImageErrorSchema,
+  wxwatchWeatherImagePathSchema,
   wxwatchWeatherImagePathStoragePathSchema,
   wxwatchWeatherImageResponseSchema,
   wxwatchWeatherImageStatus307Schema,

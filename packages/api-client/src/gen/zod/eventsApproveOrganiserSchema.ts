@@ -36,3 +36,7 @@ export const eventsApproveOrganiserErrorSchema = z.union([
 ]);
 
 export const eventsApproveOrganiserBodySchema = verificationApprovalSchema;
+
+export const eventsApproveOrganiserPathSchema = z.object({
+  organisation_id: z.string().max(100),
+});

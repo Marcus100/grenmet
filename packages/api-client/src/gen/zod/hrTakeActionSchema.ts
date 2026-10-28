@@ -33,3 +33,7 @@ export const hrTakeActionErrorSchema = z.union([
 ]);
 
 export const hrTakeActionBodySchema = workflowActionRequestSchema;
+
+export const hrTakeActionPathSchema = z.object({
+  instance_id: z.uuid(),
+});

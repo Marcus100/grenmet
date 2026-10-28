@@ -30,3 +30,7 @@ export const capDuplicateAlertErrorSchema = z.union([
   capDuplicateAlertStatus404Schema,
   capDuplicateAlertStatus422Schema,
 ]);
+
+export const capDuplicateAlertPathSchema = z.object({
+  alert_id: z.uuid(),
+});

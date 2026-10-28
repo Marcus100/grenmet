@@ -2,7 +2,6 @@
 
 import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { Transition } from "@headlessui/react";
 import { usePathname } from "next/navigation";
 import { forwardRef, useState } from "react";
 import { env } from "@/lib/env";
@@ -122,12 +121,14 @@ export function Feedback() {
 
   return (
     <div className="relative h-8">
-      <Transition show={!submitted}>
-        <FeedbackForm
-          className="duration-300 data-leave:pointer-events-none data-closed:opacity-0"
-          onSubmit={onSubmit}
-        />
-      </Transition>
+      <FeedbackForm
+        className={cn(
+          "transition-opacity duration-300",
+          submitted && "pointer-events-none opacity-0"
+        )}
+        inert={submitted}
+        onSubmit={onSubmit}
+      />
       {failed && (
         <p
           className="absolute inset-x-0 top-9 text-center text-red-700 text-sm md:text-left dark:text-red-400"
@@ -141,9 +142,9 @@ export function Feedback() {
         resetKey={turnstileReset}
         siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
       />
-      <Transition show={submitted}>
-        <FeedbackThanks className="delay-150 duration-300 data-closed:opacity-0" />
-      </Transition>
+      {submitted && (
+        <FeedbackThanks className="starting:opacity-0 transition-opacity delay-150 duration-300" />
+      )}
     </div>
   );
 }

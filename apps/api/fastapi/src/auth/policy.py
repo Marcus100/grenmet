@@ -1,10 +1,11 @@
 import logging
 import uuid
 
-from sqlalchemy import exists, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import (
+    Permission,
     Role,
     RoleAssignmentScope,
     User,
@@ -17,6 +18,18 @@ from src.utils.datetime import utc_now
 logger = logging.getLogger(__name__)
 
 ERROR_PERMISSION_DENIED = "Insufficient permission for this operation"
+
+# Keys that let a holder decide other people's requests. A role carrying one of
+# them only counts while its holder is still employed (#748): ending employment
+# revokes no role assignment and leaves reports' supervisor_id in place.
+REVIEW_AUTHORITY_KEYS = frozenset(
+    {
+        "timesheet.approve",
+        "leave.request.action",
+        "shift_swap.request.action",
+        "stores.approve",
+    }
+)
 
 
 async def _active_assignments(
@@ -38,9 +51,32 @@ async def _active_assignments(
             ),
         )
     )
+    # No employment record at all (organisation administrators, platform staff)
+    # keeps the assignment; an ended record, or a deactivated account, drops it.
+    live_review_holder = (
+        ~exists(
+            select(EmploymentRecord.id).where(
+                EmploymentRecord.user_id == UserRoleAssignment.user_id,
+                EmploymentRecord.organisation_id == UserRoleAssignment.organisation_id,
+            )
+        )
+        | exists(
+            select(EmploymentRecord.id).where(
+                EmploymentRecord.user_id == UserRoleAssignment.user_id,
+                EmploymentRecord.organisation_id == UserRoleAssignment.organisation_id,
+                EmploymentRecord.status == EmploymentStatus.ACTIVE,
+            )
+        )
+    ) & UserRoleAssignment.user_id.in_(select(User.id).where(User.is_active.is_(True)))
+    review_roles = (
+        select(Role.id)
+        .join(Role.permissions)
+        .where(func.lower(Permission.key).in_(REVIEW_AUTHORITY_KEYS))
+    )
     result = await session.execute(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user_id,
+            ~UserRoleAssignment.role_id.in_(review_roles) | live_review_holder,
             UserRoleAssignment.effective_from <= now,
             UserRoleAssignment.effective_to.is_(None)
             | (UserRoleAssignment.effective_to > now),

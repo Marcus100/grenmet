@@ -11,6 +11,8 @@ import {
   pushUnsubscribeSchema,
 } from "@/lib/alert-signup";
 import { env } from "@/lib/env";
+import { redactRequest } from "@/lib/redact-request";
+import { visitorClient } from "@/lib/visitor-client";
 
 /**
  * Browser notification sign-up for published weather alerts. Validates and
@@ -66,9 +68,11 @@ export async function POST(request: Request) {
   }
   try {
     await pushSubscribe({
-      baseURL: env.AUTH_API_URL,
+      client: await visitorClient(),
       body: { list_key: ALERTS_LIST_KEY, ...parsed.data },
-    }).unwrap();
+    })
+      .unwrap()
+      .catch(redactRequest);
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (error) {
     return failure(error);
@@ -83,9 +87,11 @@ export async function DELETE(request: Request) {
   }
   try {
     await pushUnsubscribe({
-      baseURL: env.AUTH_API_URL,
+      client: await visitorClient(),
       body: { endpoint: parsed.data.endpoint },
-    }).unwrap();
+    })
+      .unwrap()
+      .catch(redactRequest);
     return NextResponse.json({ ok: true });
   } catch (error) {
     return failure(error);

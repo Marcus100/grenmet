@@ -42,3 +42,14 @@ export const eventsGetSettlementErrorSchema = z.union([
   eventsGetSettlementStatus422Schema,
   eventsGetSettlementStatus429Schema,
 ]);
+
+export const eventsGetSettlementPathSchema = z.object({
+  listing_id: z.uuid(),
+});
+
+export const eventsGetSettlementQuerySchema = z.object({
+  organiser: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional()
+    .describe("Organiser to act for when the member manages several."),
+});

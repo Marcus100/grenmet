@@ -31,3 +31,7 @@ export const organisationsGetOneErrorSchema = z.union([
   organisationsGetOneStatus404Schema,
   organisationsGetOneStatus422Schema,
 ]);
+
+export const organisationsGetOnePathSchema = z.object({
+  organisation_id: z.string(),
+});

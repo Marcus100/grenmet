@@ -135,12 +135,18 @@ How each tool loads instructions:
 | Root and nested files | Concatenates `AGENTS.md` from the git root down to its working directory, up to `project_doc_max_bytes` (65 536 here) | Reads root and ancestor `AGENTS.md` files at session start, then nested `AGENTS.md` as it works in those directories (v2.1.277+) |
 | Not loaded automatically | Nested files outside the start path — hence the root instruction map | `.agents/` contents; nested files are loaded as Claude reads in those directories |
 
-`.claude/hooks/` mechanically enforces the Never tier for both tools: a
-`PreToolUse` hook permits ordinary commits/pushes and blocks destructive Git operations and `gh pr merge`.
-(`block-dangerous-git.mjs`) and edits to `.env*`/generated-client files
-(`protect-files.mjs`); a `PostToolUse`/`Stop` hook auto-formats
-(`format-changed-file.mjs` for Claude Code, scoped to the touched file;
-`pnpm fix` for Codex, once per turn). A `scripts/guardrails/*.test.mjs` suite
+`.claude/hooks/` mechanically enforces the local Never tier for both tools.
+`block-dangerous-git.mjs` (a `PreToolUse` hook) blocks destructive Git
+operations and allows `gh pr merge` only into `dev`, only in this repository,
+only with `--match-head-commit` and a complete changed-file list. It blocks
+local agent merges of owner-only paths; the review worker also refuses to
+auto-merge those paths. Factory-control changes require independent code and
+security review before merging into dev. `protect-files.mjs` blocks edits to `.env*`
+and generated-client files. Claude Code's `PostToolUse` hook formats the
+touched file (`format-changed-file.mjs`); Codex has no auto-format (formatting
+is explicit or staged at commit time, so one client never rewrites another's
+dirty files), and both tools' `Stop` hook only asks once for
+`pnpm verify:changed` when the changes have no passing receipt. A `scripts/guardrails/*.test.mjs` suite
 (picked up automatically by `pnpm test:guardrails` and CI) self-checks that
 these hooks stay wired correctly — see `check-agent-config.test.mjs` and
 `agent-hook-behavior.test.mjs`. The Claude settings file permits selected

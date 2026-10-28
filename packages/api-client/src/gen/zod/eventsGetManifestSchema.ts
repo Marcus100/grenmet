@@ -41,3 +41,14 @@ export const eventsGetManifestErrorSchema = z.union([
   eventsGetManifestStatus422Schema,
   eventsGetManifestStatus429Schema,
 ]);
+
+export const eventsGetManifestPathSchema = z.object({
+  listing_id: z.uuid(),
+});
+
+export const eventsGetManifestQuerySchema = z.object({
+  organiser: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional()
+    .describe("Organiser to act for when the member manages several."),
+});

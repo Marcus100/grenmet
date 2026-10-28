@@ -26,3 +26,7 @@ export const hrRemoveHolidayErrorSchema = z.union([
   hrRemoveHolidayStatus404Schema,
   hrRemoveHolidayStatus422Schema,
 ]);
+
+export const hrRemoveHolidayPathSchema = z.object({
+  holiday_id: z.uuid(),
+});

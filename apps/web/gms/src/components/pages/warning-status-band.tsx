@@ -1,4 +1,4 @@
-import { TriangleAlertIcon } from "lucide-react";
+import { ShieldCheckIcon, TriangleAlertIcon } from "lucide-react";
 import {
   type AlertsResult,
   alertsLevel,
@@ -29,6 +29,8 @@ export function WarningStatusBand({
 }) {
   const level = alertsLevel(alerts);
   const unavailable = alerts.status === "unavailable";
+  // Only the all-clear gets the shield; every other state keeps the warning mark.
+  const StatusIcon = level === "none" ? ShieldCheckIcon : TriangleAlertIcon;
   return (
     <div
       className={cn(
@@ -38,7 +40,7 @@ export function WarningStatusBand({
       role="status"
     >
       <p className="flex items-center gap-2 font-bold font-gm-display text-gm-display uppercase tracking-wide">
-        <TriangleAlertIcon aria-hidden="true" className="size-8 shrink-0" />
+        <StatusIcon aria-hidden="true" className="size-8 shrink-0" />
         {alertsSummary(alerts)}
       </p>
       <p className="max-w-prose text-body-base leading-body-base">

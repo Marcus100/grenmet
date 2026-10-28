@@ -45,3 +45,12 @@ export const bookingsCreateServiceErrorSchema = z.union([
 ]);
 
 export const bookingsCreateServiceBodySchema = bookingServiceCreateSchema;
+
+export const bookingsCreateServiceHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+    ),
+});

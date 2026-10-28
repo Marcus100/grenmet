@@ -34,3 +34,7 @@ export const wxproductsListPublicProductsErrorSchema = z.union([
   wxproductsListPublicProductsStatus422Schema,
   wxproductsListPublicProductsStatus503Schema,
 ]);
+
+export const wxproductsListPublicProductsQuerySchema = z.object({
+  kind: z.union([z.string(), z.null()]).optional(),
+});

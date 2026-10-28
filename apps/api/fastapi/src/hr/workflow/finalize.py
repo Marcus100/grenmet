@@ -98,9 +98,13 @@ async def finalize_entity(
             ):
                 raise AppException("Workflow does not match this timesheet", 409)
             approved = instance.status == WorkflowStatus.APPROVED
-            timesheet.status = (
-                TimesheetStatus.APPROVED if approved else TimesheetStatus.REJECTED
-            )
+            if instance.status == WorkflowStatus.RETURNED:
+                timesheet_status = TimesheetStatus.RETURNED
+            elif approved:
+                timesheet_status = TimesheetStatus.APPROVED
+            else:
+                timesheet_status = TimesheetStatus.REJECTED
+            timesheet.status = timesheet_status
             timesheet.approved_by_user_id = actor_id if approved else None
             timesheet.approved_at = utc_now() if approved else None
             timesheet.updated_at = utc_now()
@@ -139,7 +143,7 @@ async def finalize_entity(
     targets = {
         WorkflowStatus.APPROVED: RequestStatus.APPROVED,
         WorkflowStatus.REJECTED: RequestStatus.REJECTED,
-        WorkflowStatus.RETURNED: RequestStatus.DRAFT,
+        WorkflowStatus.RETURNED: RequestStatus.RETURNED,
         WorkflowStatus.CANCELLED: RequestStatus.CANCELLED,
     }
     target = targets.get(instance.status)

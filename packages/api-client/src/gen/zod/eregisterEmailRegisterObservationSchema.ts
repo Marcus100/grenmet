@@ -39,3 +39,7 @@ export const eregisterEmailRegisterObservationErrorSchema = z.union([
 export const eregisterEmailRegisterObservationBodySchema = z
   .union([sendObservationRequestSchema, z.null()])
   .optional();
+
+export const eregisterEmailRegisterObservationPathSchema = z.object({
+  observation_id: z.uuid(),
+});

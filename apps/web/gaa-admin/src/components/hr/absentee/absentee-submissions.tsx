@@ -6,22 +6,18 @@ import {
   useHrGetAbsenteeReports,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
-import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  isEditableStatus,
+  RequestStatusBadge,
+  ReturnedReason,
+} from "@/components/hr/request-status";
 import { formatSubmissionDate } from "@/components/hr/submission-date";
-
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  DRAFT: "outline",
-  SUBMITTED: "outline",
-  APPROVED: "default",
-  REJECTED: "secondary",
-  CANCELLED: "secondary",
-};
 
 export function AbsenteeSubmissions() {
   const query = useHrGetAbsenteeReports({});
@@ -70,7 +66,7 @@ export function AbsenteeSubmissions() {
           <tbody>
             {reports.map((report) => {
               const isOwnedDraft =
-                report.status === "DRAFT" &&
+                isEditableStatus(report.status) &&
                 report.submitted_by_user_id === sessionUser.id;
               return (
                 <tr className="border-border border-t" key={report.id}>
@@ -81,9 +77,11 @@ export function AbsenteeSubmissions() {
                     {formatSubmissionDate(report)}
                   </td>
                   <td className="py-1.5 pr-3">
-                    <Badge variant={STATUS_VARIANT[report.status] ?? "outline"}>
-                      {report.status}
-                    </Badge>
+                    <RequestStatusBadge status={report.status} />
+                    <ReturnedReason
+                      reason={report.returned_reason}
+                      status={report.status}
+                    />
                   </td>
                   <td className="py-1.5 text-right">
                     {isOwnedDraft ? (
@@ -98,16 +96,18 @@ export function AbsenteeSubmissions() {
                           <Pencil data-icon="inline-start" />
                           Edit
                         </Button>
-                        <Button
-                          disabled={pendingId === report.id}
-                          onClick={() => remove(report.id)}
-                          size="sm"
-                          type="button"
-                          variant="ghost"
-                        >
-                          <Trash2 data-icon="inline-start" />
-                          Delete
-                        </Button>
+                        {report.status === "DRAFT" && (
+                          <Button
+                            disabled={pendingId === report.id}
+                            onClick={() => remove(report.id)}
+                            size="sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            <Trash2 data-icon="inline-start" />
+                            Delete
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <span className="text-muted-foreground">—</span>

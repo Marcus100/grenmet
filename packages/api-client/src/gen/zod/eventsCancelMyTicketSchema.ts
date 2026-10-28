@@ -34,3 +34,7 @@ export const eventsCancelMyTicketErrorSchema = z.union([
   eventsCancelMyTicketStatus422Schema,
   eventsCancelMyTicketStatus429Schema,
 ]);
+
+export const eventsCancelMyTicketPathSchema = z.object({
+  ticket_id: z.uuid(),
+});

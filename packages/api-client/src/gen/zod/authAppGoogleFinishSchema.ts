@@ -42,3 +42,7 @@ export const authAppGoogleFinishErrorSchema = z.union([
 ]);
 
 export const authAppGoogleFinishBodySchema = googleFinishSchema;
+
+export const authAppGoogleFinishPathSchema = z.object({
+  app: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/),
+});

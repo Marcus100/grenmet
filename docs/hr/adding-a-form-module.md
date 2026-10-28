@@ -69,6 +69,16 @@ async def create_<form>(*, session, current_user, payload) -> <Form>:
 - Raise typed exceptions from `src/hr/exceptions.py` (add a `<Form>NotFoundError`);
   business-rule failures use `HRValidationError`.
 
+**Returned forms.** An approver can return a submitted form with a required
+reason. `workflow/finalize.py` then sets the form's status to
+`RequestStatus.RETURNED`. Allow edit and submit in both `DRAFT` and `RETURNED`
+with `src.hr.models.EDITABLE_STATUSES` (deleting stays `DRAFT` only, so approval
+history is kept), add the form to the `finalize_entity` map and the
+`finalize_entity` call condition in `workflow/service.py`, and make its public
+schema extend `SubmittedFormPublic` so `returned_reason` reaches the author. The
+portal side is `components/hr/request-status.tsx` (`isEditableStatus`,
+`RequestStatusBadge`, `ReturnedReason`).
+
 ## 5. Router (`router.py`)
 
 `APIRouter(prefix="/hr", tags=["hr-<form>"])`. Every route sets `response_model`,

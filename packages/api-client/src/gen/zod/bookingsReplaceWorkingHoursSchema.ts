@@ -52,3 +52,16 @@ export const bookingsReplaceWorkingHoursBodySchema =
   bookingWorkingHoursUpdateSchema.describe(
     "The provider's complete weekly plan; replaces what was there."
   );
+
+export const bookingsReplaceWorkingHoursPathSchema = z.object({
+  provider_id: z.uuid(),
+});
+
+export const bookingsReplaceWorkingHoursHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+    ),
+});

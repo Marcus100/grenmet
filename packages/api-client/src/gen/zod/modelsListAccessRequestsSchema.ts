@@ -32,3 +32,9 @@ export const modelsListAccessRequestsErrorSchema = z.union([
   modelsListAccessRequestsStatus403Schema,
   modelsListAccessRequestsStatus422Schema,
 ]);
+
+export const modelsListAccessRequestsQuerySchema = z.object({
+  status: z
+    .union([z.string().regex(/^(pending|approved|rejected)$/), z.null()])
+    .optional(),
+});

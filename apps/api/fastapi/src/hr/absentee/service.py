@@ -17,7 +17,7 @@ from src.hr.constants import (
 )
 from src.hr.dependencies import get_absentee_report_or_404
 from src.hr.exceptions import HRPermissionDeniedError, HRValidationError
-from src.hr.models import RequestStatus
+from src.hr.models import EDITABLE_STATUSES, RequestStatus
 from src.hr.roster.expansion import expand_shift
 from src.hr.roster.models import (
     RosterAssignment,
@@ -249,7 +249,7 @@ async def submit_absentee_report(
     )
     if report.submitted_by_user_id != current_user.id:
         raise HRPermissionDeniedError(ERROR_ABSENTEE_REPORT_ACTION_NOT_ALLOWED)
-    if report.status != RequestStatus.DRAFT:
+    if report.status not in EDITABLE_STATUSES:
         raise HRValidationError(ERROR_ABSENTEE_REPORT_NOT_DRAFT)
 
     await validate_absentee_report(
@@ -320,7 +320,7 @@ async def update_absentee_report(
     )
     if report.submitted_by_user_id != current_user.id:
         raise HRPermissionDeniedError(ERROR_ABSENTEE_REPORT_ACTION_NOT_ALLOWED)
-    if report.status != RequestStatus.DRAFT:
+    if report.status not in EDITABLE_STATUSES:
         raise HRValidationError(ERROR_ABSENTEE_REPORT_NOT_DRAFT)
 
     await validate_absentee_report(

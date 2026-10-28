@@ -27,3 +27,7 @@ export const hrGetDocumentErrorSchema = z.union([
   hrGetDocumentStatus404Schema,
   hrGetDocumentStatus422Schema,
 ]);
+
+export const hrGetDocumentPathSchema = z.object({
+  document_id: z.uuid(),
+});

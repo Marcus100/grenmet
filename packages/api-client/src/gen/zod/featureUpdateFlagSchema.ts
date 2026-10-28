@@ -35,3 +35,7 @@ export const featureUpdateFlagErrorSchema = z.union([
 export const featureUpdateFlagBodySchema = featureFlagUpdateSchema.describe(
   "Partial update; send ``null`` to clear a nullable field. The key is immutable."
 );
+
+export const featureUpdateFlagPathSchema = z.object({
+  flag_id: z.string().min(1).max(100),
+});

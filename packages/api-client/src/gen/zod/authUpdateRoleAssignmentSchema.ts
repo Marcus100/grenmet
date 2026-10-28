@@ -30,3 +30,7 @@ export const authUpdateRoleAssignmentErrorSchema = z.union([
 
 export const authUpdateRoleAssignmentBodySchema =
   userRoleAssignmentUpdateSchema;
+
+export const authUpdateRoleAssignmentPathSchema = z.object({
+  assignment_id: z.uuid(),
+});

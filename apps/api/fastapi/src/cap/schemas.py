@@ -249,6 +249,13 @@ class CapAlertAction(BaseModel):
     note: str | None = Field(default=None, max_length=2000)
 
 
+class CapReviewRecord(BaseModel):
+    """An optional colleague review (owner decision 2026-10-23); never blocks."""
+
+    outcome: Literal["reviewed", "changes_requested"]
+    note: str | None = Field(default=None, max_length=2000)
+
+
 class CapEmergencyPublish(BaseModel):
     reason: str = Field(min_length=1, max_length=2000)
 
@@ -378,3 +385,33 @@ class PublicWarnings(BaseModel):
     as_of: UtcDateTime
     groups: list[PublicWarningGroup]
     activeCount: int = Field(ge=0)
+
+
+class CapEscalationCreate(BaseModel):
+    """Raise a saved GMS alert revision to a CAP warning (ADR-0051)."""
+
+    product_id: uuid.UUID
+    revision: int = Field(ge=1, le=1_000_000)
+    awareness_level: Literal["yellow", "orange", "red"]
+    # Required when the colour differs from the matrix's suggestion for the saved
+    # likelihood and impact (WMO impact-based matrix); recorded on the draft.
+    override_reason: str | None = Field(default=None, max_length=1000)
+
+
+class CapEscalationSource(BaseModel):
+    product_id: uuid.UUID
+    revision: int
+    kind: str
+
+
+class CapEscalationLookup(BaseModel):
+    """The CAP warning raised from a GMS alert, if one is open or published."""
+
+    alert_id: uuid.UUID | None = None
+    lifecycle_state: CapLifecycleState | None = None
+
+
+class CapEscalationPublic(BaseModel):
+    alert_id: uuid.UUID
+    created: bool
+    source: CapEscalationSource

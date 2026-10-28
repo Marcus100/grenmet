@@ -1,6 +1,6 @@
 import logging
 import uuid
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any
@@ -25,6 +25,7 @@ from .models import (
     EmailSuppression,
     Notification,
     NotificationDelivery,
+    NotificationOccurrence,
     NotificationPreference,
     NotificationSetting,
     NotificationSnooze,
@@ -107,21 +108,25 @@ async def users_with_roles(
     *,
     organisation_id: str | None,
     department_id: str | None = None,
+    department_ids: Collection[str] = (),
 ) -> set[uuid.UUID]:
     """Active holders of any of ``role_names`` whose grant covers the department.
 
     An ALL-scope grant covers the whole organisation; a DEPARTMENT grant only its
-    department. SELF grants never make someone a recipient for other people.
+    department (``department_id``, or any of ``department_ids`` for an audience
+    spread over several departments). SELF grants never make someone a recipient
+    for other people.
     """
     names = list(role_names)
     if not names or organisation_id is None:
         return set()
     now = utc_now()
     scope = UserRoleAssignment.scope == RoleAssignmentScope.ALL
-    if department_id:
+    covered = {*department_ids, *([department_id] if department_id else [])}
+    if covered:
         scope = scope | (
             (UserRoleAssignment.scope == RoleAssignmentScope.DEPARTMENT)
-            & (UserRoleAssignment.department_id == department_id)
+            & UserRoleAssignment.department_id.in_(covered)
         )
     result = await session.execute(
         select(UserRoleAssignment)
@@ -194,6 +199,7 @@ async def notify(
     dedupe_key: str | None = None,
     suppress_within: timedelta | None = None,
     exclude: Iterable[uuid.UUID] = (),
+    group_key: str | None = None,
 ) -> int:
     """Queue ``event_key`` for ``recipients`` plus the event's configured roles.
 
@@ -202,6 +208,9 @@ async def notify(
     each recipient is told at most once for that key. With ``suppress_within``
     a recipient already told about the same event and entity inside that window
     is skipped, and an active snooze for the event (or entity) silences it.
+    A grouped event folds into the recipient's unread notification of the same
+    ``group_key`` (count up, newest text, no second email). Each person's bell
+    and email choice applies; an urgent event always reaches the bell.
     Returns how many people were notified.
     """
     event = events.get(event_key)
@@ -236,12 +245,15 @@ async def notify(
         {user_id: f"{dedupe_key}:{user_id}" for user_id in active} if dedupe_key else {}
     )
     if keys:
+        seen_column = (
+            NotificationOccurrence.dedupe_key
+            if event.grouped
+            else Notification.dedupe_key
+        )
         sent = set(
             (
                 await session.execute(
-                    select(Notification.dedupe_key).where(
-                        Notification.dedupe_key.in_(keys.values())
-                    )
+                    select(seen_column).where(seen_column.in_(keys.values()))
                 )
             )
             .scalars()
@@ -265,23 +277,74 @@ async def notify(
         active -= set((await session.execute(recent)).scalars().all())
     if not active:
         return 0
-    muted = set(
-        (
+    choices = {
+        row.user_id: row
+        for row in (
             await session.execute(
-                select(NotificationPreference.user_id).where(
+                select(NotificationPreference).where(
                     NotificationPreference.user_id.in_(active),
                     NotificationPreference.event_key == event_key,
-                    NotificationPreference.email_enabled.is_(False),
                 )
             )
-        )
-        .scalars()
-        .all()
-    )
+        ).scalars()
+    }
     title = events.render(setting.title, context)[:200]
     body = events.render(setting.body, context)[:1000]
+    folded: dict[uuid.UUID, Notification] = {}
+    if event.grouped:
+        open_rows = (
+            await session.execute(
+                select(Notification).where(
+                    Notification.recipient_user_id.in_(active),
+                    Notification.event_key == event_key,
+                    Notification.read_at.is_(None),
+                    # A hidden (bell-off) row is never read, so folding into it
+                    # would silence every later email: those recipients get a
+                    # fresh row and an email each time.
+                    Notification.in_bell.is_(True),
+                    Notification.group_key.is_(None)
+                    if group_key is None
+                    else Notification.group_key == group_key,
+                )
+            )
+        ).scalars()
+        for row in open_rows:
+            folded.setdefault(row.recipient_user_id, row)
+    refresh: list[Notification] = []
     deliveries: list[NotificationDelivery] = []
+    occurrences: list[tuple[str, uuid.UUID | None]] = []
+    queued = 0
+    now = utc_now()
     for user_id in active:
+        choice = choices.get(user_id)
+        wants_email = (
+            choice.email_enabled if choice is not None else event.default_email
+        ) or not event.email_mutable
+        in_bell = event.urgent or (
+            choice.bell_enabled if choice is not None else event.default_bell
+        )
+        email = setting.email_enabled and wants_email
+        if not in_bell and not email:
+            # Both channels off: nothing to show or send, but remember the item so
+            # turning a channel back on does not re-announce it.
+            if event.grouped and keys.get(user_id):
+                occurrences.append((keys[user_id], None))
+            continue
+        queued += 1
+        existing = folded.get(user_id)
+        if existing is not None:
+            # SQL expression: concurrent folds each add one instead of
+            # overwriting each other's count.
+            existing.repeat_count = Notification.repeat_count + 1
+            refresh.append(existing)
+            existing.title, existing.body = title, body
+            existing.link_path = link_path
+            existing.entity_type, existing.entity_id = entity_type, entity_id
+            existing.created_at = now
+            existing.in_bell = existing.in_bell or in_bell
+            if keys.get(user_id):
+                occurrences.append((keys[user_id], existing.id))
+            continue
         notification = Notification(
             id=uuid.uuid4(),
             recipient_user_id=user_id,
@@ -292,11 +355,14 @@ async def notify(
             link_path=link_path,
             entity_type=entity_type,
             entity_id=entity_id,
-            dedupe_key=keys.get(user_id),
+            dedupe_key=None if event.grouped else keys.get(user_id),
+            in_bell=in_bell,
+            group_key=group_key if event.grouped else None,
         )
         session.add(notification)
-        wants_email = user_id not in muted or not event.email_mutable
-        if setting.email_enabled and wants_email:
+        if event.grouped and keys.get(user_id):
+            occurrences.append((keys[user_id], notification.id))
+        if email:
             deliveries.append(
                 NotificationDelivery(
                     notification_id=notification.id,
@@ -305,12 +371,18 @@ async def notify(
             )
     # No ORM relationship orders the inserts, so land parents before the outbox.
     await session.flush()
+    for row in refresh:
+        await session.refresh(row, ["repeat_count"])
     session.add_all(deliveries)
+    session.add_all(
+        NotificationOccurrence(dedupe_key=key, notification_id=notification_id)
+        for key, notification_id in occurrences
+    )
     logger.info(
         "Notification queued",
-        extra={"event_key": event_key, "recipients": len(active)},
+        extra={"event_key": event_key, "recipients": queued},
     )
-    return len(active)
+    return queued
 
 
 # ── Inbox ─────────────────────────────────────────────────────────────────────
@@ -324,7 +396,9 @@ async def list_inbox(
     page: int = 1,
     size: int = 20,
 ) -> PaginatedResponse[NotificationPublic]:
-    statement = select(Notification).where(Notification.recipient_user_id == user.id)
+    statement = select(Notification).where(
+        Notification.recipient_user_id == user.id, Notification.in_bell.is_(True)
+    )
     if unread_only:
         statement = statement.where(Notification.read_at.is_(None))
     total = await session.scalar(select(func.count()).select_from(statement.subquery()))
@@ -336,19 +410,29 @@ async def list_inbox(
         )
     ).scalars()
     return PaginatedResponse(
-        data=[
-            NotificationPublic.model_validate(row, from_attributes=True) for row in rows
-        ],
+        data=[_public(row) for row in rows],
         count=total or 0,
         page=page,
         size=size,
     )
 
 
+def _public(row: Notification) -> NotificationPublic:
+    try:
+        urgent = events.get(row.event_key).urgent
+    except KeyError:
+        urgent = False
+    return NotificationPublic.model_validate(row, from_attributes=True).model_copy(
+        update={"urgent": urgent}
+    )
+
+
 async def unread_count(*, session: AsyncSession, user: User) -> UnreadCountPublic:
     count = await session.scalar(
         select(func.count()).where(
-            Notification.recipient_user_id == user.id, Notification.read_at.is_(None)
+            Notification.recipient_user_id == user.id,
+            Notification.in_bell.is_(True),
+            Notification.read_at.is_(None),
         )
     )
     return UnreadCountPublic(count=count or 0)
@@ -393,17 +477,28 @@ async def list_preferences(
             )
         )
     ).scalars()
-    chosen = {row.event_key: row.email_enabled for row in rows}
+    chosen = {row.event_key: row for row in rows}
     return [
-        NotificationPreferencePublic(
-            event_key=event.key,
-            label=event.label,
-            description=event.description,
-            email_mutable=event.email_mutable,
-            email_enabled=chosen.get(event.key, True) or not event.email_mutable,
-        )
+        _preference_public(event, chosen.get(event.key))
         for event in events.all_events()
     ]
+
+
+def _preference_public(
+    event: events.EventDef, row: NotificationPreference | None
+) -> NotificationPreferencePublic:
+    email = row.email_enabled if row is not None else event.default_email
+    bell = row.bell_enabled if row is not None else event.default_bell
+    return NotificationPreferencePublic(
+        event_key=event.key,
+        label=event.label,
+        description=event.description,
+        email_mutable=event.email_mutable,
+        email_enabled=email or not event.email_mutable,
+        bell_mutable=not event.urgent,
+        bell_enabled=bell or event.urgent,
+        urgent=event.urgent,
+    )
 
 
 async def update_preferences(
@@ -419,13 +514,25 @@ async def update_preferences(
             raise AppException(
                 f"Unknown notification '{item.event_key}'", 400
             ) from None
-        if not item.email_enabled and not event.email_mutable:
+        if item.email_enabled is False and not event.email_mutable:
             raise AppException(f"'{event.label}' emails cannot be turned off", 400)
+        if item.bell_enabled is False and event.urgent:
+            raise AppException(
+                f"'{event.label}' is urgent and always appears in the bell", 400
+            )
         row = await session.get(NotificationPreference, (user.id, item.event_key))
         if row is None:
-            row = NotificationPreference(user_id=user.id, event_key=item.event_key)
+            row = NotificationPreference(
+                user_id=user.id,
+                event_key=item.event_key,
+                email_enabled=event.default_email,
+                bell_enabled=event.default_bell,
+            )
             session.add(row)
-        row.email_enabled = item.email_enabled
+        if item.email_enabled is not None:
+            row.email_enabled = item.email_enabled
+        if item.bell_enabled is not None:
+            row.bell_enabled = item.bell_enabled
         row.updated_at = utc_now()
     await session.commit()
     return await list_preferences(session=session, user=user)

@@ -30,3 +30,7 @@ export const hrClosePeriodErrorSchema = z.union([
   hrClosePeriodStatus404Schema,
   hrClosePeriodStatus422Schema,
 ]);
+
+export const hrClosePeriodPathSchema = z.object({
+  period_id: z.uuid(),
+});

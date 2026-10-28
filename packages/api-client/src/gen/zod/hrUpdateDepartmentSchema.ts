@@ -34,3 +34,7 @@ export const hrUpdateDepartmentErrorSchema = z.union([
 ]);
 
 export const hrUpdateDepartmentBodySchema = departmentUpdateSchema;
+
+export const hrUpdateDepartmentPathSchema = z.object({
+  department_id: z.string(),
+});

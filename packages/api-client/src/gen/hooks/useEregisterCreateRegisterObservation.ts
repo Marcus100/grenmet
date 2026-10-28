@@ -13,9 +13,11 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { eregisterCreateRegisterObservation } from "../clients/eregisterCreateRegisterObservation.js";
 import type {
   EregisterCreateRegisterObservationOptions,
+  EregisterCreateRegisterObservationStatus200,
   EregisterCreateRegisterObservationStatus201,
   EregisterCreateRegisterObservationStatus401,
   EregisterCreateRegisterObservationStatus403,
+  EregisterCreateRegisterObservationStatus409,
   EregisterCreateRegisterObservationStatus422,
 } from "../models/EregisterCreateRegisterObservation.js";
 
@@ -31,10 +33,12 @@ export function eregisterCreateRegisterObservationMutationOptions<
 ) {
   const mutationKey = eregisterCreateRegisterObservationMutationKey();
   return mutationOptions<
-    EregisterCreateRegisterObservationStatus201,
+    | EregisterCreateRegisterObservationStatus200
+    | EregisterCreateRegisterObservationStatus201,
     ResponseErrorConfig<
       | EregisterCreateRegisterObservationStatus401
       | EregisterCreateRegisterObservationStatus403
+      | EregisterCreateRegisterObservationStatus409
       | EregisterCreateRegisterObservationStatus422
     >,
     EregisterCreateRegisterObservationOptions,
@@ -52,17 +56,19 @@ export function eregisterCreateRegisterObservationMutationOptions<
 }
 
 /**
- * @description Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record.
+ * @description Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record. A SYNOP is validated first: errors (including a keyed day or hour that does not match `observed_at`) are `422` with the issues in `detail.issues`; warnings are allowed. One live observation exists per station, time and kind: saving again as the observer of an unsent draft updates it in place (`200`); any other existing live observation is `409` (use the correct endpoint). Requires `eregister.observe`, `eregister.qc` or `eregister.send`; a saved SYNOP shows on the public weather site as provisional.
  * @summary Create a register observation
  * {@link /api/v1/eregister/observations}
  */
 export function useEregisterCreateRegisterObservation<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      EregisterCreateRegisterObservationStatus201,
+      | EregisterCreateRegisterObservationStatus200
+      | EregisterCreateRegisterObservationStatus201,
       ResponseErrorConfig<
         | EregisterCreateRegisterObservationStatus401
         | EregisterCreateRegisterObservationStatus403
+        | EregisterCreateRegisterObservationStatus409
         | EregisterCreateRegisterObservationStatus422
       >,
       EregisterCreateRegisterObservationOptions,
@@ -82,10 +88,12 @@ export function useEregisterCreateRegisterObservation<TContext>(
   const baseOptions = eregisterCreateRegisterObservationMutationOptions(
     config
   ) as UseMutationOptions<
-    EregisterCreateRegisterObservationStatus201,
+    | EregisterCreateRegisterObservationStatus200
+    | EregisterCreateRegisterObservationStatus201,
     ResponseErrorConfig<
       | EregisterCreateRegisterObservationStatus401
       | EregisterCreateRegisterObservationStatus403
+      | EregisterCreateRegisterObservationStatus409
       | EregisterCreateRegisterObservationStatus422
     >,
     EregisterCreateRegisterObservationOptions,
@@ -93,10 +101,12 @@ export function useEregisterCreateRegisterObservation<TContext>(
   >;
 
   return useMutation<
-    EregisterCreateRegisterObservationStatus201,
+    | EregisterCreateRegisterObservationStatus200
+    | EregisterCreateRegisterObservationStatus201,
     ResponseErrorConfig<
       | EregisterCreateRegisterObservationStatus401
       | EregisterCreateRegisterObservationStatus403
+      | EregisterCreateRegisterObservationStatus409
       | EregisterCreateRegisterObservationStatus422
     >,
     EregisterCreateRegisterObservationOptions,
@@ -109,10 +119,12 @@ export function useEregisterCreateRegisterObservation<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    EregisterCreateRegisterObservationStatus201,
+    | EregisterCreateRegisterObservationStatus200
+    | EregisterCreateRegisterObservationStatus201,
     ResponseErrorConfig<
       | EregisterCreateRegisterObservationStatus401
       | EregisterCreateRegisterObservationStatus403
+      | EregisterCreateRegisterObservationStatus409
       | EregisterCreateRegisterObservationStatus422
     >,
     EregisterCreateRegisterObservationOptions,

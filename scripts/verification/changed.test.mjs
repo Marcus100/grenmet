@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { apiTestTargets, apiWorkers, planChecks } from "./changed.mjs";
+import {
+  apiTestTargets,
+  apiWorkers,
+  formatSeconds,
+  planChecks,
+} from "./changed.mjs";
 
 const HR_TESTS = /pytest -q tests\/hr$/;
 const FULL_SUITE = /pytest -q$/;
@@ -25,13 +30,20 @@ test("web change formats its files and runs affected turbo tasks", () => {
   assert.deepEqual(find(checks, "format+lint").args.slice(-1), [
     "apps/web/gms/src/app/page.tsx",
   ]);
-  for (const task of ["type-check", "test"])
-    assert.deepEqual(find(checks, task).args, [
-      "turbo",
-      "run",
-      task,
-      "--affected",
-    ]);
+  assert.deepEqual(find(checks, "type-check").args, [
+    "turbo",
+    "run",
+    "type-check",
+    "--affected",
+  ]);
+  // Two test tasks at once: each Vitest config takes half the cores.
+  assert.deepEqual(find(checks, "test").args, [
+    "turbo",
+    "run",
+    "test",
+    "--affected",
+    "--concurrency=2",
+  ]);
 });
 
 test("API domain change runs lint and only that domain's tests", () => {
@@ -260,4 +272,10 @@ test("editing the fuzz test opts it back in", () => {
     testFiles: TEST_FILES,
   });
   assert.match(find(checks, "api tests").args.at(-1), FUZZ_FILE);
+});
+
+test("the summary shows how long each check took", () => {
+  assert.equal(formatSeconds(42), "42s");
+  assert.equal(formatSeconds(65), "1m 05s");
+  assert.equal(formatSeconds(1625), "27m 05s");
 });

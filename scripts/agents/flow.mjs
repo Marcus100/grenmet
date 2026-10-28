@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Flow metrics for the factory, the numbers Warp calls cost per PR and human
-// interactions per PR, adapted to how this repo ships: most work lands as a
-// branch merged into local `dev` (not a GitHub PR), so the unit is a change, one
-// non-sync merge or direct commit on `origin/dev`'s first-parent history.
+// interactions per PR, adapted to how this repo ships: work lands as a PR merged
+// into `dev` (older history also has branches merged locally and direct
+// commits), so the unit is a change, one non-sync merge or direct commit on
+// `origin/dev`'s first-parent history.
 //
 //   changes merged, reverts and revert rate        from git
 //   lead time (first branch commit → merged)       from git

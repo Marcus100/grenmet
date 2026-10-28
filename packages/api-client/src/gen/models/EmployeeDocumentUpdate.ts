@@ -4,7 +4,11 @@
  */
 
 /**
- * @description Correctable metadata only.\n\nCategory is not updatable: moving a MEDICAL document to OTHER would widen who\ncan read it after the fact. Re-file it instead, so the audit trail shows two\nrows rather than one silently reclassified one.
+ * @description Correctable metadata only.
+ *
+ * Category is not updatable: moving a MEDICAL document to OTHER would widen who
+ * can read it after the fact. Re-file it instead, so the audit trail shows two
+ * rows rather than one silently reclassified one.
  * @type object
  */
 export type EmployeeDocumentUpdate = {

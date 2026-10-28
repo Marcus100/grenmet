@@ -53,3 +53,29 @@ export const organisationsListTeamMembersErrorSchema = z.union([
   organisationsListTeamMembersStatus404Schema,
   organisationsListTeamMembersStatus422Schema,
 ]);
+
+export const organisationsListTeamMembersQuerySchema = z.object({
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});
+
+export const organisationsListTeamMembersHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

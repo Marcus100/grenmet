@@ -26,6 +26,11 @@ def read_config(path):
 # Secrets the deployment cannot start without; the CI preflight reads this list.
 REQUIRED_SECRETS = ["POSTGRES_USER", "POSTGRES_PASSWORD", "FASTAPI_DB_PASSWORD", "SECRET_KEY", "FIRST_SUPERUSER", "FIRST_SUPERUSER_PASSWORD", "RESEND_API_KEY", "EMAIL", "USERNAME", "HASHED_PASSWORD", "PAYLOAD_SECRET", "GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET"]
 REQUIRED_SECRETS += [f"{domain}_DB_PASSWORD" for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "CMS"]]
+# Traefik basic-auth user lists (htpasswd bcrypt lines, comma-separated) that only
+# staging uses: the whole-site gate on staging web hosts, and Adminer. Production
+# never receives them, so a staging credential cannot open anything there.
+STAGING_ONLY_SECRETS = ["STAGING_BASIC_AUTH_USERS", "ADMINER_BASIC_AUTH_USERS"]
+HTPASSWD_BCRYPT = re.compile(r"[^\s:,$]+:\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}")
 
 
 def fernet_keys(environment, name):
@@ -161,6 +166,13 @@ def render(config, environment):
     deployment_environment = config.get("ENVIRONMENT")
     if deployment_environment not in {"staging", "production"}:
         raise ValueError("ENVIRONMENT must be staging or production")
+    for key in STAGING_ONLY_SECRETS:
+        users = environment.get(key, "") if deployment_environment == "staging" else ""
+        if deployment_environment == "staging" and not users:
+            raise ValueError(f"{key} is required")
+        if users and not all(HTPASSWD_BCRYPT.fullmatch(entry) for entry in users.split(",")):
+            raise ValueError(f"{key} must be comma-separated htpasswd bcrypt entries (htpasswd -nbB)")
+        values[key] = users
     notification_domains = environment.get("NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS", "").strip()
     if not notification_domains and deployment_environment == "staging":
         notification_domains = "barrels.gd"

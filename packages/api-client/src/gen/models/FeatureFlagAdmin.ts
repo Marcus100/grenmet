@@ -12,7 +12,8 @@ export type FeatureFlagAdmin = {
   enabled: boolean;
   exposed: boolean;
   /**
-   * @description Who a flag is on for. Any matching rule includes the subject; the\nenvironment allowlist (when not empty) gates all of them.
+   * @description Who a flag is on for. Any matching rule includes the subject; the
+   * environment allowlist (when not empty) gates all of them.
    * @type object
    */
   audience: FeatureFlagAudience;

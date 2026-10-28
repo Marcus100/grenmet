@@ -74,3 +74,24 @@ export const eventsListListingsErrorSchema = z.union([
   eventsListListingsStatus401Schema,
   eventsListListingsStatus422Schema,
 ]);
+
+export const eventsListListingsQuerySchema = z.object({
+  when: z
+    .union([eventsListListingsParametersSchemaAnyOfEnumSchema, z.null()])
+    .optional(),
+  category: z
+    .union([groupDetailPropertiesCategoryEnumSchema, z.null()])
+    .optional(),
+  parish: z.union([groupDetailPropertiesParishEnumSchema, z.null()]).optional(),
+  price: z
+    .union([eventsListListingsParametersSchemaAnyOfEnum2Schema, z.null()])
+    .optional(),
+  tag: z.union([z.string().max(30), z.null()]).optional(),
+  q: z.union([z.string().max(100), z.null()]).optional(),
+  organiser: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional(),
+  include_past: z.boolean().optional().default(false),
+  limit: z.int().min(1).max(200).optional().default(100),
+  offset: z.int().min(0).max(100000).optional().default(0),
+});

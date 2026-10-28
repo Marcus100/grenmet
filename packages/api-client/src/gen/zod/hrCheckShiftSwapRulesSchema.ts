@@ -31,3 +31,7 @@ export const hrCheckShiftSwapRulesErrorSchema = z.union([
   hrCheckShiftSwapRulesStatus404Schema,
   hrCheckShiftSwapRulesStatus422Schema,
 ]);
+
+export const hrCheckShiftSwapRulesPathSchema = z.object({
+  shift_swap_id: z.uuid(),
+});

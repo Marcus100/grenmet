@@ -27,3 +27,7 @@ export const eventsGetOrganiserErrorSchema = z.union([
   eventsGetOrganiserStatus404Schema,
   eventsGetOrganiserStatus422Schema,
 ]);
+
+export const eventsGetOrganiserPathSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+});

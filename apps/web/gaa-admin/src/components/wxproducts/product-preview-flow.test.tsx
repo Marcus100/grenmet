@@ -10,7 +10,7 @@ import {
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductDesk } from "./product-desk";
 
-const WEATHER_SUMMARY_LABEL = /Weather summary/;
+const WEATHER_SUMMARY_LABEL = /Weather forecast/;
 
 const actions = vi.hoisted(() => ({
   loadProductsAction: vi.fn(),

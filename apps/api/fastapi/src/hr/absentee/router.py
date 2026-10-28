@@ -4,8 +4,10 @@ from typing import Any
 from fastapi import APIRouter, Response, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr.filenames import preview_filename
 from src.hr.submission import submission_list, submission_public
 from src.pagination import PaginationDep
+from src.utils.pdf_response import PDF_HEADERS_DOC, pdf_response
 
 from . import service
 from .schemas import (
@@ -27,7 +29,11 @@ router = APIRouter(prefix="/hr", tags=["hr-absentee"])
     description="Render an unsaved absentee report with the Python signed-document renderer. Requires scoped absentee.report.create access. Stores no report or signature.",
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "Invalid shift or absence times"},
-        200: {"content": {"application/pdf": {}}, "description": "Draft PDF preview"},
+        200: {
+            "content": {"application/pdf": {}},
+            "description": "Draft PDF preview",
+            "headers": PDF_HEADERS_DOC,
+        },
         403: {"description": "Employee or department is outside the reporter's scope"},
         422: {"description": "Invalid report fields"},
     },
@@ -38,15 +44,7 @@ async def preview_absentee_report_pdf(
     pdf = await service.preview_absentee_report_pdf(
         session=session, current_user=current_user, payload=payload
     )
-    return Response(
-        pdf,
-        media_type="application/pdf",
-        headers={
-            "Cache-Control": "private, no-store",
-            "X-Content-Type-Options": "nosniff",
-            "Content-Disposition": 'inline; filename="absentee-preview.pdf"',
-        },
-    )
+    return pdf_response(pdf, preview_filename("absentee_report"))
 
 
 @router.post(

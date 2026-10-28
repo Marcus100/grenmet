@@ -55,3 +55,22 @@ export const rewardsGetLeaderboardErrorSchema = z.union([
   rewardsGetLeaderboardStatus409Schema,
   rewardsGetLeaderboardStatus422Schema,
 ]);
+
+export const rewardsGetLeaderboardPathSchema = z.object({
+  scope_kind: scopeKindSchema,
+  scope_id: z.string(),
+});
+
+export const rewardsGetLeaderboardQuerySchema = z.object({
+  metric: challengeMetricSchema
+    .optional()
+    .default("venue_check_ins")
+    .describe("Real-world action to rank"),
+  limit: z
+    .int()
+    .min(1)
+    .max(50)
+    .optional()
+    .default(10)
+    .describe("Rows to return (max 50)"),
+});

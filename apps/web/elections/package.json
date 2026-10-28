@@ -20,7 +20,6 @@
     "data:check": "node scripts/history/check.mjs"
   },
   "dependencies": {
-    "@barrelsgd/auth": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@base-ui/react": "catalog:",
     "@sentry/nextjs": "catalog:",

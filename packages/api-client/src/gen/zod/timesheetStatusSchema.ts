@@ -10,4 +10,5 @@ export const timesheetStatusSchema = z.enum([
   "SUBMITTED",
   "APPROVED",
   "REJECTED",
+  "RETURNED",
 ]);

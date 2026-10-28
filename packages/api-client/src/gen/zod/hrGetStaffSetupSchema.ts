@@ -40,3 +40,8 @@ export const hrGetStaffSetupErrorSchema = z.union([
   hrGetStaffSetupStatus409Schema,
   hrGetStaffSetupStatus422Schema,
 ]);
+
+export const hrGetStaffSetupQuerySchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+  unassigned: z.boolean().optional().default(false),
+});
