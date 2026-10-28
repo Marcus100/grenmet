@@ -258,14 +258,14 @@ For staging/production, replace with the actual subdomain hosts (no port needed)
 **Production** (exact hosts; list every app that sends users back to auth):
 
 ```text
-AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,elections.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
+AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
 ```
 
 Staging uses the same labels under `staging.barrels.gd`. The shared Compose file
 gives the `web-auth` service the app-URL variables the code honours as they are
 (auth, gms, docs, weather, signal, mbia, events) and one exact `https://` entry in
 `AUTH_ALLOWED_RETURN_HOSTS` for each other app that signs in through it (admin,
-bookings, cms, elections, gmsdash), all built from `${BASE_DOMAIN}`. A leading-dot
+bookings, cms, gmsdash), all built from `${BASE_DOMAIN}`. A leading-dot
 entry such as `.${BASE_DOMAIN}` is ignored by the code and reaches no app.
 `EXTRA_RETURN_HOSTS`, if set, is appended as it is and must start with a comma.
 `scripts/production/auth-return-origins.test.mjs` fails when an app in the API
@@ -276,11 +276,12 @@ listed in `infra/docker/production.env`; staging uses their staging equivalents.
 The superseded
 weather.gd go-live plan is historical context, not an active allowlist recipe.
 
-### Public sites with "Sign in" (gms, docs, signal, mbia, elections)
+### Public sites with "Sign in" (gms, docs, signal, mbia)
 
 Each site signs in with the Barrels account through auth.barrels.gd (ADR-0017)
 and keeps its own host-only session cookie. "Sign in" appears only when the
-site's secret is set; the same value must be set for the API.
+site's secret is set; the same value must be set for the API. Elections
+(Vercel) has no sign-in and is not listed here.
 
 | Site | Registry key | Secret | Cookie (default) |
 |---|---|---|---|
@@ -288,7 +289,6 @@ site's secret is set; the same value must be set for the API.
 | docs | `docs` | `DOCS_SSO_CLIENT_SECRET` | `docs_session` |
 | signal | `signal` | `SIGNAL_SSO_CLIENT_SECRET` | `signal_session` |
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
-| elections (Vercel) | `elections` | `ELECTIONS_SSO_CLIENT_SECRET` | `elections_session` |
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
 | bookings | `bookings` | `BOOKINGS_SSO_CLIENT_SECRET` | `bookings_session` |
 
@@ -301,8 +301,7 @@ audit logs would key every user on one address.
 
 Each also needs `AUTH_API_URL`, `AUTH_API_V1_STR` and `AUTH_APP_URL`. The API
 needs `<SITE>_APP_URL` (defaults to the local port) and the matching secret.
-Secrets are optional GitHub environment secrets (32+ characters); Elections'
-are set in Vercel and in GitHub (for the API).
+Secrets are optional GitHub environment secrets (32+ characters).
 
 | Variable | Purpose |
 |---|---|
@@ -593,8 +592,8 @@ credentials into staging.
 - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 - Single sign-on (ADR-0017): `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET`
   (required); `EVENTS_SSO_CLIENT_SECRET`, `WEATHER_SSO_CLIENT_SECRET`,
-  `DOCS_SSO_CLIENT_SECRET`, `SIGNAL_SSO_CLIENT_SECRET`, `MBIA_SSO_CLIENT_SECRET`,
-  `ELECTIONS_SSO_CLIENT_SECRET` (optional; each switches on "Sign in" there).
+  `DOCS_SSO_CLIENT_SECRET`, `SIGNAL_SSO_CLIENT_SECRET`, `MBIA_SSO_CLIENT_SECRET`
+  (optional; each switches on "Sign in" there). Elections has no sign-in.
 - CAP signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY` (PEM contents).
 - Email: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `EMAIL_RENDER_SECRET`.
 - Sentry: `SENTRY_DSN_STAGING` in staging, `SENTRY_DSN_PRODUCTION` in production,

@@ -976,9 +976,6 @@ importers:
 
   apps/web/elections:
     dependencies:
-      '@barrelsgd/auth':
-        specifier: workspace:*
-        version: link:../../../packages/auth
       '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
