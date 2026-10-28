@@ -87,6 +87,7 @@ jobs:
         uses: ./.github/actions/setup-node
         with:
           turbo-remote-cache: "true"
+          turbo-team: ${{ vars.TURBO_TEAM }}
 
       - name: Type-check all web apps
         # --affected only on dev PRs; promotion PRs and pushes stay full, like image selection.
@@ -208,6 +209,7 @@ jobs:
         uses: ./.github/actions/setup-node
         with:
           turbo-remote-cache: "true"
+          turbo-team: ${{ vars.TURBO_TEAM }}
 
       - name: Run all TypeScript unit tests
         # gaa-admin is the slowest suite and runs sharded in `gaa-admin-tests`
@@ -246,6 +248,7 @@ jobs:
         uses: ./.github/actions/setup-node
         with:
           turbo-remote-cache: "true"
+          turbo-team: ${{ vars.TURBO_TEAM }}
 
       - name: Run gaa-admin tests (shard ${{ matrix.shard }}/3)
         env:
