@@ -193,3 +193,33 @@ async def test_catalogue_sightings_times_corrections_and_atomic_failure(
         assert connection.scalar(text("SELECT count(*) FROM archive_editions")) == 3
         assert connection.scalar(text("SELECT count(*) FROM archive_assets")) == 2
         assert connection.scalar(text("SELECT count(*) FROM archive_retrievals")) == 4
+
+
+async def test_gnca_run_ingest_and_prefix_enforced(
+    async_client, image_database, monkeypatch
+):
+    assert image_database is None
+    monkeypatch.setattr(wxwatch_settings, "LOCAL_IMAGES_DIR", None)
+    monkeypatch.setattr(wxwatch_settings, "INGEST_TOKEN", SecretStr(TOKEN))
+    run = await async_client.post(
+        "/api/v1/wxwatch/runs", json={"source": "gnca"}, headers=HEADERS
+    )
+    assert run.status_code == 200, run.text
+    payload = {
+        "run_id": run.json()["id"],
+        "storage_path": "gnca/band13.png",
+        "name": "band13.png",
+        "image_url": "https://example.test/band13.png",
+        "checksum": "def",
+        "fetched_at": "2026-09-17T12:01:00Z",
+        "observation_time": "2026-09-17T12:00:00Z",
+    }
+    url = "/api/v1/wxwatch/ingest"
+    ok = await async_client.post(url, json=payload, headers=HEADERS)
+    assert ok.status_code == 200, ok.text
+    assert ok.json()["created"] is True
+    for other in ("cimss/band13.png", "goes19/band13.png"):
+        rejected = await async_client.post(
+            url, json=payload | {"storage_path": other}, headers=HEADERS
+        )
+        assert rejected.status_code == 422
