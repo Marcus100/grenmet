@@ -33,7 +33,7 @@ const base = editorialCollection({
   publishKey: PUBLISH_KEYS["desk-updates"],
   labels: { singular: "Desk update", plural: "Desk updates" },
   admin: {
-    group: "Homepage sections",
+    group: "GMS Content",
     description:
       "From the Desk: the forecast office writing about what it issues, plus service notices. Attach a product to show its live figures; never type forecast figures or warnings here.",
   },
@@ -44,26 +44,23 @@ const base = editorialCollection({
       type: "select",
       required: true,
       defaultValue: "announcement",
+      label: "About (product or service)",
+      admin: {
+        description:
+          "The GMS product or service this post is about. It shows as the small label above the headline.",
+      },
       options: [
-        { label: "Product update", value: "product-update" },
-        { label: "Service update", value: "service-update" },
-        { label: "Announcement", value: "announcement" },
-        { label: "Public notice", value: "public-notice" },
-        { label: "Community update", value: "community-update" },
-      ],
-    },
-    {
-      name: "product",
-      type: "select",
-      options: [
-        { label: "Tropical weather outlook", value: "tropical-outlook" },
-        { label: "Bulletins", value: "bulletins" },
         { label: "Forecasts", value: "forecasts" },
+        { label: "Tropical weather outlook", value: "tropical-outlook" },
+        { label: "Hazard bulletins", value: "bulletins" },
+        { label: "CAP warnings", value: "cap-warnings" },
         { label: "Marine", value: "marine" },
         { label: "Aviation", value: "aviation" },
-        { label: "CAP alerts", value: "cap" },
+        { label: "Climate and data", value: "climate" },
+        { label: "Service notice", value: "service-notice" },
+        { label: "Community and education", value: "community" },
+        { label: "Announcement", value: "announcement" },
       ],
-      admin: { description: "The product this update is about, if any." },
     },
     linkedProductField({
       description:

@@ -46,13 +46,14 @@ export default buildConfig({
     importMap: { baseDir },
     meta: { titleSuffix: " | GMS Content" },
   },
+  // Sidebar order mirrors the weather site's homepage, top to bottom.
   collections: [
+    LivePosts,
     DeskUpdates,
+    ReportNotes,
     Stories,
     Questions,
     Discover,
-    ReportNotes,
-    LivePosts,
     Media,
     Users,
   ],

@@ -64,7 +64,7 @@ describe("public articles feed", () => {
             ? [
                 {
                   ...story({ slug: "updates/2026/09/new-marine-page" }),
-                  kind: "product-update",
+                  kind: "forecasts",
                 },
               ]
             : [],
@@ -81,7 +81,7 @@ describe("public articles feed", () => {
     expect(articles).toHaveLength(1);
     expect(articles[0]).toMatchObject({
       collection: "desk-updates",
-      category: "Product update",
+      category: "Forecasts",
     });
     expect(articles[0]).not.toHaveProperty("document");
   });

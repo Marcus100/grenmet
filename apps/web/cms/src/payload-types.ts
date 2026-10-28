@@ -68,12 +68,12 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    'live-posts': LivePost;
     'desk-updates': DeskUpdate;
+    'report-notes': ReportNote;
     stories: Story;
     questions: Question;
     discover: Discover;
-    'report-notes': ReportNote;
-    'live-posts': LivePost;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -83,12 +83,12 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    'live-posts': LivePostsSelect<false> | LivePostsSelect<true>;
     'desk-updates': DeskUpdatesSelect<false> | DeskUpdatesSelect<true>;
+    'report-notes': ReportNotesSelect<false> | ReportNotesSelect<true>;
     stories: StoriesSelect<false> | StoriesSelect<true>;
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
     discover: DiscoverSelect<false> | DiscoverSelect<true>;
-    'report-notes': ReportNotesSelect<false> | ReportNotesSelect<true>;
-    'live-posts': LivePostsSelect<false> | LivePostsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -137,6 +137,81 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Weather now: videos and audio play under the Video and Audio tabs beside Satellite, Radar and Rainfall; quick updates appear under the duty forecaster's note (which stays on the Weather now page).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "live-posts".
+ */
+export interface LivePost {
+  id: number;
+  title: string;
+  /**
+   * Where the post shows in Weather now: beside the forecaster's note, under the Satellite, Radar, Wind or Seas tab, or as a video or audio to play.
+   */
+  kind: 'update' | 'satellite' | 'radar' | 'wind' | 'seas' | 'video' | 'audio';
+  text?: string | null;
+  /**
+   * Paste the share link. The site shows it only when a reader presses play.
+   */
+  mediaUrl?: string | null;
+  /**
+   * Optional. The post leaves the homepage at this time.
+   */
+  expiresAt?: string | null;
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
+   * Save as Ready for review. An editor with this section's permission publishes.
+   */
+  status: 'draft' | 'review' | 'published';
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  author: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * CMS access is managed by system administrators in GAA Admin → Users.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  fastapiUserId: string;
+  username: string;
+  email: string;
+  permissionKeys?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  isSuperuser?: boolean | null;
+  role: 'author' | 'editor';
+  updatedAt: string;
+  createdAt: string;
+  collection: 'users';
+}
+/**
  * From the Desk: the forecast office writing about what it issues, plus service notices. Attach a product to show its live figures; never type forecast figures or warnings here.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -145,11 +220,20 @@ export interface UserAuthOperations {
 export interface DeskUpdate {
   id: number;
   title: string;
-  kind: 'product-update' | 'service-update' | 'announcement' | 'public-notice' | 'community-update';
   /**
-   * The product this update is about, if any.
+   * The GMS product or service this post is about. It shows as the small label above the headline.
    */
-  product?: ('tropical-outlook' | 'bulletins' | 'forecasts' | 'marine' | 'aviation' | 'cap') | null;
+  kind:
+    | 'forecasts'
+    | 'tropical-outlook'
+    | 'bulletins'
+    | 'cap-warnings'
+    | 'marine'
+    | 'aviation'
+    | 'climate'
+    | 'service-notice'
+    | 'community'
+    | 'announcement';
   /**
    * Optional. Shows this product's live figures with the post; they always come from the forecast system.
    */
@@ -220,45 +304,21 @@ export interface DeskUpdate {
   createdAt: string;
 }
 /**
- * CMS access is managed by system administrators in GAA Admin → Users.
+ * Latest reports: explain an issued report in plain language. Only reports with a published write-up appear on the homepage.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "report-notes".
  */
-export interface User {
-  id: number;
-  fastapiUserId: string;
-  username: string;
-  email: string;
-  permissionKeys?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  isSuperuser?: boolean | null;
-  role: 'author' | 'editor';
-  updatedAt: string;
-  createdAt: string;
-  collection: 'users';
-}
-/**
- * Stories from our atmosphere and ocean: features that explain the weather, the sea and the climate around us.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "stories".
- */
-export interface Story {
+export interface ReportNote {
   id: number;
   title: string;
   /**
-   * Short label above the headline.
+   * The issued report this write-up is about. Its figures come from the forecast system.
    */
-  kicker?: string | null;
-  kind: 'local-story' | 'weather-event' | 'climate' | 'ocean' | 'explainer' | 'community';
+  linkedProduct: {
+    productId: string;
+    kind?: string | null;
+  };
   /**
    * Shown on cards and in search. 240 characters at most.
    */
@@ -266,7 +326,7 @@ export interface Story {
   /**
    * Shown on cards and at the top of the page.
    */
-  image: number | Media;
+  image?: (number | null) | Media;
   imageCaption?: string | null;
   body: {
     root: {
@@ -369,6 +429,108 @@ export interface Media {
   focalY?: number | null;
 }
 /**
+ * Stories from our atmosphere and ocean: features that explain the weather, the sea and the climate around us.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stories".
+ */
+export interface Story {
+  id: number;
+  title: string;
+  /**
+   * Short label above the headline.
+   */
+  kicker?: string | null;
+  /**
+   * Any weather news is welcome; say how it relates to Grenada in the story.
+   */
+  kind: 'grenada' | 'caribbean' | 'world' | 'climate' | 'ocean' | 'explainer';
+  /**
+   * Shown on cards and in search. 240 characters at most.
+   */
+  summary: string;
+  /**
+   * Shown on cards and at the top of the page.
+   */
+  image: number | Media;
+  imageCaption?: string | null;
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * The large story at the top of Stories. Leave unticked to show the newest.
+   */
+  leadOnHomepage?: boolean | null;
+  /**
+   * Used to link related questions, stories and reports.
+   */
+  topics?:
+    | ('tropical' | 'rain' | 'heat' | 'marine' | 'climate' | 'sky' | 'safety' | 'agriculture' | 'aviation' | 'gms')[]
+    | null;
+  /**
+   * Optional. Falls back to the title, summary and image.
+   */
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  /**
+   * Prepare platform-specific copy. Automatic delivery can be added later.
+   */
+  social?: {
+    caption?: string | null;
+    enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
+    /**
+     * Leave empty for manual or immediate sharing.
+     */
+    publishAt?: string | null;
+    xText?: string | null;
+    facebookText?: string | null;
+    instagramText?: string | null;
+    linkedinText?: string | null;
+    whatsappText?: string | null;
+  };
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
+   * Save as Ready for review. An editor with this section's permission publishes.
+   */
+  status: 'draft' | 'review' | 'published';
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  author: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Questions about the weather: the questions people ask, each with a short answer and a full explainer.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -414,6 +576,14 @@ export interface Question {
           }
       )[]
     | null;
+  /**
+   * Shown first in Questions about the weather (up to 5).
+   */
+  featured?: boolean | null;
+  /**
+   * 1 is first. Questions without a number follow, newest first.
+   */
+  featuredOrder?: number | null;
   /**
    * Used to link related questions, stories and reports.
    */
@@ -539,149 +709,6 @@ export interface Discover {
   createdAt: string;
 }
 /**
- * Latest reports: explain an issued report in plain language. Only reports with a published write-up appear on the homepage.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "report-notes".
- */
-export interface ReportNote {
-  id: number;
-  title: string;
-  /**
-   * The issued report this write-up is about. Its figures come from the forecast system.
-   */
-  linkedProduct: {
-    productId: string;
-    kind?: string | null;
-  };
-  /**
-   * Shown on cards and in search. 240 characters at most.
-   */
-  summary: string;
-  /**
-   * Shown on cards and at the top of the page.
-   */
-  image?: (number | null) | Media;
-  imageCaption?: string | null;
-  body: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  /**
-   * Used to link related questions, stories and reports.
-   */
-  topics?:
-    | ('tropical' | 'rain' | 'heat' | 'marine' | 'climate' | 'sky' | 'safety' | 'agriculture' | 'aviation' | 'gms')[]
-    | null;
-  /**
-   * Optional. Falls back to the title, summary and image.
-   */
-  seo?: {
-    title?: string | null;
-    description?: string | null;
-    image?: (number | null) | Media;
-  };
-  /**
-   * Prepare platform-specific copy. Automatic delivery can be added later.
-   */
-  social?: {
-    caption?: string | null;
-    enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
-    /**
-     * Leave empty for manual or immediate sharing.
-     */
-    publishAt?: string | null;
-    xText?: string | null;
-    facebookText?: string | null;
-    instagramText?: string | null;
-    linkedinText?: string | null;
-    whatsappText?: string | null;
-  };
-  /**
-   * Link to an existing product, publication or news source. Linking does not publish the destination.
-   */
-  relatedLinks?:
-    | {
-        title: string;
-        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Built from the title. Fixed once published so links last.
-   */
-  slug: string;
-  /**
-   * Save as Ready for review. An editor with this section's permission publishes.
-   */
-  status: 'draft' | 'review' | 'published';
-  /**
-   * Set when first published; used for ordering and the URL.
-   */
-  publishedAt?: string | null;
-  author: number | User;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Weather now: videos and audio play under the Video and Audio tabs beside Satellite, Radar and Rainfall; quick updates appear under the duty forecaster's note (which stays on the Weather now page).
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "live-posts".
- */
-export interface LivePost {
-  id: number;
-  title: string;
-  kind: 'update' | 'video' | 'audio';
-  text?: string | null;
-  /**
-   * Paste the share link. The site shows it only when a reader presses play.
-   */
-  mediaUrl?: string | null;
-  /**
-   * Optional. The post leaves the homepage at this time.
-   */
-  expiresAt?: string | null;
-  /**
-   * Link to an existing product, publication or news source. Linking does not publish the destination.
-   */
-  relatedLinks?:
-    | {
-        title: string;
-        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Built from the title. Fixed once published so links last.
-   */
-  slug: string;
-  /**
-   * Save as Ready for review. An editor with this section's permission publishes.
-   */
-  status: 'draft' | 'review' | 'published';
-  /**
-   * Set when first published; used for ordering and the URL.
-   */
-  publishedAt?: string | null;
-  author: number | User;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -706,8 +733,16 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
+        relationTo: 'live-posts';
+        value: number | LivePost;
+      } | null)
+    | ({
         relationTo: 'desk-updates';
         value: number | DeskUpdate;
+      } | null)
+    | ({
+        relationTo: 'report-notes';
+        value: number | ReportNote;
       } | null)
     | ({
         relationTo: 'stories';
@@ -720,14 +755,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'discover';
         value: number | Discover;
-      } | null)
-    | ({
-        relationTo: 'report-notes';
-        value: number | ReportNote;
-      } | null)
-    | ({
-        relationTo: 'live-posts';
-        value: number | LivePost;
       } | null)
     | ({
         relationTo: 'media';
@@ -781,12 +808,36 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "live-posts_select".
+ */
+export interface LivePostsSelect<T extends boolean = true> {
+  title?: T;
+  kind?: T;
+  text?: T;
+  mediaUrl?: T;
+  expiresAt?: T;
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
+  slug?: T;
+  status?: T;
+  publishedAt?: T;
+  author?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "desk-updates_select".
  */
 export interface DeskUpdatesSelect<T extends boolean = true> {
   title?: T;
   kind?: T;
-  product?: T;
   linkedProduct?:
     | T
     | {
@@ -795,6 +846,57 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
       };
   summary?: T;
   body?: T;
+  social?:
+    | T
+    | {
+        caption?: T;
+        enabledPlatforms?: T;
+        publishAt?: T;
+        xText?: T;
+        facebookText?: T;
+        instagramText?: T;
+        linkedinText?: T;
+        whatsappText?: T;
+      };
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
+  slug?: T;
+  status?: T;
+  publishedAt?: T;
+  author?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "report-notes_select".
+ */
+export interface ReportNotesSelect<T extends boolean = true> {
+  title?: T;
+  linkedProduct?:
+    | T
+    | {
+        productId?: T;
+        kind?: T;
+      };
+  summary?: T;
+  image?: T;
+  imageCaption?: T;
+  body?: T;
+  topics?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
   social?:
     | T
     | {
@@ -834,6 +936,7 @@ export interface StoriesSelect<T extends boolean = true> {
   image?: T;
   imageCaption?: T;
   body?: T;
+  leadOnHomepage?: T;
   topics?: T;
   seo?:
     | T
@@ -878,6 +981,8 @@ export interface QuestionsSelect<T extends boolean = true> {
   shortAnswer?: T;
   body?: T;
   related?: T;
+  featured?: T;
+  featuredOrder?: T;
   topics?: T;
   scienceCheck?:
     | T
@@ -944,82 +1049,6 @@ export interface DiscoverSelect<T extends boolean = true> {
   image?: T;
   imageCaption?: T;
   topics?: T;
-  slug?: T;
-  status?: T;
-  publishedAt?: T;
-  author?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "report-notes_select".
- */
-export interface ReportNotesSelect<T extends boolean = true> {
-  title?: T;
-  linkedProduct?:
-    | T
-    | {
-        productId?: T;
-        kind?: T;
-      };
-  summary?: T;
-  image?: T;
-  imageCaption?: T;
-  body?: T;
-  topics?: T;
-  seo?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
-  social?:
-    | T
-    | {
-        caption?: T;
-        enabledPlatforms?: T;
-        publishAt?: T;
-        xText?: T;
-        facebookText?: T;
-        instagramText?: T;
-        linkedinText?: T;
-        whatsappText?: T;
-      };
-  relatedLinks?:
-    | T
-    | {
-        title?: T;
-        category?: T;
-        url?: T;
-        id?: T;
-      };
-  slug?: T;
-  status?: T;
-  publishedAt?: T;
-  author?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "live-posts_select".
- */
-export interface LivePostsSelect<T extends boolean = true> {
-  title?: T;
-  kind?: T;
-  text?: T;
-  mediaUrl?: T;
-  expiresAt?: T;
-  relatedLinks?:
-    | T
-    | {
-        title?: T;
-        category?: T;
-        url?: T;
-        id?: T;
-      };
   slug?: T;
   status?: T;
   publishedAt?: T;
@@ -1128,7 +1157,7 @@ export interface WeatherNow {
   createdAt?: string | null;
 }
 /**
- * Choose what leads the editorial homepage sections, or hide a section (for example during a hurricane). Anything left empty shows the newest published items.
+ * Change the wording of a homepage section, choose which Discover cards show, or hide a section (for example during a hurricane). What leads a section is set on the posts themselves: Lead story on Stories, Featured on Questions.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "homepage".
@@ -1136,76 +1165,9 @@ export interface WeatherNow {
 export interface Homepage {
   id: number;
   /**
-   * The large story. Default: the newest.
-   */
-  leadStory?: (number | null) | Story;
-  /**
-   * Up to five, in order. Default: the newest.
-   */
-  featuredQuestions?: (number | Question)[] | null;
-  /**
    * Which cards Sky, history and a little fun shows.
    */
   discoverCards?: ('sky' | 'on-this-day' | 'quiz' | 'fact')[] | null;
-  /**
-   * Optionally link a published story or explainer under an activity. Which activities show, and their ratings, come from the forecast system.
-   */
-  exploreReading?: {
-    beach?:
-      | ({
-          relationTo: 'stories';
-          value: number | Story;
-        } | null)
-      | ({
-          relationTo: 'questions';
-          value: number | Question;
-        } | null);
-    fishing?:
-      | ({
-          relationTo: 'stories';
-          value: number | Story;
-        } | null)
-      | ({
-          relationTo: 'questions';
-          value: number | Question;
-        } | null);
-    boating?:
-      | ({
-          relationTo: 'stories';
-          value: number | Story;
-        } | null)
-      | ({
-          relationTo: 'questions';
-          value: number | Question;
-        } | null);
-    growing?:
-      | ({
-          relationTo: 'stories';
-          value: number | Story;
-        } | null)
-      | ({
-          relationTo: 'questions';
-          value: number | Question;
-        } | null);
-    outdoors?:
-      | ({
-          relationTo: 'stories';
-          value: number | Story;
-        } | null)
-      | ({
-          relationTo: 'questions';
-          value: number | Question;
-        } | null);
-    night_sky?:
-      | ({
-          relationTo: 'stories';
-          value: number | Story;
-        } | null)
-      | ({
-          relationTo: 'questions';
-          value: number | Question;
-        } | null);
-  };
   /**
    * Words only: figures and statuses come from the forecast system. Leave a field empty to keep the standard wording.
    */
@@ -1285,19 +1247,7 @@ export interface WeatherNowSelect<T extends boolean = true> {
  * via the `definition` "homepage_select".
  */
 export interface HomepageSelect<T extends boolean = true> {
-  leadStory?: T;
-  featuredQuestions?: T;
   discoverCards?: T;
-  exploreReading?:
-    | T
-    | {
-        beach?: T;
-        fishing?: T;
-        boating?: T;
-        growing?: T;
-        outdoors?: T;
-        night_sky?: T;
-      };
   sectionCopy?:
     | T
     | {

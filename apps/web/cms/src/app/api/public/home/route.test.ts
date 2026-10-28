@@ -37,8 +37,8 @@ describe("public home feed", () => {
   });
 });
 
-describe("homepage pins and Weather now", () => {
-  it("leads with published pins, drops unpublished ones, hides expired notes", async () => {
+describe("homepage leads and Weather now", () => {
+  it("leads with the flagged story and question, then the newest; hides expired notes", async () => {
     const story = (id: number, status = "published") => ({
       id,
       title: `Story ${id}`,
@@ -47,19 +47,29 @@ describe("homepage pins and Weather now", () => {
       status,
       updatedAt: "2026-09-01T00:00:00.000Z",
     });
-    const find = vi.fn(({ collection }: { collection: string }) =>
-      Promise.resolve({
-        docs: collection === "stories" ? [story(1), story(2)] : [],
-      })
+    const question = {
+      id: 7,
+      question: "Why is it humid?",
+      slug: "questions/why-humid",
+      shortAnswer: "Warm sea air holds water.",
+      status: "published",
+      updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    const find = vi.fn(
+      ({ collection, where }: { collection: string; where: unknown }) => {
+        const flagged = JSON.stringify(where).includes("leadOnHomepage");
+        const featured = JSON.stringify(where).includes('"featured"');
+        if (collection === "stories")
+          return Promise.resolve({
+            docs: flagged ? [story(2)] : [story(1), story(2)],
+          });
+        return Promise.resolve({ docs: featured ? [question] : [] });
+      }
     );
     const findGlobal = vi.fn(({ slug }: { slug: string }) =>
       Promise.resolve(
         slug === "homepage"
-          ? {
-              leadStory: story(2),
-              featuredQuestions: [7],
-              hiddenSections: ["discover"],
-            }
+          ? { hiddenSections: ["discover"] }
           : {
               note: {
                 text: "Old note",
@@ -74,14 +84,16 @@ describe("homepage pins and Weather now", () => {
       "2",
       "1",
     ]);
-    expect(body.questions).toEqual({ status: "ok", items: [] });
+    expect(body.questions.items.map((item: { id: string }) => item.id)).toEqual(
+      ["7"]
+    );
     expect(body.settings.hiddenSections).toEqual(["discover"]);
     expect(body.weatherNow.items.note).toBeNull();
     expect(body.weatherNow.items).not.toHaveProperty("imagery");
   });
 });
 
-describe("homepage section wording and Explore today", () => {
+describe("homepage section wording", () => {
   const withHomepage = (homepage: Record<string, unknown>) => {
     const find = vi.fn().mockResolvedValue({ docs: [] });
     const findGlobal = vi.fn(({ slug }: { slug: string }) =>
@@ -90,27 +102,12 @@ describe("homepage section wording and Explore today", () => {
     vi.mocked(getPayload).mockResolvedValue({ find, findGlobal } as never);
   };
 
-  it("passes wording and published links through; drops blanks, drafts and unpopulated links", async () => {
+  it("passes wording through and drops blanks", async () => {
     withHomepage({
       sectionCopy: {
         stories: { kicker: "  ", title: " Island stories ", intro: null },
         explore_today: { intro: "Plan around the weather." },
         desk: { kicker: "", title: "", intro: "" },
-      },
-      exploreReading: {
-        beach: {
-          relationTo: "questions",
-          value: {
-            status: "published",
-            question: "What is a rip current?",
-            slug: "questions/what-is-a-rip-current",
-          },
-        },
-        night_sky: {
-          relationTo: "stories",
-          value: { status: "draft", title: "Draft", slug: "stories/x" },
-        },
-        fishing: { relationTo: "stories", value: 12 },
       },
       hiddenSections: ["grenada-in-data"],
     });
@@ -119,17 +116,12 @@ describe("homepage section wording and Explore today", () => {
       stories: { title: "Island stories" },
       "explore-today": { intro: "Plan around the weather." },
     });
-    expect(settings.exploreReading).toEqual({
-      beach: {
-        collection: "questions",
-        title: "What is a rip current?",
-        slug: "questions/what-is-a-rip-current",
-      },
-    });
+    // Plan your week no longer reads CMS links; the field stays for the site.
+    expect(settings.exploreReading).toEqual({});
     expect(settings.hiddenSections).toEqual(["grenada-in-data"]);
   });
 
-  it("sends no wording or links when unset", async () => {
+  it("sends no wording when unset", async () => {
     withHomepage({});
     const { settings } = await (await GET()).json();
     expect(settings.sectionCopy).toEqual({});

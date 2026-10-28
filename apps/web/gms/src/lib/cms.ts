@@ -314,7 +314,15 @@ const wordsSchema = z.object({
 });
 const livePostSchema = z.object({
   id: z.string(),
-  kind: z.enum(["update", "video", "audio"]),
+  kind: z.enum([
+    "update",
+    "satellite",
+    "radar",
+    "wind",
+    "seas",
+    "video",
+    "audio",
+  ]),
   title: z.string(),
   text: z.string().nullable(),
   mediaUrl: z.string().nullable(),

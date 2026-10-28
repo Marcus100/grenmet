@@ -62,6 +62,14 @@ import {
   down as down_20260930_214145_editorial_reports_and_live,
   up as up_20260930_214145_editorial_reports_and_live,
 } from "./20260930_214145_editorial_reports_and_live";
+import {
+  down as down_20261028_214119_gms_content_schema,
+  up as up_20261028_214119_gms_content_schema,
+} from "./20261028_214119_gms_content_schema";
+import {
+  down as down_20261028_214120_gms_content_data,
+  up as up_20261028_214120_gms_content_data,
+} from "./20261028_214120_gms_content_data";
 
 export const migrations = [
   {
@@ -143,5 +151,15 @@ export const migrations = [
     up: up_20260930_214145_editorial_reports_and_live,
     down: down_20260930_214145_editorial_reports_and_live,
     name: "20260930_214145_editorial_reports_and_live",
+  },
+  {
+    up: up_20261028_214119_gms_content_schema,
+    down: down_20261028_214119_gms_content_schema,
+    name: "20261028_214119_gms_content_schema",
+  },
+  {
+    up: up_20261028_214120_gms_content_data,
+    down: down_20261028_214120_gms_content_data,
+    name: "20261028_214120_gms_content_data",
   },
 ];
