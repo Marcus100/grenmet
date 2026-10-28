@@ -283,8 +283,9 @@ image and is kept as history. CI proves the build, the vulnerability policy
 (298 findings reported on trixie against 381 on bookworm) and, through the
 image smoke step, that WeasyPrint renders a PDF. Compare a rendered forecast
 sheet on staging before promoting: Pango and HarfBuzz are newer and line breaks
-can shift. The development image (`apps/api/fastapi/Dockerfile`) and the weather
-collectors image are still on Debian 12.
+can shift. The development image (`apps/api/fastapi/Dockerfile`) is now on the
+same trixie digest and builds, imports `src.main` and renders a WeasyPrint PDF.
+The weather collectors image is still on Debian 12.
 
 ### API Debian runtime follow-up
 
