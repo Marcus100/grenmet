@@ -155,10 +155,13 @@ describe("report write-ups and Weather now live posts", () => {
                 id: 9,
                 title: "What the marine bulletin means",
                 slug: "reports/2026/09/marine",
-                linkedProduct: {
-                  productId: "0b3c6f1e-1111-4a2b-9c3d-222233334444",
-                  kind: "marine",
-                },
+                relatedLinks: [
+                  {
+                    url: "/weather/issued/0b3c6f1e-1111-4a2b-9c3d-222233334444",
+                    title: "Marine Bulletin",
+                    isMain: true,
+                  },
+                ],
                 updatedAt: "2026-09-30T00:00:00.000Z",
               },
             ],
@@ -174,7 +177,8 @@ describe("report write-ups and Weather now live posts", () => {
     expect(body.stories).toEqual({ status: "unavailable" });
     expect(body.reportNotes.items[0].linkedProduct).toEqual({
       productId: "0b3c6f1e-1111-4a2b-9c3d-222233334444",
-      kind: "marine",
+      kind: null,
+      title: "Marine Bulletin",
     });
     expect(
       // One query per kind, grouped: updates, then videos, then audio.

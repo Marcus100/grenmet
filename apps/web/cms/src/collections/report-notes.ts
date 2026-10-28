@@ -7,7 +7,6 @@ import {
   summaryField,
   topicsField,
 } from "../fields/common";
-import { linkedProductField } from "../fields/linked-product";
 import { guardHazardWords } from "./desk-updates";
 import { editorialCollection } from "./editorial";
 
@@ -19,19 +18,15 @@ const base = editorialCollection({
   slug: "report-notes",
   prefix: "reports",
   publishKey: PUBLISH_KEYS["report-notes"],
+  requireMainProduct: true,
   labels: { singular: "Report write-up", plural: "Report write-ups" },
   admin: {
     group: "GMS Content",
     description:
-      "Latest reports: explain an issued report in plain language. Only reports with a published write-up appear on the homepage.",
+      "Latest reports: explain an issued report in plain language. Paste the issued report under Related links and tick Main link; its figures come from the forecast system. Only reports with a published write-up appear on the homepage.",
   },
   fields: [
     { name: "title", type: "text", required: true, maxLength: 120 },
-    linkedProductField({
-      required: true,
-      description:
-        "The issued report this write-up is about. Its figures come from the forecast system.",
-    }),
     summaryField(240),
     ...coverFields(),
     bodyField(true),

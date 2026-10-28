@@ -767,6 +767,9 @@ importers:
       '@barrelsgd/auth':
         specifier: workspace:*
         version: link:../../../packages/auth
+      '@barrelsgd/gms':
+        specifier: workspace:*
+        version: link:../../../packages/gms
       '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui

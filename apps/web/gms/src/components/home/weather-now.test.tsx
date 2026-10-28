@@ -215,3 +215,65 @@ it("shows a forecaster's note under the imagery tab it belongs to, not beside th
   expect(screen.getByText("Gusty at the airport")).toBeInTheDocument();
   expect(screen.queryByText("Cloud band moving in")).not.toBeInTheDocument();
 });
+
+it("shows a live post's link, building a GMS address from its id", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(
+    home({
+      livePosts: {
+        status: "ok",
+        posts: [
+          {
+            id: "1",
+            kind: "update",
+            title: "Evening forecast is out",
+            text: "Showers late tonight.",
+            mediaUrl: null,
+            publishedAt: "2026-10-28T18:30:00Z",
+            expiresAt: null,
+            relatedLinks: [
+              {
+                title: "Read the forecast",
+                category: "forecast",
+                url: "http://localhost:3003/weather/issued/0b3c6f1e-1111-4a2b-9c3d-222233334444",
+                type: "product",
+                ref: "0b3c6f1e-1111-4a2b-9c3d-222233334444",
+                isMain: false,
+              },
+            ],
+          },
+          {
+            id: "2",
+            kind: "satellite",
+            title: "Cloud band moving in",
+            text: "Reaches Grenada this evening.",
+            mediaUrl: null,
+            publishedAt: "2026-10-28T18:35:00Z",
+            expiresAt: null,
+            relatedLinks: [
+              {
+                title: "Satellite page",
+                category: "article",
+                url: "/weather/satellite",
+                type: "page",
+                ref: "/weather/satellite",
+                isMain: true,
+              },
+            ],
+          },
+        ],
+      },
+    })
+  );
+  render(await WeatherNow());
+  expect(
+    screen.getByRole("link", { name: "Read the forecast" })
+  ).toHaveAttribute(
+    "href",
+    "/weather/issued/0b3c6f1e-1111-4a2b-9c3d-222233334444"
+  );
+  // The satellite note is under the open Satellite tab, with its own link.
+  expect(screen.getByRole("link", { name: "Satellite page" })).toHaveAttribute(
+    "href",
+    "/weather/satellite"
+  );
+});

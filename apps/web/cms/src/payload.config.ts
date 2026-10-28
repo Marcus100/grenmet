@@ -15,7 +15,6 @@ import { Users } from "./collections/users";
 import { getEnv } from "./env";
 import { Homepage } from "./globals/homepage";
 import { WeatherNow } from "./globals/weather-now";
-import { linkedProductsEndpoint } from "./lib/linked-products";
 import { reportPayloadError } from "./lib/report-payload-error";
 
 const env = getEnv();
@@ -58,13 +57,6 @@ export default buildConfig({
     Users,
   ],
   globals: [WeatherNow, Homepage],
-  endpoints: [
-    {
-      path: "/linked-products",
-      method: "get",
-      handler: linkedProductsEndpoint,
-    },
-  ],
   hooks: { afterError: [reportPayloadError] },
   graphQL: { disable: true },
   typescript: {

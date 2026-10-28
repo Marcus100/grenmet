@@ -2210,11 +2210,14 @@ Editorial content lives in bounded collections (`desk-updates`, `stories`,
 `questions`, `discover`) plus `weather-now` and `homepage` globals. Anonymous,
 published-only feeds: `GET /api/public/home` (every homepage part, each
 `{status: "ok", items}` or `{status: "unavailable"}`; `settings` also carries
-`sectionCopy` — editor kicker/title/intro by section key, blanks omitted — and
-`exploreReading` — published read-more links by Explore today activity;
+`sectionCopy` and `exploreReading`, both now always empty (wording and
+Plan your week links are no longer edited in the CMS);
 `reportNotes` and `livePosts` parts added 30 Sep 2026; articles carry
-`linkedProduct: {productId, kind} | null`, resolved by GMS through
-`/wxproducts/public/products/{id}`),
+`relatedLinks` rows `{title, category, url, type, ref, isMain}` (`type` is
+`product`, `cap`, `page` or `link`, worked out from the pasted address; GMS builds
+its own addresses from `ref`) and a derived
+`linkedProduct: {productId, kind, title} | null` from the main product link,
+resolved by GMS through `/wxproducts/public/products/{id}`),
 `/api/public/articles`,
 `/api/public/questions` and `/api/public/quizzes`. Reports and imagery are
 FastAPI data; the homepage reads reports from `/wxproducts/public/products`.

@@ -70,6 +70,10 @@ import {
   down as down_20261028_214120_gms_content_data,
   up as up_20261028_214120_gms_content_data,
 } from "./20261028_214120_gms_content_data";
+import {
+  down as down_20261028_220706_related_links_paste,
+  up as up_20261028_220706_related_links_paste,
+} from "./20261028_220706_related_links_paste";
 
 export const migrations = [
   {
@@ -161,5 +165,10 @@ export const migrations = [
     up: up_20261028_214120_gms_content_data,
     down: down_20261028_214120_gms_content_data,
     name: "20261028_214120_gms_content_data",
+  },
+  {
+    up: up_20261028_220706_related_links_paste,
+    down: down_20261028_220706_related_links_paste,
+    name: "20261028_220706_related_links_paste",
   },
 ];
