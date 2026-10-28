@@ -914,7 +914,12 @@ async def test_roster_department_in_another_organisation_is_still_refused(
     "ended", [EmploymentStatus.TERMINATED, EmploymentStatus.INACTIVE]
 )
 @pytest.mark.parametrize(
-    "scope", [RoleAssignmentScope.DEPARTMENT, RoleAssignmentScope.ALL]
+    "scope",
+    [
+        RoleAssignmentScope.SELF,
+        RoleAssignmentScope.DEPARTMENT,
+        RoleAssignmentScope.ALL,
+    ],
 )
 async def test_former_supervisor_with_ended_employment_cannot_review(
     db_async: AsyncSession, scope: RoleAssignmentScope, ended: EmploymentStatus
