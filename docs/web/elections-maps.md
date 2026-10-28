@@ -1,5 +1,9 @@
 # Elections Grenada maps
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-28
+
 Maps offer **Constituencies** for a national overview and **Polling divisions**
 where the selected event and measure have division records and located shapes.
 Selecting a constituency in the results atlas still drills into its divisions.
