@@ -7,6 +7,7 @@ COPY apps/api/fastapi/pyproject.toml apps/api/fastapi/pyproject.toml
 COPY scripts/scrapy-wxwatch/pyproject.toml scripts/scrapy-wxwatch/pyproject.toml
 COPY scripts/gms-ingest/pyproject.toml scripts/gms-ingest/pyproject.toml
 COPY scripts/sutron-collector/pyproject.toml scripts/sutron-collector/pyproject.toml
+COPY scripts/gnc-collector/pyproject.toml scripts/gnc-collector/pyproject.toml
 COPY notebooks/pyproject.toml notebooks/pyproject.toml
 COPY geonetcast/pyproject.toml geonetcast/pyproject.toml
 RUN useradd --create-home --uid 10001 collector

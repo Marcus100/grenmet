@@ -1,0 +1,50 @@
+[Unit]
+Description=Archive new GOES-19 images from the GeoNetCast receiver
+Documentation=https://github.com/Marcus100/grenmet/blob/dev/docs/operations/geonetcast-receiver.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+
+# A dedicated unprivileged account that can read the FAZZT output folder.
+User=gnc
+Group=gnc
+
+WorkingDirectory=/opt/gnc-collector
+EnvironmentFile=/etc/gnc-collector/env
+
+# Replace the input folder with the FAZZT output folder on this receiver.
+ExecStart=/opt/gnc-collector/.venv/bin/gnc-collector collect \
+    --input-dir /var/fazzt/incoming \
+    --work-dir /var/lib/gnc-collector
+
+# Twelve renders take well under a minute; anything longer is stuck.
+TimeoutStartSec=300
+Nice=10
+
+# Read-only system and receiver data; only the work folder is writable, so
+# a bug cannot touch FAZZT's files or database.
+ProtectSystem=strict
+# read-only, not true: FAZZT may write its output under /home.
+ProtectHome=read-only
+ReadWritePaths=/var/lib/gnc-collector
+PrivateTmp=true
+PrivateDevices=true
+NoNewPrivileges=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+CapabilityBoundingSet=
+SystemCallFilter=@system-service
+UMask=0077
+
+# cartopy keeps its Natural Earth coastlines under $HOME/.local/share/cartopy;
+# point HOME at the writable work folder so the first download can be cached.
+Environment=HOME=/var/lib/gnc-collector
+
+StandardOutput=journal
+StandardError=journal

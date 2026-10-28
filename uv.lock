@@ -13,6 +13,7 @@ members = [
     "fast-back",
     "geonetcast",
     "gms-ingest",
+    "gnc-collector",
     "grenmet-workspace",
     "notebooks",
     "sutron-collector",
@@ -1815,6 +1816,43 @@ requires-dist = [
     { name = "pyproj", specifier = ">=3.7.2" },
     { name = "pyshp", specifier = ">=2.3.1" },
     { name = "xarray", specifier = ">=2026.2.0" },
+]
+
+[[package]]
+name = "gnc-collector"
+version = "0.1.0"
+source = { editable = "scripts/gnc-collector" }
+dependencies = [
+    { name = "boto3" },
+    { name = "cartopy" },
+    { name = "matplotlib" },
+    { name = "netcdf4" },
+    { name = "numpy" },
+    { name = "scipy" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "boto3", specifier = ">=1.43.42" },
+    { name = "cartopy", specifier = ">=0.25.0" },
+    { name = "matplotlib", specifier = ">=3.11.0" },
+    { name = "netcdf4", specifier = ">=1.7.5" },
+    { name = "numpy", specifier = ">=2.5.4" },
+    { name = "scipy", specifier = ">=1.18.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=2.4.0" },
+    { name = "pytest", specifier = ">=8.4.0" },
+    { name = "ruff", specifier = ">=0.17.1" },
 ]
 
 [[package]]
