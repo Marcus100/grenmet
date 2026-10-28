@@ -25,9 +25,15 @@ export interface MediaItem {
   title: string;
 }
 
-/** A short notice for a tab with nothing to play or show yet: one line, not a tall box. */
-const EMPTY_NOTICE =
-  "rounded-gm-card border border-gm-border bg-gm-navy px-4 py-3 text-body-sm leading-body-sm";
+/**
+ * Every tab shows the same 16:9 stage as the video player, so switching tabs
+ * never resizes the panel. A tab with nothing to show yet says so inside it.
+ */
+const STAGE = "aspect-video w-full rounded-gm-card bg-gm-navy";
+const EMPTY_NOTICE = cn(
+  STAGE,
+  "flex items-center justify-center border border-gm-border px-6 text-center text-body leading-body"
+);
 
 type TabKey = "satellite" | "radar" | "wind" | "seas" | "audio" | "video";
 
@@ -147,10 +153,7 @@ export function WeatherNowPanel({
           <>
             <iframe
               allow="encrypted-media; picture-in-picture; fullscreen"
-              className={cn(
-                "w-full rounded-gm-card bg-gm-navy",
-                tab === "video" ? "aspect-video" : "h-40"
-              )}
+              className={STAGE}
               key={current.id}
               referrerPolicy="strict-origin-when-cross-origin"
               sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"

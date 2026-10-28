@@ -1,7 +1,6 @@
 import { MapPinIcon } from "lucide-react";
 import { ReadingGrid } from "@/components/home/reading-grid";
 import { SkyScene } from "@/components/home/sky-scene";
-import { Provenance } from "@/components/pages/provenance";
 import {
   isOtherGrenadaDay,
   isStale,
@@ -36,8 +35,10 @@ function Numeral({
 }
 
 /**
- * When and where the reading was taken; an old reading says "Last observed".
- * A reading from another day carries its date here, on the top line.
+ * When and where the reading was taken; an old reading says "Last observed"
+ * and an unchecked one "provisional". A reading from another day carries its
+ * date here. This one line is the hero's whole provenance; the full source
+ * block lives on the observations page.
  */
 function sourceLine(
   weather: WeatherSnapshot,
@@ -49,9 +50,10 @@ function sourceLine(
     const time = isOtherGrenadaDay(current.observedAt, now)
       ? `${localDay(current.observedAt)}, ${localTime(current.observedAt)}`
       : localTime(current.observedAt);
-    return isStale(current.observedAt, now)
+    const line = isStale(current.observedAt, now)
       ? `Last observed ${time} · ${station}`
       : `Observed ${time} · ${station}`;
+    return current.provisional ? `${line} · provisional` : line;
   }
   return weather.observation
     ? `Midday reading · ${station}`
@@ -117,20 +119,6 @@ export function NowSummary({
         className={compact ? "w-16 lg:w-24" : "w-28"}
         sky={skyFromWords(current?.weather ?? null)}
       />
-      {current && (isStale(current.observedAt, now) || current.provisional) && (
-        <div className="col-span-2">
-          {/* The top line already says when and "Last observed"; not twice. */}
-          <Provenance
-            kind="observation"
-            now={now}
-            showTime={false}
-            source={`GMS observation register, ${station}`}
-            status={current.provisional ? "provisional" : "verified"}
-            time={current.observedAt}
-            tone="inverse"
-          />
-        </div>
-      )}
     </div>
   );
 }

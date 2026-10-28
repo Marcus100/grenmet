@@ -66,6 +66,22 @@ function conditions(period: ForecastPeriod): Condition[] {
     });
   return result;
 }
+/**
+ * Today taken from an outlook day means today's own forecast is not out yet;
+ * the API falls back to the newest evening issue and the title says which.
+ */
+function periodTitle(period: ForecastPeriod, index: number): string {
+  if (!period.period_key)
+    return PERIOD_TITLES[period.source?.kind ?? ""] ?? "Forecast";
+  if (index > 0 || !period.source) return `Forecast for ${period.date}`;
+  const issued = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Grenada",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(period.source.issued_at));
+  const kind = ISSUE_LABELS[period.source.kind]?.toLowerCase() ?? "earlier";
+  return `From the ${issued} ${kind} forecast`;
+}
 function periodData(period: ForecastPeriod, index: number): ForecastDayData {
   const date = period.date;
   if (!period.source) {
@@ -90,9 +106,7 @@ function periodData(period: ForecastPeriod, index: number): ForecastDayData {
     high: period.high ?? null,
     low: period.low ?? null,
     conditions: conditions(period),
-    title: period.period_key
-      ? `Forecast for ${date}`
-      : (PERIOD_TITLES[period.source.kind] ?? "Forecast"),
+    title: periodTitle(period, index),
     condition: conditionFor(summary),
     summary,
     source: "",

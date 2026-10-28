@@ -95,11 +95,9 @@ def select_forecast(products: list[PublishedProduct], now: datetime) -> PublicFo
         day = base + timedelta(days=offset)
         if offset == 0 and current:
             periods.append(period(current, day, ""))
-        elif (
-            offset > 0
-            and outlook
-            and 1 <= (day.date() - source(outlook).issued_at.date()).days <= 4
-        ):
+        # Until today's first issue is published, today comes from the newest
+        # evening outlook (last night's day1), as GMS issued it.
+        elif outlook and 1 <= (day.date() - source(outlook).issued_at.date()).days <= 4:
             index = (day.date() - source(outlook).issued_at.date()).days
             periods.append(period(outlook, day, f"day{index}"))
         else:

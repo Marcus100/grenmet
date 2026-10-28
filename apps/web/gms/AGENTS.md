@@ -112,7 +112,10 @@ src/app/
   external sources such as NOAA GOES, "Not a GMS product". Limits live in
   `lib/current-conditions.ts`: observations 90 min (`STALE_AFTER_MS`), forecasts
   12 h since issue, satellite 30 min. A stale product says so in words ("Last
-  observed", warning line), never only by colour. GMS forms store offset-less
+  observed", warning line), never only by colour. Home page exception (owner,
+  28 Oct 2026): the hero Now card carries only its top line ("Last observed …
+  · provisional") and Grenada in data only its caption; detail pages keep the
+  full block. GMS forms store offset-less
   Grenada times; read them with `parseGrenadaTime`, never `new Date()`.
 - **Satellite:** `/weather/satellite` reads FastAPI `wxwatch/public/latest`
   (`lib/satellite.ts`) and shows images through `app/api/satellite/[id]` (a proxy;

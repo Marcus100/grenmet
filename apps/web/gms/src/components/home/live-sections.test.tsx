@@ -5,6 +5,7 @@ import {
   ForecastDesk,
   GetAlertsStrip,
   LatestReports,
+  postedLabel,
   Stories,
 } from "@/components/home/live-sections";
 import {
@@ -55,6 +56,21 @@ const hidden = (sections: string[]): HomeContent => ({
   },
 });
 
+const READ_ARTICLE = /^Read the article: /;
+
+it("labels a post Today, Yesterday or by date, in Grenada time", () => {
+  const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada
+  expect(postedLabel(post, new Date("2026-10-28T03:30:00Z"))).toBe(
+    "Today at 22:00"
+  );
+  expect(postedLabel(post, new Date("2026-10-28T05:00:00Z"))).toBe(
+    "Yesterday at 22:00"
+  );
+  expect(postedLabel(post, new Date("2026-10-29T13:00:00Z"))).toBe(
+    "27 Oct at 22:00"
+  );
+});
+
 it("drops sections editors hide", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(
     hidden(["stories", "questions"])
@@ -102,7 +118,7 @@ const post = (overrides: Partial<PublishedContent>): PublishedContent => ({
 });
 const PRODUCT_ID = "0b3c6f1e-1111-4a2b-9c3d-222233334444";
 
-it("is a blog: desk posts with their live product, never the forecast itself", async () => {
+it("is a blog: desk post cards that link to their articles, never the forecast itself", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue({
     ...hidden([]),
     deskUpdates: {
@@ -118,8 +134,13 @@ it("is a blog: desk posts with their live product, never the forecast itself", a
   expect(
     screen.getByRole("link", { name: "Why the morning forecast changed" })
   ).toHaveAttribute("href", "/explore/updates/2026/09/why");
-  expect(screen.getByText(`Linked product ${PRODUCT_ID}`)).toBeInTheDocument();
+  // The article carries the linked product; the card only links to it.
+  expect(
+    screen.queryByText(`Linked product ${PRODUCT_ID}`)
+  ).not.toBeInTheDocument();
+  expect(screen.getAllByRole("link", { name: READ_ARTICLE })).toHaveLength(2);
   expect(screen.getByText("New marine page")).toBeInTheDocument();
+  expect(screen.getAllByText("The forecasters")).toHaveLength(2);
 });
 
 it("shows only report write-ups, with an honest empty state", async () => {

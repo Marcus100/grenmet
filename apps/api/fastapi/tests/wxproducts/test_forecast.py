@@ -60,7 +60,8 @@ def at(time, products=None):
         ("2026-09-14T18:00", "evening"),
         ("2026-09-15T00:00", "evening"),
         ("2026-09-15T06:59", "evening"),
-        ("2026-09-15T07:00", None),
+        # No issue yet on the 15th: the 14th's evening outlook covers today.
+        ("2026-09-15T07:00", "evening"),
     ],
 )
 def test_selection_boundaries(time, kind):
@@ -79,8 +80,22 @@ def test_late_publications_and_midnight():
     )
     assert at("2026-09-15T02:00").base_date == "2026-09-14"
     morning = at("2026-09-15T07:00")
-    assert morning.base_date == "2026-09-15" and morning.periods[0].source is None
+    assert morning.base_date == "2026-09-15"
+    assert morning.periods[0].period_key == "day1"
+    assert morning.periods[0].details["summary"] == "Weather day 1"
     assert morning.periods[1].details["summary"] == "Weather day 2"
+    # Today's own issue replaces the outlook day once it is published.
+    issued = at(
+        "2026-09-15T08:00", [publication(day="2026-09-15"), publication("evening")]
+    )
+    assert issued.periods[0].source.kind == "morning"
+    assert issued.periods[0].period_key == ""
+    # An older outlook supplies its matching day.
+    older = at("2026-09-15T07:00", [publication("evening", day="2026-09-13")])
+    assert older.periods[0].period_key == "day2"
+    assert older.periods[0].details["summary"] == "Weather day 2"
+    # With no evening outlook either, today stays empty.
+    assert at("2026-09-15T07:00", [publication()]).periods[0].source is None
 
 
 def test_outlook_rollover_revision_and_observation():

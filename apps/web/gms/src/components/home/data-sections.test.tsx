@@ -44,8 +44,9 @@ const SUMMARY: PublicMonthSummary = {
   provisional: true,
 };
 
-const RIP_LINK = /Tourism:.*Read: What is a rip current\?/;
+const RIP_LINK = /Tourism & outdoors:.*Read: What is a rip current\?/;
 const READ_MORE = /^Read:/;
+const OLD_READING = /90 minutes/;
 
 const home = (settings: Partial<HomeContent["settings"]>): HomeContent => ({
   deskUpdates: { status: "ok", articles: [] },
@@ -88,12 +89,12 @@ it("links each sector and states that no impact outlook is published", async () 
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   render(await ExploreToday());
   for (const [sector, href] of [
-    ["Tourism", "/services/tourism"],
-    ["Fisheries", "/marine/fishing"],
+    ["Tourism & outdoors", "/services/tourism"],
+    ["Marine", "/marine"],
     ["Aviation", "/services/aviation"],
     ["Agriculture", "/services/agriculture"],
-    ["Construction", "/services/construction"],
     ["Health", "/services/health"],
+    ["Roads & transport", "/services/roads-transport"],
   ] as const) {
     expect(screen.getByText(sector).closest("a")).toHaveAttribute("href", href);
   }
@@ -132,18 +133,14 @@ it("shows the live month summary with its provisional label", async () => {
     screen.getByText("Month to date · MBIA · provisional · to 18 October")
   ).toBeInTheDocument();
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
-  expect(
-    screen.getByText((content) =>
-      content.includes("Provisional, not yet quality checked")
-    )
-  ).toBeInTheDocument();
 });
 
-it("warns when the register's newest reading is old", async () => {
+it("never calls a month summary an old reading", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchMonthSummary).mockResolvedValue({ ...SUMMARY });
   render(await GrenadaInData());
-  expect(screen.getByRole("status").textContent).toContain("90 minutes");
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.queryByText(OLD_READING)).not.toBeInTheDocument();
 });
 
 it("shows an unavailable state instead of figures when the summary is missing", async () => {

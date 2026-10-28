@@ -19,7 +19,8 @@ import {
 
 const CLOCK = /^\d{2}:\d{2}$/;
 // en-GB abbreviates September as "Sept" on current ICU; match either.
-const LAST_OBSERVED_OTHER_DAY = /^Last observed 29 Sept?, 13:00 · MBIA$/;
+const LAST_OBSERVED_OTHER_DAY =
+  /^Last observed 29 Sept?, 13:00 · MBIA · provisional$/;
 const LAST_OBSERVED_LABEL = /Last observed:/;
 const STALE_LINE = /This reading is more than 90 minutes old/;
 const SAMPLE_REFERENCE = /hero-samples|SAMPLE_/;
@@ -116,9 +117,9 @@ describe("Now", () => {
     expect(screen.getAllByText(numeral("31°C")).length).toBeGreaterThan(0);
     expect(screen.getAllByText("Light shower").length).toBeGreaterThan(0);
     expect(screen.getAllByText(FEELS_LIKE).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Observed 13:00 · MBIA").length).toBeGreaterThan(
-      0
-    );
+    expect(
+      screen.getAllByText("Observed 13:00 · MBIA · provisional").length
+    ).toBeGreaterThan(0);
     expect(
       screen
         .getAllByRole("link", { current: "page" })
@@ -152,7 +153,7 @@ describe("Now", () => {
   it("says when an old reading was taken", () => {
     render(<SkyHero now={at("2026-09-29T21:00:00Z")} weather={weather()} />);
     expect(
-      screen.getAllByText("Last observed 13:00 · MBIA").length
+      screen.getAllByText("Last observed 13:00 · MBIA · provisional").length
     ).toBeGreaterThan(0);
   });
 
@@ -164,10 +165,10 @@ describe("Now", () => {
     );
   });
 
-  it("says Last observed once in the stale hero, not again in the source block", () => {
+  it("keeps a stale reading to its one top line, with no source block", () => {
     render(<SkyHero now={at("2026-09-29T21:00:00Z")} weather={weather()} />);
     expect(screen.queryByText(LAST_OBSERVED_LABEL)).not.toBeInTheDocument();
-    expect(screen.getAllByText(STALE_LINE).length).toBeGreaterThan(0);
+    expect(screen.queryByText(STALE_LINE)).not.toBeInTheDocument();
   });
 
   it("draws a dash for a reading not yet available, announced in words", () => {

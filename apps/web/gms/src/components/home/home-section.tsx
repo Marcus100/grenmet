@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * A full-bleed band on the home page: kicker, condensed uppercase heading,
- * optional onward link, then content in the page column. Bands alternate
+ * optional onward link on the title's line, then content in the page column. Bands alternate
  * white and `gm-surface` so sections separate without borders.
  */
 export function HomeSection({
@@ -32,28 +32,29 @@ export function HomeSection({
       )}
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:px-8">
-        <div className="mb-5 flex flex-wrap items-end gap-3">
-          <div>
-            <p className="mb-1 font-bold text-gm-sky-ink text-label uppercase leading-label tracking-widest">
-              {kicker}
-            </p>
-            <h2 className="text-balance font-bold font-gm-display text-gm-display text-gm-heading uppercase tracking-wide">
+        <div className="mb-5">
+          <p className="mb-1 font-bold text-gm-sky-ink text-label uppercase leading-label tracking-widest">
+            {kicker}
+          </p>
+          {/* The onward link sits on the title's line, even on phones. */}
+          <div className="flex items-end justify-between gap-3">
+            <h2 className="min-w-0 text-balance font-bold font-gm-display text-gm-display text-gm-heading uppercase tracking-wide">
               {title}
             </h2>
-            {intro && (
-              <p className="mt-2 max-w-prose text-body-base text-gm-text-secondary leading-body-base">
-                {intro}
-              </p>
+            {link && (
+              <Link
+                className="mb-1 flex shrink-0 items-center gap-1 font-semibold text-body-sm text-gm-blue-ink leading-body-sm hover:underline sm:text-body sm:leading-body"
+                href={link.href as Route}
+              >
+                {link.label}
+                <ArrowRightIcon aria-hidden="true" className="size-4" />
+              </Link>
             )}
           </div>
-          {link && (
-            <Link
-              className="ml-auto flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
-              href={link.href as Route}
-            >
-              {link.label}
-              <ArrowRightIcon aria-hidden="true" className="size-4" />
-            </Link>
+          {intro && (
+            <p className="mt-2 max-w-prose text-body-base text-gm-text-secondary leading-body-base">
+              {intro}
+            </p>
           )}
         </div>
         {children}

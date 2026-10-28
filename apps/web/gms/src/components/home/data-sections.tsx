@@ -1,15 +1,14 @@
 import {
-  FishIcon,
-  HardHatIcon,
+  CarIcon,
   HeartPulseIcon,
   PalmtreeIcon,
   PlaneIcon,
+  ShipIcon,
   SproutIcon,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
-import { Provenance } from "@/components/pages/provenance";
 import {
   fetchHomeContent,
   isSectionHidden,
@@ -28,18 +27,22 @@ import { cn } from "@/lib/utils";
  * month summary and shows an unavailable state, never sample figures.
  */
 
-/** `reading` is the CMS key editors use to hang a story off a tile. */
+/**
+ * The six sectors (owner, 28 Oct 2026). Events and outdoor plans sit under
+ * Tourism; Marine covers fishing, yachting and ferries. `reading` is the CMS
+ * key editors use to hang a story off a tile.
+ */
 const SECTORS = [
   {
     Icon: PalmtreeIcon,
-    sector: "Tourism",
+    sector: "Tourism & outdoors",
     href: "/services/tourism",
     reading: "beach",
   },
   {
-    Icon: FishIcon,
-    sector: "Fisheries",
-    href: "/marine/fishing",
+    Icon: ShipIcon,
+    sector: "Marine",
+    href: "/marine",
     reading: "fishing",
   },
   { Icon: PlaneIcon, sector: "Aviation", href: "/services/aviation" },
@@ -49,12 +52,16 @@ const SECTORS = [
     href: "/services/agriculture",
     reading: "growing",
   },
-  { Icon: HardHatIcon, sector: "Construction", href: "/services/construction" },
   {
     Icon: HeartPulseIcon,
     sector: "Health",
     href: "/services/health",
     reading: "outdoors",
+  },
+  {
+    Icon: CarIcon,
+    sector: "Roads & transport",
+    href: "/services/roads-transport",
   },
 ] as const;
 
@@ -160,12 +167,6 @@ export async function GrenadaInData() {
           <p className="mt-2 text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
             {month.caption}
           </p>
-          <Provenance
-            kind="observation"
-            source="GMS observation register, Maurice Bishop International Airport"
-            status={month.provisional ? "provisional" : "verified"}
-            time={month.lastObservationAt}
-          />
         </>
       ) : (
         <p
