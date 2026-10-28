@@ -80,7 +80,8 @@ stall). Full disks arrive every ten minutes, so 45 minutes means the receiver
 has stalled. Staleness is judged by **arrival** (the file's modification time),
 not scan time, so after an outage a backlog of old scans counts as fresh until
 it has also stopped arriving. This assumes FAZZT stamps files when it writes
-them; the survey script shows file time beside scan time so that can be checked. `deploy/gnc-collector-check.*` runs it every 15 minutes under systemd.
+them; the survey script shows file time beside scan time so that can be checked.
+ `deploy/gnc-collector-check.*` runs it every 15 minutes under systemd.
 
 ## Surveying a receiver
 

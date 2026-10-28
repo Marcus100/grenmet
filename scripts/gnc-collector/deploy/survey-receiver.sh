@@ -34,6 +34,7 @@ have() { command -v "$1" >/dev/null 2>&1; }
 case "$WINDOW_MIN" in '' | *[!0-9]*) echo "WINDOW_MIN must be a whole number" >&2; exit 2 ;; esac
 case "$FIND_TIMEOUT" in '' | *[!0-9]*) echo "FIND_TIMEOUT must be a whole number" >&2; exit 2 ;; esac
 read -r -a ROOTS <<<"$SEARCH_ROOTS"
+[ "${#ROOTS[@]}" -gt 0 ] || ROOTS=(/)
 for root in "${ROOTS[@]}"; do
   case "$root" in /*) ;; *) echo "SEARCH_ROOTS entries must be absolute paths: $root" >&2; exit 2 ;; esac
 done
@@ -41,7 +42,7 @@ if [ -n "$SURVEY_FOLDER" ]; then
   case "$SURVEY_FOLDER" in /*) ;; *) echo "SURVEY_FOLDER must be an absolute path" >&2; exit 2 ;; esac
 fi
 
-LOW=()
+LOW=(env) # never empty, so older bash with `set -u` is safe
 have nice && LOW+=(nice -n 19)
 have ionice && LOW+=(ionice -c 3)
 # File descriptor 3 is the real output, so a warning raised inside a captured
@@ -67,7 +68,8 @@ date -u '+%Y-%m-%d %H:%M UTC'
 echo "user: $(id -un)  groups: $(id -Gn)"
 
 section "System (operating system and kernel only)"
-if [ -r /etc/os-release ]; then (. /etc/os-release && echo "${PRETTY_NAME:-unknown}"); fi
+# Parsed, not sourced: nothing in the file is executed.
+if [ -r /etc/os-release ]; then sed -nE 's/^PRETTY_NAME="?([^"]*)"?$/\1/p' /etc/os-release; fi
 uname -sr
 uptime
 echo
@@ -87,7 +89,8 @@ if have lsusb; then lsusb 2>/dev/null | grep -i -E 'novra|tbs|dvb' || echo "no m
 
 section "FAZZT / Kencast software"
 if have systemctl; then
-  systemctl list-units --type=service --all --no-legend 2>/dev/null | grep -i -E 'fazzt|kencast|novra|dvb' | cut -c1-150 || echo "no matching systemd service"
+  units=$(systemctl list-units --type=service --all --no-legend 2>/dev/null | grep -i -E 'fazzt|kencast|novra|dvb' | cut -c1-150)
+  echo "${units:-no matching systemd service}"
 fi
 echo "running processes (user, pid, running time, program name only):"
 ps -eo user,pid,etime,comm 2>/dev/null | grep -i -E 'fazzt|kencast' | grep -v grep || echo "none matching"
@@ -96,7 +99,7 @@ echo "install folders (name match, 4 levels deep):"
 search -maxdepth 4 \( -iname '*fazzt*' -o -iname '*kencast*' \) -print | head -20
 
 section "Recent satellite and model files (last ${WINDOW_MIN} minutes)"
-# One search, reused for every summary below. Fields: folder, name, mtime.
+# One search, reused for the summaries below (the others run separately). Fields: folder, name, mtime.
 RECENT=$(search -type f -mmin "-$WINDOW_MIN" \
   \( -name 'OR_ABI-L2-*' -o -name 'OR_GLM-*' -o -name '*.grib2' -o -name '*.grb2' -o -name '*.grb' \) \
   -printf '%h\t%f\t%T@\n')
@@ -134,6 +137,10 @@ search -type f -name 'OR_ABI-L2-CMIPF-*' -printf '%T@ %f\n' | sort -rn | head -5
   echo "scan $scan UTC   file time $arrived UTC   ($name)" | cut -c1-110
 done
 
+if [ -n "$SURVEY_FOLDER" ] && [ ! -d "$SURVEY_FOLDER" ]; then
+  section "Folder detail: $SURVEY_FOLDER"
+  echo "not a directory, or not readable by this user"
+fi
 if [ -n "$SURVEY_FOLDER" ] && [ -d "$SURVEY_FOLDER" ]; then
   section "Folder detail: $SURVEY_FOLDER"
   "${LOW[@]}" timeout "$FIND_TIMEOUT" du -sh "$SURVEY_FOLDER" 2>/dev/null
