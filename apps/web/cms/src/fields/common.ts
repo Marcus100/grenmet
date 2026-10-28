@@ -197,9 +197,28 @@ export const socialField: Field = {
   label: "Social media sharing",
   admin: {
     description:
-      "Prepare platform-specific copy. Automatic delivery can be added later.",
+      "Download the main link's images, then prepare platform-specific copy. Automatic delivery can be added later.",
   },
   fields: [
+    {
+      name: "attachments",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "/components/social-attachments#SocialAttachments",
+        },
+      },
+    },
+    {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      label: "Custom image",
+      admin: {
+        description:
+          "Optional. Replaces the warning's social image when the post is shared.",
+      },
+    },
     { name: "caption", type: "textarea", label: "Shared starting caption" },
     {
       name: "enabledPlatforms",

@@ -16,6 +16,7 @@ import { getEnv } from "./env";
 import { Homepage } from "./globals/homepage";
 import { WeatherNow } from "./globals/weather-now";
 import { reportPayloadError } from "./lib/report-payload-error";
+import { socialAttachmentEndpoint } from "./lib/social-attachments";
 
 const env = getEnv();
 const baseDir = path.dirname(fileURLToPath(import.meta.url));
@@ -57,6 +58,13 @@ export default buildConfig({
     Users,
   ],
   globals: [WeatherNow, Homepage],
+  endpoints: [
+    {
+      path: "/social-attachment",
+      method: "get",
+      handler: socialAttachmentEndpoint,
+    },
+  ],
   hooks: { afterError: [reportPayloadError] },
   graphQL: { disable: true },
   typescript: {
