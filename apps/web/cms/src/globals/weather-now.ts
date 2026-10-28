@@ -51,9 +51,9 @@ export const stampNote: GlobalBeforeChangeHook = ({
 /** "Weather now": the duty forecaster's note. Imagery is FastAPI data. */
 export const WeatherNow: GlobalConfig = {
   slug: "weather-now",
-  label: "Weather now",
+  label: "Duty forecaster's note",
   admin: {
-    group: "Homepage sections",
+    group: "GMS Content",
     description:
       "The duty forecaster's short note on the homepage. The note is a plain-words aside, never a forecast or a warning.",
   },

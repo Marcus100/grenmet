@@ -209,8 +209,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
       data: {
         title: "Preparing for the season",
         summary: "Check your supplies before the peak.",
-        kind: "public-notice",
-        product: "tropical-outlook",
+        kind: "tropical-outlook",
         relatedLinks: [
           {
             title: "Read the outlook",
@@ -267,7 +266,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
     });
     expect(visible.totalDocs).toBe(1);
     expect(visible.docs[0]?.body).toEqual(body("Check supplies"));
-    expect(visible.docs[0]?.product).toBe("tropical-outlook");
+    expect(visible.docs[0]?.kind).toBe("tropical-outlook");
     expect(visible.docs[0]?.slug).toMatch(DESK_SLUG);
     expect(visible.docs[0]?.relatedLinks?.[0]).toMatchObject({
       title: "Read the outlook",

@@ -36,7 +36,7 @@ Apply the additive main-database migration `cmsaccess20261007` before deploying.
 
 ## Write and publish
 
-Each GMS homepage section has its own collection under **Homepage sections**. All of them use the same review workflow, image, link and topic fields.
+Each GMS homepage section has its own collection under **GMS Content**, listed in the weather site's order. All of them use the same review workflow, image, link and topic fields.
 
 | Collection | Homepage section | Who publishes |
 |---|---|---|

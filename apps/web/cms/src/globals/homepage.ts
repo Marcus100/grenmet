@@ -12,15 +12,6 @@ export const HOMEPAGE_SECTIONS = [
   { label: "Grenada in data", value: "grenada-in-data" },
 ] as const;
 
-export const EXPLORE_ACTIVITIES = [
-  { label: "Beach", value: "beach" },
-  { label: "Fishing", value: "fishing" },
-  { label: "Boating", value: "boating" },
-  { label: "Growing", value: "growing" },
-  { label: "Outdoors", value: "outdoors" },
-  { label: "Night sky", value: "night-sky" },
-] as const;
-
 /** Payload field names cannot contain hyphens. */
 export const copyFieldName = (key: string) => key.replaceAll("-", "_");
 
@@ -31,14 +22,14 @@ export const DISCOVER_CARDS = [
   { label: "Did you know", value: "fact" },
 ] as const;
 
-/** Homepage settings: what leads each section. Empty choices fill themselves. */
+/** Section wording and visibility; what leads a section is set on the posts. */
 export const Homepage: GlobalConfig = {
   slug: "homepage",
-  label: "Homepage",
+  label: "Section wording & visibility",
   admin: {
-    group: "Homepage sections",
+    group: "GMS Content",
     description:
-      "Choose what leads the editorial homepage sections, or hide a section (for example during a hurricane). Anything left empty shows the newest published items.",
+      "Change the wording of a homepage section, choose which Discover cards show, or hide a section (for example during a hurricane). What leads a section is set on the posts themselves: Lead story on Stories, Featured on Questions.",
   },
   access: {
     read: () => true,
@@ -48,20 +39,6 @@ export const Homepage: GlobalConfig = {
   versions: { max: 20 },
   fields: [
     {
-      name: "leadStory",
-      type: "relationship",
-      relationTo: "stories",
-      admin: { description: "The large story. Default: the newest." },
-    },
-    {
-      name: "featuredQuestions",
-      type: "relationship",
-      relationTo: "questions",
-      hasMany: true,
-      maxRows: 5,
-      admin: { description: "Up to five, in order. Default: the newest." },
-    },
-    {
       name: "discoverCards",
       type: "select",
       hasMany: true,
@@ -70,21 +47,6 @@ export const Homepage: GlobalConfig = {
       admin: {
         description: "Which cards Sky, history and a little fun shows.",
       },
-    },
-    {
-      name: "exploreReading",
-      type: "group",
-      label: "Explore today: read more",
-      admin: {
-        description:
-          "Optionally link a published story or explainer under an activity. Which activities show, and their ratings, come from the forecast system.",
-      },
-      fields: EXPLORE_ACTIVITIES.map((activity) => ({
-        name: copyFieldName(activity.value),
-        label: activity.label,
-        type: "relationship" as const,
-        relationTo: ["stories", "questions"],
-      })),
     },
     {
       name: "sectionCopy",

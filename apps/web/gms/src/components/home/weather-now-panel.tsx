@@ -37,6 +37,17 @@ const EMPTY_NOTICE = cn(
 
 type TabKey = "satellite" | "radar" | "wind" | "seas" | "audio" | "video";
 
+/** The imagery tabs, each of which can carry a forecaster's note. */
+export const NOTE_KINDS = ["satellite", "radar", "wind", "seas"] as const;
+
+/** A forecaster's note for one imagery tab, already formatted on the server. */
+export interface TabNote {
+  posted: string | null;
+  text: string;
+  title: string;
+}
+export type TabNotes = Partial<Record<(typeof NOTE_KINDS)[number], TabNote>>;
+
 interface TabDef {
   href: string;
   Icon: LucideIcon;
@@ -92,9 +103,11 @@ const TABS: [TabDef, ...TabDef[]] = [
  */
 export function WeatherNowPanel({
   audio,
+  notes = {},
   video,
 }: {
   audio: MediaItem[];
+  notes?: TabNotes;
   video: MediaItem[];
 }) {
   const [tab, setTab] = useState<TabKey>("satellite");
@@ -103,6 +116,9 @@ export function WeatherNowPanel({
   const active = TABS.find((item) => item.key === tab) ?? TABS[0];
   const items = { audio, video }[tab as "audio" | "video"] ?? [];
   const current = items.find((item) => item.id === selected) ?? items[0];
+  const note = (NOTE_KINDS as readonly string[]).includes(tab)
+    ? notes[tab as (typeof NOTE_KINDS)[number]]
+    : undefined;
 
   return (
     <div className="flex flex-col overflow-hidden rounded-gm-card border border-gm-border bg-gm-navy text-gm-text-inverse">
@@ -210,6 +226,21 @@ export function WeatherNowPanel({
               </ul>
             )}
           </>
+        )}
+
+        {note && (
+          <div className="flex flex-col gap-1 px-1">
+            <p className="font-bold text-body-base leading-body-base">
+              {note.title}
+              {note.posted && (
+                <span className="font-mono font-normal text-body-sm text-gm-text-inverse/80 leading-body-sm">
+                  {" "}
+                  · {note.posted}
+                </span>
+              )}
+            </p>
+            <p className="text-body leading-body">{note.text}</p>
+          </div>
         )}
 
         <Link

@@ -21,7 +21,7 @@ const base = editorialCollection({
   publishKey: PUBLISH_KEYS["report-notes"],
   labels: { singular: "Report write-up", plural: "Report write-ups" },
   admin: {
-    group: "Homepage sections",
+    group: "GMS Content",
     description:
       "Latest reports: explain an issued report in plain language. Only reports with a published write-up appear on the homepage.",
   },

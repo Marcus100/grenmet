@@ -30,7 +30,7 @@ const base = editorialCollection({
   publishKey: PUBLISH_KEYS["live-posts"],
   labels: { singular: "Live post", plural: "Live posts" },
   admin: {
-    group: "Homepage sections",
+    group: "GMS Content",
     defaultColumns: ["title", "kind", "status", "publishedAt"],
     description:
       "Weather now: videos and audio play under the Video and Audio tabs beside Satellite, Radar and Rainfall; quick updates appear under the duty forecaster's note (which stays on the Weather now page).",
@@ -42,8 +42,17 @@ const base = editorialCollection({
       type: "select",
       required: true,
       defaultValue: "update",
+      label: "Weather now tab",
+      admin: {
+        description:
+          "Where the post shows in Weather now: beside the forecaster's note, under the Satellite, Radar, Wind or Seas tab, or as a video or audio to play.",
+      },
       options: [
-        { label: "Quick update", value: "update" },
+        { label: "General update", value: "update" },
+        { label: "Satellite", value: "satellite" },
+        { label: "Radar", value: "radar" },
+        { label: "Wind", value: "wind" },
+        { label: "Seas", value: "seas" },
         { label: "Video (YouTube or Facebook link)", value: "video" },
         { label: "Audio (SoundCloud link)", value: "audio" },
       ],
@@ -54,7 +63,8 @@ const base = editorialCollection({
       type: "text",
       label: "Media link",
       admin: {
-        condition: (_data, sibling) => sibling?.kind !== "update",
+        condition: (_data, sibling) =>
+          sibling?.kind === "video" || sibling?.kind === "audio",
         description:
           "Paste the share link. The site shows it only when a reader presses play.",
       },

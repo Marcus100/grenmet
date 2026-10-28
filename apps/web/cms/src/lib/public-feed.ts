@@ -2,11 +2,7 @@ import type { CollectionConfig, Field, Payload } from "payload";
 import { DeskUpdates } from "../collections/desk-updates";
 import { ReportNotes } from "../collections/report-notes";
 import { Stories } from "../collections/stories";
-import {
-  copyFieldName,
-  EXPLORE_ACTIVITIES,
-  HOMEPAGE_SECTIONS,
-} from "../globals/homepage";
+import { copyFieldName, HOMEPAGE_SECTIONS } from "../globals/homepage";
 import { editorialLinksSchema } from "./editorial-links";
 import { bodyToText } from "./lexical";
 
@@ -126,7 +122,9 @@ export function toLivePost(doc: Doc) {
     title: String(doc.title),
     text: (doc.text as string | undefined) || null,
     mediaUrl:
-      kind === "update" ? null : (doc.mediaUrl as string | undefined) || null,
+      kind === "video" || kind === "audio"
+        ? (doc.mediaUrl as string | undefined) || null
+        : null,
     publishedAt: (doc.publishedAt as string | undefined) ?? null,
     expiresAt: (doc.expiresAt as string | undefined) ?? null,
     relatedLinks: editorialLinksSchema.parse(doc.relatedLinks ?? []),
@@ -134,7 +132,16 @@ export function toLivePost(doc: Doc) {
 }
 export type PublicLivePost = ReturnType<typeof toLivePost>;
 
-export const LIVE_POST_KINDS = ["update", "video", "audio"] as const;
+/** Weather now: the general update, one per imagery tab, then video and audio. */
+export const LIVE_POST_KINDS = [
+  "update",
+  "satellite",
+  "radar",
+  "wind",
+  "seas",
+  "video",
+  "audio",
+] as const;
 
 /** Newest published live posts of one kind that have not expired. */
 export async function findLivePosts(
@@ -282,45 +289,52 @@ export function toSectionCopy(value: unknown): Record<string, SectionCopy> {
   return copy;
 }
 
-/** Published "read more" links keyed by Explore today activity. */
-export function toExploreReading(
-  value: unknown
-): Record<string, NonNullable<ReturnType<typeof toRelated>>> {
-  const groups = value && typeof value === "object" ? (value as Doc) : {};
-  const links: Record<string, NonNullable<ReturnType<typeof toRelated>>> = {};
-  for (const { value: key } of EXPLORE_ACTIVITIES) {
-    const link = toRelated(groups[copyFieldName(key)]);
-    if (link) links[key] = link;
-  }
-  return links;
-}
-
-/** Homepage settings; pins arrive populated only when published. */
+/** Homepage settings: wording and visibility, plus the posts marked to lead. */
 export async function findHomepage(payload: Payload) {
   const global = (await payload.findGlobal({
     slug: "homepage",
-    depth: 1,
+    depth: 0,
     overrideAccess: false,
   })) as unknown as Doc;
-  const published = (value: unknown) => {
-    const doc = upload(value);
-    return doc && doc.status === "published" ? doc : null;
-  };
+  const [lead, featured] = await Promise.all([
+    payload.find({
+      collection: "stories",
+      depth: 1,
+      limit: 1,
+      overrideAccess: false,
+      sort: "-publishedAt",
+      where: {
+        and: [
+          { leadOnHomepage: { equals: true } },
+          { status: { equals: "published" } },
+        ],
+      },
+    }),
+    // Numbered questions first (1 = first), then the rest of the flagged ones.
+    payload.find({
+      collection: "questions",
+      depth: 1,
+      limit: 5,
+      overrideAccess: false,
+      sort: ["featuredOrder", "-publishedAt"],
+      where: {
+        and: [
+          { featured: { equals: true } },
+          { status: { equals: "published" } },
+        ],
+      },
+    }),
+  ]);
   return {
-    leadStory: published(global.leadStory),
-    featuredQuestions: (Array.isArray(global.featuredQuestions)
-      ? global.featuredQuestions
-      : []
-    )
-      .map(published)
-      .filter((doc): doc is Doc => doc !== null),
+    leadStory: (lead.docs[0] as unknown as Doc | undefined) ?? null,
+    featuredQuestions: featured.docs as unknown as Doc[],
     discoverCards: Array.isArray(global.discoverCards)
       ? (global.discoverCards as string[])
       : ["sky", "on-this-day", "quiz", "fact"],
     hiddenSections: Array.isArray(global.hiddenSections)
       ? (global.hiddenSections as string[])
       : [],
-    exploreReading: toExploreReading(global.exploreReading),
+    exploreReading: {},
     sectionCopy: toSectionCopy(global.sectionCopy),
   };
 }

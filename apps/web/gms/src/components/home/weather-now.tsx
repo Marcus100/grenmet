@@ -2,6 +2,8 @@ import { ArrowRightIcon } from "lucide-react";
 import { HomeSection } from "@/components/home/home-section";
 import {
   type MediaItem,
+  NOTE_KINDS,
+  type TabNotes,
   WeatherNowPanel,
 } from "@/components/home/weather-now-panel";
 import {
@@ -68,6 +70,19 @@ export async function WeatherNow() {
   if (await isSectionHidden("weather-now")) return null;
   const { weatherNow, livePosts, settings } = await fetchHomeContent();
   const updates = livePosts.posts.filter((post) => post.kind === "update");
+  // The newest post for each imagery tab shows as a note under that tab.
+  const notes: TabNotes = {};
+  for (const kind of NOTE_KINDS) {
+    const post = livePosts.posts.find((item) => item.kind === kind);
+    if (post?.text)
+      notes[kind] = {
+        title: post.title,
+        text: post.text,
+        posted: post.publishedAt
+          ? TIME.format(new Date(post.publishedAt))
+          : null,
+      };
+  }
   const note = weatherNow?.note;
   const words = sectionWords(settings, "weather-now", {
     kicker: "Live",
@@ -83,6 +98,7 @@ export async function WeatherNow() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <WeatherNowPanel
           audio={mediaItems(livePosts.posts, "audio")}
+          notes={notes}
           video={mediaItems(livePosts.posts, "video")}
         />
         <div className="flex flex-col gap-3 border-gm-sky border-l-3 pl-4">

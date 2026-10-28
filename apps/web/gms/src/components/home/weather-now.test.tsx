@@ -177,3 +177,41 @@ it("keeps quick updates under the note and plays video in the panel on request",
   );
   expect(container.querySelector("iframe")).toBeNull();
 });
+
+it("shows a forecaster's note under the imagery tab it belongs to, not beside the note", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(
+    home({
+      livePosts: {
+        status: "ok",
+        posts: [
+          {
+            id: "1",
+            kind: "satellite",
+            title: "Cloud band moving in",
+            text: "A band of cloud reaches Grenada this evening.",
+            mediaUrl: null,
+            publishedAt: "2026-10-28T18:30:00Z",
+            expiresAt: null,
+          },
+          {
+            id: "2",
+            kind: "wind",
+            title: "Gusty at the airport",
+            text: "Gusts to 25 mph.",
+            mediaUrl: null,
+            publishedAt: "2026-10-28T18:40:00Z",
+            expiresAt: null,
+          },
+        ],
+      },
+    })
+  );
+  render(await WeatherNow());
+  // Satellite is the open tab, so its note shows and the wind note does not.
+  expect(screen.getByText("Cloud band moving in")).toBeInTheDocument();
+  expect(screen.queryByText("Gusty at the airport")).not.toBeInTheDocument();
+  expect(screen.queryByText("Live from GMS")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("tab", { name: "Wind" }));
+  expect(screen.getByText("Gusty at the airport")).toBeInTheDocument();
+  expect(screen.queryByText("Cloud band moving in")).not.toBeInTheDocument();
+});

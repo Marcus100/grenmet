@@ -1,6 +1,7 @@
 import type { CollectionBeforeChangeHook } from "payload";
 import { PUBLISH_KEYS, staffField } from "../access";
 import { bodyField, seoField, topicsField } from "../fields/common";
+import { featuredQuestionFields } from "../fields/homepage-placement";
 import { editorialCollection } from "./editorial";
 
 /**
@@ -34,7 +35,7 @@ const base = editorialCollection({
   publishKey: PUBLISH_KEYS.questions,
   labels: { singular: "Question", plural: "Questions" },
   admin: {
-    group: "Homepage sections",
+    group: "GMS Content",
     description:
       "Questions about the weather: the questions people ask, each with a short answer and a full explainer.",
   },
@@ -67,6 +68,7 @@ const base = editorialCollection({
         description: "Other questions or stories to read next.",
       },
     },
+    ...featuredQuestionFields,
     topicsField,
     {
       name: "scienceCheck",
