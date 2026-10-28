@@ -217,8 +217,14 @@ async def get_events_org_context(
     Only the ``events`` app is admitted (``resolve_org_caller``); every other app's
     token stays 401. Used by the team-management routes only (ADR-0016, ADR-0044)."""
     credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
-    user, _ = await resolve_org_caller(session, credentials, TEAM_SESSION_APP)
+    user, token_app = await resolve_org_caller(session, credentials, TEAM_SESSION_APP)
     context = await resolve_org_context(session, user, organisation)
+    if token_app is not None:
+        # An app session needs the organisation entitled to that app, checked
+        # after membership is proven so the 403 reveals nothing to outsiders.
+        await service.require_app_enabled(
+            session, organisation_id=context.organisation_id, app_key=token_app
+        )
     with bound_organisation(context.organisation.id):
         yield context
 
