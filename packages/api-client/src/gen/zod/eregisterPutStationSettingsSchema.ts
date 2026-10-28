@@ -40,3 +40,7 @@ export const eregisterPutStationSettingsBodySchema =
   stationSettingsUpdateSchema.describe(
     "All four amounts are required: send an explicit null to clear one."
   );
+
+export const eregisterPutStationSettingsPathSchema = z.object({
+  station_id: z.string(),
+});

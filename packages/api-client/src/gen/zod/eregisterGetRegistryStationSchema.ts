@@ -34,3 +34,7 @@ export const eregisterGetRegistryStationErrorSchema = z.union([
   eregisterGetRegistryStationStatus404Schema,
   eregisterGetRegistryStationStatus422Schema,
 ]);
+
+export const eregisterGetRegistryStationPathSchema = z.object({
+  station_id: z.string(),
+});

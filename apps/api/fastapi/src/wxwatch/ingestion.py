@@ -30,7 +30,7 @@ def authenticate_worker(authorization: Annotated[str | None, Header()] = None) -
 router = APIRouter(
     prefix="/wxwatch", tags=["wxwatch"], dependencies=[Depends(authenticate_worker)]
 )
-Source = Literal["goes19", "sfcana", "cimss", "trackthetropics", "uwyo"]
+Source = Literal["goes19", "sfcana", "cimss", "trackthetropics", "uwyo", "gnca"]
 
 
 class RunInput(BaseModel):

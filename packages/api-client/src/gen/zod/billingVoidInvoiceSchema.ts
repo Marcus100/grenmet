@@ -37,3 +37,7 @@ export const billingVoidInvoiceErrorSchema = z.union([
 ]);
 
 export const billingVoidInvoiceBodySchema = invoiceVoidSchema;
+
+export const billingVoidInvoicePathSchema = z.object({
+  invoice_id: z.uuid(),
+});

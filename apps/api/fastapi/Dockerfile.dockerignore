@@ -27,6 +27,9 @@ scripts/scrapy-wxwatch/*
 !scripts/sutron-collector/
 scripts/sutron-collector/*
 !scripts/sutron-collector/pyproject.toml
+!scripts/gnc-collector/
+scripts/gnc-collector/*
+!scripts/gnc-collector/pyproject.toml
 !notebooks/
 notebooks/*
 !notebooks/pyproject.toml

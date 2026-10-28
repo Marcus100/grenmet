@@ -38,3 +38,7 @@ export const eregisterCorrectRegisterObservationBodySchema =
   registerObservationCorrectionSchema.describe(
     "The replacement for an observation; station, kind and time are kept."
   );
+
+export const eregisterCorrectRegisterObservationPathSchema = z.object({
+  observation_id: z.uuid(),
+});

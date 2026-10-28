@@ -9,6 +9,7 @@ recorded upstream release.
 | ---------- | ------------------------------------------- | ------- | ---------- |
 | `surface/` | SURFACE CDMS (installed via `surface-cdms`) | 1.0.0   | 2026-07-08 |
 | `wis2box/` | WMO wis2box setup bundle                    | 1.3     | 2026-07-08 |
+| `geonetcast/` | GNC-A Python training scripts (INPE/NOAA GNC-A courses) | May 2023 course | 2026-07-08 |
 
 ## surface/
 
@@ -51,6 +52,23 @@ at them.
   (`WIS2BOX_HOST_DATADIR` in `wis2box.env`).
 - Gitignored: `wis2box.env` (broker/storage/webapp passwords). Committed
   template: `wis2box.env.example`.
+
+## geonetcast/
+
+Training material from the GeoNetCast Americas (GNC-A) courses: GOES, NWP and
+animation example scripts, Google Colab notebooks (outputs stripped; originals
+in git history at `4c93c9d`), colour tables and FAZZT/NOVRA receiver notes.
+It is licensed under the GNU GPL v3 (`geonetcast/LICENSE`).
+
+- Reference only: nothing in the API or web apps imports it. Operational
+  satellite processing lives in `scripts/gnc-collector`, which is written
+  independently from NOAA's published GOES-R formulas and does not copy or
+  import these GPL scripts. Keep it that way unless the owner accepts GPL
+  terms for that package.
+- Runs locally or in the devcontainer only; the weather image's `geonetcast`
+  target is not published (see `infra/weather/README.md`).
+- Gitignored: Natural Earth admin-1 shapefiles in `shared/` and the data and
+  images the scripts download or render (see `geonetcast/README.md`).
 
 ## Upgrading a vendored app
 

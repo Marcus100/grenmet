@@ -41,7 +41,10 @@ export type PublicSiteCreate = {
    */
   accepts_subscriptions?: boolean;
   /**
-   * @description Bot check for one public site\'s forms.\n\n``inherit`` uses the global ``TURNSTILE_*`` settings, ``off`` skips the check\nand ``enforce`` requires the site\'s own secret (503 while it is unset).
+   * @description Bot check for one public site's forms.
+   *
+   * ``inherit`` uses the global ``TURNSTILE_*`` settings, ``off`` skips the check
+   * and ``enforce`` requires the site's own secret (503 while it is unset).
    * @default 'inherit'
    * @type string | undefined
    */

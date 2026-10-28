@@ -54,3 +54,22 @@ export const eventsOrgRefundOrderErrorSchema = z.union([
 ]);
 
 export const eventsOrgRefundOrderBodySchema = orgOrderRefundCreateSchema;
+
+export const eventsOrgRefundOrderPathSchema = z.object({
+  order_id: z.uuid(),
+});
+
+export const eventsOrgRefundOrderHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
+    ),
+  "Idempotency-Key": z
+    .union([z.string().max(255), z.null()])
+    .optional()
+    .describe(
+      "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+    ),
+});

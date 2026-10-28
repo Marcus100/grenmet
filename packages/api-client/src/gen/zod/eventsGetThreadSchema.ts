@@ -30,3 +30,7 @@ export const eventsGetThreadErrorSchema = z.union([
   eventsGetThreadStatus422Schema,
   eventsGetThreadStatus429Schema,
 ]);
+
+export const eventsGetThreadPathSchema = z.object({
+  thread_id: z.uuid(),
+});

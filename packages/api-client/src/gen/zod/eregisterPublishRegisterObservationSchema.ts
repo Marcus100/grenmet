@@ -39,3 +39,7 @@ export const eregisterPublishRegisterObservationErrorSchema = z.union([
 export const eregisterPublishRegisterObservationBodySchema = z
   .union([sendObservationRequestSchema, z.null()])
   .optional();
+
+export const eregisterPublishRegisterObservationPathSchema = z.object({
+  observation_id: z.uuid(),
+});

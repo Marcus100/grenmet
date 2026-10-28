@@ -32,3 +32,7 @@ export const eventsCancelListingRsvpErrorSchema = z.union([
   eventsCancelListingRsvpStatus422Schema,
   eventsCancelListingRsvpStatus429Schema,
 ]);
+
+export const eventsCancelListingRsvpPathSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+});

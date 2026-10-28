@@ -40,3 +40,7 @@ export const janitorialUpdateShiftPatternErrorSchema = z.union([
 ]);
 
 export const janitorialUpdateShiftPatternBodySchema = shiftPatternUpdateSchema;
+
+export const janitorialUpdateShiftPatternPathSchema = z.object({
+  pattern_id: z.int(),
+});

@@ -50,3 +50,16 @@ export const bookingsCreatePublicBookingBodySchema =
   bookingPublicCreateSchema.describe(
     "A customer's booking request. Sent with an `Idempotency-Key` header."
   );
+
+export const bookingsCreatePublicBookingPathSchema = z.object({
+  slug: z.string().max(60),
+});
+
+export const bookingsCreatePublicBookingHeadersSchema = z.object({
+  "Idempotency-Key": z
+    .union([z.string().max(255), z.null()])
+    .optional()
+    .describe(
+      "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+    ),
+});

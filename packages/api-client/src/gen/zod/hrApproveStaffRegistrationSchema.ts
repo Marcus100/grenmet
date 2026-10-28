@@ -31,3 +31,7 @@ export const hrApproveStaffRegistrationErrorSchema = z.union([
   hrApproveStaffRegistrationStatus409Schema,
   hrApproveStaffRegistrationStatus422Schema,
 ]);
+
+export const hrApproveStaffRegistrationPathSchema = z.object({
+  user_id: z.uuid(),
+});

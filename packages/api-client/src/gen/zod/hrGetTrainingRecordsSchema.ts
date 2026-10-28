@@ -50,3 +50,23 @@ export const hrGetTrainingRecordsErrorSchema = z.union([
   hrGetTrainingRecordsStatus403Schema,
   hrGetTrainingRecordsStatus422Schema,
 ]);
+
+export const hrGetTrainingRecordsQuerySchema = z.object({
+  organisation_id: z.string(),
+  user_id: z.union([z.uuid(), z.null()]).optional(),
+  include_archived: z.boolean().optional().default(false),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

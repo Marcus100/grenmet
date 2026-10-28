@@ -38,3 +38,8 @@ export const hrListPendingClockPunchesErrorSchema = z.union([
   hrListPendingClockPunchesStatus403Schema,
   hrListPendingClockPunchesStatus422Schema,
 ]);
+
+export const hrListPendingClockPunchesQuerySchema = z.object({
+  limit: z.int().min(1).max(200).optional().default(50),
+  offset: z.int().min(0).max(100000).optional().default(0),
+});

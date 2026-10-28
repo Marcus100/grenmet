@@ -6,7 +6,7 @@
 import type { BookingPublicDetail } from "./BookingPublicDetail.js";
 
 /**
- * @description The answer to a new booking. Only the token\'s hash is stored with the booking.
+ * @description The answer to a new booking. Only the token's hash is stored with the booking.
  * @type object
  */
 export type BookingPublicReceipt = {
@@ -21,7 +21,7 @@ export type BookingPublicReceipt = {
    */
   manage_token: string;
   /**
-   * @description The business\'s own manage page, when it configured one.
+   * @description The business's own manage page, when it configured one.
    */
   manage_url: string | null;
   /**

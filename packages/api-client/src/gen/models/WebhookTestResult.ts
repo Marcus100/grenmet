@@ -4,7 +4,8 @@
  */
 
 /**
- * @description Outcome of a synchronous ping. A failed ping does not count towards\nauto-disable.
+ * @description Outcome of a synchronous ping. A failed ping does not count towards
+ * auto-disable.
  * @type object
  */
 export type WebhookTestResult = {

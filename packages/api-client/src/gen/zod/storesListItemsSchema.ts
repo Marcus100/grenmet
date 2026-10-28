@@ -53,3 +53,23 @@ export const storesListItemsErrorSchema = z.union([
   storesListItemsStatus403Schema,
   storesListItemsStatus422Schema,
 ]);
+
+export const storesListItemsQuerySchema = z.object({
+  q: z.union([z.string().max(100), z.null()]).optional(),
+  category: z.union([z.string().max(100), z.null()]).optional(),
+  active: z.union([z.boolean(), z.null()]).optional(),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

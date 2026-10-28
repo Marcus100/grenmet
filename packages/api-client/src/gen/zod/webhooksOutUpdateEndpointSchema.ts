@@ -44,3 +44,16 @@ export const webhooksOutUpdateEndpointErrorSchema = z.union([
 ]);
 
 export const webhooksOutUpdateEndpointBodySchema = webhookEndpointUpdateSchema;
+
+export const webhooksOutUpdateEndpointPathSchema = z.object({
+  endpoint_id: z.string(),
+});
+
+export const webhooksOutUpdateEndpointHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

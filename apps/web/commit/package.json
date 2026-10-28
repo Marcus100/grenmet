@@ -1,0 +1,47 @@
+{
+  "name": "@barrelsgd/web-commit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --turbopack --port 3019",
+    "build": "content-collections build && next build",
+    "start": "next start --port 3019",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "check:ci": "biome ci .",
+    "type-check": "rm -f next-env.d.ts && rm -rf .next/dev/types && next typegen && content-collections build && tsc --noEmit",
+    "test": "content-collections build && vitest run",
+    "test:watch": "content-collections build && vitest"
+  },
+  "dependencies": {
+    "@barrelsgd/ui": "workspace:*",
+    "@content-collections/cli": "catalog:",
+    "@content-collections/core": "catalog:",
+    "@content-collections/mdx": "catalog:",
+    "@content-collections/next": "catalog:",
+    "next": "catalog:",
+    "next-themes": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "remark-gfm": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@barrelsgd/tsconfig": "workspace:*",
+    "@tailwindcss/postcss": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "babel-plugin-react-compiler": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

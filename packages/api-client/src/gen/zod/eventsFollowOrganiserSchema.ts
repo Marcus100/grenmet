@@ -32,3 +32,7 @@ export const eventsFollowOrganiserErrorSchema = z.union([
   eventsFollowOrganiserStatus422Schema,
   eventsFollowOrganiserStatus429Schema,
 ]);
+
+export const eventsFollowOrganiserPathSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/),
+});

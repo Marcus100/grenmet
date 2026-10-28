@@ -4,7 +4,8 @@ import { ChartViewport } from "@/components/chart-viewport";
 import { Flag } from "@/components/flag";
 import { Forecast, type ForecastSeat } from "@/components/forecast/forecast";
 import { Replay } from "@/components/forecast/replay";
-import { FlatMap, ringPath } from "@/components/map/flat-map";
+import { ringPath } from "@/components/map/flat-map";
+import { LevelMap } from "@/components/map/level-map";
 import { SeatSquare } from "@/components/party-chip";
 import { PageHead, Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
@@ -149,10 +150,9 @@ export default function ForecastPage() {
 
   const replay = replayInputs(results);
   const divisionPaths = Object.fromEntries(
-    Object.entries(geo.divisions).map(([id, shape]) => [
-      id,
-      ringPath(shape.rings),
-    ])
+    Object.entries(geo.divisions)
+      .filter(([id, shape]) => shape.located && shape.cons === id.charAt(0))
+      .map(([id, shape]) => [id, ringPath(shape.rings)])
   );
   const names = Object.fromEntries(
     CODES.map((c) => [c, constituencyName(results, c)])
@@ -259,15 +259,20 @@ export default function ForecastPage() {
       >
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <figure>
-            <FlatMap
-              geo={geo}
-              label="Lean of each constituency"
-              regions={CODES.map((code) => ({
+            <LevelMap
+              constituencyRegions={CODES.map((code) => ({
                 code,
                 fill: leanFill(lean[code]),
                 href: constituencyHref(results, code),
                 title: `${constituencyName(results, code)}: ${leanLabel(lean[code])}`,
               }))}
+              divisionRegions={divisions.map((d) => ({
+                code: d.division,
+                fill: leanFill(d.lean),
+                title: `${d.division}: ${leanLabel(d.lean)}${d.only2022 ? " (2022 only)" : ""}`,
+              }))}
+              geo={geo}
+              label="Grenada Lean Index"
             />
             <figcaption className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-base">
               {[-0.25, -0.1, -0.03, 0.03, 0.1, 0.25].map((x) => (
@@ -340,11 +345,13 @@ export default function ForecastPage() {
         </div>
         <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <figure>
-            <FlatMap
-              geo={geo}
-              label="Lean of each polling division"
-              level="div"
-              regions={Object.keys(geo.divisions).map((division) => {
+            <LevelMap
+              constituencyRegions={CODES.map((code) => ({
+                code,
+                fill: leanFill(lean[code]),
+                title: `${constituencyName(results, code)}: ${leanLabel(lean[code])}`,
+              }))}
+              divisionRegions={Object.keys(geo.divisions).map((division) => {
                 const d = divisionLean[division];
                 return {
                   code: division,
@@ -354,10 +361,12 @@ export default function ForecastPage() {
                     : `${division}: no result`,
                 };
               })}
+              geo={geo}
+              label="Grenada Lean Index"
             />
             <figcaption className="mt-2 text-base text-el-muted">
-              Polling divisions, 2022 and 2018. Divisions created after 2018 use
-              2022 only.
+              Lean at the selected map level, using 2022 and 2018. Divisions
+              without a 2018 result use 2022 only. Boundaries are illustrative.
             </figcaption>
           </figure>
           <div>
@@ -602,6 +611,12 @@ export default function ForecastPage() {
         title="5 · Election night, replayed: 2022"
       >
         <Replay
+          constituencyPaths={Object.fromEntries(
+            CODES.map((code) => [
+              code,
+              ringPath(geo.constituencies[code].rings),
+            ])
+          )}
           divisionPaths={divisionPaths}
           inputs={replay}
           inset={geo.inset}

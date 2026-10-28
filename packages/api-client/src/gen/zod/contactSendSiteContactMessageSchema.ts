@@ -37,3 +37,7 @@ export const contactSendSiteContactMessageBodySchema =
   contactMessageBodySchema.describe(
     "A contact message sent to the site named in the path."
   );
+
+export const contactSendSiteContactMessagePathSchema = z.object({
+  site_key: z.string().max(40),
+});

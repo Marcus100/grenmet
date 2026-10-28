@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MapLevelView } from "@/components/map/map-level-view";
 import { partyColor, partyFillIsDark } from "@/data/parties";
 import {
   governmentAt,
@@ -123,38 +124,43 @@ export function SwingCalculator({ years, shapes, land, inset }: Props) {
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <figure>
-          <svg className="h-auto w-full" viewBox="-15.5 -25.5 43 41.5">
-            <title>{`Projected winner in each constituency, ${year}, at this swing`}</title>
-            <path d={land} fill="var(--el-land)" />
-            {seats.map((s) => {
-              const w = winnerAt(s, swing);
-              const changed = w !== winnerAt(s, 0);
-              return (
-                <path
-                  className={
-                    changed
-                      ? "stroke-(--el-ink) [stroke-width:0.3]"
-                      : "stroke-(--el-paper) [stroke-width:0.06]"
-                  }
-                  d={shapes[s.code]?.d}
-                  fill={partyColor(w)}
-                  key={s.code}
-                >
-                  <title>{`${shapes[s.code]?.name}: ${w}${changed ? ` (actual ${winnerAt(s, 0)})` : ""}. Changes hands at ${Math.abs(swingToFlip(s)).toFixed(1)} pts toward the ${swingToFlip(s) > 0 ? "NDC" : "NNP"}`}</title>
-                </path>
-              );
-            })}
-            <rect
-              fill="none"
-              height={inset.y1 - inset.y0}
-              stroke="var(--el-rule-2)"
-              strokeDasharray=".5 .35"
-              strokeWidth={0.08}
-              width={inset.x1 - inset.x0}
-              x={inset.x0}
-              y={-inset.y1}
-            />
-          </svg>
+          <MapLevelView
+            constituencyMap={
+              <svg className="h-auto w-full" viewBox="-15.5 -25.5 43 41.5">
+                <title>{`Projected winner in each constituency, ${year}, at this swing`}</title>
+                <path d={land} fill="var(--el-land)" />
+                {seats.map((s) => {
+                  const w = winnerAt(s, swing);
+                  const changed = w !== winnerAt(s, 0);
+                  return (
+                    <path
+                      className={
+                        changed
+                          ? "stroke-(--el-ink) [stroke-width:0.3]"
+                          : "stroke-(--el-paper) [stroke-width:0.06]"
+                      }
+                      d={shapes[s.code]?.d}
+                      fill={partyColor(w)}
+                      key={s.code}
+                    >
+                      <title>{`${shapes[s.code]?.name}: ${w}${changed ? ` (actual ${winnerAt(s, 0)})` : ""}. Changes hands at ${Math.abs(swingToFlip(s)).toFixed(1)} pts toward the ${swingToFlip(s) > 0 ? "NDC" : "NNP"}`}</title>
+                    </path>
+                  );
+                })}
+                <rect
+                  fill="none"
+                  height={inset.y1 - inset.y0}
+                  stroke="var(--el-rule-2)"
+                  strokeDasharray=".5 .35"
+                  strokeWidth={0.08}
+                  width={inset.x1 - inset.x0}
+                  x={inset.x0}
+                  y={-inset.y1}
+                />
+              </svg>
+            }
+            unavailableReason="This swing calculator projects constituency results; polling-division projections are unavailable."
+          />
           <figcaption className="text-base text-el-muted">
             Seats that change hands are outlined. Boundaries are illustrative.
           </figcaption>

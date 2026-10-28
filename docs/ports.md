@@ -55,6 +55,7 @@ is allocated by category.
 | gmsdash | `@barrelsgd/web-gmsdash` | 3013 |
 | babydoll | `@barrelsgd/web-babydoll` | 3014 |
 | bookings | `@barrelsgd/web-bookings` | 3015 |
+| commit | `@barrelsgd/web-commit` | 3019 |
 
 ### Reserved and planned
 
@@ -66,7 +67,6 @@ Claimed, not built (no Compose service, Traefik route, image or DNS record).
 | 3016 | `@barrelsgd/web-hr` (`hr.barrels.gd`) | Planned: separate multi-organisation HR app, organisation in the path (decision 2026-10-21) |
 | 3017 | `@barrelsgd/web-business` | Reserved |
 | 3018 | `@barrelsgd/web-app` | Reserved |
-| 3019 | spare | Unassigned |
 | 3020 | `@barrelsgd/web-developers` (`developers.barrels.gd`) | Reserved (platform) |
 | 3021 | `@barrelsgd/web-status` (`status.barrels.gd`) | Reserved (platform) |
 | 3030 | `@barrelsgd/web-salesbus` (point of sale; no host yet: `salesbus` and `sales` are retired hosts) | Reserved (product) |
@@ -97,9 +97,11 @@ Never reuse. They stay here as the record.
 | `3011` | Never used (the transition plan once pencilled in a GAA staff portal here) | Never assign |
 | `4000–4099` | The retired Hono API and weather-data proxy | Retired |
 
-In production only Traefik's entry points are published to the host; app ports stay
+In production only Traefik's entry points are published to the host (80 and 443
+publicly; the dashboard/ping entrypoint on `127.0.0.1:8080` only); app ports stay
 on the Docker network and Traefik routes by hostname using an explicit
-`loadbalancer.server.port` label.
+`loadbalancer.server.port` label. Postgres is the exception: it is published on
+the droplet's private IP (`${CORE_PRIVATE_IP}:5432`) for the private network.
 
 The static `apps/web/barrels` homepage has no assigned Next.js port. Port
 allocation does not indicate deployment status; see the
@@ -135,11 +137,13 @@ entry there or its image build fails.
 | gmsdash (GMS Dashboard) | `localhost:3013` | 3013 | `gmsdash.staging.barrels.gd` | `gmsdash.barrels.gd` | `/api/health` |
 | bookings (Barrels Bookings) | `localhost:3015` | 3015 | `bookings.staging.barrels.gd` | `bookings.barrels.gd` | `/api/health` |
 | FastAPI | `localhost:8000` | 8000 | `api.staging.barrels.gd` | `api.barrels.gd` | `/api/v1/utils/health-check/` |
-| Adminer (password) | `localhost:8080` | 8080 | `adminer.staging.barrels.gd` | `adminer.barrels.gd` | — |
-| Traefik dashboard (password) | `localhost:8090` | built in (`api@internal`) | `traefik.staging.barrels.gd` | `traefik.barrels.gd` | — |
+| Adminer (password) | `localhost:8080` | 8080 | `adminer.staging.barrels.gd` | `adminer.barrels.gd` (reserved; the Adminer service runs under the staging profile only and is never deployed to production) | — |
+| Traefik dashboard (password) | `localhost:8090` | built in (`api@internal`) | SSH tunnel to port 8080 on the droplet (loopback only) | SSH tunnel to port 8080 on the droplet (loopback only) | — |
 
-Internal only (no hostname): Postgres 5432, Redis 6379, the ARQ `worker`, the
-`nhc-worker`, `prestart` (migrations) and `cms-migrate`.
+Internal only (no hostname): Postgres 5432 (also on the private IP, above),
+Redis 6379, the ARQ `worker`, the `nhc-worker`, `prestart` (migrations),
+`cms-migrate` and `traefik-socket-proxy` (Docker API for Traefik, port 2375 on an
+internal network).
 
 Admin host move (owner decision 2026-10-21): `admin.<domain>` is the Barrels
 staff / superuser console (`apps/web/admin`, port 3012) and `gms.<domain>` is the
@@ -161,6 +165,15 @@ rules in `infra/docker/docker-compose.deploy.yml`.
 | Barrels company homepage (`apps/web/barrels`) | `barrels.gd` (`www.barrels.gd` redirects) |
 | elections (`apps/web/elections`, dev port 3007) | `elections.barrels.gd` |
 | babydoll (`apps/web/babydoll`, dev port 3014; Babydoll Beauty Bar client site) | `babydoll.barrels.gd` (explicit DNS record; overrides the DigitalOcean wildcard) |
+
+### Hosted on Cloudflare Pages (production only, no staging)
+
+Static sites (ADR-0036 amendment, 2026-10-27). Each host needs its own DNS
+record pointing at Pages, overriding the DigitalOcean wildcard.
+
+| Site | Production |
+| --- | --- |
+| commit (`apps/web/commit`, dev port 3019; Barrels engineering blog) | `commit.barrels.gd` (planned; not deployed yet) |
 
 ### Planned host changes and new hosts
 
@@ -267,7 +280,7 @@ folder of `apps/web/bookings` (or `apps/web/hr`) is missing from the list.
 - **Help and legal:** help, support, legal, privacy, terms, security, abuse, postmaster, hostmaster, webmaster.
 - **Money:** billing, pay, payments, checkout, invoices.
 - **Machine endpoints:** webhooks, hooks, callback, ws, mcp, ai, api, developers.
-- **Product and client hosts:** bookings, events, hr, shop, signal, elections, gmsdash, cap, weather, docs, cms, mbia, babydoll, gms.
+- **Product and client hosts:** bookings, events, hr, shop, signal, elections, gmsdash, cap, weather, docs, cms, mbia, babydoll, commit, gms.
 - **Reserved sector products (not built):** education, automotive, delivery, bus, park, taxi, homegrown, shopkeeping.
 - **Retired hosts:** gmsadmin, gaa-admin, wxwatch, wxproducts, salesbus, sales, hurricane, spice, proxy, grenmet.
 - **Brand and generic words:** www, barrels, gaa, passport, rewards, contacts, business, tickets, studio, org, me, public, embed, widget, manage, booking, settings, new, search, about.

@@ -23,7 +23,7 @@ export type BookingsCreatePublicBookingHeaders = {
 };
 
 /**
- * @description The answer to a new booking. Only the token\'s hash is stored with the booking.
+ * @description The answer to a new booking. Only the token's hash is stored with the booking.
  * @type object
  */
 export type BookingsCreatePublicBookingStatus201 = BookingPublicReceipt;
@@ -43,7 +43,7 @@ export type BookingsCreatePublicBookingStatus409 = unknown;
 export type BookingsCreatePublicBookingStatus422 = ValidationErrorResponse;
 
 /**
- * @description A customer\'s booking request. Sent with an `Idempotency-Key` header.
+ * @description A customer's booking request. Sent with an `Idempotency-Key` header.
  * @type object
  */
 export type BookingsCreatePublicBookingBody = BookingPublicCreate;

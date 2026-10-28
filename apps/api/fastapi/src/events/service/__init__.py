@@ -78,6 +78,7 @@ from .people import (
     update_profile,
 )
 from .settlement import organiser_settlement, settlement, settlement_csv
+from .taxonomy import category_tree
 from .ticketing import cancel_ticket, claim_tickets, my_order, my_ticket, my_tickets
 
 __all__ = [
@@ -102,6 +103,7 @@ __all__ = [
     "sell_tickets",
     "manifest",
     "blocked_ids",
+    "category_tree",
     "can_message",
     "cancel_ticket",
     "claim_tickets",

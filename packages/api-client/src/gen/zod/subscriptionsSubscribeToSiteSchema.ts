@@ -35,3 +35,7 @@ export const subscriptionsSubscribeToSiteBodySchema =
   siteSubscribeRequestSchema.describe(
     "Subscribe to the list of the public site named in the path."
   );
+
+export const subscriptionsSubscribeToSitePathSchema = z.object({
+  site_key: z.string().max(40),
+});

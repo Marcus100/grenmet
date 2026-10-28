@@ -44,3 +44,16 @@ export const rewardsOrgPauseProgramErrorSchema = z.union([
   rewardsOrgPauseProgramStatus409Schema,
   rewardsOrgPauseProgramStatus422Schema,
 ]);
+
+export const rewardsOrgPauseProgramPathSchema = z.object({
+  program_id: z.uuid(),
+});
+
+export const rewardsOrgPauseProgramHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

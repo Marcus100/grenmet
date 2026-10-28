@@ -27,3 +27,7 @@ export const wxwatchMetadataErrorSchema = z.union([
   wxwatchMetadataStatus403Schema,
   wxwatchMetadataStatus422Schema,
 ]);
+
+export const wxwatchMetadataQuerySchema = z.object({
+  day: z.iso.date(),
+});

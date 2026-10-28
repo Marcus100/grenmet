@@ -26,3 +26,7 @@ export const hrListHolidaysErrorSchema = z.union([
   hrListHolidaysStatus403Schema,
   hrListHolidaysStatus422Schema,
 ]);
+
+export const hrListHolidaysQuerySchema = z.object({
+  year: z.union([z.int(), z.null()]).optional(),
+});

@@ -40,3 +40,14 @@ export const storageGetFileErrorSchema = z.union([
   storageGetFileStatus422Schema,
   storageGetFileStatus503Schema,
 ]);
+
+export const storageGetFilePathSchema = z.object({
+  file_id: z.uuid(),
+});
+
+export const storageGetFileHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe("Id of the organisation the upload belongs to (active member)."),
+});

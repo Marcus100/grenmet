@@ -34,3 +34,7 @@ export const hrUpdateSetupPolicyErrorSchema = z.union([
 ]);
 
 export const hrUpdateSetupPolicyBodySchema = policyInputSchema;
+
+export const hrUpdateSetupPolicyPathSchema = z.object({
+  key: z.string(),
+});

@@ -37,3 +37,7 @@ export const wxwatchSourceChecksErrorSchema = z.union([
   wxwatchSourceChecksStatus422Schema,
   wxwatchSourceChecksStatus503Schema,
 ]);
+
+export const wxwatchSourceChecksQuerySchema = z.object({
+  edition_ids: z.array(z.uuid()).min(1).max(30),
+});

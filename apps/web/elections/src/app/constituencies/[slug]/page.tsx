@@ -2,7 +2,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { Flag } from "@/components/flag";
-import { FlatMap } from "@/components/map/flat-map";
+import { LevelMap } from "@/components/map/level-map";
 import { PartyDot } from "@/components/party-chip";
 import { PageHead, Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
@@ -178,16 +178,25 @@ export default async function ConstituencyPage({ params }: Props) {
               {contest.page ? `, p. ${contest.page}` : ""}.
             </p>
           </div>
-          <FlatMap
+          <LevelMap
             className="max-w-md"
-            geo={geo}
-            label={`${seat.name} polling divisions, coloured by the 2022 winner in each`}
-            level="div"
-            regions={divisions.map((d) => ({
+            constituencyRegions={[
+              {
+                code,
+                fill: contest.c[0]
+                  ? partyColor(contest.c[0][1])
+                  : "var(--el-paper-2)",
+                title: `${seat.name}: ${contest.c[0]?.[1] ?? "no result"}`,
+              },
+            ]}
+            defaultLevel="div"
+            divisionRegions={divisions.map((d) => ({
               code: d.division,
               fill: d.c[0] ? partyColor(d.c[0][1]) : "var(--el-land)",
               title: `${d.division}${d.places[0] ? ` · ${d.places[0]}` : ""}: ${d.c[0]?.[1] ?? "no result"}`,
             }))}
+            geo={geo}
+            label={`${seat.name}, 2022 winner`}
           />
         </div>
       </Section>

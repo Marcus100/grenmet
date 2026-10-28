@@ -11,6 +11,8 @@ const WXWATCH =
   /\/scripts\/scrapy-wxwatch\|run --isolated --frozen --package wxwatch python -m pytest tests$/;
 const SUTRON =
   /\/scripts\/sutron-collector\|run --isolated --frozen --package sutron-collector python -m pytest tests$/;
+const GNC =
+  /\/scripts\/gnc-collector\|run --isolated --frozen --package gnc-collector python -m pytest tests$/;
 const INGEST =
   /\/scripts\/gms-ingest\|run --isolated --frozen --package gms-ingest python -m unittest discover -s tests -v$/;
 test("collector verification runs each suite from its own project in isolation", () => {
@@ -33,10 +35,11 @@ test("collector verification runs each suite from its own project in isolation",
     });
     assert.equal(result.status, 0, result.stderr);
     const calls = readFileSync(log, "utf8").trim().split("\n");
-    assert.equal(calls.length, 3);
+    assert.equal(calls.length, 4);
     assert.match(calls[0], WXWATCH);
     assert.match(calls[1], SUTRON);
-    assert.match(calls[2], INGEST);
+    assert.match(calls[2], GNC);
+    assert.match(calls[3], INGEST);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

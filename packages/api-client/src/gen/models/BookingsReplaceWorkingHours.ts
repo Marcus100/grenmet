@@ -42,7 +42,7 @@ export type BookingsReplaceWorkingHoursStatus409 = unknown;
 export type BookingsReplaceWorkingHoursStatus422 = ValidationErrorResponse;
 
 /**
- * @description The provider\'s complete weekly plan; replaces what was there.
+ * @description The provider's complete weekly plan; replaces what was there.
  * @type object
  */
 export type BookingsReplaceWorkingHoursBody = BookingWorkingHoursUpdate;

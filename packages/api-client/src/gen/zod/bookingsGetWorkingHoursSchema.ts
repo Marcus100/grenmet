@@ -43,3 +43,16 @@ export const bookingsGetWorkingHoursErrorSchema = z.union([
   bookingsGetWorkingHoursStatus404Schema,
   bookingsGetWorkingHoursStatus422Schema,
 ]);
+
+export const bookingsGetWorkingHoursPathSchema = z.object({
+  provider_id: z.uuid(),
+});
+
+export const bookingsGetWorkingHoursHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+    ),
+});

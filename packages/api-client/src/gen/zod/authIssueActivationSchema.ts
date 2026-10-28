@@ -37,3 +37,7 @@ export const authIssueActivationErrorSchema = z.union([
 ]);
 
 export const authIssueActivationBodySchema = activationIssueSchema;
+
+export const authIssueActivationPathSchema = z.object({
+  user_id: z.uuid(),
+});

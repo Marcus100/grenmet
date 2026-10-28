@@ -40,3 +40,7 @@ export const janitorialRevokeGrantErrorSchema = z.union([
   janitorialRevokeGrantStatus422Schema,
   janitorialRevokeGrantStatus503Schema,
 ]);
+
+export const janitorialRevokeGrantPathSchema = z.object({
+  grant_id: z.uuid(),
+});

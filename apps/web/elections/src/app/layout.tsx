@@ -10,7 +10,6 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { calendarFrom, electionStatus } from "@/data/election-2026";
 import { campaign } from "@/data/load";
-import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
 import "./globals.css";
 import { env } from "@/lib/env";
 
@@ -52,10 +51,7 @@ export default function RootLayout({
           <SkipLink />
 
           <MotionProvider>
-            <SiteHeader
-              accountLabel={signInEnabled() ? APP_LABEL : undefined}
-              status={status}
-            />
+            <SiteHeader status={status} />
             <main
               className="flex-1 outline-none"
               id={MAIN_CONTENT_ID}

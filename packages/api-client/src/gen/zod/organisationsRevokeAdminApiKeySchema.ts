@@ -33,3 +33,7 @@ export const organisationsRevokeAdminApiKeyErrorSchema = z.union([
   organisationsRevokeAdminApiKeyStatus404Schema,
   organisationsRevokeAdminApiKeyStatus422Schema,
 ]);
+
+export const organisationsRevokeAdminApiKeyPathSchema = z.object({
+  key_id: z.string().max(100),
+});

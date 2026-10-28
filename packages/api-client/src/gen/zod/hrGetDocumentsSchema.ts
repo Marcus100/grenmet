@@ -60,3 +60,25 @@ export const hrGetDocumentsErrorSchema = z.union([
   hrGetDocumentsStatus403Schema,
   hrGetDocumentsStatus422Schema,
 ]);
+
+export const hrGetDocumentsQuerySchema = z.object({
+  user_id: z.union([z.uuid(), z.null()]).optional(),
+  department_id: z.union([z.string(), z.null()]).optional(),
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+  category: z.union([documentCategorySchema, z.null()]).optional(),
+  include_archived: z.boolean().optional().default(false),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

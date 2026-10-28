@@ -48,3 +48,16 @@ export const contactsUpdateOrgContactErrorSchema = z.union([
 ]);
 
 export const contactsUpdateOrgContactBodySchema = contactUpdateSchema;
+
+export const contactsUpdateOrgContactPathSchema = z.object({
+  contact_id: z.string(),
+});
+
+export const contactsUpdateOrgContactHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

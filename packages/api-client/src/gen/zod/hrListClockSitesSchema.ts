@@ -27,3 +27,7 @@ export const hrListClockSitesErrorSchema = z.union([
   hrListClockSitesStatus404Schema,
   hrListClockSitesStatus422Schema,
 ]);
+
+export const hrListClockSitesQuerySchema = z.object({
+  department_id: z.string(),
+});

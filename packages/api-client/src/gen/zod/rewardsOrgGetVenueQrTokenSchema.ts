@@ -47,3 +47,16 @@ export const rewardsOrgGetVenueQrTokenErrorSchema = z.union([
   rewardsOrgGetVenueQrTokenStatus422Schema,
   rewardsOrgGetVenueQrTokenStatus503Schema,
 ]);
+
+export const rewardsOrgGetVenueQrTokenPathSchema = z.object({
+  venue_id: z.uuid(),
+});
+
+export const rewardsOrgGetVenueQrTokenHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

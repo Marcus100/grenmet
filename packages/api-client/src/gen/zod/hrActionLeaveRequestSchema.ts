@@ -31,3 +31,7 @@ export const hrActionLeaveRequestErrorSchema = z.union([
 ]);
 
 export const hrActionLeaveRequestBodySchema = leaveRequestActionSchema;
+
+export const hrActionLeaveRequestPathSchema = z.object({
+  leave_request_id: z.uuid(),
+});

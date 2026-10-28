@@ -42,3 +42,12 @@ export const hrGetWorkingDaysErrorSchema = z.union([
   hrGetWorkingDaysStatus403Schema,
   hrGetWorkingDaysStatus422Schema,
 ]);
+
+export const hrGetWorkingDaysQuerySchema = z.object({
+  start: z.iso.date().describe("First day of leave"),
+  end: z.iso.date().describe("Last day of leave"),
+  leave_type: z
+    .union([leaveTypeSchema, z.null()])
+    .optional()
+    .describe("Leave type; VACATION adds the provisional extra-day hint"),
+});

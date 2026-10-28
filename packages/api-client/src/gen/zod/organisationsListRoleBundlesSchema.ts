@@ -11,7 +11,7 @@ export const organisationsListRoleBundlesHeaderXBarrelsOrganisationSchema = z
   .union([z.string(), z.null()])
   .optional()
   .describe(
-    "Id of the organisation the request acts for. The caller must be an active member."
+    "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
   );
 
 export const organisationsListRoleBundlesStatus200Schema = z.array(
@@ -38,3 +38,12 @@ export const organisationsListRoleBundlesErrorSchema = z.union([
   organisationsListRoleBundlesStatus404Schema,
   organisationsListRoleBundlesStatus422Schema,
 ]);
+
+export const organisationsListRoleBundlesHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
+    ),
+});

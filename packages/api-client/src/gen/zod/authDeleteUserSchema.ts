@@ -27,3 +27,7 @@ export const authDeleteUserErrorSchema = z.union([
   authDeleteUserStatus404Schema,
   authDeleteUserStatus422Schema,
 ]);
+
+export const authDeleteUserPathSchema = z.object({
+  user_id: z.uuid(),
+});
