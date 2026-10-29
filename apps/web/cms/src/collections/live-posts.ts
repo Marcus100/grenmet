@@ -12,7 +12,6 @@ import {
   PUBLISH_KEYS,
   WEATHER_NOW_NOTE_KEY,
 } from "../access";
-import { assertNoUnlinkedHazard, isCapLink } from "../fields/hazard-guard";
 import { enforceReview } from "../fields/workflow";
 import { isNoteScope, NOTE_KIND, stampDutyNote } from "../lib/duty-note";
 import { checkMediaLink, type MediaKind } from "../lib/media-links";
@@ -28,22 +27,6 @@ const isNoteOnly = (user: Parameters<typeof isEditor>[0]) =>
   hasPermission(user, WEATHER_NOW_NOTE_KEY) &&
   !isEditor(user) &&
   !hasPermission(user, ARTICLE_KEY);
-
-/** A live post may mention a warning only with a link to its CAP alert. */
-export const guardLiveHazardWords: CollectionBeforeChangeHook = ({
-  data,
-  originalDoc,
-}) => {
-  const links = (data.relatedLinks ?? originalDoc?.relatedLinks ?? []) as {
-    category?: string;
-    url?: string;
-  }[];
-  assertNoUnlinkedHazard(
-    [data.title ?? originalDoc?.title, data.text ?? originalDoc?.text],
-    links.some(isCapLink)
-  );
-  return data;
-};
 
 /**
  * The duty note can be posted with its own permission, without the review
@@ -118,7 +101,7 @@ export const LivePosts = editorialCollection({
   access: { create: liveCreate, update: liveUpdate },
   review: enforceNoteOrReview(PUBLISH_KEYS["live-posts"]),
   beforeValidate: [stampNoteBeforeValidate],
-  beforeChange: [guardNoteScope, guardLiveHazardWords],
+  beforeChange: [guardNoteScope],
   admin: {
     group: "GMS Content",
     defaultColumns: ["title", "kind", "status", "publishedAt"],

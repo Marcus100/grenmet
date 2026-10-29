@@ -7,7 +7,6 @@ import {
   summaryField,
   topicsField,
 } from "../fields/common";
-import { guardHazardWords } from "./desk-updates";
 import { editorialCollection } from "./editorial";
 
 /**
@@ -36,10 +35,4 @@ const base = editorialCollection({
   ],
 });
 
-export const ReportNotes = {
-  ...base,
-  hooks: {
-    ...base.hooks,
-    beforeChange: [...(base.hooks?.beforeChange ?? []), guardHazardWords],
-  },
-};
+export const ReportNotes = base;

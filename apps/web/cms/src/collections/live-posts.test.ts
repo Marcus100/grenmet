@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PUBLISH_KEYS, WEATHER_NOW_NOTE_KEY } from "../access";
-import {
-  enforceNoteOrReview,
-  guardLiveHazardWords,
-  guardNoteScope,
-  LivePosts,
-} from "./live-posts";
+import { enforceNoteOrReview, guardNoteScope, LivePosts } from "./live-posts";
 
 const noteHolder = { id: 5, permissionKeys: [WEATHER_NOW_NOTE_KEY] };
 const author = { id: 6, permissionKeys: ["cms.article.create"] };
@@ -108,44 +103,5 @@ describe("posting the note without the review step", () => {
         publisher
       )
     ).toEqual({ kind: "update", status: "published" });
-  });
-});
-
-describe("warning words in live posts", () => {
-  const guard = (
-    data: Record<string, unknown>,
-    original?: Record<string, unknown>
-  ) =>
-    guardLiveHazardWords({
-      data,
-      originalDoc: original,
-    } as never);
-  it("needs the CAP alert link for a note that mentions a warning", () => {
-    expect(() =>
-      guard({
-        title: "Duty forecaster's note",
-        text: "A flood watch is in effect.",
-      })
-    ).toThrow("CAP alert");
-    expect(
-      guard({
-        title: "Duty forecaster's note",
-        text: "A flood watch is in effect.",
-        relatedLinks: [
-          {
-            url: "https://weather.barrels.gd/alerts/GMS-1",
-            category: "cap",
-          },
-        ],
-      }).text
-    ).toBe("A flood watch is in effect.");
-  });
-  it("accepts a note with no warning words", () => {
-    expect(
-      guard({
-        title: "Duty forecaster's note",
-        text: "Showers ease this afternoon.",
-      }).text
-    ).toBe("Showers ease this afternoon.");
   });
 });
