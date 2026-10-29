@@ -20,7 +20,13 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ISSUED = /^\/weather\/issued\/([^/]+)$/;
 const ALERT = /^\/alerts\/([^/]+)$/;
 const QUERY_OR_HASH = /[?#]/;
-const TRAILING_SLASHES = /\/+$/;
+
+/** Drops trailing slashes with a loop, not a backtracking pattern. */
+function trimTrailingSlashes(path: string): string {
+  let end = path.length;
+  while (end > 1 && path.charAt(end - 1) === "/") end -= 1;
+  return path.slice(0, end);
+}
 
 /** The site path of a pasted address, or null for an outside link. */
 export function sitePath(input: string): string | null {
@@ -33,7 +39,7 @@ export function sitePath(input: string): string | null {
     if (SITE_HOSTS.has(url.host)) path = url.pathname;
   }
   if (path === null) return null;
-  return path.length > 1 ? path.replace(TRAILING_SLASHES, "") : path;
+  return trimTrailingSlashes(path);
 }
 
 /**
