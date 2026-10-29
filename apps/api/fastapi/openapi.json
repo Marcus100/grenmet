@@ -28606,6 +28606,174 @@
         }
       }
     },
+    "/api/v1/content-distribution/internal/posts": {
+      "post": {
+        "tags": [
+          "content-distribution"
+        ],
+        "summary": "Save a post for social sharing (CMS hook)",
+        "description": "Called by the CMS when an editor approves a post for social. Authenticated by the X-CMS-Secret header, not a user session. Idempotent per collection, slug and platform: a pending post is updated, a sent post is never reposted. Official warnings are refused (422). Dry run only until live posting is built.",
+        "operationId": "contentSavePost",
+        "parameters": [
+          {
+            "name": "x-cms-secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Cms-Secret"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Refused: warning post, or a platform needs a caption or image"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "503": {
+            "description": "CMS_DISTRIBUTION_SECRET is not set"
+          }
+        }
+      }
+    },
+    "/api/v1/content-distribution/admin/posts": {
+      "get": {
+        "tags": [
+          "content-distribution"
+        ],
+        "summary": "List social posts and their per-platform status",
+        "description": "One row per post and platform, newest first. status is pending, scheduled, dry_run_sent, failed (the outbox is retrying) or dead. Needs the social publishing permission.",
+        "operationId": "contentListPosts",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200,
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,199}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Slug"
+            }
+          },
+          {
+            "name": "collection",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 60,
+                  "pattern": "^[a-z][a-z0-9-]{1,59}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Collection"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryAdminList"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        }
+      }
+    },
     "/api/v1/flights/board": {
       "get": {
         "tags": [
@@ -56367,6 +56535,48 @@
         ],
         "title": "CapValidationResult"
       },
+      "Captions": {
+        "properties": {
+          "facebook": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facebook"
+          },
+          "instagram": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instagram"
+          },
+          "whatsapp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Whatsapp"
+          }
+        },
+        "type": "object",
+        "title": "Captions"
+      },
       "CatalogueApply": {
         "properties": {
           "department_id": {
@@ -57963,6 +58173,129 @@
         ],
         "title": "DataRequestCreate"
       },
+      "DeliveryAdmin": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "collection": {
+            "type": "string",
+            "title": "Collection"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "platform": {
+            "type": "string",
+            "title": "Platform"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DeliveryAdminPropertiesStatusEnum"
+          },
+          "automated": {
+            "type": "boolean",
+            "title": "Automated"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "publish_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Publish At"
+          },
+          "processed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "collection",
+          "slug",
+          "platform",
+          "url",
+          "title",
+          "status",
+          "automated",
+          "attempts",
+          "external_id",
+          "error",
+          "publish_at",
+          "processed_at",
+          "updated_at"
+        ],
+        "title": "DeliveryAdmin"
+      },
+      "DeliveryAdminList": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DeliveryAdmin"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "DeliveryAdminList"
+      },
       "DeliveryLine": {
         "properties": {
           "line_id": {
@@ -57983,6 +58316,27 @@
           "quantity"
         ],
         "title": "DeliveryLine"
+      },
+      "DeliveryOutcome": {
+        "properties": {
+          "platform": {
+            "$ref": "#/components/schemas/DeliveryOutcomePropertiesPlatformEnum"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/DeliveryOutcomePropertiesOutcomeEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "platform",
+          "status",
+          "outcome"
+        ],
+        "title": "DeliveryOutcome"
       },
       "DeliveryStatus": {
         "type": "string",
@@ -71947,6 +72301,101 @@
           "notes"
         ],
         "title": "PositionSpec"
+      },
+      "PostAccepted": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "deliveries": {
+            "items": {
+              "$ref": "#/components/schemas/DeliveryOutcome"
+            },
+            "type": "array",
+            "title": "Deliveries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "deliveries"
+        ],
+        "title": "PostAccepted"
+      },
+      "PostIn": {
+        "properties": {
+          "collection": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,59}$",
+            "title": "Collection"
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,199}$",
+            "title": "Slug"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "pattern": "^https://[^\\s]{4,1990}$",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Summary",
+            "default": ""
+          },
+          "captions": {
+            "$ref": "#/components/schemas/Captions"
+          },
+          "platforms": {
+            "items": {
+              "$ref": "#/components/schemas/DeliveryOutcomePropertiesPlatformEnum"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Platforms"
+          },
+          "publishAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Publishat"
+          },
+          "imageUrl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "pattern": "^https://[^\\s]{4,1990}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imageurl"
+          }
+        },
+        "type": "object",
+        "required": [
+          "collection",
+          "slug",
+          "url",
+          "title",
+          "captions",
+          "platforms",
+          "publishAt"
+        ],
+        "title": "PostIn",
+        "description": "What the CMS sends when an editor approves a post for social."
       },
       "PostponeEvent": {
         "properties": {
@@ -91214,6 +91663,32 @@
           "received"
         ]
       },
+      "DeliveryAdminPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "scheduled",
+          "dry_run_sent",
+          "failed",
+          "dead"
+        ]
+      },
+      "DeliveryOutcomePropertiesPlatformEnum": {
+        "type": "string",
+        "enum": [
+          "facebook",
+          "instagram",
+          "whatsapp"
+        ]
+      },
+      "DeliveryOutcomePropertiesOutcomeEnum": {
+        "type": "string",
+        "enum": [
+          "created",
+          "updated",
+          "unchanged"
+        ]
+      },
       "EventCategoryNodePropertiesAppliesToItemsEnum": {
         "type": "string",
         "enum": [
@@ -92040,6 +92515,10 @@
     {
       "name": "subscriptions",
       "description": "Public mailing-list sign-up with double opt-in (no sign-in)."
+    },
+    {
+      "name": "content-distribution",
+      "description": "Social posts saved by the CMS (shared-secret hook) and their per-platform status for staff. Dry run only."
     },
     {
       "name": "push",
