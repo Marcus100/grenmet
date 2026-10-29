@@ -6,6 +6,16 @@ type Fetcher = typeof fetch;
 
 const TIMEOUT_MS = 3000;
 const FORECAST_KINDS = new Set(["morning", "midday", "evening", "outlook"]);
+/** An issued product's id: a UUID, the only form the product feed uses. */
+const PRODUCT_ID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/**
+ * A CAP identifier: `urn:grenmet:cap:<uuid>`, `urn:oid:<oid>:<uuid>` or a
+ * plain token such as `GMS-1`. It starts with a letter or digit and has no
+ * slash, percent sign, query, hash or dot segment, so it cannot change the
+ * path it is placed in.
+ */
+const CAP_IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9:._-]{0,254}$/;
 
 export interface LinkLabel {
   category: LinkCategory;
@@ -51,6 +61,8 @@ async function productCheck(
   fetcher: Fetcher
 ): Promise<LinkCheck> {
   const fallback: LinkLabel = { title: "Issued product", category: "forecast" };
+  // A ref that is not a UUID was never issued; nothing is requested for it.
+  if (!PRODUCT_ID.test(id)) return { label: fallback, state: "gone" };
   const reply = await getJson(
     fetcher,
     new URL(`/api/v1/wxproducts/public/products/${id}`, baseURL)
@@ -83,6 +95,9 @@ async function warningCheck(
   fetcher: Fetcher
 ): Promise<LinkCheck> {
   const fallback: LinkLabel = { title: "CAP warning", category: "cap" };
+  // A malformed identifier names no warning, so no request is built from it.
+  if (!CAP_IDENTIFIER.test(identifier))
+    return { label: fallback, state: "gone" };
   const reply = await getJson(
     fetcher,
     new URL(`/api/cap/alerts/${encodeURIComponent(identifier)}`, baseURL)

@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { editorialLinksSchema } from "./editorial-links";
-import { labelFor } from "./link-titles";
+import { checkLink, labelFor } from "./link-titles";
 
 const BASE = "http://api.test";
 const PRODUCT = "0b3c6f1e-1111-4a2b-9c3d-222233334444";
@@ -69,4 +69,40 @@ it("names a site page from the menu and an outside link from its host", async ()
     await labelFor(link("https://www.metoffice.gov.uk/x"), BASE, fetcher)
   ).toEqual({ title: "www.metoffice.gov.uk", category: "source" });
   expect(fetcher).not.toHaveBeenCalled();
+});
+
+it("never requests a ref that is not a product UUID or CAP identifier", async () => {
+  const fetcher = vi.fn();
+  // The parser decodes %2F, so a warning link can carry a traversal ref.
+  const traversal = link("/alerts/..%2Fx");
+  expect(traversal.ref).toBe("../x");
+  expect(await checkLink(traversal, BASE, fetcher)).toEqual({
+    label: { title: "CAP warning", category: "cap" },
+    state: "gone",
+  });
+  for (const ref of ["a/b", "%2e%2e", ".hidden", "x?y=1", "x y"]) {
+    expect((await checkLink({ ...traversal, ref }, BASE, fetcher)).state).toBe(
+      "gone"
+    );
+  }
+  const forged = { ...link("/alerts/GMS-1"), type: "product" as const };
+  for (const ref of ["../x", "not-a-uuid", `${PRODUCT}/..`]) {
+    expect((await checkLink({ ...forged, ref }, BASE, fetcher)).state).toBe(
+      "gone"
+    );
+  }
+  expect(fetcher).not.toHaveBeenCalled();
+});
+
+it("accepts the CAP identifier forms the warning system issues", async () => {
+  const fetcher = reply({ info: [{ headline: "Heavy rain" }] });
+  for (const ref of [
+    "urn:grenmet:cap:4f1e2d3c-1111-4a2b-9c3d-222233334444",
+    "urn:oid:1.3.6.1.4.1.99:4f1e2d3c-1111-4a2b-9c3d-222233334444",
+    "GMS-1",
+  ]) {
+    const url = `/alerts/${encodeURIComponent(ref)}`;
+    expect((await checkLink(link(url), BASE, fetcher)).state).toBe("ok");
+  }
+  expect(fetcher).toHaveBeenCalledTimes(3);
 });
