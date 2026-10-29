@@ -186,9 +186,12 @@ function ImpactBar({ peak }: { peak: Level | null }) {
           />
         ))}
       </div>
-      <p className="text-caption text-gm-text-secondary leading-caption">
-        {peak ? `Highest this week: ${LEVEL_WORD[peak]}` : "Nothing published"}
-      </p>
+      {/* With nothing published, the sentence under the meter already says so. */}
+      {peak && (
+        <p className="text-caption text-gm-text-secondary leading-caption">
+          Highest this week: {LEVEL_WORD[peak]}
+        </p>
+      )}
     </div>
   );
 }
