@@ -75,7 +75,7 @@ export async function ExploreToday() {
           .
         </p>
       )}
-      <ul className="grid grid-cols-2 gap-2 sm:gap-3">
+      <ul className="grid grid-cols-2 gap-2 lg:grid-cols-3">
         {SECTORS.map(({ value, label }) => {
           const { Icon, href } = SECTOR_TILES[value];
           const tile = tiles?.find((item) => item.sector === value);
@@ -83,17 +83,14 @@ export async function ExploreToday() {
             <li key={value}>
               <section
                 aria-label={label}
-                className={cn(
-                  HOME_CARD,
-                  "flex h-full flex-col gap-2 p-3 sm:p-4"
-                )}
+                className={cn(HOME_CARD, "flex h-full flex-col gap-1.5 p-3")}
               >
                 <Link
                   className="flex min-w-0 items-center gap-2 hover:underline"
                   href={href as Route}
                 >
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gm-navy text-gm-lime sm:size-10">
-                    <Icon aria-hidden="true" className="size-4 sm:size-5" />
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gm-navy text-gm-lime">
+                    <Icon aria-hidden="true" className="size-4" />
                   </span>
                   <span className="line-clamp-2 font-semibold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
                     {label}
