@@ -132,32 +132,59 @@ const LEVEL_WORD: Record<Level, string> = {
   red: "Red",
 };
 
+/** The level's colour, from the shared risk scale. */
+const LEVEL_COLOUR: Record<Level, string> = {
+  green: "var(--gm-risk-green)",
+  yellow: "var(--gm-risk-yellow)",
+  orange: "var(--gm-risk-amber)",
+  red: "var(--gm-risk-red)",
+};
+
+/** Sixteen blocks, one per cell of the 4 by 4 impact-based forecast matrix; each level fills a quarter. */
+const BLOCKS = 16;
+const BLOCK_KEYS = Array.from({ length: BLOCKS }, (_, i) => `block-${i}`);
+
 /**
- * A horizontal bar from green to red with a marker at the highest impact level
- * published for the sector this week. With nothing published the bar is dimmed
- * and carries no marker: nothing is invented. The level is also written out,
- * never colour alone.
+ * A level meter like a progress bar (owner, 29 Oct 2026): green fills a
+ * quarter, yellow half, orange three quarters, red all of it, every filled
+ * block in that level's colour. The level is the highest among the GMS alerts
+ * and CAP warnings for the sector this week. With nothing published every
+ * block stays grey: nothing is invented. The level is also written out, never
+ * colour alone, and the meter is announced as a value out of four.
  */
 function ImpactBar({ peak }: { peak: Level | null }) {
-  const at = peak ? (LEVELS.indexOf(peak) + 0.5) * 25 : null;
+  const step = peak ? LEVELS.indexOf(peak) + 1 : 0;
+  const filled = (step * BLOCKS) / LEVELS.length;
   return (
     <div className="flex flex-col gap-1">
-      <div className="relative h-2.5 rounded-full">
-        <div
-          aria-hidden="true"
-          className={cn("absolute inset-0 rounded-full", !peak && "opacity-30")}
-          style={{
-            background:
-              "linear-gradient(to right, var(--gm-risk-green), var(--gm-risk-yellow), var(--gm-risk-amber), var(--gm-risk-red))",
-          }}
-        />
-        {at !== null && (
+      <meter
+        aria-label={
+          peak
+            ? `Impact level ${LEVEL_WORD[peak]}, ${step} of 4`
+            : "No impact level published"
+        }
+        className="sr-only"
+        max={LEVELS.length}
+        min={0}
+        value={step}
+      >
+        {step} of {LEVELS.length}
+      </meter>
+      <div aria-hidden="true" className="flex gap-0.5">
+        {BLOCK_KEYS.map((key, i) => (
           <span
-            aria-hidden="true"
-            className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-gm-navy shadow"
-            style={{ left: `${at}%` }}
+            className={cn(
+              "h-3 flex-1 rounded-[3px]",
+              i < filled ? "" : "bg-gm-border"
+            )}
+            key={key}
+            style={
+              i < filled && peak
+                ? { background: LEVEL_COLOUR[peak] }
+                : undefined
+            }
           />
-        )}
+        ))}
       </div>
       <p className="text-caption text-gm-text-secondary leading-caption">
         {peak ? `Highest this week: ${LEVEL_WORD[peak]}` : "Nothing published"}

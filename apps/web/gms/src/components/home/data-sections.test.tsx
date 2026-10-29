@@ -269,3 +269,39 @@ it.each([
   );
   expect(await Section()).toBeNull();
 });
+
+it("fills the impact meter a quarter per level, in that level's colour, grey when nothing is published", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(
+    outlook([
+      outlookItem(),
+      outlookItem({
+        title: "Small craft advisory",
+        identifier: null,
+        product_id: "0b3c6f1e-1111-4a2b-9c3d-222233334444",
+        source: "Bulletin",
+        colour: "green",
+        sectors: ["marine"],
+        affects_everyone: false,
+      }),
+    ])
+  );
+  render(await ExploreToday());
+  const meter = (sector: string) => tile(sector).getByRole("meter");
+  const blocks = (sector: string) =>
+    Array.from(meter(sector).nextElementSibling?.children ?? []);
+  const filled = (sector: string) =>
+    blocks(sector).filter(
+      (block) => (block as HTMLElement).style.background !== ""
+    ).length;
+  // The orange rainfall warning is tagged for agriculture: three quarters.
+  expect(meter("Agriculture")).toHaveAttribute("value", "3");
+  expect(filled("Agriculture")).toBe(12);
+  // A green advisory for marine: one quarter.
+  expect(meter("Marine")).toHaveAttribute("value", "1");
+  expect(filled("Marine")).toBe(4);
+  // Nothing for aviation: every block grey, and said in words.
+  expect(meter("Aviation")).toHaveAttribute("value", "0");
+  expect(filled("Aviation")).toBe(0);
+  expect(blocks("Aviation")).toHaveLength(16);
+});
