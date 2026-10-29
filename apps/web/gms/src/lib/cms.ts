@@ -46,7 +46,7 @@ export const relatedLinkSchema = z
   });
 export type RelatedLink = z.infer<typeof relatedLinkSchema>;
 
-const contentSchema = z.object({
+export const contentSchema = z.object({
   id: z.string(),
   collection: z.enum(CONTENT_COLLECTIONS),
   title: z.string(),

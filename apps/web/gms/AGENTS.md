@@ -106,8 +106,9 @@ src/app/
   rain, seas, swell, sun, tides). The 3-day forecast, current conditions,
   observations and sea-state tables are on the switch too (`lib/weather-pages.tsx`
   builds their cells as `Measure`; `InfoTable` and `StatTiles` take nodes).
-  Still hand-typed metric text: the heat and tropics-season tables. New numbers
-  go through `Measure`, never a hand-built string.
+  The heat page's sentence about 31°C is a `Measure` too (`Prose` takes nodes
+  as well as text, for this). Still hand-typed metric text: the tropics-season
+  table. New numbers go through `Measure`, never a hand-built string.
   The panels under the hero tabs are all rendered, stacked in one grid cell
   (`ByTab`, `hero-selection.tsx`), so the hero keeps the tallest panel's height
   and a tab change never moves the page. Only the selected panel is visible.
@@ -139,6 +140,16 @@ src/app/
   · provisional") and Grenada in data only its caption; detail pages keep the
   full block. GMS forms store offset-less
   Grenada times; read them with `parseGrenadaTime`, never `new Date()`.
+- **Draft preview:** `/preview?token=` (`app/(pages)/preview`) shows one unpublished
+  post as it will read. The CMS signs the link (two hours, the CMS's own secret)
+  and checks it; this app holds no secret. `lib/cms-preview.ts` sends the token to
+  the CMS's `GET /api/public/preview`, refuses a malformed token without asking,
+  and reads the CMS's 404 as invalid (forged, expired or deleted). The page renders
+  through `CmsArticleBody`, the same body as the published article, with a banner
+  saying it is a draft. It is `noindex`, `no-store` (page metadata and the
+  `next.config.ts` header), never in the sitemap or nav. Set the CMS's
+  `GMS_PREVIEW_URL` to this page's address. Tests: `lib/cms-preview.test.ts`
+  (expired, forged, malformed, outage), `app/(pages)/preview/page.test.tsx`.
 - **Satellite:** `/weather/satellite` reads FastAPI `wxwatch/public/latest`
   (`lib/satellite.ts`) and shows images through `app/api/satellite/[id]` (a proxy;
   the API host and bucket are never exposed). No image is the "Not yet available"

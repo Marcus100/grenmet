@@ -1,4 +1,5 @@
 import { APIError, type CollectionBeforeChangeHook, type Field } from "payload";
+import { canPublish } from "../access";
 import { getEnv } from "../env";
 import { editorialLinksSchema } from "../lib/editorial-links";
 import { labelFor } from "../lib/link-titles";
@@ -191,15 +192,58 @@ export const seoField: Field = {
   ],
 };
 
-export const socialField: Field = {
+/**
+ * "Include in newsletter": the post goes into the daily digest on the day it
+ * is published. Only a publisher of this section can tick it, because the
+ * digest goes to subscribers.
+ */
+export const includeInNewsletterField = (
+  publishKey: string,
+  condition?: NonNullable<NonNullable<Field["admin"]>["condition"]>
+): Field => ({
+  name: "includeInNewsletter",
+  type: "checkbox",
+  label: "Include in newsletter",
+  defaultValue: false,
+  access: {
+    create: ({ req }) => canPublish(req.user, publishKey),
+    update: ({ req }) => canPublish(req.user, publishKey),
+  },
+  admin: {
+    position: "sidebar",
+    condition,
+    description:
+      "Puts this post in that day's email digest to subscribers. Only publishers can tick it.",
+  },
+});
+
+/**
+ * Social sharing for one section. "Approve for social" is ticked by a
+ * publisher of that section; nothing is sent to a social platform without it.
+ */
+export const socialField = (publishKey: string): Field => ({
   name: "social",
   type: "group",
   label: "Social media sharing",
   admin: {
     description:
-      "Download the main link's images, then prepare platform-specific copy. Automatic delivery can be added later.",
+      "Download the main link's images, then prepare platform-specific copy. Ticking Approve for social sends the post to the chosen platforms when it is published.",
   },
   fields: [
+    {
+      name: "approveForSocial",
+      type: "checkbox",
+      label: "Approve for social",
+      defaultValue: false,
+      access: {
+        create: ({ req }) => canPublish(req.user, publishKey),
+        update: ({ req }) => canPublish(req.user, publishKey),
+      },
+      admin: {
+        description:
+          "Only publishers can approve. When the post is published with this ticked, it is sent to the platforms below.",
+      },
+    },
     {
       name: "attachments",
       type: "ui",
@@ -248,4 +292,4 @@ export const socialField: Field = {
       label: "WhatsApp Channel message",
     },
   ],
-};
+});

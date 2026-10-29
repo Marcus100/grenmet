@@ -23,6 +23,12 @@ export function getEnv() {
       CMS_SSO_CLIENT_SECRET: z.string().min(32).optional(),
       // Where the weather site renders a preview (`?token=`). Unset: no button.
       GMS_PREVIEW_URL: z.url().optional(),
+      // The weather site's public origin. Post addresses in the newsletter feed
+      // and the social hook are built from it. Unset: the feed sends no posts.
+      GMS_SITE_URL: z.url().optional(),
+      // Shared with FastAPI's content-distribution endpoint (sent as X-CMS-Secret).
+      // Unset: publishing sends nothing to social platforms.
+      CMS_DISTRIBUTION_SECRET: z.string().min(32).optional(),
     },
     runtimeEnv: {
       PAYLOAD_SECRET: process.env.PAYLOAD_SECRET,
@@ -37,6 +43,8 @@ export function getEnv() {
       CMS_SESSION_COOKIE_NAME: process.env.CMS_SESSION_COOKIE_NAME,
       CMS_SSO_CLIENT_SECRET: process.env.CMS_SSO_CLIENT_SECRET,
       GMS_PREVIEW_URL: process.env.GMS_PREVIEW_URL,
+      GMS_SITE_URL: process.env.GMS_SITE_URL,
+      CMS_DISTRIBUTION_SECRET: process.env.CMS_DISTRIBUTION_SECRET,
     },
     emptyStringAsUndefined: true,
   });

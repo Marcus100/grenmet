@@ -86,6 +86,10 @@ import {
   down as down_20261029_030000_duty_note_to_live_posts,
   up as up_20261029_030000_duty_note_to_live_posts,
 } from "./20261029_030000_duty_note_to_live_posts";
+import {
+  down as down_20261029_095750_newsletter_and_social_ticks,
+  up as up_20261029_095750_newsletter_and_social_ticks,
+} from "./20261029_095750_newsletter_and_social_ticks";
 
 export const migrations = [
   {
@@ -197,5 +201,10 @@ export const migrations = [
     up: up_20261029_030000_duty_note_to_live_posts,
     down: down_20261029_030000_duty_note_to_live_posts,
     name: "20261029_030000_duty_note_to_live_posts",
+  },
+  {
+    up: up_20261029_095750_newsletter_and_social_ticks,
+    down: down_20261029_095750_newsletter_and_social_ticks,
+    name: "20261029_095750_newsletter_and_social_ticks",
   },
 ];

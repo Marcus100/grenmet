@@ -1,5 +1,10 @@
 import { PUBLISH_KEYS } from "../access";
-import { bodyField, socialField, summaryField } from "../fields/common";
+import {
+  bodyField,
+  includeInNewsletterField,
+  socialField,
+  summaryField,
+} from "../fields/common";
 import { editorialCollection } from "./editorial";
 
 /** "From the Desk": the forecast office blogging about what it issues. */
@@ -40,7 +45,8 @@ const base = editorialCollection({
     },
     summaryField(200),
     bodyField(false),
-    socialField,
+    includeInNewsletterField(PUBLISH_KEYS["desk-updates"]),
+    socialField(PUBLISH_KEYS["desk-updates"]),
   ],
 });
 

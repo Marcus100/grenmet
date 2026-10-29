@@ -167,6 +167,10 @@ export interface LivePost {
    */
   expiresAt?: string | null;
   /**
+   * Puts this post in that day's email digest to subscribers. Only publishers can tick it.
+   */
+  includeInNewsletter?: boolean | null;
+  /**
    * Paste a link: a GMS product (an issued forecast, outlook or bulletin), a warning, any page of the GMS site, or somewhere else. Pasted GMS products and warnings show their live details on the site. Tick Main link on one to show it as a card. Linking does not publish the destination.
    */
   relatedLinks?:
@@ -283,6 +287,10 @@ export interface DeskUpdate {
     [k: string]: unknown;
   } | null;
   /**
+   * Puts this post in that day's email digest to subscribers. Only publishers can tick it.
+   */
+  includeInNewsletter?: boolean | null;
+  /**
    * Paste a link: a GMS product (an issued forecast, outlook or bulletin), a warning, any page of the GMS site, or somewhere else. Pasted GMS products and warnings show their live details on the site. Tick Main link on one to show it as a card. Linking does not publish the destination.
    */
   relatedLinks?:
@@ -307,9 +315,13 @@ export interface DeskUpdate {
       }[]
     | null;
   /**
-   * Download the main link's images, then prepare platform-specific copy. Automatic delivery can be added later.
+   * Download the main link's images, then prepare platform-specific copy. Ticking Approve for social sends the post to the chosen platforms when it is published.
    */
   social?: {
+    /**
+     * Only publishers can approve. When the post is published with this ticked, it is sent to the platforms below.
+     */
+    approveForSocial?: boolean | null;
     /**
      * Optional. Replaces the warning's social image when the post is shared.
      */
@@ -412,6 +424,10 @@ export interface ReportNote {
     [k: string]: unknown;
   };
   /**
+   * Puts this post in that day's email digest to subscribers. Only publishers can tick it.
+   */
+  includeInNewsletter?: boolean | null;
+  /**
    * Used to link related questions, stories and reports.
    */
   topics?:
@@ -450,9 +466,13 @@ export interface ReportNote {
     image?: (number | null) | Media;
   };
   /**
-   * Download the main link's images, then prepare platform-specific copy. Automatic delivery can be added later.
+   * Download the main link's images, then prepare platform-specific copy. Ticking Approve for social sends the post to the chosen platforms when it is published.
    */
   social?: {
+    /**
+     * Only publishers can approve. When the post is published with this ticked, it is sent to the platforms below.
+     */
+    approveForSocial?: boolean | null;
     /**
      * Optional. Replaces the warning's social image when the post is shared.
      */
@@ -539,6 +559,10 @@ export interface Story {
    */
   leadOnHomepage?: boolean | null;
   /**
+   * Puts this post in that day's email digest to subscribers. Only publishers can tick it.
+   */
+  includeInNewsletter?: boolean | null;
+  /**
    * Used to link related questions, stories and reports.
    */
   topics?:
@@ -577,9 +601,13 @@ export interface Story {
     image?: (number | null) | Media;
   };
   /**
-   * Download the main link's images, then prepare platform-specific copy. Automatic delivery can be added later.
+   * Download the main link's images, then prepare platform-specific copy. Ticking Approve for social sends the post to the chosen platforms when it is published.
    */
   social?: {
+    /**
+     * Only publishers can approve. When the post is published with this ticked, it is sent to the platforms below.
+     */
+    approveForSocial?: boolean | null;
     /**
      * Optional. Replaces the warning's social image when the post is shared.
      */
@@ -956,6 +984,7 @@ export interface LivePostsSelect<T extends boolean = true> {
   text?: T;
   mediaUrl?: T;
   expiresAt?: T;
+  includeInNewsletter?: T;
   relatedLinks?:
     | T
     | {
@@ -983,6 +1012,7 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
   kind?: T;
   summary?: T;
   body?: T;
+  includeInNewsletter?: T;
   relatedLinks?:
     | T
     | {
@@ -995,6 +1025,7 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
   social?:
     | T
     | {
+        approveForSocial?: T;
         image?: T;
         caption?: T;
         enabledPlatforms?: T;
@@ -1024,6 +1055,7 @@ export interface ReportNotesSelect<T extends boolean = true> {
   image?: T;
   imageCaption?: T;
   body?: T;
+  includeInNewsletter?: T;
   topics?: T;
   relatedLinks?:
     | T
@@ -1044,6 +1076,7 @@ export interface ReportNotesSelect<T extends boolean = true> {
   social?:
     | T
     | {
+        approveForSocial?: T;
         image?: T;
         caption?: T;
         enabledPlatforms?: T;
@@ -1076,6 +1109,7 @@ export interface StoriesSelect<T extends boolean = true> {
   imageCaption?: T;
   body?: T;
   leadOnHomepage?: T;
+  includeInNewsletter?: T;
   topics?: T;
   relatedLinks?:
     | T
@@ -1096,6 +1130,7 @@ export interface StoriesSelect<T extends boolean = true> {
   social?:
     | T
     | {
+        approveForSocial?: T;
         image?: T;
         caption?: T;
         enabledPlatforms?: T;

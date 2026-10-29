@@ -2,6 +2,7 @@ import { PUBLISH_KEYS } from "../access";
 import {
   bodyField,
   coverFields,
+  includeInNewsletterField,
   seoField,
   socialField,
   summaryField,
@@ -52,8 +53,9 @@ export const Stories = editorialCollection({
     ...coverFields({ required: true }),
     bodyField(true),
     leadStoryField,
+    includeInNewsletterField(PUBLISH_KEYS.stories),
     topicsField,
     seoField,
-    socialField,
+    socialField(PUBLISH_KEYS.stories),
   ],
 });

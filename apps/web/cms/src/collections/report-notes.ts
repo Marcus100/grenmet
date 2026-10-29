@@ -2,6 +2,7 @@ import { PUBLISH_KEYS } from "../access";
 import {
   bodyField,
   coverFields,
+  includeInNewsletterField,
   seoField,
   socialField,
   summaryField,
@@ -29,9 +30,10 @@ const base = editorialCollection({
     summaryField(240),
     ...coverFields(),
     bodyField(true),
+    includeInNewsletterField(PUBLISH_KEYS["report-notes"]),
     topicsField,
     seoField,
-    socialField,
+    socialField(PUBLISH_KEYS["report-notes"]),
   ],
 });
 
