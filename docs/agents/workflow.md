@@ -21,6 +21,12 @@ agent instructions. Nothing here relaxes a root rule.
   `scripts/agents/api-env.sh` (local-development placeholders; values already in
   your environment win; it never writes an env file), for example
   `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests/hr -q`.
+- **Local API test selection:** `pnpm verify:changed` runs only the pytest folders
+  of the API domains the diff touches (`src/<domain>` maps to `tests/<domain>`).
+  `src/auth` and `src/main.py` (shared by every request) run the full suite, and a
+  domain with no tests of its own does too. CI runs the full suite on every push.
+  Use `pnpm verify:changed --full` before a risky merge. The rules are in
+  `scripts/verification/README.md`.
 - If a worktree shows ` T .agents/skills`, that worktree was created by a tool that
   cannot make symlinks (`git worktree add` run inside WSL makes it correctly).
   Run `git restore .agents/skills` there instead of staging or committing the

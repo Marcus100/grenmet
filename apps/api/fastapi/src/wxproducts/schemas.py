@@ -284,6 +284,38 @@ class ProductFeedError(BaseModel):
     error: str
 
 
+class SectorOutlookItem(BaseModel):
+    """One alert or warning that applies to the coming days, with its sectors."""
+
+    source: Literal["CAP", "Bulletin"]
+    title: str
+    product: str
+    colour: Literal["green", "yellow", "orange", "red"] | None = None
+    likelihood: str | None = None
+    impact: str | None = None
+    impacts: str
+    response: str
+    valid_from: UtcDateTime | None = None
+    valid_to: UtcDateTime | None = None
+    reference: str
+    # Where the full text lives: a CAP warning's identifier or a bulletin's id.
+    identifier: str | None = None
+    product_id: UUID | None = None
+    # Known sectors, in menu order. Empty means untagged: affects everyone.
+    sectors: list[str]
+    affects_everyone: bool
+
+
+class SectorOutlook(BaseModel):
+    as_of: UtcDateTime
+    window_start: UtcDateTime
+    window_end: UtcDateTime
+    # False when a source (CAP or bulletins) could not be read: the site must
+    # say so, never show an all-clear.
+    complete: bool
+    items: list[SectorOutlookItem]
+
+
 class AuthoredProducts(BaseModel):
     products: list[StoredProduct]
 
@@ -315,11 +347,19 @@ class ForecastSource(BaseModel):
 
 
 class ForecastCondition(BaseModel):
-    """One display tile: a lucide icon name, a formatted value and its label."""
+    """One display tile: a lucide icon name, a formatted value and its label.
+
+    `value` is the text in GMS's default units. When the tile is a measurement,
+    `quantity`, `low` and `high` carry the numbers in WMO storage units (degC,
+    knots, metres) so the site can show them in the visitor's unit system.
+    """
 
     icon: str
     value: str
     label: str
+    quantity: Literal["temperature", "speed", "height"] | None = None
+    low: float | None = None
+    high: float | None = None
 
 
 class ForecastPeriod(BaseModel):

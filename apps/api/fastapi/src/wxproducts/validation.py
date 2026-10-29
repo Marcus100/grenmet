@@ -10,6 +10,7 @@ from uuid import UUID
 from pydantic import TypeAdapter
 
 from src.models import BaseModel
+from src.sectors import unknown_sectors
 from src.utils.timezones import GRENADA as GRENADA
 
 from . import units
@@ -294,6 +295,8 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
             errors.append(f"{rule.label}: enter a number")
         if value and rule.type == "time" and not TIME_OF_DAY.fullmatch(value):
             errors.append(f"{rule.label}: enter a time as HH:MM")
+        if value and rule.type == "sectors" and unknown_sectors(value):
+            errors.append(f"{rule.label}: choose from the listed sectors")
     # Structured parameters appear in forecasts and several bulletins.
     for prefix, label in forecast_periods(kind):
         errors.extend(

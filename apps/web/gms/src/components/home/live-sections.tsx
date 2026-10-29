@@ -3,7 +3,6 @@ import {
   ArrowRightIcon,
   BellIcon,
   ChevronRightIcon,
-  FileTextIcon,
   SmartphoneIcon,
 } from "lucide-react";
 import type { Route } from "next";
@@ -58,40 +57,103 @@ function FeedState({
   return children;
 }
 
-/** One desk post in the side list: icon, title, category, date. */
-function DeskListItem({ item }: { item: PublishedContent }) {
+const CLOCK = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "America/Grenada",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+const GRENADA_DAY = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Grenada",
+});
+
+/** "Today at 08:36", "Yesterday at 19:00" or "27 Oct at 19:00", Grenada time. */
+export function postedLabel(iso: string, now = new Date()): string {
+  const when = new Date(iso);
+  const day = GRENADA_DAY.format(when);
+  const yesterday = new Date(now.getTime() - 86_400_000);
+  let prefix = SHORT_DATE.format(when);
+  if (day === GRENADA_DAY.format(now)) prefix = "Today";
+  else if (day === GRENADA_DAY.format(yesterday)) prefix = "Yesterday";
+  return `${prefix} at ${CLOCK.format(when)}`;
+}
+
+const NAME_SEPARATORS = /[\s._-]+/;
+
+/** "Eugine Whint" gives "EW"; one word gives its first two letters; no name gives "GMS". */
+export function avatarInitials(name: string | null | undefined): string {
+  const words = (name ?? "").split(NAME_SEPARATORS).filter(Boolean);
+  if (words.length === 0) return "GMS";
+  const letters =
+    words.length > 1
+      ? `${words[0]?.[0] ?? ""}${words.at(-1)?.[0] ?? ""}`
+      : (words[0] ?? "").slice(0, 2);
+  return letters.toUpperCase();
+}
+
+/**
+ * One desk post as a card: who posted it and when, the words, its picture (a
+ * chart or map) and a link to the article, which carries any linked product.
+ */
+function DeskPostCard({ item }: { item: PublishedContent }) {
+  const posted = item.publishedAt ?? item.updatedAt;
   return (
-    <li className="border-gm-border border-t first:border-t-0">
-      <Link
-        className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 hover:bg-gm-surface"
-        href={contentHref(item) as Route}
-      >
-        <span className="flex size-9 items-center justify-center rounded-lg bg-gm-surface-panel text-gm-heading">
-          <FileTextIcon aria-hidden="true" className="size-4" />
-        </span>
-        <span className="flex min-w-0 flex-col">
-          <span className="font-semibold text-body text-gm-heading leading-body">
-            {item.title}
+    <li className="w-[85%] shrink-0 snap-start sm:w-[22rem] lg:w-[24rem]">
+      <article className={cn(HOME_CARD, "flex h-full flex-col gap-3")}>
+        <header className="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gm-sky-ink font-bold text-body-sm text-gm-text-inverse leading-body-sm"
+          >
+            {avatarInitials(item.authorName)}
           </span>
-          {item.category && (
-            <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-              {item.category}
+          <span className="flex min-w-0 flex-col">
+            <span className="font-bold text-body text-gm-heading leading-body">
+              {item.authorName ?? "The forecasters"}
             </span>
-          )}
-        </span>
-        <time
-          className="font-mono text-body-sm text-gm-text-secondary leading-body-sm"
-          dateTime={item.publishedAt ?? item.updatedAt}
+            <time
+              className="text-body-sm text-gm-text-secondary leading-body-sm"
+              dateTime={posted}
+            >
+              {postedLabel(posted)}
+            </time>
+          </span>
+        </header>
+        <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
+          <Link className="hover:underline" href={contentHref(item) as Route}>
+            {item.title}
+          </Link>
+        </h3>
+        {item.summary && (
+          <p className="text-body-base leading-body-base">{item.summary}</p>
+        )}
+        {item.imageUrl && (
+          <span className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gm-surface-panel">
+            <Image
+              alt={item.imageAlt ?? ""}
+              className="object-cover"
+              fill
+              sizes="(min-width: 640px) 24rem, 85vw"
+              src={item.imageUrl}
+              unoptimized={!isOptimizableImage(item.imageUrl)}
+            />
+          </span>
+        )}
+        <Link
+          className="mt-auto flex w-fit items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+          href={contentHref(item) as Route}
         >
-          {SHORT_DATE.format(new Date(item.publishedAt ?? item.updatedAt))}
-        </time>
-      </Link>
+          Read the article
+          <span className="sr-only">: {item.title}</span>
+          <ArrowRightIcon aria-hidden="true" className="size-4" />
+        </Link>
+      </article>
     </li>
   );
 }
 
 /**
- * From the Desk: the forecast office blogging about what it issues. Posts are
+ * From the Desk: the forecast office blogging about what it issues, newest
+ * first as a row of post cards that scrolls sideways. Posts are
  * CMS content; any product a post attaches is read live from FastAPI, so the
  * section never shows a forecast itself.
  */
@@ -102,11 +164,10 @@ export async function ForecastDesk() {
     kicker: "GMS forecast desk",
     title: "From the Desk",
   });
-  const [lead, ...rest] = updates.articles;
   return (
     <HomeSection
       {...words}
-      link={{ href: "/explore/updates", label: "All desk updates" }}
+      link={{ href: "/explore/updates", label: "See more" }}
     >
       <FeedState
         count={updates.articles.length}
@@ -116,40 +177,14 @@ export async function ForecastDesk() {
           "Desk updates cannot be retrieved right now."
         }
       >
-        {lead && (
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-            <article className={`${HOME_CARD} flex flex-col gap-3`}>
-              {lead.category && (
-                <p className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
-                  {lead.category}
-                </p>
-              )}
-              <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
-                <Link
-                  className="hover:underline"
-                  href={contentHref(lead) as Route}
-                >
-                  {lead.title}
-                </Link>
-              </h3>
-              {lead.summary && (
-                <p className="max-w-prose text-body-base leading-body-base">
-                  {lead.summary}
-                </p>
-              )}
-              {lead.linkedProduct && (
-                <LinkedProduct productId={lead.linkedProduct.productId} />
-              )}
-            </article>
-            {rest.length > 0 && (
-              <ul className="rounded-gm-card border border-gm-border bg-background">
-                {rest.slice(0, 4).map((item) => (
-                  <DeskListItem item={item} key={item.id} />
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
+        <ul
+          aria-label="Latest desk posts"
+          className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 xl:-mx-8 xl:scroll-px-8 xl:px-8"
+        >
+          {updates.articles.slice(0, 8).map((item) => (
+            <DeskPostCard item={item} key={item.id} />
+          ))}
+        </ul>
       </FeedState>
     </HomeSection>
   );
@@ -161,7 +196,7 @@ export async function Stories() {
   const { stories: result, settings } = await fetchHomeContent();
   const words = sectionWords(settings, "stories", {
     kicker: "Earth & Weather",
-    title: "Stories from our atmosphere and ocean",
+    title: "Weather news",
   });
   const [lead, ...rest] = result.articles.map(contentToArticle);
   return (
@@ -366,12 +401,14 @@ export async function LatestReports() {
                       className={`${HOME_CARD} flex flex-col gap-1 hover:border-gm-blue-ink`}
                       href={contentHref(note) as Route}
                     >
-                      {note.linkedProduct?.kind &&
-                        isProductKind(note.linkedProduct.kind) && (
-                          <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
-                            {productTitle(note.linkedProduct.kind)}
-                          </span>
-                        )}
+                      {note.linkedProduct && (
+                        <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+                          {note.linkedProduct.kind &&
+                          isProductKind(note.linkedProduct.kind)
+                            ? productTitle(note.linkedProduct.kind)
+                            : note.linkedProduct.title}
+                        </span>
+                      )}
                       <span className="font-bold text-body text-gm-heading leading-body">
                         {note.title}
                       </span>

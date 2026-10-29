@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export interface InfoTableProps {
@@ -6,7 +7,19 @@ export interface InfoTableProps {
   /** Column indices to render in the monospace data role, e.g. raw METAR/TAF/SYNOP
    *  strings or other fixed-width codes. */
   monoColumns?: readonly number[];
-  rows: readonly (readonly string[])[];
+  /** Cells are text or, for a figure, a `Measure` that follows the unit switch. */
+  rows: readonly (readonly ReactNode[])[];
+}
+
+/** A key for each row from its first text cell, numbered when two rows share one. */
+function rowKeys(rows: InfoTableProps["rows"]): string[] {
+  const seen = new Map<string, number>();
+  return rows.map((row) => {
+    const base = typeof row[0] === "string" ? row[0] : "row";
+    const count = (seen.get(base) ?? 0) + 1;
+    seen.set(base, count);
+    return `${base}-${count}`;
+  });
 }
 
 /** Bordered data table. Scrolls on its own so narrow screens never pan. */
@@ -16,6 +29,7 @@ export function InfoTable({
   monoColumns,
   rows,
 }: InfoTableProps) {
+  const keys = rowKeys(rows);
   return (
     <div className="overflow-x-auto rounded-gm-card border border-gm-border">
       <table className="w-full border-collapse text-left">
@@ -38,8 +52,8 @@ export function InfoTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr className="border-gm-border border-t" key={row.join("|")}>
+          {rows.map((row, rowIndex) => (
+            <tr className="border-gm-border border-t" key={keys[rowIndex]}>
               {row.map((cell, columnIndex) => (
                 <td
                   className={cn(
@@ -47,7 +61,7 @@ export function InfoTable({
                     monoColumns?.includes(columnIndex) &&
                       "font-mono tabular-nums"
                   )}
-                  key={headers[columnIndex] ?? cell}
+                  key={headers[columnIndex] ?? "extra"}
                 >
                   {cell}
                 </td>

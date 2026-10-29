@@ -1,5 +1,8 @@
 import { APIError, type CollectionBeforeChangeHook, type Field } from "payload";
+import { canPublish } from "../access";
+import { getEnv } from "../env";
 import { editorialLinksSchema } from "../lib/editorial-links";
+import { labelFor } from "../lib/link-titles";
 
 /** One list, so questions, stories and reports can point at each other. */
 export const TOPICS = [
@@ -63,16 +66,35 @@ export const relatedLinksField: Field = {
   name: "relatedLinks",
   type: "array",
   maxRows: 20,
+  labels: { singular: "Link", plural: "Related links" },
   admin: {
     description:
-      "Link to an existing product, publication or news source. Linking does not publish the destination.",
+      "Paste a link: a GMS product (an issued forecast, outlook or bulletin), a warning, any page of the GMS site, or somewhere else. Pasted GMS products and warnings show their live details on the site. Tick Main link on one to show it as a card. Linking does not publish the destination.",
   },
   fields: [
-    { name: "title", type: "text", required: true, maxLength: 200 },
+    {
+      name: "url",
+      label: "Link",
+      type: "text",
+      required: true,
+      maxLength: 2000,
+      admin: {
+        description:
+          "Paste the address from your browser, for example a product page on weather.barrels.gd.",
+      },
+    },
+    {
+      name: "title",
+      type: "text",
+      maxLength: 200,
+      admin: {
+        description:
+          "Leave blank to fill in automatically (a product's name and issue time, a warning's headline, a page's title).",
+      },
+    },
     {
       name: "category",
       type: "select",
-      required: true,
       options: [
         { label: "Forecast", value: "forecast" },
         { label: "CAP alert", value: "cap" },
@@ -82,39 +104,79 @@ export const relatedLinksField: Field = {
         { label: "Article", value: "article" },
         { label: "News source", value: "source" },
       ],
+      admin: { description: "Leave blank to fill in automatically." },
     },
     {
-      name: "url",
-      label: "Destination URL",
-      type: "text",
-      required: true,
-      maxLength: 2000,
+      name: "isMain",
+      type: "checkbox",
+      label: "Main link",
+      defaultValue: false,
+      admin: {
+        description:
+          "Show this one as a card with its live details. Only one per post; it must be a GMS product, warning or page.",
+      },
     },
   ],
 };
 
-export const validateRelatedLinks: CollectionBeforeChangeHook = ({
-  data,
-  originalDoc,
-}) => {
-  const result = editorialLinksSchema.safeParse(
-    data.relatedLinks ?? originalDoc?.relatedLinks ?? []
-  );
-  if (!result.success)
-    throw new APIError(
-      "Related links need a category, title and full HTTP or HTTPS URL without credentials (maximum 20 links).",
-      400
+/**
+ * Checks a post's related links, works out each one's kind from its address,
+ * fills in blank titles and categories, and (for report write-ups) requires a
+ * main issued product. Product and warning names come from the forecast
+ * system and fall back to a plain label if it cannot be reached.
+ */
+export const validateRelatedLinks =
+  ({
+    requireMainProduct = false,
+  }: {
+    requireMainProduct?: boolean;
+  } = {}): CollectionBeforeChangeHook =>
+  async ({ data, originalDoc }) => {
+    const result = editorialLinksSchema.safeParse(
+      data.relatedLinks ?? originalDoc?.relatedLinks ?? []
     );
-  // Preserve Payload row IDs when normalizing editable values.
-  if (data.relatedLinks)
-    data.relatedLinks = data.relatedLinks.map(
-      (row: Record<string, unknown>, index: number) => ({
-        ...row,
-        ...result.data[index],
-      })
+    if (!result.success)
+      throw new APIError(
+        result.error.issues[0]?.message ??
+          "Check the related links (maximum 20).",
+        400
+      );
+    if (
+      requireMainProduct &&
+      !result.data.some((link) => link.type === "product" && link.isMain)
+    )
+      throw new APIError(
+        "Paste the issued report this write-up is about and tick Main link.",
+        400
+      );
+    if (!data.relatedLinks) return data;
+    const baseURL = getEnv().AUTH_API_URL;
+    // Preserve Payload row IDs while filling in what the editor left blank.
+    data.relatedLinks = await Promise.all(
+      data.relatedLinks.map(
+        async (row: Record<string, unknown>, index: number) => {
+          const link = result.data[index];
+          if (!link) return row;
+          const blank = {
+            title: !String(row.title ?? "").trim(),
+            category: !row.category,
+          };
+          const label =
+            blank.title || blank.category
+              ? await labelFor(link, baseURL)
+              : null;
+          return {
+            ...row,
+            url: link.url,
+            isMain: link.isMain,
+            title: blank.title ? label?.title : link.title,
+            category: blank.category ? label?.category : link.category,
+          };
+        }
+      )
     );
-  return data;
-};
+    return data;
+  };
 
 export const seoField: Field = {
   name: "seo",
@@ -130,15 +192,77 @@ export const seoField: Field = {
   ],
 };
 
-export const socialField: Field = {
+/**
+ * "Include in newsletter": the post goes into the daily digest on the day it
+ * is published. Only a publisher of this section can tick it, because the
+ * digest goes to subscribers.
+ */
+export const includeInNewsletterField = (
+  publishKey: string,
+  condition?: NonNullable<NonNullable<Field["admin"]>["condition"]>
+): Field => ({
+  name: "includeInNewsletter",
+  type: "checkbox",
+  label: "Include in newsletter",
+  defaultValue: false,
+  access: {
+    create: ({ req }) => canPublish(req.user, publishKey),
+    update: ({ req }) => canPublish(req.user, publishKey),
+  },
+  admin: {
+    position: "sidebar",
+    condition,
+    description:
+      "Puts this post in that day's email digest to subscribers. Only publishers can tick it.",
+  },
+});
+
+/**
+ * Social sharing for one section. "Approve for social" is ticked by a
+ * publisher of that section; nothing is sent to a social platform without it.
+ */
+export const socialField = (publishKey: string): Field => ({
   name: "social",
   type: "group",
   label: "Social media sharing",
   admin: {
     description:
-      "Prepare platform-specific copy. Automatic delivery can be added later.",
+      "Download the main link's images, then prepare platform-specific copy. Ticking Approve for social sends the post to the chosen platforms when it is published.",
   },
   fields: [
+    {
+      name: "approveForSocial",
+      type: "checkbox",
+      label: "Approve for social",
+      defaultValue: false,
+      access: {
+        create: ({ req }) => canPublish(req.user, publishKey),
+        update: ({ req }) => canPublish(req.user, publishKey),
+      },
+      admin: {
+        description:
+          "Only publishers can approve. When the post is published with this ticked, it is sent to the platforms below.",
+      },
+    },
+    {
+      name: "attachments",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "/components/social-attachments#SocialAttachments",
+        },
+      },
+    },
+    {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      label: "Custom image",
+      admin: {
+        description:
+          "Optional. Replaces the warning's social image when the post is shared.",
+      },
+    },
     { name: "caption", type: "textarea", label: "Shared starting caption" },
     {
       name: "enabledPlatforms",
@@ -168,4 +292,4 @@ export const socialField: Field = {
       label: "WhatsApp Channel message",
     },
   ],
-};
+});

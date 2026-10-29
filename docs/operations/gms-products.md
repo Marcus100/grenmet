@@ -81,9 +81,12 @@ publication event; `values.issuedAt` gates public visibility. At noon a publishe
 midday report replaces morning, and at 18:00 evening replaces midday. Late
 midday/evening reports leave the previous report visible. Tonight retains its
 issue-date tab across midnight until 07:00. At 07:00 the date strip advances;
-without a new morning report it says “Awaiting today’s morning forecast”.
-Future date tabs use the latest visible evening outlook, showing full weather
-details and each period’s coverage. An open page refreshes every 30 seconds.
+until a report issued today is published, today shows the matching day of the
+newest visible evening outlook (day 1 of last night's, or day 2–4 of an older
+one), titled “From the <date> evening forecast” (owner decision, 28 October
+2026). Only when no evening outlook is still in date does today say “Awaiting
+today’s morning forecast”. Future date tabs use the latest visible evening
+outlook, showing full weather details and each period’s coverage. An open page refreshes every 30 seconds.
 Forecasters do not write impact-based content: it is authored only in GMS alerts
 and CAP warnings (owner decision, 23 October 2026). Forecast warnings and impacts
 are legacy fields kept so older issues still open, and excluded from forecast

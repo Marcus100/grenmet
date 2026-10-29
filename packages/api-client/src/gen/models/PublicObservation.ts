@@ -46,4 +46,11 @@ export type PublicObservation = {
   weather?: string | null;
   cloud_oktas?: number | null;
   cloud?: string | null;
+  visibility_km?: number | null;
+  wind_gust_kt?: number | null;
+  wind_gust_mph?: number | null;
+  max_temperature_c?: number | null;
+  min_temperature_c?: number | null;
+  cloud_base_min_m?: number | null;
+  cloud_base_max_m?: number | null;
 };

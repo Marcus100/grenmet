@@ -7,7 +7,7 @@ import smtplib
 import sys
 from collections.abc import AsyncGenerator, Awaitable, Callable, Generator
 from datetime import timedelta
-from typing import TYPE_CHECKING, Protocol, TypedDict
+from typing import TYPE_CHECKING, NotRequired, Protocol, TypedDict
 from uuid import uuid4
 
 if TYPE_CHECKING:
@@ -540,11 +540,18 @@ class EmailSendCall(TypedDict):
     email_to: str
     subject: str
     html_content: str
+    # Present only for mail that carries extra headers (List-Unsubscribe).
+    headers: NotRequired[dict[str, str]]
 
 
 class EmailSender(Protocol):
     def __call__(
-        self, *, email_to: str, subject: str = "", html_content: str = ""
+        self,
+        *,
+        email_to: str,
+        subject: str = "",
+        html_content: str = "",
+        headers: dict[str, str] | None = None,
     ) -> None: ...
 
 
@@ -562,11 +569,20 @@ def stub_email_sender(
     original_sender = email_module.send_email
 
     def record_send(
-        *, email_to: str, subject: str = "", html_content: str = ""
+        *,
+        email_to: str,
+        subject: str = "",
+        html_content: str = "",
+        headers: dict[str, str] | None = None,
     ) -> None:
-        outbound_email_calls.append(
-            {"email_to": email_to, "subject": subject, "html_content": html_content}
-        )
+        call: EmailSendCall = {
+            "email_to": email_to,
+            "subject": subject,
+            "html_content": html_content,
+        }
+        if headers:
+            call["headers"] = headers
+        outbound_email_calls.append(call)
 
     def block_provider(*_args: object, **_kwargs: object) -> None:
         raise AssertionError(

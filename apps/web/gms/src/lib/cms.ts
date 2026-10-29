@@ -12,13 +12,49 @@ export const CONTENT_COLLECTIONS = [
 ] as const;
 export type ContentCollection = (typeof CONTENT_COLLECTIONS)[number];
 
-const contentSchema = z.object({
+/**
+ * One related link as the CMS sends it. A pasted GMS product, warning or page
+ * arrives with its `type` and `ref`, and the site builds its own address from
+ * those, so the pasted host never matters. Outside links must be plain HTTP(S).
+ */
+export const relatedLinkSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    category: z.enum([
+      "forecast",
+      "cap",
+      "aviation",
+      "bulletin",
+      "publication",
+      "article",
+      "source",
+    ]),
+    url: z.string().max(2000),
+    type: z.enum(["link", "product", "cap", "page"]).default("link"),
+    ref: z.string().nullable().default(null),
+    isMain: z.boolean().default(false),
+  })
+  .refine((link) => {
+    if (link.type !== "link") return Boolean(link.ref);
+    if (!URL.canParse(link.url)) return false;
+    const url = new URL(link.url);
+    return (
+      ["http:", "https:"].includes(url.protocol) &&
+      !url.username &&
+      !url.password
+    );
+  });
+export type RelatedLink = z.infer<typeof relatedLinkSchema>;
+
+export const contentSchema = z.object({
   id: z.string(),
   collection: z.enum(CONTENT_COLLECTIONS),
   title: z.string(),
   slug: z.string(),
   kicker: z.string().nullable().optional(),
   summary: z.string().nullable(),
+  /** Who created the post (their sign-in name); older feeds and posts have none. */
+  authorName: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
   body: z.string(),
   imageUrl: z.string().nullable(),
@@ -28,38 +64,14 @@ const contentSchema = z.object({
   topics: z.array(z.string()).optional(),
   publishedAt: z.string().nullable().optional(),
   updatedAt: z.string(),
-  relatedLinks: z
-    .array(
-      z.object({
-        title: z.string().trim().min(1).max(200),
-        category: z.enum([
-          "forecast",
-          "cap",
-          "aviation",
-          "bulletin",
-          "publication",
-          "article",
-          "source",
-        ]),
-        url: z
-          .url()
-          .max(2000)
-          .refine((value) => {
-            if (!URL.canParse(value)) return false;
-            const url = new URL(value);
-            return (
-              ["http:", "https:"].includes(url.protocol) &&
-              !url.username &&
-              !url.password
-            );
-          }),
-      })
-    )
-    .max(20)
-    .optional(),
+  relatedLinks: z.array(relatedLinkSchema).max(20).optional(),
   /** A FastAPI product whose live figures show beside the post. */
   linkedProduct: z
-    .object({ productId: z.string(), kind: z.string().nullable() })
+    .object({
+      productId: z.string(),
+      kind: z.string().nullable(),
+      title: z.string().optional(),
+    })
     .nullable()
     .optional(),
 });
@@ -199,6 +211,11 @@ const questionsPartSchema = z.discriminatedUnion("status", [
   z.object({ status: z.literal("ok"), items: z.array(questionSchema) }),
   z.object({ status: z.literal("unavailable") }),
 ]);
+/**
+ * The duty forecaster's note, a live post of kind note in the CMS. `alertUrl`
+ * is its CAP alert address for older CMS builds; newer ones also send the
+ * note's related links, which the site shows as a card.
+ */
 const weatherNowSchema = z.object({
   note: z
     .object({
@@ -206,6 +223,7 @@ const weatherNowSchema = z.object({
       postedAt: z.string().nullable(),
       expiresAt: z.string(),
       alertUrl: z.string().nullable(),
+      relatedLinks: z.array(relatedLinkSchema).max(20).optional(),
     })
     .nullable(),
 });
@@ -314,12 +332,22 @@ const wordsSchema = z.object({
 });
 const livePostSchema = z.object({
   id: z.string(),
-  kind: z.enum(["update", "video", "audio"]),
+  kind: z.enum([
+    "update",
+    "satellite",
+    "radar",
+    "wind",
+    "seas",
+    "video",
+    "audio",
+  ]),
   title: z.string(),
   text: z.string().nullable(),
   mediaUrl: z.string().nullable(),
   publishedAt: z.string().nullable(),
   expiresAt: z.string().nullable(),
+  /** Optional link under the post: its main link, else the first. */
+  relatedLinks: z.array(relatedLinkSchema).max(20).optional(),
 });
 export type LivePost = z.infer<typeof livePostSchema>;
 

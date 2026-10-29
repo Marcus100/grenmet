@@ -3,6 +3,7 @@ import type {
   CapSeverity,
   GmsColour,
 } from "@barrelsgd/api-client";
+import { formatSectors, type SectorKey } from "@barrelsgd/gms/sectors";
 
 /**
  * GMS product and impact colour, per the impact-based forecasting guidelines
@@ -70,6 +71,7 @@ export const COLOUR_SURFACE: Record<
 
 export const AWARENESS_PARAMETER = "awareness_level";
 export const PRODUCT_PARAMETER = "GMS:product";
+export const SECTORS_PARAMETER = "GMS:sectors";
 
 export function severityForColour(colour: GmsColour): CapSeverity {
   return AWARENESS[colour].severity;
@@ -136,4 +138,12 @@ export function levelHeading(
     return `Outlook · ${title}`;
   }
   return colour ? `${COLOUR_LABEL[colour]} · ${title}` : title;
+}
+
+/** The optional sector tag; no sectors means no parameter (affects everyone). */
+export function sectorParameters(
+  sectors: readonly SectorKey[]
+): CapNameValue[] {
+  const stored = formatSectors(sectors);
+  return stored ? [{ value_name: SECTORS_PARAMETER, value: stored }] : [];
 }

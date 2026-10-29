@@ -5,6 +5,7 @@ import type {
   TodayIssue,
   WeatherSnapshot,
 } from "@/lib/forecast-data";
+import { DEFAULT_UNITS, formatMeasure, type Measure } from "@/lib/units";
 import type { WeatherCondition } from "@/lib/weather-icons";
 
 const ISSUE_LABELS: Record<string, string> = {
@@ -24,30 +25,55 @@ function conditionFor(summary: string): WeatherCondition {
   if (text.includes("sunny") || text.includes("fair")) return "sunny";
   return "cloudy";
 }
+/**
+ * A temperature tile with its numbers, so the page can show it in the visitor's
+ * unit system. `value` is the same text in the default (metric) units.
+ */
+function temperatureTile(label: string, low: number): Condition {
+  const measure: Measure = { quantity: "temperature", low };
+  return {
+    label,
+    measure,
+    value: formatMeasure(measure, DEFAULT_UNITS) ?? "Not supplied",
+  };
+}
+
+/** The midday temperature observed at MBIA, kept apart from the forecast maximum. */
+function observationTile(observed: string | undefined): Condition | null {
+  const value = observed ? Number(observed) : Number.NaN;
+  return Number.isFinite(value)
+    ? temperatureTile("Midday observation at MBIA", value)
+    : null;
+}
+
 function conditions(period: ForecastPeriod): Condition[] {
   const v = period.details ?? {};
   // FastAPI formats structured wind, sea and tides (public units first); use it
   // when present so the site matches the issued PDF.
   if (period.conditions?.length) {
     const tiles: Condition[] = period.conditions.map(
-      ({ icon, value, label }) => ({ icon, value, label })
+      ({ icon, value, label, quantity, low, high }) => ({
+        icon,
+        value,
+        label,
+        ...(quantity && low !== null && low !== undefined
+          ? { measure: { quantity, low, high: high ?? null } }
+          : {}),
+      })
     );
-    if (!period.period_key && v.observedTemperature)
-      tiles.push({
-        label: "Midday observation at MBIA",
-        value: `${v.observedTemperature}°C`,
-      });
+    const observation = observationTile(v.observedTemperature);
+    if (!period.period_key && observation) tiles.push(observation);
     return tiles;
   }
+  // Without structured tiles the feed sends only the forecaster's words for
+  // wind and sea state, so those stay text (no numbers to convert).
   const result: Condition[] = [
-    {
-      label: "Max Temp",
-      value: period.high == null ? "Not supplied" : `${period.high}°C`,
-    },
-    {
-      label: "Min Temp",
-      value: period.low == null ? "Not supplied" : `${period.low}°C`,
-    },
+    period.high == null
+      ? { label: "Max Temp", value: "Not supplied" }
+      : temperatureTile("Max Temp", period.high),
+    period.low == null
+      ? { label: "Min Temp", value: "Not supplied" }
+      : temperatureTile("Min Temp", period.low),
     { label: "Wind", value: v.wind || "Not supplied" },
     { label: "Sea State", value: v.seaState || "Not supplied" },
   ];
@@ -59,12 +85,25 @@ function conditions(period: ForecastPeriod): Condition[] {
   ] as const) {
     if (v[key]) result.push({ label, value: v[key] });
   }
-  if (!period.period_key && v.observedTemperature)
-    result.push({
-      label: "Midday observation at MBIA",
-      value: `${v.observedTemperature}°C`,
-    });
+  const observation = observationTile(v.observedTemperature);
+  if (!period.period_key && observation) result.push(observation);
   return result;
+}
+/**
+ * Today taken from an outlook day means today's own forecast is not out yet;
+ * the API falls back to the newest evening issue and the title says which.
+ */
+function periodTitle(period: ForecastPeriod, index: number): string {
+  if (!period.period_key)
+    return PERIOD_TITLES[period.source?.kind ?? ""] ?? "Forecast";
+  if (index > 0 || !period.source) return `Forecast for ${period.date}`;
+  const issued = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Grenada",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(period.source.issued_at));
+  const kind = ISSUE_LABELS[period.source.kind]?.toLowerCase() ?? "earlier";
+  return `From the ${issued} ${kind} forecast`;
 }
 function periodData(period: ForecastPeriod, index: number): ForecastDayData {
   const date = period.date;
@@ -90,9 +129,7 @@ function periodData(period: ForecastPeriod, index: number): ForecastDayData {
     high: period.high ?? null,
     low: period.low ?? null,
     conditions: conditions(period),
-    title: period.period_key
-      ? `Forecast for ${date}`
-      : (PERIOD_TITLES[period.source.kind] ?? "Forecast"),
+    title: periodTitle(period, index),
     condition: conditionFor(summary),
     summary,
     source: "",

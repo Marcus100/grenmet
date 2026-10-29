@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRightIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -24,12 +25,21 @@ import { Button } from "./ui/button";
 
 export { filterAnalyticsEvent } from "../lib/analytics-runtime";
 
-function PublicAnalytics({ app }: { app: PublicApp }) {
+function PublicAnalytics({
+  app,
+  privacyHref,
+}: {
+  app: PublicApp;
+  privacyHref?: string;
+}) {
   const pathname = usePathname();
   const [preference, setPreference] = useState<"accepted" | "declined" | null>(
     null
   );
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState<"ask" | "customise">("ask");
+  // Analytics starts unticked: turning it on is the reader's choice.
+  const [analytics, setAnalytics] = useState(false);
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const update = () => {
@@ -100,7 +110,12 @@ function PublicAnalytics({ app }: { app: PublicApp }) {
       <button
         aria-label="Privacy settings"
         className="fixed bottom-[calc(var(--privacy-bottom-offset,0px)_+_var(--spacing)_*_4)] left-4 z-50 rounded-full border border-border bg-background px-3 py-1.5 font-medium text-foreground text-xs shadow-card hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          // Coming back to change a choice goes straight to the settings.
+          setAnalytics(preference === "accepted");
+          setView("customise");
+          setOpen(true);
+        }}
         type="button"
       >
         Privacy
@@ -109,76 +124,163 @@ function PublicAnalytics({ app }: { app: PublicApp }) {
     );
   }
   return createPortal(
-    <section
-      aria-labelledby="privacy-choice-title"
-      className="fixed inset-x-4 bottom-[calc(var(--privacy-bottom-offset,0px)_+_var(--spacing)_*_4)] z-50 space-y-4 rounded-3xl border border-border bg-foreground p-5 text-background text-sm shadow-card sm:inset-x-auto sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:w-full sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2"
-      role="dialog"
-    >
-      <h2 className="sr-only" id="privacy-choice-title">
-        Cookie preferences
-      </h2>
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <p>We use cookies.</p>
-        <details className="group contents">
-          <summary className="cursor-pointer list-none underline underline-offset-4">
-            Read more
-          </summary>
-          <div className="w-full space-y-2 pt-2">
+    <>
+      <div aria-hidden="true" className="fixed inset-0 z-50 bg-foreground/40" />
+      <section
+        aria-label="Cookie preferences"
+        aria-modal="true"
+        className="fixed inset-x-4 top-1/2 z-50 max-h-[calc(100dvh-2rem)] -translate-y-1/2 space-y-5 overflow-y-auto rounded-lg bg-background p-6 text-base text-foreground shadow-card sm:inset-x-auto sm:left-1/2 sm:w-full sm:max-w-md sm:-translate-x-1/2 sm:p-8"
+        role="dialog"
+      >
+        {view === "ask" ? (
+          <>
+            <h2 className="text-balance font-bold text-2xl leading-tight">
+              Do you accept our cookie policy?
+            </h2>
             <p>
-              Optional analytics helps us improve this site. It starts only if
-              you accept. You can change your choice using Privacy.
+              We use essential cookies to run this site and, only if you accept,
+              analytics cookies to measure how people use it. No advertising or
+              session replay.
             </p>
-            <p>
-              Google Analytics and PostHog count visits and a few actions,
-              without advertising or session replay. Your choice is saved on
-              this site for six months.
-            </p>
-          </div>
-        </details>
-      </div>
-      {optedOut ? <p>Your browser has turned optional analytics off.</p> : null}
-      <div className="grid grid-cols-2 gap-3">
-        <Button
-          className="min-h-11 rounded-full bg-background text-foreground hover:bg-background/90"
-          disabled={optedOut}
-          onClick={() => choose("accepted")}
-        >
-          Accept
-        </Button>
-        <Button
-          className="min-h-11 rounded-full border border-background/40 bg-transparent text-background hover:bg-background/10"
-          onClick={() => choose("declined")}
-        >
-          Deny
-        </Button>
-      </div>
-      {preference === null ? null : (
-        <button
-          className="text-xs underline"
-          onClick={() => setOpen(false)}
-          type="button"
-        >
-          Close
-        </button>
-      )}
-    </section>,
+            {optedOut ? (
+              <p>Your browser has turned optional analytics off.</p>
+            ) : null}
+            <div className="grid gap-2">
+              <Button
+                className="rounded-full"
+                disabled={optedOut}
+                onClick={() => choose("accepted")}
+                size="touch"
+              >
+                Accept cookies
+                <ArrowRightIcon aria-hidden="true" data-icon="inline-end" />
+              </Button>
+              <Button
+                onClick={() => {
+                  setAnalytics(false);
+                  setView("customise");
+                }}
+                size="touch"
+                variant="link"
+              >
+                Customise settings
+                <ArrowRightIcon aria-hidden="true" data-icon="inline-end" />
+              </Button>
+              <Button
+                className="min-h-11"
+                onClick={() => choose("declined")}
+                variant="link"
+              >
+                Essential cookies only
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 className="text-balance font-bold text-2xl leading-tight">
+              Customise your cookie settings
+            </h2>
+            {privacyHref ? (
+              <p>
+                Read our{" "}
+                <a className="underline underline-offset-4" href={privacyHref}>
+                  privacy policy
+                </a>{" "}
+                for the full details.
+              </p>
+            ) : null}
+            <fieldset className="space-y-4">
+              <legend className="sr-only">Cookie categories</legend>
+              <label className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                <input
+                  checked
+                  className="mt-1 size-5 accent-primary"
+                  disabled
+                  type="checkbox"
+                />
+                <span className="font-semibold">Essential cookies</span>
+                <span className="col-start-2 text-muted-foreground">
+                  Needed for the site to work, such as remembering this choice.
+                  Always on.
+                </span>
+              </label>
+              <label className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                <input
+                  checked={analytics}
+                  className="mt-1 size-5 accent-primary"
+                  disabled={optedOut}
+                  onChange={(event) => setAnalytics(event.target.checked)}
+                  type="checkbox"
+                />
+                <span className="font-semibold">Analytics cookies</span>
+                <span className="col-start-2 text-muted-foreground">
+                  Google Analytics and PostHog count visits and a few actions,
+                  without advertising or session replay. Your choice is kept for
+                  six months.
+                </span>
+              </label>
+            </fieldset>
+            {optedOut ? (
+              <p>Your browser has turned optional analytics off.</p>
+            ) : null}
+            <div className="grid gap-2">
+              <Button
+                className="rounded-full"
+                onClick={() => choose(analytics ? "accepted" : "declined")}
+                size="touch"
+              >
+                Confirm cookie settings
+                <ArrowRightIcon aria-hidden="true" data-icon="inline-end" />
+              </Button>
+              <Button
+                disabled={optedOut}
+                onClick={() => choose("accepted")}
+                size="touch"
+                variant="link"
+              >
+                Accept all cookies
+                <ArrowRightIcon aria-hidden="true" data-icon="inline-end" />
+              </Button>
+            </div>
+          </>
+        )}
+        {preference === null ? null : (
+          <button
+            className="text-sm underline"
+            onClick={() => setOpen(false)}
+            type="button"
+          >
+            Close
+          </button>
+        )}
+      </section>
+    </>,
     document.body
   );
 }
 
-function AnalyticsForRoute({ app }: { app: PublicApp }) {
+function AnalyticsForRoute({
+  app,
+  privacyHref,
+}: {
+  app: PublicApp;
+  privacyHref?: string;
+}) {
   const pathname = usePathname();
   return pathname && analyticsAllowedOnPath(app, pathname) ? (
-    <PublicAnalytics app={app} />
+    <PublicAnalytics app={app} privacyHref={privacyHref} />
   ) : null;
 }
 /** Legacy keys are deliberately ignored; staff mounts never collect browser analytics. */
 export function PostHogProvider({
   children,
   app,
+  privacyHref,
 }: {
   children: React.ReactNode;
   app?: PublicApp;
+  /** The app's privacy page, linked from the cookie settings when it has one. */
+  privacyHref?: string;
   apiKey?: string;
   apiHost?: string;
 }) {
@@ -187,7 +289,7 @@ export function PostHogProvider({
       {children}
       {app ? (
         <Suspense fallback={null}>
-          <AnalyticsForRoute app={app} />
+          <AnalyticsForRoute app={app} privacyHref={privacyHref} />
         </Suspense>
       ) : null}
     </>

@@ -28106,8 +28106,8 @@
         "tags": [
           "subscriptions"
         ],
-        "summary": "Unsubscribe from a mailing list",
-        "description": "Follows the emailed unsubscribe link, then redirects to the list's site with a result in the query string.",
+        "summary": "Open the unsubscribe page",
+        "description": "Follows an emailed unsubscribe link to the confirmation page at `/subscriptions/unsubscribe/confirm`. Changes nothing, so mail scanners that open links cannot unsubscribe anyone. The unsubscribe itself is `POST`.",
         "operationId": "subscriptionsUnsubscribe",
         "parameters": [
           {
@@ -28133,8 +28133,249 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
           }
         }
+      },
+      "post": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Unsubscribe from a mailing list",
+        "description": "Stops the mailing list behind the token. Used by the confirmation page and by one-click mail clients (`List-Unsubscribe-Post`), so it answers with an HTML page and no redirect. Repeating it is harmless. An invalid token gets a 400 page and changes nothing.",
+        "operationId": "subscriptionsStopSubscription",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/unsubscribe/confirm": {
+      "get": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Confirm an unsubscribe",
+        "description": "HTML page that names the mailing list behind an unsubscribe token and offers the button that unsubscribes. Changes nothing. An invalid token gets a 400 page.",
+        "operationId": "subscriptionsUnsubscribeConfirmPage",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/preferences": {
+      "get": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "List the mailing lists behind an emailed link",
+        "description": "For the signed token from a list email. Returns the lists the address is confirmed on, so the reader can stop each one. Read only. Any token that is missing, forged, expired or unknown gets the same 400.",
+        "operationId": "subscriptionsGetPreferences",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionPreferences"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/preferences/unsubscribe": {
+      "post": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Stop one mailing list from an emailed link",
+        "description": "Stops `list_key` for the address behind `token` and returns the lists it is still confirmed on. Other lists and other addresses are never changed. A list the address is not on changes nothing. An invalid token gets the same 400 as `GET /subscriptions/preferences`.",
+        "operationId": "subscriptionsUnsubscribeOneList",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesUnsubscribeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionPreferences"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/admin/newsletter/test": {
+      "post": {
+        "tags": [
+          "subscriptions",
+          "subscriptions"
+        ],
+        "summary": "Send a test copy of the climate newsletter",
+        "description": "Queues one test copy of today's climate newsletter to an address that has confirmed the list, with a working unsubscribe link. Nothing goes to other subscribers. Needs `newsletter.send_test`. 409 when the address has not confirmed the newsletter.",
+        "operationId": "subscriptionsSendNewsletterTest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsletterTestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsletterTestAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/api/v1/push/vapid-public-key": {
@@ -28452,6 +28693,174 @@
           },
           "400": {
             "description": "Malformed request"
+          }
+        }
+      }
+    },
+    "/api/v1/content-distribution/internal/posts": {
+      "post": {
+        "tags": [
+          "content-distribution"
+        ],
+        "summary": "Save a post for social sharing (CMS hook)",
+        "description": "Called by the CMS when an editor approves a post for social. Authenticated by the X-CMS-Secret header, not a user session. Idempotent per collection, slug and platform: a pending post is updated, a sent post is never reposted. Official warnings are refused (422). Dry run only until live posting is built.",
+        "operationId": "contentSavePost",
+        "parameters": [
+          {
+            "name": "x-cms-secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Cms-Secret"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Refused: warning post, or a platform needs a caption or image"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "503": {
+            "description": "CMS_DISTRIBUTION_SECRET is not set"
+          }
+        }
+      }
+    },
+    "/api/v1/content-distribution/admin/posts": {
+      "get": {
+        "tags": [
+          "content-distribution"
+        ],
+        "summary": "List social posts and their per-platform status",
+        "description": "One row per post and platform, newest first. status is pending, scheduled, dry_run_sent, failed (the outbox is retrying) or dead. Needs the social publishing permission.",
+        "operationId": "contentListPosts",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200,
+                  "pattern": "^[a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Slug"
+            }
+          },
+          {
+            "name": "collection",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 60,
+                  "pattern": "^[a-z][a-z0-9-]{1,59}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Collection"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryAdminList"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -29686,6 +30095,52 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/public/sector-outlook": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Alerts and warnings for the coming days, by sector",
+        "description": "GMS alerts and CAP warnings in force from today for the requested number of days, each with the sectors it affects. An item with no sectors affects everyone. `complete` is false when a source could not be read.",
+        "operationId": "wxproductsPublicSectorOutlook",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 14,
+              "minimum": 1,
+              "default": 7,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectorOutlook"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
           }
         }
       }
@@ -56171,6 +56626,48 @@
         ],
         "title": "CapValidationResult"
       },
+      "Captions": {
+        "properties": {
+          "facebook": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facebook"
+          },
+          "instagram": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instagram"
+          },
+          "whatsapp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Whatsapp"
+          }
+        },
+        "type": "object",
+        "title": "Captions"
+      },
       "CatalogueApply": {
         "properties": {
           "department_id": {
@@ -57767,6 +58264,129 @@
         ],
         "title": "DataRequestCreate"
       },
+      "DeliveryAdmin": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "collection": {
+            "type": "string",
+            "title": "Collection"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "platform": {
+            "type": "string",
+            "title": "Platform"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DeliveryAdminPropertiesStatusEnum"
+          },
+          "automated": {
+            "type": "boolean",
+            "title": "Automated"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "publish_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Publish At"
+          },
+          "processed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "collection",
+          "slug",
+          "platform",
+          "url",
+          "title",
+          "status",
+          "automated",
+          "attempts",
+          "external_id",
+          "error",
+          "publish_at",
+          "processed_at",
+          "updated_at"
+        ],
+        "title": "DeliveryAdmin"
+      },
+      "DeliveryAdminList": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DeliveryAdmin"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "DeliveryAdminList"
+      },
       "DeliveryLine": {
         "properties": {
           "line_id": {
@@ -57787,6 +58407,27 @@
           "quantity"
         ],
         "title": "DeliveryLine"
+      },
+      "DeliveryOutcome": {
+        "properties": {
+          "platform": {
+            "$ref": "#/components/schemas/DeliveryOutcomePropertiesPlatformEnum"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/DeliveryOutcomePropertiesOutcomeEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "platform",
+          "status",
+          "outcome"
+        ],
+        "title": "DeliveryOutcome"
       },
       "DeliveryStatus": {
         "type": "string",
@@ -60032,6 +60673,39 @@
           "label": {
             "type": "string",
             "title": "Label"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastConditionPropertiesQuantityAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low"
+          },
+          "high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High"
           }
         },
         "type": "object",
@@ -60041,7 +60715,7 @@
           "label"
         ],
         "title": "ForecastCondition",
-        "description": "One display tile: a lucide icon name, a formatted value and its label."
+        "description": "One display tile: a lucide icon name, a formatted value and its label.\n\n`value` is the text in GMS's default units. When the tile is a measurement,\n`quantity`, `low` and `high` carry the numbers in WMO storage units (degC,\nknots, metres) so the site can show them in the visitor's unit system."
       },
       "ForecastObservation": {
         "properties": {
@@ -66117,6 +66791,40 @@
         ],
         "title": "NewPassword"
       },
+      "NewsletterTestAccepted": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "queued": {
+            "type": "boolean",
+            "title": "Queued"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "queued"
+        ],
+        "title": "NewsletterTestAccepted"
+      },
+      "NewsletterTestRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "NewsletterTestRequest",
+        "description": "Staff test send: one address that has confirmed the newsletter."
+      },
       "NhcAsset": {
         "properties": {
           "asset_id": {
@@ -71685,6 +72393,108 @@
         ],
         "title": "PositionSpec"
       },
+      "PostAccepted": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "deliveries": {
+            "items": {
+              "$ref": "#/components/schemas/DeliveryOutcome"
+            },
+            "type": "array",
+            "title": "Deliveries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "deliveries"
+        ],
+        "title": "PostAccepted"
+      },
+      "PostIn": {
+        "properties": {
+          "collection": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,59}$",
+            "title": "Collection"
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 200,
+            "pattern": "^[a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)*$",
+            "title": "Slug"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "pattern": "^https://[^\\s]{4,1990}$",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Summary",
+            "default": ""
+          },
+          "captions": {
+            "$ref": "#/components/schemas/Captions"
+          },
+          "platforms": {
+            "items": {
+              "$ref": "#/components/schemas/DeliveryOutcomePropertiesPlatformEnum"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Platforms"
+          },
+          "publishAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishat"
+          },
+          "imageUrl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "pattern": "^https://[^\\s]{4,1990}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imageurl"
+          }
+        },
+        "type": "object",
+        "required": [
+          "collection",
+          "slug",
+          "url",
+          "title",
+          "captions",
+          "platforms"
+        ],
+        "title": "PostIn",
+        "description": "What the CMS sends when an editor approves a post for social."
+      },
       "PostponeEvent": {
         "properties": {
           "starts_at": {
@@ -71730,6 +72540,29 @@
           "ends_at"
         ],
         "title": "PostponeResult"
+      },
+      "PreferencesUnsubscribeRequest": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 2048,
+            "title": "Token"
+          },
+          "list_key": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "pattern": "^[a-z0-9-]+$",
+            "title": "List Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "list_key"
+        ],
+        "title": "PreferencesUnsubscribeRequest",
+        "description": "The signed token from a mail, and the one list to stop."
       },
       "ProductAccessCurrent": {
         "properties": {
@@ -73337,6 +74170,83 @@
               }
             ],
             "title": "Cloud"
+          },
+          "visibility_km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility Km"
+          },
+          "wind_gust_kt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Gust Kt"
+          },
+          "wind_gust_mph": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Gust Mph"
+          },
+          "max_temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Temperature C"
+          },
+          "min_temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Temperature C"
+          },
+          "cloud_base_min_m": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cloud Base Min M"
+          },
+          "cloud_base_max_m": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cloud Base Max M"
           }
         },
         "type": "object",
@@ -78222,6 +79132,176 @@
         ],
         "title": "SectionView"
       },
+      "SectorOutlook": {
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "window_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window Start"
+          },
+          "window_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window End"
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SectorOutlookItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "window_start",
+          "window_end",
+          "complete",
+          "items"
+        ],
+        "title": "SectorOutlook"
+      },
+      "SectorOutlookItem": {
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/SectorOutlookItemPropertiesSourceEnum"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "product": {
+            "type": "string",
+            "title": "Product"
+          },
+          "colour": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicWarningPropertiesColourAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Colour"
+          },
+          "likelihood": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Likelihood"
+          },
+          "impact": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact"
+          },
+          "impacts": {
+            "type": "string",
+            "title": "Impacts"
+          },
+          "response": {
+            "type": "string",
+            "title": "Response"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "reference": {
+            "type": "string",
+            "title": "Reference"
+          },
+          "identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identifier"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "sectors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sectors"
+          },
+          "affects_everyone": {
+            "type": "boolean",
+            "title": "Affects Everyone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "title",
+          "product",
+          "impacts",
+          "response",
+          "reference",
+          "sectors",
+          "affects_everyone"
+        ],
+        "title": "SectorOutlookItem",
+        "description": "One alert or warning that applies to the coming days, with its sectors."
+      },
       "SecurityProof": {
         "properties": {
           "password": {
@@ -82532,6 +83612,41 @@
           "email"
         ],
         "title": "SubscribeRequest"
+      },
+      "SubscribedList": {
+        "properties": {
+          "list_key": {
+            "type": "string",
+            "title": "List Key"
+          },
+          "list_name": {
+            "type": "string",
+            "title": "List Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "list_key",
+          "list_name"
+        ],
+        "title": "SubscribedList",
+        "description": "A mailing list the address behind the link is confirmed on."
+      },
+      "SubscriptionPreferences": {
+        "properties": {
+          "lists": {
+            "items": {
+              "$ref": "#/components/schemas/SubscribedList"
+            },
+            "type": "array",
+            "title": "Lists"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lists"
+        ],
+        "title": "SubscriptionPreferences"
       },
       "SuggestionCreate": {
         "properties": {
@@ -90704,6 +91819,32 @@
           "received"
         ]
       },
+      "DeliveryAdminPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "scheduled",
+          "dry_run_sent",
+          "failed",
+          "dead"
+        ]
+      },
+      "DeliveryOutcomePropertiesPlatformEnum": {
+        "type": "string",
+        "enum": [
+          "facebook",
+          "instagram",
+          "whatsapp"
+        ]
+      },
+      "DeliveryOutcomePropertiesOutcomeEnum": {
+        "type": "string",
+        "enum": [
+          "created",
+          "updated",
+          "unchanged"
+        ]
+      },
       "EventCategoryNodePropertiesAppliesToItemsEnum": {
         "type": "string",
         "enum": [
@@ -90719,6 +91860,14 @@
         "enum": [
           "arrivals",
           "departures"
+        ]
+      },
+      "ForecastConditionPropertiesQuantityAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "temperature",
+          "speed",
+          "height"
         ]
       },
       "ForecastSourcePropertiesKindEnum": {
@@ -91241,6 +92390,13 @@
           "gnca"
         ]
       },
+      "SectorOutlookItemPropertiesSourceEnum": {
+        "type": "string",
+        "enum": [
+          "CAP",
+          "Bulletin"
+        ]
+      },
       "SettlementChannelPropertiesChannelEnum": {
         "type": "string",
         "enum": [
@@ -91515,6 +92671,10 @@
     {
       "name": "subscriptions",
       "description": "Public mailing-list sign-up with double opt-in (no sign-in)."
+    },
+    {
+      "name": "content-distribution",
+      "description": "Social posts saved by the CMS (shared-secret hook) and their per-platform status for staff. Dry run only."
     },
     {
       "name": "push",

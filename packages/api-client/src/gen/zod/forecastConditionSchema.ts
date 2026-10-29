@@ -4,13 +4,19 @@
  */
 
 import * as z from "zod";
+import { forecastConditionPropertiesQuantityAnyOfEnumSchema } from "./forecastConditionPropertiesQuantityAnyOfEnumSchema.js";
 
 export const forecastConditionSchema = z
   .object({
     icon: z.string(),
     value: z.string(),
     label: z.string(),
+    quantity: z
+      .union([forecastConditionPropertiesQuantityAnyOfEnumSchema, z.null()])
+      .optional(),
+    low: z.union([z.number(), z.null()]).optional(),
+    high: z.union([z.number(), z.null()]).optional(),
   })
   .describe(
-    "One display tile: a lucide icon name, a formatted value and its label."
+    "One display tile: a lucide icon name, a formatted value and its label.\n\n`value` is the text in GMS's default units. When the tile is a measurement,\n`quantity`, `low` and `high` carry the numbers in WMO storage units (degC,\nknots, metres) so the site can show them in the visitor's unit system."
   );

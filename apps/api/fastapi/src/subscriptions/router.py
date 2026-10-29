@@ -1,17 +1,28 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Path, Request, status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
-from src.dependencies import SessionDep
-from src.openapi_responses import BAD_REQUEST, NOT_FOUND
+from src.auth.policy import require_permission
+from src.dependencies import CurrentUser, SessionDep
+from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations import sites
 from src.organisations.exceptions import PublicSiteNotFoundError
 from src.rate_limit import limiter
 from src.turnstile import require_turnstile
 
-from . import service
-from .schemas import SiteSubscribeRequest, SubscribeAccepted, SubscribeRequest
+from . import newsletter, pages, service
+from .constants import NEWSLETTER_TEST_PERMISSION
+from .schemas import (
+    NewsletterTestAccepted,
+    NewsletterTestRequest,
+    PreferencesUnsubscribeRequest,
+    SiteSubscribeRequest,
+    SubscribeAccepted,
+    SubscribedList,
+    SubscribeRequest,
+    SubscriptionPreferences,
+)
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
@@ -99,16 +110,133 @@ async def confirm_subscription(
     "/unsubscribe",
     status_code=status.HTTP_303_SEE_OTHER,
     response_class=RedirectResponse,
-    summary="Unsubscribe from a mailing list",
+    summary="Open the unsubscribe page",
     description=(
-        "Follows the emailed unsubscribe link, then redirects to the list's "
-        "site with a result in the query string."
+        "Follows an emailed unsubscribe link to the confirmation page at "
+        "`/subscriptions/unsubscribe/confirm`. Changes nothing, so mail scanners that open "
+        "links cannot unsubscribe anyone. The unsubscribe itself is `POST`."
     ),
+    responses={**BAD_REQUEST},
 )
 @limiter.limit("30/minute")
-async def unsubscribe(
-    *, request: Request, session: SessionDep, token: str
-) -> RedirectResponse:
+async def unsubscribe(*, request: Request, token: str) -> RedirectResponse:
     _ = request
-    url = await service.unsubscribe(session=session, token=token)
-    return RedirectResponse(url, status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(service.unsubscribe_confirm_url(token), status_code=303)
+
+
+@router.get(
+    "/unsubscribe/confirm",
+    response_class=HTMLResponse,
+    summary="Confirm an unsubscribe",
+    description=(
+        "HTML page that names the mailing list behind an unsubscribe token and "
+        "offers the button that unsubscribes. Changes nothing. An invalid token "
+        "gets a 400 page."
+    ),
+    responses={**BAD_REQUEST},
+)
+@limiter.limit("30/minute")
+async def unsubscribe_confirm_page(
+    *, request: Request, session: SessionDep, token: str
+) -> HTMLResponse:
+    _ = request
+    list_name = await service.unsubscribe_context(session=session, token=token)
+    if list_name is None:
+        return HTMLResponse(pages.invalid(), status_code=status.HTTP_400_BAD_REQUEST)
+    return HTMLResponse(
+        pages.confirm_unsubscribe(
+            list_name=list_name, action_url=service.unsubscribe_action_url(token)
+        )
+    )
+
+
+@router.post(
+    "/unsubscribe",
+    response_class=HTMLResponse,
+    summary="Unsubscribe from a mailing list",
+    description=(
+        "Stops the mailing list behind the token. Used by the confirmation page and "
+        "by one-click mail clients (`List-Unsubscribe-Post`), so it answers with "
+        "an HTML page and no redirect. Repeating it is harmless. An invalid token "
+        "gets a 400 page and changes nothing."
+    ),
+    responses={**BAD_REQUEST},
+)
+@limiter.limit("30/minute")
+async def stop_subscription(
+    *, request: Request, session: SessionDep, token: str
+) -> HTMLResponse:
+    _ = request
+    list_name = await service.unsubscribe(session=session, token=token)
+    if list_name is None:
+        return HTMLResponse(pages.invalid(), status_code=status.HTTP_400_BAD_REQUEST)
+    return HTMLResponse(pages.unsubscribed(list_name=list_name))
+
+
+@router.get(
+    "/preferences",
+    response_model=SubscriptionPreferences,
+    summary="List the mailing lists behind an emailed link",
+    description=(
+        "For the signed token from a list email. Returns the lists the address is "
+        "confirmed on, so the reader can stop each one. Read only. Any token that is "
+        "missing, forged, expired or unknown gets the same 400."
+    ),
+    responses={**BAD_REQUEST},
+)
+@limiter.limit("30/minute")
+async def get_preferences(
+    *, request: Request, session: SessionDep, token: str
+) -> SubscriptionPreferences:
+    _ = request
+    lists = await service.preferences(session=session, token=token)
+    return SubscriptionPreferences(lists=[SubscribedList(**item) for item in lists])
+
+
+@router.post(
+    "/preferences/unsubscribe",
+    response_model=SubscriptionPreferences,
+    summary="Stop one mailing list from an emailed link",
+    description=(
+        "Stops `list_key` for the address behind `token` and returns the lists it is "
+        "still confirmed on. Other lists and other addresses are never changed. A list "
+        "the address is not on changes nothing. An invalid token gets the same 400 as "
+        "`GET /subscriptions/preferences`."
+    ),
+    responses={**BAD_REQUEST},
+)
+@limiter.limit("30/minute")
+async def unsubscribe_one_list(
+    *, request: Request, session: SessionDep, body: PreferencesUnsubscribeRequest
+) -> SubscriptionPreferences:
+    _ = request
+    lists = await service.unsubscribe_one_list(
+        session=session, token=body.token, list_key=body.list_key
+    )
+    return SubscriptionPreferences(lists=[SubscribedList(**item) for item in lists])
+
+
+@router.post(
+    "/admin/newsletter/test",
+    response_model=NewsletterTestAccepted,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Send a test copy of the climate newsletter",
+    description=(
+        "Queues one test copy of today's climate newsletter to an address that has "
+        "confirmed the list, with a working unsubscribe link. Nothing goes to other "
+        "subscribers. Needs `newsletter.send_test`. 409 when the address has not "
+        "confirmed the newsletter."
+    ),
+    tags=["subscriptions"],
+    responses={**AUTHENTICATED, **CONFLICT},
+)
+async def send_newsletter_test(
+    *, session: SessionDep, current_user: CurrentUser, body: NewsletterTestRequest
+) -> NewsletterTestAccepted:
+    require_permission(
+        current_user=current_user, permission_key=NEWSLETTER_TEST_PERMISSION
+    )
+    await newsletter.queue_test(session=session, email=str(body.email))
+    return NewsletterTestAccepted(
+        message="A test copy is queued for that address.", queued=True
+    )

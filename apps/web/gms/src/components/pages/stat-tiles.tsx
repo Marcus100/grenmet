@@ -1,12 +1,15 @@
 "use client";
 
 import { motion } from "motion/react";
+import type { ReactNode } from "react";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 
 export interface Stat {
-  detail?: string;
+  /** Text, or a `Measure` that follows the unit switch. */
+  detail?: ReactNode;
   label: string;
-  value: string;
+  /** Text, or a `Measure` that follows the unit switch. */
+  value: ReactNode;
 }
 
 /** Small figure grid — station counts, normals, totals at a glance. */

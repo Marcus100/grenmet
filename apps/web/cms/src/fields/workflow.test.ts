@@ -1,5 +1,44 @@
 import { describe, expect, it } from "vitest";
-import { enforceReview } from "./workflow";
+import {
+  checkTakeOff,
+  enforceReview,
+  firstPublishedAt,
+  stampPublication,
+} from "./workflow";
+
+describe("scheduled show and take-off times", () => {
+  const now = new Date("2026-10-29T12:00:00.000Z");
+  it("dates a future show-from time at that time, otherwise now", () => {
+    expect(firstPublishedAt("2026-10-29T18:00:00.000Z", now)).toBe(
+      "2026-10-29T18:00:00.000Z"
+    );
+    expect(firstPublishedAt("2026-10-29T08:00:00.000Z", now)).toBe(
+      now.toISOString()
+    );
+    expect(firstPublishedAt(undefined, now)).toBe(now.toISOString());
+  });
+  it("needs the take-off time after the show-from time", () => {
+    expect(
+      checkTakeOff("2026-10-30T00:00:00.000Z", "2026-10-29T18:00:00.000Z")
+    ).toBe(true);
+    expect(
+      checkTakeOff("2026-10-29T18:00:00.000Z", "2026-10-29T18:00:00.000Z")
+    ).toBe("Take it off after the time it shows from.");
+    expect(checkTakeOff(undefined, "2026-10-29T18:00:00.000Z")).toBe(true);
+    expect(checkTakeOff("2026-10-30T00:00:00.000Z", null)).toBe(true);
+  });
+  it("stamps a new publication with its scheduled start", () => {
+    const data = stampPublication({
+      data: { status: "published", publishAt: "2026-10-30T07:00:00.000Z" },
+      operation: "create",
+      req: { user: { id: 3 } },
+    } as never);
+    expect(data).toMatchObject({
+      publishedAt: "2026-10-30T07:00:00.000Z",
+      author: 3,
+    });
+  });
+});
 
 const hook = enforceReview("cms.publish.stories");
 const run = (data: Record<string, unknown>, original: unknown, user: unknown) =>

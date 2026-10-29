@@ -56,6 +56,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0048](0048-catalogue-provenance-and-curation.md) | Catalogue provenance and curation: hand-curated seed under unclaimed organiser profiles with source links, no scraping, image-rights and personal-data rules, claim flow, `events.catalogue.curate`, hide/unhide policy | Accepted |
 | [0050](0050-barrels-staff-operations-access-to-organisations.md) | Barrels staff operations access to organisations: global `events.ops.*` keys and staff roles, accepted on Events org-zone routes only through one explicit dependency, with MFA, logging and a "Barrels staff" audit capacity | Proposed |
 | [0051](0051-gms-product-model.md) | GMS product model: green-only GMS alerts with a Raise to warning button that opens a pre-filled CAP draft, a 05:00 marine forecast with new marine kinds, and tracked tropical systems with scheduled NHC pulls | Proposed |
+| [0052](0052-daily-climate-newsletter.md) | Daily climate newsletter by email (supersedes the newsletter deferral): double opt-in list, one-click unsubscribe that is never a GET, 07:30 Grenada digest off by default, staff test send | Proposed |
 
 ## Template
 
