@@ -46,11 +46,11 @@ describe("SkyDayStrip", () => {
     expect(within(tab).queryByText("No forecast yet")).not.toBeInTheDocument();
   });
 
-  it("says one short line for a day with no forecast, not two dashes", () => {
+  it("shows no words for a day with no forecast, only a dash (screen readers still hear it)", () => {
     renderStrip([day({ high: null, low: null })]);
     const tab = screen.getByRole("link", { name: FRIDAY });
-    expect(within(tab).getByText("No forecast yet")).toBeInTheDocument();
-    // The maximum slot holds a single dash; the minimum slot holds the words.
+    expect(within(tab).getByText("No forecast yet")).toHaveClass("sr-only");
+    // The maximum slot holds a single dash; the minimum slot is blank.
     expect(within(tab).getAllByText("—")).toHaveLength(1);
   });
 

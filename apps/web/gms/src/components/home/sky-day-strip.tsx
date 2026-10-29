@@ -232,8 +232,11 @@ export function SkyDayStrip({
                   y={ys[column] ?? null}
                 />
                 {missing ? (
-                  <span className="text-caption text-gm-text-inverse/85 leading-caption sm:text-body-sm sm:leading-body-sm">
-                    No forecast yet
+                  // Nothing is shown for a missing forecast, but the row keeps its
+                  // height so every tab lines up; screen readers still hear why.
+                  <span className="text-caption leading-caption sm:text-body-sm sm:leading-body-sm">
+                    <span aria-hidden="true"> </span>
+                    <span className="sr-only">No forecast yet</span>
                   </span>
                 ) : (
                   <span className="text-caption text-gm-text-inverse/85 tabular-nums leading-caption sm:text-body-sm sm:leading-body-sm">
