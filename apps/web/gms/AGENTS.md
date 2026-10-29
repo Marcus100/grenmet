@@ -109,6 +109,17 @@ src/app/
   The heat page's sentence about 31°C is a `Measure` too (`Prose` takes nodes
   as well as text, for this). Still hand-typed metric text: the tropics-season
   table. New numbers go through `Measure`, never a hand-built string.
+  Plain-text consumers see both renderings: search snippets, link previews,
+  copied text and `textContent` read the metric and the imperial figure side by
+  side, because CSS hides one, not the markup (`components/measure.test.tsx`
+  pins this). So nothing built for metadata, JSON-LD, `alt`, `title` or
+  `aria-label` may come from `Measure` or `bothUnits`. When such a string needs
+  a number, use `formatMeasure(measure, DEFAULT_UNITS)` (metric) explicitly.
+  `Reading.value` and `Condition.value` are that metric text. The forecast
+  fallback's Max/Min Temp and the MBIA midday observation carry a `measure`
+  (`lib/forecast-selection.ts`); its wind and sea-state text stays as the
+  forecaster typed it, since the feed sends no numbers for it (an API change
+  would be needed).
   The panels under the hero tabs are all rendered, stacked in one grid cell
   (`ByTab`, `hero-selection.tsx`), so the hero keeps the tallest panel's height
   and a tab change never moves the page. Only the selected panel is visible.
