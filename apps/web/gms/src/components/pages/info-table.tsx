@@ -11,6 +11,17 @@ export interface InfoTableProps {
   rows: readonly (readonly ReactNode[])[];
 }
 
+/** A key for each row from its first text cell, numbered when two rows share one. */
+function rowKeys(rows: InfoTableProps["rows"]): string[] {
+  const seen = new Map<string, number>();
+  return rows.map((row) => {
+    const base = typeof row[0] === "string" ? row[0] : "row";
+    const count = (seen.get(base) ?? 0) + 1;
+    seen.set(base, count);
+    return `${base}-${count}`;
+  });
+}
+
 /** Bordered data table. Scrolls on its own so narrow screens never pan. */
 export function InfoTable({
   caption,
@@ -18,6 +29,7 @@ export function InfoTable({
   monoColumns,
   rows,
 }: InfoTableProps) {
+  const keys = rowKeys(rows);
   return (
     <div className="overflow-x-auto rounded-gm-card border border-gm-border">
       <table className="w-full border-collapse text-left">
@@ -41,9 +53,7 @@ export function InfoTable({
         </thead>
         <tbody>
           {rows.map((row, rowIndex) => (
-            // Rows are a fixed list rendered once, so position is a stable key.
-            // biome-ignore lint/suspicious/noArrayIndexKey: static table rows
-            <tr className="border-gm-border border-t" key={rowIndex}>
+            <tr className="border-gm-border border-t" key={keys[rowIndex]}>
               {row.map((cell, columnIndex) => (
                 <td
                   className={cn(
@@ -51,8 +61,7 @@ export function InfoTable({
                     monoColumns?.includes(columnIndex) &&
                       "font-mono tabular-nums"
                   )}
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static table cells
-                  key={columnIndex}
+                  key={headers[columnIndex] ?? "extra"}
                 >
                   {cell}
                 </td>
