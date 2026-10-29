@@ -1735,7 +1735,7 @@ Since 28 Oct 2026 a tile that measures something also carries `quantity`
 visitor's metric or imperial choice; `value` stays the text in public units for
 the PDF and older clients.
 
-`GET /api/v1/eregister/public/observation` adds `visibility_km`, `wind_gust_kt`,
+`GET /api/v1/eregister/public/current` observation adds `visibility_km`, `wind_gust_kt`,
 `wind_gust_mph`, `max_temperature_c`, `min_temperature_c` and `cloud_base_min_m` /
 `cloud_base_max_m` (the cloud-base band from the register's height code), all
 null when the register did not record them.
